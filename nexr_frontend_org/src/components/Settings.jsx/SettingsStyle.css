@@ -1,0 +1,256 @@
+.MuiButtonBase-root.otline:focus {
+    outline: none;
+}
+
+.styleRadio {
+    color: #007bff;
+    margin-top: 2px;
+    width: 25px;
+    height: 25px;
+}
+
+.position {
+    position: absolute;
+    font-size: 12px;
+    bottom: 18px;
+    left: 81px;
+}
+
+.sml {
+    width: 30px;
+    height: 30px;
+}
+
+.table td {
+    padding: .75rem;
+    vertical-align: middle;
+    border-top: 1px solid #dee2e6;
+}
+
+.td-parent {
+    display: flex;
+    align-items: center;
+    text-transform: capitalize;
+}
+
+.defaultDesign{
+    padding: 10px;
+    background-color: #A7E6FF;
+    border-radius: 20px;
+    margin-left: 5px;
+    height: 24px;
+    width: 73px;
+    display: flex;
+    align-items: center;
+}
+
+.content {
+    width: 100%;
+    margin: 20px;
+}
+
+.nameHolder, .hoverStyle {
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+}
+
+.nameHolder {
+    background-color: #4B70F5;
+    color: white;
+    text-transform: uppercase;
+}
+
+.hoverStyle:hover, .nameHolder:hover {
+    background-color: #A7E6FF;
+    color: black;
+}
+
+.td-parent > * {
+    margin: 10px;
+}
+
+.Radio-btn {
+    color: #007bff;
+    width: 20px;
+    height: 20px;
+}
+
+.RadioPosition {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+}
+
+.radios-box {
+    border-radius: 10px;
+    box-shadow: rgba(0, 0, 0, 0.16) 0px 1px 4px;
+}
+
+.box-content {
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: rgba(60, 64, 67, 0.3) 0px 1px 2px 0px, rgba(60, 64, 67, 0.15) 0px 1px 3px 1px;    
+}
+
+/* li::marker {
+    color: #007bff;
+    font-size: 20px;
+} */
+
+/* li {
+    color: #b1b1b1;
+    font-size: 15px;
+    margin-left: 0;
+} */
+
+.form-check-input {
+    position:relative;
+    margin-top: 0px;
+    margin-left: 0px;
+}
+
+
+.btn-outline-primary:hover  {
+    background-color: white;
+    color: black;
+}
+
+.enable {
+    background-color: #A7E6FF !important;
+    font-weight: bold;
+    border-color: #5a5ab7 !important;
+    color: black;
+  }
+  
+  /* Outline button  */
+
+  .outline-btn {
+    border: 2px solid black;
+    border-radius: 3px;
+    padding: 5px 10px;
+    font-weight: 500;
+    background: white;
+    color: black;
+    width: 100%;
+  }
+
+  .button:disabled:hover {
+    background-color: #b1b1b1;
+  }
+
+  .button:hover {
+    background-color: white;
+    color: black;
+  }
+  .outline-btn:hover {
+    background-color: black;
+    color: white;
+  }
+
+  .settingsFooter {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px 20px;
+    border-top: 1px solid #e0e0e0;
+    position: fixed;
+    bottom: 0;
+    left: 250px;
+    right: 0;
+    background-color: white;
+    z-index: 1000;  
+}
+
+.formModal {
+    position: fixed;
+    top: 0;
+    left: 0px;
+    width: 100%;
+    background: rgba(0, 0, 0, .5);
+    z-index: 9999;
+    height: 100%;
+    overflow-y: scroll;
+}
+
+.btn-outline-primary {
+    color: black;
+    font-weight: bold;
+    border: 1px solid #007bff;
+}
+
+input[type="radio"] {
+    border: #007bff;
+}
+
+
+h5, h6 {
+    color: rgb(55, 55, 55);
+    font-weight: 600;
+}
+
+.dayBox {
+    cursor: pointer;
+    border: 2px solid #A7E6FF;
+    border-radius: 5px;
+    margin: 10px;
+    padding: 8px;
+}
+
+input[type="time"]::-webkit-calendar-picker-indicator {
+    color: #007bff;
+}
+
+.MuiButtonBase-root.bbb, .MuiButtonBase-root.ccc {
+    text-transform: capitalize;
+    font-weight: 500;
+    font-size: 14px;
+    align-items: center;
+    color: #3572EF;
+}
+
+.MuiButtonBase-root.bbb {
+    width: 226px;
+}
+
+.MuiButtonBase-root.ccc {
+    width: fit-content;
+}
+
+.zzz {
+    width: 80%
+}
+
+.MuiTabs-root.xxx .css-10d9dml-MuiTabs-indicator{
+    left: 0;
+} 
+
+
+.MuiTabs-root.xxx .MuiButtonBase-root:focus{
+    outline: none;
+} 
+
+.MuiTabs-flexContainer .MuiButtonBase-root:focus {
+    outline: none;
+}
+
+.inputFont {
+    color: gray;
+    font-size: 17px;
+    font-weight: 600;
+}
+
+.outlineDesign {
+    border: 2px solid #ced4da;
+    padding: 4px 25px;
+    border-radius: 4px;
+}
+
+.arrow {
+    transition: transform 0.3s ease !important;
+    display: inline-block !important;
+    cursor: pointer;
+  }
+  
+  .rotate {
+    transform: rotate(180deg);
+  }

@@ -1,0 +1,83 @@
+.leaveFormContainer {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+  }
+  
+  /* width: 100%;
+      text-align: center;
+      background: #f4f4f4;
+      position: fixed;
+      height: 50px;
+      bottom: 0px;
+      display: flex;
+      /* align-items: center; */
+  
+  .leaveFormParent {
+    background-color: white;
+    width: 600px;
+    padding: 40px;
+    margin: 50px 0;
+    border-radius: 5px;
+    box-shadow: rgba(0, 0, 0, 0.16) 0px 1px 4px;
+  }
+  
+  .heading {
+    text-align: center;
+    margin: 10px 0px;
+  }
+  
+  .selectInput,
+  .inputField,
+  .fileInput {
+    width: 100%;
+    background-color: #f4f4f4;
+    border: none;
+    border-radius: 15px;
+    height: 50px;
+  }
+  
+  .selectInput,
+  .inputField{ 
+    padding: 0 15px;
+  }
+  
+  .error {
+    border: 2px solid #ec8282;
+  }
+  
+  /* .selectInput, .inputField{
+      padding: 7px;
+  } */
+  
+  input[type="file"]::file-selector-button {
+    background-color: black;
+    color: white;
+    border: none;
+    width: 120px;
+    padding: 5px;
+    height: 100%;
+    cursor: pointer;
+  }
+  
+  .inputLabel {
+    margin: 10px;
+    font-size: 14px;
+    font-weight: 400;
+  }
+  
+  .robotoFont {
+    font-family: "Roboto";
+  }
+  
+  /* Twotabs styles */
+  
+  .leaveReq {
+    width: 100%;
+    padding: 5px;
+    margin: 5px 0px;
+    border-radius: 5px;
+    cursor: pointer;
+    color: white;
+  }
+  

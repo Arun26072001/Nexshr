@@ -1,0 +1,32 @@
+.summary-card {
+    border: 2px solid rgba(237, 237, 237, 1);
+    border-radius: 8px;
+}
+.summary-card h3 {
+    font-size: 24px;
+    margin-bottom: 5px;
+}
+.summary-card p {
+    font-family: Inter;
+    font-size: 12px;
+    font-weight: 400;
+    line-height: 18px;
+    text-align: left;
+    color: rgba(158, 158, 158, 1);
+
+}
+.summary-divider {
+    border-left: 1px solid #e0e0e0;
+    height: 90%;
+    margin: 4px 10px;
+}
+.summary-card .numvalue
+{
+font-family: Inter;
+font-size:25px;
+font-weight: 500;
+line-height: 36px;
+letter-spacing: -0.021em;
+color: rgba(64, 64, 64, 1);
+
+}

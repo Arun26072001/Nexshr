@@ -1,0 +1,56 @@
+.webnxs {
+    background: white;
+    padding: 10px 3px;
+    position: fixed;
+    width: 100%;
+    top: 0px;
+    z-index: 1000;
+}
+
+.sidebarIcon{
+    display: none;
+}
+
+@media (max-width: 450px) {
+    .sidebarIcon{
+        display: flex;
+    }
+}
+
+.logowebnexslogo {
+    width: 30px;
+    height: 30px;
+}
+
+/* .searchParent {
+    display: flex;
+    position: relative;
+    width: fit-content;
+}
+
+.searchParent>input {
+    width: 300px;
+    height: 40px;
+    border: none;
+    border-radius: 10px;
+    padding: 0px 10px;
+}
+
+.searchicon {
+    position: absolute;
+    right: 10px;
+    top: 7px;
+}
+
+.searchlogo {
+    width: 25px;
+    height: 20px;
+    object-fit: contain;
+
+} */
+
+.avatar {
+    width: 35px;
+    height: 35px;
+
+}

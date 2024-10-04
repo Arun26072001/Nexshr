@@ -1,0 +1,52 @@
+{
+  "name": "nexhr",
+  "version": "0.1.0",
+  "private": true,
+  "dependencies": {
+    "@mui/icons-material": "^6.1.1",
+    "@mui/material": "^6.1.1",
+    "@testing-library/jest-dom": "^5.17.0",
+    "@testing-library/react": "^13.4.0",
+    "@testing-library/user-event": "^13.5.0",
+    "apexcharts": "^3.53.0",
+    "axios": "^1.7.7",
+    "formik": "^2.4.6",
+    "jwt-decode": "^4.0.0",
+    "react": "^18.3.1",
+    "react-apexcharts": "^1.4.1",
+    "react-countdown": "^2.3.6",
+    "react-dom": "^18.3.1",
+    "react-router-dom": "^6.26.2",
+    "react-scripts": "5.0.1",
+    "react-spinners": "^0.14.1",
+    "react-toastify": "^10.0.5",
+    "rsuite": "^5.70.2",
+    "web-vitals": "^2.1.4",
+    "yup": "^1.4.0"
+  },
+  "scripts": {
+    "start": "PORT=3335 react-scripts start || set PORT=3335 && react-scripts start",
+    "start-pc": "set PORT=3335 && react-scripts start",
+    "build": "set PORT=3335 && react-scripts --max_old_space_size=4096 build",
+    "test": "set PORT=3335 && react-scripts test",
+    "eject": "set PORT=3335 && react-scripts eject"
+  },
+  "eslintConfig": {
+    "extends": [
+      "react-app",
+      "react-app/jest"
+    ]
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  }
+}

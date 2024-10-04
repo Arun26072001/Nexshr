@@ -1,0 +1,326 @@
+/* attendance page design */
+.regular,
+.early,
+.late,
+.leave {
+  border-radius: 9px 9px 0px 0px;
+  border-top: 2px solid blue;
+  border-right: 2px solid blue;
+  border-left: 2px solid blue;
+  background: #d0e1f8;
+  position: absolute;
+  bottom: 5%;
+}
+
+.leave {
+  height: 10%;
+  z-index: 1;
+  right: 2%;
+}
+
+.late {
+  height: 34%;
+  z-index: 2;
+  right: 26%;
+}
+.early {
+  height: 65%;
+  z-index: 3;
+  right: 50%;
+}
+.regular {
+  z-index: 4;
+  height: 90%;
+}
+
+.chartParent {
+  height: 400px;
+  display: flex;
+  padding: 20px;
+  width: 100%;
+  position: relative;
+}
+
+.chartTitle {
+  font-size: 20px;
+  font-weight: 500;
+  color: black;
+  text-align: center;
+  
+}
+/* sidebar style  */
+.sidetext {
+  background: #f4f4f4;
+}
+
+.sidetext button {
+  border: none;
+}
+
+ul {
+  list-style-type: none;
+}
+
+/* .nav-link {
+  display: block;
+  padding: 0.5rem 1rem;
+  color: black;
+  text-decoration: none;
+  transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out,
+    border-color 0.15s ease-in-out;
+} */
+
+li.nav-item.active {
+  background: rgba(224, 224, 224, 1);
+}
+
+.selected {
+  border-bottom: 3px solid #146adc;
+  border-radius: 2px;
+  padding: 10px;
+  font-weight: 500;
+  color: black !important;
+}
+/* --------------------------------------------------------------------------------- */
+
+.payslipParent {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  overflow-x: scroll;
+  gap: 8px;
+}
+
+.payslipParent > * {
+  cursor: pointer;
+  height: 37px;
+  padding: 12px 5px;
+  margin: 5px 10px;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 21px;
+  display: flex;
+  align-items: center;
+}
+
+.dateInput {
+  border-radius: 5px;
+  border: 1px solid #d7d7d7;
+  padding: 5px;
+}
+
+.leaveBoard {
+  display: flex;
+  width: 97%;
+  border: 2px solid #e7e7e7;
+  padding: 13px;
+  border-radius: 10px;
+  margin: 0px auto;
+}
+
+.leaveDays {
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 24px;
+  letter-spacing: -0.011em;
+  text-align: left;
+}
+
+.leaveDaysDesc {
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 18px;
+  text-align: left;
+  color: rgb(176, 176, 176);
+}
+
+.leaveData {
+  width: 33%;
+  border-right: 2px solid #e7e7e7;
+  margin: 10px;
+}
+
+.leaveTitle {
+  font-weight: 600;
+  font-size: 20px;
+}
+
+.payslipTitle {
+  font-size: 17px;
+  font-weight: 700;
+  padding: 7px 10px;
+  line-height: 24px;
+}
+
+.leaveDateParent {
+  display: flex;
+  justify-content: space-between;
+  padding: 5px 10px;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+/* payrun design */
+
+.payrunNotification {
+  display: flex;
+  width: 95%;
+  height: fit-content;
+  padding: 10px;
+  background: #d0e1f8;
+  border: 2px solid #146adc;
+  border-radius: 7px;
+  margin: 6px 0px;
+}
+
+.payrunInput {
+  width: 100%;
+  border-radius: 8px;
+  border: 2px solid #c2c2c2;
+  padding: 10px;
+  background: none;
+}
+
+.percentageIcon {
+  position: absolute;
+  top: 23%;
+  left: 12%;
+  font-size: 17px;
+}
+
+/* social page design */
+
+/* .socialParent {
+  width: 50%;
+} */
+
+.socialParent > * {
+  margin: 10px;
+}
+.socialInput {
+  display: flex;
+  width: 70%;
+  gap: 10px;
+  align-items: center;
+}
+
+.addInput {
+  border-radius: 5px;
+  display: flex;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border: 2px solid #e0e0e0;
+}
+
+.btnParent {
+  display: flex;
+  gap: 10px;
+  padding: 0px 10px;
+}
+
+/* Contact page design */
+.contactParent > * {
+  margin: 10px;
+}
+
+.MuiTableHead-root.changeColor > tr > th {
+  background-color: #f5f5f5;
+  font-family: inter;
+  border-right: 2px solid #e0e0e0;
+  height: 10px;
+  padding: 5px 10px;
+}
+
+/* history page design */
+.historyCard {
+  padding: 10px 25px;
+  border-radius: 10px;
+  margin: 13px 0px;
+  background: #f5f5f5;
+  cursor: pointer;
+}
+.historyCard > * {
+  margin: 10px 0px;
+}
+
+.historyCardText {
+  width: 121px;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 21px;
+  letter-spacing: -0.006em;
+  text-align: center;
+}
+
+.salaryFont {
+  font-size: 16px;
+  font-weight: 700;
+  color: green;
+  line-height: 24px;
+}
+
+.mainSalaryFont {
+  font-size: 28px;
+  font-weight: 500;
+  line-height: 36px;
+  letter-spacing: -0.021em;
+  text-align: left;
+  color: green;
+}
+
+.amountFont {
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 18px;
+  text-align: left;
+  color: #757575;
+}
+
+/* salary page design */
+
+.salaryCard {
+  border-radius: 10px;
+  border-bottom: 2px solid #e0e0e0;
+  padding: 20px;
+  width: 95%;
+  margin: 10px auto;
+}
+
+.salaryDetails {
+  display: flex;
+}
+
+.salaryDetails > * {
+  margin: 13px;
+}
+/* input.dateInput {
+  width: 129px;
+  height: 38px;
+  border-radius: 5px;
+  border: 2px solid #d7d7d7;
+  background-image: url(/static/media/dateIcon.d563c0d0.svg);
+  background-repeat: no-repeat;
+  background-position: 10px center;
+  background-size: 16px 16px;
+  text-indent: 30px;
+  background-color: #f4f4f4;
+  cursor: pointer;
+}
+
+input.dateInput:active {
+  background: none;
+}
+
+input.dateInput::placeholder {
+  color: black;
+} */
+
+/* Employee style page */
+.searchInputIcon > input[type="text"] {
+  background-image: url("../../asserts/searchIcon.svg");
+  background-position: 15px 15px;
+  background-repeat: no-repeat;
+  padding: 12px 20px 12px 40px;
+  border: 1px solid #c2c2c2;
+}

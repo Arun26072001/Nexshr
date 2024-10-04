@@ -1,0 +1,514 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap");
+
+* {
+  font-family: "Inter", sans-serif;
+}
+
+body {
+  margin: 0;
+  box-sizing: border-box;
+  background-color: #f4f4f4;
+}
+
+.NameLetter,
+.clockinsParent,
+.leaveReq,
+.leaveOption,
+.nameHolder,
+.hoverStyle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.nameHolder {
+  background-color: #4b70f5;
+  color: white;
+  text-transform: uppercase;
+  width: 45px;
+  height: 45px;
+  border-radius: 50%;
+}
+
+.hoverStyle:hover,
+.nameHolder:hover {
+  background-color: #a7e6ff;
+  color: black;
+}
+
+label {
+  display: inline-block;
+}
+
+.notFoundText {
+  height: 80vh;
+  /* margin: auto; */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 500;
+  font-size: 20px;
+  color: red;
+}
+
+a {
+  text-decoration: none !important;
+  color: white;
+}
+
+/* a:hover {
+  color: white !important;
+  text-decoration: none;
+} */
+
+.tabParent > * {
+  padding: 5px !important;
+}
+
+.outline-btn {
+  border: 2px solid black;
+  padding: 7px 12px;
+  font-size: 13px;
+  border-radius: 5px;
+  font-weight: 500;
+  background: white;
+  color: black;
+  width: 100%;
+}
+
+.button {
+  cursor: pointer;
+  margin: auto;
+  padding: 7px 12px;
+  font-size: 13px;
+  border-radius: 5px;
+  background: black;
+  border: none;
+  color: white;
+  font-weight: 500;
+  box-shadow: rgba(0, 0, 0, 0.16) 0px 1px 4px;
+  /* width: 100%; */
+  width: fit-content;
+}
+
+::-webkit-scrollbar {
+  width: 0px;
+}
+
+.button:disabled {
+  background-color: #b1b1b1;
+  color: white;
+}
+
+.button:disabled:hover {
+  background-color: #b1b1b1;
+}
+
+.button:hover {
+  background-color: white;
+  color: black;
+}
+.outline-btn:hover {
+  background-color: black;
+  color: white;
+}
+
+.blue_bg {
+  border-radius: 10px;
+  padding: 10px;
+  background-color: #caf4ff;
+}
+
+/* a {
+  color: rgb(0, 0, 84) !important;
+} */
+
+.empActivies {
+  width: 100%;
+  padding: 10px;
+}
+
+.summary {
+  width: 50%;
+}
+.graphParent {
+  width: 50%;
+}
+
+.custom-dropdown {
+  position: relative;
+  width: 200px;
+  border-radius: 4px;
+}
+
+.dropdown-header {
+  height: 50px;
+  padding: 10px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  background: #feffda;
+  border: none;
+  font-size: 18px;
+  font-weight: 600;
+  color: black;
+}
+
+.dropdown-header > * {
+  padding: 5px;
+}
+
+.dropdown-list {
+  position: absolute;
+  width: 100%;
+  border-radius: 5px;
+  background-color: #fff;
+  list-style: none;
+  margin-top: 3px;
+  padding: 0;
+  z-index: 1000;
+}
+
+.dropdown-list li {
+  padding: 5px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+}
+
+.optionList {
+  background-color: #e8e8e8;
+  width: 100%;
+  padding: 7px;
+  border-radius: 3px;
+}
+
+.dropdown-list li:hover {
+  background-color: #f0f0f0;
+}
+
+.dropdown-list li svg {
+  margin-right: 10px;
+}
+
+.custom-dropdown.disabled .dropdown-header {
+  background-color: #f0f0f0;
+  cursor: not-allowed;
+}
+
+.leaveIndicator,
+.summary {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.leaveIndicator > * {
+  margin: 2px;
+}
+
+.btn-light {
+  border: 1px solid #e1dddd;
+  border-left: none;
+  background-color: white;
+}
+
+.table {
+  width: 100%;
+  margin-bottom: 1rem;
+  color: #212529;
+  border: 1px solid #e8e8e8;
+}
+
+.borderDesign {
+  border: 1px solid blue;
+  width: 100px;
+  height: 50px;
+}
+
+.borderDesign::after {
+  content: "sasa";
+  height: 100%;
+  width: 100px;
+  clip-path: polygon(75% 0%, 100% 50%, 75% 100%, 52% 100%, 81% 51%, 55% 1%);
+  background-color: rgb(12, 12, 12);
+  border: 2px solid gray;
+}
+
+@media (min-width: 992px) {
+  .col-lg-11 {
+    flex: 0 0 auto;
+    width: 94.666667%;
+  }
+  .col-lg-1 {
+    width: 3%;
+  }
+}
+
+/* .box.active {
+  border: 1px solid "#6FDCE3";
+  background-color: #caf4ff;
+} */
+
+.box {
+  border-radius: 7px;
+  padding: 10px;
+  box-shadow: rgba(0, 0, 0, 0.1) 0px 4px 12px;
+  height: 100%;
+  cursor: pointer;
+}
+
+.btn-light {
+  border: 1px solid #e1dddd;
+  border-left: none;
+  background-color: white;
+}
+
+.MuiButtonBase-root.nxtBtn {
+  margin-left: 10px;
+}
+
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.clockins {
+  /* margin-top: 72px; */
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.clockinsParent > * {
+  margin: 0px 5px;
+}
+
+.clockins > * {
+  margin: 10px;
+}
+
+.selecter {
+  width: 150px;
+  height: 50px;
+  border-radius: 5px;
+  border: none;
+  background: #feffda;
+}
+
+.btnParent > * {
+  margin: 5px;
+}
+
+.timer {
+  border-radius: 5px;
+  width: 110px;
+  height: 50px;
+  background: white;
+  box-shadow: rgba(0, 0, 0, 0.16) 0px 1px 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.btnContainer > * {
+  margin: 10px;
+}
+
+.emptyField {
+  border-color: red !important;
+  box-shadow: 0 0 0 0.2rem rgb(207 77 79 / 25%) !important;
+  outline: 0;
+}
+
+.empCard {
+  height: 100px;
+  box-shadow: rgba(99, 99, 99, 0.2) 0px 2px 8px 0px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 10px;
+  width: 45%;
+  padding: 10px;
+}
+
+/* .empCard > * {
+  display: block;
+} */
+
+@media (min-width: 576px) {
+  .modal-dialog {
+    max-width: 600px !important;
+  }
+}
+
+.empSelect {
+  cursor: pointer;
+  width: 47%;
+  margin: 10px;
+  border: 2px solid rgb(206, 211, 217);
+  padding: 0px 32px;
+  background-color: rgb(255, 255, 255);
+  border-radius: 3px;
+  height: 70px;
+  display: flex;
+  flex-direction: column;
+  -webkit-box-pack: center;
+  justify-content: center;
+}
+
+/* Add employee style */
+
+.empForm {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  margin-bottom: 50px;
+}
+
+.catogaries-container {
+  margin-top: 15px;
+  width: 38%;
+  position: relative;
+}
+
+.detailsParent {
+  width: 60%;
+}
+
+.catogaries {
+  margin: 0px 15px;
+  padding: 13px;
+  border-radius: 10px;
+  background-color: white;
+  height: fit-content;
+  position: sticky;
+  top: 82px;
+}
+
+.catogary {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 18px 50px;
+  margin: 10px;
+  color: #2d2d2d;
+  font-weight: 400;
+  font-size: 14px;
+  border-radius: 10px;
+  cursor: pointer;
+  background: #f4f4f4;
+}
+
+.catogary:hover,
+.leaveOption:hover,
+.optionList:hover {
+  background-color: black !important;
+  color: white;
+  font-weight: 600;
+  font-size: 14px;
+  letter-spacing: 1px;
+}
+
+.detailsParent > * {
+  margin: 15px 5px;
+}
+
+.personalDetails,
+.contactDetails,
+.financialDetails,
+.employementDetails,
+.jobDetails,
+.tableParent {
+  position: relative;
+  border-radius: 10px;
+  background-color: white;
+  padding: 20px;
+}
+
+.titleTextLabel {
+  font-size: 14px;
+  text-align: center;
+}
+
+.titleText {
+  text-align: center;
+  font-size: 22px;
+  font-weight: 700;
+  margin: 15px 0px;
+}
+
+.timeIndicator {
+  font-size: 15px;
+  position: absolute;
+  right: 8%;
+  top: 24%;
+  font-weight: bold;
+}
+
+.editIcon {
+  width: 30px;
+  height: 30px;
+  position: absolute;
+  right: 6%;
+  top: 6%;
+}
+
+.btnBackground {
+  width: 100%;
+  text-align: center;
+  background: #f4f4f4;
+  position: fixed;
+  height: 50px;
+  bottom: 0px;
+  display: flex;
+  justify-content: center;
+}
+
+.fixedPositionBtns {
+  display: flex;
+  align-items: center;
+  /* justify-content: center; */
+  width: 20%;
+  gap: 15px;
+}
+
+/* EmpManagement  */
+
+.filterExport {
+  display: flex;
+  align-items: center;
+}
+
+.filterExport > * {
+  padding: 10px;
+}
+
+.dropdown-menu {
+  background-color: #253d90;
+  color: white !important;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  z-index: 1000;
+  display: none;
+  float: left;
+  min-width: 0rem !important;
+  padding: 0.5rem 0;
+  margin: 0.125rem 0 0;
+  font-size: 1rem;
+  text-align: center;
+  list-style: none;
+  background-clip: padding-box;
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  border-radius: 0.25rem;
+}
+
+.searchIcon {
+  position: absolute;
+  right: 10px;
+  top: 7px;
+}

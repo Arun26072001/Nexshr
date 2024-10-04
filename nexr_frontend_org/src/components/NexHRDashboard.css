@@ -1,0 +1,219 @@
+/* .main-sidebar {
+    width: fit-content;
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100%;
+    background-color: #0A2233;
+    color: white;
+} */
+
+.dashBoard {
+  display: flex;
+  width: 100%;
+}
+
+.leftCard {
+  width: 70%;
+  margin-right: 10px;
+}
+
+.rightCard {
+  width: 30%;
+}
+
+.brand-link {
+  display: flex;
+  align-items: center;
+  padding: 10px;
+  background-color: #1a2238;
+  text-decoration: none;
+  color: white;
+}
+
+.brand-link img {
+  margin-right: 10px;
+}
+
+.brand-text {
+  font-weight: lighter;
+}
+
+.nav-link {
+  display: flex;
+  align-items: center;
+  padding: 10px;
+  color: white;
+  text-decoration: none;
+}
+
+/* .nav-link:hover {
+  background-color: #1a2a3b;
+} */
+
+.nav-link i {
+  margin-right: 10px;
+}
+
+.navbar-ul li {
+  margin-left: 0px;
+}
+
+/* Responsive sidebar */
+@media (max-width: 768px) {
+  /* .main-sidebar {
+          width: 100%;
+          height: auto;
+          position: relative;
+      } */
+
+  .nav-link {
+    justify-content: center;
+  }
+
+  .nav-item {
+    text-align: center;
+  }
+}
+
+@media (max-width: 576px) {
+  /* .main-sidebar {
+          width: 100%;
+          height: auto;
+          position: relative;
+      } */
+
+  .nav-link {
+    justify-content: center;
+  }
+
+  .nav-item {
+    text-align: center;
+  }
+}
+
+/* Small adjustments for icons and text on smaller screens */
+@media (max-width: 400px) {
+  .nav-link i {
+    display: none;
+  }
+
+  .nav-link p {
+    margin: 0;
+  }
+}
+
+/* src/style.css */
+
+.progress {
+    height: 9px;
+}
+
+.progress-circle {
+  position: relative;
+  width: 120px;
+  height: 120px;
+  margin: 20px auto;
+}
+
+input[type="number"]::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+p {
+  margin: 0%;
+  padding: 0px;
+}
+
+.bold {
+  font-weight: bold;
+  color: #01204e;
+}
+
+.MuiButtonBase-root.rosebtnRose {
+  background-color: #ff0080;
+  color: white;
+  margin: 10px;
+}
+
+.progress-ring {
+  border-radius: 50%;
+  box-shadow: rgba(14, 30, 37, 0.12) 0px 2px 4px 0px,
+    rgba(14, 30, 37, 0.32) 0px 2px 16px 0px;
+  transform: rotate(-90deg);
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+@media (max-width: 320px) {
+  .card-cont {
+    font-size: 10px;
+  }
+}
+
+.progress-ring__circle {
+  background-color: white;
+  transition: stroke-dashoffset 0.35s;
+  transform: rotate(0deg);
+  transform-origin: 50% 50%;
+}
+
+a {
+  text-decoration: none;
+}
+.sm {
+  width: 50%;
+}
+
+.md {
+  width: 68%;
+}
+.navigate {
+  position: absolute;
+  top: 26%;
+  left: 12%;
+  font-size: smaller;
+}
+.progress-input {
+  position: absolute;
+  width: 80px;
+  height: 40px;
+  border: none;
+  top: 29%;
+  right: 16%;
+  font-size: 2rem;
+  text-align: center;
+  background: transparent;
+  color: black;
+  font-weight: bold;
+  z-index: 2;
+  outline: none;
+}
+
+.btm-center {
+  background: rgba(245, 246, 246, 0.5);
+}
+
+.txt {
+  font-weight: 600;
+}
+/* .MuiButtonBase-root.btnRose{
+      background-color: #FF0080;
+      margin-left: 10px;
+      color: white;
+    }
+    .MuiButtonBase-root.btnRose:hover{
+        background-color: #f9afd4;
+        color: #01204E;
+    } */
+/* .btnRose-outline{
+      border: 1px solid #FF0080;
+      color: #FF0080;
+    } */
+
+.empActivies {
+  width: 100%;
+  padding: 10px;
+}
