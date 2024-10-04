@@ -51,7 +51,7 @@
     width: calc(100% - 250px);
     margin-left: auto;
     padding: 10px 10px;
-    height: 100vh;
+    height: 100%;
   }
   
   .nav_item {

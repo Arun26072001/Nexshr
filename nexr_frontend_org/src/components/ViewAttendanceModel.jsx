@@ -8,8 +8,9 @@ import TableContainer from '@mui/material/TableContainer';
 import TableHead from '@mui/material/TableHead';
 import TablePagination from '@mui/material/TablePagination';
 import TableRow from '@mui/material/TableRow';
+import Loading from './Loader';
 
-export default function ViewAttendanceModel({ id, toggleView, openModal ,totalHours }) {
+export default function ViewAttendanceModel({ id, toggleView, openModal, totalHours }) {
     const [attendanceData, setAttendanceData] = useState({});
     const url = process.env.REACT_APP_API_URL;
     const token = localStorage.getItem("token");
@@ -32,58 +33,58 @@ export default function ViewAttendanceModel({ id, toggleView, openModal ,totalHo
             fetchAttendanceData()
         }
     }, [id])
-    
+
     return (
         attendanceData ?
-        <Dialog open={openModal} onClose={toggleView}>
-        <DialogTitle>ATTENDENCE DETAILS</DialogTitle>
-        <DialogContent>
-            <TableContainer>
-                <Table>
-                    <TableBody>
-                        <TableRow>
-                            <TableCell>Profile</TableCell>
-                            <TableCell>{attendanceData?.employee?.FirstName}</TableCell>
-                        </TableRow>
-                        <TableRow>
-                            <TableCell>Punch In & Out</TableCell>
-                            <TableCell>
-                                {attendanceData?.login?.startingTime} - {attendanceData?.login?.endingTime}
-                            </TableCell>
-                        </TableRow>
-                        <TableRow>
-                            <TableCell>Morning Break In & Out</TableCell>
-                            <TableCell>{attendanceData?.morningBreak?.startingTime} - {attendanceData?.morningBreak?.endingTime} </TableCell>
-                        </TableRow>
-                        <TableRow>
-                            <TableCell>Lunch In & Out</TableCell>
-                            <TableCell>{attendanceData?.lunch?.startingTime} - {attendanceData?.lunch?.endingTime}</TableCell>
-                        </TableRow>
-                        <TableRow>
-                            <TableCell>Meeting In & Out</TableCell>
-                            <TableCell>{attendanceData?.meeting?.startingTime} - {attendanceData?.meeting?.endingTime}</TableCell>
-                        </TableRow>
-                        <TableRow>
-                            <TableCell>Evening Break In & Out</TableCell>
-                            <TableCell>{attendanceData?.eveningBreak?.startingTime} - {attendanceData?.eveningBreak?.startingTime}</TableCell>
-                        </TableRow>
-                        <TableRow>
-                            <TableCell>Behaviour</TableCell>
-                            <TableCell>{attendanceData?.behaviour}</TableCell>
-                        </TableRow>
-                        {/* <TableRow>
+            <Dialog open={openModal} onClose={toggleView}>
+                <DialogTitle>ATTENDENCE DETAILS</DialogTitle>
+                <DialogContent>
+                    <TableContainer>
+                        <Table>
+                            <TableBody>
+                                <TableRow>
+                                    <TableCell>Profile</TableCell>
+                                    <TableCell>{attendanceData?.employee?.FirstName}</TableCell>
+                                </TableRow>
+                                <TableRow>
+                                    <TableCell>Punch In & Out</TableCell>
+                                    <TableCell>
+                                        {attendanceData?.login?.startingTime} - {attendanceData?.login?.endingTime}
+                                    </TableCell>
+                                </TableRow>
+                                <TableRow>
+                                    <TableCell>Morning Break In & Out</TableCell>
+                                    <TableCell>{attendanceData?.morningBreak?.startingTime} - {attendanceData?.morningBreak?.endingTime} </TableCell>
+                                </TableRow>
+                                <TableRow>
+                                    <TableCell>Lunch In & Out</TableCell>
+                                    <TableCell>{attendanceData?.lunch?.startingTime} - {attendanceData?.lunch?.endingTime}</TableCell>
+                                </TableRow>
+                                <TableRow>
+                                    <TableCell>Meeting In & Out</TableCell>
+                                    <TableCell>{attendanceData?.meeting?.startingTime} - {attendanceData?.meeting?.endingTime}</TableCell>
+                                </TableRow>
+                                <TableRow>
+                                    <TableCell>Evening Break In & Out</TableCell>
+                                    <TableCell>{attendanceData?.eveningBreak?.startingTime} - {attendanceData?.eveningBreak?.startingTime}</TableCell>
+                                </TableRow>
+                                <TableRow>
+                                    <TableCell>Behaviour</TableCell>
+                                    <TableCell>{attendanceData?.behaviour}</TableCell>
+                                </TableRow>
+                                <TableRow>
                             <TableCell>Total Hour</TableCell>
-                            <TableCell>{totalHours}</TableCell>
-                        </TableRow> */}
-                    </TableBody>
-                </Table>
-            </TableContainer>
-        </DialogContent>
-        <DialogActions>
-            <Button onClick={toggleView}>Close</Button>
-        </DialogActions>
-    </Dialog> : null
-       
+                            <TableCell>{totalHours[id]}</TableCell>
+                        </TableRow>
+                            </TableBody>
+                        </Table>
+                    </TableContainer>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={toggleView}>Close</Button>
+                </DialogActions>
+            </Dialog> : <Loading />
+
         // <p>kwhfkje</p>
     )
 }

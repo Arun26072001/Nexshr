@@ -20,6 +20,8 @@ import axios from 'axios';
 import LeaveCalender from '../leave/Calender';
 import Settings from '../Settings.jsx/Settings';
 import UnAuthorize from './UnAuthorize';
+import LeaveRequestForm from './LeaveResquestForm';
+import EditLeaveRequestForm from '../EditLeaveRequestForm';
 
 export const LeaveStates = createContext(null);
 
@@ -40,7 +42,7 @@ export default function HRMDashboard({ data }) {
             setLeaveRequests(fullLeaveRequests);
         } else {
             const filterRequests = fullLeaveRequests.filter((leave) => leave.employee.FirstName.toLowerCase().includes(empName));
-            setLeaveRequests((pre)=>({...pre, leaveData: filterRequests}));
+            setLeaveRequests((pre) => ({ ...pre, leaveData: filterRequests }));
         }
     }
 
@@ -66,12 +68,12 @@ export default function HRMDashboard({ data }) {
     }, [daterangeValue, empId])
 
     useEffect(() => {
-        if(data?.Account){
-            if(data.Account == 1){
+        if (data?.Account) {
+            if (data.Account == 1) {
                 setWhoIs("admin");
-            }else if(data.Account == 2){
+            } else if (data.Account == 2) {
                 setWhoIs("hr");
-            }else{
+            } else {
                 setWhoIs("emp");
             }
         }
@@ -89,8 +91,7 @@ export default function HRMDashboard({ data }) {
         }
         getClocknsData();
     }, [])
-    console.log(attendanceData);
-    
+
 
     return (
         <Routes >
@@ -110,7 +111,8 @@ export default function HRMDashboard({ data }) {
                         </Routes>
                     </LeaveStates.Provider>
                 } />
-                {/* <Route path="/leave-request/edit/:id" element={<EditLeaveRequestForm />} /> */}
+                <Route path='/leave-request' element={<LeaveRequestForm />} />
+                <Route path="/leave-request/edit/:id" element={<EditLeaveRequestForm />} />
                 <Route path="attendance/*" element={
                     <Routes>
                         <Route index path="request" element={<Request attendanceData={attendanceData} />} />

@@ -12,6 +12,12 @@
   bottom: 5%;
 }
 
+.emtChart {
+  position: absolute;
+  top: -31px;
+  left: 58px;
+}
+
 .leave {
   height: 10%;
   z-index: 1;
@@ -26,7 +32,7 @@
 .early {
   height: 65%;
   z-index: 3;
-  right: 50%;
+  right: 51%;
 }
 .regular {
   z-index: 4;
@@ -46,7 +52,6 @@
   font-weight: 500;
   color: black;
   text-align: center;
-  
 }
 /* sidebar style  */
 .sidetext {

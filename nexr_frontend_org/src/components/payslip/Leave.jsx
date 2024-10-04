@@ -39,7 +39,6 @@ const Leave = () => {
                         authorization: token || ""
                     }
                 })
-                
                 setLeaveRequests(leaveData.data);
                 setFullLeaveRequests(leaveData.data.leaveData);
             } catch (err) {
@@ -136,7 +135,7 @@ const Leave = () => {
                 {
                     leaveRequests?.leaveData?.length > 0 ?
                         <LeaveTable data={leaveRequests.leaveData} />
-                        : empName !== "" ?
+                        : leaveRequests?.leaveData?.length == 0  ?
                             <NoDataFound message={"No Leave request for this employee Name"} />
                             : <Loading />
                 }

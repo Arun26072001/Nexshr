@@ -22,7 +22,6 @@ export default function LeaveTable({ data }) {
     const [totalHours, setTotalHours] = useState({}); // To hold total hours for each entry
     const [openModal, setOpenModal] = useState(false);
     const params = useParams();
-    console.log(data);
 
     const handleChangePage = (event, newPage) => {
         setPage(newPage);
@@ -44,8 +43,6 @@ export default function LeaveTable({ data }) {
                     newTotalHours[entry._id] = 'N/A';
                 }
             }
-            console.log(newTotalHours);
-
             setTotalHours(newTotalHours);
         };
 
