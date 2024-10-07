@@ -73,7 +73,9 @@ a {
   font-weight: 500;
   background: white;
   color: black;
-  width: 100%;
+  width:fit-content;
+  height: fit-content;
+  box-shadow: rgba(99, 99, 99, 0.2) 0px 2px 8px 0px;
 }
 
 .button {

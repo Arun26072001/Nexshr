@@ -16,10 +16,10 @@ const Sidebar = ({ handleLogout, whoIs }) => {
     const [activeNavLink, setActiveNavLink] = useState("");
     const [isOpen, setIsOpen] = useState(true);
 
-    function toggleActiveLink(name){
-        if(activeNavLink === name){
+    function toggleActiveLink(name) {
+        if (activeNavLink === name) {
             setActiveNavLink("")
-        }else{
+        } else {
             setActiveNavLink(name)
         }
     }
@@ -165,10 +165,13 @@ const Sidebar = ({ handleLogout, whoIs }) => {
                                 {activeNavLink === "settings" && (
                                     <ul className="nav-content p-2">
                                         <li className={`submenu_navlist ${activeSubmenu === "Profile" ? "active" : ""}`} onClick={() => setActiveSubmenu("Profile")}>
-                                            <NavLink to={`/${whoIs}/settings/`} className="nav-lists">Profile</NavLink>
+                                            <NavLink to={`/${whoIs}/settings/`} className="nav-lists">General</NavLink>
                                         </li>
                                         <li className={`submenu_navlist ${activeSubmenu === "Account" ? "active" : ""}`} onClick={() => setActiveSubmenu("Account")}>
                                             <NavLink to={`/${whoIs}/settings/account`} className="nav-lists">Account</NavLink>
+                                        </li>
+                                        <li className={`submenu_navlist ${activeSubmenu === "Payroll" ? "active" : ""}`} onClick={() => setActiveSubmenu("Payroll")}>
+                                            <NavLink to={`/${whoIs}/settings/payroll`} className="nav-lists">Payroll</NavLink>
                                         </li>
                                     </ul>
                                 )}

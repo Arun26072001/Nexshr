@@ -31,6 +31,7 @@ const Leave = () => {
     useEffect(() => {
         const getLeaveData = async () => {
             try {
+
                 const leaveData = await axios.get(`${url}/api/leave-application/date-range/${empId}`, {
                     params: {
                         daterangeValue
@@ -45,7 +46,7 @@ const Leave = () => {
                 toast.error(err?.response?.data?.message)
             }
         }
-// 
+        // 
         getLeaveData();
     }, [daterangeValue, empId])
 
@@ -135,7 +136,7 @@ const Leave = () => {
                 {
                     leaveRequests?.leaveData?.length > 0 ?
                         <LeaveTable data={leaveRequests.leaveData} />
-                        : leaveRequests?.leaveData?.length == 0  ?
+                        : leaveRequests?.leaveData?.length === 0 ?
                             <NoDataFound message={"No Leave request for this employee Name"} />
                             : <Loading />
                 }

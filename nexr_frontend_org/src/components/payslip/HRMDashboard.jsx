@@ -18,10 +18,14 @@ import LeaveRequest from '../leave/Request';
 import LeaveSummary from '../leave/Summary';
 import axios from 'axios';
 import LeaveCalender from '../leave/Calender';
-import Settings from '../Settings.jsx/Settings';
+import Settings from '../Settings/Settings';
 import UnAuthorize from './UnAuthorize';
 import LeaveRequestForm from './LeaveResquestForm';
 import EditLeaveRequestForm from '../EditLeaveRequestForm';
+import Payroll from "../Settings/Payroll";
+import PayrollManage from './PayrollManage';
+import PayslipInfo from './PayslipInfo';
+import PayrollValue from './PayrollValue';
 
 export const LeaveStates = createContext(null);
 
@@ -123,7 +127,16 @@ export default function HRMDashboard({ data }) {
                 }>
                 </Route>
                 <Route path="administration/" element={<Administration />} />
-                <Route path="settings/" element={<Settings />} />
+                <Route path="settings/*" element={
+                    <Routes>
+                        <Route index element={<Settings />} />
+                        <Route path="payroll" element={<Payroll whoIs={whoIs} />} />
+                        <Route path="value" element={<PayrollValue />} />
+                        <Route path="manage" element={<PayrollManage />} />
+                        <Route path="payslip" element={<PayslipInfo />} />
+                    </Routes>
+                } />
+
                 <Route path="*" element={<p>404</p>} />
                 <Route path="unauthorize" element={<UnAuthorize />} />
             </Route>

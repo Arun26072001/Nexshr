@@ -16,6 +16,7 @@ const Attendence = (props) => {
   const [earlyHeight, setEarlyHeight] = useState(0);
   const [tableData, setTableData] = useState([]);
   const [daterangeValue, setDaterangeValue] = useState("");
+  
 
   function calculateOverallBehavior(regularCount, lateCount, earlyCount) {
     const totalCount = regularCount + lateCount + earlyCount;
@@ -231,7 +232,7 @@ const Attendence = (props) => {
 
           <LeaveTable data={tableData} />
         </>
-        : tableData.length === 0 ? <Loading />
+        : tableData.length === 0 && !clockInsData ? <Loading />
           : <p className="text-center my-2 text-danger">No Attendance data in this date range!</p>
       }
 

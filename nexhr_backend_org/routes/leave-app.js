@@ -218,11 +218,37 @@ leaveApp.get("/date-range/:empId", verifyAdminHREmployee, (req, res) => {
       } catch (err) {
         res.status(500).send({ message: "Error in getting emp of leave reqests", details: err.message })
       }
+    }else{
+      try {
+        // if a person has account 2, can get date range of all emp leave data
+        const employeesLeaveData = await Employee.find({}, "_id FirstName LastName")
+          .populate({
+            path: "leaveApplication",
+            match: {
+              fromDate: {
+                $gte: startOfMonth,
+                $lte: endOfMonth
+              },
+              toDate: {
+                $gte: startOfMonth,
+                $lte: endOfMonth
+              }
+            },
+            populate: { path: "employee", select: "FirstName LastName" }
+          });
+
+        const leaveData = employeesLeaveData.map(data => data.leaveApplication).flat()
+        const approvedLeave = leaveData.filter(data => data.status === "approved");
+        const leaveInHours = approvedLeave.reduce((total, data) => total + getDayDifference(data) * 9, 0);
+        const pendingLeave = leaveData.filter(data => data.status === "pending");
+        const upComingLeave = leaveData.filter(data => new Date(data.date).getTime() > new Date().getTime())
+        const peoplesOnLeave = approvedLeave.filter(data => new Date(data.date).getTime() === new Date().getTime())
+        res.send({ leaveData, approvedLeave, peoplesOnLeave, pendingLeave, upComingLeave, leaveInHours });
+      } catch (err) {
+        res.status(500).send({ message: "Error in getting employees leave data", details: err.message })
+      }
     }
   });
-
-
-
 })
 
 leaveApp.get("/", verifyAdmin, async (req, res) => {

@@ -1,10 +1,10 @@
 const express = require("express");
-const { verifyHR, verifyHREmployee } = require("../auth/authMiddleware");
+const { verifyHR, verifyHREmployee, verifyAdminHREmployee } = require("../auth/authMiddleware");
 const Joi = require("joi");
 const { PaySlipValidation, PaySlip } = require("../models/PaySlipModel");
 const router = express.Router();
 
-router.get("/", verifyHREmployee, async (req, res) => {
+router.get("/", verifyAdminHREmployee, async (req, res) => {
     try {
         const payslipData = await PaySlip.find().exec();
         if (!payslipData) {
