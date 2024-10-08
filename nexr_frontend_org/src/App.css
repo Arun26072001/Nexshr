@@ -4,10 +4,14 @@
   font-family: "Inter", sans-serif;
 }
 
+:root {
+  --header-height: 55px;
+}
+
 body {
   margin: 0;
   box-sizing: border-box;
-  background-color: #f4f4f4;
+  background: #f5f5f5 !important;
 }
 
 .NameLetter,
@@ -73,7 +77,7 @@ a {
   font-weight: 500;
   background: white;
   color: black;
-  width:fit-content;
+  width: fit-content;
   height: fit-content;
   box-shadow: rgba(99, 99, 99, 0.2) 0px 2px 8px 0px;
 }

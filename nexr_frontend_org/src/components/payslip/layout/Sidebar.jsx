@@ -24,13 +24,17 @@ const Sidebar = ({ handleLogout, whoIs }) => {
         }
     }
 
+    function handleActiveMenu(nav) {
+        setActiveNavLink(nav);
+        setActiveSubmenu("")
+    }
+
     return (
-        <div className="d-flex sidebar_hrm padding_top">
-            <div style={{ width: isOpen ? "250px" : "50px" }} className="sidebar">
+            <div style={{ width: isOpen ? "250px" : "50px" }} className="sidebar sidebar_hrm">
                 <ul className="sidebar-nav p-0" id="sidebar-nav">
 
                     {/* Dashboard Link */}
-                    <li className={`${activeNavLink === "dashboard" ? "active" : "nav-item"}`} onClick={() => setActiveNavLink("dashboard")}>
+                    <li className={`${activeNavLink === "dashboard" ? "active" : "nav-item"}`} onClick={() => handleActiveMenu("dashboard")}>
                         <NavLink className="nav-link" to={`/${whoIs}`}>
                             <span className="p-0 m-0">
                                 <img src={homeIcon} alt="Dashboard Icon" />
@@ -40,8 +44,8 @@ const Sidebar = ({ handleLogout, whoIs }) => {
                     </li>
 
                     {/* Job Desk Link */}
-                    <li className={`${activeNavLink === "jobDesk" ? "active" : "nav-item"}`} onClick={() => setActiveNavLink("jobDesk")}>
-                        <NavLink className="nav-link" to={`/${whoIs}/job-desk`}>
+                    <li className={`${activeNavLink === "jobDesk" ? "active" : "nav-item"}`} onClick={() => handleActiveMenu("jobDesk")}>
+                        <NavLink className="nav-link" to={`/${whoIs}/job-desk/attendance`}>
                             <span className="p-0 m-0">
                                 <img src={jobDeskIcon} alt="Job Desk Icon" />
                             </span>
@@ -50,7 +54,7 @@ const Sidebar = ({ handleLogout, whoIs }) => {
                     </li>
 
                     {/* Employee Link */}
-                    <li className={`${activeNavLink === "employee" ? "active" : "nav-item"}`} onClick={() => setActiveNavLink("employee")}>
+                    <li className={`${activeNavLink === "employee" ? "active" : "nav-item"}`} onClick={() => handleActiveMenu("employee")}>
                         <NavLink className="nav-link" to={`/${whoIs}/employee`}>
                             <span className="p-0 m-0">
                                 <img src={userIcon} alt="Employee Icon" />
@@ -185,7 +189,6 @@ const Sidebar = ({ handleLogout, whoIs }) => {
                     <button class="w-100 log_out">Logout</button>
                 </div>
             </div>
-        </div>
     );
 };
 

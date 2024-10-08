@@ -3,8 +3,6 @@ import WarningAmberRoundedIcon from '@mui/icons-material/WarningAmberRounded';
 import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
 
 export default function DefinitionToggle({title, handleShowNotification, instructions }) {
-    console.log(instructions);
-    
     return (
         <div className="payrunNotification">
             <div className="w-100">
@@ -17,9 +15,10 @@ export default function DefinitionToggle({title, handleShowNotification, instruc
                 </div>
                 <ol>
                     {
-                        instructions.map((msg) => {
-                            return <li>{msg}</li>
-                        })
+                        // instructions.map((msg) => {
+                        //     return <li>{msg}</li>
+                        // })
+                        instructions
                     }
                 </ol>
             </div>

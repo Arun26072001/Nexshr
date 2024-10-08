@@ -14,7 +14,7 @@ export default function NavModelRouter({ whoIs, files }) {
             {
                 files.map((file) => {
                     return <NavLink to={`/${whoIs}/${parentPath}/${file}`}>
-                        <div className={`text-secondary ${payslip === file && "selected"}`} onClick={() => setPayslip(file)}>{file}</div>
+                        <div className={`text-secondary ${payslip === file && "selected"}`} onClick={() => setPayslip(file)}>{file[0]?.toUpperCase()+file.slice(1,file.length)}</div>
                     </NavLink>
                 })
             }

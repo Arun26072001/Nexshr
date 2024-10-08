@@ -4,6 +4,7 @@ import { MultiCascader } from 'rsuite';
 
 export default function PayrollValue() {
     const [isShowInstructions, setShowInstruction] = useState(true);
+    const [multiSelector, setMultiSelector] = useState("");
     function handleShowNotification() {
         setShowInstruction(!isShowInstructions);
     }
@@ -43,6 +44,8 @@ export default function PayrollValue() {
             ]
         }
     ];
+    console.log(multiSelector);
+    
     return (
         <div>
             <div className='payslipTitle'>How Badge value work?</div>
@@ -51,11 +54,11 @@ export default function PayrollValue() {
                 <DefinitionToggle title={"How payrun works?"} instructions={instructions} handleShowNotification={handleShowNotification} />
             }
 
-            <div className="row">
+            <div className="row px-3">
                 <div className="py-2">
                     <span>Allowance</span>
                 </div>
-                <MultiCascader data={data} className="col-12" />
+                <MultiCascader data={data} value={multiSelector} onChange={setMultiSelector} className="col-12" />
 
                 <div className="py-2">
                     <span>Deducation</span>

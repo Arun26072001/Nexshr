@@ -26,6 +26,7 @@ import Payroll from "../Settings/Payroll";
 import PayrollManage from './PayrollManage';
 import PayslipInfo from './PayslipInfo';
 import PayrollValue from './PayrollValue';
+import PayslipRouter from './PayslipRouter';
 
 export const LeaveStates = createContext(null);
 
@@ -40,6 +41,8 @@ export default function HRMDashboard({ data }) {
     const [whoIs, setWhoIs] = useState("");
     const url = process.env.REACT_APP_API_URL;
     const [daterangeValue, setDaterangeValue] = useState("");
+    // files for payroll
+    const files = ['payroll', 'value', 'manage', 'payslip'];
 
     function filterLeaveRequests() {
         if (empName === "") {
@@ -130,10 +133,12 @@ export default function HRMDashboard({ data }) {
                 <Route path="settings/*" element={
                     <Routes>
                         <Route index element={<Settings />} />
-                        <Route path="payroll" element={<Payroll whoIs={whoIs} />} />
-                        <Route path="value" element={<PayrollValue />} />
-                        <Route path="manage" element={<PayrollManage />} />
-                        <Route path="payslip" element={<PayslipInfo />} />
+                        <Route path="/" element={<PayslipRouter whoIs={whoIs} files={files} />}>
+                            <Route path="payroll" element={<Payroll whoIs={whoIs} />} />
+                            <Route path="value" element={<PayrollValue />} />
+                            <Route path="manage" element={<PayrollManage />} />
+                            <Route path="payslip" element={<PayslipInfo />} />
+                        </Route>
                     </Routes>
                 } />
 

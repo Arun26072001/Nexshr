@@ -9,35 +9,49 @@ import TableHead from '@mui/material/TableHead';
 import TablePagination from '@mui/material/TablePagination';
 import TableRow from '@mui/material/TableRow';
 import Loading from './Loader';
+import { toast } from 'react-toastify';
+import { jsPDF } from "jspdf";
+import "./ParentStyle.css";
 
 export default function ViewAttendanceModel({ id, toggleView, openModal, totalHours }) {
     const [attendanceData, setAttendanceData] = useState({});
     const url = process.env.REACT_APP_API_URL;
     const token = localStorage.getItem("token");
+    const pdfFile = new jsPDF();
+
+    function exportPDF() {
+        pdfFile.html("<h1>hello world</h1>");
+        pdfFile.save("helloWorld.pdf");
+    }
 
     useEffect(() => {
-        if (id) {
-            async function fetchAttendanceData() {
+        async function fetchAttendanceData() {
+            console.log(id);
+
+            if (id) {
                 try {
                     const data = await axios.get(`${url}/api/clock-ins/${id}`, {
                         headers: {
                             authorization: token || ""
                         }
                     });
-                    setAttendanceData(data.data.timeData)
+                    setAttendanceData(data.data.timeData);
                 } catch (err) {
                     console.log(err);
-
+                    toast.error(err?.response?.data?.error)
                 }
             }
-            fetchAttendanceData()
         }
+        fetchAttendanceData()
     }, [id])
 
     return (
         attendanceData ?
-            <Dialog open={openModal} onClose={toggleView}>
+            <Dialog open={openModal} onClose={toggleView} className='aa'>
                 <DialogTitle>ATTENDENCE DETAILS</DialogTitle>
+                <div className="d-flex justify-content-end px-2">
+                    <button className='btn btn-primary' onClick={exportPDF}>Export PDF</button>
+                </div>
                 <DialogContent>
                     <TableContainer>
                         <Table>
@@ -73,9 +87,9 @@ export default function ViewAttendanceModel({ id, toggleView, openModal, totalHo
                                     <TableCell>{attendanceData?.behaviour}</TableCell>
                                 </TableRow>
                                 <TableRow>
-                            <TableCell>Total Hour</TableCell>
-                            <TableCell>{totalHours[id]}</TableCell>
-                        </TableRow>
+                                    <TableCell>Total Hour</TableCell>
+                                    <TableCell>{totalHours[id]}</TableCell>
+                                </TableRow>
                             </TableBody>
                         </Table>
                     </TableContainer>

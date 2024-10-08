@@ -1,10 +1,8 @@
 import React, { useState } from 'react';
-import NavModelRouter from '../payslip/NavModelRouter';
 import DefinitionToggle from './DefinitionToggle';
 import { MultiCascader } from 'rsuite';
 
-export default function Payroll({ whoIs }) {
-  const files = ['default', 'value', 'manage', 'payslip'];
+export default function Payroll() {
   const [isShowPayrun, setIsShowPayrun] = useState(true);
   function handleShowNotification() {
     setIsShowPayrun(!isShowPayrun);
@@ -13,15 +11,12 @@ export default function Payroll({ whoIs }) {
     'Default pay run is applicable to generate pays lip for all employees (Except those are updated individually) whenever it execute from Payrun module.',
     'You can set pay run individually over the default from the Employees details'
   ]
-
   return (
     <>
-      <div className="payslipTitle">Payrun</div>
-      <NavModelRouter whoIs={whoIs} files={files} />
-
+      <div className="payslipTitle">Payroll</div>
       {
         isShowPayrun &&
-        <DefinitionToggle handleShowNotification={handleShowNotification} instructions={instructions} />
+        <DefinitionToggle title='Payroll' handleShowNotification={handleShowNotification} instructions={instructions} />
       }
       <div className="row gap-2 d-flex justify-content-center">
         <div className="col-lg-5">

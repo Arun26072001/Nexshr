@@ -75,7 +75,7 @@ const Parent = ({ whoIs }) => {
     return (
         <div>
             <Navbar />
-            <div className="d-flex mt-5">
+            <div className="d-flex marTop">
                 <Sidebar whoIs={whoIs} handleLogout={handleLogout} />
                 <div className="navContent">
                     <Outlet />
