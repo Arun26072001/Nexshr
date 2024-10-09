@@ -6,10 +6,10 @@ import NoDataFound from '../payslip/NoDataFound';
 import Loading from '../Loader';
 
 const Dailylog = ({ attendanceData }) => {
-    // console.log(attendanceData);
-    
+    console.log(attendanceData);
+
     return (
-        <div className='dashboard-parent py-4'>
+        <div className='dashboard-parent pt-4'>
             <div className="d-flex row justify-content-between align-items-center gap-2">
                 <div className='col-12 col-lg-2 col-md-2'>
                     <h5 className='text-daily'>Daily Log</h5>

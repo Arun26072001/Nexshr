@@ -2,7 +2,7 @@ import {Card} from "@mui/material";
 import Home from "./Home";
 import React from "react";
 import CircleProgressBar from "./CircleProgressBar";
-import { Link } from "react-router-dom";
+import { NavLink } from "react-router-dom";
 import Twotabs from "./TwoTabs";
 import "./NexHRDashboard.css";
 
@@ -22,9 +22,9 @@ const NexHRDashboard = ({updateClockins}) => {
             <span className="bold m-2">
               OVERVIEW
             </span>
-            <Link to={"/hr/leave-request"}>
+            <NavLink to={"/hr/leave-request"}>
               <button className="button">+ Add Time of</button>
-            </Link>
+            </NavLink>
           </div>
           <CircleProgressBar />
           <Home updateClockins={updateClockins} />

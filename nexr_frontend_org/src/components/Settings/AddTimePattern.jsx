@@ -149,66 +149,70 @@ const AddTimePattern = ({ handleAddWorkingTime, dom, reload }) => {
                 <p className="styleText my-2">
                     Enter start and end times for your working time pattern.
                 </p>
-                <div className="row">
+                <div className="row mx-auto g-3">
+                    {/* Start Time */}
                     <div className="col-lg-2 text-center">
-                        <span className="styletext">
-                            Start
-                        </span>
+                        <span className="styletext">Start</span>
                         <div className="input-group">
-                            <input type="time" name="StartingTime" className="form-control" style={{ border: "none" }} value={timePattern.StartingTime} onChange={(e) => ChangeTimePattern(e)} />
+                            <input
+                                type="time"
+                                name="StartingTime"
+                                className="form-control"
+                                style={{ border: "none" }}
+                                value={timePattern.StartingTime}
+                                onChange={(e) => ChangeTimePattern(e)}
+                            />
                         </div>
                     </div>
+
+                    {/* Finish Time */}
                     <div className="col-lg-2 text-center">
-                        <span className="styletext">
-                            Finish
-                        </span>
+                        <span className="styletext">Finish</span>
                         <div className="input-group">
-                            <input type="time" name="FinishingTime" style={{ border: "none" }} className="form-control" onChange={(e) => ChangeTimePattern(e)} />
+                            <input
+                                type="time"
+                                name="FinishingTime"
+                                className="form-control"
+                                style={{ border: "none" }}
+                                value={timePattern.FinishingTime}
+                                onChange={(e) => ChangeTimePattern(e)}
+                            />
                         </div>
-                        {startTimeVal !== "" && endTimeVal !== "" && startTimeVal >= endTimeVal ?
+                        {startTimeVal !== "" && endTimeVal !== "" && startTimeVal >= endTimeVal && (
                             <p className="text-danger">Please select a time later than the start time.</p>
-                            : null
-                        }
+                        )}
                     </div>
 
+                    {/* Break Time */}
                     <div className="col-lg-2 text-center">
-                        <span className="styletext">
-                            Break
-                        </span>
-
-                        <InputGroup inside>
-                            {/* Add the functionality button like in the original code */}
-                            <InputGroup.Addon>
-                                <input
-                                    type="number"
-                                    name="BreakTime"
-                                    className="form-control"
-                                    onChange={(e) => ChangeTimePattern(e)}
-                                    style={{ border: "none" }} />
-                            </InputGroup.Addon>
-                            <InputGroup.Addon
-                                style={{ border: "none", cursor: "pointer" }}
-                                // onClick={handleButtonClick}
-                            >
-                                Mins
-                            </InputGroup.Addon>
-                        </InputGroup>
+                        <span className="styletext">Break</span>
+                        <div className="input-group mt-1">
+                            <input
+                                type="number"
+                                name="BreakTime"
+                                className="form-control m-0"
+                                style={{ border: "none" }}
+                                onChange={(e) => ChangeTimePattern(e)}
+                            />
+                            <span className="input-group-text" style={{ border: "none", padding:"5px 7px" }}>Mins</span>
+                        </div>
                     </div>
 
+                    {/* Repeat Days */}
                     <div className="col-lg-4 text-center">
-                        <span className="styletext">
-                            Repeat
-                        </span>
-
-                        <span className="d-flex justify-content-center">
-                            {days.map((day) => {
-                                return <WeekDay day={day} calDay={timePattern} setCalDay={setTimePattern} />;
-                            })}
-                        </span>
-                        {!timePattern.WeeklyDays && <p className="text-danger">At least one must be selected</p>}
-
+                        <span className="styletext">Repeat</span>
+                        <div className="d-flex justify-content-center">
+                            {days.map((day) => (
+                                <WeekDay key={day} day={day} calDay={timePattern} setCalDay={setTimePattern} />
+                            ))}
+                        </div>
+                        {!timePattern.WeeklyDays && (
+                            <p className="text-danger">At least one day must be selected.</p>
+                        )}
                     </div>
                 </div>
+
+
                 <p className="my-2 styleText">
                     <b>{timePattern.WeeklyDays} working days </b>
                     Selected totalling <b>{(timePattern.WeeklyDays * ((timeDifference - timePattern.BreakTime) / 60)).toFixed(2)} hrs</b>. excluding breaks
@@ -281,11 +285,11 @@ const AddTimePattern = ({ handleAddWorkingTime, dom, reload }) => {
                         </div>
                     </div>
                 </div>
-                <div className="my-2">
-                    <button className="button" type="submit" disabled={!isSaveEnabled()}>
+                <div className="my-2 d-flex justify-content-between">
+                    <button className="button m-0" type="submit" disabled={!isSaveEnabled()}>
                         Save
                     </button>
-                    <button className="outline-btn ml-2" onClick={handleAddWorkingTime}>
+                    <button className="outline-btn" onClick={handleAddWorkingTime}>
                         cancel
                     </button>
                 </div>

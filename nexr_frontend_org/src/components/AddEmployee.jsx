@@ -21,6 +21,7 @@ const AddEmployee = () => {
   const personalRef = useRef(null);
   const contactRef = useRef(null);
   const employmentRef = useRef(null);
+  const payslipRef = useRef(null);
   const jobRef = useRef(null);
   const financialRef = useRef(null);
   const url = process.env.REACT_APP_API_URL;
@@ -48,6 +49,16 @@ const AddEmployee = () => {
   function handlePersonal() {
     if (personalRef.current) {
       const scrollDown = personalRef.current.getBoundingClientRect().top + window.scrollY;
+      window.scrollTo({
+        top: scrollDown,
+        behavior: "smooth"
+      })
+    }
+  }
+
+  function handlePayslip() {
+    if (payslipRef.current) {
+      const scrollDown = payslipRef.current.getBoundingClientRect().top + window.scrollY;
       window.scrollTo({
         top: scrollDown,
         behavior: "smooth"
@@ -110,6 +121,8 @@ const AddEmployee = () => {
       return handleEmployment();
     } else if (value === "job") {
       return handleJob();
+    } else if (value === "payslip") {
+      return handlePayslip();
     } else {
       return handleFinancial();
     }
@@ -206,7 +219,7 @@ const AddEmployee = () => {
       setCountries(res.data)
     } catch (err) {
       toast.error(err.message)
-      if(err.status == 401){
+      if (err.status == 401) {
         navigate("/admin/unauthorize")
       }
     }
@@ -242,6 +255,7 @@ const AddEmployee = () => {
   // }, [timePatterns, employeeObj.workingTimePattern]);
 
   useEffect(() => {
+
     if (scrolledHeight > 2400) {
       setDetails("financial")
     } else if (scrolledHeight > 1850) {
@@ -293,6 +307,7 @@ const AddEmployee = () => {
       handleFinancial={handleFinancial}
       roles={roles}
       personalRef={personalRef}
+      payslipRef={payslipRef}
       contactRef={contactRef}
       employmentRef={employmentRef}
       jobRef={jobRef}

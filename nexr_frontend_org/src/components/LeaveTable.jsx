@@ -22,7 +22,7 @@ export default function LeaveTable({ data }) {
     const [totalHours, setTotalHours] = useState({}); // To hold total hours for each entry
     const [openModal, setOpenModal] = useState(false);
     const params = useParams();
-    console.log(data);
+
 
     const handleChangePage = (event, newPage) => {
         setPage(newPage);
@@ -44,8 +44,6 @@ export default function LeaveTable({ data }) {
                     newTotalHours[entry._id] = 'N/A';
                 }
             }
-            console.log(newTotalHours);
-
             setTotalHours(newTotalHours);
         };
 
@@ -69,6 +67,7 @@ export default function LeaveTable({ data }) {
         { id: 'status', label: 'Status', minWidth: 170, align: 'center', getter: (row) => row.status || 'N/A' },
         { id: 'period', label: 'Period', minWidth: 170, align: 'center', getter: (row) => row.period || 'N/A' },
         { id: 'salary', label: 'Salary', minWidth: 170, align: 'right', getter: (row) => row.salary ? `₹${row.salary}` : 'N/A' },
+        { id: "Action", label: "Action", minWidth: 100, align: "center" }
     ];
 
     const column3 = [
@@ -166,9 +165,48 @@ export default function LeaveTable({ data }) {
         }
     ];
 
+    const column5 = [
+        {
+            id: 'date',
+            label: 'Date',
+            minWidth: 130,
+            align: 'center',
+            getter: (row) => row?.date ? row.date.split("T")[0] : "no date"
+        },
+        {
+            id: 'punchIn',
+            label: 'Punch In',
+            minWidth: 130,
+            align: 'center',
+            getter: (row) => row?.login?.startingTime ? row?.login?.startingTime : "N/A"
+        },
+        {
+            id: 'punchOut',
+            label: 'Punch Out',
+            minWidth: 130,
+            align: 'center',
+            getter: (row) => row?.login?.endingTime ? row.login.endingTime : "N/A"
+        },
+        {
+            id: 'totalHour',
+            label: 'Total Hour',
+            minWidth: 130,
+            align: 'center',
+            getter: (row) => totalHours[row._id] || 'N/A'
+        },
+        {
+            id: 'behaviour',
+            label: 'Behaviour',
+            minWidth: 130,
+            align: 'center',
+            getter: (row) => row.behaviour ? row.behaviour : 'N/A'
+        }
+    ]
+
     function toggleView() {
         setOpenModal(!openModal);
     }
+
 
     useEffect(() => {
         setRows(data || []);
@@ -177,9 +215,12 @@ export default function LeaveTable({ data }) {
                 return setColumns(column1);
             } else if (item.code) {
                 return setColumns(column3);
+            } else if (item.date && params['*'] === "summary") {
+                return setColumns(column5);
             } else if (item.date) {
                 return setColumns(column4);
-            } else {
+            }
+            else {
                 return setColumns(column2)
             }
         })
@@ -224,7 +265,11 @@ export default function LeaveTable({ data }) {
                                                                 <DropdownItem onClick={toggleView}>View</DropdownItem>
                                                                 <DropdownItem>Edit</DropdownItem>
                                                                 <DropdownItem>Delete</DropdownItem>
-                                                            </Dropdown> : value
+                                                            </Dropdown> : column.id === "Action" && params['*'] === "payslip" ?
+                                                                <Dropdown title={<EditRoundedIcon style={{ cursor: "pointer" }} />} noCaret>
+                                                                    <DropdownItem onClick={toggleView}>View</DropdownItem>
+                                                                </Dropdown>
+                                                                : value
                                                     }
                                                 </TableCell>
                                             );

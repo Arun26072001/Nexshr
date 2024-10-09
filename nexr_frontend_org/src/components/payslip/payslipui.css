@@ -1,0 +1,9 @@
+.payslipHeader{
+    padding-bottom: 15px;
+    border: 1px dotted black;
+}
+
+.boxBorder{
+    border: 2px double black;
+    padding: 10px;
+}

@@ -3,7 +3,7 @@ import './Attendence.css';
 import Popup from './Popup';
 import Chart from 'react-apexcharts';
 import './Summary.css';
-import { gettingClockinsData } from '../ReuseableAPI';
+import { fetchEmployees, gettingClockinsData } from '../ReuseableAPI';
 import { toast } from 'react-toastify';
 import LeaveTable from '../LeaveTable';
 import NoDataFound from '../payslip/NoDataFound';
@@ -12,6 +12,7 @@ import Loading from '../Loader';
 const Summary = () => {
     const empId = localStorage.getItem("_id");
     const [clockinsData, setClockinsData] = useState({});
+    const [employees, setEmployees] = useState([]);
     const [chartOptions, setChartOptions] = useState({
         chart: {
             type: 'donut',
@@ -20,6 +21,29 @@ const Summary = () => {
         colors: ['#FF4560', '#008FFB', '#775DD0'],
     });
     const [chartSeries, setChartSeries] = useState([]);
+
+    async function selectEmpClockins(id) {
+        if (empId) {
+            const data = await gettingClockinsData(id);
+            if (data) {
+                setClockinsData(data);
+
+                // Now update chart series
+                setChartSeries([
+                    data?.totalEarlyLogins || 0,
+                    data?.totalLateLogins || 0,
+                    data?.totalRegularLogins || 0
+                ]);
+            } else {
+                toast.error("Error in getting clockins data!");
+            }
+        }
+    }
+
+    const getEmpData = async () => {
+        const emps = await fetchEmployees();
+        setEmployees(emps);
+    }
 
     useEffect(() => {
         const getClockinsData = async () => {
@@ -40,10 +64,11 @@ const Summary = () => {
             }
         };
         getClockinsData();
+        getEmpData();
     }, [empId]); // Add empId as dependency to useEffect
 
     return (
-        <div className='dashboard-parent py-4'>
+        <div className='dashboard-parent pt-4'>
             <div className="d-flex justify-content-between align-items-center">
                 <div>
                     <h5 className='text-daily'>Summary</h5>
@@ -60,7 +85,22 @@ const Summary = () => {
                 </div>
             </div>
 
+
             <div className='row container-fluid attendanceFile'>
+                <div className="row d-flex justify-content-end">
+                    <div className="col-12 col-md-4">
+                        {/* Profile selection dropdown */}
+                        <select className="form-select" onChange={(e) => selectEmpClockins(e.target.value)}>
+                            <option value="">Select Profile</option>
+                            {
+                                employees?.length > 0 &&
+                                employees.map((data) => {
+                                    return <option value={data._id}>{data.FirstName + data.LastName}</option>
+                                })
+                            }
+                        </select>
+                    </div>
+                </div>
                 <div className='col-lg-6 d-flex align-items-center justify-content-center'>
                     <div className="chart" style={{ width: '300px' }}>
                         <Chart options={chartOptions} series={chartSeries} type="donut" />
@@ -101,7 +141,7 @@ const Summary = () => {
                 </div>
             </div>
 
-            
+
 
             {
                 clockinsData?.clockIns?.length > 0 ? (
