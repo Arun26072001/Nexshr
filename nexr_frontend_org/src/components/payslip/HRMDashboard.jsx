@@ -18,8 +18,15 @@ import LeaveRequest from '../leave/Request';
 import LeaveSummary from '../leave/Summary';
 import axios from 'axios';
 import LeaveCalender from '../leave/Calender';
-import Settings from '../Settings.jsx/Settings';
+import Settings from '../Settings/Settings';
 import UnAuthorize from './UnAuthorize';
+import LeaveRequestForm from './LeaveResquestForm';
+import EditLeaveRequestForm from '../EditLeaveRequestForm';
+import Payroll from "../Settings/Payroll";
+import PayrollManage from './PayrollManage';
+import PayslipInfo from './PayslipInfo';
+import PayrollValue from './PayrollValue';
+import PayslipRouter from './PayslipRouter';
 
 export const LeaveStates = createContext(null);
 
@@ -34,13 +41,15 @@ export default function HRMDashboard({ data }) {
     const [whoIs, setWhoIs] = useState("");
     const url = process.env.REACT_APP_API_URL;
     const [daterangeValue, setDaterangeValue] = useState("");
+    // files for payroll
+    const files = ['payroll', 'value', 'manage', 'payslip'];
 
     function filterLeaveRequests() {
         if (empName === "") {
             setLeaveRequests(fullLeaveRequests);
         } else {
             const filterRequests = fullLeaveRequests.filter((leave) => leave.employee.FirstName.toLowerCase().includes(empName));
-            setLeaveRequests((pre)=>({...pre, leaveData: filterRequests}));
+            setLeaveRequests((pre) => ({ ...pre, leaveData: filterRequests }));
         }
     }
 
@@ -66,12 +75,12 @@ export default function HRMDashboard({ data }) {
     }, [daterangeValue, empId])
 
     useEffect(() => {
-        if(data?.Account){
-            if(data.Account == 1){
+        if (data?.Account) {
+            if (data.Account == 1) {
                 setWhoIs("admin");
-            }else if(data.Account == 2){
+            } else if (data.Account == 2) {
                 setWhoIs("hr");
-            }else{
+            } else {
                 setWhoIs("emp");
             }
         }
@@ -89,8 +98,7 @@ export default function HRMDashboard({ data }) {
         }
         getClocknsData();
     }, [])
-    console.log(attendanceData);
-    
+
 
     return (
         <Routes >
@@ -110,7 +118,8 @@ export default function HRMDashboard({ data }) {
                         </Routes>
                     </LeaveStates.Provider>
                 } />
-                {/* <Route path="/leave-request/edit/:id" element={<EditLeaveRequestForm />} /> */}
+                <Route path='/leave-request' element={<LeaveRequestForm />} />
+                <Route path="/leave-request/edit/:id" element={<EditLeaveRequestForm />} />
                 <Route path="attendance/*" element={
                     <Routes>
                         <Route index path="request" element={<Request attendanceData={attendanceData} />} />
@@ -121,7 +130,18 @@ export default function HRMDashboard({ data }) {
                 }>
                 </Route>
                 <Route path="administration/" element={<Administration />} />
-                <Route path="settings/" element={<Settings />} />
+                <Route path="settings/*" element={
+                    <Routes>
+                        <Route index element={<Settings />} />
+                        <Route path="/" element={<PayslipRouter whoIs={whoIs} files={files} />}>
+                            <Route path="payroll" element={<Payroll whoIs={whoIs} />} />
+                            <Route path="value" element={<PayrollValue />} />
+                            <Route path="manage" element={<PayrollManage />} />
+                            <Route path="payslip" element={<PayslipInfo />} />
+                        </Route>
+                    </Routes>
+                } />
+
                 <Route path="*" element={<p>404</p>} />
                 <Route path="unauthorize" element={<UnAuthorize />} />
             </Route>

@@ -1,43 +1,42 @@
 const mongoose = require('mongoose');
-const autoIncrement = require('mongoose-auto-increment');
 const Joi = require('joi');
 
 const payrollSchema = new mongoose.Schema({
-    employee: { type: mongoose.Schema.Types.ObjectId, ref: 'Employee', required: true },
-    payPeriodStart: { type: Date, required: true },
-    payPeriodEnd: { type: Date, required: true },
-    grossSalary: { type: Number, required: true },
-    deductions: { 
-        tax: {type: Number},
-        healthInsurence: {type: Number},
-        otherDeducations: {type: Number}
-    },
-    netSalary: { type: Number, required: true },
-    payDate: { type: Date, required: true }
+    // employee summary
+    employee: {type: mongoose.Schema.Types.ObjectId, ref: "employee"},
+    // earnings
+    houseRendAllowance: {type: Number},
+    conveyanceAllowance: {type: Number},
+    othersAllowance: {type: Number},
+    bonusAdvance: {type: Number},
+    // deducations
+    incomeTax: {type: Number},
+    providentFund: {type: Number},
+    proffssionalTax: {type: Number},
+    ESI: {type: Number}
   });
   
 
 const Payroll = mongoose.model("Payroll", payrollSchema);
-payrollSchema.plugin(autoIncrement.plugin, {
-    model: "Payroll",
-    field: "PayrollID"
-})
 
-const PayrollValidation = Joi.object({
-    employeeId: Joi.string().required().regex(/^[0-9a-fA-F]{24}$/).label('Employee ID'),
-    payPeriodStart: Joi.date().required().label('Pay Period Start'),
-    payPeriodEnd: Joi.date().required().label('Pay Period End'),
-    grossSalary: Joi.number().required().label('Gross Salary'),
-    deductions: Joi.object({
-        tax: Joi.number(),
-        healthInsurance: Joi.number(),
-        otherDeducations: Joi.number()
-    }).required().label('Deductions'),
-    netSalary: Joi.number().required().label('Net Salary'),
-    payDate: Joi.date().required().label('Pay Date')
+const payrollValidation = Joi.object({
+    // employee summary
+    employee: Joi.string().regex(/^[0-9a-fA-F]{24}$/).required(), // MongoDB ObjectId format
+  
+    // earnings
+    houseRendAllowance: Joi.number().min(0).optional(),
+    conveyanceAllowance: Joi.number().min(0).optional(),
+    othersAllowance: Joi.number().min(0).optional(),
+    bonusAdvance: Joi.number().min(0).optional(),
+  
+    // deductions
+    incomeTax: Joi.number().min(0).optional(),
+    providentFund: Joi.number().min(0).optional(),
+    proffssionalTax: Joi.number().min(0).optional(),
+    ESI: Joi.number().min(0).optional()
   });
 
 module.exports = {
     Payroll,
-    PayrollValidation
+    payrollValidation
 }

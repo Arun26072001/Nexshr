@@ -111,7 +111,7 @@ router.post("/:id", verifyHREmployee, (req, res) => {
     });
 });
 
-router.get("/:id", verifyHREmployee, async (req, res) => {
+router.get("/:id", verifyAdminHREmployee, async (req, res) => {
     const convertToMinutes = (start, end) => {
         const [endHour, endMin] = end.split(":").map(Number);
         const [startHour, startMin] = start.split(":").map(Number);

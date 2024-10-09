@@ -10,7 +10,7 @@ const Request = ({attendanceData}) => {
     
     
     return (
-        <div className='dashboard-parent py-4'>
+        <div className='dashboard-parent pt-4'>
             <div className="d-flex  justify-content-between align-items-center">
                 <div>
                     <h5 className='text-daily'>Request</h5>

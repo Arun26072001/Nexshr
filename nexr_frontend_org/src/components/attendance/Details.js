@@ -9,7 +9,7 @@ import Loading from '../Loader';
 
 const Details = ({ attendanceData }) => {
     return (
-        <div className='dashboard-parent py-4'>
+        <div className='dashboard-parent pt-4'>
             <div className="row">
                 <div className='col-lg-6 col-6'>
                     <h5 className='text-daily'>Attendance Details</h5>

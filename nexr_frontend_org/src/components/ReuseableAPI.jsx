@@ -191,10 +191,24 @@ const fetchWorkplace = async () => {
     }
 };
 
+const fetchPayslipInfo = async () => {
+    try {
+        const payslipInfo = await axios.get(`${url}/api/payslip`, {
+            headers: {
+                authorization: token || ""
+            }
+        });
+        return payslipInfo.data;
+    } catch (err) {
+        return err;
+    }
+}
+
 export {
     addDataAPI,
     getDataAPI,
     updateDataAPI,
+    fetchPayslipInfo,
     removeClockinsData,
     fetchLeaveRequests,
     deleteLeave,

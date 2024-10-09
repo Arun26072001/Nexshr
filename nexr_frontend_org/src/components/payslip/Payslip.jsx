@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-
+import { DateRangePicker } from "rsuite";
 import axios from "axios";
 import LeaveTable from "../LeaveTable";
 import NoDataFound from "./NoDataFound";
@@ -9,6 +9,7 @@ const Payslip = (props) => {
     const url = process.env.REACT_APP_API_URL;
     const token = localStorage.getItem("token");
     const [payslips, setPayslips] = useState([]);
+    const [daterangeValue, setDaterangeValue] = useState("");
 
     useEffect(() => {
         async function fetchPayslips() {
@@ -37,10 +38,7 @@ const Payslip = (props) => {
                     Payslip
                 </div>
                 <div>
-                    <input
-                        type="date"
-                        className="dateInput"
-                    />
+                    <DateRangePicker size="md" showOneCalendar placement="bottomEnd" value={daterangeValue} placeholder="Select Date" onChange={setDaterangeValue} />
                 </div>
             </div>
 
@@ -82,10 +80,10 @@ const Payslip = (props) => {
 
             {/* <div className="container-fluid my-3"> */}
             {
-                payslips.length > 0 ? 
-                <LeaveTable data={payslips} />
-                : payslips.length === 0 ? <NoDataFound message={"Slip data not found"} />
-                : null 
+                payslips.length > 0 ?
+                    <LeaveTable data={payslips} />
+                    : payslips.length === 0 ? <NoDataFound message={"Slip data not found"} />
+                        : null
             }
             {/* </div> */}
         </div>

@@ -8,6 +8,7 @@ var employeeSchema = new mongoose.Schema({
   Password: { type: String },
   teamLead: { type: mongoose.Types.ObjectId, ref: "Employee" },
   phone: { type: String},
+  panNumber: {type: String},
   Account: { type: Number, default: 3 },
   dateOfBirth: { type: String },
   clockIns: [{ type: mongoose.Schema.Types.ObjectId, ref: "clockIns" }],
@@ -31,7 +32,7 @@ var employeeSchema = new mongoose.Schema({
   description: {type: String},
   dateOfJoining: { type: String },
   employmentType: { type: String }, // e.g., full-time, part-time, contract
-  salary: [{ type: mongoose.Schema.Types.ObjectId, ref: "Salary" }],
+  // salary: [{ type: mongoose.Schema.Types.ObjectId, ref: "Salary" }],
   benefits: [{ type: String }],
   managerId: { type: mongoose.Schema.Types.ObjectId, ref: "Employee" }, // Reference to another employee
   emergencyContacts: [
@@ -65,13 +66,15 @@ var employeeSchema = new mongoose.Schema({
   },
   // //financial details
   basicSalary: { type: String },
+  lossOfPay: {type: String},
   bankName: { type: String},
   accountNo: { type: String, unique: true},
   accountHolderName: { type: String },
   IFSCcode: { type: String, unique: true },
   taxDeduction: { type: String },
   typesOfLeaveCount: {type: Object},
-  typesOfLeaveRemainingDays: {type: Object}
+  typesOfLeaveRemainingDays: {type: Object},
+  payslip: [{type: mongoose.Schema.Types.ObjectId, ref:"payslip"}]
 });
 
 
