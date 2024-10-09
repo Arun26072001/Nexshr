@@ -260,12 +260,16 @@ export default function LeaveTable({ data }) {
                                                             <DropdownItem>Change log</DropdownItem>
                                                             <DropdownItem>Approve</DropdownItem>
                                                             <DropdownItem>Reject</DropdownItem>
-                                                        </Dropdown> : column.id === "Action" && params['*'] === "daily-log" || column.id === "Action" && params['*'] === "payslip" ?
+                                                        </Dropdown> : column.id === "Action" && params['*'] === "daily-log" ?
                                                             <Dropdown title={<EditRoundedIcon style={{ cursor: "pointer" }} />} noCaret>
                                                                 <DropdownItem onClick={toggleView}>View</DropdownItem>
                                                                 <DropdownItem>Edit</DropdownItem>
                                                                 <DropdownItem>Delete</DropdownItem>
-                                                            </Dropdown> : value
+                                                            </Dropdown> : column.id === "Action" && params['*'] === "payslip" ?
+                                                                <Dropdown title={<EditRoundedIcon style={{ cursor: "pointer" }} />} noCaret>
+                                                                    <DropdownItem onClick={toggleView}>View</DropdownItem>
+                                                                </Dropdown>
+                                                                : value
                                                     }
                                                 </TableCell>
                                             );

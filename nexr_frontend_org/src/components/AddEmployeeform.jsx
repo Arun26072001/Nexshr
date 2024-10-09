@@ -7,9 +7,11 @@ import axios from "axios";
 import { toast } from "react-toastify";
 import { Link } from "react-router-dom";
 import "./leaveForm.css";
+import { fetchPayslipInfo } from "./ReuseableAPI";
 
-const AddEmployeeForm = ({ details, handleScroll, handlePersonal, handleFinancial, handleJob, handleContact, handleEmployment, timePatterns, personalRef, contactRef, employmentRef, jobRef, financialRef, countries, companies, departments, positions, roles, leads, managers }) => {
+const AddEmployeeForm = ({ details, handleScroll, handlePersonal, handleFinancial, handleJob, handleContact, handleEmployment, timePatterns, personalRef, contactRef, employmentRef, jobRef, financialRef, payslipRef, countries, companies, departments, positions, roles, leads, managers }) => {
     const [timeDifference, setTimeDifference] = useState(0);
+    const [payslipFields, setPayslipFields] = useState([]);
     const token = localStorage.getItem("token");
     const url = process.env.REACT_APP_API_URL;
     const employeeObj = {
@@ -181,6 +183,23 @@ const AddEmployeeForm = ({ details, handleScroll, handlePersonal, handleFinancia
         calculateTimeDifference();
     }, [formik.values.workingTimePattern]);
 
+    useEffect(() => {
+        async function getPayslipInfo() {
+            try {
+                const payslipInfo = await fetchPayslipInfo();
+                if (payslipFields) {
+
+                    setPayslipFields(payslipInfo[0]?.payslipFields);
+                } else {
+                    setPayslipFields([]);
+                }
+            } catch (err) {
+                console.log(err.message);
+            }
+        }
+        getPayslipInfo();
+    }, [])
+
     const hourAndMin = timeDifference.toString().split(".");
     const [hour, min] = hourAndMin;
 
@@ -194,6 +213,7 @@ const AddEmployeeForm = ({ details, handleScroll, handlePersonal, handleFinancia
                         <div className={`catogary ${details === "employment" ? "active" : ""}`} onClick={() => handleScroll("employment")}>Employment Details</div>
                         <div className={`catogary ${details === "job" ? "active" : ""}`} onClick={() => handleScroll("job")}>Job Details</div>
                         <div className={`catogary ${details === "financial" ? "active" : ""}`} onClick={() => handleScroll("financial")}>Financial Details</div>
+                        <div className={`catogary ${details === "payslip" ? "active" : ""}`} onClick={() => handleScroll("payslip")}>Payslip Details</div>
                     </div>
                 </div>
 
@@ -732,6 +752,65 @@ const AddEmployeeForm = ({ details, handleScroll, handlePersonal, handleFinancia
                                     <div className="text-center text-danger">{formik.errors.IFSCcode}</div>
                                 ) : null}
                             </div>
+                        </div>
+                    </div>
+
+                    <div className="payslipDetails" ref={payslipRef}>
+                        <div className="row d-flex justify-content-center my-3">
+                            <div className="titleText col-lg-12">
+                                Payslip Details
+                            </div>
+
+                            {
+                                payslipFields.length > 0 &&
+                                payslipFields.map((data, index) => {
+                                    let calculatedValue = "";
+
+                                    if (data.fieldName === "incomeTax") {
+                                        const salary = Number(formik.values.basicSalary);
+
+                                        if (salary >= 84000) {
+                                            calculatedValue = (30 / 100) * salary; // 30% tax for <= 25,000
+                                        } else if (salary > 42000) {
+                                            calculatedValue = (20 / 100) * salary; // 20% tax for > 42,000
+                                        } else if (salary >= 25000) {
+                                            calculatedValue = (5 / 100) * salary;  // 5% tax for between 25,001 and 42,000
+                                        }
+                                    } else if (
+                                        data.fieldName === "houseRentAllowance" ||
+                                        data.fieldName === "conveyanceAllowance" ||
+                                        data.fieldName === "othersAllowance" ||
+                                        data.fieldName === "bonusAllowance"
+                                    ) {
+                                        calculatedValue = (data.value / 100) * Number(formik.values.basicSalary);
+                                    }else if(data.fieldName === "ProvidentFund" && Number(formik.values.basicSalary) > 15000){
+                                        calculatedValue = (12 / 100) * Number(formik.values.basicSalary);
+                                    }else if(data.fieldName === "Professional Tax" && Number(formik.values.basicSalary) > 21000){
+                                        calculatedValue = 130;
+                                    }else if(data.fieldName === "ESI" && Number(formik.values.basicSalary) > 21000){
+                                        calculatedValue = Number(formik.values.basicSalary)*.75/100
+                                    }
+
+                                    return (
+                                        <div className="col-lg-6" key={index}>
+                                            <div className="inputLabel">
+                                                {data.fieldName[0].toUpperCase() + data.fieldName.slice(1)}
+                                            </div>
+                                            <input
+                                                type={data.type}
+                                                className={`inputField ${formik.touched.basicSalary && formik.errors.basicSalary ? "error" : ""}`}
+                                                name={data.fieldName}
+                                                onChange={formik.handleChange}
+                                                value={calculatedValue || formik.values[data.fieldName] || ""}
+                                            />
+                                            {formik.touched.basicSalary && formik.errors.basicSalary ? (
+                                                <div className="text-center text-danger">{formik.errors.basicSalary}</div>
+                                            ) : null}
+                                        </div>
+                                    );
+                                })
+                            }
+
                         </div>
                     </div>
 

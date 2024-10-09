@@ -428,6 +428,7 @@ input::-webkit-inner-spin-button {
 .financialDetails,
 .employementDetails,
 .jobDetails,
+.payslipDetails,
 .tableParent {
   position: relative;
   border-radius: 10px;

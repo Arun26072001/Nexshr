@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import DefinitionToggle from './DefinitionToggle';
-import { MultiCascader } from 'rsuite';
 
 export default function Payroll() {
   const [isShowPayrun, setIsShowPayrun] = useState(true);

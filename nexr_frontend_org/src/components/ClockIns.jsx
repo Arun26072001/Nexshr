@@ -100,6 +100,7 @@ const ClockIns = ({ updateClockins, handleLogout }) => {
         // login time will set. when select login and punchIn
         if (timeOption === "login" && loginTime === "00:00") {
             const time = currentTime.toLocaleString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true });
+            console.log(time);
             setLoginTime(time);
             localStorage.setItem("loginTime", time);
         }
