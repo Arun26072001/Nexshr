@@ -16,7 +16,7 @@ export default function PayslipUI() {
                     <p>TamilNadu - 600044 India</p>
                 </div>
                 <div>
-                    <img src={logo} alt="" />
+                    <img src={logo} alt="logo" className='avatar' />
                     <p>Payslip For This Month</p>
                     <p><b>September 2024</b></p>
                 </div>

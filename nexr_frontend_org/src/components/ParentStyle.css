@@ -97,11 +97,13 @@
     border-radius: 50%;
     width: fit-content;
   }
-  
+  */
+
   .avatar > img {
     width: 80px;
     height: 80px;
-  } */
+    object-fit: cover;
+  } 
 
 .avatarName {
   display: block;
