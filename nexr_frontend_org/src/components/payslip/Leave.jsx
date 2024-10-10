@@ -8,9 +8,10 @@ import axios from "axios";
 import { toast } from "react-toastify";
 import Loading from "../Loader";
 import NoDataFound from "./NoDataFound";
+import { Link, useNavigate } from "react-router-dom";
 
-const Leave = () => {
-    const Account = localStorage.getItem("Account");
+const Leave = ({whoIs}) => {
+    const navigate = useNavigate();
     const empId = localStorage.getItem("_id");
     const [leaveRequests, setLeaveRequests] = useState({});
     const [fullLeaveRequests, setFullLeaveRequests] = useState([]);
@@ -81,12 +82,15 @@ const Leave = () => {
     return (
         <div >
             {/* top date input and leave label */}
-            <div className="leaveDateParent">
-                <div className="payslipTitle">
+            <div className="leaveDateParent row">
+                <div className="payslipTitle col-6">
                     Leave
                 </div>
-                <div>
-                    <DateRangePicker size="md" showOneCalendar placement="bottomEnd" value={daterangeValue} placeholder="Select Date" onChange={setDaterangeValue} />
+                <div className="col-6 d-flex justify-content-between">
+                        <button className="button m-0" onClick={()=>navigate(`/${whoIs}/leave-request`)}>
+                            Add Leave
+                        </button>
+                    <DateRangePicker size="md" className="ml-1" showOneCalendar placement="bottomEnd" value={daterangeValue} placeholder="Select Date" onChange={setDaterangeValue} />
                 </div>
             </div>
 

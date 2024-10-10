@@ -99,11 +99,17 @@
   }
   */
 
-  .avatar > img {
-    width: 80px;
-    height: 80px;
-    object-fit: cover;
-  } 
+.headingFont {
+  font-size: 12px;
+  font-weight: 700;
+  color: gray;
+}
+
+.avatar {
+  width: 80px;
+  height: 80px;
+  object-fit: cover;
+}
 
 .avatarName {
   display: block;
@@ -123,6 +129,6 @@
   width: 450px;
 }
 
-.marTop{
+.marTop {
   margin-top: var(--header-height);
 }

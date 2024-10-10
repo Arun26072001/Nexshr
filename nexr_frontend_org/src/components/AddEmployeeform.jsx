@@ -14,7 +14,7 @@ const AddEmployeeForm = ({ details, handleScroll, handlePersonal, handleFinancia
     const [payslipFields, setPayslipFields] = useState([]);
     const token = localStorage.getItem("token");
     const url = process.env.REACT_APP_API_URL;
-    const employeeObj = {
+    const [employeeObj, setEmployeeObj] = useState({
         FirstName: "",
         LastName: "",
         Email: "",
@@ -50,7 +50,7 @@ const AddEmployeeForm = ({ details, handleScroll, handlePersonal, handleFinancia
         accountHolderName: "",
         IFSCcode: "",
         taxDeduction: ""
-    };
+    });
 
     const empFormValidation = Yup.object().shape({
         FirstName: Yup.string().required('First Name is required'),
@@ -187,21 +187,38 @@ const AddEmployeeForm = ({ details, handleScroll, handlePersonal, handleFinancia
         async function getPayslipInfo() {
             try {
                 const payslipInfo = await fetchPayslipInfo();
-                if (payslipFields) {
+                if (payslipInfo && payslipInfo[0]?.payslipFields) {
+                    const fields = payslipInfo[0].payslipFields;
 
-                    setPayslipFields(payslipInfo[0]?.payslipFields);
+                    fields.forEach((field) => {
+                        // Update employee object for each field
+                        setEmployeeObj((preEmpdata) => ({
+                            ...preEmpdata,
+                            [field.fieldName]: ""
+                        }));
+                    });
+
+                    // Set the payslip fields
+                    setPayslipFields(fields);
                 } else {
+                    // If no fields found, set an empty array
                     setPayslipFields([]);
                 }
             } catch (err) {
                 console.log(err.message);
             }
         }
+
         getPayslipInfo();
-    }, [])
+    }, []);
+
+    console.log(employeeObj);
+    console.log(formik.values);
+
 
     const hourAndMin = timeDifference.toString().split(".");
     const [hour, min] = hourAndMin;
+
 
     return (
         <form onSubmit={formik.handleSubmit}>
@@ -775,6 +792,8 @@ const AddEmployeeForm = ({ details, handleScroll, handlePersonal, handleFinancia
                                             calculatedValue = (20 / 100) * salary; // 20% tax for > 42,000
                                         } else if (salary >= 25000) {
                                             calculatedValue = (5 / 100) * salary;  // 5% tax for between 25,001 and 42,000
+                                        } else {
+                                            calculatedValue = 0;
                                         }
                                     } else if (
                                         data.fieldName === "houseRentAllowance" ||
@@ -783,13 +802,21 @@ const AddEmployeeForm = ({ details, handleScroll, handlePersonal, handleFinancia
                                         data.fieldName === "bonusAllowance"
                                     ) {
                                         calculatedValue = (data.value / 100) * Number(formik.values.basicSalary);
-                                    }else if(data.fieldName === "ProvidentFund" && Number(formik.values.basicSalary) > 15000){
+                                    } else if (data.fieldName === "ProvidentFund" && Number(formik.values.basicSalary) > 15000) {
                                         calculatedValue = (12 / 100) * Number(formik.values.basicSalary);
-                                    }else if(data.fieldName === "Professional Tax" && Number(formik.values.basicSalary) > 21000){
+                                    } else if (data.fieldName === "Professional Tax" && Number(formik.values.basicSalary) > 21000) {
                                         calculatedValue = 130;
-                                    }else if(data.fieldName === "ESI" && Number(formik.values.basicSalary) > 21000){
-                                        calculatedValue = Number(formik.values.basicSalary)*.75/100
+                                    } else if (data.fieldName === "ESI" && Number(formik.values.basicSalary) > 21000) {
+                                        calculatedValue = Number(formik.values.basicSalary) * .75 / 100;
+                                    } else {
+                                        calculatedValue = 0;
                                     }
+
+                                    // Update the employee object with the calculated value
+                                    // setEmployeeObj((prevEmpData) => ({
+                                    //     ...prevEmpData,
+                                    //     [data.fieldName]: calculatedValue
+                                    // }));
 
                                     return (
                                         <div className="col-lg-6" key={index}>
@@ -798,17 +825,15 @@ const AddEmployeeForm = ({ details, handleScroll, handlePersonal, handleFinancia
                                             </div>
                                             <input
                                                 type={data.type}
-                                                className={`inputField ${formik.touched.basicSalary && formik.errors.basicSalary ? "error" : ""}`}
+                                                className={`inputField`}
                                                 name={data.fieldName}
                                                 onChange={formik.handleChange}
-                                                value={calculatedValue || formik.values[data.fieldName] || ""}
+                                                value={calculatedValue}
                                             />
-                                            {formik.touched.basicSalary && formik.errors.basicSalary ? (
-                                                <div className="text-center text-danger">{formik.errors.basicSalary}</div>
-                                            ) : null}
                                         </div>
-                                    );
+                                    )
                                 })
+                                
                             }
 
                         </div>

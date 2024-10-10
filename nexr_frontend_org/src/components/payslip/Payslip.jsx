@@ -4,6 +4,7 @@ import axios from "axios";
 import LeaveTable from "../LeaveTable";
 import NoDataFound from "./NoDataFound";
 import { toast } from "react-toastify";
+import { fetchPayslipInfo } from "../ReuseableAPI";
 
 const Payslip = (props) => {
     const url = process.env.REACT_APP_API_URL;
@@ -14,18 +15,11 @@ const Payslip = (props) => {
     useEffect(() => {
         async function fetchPayslips() {
             try {
-                const slips = await axios.get(`${url}/api/payslip`, {
-                    headers: {
-                        authorization: token || ""
-                    }
-                });
-                console.log(slips.data);
-                setPayslips(slips.data);
+                const slips = await fetchPayslipInfo();
+                setPayslips(slips);
             } catch (err) {
-                console.error(err);
                 toast.error(err?.response?.data?.error)
             }
-
         }
 
         fetchPayslips();

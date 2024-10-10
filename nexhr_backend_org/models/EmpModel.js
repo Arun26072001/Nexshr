@@ -74,6 +74,7 @@ var employeeSchema = new mongoose.Schema({
   taxDeduction: { type: String },
   typesOfLeaveCount: {type: Object},
   typesOfLeaveRemainingDays: {type: Object},
+  payslipFields: {type: Object},
   payslip: [{type: mongoose.Schema.Types.ObjectId, ref:"payslip"}]
 });
 

@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from 'react'
-import { NavLink } from 'react-router-dom';
+import { NavLink, useParams } from 'react-router-dom';
 
 export default function NavModelRouter({ whoIs, files }) {
-    const [payslip, setPayslip] = useState(files[0]);
+    const params = useParams();
+    const [payslip, setPayslip] = useState(files.includes(params['*']) ? params['*'] : files[0]);
     const [parentPath, setParentPath] = useState("");
-
 
     useEffect(() => {
         setParentPath(window.location.pathname.split("/")[2])

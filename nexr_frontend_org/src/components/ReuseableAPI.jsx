@@ -193,7 +193,7 @@ const fetchWorkplace = async () => {
 
 const fetchPayslipInfo = async () => {
     try {
-        const payslipInfo = await axios.get(`${url}/api/payslip`, {
+        const payslipInfo = await axios.get(`${url}/api/payslip-info`, {
             headers: {
                 authorization: token || ""
             }
