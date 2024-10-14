@@ -112,7 +112,7 @@ export default function CompanyTab() {
   function LabelWithIcon({icon, label}) {
     const IconComponnet = icon;
     return (
-      <div className='text-left'>
+      <div className='text-left d-flex align-items-center w-100 px-1'>
          <IconComponnet /> {label}
       </div>
     )
@@ -140,7 +140,7 @@ export default function CompanyTab() {
         aria-label="Vertical tabs example"
         sx={{ borderRight: 1, borderColor: 'divider' }}
       >
-        <Tab label={<LabelWithIcon icon={EditOutlinedIcon} label={"Company wide Settings"} />} className='bbb' {...a11yProps(0)} />
+        <Tab label={<LabelWithIcon icon={EditOutlinedIcon} label={"Company wide Settings"} className="d-flex align-items-center" />} className='bbb' {...a11yProps(0)} />
         <Tab label={<LabelWithIcon icon={BadgeOutlinedIcon} label={"Employee Settings"} />} className='bbb' {...a11yProps(1)} />
         <Tab label={<LabelWithIcon icon={WatchLaterOutlinedIcon} label={"Overtime and TOIL"} />} className='bbb' {...a11yProps(2)} />
         <Tab label={<LabelWithIcon icon={HouseRoundedIcon} label={"Absence and Entitlement"} />} className='bbb' {...a11yProps(3)} />

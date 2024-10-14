@@ -3,6 +3,7 @@ import './navbar.css';
 import Webnexs from "../../../imgs/webnexs_logo.png";
 import Profile from "../../../imgs/male_avatar.png";
 import TableRowsRoundedIcon from '@mui/icons-material/TableRowsRounded';
+import ProfileImgUploader from '../../ImgUploader';
 
 export default function Navbar() {
     return (
@@ -44,7 +45,8 @@ export default function Navbar() {
                             </clipPath>
                         </defs>
                     </svg></span>
-                    <img src={Profile} className="avatar ms-3" />
+                    {/* <img src={Profile} className="avatar ms-3" /> */}
+                    <ProfileImgUploader />
                 </div>
             </div>
         </div>

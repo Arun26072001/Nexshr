@@ -1,30 +1,25 @@
 import React, { useEffect, useState } from "react";
-
+import { DateRangePicker } from "rsuite";
 import axios from "axios";
 import LeaveTable from "../LeaveTable";
 import NoDataFound from "./NoDataFound";
 import { toast } from "react-toastify";
+import { fetchPayslipInfo } from "../ReuseableAPI";
 
 const Payslip = (props) => {
     const url = process.env.REACT_APP_API_URL;
     const token = localStorage.getItem("token");
     const [payslips, setPayslips] = useState([]);
+    const [daterangeValue, setDaterangeValue] = useState("");
 
     useEffect(() => {
         async function fetchPayslips() {
             try {
-                const slips = await axios.get(`${url}/api/payslip`, {
-                    headers: {
-                        authorization: token || ""
-                    }
-                });
-                console.log(slips.data);
-                setPayslips(slips.data);
+                const slips = await fetchPayslipInfo();
+                setPayslips(slips);
             } catch (err) {
-                console.error(err);
                 toast.error(err?.response?.data?.error)
             }
-
         }
 
         fetchPayslips();
@@ -37,10 +32,7 @@ const Payslip = (props) => {
                     Payslip
                 </div>
                 <div>
-                    <input
-                        type="date"
-                        className="dateInput"
-                    />
+                    <DateRangePicker size="md" showOneCalendar placement="bottomEnd" value={daterangeValue} placeholder="Select Date" onChange={setDaterangeValue} />
                 </div>
             </div>
 
@@ -82,10 +74,10 @@ const Payslip = (props) => {
 
             {/* <div className="container-fluid my-3"> */}
             {
-                payslips.length > 0 ? 
-                <LeaveTable data={payslips} />
-                : payslips.length === 0 ? <NoDataFound message={"Slip data not found"} />
-                : null 
+                payslips.length > 0 ?
+                    <LeaveTable data={payslips} />
+                    : payslips.length === 0 ? <NoDataFound message={"Slip data not found"} />
+                        : null
             }
             {/* </div> */}
         </div>

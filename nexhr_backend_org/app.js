@@ -1,8 +1,9 @@
 var express = require("express");
+const router = express.Router();
+const schedule = require("node-schedule")
 var mongoose = require('mongoose');
 var app = express();
-require('dotenv').config()
-const autoIncrement = require("mongoose-auto-increment");
+require('dotenv').config();
 var cors = require('cors')
 //router files 
 const login = require('./routes/login');
@@ -31,6 +32,7 @@ const applicationSettings = require("./routes/application-settings");
 const attendance = require("./routes/attendance");
 const clockIns = require("./routes/clock-ins")
 const team = require("./routes/team");
+const payslipInfo = require("./routes/payslipInfo");
 const payslip = require("./routes/payslip");
 
 //connecting to mongodb
@@ -78,7 +80,7 @@ app.use('/api/role', role);
 //team router
 app.use('/api/team', team)
 //pay slip router
-app.use('/api/payslip', payslip)
+app.use('/api/payslip-info', payslipInfo);
 //city routes
 app.use('/api/city', city)
 //state routes
@@ -92,7 +94,9 @@ app.use('/api/family-info', familyInfo)
 //use personal-info router
 app.use('/api/personal-info', personalInfo)
 //use payroll router
-app.use('/api/payroll', payroll)
+app.use('/api/payroll', payroll);
+//use payslip router
+app.use('/api/payslip', payslip);
 //use education router
 app.use('/api/education', education)
 //use department router
@@ -125,6 +129,10 @@ app.use('/api/time-pattern', timePattern);
 app.use("/api/attendance", attendance)
 //use clock-ins router
 app.use("/api/clock-ins", clockIns)
+
+const addPayslip = schedule.scheduleJob("23 13 10 * *", function(){
+  router.post("/api/payslip");
+})
 
 var port = process.env.PORT;
 
