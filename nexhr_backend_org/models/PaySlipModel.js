@@ -1,7 +1,8 @@
+
 const mongoose = require("mongoose");
 
 const PayslipSchema = mongoose.Schema({
-  employee: { type: mongoose.Schema.Types.ObjectId, ref: "employee" },
+  employee: { type: mongoose.Schema.Types.ObjectId, ref: "Employee" },
   payslip: {
     type: mongoose.Schema.Types.Mixed, default: {}
   }

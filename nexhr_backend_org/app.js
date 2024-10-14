@@ -1,6 +1,7 @@
 var express = require("express");
 const router = express.Router();
-const schedule = require("node-schedule")
+const schedule = require("node-schedule");
+const axios = require("axios");
 var mongoose = require('mongoose');
 var app = express();
 require('dotenv').config();
@@ -17,7 +18,7 @@ const employee = require('./routes/employee');
 const familyInfo = require('./routes/family-info');
 const salary = require('./routes/salary');
 const education = require('./routes/education');
-const {leaveApp} = require('./routes/leave-app');
+const { leaveApp } = require('./routes/leave-app');
 const state = require('./routes/state');
 const country = require('./routes/country');
 const project = require('./routes/project');
@@ -79,8 +80,6 @@ app.use('/api/login', login)
 app.use('/api/role', role);
 //team router
 app.use('/api/team', team)
-//pay slip router
-app.use('/api/payslip-info', payslipInfo);
 //city routes
 app.use('/api/city', city)
 //state routes
@@ -98,7 +97,9 @@ app.use('/api/payroll', payroll);
 //use payslip router
 app.use('/api/payslip', payslip);
 //use education router
-app.use('/api/education', education)
+app.use('/api/education', education);
+//pay slip router
+app.use('/api/payslip-info', payslipInfo);
 //use department router
 app.use('/api/department', department)
 //use work-experiance router
@@ -128,12 +129,19 @@ app.use('/api/time-pattern', timePattern);
 //use attendance router
 app.use("/api/attendance", attendance)
 //use clock-ins router
-app.use("/api/clock-ins", clockIns)
-
-const addPayslip = schedule.scheduleJob("23 13 10 * *", function(){
-  router.post("/api/payslip");
-})
+app.use("/api/clock-ins", clockIns);
 
 var port = process.env.PORT;
+// Schedule the job to run every 14th day of the month at 18:18
+const addPayslip = schedule.scheduleJob("10 10 3 * *", async function () {
+  try {
+    const response = await axios.post(`${process.env.REACT_APP_API_URL}/api/payslip/`, {
+    });
+    console.log("Payslip generation response:", response.data);
+  } catch (err) {
+    console.error("Error while generating payslips:", err);
+  }
+});
+
 
 app.listen(port, () => console.log(`Example app listening on port ${port}!`));

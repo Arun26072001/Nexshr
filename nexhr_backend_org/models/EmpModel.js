@@ -78,7 +78,6 @@ var employeeSchema = new mongoose.Schema({
   payslip: [{type: mongoose.Schema.Types.ObjectId, ref:"payslip"}]
 });
 
-
 var Employee = mongoose.model("Employee", employeeSchema);
 
 const EmployeeValidation = Joi.object({

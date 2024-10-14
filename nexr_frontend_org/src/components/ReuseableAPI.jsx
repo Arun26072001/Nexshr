@@ -204,10 +204,20 @@ const fetchPayslipInfo = async () => {
     }
 }
 
+const fetchPayslip = async (id) =>{
+    try {
+        const payslip = await axios.get(`${url}/api/payslip/${id}`);
+        return payslip.data;
+    } catch (error) {
+        return error?.response?.data?.message
+    }
+}
+
 export {
     addDataAPI,
     getDataAPI,
     updateDataAPI,
+    fetchPayslip,
     fetchPayslipInfo,
     removeClockinsData,
     fetchLeaveRequests,

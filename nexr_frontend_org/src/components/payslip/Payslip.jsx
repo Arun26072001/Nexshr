@@ -4,18 +4,19 @@ import axios from "axios";
 import LeaveTable from "../LeaveTable";
 import NoDataFound from "./NoDataFound";
 import { toast } from "react-toastify";
-import { fetchPayslipInfo } from "../ReuseableAPI";
+import { fetchPayslip } from "../ReuseableAPI";
 
 const Payslip = (props) => {
-    const url = process.env.REACT_APP_API_URL;
-    const token = localStorage.getItem("token");
+    const empId = localStorage.getItem("_id")
     const [payslips, setPayslips] = useState([]);
     const [daterangeValue, setDaterangeValue] = useState("");
 
     useEffect(() => {
         async function fetchPayslips() {
             try {
-                const slips = await fetchPayslipInfo();
+                const slips = await fetchPayslip(empId);
+                console.log(slips);
+                
                 setPayslips(slips);
             } catch (err) {
                 toast.error(err?.response?.data?.error)
@@ -23,7 +24,7 @@ const Payslip = (props) => {
         }
 
         fetchPayslips();
-    }, [])
+    }, [empId])
     return (
         <div>
 
@@ -41,7 +42,7 @@ const Payslip = (props) => {
                     <div className="leaveData">
                         <div className="d-flex flex-column">
                             <div className="leaveDays">
-                                2
+                                {payslips?.length}
                             </div>
                             <div className="leaveDaysDesc">
                                 Total Payslip

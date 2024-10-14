@@ -1,7 +1,7 @@
 const express = require("express");
 const { Employee } = require("../models/EmpModel");
-const { LeaveApplication } = require("../models/LeaveAppModel");
-const { PaySlipInfo } = require("../models/PaySlipInfoModel");
+// const { LeaveApplication } = require("../models/LeaveAppModel");
+// const { PaySlipInfo } = require("../models/PaySlipInfoModel");
 const { Payslip } = require("../models/PaySlipModel");
 const router = express.Router();
 
@@ -13,9 +13,10 @@ function getDayDifference(leave) {
 }
 
 router.post("/", async (req, res) => {
-  const now = new Date()
-  let startOfMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-  let endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+  const now = new Date();
+  let startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+  let endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0); // End of the current month
+
   try {
     const employees = await Employee.find().populate({
       path: "leaveApplication",
@@ -30,38 +31,64 @@ router.post("/", async (req, res) => {
         }
       }
     }).exec();
-    if (!employees) {
-      res.status(404).send({ message: "No Employees in DB" })
-    } else {
-      employees.map(async (emp) => {
-        const perDayOfSalary = Number(emp.basicSalary)/22;
-        const payslipFields = await PaySlipInfo.find();
-        let leaveDays;
-        if (emp?.leaveApplication.length > 0) {
-          emp.leaveApplication.map((leave) => leaveDays += getDayDifference(leave))
-        }
-        let payslip = {};
-        payslipFields[0].forEach((field)=>{
-            payslip[field.fieldName] = field.value;
 
-            if(payslip.fieldName === "LossOfPay"){
-                payslip["LossOfPay"] = leaveDays * perDayOfSalary;
-            }
-        })
-        const body = {
-            employee: emp._id,
-            payslip
-        }
-        res.send(body);
-        // const genPayslip = await Payslip.create(body);
-        // console.log(genPayslip);
-        
-      })
+    if (!employees || employees.length === 0) {
+      return res.status(404).send({ message: "No one took leave this month" });
     }
 
-  } catch (err) {
-    console.log(err);
+    const payslipPromises = employees.map(async (emp) => {
+      const perDayOfSalary = emp.basicSalary ? Number(emp.basicSalary) / 22 : 0;
+      let leaveDays = 0;
 
+      // Calculate the total leave days taken in the month
+      if (emp.leaveApplication.length > 0) {
+        emp.leaveApplication.forEach((leave) => {
+          leaveDays += getDayDifference(leave);
+        });
+      }
+
+      // Create payslip object
+      let payslip = {};
+      const { payslipFields } = emp;
+
+      Object.entries(payslipFields).forEach(([field, value]) => {
+        if (field === "LossOfPay") {
+          payslip[field] = Number((leaveDays * perDayOfSalary).toFixed(2));  // Add each field to the payslip object
+        } else {
+          payslip[field] = value
+        }
+      });
+
+      payslip['status'] = "pending"
+      payslip['period'] = `${startOfMonth} - ${endOfMonth}`
+
+      const body = {
+        employee: emp._id,
+        payslip
+      };
+
+      const payslipData = await Payslip.create(body); // Generate payslip and return the promise
+
+      emp.payslip.push(payslipData._id);
+      await emp.save();
+    });
+
+    // Wait for all payslip creations to complete
+    const generatedPayslips = await Promise.all(payslipPromises);
+    res.send({ message: "payslip has been generated for " })
+
+  } catch (err) {
+    console.error("Error:", err);
+    res.status(500).send({ message: "An error occurred while generating payslips", error: err.message });
+  }
+});
+
+router.get("/:empId", async (req, res) => {
+  try {
+    const payslips = await Payslip.find({ employee: req.params.empId }).populate("employee").exec();
+    res.send(payslips);
+  } catch (err) {
+    res.status(500).send({error: err.message})
   }
 })
 

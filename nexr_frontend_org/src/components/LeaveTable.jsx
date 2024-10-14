@@ -62,11 +62,13 @@ export default function LeaveTable({ data }) {
     ];
 
     const column2 = [
-        { id: 'payrun', label: 'Payrun', minWidth: 170, getter: (row) => row.payrun || 'Unknown' },
-        { id: 'payrunType', label: 'Payrun Type', minWidth: 170, getter: (row) => row.payrunType || 'N/A' },
-        { id: 'status', label: 'Status', minWidth: 170, align: 'center', getter: (row) => row.status || 'N/A' },
-        { id: 'period', label: 'Period', minWidth: 170, align: 'center', getter: (row) => row.period || 'N/A' },
-        { id: 'salary', label: 'Salary', minWidth: 170, align: 'right', getter: (row) => row.salary ? `₹${row.salary}` : 'N/A' },
+        { id: 'FirstName', label: 'Name', minWidth: 170, align: 'center', getter: (row) => row.employee.FirstName ? `${row.employee.FirstName}` : 'N/A' },
+        { id: 'basicSalary', label: 'Salary', minWidth: 170, align: 'center', getter: (row) => row.employee.basicSalary ? `₹${row.employee.basicSalary}` : 'N/A' },
+        { id: 'status', label: 'Status', minWidth: 170, align: 'center', getter: (row) => row.payslip.status || 'N/A' },
+        { id: 'period', label: 'Period', minWidth: 220, align: 'center', getter: (row) => row.payslip.period || 'N/A' },
+        { id: 'LossOfPay', label: 'LossOfPay', minWidth: 170, getter: (row) => row.payslip.LOP || 'N/A' },
+        { id: 'ESI', label: 'ESI', minWidth: 170, getter: (row) => row.payslip.ESI || 'N/A' },
+        { id: 'ProvidentFund', label: 'ProvidentFund', minWidth: 170, getter: (row) => row.payslip.ProvidentFund || 'N/A' },
         { id: "Action", label: "Action", minWidth: 100, align: "center" }
     ];
 
