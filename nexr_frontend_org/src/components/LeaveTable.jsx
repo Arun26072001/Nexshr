@@ -15,8 +15,6 @@ import DropdownItem from 'rsuite/esm/Dropdown/DropdownItem';
 import ViewAttendanceModel from './ViewAttendanceModel';
 
 export default function LeaveTable({ data }) {
-    console.log(data);
-
     const [page, setPage] = useState(0);
     const [rowsPerPage, setRowsPerPage] = useState(10);
     const [rows, setRows] = useState([]);

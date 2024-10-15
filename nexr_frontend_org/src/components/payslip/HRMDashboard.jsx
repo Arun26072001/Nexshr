@@ -26,6 +26,7 @@ import PayrollManage from './PayrollManage';
 import PayslipInfo from './PayslipInfo';
 import PayrollValue from './PayrollValue';
 import PayslipRouter from './PayslipRouter';
+import PayslipUI from './PayslipUI';
 
 export const LeaveStates = createContext(null);
 
@@ -79,7 +80,7 @@ export default function HRMDashboard({ data }) {
                 setWhoIs("admin");
             } else if (data.Account === '2') {
                 setWhoIs("hr");
-            } else {
+            } else if (data.Account === '3') {
                 setWhoIs("emp");
             }
         }
