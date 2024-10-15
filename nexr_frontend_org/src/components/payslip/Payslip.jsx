@@ -1,10 +1,9 @@
 import React, { useEffect, useState } from "react";
 import { DateRangePicker } from "rsuite";
-import axios from "axios";
 import LeaveTable from "../LeaveTable";
 import NoDataFound from "./NoDataFound";
 import { toast } from "react-toastify";
-import { fetchPayslip } from "../ReuseableAPI";
+import { fetchPayslipFromEmp } from "../ReuseableAPI";
 
 const Payslip = (props) => {
     const empId = localStorage.getItem("_id")
@@ -14,7 +13,7 @@ const Payslip = (props) => {
     useEffect(() => {
         async function fetchPayslips() {
             try {
-                const slips = await fetchPayslip(empId);
+                const slips = await fetchPayslipFromEmp(empId);
                 console.log(slips);
                 
                 setPayslips(slips);

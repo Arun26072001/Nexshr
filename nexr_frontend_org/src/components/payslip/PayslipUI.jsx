@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import "./payslipui.css";
 import logo from "../../imgs/webnexs_logo.png";
-import { fetchPayslip } from '../ReuseableAPI';
+import { fetchPayslipFromEmp } from '../ReuseableAPI';
 import { toast } from 'react-toastify';
 
 export default function PayslipUI() {
@@ -28,7 +28,7 @@ export default function PayslipUI() {
     useEffect(() => {
         async function fetchPayslips() {
             try {
-                const slips = await fetchPayslip(payslipId);
+                const slips = await fetchPayslipFromEmp(payslipId);
                 console.log(slips);
 
                 setPayslips(slips);

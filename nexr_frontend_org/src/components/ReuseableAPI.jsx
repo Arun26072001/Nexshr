@@ -204,7 +204,7 @@ const fetchPayslipInfo = async () => {
     }
 }
 
-const fetchPayslip = async (empId) =>{
+const fetchPayslipFromEmp = async (empId) =>{
     try {
         const payslip = await axios.get(`${url}/api/payslip/emp/${empId}`);
         return payslip.data;
@@ -213,11 +213,13 @@ const fetchPayslip = async (empId) =>{
     }
 }
 
+
+
 export {
     addDataAPI,
     getDataAPI,
     updateDataAPI,
-    fetchPayslip,
+    fetchPayslipFromEmp,
     fetchPayslipInfo,
     removeClockinsData,
     fetchLeaveRequests,
