@@ -187,8 +187,8 @@ const AddEmployeeForm = ({ details, handleScroll, handlePersonal, handleFinancia
         async function getPayslipInfo() {
             try {
                 const payslipInfo = await fetchPayslipInfo();
-                if (payslipInfo && payslipInfo[0]?.payslipFields) {
-                    const fields = payslipInfo[0].payslipFields;
+                if (payslipInfo && payslipInfo?.payslipFields) {
+                    const fields = payslipInfo.payslipFields;
 
                     fields.forEach((field) => {
                         // Update employee object for each field
@@ -211,10 +211,6 @@ const AddEmployeeForm = ({ details, handleScroll, handlePersonal, handleFinancia
 
         getPayslipInfo();
     }, []);
-
-    console.log(employeeObj);
-    console.log(formik.values);
-
 
     const hourAndMin = timeDifference.toString().split(".");
     const [hour, min] = hourAndMin;
@@ -804,7 +800,7 @@ const AddEmployeeForm = ({ details, handleScroll, handlePersonal, handleFinancia
                                         calculatedValue = (data.value / 100) * Number(formik.values.basicSalary);
                                     } else if (data.fieldName === "ProvidentFund" && Number(formik.values.basicSalary) > 15000) {
                                         calculatedValue = (12 / 100) * Number(formik.values.basicSalary);
-                                    } else if (data.fieldName === "Professional Tax" && Number(formik.values.basicSalary) > 21000) {
+                                    } else if (data.fieldName === "ProfessionalTax" && Number(formik.values.basicSalary) > 21000) {
                                         calculatedValue = 130;
                                     } else if (data.fieldName === "ESI" && Number(formik.values.basicSalary) > 21000) {
                                         calculatedValue = Number(formik.values.basicSalary) * .75 / 100;

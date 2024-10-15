@@ -1,8 +1,13 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import "./payslipui.css";
 import logo from "../../imgs/webnexs_logo.png";
+import { fetchPayslip } from '../ReuseableAPI';
+import { toast } from 'react-toastify';
 
 export default function PayslipUI() {
+    const payslipId = "670cc96bda78cf4438479170";
+    const [payslips, setPayslips] = useState([]);
+
     const payslipData = {
         earnings: [
             { label: "Basic", amount: "₹8500" },
@@ -19,6 +24,23 @@ export default function PayslipUI() {
             { label: "Loss of Pay", amount: "₹0.00" }
         ]
     };
+
+    useEffect(() => {
+        async function fetchPayslips() {
+            try {
+                const slips = await fetchPayslip(payslipId);
+                console.log(slips);
+
+                setPayslips(slips);
+            } catch (err) {
+                toast.error(err?.response?.data?.error)
+            }
+        }
+
+        fetchPayslips();
+    }, [payslipId])
+    console.log(payslips);
+    
     return (
         <div className="container">
             <div className='d-flex payslipHeader'>
@@ -26,8 +48,8 @@ export default function PayslipUI() {
                     <div className='d-flex gap-1'>
                         <div className='brightLogo'>B</div>
                         <div>
-                            <h1 style={{borderBottom: "2px solid orange"}}>Bright</h1>
-                            <p className='text-center' style={{letterSpacing: "2px"}}>LIVINGSTONE</p>
+                            <h1 style={{ borderBottom: "2px solid orange" }}>Bright</h1>
+                            <p className='text-center' style={{ letterSpacing: "2px" }}>LIVINGSTONE</p>
                         </div>
                     </div>
                     <p style={{ fontSize: "10px", fontWeight: "900" }}>Bright Livingstone Consultancy Private LTD</p>
@@ -47,14 +69,14 @@ export default function PayslipUI() {
             <div className='d-flex payslipHeader py-3'>
                 <div>
                     <p className='headingFont'>Employee Summary</p>
-                    <p className='payslipTxt'>Employee Name : Arun kumar</p>
+                    <p className='payslipTxt'>Employee Name : {payslipData}</p>
                     <p className='payslipTxt'>Employee ID : W03920</p>
                     <p className='payslipTxt'>DOJ : 10/01/2024</p>
                     <p className='payslipTxt'>DOB : 30/10/2001</p>
                 </div>
                 <div>
                     <div className="boxBorder">
-                        <div style={{background: "#D6EFD8"}}>
+                        <div style={{ background: "#D6EFD8" }}>
                             <p className='rupeeFont'>₹10000</p>
                             <p className='payslipTxt'>Employee Net Pay</p>
                         </div>

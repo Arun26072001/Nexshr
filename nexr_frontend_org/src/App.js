@@ -135,9 +135,9 @@ const App = () => {
           <Route path="emp/*" element={<DashboardEmployee data={data} />} /> */}
           <Route path="*" element={<Layout />} />
         </Route>
-        <Route path="admin/*" element={isLogin && account == 1 ? <HRMDashboard  data={data} /> : <Navigate to={"/login"} />} />
-        <Route path="hr/*" element={isLogin && account == 2 ? <HRMDashboard data={data} /> : <Navigate to={"/login"} />} />
-        <Route path="emp/*" element={isLogin && account == 3 ?  <HRMDashboard data={data} /> : <Navigate to={"/login"} />} />
+        <Route path="admin/*" element={isLogin && account === '1' ? <HRMDashboard  data={data} /> : <Navigate to={"/login"} />} />
+        <Route path="hr/*" element={isLogin && account === '2' ? <HRMDashboard data={data} /> : <Navigate to={"/login"} />} />
+        <Route path="emp/*" element={isLogin && account === '3' ?  <HRMDashboard data={data} /> : <Navigate to={"/login"} />} />
       </Routes>
     </EssentialValues.Provider>
   );

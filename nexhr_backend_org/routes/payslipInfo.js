@@ -5,7 +5,7 @@ const router = express.Router();
 
 router.get("/", verifyAdminHREmployee, async (req, res) => {
     try {
-        const payslipData = await PaySlipInfo.find().exec();
+        const payslipData = await PaySlipInfo.findOne().exec();
         if (!payslipData) {
             res.status(204).send({ message: "No Payslip data in DB" });
         } else {

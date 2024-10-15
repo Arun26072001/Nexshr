@@ -1,6 +1,5 @@
 import React, { createContext, useEffect, useState } from 'react'
 import Parent from '../Parent'
-import Leave from "./Leave";
 import Dashboard from './Dashboard';
 import JobDesk from './Jobdesk';
 import Employee from './Employee';
@@ -76,9 +75,9 @@ export default function HRMDashboard({ data }) {
 
     useEffect(() => {
         if (data?.Account) {
-            if (data.Account == 1) {
+            if (data.Account === '1') {
                 setWhoIs("admin");
-            } else if (data.Account == 2) {
+            } else if (data.Account === '2') {
                 setWhoIs("hr");
             } else {
                 setWhoIs("emp");
@@ -112,9 +111,9 @@ export default function HRMDashboard({ data }) {
                     <LeaveStates.Provider value={{ daterangeValue, setDaterangeValue, leaveRequests, filterLeaveRequests, empName, setEmpName }} >
                         <Routes>
                             <Route index path='status' element={<Status />} />
-                            <Route path='request' element={<LeaveRequest />} />
+                            <Route path='leave-request' element={<LeaveRequest />} />
                             <Route path='calender' element={<LeaveCalender />} />
-                            <Route path='summary' element={<LeaveSummary />} />
+                            <Route path='leave-summary' element={<LeaveSummary />} />
                         </Routes>
                     </LeaveStates.Provider>
                 } />
@@ -122,10 +121,10 @@ export default function HRMDashboard({ data }) {
                 <Route path="/leave-request/edit/:id" element={<EditLeaveRequestForm />} />
                 <Route path="attendance/*" element={
                     <Routes>
-                        <Route index path="request" element={<Request attendanceData={attendanceData} />} />
+                        <Route index path="attendance-request" element={<Request attendanceData={attendanceData} />} />
                         <Route path="daily-log" element={<Dailylog attendanceData={attendanceData} />} />
                         <Route path="details" element={<Details attendanceData={attendanceData} />} />
-                        <Route path="summary" element={<Summary attendanceData={attendanceForSummary} />} />
+                        <Route path="attendance-summary" element={<Summary attendanceData={attendanceForSummary} />} />
                     </Routes>
                 }>
                 </Route>

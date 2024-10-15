@@ -5,17 +5,19 @@ import "./dashboard.css";
 import LeaveTable from '../LeaveTable';
 import { fetchEmployees } from '../ReuseableAPI';
 import Loading from '../Loader';
-import { NavLink } from 'react-router-dom';
+import { NavLink, useNavigate } from 'react-router-dom';
 
-export default function Employee({whoIs}) {
+export default function Employee({ whoIs }) {
     const [employees, setEmployees] = useState([]);
     const [empName, setEmpName] = useState("");
     const [allEmployees, setAllEmployees] = useState([]);
+    const navigate = useNavigate();
 
     useEffect(() => {
         const fetchEmployeeData = async () => {
             try {
                 const empData = await fetchEmployees();
+                
                 if (empData.length > 0) {
                     setEmployees(empData);
                     setAllEmployees(empData);
@@ -59,10 +61,8 @@ export default function Employee({whoIs}) {
                 </div>
 
                 <div className='d-flex' style={{ gap: "10px" }}>
-                    <div className="button">
-                        <NavLink to={`/${whoIs}/employee/add`} className="text-light">
-                            + Add Employee
-                        </NavLink>
+                    <div className="button" onClick={() => navigate(`/${whoIs}/employee/add`)}>
+                        + Add Employee
                     </div>
                     <div className="button bg-light text-dark">
                         <EmailOutlinedIcon /> Invite

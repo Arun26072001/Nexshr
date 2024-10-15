@@ -48,7 +48,7 @@ export default function ViewAttendanceModel({ id, toggleView, openModal, totalHo
     return (
         attendanceData ?
             <Dialog open={openModal} onClose={toggleView} className='aa'>
-                <DialogTitle>ATTENDENCE DETAILS</DialogTitle>
+                <DialogTitle className='text-center'>ATTENDENCE DETAILS</DialogTitle>
                 <div className="d-flex justify-content-end px-2">
                     <button className='btn btn-primary' onClick={exportPDF}>Export PDF</button>
                 </div>
