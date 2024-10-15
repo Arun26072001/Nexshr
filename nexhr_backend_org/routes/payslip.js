@@ -12,6 +12,19 @@ function getDayDifference(leave) {
   return timeDifference / (1000 * 60 * 60 * 24);
 }
 
+router.get("/:id", async (req, res) => {
+  try {
+    const payslip = await Payslip.findById({ _id: req.params.id }).populate("employee").exec();
+    if (!payslip) {
+      res.status(404).send({ message: "invalid payslip Id!" })
+    } else {
+      res.send(payslip);
+    }
+  } catch (error) {
+    res.status(500).send({ error: error.message })
+  }
+})
+
 router.post("/", async (req, res) => {
   const now = new Date();
   let startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
@@ -83,12 +96,12 @@ router.post("/", async (req, res) => {
   }
 });
 
-router.get("/:empId", async (req, res) => {
+router.get("/emp/:empId", async (req, res) => {
   try {
     const payslips = await Payslip.find({ employee: req.params.empId }).populate("employee").exec();
     res.send(payslips);
   } catch (err) {
-    res.status(500).send({error: err.message})
+    res.status(500).send({ error: err.message })
   }
 })
 

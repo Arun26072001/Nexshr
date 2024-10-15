@@ -204,9 +204,9 @@ const fetchPayslipInfo = async () => {
     }
 }
 
-const fetchPayslip = async (id) =>{
+const fetchPayslip = async (empId) =>{
     try {
-        const payslip = await axios.get(`${url}/api/payslip/${id}`);
+        const payslip = await axios.get(`${url}/api/payslip/emp/${empId}`);
         return payslip.data;
     } catch (error) {
         return error?.response?.data?.message

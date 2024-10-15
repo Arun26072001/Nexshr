@@ -15,6 +15,8 @@ import DropdownItem from 'rsuite/esm/Dropdown/DropdownItem';
 import ViewAttendanceModel from './ViewAttendanceModel';
 
 export default function LeaveTable({ data }) {
+    console.log(data);
+
     const [page, setPage] = useState(0);
     const [rowsPerPage, setRowsPerPage] = useState(10);
     const [rows, setRows] = useState([]);
@@ -51,7 +53,7 @@ export default function LeaveTable({ data }) {
     }, [data]);
 
     const column1 = [
-        { id: 'FirstName', label: 'Name', minWidth: 130, align: "center", getter: (row) => row.employee.FirstName + row.employee.LastName || 'Unknown' },
+        { id: 'FirstName', label: 'Name', minWidth: 130, align: "center", getter: (row) => row.employee.FirstName[0].toUpperCase() + row.employee.FirstName.slice(1) + row.employee.LastName || 'Unknown' },
         { id: 'periodOfLeave', label: 'Period Of Leave', align: "center", minWidth: 130, getter: (row) => row.periodOfLeave },
         { id: 'fromDate', label: 'Start Date', minWidth: 130, align: 'center', getter: (row) => row.fromDate ? row.fromDate.split("T")[0] : 'N/A' },
         { id: 'toDate', label: 'End Date', minWidth: 130, align: 'center', getter: (row) => row.toDate ? row.toDate.split("T")[0] : 'N/A' },
@@ -62,11 +64,11 @@ export default function LeaveTable({ data }) {
     ];
 
     const column2 = [
-        { id: 'FirstName', label: 'Name', minWidth: 170, align: 'center', getter: (row) => row.employee.FirstName ? `${row.employee.FirstName}` : 'N/A' },
+        { id: 'FirstName', label: 'Name', minWidth: 170, align: 'center', getter: (row) => row.employee.FirstName ? `${row.employee.FirstName[0].toUpperCase()+row.employee.FirstName.slice(1)}` : 'N/A' },
         { id: 'basicSalary', label: 'Salary', minWidth: 170, align: 'center', getter: (row) => row.employee.basicSalary ? `₹${row.employee.basicSalary}` : 'N/A' },
-        { id: 'status', label: 'Status', minWidth: 170, align: 'center', getter: (row) => row.payslip.status || 'N/A' },
-        { id: 'period', label: 'Period', minWidth: 220, align: 'center', getter: (row) => row.payslip.period || 'N/A' },
-        { id: 'LossOfPay', label: 'LossOfPay', minWidth: 170, getter: (row) => row.payslip.LOP || 'N/A' },
+        { id: 'status', label: 'Status', minWidth: 170, align: 'center', getter: (row) => row.payslip.status ? row.payslip.status : 'N/A' },
+        { id: 'period', label: 'Period', minWidth: 220, align: 'center', getter: (row) => row.payslip.period ? row.payslip.period : 'N/A' },
+        { id: 'lossofpay', label: 'LOP', minWidth: 170, align: 'center', getter: (row) => row?.payslip?.LossOfPay || 'N/A' },
         { id: 'ESI', label: 'ESI', minWidth: 170, getter: (row) => row.payslip.ESI || 'N/A' },
         { id: 'ProvidentFund', label: 'ProvidentFund', minWidth: 170, getter: (row) => row.payslip.ProvidentFund || 'N/A' },
         { id: "Action", label: "Action", minWidth: 100, align: "center" }
@@ -168,6 +170,7 @@ export default function LeaveTable({ data }) {
     ];
 
     const column5 = [
+        { id: 'Name', label: 'Name', minWidth: 170, align: 'center', getter: (row) => row.employee.FirstName ? `${row.employee.FirstName[0].toUpperCase() + row.employee.FirstName.slice(1)}` : 'N/A' },
         {
             id: 'date',
             label: 'Date',
@@ -217,7 +220,7 @@ export default function LeaveTable({ data }) {
                 return setColumns(column1);
             } else if (item.code) {
                 return setColumns(column3);
-            } else if (item.date && params['*'] === "summary") {
+            } else if (item.date && params['*'] === "summary" || item.date && params['*'] === "details") {
                 return setColumns(column5);
             } else if (item.date) {
                 return setColumns(column4);
@@ -262,16 +265,11 @@ export default function LeaveTable({ data }) {
                                                             <DropdownItem>Change log</DropdownItem>
                                                             <DropdownItem>Approve</DropdownItem>
                                                             <DropdownItem>Reject</DropdownItem>
-                                                        </Dropdown> : column.id === "Action" && params['*'] === "daily-log" ?
+                                                        </Dropdown> : column.id === "Action" && params['*'] === "payslip" || column.id === "Action" && params['*'] === "daily-log" ?
                                                             <Dropdown title={<EditRoundedIcon style={{ cursor: "pointer" }} />} noCaret>
                                                                 <DropdownItem onClick={toggleView}>View</DropdownItem>
-                                                                <DropdownItem>Edit</DropdownItem>
-                                                                <DropdownItem>Delete</DropdownItem>
-                                                            </Dropdown> : column.id === "Action" && params['*'] === "payslip" ?
-                                                                <Dropdown title={<EditRoundedIcon style={{ cursor: "pointer" }} />} noCaret>
-                                                                    <DropdownItem onClick={toggleView}>View</DropdownItem>
-                                                                </Dropdown>
-                                                                : value
+                                                            </Dropdown>
+                                                            : value
                                                     }
                                                 </TableCell>
                                             );

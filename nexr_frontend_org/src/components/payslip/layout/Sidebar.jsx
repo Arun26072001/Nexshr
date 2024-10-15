@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { NavLink } from 'react-router-dom';
+import { NavLink, useParams } from 'react-router-dom';
 import './sidebar.css';
 import KeyboardArrowDownSharpIcon from '@mui/icons-material/KeyboardArrowDownSharp';
 import settingsIcon from "../../../asserts/settingsIcon.svg";
@@ -12,8 +12,9 @@ import homeIcon from "../../../asserts/homeIcon.svg";
 
 const Sidebar = ({ handleLogout, whoIs }) => {
     const account = localStorage.getItem("Account");
-    const [activeSubmenu, setActiveSubmenu] = useState("");
-    const [activeNavLink, setActiveNavLink] = useState("");
+    const param = useParams();
+    const [activeSubmenu, setActiveSubmenu] = useState(param['*']);
+    const [activeNavLink, setActiveNavLink] = useState();
     const [isOpen, setIsOpen] = useState(true);
 
     function toggleActiveLink(name) {
@@ -28,7 +29,6 @@ const Sidebar = ({ handleLogout, whoIs }) => {
         setActiveNavLink(nav);
         setActiveSubmenu("")
     }
-
     return (
             <div style={{ width: isOpen ? "250px" : "50px" }} className="sidebar sidebar_hrm">
                 <ul className="sidebar-nav p-0" id="sidebar-nav">
@@ -78,17 +78,17 @@ const Sidebar = ({ handleLogout, whoIs }) => {
                                 </NavLink>
                                 {activeNavLink === "leave" && (
                                     <ul className="nav-content p-2">
-                                        <li className={`submenu_navlist ${activeSubmenu === "Status" ? "active" : ""}`} onClick={() => setActiveSubmenu("Status")}>
+                                        <li className={`submenu_navlist ${activeSubmenu === "status" ? "active" : ""}`} onClick={() => setActiveSubmenu("status")}>
                                             <NavLink to={`/${whoIs}/leave/status`} className="nav-lists">Status</NavLink>
                                         </li>
-                                        <li className={`submenu_navlist ${activeSubmenu === "Request" ? "active" : ""}`} onClick={() => setActiveSubmenu("Request")}>
-                                            <NavLink to={`/${whoIs}/leave/request`} className="nav-lists">Request</NavLink>
+                                        <li className={`submenu_navlist ${activeSubmenu === "leave-request" ? "active" : ""}`} onClick={() => setActiveSubmenu("leave-request")}>
+                                            <NavLink to={`/${whoIs}/leave/leave-request`} className="nav-lists">Request</NavLink>
                                         </li>
-                                        <li className={`submenu_navlist ${activeSubmenu === "Calendar" ? "active" : ""}`} onClick={() => setActiveSubmenu("Calendar")}>
+                                        <li className={`submenu_navlist ${activeSubmenu === "calendar" ? "active" : ""}`} onClick={() => setActiveSubmenu("calendar")}>
                                             <NavLink to={`/${whoIs}/leave/calender`} className="nav-lists">Calendar</NavLink>
                                         </li>
-                                        <li className={`submenu_navlist ${activeSubmenu === "Summary" ? "active" : ""}`} onClick={() => setActiveSubmenu("Summary")}>
-                                            <NavLink to={`/${whoIs}/leave/summary`} className="nav-lists">Summary</NavLink>
+                                        <li className={`submenu_navlist ${activeSubmenu === "leave-summary" ? "active" : ""}`} onClick={() => setActiveSubmenu("leave-summary")}>
+                                            <NavLink to={`/${whoIs}/leave/leave-summary`} className="nav-lists">Summary</NavLink>
                                         </li>
                                     </ul>
                                 )}
@@ -106,17 +106,17 @@ const Sidebar = ({ handleLogout, whoIs }) => {
                                 </NavLink>
                                 {activeNavLink === "attendance" && (
                                     <ul className="nav-content p-2">
-                                        <li className={`submenu_navlist ${activeSubmenu === "DailyLog" ? "active" : ""}`} onClick={() => setActiveSubmenu("DailyLog")}>
+                                        <li className={`submenu_navlist ${activeSubmenu === "daily-log" ? "active" : ""}`} onClick={() => setActiveSubmenu("daily-log")}>
                                             <NavLink to={`/${whoIs}/attendance/daily-log`} className="nav-lists">Daily Log</NavLink>
                                         </li>
-                                        <li className={`submenu_navlist ${activeSubmenu === "Request" ? "active" : ""}`} onClick={() => setActiveSubmenu("Request")}>
-                                            <NavLink to={`/${whoIs}/attendance/request`} className="nav-lists">Request</NavLink>
+                                        <li className={`submenu_navlist ${activeSubmenu === "attendance-request" ? "active" : ""}`} onClick={() => setActiveSubmenu("attendance-request")}>
+                                            <NavLink to={`/${whoIs}/attendance/attendance-request`} className="nav-lists">Request</NavLink>
                                         </li>
-                                        <li className={`submenu_navlist ${activeSubmenu === "Details" ? "active" : ""}`} onClick={() => setActiveSubmenu("Details")}>
+                                        <li className={`submenu_navlist ${activeSubmenu === "details" ? "active" : ""}`} onClick={() => setActiveSubmenu("details")}>
                                             <NavLink to={`/${whoIs}/attendance/details`} className="nav-lists">Details</NavLink>
                                         </li>
-                                        <li className={`submenu_navlist ${activeSubmenu === "Summary" ? "active" : ""}`} onClick={() => setActiveSubmenu("Summary")}>
-                                            <NavLink to={`/${whoIs}/attendance/summary`} className="nav-lists">Summary</NavLink>
+                                        <li className={`submenu_navlist ${activeSubmenu === "attendance-summary" ? "active" : ""}`} onClick={() => setActiveSubmenu("attendance-summary")}>
+                                            <NavLink to={`/${whoIs}/attendance/attendance-summary`} className="nav-lists">Summary</NavLink>
                                         </li>
                                     </ul>
                                 )}
