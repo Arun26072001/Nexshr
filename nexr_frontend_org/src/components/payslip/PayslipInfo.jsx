@@ -58,43 +58,40 @@ export default function PayslipInfo() {
     }, []);
 
     return (
-        // <div>
-        //     <div className="d-flex">
-        //         <div className="payslipTitle">
-        //             Payslip
-        //         </div>
+        <div>
+            <div className="d-flex">
+                <div className="payslipTitle">
+                    Payslip
+                </div>
 
-        //         <button className='button m-0' onClick={addField}>Add Field</button>
-        //     </div>
+                <button className='button m-0' onClick={addField}>Add Field</button>
+            </div>
 
-        //     <div className="px-3">
-        //         {
-        //             payslips?.length > 0 &&
-        //             payslips.map((data) => {
-        //                 return <div className="my-3">
-        //                     <div className="my-2">
-        //                         {data.fieldName[0].toUpperCase() + data.fieldName.slice(1, data.fieldName.length)}
-        //                     </div>
-        //                     <input type={data.type} className="payrunInput" value={data?.value} name={data.fieldName} onChange={(e) => handleFieldValue(e)} placeholder={`Enter ${data.fieldName}`} />
-        //                 </div>
-        //             })
-        //         }
-        //     </div>
+            <div className="px-3">
+                {
+                    payslips?.length > 0 &&
+                    payslips.map((data) => {
+                        return <div className="my-3">
+                            <div className="my-2">
+                                {data.fieldName[0].toUpperCase() + data.fieldName.slice(1, data.fieldName.length)}
+                            </div>
+                            <input type={data.type} className="payrunInput" value={data?.value} name={data.fieldName} onChange={(e) => handleFieldValue(e)} placeholder={`Enter ${data.fieldName}`} />
+                        </div>
+                    })
+                }
+            </div>
 
-        //     {
-        //         payslips?.length > 0 &&
-        //         <div className="row">
-        //             <div className="col-lg-3 col-12">
-        //                 <div className="btnParent mx-auto">
-        //                     <button className="button" onClick={submitPayslip}>Save</button>
-        //                     <button className="outline-btn" onClick={removeLastField} style={{ background: "#e0e0e0", border: "none" }}>Cancel</button>
-        //                 </div>
-        //             </div>
-        //         </div>
-        //     }
-        // </div>
-        <>
-            <PayslipUI />
-        </>
+            {
+                payslips?.length > 0 &&
+                <div className="row">
+                    <div className="col-lg-3 col-12">
+                        <div className="btnParent mx-auto">
+                            <button className="button" onClick={submitPayslip}>Save</button>
+                            <button className="outline-btn" onClick={removeLastField} style={{ background: "#e0e0e0", border: "none" }}>Cancel</button>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
     )
 }

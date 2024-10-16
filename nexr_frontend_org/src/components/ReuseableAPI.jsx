@@ -204,7 +204,7 @@ const fetchPayslipInfo = async () => {
     }
 }
 
-const fetchPayslipFromEmp = async (empId) =>{
+const fetchPayslipFromEmp = async (empId) => {
     try {
         const payslip = await axios.get(`${url}/api/payslip/emp/${empId}`);
         return payslip.data;
@@ -213,10 +213,23 @@ const fetchPayslipFromEmp = async (empId) =>{
     }
 }
 
-const fetchPayslip = async (id) =>{
+const fetchPayslip = async (id) => {
     try {
         const payslip = await axios.get(`${url}/api/payslip/${id}`);
         return payslip.data;
+    } catch (error) {
+        return error?.response?.data?.message
+    }
+}
+
+const getDepartments = async () => {
+    try {
+        const departments = await axios.get(url + "/api/department", {
+            headers: {
+                authorization: token || ""
+            }
+        });
+        return departments.data;
     } catch (error) {
         return error?.response?.data?.message
     }
@@ -226,6 +239,7 @@ const fetchPayslip = async (id) =>{
 export {
     addDataAPI,
     getDataAPI,
+    getDepartments,
     updateDataAPI,
     fetchPayslipFromEmp,
     fetchPayslipInfo,

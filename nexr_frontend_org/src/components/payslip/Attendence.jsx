@@ -5,6 +5,7 @@ import LeaveTable from "../LeaveTable";
 import { DateRangePicker } from "rsuite";
 import Loading from "../Loader";
 import { formatTime } from "../ReuseableAPI";
+import NoDataFound from "./NoDataFound";
 
 const Attendence = (props) => {
   const url = process.env.REACT_APP_API_URL;
@@ -232,8 +233,8 @@ const Attendence = (props) => {
 
           <LeaveTable data={tableData} />
         </>
-        : tableData.length === 0 && !clockInsData ? <Loading />
-          : <p className="text-center my-2 text-danger">No Attendance data in this date range!</p>
+        : tableData.length === 0 && !clockInsData ? <NoDataFound message={"No Attendance data in this date range!"} />
+          : <Loading />
       }
 
     </div>

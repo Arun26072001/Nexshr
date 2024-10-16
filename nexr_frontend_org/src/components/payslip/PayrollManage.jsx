@@ -1,27 +1,31 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import DefinitionToggle from '../Settings/DefinitionToggle';
 import { MultiCascader } from 'rsuite';
 import { NavLink } from 'react-router-dom';
+import { toast } from 'react-toastify';
+import { getDepartments } from '../ReuseableAPI';
 
 export default function PayrollManage({ whoIs }) {
     const [isShowInstructions, setShowInstruction] = useState(true);
+    const [departments, setDepartments] = useState([]);
     function handleShowNotification() {
         setShowInstruction(!isShowInstructions);
     }
 
     const instructions = (
         <>
-          <p>
-            By default, all users are eligible for Payrun and{' '}
-            <NavLink to={`${whoIs}/add-benifits`}>Beneficiary badges</NavLink>.
-          </p>
-          <p>
-            If you want to restrict some users for the default payrun settings, then
-            please add users for Payrun and Beneficiary badges.
-          </p>
+            <p>
+                By default, all users are eligible for Payrun and{' '}
+                <NavLink to={`${whoIs}/add-benifits`}>Beneficiary badges</NavLink>.
+            </p>
+            <p>
+                If you want to restrict some users for the default payrun settings, then
+                please add users for Payrun and Beneficiary badges.
+            </p>
         </>
-      );
-      
+    );
+
+
     const data = [
         {
             label: 'Balaji',
@@ -52,6 +56,20 @@ export default function PayrollManage({ whoIs }) {
             ]
         }
     ];
+
+    useEffect(() => {
+        async function fetchDepartments() {
+            try {
+                const departments = await getDepartments()
+                setDepartments(departments);
+
+            } catch (err) {
+                toast.error(err);
+                console.log(err.data);
+            }
+        }
+        fetchDepartments()
+    }, [])
     return (
         <div>
             <div className='payslipTitle'>Manage audience</div>

@@ -6,8 +6,6 @@ import NoDataFound from '../payslip/NoDataFound';
 import Loading from '../Loader';
 
 const Dailylog = ({ attendanceData }) => {
-    console.log(attendanceData);
-
     return (
         <div className='dashboard-parent pt-4'>
             <div className="d-flex row justify-content-between align-items-center gap-2">
@@ -59,7 +57,7 @@ const Dailylog = ({ attendanceData }) => {
             {
                 attendanceData.length > 0 ?
                     <LeaveTable data={attendanceData} />
-                    : attendanceData.length == 0 ?
+                    : attendanceData.length === 0 && !attendanceData ?
                         <NoDataFound message={"Attendence data not found"} /> : <Loading />
             }
         </div>

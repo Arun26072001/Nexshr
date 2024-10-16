@@ -85,67 +85,66 @@ const Summary = () => {
                 </div>
             </div>
 
-
-            <div className='row container-fluid attendanceFile'>
-                <div className="row d-flex justify-content-end">
-                    <div className="col-12 col-md-4">
-                        {/* Profile selection dropdown */}
-                        <select className="form-select" onChange={(e) => selectEmpClockins(e.target.value)}>
-                            <option value="">Select Profile</option>
-                            {
-                                employees?.length > 0 &&
-                                employees.map((data) => {
-                                    return <option value={data._id}>{data.FirstName + data.LastName}</option>
-                                })
-                            }
-                        </select>
-                    </div>
-                </div>
-                <div className='col-lg-6 d-flex align-items-center justify-content-center'>
-                    <div className="chart" style={{ width: '300px' }}>
-                        <Chart options={chartOptions} series={chartSeries} type="donut" />
-                    </div>
-                </div>
-
-                <div className='col-lg-6 d-block align-content-center'>
-                    <div className='row summary-card'>
-                        <div className='col-lg-5'>
-                            <div>
-                                <p className='numvalue'>{clockinsData?.companyTotalWorkingHour}</p>
-                                <p>Total schedule hour</p>
-                            </div>
-                        </div>
-                        <div className='col-lg-2'><div className="summary-divider"></div></div>
-                        <div className='col-lg-5'>
-                            <div>
-                                <p className='numvalue'>{Number(clockinsData?.totalLeaveDays) * 9} hr</p>
-                                <p>Leave hour</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div className='row summary-card mt-2'>
-                        <div className='col-lg-5'>
-                            <div>
-                                <p className='numvalue'>{clockinsData?.totalEmpWorkingHours} hr</p>
-                                <p>Total work</p>
-                            </div>
-                        </div>
-                        <div className='col-lg-2'><div className="summary-divider"></div></div>
-                        <div className='col-lg-5'>
-                            <div>
-                                <p className='numvalue'>{(Number(clockinsData?.totalEmpWorkingHours) / 9).toFixed(2)} days</p>
-                                <p>Total active</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-
-
             {
                 clockinsData?.clockIns?.length > 0 ? (
-                    <LeaveTable data={clockinsData.clockIns} />
+                    <>
+                        <div className='row container-fluid attendanceFile'>
+                            <div className="row d-flex justify-content-end">
+                                <div className="col-12 col-md-4">
+                                    {/* Profile selection dropdown */}
+                                    <select className="form-select" onChange={(e) => selectEmpClockins(e.target.value)}>
+                                        <option value="">Select Profile</option>
+                                        {
+                                            employees?.length > 0 &&
+                                            employees.map((data) => {
+                                                return <option value={data._id}>{data.FirstName + data.LastName}</option>
+                                            })
+                                        }
+                                    </select>
+                                </div>
+                            </div>
+                            <div className='col-lg-6 d-flex align-items-center justify-content-center'>
+                                <div className="chart" style={{ width: '300px' }}>
+                                    <Chart options={chartOptions} series={chartSeries} type="donut" />
+                                </div>
+                            </div>
+
+                            <div className='col-lg-6 d-block align-content-center'>
+                                <div className='row summary-card'>
+                                    <div className='col-lg-5'>
+                                        <div>
+                                            <p className='numvalue'>{clockinsData?.companyTotalWorkingHour}</p>
+                                            <p>Total schedule hour</p>
+                                        </div>
+                                    </div>
+                                    <div className='col-lg-2'><div className="summary-divider"></div></div>
+                                    <div className='col-lg-5'>
+                                        <div>
+                                            <p className='numvalue'>{Number(clockinsData?.totalLeaveDays) * 9} hr</p>
+                                            <p>Leave hour</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className='row summary-card mt-2'>
+                                    <div className='col-lg-5'>
+                                        <div>
+                                            <p className='numvalue'>{clockinsData?.totalEmpWorkingHours} hr</p>
+                                            <p>Total work</p>
+                                        </div>
+                                    </div>
+                                    <div className='col-lg-2'><div className="summary-divider"></div></div>
+                                    <div className='col-lg-5'>
+                                        <div>
+                                            <p className='numvalue'>{(Number(clockinsData?.totalEmpWorkingHours) / 9).toFixed(2)} days</p>
+                                            <p>Total active</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <LeaveTable data={clockinsData.clockIns} />
+                    </>
                 ) : clockinsData?.clockIns?.length === 0 ? (
                     <NoDataFound message={"Attendance data not found"} />
                 ) : <Loading />

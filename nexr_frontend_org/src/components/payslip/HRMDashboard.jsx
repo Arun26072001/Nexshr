@@ -26,7 +26,6 @@ import PayrollManage from './PayrollManage';
 import PayslipInfo from './PayslipInfo';
 import PayrollValue from './PayrollValue';
 import PayslipRouter from './PayslipRouter';
-import PayslipUI from './PayslipUI';
 
 export const LeaveStates = createContext(null);
 

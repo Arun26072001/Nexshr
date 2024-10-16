@@ -6,6 +6,7 @@ import LeaveTable from '../LeaveTable';
 import { fetchEmployees } from '../ReuseableAPI';
 import Loading from '../Loader';
 import { NavLink, useNavigate } from 'react-router-dom';
+import NoDataFound from './NoDataFound';
 
 export default function Employee({ whoIs }) {
     const [employees, setEmployees] = useState([]);
@@ -82,7 +83,7 @@ export default function Employee({ whoIs }) {
                 {employees.length > 0 ? (
                     <LeaveTable data={employees} />
                 ) : empName !== "" ? (
-                    <div className="text-center text-danger">No employees with this Name</div>
+                    <NoDataFound message={"No employees with this Name"} /> 
                 ) : (
                     <Loading />
                 )}
