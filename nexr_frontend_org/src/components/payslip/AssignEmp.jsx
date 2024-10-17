@@ -11,7 +11,7 @@ const AssignEmp = ({ handleSubmit, teamObj, updateTeamObj, toggleAssignEmp, team
         employees: true // Initially expand employee section
     });
     const [selectBy, setSelectBy] = useState("teamName");
-    const [filteredItems, setFilteredItems] = useState(teams);
+    const [filteredItems, setFilteredItems] = useState(teams || []);
     const [filteredEmps, setFilteredEmps] = useState([]);
     const [employees, setEmployees] = useState([]);
 
@@ -63,7 +63,7 @@ const AssignEmp = ({ handleSubmit, teamObj, updateTeamObj, toggleAssignEmp, team
             }
         };
         fetchEmployees();
-    }, []);
+    }, [url, token]); // Add url and token as dependencies
 
     return (
         <Modal open={true} onClose={toggleAssignEmp} size="lg" backdrop="static">
@@ -89,17 +89,18 @@ const AssignEmp = ({ handleSubmit, teamObj, updateTeamObj, toggleAssignEmp, team
                     </div>
                 </div>
 
+                {/* Selected Employees */}
                 {teamObj.employees.length > 0 && (
                     <div>
-                        <h5 className="px-2" onClick={() => handleRotate(teamObj.teamName)}>
+                        <h5 className="px-2" onClick={() => handleRotate('selected')}>
                             Selected ({teamObj.employees.length})
                             <KeyboardArrowDownOutlinedIcon
                                 fontSize="large"
                                 color="primary"
-                                className={`arrow ${rotateState[teamObj.teamName] ? 'rotate' : ''}`}
+                                className={`arrow ${rotateState['selected'] ? 'rotate' : ''}`}
                             />
                         </h5>
-                        {rotateState[teamObj.teamName] &&
+                        {rotateState['selected'] &&
                             teamObj.employees.map((emp) => {
                                 const active = teamObj.employees.some((e) => e._id === emp._id);
                                 return (
@@ -112,6 +113,7 @@ const AssignEmp = ({ handleSubmit, teamObj, updateTeamObj, toggleAssignEmp, team
                     </div>
                 )}
 
+                {/* Employee List by Name */}
                 {selectBy === "empName" && filteredEmps.length > 0 && (
                     <div>
                         <h5 className="px-2" onClick={() => handleRotate("employees")}>
@@ -139,6 +141,7 @@ const AssignEmp = ({ handleSubmit, teamObj, updateTeamObj, toggleAssignEmp, team
                     <Message showIcon type="warning" description="No employees found" />
                 )}
 
+                {/* Teams List */}
                 {selectBy === "teamName" && filteredItems.length > 0 && (
                     filteredItems.map((team) => (
                         <div key={team.teamName}>

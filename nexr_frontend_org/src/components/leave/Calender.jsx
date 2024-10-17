@@ -34,61 +34,60 @@ export default function LeaveCalender() {
 
             {
                 isLoading ? <Loading /> :
-                    leaveRequests?.leaveData?.length > 0 ?
-                        <div className="leaveContainer d-block">
-                            <div className="w-100 d-flex justify-content-center">
-                                <div className="leaveBoard">
-                                    <div className="leaveData">
-                                        <div className="d-flex flex-column">
-                                            <div className="leaveDays">
-                                                {leaveRequests?.approvedLeave?.length} <PersonRoundedIcon />
-                                            </div>
-                                            <div className="leaveDaysDesc">
-                                                Leave Employees
-                                            </div>
+                    <div className="leaveContainer d-block">
+                        <div className="w-100 d-flex justify-content-center">
+                            <div className="leaveBoard">
+                                <div className="leaveData">
+                                    <div className="d-flex flex-column">
+                                        <div className="leaveDays">
+                                            {leaveRequests?.approvedLeave?.length} <PersonRoundedIcon />
+                                        </div>
+                                        <div className="leaveDaysDesc">
+                                            Leave Employees
                                         </div>
                                     </div>
-                                    <div className="leaveData">
-                                        <div className="d-flex flex-column">
-                                            <div className="leaveDays">
-                                                {leaveRequests?.leaveInHours} hr
-                                            </div>
-                                            <div className="leaveDaysDesc">
-                                                Total Leave Hours
-                                            </div>
+                                </div>
+                                <div className="leaveData">
+                                    <div className="d-flex flex-column">
+                                        <div className="leaveDays">
+                                            {leaveRequests?.leaveInHours} hr
+                                        </div>
+                                        <div className="leaveDaysDesc">
+                                            Total Leave Hours
                                         </div>
                                     </div>
-                                    <div style={{ width: "30%", margin: "10px" }}>
-                                        <div className="d-flex flex-column">
-                                            <div className="leaveDays">
-                                                {leaveRequests?.peoplesOnLeave?.length} <PersonRoundedIcon />
-                                            </div>
-                                            <div className="leaveDaysDesc">
-                                                On Leave
-                                            </div>
+                                </div>
+                                <div style={{ width: "30%", margin: "10px" }}>
+                                    <div className="d-flex flex-column">
+                                        <div className="leaveDays">
+                                            {leaveRequests?.peoplesOnLeave?.length} <PersonRoundedIcon />
+                                        </div>
+                                        <div className="leaveDaysDesc">
+                                            On Leave
                                         </div>
                                     </div>
                                 </div>
                             </div>
+                        </div>
 
-                            {/* Search Input */}
-                            <div className='px-3 my-3'>
-                                <div className="row">
-                                    <div className="col-lg-12 searchInputIcon">
-                                        <input
-                                            type="text"
-                                            className='payrunInput'
-                                            value={empName}
-                                            onChange={(e) => setEmpName(e.target.value)}
-                                            placeholder='Search by Employee Name'
-                                        />
-                                    </div>
+                        {/* Search Input */}
+                        <div className='px-3 my-3'>
+                            <div className="row">
+                                <div className="col-lg-12 searchInputIcon">
+                                    <input
+                                        type="text"
+                                        className='payrunInput'
+                                        value={empName}
+                                        onChange={(e) => setEmpName(e.target.value)}
+                                        placeholder='Search by Employee Name'
+                                    />
                                 </div>
                             </div>
-
-                            {/* Leave Table */}
-                            <LeaveTable data={leaveRequests.leaveData} />
-                        </div> : <NoDataFound message={"No Leave request for this employee Name"} />
+                        </div>
+                        {/* Leave Table */}
+                        {leaveRequests?.leaveData?.length > 0 ? <LeaveTable data={leaveRequests.leaveData} />
+                            : <NoDataFound message={"No Leave request for this employee Name"} />}
+                    </div>
             }
 
         </div>

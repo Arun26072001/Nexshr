@@ -39,6 +39,7 @@ export default function HRMDashboard({ data }) {
     const token = localStorage.getItem('token');
     const [whoIs, setWhoIs] = useState("");
     const [isLoading, setIsLoading] = useState(false);
+    const [waitForAttendance, setWaitForAttendance] = useState(false);
     const url = process.env.REACT_APP_API_URL;
     const [daterangeValue, setDaterangeValue] = useState("");
     // files for payroll
@@ -48,7 +49,8 @@ export default function HRMDashboard({ data }) {
         if (empName === "") {
             setLeaveRequests(fullLeaveRequests);
         } else {
-            const filterRequests = fullLeaveRequests.filter((leave) => leave.employee.FirstName.toLowerCase().includes(empName));
+            console.log(fullLeaveRequests);
+            const filterRequests = fullLeaveRequests?.leaveData.filter((leave) => leave.employee.FirstName.toLowerCase().includes(empName));
             setLeaveRequests((pre) => ({ ...pre, leaveData: filterRequests }));
         }
     }
@@ -89,16 +91,20 @@ export default function HRMDashboard({ data }) {
         }
         async function getClocknsData() {
             if (empId) {
+                setWaitForAttendance(true);
                 try {
                     const data = await gettingClockinsData(empId);
                     if (data) {
                         setAttendanceForSummary(data);
                         setAttendanceData(data.clockIns);
+                        setWaitForAttendance(false);
                     } else {
-                        toast.error("Error in fetch attendance Data")
+                        toast.error("Error in fetch attendance Data");
+                        setWaitForAttendance(false);
                     }
                 } catch (err) {
                     console.log(err);
+                    setWaitForAttendance(false);
                     toast.error(err?.response?.data?.message)
                 }
             }
@@ -129,10 +135,10 @@ export default function HRMDashboard({ data }) {
                 <Route path="/leave-request/edit/:id" element={<EditLeaveRequestForm />} />
                 <Route path="attendance/*" element={
                     <Routes>
-                        <Route index path="attendance-request" element={<Request attendanceData={attendanceData} />} />
-                        <Route path="daily-log" element={<Dailylog attendanceData={attendanceData} />} />
-                        <Route path="details" element={<Details attendanceData={attendanceData} />} />
-                        <Route path="attendance-summary" element={<Summary attendanceData={attendanceForSummary} />} />
+                        <Route index path="attendance-request" element={<Request attendanceData={attendanceData} isLoading={waitForAttendance} />} />
+                        <Route path="daily-log" element={<Dailylog attendanceData={attendanceData} isLoading={waitForAttendance} />} />
+                        <Route path="details" element={<Details attendanceData={attendanceData} isLoading={waitForAttendance} />} />
+                        <Route path="attendance-summary" element={<Summary attendanceData={attendanceForSummary} isLoading={waitForAttendance} />} />
                     </Routes>
                 }>
                 </Route>

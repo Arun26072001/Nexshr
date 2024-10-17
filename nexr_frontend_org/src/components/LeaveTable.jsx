@@ -54,14 +54,14 @@ export default function LeaveTable({ data }) {
     }, [data]);
 
     const column1 = [
-        { id: 'FirstName', label: 'Name', minWidth: 130, align: "center", getter: (row) => row.employee.FirstName[0].toUpperCase() + row.employee.FirstName.slice(1) + row.employee.LastName || 'Unknown' },
-        { id: 'periodOfLeave', label: 'Period Of Leave', align: "center", minWidth: 130, getter: (row) => row.periodOfLeave },
-        { id: 'fromDate', label: 'Start Date', minWidth: 130, align: 'center', getter: (row) => row.fromDate ? row.fromDate.split("T")[0] : 'N/A' },
-        { id: 'toDate', label: 'End Date', minWidth: 130, align: 'center', getter: (row) => row.toDate ? row.toDate.split("T")[0] : 'N/A' },
-        { id: 'leaveType', label: 'Type', minWidth: 130, align: 'center', getter: (row) => row.leaveType },
-        { id: 'reasonForLeave', label: 'Reason', minWidth: 130, align: 'center', getter: (row) => row.reasonForLeave },
-        { id: 'status', label: 'Status', minWidth: 130, align: 'center', getter: (row) => row.status },
-        { id: "Action", label: "Action", minWidth: 100, align: "center" }
+        { id: 'FirstName', label: 'Name', minWidth: 130, align: "left", getter: (row) => row.employee.FirstName[0].toUpperCase() + row.employee.FirstName.slice(1) + row.employee.LastName || 'Unknown' },
+        { id: 'periodOfLeave', label: 'Period Of Leave', align: "left", minWidth: 150, getter: (row) => row.periodOfLeave },
+        { id: 'fromDate', label: 'Start Date', minWidth: 130, align: 'left', getter: (row) => row.fromDate ? row.fromDate.split("T")[0] : 'N/A' },
+        { id: 'toDate', label: 'End Date', minWidth: 130, align: 'left', getter: (row) => row.toDate ? row.toDate.split("T")[0] : 'N/A' },
+        { id: 'leaveType', label: 'Type', minWidth: 130, align: 'left', getter: (row) => row.leaveType },
+        { id: 'reasonForLeave', label: 'Reason', minWidth: 130, align: 'left', getter: (row) => row.reasonForLeave },
+        { id: 'status', label: 'Status', minWidth: 130, align: 'left', getter: (row) => row.status },
+        { id: "Action", label: "Action", minWidth: 100, align: "left" }
     ];
 
     const column2 = [
@@ -176,35 +176,35 @@ export default function LeaveTable({ data }) {
             id: 'date',
             label: 'Date',
             minWidth: 130,
-            align: 'center',
+            align: 'left',
             getter: (row) => row?.date ? row.date.split("T")[0] : "no date"
         },
         {
             id: 'punchIn',
             label: 'Punch In',
             minWidth: 130,
-            align: 'center',
+            align: 'left',
             getter: (row) => row?.login?.startingTime ? row?.login?.startingTime : "N/A"
         },
         {
             id: 'punchOut',
             label: 'Punch Out',
             minWidth: 130,
-            align: 'center',
+            align: 'left',
             getter: (row) => row?.login?.endingTime ? row.login.endingTime : "N/A"
         },
         {
             id: 'totalHour',
             label: 'Total Hour',
             minWidth: 130,
-            align: 'center',
+            align: 'left',
             getter: (row) => totalHours?.[row._id] || 0
         },
         {
             id: 'behaviour',
             label: 'Behaviour',
             minWidth: 130,
-            align: 'center',
+            align: 'left',
             getter: (row) => row.behaviour ? row.behaviour : 'N/A'
         }
     ]
