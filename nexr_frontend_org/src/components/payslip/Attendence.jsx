@@ -233,7 +233,7 @@ const Attendence = (props) => {
 
           <LeaveTable data={tableData} />
         </>
-        : tableData.length === 0 && !clockInsData ? <NoDataFound message={"No Attendance data in this date range!"} />
+        : tableData.length === 0 || !clockInsData ? <NoDataFound message={"No Attendance data in this date range!"} />
           : <Loading />
       }
 
