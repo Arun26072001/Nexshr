@@ -14,7 +14,15 @@ function getDayDifference(leave) {
 
 router.get("/:id", async (req, res) => {
   try {
-    const payslip = await Payslip.findById({ _id: req.params.id }).populate("employee").exec();
+    const payslip = await Payslip.findById({ _id: req.params.id }).populate({
+      path: "employee",
+      populate: [
+        { path: "company" },
+        { path: "role" },
+        { path: "position" },
+        { path: "department" }
+      ]
+    }).exec();
     if (!payslip) {
       res.status(404).send({ message: "invalid payslip Id!" })
     } else {

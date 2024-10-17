@@ -7,22 +7,23 @@ import TableContainer from '@mui/material/TableContainer';
 import TableHead from '@mui/material/TableHead';
 import TablePagination from '@mui/material/TablePagination';
 import TableRow from '@mui/material/TableRow';
-import { getTotalWorkingHourPerDay } from './ReuseableAPI';
+import { fetchPayslip, getDataAPI, getTotalWorkingHourPerDay } from './ReuseableAPI';
 import EditRoundedIcon from '@mui/icons-material/EditRounded';
+import RemoveRedEyeRoundedIcon from '@mui/icons-material/RemoveRedEyeRounded';
 import { useParams } from 'react-router-dom';
 import { Dropdown } from 'rsuite';
 import DropdownItem from 'rsuite/esm/Dropdown/DropdownItem';
 import ViewAttendanceModel from './ViewAttendanceModel';
+import { toast } from 'react-toastify';
 
 export default function LeaveTable({ data }) {
-    console.log(data);
-
     const [page, setPage] = useState(0);
     const [rowsPerPage, setRowsPerPage] = useState(10);
     const [rows, setRows] = useState([]);
     const [columns, setColumns] = useState([]);
     const [totalHours, setTotalHours] = useState({}); // To hold total hours for each entry
     const [openModal, setOpenModal] = useState(false);
+    const [modelData, setModelData] = useState({});
     const params = useParams();
 
 
@@ -64,11 +65,11 @@ export default function LeaveTable({ data }) {
     ];
 
     const column2 = [
-        { id: 'FirstName', label: 'Name', minWidth: 170, align: 'center', getter: (row) => row.employee.FirstName ? `${row.employee.FirstName[0].toUpperCase()+row.employee.FirstName.slice(1)}` : 'N/A' },
+        { id: 'FirstName', label: 'Name', minWidth: 170, align: 'center', getter: (row) => row.employee.FirstName ? `${row.employee.FirstName[0].toUpperCase() + row.employee.FirstName.slice(1)}` : 'N/A' },
         { id: 'basicSalary', label: 'Salary', minWidth: 170, align: 'center', getter: (row) => row.employee.basicSalary ? `₹${row.employee.basicSalary}` : 'N/A' },
         { id: 'status', label: 'Status', minWidth: 170, align: 'center', getter: (row) => row.payslip.status ? row.payslip.status : 'N/A' },
         { id: 'period', label: 'Period', minWidth: 220, align: 'center', getter: (row) => row.payslip.period ? row.payslip.period : 'N/A' },
-        { id: 'lossofpay', label: 'LOP', minWidth: 170, align: 'center', getter: (row) => row?.payslip?.LossOfPay || 'N/A' },
+        { id: 'lossofpay', label: 'LOP', minWidth: 170, align: 'center', getter: (row) => row?.payslip?.LossOfPay },
         { id: 'ESI', label: 'ESI', minWidth: 170, getter: (row) => row.payslip.ESI || 'N/A' },
         { id: 'ProvidentFund', label: 'ProvidentFund', minWidth: 170, getter: (row) => row.payslip.ProvidentFund || 'N/A' },
         { id: "Action", label: "Action", minWidth: 100, align: "center" }
@@ -152,7 +153,7 @@ export default function LeaveTable({ data }) {
             label: 'Total Hour',
             minWidth: 130,
             align: 'center',
-            getter: (row) => totalHours[row._id] || 'N/A'
+            getter: (row) => totalHours?.[row._id] || 0
         },
         {
             id: 'behaviour',
@@ -197,7 +198,7 @@ export default function LeaveTable({ data }) {
             label: 'Total Hour',
             minWidth: 130,
             align: 'center',
-            getter: (row) => totalHours[row._id] || 'N/A'
+            getter: (row) => totalHours?.[row._id] || 0
         },
         {
             id: 'behaviour',
@@ -212,6 +213,42 @@ export default function LeaveTable({ data }) {
         setOpenModal(!openModal);
     }
 
+    function getValueForView(value) {
+        const [id, page] = value;
+
+        if (page === 'daily-log') {
+            async function fetchAttendanceData() {
+                try {
+                    const data = await getDataAPI(id)
+                    setModelData({
+                        ...data.timeData,
+                        title: "Attendance Details"
+                    });
+                    toggleView();
+                } catch (err) {
+                    console.log(err);
+                    toast.error(err?.response?.data?.error);
+                }
+            }
+            fetchAttendanceData();
+        } else {
+            async function fetchPayslips() {
+                try {
+                    const slips = await fetchPayslip(id);
+                    setModelData({
+                        ...slips.payslip,
+                        title: "Payslip Details",
+                        _id: slips._id
+                    });
+                    toggleView();
+                } catch (err) {
+                    toast.error(err?.response?.data?.error);
+                }
+            }
+            fetchPayslips();
+        }
+    }
+
 
     useEffect(() => {
         setRows(data || []);
@@ -220,7 +257,7 @@ export default function LeaveTable({ data }) {
                 return setColumns(column1);
             } else if (item.code) {
                 return setColumns(column3);
-            } else if (item.date && params['*'] === "summary" || item.date && params['*'] === "details") {
+            } else if (item.date && params['*'] === "attendance-summary" || item.date && params['*'] === "details" || item.date && params['*'] === "attendance-request") {
                 return setColumns(column5);
             } else if (item.date) {
                 return setColumns(column4);
@@ -254,7 +291,7 @@ export default function LeaveTable({ data }) {
                             {rows.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row) => {
                                 return (
                                     <TableRow hover role="checkbox" tabIndex={-1} key={row.code}>
-                                        {columns.map((column) => {
+                                        {columns.map((column, index) => {
                                             const value = column.getter ? column.getter(row) : row[column.id];
                                             return (
                                                 <TableCell key={column.id} align={column.align} className={column.id && value === "contract" ? "backgroundBtn bg-primary rounded"
@@ -266,8 +303,8 @@ export default function LeaveTable({ data }) {
                                                             <DropdownItem>Approve</DropdownItem>
                                                             <DropdownItem>Reject</DropdownItem>
                                                         </Dropdown> : column.id === "Action" && params['*'] === "payslip" || column.id === "Action" && params['*'] === "daily-log" ?
-                                                            <Dropdown title={<EditRoundedIcon style={{ cursor: "pointer" }} />} noCaret>
-                                                                <DropdownItem onClick={toggleView}>View</DropdownItem>
+                                                            <Dropdown title={<RemoveRedEyeRoundedIcon style={{ cursor: "pointer" }} />} noCaret onClick={() => getValueForView([row._id, params['*']])}>
+                                                                {/* <DropdownItem onClick={() => getValueForView([row._id, params['*']])}>View</DropdownItem> */}
                                                             </Dropdown>
                                                             : value
                                                     }
@@ -294,7 +331,7 @@ export default function LeaveTable({ data }) {
             {/* Modal for Change Log */}
             {
                 openModal ?
-                    <ViewAttendanceModel id={data[0]._id} toggleView={toggleView} totalHours={totalHours} openModal={openModal} /> : null
+                    <ViewAttendanceModel modelData={modelData} toggleView={toggleView} totalHours={totalHours} openModal={openModal} /> : null
             }
         </div >
 

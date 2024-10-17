@@ -1,95 +1,64 @@
-import axios from 'axios';
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { Button, Dialog, DialogActions, DialogContent, DialogTitle } from '@mui/material';
 import Table from '@mui/material/Table';
 import TableBody from '@mui/material/TableBody';
 import TableCell from '@mui/material/TableCell';
 import TableContainer from '@mui/material/TableContainer';
-import TableHead from '@mui/material/TableHead';
-import TablePagination from '@mui/material/TablePagination';
 import TableRow from '@mui/material/TableRow';
 import Loading from './Loader';
-import { toast } from 'react-toastify';
-import { jsPDF } from "jspdf";
 import "./ParentStyle.css";
+import PayslipUI from './payslip/PayslipUI';
 
-export default function ViewAttendanceModel({ id, toggleView, openModal, totalHours }) {
-    const [attendanceData, setAttendanceData] = useState({});
-    const url = process.env.REACT_APP_API_URL;
-    const token = localStorage.getItem("token");
-    const pdfFile = new jsPDF();
-
-    function exportPDF() {
-        pdfFile.html("<h1>hello world</h1>");
-        pdfFile.save("helloWorld.pdf");
+export default function ViewAttendanceModel({ modelData, toggleView, openModal }) {
+    const [viewPayslip, setViewPayslip] = useState(false);
+    function handleViewPayslip() {
+        setViewPayslip(!viewPayslip)
     }
-
-    useEffect(() => {
-        async function fetchAttendanceData() {
-            console.log(id);
-
-            if (id) {
-                try {
-                    const data = await axios.get(`${url}/api/clock-ins/${id}`, {
-                        headers: {
-                            authorization: token || ""
-                        }
-                    });
-                    setAttendanceData(data.data.timeData);
-                } catch (err) {
-                    console.log(err);
-                    toast.error(err?.response?.data?.error)
-                }
+    const renderAttendanceRows = () => {
+        return Object.keys(modelData).map((key) => {
+            // Exclude keys like "title", "__v", "employee", and "_id"
+            if (["title", "__v", "employee", "_id"].includes(key)) {
+                return null;
             }
-        }
-        fetchAttendanceData()
-    }, [id])
+
+            // Handle if the value is an object (assuming you want to show startingTime and endingTime)
+            if (typeof modelData[key] === 'object' && modelData[key] !== null) {
+                return (
+                    <TableRow key={key}>
+                        <TableCell>{key.replace(/([A-Z])/g, ' $1').trim().charAt(0).toUpperCase() + key.replace(/([A-Z])/g, ' $1').trim().slice(1)}</TableCell>
+                        {/* Check if the object has 'startingTime' and 'endingTime' */}
+                        <TableCell>
+                            {modelData[key].startingTime && modelData[key].endingTime
+                                ? `${modelData[key].startingTime} - ${modelData[key].endingTime}`
+                                : 'N/A'}
+                        </TableCell>
+                    </TableRow>
+                );
+            }
+
+            // Handle non-object values
+            return (
+                <TableRow key={key}>
+                    <TableCell>{key.replace(/([A-Z])/g, ' $1').trim().charAt(0).toUpperCase() + key.replace(/([A-Z])/g, ' $1').trim().slice(1)}</TableCell>
+                    <TableCell>{modelData[key] !== null && modelData[key] !== undefined ? modelData[key] : 'N/A'}</TableCell>
+                </TableRow>
+            );
+        });
+
+    };
 
     return (
-        attendanceData ?
+        viewPayslip ? <PayslipUI payslipId={modelData._id} handleViewPayslip={handleViewPayslip} /> : (modelData ? (
             <Dialog open={openModal} onClose={toggleView} className='aa'>
-                <DialogTitle className='text-center'>ATTENDENCE DETAILS</DialogTitle>
+                <DialogTitle className='text-center'>{modelData?.title}</DialogTitle>
                 <div className="d-flex justify-content-end px-2">
-                    <button className='btn btn-primary' onClick={exportPDF}>Export PDF</button>
+                    <button className='btn btn-primary' onClick={handleViewPayslip} >View Payslip</button>
                 </div>
-                <DialogContent>
+                <DialogContent > {/* Use ref here */}
                     <TableContainer>
                         <Table>
                             <TableBody>
-                                <TableRow>
-                                    <TableCell>Profile</TableCell>
-                                    <TableCell>{attendanceData?.employee?.FirstName}</TableCell>
-                                </TableRow>
-                                <TableRow>
-                                    <TableCell>Punch In & Out</TableCell>
-                                    <TableCell>
-                                        {attendanceData?.login?.startingTime} - {attendanceData?.login?.endingTime}
-                                    </TableCell>
-                                </TableRow>
-                                <TableRow>
-                                    <TableCell>Morning Break In & Out</TableCell>
-                                    <TableCell>{attendanceData?.morningBreak?.startingTime} - {attendanceData?.morningBreak?.endingTime} </TableCell>
-                                </TableRow>
-                                <TableRow>
-                                    <TableCell>Lunch In & Out</TableCell>
-                                    <TableCell>{attendanceData?.lunch?.startingTime} - {attendanceData?.lunch?.endingTime}</TableCell>
-                                </TableRow>
-                                <TableRow>
-                                    <TableCell>Meeting In & Out</TableCell>
-                                    <TableCell>{attendanceData?.meeting?.startingTime} - {attendanceData?.meeting?.endingTime}</TableCell>
-                                </TableRow>
-                                <TableRow>
-                                    <TableCell>Evening Break In & Out</TableCell>
-                                    <TableCell>{attendanceData?.eveningBreak?.startingTime} - {attendanceData?.eveningBreak?.startingTime}</TableCell>
-                                </TableRow>
-                                <TableRow>
-                                    <TableCell>Behaviour</TableCell>
-                                    <TableCell>{attendanceData?.behaviour}</TableCell>
-                                </TableRow>
-                                <TableRow>
-                                    <TableCell>Total Hour</TableCell>
-                                    <TableCell>{totalHours[id]}</TableCell>
-                                </TableRow>
+                                {renderAttendanceRows()}
                             </TableBody>
                         </Table>
                     </TableContainer>
@@ -97,8 +66,8 @@ export default function ViewAttendanceModel({ id, toggleView, openModal, totalHo
                 <DialogActions>
                     <Button onClick={toggleView}>Close</Button>
                 </DialogActions>
-            </Dialog> : <Loading />
+            </Dialog>
+        ) : <Loading />)
 
-        // <p>kwhfkje</p>
-    )
+    );
 }

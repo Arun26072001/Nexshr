@@ -26,7 +26,7 @@ export default function PayslipInfo() {
 
     async function submitPayslip() {
         console.log(payslips);
-        
+
         try {
             const payslip = await axios.post(`${url}/api/payslip-info`, payslips, {
                 headers: {
@@ -45,13 +45,11 @@ export default function PayslipInfo() {
         setPayslips((prePayslip) => prePayslip.map((data) => data.fieldName === name ? { ...data, value } : data))
     }
 
-console.log(payslips);
-
     useEffect(() => {
         const gettingPayslip = async () => {
             const payslipInfo = await fetchPayslipInfo();
-            if (payslipInfo[0]?.payslipFields) {
-                setPayslips(payslipInfo[0]?.payslipFields);
+            if (payslipInfo?.payslipFields) {
+                setPayslips(payslipInfo?.payslipFields);
             } else {
                 setPayslips([]);
             }

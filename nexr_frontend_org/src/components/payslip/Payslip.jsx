@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { DateRangePicker } from "rsuite";
-import axios from "axios";
 import LeaveTable from "../LeaveTable";
 import NoDataFound from "./NoDataFound";
 import { toast } from "react-toastify";
-import { fetchPayslip } from "../ReuseableAPI";
+import { fetchPayslipFromEmp } from "../ReuseableAPI";
+import Loading from "../Loader";
 
 const Payslip = (props) => {
     const empId = localStorage.getItem("_id")
@@ -14,9 +14,7 @@ const Payslip = (props) => {
     useEffect(() => {
         async function fetchPayslips() {
             try {
-                const slips = await fetchPayslip(empId);
-                console.log(slips);
-                
+                const slips = await fetchPayslipFromEmp(empId);
                 setPayslips(slips);
             } catch (err) {
                 toast.error(err?.response?.data?.error)
@@ -77,8 +75,8 @@ const Payslip = (props) => {
             {
                 payslips.length > 0 ?
                     <LeaveTable data={payslips} />
-                    : payslips.length === 0 ? <NoDataFound message={"Slip data not found"} />
-                        : null
+                    : !payslips ? <NoDataFound message={"Slip data not found"} />
+                        : <Loading />
             }
             {/* </div> */}
         </div>

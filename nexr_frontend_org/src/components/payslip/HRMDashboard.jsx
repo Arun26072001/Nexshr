@@ -79,7 +79,7 @@ export default function HRMDashboard({ data }) {
                 setWhoIs("admin");
             } else if (data.Account === '2') {
                 setWhoIs("hr");
-            } else {
+            } else if (data.Account === '3') {
                 setWhoIs("emp");
             }
         }
