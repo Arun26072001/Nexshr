@@ -3,7 +3,7 @@ import Logo from "../imgs/webnexs_logo.png";
 import { css } from "@emotion/react"; // Update the import for emotion
 import { ScaleLoader } from "react-spinners";
 import { Navigate, useNavigate } from "react-router-dom";
-import  {EssentialValues}  from "../App";
+import { EssentialValues } from "../App";
 import "./Login.css";
 
 const override = css`
@@ -15,12 +15,12 @@ const override = css`
 const Login = () => {
   const Account = localStorage.getItem("Account");
   const navigate = useNavigate();
-  const {handleSubmit, loading, pass} = useContext(EssentialValues);
+  const { handleSubmit, loading, pass } = useContext(EssentialValues);
 
   useEffect(() => {
     if (Account === "1") {
       navigate("/admin")
-    } 
+    }
     else if (Account === "2") {
       navigate("/hr")
     } else if (Account === "3") {
@@ -29,11 +29,11 @@ const Login = () => {
   }, [])
   return (
     <div>
-     { Account === 1 
-      ? <Navigate to={"/admin"} />
-      : Account === 2 ? <Navigate to={"/hr"} />
-      : Account === 3 ? <Navigate to={"/emp"} />
-      : ""}
+      {Account === 1
+        ? <Navigate to={"/admin"} />
+        : Account === 2 ? <Navigate to={"/hr"} />
+          : Account === 3 ? <Navigate to={"/emp"} />
+            : ""}
       <div className="container">
         <div id="main-outer-div">
           <div id="logo-div">

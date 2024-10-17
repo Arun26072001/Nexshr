@@ -7,13 +7,11 @@ import { DateRangePicker } from 'rsuite';
 import PersonRoundedIcon from '@mui/icons-material/PersonRounded';
 
 export default function LeaveCalender() {
-    const { empName, setEmpName, filterLeaveRequests, leaveRequests, daterangeValue, setDaterangeValue } = useContext(LeaveStates);
+    const { empName, setEmpName, filterLeaveRequests, leaveRequests, daterangeValue, isLoading, setDaterangeValue } = useContext(LeaveStates);
 
     useEffect(() => {
         filterLeaveRequests();
     }, [empName, daterangeValue]); // Added daterangeValue to trigger filtering when the date range changes.
-
-    console.log(leaveRequests);
 
     return (
         <div>
@@ -34,67 +32,65 @@ export default function LeaveCalender() {
                 </div>
             </div>
 
-            {/* Conditional rendering for leave data */}
-            {leaveRequests?.leaveData?.length > 0 ? (
-                <div className="leaveContainer d-block">
-                    <div className="w-100 d-flex justify-content-center">
-                        <div className="leaveBoard">
-                            <div className="leaveData">
-                                <div className="d-flex flex-column">
-                                    <div className="leaveDays">
-                                        {leaveRequests?.approvedLeave?.length} <PersonRoundedIcon />
+            {
+                isLoading ? <Loading /> :
+                    leaveRequests?.leaveData?.length > 0 ?
+                        <div className="leaveContainer d-block">
+                            <div className="w-100 d-flex justify-content-center">
+                                <div className="leaveBoard">
+                                    <div className="leaveData">
+                                        <div className="d-flex flex-column">
+                                            <div className="leaveDays">
+                                                {leaveRequests?.approvedLeave?.length} <PersonRoundedIcon />
+                                            </div>
+                                            <div className="leaveDaysDesc">
+                                                Leave Employees
+                                            </div>
+                                        </div>
                                     </div>
-                                    <div className="leaveDaysDesc">
-                                        Leave Employees
+                                    <div className="leaveData">
+                                        <div className="d-flex flex-column">
+                                            <div className="leaveDays">
+                                                {leaveRequests?.leaveInHours} hr
+                                            </div>
+                                            <div className="leaveDaysDesc">
+                                                Total Leave Hours
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div style={{ width: "30%", margin: "10px" }}>
+                                        <div className="d-flex flex-column">
+                                            <div className="leaveDays">
+                                                {leaveRequests?.peoplesOnLeave?.length} <PersonRoundedIcon />
+                                            </div>
+                                            <div className="leaveDaysDesc">
+                                                On Leave
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-                            <div className="leaveData">
-                                <div className="d-flex flex-column">
-                                    <div className="leaveDays">
-                                        {leaveRequests?.leaveInHours} hr
-                                    </div>
-                                    <div className="leaveDaysDesc">
-                                        Total Leave Hours
-                                    </div>
-                                </div>
-                            </div>
-                            <div style={{ width: "30%", margin: "10px" }}>
-                                <div className="d-flex flex-column">
-                                    <div className="leaveDays">
-                                        {leaveRequests?.peoplesOnLeave?.length} <PersonRoundedIcon />
-                                    </div>
-                                    <div className="leaveDaysDesc">
-                                        On Leave
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
 
-                    {/* Search Input */}
-                    <div className='px-3 my-3'>
-                        <div className="row">
-                            <div className="col-lg-12 searchInputIcon">
-                                <input
-                                    type="text"
-                                    className='payrunInput'
-                                    value={empName}
-                                    onChange={(e) => setEmpName(e.target.value)}
-                                    placeholder='Search by Employee Name'
-                                />
+                            {/* Search Input */}
+                            <div className='px-3 my-3'>
+                                <div className="row">
+                                    <div className="col-lg-12 searchInputIcon">
+                                        <input
+                                            type="text"
+                                            className='payrunInput'
+                                            value={empName}
+                                            onChange={(e) => setEmpName(e.target.value)}
+                                            placeholder='Search by Employee Name'
+                                        />
+                                    </div>
+                                </div>
                             </div>
-                        </div>
-                    </div>
 
-                    {/* Leave Table */}
-                    <LeaveTable data={leaveRequests.leaveData} />
-                </div>
-            ) : leaveRequests?.leaveData?.length === 0 ? (
-                <NoDataFound message={"No Leave request for this employee Name"} />
-            ) : (
-                <Loading />
-            )}
+                            {/* Leave Table */}
+                            <LeaveTable data={leaveRequests.leaveData} />
+                        </div> : <NoDataFound message={"No Leave request for this employee Name"} />
+            }
+
         </div>
     );
 }

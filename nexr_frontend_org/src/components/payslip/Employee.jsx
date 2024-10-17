@@ -12,21 +12,20 @@ export default function Employee({ whoIs }) {
     const [employees, setEmployees] = useState([]);
     const [empName, setEmpName] = useState("");
     const [allEmployees, setAllEmployees] = useState([]);
+    const [isLoading, setIsLoading] = useState(false);
     const navigate = useNavigate();
 
     useEffect(() => {
         const fetchEmployeeData = async () => {
+            setIsLoading(true);
             try {
                 const empData = await fetchEmployees();
-                
-                if (empData.length > 0) {
-                    setEmployees(empData);
-                    setAllEmployees(empData);
-                } else {
-                    toast.error("No employee data available.");
-                }
+                setEmployees(empData);
+                setAllEmployees(empData);
+                setIsLoading(false);
             } catch (error) {
                 toast.error("Failed to fetch employees");
+                setIsLoading(false);
             }
         };
 
@@ -80,13 +79,11 @@ export default function Employee({ whoIs }) {
                     </div>
                 </div>
 
-                {employees.length > 0 ? (
-                    <LeaveTable data={employees} />
-                ) : empName !== "" ? (
-                    <NoDataFound message={"No employees with this Name"} /> 
-                ) : (
-                    <Loading />
-                )}
+                {
+                    isLoading ? <Loading />
+                        : employees.length > 0 ? <LeaveTable data={employees} />
+                            : <NoDataFound message={"Employee data not found!"} />
+                }
             </div>
         </>
     )
