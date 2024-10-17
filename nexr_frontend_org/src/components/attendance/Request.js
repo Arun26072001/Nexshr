@@ -6,8 +6,6 @@ import NoDataFound from '../payslip/NoDataFound';
 import Loading from '../Loader';
 
 const Request = ({attendanceData}) => {
-    console.log(attendanceData);
-    
     
     return (
         <div className='dashboard-parent pt-4'>

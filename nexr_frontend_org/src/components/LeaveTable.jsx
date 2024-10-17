@@ -249,6 +249,7 @@ export default function LeaveTable({ data }) {
         }
     }
 
+console.log(params['*']);
 
     useEffect(() => {
         setRows(data || []);
@@ -257,7 +258,11 @@ export default function LeaveTable({ data }) {
                 return setColumns(column1);
             } else if (item.code) {
                 return setColumns(column3);
-            } else if (item.date && params['*'] === "attendance-summary" || item.date && params['*'] === "details" || item.date && params['*'] === "attendance-request") {
+            } else if (item.date && params['*'] === "attendance-summary"
+                || item.date && params['*'] === "details"
+                || item.date && params['*'] === "attendance-request"
+                || item.date && params['*'] === "attendance"
+            ) {
                 return setColumns(column5);
             } else if (item.date) {
                 return setColumns(column4);

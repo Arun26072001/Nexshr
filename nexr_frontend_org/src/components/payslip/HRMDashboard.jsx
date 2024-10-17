@@ -38,6 +38,7 @@ export default function HRMDashboard({ data }) {
     const [empName, setEmpName] = useState("");
     const token = localStorage.getItem('token');
     const [whoIs, setWhoIs] = useState("");
+    const [isLoading, setIsLoading] = useState(false);
     const url = process.env.REACT_APP_API_URL;
     const [daterangeValue, setDaterangeValue] = useState("");
     // files for payroll
@@ -54,6 +55,7 @@ export default function HRMDashboard({ data }) {
 
     useEffect(() => {
         const getLeaveData = async () => {
+            setIsLoading(true);
             try {
                 const leaveData = await axios.get(`${url}/api/leave-application/date-range/${empId}`, {
                     params: {
@@ -66,12 +68,14 @@ export default function HRMDashboard({ data }) {
 
                 setLeaveRequests(leaveData.data);
                 setFullLeaveRequests(leaveData.data);
+                setIsLoading(false);
             } catch (err) {
-                toast.error(err?.response?.data?.message)
+                toast.error(err?.response?.data?.message);
+                setIsLoading(false);
             }
         }
         getLeaveData();
-    }, [daterangeValue, empId])
+    }, [daterangeValue, empId]);
 
     useEffect(() => {
         if (data?.Account) {
@@ -87,8 +91,12 @@ export default function HRMDashboard({ data }) {
             if (empId) {
                 try {
                     const data = await gettingClockinsData(empId);
-                    setAttendanceForSummary(data);
-                    setAttendanceData(data.clockIns);
+                    if (data) {
+                        setAttendanceForSummary(data);
+                        setAttendanceData(data.clockIns);
+                    } else {
+                        toast.error("Error in fetch attendance Data")
+                    }
                 } catch (err) {
                     console.log(err);
                     toast.error(err?.response?.data?.message)
@@ -96,7 +104,7 @@ export default function HRMDashboard({ data }) {
             }
         }
         getClocknsData();
-    }, [])
+    }, [empId])
 
 
     return (
@@ -108,7 +116,7 @@ export default function HRMDashboard({ data }) {
                 {/* <Route path="leave/" element={<Leave />} /> */}
                 <Route path="employee/add" element={<Employees />} />
                 <Route path="leave/*" element={
-                    <LeaveStates.Provider value={{ daterangeValue, setDaterangeValue, leaveRequests, filterLeaveRequests, empName, setEmpName }} >
+                    <LeaveStates.Provider value={{ daterangeValue, setDaterangeValue, isLoading,leaveRequests, filterLeaveRequests, empName, setEmpName }} >
                         <Routes>
                             <Route index path='status' element={<Status />} />
                             <Route path='leave-request' element={<LeaveRequest />} />

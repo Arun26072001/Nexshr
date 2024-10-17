@@ -49,7 +49,7 @@ label {
 }
 
 .notFoundText {
-  height: 80vh;
+  height: 40vh;
   /* margin: auto; */
   display: flex;
   align-items: center;
