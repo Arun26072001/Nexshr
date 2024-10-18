@@ -4,6 +4,8 @@ import { Modal, Button, Input } from 'rsuite';
 import 'rsuite/dist/rsuite.min.css'; // Make sure to import the CSS
 
 const EditModel = ({ team, setTeamName, toggleAddTeam, toggleAssignEmp }) => {
+  console.log(team);
+  
   return (
     <Modal open={toggleAddTeam} backdrop="static">
       <Modal.Header>
@@ -19,7 +21,7 @@ const EditModel = ({ team, setTeamName, toggleAddTeam, toggleAssignEmp }) => {
             type="text"
             name="teamName"
             value={team.teamName}
-            onChange={(value) => setTeamName(value)}
+            onChange={(e) => setTeamName(e)}
             placeholder="Please enter a team name..."
           />
         </div>

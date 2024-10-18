@@ -22,13 +22,14 @@ const App = () => {
   const [isLogin, setIsLogin] = useState(localStorage.getItem("isLogin") === "true");
   const navigate = useNavigate();
 
-  const handleSubmit = event => {
+  const handleSubmit = async event => {
     event.preventDefault();
     setPass(true);
     setLoading(true);
-    login(event.target[0].value, event.target[1].value);
+    await login(event.target[0].value, event.target[1].value);
     event.target.reset();
   };
+
   const handleLogout = () => {
     console.log("logout clicked!");
     if (localStorage.getItem('empId')) {
@@ -49,46 +50,47 @@ const App = () => {
 
   };
 
-  const login = (id, pass) => {
+  const login = async (id, pass) => {
     let bodyLogin = {
       Email: id,
       Password: pass
     };
-    axios
-      .post(process.env.REACT_APP_API_URL + "/api/login", bodyLogin)
-      .then(res => {
-        var decodedData = jwtDecode(res.data);
-        localStorage.setItem("token", res.data);
+    try {
+      const login = await axios.post(process.env.REACT_APP_API_URL + "/api/login", bodyLogin)
+      let decodedData = jwtDecode(login.data);
+      localStorage.setItem("token", login.data);
+      if ((login === undefined || login === null ||
+        decodedData.Account === undefined ||
+        decodedData.Account === null) &&
+        !(
+          decodedData.Account === 1 ||
+          decodedData.Account === 2 ||
+          decodedData.Account === 3
+        )
+      ) {
+        setPass(false);
+        setLoading(false);
+      } else {
+        const accountType = decodedData.Account;
+        setData({
+          _id: decodedData._id,
+          Account: accountType,
+          Name: `${decodedData.FirstName} ${decodedData.LastName}`
+        });
 
-        if (
-          (res === undefined ||
-            res === null ||
-            decodedData.Account === undefined ||
-            decodedData.Account === null) &&
-          !(
-            decodedData.Account === 1 ||
-            decodedData.Account === 2 ||
-            decodedData.Account === 3
-          )
-        ) {
-          setPass(false);
-          setLoading(false);
-        } else {
-          const accountType = decodedData.Account;
-          setData({
-            _id: decodedData._id,
-            Account: accountType,
-            Name: `${decodedData.FirstName} ${decodedData.LastName}`
-          });
+        setPass(true);
+        setLoading(false);
+        setIsLogin(true);
 
-          setPass(true);
-          setLoading(false);
-          setIsLogin(true);
-          localStorage.setItem("isLogin", true);
-          localStorage.setItem("Account", accountType);
-          localStorage.setItem("_id", decodedData._id);
-          localStorage.setItem("Name", `${decodedData.FirstName} ${decodedData.LastName}`);
-          localStorage.setItem("annualLeaveEntitment", decodedData.annualLeaveEntitlement);
+        localStorage.setItem("isLogin", true);
+        localStorage.setItem("Account", accountType);
+        localStorage.setItem("_id", decodedData._id);
+        localStorage.setItem("Name", `${decodedData.FirstName} ${decodedData.LastName}`);
+        localStorage.setItem("annualLeaveEntitment", decodedData.annualLeaveEntitlement);
+
+        window.location.reload();
+        if (localStorage.getItem("token")) {
+          console.log(localStorage.getItem("token"));
 
           if (accountType === 1) {
             navigate("/admin");
@@ -98,29 +100,29 @@ const App = () => {
             navigate("/emp");
           }
         }
-      })
-      .catch(err => {
-        console.log(err);
-        setPass(false);
-        setLoading(false);
-      });
+      }
+    } catch (error) {
+      console.log(error);
+      setPass(false);
+      setLoading(false);
+    }
   };
 
 
-  useEffect(() => {
-    const navigateToAccount = () => {
-      if (isLogin && window.location.pathname === "/") {
-        if (account == 1) {
-          navigate("/admin")
-        } else if (account == 2) {
-          navigate("/hr")
-        } else if (account == 3) {
-          navigate("/emp")
-        }
-      }
-    }
-    navigateToAccount()
-  }, [data])
+  // useEffect(() => {
+  //   const navigateToAccount = () => {
+  //     if (isLogin && window.location.pathname === "/") {
+  //       if (account === '1') {
+  //         navigate("/admin")
+  //       } else if (account === '2') {
+  //         navigate("/hr")
+  //       } else if (account === '3') {
+  //         navigate("/emp")
+  //       }
+  //     }
+  //   }
+  //   navigateToAccount()
+  // }, [data])
 
   return (
     <EssentialValues.Provider value={{ data, handleLogout, handleSubmit, loading, pass }}>
@@ -135,9 +137,9 @@ const App = () => {
           <Route path="emp/*" element={<DashboardEmployee data={data} />} /> */}
           <Route path="*" element={<Layout />} />
         </Route>
-        <Route path="admin/*" element={isLogin && account == 1 ? <HRMDashboard  data={data} /> : <Navigate to={"/login"} />} />
-        <Route path="hr/*" element={isLogin && account == 2 ? <HRMDashboard data={data} /> : <Navigate to={"/login"} />} />
-        <Route path="emp/*" element={isLogin && account == 3 ?  <HRMDashboard data={data} /> : <Navigate to={"/login"} />} />
+        <Route path=":who/*" element={isLogin && account === '1' ? <HRMDashboard data={data} /> : <Navigate to={"/login"} />} />
+        <Route path="hr/*" element={isLogin && account === '2' ? <HRMDashboard data={data} /> : <Navigate to={"/login"} />} />
+        <Route path="emp/*" element={isLogin && account === '3' ? <HRMDashboard data={data} /> : <Navigate to={"/login"} />} />
       </Routes>
     </EssentialValues.Provider>
   );

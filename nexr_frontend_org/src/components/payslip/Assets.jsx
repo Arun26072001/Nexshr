@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from "react"
-import axios from "axios";
 import { ScaleLoader } from "react-spinners";
 import LeaveTable from "../LeaveTable";
 import { fetchEmployees } from "../ReuseableAPI";

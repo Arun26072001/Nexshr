@@ -26,7 +26,7 @@ const JobDesk = ({whoIs}) => {
         <Routes >
             <Route path="/" element={<PayslipRouter whoIs={whoIs} files={jobDeskFiles} />}>
                 <Route index path="attendance" element={<Attendence />} />
-                <Route path="leave" element={<Leave />} />
+                <Route path="leave" element={<Leave whoIs={whoIs} />} />
                 <Route path="folder" element={<Folder />} />
                 <Route path="history" element={<History />} />
                 <Route path="salary" element={<Salary />} />

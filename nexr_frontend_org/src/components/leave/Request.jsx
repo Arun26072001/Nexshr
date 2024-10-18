@@ -1,53 +1,67 @@
-import React, { useContext, useEffect } from 'react'
+import React, { useContext, useEffect } from 'react';
 import LeaveTable from '../LeaveTable';
 import NoDataFound from '../payslip/NoDataFound';
 import Loading from '../Loader';
 import { LeaveStates } from '../payslip/HRMDashboard';
 
 export default function LeaveRequest() {
-    const { empName, setEmpName, filterLeaveRequests, leaveRequests } = useContext(LeaveStates);
-    console.log(leaveRequests)
+    const { empName, setEmpName, filterLeaveRequests, isLoading, leaveRequests } = useContext(LeaveStates);
+
     useEffect(() => {
         filterLeaveRequests();
-    }, [empName])
+    }, [empName]);
 
     return (
-        leaveRequests?.leaveData?.length > 0 ?
+        isLoading ? (
+            <Loading />
+        ) : (
             <div>
                 <div className="row">
-                    <div className="col-lg-6"></div>
+                    <div className="col-lg-6 payslipTitle">
+                        Leave Status
+                    </div>
                     <div className="col-lg-6 searchInputIcon">
-                        <input type="text" className='payrunInput' value={empName} onChange={(e) => setEmpName(e.target.value)} placeholder='Search' />
+                        <input
+                            type="text"
+                            className='payrunInput'
+                            value={empName}
+                            onChange={(e) => setEmpName(e.target.value)}
+                            placeholder='Search'
+                        />
                     </div>
                 </div>
-
                 <div className="leaveContainer d-block">
                     <div className="w-100 d-flex justify-content-center">
                         <div className="leaveBoard">
+                            {/* Leave taken */}
                             <div className="leaveData">
                                 <div className="d-flex flex-column">
                                     <div className="leaveDays">
-                                        {leaveRequests?.approvedLeave?.length} Days
+                                        {leaveRequests?.approvedLeave?.length || 0} Days
                                     </div>
                                     <div className="leaveDaysDesc">
                                         Leave taken
                                     </div>
                                 </div>
                             </div>
+
+                            {/* Upcoming leave */}
                             <div className="leaveData">
                                 <div className="d-flex flex-column">
                                     <div className="leaveDays">
-                                        {leaveRequests?.upComingLeave?.length} Days
+                                        {leaveRequests?.upComingLeave?.length || 0} Days
                                     </div>
                                     <div className="leaveDaysDesc">
                                         Upcoming leave
                                     </div>
                                 </div>
                             </div>
-                            <div style={{ width: "30%", margin: "10px" }} >
+
+                            {/* Pending request */}
+                            <div style={{ width: "30%", margin: "10px" }}>
                                 <div className="d-flex flex-column">
                                     <div className="leaveDays">
-                                        {leaveRequests?.pendingLeave?.length} Days
+                                        {leaveRequests?.pendingLeave?.length || 0} Days
                                     </div>
                                     <div className="leaveDaysDesc">
                                         Pending request
@@ -56,10 +70,16 @@ export default function LeaveRequest() {
                             </div>
                         </div>
                     </div>
-                    <LeaveTable data={leaveRequests.leaveData} />
+
+                    {/* Leave Table */}
+                    {
+                        leaveRequests?.leaveData?.length > 0 ?
+                            <LeaveTable data={leaveRequests.leaveData} /> :
+                            <NoDataFound message={"No Leave request for this employee Name"} />
+
+                    }
                 </div>
-            </div> : leaveRequests?.leaveData?.length == 0 ?
-                <NoDataFound message={"No Leave request for this employee Name"} />
-                : <Loading />
-    )
+            </div>
+        )
+    );
 }

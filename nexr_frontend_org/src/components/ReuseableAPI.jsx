@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { toast } from 'react-toastify';
 const url = process.env.REACT_APP_API_URL;
-const empId = localStorage.getItem('_id') || "";
+const empId = localStorage.getItem('_id');
 const token = localStorage.getItem('token');
 
 const updateDataAPI = async (body) => {
@@ -193,7 +193,7 @@ const fetchWorkplace = async () => {
 
 const fetchPayslipInfo = async () => {
     try {
-        const payslipInfo = await axios.get(`${url}/api/payslip`, {
+        const payslipInfo = await axios.get(`${url}/api/payslip-info`, {
             headers: {
                 authorization: token || ""
             }
@@ -204,11 +204,46 @@ const fetchPayslipInfo = async () => {
     }
 }
 
+const fetchPayslipFromEmp = async (empId) => {
+    try {
+        const payslip = await axios.get(`${url}/api/payslip/emp/${empId}`);
+        return payslip.data;
+    } catch (error) {
+        return error?.response?.data?.message
+    }
+}
+
+const fetchPayslip = async (id) => {
+    try {
+        const payslip = await axios.get(`${url}/api/payslip/${id}`);
+        return payslip.data;
+    } catch (error) {
+        return error?.response?.data?.message
+    }
+}
+
+const getDepartments = async () => {
+    try {
+        const departments = await axios.get(url + "/api/department", {
+            headers: {
+                authorization: token || ""
+            }
+        });
+        return departments.data;
+    } catch (error) {
+        return error?.response?.data?.message
+    }
+}
+
+
 export {
     addDataAPI,
     getDataAPI,
+    getDepartments,
     updateDataAPI,
+    fetchPayslipFromEmp,
     fetchPayslipInfo,
+    fetchPayslip,
     removeClockinsData,
     fetchLeaveRequests,
     deleteLeave,
