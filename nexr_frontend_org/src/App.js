@@ -89,9 +89,7 @@ const App = () => {
         localStorage.setItem("annualLeaveEntitment", decodedData.annualLeaveEntitlement);
 
         window.location.reload();
-        if (localStorage.getItem("token")) {
-          console.log(localStorage.getItem("token"));
-
+      
           if (accountType === 1) {
             navigate("/admin");
           } else if (accountType === 2) {
@@ -99,7 +97,6 @@ const App = () => {
           } else if (accountType === 3) {
             navigate("/emp");
           }
-        }
       }
     } catch (error) {
       console.log(error);
@@ -109,20 +106,20 @@ const App = () => {
   };
 
 
-  // useEffect(() => {
-  //   const navigateToAccount = () => {
-  //     if (isLogin && window.location.pathname === "/") {
-  //       if (account === '1') {
-  //         navigate("/admin")
-  //       } else if (account === '2') {
-  //         navigate("/hr")
-  //       } else if (account === '3') {
-  //         navigate("/emp")
-  //       }
-  //     }
-  //   }
-  //   navigateToAccount()
-  // }, [data])
+  useEffect(() => {
+    const navigateToAccount = () => {
+      if (isLogin && window.location.pathname === "/") {
+        if (account === '1') {
+          navigate("/admin")
+        } else if (account === '2') {
+          navigate("/hr")
+        } else if (account === '3') {
+          navigate("/emp")
+        }
+      }
+    }
+    navigateToAccount()
+  }, [data])
 
   return (
     <EssentialValues.Provider value={{ data, handleLogout, handleSubmit, loading, pass }}>

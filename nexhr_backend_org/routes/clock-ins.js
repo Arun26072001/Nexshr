@@ -32,26 +32,37 @@ async function checkLoginForOfficeTime(scheduledTime, actualTime) {
 
 // Function to calculate working hours between start and end times
 function getTotalWorkingHourPerDay(startingTime, endingTime) {
+    if (startingTime && endingTime !== "00:00") {
+        // Convert time strings to Date objects (using today's date)
+        const today = new Date();
+        const start = new Date(today.getFullYear(), today.getMonth(), today.getDate(), ...startingTime.split(':').map(Number));
+        const end = new Date(today.getFullYear(), today.getMonth(), today.getDate(), ...endingTime.split(':').map(Number));
 
-    // Convert time strings to Date objects (using today's date)
-    const today = new Date();
-    const start = new Date(today.getFullYear(), today.getMonth(), today.getDate(), ...startingTime.split(':').map(Number));
-    const end = new Date(today.getFullYear(), today.getMonth(), today.getDate(), ...endingTime.split(':').map(Number));
+        // Calculate the difference in milliseconds
+        const startTime = start.getTime();
+        const endTime = end.getTime();
+        let timeDifference;
+        if (endTime > startTime) {
+            timeDifference = end - start;
+        } else {
+            timeDifference = start - end
+        }
 
-    // Calculate the difference in milliseconds
-    const timeDifference = end - start;
+        // Convert the difference to minutes
+        const minutesDifference = Math.floor(timeDifference / (1000 * 60));
 
-    // Convert the difference to minutes
-    const minutesDifference = Math.floor(timeDifference / (1000 * 60));
-
-    return minutesDifference / 60;
+        return minutesDifference / 60;
+    } else {
+        return 0;
+    }
 }
 
 
-router.post("/:id", verifyAdminHREmployee, (req, res) => {
+router.post("/:id", verifyAdminHREmployee, async (req, res) => {
     let regular = 0;
     let late = 0;
     let early = 0;
+
     // Function to check login times and update status counts
     async function checkLogin(scheduledTime, actualTime) {
         const [scheduledHours, scheduledMinutes] = scheduledTime.split(':').map(Number);
@@ -71,45 +82,50 @@ router.post("/:id", verifyAdminHREmployee, (req, res) => {
             return "On Time";
         }
     }
-    Employee.findById(req.params.id, (err, emp) => {
-        if (err) {
-            return res.status(404).send("Employee not found!");
+
+    try {
+        const today = new Date();
+        const startOfDay = new Date(today.setHours(0, 0, 0, 0)); // Set time to 00:00:00.000
+        const endOfDay = new Date(today.setHours(23, 59, 59, 999));
+
+        const emp = await Employee.findById(req.params.id)
+            .populate({ path: "clockIns", match: { date: { $gte: startOfDay, $lte: endOfDay } } });
+
+        if (emp?.clockIns?.length > 0) {
+            return res.status(409).send({ message: "You have already PunchIn!" });
         }
 
-        Joi.validate(req.body, clockInsValidation, async (err, result) => {
-            if (err) {
-                return res.status(400).send(err);
-            }
+        // Validate input data
+        const { error } = clockInsValidation.validate(req.body);
+        if (error) {
+            return res.status(400).send({ message: error.message });
+        }
 
-            let newClockIns = result;
-            if (result?.login?.startingTime) {
-                const behaviour = await checkLogin("09:30", result.login.startingTime);
-                const punchInMsg = await checkLoginForOfficeTime("09:30", result.login.startingTime)
-                newClockIns = {
-                    ...result,
-                    behaviour,
-                    punchInMsg,
-                    employee: req.params.id
-                }
-            }
+        // Proceed with login checks
+        const result = req.body;
+        if (result?.login?.startingTime) {
+            const behaviour = await checkLogin("09:30", result.login.startingTime);
+            const punchInMsg = await checkLoginForOfficeTime("09:30", result.login.startingTime)
+            let newClockIns = {
+                ...req.body,
+                behaviour,
+                punchInMsg,
+                employee: req.params.id
+            };
 
+            const clockIns = await ClockIns.create(newClockIns);
 
-            ClockIns.create(newClockIns, (err, data) => {
-                console.log(err);
-                if (err) {
-                    return res.status(500).send({ message: err.message });
-                }
-                emp.clockIns = data
-                emp.save((err) => {
-                    if (err) {
-                        return res.status(500).send(err);
-                    }
-                    res.status(201).send(data);  // Only one response
-                });
-            });
-        });
-    });
+            // Save the clock-in data to the employee's record
+            emp.clockIns.push(clockIns._id);
+            await emp.save(); // Fixed save function usage
+
+            res.status(201).send(clockIns);
+        }
+    } catch (error) {
+        res.status(500).send({ error: error.message });
+    }
 });
+
 
 router.get("/:id", verifyAdminHREmployee, async (req, res) => {
     const convertToMinutes = (start, end) => {
@@ -126,52 +142,63 @@ router.get("/:id", verifyAdminHREmployee, async (req, res) => {
     };
 
     try {
-        const timeData = await ClockIns.findById(req.params.id).populate({path: "employee", select: "_id FirstName LastName"});
-        if (!timeData) {
+        const queryDate = new Date(req.query.date); // Parse the query date
+        console.log(queryDate);
+
+        // Create start and end of the day for the date comparison
+        const startOfDay = new Date(queryDate.setHours(0, 0, 0, 0)); // Set time to 00:00:00.000
+        const endOfDay = new Date(queryDate.setHours(23, 59, 59, 999)); // Set time to 23:59:59.999
+
+        const timeData = await Employee.findById({ _id: req.params.id }, "clockIns")
+            .populate({
+                path: "clockIns",
+                match: {
+                    date: {
+                        $gte: startOfDay,
+                        $lt: endOfDay,
+                    },
+                },
+                populate: { path: "employee", select: "_id FirstName LastName" }
+            });
+        console.log(timeData);
+
+        // const timeData = await ClockIns.findById(req.params.id).populate({path: "employee", select: "_id FirstName LastName"});
+        if (timeData.clockIns.length === 0) {
             return res.status(404).send({ message: "Not found", details: "Id is not found! Please verify it." });
+        } else {
+            const activities = ["login", "meeting", "morningBreak", "lunch", "eveningBreak", "event"];
+
+            const activitiesData = activities.map((activity) => {
+                const startingTime = timeData.clockIns[0][activity]?.startingTime || "00:00";
+                const endingTime = timeData.clockIns[0][activity]?.endingTime || "00:00";
+                const timeCalMins = convertToMinutes(startingTime, endingTime);
+
+                return {
+                    activity,
+                    startingTime,
+                    endingTime,
+                    timeCalMins
+                };
+            });
+
+            // Sum up the total minutes for all activities
+            const totalEmpWorkingMinutes = activitiesData.reduce((total, activity) => total + activity.timeCalMins, 0);
+
+            // Convert total minutes to hours and minutes format
+            const hours = Math.floor(totalEmpWorkingMinutes / 60);
+            const minutes = totalEmpWorkingMinutes % 60;
+
+            return res.send({
+                timeData,
+                activitiesData,
+                empTotalWorkingHours: (hours + minutes) / 60
+            });
         }
 
-        const activities = ["login", "meeting", "morningBreak", "lunch", "eveningBreak", "event"];
-
-        const activitiesData = activities.map((activity) => {
-            const startingTime = timeData[activity]?.startingTime || "00:00";
-            const endingTime = timeData[activity]?.endingTime || "00:00";
-            const timeCalMins = convertToMinutes(startingTime, endingTime);
-
-            return {
-                activity,
-                startingTime,
-                endingTime,
-                timeCalMins
-            };
-        });
-
-        // Sum up the total minutes for all activities
-        const totalEmpWorkingMinutes = activitiesData.reduce((total, activity) => total + activity.timeCalMins, 0);
-
-        // Convert total minutes to hours and minutes format
-        const hours = Math.floor(totalEmpWorkingMinutes / 60);
-        const minutes = totalEmpWorkingMinutes % 60;
-
-        res.send({
-            timeData,
-            activitiesData,
-            empTotalWorkingHours: (hours + minutes) / 60
-        });
-
     } catch (err) {
-        res.status(500).send({ message: "Internal server error", details: err.message });
+        res.status(500).send({ error: err.message });
     }
 });
-
-// router.get("/:id", verifyHREmployee, async (req, res) => {
-//     try {
-//         const loginData = await ClockIns.findById(req.params.id).exec();
-//         res.send(loginData);
-//     } catch (err) {
-//         res.status(500).send({ message: err.message })
-//     }
-// })
 
 // get login and logout data from employee
 router.get("/employee/:empId", verifyAdminHREmployee, async (req, res) => {
@@ -259,9 +286,8 @@ router.get("/employee/:empId", verifyAdminHREmployee, async (req, res) => {
                     status: "approved"
                 }
             });
-            
-            // console.log(employee);
-            
+
+
         if (!employee) {
             return res.status(400).send({ message: "No Employee found with given ID" });
         }
@@ -284,9 +310,12 @@ router.get("/employee/:empId", verifyAdminHREmployee, async (req, res) => {
         // Process employee clock-in data
         employee.clockIns.forEach(async (clockIn) => {
             const { startingTime, endingTime } = clockIn.login;
+            console.log(clockIn);
 
             // Calculate total working hours for this employee clock-in
             const workingHours = getTotalWorkingHourPerDay(startingTime, endingTime);
+            console.log(workingHours);
+
             totalEmpWorkingHours += workingHours;
 
             // Compare with scheduled time (assumed to be "09:00")
@@ -311,18 +340,18 @@ router.get("/employee/:empId", verifyAdminHREmployee, async (req, res) => {
 });
 
 
-router.put("/:id", verifyHREmployee, (req, res) => {
+router.put("/:id", verifyAdminHREmployee, (req, res) => {
     let body = req.body;
-    if (req.body['meeting'].takenTime) {
-        const takenTime = req.body['meeting'].takenTime;
-        body = {
-            ...req.body,
-            ['login']: {
-                ...req.body['login'],
-                timeHolder: req.body['login'].timeHolder - takenTime
-            }
-        }
-    }
+    // if (req.body['meeting'].takenTime) {
+    //     const takenTime = req.body['meeting'].takenTime;
+    //     body = {
+    //         ...req.body,
+    //         ['login']: {
+    //             ...req.body['login'],
+    //             timeHolder: req.body['login'].timeHolder - takenTime
+    //         }
+    //     }
+    // }
 
     ClockIns.findByIdAndUpdate(req.params.id, body, {
         new: true
