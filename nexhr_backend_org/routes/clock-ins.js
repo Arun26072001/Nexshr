@@ -48,7 +48,7 @@ function getTotalWorkingHourPerDay(startingTime, endingTime) {
 }
 
 
-router.post("/:id", verifyHREmployee, (req, res) => {
+router.post("/:id", verifyAdminHREmployee, (req, res) => {
     let regular = 0;
     let late = 0;
     let early = 0;

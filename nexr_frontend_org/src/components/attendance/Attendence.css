@@ -1,81 +1,76 @@
 .text-daily {
-    font-family: Inter;
-    font-size: 20px;
-    font-weight: 500;
-    line-height: 30px;
-    letter-spacing: -0.017em;
-    text-align: left;
-
+  font-family: Inter;
+  font-size: 20px;
+  font-weight: 500;
+  line-height: 30px;
+  letter-spacing: -0.017em;
+  text-align: left;
 }
 
 .attend {
-    width: 160px;
-    height: 33px;
-    padding: 6px 16px 6px 16px;
-    gap: 4px;
-    opacity: 0px;
-    font-size: 14px;
-    font-weight: 500;
-    line-height: 21px;
-    letter-spacing: -0.006em;
-    color: rgba(245, 245, 245, 1);
-    border-radius: 8px;
-
+  width: 160px;
+  height: 33px;
+  padding: 6px 16px 6px 16px;
+  gap: 4px;
+  opacity: 0px;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 21px;
+  letter-spacing: -0.006em;
+  color: rgba(245, 245, 245, 1);
+  border-radius: 8px;
 }
 
 .attends {
-    width: 160px;
-    height: 33px;
-    padding: 6px 16px 6px 16px;
-    gap: 4px;
-    border: 1px 0px 0px 0px;
-    opacity: 0px;
-    border: 1px solid #a2a7abb5 !important;
-    background: rgba(255, 255, 255, 1);
-    color: black;
-    font-size: 14px;
-    font-weight: 500;
-    line-height: 21px;
-    border-radius: 8px;
+  width: 160px;
+  height: 33px;
+  padding: 6px 16px 6px 16px;
+  gap: 4px;
+  border: 1px 0px 0px 0px;
+  opacity: 0px;
+  border: 1px solid #a2a7abb5 !important;
+  background: rgba(255, 255, 255, 1);
+  color: black;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 21px;
+  border-radius: 8px;
 }
 
 table th {
-
-    background-color: rgba(245, 245, 245, 1) !important;
-    border-right: 1px solid rgba(224, 224, 224, 1);
-
+  background-color: rgba(245, 245, 245, 1) !important;
+  border-right: 1px solid rgba(224, 224, 224, 1);
 }
 
 .searching input {
-    width: 100%;
-    height: 40px;
-    border: none;
-    border-radius: 10px;
-    padding: 0px 8px;
-    border: 1px solid rgba(194, 194, 194, 1);
-
+  width: 100%;
+  height: 40px;
+  border: none;
+  border-radius: 10px;
+  padding: 0px 8px;
+  border: 1px solid rgba(194, 194, 194, 1);
 }
 
 .searching {
-    display: flex;
-    position: relative;
-    width: fit-content;
+  display: flex;
+  position: relative;
+  width: fit-content;
 }
 
 .searchIcon {
-    position: absolute;
-    right: 10px;
-    top: 7px;
+  position: absolute;
+  right: 10px;
+  top: 7px;
 }
 
 .announce {
-    background-color: white;
-    border-radius: 8px;
+  background-color: white;
+  border-radius: 8px;
 }
 
-.profiles .MuiToolbar-root.MuiToolbar-gutters.MuiToolbar-regular.MuiTablePagination-toolbar.css-16og44m-MuiToolbar-root-MuiTablePagination-toolbar {
-
-    --Paper-shadow: none !important;
+.profiles
+  .MuiToolbar-root.MuiToolbar-gutters.MuiToolbar-regular.MuiTablePagination-toolbar.css-16og44m-MuiToolbar-root-MuiTablePagination-toolbar {
+  --Paper-shadow: none !important;
 }
 
 /* .MuiTableContainer-root.css-41abqd-MuiTableContainer-root {
@@ -84,95 +79,91 @@ table th {
 } */
 
 .tabline {
-    background-color: white;
-    border-radius: 8px;
-
+  background-color: white;
+  border-radius: 8px;
 }
-
-
 
 /* Dropdown container */
 .editdropdown {
-    position: relative;
-    display: inline-block;
-    z-index: 1;
+  position: relative;
+  display: inline-block;
+  z-index: 1;
 }
 
 /* Dropdown button (the ellipsis icon) */
 .editdropdown-button {
-    color: #000;
-    padding: 10px;
-    border: none;
-    cursor: pointer;
+  color: #000;
+  padding: 10px;
+  border: none;
+  cursor: pointer;
 }
 
 /* The dropdown menu itself */
 .editdropdown-menu {
-    display: none;
-    /* Hidden by default */
-    position: absolute;
-    background-color: #f9f9f9;
-    min-width: 120px;
-    /* Set appropriate width */
-    box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.2);
-    /* Add a shadow for better visibility */
-    z-index: 10;
-    /* Ensure it appears above the table */
-    top: 100%;
-    /* Position it below the button */
-    left: 50%;
-    /* Center it horizontally */
-    transform: translateX(-50%);
-    /* Fine-tune centering */
-    border: 1px solid #ddd;
+  display: none;
+  /* Hidden by default */
+  position: absolute;
+  background-color: #f9f9f9;
+  min-width: 120px;
+  /* Set appropriate width */
+  box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.2);
+  /* Add a shadow for better visibility */
+  z-index: 10;
+  /* Ensure it appears above the table */
+  top: 100%;
+  /* Position it below the button */
+  left: 50%;
+  /* Center it horizontally */
+  transform: translateX(-50%);
+  /* Fine-tune centering */
+  border: 1px solid #ddd;
 }
 
 /* Show the dropdown menu when hovering over the editdropdown */
 .editdropdown:hover .editdropdown-menu {
-    display: block;
-    /* Display the menu on hover */
+  display: block;
+  /* Display the menu on hover */
 }
 
 /* Menu items styling */
 .editdropdown-menu a,
 .editdropdown-menu div {
-    padding: 8px 16px;
-    display: block;
-    color: #000;
+  padding: 8px 16px;
+  display: block;
+  color: #000;
 }
 
 /* Add a hover effect for the menu items */
 .editdropdown-menu a:hover,
 .editdropdown-menu div:hover {
-    background-color: #ddd;
+  background-color: #ddd;
 }
 
 th.MuiTableCell-root.MuiTableCell-head.MuiTableCell-stickyHeader.MuiTableCell-alignCenter.MuiTableCell-sizeMedium.css-clczij-MuiTableCell-root {
-    min-width: 120px;
+  min-width: 120px;
 }
 
 th.MuiTableCell-root.MuiTableCell-head.MuiTableCell-stickyHeader.MuiTableCell-sizeMedium.css-1u6ck2-MuiTableCell-root {
-    min-width: 120px;
+  min-width: 120px;
 }
 
-
 .dept {
-    border-radius: 0px !important;
-    border: 1px solid rgba(194, 194, 194, 1);
+  border-radius: 0px !important;
+  border: 1px solid rgba(194, 194, 194, 1);
 }
 
 .duration {
-    border-radius: 0px !important;
-    border: 1px solid rgba(194, 194, 194, 1);
-    border-top-right-radius: 10px !important;
-    border-bottom-right-radius: 10px !important;
+  border-radius: 0px !important;
+  border: 1px solid rgba(194, 194, 194, 1);
+  border-top-right-radius: 10px !important;
+  border-bottom-right-radius: 10px !important;
 }
 
 .apply {
-    border-radius: 0px !important;
-    border: 1px solid rgba(194, 194, 194, 1);
-    border-top-left-radius: 10px !important;
-    border-bottom-left-radius: 10px !important;
+  border-radius: 0px !important;
+  border: 1px solid rgba(194, 194, 194, 1);
+  border-top-left-radius: 10px !important;
+  border-bottom-left-radius: 10px !important;
 }
 
 /* button#pills-applybetween-tab {
@@ -185,33 +176,32 @@ th.MuiTableCell-root.MuiTableCell-head.MuiTableCell-stickyHeader.MuiTableCell-si
 
 .profile */
 .apply .nav-pills .nav-link.active {
-    border-radius: 0px !important;
-    padding: 10px !important;
-    color: rgba(20, 106, 220, 1) !important;
-    border-top-left-radius: 10px !important;
-    border-bottom-left-radius: 10px !important;
-    background: rgba(208, 225, 248, 1) !important;
+  border-radius: 0px !important;
+  padding: 10px !important;
+  color: rgba(20, 106, 220, 1) !important;
+  border-top-left-radius: 10px !important;
+  border-bottom-left-radius: 10px !important;
+  background: rgba(208, 225, 248, 1) !important;
 }
 .duration .nav-pills .nav-link.active {
-    border-radius: 0px !important;
-    padding: 10px !important;
-    color: rgba(20, 106, 220, 1) !important;
-    border-top-right-radius: 10px !important;
-    border-bottom-right-radius: 10px !important;
-    background: rgba(208, 225, 248, 1) !important;
+  border-radius: 0px !important;
+  padding: 10px !important;
+  color: rgba(20, 106, 220, 1) !important;
+  border-top-right-radius: 10px !important;
+  border-bottom-right-radius: 10px !important;
+  background: rgba(208, 225, 248, 1) !important;
 }
 
 .dept .nav-pills .nav-link.active {
-    border-radius: 0px !important;
-    padding: 10px !important;
-    color: rgba(20, 106, 220, 1) !important;
-    background: rgba(208, 225, 248, 1) !important;
+  border-radius: 0px !important;
+  padding: 10px !important;
+  color: rgba(20, 106, 220, 1) !important;
+  background: rgba(208, 225, 248, 1) !important;
 }
 
 .nav-pills .nav-link {
-    padding: 10px;
+  padding: 10px;
 }
-
 
 /* .apply .nav-link.active {
     border-bottom-right-radius: 0px !important;

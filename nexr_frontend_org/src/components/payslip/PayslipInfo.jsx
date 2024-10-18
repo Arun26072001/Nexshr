@@ -2,6 +2,7 @@ import axios from 'axios';
 import React, { useEffect, useState } from 'react'
 import { toast } from 'react-toastify';
 import { fetchPayslipInfo } from '../ReuseableAPI';
+import PayslipUI from './PayslipUI';
 
 export default function PayslipInfo() {
     const url = process.env.REACT_APP_API_URL;
@@ -25,9 +26,9 @@ export default function PayslipInfo() {
 
     async function submitPayslip() {
         console.log(payslips);
-        
+
         try {
-            const payslip = await axios.post(`${url}/api/payslip`, payslips, {
+            const payslip = await axios.post(`${url}/api/payslip-info`, payslips, {
                 headers: {
                     Authorization: token || ""
                 }
@@ -44,13 +45,11 @@ export default function PayslipInfo() {
         setPayslips((prePayslip) => prePayslip.map((data) => data.fieldName === name ? { ...data, value } : data))
     }
 
-console.log(payslips);
-
     useEffect(() => {
         const gettingPayslip = async () => {
             const payslipInfo = await fetchPayslipInfo();
-            if (payslipInfo[0]?.payslipFields) {
-                setPayslips(payslipInfo[0]?.payslipFields);
+            if (payslipInfo?.payslipFields) {
+                setPayslips(payslipInfo?.payslipFields);
             } else {
                 setPayslips([]);
             }

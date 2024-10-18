@@ -3,7 +3,7 @@ import { useState, useRef, useEffect } from "react";
 import "./leaveForm.css";
 import axios from "axios";
 import AddEmployeeForm from "./AddEmployeeform";
-import { fetchEmployees } from "./ReuseableAPI";
+import { fetchEmployees, getDepartments } from "./ReuseableAPI";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 
@@ -272,14 +272,11 @@ const AddEmployee = () => {
   useEffect(() => {
     async function fetchDepartments() {
       try {
-        const departments = await axios.get(url + "/api/department", {
-          headers: {
-            authorization: token || ""
-          }
-        });
-        setDepartments(departments.data);
+        const departments = await getDepartments()
+        setDepartments(departments);
 
       } catch (err) {
+        toast.error(err);
         console.log(err.data);
       }
     }

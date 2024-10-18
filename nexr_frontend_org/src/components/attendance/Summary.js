@@ -139,7 +139,7 @@ const Summary = () => {
                             <option value="0">Select Profile</option>
                             {employees?.length > 0 && employees?.map((data) => (
                                 <option key={data?._id} value={data?._id}>
-                                    {data?.FirstName} {data?.LastName}
+                                   {data?.FirstName} {data?.LastName}
                                 </option>
                             ))}
                         </select>
@@ -199,6 +199,7 @@ const Summary = () => {
 };
 
 export default Summary;
+
 
 
 // import React, { useEffect, useState } from 'react';

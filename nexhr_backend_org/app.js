@@ -1,8 +1,10 @@
 var express = require("express");
+const router = express.Router();
+const schedule = require("node-schedule");
+const axios = require("axios");
 var mongoose = require('mongoose');
 var app = express();
-require('dotenv').config()
-const autoIncrement = require("mongoose-auto-increment");
+require('dotenv').config();
 var cors = require('cors')
 //router files 
 const login = require('./routes/login');
@@ -16,7 +18,7 @@ const employee = require('./routes/employee');
 const familyInfo = require('./routes/family-info');
 const salary = require('./routes/salary');
 const education = require('./routes/education');
-const {leaveApp} = require('./routes/leave-app');
+const { leaveApp } = require('./routes/leave-app');
 const state = require('./routes/state');
 const country = require('./routes/country');
 const project = require('./routes/project');
@@ -31,6 +33,7 @@ const applicationSettings = require("./routes/application-settings");
 const attendance = require("./routes/attendance");
 const clockIns = require("./routes/clock-ins")
 const team = require("./routes/team");
+const payslipInfo = require("./routes/payslipInfo");
 const payslip = require("./routes/payslip");
 
 //connecting to mongodb
@@ -77,8 +80,6 @@ app.use('/api/login', login)
 app.use('/api/role', role);
 //team router
 app.use('/api/team', team)
-//pay slip router
-app.use('/api/payslip', payslip)
 //city routes
 app.use('/api/city', city)
 //state routes
@@ -92,9 +93,13 @@ app.use('/api/family-info', familyInfo)
 //use personal-info router
 app.use('/api/personal-info', personalInfo)
 //use payroll router
-app.use('/api/payroll', payroll)
+app.use('/api/payroll', payroll);
+//use payslip router
+app.use('/api/payslip', payslip);
 //use education router
-app.use('/api/education', education)
+app.use('/api/education', education);
+//pay slip router
+app.use('/api/payslip-info', payslipInfo);
 //use department router
 app.use('/api/department', department)
 //use work-experiance router
@@ -124,8 +129,19 @@ app.use('/api/time-pattern', timePattern);
 //use attendance router
 app.use("/api/attendance", attendance)
 //use clock-ins router
-app.use("/api/clock-ins", clockIns)
+app.use("/api/clock-ins", clockIns);
 
 var port = process.env.PORT;
+// Schedule the job to run every 14th day of the month at 18:18
+const addPayslip = schedule.scheduleJob("10 10 3 * *", async function () {
+  try {
+    const response = await axios.post(`${process.env.REACT_APP_API_URL}/api/payslip/`, {
+    });
+    console.log("Payslip generation response:", response.data);
+  } catch (err) {
+    console.error("Error while generating payslips:", err);
+  }
+});
+
 
 app.listen(port, () => console.log(`Example app listening on port ${port}!`));
