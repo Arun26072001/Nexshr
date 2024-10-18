@@ -143,6 +143,9 @@ const Sidebar = ({ handleLogout, whoIs }) => {
                                         <li className={`submenu_navlist ${activeSubmenu === "Role" ? "active" : ""}`} onClick={() => setActiveSubmenu("Role")}>
                                             <NavLink to={`/${whoIs}/administration/role`} className="nav-lists">Role</NavLink>
                                         </li>
+                                        <li className={`submenu_navlist ${activeSubmenu === "Shift" ? "active" : ""}`} onClick={() => setActiveSubmenu("Shift")}>
+                                            <NavLink to={`/${whoIs}/administration/shift`} className="nav-lists">Shift</NavLink>
+                                        </li>
                                         <li className={`submenu_navlist ${activeSubmenu === "Department" ? "active" : ""}`} onClick={() => setActiveSubmenu("Department")}>
                                             <NavLink to={`/${whoIs}/administration/department`} className="nav-lists">Department</NavLink>
                                         </li>
