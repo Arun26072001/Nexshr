@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import ReactApexChart from 'react-apexcharts';
 
 const ApexChart = ({ activitiesData }) => {
+  
   const chartData = {
     series: activitiesData.map((data) => data.timeCalMins),
     options: {

@@ -128,22 +128,26 @@ router.post("/:id", verifyAdminHREmployee, async (req, res) => {
 
 
 router.get("/:id", verifyAdminHREmployee, async (req, res) => {
+
     const convertToMinutes = (start, end) => {
-        const [endHour, endMin] = end.split(":").map(Number);
-        const [startHour, startMin] = start.split(":").map(Number);
+        if (start !== "00:00" && end !== "00:00") {
+            const [endHour, endMin] = end.split(":").map(Number);
+            const [startHour, startMin] = start.split(":").map(Number);
 
-        const startTime = new Date(2000, 0, 1, startHour, startMin);
-        const endTime = new Date(2000, 0, 1, endHour, endMin);
+            const startTime = new Date(2000, 0, 1, startHour, startMin);
+            const endTime = new Date(2000, 0, 1, endHour, endMin);
 
-        const diffMs = endTime - startTime; // Difference in milliseconds
-        const diffMinutes = Math.floor(diffMs / (1000 * 60)); // Convert to minutes
+            const diffMs = endTime - startTime; // Difference in milliseconds
+            const diffMinutes = Math.floor(diffMs / (1000 * 60)); // Convert to minutes
 
-        return diffMinutes > 0 ? diffMinutes : 0; // Ensure non-negative value
+            return diffMinutes > 0 ? diffMinutes : 0; // Ensure non-negative value
+        } else {
+            return 0;
+        }
     };
 
     try {
         const queryDate = new Date(req.query.date); // Parse the query date
-        console.log(queryDate);
 
         // Create start and end of the day for the date comparison
         const startOfDay = new Date(queryDate.setHours(0, 0, 0, 0)); // Set time to 00:00:00.000
@@ -160,7 +164,7 @@ router.get("/:id", verifyAdminHREmployee, async (req, res) => {
                 },
                 populate: { path: "employee", select: "_id FirstName LastName" }
             });
-        console.log(timeData);
+console.log(timeData);
 
         // const timeData = await ClockIns.findById(req.params.id).populate({path: "employee", select: "_id FirstName LastName"});
         if (timeData.clockIns.length === 0) {
@@ -171,8 +175,9 @@ router.get("/:id", verifyAdminHREmployee, async (req, res) => {
             const activitiesData = activities.map((activity) => {
                 const startingTime = timeData.clockIns[0][activity]?.startingTime || "00:00";
                 const endingTime = timeData.clockIns[0][activity]?.endingTime || "00:00";
-                const timeCalMins = convertToMinutes(startingTime, endingTime);
-
+                // const timeCalMins = convertToMinutes(startingTime, endingTime);
+                const timeCalMins = Math.ceil((timeData.clockIns[0][activity]?.takenTime / 1000) / 60);
+                
                 return {
                     activity,
                     startingTime,

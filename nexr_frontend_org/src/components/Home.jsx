@@ -69,16 +69,11 @@ export default function Home({ updateClockins }) {
 
     useEffect(() => {
         const getClockInsData = async () => {
-            console.log("call");
-            
+
             try {
-                console.log(isPaused, empId);
-                
+
                 if (isPaused && empId) {
-                    
                     const { activitiesData } = await getDataAPI(empId);
-                    console.log(activitiesData);
-                    
                     setTableData(activitiesData)
                 }
             }
@@ -92,7 +87,7 @@ export default function Home({ updateClockins }) {
 
 
     return (
-        <Box sx={{ width: '100%'}}>
+        <Box sx={{ width: '100%' }}>
             <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
                 <Tabs value={value} onChange={handleChange} aria-label="basic tabs example">
                     <Tab label="My Summary" {...a11yProps(0)} />

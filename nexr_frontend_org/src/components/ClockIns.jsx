@@ -8,12 +8,12 @@ import PunchIn from "../asserts/PunchIn.svg";
 import PunchOut from "../asserts/punchOut.svg";
 
 const ClockIns = ({ updateClockins, handleLogout }) => {
-    const clockinsId = localStorage.getItem('clockinsId');
+    // const clockinsId = localStorage.getItem('clockinsId');
     const empId = localStorage.getItem("_id");
     const [timeOption, setTimeOption] = useState(localStorage.getItem("timeOption") || "login");
     const EmpName = localStorage.getItem("Name")
-    const [loginTime, setLoginTime] = useState(localStorage.getItem("loginTime") || "00:00");
-    const [logoutTime, setLogoutTime] = useState(localStorage.getItem("logoutTime") || "00:00");
+    // const [loginTime, setLoginTime] = useState(localStorage.getItem("loginTime") || "00:00");
+    // const [logoutTime, setLogoutTime] = useState(localStorage.getItem("logoutTime") || "00:00");
     // const [punchInMsg, setPunchInMsg] = useState(localStorage.getItem("punchInMsg") || "Waiting for Login...");
     const currentDate = new Date();
     const currentHours = currentDate.getHours().toString().padStart(2, '0');
@@ -54,12 +54,11 @@ const ClockIns = ({ updateClockins, handleLogout }) => {
         }
     }, [isPaused]);
 
-
     const startCountdown = async () => {
         countdownApi.current.start();
         // localStorage.setItem('countdownEndTime', endTime);
-        localStorage.setItem('isPaused', false);
         localStorage.setItem("timeOption", timeOption);
+        localStorage.setItem('isPaused', false);
         setIsPaused(false);
     };
 
@@ -76,16 +75,18 @@ const ClockIns = ({ updateClockins, handleLogout }) => {
 
     const startTimer = async () => {
         // Update state
+        
         const updatedState = {
             ...workTimeTracker,
             [timeOption]: {
                 ...workTimeTracker[timeOption],
-                startingTime: currentTime
+                startingTime: workTimeTracker[timeOption].startingTime ? workTimeTracker[timeOption].startingTime : currentTime
             },
         };
+        console.log(updatedState);
 
         // Check if clockinsId is present
-        if (workTimeTracker?._id && isPaused) {
+        if (!workTimeTracker?._id && isPaused) {
             try {
                 const clockinsData = await addDataAPI(updatedState);  // Assuming updateState is some required data for addDataAPI
                 setWorkTimeTracker(clockinsData)
@@ -97,7 +98,7 @@ const ClockIns = ({ updateClockins, handleLogout }) => {
                 console.error('Error in starting timer:', error);
             }
         } else {
-            if (clockinsId && !isPaused) {
+            if (workTimeTracker?._id && !isPaused) {
                 toast.warning("Timer has been already started!")
             }
             try {
@@ -110,11 +111,11 @@ const ClockIns = ({ updateClockins, handleLogout }) => {
         }
         await startCountdown();
         // Set login time when 'login' is selected and no loginTime is set
-        if (timeOption === "login" && loginTime === "00:00") {
-            const time = currentTime.toLocaleString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true });
-            setLoginTime(time);
-            localStorage.setItem("loginTime", time);
-        }
+        // if (timeOption === "login" && loginTime === "00:00") {
+        //     const time = currentTime.toLocaleString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true });
+        //     setLoginTime(time);
+        //     localStorage.setItem("loginTime", time);
+        // }
 
         // if (isPaused) {
         //     // Update state for paused case
@@ -132,12 +133,11 @@ const ClockIns = ({ updateClockins, handleLogout }) => {
     };
 
     const stopTimer = async () => {
-
-        if (timeOption === "login") {
-            const time = currentTime.toLocaleString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true });
-            setLogoutTime(time);
-            localStorage.setItem("logoutTime", time);
-        }
+        // if (timeOption === "login") {
+        //     const time = currentTime.toLocaleString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true });
+        //     setLogoutTime(time);
+        //     localStorage.setItem("logoutTime", time);
+        // }
         const timeHolderValue = Date.now() > endTime ? Date.now() - endTime : endTime - Date.now();
 
         const updatedState = (prev) => ({
@@ -149,10 +149,11 @@ const ClockIns = ({ updateClockins, handleLogout }) => {
                 takenTime: ranTime,
             },
         });
-        
-        // console.log(updatedState);
+        console.log(updatedState(workTimeTracker));
         // Call the API with the updated state
         await updateDataAPI(updatedState(workTimeTracker));
+        localStorage.setItem('isPaused', true);
+        setIsPaused(true);
         await countdownApi.current.pause();
         updateClockins();
     };
@@ -186,22 +187,9 @@ const ClockIns = ({ updateClockins, handleLogout }) => {
                 if (empId) {
                     const { timeData } = await getDataAPI(empId);
                     if (timeData?.clockIns[0]?._id) {
-                        if (!clockinsId) {
-                            localStorage.setItem("clockinsId", timeData.clockIns[0]._id);
-                            setWorkTimeTracker(timeData.clockIns[0])
-                            console.log(timeData.clockIns[0]);
-
-                        } else {
-                            setWorkTimeTracker(timeData.clockIns[0])
-                            console.log(timeData.clockIns[0]);
-                        }
-                        if (currentDate.toISOString().split("T")[0] === timeData.clockIns[0].date.split("T")[0]) {
-                            setWorkTimeTracker(timeData.clockIns[0]);
-                        } else {
-                            if (currentDate.toISOString().split("T")[0] !== timeData.clockIns[0].date.split("T")[0]) {
-                                handleLogout();
-                            }
-                        }
+                        localStorage.setItem("clockinsId", timeData.clockIns[0]._id);
+                        setWorkTimeTracker(timeData.clockIns[0])
+                        console.log(timeData.clockIns[0]);
                     } else {
                         setWorkTimeTracker({ ...workTimeTracker });
                     }
@@ -218,7 +206,7 @@ const ClockIns = ({ updateClockins, handleLogout }) => {
     useEffect(() => {
         if (isPaused) {
             if (timeOption === "login") {
-                if (workTimeTracker[timeOption] && workTimeTracker[timeOption].timeHolder !== 0) {
+                if (workTimeTracker[timeOption]?.timeHolder !== 0) {
                     setEndTime(Date.now() + workTimeTracker[timeOption].timeHolder)
                 } else {
                     if (!endTime || localStorage.getItem("timeOption") !== timeOption) {
@@ -227,7 +215,7 @@ const ClockIns = ({ updateClockins, handleLogout }) => {
                 }
 
             } else if (timeOption === "meeting") {
-                if (workTimeTracker[timeOption] && workTimeTracker[timeOption] && workTimeTracker[timeOption].timeHolder !== 0) {
+                if (workTimeTracker[timeOption]?.timeHolder !== 0) {
                     setEndTime(Date.now() + workTimeTracker[timeOption].timeHolder)
                 } else {
                     if (!endTime || localStorage.getItem("timeOption") !== timeOption) {
@@ -235,7 +223,7 @@ const ClockIns = ({ updateClockins, handleLogout }) => {
                     }
                 }
             } else if (timeOption === "morningBreak") {
-                if (workTimeTracker[timeOption] && workTimeTracker[timeOption] && workTimeTracker[timeOption].timeHolder !== 0) {
+                if (workTimeTracker[timeOption]?.timeHolder !== 0) {
                     setEndTime(Date.now() + workTimeTracker[timeOption].timeHolder)
                 } else {
                     if (!endTime || localStorage.getItem("timeOption") !== timeOption) {
@@ -243,7 +231,7 @@ const ClockIns = ({ updateClockins, handleLogout }) => {
                     }
                 }
             } else if (timeOption === "lunch") {
-                if (workTimeTracker[timeOption] && workTimeTracker[timeOption].timeHolder !== 0) {
+                if (workTimeTracker[timeOption]?.timeHolder !== 0) {
                     setEndTime(Date.now() + workTimeTracker[timeOption].timeHolder)
                 } else {
                     if (!endTime || localStorage.getItem("timeOption") !== timeOption) {
@@ -251,7 +239,7 @@ const ClockIns = ({ updateClockins, handleLogout }) => {
                     }
                 }
             } else if (timeOption === "eveningBreak") {
-                if (workTimeTracker[timeOption] && workTimeTracker[timeOption].timeHolder !== 0) {
+                if (workTimeTracker[timeOption]?.timeHolder !== 0) {
                     setEndTime(Date.now() + workTimeTracker[timeOption].timeHolder)
                 } else {
                     if (!endTime || localStorage.getItem("timeOption") !== timeOption) {
@@ -259,7 +247,7 @@ const ClockIns = ({ updateClockins, handleLogout }) => {
                     }
                 }
             } else if (timeOption === "event") {
-                if (workTimeTracker[timeOption] && workTimeTracker[timeOption].timeHolder !== 0) {
+                if (workTimeTracker[timeOption]?.timeHolder !== 0) {
                     setEndTime(Date.now() + workTimeTracker[timeOption].timeHolder)
                 } else {
                     if (!endTime || localStorage.getItem("timeOption") !== timeOption) {
@@ -269,6 +257,8 @@ const ClockIns = ({ updateClockins, handleLogout }) => {
             }
         }
     }, [timeOption, workTimeTracker]);
+    console.log(workTimeTracker);
+    // console.log(timeOption);
 
     return (
         <>
@@ -287,7 +277,7 @@ const ClockIns = ({ updateClockins, handleLogout }) => {
                     <div><h6>Good to see you, {EmpName[0].toUpperCase() + EmpName.slice(1)}👋</h6></div>
                     {
                         // clockinsId && timeOption === "login" &&
-                        <div className='sub_text'>{workTimeTracker?.punchInMsg ? workTimeTracker.punchInMsg : "Waiting for Login" }</div>
+                        <div className='sub_text'>{workTimeTracker?.punchInMsg ? workTimeTracker.punchInMsg : "Waiting for Login"}</div>
                     }
                 </div>
                 <div className="timer col-lg-4 col-md-4 col-12 mx-auto mx-sm-0">
@@ -306,7 +296,7 @@ const ClockIns = ({ updateClockins, handleLogout }) => {
                                 <img src={PunchIn} alt="" />
                             </div>
                             <div className="">
-                                <div className='timerText'>{loginTime}</div>
+                                <div className='timerText'>{workTimeTracker[timeOption]?.startingTime ? workTimeTracker[timeOption].startingTime : "00:00"}</div>
                                 <div className='sub_text'>Punch In</div>
                             </div>
                         </div>
@@ -316,7 +306,7 @@ const ClockIns = ({ updateClockins, handleLogout }) => {
                             </button>
 
                             <div className="">
-                                <p className='timerText'>{logoutTime}</p>
+                                <p className='timerText'>{workTimeTracker[timeOption]?.endingTime ? workTimeTracker[timeOption].endingTime : "00:00"}</p>
                                 <p className='sub_text'>Punch Out</p>
                             </div>
                         </div>

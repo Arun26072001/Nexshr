@@ -10,12 +10,13 @@ import NoDataFound from './NoDataFound';
 import Home from '../Home';
 
 const Dashboard = () => {
+    // const clockinsId = localStorage.getItem("clockinsId");
+    // const token = localStorage.getItem("token");
+    const account = localStorage.getItem("Account");
     const { handleLogout } = useContext(EssentialValues);
     const empId = localStorage.getItem("_id");
-    const token = localStorage.getItem("token");
     const [leaveData, setLeaveData] = useState({});
     const [checkClockins, setCheckClockins] = useState(false);
-    // const clockinsId = localStorage.getItem("clockinsId");
     const [isLoading, setIsLoading] = useState(false);
     const [dailyLogindata, setDailyLoginData] = useState({})
     const [monthlyLoginData, setMonthlyLoginData] = useState({});
@@ -182,7 +183,10 @@ const Dashboard = () => {
                                 </div>
                             </div>
                             <>
+                            {
+                                account === '1' || account === '3' &&
                                 <Home updateClockins={updateClockins} />
+                            }
                                 <NexHRDashboard updateClockins={updateClockins} />
                             </>
                         </>
