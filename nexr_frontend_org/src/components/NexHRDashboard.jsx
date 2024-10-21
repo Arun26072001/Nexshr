@@ -8,8 +8,6 @@ import "./NexHRDashboard.css";
 
 const NexHRDashboard = ({updateClockins}) => {
   const account = localStorage.getItem("Account");
-
-
   return (
     
       account === '2' &&

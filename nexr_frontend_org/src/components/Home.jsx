@@ -74,7 +74,11 @@ export default function Home({ updateClockins }) {
 
                 if (isPaused && empId) {
                     const { activitiesData } = await getDataAPI(empId);
-                    setTableData(activitiesData)
+                    if (activitiesData) {
+                        setTableData(activitiesData)
+                    } else {
+                        setTableData(tableData);
+                    }
                 }
             }
             catch (err) {
@@ -84,7 +88,6 @@ export default function Home({ updateClockins }) {
         };
         getClockInsData();
     }, [updateClockins]);
-
 
     return (
         <Box sx={{ width: '100%' }}>
