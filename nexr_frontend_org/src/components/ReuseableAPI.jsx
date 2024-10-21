@@ -42,8 +42,8 @@ const getDataAPI = async (id) => {
         data.timeData.clockIns[0].meeting.takenTime = 0; // Do this before setting the state to avoid mutation
         return data;
     } catch (error) {
-        console.error('Fetch error:', error?.response?.data);
-        return error;
+        console.log(error);
+        return error?.response?.data?.details;
     }
 };
 

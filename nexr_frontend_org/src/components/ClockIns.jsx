@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import Countdown, { zeroPad } from 'react-countdown';
-import { addDataAPI, getDataAPI, updateDataAPI, removeClockinsData } from "./ReuseableAPI";
+import { addDataAPI, getDataAPI, updateDataAPI } from "./ReuseableAPI";
 import { toast } from 'react-toastify';
 import "./ClockInsStyle.css";
 import CustomDropdown from './CustomDropDown';
@@ -10,7 +10,7 @@ import PunchOut from "../asserts/punchOut.svg";
 const ClockIns = ({ updateClockins, handleLogout }) => {
     // const clockinsId = localStorage.getItem('clockinsId');
     const empId = localStorage.getItem("_id");
-    const [timeOption, setTimeOption] = useState(localStorage.getItem("timeOption") || "login");
+    const [timeOption, setTimeOption] = useState(localStorage.getItem("timeOption") || "meeting");
     const EmpName = localStorage.getItem("Name")
     // const [loginTime, setLoginTime] = useState(localStorage.getItem("loginTime") || "00:00");
     // const [logoutTime, setLogoutTime] = useState(localStorage.getItem("logoutTime") || "00:00");
@@ -24,8 +24,8 @@ const ClockIns = ({ updateClockins, handleLogout }) => {
     const [ranTime, setRanTime] = useState(0);
     const countdownApi = useRef(null);
     const startAndEndTime = {
-        startingTime: '00:00',
-        endingTime: '00:00',
+        startingTime: "00:00",
+        endingTime: "00:00",
         takenTime: 0,
         timeHolder: 0,
     };
@@ -56,10 +56,11 @@ const ClockIns = ({ updateClockins, handleLogout }) => {
 
     const startCountdown = async () => {
         countdownApi.current.start();
-        // localStorage.setItem('countdownEndTime', endTime);
+        localStorage.setItem('countdownEndTime', endTime);
         localStorage.setItem("timeOption", timeOption);
         localStorage.setItem('isPaused', false);
         setIsPaused(false);
+        toast.success("Timer has been started!");
     };
 
     // const stopCountdown = async () => {
@@ -74,26 +75,25 @@ const ClockIns = ({ updateClockins, handleLogout }) => {
     // };
 
     const startTimer = async () => {
-        // Update state
-        
+
         const updatedState = {
             ...workTimeTracker,
             [timeOption]: {
                 ...workTimeTracker[timeOption],
-                startingTime: workTimeTracker[timeOption].startingTime ? workTimeTracker[timeOption].startingTime : currentTime
+                startingTime: workTimeTracker[timeOption].startingTime !== "00:00" ? workTimeTracker[timeOption].startingTime : currentTime
             },
         };
-        console.log(updatedState);
 
         // Check if clockinsId is present
-        if (!workTimeTracker?._id && isPaused) {
+        if (!workTimeTracker?._id) {
             try {
+                console.log("call to create");
+
                 const clockinsData = await addDataAPI(updatedState);  // Assuming updateState is some required data for addDataAPI
                 setWorkTimeTracker(clockinsData)
                 // localStorage.setItem("punchInMsg", msgData);
                 // setPunchInMsg(msgData);
                 updateClockins();
-                toast.success("Timer has been started!")
             } catch (error) {
                 console.error('Error in starting timer:', error);
             }
@@ -149,23 +149,25 @@ const ClockIns = ({ updateClockins, handleLogout }) => {
                 takenTime: ranTime,
             },
         });
-        console.log(updatedState(workTimeTracker));
-        // Call the API with the updated state
-        await updateDataAPI(updatedState(workTimeTracker));
-        localStorage.setItem('isPaused', true);
-        setIsPaused(true);
-        await countdownApi.current.pause();
-        updateClockins();
+
+        if (workTimeTracker?._id) {
+            // Call the API with the updated state
+            await updateDataAPI(updatedState(workTimeTracker));
+            localStorage.setItem('isPaused', true);
+            setIsPaused(true);
+            await countdownApi.current.pause();
+            toast.success(`${timeOption} Timer has been stopped!`)
+            updateClockins();
+        } else {
+            localStorage.setItem('isPaused', true);
+            setIsPaused(true);
+            await countdownApi.current.pause();
+            return toast.error("You did't punch-in")
+        }
     };
 
     const updateWorkTracker = async (value) => {
         setTimeOption(value);
-        // if (empId) {
-        //     const timeData = await getDataAPI(empId);
-        //     console.log(timeData);
-        //     setWorkTimeTracker(timeData.clockIns[0]);
-        // }
-        // resetTimer()
     };
 
     const renderer = ({ hours, minutes, seconds, completed }) => {
@@ -189,7 +191,7 @@ const ClockIns = ({ updateClockins, handleLogout }) => {
                     if (timeData?.clockIns[0]?._id) {
                         localStorage.setItem("clockinsId", timeData.clockIns[0]._id);
                         setWorkTimeTracker(timeData.clockIns[0])
-                        console.log(timeData.clockIns[0]);
+                        // console.log(timeData.clockIns[0]);
                     } else {
                         setWorkTimeTracker({ ...workTimeTracker });
                     }
@@ -199,22 +201,22 @@ const ClockIns = ({ updateClockins, handleLogout }) => {
             }
         }
         getClockInsData()
-
     }, []);
 
     // when state or timeOption is change time will update.
     useEffect(() => {
         if (isPaused) {
-            if (timeOption === "login") {
-                if (workTimeTracker[timeOption]?.timeHolder !== 0) {
-                    setEndTime(Date.now() + workTimeTracker[timeOption].timeHolder)
-                } else {
-                    if (!endTime || localStorage.getItem("timeOption") !== timeOption) {
-                        setEndTime(Date.now() + 1000 * 60 * 60 * 8)
-                    }
-                }
+            // if (timeOption === "login") {
+            //     if (workTimeTracker[timeOption]?.timeHolder !== 0) {
+            //         setEndTime(Date.now() + workTimeTracker[timeOption].timeHolder)
+            //     } else {
+            //         if (!endTime || localStorage.getItem("timeOption") !== timeOption) {
+            //             setEndTime(Date.now() + 1000 * 60 * 60 * 8)
+            //         }
+            //     }
 
-            } else if (timeOption === "meeting") {
+            // }
+              if (timeOption === "meeting") {
                 if (workTimeTracker[timeOption]?.timeHolder !== 0) {
                     setEndTime(Date.now() + workTimeTracker[timeOption].timeHolder)
                 } else {
@@ -257,8 +259,6 @@ const ClockIns = ({ updateClockins, handleLogout }) => {
             }
         }
     }, [timeOption, workTimeTracker]);
-    console.log(workTimeTracker);
-    // console.log(timeOption);
 
     return (
         <>
@@ -290,13 +290,15 @@ const ClockIns = ({ updateClockins, handleLogout }) => {
                     />
                 </div>
                 <div className='leaveIndicator col-sm-12 col-md-4 col-lg-4 mx-auto mx-sm-0'>
-                    <div className='d-flex'>
-                        <div className="punchBtnParent">
+                    <div className='d-flex gap-1'>
+                        <button class="btn btn-outline-success" style={{padding: "10px 15px"}}  onClick={startTimer} id="startTimerBtn">Start</button>
+                        <button class="btn btn-outline-danger" onClick={stopTimer} id="stopTimerBtn" style={{padding: "10px 15px"}}>Stop</button>
+                        {/* <div className="punchBtnParent">
                             <div className='punchBtn' onClick={startTimer} style={{ backgroundColor: "#CEE5D3" }}>
                                 <img src={PunchIn} alt="" />
                             </div>
                             <div className="">
-                                <div className='timerText'>{workTimeTracker[timeOption]?.startingTime ? workTimeTracker[timeOption].startingTime : "00:00"}</div>
+                                <div className='timerText'>{workTimeTracker[timeOption]?.startingTime !== "00:00" ? workTimeTracker[timeOption].startingTime : "00:00"}</div>
                                 <div className='sub_text'>Punch In</div>
                             </div>
                         </div>
@@ -306,10 +308,10 @@ const ClockIns = ({ updateClockins, handleLogout }) => {
                             </button>
 
                             <div className="">
-                                <p className='timerText'>{workTimeTracker[timeOption]?.endingTime ? workTimeTracker[timeOption].endingTime : "00:00"}</p>
+                                <p className='timerText'>{workTimeTracker[timeOption]?.endingTime !== "00:00" ? workTimeTracker[timeOption].endingTime : "00:00"}</p>
                                 <p className='sub_text'>Punch Out</p>
                             </div>
-                        </div>
+                        </div> */}
                     </div>
 
                 </div>

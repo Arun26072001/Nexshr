@@ -313,8 +313,9 @@ input::-webkit-inner-spin-button {
 
 .timer {
   border-radius: 5px;
-  width: 110px;
-  height: 50px;
+  padding: 10px 8px;
+  width: fit-content;
+  height: fit-content;
   background: white;
   box-shadow: rgba(0, 0, 0, 0.16) 0px 1px 4px;
   display: flex;

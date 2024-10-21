@@ -183,10 +183,10 @@ const Dashboard = () => {
                                 </div>
                             </div>
                             <>
-                            {
-                                account === '1' || account === '3' &&
-                                <Home updateClockins={updateClockins} />
-                            }
+                                {
+                                    account === '1' || account === '3' ?
+                                    <Home updateClockins={updateClockins} /> : null
+                                }
                                 <NexHRDashboard updateClockins={updateClockins} />
                             </>
                         </>

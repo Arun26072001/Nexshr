@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import LoginRoundedIcon from '@mui/icons-material/LoginRounded';
 import GroupsRoundedIcon from '@mui/icons-material/GroupsRounded';
 import FreeBreakfastRoundedIcon from '@mui/icons-material/FreeBreakfastRounded';
 import RestaurantIcon from '@mui/icons-material/Restaurant';
@@ -12,13 +11,15 @@ const CustomDropdown = ({ isPaused, timeOption, updateWorkTracker }) => {
   const [selectedOption, setSelectedOption] = useState(timeOption);
 
   const options = [
-    { value: 'login', label: 'Login', icon: <LoginRoundedIcon  /> },
-    { value: 'meeting', label: 'Meeting', icon: <GroupsRoundedIcon  /> },
-    { value: 'morningBreak', label: 'Morning Break', icon: <FreeBreakfastRoundedIcon  /> },
-    { value: 'lunch', label: 'Lunch', icon: <RestaurantIcon  /> },
-    { value: 'eveningBreak', label: 'Evening Break', icon: <FreeBreakfastRoundedIcon  /> },
-    { value: 'event', label: 'Event', icon: <FestivalRoundedIcon  /> },
+    { value: 'meeting', label: 'Meeting', icon: <GroupsRoundedIcon /> },
+    { value: 'morningBreak', label: 'Morning Break', icon: <FreeBreakfastRoundedIcon /> },
+    { value: 'lunch', label: 'Lunch', icon: <RestaurantIcon /> },
+    { value: 'eveningBreak', label: 'Evening Break', icon: <FreeBreakfastRoundedIcon /> },
+    { value: 'event', label: 'Event', icon: <FestivalRoundedIcon /> },
   ];
+  console.log(options);
+  console.log(selectedOption);
+  
 
   const handleOptionClick = (option) => {
     setSelectedOption(option.value);
@@ -30,8 +31,8 @@ const CustomDropdown = ({ isPaused, timeOption, updateWorkTracker }) => {
     <div className={`ms-auto col-lg-6 custom-dropdown ${!isPaused ? 'disabled' : ''}`}>
       <div className="dropdown-header" onClick={() => setIsOpen(!isOpen)}>
         <div className="dropdown-header-content">
-          {options.find(opt => opt.value === selectedOption).icon}
-          <span>{options.find(opt => opt.value === selectedOption).label || 'Select an option'}</span>
+          {options?.find(opt => opt?.value === selectedOption).icon}
+          <span>{options?.find(opt => opt?.value === selectedOption).label || 'Select an option'}</span>
         </div>
         <KeyboardArrowDownRoundedIcon className="dropdown-arrow" fontSize='large' /> 
       </div>

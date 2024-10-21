@@ -164,7 +164,6 @@ router.get("/:id", verifyAdminHREmployee, async (req, res) => {
                 },
                 populate: { path: "employee", select: "_id FirstName LastName" }
             });
-console.log(timeData);
 
         // const timeData = await ClockIns.findById(req.params.id).populate({path: "employee", select: "_id FirstName LastName"});
         if (timeData.clockIns.length === 0) {
@@ -177,7 +176,7 @@ console.log(timeData);
                 const endingTime = timeData.clockIns[0][activity]?.endingTime || "00:00";
                 // const timeCalMins = convertToMinutes(startingTime, endingTime);
                 const timeCalMins = Math.ceil((timeData.clockIns[0][activity]?.takenTime / 1000) / 60);
-                
+
                 return {
                     activity,
                     startingTime,

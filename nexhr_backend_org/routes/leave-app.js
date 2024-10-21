@@ -17,7 +17,7 @@ function getDayDifference(leave) {
   return timeDifference / (1000 * 60 * 60 * 24);
 }
 
-leaveApp.get("/emp/:empId", verifyHREmployee, async (req, res) => {
+leaveApp.get("/emp/:empId", verifyAdminHREmployee, async (req, res) => {
   try { //verifyHREmployee this API is use for emp and Hr to fetch their leave reqs
     let requests = await Employee.findById(req.params.empId, "_id FirstName LastName Email phone typesOfLeaveCount typesOfLeaveRemainingDays")
       .populate({
