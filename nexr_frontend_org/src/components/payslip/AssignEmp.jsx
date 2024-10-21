@@ -21,6 +21,7 @@ const AssignEmp = ({ handleSubmit, teamObj, updateTeamObj, toggleAssignEmp, team
             [key]: !prevState[key],
         }));
     };
+console.log(teamObj);
 
     const onChangeEmp = (value) => {
         setNameSearch(value);
@@ -66,10 +67,10 @@ const AssignEmp = ({ handleSubmit, teamObj, updateTeamObj, toggleAssignEmp, team
     }, [url, token]); // Add url and token as dependencies
 
     return (
-        <Modal open={true} onClose={toggleAssignEmp} size="lg" backdrop="static">
+        <Modal open={true} onClose={toggleAssignEmp} size="sm" backdrop="static">
             <Modal.Header>
                 <Modal.Title>
-                    Assign employees to "{teamObj.teamName}"
+                    Assign employees to {teamObj.teamName}
                 </Modal.Title>
             </Modal.Header>
             <Modal.Body>
@@ -82,6 +83,7 @@ const AssignEmp = ({ handleSubmit, teamObj, updateTeamObj, toggleAssignEmp, team
                     </div>
                     <div className="col-lg-4">
                         <Input
+                            className="m-0"
                             placeholder="Search"
                             value={nameSearch}
                             onChange={onChangeEmp}

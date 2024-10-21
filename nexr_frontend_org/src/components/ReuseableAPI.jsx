@@ -5,11 +5,9 @@ const empId = localStorage.getItem('_id');
 const token = localStorage.getItem('token');
 
 const updateDataAPI = async (body) => {
-    const clockinsId = localStorage.getItem('clockinsId') || "";
-
     try {
-        if (clockinsId) {
-            const response = await axios.put(`${url}/api/clock-ins/${clockinsId}`, body, {
+        if (body._id) {
+            const response = await axios.put(`${url}/api/clock-ins/${body._id}`, body, {
                 headers: { authorization: token || '' },
             });
             console.log('Updated successfully:', response.data);
@@ -36,14 +34,16 @@ async function getTotalWorkingHourPerDay(start, end) {
 const getDataAPI = async (id) => {
     try {
         const response = await axios.get(`${url}/api/clock-ins/${id}`, {
+            params: { date: new Date() },
             headers: { authorization: token || '' },
         });
 
         const data = response.data;
-        data.timeData.meeting.takenTime = 0; // Do this before setting the state to avoid mutation
+        data.timeData.clockIns[0].meeting.takenTime = 0; // Do this before setting the state to avoid mutation
         return data;
     } catch (error) {
-        console.error('Fetch error:', error);
+        console.error('Fetch error:', error?.response?.data);
+        return error;
     }
 };
 
@@ -52,9 +52,9 @@ const addDataAPI = async (body) => {
         const response = await axios.post(`${url}/api/clock-ins/${empId}`, body, {
             headers: { authorization: token || '' },
         });
-        localStorage.setItem('clockinsId', response.data._id);
+        // localStorage.setItem('clockinsId', response.data._id);
         console.log('Added successfully:', response.data);
-        return response?.data?.punchInMsg;
+        return response?.data;
     } catch (error) {
         toast.error(`Data not added: ${error.message}`);
     }

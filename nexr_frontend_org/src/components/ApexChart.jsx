@@ -2,14 +2,16 @@ import React, { useState } from 'react';
 import ReactApexChart from 'react-apexcharts';
 
 const ApexChart = ({ activitiesData }) => {
+  console.log(activitiesData);
+  
   const chartData = {
-    series: activitiesData.map((data) => data.timeCalMins),
+    series: activitiesData?.map((data) => data?.timeCalMins),
     options: {
       chart: {
         width: 350,
         type: 'pie',
       },
-      labels: activitiesData.map((data) => data.activity).map(label => `${label} (min)`),
+      labels: activitiesData?.map((data) => data?.activity).map(label => `${label} (min)`),
       tooltip: {
         y: {
           formatter: function (val) {

@@ -46,7 +46,7 @@ export default function Home({ updateClockins }) {
     const [loading, setLoading] = useState(true); // Track loading state
     const [error, setError] = useState(null); // Track errors
     const isPaused = localStorage.getItem("isPaused") || "";
-    const clockinsId = localStorage.getItem('clockinsId') || "";
+    const empId = localStorage.getItem('_id');
 
     const staticData = {
         startingTime: "00:00",
@@ -69,10 +69,16 @@ export default function Home({ updateClockins }) {
 
     useEffect(() => {
         const getClockInsData = async () => {
+
             try {
-                if (isPaused && clockinsId) {
-                    const { activitiesData } = await getDataAPI(clockinsId);
-                    setTableData(activitiesData)
+
+                if (isPaused && empId) {
+                    const { activitiesData } = await getDataAPI(empId);
+                    if (activitiesData) {
+                        setTableData(activitiesData)
+                    } else {
+                        setTableData(tableData);
+                    }
                 }
             }
             catch (err) {
@@ -83,9 +89,8 @@ export default function Home({ updateClockins }) {
         getClockInsData();
     }, [updateClockins]);
 
-
     return (
-        <Box sx={{ width: '100%'}}>
+        <Box sx={{ width: '100%' }}>
             <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
                 <Tabs value={value} onChange={handleChange} aria-label="basic tabs example">
                     <Tab label="My Summary" {...a11yProps(0)} />
@@ -108,7 +113,7 @@ export default function Home({ updateClockins }) {
                             </thead>
                             <tbody>
                                 {
-                                    tableData.map((data, index) => (
+                                    tableData?.map((data, index) => (
                                         <tr key={index}>
                                             <td>
                                                 {data.activity}
