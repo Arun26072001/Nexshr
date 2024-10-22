@@ -65,6 +65,9 @@ function removeClockinsData() {
     localStorage.removeItem('timeOption');
     localStorage.removeItem('isPaused');
     localStorage.removeItem('clockinsId');
+    localStorage.removeItem('hour');
+    localStorage.removeItem('min');
+    localStorage.removeItem('sec');
 }
 
 const fetchEmpLeaveRequests = async () => {

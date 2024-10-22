@@ -110,6 +110,11 @@
   text-align: left;
 }
 
+.timerTxt {
+  font-size: 17px;
+  font-weight: 700;
+}
+
 .punchBtn {
   width: 39px;
   height: 39px;

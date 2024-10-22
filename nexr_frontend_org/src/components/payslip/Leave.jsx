@@ -1,17 +1,18 @@
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import "./dashboard.css";
 import LeaveTable from "../LeaveTable";
-import { fetchEmpLeaveRequests, fetchLeaveRequests } from "../ReuseableAPI";
 import { DateRangePicker } from "rsuite";
 import 'rsuite/dist/rsuite.min.css';
 import axios from "axios";
 import { toast } from "react-toastify";
 import Loading from "../Loader";
 import NoDataFound from "./NoDataFound";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
+import { TimerStates } from "./HRMDashboard";
 
-const Leave = ({whoIs}) => {
+const Leave = () => {
     const navigate = useNavigate();
+    const {whoIs} = useContext(TimerStates);
     const empId = localStorage.getItem("_id");
     const [leaveRequests, setLeaveRequests] = useState({});
     const [fullLeaveRequests, setFullLeaveRequests] = useState([]);

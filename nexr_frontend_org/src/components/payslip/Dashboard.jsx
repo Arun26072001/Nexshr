@@ -8,24 +8,22 @@ import { EssentialValues } from '../../App';
 import { toast } from 'react-toastify';
 import NoDataFound from './NoDataFound';
 import Home from '../Home';
+import { TimerStates } from './HRMDashboard';
 
 const Dashboard = () => {
     // const clockinsId = localStorage.getItem("clockinsId");
     // const token = localStorage.getItem("token");
+    const {updateClockins} = useContext(TimerStates)
     const account = localStorage.getItem("Account");
     const { handleLogout } = useContext(EssentialValues);
     const empId = localStorage.getItem("_id");
     const [leaveData, setLeaveData] = useState({});
-    const [checkClockins, setCheckClockins] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [dailyLogindata, setDailyLoginData] = useState({})
     const [monthlyLoginData, setMonthlyLoginData] = useState({});
     const [workedTime, setWorkedTime] = useState("00:00");
     const [balanceTime, setBalanceTime] = useState("00:00");
 
-    function updateClockins() {
-        setCheckClockins(!checkClockins);
-    }
     const gettingEmpdata = async () => {
         try {
             if (empId) {
@@ -69,7 +67,6 @@ const Dashboard = () => {
             setLeaveData({});
         }
     }
-
 
     useEffect(() => {
         gettingEmpdata();
@@ -185,7 +182,7 @@ const Dashboard = () => {
                             <>
                                 {
                                     account === '1' || account === '3' ?
-                                    <Home updateClockins={updateClockins} /> : null
+                                        <Home updateClockins={updateClockins} /> : null
                                 }
                                 <NexHRDashboard updateClockins={updateClockins} />
                             </>

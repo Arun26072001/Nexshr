@@ -21,7 +21,6 @@ const AssignEmp = ({ handleSubmit, teamObj, updateTeamObj, toggleAssignEmp, team
             [key]: !prevState[key],
         }));
     };
-console.log(teamObj);
 
     const onChangeEmp = (value) => {
         setNameSearch(value);

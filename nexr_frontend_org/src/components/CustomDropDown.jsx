@@ -17,9 +17,6 @@ const CustomDropdown = ({ isPaused, timeOption, updateWorkTracker }) => {
     { value: 'eveningBreak', label: 'Evening Break', icon: <FreeBreakfastRoundedIcon /> },
     { value: 'event', label: 'Event', icon: <FestivalRoundedIcon /> },
   ];
-  console.log(options);
-  console.log(selectedOption);
-  
 
   const handleOptionClick = (option) => {
     setSelectedOption(option.value);

@@ -1,21 +1,22 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useContext, useEffect, useRef, useState } from 'react';
 import './navbar.css';
 import Webnexs from "../../../imgs/webnexs_logo.png";
 // import Profile from "../../../imgs/male_avatar.png";
+// import MyStopwatch from './StopWatchTimer';
 import TableRowsRoundedIcon from '@mui/icons-material/TableRowsRounded';
 import ProfileImgUploader from '../../ImgUploader';
-// import MyStopwatch from './StopWatchTimer';
 import PunchIn from "../../../asserts/PunchIn.svg";
 import PunchOut from "../../../asserts/punchOut.svg";
-
+import { TimerStates } from '../HRMDashboard';
 
 export default function Navbar() {
+    const { workTimeTracker} = useContext(TimerStates);
     const [sec, setSec] = useState(() => parseInt(localStorage.getItem("sec")) || 0);
     const [min, setMin] = useState(() => parseInt(localStorage.getItem("min")) || 0);
     const [hour, setHour] = useState(() => parseInt(localStorage.getItem("hour")) || 0);
     const intervalRef = useRef(null);  // Use ref to store interval ID
     const [isTimerStarted, setIsTimerStarted] = useState(() => localStorage.getItem("isStarted") === 'true');
-
+    
     function setTime() {
         setSec((prevSec) => {
             if (prevSec >= 59) {
@@ -80,10 +81,10 @@ export default function Navbar() {
                 </div>
 
                 <div className='col-lg-4 d-flex align-items-center justify-content-center'>
-                    <div className='d-flex align-items-center gap-1' >
-                        <span className='timer'>{hour.toString().padStart(2, '0')}</span> :
-                        <span className='timer'>{min.toString().padStart(2, '0')}</span> :
-                        <span className='timer'>{sec.toString().padStart(2, '0')}</span>
+                    <div className='d-flex align-items-center gap-1 timerTxt' >
+                        <span>{hour.toString().padStart(2, '0')}</span> :
+                        <span>{min.toString().padStart(2, '0')}</span> :
+                        <span>{sec.toString().padStart(2, '0')}</span>
                     </div>
                 </div>
 
@@ -93,7 +94,7 @@ export default function Navbar() {
                             <img src={PunchIn} alt="" />
                         </button>
                         <div className="">
-                            <div className='timerText'>20:44</div>
+                            <div className='timerText'>{workTimeTracker?.login?.startingTime}</div>
                             <div className='sub_text'>Punch In</div>
                         </div>
                     </div>
@@ -103,7 +104,7 @@ export default function Navbar() {
                         </button>
 
                         <div className="">
-                            <p className='timerText'>00:00</p>
+                            <p className='timerText'>{workTimeTracker?.login?.endingTime}</p>
                             <p className='sub_text'>Punch Out</p>
                         </div>
                     </div>
