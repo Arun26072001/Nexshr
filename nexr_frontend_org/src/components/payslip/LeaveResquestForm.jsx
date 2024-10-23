@@ -30,7 +30,6 @@ const LeaveRequestForm = (props) => {
   }
 
   let leaveObjValidation = Yup.object().shape({
-
     leaveType: Yup.string().required("Leave type is required!"),
     fromDate: Yup.date()
       .min(new Date(), "You can select a date from tomorrow")
@@ -114,7 +113,7 @@ const LeaveRequestForm = (props) => {
       if (empId) {
         const leaveReqs = await fetchLeaveRequests(empId);
         console.log(leaveReqs);
-        
+
         // fetch leave types from db
         setTypOfLeave(leaveReqs?.requests?.typesOfLeaveCount)
         const emps = leaveReqs.collegues.filter((emp) => (emp._id !== empId))

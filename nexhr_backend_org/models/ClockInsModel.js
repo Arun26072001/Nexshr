@@ -21,9 +21,9 @@ const timeRangeSchema = new mongoose.Schema({
       message: props => `${props.value} is not a valid time!`
     }
   },
-  takenTime: {
-    type: Number
-  },
+  // takenTime: {
+  //   type: Number
+  // },
   timeHolder: {
     type: Number
   }
@@ -63,8 +63,8 @@ const ClockIns = mongoose.model('clockIns', clockInsSchema);
 const timeRangeValidation = Joi.object({
   startingTime: Joi.string(),
   endingTime: Joi.string(),
-  takenTime: Joi.number(),
-  timeHolder: Joi.number()
+  // takenTime: Joi.number(),
+  timeHolder: Joi.string()
 });
 
 const clockInsValidation = Joi.object({

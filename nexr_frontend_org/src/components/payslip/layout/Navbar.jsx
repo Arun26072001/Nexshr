@@ -10,53 +10,63 @@ import PunchOut from "../../../asserts/punchOut.svg";
 import { TimerStates } from '../HRMDashboard';
 
 export default function Navbar() {
-    const { workTimeTracker} = useContext(TimerStates);
-    const [sec, setSec] = useState(() => parseInt(localStorage.getItem("sec")) || 0);
-    const [min, setMin] = useState(() => parseInt(localStorage.getItem("min")) || 0);
-    const [hour, setHour] = useState(() => parseInt(localStorage.getItem("hour")) || 0);
-    const intervalRef = useRef(null);  // Use ref to store interval ID
+    const {startLoginTimer, stopLoginTimer, workTimeTracker } = useContext(TimerStates);
+    const [sec, setSec] = useState(() => parseInt(localStorage.getItem("loginTimer")?.split(':')[2]) || 0);
+    const [min, setMin] = useState(() => parseInt(localStorage.getItem("loginTimer")?.split(':')[1]) || 0);
+    const [hour, setHour] = useState(() => parseInt(localStorage.getItem("loginTimer")?.split(':')[0]) || 0);
+    const workRef = useRef(null);  // Use ref to store interval ID
     const [isTimerStarted, setIsTimerStarted] = useState(() => localStorage.getItem("isStarted") === 'true');
-    
+
     function setTime() {
         setSec((prevSec) => {
-            if (prevSec >= 59) {
+            let newSec = prevSec + 1;
+            let newMin = null;
+            let newHour = null;
+
+            if (newSec > 59) {
+                newSec = 0;  // Reset seconds to 0
                 setMin((prevMin) => {
-                    if (prevMin >= 59) {
+                    newMin = prevMin + 1;
+
+                    if (newMin > 59) {
+                        newMin = 0;  // Reset minutes to 0
                         setHour((prevHour) => {
-                            const newHour = prevHour + 1;
-                            localStorage.setItem("hour", newHour);  // Save hour to localStorage
+                            newHour = prevHour + 1;
+                            localStorage.setItem("loginTimer", `${newHour}:${newMin}:${newSec}`);
                             return newHour;
                         });
-                        localStorage.setItem("min", 0);  // Reset minutes to 0 in localStorage
-                        return 0;
+                    } else {
+                        localStorage.setItem("loginTimer", `${newHour !== null ? newHour : localStorage.getItem("hour")}:${newMin}:${newSec}`);
                     }
-                    const newMin = prevMin + 1;
-                    localStorage.setItem("min", newMin);  // Save minutes to localStorage
+
                     return newMin;
                 });
-                localStorage.setItem("sec", 0);  // Reset seconds to 0 in localStorage
-                return 0;
+            } else {
+                newHour = hour || 0;
+                newMin = min || 0;
+                localStorage.setItem("loginTimer", `${newHour}:${newMin}:${newSec}`);
             }
-            const newSec = prevSec + 1;
-            localStorage.setItem("sec", newSec);  // Save seconds to localStorage
+
             return newSec;
         });
     }
 
     function startTimer() {
-        if (!intervalRef.current) {
+        if (!workRef.current) {
             setIsTimerStarted(true); // Prevent multiple intervals
-            localStorage.setItem('isStarted', true);
-            intervalRef.current = setInterval(setTime, 1000);  // Start the timer
+            localStorage.setItem('isStartLogin', true);
+            workRef.current = setInterval(setTime, 1000);  // Start the timer
+            startLoginTimer();
         }
     }
 
     function stopTimer() {
-        if (intervalRef.current) {
+        if (workRef.current) {
             setIsTimerStarted(false); // Prevent multiple intervals
-            localStorage.setItem('isStarted', false);
-            clearInterval(intervalRef.current);  // Stop the timer
-            intervalRef.current = null;  // Reset the reference
+            localStorage.setItem('isStartLogin', false);
+            clearInterval(workRef.current);  // Stop the timer
+            workRef.current = null;  // Reset the reference
+            stopLoginTimer()
         }
     }
 

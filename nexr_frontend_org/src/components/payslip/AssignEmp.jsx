@@ -3,7 +3,8 @@ import { Modal, Button, Input, Message } from 'rsuite';
 import KeyboardArrowDownOutlinedIcon from '@mui/icons-material/KeyboardArrowDownOutlined';
 import axios from "axios";
 
-const AssignEmp = ({ handleSubmit, teamObj, updateTeamObj, toggleAssignEmp, teams }) => {
+const AssignEmp = ({ handleSubmit, teamObj, updateTeamObj, toggleAssignEmp, teams, setTeamLead }) => {
+    console.log(teamObj);
     const url = process.env.REACT_APP_API_URL;
     const token = localStorage.getItem("token");
     const [nameSearch, setNameSearch] = useState("");
@@ -13,6 +14,7 @@ const AssignEmp = ({ handleSubmit, teamObj, updateTeamObj, toggleAssignEmp, team
     const [selectBy, setSelectBy] = useState("teamName");
     const [filteredItems, setFilteredItems] = useState(teams || []);
     const [filteredEmps, setFilteredEmps] = useState([]);
+    const [teamLeads, setTeamLeads] = useState([]);
     const [employees, setEmployees] = useState([]);
 
     const handleRotate = (key) => {
@@ -58,12 +60,31 @@ const AssignEmp = ({ handleSubmit, teamObj, updateTeamObj, toggleAssignEmp, team
                 });
                 setEmployees(res.data);
                 setFilteredEmps(res.data);
+                console.log(res.data);
+
             } catch (err) {
                 console.log(err);
             }
         };
         fetchEmployees();
     }, [url, token]); // Add url and token as dependencies
+
+    useEffect(() => {
+        function filterLead() {
+            // Use a Map to filter unique team leads by their ID
+            const uniqueTeamLeads = teamObj?.employees
+                ?.filter((emp) => emp?.teamLead?._id) // Ensure teamLead exists
+                ?.reduce((acc, emp) => {
+                    acc.set(emp.teamLead._id, emp.teamLead); // Map by teamLead ID
+                    return acc;
+                }, new Map()); // Use a Map to keep unique teamLeads by _id
+            console.log(uniqueTeamLeads);
+            
+            setTeamLeads(Array.from(uniqueTeamLeads.values())); // Convert back to array of teamLead objects
+        }
+        
+        filterLead();
+    }, [updateTeamObj, teamObj]);
 
     return (
         <Modal open={true} onClose={toggleAssignEmp} size="sm" backdrop="static">
@@ -73,6 +94,7 @@ const AssignEmp = ({ handleSubmit, teamObj, updateTeamObj, toggleAssignEmp, team
                 </Modal.Title>
             </Modal.Header>
             <Modal.Body>
+
                 <div className="row mb-3">
                     <div className="col-lg-4">
                         <select className="form-control" onChange={(e) => setSelectBy(e.target.value)}>
@@ -87,6 +109,16 @@ const AssignEmp = ({ handleSubmit, teamObj, updateTeamObj, toggleAssignEmp, team
                             value={nameSearch}
                             onChange={onChangeEmp}
                         />
+                    </div>
+                    <div className="col-lg-8 my-2">
+                        <select className="form-control" name="lead" onChange={(e)=>setTeamLead(e)}>
+                            <option value="">Select a Team Lead for {teamObj.teamName}</option>
+                            {
+                                teamLeads.map((lead) => {
+                                    return <option value={lead._id}>{lead.FirstName + lead.LastName}</option>
+                                })
+                            }
+                        </select>
                     </div>
                 </div>
 
