@@ -13,7 +13,6 @@ const Parent = () => {
     const { handleLogout } = useContext(EssentialValues);
     const [isAction, setIsAction] = useState(false);
     const [sideBar, setSideBar] = useState(false);
-    const isPaused = localStorage.getItem("isPaused");
     const currentDate = new Date();
     const today = `${currentDate.getDate()}/${currentDate.getMonth() + 1}/${currentDate.getFullYear()}`;
 

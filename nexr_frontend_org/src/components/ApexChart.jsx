@@ -2,6 +2,7 @@ import React from 'react';
 import ReactApexChart from 'react-apexcharts';
 
 const ApexChart = ({ activitiesData }) => {
+  // if error in hidden or undefined, pls check series of value
   
   const chartData = {
     series: activitiesData?.map((data) => data?.timeCalMins),
@@ -41,7 +42,7 @@ const ApexChart = ({ activitiesData }) => {
   return (
     <div className='d-flex justify-content-center'>
       <div id="chart">
-        <ReactApexChart options={chartData.options} series={chartData.series} type='pie' width={350} />
+        <ReactApexChart options={chartData?.options} series={chartData?.series} type='pie' width={350} />
       </div>
       <div id="html-dist"></div>
     </div>

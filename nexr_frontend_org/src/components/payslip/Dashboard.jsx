@@ -29,6 +29,7 @@ const Dashboard = () => {
             if (empId) {
                 setIsLoading(true);
                 const data = await fetchEmployeeData(empId);
+                
                 if (data) {
                     const workingHour = await getTotalWorkingHourPerDay(data.workingTimePattern.StartingTime, data.workingTimePattern.FinishingTime);
 
@@ -71,7 +72,7 @@ const Dashboard = () => {
     useEffect(() => {
         gettingEmpdata();
     }, [empId]);
-
+    
     return (
         <div className='dashboard-parent'>
             <ClockIns leaveData={leaveData} handleLogout={handleLogout} updateClockins={updateClockins} />

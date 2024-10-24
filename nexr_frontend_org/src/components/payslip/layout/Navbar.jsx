@@ -10,73 +10,63 @@ import PunchOut from "../../../asserts/punchOut.svg";
 import { TimerStates } from '../HRMDashboard';
 
 export default function Navbar() {
-    const {startLoginTimer, stopLoginTimer, workTimeTracker } = useContext(TimerStates);
+    const { startLoginTimer, stopLoginTimer, workTimeTracker, isStartLogin } = useContext(TimerStates);
     const [sec, setSec] = useState(() => parseInt(localStorage.getItem("loginTimer")?.split(':')[2]) || 0);
     const [min, setMin] = useState(() => parseInt(localStorage.getItem("loginTimer")?.split(':')[1]) || 0);
     const [hour, setHour] = useState(() => parseInt(localStorage.getItem("loginTimer")?.split(':')[0]) || 0);
     const workRef = useRef(null);  // Use ref to store interval ID
-    const [isTimerStarted, setIsTimerStarted] = useState(() => localStorage.getItem("isStarted") === 'true');
+
+    // Assuming sec, min, hour are your state variables
+    useEffect(() => {
+        // This effect runs every time sec, min, or hour changes
+        localStorage.setItem("loginTimer", `${hour}:${min}:${sec}`);
+    }, [sec, min, hour]);
 
     function setTime() {
         setSec((prevSec) => {
             let newSec = prevSec + 1;
-            let newMin = null;
-            let newHour = null;
 
             if (newSec > 59) {
                 newSec = 0;  // Reset seconds to 0
                 setMin((prevMin) => {
-                    newMin = prevMin + 1;
-
+                    let newMin = prevMin + 1;
                     if (newMin > 59) {
                         newMin = 0;  // Reset minutes to 0
-                        setHour((prevHour) => {
-                            newHour = prevHour + 1;
-                            localStorage.setItem("loginTimer", `${newHour}:${newMin}:${newSec}`);
-                            return newHour;
-                        });
-                    } else {
-                        localStorage.setItem("loginTimer", `${newHour !== null ? newHour : localStorage.getItem("hour")}:${newMin}:${newSec}`);
+                        setHour((prevHour) => prevHour + 1);
                     }
-
                     return newMin;
                 });
-            } else {
-                newHour = hour || 0;
-                newMin = min || 0;
-                localStorage.setItem("loginTimer", `${newHour}:${newMin}:${newSec}`);
             }
-
             return newSec;
         });
     }
 
-    function startTimer() {
+    async function startTimer() {
         if (!workRef.current) {
-            setIsTimerStarted(true); // Prevent multiple intervals
-            localStorage.setItem('isStartLogin', true);
-            workRef.current = setInterval(setTime, 1000);  // Start the timer
-            startLoginTimer();
+            await startLoginTimer();
+            if (isStartLogin) {
+                workRef.current = setInterval(setTime, 1000);  // Start the timer
+            }
         }
     }
 
-    function stopTimer() {
+    async function stopTimer() {
         if (workRef.current) {
-            setIsTimerStarted(false); // Prevent multiple intervals
-            localStorage.setItem('isStartLogin', false);
-            clearInterval(workRef.current);  // Stop the timer
-            workRef.current = null;  // Reset the reference
-            stopLoginTimer()
+            await stopLoginTimer();
+            if (!isStartLogin) {
+                clearInterval(workRef.current);  // Stop the timer
+                workRef.current = null;  // Reset the reference
+            }
         }
     }
 
     useEffect(() => {
-        if (isTimerStarted) {
+        if (isStartLogin) {
             startTimer();
         }
         // Cleanup interval when component unmounts
         return () => stopTimer();
-    }, [isTimerStarted]);  // Ensure the effect re-runs if isTimerStarted changes
+    }, [isStartLogin]);  // Ensure the effect re-runs if isTimerStarted changes
 
     return (
         <div className="webnxs">
@@ -100,7 +90,7 @@ export default function Navbar() {
 
                 <div className="col-lg-4 col-md-6 col-4 d-flex align-items-center justify-content-between">
                     <div className="punchBtnParent">
-                        <button className='punchBtn' disabled={isTimerStarted} onClick={startTimer} style={{ backgroundColor: "#CEE5D3" }}>
+                        <button className='punchBtn' disabled={isStartLogin} onClick={startTimer} style={{ backgroundColor: "#CEE5D3" }}>
                             <img src={PunchIn} alt="" />
                         </button>
                         <div className="">
@@ -109,7 +99,7 @@ export default function Navbar() {
                         </div>
                     </div>
                     <div className="punchBtnParent">
-                        <button className='punchBtn' onClick={stopTimer} disabled={!isTimerStarted} style={{ backgroundColor: "#FFD6DB" }}>
+                        <button className='punchBtn' onClick={stopTimer} disabled={!isStartLogin} style={{ backgroundColor: "#FFD6DB" }}>
                             <img src={PunchOut} alt="" />
                         </button>
 

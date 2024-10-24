@@ -25,7 +25,7 @@ const timeRangeSchema = new mongoose.Schema({
   //   type: Number
   // },
   timeHolder: {
-    type: Number
+    type: String
   }
 }, { _id: false });
 

@@ -32,11 +32,13 @@ async function checkLoginForOfficeTime(scheduledTime, actualTime) {
 
 // Function to calculate working hours between start and end times
 function getTotalWorkingHourPerDay(startingTime, endingTime) {
-    if (startingTime && endingTime !== "00:00") {
+    if (startingTime !== "00:00" && endingTime !== "00:00") {
+        console.log(startingTime, endingTime);
+
         // Convert time strings to Date objects (using today's date)
         const today = new Date();
-        const start = new Date(today.getFullYear(), today.getMonth(), today.getDate(), ...startingTime.split(':').map(Number));
-        const end = new Date(today.getFullYear(), today.getMonth(), today.getDate(), ...endingTime.split(':').map(Number));
+        const start = new Date(today.getFullYear(), today.getMonth(), today.getDate(), ...startingTime?.split(':').map(Number));
+        const end = new Date(today.getFullYear(), today.getMonth(), today.getDate(), ...endingTime?.split(':').map(Number));
 
         // Calculate the difference in milliseconds
         const startTime = start.getTime();
@@ -56,7 +58,6 @@ function getTotalWorkingHourPerDay(startingTime, endingTime) {
         return 0;
     }
 }
-
 
 router.post("/:id", verifyAdminHREmployee, async (req, res) => {
     let regular = 0;
@@ -129,22 +130,30 @@ router.post("/:id", verifyAdminHREmployee, async (req, res) => {
 
 router.get("/:id", verifyAdminHREmployee, async (req, res) => {
 
-    const convertToMinutes = (start, end) => {
-        if (start !== "00:00" && end !== "00:00") {
-            const [endHour, endMin] = end.split(":").map(Number);
-            const [startHour, startMin] = start.split(":").map(Number);
+    // const convertToMinutes = (start, end) => {
+    //     if (start !== "00:00" && end !== "00:00") {
+    //         const [endHour, endMin] = end.split(":").map(Number);
+    //         const [startHour, startMin] = start.split(":").map(Number);
 
-            const startTime = new Date(2000, 0, 1, startHour, startMin);
-            const endTime = new Date(2000, 0, 1, endHour, endMin);
+    //         const startTime = new Date(2000, 0, 1, startHour, startMin);
+    //         const endTime = new Date(2000, 0, 1, endHour, endMin);
 
-            const diffMs = endTime - startTime; // Difference in milliseconds
-            const diffMinutes = Math.floor(diffMs / (1000 * 60)); // Convert to minutes
+    //         const diffMs = endTime - startTime; // Difference in milliseconds
+    //         const diffMinutes = Math.floor(diffMs / (1000 * 60)); // Convert to minutes
 
-            return diffMinutes > 0 ? diffMinutes : 0; // Ensure non-negative value
-        } else {
-            return 0;
-        }
-    };
+    //         return diffMinutes > 0 ? diffMinutes : 0; // Ensure non-negative value
+    //     } else {
+    //         return 0;
+    //     }
+    // };
+
+    function timeToMinutes(timeStr) {
+        // Split the time string into hours, minutes, and seconds
+        const [hours, minutes, seconds] = timeStr.split(':').map(Number);
+        // Calculate total minutes
+        const totalMinutes = (hours * 60) + minutes;
+        return totalMinutes || 0;
+    }
 
     try {
         const queryDate = new Date(req.query.date); // Parse the query date
@@ -167,7 +176,7 @@ router.get("/:id", verifyAdminHREmployee, async (req, res) => {
 
         // const timeData = await ClockIns.findById(req.params.id).populate({path: "employee", select: "_id FirstName LastName"});
         if (timeData.clockIns.length === 0) {
-            return res.status(404).send({ message: "Please Login!"});
+            return res.status(404).send({ message: "Please Login!" });
         } else {
             const activities = ["login", "meeting", "morningBreak", "lunch", "eveningBreak", "event"];
 
@@ -175,7 +184,7 @@ router.get("/:id", verifyAdminHREmployee, async (req, res) => {
                 const startingTime = timeData.clockIns[0][activity]?.startingTime || "00:00";
                 const endingTime = timeData.clockIns[0][activity]?.endingTime || "00:00";
                 // const timeCalMins = convertToMinutes(startingTime, endingTime);
-                const timeCalMins = Math.ceil((timeData.clockIns[0][activity]?.takenTime / 1000) / 60);
+                const timeCalMins = timeToMinutes(timeData.clockIns[0][activity]?.timeHolder);
 
                 return {
                     activity,

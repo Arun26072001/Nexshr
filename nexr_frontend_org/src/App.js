@@ -12,6 +12,8 @@ import "react-toastify/dist/ReactToastify.css";
 export const EssentialValues = createContext(null);
 const App = () => {
   const account = localStorage.getItem("Account");
+  const isStartLogin = localStorage.getItem('isStartLogin') === "false" ? false : true
+  const isStartActivity = localStorage.getItem('isStartActivity') === "false" ? false : true
   const [data, setData] = useState({
     _id: localStorage.getItem("_id") || "",
     Account: localStorage.getItem("Account") || "",
@@ -33,7 +35,8 @@ const App = () => {
   const handleLogout = () => {
     if (localStorage.getItem('empId')) {
       toast.warn(`Please Enter full details for this employee`);
-    } else if (localStorage.getItem('isPaused') === "false") {
+      
+    } else if (isStartLogin || isStartActivity) {
       toast.warn("you can't logout until timer stop.")
     } else {
       localStorage.clear();

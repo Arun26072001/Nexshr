@@ -11,6 +11,7 @@ const updateDataAPI = async (body) => {
                 headers: { authorization: token || '' },
             });
             console.log('Updated successfully:', response.data);
+            return response.data;
         } else {
             toast.error("You did't Login properly!")
         }
@@ -39,7 +40,6 @@ const getDataAPI = async (id) => {
         });
 
         const data = response.data;
-        data.timeData.clockIns[0].meeting.takenTime = 0; // Do this before setting the state to avoid mutation
         return data;
     } catch (error) {
         return error?.response?.data?.message;
@@ -55,9 +55,7 @@ const addDataAPI = async (body) => {
         console.log('Added successfully:', response.data);
         return response?.data;
     } catch (error) {
-        console.log(error);
-        
-        toast.error(`Data not added: ${error?.response?.data?.error}`);
+        return error?.response?.data?.message;
     }
 };
 

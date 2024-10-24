@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState } from 'react'
+import React, { createContext, useCallback, useContext, useEffect, useState } from 'react'
 import Parent from '../Parent'
 import Dashboard from './Dashboard';
 import JobDesk from './Jobdesk';
@@ -46,16 +46,8 @@ export default function HRMDashboard() {
     const url = process.env.REACT_APP_API_URL;
     const [daterangeValue, setDaterangeValue] = useState("");
     const [timeOption, setTimeOption] = useState(localStorage.getItem("timeOption") || "meeting");
-    const [isPaused, setIsPaused] = useState(false);
-    const [isStartLogin, setIsStartLogin] = useState(localStorage.getItem("isStartLogin") === "false" ? false : true);
-    const [isStartActivity, setIsStartActivity] = useState(localStorage.getItem("isStartActivity") === "false" ? false : true);
-    const [sec, setSec] = useState(() => parseInt(localStorage.getItem("timer")?.split(":")[2]) || 0);
-    const [min, setMin] = useState(() => parseInt(localStorage.getItem("timer")?.split(":")[1]) || 0);
-    const [hour, setHour] = useState(() => parseInt(localStorage.getItem("timer")?.split(":")[0]) || 0);
-    // getting ran time from localStorage
-    const ranTime = localStorage.getItem("")
-    // const [ranTime, setRanTime] = useState(0);
-    // getting current time
+    const [isStartLogin, setIsStartLogin] = useState(localStorage.getItem("isStartLogin") === "false" ? false : true || false);
+    const [isStartActivity, setIsStartActivity] = useState(localStorage.getItem("isStartActivity") === "false" ? false : true || false);
     const currentDate = new Date();
     const currentHours = currentDate.getHours().toString().padStart(2, '0');
     const currentMinutes = currentDate.getMinutes().toString().padStart(2, '0');
@@ -65,7 +57,7 @@ export default function HRMDashboard() {
     const startAndEndTime = {
         startingTime: "00:00",
         endingTime: "00:00",
-        timeHolder: "sldkjic",
+        timeHolder: "00:00:00",
     };
 
     const [workTimeTracker, setWorkTimeTracker] = useState({
@@ -77,6 +69,8 @@ export default function HRMDashboard() {
         eveningBreak: { ...startAndEndTime },
         event: { ...startAndEndTime }
     });
+    // console.log(workTimeTracker);
+
     const [checkClockins, setCheckClockins] = useState(false);
     function updateClockins() {
         setCheckClockins(!checkClockins);
@@ -96,72 +90,73 @@ export default function HRMDashboard() {
         }
     }
 
-    const startCountdown = async () => {
-        localStorage.setItem("timeOption", timeOption);
-        localStorage.setItem('isStartActivity', false);
-        setIsStartActivity(false);
-        toast.success("Timer has been started!");
-    };
-
     const startLoginTimer = async () => {
         const updatedState = {
             ...workTimeTracker,
             login: {
-                ...workTimeTracker?.timeOption,
-                startingTime: workTimeTracker?.timeOption?.startingTime !== "00:00" ? workTimeTracker[timeOption].startingTime : currentTime
+                ...workTimeTracker?.login,
+                startingTime: workTimeTracker?.login?.startingTime !== "00:00" ? workTimeTracker.login.startingTime : currentTime
             }
         };
-
-        // Check if clockinsId is present
-        if (!workTimeTracker?._id) {
+        // // try to add clockins data
+        if (!updatedState?._id) {
             try {
-                const clockinsData = await addDataAPI(updatedState);  // Assuming updateState is some required data for addDataAPI
-                console.log(clockinsData);
-                
-                setWorkTimeTracker(clockinsData);
-                updateClockins();
+                const clockinsData = await addDataAPI(updatedState);
+                if (clockinsData) {
+                    setWorkTimeTracker(clockinsData);
+                    setIsStartLogin(true);
+                    updateClockins();
+                } else {
+                    setIsStartLogin(false);
+                    return toast.warning("You have already started work")
+                }
+
             } catch (error) {
+                setIsStartLogin(false);
                 console.error('Error in add Clockins timer:', error);
             }
+            // try to update clockins data
         } else {
-            if (workTimeTracker?._id && !isPaused) {
-                toast.warning("Timer has been already started!")
-            }
+
             try {
                 // Call the API with the updated state
                 await updateDataAPI(updatedState);
-                setWorkTimeTracker(updatedState)
+                setWorkTimeTracker(updatedState);
+                setIsStartLogin(true);
             } catch (error) {
-                console.error('Error updating data:', error);
-                toast.error('Failed to update the timer. Please try again.');
+                setIsStartLogin(false);
+                toast.error('Error updating data:', error);
             }
         }
-     };
+    };
 
     const stopLoginTimer = async () => {
-        const updatedState = (prev) => ({
-            ...prev,
-            [timeOption]: {
-                ...prev[timeOption],
+        const updatedState = {
+            ...workTimeTracker,
+            login: {
+                ...workTimeTracker?.login,
                 endingTime: currentTime,
-                timeHolder: localStorage.getItem("activityTimer"),
-                // takenTime: ranTime,
-            },
-        });
+                timeHolder: localStorage.getItem("loginTimer")
+            }
+        };
 
-        if (workTimeTracker?._id && isStartActivity) {
+        if (updatedState?._id && isStartActivity) {
+            console.log("try to stop timer");
+
             // Call the API with the updated state
-            await updateDataAPI(updatedState(workTimeTracker));
-            localStorage.setItem('isPaused', true);
-            setIsPaused(true);
+            const updatedData = await updateDataAPI(updatedState);
+            setWorkTimeTracker(updatedData);
+            localStorage.setItem('isStartLogin', false);
+            setIsStartLogin(false);
             toast.success(`${timeOption} Timer has been stopped!`)
             updateClockins();
         } else {
-            localStorage.setItem('isPaused', true);
-            setIsPaused(true);
-            return toast.error("You did't punch-in")
+            localStorage.setItem('isStartLogin', true);
+            setIsStartLogin(true);
+            return toast.error("You did't punch-in");
         }
     }
+    // console.log(workTimeTracker);
 
     const startActivityTimer = async () => {
         const updatedState = {
@@ -175,26 +170,29 @@ export default function HRMDashboard() {
         // Check if clockinsId is present
         if (!workTimeTracker?._id) {
             try {
-                const clockinsData = await addDataAPI(updatedState);  // Assuming updateState is some required data for addDataAPI
+                const clockinsData = await addDataAPI(updatedState);
                 setWorkTimeTracker(clockinsData);
+                setIsStartActivity(true);
+                localStorage.setItem("isStartActivity", true)
                 updateClockins();
             } catch (error) {
-                console.error('Error in starting timer:', error);
+                return toast.warning(`You have already started ${timeOption}`)
             }
         } else {
-            if (workTimeTracker?._id && !isPaused) {
-                toast.warning("Timer has been already started!")
-            }
             try {
-                // Call the API with the updated state
-                await updateDataAPI(updatedState);
-                setWorkTimeTracker(updatedState)
+                if (workTimeTracker?._id && !isStartActivity) {
+                    // Call the API with the updated state
+                    await updateDataAPI(updatedState);
+                    localStorage.setItem("isStartActivity", true);
+                    setIsStartActivity(true);
+                    setWorkTimeTracker(updatedState);
+                    toast.success(`${timeOption} timer has been started!`)
+                }
             } catch (error) {
                 console.error('Error updating data:', error);
                 toast.error('Failed to update the timer. Please try again.');
             }
         }
-        await startCountdown();
     };
 
     const stopActivityTimer = async () => {
@@ -203,22 +201,21 @@ export default function HRMDashboard() {
             [timeOption]: {
                 ...prev[timeOption],
                 endingTime: currentTime,
-                timeHolder: localStorage.getItem("activityTimer"),
-                takenTime: ranTime,
+                timeHolder: localStorage.getItem("activityTimer")
             },
         });
 
         if (workTimeTracker?._id && isStartActivity) {
-            // Call the API with the updated state
-            await updateDataAPI(updatedState(workTimeTracker));
-            localStorage.setItem('isPaused', true);
-            setIsPaused(true);
-            toast.success(`${timeOption} Timer has been stopped!`)
-            updateClockins();
-        } else {
-            localStorage.setItem('isPaused', true);
-            setIsPaused(true);
-            return toast.error("You did't punch-in")
+            try {
+                // Call the API with the updated state
+                await updateDataAPI(updatedState(workTimeTracker));
+                localStorage.setItem("isStartActivity", false);
+                setIsStartActivity(false);
+                updateClockins();
+                // return toast.success(`${timeOption} Timer has been stopped!`);
+            } catch (error) {
+                toast.error(error.message);
+            }
         }
     };
 
@@ -239,8 +236,6 @@ export default function HRMDashboard() {
                 setFullLeaveRequests(leaveData.data);
                 setIsLoading(false);
             } catch (err) {
-                console.log(err);
-                
                 toast.error(err?.response?.data?.message);
                 setIsLoading(false);
             }
@@ -248,26 +243,29 @@ export default function HRMDashboard() {
         getLeaveData();
     }, [daterangeValue, empId]);
 
-    async function getClocknsData() {
-        if (empId) {
-            setWaitForAttendance(true);
-            try {
-                const data = await gettingClockinsData(empId);
-                if (data) {
-                    setAttendanceForSummary(data);
-                    setAttendanceData(data.clockIns);
-                    setWaitForAttendance(false);
-                } else {
-                    toast.error("Error in fetch attendance Data");
-                    setWaitForAttendance(false);
-                }
-            } catch (err) {
-                console.log(err);
-                setWaitForAttendance(false);
-                toast.error(err?.response?.data?.message)
+    const getClocknsData = useCallback(async () => {
+        if (!empId) return;
+        setWaitForAttendance(true);
+        try {
+            const data = await gettingClockinsData(empId);
+            if (data) {
+                setAttendanceForSummary(data);
+                setAttendanceData(data.clockIns);
+            } else {
+                toast.error("Error in fetch attendance Data");
             }
+        } catch (err) {
+            console.error(err);
+            toast.error(err?.response?.data?.message);
+        } finally {
+            setWaitForAttendance(false);
         }
-    }
+    }, [empId]);
+
+    useEffect(() => {
+        getClocknsData();
+    }, [getClocknsData]);
+
 
     useEffect(() => {
         if (data?.Account) {
@@ -279,19 +277,16 @@ export default function HRMDashboard() {
                 setWhoIs("emp");
             }
         }
-        getClocknsData();
     }, [empId]);
 
-    // get workTimeTracker data from DB in Initially
+    // get workTimeTracker from DB in Initially
     useEffect(() => {
         const getClockInsData = async () => {
             try {
                 if (empId) {
                     const { timeData } = await getDataAPI(empId);
                     if (timeData?.clockIns[0]?._id) {
-                        localStorage.setItem("clockinsId", timeData.clockIns[0]._id);
                         setWorkTimeTracker(timeData.clockIns[0])
-                        // console.log(timeData.clockIns[0]);
                     } else {
                         setWorkTimeTracker({ ...workTimeTracker });
                         removeClockinsData();
@@ -304,8 +299,13 @@ export default function HRMDashboard() {
         getClockInsData()
     }, []);
 
+    useEffect(() => {
+        localStorage.setItem("isStartLogin", isStartLogin);
+        localStorage.setItem("isStartActivity", isStartActivity);
+    }, [isStartLogin, isStartActivity]);
+
     return (
-        <TimerStates.Provider value={{ workTimeTracker, updateWorkTracker, startLoginTimer, stopLoginTimer, startActivityTimer, stopActivityTimer, setWorkTimeTracker, updateClockins, whoIs }}>
+        <TimerStates.Provider value={{ workTimeTracker, updateWorkTracker, startLoginTimer, stopLoginTimer, startActivityTimer, stopActivityTimer, setWorkTimeTracker, updateClockins, whoIs, timeOption, isStartLogin, isStartActivity }}>
             <Routes >
                 <Route path="/" element={<Parent />} >
                     <Route index element={<Dashboard data={data} />} />
