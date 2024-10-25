@@ -75,8 +75,6 @@ export default function Home() {
                 if (!isStartLogin && !isStartActivity && empId) {
                     const { activitiesData } = await getDataAPI(empId);
                     if (activitiesData) {
-                        console.log(activitiesData);
-                        
                         setTableData(activitiesData)
                     } else {
                         setTableData(tableData);

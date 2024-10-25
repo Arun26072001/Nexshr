@@ -15,12 +15,7 @@ export default function Navbar() {
     const [min, setMin] = useState(() => parseInt(localStorage.getItem("loginTimer")?.split(':')[1]) || 0);
     const [hour, setHour] = useState(() => parseInt(localStorage.getItem("loginTimer")?.split(':')[0]) || 0);
     const workRef = useRef(null);  // Use ref to store interval ID
-
-    // Assuming sec, min, hour are your state variables
-    useEffect(() => {
-        // This effect runs every time sec, min, or hour changes
-        localStorage.setItem("loginTimer", `${hour}:${min}:${sec}`);
-    }, [sec, min, hour]);
+    // debugger;
 
     function setTime() {
         setSec((prevSec) => {
@@ -61,12 +56,33 @@ export default function Navbar() {
     }
 
     useEffect(() => {
+        console.log(isStartLogin);
+        
         if (isStartLogin) {
+            console.log("starting login timer");
+
             startTimer();
         }
         // Cleanup interval when component unmounts
         return () => stopTimer();
     }, [isStartLogin]);  // Ensure the effect re-runs if isTimerStarted changes
+
+     // Assuming sec, min, hour are your state variables
+     useEffect(() => {
+        
+        // This effect runs every time sec, min, or hour changes
+        localStorage.setItem("loginTimer", `${hour}:${min}:${sec}`);
+    }, [sec, min, hour]);
+
+        // Initialize time based on selected workTimeTracker and timeOption
+        useEffect(() => {
+            if (!isStartLogin && workTimeTracker?.login?.timeHolder) {
+                const [newHour, newMin, newSec] = workTimeTracker?.login?.timeHolder?.split(":").map(Number);
+                setHour(newHour);
+                setMin(newMin);
+                setSec(newSec);
+            }
+        }, [workTimeTracker, isStartLogin]);
 
     return (
         <div className="webnxs">
@@ -90,7 +106,7 @@ export default function Navbar() {
 
                 <div className="col-lg-4 col-md-6 col-4 d-flex align-items-center justify-content-between">
                     <div className="punchBtnParent">
-                        <button className='punchBtn' disabled={isStartLogin} onClick={startTimer} style={{ backgroundColor: "#CEE5D3" }}>
+                        <button className='punchBtn' disabled={isStartLogin} onClick={()=>startTimer()} style={{ backgroundColor: "#CEE5D3" }}>
                             <img src={PunchIn} alt="" />
                         </button>
                         <div className="">
@@ -99,7 +115,7 @@ export default function Navbar() {
                         </div>
                     </div>
                     <div className="punchBtnParent">
-                        <button className='punchBtn' onClick={stopTimer} disabled={!isStartLogin} style={{ backgroundColor: "#FFD6DB" }}>
+                        <button className='punchBtn' onClick={()=>stopTimer()} disabled={!isStartLogin} style={{ backgroundColor: "#FFD6DB" }}>
                             <img src={PunchOut} alt="" />
                         </button>
 

@@ -46,8 +46,10 @@ export default function HRMDashboard() {
     const url = process.env.REACT_APP_API_URL;
     const [daterangeValue, setDaterangeValue] = useState("");
     const [timeOption, setTimeOption] = useState(localStorage.getItem("timeOption") || "meeting");
-    const [isStartLogin, setIsStartLogin] = useState(localStorage.getItem("isStartLogin") === "false" ? false : true || false);
-    const [isStartActivity, setIsStartActivity] = useState(localStorage.getItem("isStartActivity") === "false" ? false : true || false);
+    const [isStartLogin, setIsStartLogin] = useState(localStorage.getItem("isStartLogin") === "false" ? false : localStorage.getItem("isStartLogin") === "true" ? true : false);
+    const [isStartActivity, setIsStartActivity] = useState(localStorage.getItem("isStartActivity") === "false" ? false : localStorage.getItem("isStartActivity") === "true" ? true : false);
+    console.log(isStartActivity, isStartLogin);
+    // debugger;
     const currentDate = new Date();
     const currentHours = currentDate.getHours().toString().padStart(2, '0');
     const currentMinutes = currentDate.getMinutes().toString().padStart(2, '0');
@@ -69,7 +71,7 @@ export default function HRMDashboard() {
         eveningBreak: { ...startAndEndTime },
         event: { ...startAndEndTime }
     });
-    // console.log(workTimeTracker);
+    console.log(workTimeTracker);
 
     const [checkClockins, setCheckClockins] = useState(false);
     function updateClockins() {
@@ -91,6 +93,8 @@ export default function HRMDashboard() {
     }
 
     const startLoginTimer = async () => {
+        console.log("initial call to start");
+        
         const updatedState = {
             ...workTimeTracker,
             login: {
@@ -104,15 +108,19 @@ export default function HRMDashboard() {
                 const clockinsData = await addDataAPI(updatedState);
                 if (clockinsData) {
                     setWorkTimeTracker(clockinsData);
+                    // if successfully added clockins timer will start
                     setIsStartLogin(true);
+                    localStorage.setItem("isStartLogin", true);
                     updateClockins();
                 } else {
-                    setIsStartLogin(false);
+
                     return toast.warning("You have already started work")
                 }
 
             } catch (error) {
+                // else stop the timer
                 setIsStartLogin(false);
+                localStorage.setItem("isStartLogin", false);
                 console.error('Error in add Clockins timer:', error);
             }
             // try to update clockins data
@@ -120,11 +128,15 @@ export default function HRMDashboard() {
 
             try {
                 // Call the API with the updated state
-                await updateDataAPI(updatedState);
-                setWorkTimeTracker(updatedState);
+                const updatedData = await updateDataAPI(updatedState);
+                setWorkTimeTracker(updatedData);
+                // if successfully updated, start the timer
                 setIsStartLogin(true);
+                localStorage.setItem("isStartLogin", true);
+
             } catch (error) {
                 setIsStartLogin(false);
+                localStorage.setItem("isStartLogin", false);
                 toast.error('Error updating data:', error);
             }
         }
@@ -141,7 +153,6 @@ export default function HRMDashboard() {
         };
 
         if (updatedState?._id && isStartActivity) {
-            console.log("try to stop timer");
 
             // Call the API with the updated state
             const updatedData = await updateDataAPI(updatedState);
@@ -159,6 +170,8 @@ export default function HRMDashboard() {
     // console.log(workTimeTracker);
 
     const startActivityTimer = async () => {
+        console.log("initial call to stop");
+        
         const updatedState = {
             ...workTimeTracker,
             [timeOption]: {
@@ -208,7 +221,8 @@ export default function HRMDashboard() {
         if (workTimeTracker?._id && isStartActivity) {
             try {
                 // Call the API with the updated state
-                await updateDataAPI(updatedState(workTimeTracker));
+                const updatedData = await updateDataAPI(updatedState(workTimeTracker));
+                setWorkTimeTracker(updatedData);
                 localStorage.setItem("isStartActivity", false);
                 setIsStartActivity(false);
                 updateClockins();
@@ -311,7 +325,6 @@ export default function HRMDashboard() {
                     <Route index element={<Dashboard data={data} />} />
                     <Route path="job-desk/*" element={<JobDesk whoIs={whoIs} />} />
                     <Route path="employee" element={<Employee whoIs={whoIs} />} />
-                    {/* <Route path="leave/" element={<Leave />} /> */}
                     <Route path="employee/add" element={<Employees />} />
                     <Route path="leave/*" element={
                         <LeaveStates.Provider value={{ daterangeValue, setDaterangeValue, isLoading, leaveRequests, filterLeaveRequests, empName, setEmpName }} >

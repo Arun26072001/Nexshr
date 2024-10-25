@@ -1,7 +1,7 @@
 import React, { useContext, useEffect, useState } from 'react';
 import './dashboard.css';
 import { fetchEmployeeData, formatTime, getDataAPI, gettingClockinsData, getTotalWorkingHourPerDay } from '../ReuseableAPI';
-import ClockIns from '../ClockIns';
+import ClockIns from '../Clockins';
 import NexHRDashboard from '../NexHRDashboard';
 import Loading from '../Loader';
 import { EssentialValues } from '../../App';
@@ -11,8 +11,6 @@ import Home from '../Home';
 import { TimerStates } from './HRMDashboard';
 
 const Dashboard = () => {
-    // const clockinsId = localStorage.getItem("clockinsId");
-    // const token = localStorage.getItem("token");
     const {updateClockins} = useContext(TimerStates)
     const account = localStorage.getItem("Account");
     const { handleLogout } = useContext(EssentialValues);

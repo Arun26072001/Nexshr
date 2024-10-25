@@ -33,9 +33,10 @@ const App = () => {
   };
 
   const handleLogout = () => {
+    console.log(isStartLogin, isStartActivity);
     if (localStorage.getItem('empId')) {
       toast.warn(`Please Enter full details for this employee`);
-      
+
     } else if (isStartLogin || isStartActivity) {
       toast.warn("you can't logout until timer stop.")
     } else {
@@ -121,6 +122,7 @@ const App = () => {
     navigateToAccount()
   }, [data]);
 
+  
 
   return (
     <EssentialValues.Provider value={{ data, handleLogout, handleSubmit, loading, pass, isLogin }}>

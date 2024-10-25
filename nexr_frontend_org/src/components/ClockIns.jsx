@@ -56,20 +56,23 @@ const ClockIns = () => {
         }
     }
 
-    // Stop timer when isStartActivity changes to false
-    useEffect(() => {
-        if (!isStartActivity) {
-            stopIt();  // Stop the timer if the activity stops
-        }
-    }, [isStartActivity]);
+    // // Stop timer when isStartActivity changes to false
+    // useEffect(() => {
+    //     if (!isStartActivity) {
+    //         stopIt();  // Stop the timer if the activity stops
+    //     }
+    // }, [isStartActivity]);
 
     // Start timer when the activity starts
     useEffect(() => {
         if (isStartActivity) {
+            console.log("starting activity timer");
+            
             startIt();
         }
         // Cleanup interval on component unmount
-        return () => stopIt();
+        return () => {console.log("call to unmount")
+         stopIt()};
     }, [isStartActivity]);
 
     // Initialize time based on selected workTimeTracker and timeOption
