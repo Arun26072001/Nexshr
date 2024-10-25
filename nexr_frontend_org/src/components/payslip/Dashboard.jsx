@@ -1,7 +1,7 @@
 import React, { useContext, useEffect, useState } from 'react';
 import './dashboard.css';
 import { fetchEmployeeData, formatTime, getDataAPI, gettingClockinsData, getTotalWorkingHourPerDay } from '../ReuseableAPI';
-import ClockIns from '../Clockins';
+import ActivityTimeTracker from '../ActivityTimeTracker';
 import NexHRDashboard from '../NexHRDashboard';
 import Loading from '../Loader';
 import { EssentialValues } from '../../App';
@@ -73,7 +73,7 @@ const Dashboard = () => {
     
     return (
         <div className='dashboard-parent'>
-            <ClockIns leaveData={leaveData} handleLogout={handleLogout} updateClockins={updateClockins} />
+            <ActivityTimeTracker leaveData={leaveData} handleLogout={handleLogout} updateClockins={updateClockins} />
             {
                 isLoading ? <Loading /> :
                     leaveData && leaveData.annualLeaveEntitlement && monthlyLoginData && leaveData && dailyLogindata ? (

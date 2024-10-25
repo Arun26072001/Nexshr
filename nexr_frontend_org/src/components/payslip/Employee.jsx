@@ -5,7 +5,7 @@ import "./dashboard.css";
 import LeaveTable from '../LeaveTable';
 import { fetchEmployees } from '../ReuseableAPI';
 import Loading from '../Loader';
-import { NavLink, useNavigate } from 'react-router-dom';
+import {useNavigate } from 'react-router-dom';
 import NoDataFound from './NoDataFound';
 import { TimerStates } from './HRMDashboard';
 
