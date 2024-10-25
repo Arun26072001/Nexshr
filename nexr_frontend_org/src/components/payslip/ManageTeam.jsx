@@ -1,5 +1,4 @@
-import React, { useEffect, useState } from "react";
-// import './style.css';
+import React, { useContext, useEffect, useState } from "react";
 import EmpCard from "./EmpCard";
 import axios from "axios";
 import { toast } from "react-toastify";
@@ -8,18 +7,23 @@ import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
 import EditTeam from "./EditTeam";
 import { Input, InputGroup } from "rsuite";
 import { useNavigate } from "react-router-dom";
+import NoDataFound from "./NoDataFound";
+import Loading from "../Loader";
+import { TimerStates } from "./HRMDashboard";
 
-const ManageTeam = ({ whoIs }) => {
+const ManageTeam = () => {
+    const {whoIs} = useContext(TimerStates);
     const [teamObj, setTeamObj] = useState({
         teamName: "",
         employees: [],
         lead: ""
     });
+    const [isLoading, setIsLoading] = useState(false);
     const [searchTeam, setSearchTeam] = useState('');
     const [dom, reload] = useState(false);
     const [assignEmp, setAssignEmp] = useState(false);
     const [addTeam, setAddTeam] = useState(false);
-    const [editTeamObj, setEditTeamObj] = useState({});
+    const [editTeamObj, setEditTeamObj] = useState(null); // Null indicates no team is being edited
     const [teams, setTeams] = useState([]);
     const [filteredTeams, setFilteredTeams] = useState([]);
     const url = process.env.REACT_APP_API_URL;
@@ -41,8 +45,8 @@ const ManageTeam = ({ whoIs }) => {
 
     const toggleAddTeam = () => {
         setAddTeam(!addTeam);
-        if (addTeam) {  // editTeamObj will be empty. when exit from editTeam
-            setEditTeamObj({})
+        if (addTeam) {
+            setEditTeamObj(null);  // Reset editTeamObj when toggling out of add/edit mode
         }
     };
 
@@ -50,36 +54,23 @@ const ManageTeam = ({ whoIs }) => {
         setAssignEmp(!assignEmp);
     };
 
-    const setTeamName = (name) => {
-        setTeamObj((prev) => ({
-            ...prev,
-            teamName: name
-        }));
-    };
-
-    // add team
-    const handleSubmit = async () => {
-        try {
-            const newTeamObj = {
-                ...teamObj,
-                employees: teamObj.employees.map((emp) => emp._id)
-            };
-
-            const response = await axios.post(url + "/api/team", newTeamObj, {
-                headers: { authorization: token || "" }
-            });
-
-            toggleAssignEmp();
-            toggleAddTeam();
-            reloadUI();
-            toast.success(response.data.message);
-        } catch (err) {
-            toast.error(err.message);
+    const changeTeamObj = (e) => {
+        const {name, value} = e.target;
+        if (editTeamObj) {
+            setEditTeamObj((prev) => ({
+                ...prev,
+                [name]: value
+            }));
+        } else {
+            setTeamObj((prev) => ({
+                ...prev,
+                [name]: value
+            }));
         }
     };
 
     const updateTeamObj = (emp) => {
-        if (editTeamObj.employees && editTeamObj.employees.length > 0) {
+        if (editTeamObj) {
             setEditTeamObj((prev) => {
                 const updatedEmployees = prev.employees.includes(emp)
                     ? prev.employees.filter(e => e._id !== emp._id)
@@ -104,14 +95,13 @@ const ManageTeam = ({ whoIs }) => {
         }
     };
 
-
     const reloadUI = () => {
         reload(!dom);
     };
 
     const deleteTeam = async (id) => {
         try {
-            const res = await axios.delete(url + "/api/team/" + id, {
+            const res = await axios.delete(`${url}/api/team/${id}`, {
                 headers: { authorization: token || "" }
             });
 
@@ -124,28 +114,45 @@ const ManageTeam = ({ whoIs }) => {
 
     const editTeam = async (team) => {
         try {
-            const res = await axios.get(url + "/api/team/" + team._id, {
+            const res = await axios.get(`${url}/api/team/${team._id}`, {
+                headers: { authorization: token || "" }
+            });
+            setEditTeamObj(res.data);
+            toggleAddTeam();
+        } catch (err) {
+            toast.error(err?.response?.data?.message);
+        }
+    };
+
+    const handleSubmit = async () => {
+        try {
+            const newTeamObj = {
+                ...teamObj,
+                employees: teamObj.employees.map((emp) => emp._id)
+            };
+
+            const response = await axios.post(`${url}/api/team`, newTeamObj, {
                 headers: { authorization: token || "" }
             });
 
-            setEditTeamObj(res.data);
+            toggleAssignEmp();
             toggleAddTeam();
+            reloadUI();
+            toast.success(response.data.message);
         } catch (err) {
             toast.error(err.message);
         }
     };
 
-    // update team
     const handleSubmitEdit = async () => {
         try {
-            const { _id, __v, ...object } = editTeamObj
+            const { _id, __v, ...object } = editTeamObj;
             const updatedTeamObj = {
                 ...object,
                 employees: editTeamObj.employees.map((emp) => emp._id)
             };
-            console.log(updatedTeamObj);
 
-            const res = await axios.put(url + "/api/team/" + editTeamObj._id, updatedTeamObj, {
+            const res = await axios.put(`${url}/api/team/${editTeamObj._id}`, updatedTeamObj, {
                 headers: { authorization: token || "" }
             });
 
@@ -153,24 +160,29 @@ const ManageTeam = ({ whoIs }) => {
             toggleAddTeam();
             reloadUI();
             toast.success(res.data.message);
+            console.log(res.data);
+            
         } catch (err) {
             console.log(err);
+            
             toast.error(err.message);
         }
     };
 
     useEffect(() => {
         const fetchTeams = async () => {
+            setIsLoading(true);
             try {
-                const res = await axios.get(url + "/api/team", {
+                const res = await axios.get(`${url}/api/team`, {
                     headers: { authorization: token || "" }
                 });
 
                 setTeams(res.data);
                 setFilteredTeams(res.data);
+                setIsLoading(false);
             } catch (err) {
                 toast.error(err.message);
-                if (err?.status == 401) {
+                if (err?.response?.status === 401) {
                     navigate("/admin/unauthorize");
                 }
             }
@@ -180,67 +192,49 @@ const ManageTeam = ({ whoIs }) => {
     }, [dom]);
 
     return (
-        <div className="my-2">
-            {/* <div className="container-fluid"> */}
+        isLoading ? <Loading /> :
+            <div className="my-2">
+                <button className="button my-2" onClick={toggleAddTeam}>
+                    {addTeam ? "Cancel" : "Add a new team"}
+                </button>
 
-            <button className="button my-2" onClick={toggleAddTeam}>
-                Add a new team
-            </button>
-            {/* <div className="searchParent my-2">
-                <input
-                    type="text"
-                    name="searchTeam"
-                    className="form-control"
-                    value={searchTeam}
-                    onChange={(e) => filterTeam(e.target.value)}
-                    style={{ border: "2px solid #dadada", borderRadius: "10px" }}
-                    placeholder="Team name"
-                />
-                <div className="searchIcon">
-                    <SearchRoundedIcon />
-                </div>
-            </div> */}
-            <InputGroup inside style={{ width: "300px" }}>
-                <Input placeholder="Team Name" className="m-0" value={searchTeam} onChange={filterTeam} />
-                <InputGroup.Button className="m-auto">
-                    <SearchRoundedIcon />
-                </InputGroup.Button>
-            </InputGroup>
+                <InputGroup inside style={{ width: "300px" }}>
+                    <Input placeholder="Team Name" className="m-0" value={searchTeam} onChange={filterTeam} />
+                    <InputGroup.Button className="m-auto">
+                        <SearchRoundedIcon />
+                    </InputGroup.Button>
+                </InputGroup>
 
-            {addTeam && (
-                <EditTeam
-                    teams={teams}
-                    team={editTeamObj}
-                    setTeamName={setTeamName}  // to update teamName
-                    toggleAddTeam={toggleAddTeam}
-                    toggleAssignEmp={toggleAssignEmp}
-                />
-            )}
+                {addTeam && (
+                    <EditTeam
+                        team={editTeamObj ? editTeamObj : teamObj}
+                        setTeamName={changeTeamObj} // to update teamName
+                        toggleAddTeam={toggleAddTeam}
+                        toggleAssignEmp={toggleAssignEmp}
+                    />
+                )}
 
-            {assignEmp && (
-                <AssignEmp
-                    handleSubmit={editTeamObj._id ? handleSubmitEdit : handleSubmit}
-                    teamObj={editTeamObj ? editTeamObj : teamObj}
-                    updateTeamObj={updateTeamObj}
-                    setTeams={setTeams}
-                    toggleAssignEmp={toggleAssignEmp}
-                    teams={teams}
-                />
-            )}
+                {assignEmp && (
+                    <AssignEmp
+                        teams={teams}
+                        handleSubmit={editTeamObj ? handleSubmitEdit : handleSubmit}
+                        teamObj={editTeamObj ? editTeamObj : teamObj}
+                        setTeamLead={changeTeamObj}
+                        updateTeamObj={updateTeamObj}
+                        toggleAssignEmp={toggleAssignEmp}
+                    />
+                )}
 
-            {filteredTeams.length > 0 ? (
-                <div className="row d-flex justify-content-start">
-                    {filteredTeams.map((team) => (
-                        <EmpCard key={team._id} team={team} editTeam={editTeam} deleteTeam={deleteTeam} />
-                    ))}
-                </div>
-            ) : (
-                <div className="dayBox text-center">
-                    <p className="text-danger lead">Employee data not found</p>
-                </div>
-            )}
-            {/* </div> */}
-        </div>
+                {filteredTeams.length > 0 ? (
+                    <div className="row d-flex justify-content-start">
+                        {filteredTeams.map((team) => (
+                            <EmpCard key={team._id} team={team} editTeam={editTeam} deleteTeam={deleteTeam} />
+                        ))}
+                    </div>
+                ) : (
+                    <NoDataFound message={"No teams found"} />
+                )}
+            </div>
     );
 };
 

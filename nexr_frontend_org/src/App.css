@@ -4,10 +4,18 @@
   font-family: "Inter", sans-serif;
 }
 
+h1{
+  line-height: 0px !important;
+}
+
+:root {
+  --header-height: 55px;
+}
+
 body {
   margin: 0;
   box-sizing: border-box;
-  background-color: #f4f4f4;
+  background: #f5f5f5 !important;
 }
 
 .NameLetter,
@@ -41,7 +49,7 @@ label {
 }
 
 .notFoundText {
-  height: 80vh;
+  height: 40vh;
   /* margin: auto; */
   display: flex;
   align-items: center;
@@ -73,7 +81,9 @@ a {
   font-weight: 500;
   background: white;
   color: black;
-  width: 100%;
+  width: fit-content;
+  height: fit-content;
+  box-shadow: rgba(99, 99, 99, 0.2) 0px 2px 8px 0px;
 }
 
 .button {
@@ -303,15 +313,16 @@ input::-webkit-inner-spin-button {
 
 .timer {
   border-radius: 5px;
-  width: 110px;
-  height: 50px;
+  padding: 10px 8px;
+  width: fit-content;
+  height: fit-content;
   background: white;
   box-shadow: rgba(0, 0, 0, 0.16) 0px 1px 4px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 18px;
-  font-weight: 600;
+  font-size: 17px;
+  font-weight: 700;
 }
 
 .btnContainer > * {
@@ -422,6 +433,7 @@ input::-webkit-inner-spin-button {
 .financialDetails,
 .employementDetails,
 .jobDetails,
+.payslipDetails,
 .tableParent {
   position: relative;
   border-radius: 10px;

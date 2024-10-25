@@ -9,6 +9,7 @@ import CoronavirusIcon from '@mui/icons-material/Coronavirus';
 import WatchLaterIcon from '@mui/icons-material/WatchLater';
 import { fetchLeaveRequests } from './ReuseableAPI';
 import CircleBar from './CircleProcess';
+import { NavLink } from 'react-router-dom';
 
 
 function CustomTabPanel(props) {
@@ -129,7 +130,9 @@ export default function Twotabs() {
         <div className='empActivies'>
           <div className="d-flex justify-content-between w-100" style={{ fontSize: "12px", fontWeight: 600, gap: "10px" }}>
             <div className='w-50'>
-              <button className='button'>Request time off</button>
+              <NavLink to={"/hr/leave-request"}>
+                <button className='button'>Request time off</button>
+              </NavLink>
             </div>
             <div className='w-50'>
               <button className="outline-btn">Absence history</button>

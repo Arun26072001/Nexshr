@@ -7,6 +7,7 @@ const Payrun = (props) => {
     function handleShowNotification() {
         setIsShowPayrun(!isShowPayrun);
     }
+    
     return (
         <>
             <div className="payslipTitle">Payrun</div>

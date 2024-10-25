@@ -5,6 +5,8 @@ import LeaveTable from "../LeaveTable";
 import { DateRangePicker } from "rsuite";
 import Loading from "../Loader";
 import { formatTime } from "../ReuseableAPI";
+import NoDataFound from "./NoDataFound";
+import { toast } from "react-toastify";
 
 const Attendence = (props) => {
   const url = process.env.REACT_APP_API_URL;
@@ -15,7 +17,9 @@ const Attendence = (props) => {
   const [lateHeight, setLateHeight] = useState(0);
   const [earlyHeight, setEarlyHeight] = useState(0);
   const [tableData, setTableData] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
   const [daterangeValue, setDaterangeValue] = useState("");
+
 
   function calculateOverallBehavior(regularCount, lateCount, earlyCount) {
     const totalCount = regularCount + lateCount + earlyCount;
@@ -48,6 +52,7 @@ const Attendence = (props) => {
 
   useEffect(() => {
     const getClockins = async () => {
+      setIsLoading(true);
       if (empId) {
         const dashboard = await axios.get(`${url}/api/clock-ins/employee/${empId}`, {
           params: {
@@ -68,6 +73,10 @@ const Attendence = (props) => {
           setLateHeight((totalLateLogins / totalLogins) * 100);
           setEarlyHeight((totalEarlyLogins / totalLogins) * 100);
         }
+        setIsLoading(false);
+      } else {
+        setIsLoading(false);
+        toast.error("Employee Id not found!")
       }
     }
     getClockins()
@@ -110,33 +119,58 @@ const Attendence = (props) => {
       </div>
 
       {/* <div className="container"> */}
-      {clockInsData && tableData.length > 0 ?
-        <>
+      {isLoading ? <Loading />
+        : Object.keys(clockInsData).length > 0 ? <>
           <div className="row w-100 mx-auto">
             <div className="chartParent">
               <div className="col-lg-3 regular" style={{ height: `${regularHeight}%` }}>
-                <div className="d-flex justify-content-center">
-                  <p className="payslipTitle" style={{ color: "#146ADC" }}>{clockInsData.totalRegularLogins} Days</p>
-                  <p className="leaveDays text-center" style={{ color: "#146ADC" }}>(Regular)</p>
-                </div>
+                {
+                  clockInsData.totalRegularLogins == 0 ?
+                    <div className="d-flex justify-content-center emtChart">
+                      <p className="payslipTitle" style={{ color: "#146ADC" }}>{clockInsData.totalRegularLogins} Days</p>
+                      <p className="leaveDays text-center" style={{ color: "#146ADC" }}>(Regular)</p>
+                    </div>
+                    : <div className="d-flex justify-content-center">
+                      <p className="payslipTitle" style={{ color: "#146ADC" }}>{clockInsData.totalRegularLogins} Days</p>
+                      <p className="leaveDays text-center" style={{ color: "#146ADC" }}>(Regular)</p>
+                    </div>
+                }
               </div>
               <div className="col-lg-3 early" style={{ height: `${earlyHeight}%` }}>
-                <div className="d-flex justify-content-center">
-                  <p className="payslipTitle" style={{ color: "#146ADC" }}>{clockInsData.totalEarlyLogins} Days</p>
-                  <p className="leaveDays text-center" style={{ color: "#146ADC" }}>(Early)</p>
-                </div>
+                {
+                  clockInsData.totalEarlyLogins == 0 ?
+                    <div className="d-flex justify-content-center emtChart">
+                      <p className="payslipTitle" style={{ color: "#146ADC" }}>{clockInsData.totalEarlyLogins} Days</p>
+                      <p className="leaveDays text-center" style={{ color: "#146ADC" }}>(Early)</p>
+                    </div> : <div className="d-flex justify-content-center">
+                      <p className="payslipTitle" style={{ color: "#146ADC" }}>{clockInsData.totalEarlyLogins} Days</p>
+                      <p className="leaveDays text-center" style={{ color: "#146ADC" }}>(Early)</p>
+                    </div>
+                }
               </div>
               <div className="col-lg-3 late" style={{ height: `${lateHeight}%` }}>
-                <div className="d-flex justify-content-center">
-                  <p className="payslipTitle" style={{ color: "#146ADC" }}>{clockInsData.totalLateLogins} Days</p>
-                  <p className="leaveDays text-center" style={{ color: "#146ADC" }}>(Late)</p>
-                </div>
+                {
+                  clockInsData.totalLateLogins == 0 ?
+                    <div className="d-flex justify-content-center emtChart">
+                      <p className="payslipTitle" style={{ color: "#146ADC" }}>{clockInsData.totalLateLogins} Days</p>
+                      <p className="leaveDays text-center" style={{ color: "#146ADC" }}>(Late)</p>
+                    </div> : <div className="d-flex justify-content-center">
+                      <p className="payslipTitle" style={{ color: "#146ADC" }}>{clockInsData.totalLateLogins} Days</p>
+                      <p className="leaveDays text-center" style={{ color: "#146ADC" }}>(Late)</p>
+                    </div>
+                }
               </div>
-              <div className="col-lg-3 leave" style={{ height: '10%' }}>
-                <div className="d-flex justify-content-center">
-                  <p className="payslipTitle" style={{ color: "#146ADC" }}>{clockInsData.totalLeaveDays} Days</p>
-                  <p className="leaveDays text-center" style={{ color: "#146ADC" }}>(Leave)</p>
-                </div>
+              <div className="col-lg-3 leave" style={{ height: `${clockInsData.totalLeaveDays * 10}%` }}>
+                {
+                  clockInsData.totalLeaveDays == 0 ?
+                    <div className="d-flex justify-content-center emtChart">
+                      <p className="payslipTitle" style={{ color: "#146ADC" }}>{clockInsData.totalLeaveDays} Days</p>
+                      <p className="leaveDays text-center" style={{ color: "#146ADC" }}>(Leave)</p>
+                    </div> : <div className="d-flex justify-content-center">
+                      <p className="payslipTitle" style={{ color: "#146ADC" }}>{clockInsData.totalLeaveDays} Days</p>
+                      <p className="leaveDays text-center" style={{ color: "#146ADC" }}>(Leave)</p>
+                    </div>
+                }
               </div>
             </div>
           </div>
@@ -155,7 +189,7 @@ const Attendence = (props) => {
             <div className="leaveData">
               <div className="d-flex flex-column">
                 <div className="leaveDays">
-                  {formatTime(clockInsData.totalLeaveDays*9)}
+                  {formatTime(clockInsData.totalLeaveDays * 9)}
                 </div>
                 <div className="leaveDaysDesc">
                   Leave hour
@@ -205,9 +239,7 @@ const Attendence = (props) => {
           </div>
 
           <LeaveTable data={tableData} />
-        </>
-        : tableData.length === 0 ? <Loading />
-          : <p className="text-center my-2 text-danger">No Attendance data in this date range!</p>
+        </> : <NoDataFound message={"Attendance data not found!"} />
       }
 
     </div>

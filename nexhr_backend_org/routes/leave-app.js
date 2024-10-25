@@ -17,7 +17,7 @@ function getDayDifference(leave) {
   return timeDifference / (1000 * 60 * 60 * 24);
 }
 
-leaveApp.get("/emp/:empId", verifyHREmployee, async (req, res) => {
+leaveApp.get("/emp/:empId", verifyAdminHREmployee, async (req, res) => {
   try { //verifyHREmployee this API is use for emp and Hr to fetch their leave reqs
     let requests = await Employee.findById(req.params.empId, "_id FirstName LastName Email phone typesOfLeaveCount typesOfLeaveRemainingDays")
       .populate({
@@ -75,7 +75,6 @@ leaveApp.get("/emp/:empId", verifyHREmployee, async (req, res) => {
     }
   } catch (err) {
     console.log(err);
-
     res.status(500).send({ message: "Internal sever error", details: err.message })
   }
 
@@ -219,11 +218,37 @@ leaveApp.get("/date-range/:empId", verifyAdminHREmployee, (req, res) => {
       } catch (err) {
         res.status(500).send({ message: "Error in getting emp of leave reqests", details: err.message })
       }
+    }else{
+      try {
+        // if a person has account 2, can get date range of all emp leave data
+        const employeesLeaveData = await Employee.find({}, "_id FirstName LastName")
+          .populate({
+            path: "leaveApplication",
+            match: {
+              fromDate: {
+                $gte: startOfMonth,
+                $lte: endOfMonth
+              },
+              toDate: {
+                $gte: startOfMonth,
+                $lte: endOfMonth
+              }
+            },
+            populate: { path: "employee", select: "FirstName LastName" }
+          });
+
+        const leaveData = employeesLeaveData.map(data => data.leaveApplication).flat()
+        const approvedLeave = leaveData.filter(data => data.status === "approved");
+        const leaveInHours = approvedLeave.reduce((total, data) => total + getDayDifference(data) * 9, 0);
+        const pendingLeave = leaveData.filter(data => data.status === "pending");
+        const upComingLeave = leaveData.filter(data => new Date(data.date).getTime() > new Date().getTime())
+        const peoplesOnLeave = approvedLeave.filter(data => new Date(data.date).getTime() === new Date().getTime())
+        res.send({ leaveData, approvedLeave, peoplesOnLeave, pendingLeave, upComingLeave, leaveInHours });
+      } catch (err) {
+        res.status(500).send({ message: "Error in getting employees leave data", details: err.message })
+      }
     }
   });
-
-
-
 })
 
 leaveApp.get("/", verifyAdmin, async (req, res) => {
@@ -246,9 +271,12 @@ leaveApp.get("/", verifyAdmin, async (req, res) => {
 
 leaveApp.post("/:empId", verifyHREmployee, async (req, res) => {
   try {
+    // Handle empty `coverBy` value
     if (req.body.coverBy === "") {
       req.body.coverBy = null;
     }
+
+    // Construct the leave request object
     let leaveRequest = {
       leaveType: req.body.leaveType.toLowerCase(),
       fromDate: req.body.fromDate,
@@ -258,85 +286,104 @@ leaveApp.post("/:empId", verifyHREmployee, async (req, res) => {
       prescription: req.body.prescription,
       coverBy: req.body.coverBy,
       employee: req.params.empId
-    }
+    };
+
     let takenLeaveCount = 0;
-    // getLEave type from this employee
+
+    // Fetch approved leave applications for the specific employee
     const leaveData = await LeaveApplication.find({
       leaveType: {
         $regex: new RegExp("^" + req.body.leaveType, "i")
-      }, status: "approved"
+      },
+      status: "approved",
+      employee: req.params.empId // Check leaves for the specific employee
     });
 
-    //if has a pending status in gave leaveType return error message
+    // Fetch pending leave applications for the specific employee and leave type
     const pendingLeaveData = await LeaveApplication.find({
       leaveType: {
         $regex: new RegExp("^" + req.body.leaveType, "i")
-      }, status: "pending"
+      },
+      status: "pending",
+      employee: req.params.empId // Check leaves for the specific employee
     });
+
+    // If there are pending leaves of the same type, return an error
     if (pendingLeaveData.length > 0) {
-      res.status(400).send({ message: "Already has a leave request in this type." })
+      return res.status(400).send({ message: "Please wait for Previous Leave Response!" });
     } else {
+      // Calculate the total number of leave days already taken
       leaveData.map((data) => {
         const value = getDayDifference(data);
         takenLeaveCount = takenLeaveCount + value;
-      })
+      });
 
+      // Fetch employee's leave count and remaining leave days
       const empData = await Employee.findById(req.params.empId, "typesOfLeaveCount typesOfLeaveRemainingDays").exec();
-      console.log(empData);
 
       let leaveTypeName = req.body.leaveType.split(" ")[0];
-
       const leaveDaysCount = empData?.typesOfLeaveRemainingDays[leaveTypeName];
 
+      // Check if the employee has remaining leave days
       if (Number(leaveDaysCount) > takenLeaveCount) {
-        // get leave day
+        // Calculate the number of days for the requested leave
         let GoingToTakeLeave = getDayDifference(req.body);
-        const reqDate = await LeaveApplication.find({ fromDate: leaveRequest.fromDate })
+
+        // Check if the employee has already submitted a leave request for the same date
+        const reqDate = await LeaveApplication.find({ fromDate: leaveRequest.fromDate, employee: req.params.empId });
         if (reqDate.length > 0) {
-          res.status(400).send({ message: "Already send request in this date" })
+          return res.status(400).send({ message: "Already sent a request on this date." });
         } else {
+          // Validate the leave request
           const { error } = LeaveApplicationValidation.validate(leaveRequest);
           if (error) {
             console.error('Validation Error:', error);
             return res.status(400).send({ message: "Validation Error", details: error.message });
           } else {
+            // Fetch employee data
             const empData = await Employee.findById(req.params.empId);
             if (!empData) {
               return res.status(400).send(`No employee found for ID ${req.params.empId}`);
             } else {
-              const newLeaveApp = await LeaveApplication.create(leaveRequest)
+              // Create a new leave application
+              const newLeaveApp = await LeaveApplication.create(leaveRequest);
+
+              // If leave is 0 days, set it to 1
               if (GoingToTakeLeave === 0) {
                 GoingToTakeLeave = 1;
               }
+
+              // Update the employee's remaining leave days
               empData.typesOfLeaveRemainingDays = {
                 ...empData.typesOfLeaveRemainingDays,
                 [leaveTypeName]: Number(leaveDaysCount) - GoingToTakeLeave
-              }
-              // Push the leave application ID to the employee's LeaveApplication array
+              };
+
+              // Push the leave application ID to the employee's leave applications array
               empData.leaveApplication.push(newLeaveApp._id);
 
               // Save the updated employee document
               await empData.save();
 
-              res.status(201).send({ message: "Leave Request is send to HR" });
+              return res.status(201).send({ message: "Leave Request has been sent to Higher Authority." });
             }
           }
         }
       } else {
-        res.status(400).send({ message: `${leaveTypeName} is reached limit.` })
+        // If the employee has reached the limit of leave days
+        return res.status(400).send({ message: `${leaveTypeName} leave limit reached.` });
       }
-
     }
 
   } catch (err) {
     console.log(err.message);
-
-    res.status(500).send({
+    return res.status(500).send({
       message: "Internal Server Error",
       details: err.message
     });
   }
 });
+
 
 
 leaveApp.put("/:id", verifyHREmployee, async (req, res) => {
@@ -350,8 +397,6 @@ leaveApp.put("/:id", verifyHREmployee, async (req, res) => {
 
 leaveApp.delete("/:empId/:leaveId", verifyEmployee, async (req, res) => {
   try {
-    // console.log(req.params.empId, req.params.leaveId);
-
     const emp = await Employee.findById(req.params.empId);
     if (!emp) {
       res.status(404).send({ message: "Employee not found in this ID" })

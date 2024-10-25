@@ -1,34 +1,28 @@
 import React, { useEffect, useState } from "react";
-
-import axios from "axios";
+import { DateRangePicker } from "rsuite";
 import LeaveTable from "../LeaveTable";
 import NoDataFound from "./NoDataFound";
 import { toast } from "react-toastify";
+import { fetchPayslipFromEmp } from "../ReuseableAPI";
+import Loading from "../Loader";
 
 const Payslip = (props) => {
-    const url = process.env.REACT_APP_API_URL;
-    const token = localStorage.getItem("token");
+    const empId = localStorage.getItem("_id")
     const [payslips, setPayslips] = useState([]);
+    const [daterangeValue, setDaterangeValue] = useState("");
 
     useEffect(() => {
         async function fetchPayslips() {
             try {
-                const slips = await axios.get(`${url}/api/payslip`, {
-                    headers: {
-                        authorization: token || ""
-                    }
-                });
-                console.log(slips.data);
-                setPayslips(slips.data);
+                const slips = await fetchPayslipFromEmp(empId);
+                setPayslips(slips);
             } catch (err) {
-                console.error(err);
                 toast.error(err?.response?.data?.error)
             }
-
         }
 
         fetchPayslips();
-    }, [])
+    }, [empId])
     return (
         <div>
 
@@ -37,10 +31,7 @@ const Payslip = (props) => {
                     Payslip
                 </div>
                 <div>
-                    <input
-                        type="date"
-                        className="dateInput"
-                    />
+                    <DateRangePicker size="md" showOneCalendar placement="bottomEnd" value={daterangeValue} placeholder="Select Date" onChange={setDaterangeValue} />
                 </div>
             </div>
 
@@ -49,7 +40,7 @@ const Payslip = (props) => {
                     <div className="leaveData">
                         <div className="d-flex flex-column">
                             <div className="leaveDays">
-                                2
+                                {payslips?.length}
                             </div>
                             <div className="leaveDaysDesc">
                                 Total Payslip
@@ -82,10 +73,10 @@ const Payslip = (props) => {
 
             {/* <div className="container-fluid my-3"> */}
             {
-                payslips.length > 0 ? 
-                <LeaveTable data={payslips} />
-                : payslips.length === 0 ? <NoDataFound message={"Slip data not found"} />
-                : null 
+                payslips.length > 0 ?
+                    <LeaveTable data={payslips} />
+                    : !payslips ? <NoDataFound message={"Slip data not found"} />
+                        : <Loading />
             }
             {/* </div> */}
         </div>

@@ -3,6 +3,7 @@ const router = express.Router();
 const { Employee, EmployeeValidation } = require('../models/EmpModel');
 const { verifyHR, verifyHREmployee, verifyAdminHREmployee, verifyAdminHR } = require('../auth/authMiddleware');
 const { getDayDifference } = require('./leave-app');
+const { PaySlipInfo } = require('../models/PaySlipInfoModel');
 
 router.get("/", verifyAdminHR, async (req, res) => {
   try {
@@ -23,6 +24,47 @@ router.get("/", verifyAdminHR, async (req, res) => {
       .populate({
         path: "role"
       })
+      .populate({
+        path: 'teamLead',
+        select: "_id FirstName LastName",
+        populate: {
+            path: "department"
+        }
+    })
+    res.send(employees)
+  } catch (err) {
+    console.log(err);
+    res.status(500).send({ message: "Internal server error", details: err.details })
+  }
+
+});
+
+router.get("/all", verifyAdminHR, async (req, res) => {
+  try {
+    const employees = await Employee.find({},"_id FirstName LastName employmentType dateOfJoining gender working code docType serialNo")
+      .populate({
+        path: "company",
+        select: "_id CompanyName Town"
+      })
+      .populate({
+        path: "position"
+      })
+      .populate({
+        path: "department"
+      })
+      .populate({
+        path: "workingTimePattern",
+      })
+      .populate({
+        path: "role"
+      })
+      .populate({
+        path: 'teamLead',
+        select: "_id FirstName LastName",
+        populate: {
+            path: "department"
+        }
+    })
     res.send(employees)
   } catch (err) {
     console.log(err);
@@ -100,32 +142,99 @@ router.get('/:id', verifyAdminHREmployee, async (req, res) => {
 
 router.post("/", verifyHR, async (req, res) => {
   try {
-    const emailId = await Employee.find({ Email: req.body.Email });
-    const phoneNo = await Employee.find({ phone: req.body.phone });
-    if (emailId.length > 0) {
-      res.status(400).send({ message: "Email is already Exist" })
-    } else if (phoneNo.length > 0) {
-      res.status(400).send({ message: "Phone is already Exist" })
-    } else {
-      const emp = await Employee.create(req.body);
-      res.status(201).send({ message: "Employee Details Saved Successfully!" });
+    // Check if email or phone number already exists
+    const emailExists = await Employee.exists({ Email: req.body.Email });
+    const phoneExists = await Employee.exists({ phone: req.body.phone });
+
+    if (emailExists) {
+      return res.status(400).send({ message: "Email already exists" });
     }
+
+    if (phoneExists) {
+      return res.status(400).send({ message: "Phone number already exists" });
+    }
+
+    // Fetch payslip data
+    const payslipData = await PaySlipInfo.findOne().exec();
+
+    if (!payslipData) {
+      return res.status(400).send({ message: "Payslip data not found" });
+    }
+
+    // Initialize object to hold calculated values
+    let payslipFields = {};
+
+    // Calculate values based on payslip fields
+    payslipData.payslipFields.forEach((data) => {
+      let calculatedValue = 0;
+      const basicSalary = Number(req.body.basicSalary);
+
+      switch (data.fieldName) {
+        case "incomeTax":
+          if (basicSalary >= 84000) {
+            calculatedValue = (30 / 100) * basicSalary; // 30% tax for >= 84,000
+          } else if (basicSalary > 42000) {
+            calculatedValue = (20 / 100) * basicSalary; // 20% tax for > 42,000
+          } else if (basicSalary >= 25000) {
+            calculatedValue = (5 / 100) * basicSalary;  // 5% tax for 25,001 to 42,000
+          }
+          break;
+        case "houseRentAllowance":
+        case "conveyanceAllowance":
+        case "othersAllowance":
+        case "bonusAllowance":
+          calculatedValue = (data.value / 100) * basicSalary;  // Percent of basic salary
+          break;
+        case "ProvidentFund":
+          if (basicSalary > 15000) {
+            calculatedValue = (12 / 100) * basicSalary;  // 12% of basic salary
+          }
+          break;
+        case "Professional Tax":
+          if (basicSalary > 21000) {
+            calculatedValue = 130;  // Fixed professional tax amount
+          }
+          break;
+        case "ESI":
+          if (basicSalary > 21000) {
+            calculatedValue = (0.75 / 100) * basicSalary;  // 0.75% of basic salary
+          }
+          break;
+        default:
+          calculatedValue = 0;  // Default value for unhandled fields
+      }
+
+      // Store calculated value for the field
+      payslipFields[data.fieldName] = calculatedValue;
+    });
+
+    // Create employee with the request body and calculated fields
+    const employeeData = {
+      ...req.body,
+      payslipFields
+    };
+
+    // Save the employee data
+    const employee = await Employee.create(employeeData);
+
+    // Return success response
+    res.status(201).send({ message: "Employee Details Saved Successfully!", employee });
   } catch (err) {
     console.error("Error:", err);  // Log the error for debugging
 
     if (err.isJoi) {
-      res.status(400).send({ error: "Validation Error", message: err.details });
-    } else if (err.status === 404) {
-      res.status(404).send({ error: "Not Found", message: err.message });
-    } else if (err.status === 500) {
-      res.status(500).send({ error: "Internal Server Error", message: "An internal server error occurred." });
-    } else {
-      // General error handling
-      res.status(500).send({ error: "Unknown Error", message: err.message || "An unknown error occurred." });
+      return res.status(400).send({ error: "Validation Error", message: err.details });
     }
+
+    // Handle known error statuses
+    if (err.status === 404) {
+      return res.status(404).send({ error: "Not Found", message: err.message });
+    }
+
+    // Default internal server error
+    return res.status(500).send({ error: "Internal Server Error", message: "An internal server error occurred." });
   }
 });
-
 
 router.put("/:id", verifyHR, async (req, res) => {
   try {

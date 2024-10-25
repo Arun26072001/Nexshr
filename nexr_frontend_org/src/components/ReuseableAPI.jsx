@@ -1,18 +1,19 @@
 import axios from 'axios';
 import { toast } from 'react-toastify';
 const url = process.env.REACT_APP_API_URL;
-const empId = localStorage.getItem('_id') || "";
+const empId = localStorage.getItem('_id');
 const token = localStorage.getItem('token');
 
 const updateDataAPI = async (body) => {
-    const clockinsId = localStorage.getItem('clockinsId') || "";
-
+    console.log(body);
+    
     try {
-        if (clockinsId) {
-            const response = await axios.put(`${url}/api/clock-ins/${clockinsId}`, body, {
+        if (body._id) {
+            const response = await axios.put(`${url}/api/clock-ins/${body._id}`, body, {
                 headers: { authorization: token || '' },
             });
             console.log('Updated successfully:', response.data);
+            return response.data;
         } else {
             toast.error("You did't Login properly!")
         }
@@ -36,14 +37,14 @@ async function getTotalWorkingHourPerDay(start, end) {
 const getDataAPI = async (id) => {
     try {
         const response = await axios.get(`${url}/api/clock-ins/${id}`, {
+            params: { date: new Date() },
             headers: { authorization: token || '' },
         });
 
         const data = response.data;
-        data.timeData.meeting.takenTime = 0; // Do this before setting the state to avoid mutation
         return data;
     } catch (error) {
-        console.error('Fetch error:', error);
+        return error?.response?.data?.message;
     }
 };
 
@@ -52,19 +53,21 @@ const addDataAPI = async (body) => {
         const response = await axios.post(`${url}/api/clock-ins/${empId}`, body, {
             headers: { authorization: token || '' },
         });
-        localStorage.setItem('clockinsId', response.data._id);
+        // localStorage.setItem('clockinsId', response.data._id);
         console.log('Added successfully:', response.data);
-        return response?.data?.punchInMsg;
+        return response?.data;
     } catch (error) {
-        toast.error(`Data not added: ${error.message}`);
+        return error?.response?.data?.message;
     }
 };
 
 function removeClockinsData() {
-    localStorage.removeItem('countdownEndTime');
     localStorage.removeItem('timeOption');
-    localStorage.removeItem('isPaused');
     localStorage.removeItem('clockinsId');
+    localStorage.removeItem('loginTimer');
+    localStorage.removeItem("activityTimer");
+    localStorage.removeItem("isStartActivity");
+    localStorage.removeItem("isStartLogin");
 }
 
 const fetchEmpLeaveRequests = async () => {
@@ -151,6 +154,24 @@ const fetchEmployees = async () => {
     }
 }
 
+const fetchAllEmployees = async () => {
+    try {
+        const res = await axios.get(`${url}/api/employee/all`, {
+            headers: {
+                authorization: token || ""
+            }
+        });
+        return res.data;
+    } catch (err) {
+        console.log(err);
+        if (err.response && err.response.data && err.response.data.message) {
+            return err.response.data.message;
+        } else {
+            return err;
+        }
+    }
+}
+
 const gettingClockinsData = async (empId) => {
     try {
         const dashboard = await axios.get(`${url}/api/clock-ins/employee/${empId}`, {
@@ -191,10 +212,59 @@ const fetchWorkplace = async () => {
     }
 };
 
+const fetchPayslipInfo = async () => {
+    try {
+        const payslipInfo = await axios.get(`${url}/api/payslip-info`, {
+            headers: {
+                authorization: token || ""
+            }
+        });
+        return payslipInfo.data;
+    } catch (err) {
+        return err;
+    }
+}
+
+const fetchPayslipFromEmp = async (empId) => {
+    try {
+        const payslip = await axios.get(`${url}/api/payslip/emp/${empId}`);
+        return payslip.data;
+    } catch (error) {
+        return error?.response?.data?.message
+    }
+}
+
+const fetchPayslip = async (id) => {
+    try {
+        const payslip = await axios.get(`${url}/api/payslip/${id}`);
+        return payslip.data;
+    } catch (error) {
+        return error?.response?.data?.message
+    }
+}
+
+const getDepartments = async () => {
+    try {
+        const departments = await axios.get(url + "/api/department", {
+            headers: {
+                authorization: token || ""
+            }
+        });
+        return departments.data;
+    } catch (error) {
+        return error?.response?.data?.message
+    }
+}
+
+
 export {
     addDataAPI,
     getDataAPI,
+    getDepartments,
     updateDataAPI,
+    fetchPayslipFromEmp,
+    fetchPayslipInfo,
+    fetchPayslip,
     removeClockinsData,
     fetchLeaveRequests,
     deleteLeave,
@@ -203,6 +273,7 @@ export {
     fetchEmpLeaveRequests,
     getTotalWorkingHourPerDay,
     gettingClockinsData,
+    fetchAllEmployees,
     formatTime,
     fetchWorkplace
 };

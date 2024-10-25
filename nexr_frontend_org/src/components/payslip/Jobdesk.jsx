@@ -14,21 +14,24 @@ import { Route, Routes } from "react-router-dom";
 import PayslipRouter from "./PayslipRouter";
 
 
-const JobDesk = ({whoIs}) => {
+const JobDesk = () => {
+    const jobDeskFiles = [
+        'attendance','leave', "folder", "history",
+        'salary','payslip', 'contact', 'social', 
+        'assets','address'
+    ];
 
     return (
 
         <Routes >
-            <Route path="/" element={<PayslipRouter whoIs={whoIs} />}>
-                <Route index element={<Attendence />} />
+            <Route path="/" element={<PayslipRouter files={jobDeskFiles} />}>
+                <Route index path="attendance" element={<Attendence />} />
                 <Route path="leave" element={<Leave />} />
                 <Route path="folder" element={<Folder />} />
                 <Route path="history" element={<History />} />
                 <Route path="salary" element={<Salary />} />
-                <Route path="payrun" element={<Payrun />} />
                 <Route path="payslip" element={<Payslip />} />
                 <Route path="contact" element={<Contact />} />
-                <Route path="salary" element={<Salary />} />
                 <Route path="social" element={<Social />} />
                 <Route path="assets" element={<Assets />} />
                 <Route path="address" element={<Address />} />

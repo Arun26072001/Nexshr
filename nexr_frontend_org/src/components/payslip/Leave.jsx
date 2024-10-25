@@ -1,16 +1,18 @@
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import "./dashboard.css";
 import LeaveTable from "../LeaveTable";
-import { fetchEmpLeaveRequests, fetchLeaveRequests } from "../ReuseableAPI";
 import { DateRangePicker } from "rsuite";
 import 'rsuite/dist/rsuite.min.css';
 import axios from "axios";
 import { toast } from "react-toastify";
 import Loading from "../Loader";
 import NoDataFound from "./NoDataFound";
+import { useNavigate } from "react-router-dom";
+import { TimerStates } from "./HRMDashboard";
 
 const Leave = () => {
-    const Account = localStorage.getItem("Account");
+    const navigate = useNavigate();
+    const {whoIs} = useContext(TimerStates);
     const empId = localStorage.getItem("_id");
     const [leaveRequests, setLeaveRequests] = useState({});
     const [fullLeaveRequests, setFullLeaveRequests] = useState([]);
@@ -31,6 +33,7 @@ const Leave = () => {
     useEffect(() => {
         const getLeaveData = async () => {
             try {
+
                 const leaveData = await axios.get(`${url}/api/leave-application/date-range/${empId}`, {
                     params: {
                         daterangeValue
@@ -39,14 +42,13 @@ const Leave = () => {
                         authorization: token || ""
                     }
                 })
-                
                 setLeaveRequests(leaveData.data);
                 setFullLeaveRequests(leaveData.data.leaveData);
             } catch (err) {
                 toast.error(err?.response?.data?.message)
             }
         }
-// 
+        // 
         getLeaveData();
     }, [daterangeValue, empId])
 
@@ -81,12 +83,15 @@ const Leave = () => {
     return (
         <div >
             {/* top date input and leave label */}
-            <div className="leaveDateParent">
-                <div className="payslipTitle">
+            <div className="leaveDateParent row">
+                <div className="payslipTitle col-6">
                     Leave
                 </div>
-                <div>
-                    <DateRangePicker size="md" showOneCalendar placement="bottomEnd" value={daterangeValue} placeholder="Select Date" onChange={setDaterangeValue} />
+                <div className="col-6 d-flex justify-content-between">
+                        <button className="button m-0" onClick={()=>navigate(`/${whoIs}/leave-request`)}>
+                            Add Leave
+                        </button>
+                    <DateRangePicker size="md" className="ml-1" showOneCalendar placement="bottomEnd" value={daterangeValue} placeholder="Select Date" onChange={setDaterangeValue} />
                 </div>
             </div>
 
@@ -136,7 +141,7 @@ const Leave = () => {
                 {
                     leaveRequests?.leaveData?.length > 0 ?
                         <LeaveTable data={leaveRequests.leaveData} />
-                        : empName !== "" ?
+                        : leaveRequests?.leaveData?.length === 0 ?
                             <NoDataFound message={"No Leave request for this employee Name"} />
                             : <Loading />
                 }

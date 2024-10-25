@@ -1,29 +1,33 @@
-import React, { useEffect, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import EmailOutlinedIcon from '@mui/icons-material/EmailOutlined';
 import { toast } from 'react-toastify';
 import "./dashboard.css";
 import LeaveTable from '../LeaveTable';
 import { fetchEmployees } from '../ReuseableAPI';
 import Loading from '../Loader';
-import { NavLink } from 'react-router-dom';
+import {useNavigate } from 'react-router-dom';
+import NoDataFound from './NoDataFound';
+import { TimerStates } from './HRMDashboard';
 
-export default function Employee({whoIs}) {
+export default function Employee() {
+    const {whoIs} = useContext(TimerStates);
     const [employees, setEmployees] = useState([]);
     const [empName, setEmpName] = useState("");
     const [allEmployees, setAllEmployees] = useState([]);
+    const [isLoading, setIsLoading] = useState(false);
+    const navigate = useNavigate();
 
     useEffect(() => {
         const fetchEmployeeData = async () => {
+            setIsLoading(true);
             try {
                 const empData = await fetchEmployees();
-                if (empData.length > 0) {
-                    setEmployees(empData);
-                    setAllEmployees(empData);
-                } else {
-                    toast.error("No employee data available.");
-                }
+                setEmployees(empData);
+                setAllEmployees(empData);
+                setIsLoading(false);
             } catch (error) {
                 toast.error("Failed to fetch employees");
+                setIsLoading(false);
             }
         };
 
@@ -59,10 +63,8 @@ export default function Employee({whoIs}) {
                 </div>
 
                 <div className='d-flex' style={{ gap: "10px" }}>
-                    <div className="button">
-                        <NavLink to={`/${whoIs}/employee/add`} className="text-light">
-                            + Add Employee
-                        </NavLink>
+                    <div className="button" onClick={() => navigate(`/${whoIs}/employee/add`)}>
+                        + Add Employee
                     </div>
                     <div className="button bg-light text-dark">
                         <EmailOutlinedIcon /> Invite
@@ -79,13 +81,11 @@ export default function Employee({whoIs}) {
                     </div>
                 </div>
 
-                {employees.length > 0 ? (
-                    <LeaveTable data={employees} />
-                ) : empName !== "" ? (
-                    <div className="text-center text-danger">No employees with this Name</div>
-                ) : (
-                    <Loading />
-                )}
+                {
+                    isLoading ? <Loading />
+                        : employees.length > 0 ? <LeaveTable data={employees} />
+                            : <NoDataFound message={"Employee data not found!"} />
+                }
             </div>
         </>
     )
