@@ -1,34 +1,33 @@
 import React, { useContext, useEffect, useState } from 'react';
 import './dashboard.css';
 import { fetchEmployeeData, formatTime, getDataAPI, gettingClockinsData, getTotalWorkingHourPerDay } from '../ReuseableAPI';
-import ClockIns from '../ClockIns';
+import ActivityTimeTracker from '../ActivityTimeTracker';
 import NexHRDashboard from '../NexHRDashboard';
 import Loading from '../Loader';
 import { EssentialValues } from '../../App';
 import { toast } from 'react-toastify';
 import NoDataFound from './NoDataFound';
+import Home from '../Home';
+import { TimerStates } from './HRMDashboard';
 
 const Dashboard = () => {
+    const {updateClockins} = useContext(TimerStates)
+    const account = localStorage.getItem("Account");
     const { handleLogout } = useContext(EssentialValues);
     const empId = localStorage.getItem("_id");
-    const token = localStorage.getItem("token");
     const [leaveData, setLeaveData] = useState({});
-    const [checkClockins, setCheckClockins] = useState(false);
-    const clockinsId = localStorage.getItem("clockinsId");
     const [isLoading, setIsLoading] = useState(false);
     const [dailyLogindata, setDailyLoginData] = useState({})
     const [monthlyLoginData, setMonthlyLoginData] = useState({});
     const [workedTime, setWorkedTime] = useState("00:00");
     const [balanceTime, setBalanceTime] = useState("00:00");
 
-    function updateClockins() {
-        setCheckClockins(!checkClockins);
-    }
     const gettingEmpdata = async () => {
         try {
             if (empId) {
                 setIsLoading(true);
                 const data = await fetchEmployeeData(empId);
+                
                 if (data) {
                     const workingHour = await getTotalWorkingHourPerDay(data.workingTimePattern.StartingTime, data.workingTimePattern.FinishingTime);
 
@@ -46,9 +45,9 @@ const Dashboard = () => {
                         totalWorkedHourPercentage
                     });
                     setIsLoading(false);
-                    // Check if `clockinsId` is available and fetch clock-in data
-                    if (clockinsId) {
-                        const clockinsData = await getDataAPI(clockinsId);
+                    // Check if `empId` is available and fetch clock-in data
+                    if (empId) {
+                        const clockinsData = await getDataAPI(empId);
                         setDailyLoginData(clockinsData);
                     } else {
                         console.log("No clockins ID");
@@ -68,14 +67,13 @@ const Dashboard = () => {
         }
     }
 
-
     useEffect(() => {
         gettingEmpdata();
     }, [empId]);
-
+    
     return (
         <div className='dashboard-parent'>
-            <ClockIns leaveData={leaveData} handleLogout={handleLogout} updateClockins={updateClockins} />
+            <ActivityTimeTracker leaveData={leaveData} handleLogout={handleLogout} updateClockins={updateClockins} />
             {
                 isLoading ? <Loading /> :
                     leaveData && leaveData.annualLeaveEntitlement && monthlyLoginData && leaveData && dailyLogindata ? (
@@ -180,8 +178,13 @@ const Dashboard = () => {
                                     </div>
                                 </div>
                             </div>
-
-                            <NexHRDashboard updateClockins={updateClockins} />
+                            <>
+                                {
+                                    account === '1' || account === '3' ?
+                                        <Home updateClockins={updateClockins} /> : null
+                                }
+                                <NexHRDashboard updateClockins={updateClockins} />
+                            </>
                         </>
                     ) : <NoDataFound message={"leave data not found!"} />
             }

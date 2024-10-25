@@ -1,15 +1,17 @@
-import React, { useState } from 'react';
+import React from 'react';
 import ReactApexChart from 'react-apexcharts';
 
 const ApexChart = ({ activitiesData }) => {
+  // if error in hidden or undefined, pls check series of value
+  
   const chartData = {
-    series: activitiesData.map((data) => data.timeCalMins),
+    series: activitiesData?.map((data) => data?.timeCalMins),
     options: {
       chart: {
         width: 350,
         type: 'pie',
       },
-      labels: activitiesData.map((data) => data.activity).map(label => `${label} (min)`),
+      labels: activitiesData?.map((data) => data?.activity).map(label => `${label} (min)`),
       tooltip: {
         y: {
           formatter: function (val) {
@@ -40,7 +42,7 @@ const ApexChart = ({ activitiesData }) => {
   return (
     <div className='d-flex justify-content-center'>
       <div id="chart">
-        <ReactApexChart options={chartData.options} series={chartData.series} type='pie' width={350} />
+        <ReactApexChart options={chartData?.options} series={chartData?.series} type='pie' width={350} />
       </div>
       <div id="html-dist"></div>
     </div>

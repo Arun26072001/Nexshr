@@ -24,6 +24,47 @@ router.get("/", verifyAdminHR, async (req, res) => {
       .populate({
         path: "role"
       })
+      .populate({
+        path: 'teamLead',
+        select: "_id FirstName LastName",
+        populate: {
+            path: "department"
+        }
+    })
+    res.send(employees)
+  } catch (err) {
+    console.log(err);
+    res.status(500).send({ message: "Internal server error", details: err.details })
+  }
+
+});
+
+router.get("/all", verifyAdminHR, async (req, res) => {
+  try {
+    const employees = await Employee.find({},"_id FirstName LastName employmentType dateOfJoining gender working code docType serialNo")
+      .populate({
+        path: "company",
+        select: "_id CompanyName Town"
+      })
+      .populate({
+        path: "position"
+      })
+      .populate({
+        path: "department"
+      })
+      .populate({
+        path: "workingTimePattern",
+      })
+      .populate({
+        path: "role"
+      })
+      .populate({
+        path: 'teamLead',
+        select: "_id FirstName LastName",
+        populate: {
+            path: "department"
+        }
+    })
     res.send(employees)
   } catch (err) {
     console.log(err);

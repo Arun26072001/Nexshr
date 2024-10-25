@@ -123,7 +123,7 @@ app.use("/api/Leave-type", leaveType)
 //use leave application emp router
 app.use('/api/leave-application', leaveApp)
 //use project-bid router
-app.use('/api/admin/project-bid', project)
+app.use('/api/project', project)
 //use timepattern router
 app.use('/api/time-pattern', timePattern);
 //use attendance router

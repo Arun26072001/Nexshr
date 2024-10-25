@@ -1,11 +1,13 @@
-import React, { useEffect, useState } from 'react'
+import React, { useContext, useEffect, useState } from 'react'
 import DefinitionToggle from '../Settings/DefinitionToggle';
 import { MultiCascader } from 'rsuite';
 import { NavLink } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { getDepartments } from '../ReuseableAPI';
+import { TimerStates } from './HRMDashboard';
 
-export default function PayrollManage({ whoIs }) {
+export default function PayrollManage() {
+    const {whoIs} = useContext(TimerStates);
     const [isShowInstructions, setShowInstruction] = useState(true);
     const [departments, setDepartments] = useState([]);
     function handleShowNotification() {

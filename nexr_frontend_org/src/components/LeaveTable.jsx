@@ -15,6 +15,7 @@ import { Dropdown } from 'rsuite';
 import DropdownItem from 'rsuite/esm/Dropdown/DropdownItem';
 import ViewAttendanceModel from './ViewAttendanceModel';
 import { toast } from 'react-toastify';
+import { Checkbox } from "rsuite";
 
 export default function LeaveTable({ data }) {
     const [page, setPage] = useState(0);
@@ -122,6 +123,12 @@ export default function LeaveTable({ data }) {
             minWidth: 170,
             align: 'center',
             getter: (row) => row.role.map(item => item.RoleName) || 'N/A'
+        },
+        {
+            id: "Action",
+            label: "Action",
+            minWidth: 100,
+            align: "center"
         }
     ];
 
@@ -209,6 +216,69 @@ export default function LeaveTable({ data }) {
         }
     ]
 
+    const column6 = [
+        {
+            id: 'sNo',
+            label: 'S.No',
+            minWidth: 50,
+            align: 'center',
+            getter: (row) => row.sNo // Generates the serial number (S.No)
+        },
+        {
+            id: 'action',
+            label: 'Actions',
+            minWidth: 120,
+            align: 'center',
+            getter: (row) => row?.action
+        },
+        {
+            id: 'view',
+            label: 'View',
+            minWidth: 100,
+            align: 'center',
+            getter: (row) => (
+                <Checkbox />
+            )
+        },
+        {
+            id: 'edit',
+            label: 'Edit',
+            minWidth: 100,
+            align: 'center',
+            getter: (row) => (
+                <Checkbox />
+            )
+        },
+        {
+            id: 'delete',
+            label: 'Delete',
+            minWidth: 100,
+            align: 'center',
+            getter: (row) => (
+                <Checkbox />
+            )
+        },
+        {
+            id: 'update',
+            label: 'Update',
+            minWidth: 100,
+            align: 'center',
+            getter: (row) => (
+                <Checkbox />
+            )
+        },
+        {
+            id: 'all',
+            label: 'All',
+            minWidth: 130,
+            align: 'center',
+            getter: (row) => (
+                <Checkbox />
+            )
+        }
+    ];
+
+
     function toggleView() {
         setOpenModal(!openModal);
     }
@@ -249,7 +319,7 @@ export default function LeaveTable({ data }) {
         }
     }
 
-console.log(params['*']);
+    console.log(params['*']);
 
     useEffect(() => {
         setRows(data || []);
@@ -266,6 +336,8 @@ console.log(params['*']);
                 return setColumns(column5);
             } else if (item.date) {
                 return setColumns(column4);
+            } else if (item.action) {
+                return setColumns(column6);
             }
             else {
                 return setColumns(column2)
@@ -311,7 +383,11 @@ console.log(params['*']);
                                                             <Dropdown title={<RemoveRedEyeRoundedIcon style={{ cursor: "pointer" }} />} noCaret onClick={() => getValueForView([row._id, params['*']])}>
                                                                 {/* <DropdownItem onClick={() => getValueForView([row._id, params['*']])}>View</DropdownItem> */}
                                                             </Dropdown>
-                                                            : value
+                                                            : column.id === "Action" && params['*'] === "employee" ?
+                                                                <Dropdown title={<EditRoundedIcon style={{ cursor: "pointer" }} />} noCaret>
+                                                                    <DropdownItem >Edit</DropdownItem>
+                                                                    <DropdownItem >Delete</DropdownItem>
+                                                                </Dropdown> : value
                                                     }
                                                 </TableCell>
                                             );

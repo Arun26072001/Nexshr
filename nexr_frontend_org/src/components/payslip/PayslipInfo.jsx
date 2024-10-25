@@ -2,7 +2,6 @@ import axios from 'axios';
 import React, { useEffect, useState } from 'react'
 import { toast } from 'react-toastify';
 import { fetchPayslipInfo } from '../ReuseableAPI';
-import PayslipUI from './PayslipUI';
 
 export default function PayslipInfo() {
     const url = process.env.REACT_APP_API_URL;

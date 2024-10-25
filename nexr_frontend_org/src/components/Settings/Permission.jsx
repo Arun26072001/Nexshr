@@ -5,7 +5,7 @@ import './SettingsStyle.css';
 import axios from 'axios';
 import Loading from '../Loader';
 import { Input, InputGroup } from 'rsuite';
-import { fetchEmployees } from '../ReuseableAPI';
+import { fetchAllEmployees } from '../ReuseableAPI';
 import { toast } from 'react-toastify';
 
 
@@ -20,8 +20,7 @@ const Permission = () => {
     useEffect(() => {
         const getEmployees = async () => {
             try {
-                const emps = await fetchEmployees();
-
+                const emps = await fetchAllEmployees();
                 setEmployees(emps);
                 setFullemployees(emps);
             } catch (err) {
@@ -56,6 +55,8 @@ const Permission = () => {
             setEmployees(fullEmployees.filter((emp) => emp.FirstName.includes(e)));
         }
     }
+    console.log(employees);
+
     return (
         <div className="container">
             <h4>Permissions</h4>
@@ -96,16 +97,20 @@ const Permission = () => {
                                 </td>
                                 <td>
                                     <select name="" id="" className="form-control">
+                                        <option value={emp?.role[0]?._id} >{emp?.role[0]?.RoleName}</option>
                                         {roles.map((role) => (
                                             <option key={role._id} value={role._id}> {/* Added key */}
                                                 {role.RoleName}
                                             </option>
                                         ))}
                                     </select>
+                                    <div className='d-flex justify-content-center align-items-center'>
+                                        <button className='button m-0'>Edit accessing Permissions</button>
+                                    </div>
                                 </td>
                                 <td>
                                     <div className='td-parent gap-2'>
-                                        <input type="checkbox" className="styleRadio" name="" id="" />
+                                        <input type="checkbox" className="styleRadio" />
                                         Payroll
                                     </div>
                                 </td>

@@ -2,15 +2,11 @@ const express = require('express');
 const router = express.Router();
 const {Role, RoleValidation} = require('../models/RoleModel');
 const Employee = require('../models/EmpModel');
-const jwt = require('jsonwebtoken');
 const Joi = require('joi');
 const { verifyAdminHR } = require('../auth/authMiddleware');
 
-
 // Replace with your JWT key
 const jwtKey = process.env.ACCCESS_SECRET_KEY ;
-
-
 
 // Get all roles
 router.get('/', verifyAdminHR, (req, res) => {
@@ -33,12 +29,12 @@ router.post('/', verifyAdminHR,(req, res) => {
 
     const newRole = {
       RoleName: req.body.RoleName,
-      company: req.body.CompanyID,
+      company: req.body.company,
     };
 
     Role.create(newRole, (err, role) => {
       if (err) {
-        return res.status(500).send('Error in create the role');
+        return res.status(500).send({message: err.message});
       }else {
         res.send("role has been added!")
       }

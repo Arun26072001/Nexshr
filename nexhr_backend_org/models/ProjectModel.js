@@ -23,10 +23,6 @@ var projectSchema = new mongoose.Schema({
     /////////////****************** */
     portals: [{ type: mongoose.Schema.Types.ObjectId, ref: "Portal" }]
   });
-  projectSchema.plugin(autoIncrement.plugin, {
-    model: "Project",
-    field: "ID"
-  });
   
   var Project = mongoose.model("Project", projectSchema);
   
