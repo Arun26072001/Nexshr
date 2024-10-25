@@ -123,6 +123,12 @@ export default function LeaveTable({ data }) {
             minWidth: 170,
             align: 'center',
             getter: (row) => row.role.map(item => item.RoleName) || 'N/A'
+        },
+        {
+            id: "Action",
+            label: "Action",
+            minWidth: 100,
+            align: "center"
         }
     ];
 
@@ -377,7 +383,11 @@ export default function LeaveTable({ data }) {
                                                             <Dropdown title={<RemoveRedEyeRoundedIcon style={{ cursor: "pointer" }} />} noCaret onClick={() => getValueForView([row._id, params['*']])}>
                                                                 {/* <DropdownItem onClick={() => getValueForView([row._id, params['*']])}>View</DropdownItem> */}
                                                             </Dropdown>
-                                                            : value
+                                                            : column.id === "Action" && params['*'] === "employee" ?
+                                                                <Dropdown title={<EditRoundedIcon style={{ cursor: "pointer" }} />} noCaret>
+                                                                    <DropdownItem >Edit</DropdownItem>
+                                                                    <DropdownItem >Delete</DropdownItem>
+                                                                </Dropdown> : value
                                                     }
                                                 </TableCell>
                                             );
