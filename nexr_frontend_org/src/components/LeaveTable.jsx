@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import Paper from '@mui/material/Paper';
 import Table from '@mui/material/Table';
 import TableBody from '@mui/material/TableBody';
@@ -7,7 +7,7 @@ import TableContainer from '@mui/material/TableContainer';
 import TableHead from '@mui/material/TableHead';
 import TablePagination from '@mui/material/TablePagination';
 import TableRow from '@mui/material/TableRow';
-import { fetchPayslip, getDataAPI, getTotalWorkingHourPerDay } from './ReuseableAPI';
+import { fetchPayslip, getclockinsDataById, getDataAPI, getTotalWorkingHourPerDay } from './ReuseableAPI';
 import EditRoundedIcon from '@mui/icons-material/EditRounded';
 import RemoveRedEyeRoundedIcon from '@mui/icons-material/RemoveRedEyeRounded';
 import { useParams } from 'react-router-dom';
@@ -16,8 +16,10 @@ import DropdownItem from 'rsuite/esm/Dropdown/DropdownItem';
 import ViewAttendanceModel from './ViewAttendanceModel';
 import { toast } from 'react-toastify';
 import { Checkbox } from "rsuite";
+import { TimerStates } from './payslip/HRMDashboard';
 
 export default function LeaveTable({ data }) {
+    const { changeEmpEditForm } = useContext(TimerStates)
     const [page, setPage] = useState(0);
     const [rowsPerPage, setRowsPerPage] = useState(10);
     const [rows, setRows] = useState([]);
@@ -26,7 +28,6 @@ export default function LeaveTable({ data }) {
     const [openModal, setOpenModal] = useState(false);
     const [modelData, setModelData] = useState({});
     const params = useParams();
-
 
     const handleChangePage = (event, newPage) => {
         setPage(newPage);
@@ -289,7 +290,9 @@ export default function LeaveTable({ data }) {
         if (page === 'daily-log') {
             async function fetchAttendanceData() {
                 try {
-                    const data = await getDataAPI(id)
+                    const data = await getclockinsDataById(id);
+                    console.log(data);
+
                     setModelData({
                         ...data.timeData,
                         title: "Attendance Details"
@@ -319,7 +322,6 @@ export default function LeaveTable({ data }) {
         }
     }
 
-    console.log(params['*']);
 
     useEffect(() => {
         setRows(data || []);
@@ -385,7 +387,7 @@ export default function LeaveTable({ data }) {
                                                             </Dropdown>
                                                             : column.id === "Action" && params['*'] === "employee" ?
                                                                 <Dropdown title={<EditRoundedIcon style={{ cursor: "pointer" }} />} noCaret>
-                                                                    <DropdownItem >Edit</DropdownItem>
+                                                                    <DropdownItem onClick={changeEmpEditForm} >Edit</DropdownItem>
                                                                     <DropdownItem >Delete</DropdownItem>
                                                                 </Dropdown> : value
                                                     }

@@ -213,6 +213,59 @@ router.get("/:id", verifyAdminHREmployee, async (req, res) => {
     }
 });
 
+router.get("/item/:id", verifyAdminHREmployee, async (req, res) => {
+    const convertToMinutes = (start, end) => {
+        const [endHour, endMin] = end.split(":").map(Number);
+        const [startHour, startMin] = start.split(":").map(Number);
+
+        const startTime = new Date(2000, 0, 1, startHour, startMin);
+        const endTime = new Date(2000, 0, 1, endHour, endMin);
+
+        const diffMs = endTime - startTime; // Difference in milliseconds
+        const diffMinutes = Math.floor(diffMs / (1000 * 60)); // Convert to minutes
+
+        return diffMinutes > 0 ? diffMinutes : 0; // Ensure non-negative value
+    };
+
+    try {
+        const timeData = await ClockIns.findById(req.params.id).populate({path: "employee", select: "_id FirstName LastName"});
+        if (!timeData) {
+            return res.status(404).send({ message: "Not found", details: "Id is not found! Please verify it." });
+        }
+
+        const activities = ["login", "meeting", "morningBreak", "lunch", "eveningBreak", "event"];
+
+        const activitiesData = activities.map((activity) => {
+            const startingTime = timeData[activity]?.startingTime || "00:00";
+            const endingTime = timeData[activity]?.endingTime || "00:00";
+            const timeCalMins = convertToMinutes(startingTime, endingTime);
+
+            return {
+                activity,
+                startingTime,
+                endingTime,
+                timeCalMins
+            };
+        });
+
+        // Sum up the total minutes for all activities
+        const totalEmpWorkingMinutes = activitiesData.reduce((total, activity) => total + activity.timeCalMins, 0);
+
+        // Convert total minutes to hours and minutes format
+        const hours = Math.floor(totalEmpWorkingMinutes / 60);
+        const minutes = totalEmpWorkingMinutes % 60;
+
+        res.send({
+            timeData,
+            activitiesData,
+            empTotalWorkingHours: (hours + minutes) / 60
+        });
+
+    } catch (err) {
+        res.status(500).send({ message: "Internal server error", details: err.message });
+    }
+});
+
 // get login and logout data from employee
 router.get("/employee/:empId", verifyAdminHREmployee, async (req, res) => {
 

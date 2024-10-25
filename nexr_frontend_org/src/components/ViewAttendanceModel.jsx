@@ -8,8 +8,11 @@ import TableRow from '@mui/material/TableRow';
 import Loading from './Loader';
 import "./ParentStyle.css";
 import PayslipUI from './payslip/PayslipUI';
+import { useParams } from 'react-router-dom';
 
 export default function ViewAttendanceModel({ modelData, toggleView, openModal }) {
+    const params = useParams();
+
     const [viewPayslip, setViewPayslip] = useState(false);
     function handleViewPayslip() {
         setViewPayslip(!viewPayslip)
@@ -51,9 +54,12 @@ export default function ViewAttendanceModel({ modelData, toggleView, openModal }
         viewPayslip ? <PayslipUI payslipId={modelData._id} handleViewPayslip={handleViewPayslip} /> : (modelData ? (
             <Dialog open={openModal} onClose={toggleView} className='aa'>
                 <DialogTitle className='text-center'>{modelData?.title}</DialogTitle>
-                <div className="d-flex justify-content-end px-2">
-                    <button className='btn btn-primary' onClick={handleViewPayslip} >View Payslip</button>
-                </div>
+                {
+                    params['*'] === 'payslip' &&
+                    <div className="d-flex justify-content-end px-2">
+                        <button className='btn btn-primary' onClick={handleViewPayslip} >View Payslip</button>
+                    </div>
+                }
                 <DialogContent > {/* Use ref here */}
                     <TableContainer>
                         <Table>
@@ -68,6 +74,5 @@ export default function ViewAttendanceModel({ modelData, toggleView, openModal }
                 </DialogActions>
             </Dialog>
         ) : <Loading />)
-
     );
 }
