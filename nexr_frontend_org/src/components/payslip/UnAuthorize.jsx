@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom'
 
 export default function UnAuthorize() {
     const navigate = useNavigate();
+    console.log("aabb");
+    
     return (
         <div className='h-100 d-block align-content-center text-center  '>
             <h3 className='my-2'>401</h3>

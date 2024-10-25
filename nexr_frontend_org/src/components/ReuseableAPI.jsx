@@ -5,12 +5,15 @@ const empId = localStorage.getItem('_id');
 const token = localStorage.getItem('token');
 
 const updateDataAPI = async (body) => {
+    console.log(body);
+    
     try {
         if (body._id) {
             const response = await axios.put(`${url}/api/clock-ins/${body._id}`, body, {
                 headers: { authorization: token || '' },
             });
             console.log('Updated successfully:', response.data);
+            return response.data;
         } else {
             toast.error("You did't Login properly!")
         }
@@ -39,11 +42,9 @@ const getDataAPI = async (id) => {
         });
 
         const data = response.data;
-        data.timeData.clockIns[0].meeting.takenTime = 0; // Do this before setting the state to avoid mutation
         return data;
     } catch (error) {
-        console.error('Fetch error:', error?.response?.data);
-        return error;
+        return error?.response?.data?.message;
     }
 };
 
@@ -56,15 +57,17 @@ const addDataAPI = async (body) => {
         console.log('Added successfully:', response.data);
         return response?.data;
     } catch (error) {
-        toast.error(`Data not added: ${error.message}`);
+        return error?.response?.data?.message;
     }
 };
 
 function removeClockinsData() {
-    localStorage.removeItem('countdownEndTime');
     localStorage.removeItem('timeOption');
-    localStorage.removeItem('isPaused');
     localStorage.removeItem('clockinsId');
+    localStorage.removeItem('loginTimer');
+    localStorage.removeItem("activityTimer");
+    localStorage.removeItem("isStartActivity");
+    localStorage.removeItem("isStartLogin");
 }
 
 const fetchEmpLeaveRequests = async () => {
@@ -136,6 +139,24 @@ const fetchEmployeeData = async (id) => {
 const fetchEmployees = async () => {
     try {
         const res = await axios.get(`${url}/api/employee`, {
+            headers: {
+                authorization: token || ""
+            }
+        });
+        return res.data;
+    } catch (err) {
+        console.log(err);
+        if (err.response && err.response.data && err.response.data.message) {
+            return err.response.data.message;
+        } else {
+            return err;
+        }
+    }
+}
+
+const fetchAllEmployees = async () => {
+    try {
+        const res = await axios.get(`${url}/api/employee/all`, {
             headers: {
                 authorization: token || ""
             }
@@ -252,6 +273,7 @@ export {
     fetchEmpLeaveRequests,
     getTotalWorkingHourPerDay,
     gettingClockinsData,
+    fetchAllEmployees,
     formatTime,
     fetchWorkplace
 };

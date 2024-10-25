@@ -4,7 +4,7 @@ import { Modal, Button, Input } from 'rsuite';
 import 'rsuite/dist/rsuite.min.css'; // Make sure to import the CSS
 
 const EditModel = ({ team, setTeamName, toggleAddTeam, toggleAssignEmp }) => {
-  
+
   return (
     <Modal open={toggleAddTeam} size={'sm'} backdrop="static">
       <Modal.Header>
@@ -16,7 +16,8 @@ const EditModel = ({ team, setTeamName, toggleAddTeam, toggleAssignEmp }) => {
       <Modal.Body>
         <div className="modelInput">
           <p>Name</p>
-          <Input
+          <input
+            className='form-control'
             type="text"
             name="teamName"
             value={team.teamName}

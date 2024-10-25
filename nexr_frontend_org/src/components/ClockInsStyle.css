@@ -34,10 +34,10 @@
   margin: 2px;
 }
 
-.timer {
+/* .timer {
   font-size: 18px;
   font-weight: 600;
-}
+} */
 
 /* customeDropDown component style */
 
@@ -108,6 +108,11 @@
   font-weight: 500;
   line-height: 18px;
   text-align: left;
+}
+
+.timerTxt {
+  font-size: 17px;
+  font-weight: 700;
 }
 
 .punchBtn {

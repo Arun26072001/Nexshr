@@ -9,53 +9,21 @@ import Navbar from "./payslip/layout/Navbar";
 
 export const WorkTimeTrackerContext = createContext(null);
 
-const Parent = ({ whoIs }) => {
+const Parent = () => {
     const { handleLogout } = useContext(EssentialValues);
     const [isAction, setIsAction] = useState(false);
     const [sideBar, setSideBar] = useState(false);
-    const isPaused = localStorage.getItem("isPaused");
     const currentDate = new Date();
     const today = `${currentDate.getDate()}/${currentDate.getMonth() + 1}/${currentDate.getFullYear()}`;
 
-    // const startAndEndTime = {
-    //     startingTime: '00:00',
-    //     endingTime: '00:00',
-    //     takenTime: 0,
-    //     timeHolder: 0,
-    // };
-    // const [workTimeTracker, setWorkTimeTracker] = useState({
-    //     date: today,
-    //     login: {
-    //         startingTime: '00:00',
-    //         endingTime: '00:00',
-    //         takenTime: 0,
-    //         timeHolder: 0,
-    //     },
-    //     meeting: {
-    //         startingTime: '00:00',
-    //         endingTime: '00:00',
-    //         takenTime: 0,
-    //         timeHolder: 0
-    //     },
-    //     morningBreak: {
-    //         startingTime: '00:00',
-    //         endingTime: '00:00',
-    //         takenTime: 0,
-    //         timeHolder: 0
-    //     },
-    //     lunch: { ...startAndEndTime },
-    //     eveningBreak: { ...startAndEndTime },
-    //     event: { ...startAndEndTime }
-    // });
-
-    const handleActions = () => {
+       const handleActions = () => {
         setIsAction(!isAction);
     };
 
     function handleSideBar() {
         setSideBar(!sideBar)
     }
-
+    
     // useEffect(() => {
     //     // debugger;
     //     console.log(getDataAPI());
@@ -76,7 +44,7 @@ const Parent = ({ whoIs }) => {
         <div>
             <Navbar />
             <div className="d-flex marTop">
-                <Sidebar whoIs={whoIs} handleLogout={handleLogout} />
+                <Sidebar handleLogout={handleLogout} />
                 <div className="navContent">
                     <Outlet />
                 </div>

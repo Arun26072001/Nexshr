@@ -1,36 +1,33 @@
 import React, { useContext, useEffect, useState } from 'react';
 import './dashboard.css';
 import { fetchEmployeeData, formatTime, getDataAPI, gettingClockinsData, getTotalWorkingHourPerDay } from '../ReuseableAPI';
-import ClockIns from '../ClockIns';
+import ClockIns from '../Clockins';
 import NexHRDashboard from '../NexHRDashboard';
 import Loading from '../Loader';
 import { EssentialValues } from '../../App';
 import { toast } from 'react-toastify';
 import NoDataFound from './NoDataFound';
 import Home from '../Home';
+import { TimerStates } from './HRMDashboard';
 
 const Dashboard = () => {
-    // const clockinsId = localStorage.getItem("clockinsId");
-    // const token = localStorage.getItem("token");
+    const {updateClockins} = useContext(TimerStates)
     const account = localStorage.getItem("Account");
     const { handleLogout } = useContext(EssentialValues);
     const empId = localStorage.getItem("_id");
     const [leaveData, setLeaveData] = useState({});
-    const [checkClockins, setCheckClockins] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [dailyLogindata, setDailyLoginData] = useState({})
     const [monthlyLoginData, setMonthlyLoginData] = useState({});
     const [workedTime, setWorkedTime] = useState("00:00");
     const [balanceTime, setBalanceTime] = useState("00:00");
 
-    function updateClockins() {
-        setCheckClockins(!checkClockins);
-    }
     const gettingEmpdata = async () => {
         try {
             if (empId) {
                 setIsLoading(true);
                 const data = await fetchEmployeeData(empId);
+                
                 if (data) {
                     const workingHour = await getTotalWorkingHourPerDay(data.workingTimePattern.StartingTime, data.workingTimePattern.FinishingTime);
 
@@ -70,11 +67,10 @@ const Dashboard = () => {
         }
     }
 
-
     useEffect(() => {
         gettingEmpdata();
     }, [empId]);
-
+    
     return (
         <div className='dashboard-parent'>
             <ClockIns leaveData={leaveData} handleLogout={handleLogout} updateClockins={updateClockins} />
@@ -183,10 +179,10 @@ const Dashboard = () => {
                                 </div>
                             </div>
                             <>
-                            {
-                                account === '1' || account === '3' &&
-                                <Home updateClockins={updateClockins} />
-                            }
+                                {
+                                    account === '1' || account === '3' ?
+                                        <Home updateClockins={updateClockins} /> : null
+                                }
                                 <NexHRDashboard updateClockins={updateClockins} />
                             </>
                         </>
