@@ -5,8 +5,7 @@ const empId = localStorage.getItem('_id');
 const token = localStorage.getItem('token');
 
 const updateDataAPI = async (body) => {
-    console.log(body);
-    
+
     try {
         if (body._id) {
             const response = await axios.put(`${url}/api/clock-ins/${body._id}`, body, {
@@ -34,10 +33,24 @@ async function getTotalWorkingHourPerDay(start, end) {
     return diffHrs > 0 ? diffHrs : 0; // Ensure non-negative value
 }
 
-const getDataAPI = async (id) => {
+const getDataAPI = async (empId) => {
     try {
-        const response = await axios.get(`${url}/api/clock-ins/${id}`, {
+        const response = await axios.get(`${url}/api/clock-ins/${empId}`, {
             params: { date: new Date() },
+            headers: { authorization: token || '' },
+        });
+
+        const data = response.data;
+        return data;
+    } catch (error) {
+        return error?.response?.data?.message;
+    }
+};
+
+
+const getclockinsDataById = async (id) => {
+    try {
+        const response = await axios.get(`${url}/api/clock-ins/item/${id}`, {
             headers: { authorization: token || '' },
         });
 
@@ -268,6 +281,7 @@ export {
     removeClockinsData,
     fetchLeaveRequests,
     deleteLeave,
+    getclockinsDataById,
     fetchEmployeeData,
     fetchEmployees,
     fetchEmpLeaveRequests,

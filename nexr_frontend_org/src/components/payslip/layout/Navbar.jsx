@@ -8,8 +8,12 @@ import ProfileImgUploader from '../../ImgUploader';
 import PunchIn from "../../../asserts/PunchIn.svg";
 import PunchOut from "../../../asserts/punchOut.svg";
 import { TimerStates } from '../HRMDashboard';
+import { Dropdown, IconButton, Popover, Whisper } from 'rsuite';
+import logo from "../../../imgs/male_avatar.png";
+import { EssentialValues } from '../../../App';
 
 export default function Navbar() {
+    const { handleLogout } = useContext(EssentialValues)
     const { startLoginTimer, stopLoginTimer, workTimeTracker, isStartLogin } = useContext(TimerStates);
     const [sec, setSec] = useState(() => parseInt(localStorage.getItem("loginTimer")?.split(':')[2]) || 0);
     const [min, setMin] = useState(() => parseInt(localStorage.getItem("loginTimer")?.split(':')[1]) || 0);
@@ -56,8 +60,7 @@ export default function Navbar() {
     }
 
     useEffect(() => {
-        console.log(isStartLogin);
-        
+
         if (isStartLogin) {
             console.log("starting login timer");
 
@@ -67,27 +70,45 @@ export default function Navbar() {
         return () => stopTimer();
     }, [isStartLogin]);  // Ensure the effect re-runs if isTimerStarted changes
 
-     // Assuming sec, min, hour are your state variables
-     useEffect(() => {
-        
+    // Assuming sec, min, hour are your state variables
+    useEffect(() => {
+
         // This effect runs every time sec, min, or hour changes
         localStorage.setItem("loginTimer", `${hour}:${min}:${sec}`);
     }, [sec, min, hour]);
 
-        // Initialize time based on selected workTimeTracker and timeOption
-        useEffect(() => {
-            if (!isStartLogin && workTimeTracker?.login?.timeHolder) {
-                const [newHour, newMin, newSec] = workTimeTracker?.login?.timeHolder?.split(":").map(Number);
-                setHour(newHour);
-                setMin(newMin);
-                setSec(newSec);
-            }
-        }, [workTimeTracker, isStartLogin]);
+    // Initialize time based on selected workTimeTracker and timeOption
+    useEffect(() => {
+        if (!isStartLogin && workTimeTracker?.login?.timeHolder) {
+            const [newHour, newMin, newSec] = workTimeTracker?.login?.timeHolder?.split(":").map(Number);
+            setHour(newHour);
+            setMin(newMin);
+            setSec(newSec);
+        }
+    }, [workTimeTracker, isStartLogin]);
 
+    const renderMenu = ({ onClose, right, top, className }, ref) => {
+        const handleSelect = eventKey => {
+            if (eventKey === 1) {
+
+            } else if (eventKey === 2) {
+                handleLogout();
+            }
+            onClose();
+        };
+        return (
+            <Popover ref={ref} className={className} style={{ right, top }} full>
+                <Dropdown.Menu onSelect={handleSelect} title="Personal Settings">
+                    <Dropdown.Item><b>Personal Profile</b></Dropdown.Item>
+                    <Dropdown.Item eventKey={1}>Profile</Dropdown.Item>
+                    <Dropdown.Item eventKey={2}>Log out</Dropdown.Item>
+                </Dropdown.Menu>
+            </Popover>
+        );
+    };
     return (
         <div className="webnxs">
             <div className="row mx-auto">
-
                 <div className="col-lg-4 col-md-6 col-4 d-flex align-items-center">
                     <div className='sidebarIcon'>
                         <TableRowsRoundedIcon />
@@ -106,7 +127,7 @@ export default function Navbar() {
 
                 <div className="col-lg-4 col-md-6 col-4 d-flex align-items-center justify-content-between">
                     <div className="punchBtnParent">
-                        <button className='punchBtn' disabled={isStartLogin} onClick={()=>startTimer()} style={{ backgroundColor: "#CEE5D3" }}>
+                        <button className='punchBtn' disabled={isStartLogin} onClick={() => startTimer()} style={{ backgroundColor: "#CEE5D3" }}>
                             <img src={PunchIn} alt="" />
                         </button>
                         <div className="">
@@ -115,7 +136,7 @@ export default function Navbar() {
                         </div>
                     </div>
                     <div className="punchBtnParent">
-                        <button className='punchBtn' onClick={()=>stopTimer()} disabled={!isStartLogin} style={{ backgroundColor: "#FFD6DB" }}>
+                        <button className='punchBtn' onClick={() => stopTimer()} disabled={!isStartLogin} style={{ backgroundColor: "#FFD6DB" }}>
                             <img src={PunchOut} alt="" />
                         </button>
 
@@ -155,7 +176,10 @@ export default function Navbar() {
                         </span>
                     </div>
                     {/* <img src={Profile} className="avatar ms-3" /> */}
-                    <ProfileImgUploader />
+                    {/* <ProfileImgUploader /> */}
+                    <Whisper placement="bottomEnd" trigger="click" speaker={renderMenu}>
+                        <img src={logo} className='avatar-toggle' />
+                    </Whisper>
                 </div>
             </div>
         </div>
