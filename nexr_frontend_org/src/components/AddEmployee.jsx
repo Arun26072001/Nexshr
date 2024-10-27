@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useContext } from "react";
 import { useState, useRef, useEffect } from "react";
 import "./leaveForm.css";
 import axios from "axios";
@@ -6,8 +6,11 @@ import AddEmployeeForm from "./AddEmployeeform";
 import { fetchEmployees, getDepartments } from "./ReuseableAPI";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
+import EditEmployeeform from "./EditEmployeeform";
+import { TimerStates } from "./payslip/HRMDashboard";
 
 const AddEmployee = () => {
+  const {isEditEmp} = useContext(TimerStates);
   const [details, setDetails] = useState("personal");
   const [departments, setDepartments] = useState([]);
   const [roles, setRoles] = useState([]);
@@ -292,29 +295,56 @@ const AddEmployee = () => {
   }, [])
 
   return (
-    <AddEmployeeForm
-      details={details}
-      companies={companies}
-      handleScroll={handleScroll}
-      countries={countries}
-      handlePersonal={handlePersonal}
-      handleContact={handleContact}
-      handleEmployment={handleEmployment}
-      handleJob={handleJob}
-      handleFinancial={handleFinancial}
-      roles={roles}
-      personalRef={personalRef}
-      payslipRef={payslipRef}
-      contactRef={contactRef}
-      employmentRef={employmentRef}
-      jobRef={jobRef}
-      financialRef={financialRef}
-      leads={leads}
-      departments={departments}
-      positions={positions}
-      managers={managers}
-      timePatterns={timePatterns}
-    />
+    <>
+      {
+        isEditEmp ?
+
+          <EditEmployeeform details={details}
+            companies={companies}
+            handleScroll={handleScroll}
+            countries={countries}
+            handlePersonal={handlePersonal}
+            handleContact={handleContact}
+            handleEmployment={handleEmployment}
+            handleJob={handleJob}
+            handleFinancial={handleFinancial}
+            roles={roles}
+            personalRef={personalRef}
+            payslipRef={payslipRef}
+            contactRef={contactRef}
+            employmentRef={employmentRef}
+            jobRef={jobRef}
+            financialRef={financialRef}
+            leads={leads}
+            departments={departments}
+            positions={positions}
+            managers={managers}
+            timePatterns={timePatterns} /> :
+          <AddEmployeeForm
+            details={details}
+            companies={companies}
+            handleScroll={handleScroll}
+            countries={countries}
+            handlePersonal={handlePersonal}
+            handleContact={handleContact}
+            handleEmployment={handleEmployment}
+            handleJob={handleJob}
+            handleFinancial={handleFinancial}
+            roles={roles}
+            personalRef={personalRef}
+            payslipRef={payslipRef}
+            contactRef={contactRef}
+            employmentRef={employmentRef}
+            jobRef={jobRef}
+            financialRef={financialRef}
+            leads={leads}
+            departments={departments}
+            positions={positions}
+            managers={managers}
+            timePatterns={timePatterns}
+          />
+      }
+    </>
   )
 };
 

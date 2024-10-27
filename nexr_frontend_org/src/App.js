@@ -13,8 +13,8 @@ import "react-toastify/dist/ReactToastify.css";
 export const EssentialValues = createContext(null);
 const App = () => {
   const account = localStorage.getItem("Account");
-  const isStartLogin = localStorage.getItem('isStartLogin') === "false" ? false : true
-  const isStartActivity = localStorage.getItem('isStartActivity') === "false" ? false : true
+  const isStartLogin = localStorage.getItem('isStartLogin') === "false" ? false : localStorage.getItem('isStartLogin') === "true" ? true : false
+  const isStartActivity = localStorage.getItem('isStartActivity') === "false" ? false : localStorage.getItem('isStartActivity') === "true" ? true : false
   const [data, setData] = useState({
     _id: localStorage.getItem("_id") || "",
     Account: localStorage.getItem("Account") || "",
@@ -123,7 +123,7 @@ const App = () => {
     navigateToAccount()
   }, [data]);
 
-  
+
 
   return (
     <EssentialValues.Provider value={{ data, handleLogout, handleSubmit, loading, pass, isLogin }}>

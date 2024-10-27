@@ -4,7 +4,7 @@ import Dashboard from './Dashboard';
 import JobDesk from './Jobdesk';
 import Employee from './Employee';
 import Administration from './Administration';
-import { Route, Routes } from 'react-router-dom';
+import { Route, Routes, useNavigate } from 'react-router-dom';
 import Employees from './Employees';
 import Request from '../attendance/Request';
 import Dailylog from '../attendance/Dailylog';
@@ -27,6 +27,7 @@ import PayslipInfo from './PayslipInfo';
 import PayrollValue from './PayrollValue';
 import PayslipRouter from './PayslipRouter';
 import { EssentialValues } from '../../App';
+import AddEmployee from '../AddEmployee';
 
 export const LeaveStates = createContext(null);
 export const TimerStates = createContext(null);
@@ -45,10 +46,12 @@ export default function HRMDashboard() {
     const [waitForAttendance, setWaitForAttendance] = useState(false);
     const url = process.env.REACT_APP_API_URL;
     const [daterangeValue, setDaterangeValue] = useState("");
+    const [isEditEmp, setIsEditEmp] = useState(false);
     const [timeOption, setTimeOption] = useState(localStorage.getItem("timeOption") || "meeting");
     const [isStartLogin, setIsStartLogin] = useState(localStorage.getItem("isStartLogin") === "false" ? false : localStorage.getItem("isStartLogin") === "true" ? true : false);
     const [isStartActivity, setIsStartActivity] = useState(localStorage.getItem("isStartActivity") === "false" ? false : localStorage.getItem("isStartActivity") === "true" ? true : false);
-    console.log(isStartActivity, isStartLogin);
+    const navigate = useNavigate();
+    // console.log(isStartActivity, isStartLogin);
     // debugger;
     const currentDate = new Date();
     const currentHours = currentDate.getHours().toString().padStart(2, '0');
@@ -71,7 +74,7 @@ export default function HRMDashboard() {
         eveningBreak: { ...startAndEndTime },
         event: { ...startAndEndTime }
     });
-    console.log(workTimeTracker);
+    // console.log(workTimeTracker);
 
     const [checkClockins, setCheckClockins] = useState(false);
     function updateClockins() {
@@ -94,7 +97,7 @@ export default function HRMDashboard() {
 
     const startLoginTimer = async () => {
         console.log("initial call to start");
-        
+
         const updatedState = {
             ...workTimeTracker,
             login: {
@@ -171,7 +174,7 @@ export default function HRMDashboard() {
 
     const startActivityTimer = async () => {
         console.log("initial call to stop");
-        
+
         const updatedState = {
             ...workTimeTracker,
             [timeOption]: {
@@ -318,14 +321,27 @@ export default function HRMDashboard() {
         localStorage.setItem("isStartActivity", isStartActivity);
     }, [isStartLogin, isStartActivity]);
 
+    function changeEmpEditForm() {
+        console.log("calll");
+        
+        if (isEditEmp) {
+            navigate(-1);
+            setIsEditEmp(false);
+        } else {
+            navigate(`employee/edit`);
+            setIsEditEmp(true);
+        }
+    }
+
     return (
-        <TimerStates.Provider value={{ workTimeTracker, updateWorkTracker, startLoginTimer, stopLoginTimer, startActivityTimer, stopActivityTimer, setWorkTimeTracker, updateClockins, whoIs, timeOption, isStartLogin, isStartActivity }}>
+        <TimerStates.Provider value={{ workTimeTracker, updateWorkTracker, startLoginTimer, stopLoginTimer, startActivityTimer, stopActivityTimer, setWorkTimeTracker, updateClockins, whoIs, timeOption, isStartLogin, isStartActivity, changeEmpEditForm, isEditEmp }}>
             <Routes >
                 <Route path="/" element={<Parent />} >
                     <Route index element={<Dashboard data={data} />} />
-                    <Route path="job-desk/*" element={<JobDesk whoIs={whoIs} />} />
-                    <Route path="employee" element={<Employee whoIs={whoIs} />} />
+                    <Route path="job-desk/*" element={<JobDesk />} />
+                    <Route path="employee" element={<Employee />} />
                     <Route path="employee/add" element={<Employees />} />
+                    <Route path="employee/edit" element={<AddEmployee />} />
                     <Route path="leave/*" element={
                         <LeaveStates.Provider value={{ daterangeValue, setDaterangeValue, isLoading, leaveRequests, filterLeaveRequests, empName, setEmpName }} >
                             <Routes>
