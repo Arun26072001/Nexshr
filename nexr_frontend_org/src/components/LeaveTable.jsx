@@ -387,7 +387,7 @@ export default function LeaveTable({ data }) {
                                                             </Dropdown>
                                                             : column.id === "Action" && params['*'] === "employee" ?
                                                                 <Dropdown title={<EditRoundedIcon style={{ cursor: "pointer" }} />} noCaret>
-                                                                    <DropdownItem onClick={changeEmpEditForm} >Edit</DropdownItem>
+                                                                    <DropdownItem onClick={()=>changeEmpEditForm(row._id)} >Edit</DropdownItem>
                                                                     <DropdownItem >Delete</DropdownItem>
                                                                 </Dropdown> : value
                                                     }

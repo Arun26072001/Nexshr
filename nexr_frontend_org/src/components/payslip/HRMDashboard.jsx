@@ -106,7 +106,7 @@ export default function HRMDashboard() {
             }
         };
         // // try to add clockins data
-        if (!updatedState?._id) {
+        if (!updatedState?._id && !isStartLogin) {
             try {
                 const clockinsData = await addDataAPI(updatedState);
                 if (clockinsData) {
@@ -127,7 +127,7 @@ export default function HRMDashboard() {
                 console.error('Error in add Clockins timer:', error);
             }
             // try to update clockins data
-        } else {
+        } else if(updatedState._id && !isStartLogin) {
 
             try {
                 // Call the API with the updated state
@@ -321,14 +321,14 @@ export default function HRMDashboard() {
         localStorage.setItem("isStartActivity", isStartActivity);
     }, [isStartLogin, isStartActivity]);
 
-    function changeEmpEditForm() {
-        console.log("calll");
+    function changeEmpEditForm(id) {
+        console.log();
         
         if (isEditEmp) {
             navigate(-1);
             setIsEditEmp(false);
         } else {
-            navigate(`employee/edit`);
+            navigate(`employee/edit/${id}`);
             setIsEditEmp(true);
         }
     }
@@ -341,7 +341,7 @@ export default function HRMDashboard() {
                     <Route path="job-desk/*" element={<JobDesk />} />
                     <Route path="employee" element={<Employee />} />
                     <Route path="employee/add" element={<Employees />} />
-                    <Route path="employee/edit" element={<AddEmployee />} />
+                    <Route path="employee/edit/:id" element={<AddEmployee />} />
                     <Route path="leave/*" element={
                         <LeaveStates.Provider value={{ daterangeValue, setDaterangeValue, isLoading, leaveRequests, filterLeaveRequests, empName, setEmpName }} >
                             <Routes>
