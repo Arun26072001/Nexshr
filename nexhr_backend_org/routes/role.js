@@ -1,12 +1,12 @@
 const express = require('express');
 const router = express.Router();
-const {Role, RoleValidation} = require('../models/RoleModel');
+const { Role, RoleValidation } = require('../models/RoleModel');
 const Employee = require('../models/EmpModel');
 const Joi = require('joi');
 const { verifyAdminHR } = require('../auth/authMiddleware');
 
 // Replace with your JWT key
-const jwtKey = process.env.ACCCESS_SECRET_KEY ;
+const jwtKey = process.env.ACCCESS_SECRET_KEY;
 
 // Get all roles
 router.get('/', verifyAdminHR, (req, res) => {
@@ -21,26 +21,32 @@ router.get('/', verifyAdminHR, (req, res) => {
 });
 
 // Add new role
-router.post('/', verifyAdminHR,(req, res) => {
-  Joi.validate(req.body, RoleValidation, (err, result) => {
-    if (err) {
-      return res.status(400).send(err.details[0].message);
-    }
+router.post('/', verifyAdminHR, (req, res) => {
+  // Joi.validate(req.body, RoleValidation, (err, result) => {
+  // if (err) {
+  //   return res.status(400).send(err.details[0].message);
+  // }
+  const pages = ["Dashboard", "Job Desk",
+    "Employee", "Leave",
+    "Attendance", "Administration",
+    "Settings"];
+  const newRole = {
+    ...req.body,
+    pageAuth: pages.map((page)=>{
+      return {page: req.body.page}
+    })
+  }
+  console.log(newRole);
+  
+  // Role.create(req.body, (err, role) => {
+  //   if (err) {
+  //     return res.status(500).send({ message: err.message });
+  //   } else {
+  //     res.send("role has been added!")
+  //   }
 
-    const newRole = {
-      RoleName: req.body.RoleName,
-      company: req.body.company,
-    };
-
-    Role.create(newRole, (err, role) => {
-      if (err) {
-        return res.status(500).send({message: err.message});
-      }else {
-        res.send("role has been added!")
-      }
-      
-    });
-  });
+  // });
+  // });
 });
 
 // Update role
@@ -54,7 +60,7 @@ router.put('/:id', verifyAdminHR, (req, res) => {
       RoleName: req.body.RoleName,
       company: req.body.CompanyID,
     };
-    
+
     Role.findByIdAndUpdate(req.params.id, updateRole, { new: true }, (err, role) => {
       if (err) {
         return res.status(500).send('Error in update the role');

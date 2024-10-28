@@ -28,6 +28,7 @@ import PayrollValue from './PayrollValue';
 import PayslipRouter from './PayslipRouter';
 import { EssentialValues } from '../../App';
 import AddEmployee from '../AddEmployee';
+import Roles from '../Administration/Roles';
 
 export const LeaveStates = createContext(null);
 export const TimerStates = createContext(null);
@@ -127,7 +128,7 @@ export default function HRMDashboard() {
                 console.error('Error in add Clockins timer:', error);
             }
             // try to update clockins data
-        } else if(updatedState._id && !isStartLogin) {
+        } else if (updatedState._id && !isStartLogin) {
 
             try {
                 // Call the API with the updated state
@@ -146,6 +147,8 @@ export default function HRMDashboard() {
     };
 
     const stopLoginTimer = async () => {
+        console.log("try to stop");
+
         const updatedState = {
             ...workTimeTracker,
             login: {
@@ -155,19 +158,14 @@ export default function HRMDashboard() {
             }
         };
 
-        if (updatedState?._id && isStartActivity) {
+        if (updatedState?._id && isStartLogin) {
 
             // Call the API with the updated state
             const updatedData = await updateDataAPI(updatedState);
             setWorkTimeTracker(updatedData);
             localStorage.setItem('isStartLogin', false);
             setIsStartLogin(false);
-            toast.success(`${timeOption} Timer has been stopped!`)
             updateClockins();
-        } else {
-            localStorage.setItem('isStartLogin', true);
-            setIsStartLogin(true);
-            return toast.error("You did't punch-in");
         }
     }
     // console.log(workTimeTracker);
@@ -323,7 +321,7 @@ export default function HRMDashboard() {
 
     function changeEmpEditForm(id) {
         console.log();
-        
+
         if (isEditEmp) {
             navigate(-1);
             setIsEditEmp(false);
@@ -363,7 +361,15 @@ export default function HRMDashboard() {
                         </Routes>
                     }>
                     </Route>
-                    <Route path="administration/" element={<Administration />} />
+                    <Route path="administration/*" element={
+                        <Routes>
+                            <Route index path="role" element={<Roles />} />
+                            {/* <Route path="/shift" element={<Shift />} />
+                            <Route path="/department" element={<Department />} />
+                            <Route path="/holiday" element={<Holiday />} />
+                            <Route path="/announcement" element={<Announcement />} /> */}
+                        </Routes>
+                    } />
                     <Route path="settings/*" element={
                         <Routes>
                             <Route index element={<Settings />} />

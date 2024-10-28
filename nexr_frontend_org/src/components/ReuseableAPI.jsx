@@ -247,6 +247,19 @@ const fetchPayslipFromEmp = async (empId) => {
     }
 }
 
+const fetchRoles = async () => {
+    try {
+        const roles = await axios.get(url + "/api/role", {
+            headers: {
+                authorization: localStorage.getItem("token") || ""
+            }
+        });
+        return roles.data;
+    } catch (error) {
+        return error?.response?.data?.message
+    }
+}
+
 const fetchPayslip = async (id) => {
     try {
         const payslip = await axios.get(`${url}/api/payslip/${id}`);
@@ -289,5 +302,6 @@ export {
     gettingClockinsData,
     fetchAllEmployees,
     formatTime,
-    fetchWorkplace
+    fetchWorkplace,
+    fetchRoles
 };

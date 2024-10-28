@@ -69,7 +69,7 @@ const EditEmployeeform = ({ details, empData, handleScroll, handlePersonal, hand
                     }
                 })
                 toast.success(res.data.message);
-                resetForm();
+                changeEmpEditForm();
 
             } catch (err) {
                 console.log(err);
@@ -629,6 +629,7 @@ const EditEmployeeform = ({ details, empData, handleScroll, handlePersonal, hand
                                     cols={50}
                                     rows={10}
                                     style={{ height: "100px" }}
+                                    value={formik.values.description || empData.description || ""}
                                 />
                                 {formik.touched.description && formik.errors.description ? (
                                     <div className="text-center text-danger">{formik.errors.description}</div>

@@ -190,12 +190,8 @@ const AddEmployee = () => {
 
   async function fetchRoles() {
     try {
-      const res = await axios.get(`${url}/api/role`, {
-        headers: {
-          authorization: token || ""
-        }
-      })
-      setRoles(res.data)
+      const roleData = await fetchRoles();
+      setRoles(roleData)
     } catch (err) {
       console.log(err);
     }

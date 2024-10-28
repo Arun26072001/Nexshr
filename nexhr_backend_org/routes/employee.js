@@ -228,7 +228,7 @@ router.put("/:id", verifyHR, async (req, res) => {
       };
     }
     const updatedEmp = await Employee.findByIdAndUpdate(req.params.id, newEmployee)
-    res.send(updatedEmp);
+    res.send({message: "Employee data has been updated!"});
   } catch (err) {
     res.status(500).send(err)
   }

@@ -5,7 +5,7 @@ import './SettingsStyle.css';
 import axios from 'axios';
 import Loading from '../Loader';
 import { Input, InputGroup } from 'rsuite';
-import { fetchAllEmployees } from '../ReuseableAPI';
+import { fetchAllEmployees, fetchRoles } from '../ReuseableAPI';
 import { toast } from 'react-toastify';
 
 
@@ -31,20 +31,16 @@ const Permission = () => {
     }, [])
 
     useEffect(() => {
-        const fetchEmpRoll = async () => {
+        const fetchEmpRoles = async () => {
             try {
-                const empRoll = await axios.get(url + "/api/role", {
-                    headers: {
-                        authorization: localStorage.getItem("token") || ""
-                    }
-                })
-                setRoles(empRoll.data)
+                const rolesData = await fetchRoles();
+                setRoles(rolesData);
             } catch (err) {
                 console.log(err);
                 toast.error(err?.response?.data?.message)
             }
         }
-        fetchEmpRoll();
+        fetchEmpRoles();
     }, [])
 
     function filterEmps(e) {
