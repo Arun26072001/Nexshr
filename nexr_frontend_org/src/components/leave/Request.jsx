@@ -18,7 +18,7 @@ export default function LeaveRequest() {
             <div>
                 <div className="row">
                     <div className="col-lg-6 payslipTitle">
-                        Leave Status
+                        Leave Request
                     </div>
                     <div className="col-lg-6 searchInputIcon">
                         <input

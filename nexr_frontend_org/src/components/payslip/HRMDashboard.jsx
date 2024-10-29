@@ -29,6 +29,7 @@ import PayslipRouter from './PayslipRouter';
 import { EssentialValues } from '../../App';
 import AddEmployee from '../AddEmployee';
 import Roles from '../Administration/Roles';
+import PageAndActionAuth from '../Settings/PageAndActionAuth';
 
 export const LeaveStates = createContext(null);
 export const TimerStates = createContext(null);
@@ -52,8 +53,7 @@ export default function HRMDashboard() {
     const [isStartLogin, setIsStartLogin] = useState(localStorage.getItem("isStartLogin") === "false" ? false : localStorage.getItem("isStartLogin") === "true" ? true : false);
     const [isStartActivity, setIsStartActivity] = useState(localStorage.getItem("isStartActivity") === "false" ? false : localStorage.getItem("isStartActivity") === "true" ? true : false);
     const navigate = useNavigate();
-    // console.log(isStartActivity, isStartLogin);
-    // debugger;
+    const [reloadRole, setReloadRole] = useState(false);
     const currentDate = new Date();
     const currentHours = currentDate.getHours().toString().padStart(2, '0');
     const currentMinutes = currentDate.getMinutes().toString().padStart(2, '0');
@@ -234,6 +234,21 @@ export default function HRMDashboard() {
         }
     };
 
+    function changeEmpEditForm(id) {
+
+        if (isEditEmp) {
+            navigate(-1);
+            setIsEditEmp(false);
+        } else {
+            navigate(`employee/edit/${id}`);
+            setIsEditEmp(true);
+        }
+    }
+
+    function reloadRolePage(){
+        setReloadRole(!reloadRole)
+    }
+
     useEffect(() => {
         const getLeaveData = async () => {
             setIsLoading(true);
@@ -319,20 +334,8 @@ export default function HRMDashboard() {
         localStorage.setItem("isStartActivity", isStartActivity);
     }, [isStartLogin, isStartActivity]);
 
-    function changeEmpEditForm(id) {
-        console.log();
-
-        if (isEditEmp) {
-            navigate(-1);
-            setIsEditEmp(false);
-        } else {
-            navigate(`employee/edit/${id}`);
-            setIsEditEmp(true);
-        }
-    }
-
     return (
-        <TimerStates.Provider value={{ workTimeTracker, updateWorkTracker, startLoginTimer, stopLoginTimer, startActivityTimer, stopActivityTimer, setWorkTimeTracker, updateClockins, whoIs, timeOption, isStartLogin, isStartActivity, changeEmpEditForm, isEditEmp }}>
+        <TimerStates.Provider value={{ workTimeTracker, reloadRolePage,updateWorkTracker, startLoginTimer, stopLoginTimer, startActivityTimer, stopActivityTimer, setWorkTimeTracker, updateClockins, whoIs, timeOption, isStartLogin, isStartActivity, changeEmpEditForm, isEditEmp }}>
             <Routes >
                 <Route path="/" element={<Parent />} >
                     <Route index element={<Dashboard data={data} />} />
@@ -363,7 +366,14 @@ export default function HRMDashboard() {
                     </Route>
                     <Route path="administration/*" element={
                         <Routes>
-                            <Route index path="role" element={<Roles />} />
+                            <Route index path="role/*" element={
+                                <Routes>
+                                    <Route index element={<Roles />} />
+                                    <Route path="add" element={<PageAndActionAuth />} />
+                                    <Route path="edit/:id" element={<PageAndActionAuth />} />
+                                    <Route path="view/:id" element={<PageAndActionAuth />} />
+                                </Routes>
+                            } />
                             {/* <Route path="/shift" element={<Shift />} />
                             <Route path="/department" element={<Department />} />
                             <Route path="/holiday" element={<Holiday />} />
