@@ -7,7 +7,7 @@ import TableContainer from '@mui/material/TableContainer';
 import TableHead from '@mui/material/TableHead';
 import TablePagination from '@mui/material/TablePagination';
 import TableRow from '@mui/material/TableRow';
-import { fetchPayslip, getclockinsDataById, getDataAPI, getTotalWorkingHourPerDay } from './ReuseableAPI';
+import { fetchPayslip, getclockinsDataById, getTotalWorkingHourPerDay } from './ReuseableAPI';
 import EditRoundedIcon from '@mui/icons-material/EditRounded';
 import RemoveRedEyeRoundedIcon from '@mui/icons-material/RemoveRedEyeRounded';
 import { useParams } from 'react-router-dom';
@@ -17,8 +17,9 @@ import ViewAttendanceModel from './ViewAttendanceModel';
 import { toast } from 'react-toastify';
 import { Checkbox } from "rsuite";
 import { TimerStates } from './payslip/HRMDashboard';
+import KeyRoundedIcon from '@mui/icons-material/KeyRounded';
 
-export default function LeaveTable({ data }) {
+export default function LeaveTable({ data, manageAuthorization, getCheckedValue, roleObj, getCheckAll }) {
     const { changeEmpEditForm } = useContext(TimerStates)
     const [page, setPage] = useState(0);
     const [rowsPerPage, setRowsPerPage] = useState(10);
@@ -229,7 +230,7 @@ export default function LeaveTable({ data }) {
             id: 'action',
             label: 'Actions',
             minWidth: 120,
-            align: 'center',
+            align: 'left',
             getter: (row) => row?.action
         },
         {
@@ -238,7 +239,13 @@ export default function LeaveTable({ data }) {
             minWidth: 100,
             align: 'center',
             getter: (row) => (
-                <Checkbox />
+                <input
+                    className="form-check-input"
+                    type="checkbox"
+                    name={`view-${row.action}`}
+                    checked={roleObj?.[row.action]?.view || false}
+                    onChange={(e) => getCheckedValue(e)}
+                />
             )
         },
         {
@@ -247,7 +254,13 @@ export default function LeaveTable({ data }) {
             minWidth: 100,
             align: 'center',
             getter: (row) => (
-                <Checkbox />
+                <input
+                    className="form-check-input"
+                    type="checkbox"
+                    name={`edit-${row.action}`}
+                    checked={roleObj?.[row.action]?.edit || false}
+                    onChange={(e) => getCheckedValue(e)}
+                />
             )
         },
         {
@@ -256,7 +269,13 @@ export default function LeaveTable({ data }) {
             minWidth: 100,
             align: 'center',
             getter: (row) => (
-                <Checkbox />
+                <input
+                    className="form-check-input"
+                    type="checkbox"
+                    name={`delete-${row.action}`}
+                    checked={roleObj?.[row.action]?.delete || false}
+                    onChange={(e) => getCheckedValue(e)}
+                />
             )
         },
         {
@@ -265,7 +284,14 @@ export default function LeaveTable({ data }) {
             minWidth: 100,
             align: 'center',
             getter: (row) => (
-                <Checkbox />
+                <input
+                    className="form-check-input"
+                    type="checkbox"
+                    name={`update-${row.action}`}
+                    checked={roleObj?.[row.action]?.update || false}
+                    onChange={(e) => getCheckedValue(e)}
+                />
+
             )
         },
         {
@@ -274,11 +300,46 @@ export default function LeaveTable({ data }) {
             minWidth: 130,
             align: 'center',
             getter: (row) => (
-                <Checkbox />
+                <input
+                    className="form-check-input"
+                    type="checkbox"
+                    name={`${row.action}`}
+                    onChange={(e) => getCheckAll(e)}
+                />
             )
         }
     ];
 
+
+    const column7 = [
+        {
+            id: 'sNo',
+            label: 'S.No',
+            minWidth: 50,
+            align: 'center',
+            getter: (row, index) => index + 1
+            // Generates the serial number (S.No)
+        },
+        {
+            id: 'RoleName',
+            label: 'Role',
+            minWidth: 120,
+            align: 'center',
+            getter: (row) => row?.RoleName
+        },
+        {
+            id: 'CompanyName',
+            label: 'Company',
+            minWidth: 120,
+            align: 'center',
+            getter: (row) => row?.company?.map((item) => item.CompanyName)
+        }, {
+            id: 'auth',
+            label: 'Manage Authorization',
+            minWidth: 120,
+            align: 'center',
+        }
+    ]
 
     function toggleView() {
         setOpenModal(!openModal);
@@ -340,6 +401,8 @@ export default function LeaveTable({ data }) {
                 return setColumns(column4);
             } else if (item.action) {
                 return setColumns(column6);
+            } else if (item.RoleName) {
+                return setColumns(column7);
             }
             else {
                 return setColumns(column2)
@@ -367,37 +430,67 @@ export default function LeaveTable({ data }) {
                             </TableRow>
                         </TableHead>
                         <TableBody>
-                            {rows.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row) => {
-                                return (
-                                    <TableRow hover role="checkbox" tabIndex={-1} key={row.code}>
-                                        {columns.map((column, index) => {
-                                            const value = column.getter ? column.getter(row) : row[column.id];
-                                            return (
-                                                <TableCell key={column.id} align={column.align} className={column.id && value === "contract" ? "backgroundBtn bg-primary rounded"
-                                                    : value === "part-time" ? "backgroundBtn bg-warning rounded"
-                                                        : value === "full-time" ? "backgroundBtn bg-success rounded" : null}>
-                                                    {column.id === "Action" && params['*'] === "request" ?
+                            {rows.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row, rowIndex) => (
+                                <TableRow hover role="checkbox" tabIndex={-1} key={row.code}>
+                                    {columns.map((column, colIndex) => {
+                                        const value = column.getter ? column.getter(row, rowIndex) : row[column.id];
+
+                                        // Apply conditional styling for employee type
+                                        const cellClass =
+                                            column.id === "employmentType" && value === "contract" ? "backgroundBtn bg-primary rounded" :
+                                                value === "part-time" ? "backgroundBtn bg-warning rounded" :
+                                                    value === "full-time" ? "backgroundBtn bg-success rounded" : "";
+
+                                        // Render actions based on column.id and params
+                                        const renderActions = () => {
+                                            if (column.id === "Action") {
+                                                if (params['*'] === "request") {
+                                                    return (
                                                         <Dropdown title={<EditRoundedIcon style={{ cursor: "pointer" }} />} noCaret>
-                                                            <DropdownItem>Change log</DropdownItem>
-                                                            <DropdownItem>Approve</DropdownItem>
-                                                            <DropdownItem>Reject</DropdownItem>
-                                                        </Dropdown> : column.id === "Action" && params['*'] === "payslip" || column.id === "Action" && params['*'] === "daily-log" ?
-                                                            <Dropdown title={<RemoveRedEyeRoundedIcon style={{ cursor: "pointer" }} />} noCaret onClick={() => getValueForView([row._id, params['*']])}>
-                                                                {/* <DropdownItem onClick={() => getValueForView([row._id, params['*']])}>View</DropdownItem> */}
-                                                            </Dropdown>
-                                                            : column.id === "Action" && params['*'] === "employee" ?
-                                                                <Dropdown title={<EditRoundedIcon style={{ cursor: "pointer" }} />} noCaret>
-                                                                    <DropdownItem onClick={changeEmpEditForm} >Edit</DropdownItem>
-                                                                    <DropdownItem >Delete</DropdownItem>
-                                                                </Dropdown> : value
-                                                    }
-                                                </TableCell>
-                                            );
-                                        })}
-                                    </TableRow>
-                                );
-                            })}
+                                                            <Dropdown.Item>Change log</Dropdown.Item>
+                                                            <Dropdown.Item>Approve</Dropdown.Item>
+                                                            <Dropdown.Item>Reject</Dropdown.Item>
+                                                        </Dropdown>
+                                                    );
+                                                } else if (params['*'] === "payslip" || params['*'] === "daily-log") {
+                                                    return (
+                                                        <Dropdown title={<RemoveRedEyeRoundedIcon style={{ cursor: "pointer" }} />} noCaret onClick={() => getValueForView([row._id, params['*']])}>
+                                                        </Dropdown>
+                                                    );
+                                                } else if (params['*'] === "employee") {
+                                                    return (
+                                                        <Dropdown title={<EditRoundedIcon style={{ cursor: "pointer" }} />} noCaret>
+                                                            <Dropdown.Item onClick={() => changeEmpEditForm(row._id)}>Edit</Dropdown.Item>
+                                                            <Dropdown.Item>Delete</Dropdown.Item>
+                                                        </Dropdown>
+                                                    );
+                                                }
+                                            } else if (column.id === "auth" && params['*'] === "role") {
+                                                return (
+                                                    <Dropdown title={<KeyRoundedIcon style={{ cursor: "pointer" }} />} noCaret>
+                                                        <Dropdown.Item>View</Dropdown.Item>
+                                                        <Dropdown.Item onClick={() => manageAuthorization(row._id)}>Edit</Dropdown.Item>
+                                                        <Dropdown.Item>Delete</Dropdown.Item>
+                                                    </Dropdown>
+                                                );
+                                            }
+                                            return null;
+                                        };
+
+                                        return (
+                                            <TableCell
+                                                key={column.id}
+                                                align={column.align}
+                                                className={cellClass}
+                                            >
+                                                {column.id === "Action" || column.id === "auth" ? renderActions() : value}
+                                            </TableCell>
+                                        );
+                                    })}
+                                </TableRow>
+                            ))}
                         </TableBody>
+
                     </Table>
                 </TableContainer>
                 <TablePagination
