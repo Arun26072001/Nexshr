@@ -143,7 +143,7 @@ const fetchEmployeeData = async (id) => {
 
     } catch (error) {
         if (error.response && error.response.data && error.response.data.message) {
-            toast.error(error.response.data.message)
+            toast.error(error?.response?.data?.details)
             return error;
         }
     }

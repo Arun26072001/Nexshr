@@ -25,7 +25,8 @@ export default function PageAndActionAuth() {
         { sNo: 6, action: "Holiday" },
         { sNo: 7, action: "Employee" },
         { sNo: 8, action: "Company" },
-        { sNo: 9, action: "TimePattern" }
+        { sNo: 9, action: "TimePattern" },
+        { sNo: 10, action: "Payroll" }
     ];
     const [roleObj, setRoleObj] = useState({
         pageAuth: {}

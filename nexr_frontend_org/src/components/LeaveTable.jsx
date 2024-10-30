@@ -216,7 +216,6 @@ export default function LeaveTable({ data, getCheckedValue, roleObj, getCheckAll
             getter: (row) => row.behaviour ? row.behaviour : 'N/A'
         }
     ]
-    console.log(roleObj);
 
     const column6 = [
         {
@@ -232,6 +231,42 @@ export default function LeaveTable({ data, getCheckedValue, roleObj, getCheckAll
             minWidth: 120,
             align: 'left',
             getter: (row) => row?.action
+        },
+        {
+            id: 'all',
+            label: 'All',
+            minWidth: 130,
+            align: 'center',
+            getter: (row) => (
+                <input
+                    className="form-check-input"
+                    type="checkbox"
+                    disabled={params['*'].includes("view") ? true : false}
+                    name={`${row.action}`}
+                    checked={roleObj?.userPermissions?.[row.action]?.add === true
+                        && roleObj?.userPermissions?.[row.action]?.view === true
+                        && roleObj?.userPermissions?.[row.action]?.edit === true
+                        && roleObj?.userPermissions?.[row.action]?.delete === true}
+                    onChange={(e) => getCheckAll(e)}
+                />
+            )
+        },
+        {
+            id: 'add',
+            label: 'Add',
+            minWidth: 100,
+            align: 'center',
+            getter: (row) => (
+                <input
+                    className="form-check-input"
+                    type="checkbox"
+                    name={`add-${row.action}`}
+                    disabled={params['*'].includes("view") ? true : false}
+                    checked={roleObj?.userPermissions?.[row.action]?.add || false}
+                    onChange={(e) => getCheckedValue(e)}
+                />
+
+            )
         },
         {
             id: 'view',
@@ -280,42 +315,6 @@ export default function LeaveTable({ data, getCheckedValue, roleObj, getCheckAll
                     onChange={(e) => getCheckedValue(e)}
                 />
             )
-        },
-        {
-            id: 'add',
-            label: 'Add',
-            minWidth: 100,
-            align: 'center',
-            getter: (row) => (
-                <input
-                    className="form-check-input"
-                    type="checkbox"
-                    name={`add-${row.action}`}
-                    disabled={params['*'].includes("view") ? true : false}
-                    checked={roleObj?.userPermissions?.[row.action]?.add || false}
-                    onChange={(e) => getCheckedValue(e)}
-                />
-
-            )
-        },
-        {
-            id: 'all',
-            label: 'All',
-            minWidth: 130,
-            align: 'center',
-            getter: (row) => (
-                <input
-                    className="form-check-input"
-                    type="checkbox"
-                    disabled={params['*'].includes("view") ? true : false}
-                    name={`${row.action}`}
-                    checked={roleObj?.userPermissions?.[row.action]?.add === true
-                        && roleObj?.userPermissions?.[row.action]?.view === true
-                        && roleObj?.userPermissions?.[row.action]?.edit === true
-                        && roleObj?.userPermissions?.[row.action]?.delete === true}
-                    onChange={(e) => getCheckAll(e)}
-                />
-            )
         }
     ];
 
@@ -335,17 +334,18 @@ export default function LeaveTable({ data, getCheckedValue, roleObj, getCheckAll
             align: 'left',
             getter: (row) => row?.RoleName
         },
+        // {
+        //     id: 'CompanyName',
+        //     label: 'Company',
+        //     minWidth: 120,
+        //     align: 'left',
+        //     getter: (row) => row?.company?.map((item) => item.CompanyName)
+        // },
         {
-            id: 'CompanyName',
-            label: 'Company',
-            minWidth: 120,
-            align: 'left',
-            getter: (row) => row?.company?.map((item) => item.CompanyName)
-        }, {
             id: 'auth',
             label: 'Manage Authorization',
             minWidth: 120,
-            align: 'left',
+            align: 'center',
         }
     ]
 
