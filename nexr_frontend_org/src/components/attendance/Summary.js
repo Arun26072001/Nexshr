@@ -1,3 +1,5 @@
+
+
 import React, { useEffect, useState } from 'react';
 import Popup from './Popup';
 import { Doughnut } from 'react-chartjs-2';
@@ -10,7 +12,6 @@ import "./Summary.css";
 
 const Summary = () => {
     const empId = localStorage.getItem("_id");
-    const [clockinsData, setClockinsData] = useState({});
     const [employees, setEmployees] = useState([]);
     const [chartData, setChartData] = useState({
         labels: ['Early', 'Late', 'Regular'],
@@ -32,6 +33,7 @@ const Summary = () => {
         }
     };
 
+    // Fetch clockins data
     async function selectEmpClockins(id) {
         if (id) {
             const data = await gettingClockinsData(id);
@@ -41,6 +43,15 @@ const Summary = () => {
             } else {
                 toast.error("Error in getting clockins data!");
             }
+        } else {
+            setClockinsData(null); // Reset data if no employee is selected
+            setChartData({
+                ...chartData,
+                datasets: [{
+                    ...chartData.datasets[0],
+                    data: [0, 0, 0], // Reset chart data
+                }],
+            });
         }
     }
 
@@ -150,3 +161,4 @@ const Summary = () => {
 };
 
 export default Summary;
+

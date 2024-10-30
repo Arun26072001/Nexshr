@@ -3,6 +3,8 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "@emotion/react": "^11.13.3",
+    "@emotion/styled": "^11.13.0",
     "@mui/icons-material": "^6.1.1",
     "@mui/material": "^6.1.1",
     "@testing-library/jest-dom": "^5.17.0",
@@ -24,6 +26,7 @@
     "react-scripts": "5.0.1",
     "react-spinners": "^0.14.1",
     "react-toastify": "^10.0.5",
+    "recharts": "^2.13.0",
     "rsuite": "^5.70.2",
     "web-vitals": "^2.1.4",
     "yup": "^1.4.0"
