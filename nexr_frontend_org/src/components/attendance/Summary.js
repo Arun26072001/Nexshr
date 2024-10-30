@@ -13,6 +13,7 @@ import "./Summary.css";
 const Summary = () => {
     const empId = localStorage.getItem("_id");
     const [employees, setEmployees] = useState([]);
+    const [clockinsData, setClockinsData] = useState({});
     const [chartData, setChartData] = useState({
         labels: ['Early', 'Late', 'Regular'],
         datasets: [{
