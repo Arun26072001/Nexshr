@@ -30,6 +30,7 @@ import { EssentialValues } from '../../App';
 import AddEmployee from '../AddEmployee';
 import Roles from '../Administration/Roles';
 import PageAndActionAuth from '../Settings/PageAndActionAuth';
+import Announce from '../Announcement/announce';
 
 export const LeaveStates = createContext(null);
 export const TimerStates = createContext(null);
@@ -374,10 +375,10 @@ export default function HRMDashboard() {
                                     <Route path="view/:id" element={<PageAndActionAuth />} />
                                 </Routes>
                             } />
-                            {/* <Route path="/shift" element={<Shift />} />
-                            <Route path="/department" element={<Department />} />
-                            <Route path="/holiday" element={<Holiday />} />
-                            <Route path="/announcement" element={<Announcement />} /> */}
+                            {/* <Route path="/shift" element={<Shift />} /> */}
+                            {/* <Route path="/department" element={<Department />} /> */}
+                            {/* <Route path="/holiday" element={<Holiday />} /> */}
+                            <Route path="/announcement" element={<Announce />} />
                         </Routes>
                     } />
                     <Route path="settings/*" element={

@@ -33,6 +33,8 @@ const applicationSettings = require("./routes/application-settings");
 const attendance = require("./routes/attendance");
 const clockIns = require("./routes/clock-ins")
 const team = require("./routes/team");
+const announcement = require("./routes/announcement");
+const teamssample = require("./routes/teamssample");
 const payslipInfo = require("./routes/payslipInfo");
 const payslip = require("./routes/payslip");
 
@@ -130,6 +132,10 @@ app.use('/api/time-pattern', timePattern);
 app.use("/api/attendance", attendance)
 //use clock-ins router
 app.use("/api/clock-ins", clockIns);
+
+app.use("/announcement", announcement);
+
+app.use("/api/teamssample", teamssample);
 
 var port = process.env.PORT;
 // Schedule the job to run every 14th day of the month at 18:18
