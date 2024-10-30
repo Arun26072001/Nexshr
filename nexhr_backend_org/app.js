@@ -35,6 +35,8 @@ const clockIns = require("./routes/clock-ins")
 const team = require("./routes/team");
 const payslipInfo = require("./routes/payslipInfo");
 const payslip = require("./routes/payslip");
+const userPermission = require("./routes/user-permission");
+const pageAuth = require("./routes/page-auth");
 
 //connecting to mongodb
 let mongoURI = process.env.DATABASEURL;
@@ -130,6 +132,10 @@ app.use('/api/time-pattern', timePattern);
 app.use("/api/attendance", attendance)
 //use clock-ins router
 app.use("/api/clock-ins", clockIns);
+// use user persmission router
+app.use("/api/user-permission", userPermission);
+// user page auth router
+app.use("/api/page-auth", pageAuth);
 
 var port = process.env.PORT;
 // Schedule the job to run every 14th day of the month at 18:18

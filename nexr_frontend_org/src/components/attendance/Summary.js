@@ -1,5 +1,3 @@
-
-
 import React, { useEffect, useState } from 'react';
 import Popup from './Popup';
 import { Doughnut } from 'react-chartjs-2';

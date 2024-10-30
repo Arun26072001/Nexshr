@@ -3,7 +3,8 @@ const router = express.Router();
 const { Employee } = require('../models/EmpModel');
 const { verifyAdminHR, verifyAdmin } = require('../auth/authMiddleware');
 const { RoleAndPermission, RoleAndPermissionValidation } = require('../models/RoleModel');
-const { userPermissionsValidation } = require('../models/UserPermissionModel');
+const { userPermissionsValidation, UserPermission } = require('../models/UserPermissionModel');
+const { PageAuth } = require('../models/PageAuth');
 
 // role get by id
 router.get("/:id", verifyAdmin, async (req, res) => {
@@ -37,7 +38,7 @@ router.post('/', verifyAdminHR, async (req, res) => {
     "Dashboard", "JobDesk", "Employee", "Leave",
     "Attendance", "Administration", "Settings"
   ];
-  
+
   const actions = [
     { sNo: 1, action: "Leave" },
     { sNo: 2, action: "Attendance" },
@@ -48,12 +49,13 @@ router.post('/', verifyAdminHR, async (req, res) => {
     { sNo: 7, action: "Employee" },
     { sNo: 8, action: "Company" },
     { sNo: 9, action: "TimePattern" },
-    { sNo: 9, action: "Payroll" }
+    { sNo: 10, action: "Payroll" }
   ];
-  
-  const newRole = {
+
+  // Construct new role with dynamic permissions and page authorization
+  let newRole = {
     RoleName: req.body?.RoleName || "",
-    
+
     // Create userPermissions object with dynamic action names
     userPermissions: actions.reduce((acc, { action }) => {
       acc[action] = {
@@ -64,26 +66,42 @@ router.post('/', verifyAdminHR, async (req, res) => {
       };
       return acc;
     }, {}),
-    
+
     // Create pageAuth object with dynamic page names
     pageAuth: pages.reduce((acc, page) => {
       acc[page] = req.body?.pageAuth?.[page] || "not allow";
       return acc;
     }, {})
   };
-  
+
   try {
-    const userPermissionValidation  = userPermissionsValidation(req?.body?.userPermissions)
-    const validation = RoleAndPermissionValidation.validate(newRole);
-    const { error } = validation;
-    if (error) {
-      res.status(400).send({ error: error.details[0].message })
-    } else {
-      const role = await RoleAndPermission.create(newRole);
-      res.send({ message: `${newRole?.RoleName} Role and permission has been added!` })
+    // Validate userPermissions
+    const { error: userPermissionsError } = userPermissionsValidation.validate(newRole.userPermissions);
+    if (userPermissionsError) {
+      return res.status(400).send({ error: userPermissionsError.details[0].message });
     }
+
+    // Validate pageAuth
+    const { error: pageAuthError } = pageAuthSchemaJoi.validate(newRole.pageAuth);
+    if (pageAuthError) {
+      return res.status(400).send({ error: pageAuthError.details[0].message });
+    }
+
+    // Create and save user permissions and page authorization in the database
+    const userPermissionId = await UserPermission.create(newRole.userPermissions);
+    const pageAuthId = await PageAuth.create(newRole.pageAuth);
+
+    // Finalize new role data with references
+    const finalRoleData = {
+      RoleName: newRole.RoleName,
+      userPermissions: userPermissionId._id,
+      pageAuth: pageAuthId._id
+    };
+
+    const role = await RoleAndPermission.create(finalRoleData);
+    res.send({ message: `${newRole.RoleName} Role and permission has been added!` });
   } catch (error) {
-    res.status(500).send({ error: error.message })
+    res.status(500).send({ error: error.message });
   }
 });
 
@@ -93,7 +111,7 @@ router.put('/:id', verifyAdminHR, async (req, res) => {
     "Dashboard", "JobDesk", "Employee", "Leave",
     "Attendance", "Administration", "Settings"
   ];
-  
+
   const actions = [
     { sNo: 1, action: "Leave" },
     { sNo: 2, action: "Attendance" },
@@ -106,10 +124,10 @@ router.put('/:id', verifyAdminHR, async (req, res) => {
     { sNo: 9, action: "TimePattern" },
     { sNo: 9, action: "Payroll" }
   ];
-  
+
   const newRole = {
     RoleName: req.body?.RoleName || "",
-    
+
     // Create userPermissions object with dynamic action names
     userPermissions: actions.reduce((acc, { action }) => {
       acc[action] = {
@@ -120,7 +138,7 @@ router.put('/:id', verifyAdminHR, async (req, res) => {
       };
       return acc;
     }, {}),
-    
+
     // Create pageAuth object with dynamic page names
     pageAuth: pages.reduce((acc, page) => {
       acc[page] = req.body?.pageAuth?.[page] || "not allow";

@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const Joi = require("joi");
 
 // Mongoose schema for permissions
 const permissionSchema = new mongoose.Schema({
@@ -44,4 +45,4 @@ const userPermissionsValidation = Joi.object({
     Payroll: permissionSchemaJoi
 });
 
-module.exports = {UserPermission, userPermissionsValidation}
+module.exports = { UserPermission, userPermissionsValidation }
