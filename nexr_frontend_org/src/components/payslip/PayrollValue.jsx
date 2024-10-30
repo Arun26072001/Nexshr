@@ -61,7 +61,7 @@ export default function PayrollValue() {
                 <MultiCascader data={data} value={multiSelector} onChange={setMultiSelector} className="col-12" />
 
                 <div className="py-2">
-                    <span>Deducation</span>
+                    <span>Deduction</span>
                 </div>
                 <MultiCascader data={data} className="col-12" />
             </div>

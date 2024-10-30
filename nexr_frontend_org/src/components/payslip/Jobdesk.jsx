@@ -1,4 +1,4 @@
-import React, { useState } from "react"
+import React, { useContext, useState } from "react"
 import Attendence from "./Attendence";
 import Leave from "./Leave";
 import Folder from "./Folder";
@@ -12,21 +12,23 @@ import History from "./History";
 import Salary from "./Salary";
 import { Route, Routes } from "react-router-dom";
 import PayslipRouter from "./PayslipRouter";
+import { TimerStates } from "./HRMDashboard";
 
 
-const JobDesk = ({whoIs}) => {
+const JobDesk = () => {
+    const { whoIs } = useContext(TimerStates);
     const jobDeskFiles = [
-        'attendance','leave', "folder", "history",
-        'salary','payslip', 'contact', 'social', 
-        'assets','address'
+        'attendance', 'leave', "folder", "history",
+        'salary', 'payslip', 'contact', 'social',
+        'assets', 'address'
     ];
 
     return (
 
         <Routes >
-            <Route path="/" element={<PayslipRouter whoIs={whoIs} files={jobDeskFiles} />}>
+            <Route path="/" element={<PayslipRouter files={jobDeskFiles} />}>
                 <Route index path="attendance" element={<Attendence />} />
-                <Route path="leave" element={<Leave whoIs={whoIs} />} />
+                <Route path="leave" element={<Leave />} />
                 <Route path="folder" element={<Folder />} />
                 <Route path="history" element={<History />} />
                 <Route path="salary" element={<Salary />} />

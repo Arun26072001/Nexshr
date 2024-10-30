@@ -24,6 +24,47 @@ router.get("/", verifyAdminHR, async (req, res) => {
       .populate({
         path: "role"
       })
+      .populate({
+        path: 'teamLead',
+        select: "_id FirstName LastName",
+        populate: {
+            path: "department"
+        }
+    })
+    res.send(employees)
+  } catch (err) {
+    console.log(err);
+    res.status(500).send({ message: "Internal server error", details: err.details })
+  }
+
+});
+
+router.get("/all", verifyAdminHR, async (req, res) => {
+  try {
+    const employees = await Employee.find({},"_id FirstName LastName employmentType dateOfJoining gender working code docType serialNo")
+      .populate({
+        path: "company",
+        select: "_id CompanyName Town"
+      })
+      .populate({
+        path: "position"
+      })
+      .populate({
+        path: "department"
+      })
+      .populate({
+        path: "workingTimePattern",
+      })
+      .populate({
+        path: "role"
+      })
+      .populate({
+        path: 'teamLead',
+        select: "_id FirstName LastName",
+        populate: {
+            path: "department"
+        }
+    })
     res.send(employees)
   } catch (err) {
     console.log(err);
@@ -74,30 +115,10 @@ router.get('/:id', verifyAdminHREmployee, async (req, res) => {
     });
 
   } catch (err) {
-    res.status(500).send({ message: "Internal server error", details: err.message });
+    res.status(500).send({details: err.message });
   }
 });
 
-
-// router.get('/searchName/:name', verifyHR, (req, res) => {
-//   const searchTerm = req.params.name.trim(); // Trim any leading/trailing whitespace
-
-//   // Construct a regex pattern for case-insensitive search
-//   const regexPattern = new RegExp(searchTerm, 'i');
-
-//   Employee.find({ FirstName: { $regex: regexPattern } })
-//     .populate('company')
-//     .populate('position')
-//     .exec((err, employees) => {
-//       if (err) {
-//         return res.status(500).send(err); // Return a 500 status for server errors
-//       }
-//       if (employees.length === 0) {
-//         return res.status(204).send({ message: "Employee not found" }); // Return a 404 status if no employees match the criteria
-//       }
-//       return res.send(employees);
-//     });
-// });
 
 router.post("/", verifyHR, async (req, res) => {
   try {
@@ -112,22 +133,22 @@ router.post("/", verifyHR, async (req, res) => {
     if (phoneExists) {
       return res.status(400).send({ message: "Phone number already exists" });
     }
-
+    
     // Fetch payslip data
     const payslipData = await PaySlipInfo.findOne().exec();
-
+    
     if (!payslipData) {
       return res.status(400).send({ message: "Payslip data not found" });
     }
-
+    
     // Initialize object to hold calculated values
     let payslipFields = {};
-
+    
     // Calculate values based on payslip fields
     payslipData.payslipFields.forEach((data) => {
       let calculatedValue = 0;
       const basicSalary = Number(req.body.basicSalary);
-
+      
       switch (data.fieldName) {
         case "incomeTax":
           if (basicSalary >= 84000) {
@@ -139,7 +160,7 @@ router.post("/", verifyHR, async (req, res) => {
           }
           break;
         case "houseRentAllowance":
-        case "conveyanceAllowance":
+          case "conveyanceAllowance":
         case "othersAllowance":
         case "bonusAllowance":
           calculatedValue = (data.value / 100) * basicSalary;  // Percent of basic salary
@@ -149,8 +170,8 @@ router.post("/", verifyHR, async (req, res) => {
             calculatedValue = (12 / 100) * basicSalary;  // 12% of basic salary
           }
           break;
-        case "Professional Tax":
-          if (basicSalary > 21000) {
+          case "Professional Tax":
+            if (basicSalary > 21000) {
             calculatedValue = 130;  // Fixed professional tax amount
           }
           break;
@@ -180,11 +201,11 @@ router.post("/", verifyHR, async (req, res) => {
     res.status(201).send({ message: "Employee Details Saved Successfully!", employee });
   } catch (err) {
     console.error("Error:", err);  // Log the error for debugging
-
+    
     if (err.isJoi) {
       return res.status(400).send({ error: "Validation Error", message: err.details });
     }
-
+    
     // Handle known error statuses
     if (err.status === 404) {
       return res.status(404).send({ error: "Not Found", message: err.message });
@@ -198,6 +219,8 @@ router.post("/", verifyHR, async (req, res) => {
 router.put("/:id", verifyHR, async (req, res) => {
   try {
     let newEmployee = req.body;
+    console.log(newEmployee);
+    
     if (req.body.hour && req.body.mins) {
       newEmployee = {
         ...req.body,
@@ -205,13 +228,11 @@ router.put("/:id", verifyHR, async (req, res) => {
       };
     }
     const updatedEmp = await Employee.findByIdAndUpdate(req.params.id, newEmployee)
-    res.send(updatedEmp);
+    res.send({message: "Employee data has been updated!"});
   } catch (err) {
     res.status(500).send(err)
   }
 });
-
-
 
 router.delete("/:id", verifyHR, (req, res) => {
   Employee.findByIdAndRemove({ _id: req.params.id }, function (err, employee) {
@@ -226,4 +247,24 @@ router.delete("/:id", verifyHR, (req, res) => {
   });
 });
 
+        // router.get('/searchName/:name', verifyHR, (req, res) => {
+        //   const searchTerm = req.params.name.trim(); // Trim any leading/trailing whitespace
+        
+        //   // Construct a regex pattern for case-insensitive search
+        //   const regexPattern = new RegExp(searchTerm, 'i');
+        
+        //   Employee.find({ FirstName: { $regex: regexPattern } })
+        //     .populate('company')
+        //     .populate('position')
+        //     .exec((err, employees) => {
+        //       if (err) {
+        //         return res.status(500).send(err); // Return a 500 status for server errors
+        //       }
+        //       if (employees.length === 0) {
+        //         return res.status(204).send({ message: "Employee not found" }); // Return a 404 status if no employees match the criteria
+        //       }
+        //       return res.send(employees);
+        //     });
+        // });
+        
 module.exports = router;

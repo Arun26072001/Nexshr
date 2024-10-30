@@ -4,7 +4,7 @@ import CustomDropdown from './CustomDropDown';
 import PowerSettingsNewRoundedIcon from '@mui/icons-material/PowerSettingsNewRounded';
 import { TimerStates } from './payslip/HRMDashboard';
 
-const ClockIns = () => {
+const ActivityTimeTracker = () => {
     const { startActivityTimer, stopActivityTimer, workTimeTracker, isStartActivity, timeOption } = useContext(TimerStates);
     const EmpName = localStorage.getItem("Name");
     const [sec, setSec] = useState(() => parseInt(localStorage.getItem("activityTimer")?.split(":")[2]) || 0);
@@ -121,4 +121,4 @@ const ClockIns = () => {
     );
 }
 
-export default ClockIns;
+export default ActivityTimeTracker;

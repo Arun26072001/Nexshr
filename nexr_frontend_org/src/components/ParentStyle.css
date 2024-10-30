@@ -111,6 +111,12 @@
   object-fit: cover;
 }
 
+.avatar-toggle{
+  width: 40px;
+  height: 40px;
+  object-fit: cover;
+}
+
 .avatarName {
   display: block;
 }

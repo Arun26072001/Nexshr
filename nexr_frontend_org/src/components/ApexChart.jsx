@@ -1,48 +1,34 @@
-import React, { useState } from 'react';
-import ReactApexChart from 'react-apexcharts';
+import React from "react";
+import Chart, { plugins } from "chart.js/auto";
+import { Pie } from "react-chartjs-2";
 
 const ApexChart = ({ activitiesData }) => {
-  const chartData = {
-    series: activitiesData.map((data) => data.timeCalMins),
-    options: {
-      chart: {
-        width: 350,
-        type: 'pie',
+  const data = {
+    labels: activitiesData?.map((data) => data?.activity).map(label => `${label} (min)`),
+    datasets: [
+      {
+        label: "Time Spent",
+        backgroundColor: ["#4E79A7", "#F28E2B", "#E15759", "#76B7B2", "#59A14F", "#EDC948"],
+        data: activitiesData?.map((data) => data?.timeCalMins),
       },
-      labels: activitiesData.map((data) => data.activity).map(label => `${label} (min)`),
-      tooltip: {
-        y: {
-          formatter: function (val) {
-            return `${val} min`;
-          }
+    ],
+  };
+
+  const options = {
+    maintainAspectRatio: false,
+    plugins:{
+      legend:{
+        labels: {
+          usePointStyle: true,
+          pointStyle: 'rectRounded'
         }
-      },
-      legend: {
-        show: true,
-        showForSingleSeries: false,
-        showForNullSeries: true,
-        showForZeroSeries: true,
-        position: 'bottom',
-        fontSize: "10px",
-        fontWeight: '600'
-      },
-      responsive: [{
-        breakpoint: 300,
-        options: {
-          chart: {
-            width: 200,
-          },
-        },
-      }],
+      }
     }
   };
 
   return (
-    <div className='d-flex justify-content-center'>
-      <div id="chart">
-        <ReactApexChart options={chartData.options} series={chartData.series} type='pie' width={350} />
-      </div>
-      <div id="html-dist"></div>
+    <div className="d-flex justify-content-center" style={{ width: '400px', height: '300px' }}>
+      <Pie data={data} options={options} />
     </div>
   );
 };

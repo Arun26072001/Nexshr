@@ -1,10 +1,9 @@
 const express = require("express");
 const router = express.Router();
-const Joi = require("joi");
-const { verifyHR } = require("../auth/authMiddleware");
+const { verifyHR, verifyAdminHR } = require("../auth/authMiddleware");
 const { TeamValidation, Team } = require("../models/TeamModel");
 
-router.get("/",verifyHR , async(req, res)=>{
+router.get("/",verifyAdminHR , async(req, res)=>{
     try{
         const teams = await Team.find()
         .populate({
@@ -22,12 +21,19 @@ router.get("/",verifyHR , async(req, res)=>{
     }
 })
 
-router.get("/:id", verifyHR, async(req, res)=>{
+router.get("/:id", verifyAdminHR, async(req, res)=>{
     try{
         const response = await Team.findById(req.params.id)
         .populate({
             path: "employees",
-            select: "_id FirstName LastName"
+            select: "_id FirstName LastName",
+            populate: {
+                path: 'teamLead',
+                select: "_id FirstName LastName",
+                populate: {
+                    path: "department"
+                }
+            }
         })
         if(!response){
             res.status(404).send({message: "team not found"})
@@ -40,7 +46,7 @@ router.get("/:id", verifyHR, async(req, res)=>{
     }
 })
 
-router.post("/", verifyHR, async (req, res) => {
+router.post("/", verifyAdminHR, async (req, res) => {
     try {
         const validatedTeam = await TeamValidation.validate(req.body);
         const newTeam = await Team.create(validatedTeam);
@@ -56,7 +62,7 @@ router.post("/", verifyHR, async (req, res) => {
     }
 });
 
-router.put("/:id", verifyHR, async(req, res)=>{
+router.put("/:id", verifyAdminHR, async(req, res)=>{
     try{
         const validatedTeam = await TeamValidation.validate(req.body);
         const response = await Team.findByIdAndUpdate(req.params.id, validatedTeam)
@@ -73,7 +79,7 @@ router.put("/:id", verifyHR, async(req, res)=>{
     }
 })
 
-router.delete("/:id", verifyHR, async(req, res)=>{
+router.delete("/:id", verifyAdminHR, async(req, res)=>{
     try{
         const response = await Team.findByIdAndDelete(req.params.id);
         if(!response){

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useContext, useState } from 'react';
 import { NavLink, useParams } from 'react-router-dom';
 import './sidebar.css';
 import KeyboardArrowDownSharpIcon from '@mui/icons-material/KeyboardArrowDownSharp';
@@ -9,8 +9,12 @@ import leaveIcon from "../../../asserts/leaveIcon.svg";
 import attendanceIcon from "../../../asserts/attendanceIcon.svg";
 import adminIcon from "../../../asserts/adminIcon.svg";
 import homeIcon from "../../../asserts/homeIcon.svg";
+import { TimerStates } from '../HRMDashboard';
+import { EssentialValues } from '../../../App';
 
-const Sidebar = ({ handleLogout, whoIs }) => {
+const Sidebar = () => {
+    const { whoIs } = useContext(TimerStates);
+    const { handleLogout } = useContext(EssentialValues)
     const account = localStorage.getItem("Account");
     const param = useParams();
     const [activeSubmenu, setActiveSubmenu] = useState(param['*']);

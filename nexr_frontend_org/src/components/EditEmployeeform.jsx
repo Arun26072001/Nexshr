@@ -1,56 +1,25 @@
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import editIcon from "../imgs/male_avatar.png";
 import maleAvatar from "../imgs/EditIcon.png";
 import { useFormik } from "formik";
 import * as Yup from "yup";
 import axios from "axios";
 import { toast } from "react-toastify";
-import { Link } from "react-router-dom";
 import "./leaveForm.css";
 import { fetchPayslipInfo } from "./ReuseableAPI";
+import { TimerStates } from "./payslip/HRMDashboard";
+import { useParams } from "react-router-dom";
 
-const AddEmployeeForm = ({ details, handleScroll, handlePersonal, handleFinancial, handleJob, handleContact, handleEmployment, timePatterns, personalRef, contactRef, employmentRef, jobRef, financialRef, payslipRef, countries, companies, departments, positions, roles, leads, managers }) => {
+const EditEmployeeform = ({ details, empData, handleScroll, handlePersonal, handleFinancial, handleJob, handleContact, handleEmployment, timePatterns, personalRef, contactRef, employmentRef, jobRef, financialRef, payslipRef, countries, companies, departments, positions, roles, leads, managers }) => {
+    const {id} = useParams();
+    const { changeEmpEditForm } = useContext(TimerStates);
     const [timeDifference, setTimeDifference] = useState(0);
     const [payslipFields, setPayslipFields] = useState([]);
     const token = localStorage.getItem("token");
     const url = process.env.REACT_APP_API_URL;
-    const [employeeObj, setEmployeeObj] = useState({
-        FirstName: "",
-        LastName: "",
-        Email: "",
-        Password: "",
-        teamLead: "",
-        managerId: "",
-        phone: "",
-        company: "",
-        dateOfBirth: "",
-        gender: "",
-        address: {
-            city: "",
-            state: "",
-            country: "",
-            zipCode: ""
-        },
-        position: "",
-        department: "",
-        role: "",
-        description: "",
-        dateOfJoining: "",
-        employmentType: "",
-        workingTimePattern: "",
-        annualLeaveYearStart: "",
-        companyWorkingHourPerWeek: "",
-        publicHoliday: "",
-        entitlement: "",
-        fullTimeAnnualLeave: "",
-        annualLeaveEntitlement: "",
-        basicSalary: "",
-        bankName: "",
-        accountNo: "",
-        accountHolderName: "",
-        IFSCcode: "",
-        taxDeduction: ""
-    });
+    const [employeeObj, setEmployeeObj] = useState(
+        empData
+    );
 
     const empFormValidation = Yup.object().shape({
         FirstName: Yup.string().required('First Name is required'),
@@ -86,7 +55,7 @@ const AddEmployeeForm = ({ details, handleScroll, handlePersonal, handleFinancia
         accountNo: Yup.string().min(10, "Account No digits must be between 10 to 14").max(14, "Account No digits must be between 10 to 14").required("Account No is required"),
         accountHolderName: Yup.string().min(2, "invalid Holder Name").max(50).required("Holder name is Required"),
         IFSCcode: Yup.string().min(11, "IFSC code must be 11 characters").max(11, "IFSC code must be 11 characters").required("IFSC code is required"),
-        taxDeduction: Yup.string().min(2, "invalid value").required("Tax deduction is required")
+        taxDeduction: Yup.string().min(0, "invalid value").required("Tax deduction is required")
     });
 
     const formik = useFormik({
@@ -94,13 +63,13 @@ const AddEmployeeForm = ({ details, handleScroll, handlePersonal, handleFinancia
         validationSchema: empFormValidation,
         onSubmit: async (values, { resetForm }) => {
             try {
-                const res = await axios.post(`${url}/api/employee`, values, {
+                const res = await axios.put(`${url}/api/employee/${id}`, values, {
                     headers: {
                         authorization: token || ""
                     }
                 })
                 toast.success(res.data.message);
-                resetForm();
+                changeEmpEditForm();
 
             } catch (err) {
                 console.log(err);
@@ -113,6 +82,8 @@ const AddEmployeeForm = ({ details, handleScroll, handlePersonal, handleFinancia
         }
     })
 
+    console.log(formik.errors);
+    
     function navToError() {
         if (formik.errors.FirstName
             || formik.errors.LastName
@@ -175,7 +146,7 @@ const AddEmployeeForm = ({ details, handleScroll, handlePersonal, handleFinancia
                     const minutesDiff = Math.floor((timeDiff % (1000 * 60 * 60)) / (1000 * 60));
 
                     setTimeDifference((((hoursDiff * 60) + minutesDiff) / 60) * selectedPattern.WeeklyDays);
-                    console.log((((hoursDiff * 60) + minutesDiff) / 60) * selectedPattern.WeeklyDays);
+                    // console.log((((hoursDiff * 60) + minutesDiff) / 60) * selectedPattern.WeeklyDays);
                 }
             }
         };
@@ -212,9 +183,10 @@ const AddEmployeeForm = ({ details, handleScroll, handlePersonal, handleFinancia
         getPayslipInfo();
     }, []);
 
+
     const hourAndMin = timeDifference.toString().split(".");
     const [hour, min] = hourAndMin;
-
+    console.log(empData.position);
 
     return (
         <form onSubmit={formik.handleSubmit}>
@@ -231,154 +203,121 @@ const AddEmployeeForm = ({ details, handleScroll, handlePersonal, handleFinancia
                 </div>
 
                 <div className="detailsParent" >
-                    {
-                        // employeeObj.length > 0 ?
-                        // (<div className="personalDetails" ref={personalRef}>
-                        //     {/* <div className="d-flex justify-content-end"> */}
-                        //     <img src={editIcon} alt="" className="editIcon" />
-                        //     {/* <div style={{ fontSize: "12px", color: "gray" }}>Edit</div> */}
-                        //     {/* </div> */}
-                        //     <div className="d-flex justify-content-center my-3">
-                        //         <div className="avatar">
-                        //             <img src={maleAvatar} alt="" style={{ width: "150px", height: "150px" }} />
-                        //         </div>
-                        //     </div>
-                        //     <div className="titleTextLabel">Employee Name</div>
-                        //     <div className="titleText">
-                        //         Arun Kumar
-                        //     </div>
-                        //     <div className="titleTextLabel">Department</div>
-                        //     <div className="titleText">
-                        //         Development
-                        //     </div>
-
-                        //     <div className="row my-3 d-flex align-items-center justify-content-center">
-                        //         <div className="col-lg-6">
-                        //             <div className="titleTextLabel">Job Title</div>
-                        //             <div className="titleText">MERN Stack Developer</div>
-                        //         </div>
-                        //         <div className="col-lg-6">
-                        //             <div className="titleTextLabel">Job Category</div>
-                        //             <div className="titleText">Full Time</div>
-                        //         </div>
-                        //     </div>
-                        // </div>)
-                        // :
-                        (<div className="personalDetails" ref={personalRef}>
-                            <div className="row my-3 d-flex justify-content-center">
-                                <div className="titleText col-lg-12">
-                                    Personal Details
-                                </div>
-                                <div className="col-lg-6">
-                                    <div className="inputLabel">First Name</div>
-                                    <input type="text"
-                                        className={`inputField ${formik.touched.FirstName && formik.errors.FirstName ? "error" : ""}`}
-                                        name="FirstName"
-                                        onChange={formik.handleChange}
-                                        value={formik.values.FirstName} />
-                                    {formik.touched.FirstName && formik.errors.FirstName ? (
-                                        <div className="text-center text-danger">{formik.errors.FirstName}</div>
-                                    ) : null}
-                                </div>
-                                <div className="col-lg-6">
-                                    <div className="inputLabel">Last Name</div>
-                                    <input type="text"
-                                        className={`inputField ${formik.touched.LastName && formik.errors.LastName ? "error" : ""}`}
-                                        name="LastName"
-                                        onChange={formik.handleChange}
-                                        value={formik.values.LastName} />
-                                    {formik.touched.LastName && formik.errors.LastName ? (
-                                        <div className="text-center text-danger">{formik.errors.LastName}</div>
-                                    ) : null}
-                                </div>
+                    <div className="personalDetails" ref={personalRef}>
+                        <div className="row my-3 d-flex justify-content-center">
+                            <div className="titleText col-lg-12">
+                                Personal Details
                             </div>
-
-                            <div className="row my-3 d-flex align-items-center justify-content-center">
-                                <div className="col-lg-6">
-                                    <div className="inputLabel">Gender</div>
-                                    <select name="gender"
-                                        className={`selectInput ${formik.touched.gender && formik.errors.gender ? "error" : ""}`}
-                                        onChange={formik.handleChange}
-                                        value={formik.values.gender}>
-                                        <option >Select gender</option>
-                                        <option value="male">Male</option>
-                                        <option value="female">Female</option>
-                                    </select>
-                                    {formik.touched.gender && formik.errors.gender ? (
-                                        <div className="text-center text-danger">{formik.errors.gender}</div>
-                                    ) : null}
-                                </div>
-                                <div className="col-lg-6">
-                                    <div className="inputLabel">Department</div>
-                                    <select name="department" className={`selectInput ${formik.touched.department && formik.errors.department ? "error" : ""}`}
-                                        onChange={formik.handleChange}
-                                        value={formik.values.department}>
-                                        <option >Select Department</option>
-                                        {
-                                            departments.map((department) => (
-                                                <option key={department._id} value={department._id}>{department.DepartmentName}</option>
-                                            ))
-                                        }
-                                    </select>
-                                    {formik.touched.department && formik.errors.department ? (
-                                        <div className="text-center text-danger">{formik.errors.department}</div>
-                                    ) : null}
-                                </div>
+                            <div className="col-lg-6">
+                                <div className="inputLabel">First Name</div>
+                                <input type="text"
+                                    className={`inputField ${formik.touched.FirstName && formik.errors.FirstName ? "error" : ""}`}
+                                    name="FirstName"
+                                    onChange={formik.handleChange}
+                                    value={formik.values.FirstName} />
+                                {formik.touched.FirstName && formik.errors.FirstName ? (
+                                    <div className="text-center text-danger">{formik.errors.FirstName}</div>
+                                ) : null}
                             </div>
-
-                            <div className="row d-flex justify-content-center">
-                                <div className="col-lg-12">
-                                    <div className="inputLabel">Position</div>
-                                    <select name="position" className={`selectInput ${formik.touched.position && formik.errors.position ? "error" : ""}`}
-                                        onChange={formik.handleChange}
-                                        value={formik.values.position}>
-                                        <option >Select Position</option>
-                                        {
-                                            positions.map((position) => (
-                                                <option key={position._id} value={position._id}>{position.PositionName}</option>
-                                            ))
-                                        }
-                                    </select>
-                                    {formik.touched.position && formik.errors.position ? (
-                                        <div className="text-center text-danger">{formik.errors.position}</div>
-                                    ) : null}
-                                </div>
+                            <div className="col-lg-6">
+                                <div className="inputLabel">Last Name</div>
+                                <input type="text"
+                                    className={`inputField ${formik.touched.LastName && formik.errors.LastName ? "error" : ""}`}
+                                    name="LastName"
+                                    onChange={formik.handleChange}
+                                    value={formik.values.LastName} />
+                                {formik.touched.LastName && formik.errors.LastName ? (
+                                    <div className="text-center text-danger">{formik.errors.LastName}</div>
+                                ) : null}
                             </div>
+                        </div>
 
-                            <div className="row my-3 d-flex align-items-center justify-content-center">
-                                <div className="col-lg-6">
-                                    <div className="inputLabel">Role</div>
-                                    <select name="role" className={`selectInput ${formik.touched.role && formik.errors.role ? "error" : ""}`}
-                                        onChange={formik.handleChange}
-                                        value={formik.values.role}>
-                                        <option >Select Role</option>
-                                        {
-                                            roles.map((role) => (
-                                                <option key={role._id} value={role._id}>{role.RoleName}</option>
-                                            ))
-                                        }
-                                    </select>
-                                    {formik.touched.role && formik.errors.role ? (
-                                        <div className="text-center text-danger">{formik.errors.role}</div>
-                                    ) : null}
-                                </div>
-                                <div className="col-lg-6">
-                                    <div className="inputLabel">Employment Type</div>
-                                    <select name="employmentType" className={`selectInput ${formik.touched.employmentType && formik.errors.employmentType ? "error" : ""}`}
-                                        onChange={formik.handleChange}
-                                        value={formik.values.employmentType}>
-                                        <option >Employment Type</option>
-                                        <option value="full-time">Full Time</option>
-                                        <option value="part-time">Part Time</option>
-                                        <option value="intern">Contract</option>
-                                    </select>
-                                    {formik.touched.employmentType && formik.errors.employmentType ? (
-                                        <div className="text-center text-danger">{formik.errors.employmentType}</div>
-                                    ) : null}
-                                </div>
+                        <div className="row my-3 d-flex align-items-center justify-content-center">
+                            <div className="col-lg-6">
+                                <div className="inputLabel">Gender</div>
+                                <select name="gender"
+                                    className={`selectInput ${formik.touched.gender && formik.errors.gender ? "error" : ""}`}
+                                    onChange={formik.handleChange}
+                                    value={formik.values.gender}>
+                                    <option >Select gender</option>
+                                    <option value="male">Male</option>
+                                    <option value="female">Female</option>
+                                </select>
+                                {formik.touched.gender && formik.errors.gender ? (
+                                    <div className="text-center text-danger">{formik.errors.gender}</div>
+                                ) : null}
                             </div>
-                        </div>)
-                    }
+                            <div className="col-lg-6">
+                                <div className="inputLabel">Department</div>
+                                <select name="department" className={`selectInput ${formik.touched.department && formik.errors.department ? "error" : ""}`}
+                                    onChange={formik.handleChange}
+                                    value={formik.values.department}>
+                                    <option >Select Department</option>
+                                    {
+                                        departments.map((department) => (
+                                            <option key={department._id} value={department._id}>{department.DepartmentName}</option>
+                                        ))
+                                    }
+                                </select>
+                                {formik.touched.department && formik.errors.department ? (
+                                    <div className="text-center text-danger">{formik.errors.department}</div>
+                                ) : null}
+                            </div>
+                        </div>
+
+                        <div className="row d-flex justify-content-center">
+                            <div className="col-lg-12">
+                                <div className="inputLabel">Position</div>
+                                <select name="position" className={`selectInput ${formik.touched.position && formik.errors.position ? "error" : ""}`}
+                                    onChange={formik.handleChange}
+                                    value={formik?.values?.position || empData?.position || ""}>
+                                    <option >Select Position</option>
+                                    {
+                                        positions.map((position) => (
+                                            <option key={position._id} value={position._id}>{position.PositionName}</option>
+                                        ))
+                                    }
+                                </select>
+                                {formik.touched.position && formik.errors.position ? (
+                                    <div className="text-center text-danger">{formik.errors.position}</div>
+                                ) : null}
+                            </div>
+                        </div>
+
+                        <div className="row my-3 d-flex align-items-center justify-content-center">
+                            <div className="col-lg-6">
+                                <div className="inputLabel">Role</div>
+                                <select name="role" className={`selectInput ${formik.touched.role && formik.errors.role ? "error" : ""}`}
+                                    onChange={formik.handleChange}
+                                    value={formik.values.role || empData?.role || ""}>
+                                    <option >Select Role</option>
+                                    {
+                                        roles.map((role) => (
+                                            <option key={role._id} value={role._id}>{role.RoleName}</option>
+                                        ))
+                                    }
+                                </select>
+                                {formik.touched.role && formik.errors.role ? (
+                                    <div className="text-center text-danger">{formik.errors.role}</div>
+                                ) : null}
+                            </div>
+                            <div className="col-lg-6">
+                                <div className="inputLabel">Employment Type</div>
+                                <select name="employmentType" className={`selectInput ${formik.touched.employmentType && formik.errors.employmentType ? "error" : ""}`}
+                                    onChange={formik.handleChange}
+                                    value={formik.values.employmentType}>
+                                    <option >Employment Type</option>
+                                    <option value="full-time">Full Time</option>
+                                    <option value="part-time">Part Time</option>
+                                    <option value="intern">Contract</option>
+                                </select>
+                                {formik.touched.employmentType && formik.errors.employmentType ? (
+                                    <div className="text-center text-danger">{formik.errors.employmentType}</div>
+                                ) : null}
+                            </div>
+                        </div>
+                    </div>
+
                     <div className="contactDetails" ref={contactRef}>
                         <div className="row d-flex justify-content-center my-3">
                             <div className="titleText col-lg-12">
@@ -470,14 +409,19 @@ const AddEmployeeForm = ({ details, handleScroll, handlePersonal, handleFinancia
                                     className={`selectInput ${formik.touched.workingTimePattern && formik.errors.workingTimePattern ? "error" : ""}`}
                                     name="workingTimePattern"
                                     onChange={formik.handleChange}
-                                    value={formik.values.workingTimePattern} >
-                                    <option>Select Work Time Pattern</option>
-                                    {
-                                        timePatterns.map((pattern) => (
-                                            <option key={pattern._id} value={pattern._id}>{pattern.PatternName}</option>
-                                        ))
-                                    }
+                                    value={formik.values.workingTimePattern || empData?.workingTimePattern || ""} // Set initial value from empData if formik value is not set
+                                >
+                                    <option value="">Select Work Time Pattern</option>
+                                    {timePatterns.map((pattern) => (
+                                        <option key={pattern._id} value={pattern._id}
+                                            selected={pattern._id === formik.values.workingTimePattern._id}
+                                        >
+
+                                            {pattern.PatternName}
+                                        </option>
+                                    ))}
                                 </select>
+
                                 {formik.touched.workingTimePattern && formik.errors.workingTimePattern ? (
                                     <div className="text-center text-danger">{formik.errors.workingTimePattern}</div>
                                 ) : null}
@@ -488,7 +432,7 @@ const AddEmployeeForm = ({ details, handleScroll, handlePersonal, handleFinancia
                                     className={`selectInput ${formik.touched.company && formik.errors.company ? "error" : ""}`}
                                     name="company"
                                     onChange={formik.handleChange}
-                                    value={formik.values.company} >
+                                    value={formik.values.company || empData.company || ""} >
                                     <option>Select Company</option>
                                     {
                                         companies.map((company) => (
@@ -634,7 +578,10 @@ const AddEmployeeForm = ({ details, handleScroll, handlePersonal, handleFinancia
                         <div className="row d-flex justify-content-center my-3">
                             <div className="col-lg-6">
                                 <div className="inputLabel">Manager</div>
-                                <select name="managerId" onChange={formik.handleChange} className={`inputField ${formik.touched.managerId && formik.errors.managerId ? "error" : ""}`}>
+                                <select name="managerId" onChange={formik.handleChange}
+                                    className={`inputField ${formik.touched.managerId && formik.errors.managerId ? "error" : ""}`}
+                                    value={formik.values.managerId || empData?.managerId || ""}
+                                >
                                     <option >Select Manager</option>
                                     {
                                         managers.map((manager) => (
@@ -648,12 +595,22 @@ const AddEmployeeForm = ({ details, handleScroll, handlePersonal, handleFinancia
                             </div>
                             <div className="col-lg-6">
                                 <div className="inputLabel">Team Lead</div>
-                                <select name="teamLead" onChange={formik.handleChange} className={`selectInput ${formik.touched.teamLead && formik.errors.teamLead ? "error" : ""}`}>
-                                    <option >Select TeamLead</option>
+                                <select
+                                    name="teamLead"
+                                    onChange={formik.handleChange}
+                                    className={`selectInput ${formik.touched.teamLead && formik.errors.teamLead ? "error" : ""}`}
+                                    value={formik.values.teamLead || empData?.teamLead || ""}
+                                >
+                                    <option value="">Select Team Lead</option>
                                     {leads.map((lead) => (
-                                        <option key={lead._id} value={lead._id}>{lead.FirstName}</option>
+                                        <option key={lead._id} value={lead._id}
+                                        // selected={empData?.teamLead === formik?.values?.teamLead}
+                                        >
+                                            {lead.FirstName}
+                                        </option>
                                     ))}
                                 </select>
+
                                 {formik.touched.teamLead && formik.errors.teamLead ? (
                                     <div className="text-center text-danger">{formik.errors.teamLead}</div>
                                 ) : null}
@@ -672,6 +629,7 @@ const AddEmployeeForm = ({ details, handleScroll, handlePersonal, handleFinancia
                                     cols={50}
                                     rows={10}
                                     style={{ height: "100px" }}
+                                    value={formik.values.description || empData.description || ""}
                                 />
                                 {formik.touched.description && formik.errors.description ? (
                                     <div className="text-center text-danger">{formik.errors.description}</div>
@@ -840,15 +798,13 @@ const AddEmployeeForm = ({ details, handleScroll, handlePersonal, handleFinancia
             <div className="btnBackground">
                 <div className="fixedPositionBtns">
                     <div className="w-50">
-                        <button className="outline-btn mx-2" >
-                            <Link to={"/hr/employee"} className="text-dark">
-                                Cancel
-                            </Link>
+                        <button className="outline-btn mx-2" onClick={changeEmpEditForm}>
+                            Cancel
                         </button>
                     </div>
                     <div className="w-50">
                         <button type="submit" className="button px-5 py-2" onClick={navToError}>
-                            Save
+                            Update
                         </button>
                     </div>
                 </div>
@@ -857,4 +813,5 @@ const AddEmployeeForm = ({ details, handleScroll, handlePersonal, handleFinancia
     )
 };
 
-export default AddEmployeeForm;
+export default EditEmployeeform;
+

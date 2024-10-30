@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import EmpCard from "./EmpCard";
 import axios from "axios";
 import { toast } from "react-toastify";
@@ -9,8 +9,10 @@ import { Input, InputGroup } from "rsuite";
 import { useNavigate } from "react-router-dom";
 import NoDataFound from "./NoDataFound";
 import Loading from "../Loader";
+import { TimerStates } from "./HRMDashboard";
 
-const ManageTeam = ({ whoIs }) => {
+const ManageTeam = () => {
+    const {whoIs} = useContext(TimerStates);
     const [teamObj, setTeamObj] = useState({
         teamName: "",
         employees: [],
@@ -43,7 +45,7 @@ const ManageTeam = ({ whoIs }) => {
 
     const toggleAddTeam = () => {
         setAddTeam(!addTeam);
-        if (addTeam) { 
+        if (addTeam) {
             setEditTeamObj(null);  // Reset editTeamObj when toggling out of add/edit mode
         }
     };
@@ -52,16 +54,17 @@ const ManageTeam = ({ whoIs }) => {
         setAssignEmp(!assignEmp);
     };
 
-    const setTeamName = (name) => {
+    const changeTeamObj = (e) => {
+        const {name, value} = e.target;
         if (editTeamObj) {
             setEditTeamObj((prev) => ({
                 ...prev,
-                teamName: name
+                [name]: value
             }));
         } else {
             setTeamObj((prev) => ({
                 ...prev,
-                teamName: name
+                [name]: value
             }));
         }
     };
@@ -117,7 +120,7 @@ const ManageTeam = ({ whoIs }) => {
             setEditTeamObj(res.data);
             toggleAddTeam();
         } catch (err) {
-            toast.error(err.message);
+            toast.error(err?.response?.data?.message);
         }
     };
 
@@ -157,7 +160,11 @@ const ManageTeam = ({ whoIs }) => {
             toggleAddTeam();
             reloadUI();
             toast.success(res.data.message);
+            console.log(res.data);
+            
         } catch (err) {
+            console.log(err);
+            
             toast.error(err.message);
         }
     };
@@ -185,47 +192,49 @@ const ManageTeam = ({ whoIs }) => {
     }, [dom]);
 
     return (
-        isLoading ? <Loading /> : 
-        <div className="my-2">
-            <button className="button my-2" onClick={toggleAddTeam}>
-                {addTeam ? "Cancel" : "Add a new team"}
-            </button>
+        isLoading ? <Loading /> :
+            <div className="my-2">
+                <button className="button my-2" onClick={toggleAddTeam}>
+                    {addTeam ? "Cancel" : "Add a new team"}
+                </button>
 
-            <InputGroup inside style={{ width: "300px" }}>
-                <Input placeholder="Team Name" className="m-0" value={searchTeam} onChange={filterTeam} />
-                <InputGroup.Button className="m-auto">
-                    <SearchRoundedIcon />
-                </InputGroup.Button>
-            </InputGroup>
+                <InputGroup inside style={{ width: "300px" }}>
+                    <Input placeholder="Team Name" className="m-0" value={searchTeam} onChange={filterTeam} />
+                    <InputGroup.Button className="m-auto">
+                        <SearchRoundedIcon />
+                    </InputGroup.Button>
+                </InputGroup>
 
-            {addTeam && (           
-                <EditTeam
-                    team={editTeamObj ? editTeamObj : teamObj}
-                    setTeamName={setTeamName} // to update teamName
-                    toggleAddTeam={toggleAddTeam}
-                    toggleAssignEmp={toggleAssignEmp}
-                />
-            )}
+                {addTeam && (
+                    <EditTeam
+                        team={editTeamObj ? editTeamObj : teamObj}
+                        setTeamName={changeTeamObj} // to update teamName
+                        toggleAddTeam={toggleAddTeam}
+                        toggleAssignEmp={toggleAssignEmp}
+                    />
+                )}
 
-            {assignEmp && (
-                <AssignEmp
-                    handleSubmit={editTeamObj ? handleSubmitEdit : handleSubmit}
-                    teamObj={editTeamObj ? editTeamObj : teamObj}
-                    updateTeamObj={updateTeamObj}
-                    toggleAssignEmp={toggleAssignEmp}
-                />
-            )}
+                {assignEmp && (
+                    <AssignEmp
+                        teams={teams}
+                        handleSubmit={editTeamObj ? handleSubmitEdit : handleSubmit}
+                        teamObj={editTeamObj ? editTeamObj : teamObj}
+                        setTeamLead={changeTeamObj}
+                        updateTeamObj={updateTeamObj}
+                        toggleAssignEmp={toggleAssignEmp}
+                    />
+                )}
 
-            {filteredTeams.length > 0 ? (
-                <div className="row d-flex justify-content-start">
-                    {filteredTeams.map((team) => (
-                        <EmpCard key={team._id} team={team} editTeam={editTeam} deleteTeam={deleteTeam} />
-                    ))}
-                </div>
-            ) : (
-                <NoDataFound message={"No teams found"} />
-            )}
-        </div>
+                {filteredTeams.length > 0 ? (
+                    <div className="row d-flex justify-content-start">
+                        {filteredTeams.map((team) => (
+                            <EmpCard key={team._id} team={team} editTeam={editTeam} deleteTeam={deleteTeam} />
+                        ))}
+                    </div>
+                ) : (
+                    <NoDataFound message={"No teams found"} />
+                )}
+            </div>
     );
 };
 
