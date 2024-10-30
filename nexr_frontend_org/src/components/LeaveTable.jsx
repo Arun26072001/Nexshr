@@ -533,6 +533,5 @@ export default function LeaveTable({ data, getCheckedValue, roleObj, getCheckAll
                     <ViewAttendanceModel modelData={modelData} toggleView={toggleView} totalHours={totalHours} openModal={openModal} /> : null
             }
         </div >
-
     );
 }

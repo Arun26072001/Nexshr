@@ -25,7 +25,6 @@ const Roles = () => {
                     Authorization: token || ""
                 }
             });
-            console.log(deleteRole.data);
             toast.success(deleteRole.data);
             reloadRolePage();
         } catch (error) {

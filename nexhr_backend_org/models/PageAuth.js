@@ -1,16 +1,17 @@
 const mongoose = require("mongoose");
+const Joi = require("joi");
 
 const pageAuthSchema = new mongoose.Schema({
-    Administration: { type: String, required: true },
-    Attendance: { type: String, required: true },
-    Dashboard: { type: String, required: true },
-    Employee: { type: String, required: true },
-    JobDesk: { type: String, required: true },
-    Leave: { type: String, required: true },
-    Settings: { type: String, required: true }
+    Administration: { type: String, default: "not allow" },
+    Attendance: { type: String, default: "not allow" },
+    Dashboard: { type: String, default: "not allow" },
+    Employee: { type: String, default: "not allow" },
+    JobDesk: { type: String, default: "not allow" },
+    Leave: { type: String, default: "not allow" },
+    Settings: { type: String, default: "not allow" }
 });
 
-const PageAuth = mongoose.model("pageAuth", pageAuthSchema);
+const PageAuth = mongoose.model("PageAuth", pageAuthSchema);
 
 const pageAuthValidation = Joi.object({
     Administration: Joi.string().valid("allow", "not allow").required(),

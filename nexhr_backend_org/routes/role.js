@@ -3,12 +3,35 @@ const router = express.Router();
 const { Employee } = require('../models/EmpModel');
 const { verifyAdminHR, verifyAdmin } = require('../auth/authMiddleware');
 const { RoleAndPermission, RoleAndPermissionValidation } = require('../models/RoleModel');
-const { userPermissionsValidation } = require('../models/UserPermissionModel');
+const { userPermissionsValidation, UserPermission } = require('../models/UserPermissionModel');
+const { PageAuth, pageAuthValidation } = require('../models/PageAuth');
+
+// get role by roleName
+router.get("/name", verifyAdmin, async (req, res) => {
+  try {
+    const role = await RoleAndPermission.findOne({ RoleName: "Employee" })
+      .populate("userPermissions")
+      .populate("pageAuth")
+      .exec();
+    if (!role) {
+      res.status(404).send({ error: "Data not found in given Employee" })
+    } else {
+      res.send(role);
+    }
+  } catch (error) {
+    console.log(error);
+
+    res.status(500).send({ error: error.message })
+  }
+})
 
 // role get by id
 router.get("/:id", verifyAdmin, async (req, res) => {
   try {
-    const role = await RoleAndPermission.findById(req.params.id).exec();
+    const role = await RoleAndPermission.findById(req.params.id)
+      .populate("userPermissions")
+      .populate("pageAuth")
+      .exec();
     if (!role) {
       res.status(404).send({ error: "Data not found in given ID" })
     } else {
@@ -17,11 +40,13 @@ router.get("/:id", verifyAdmin, async (req, res) => {
   } catch (error) {
     res.status(500).send({ error: error.message })
   }
-})
+});
 
 // Get all roles
 router.get('/', verifyAdminHR, (req, res) => {
   RoleAndPermission.find()
+    .populate("userPermissions")
+    .populate("pageAuth")
     // .populate('company')
     .exec((err, roles) => {
       if (err) return res.status(403).send(err);
@@ -33,114 +58,85 @@ router.get('/', verifyAdminHR, (req, res) => {
 
 // Add new role
 router.post('/', verifyAdminHR, async (req, res) => {
-  const pages = [
-    "Dashboard", "JobDesk", "Employee", "Leave",
-    "Attendance", "Administration", "Settings"
-  ];
-  
-  const actions = [
-    { sNo: 1, action: "Leave" },
-    { sNo: 2, action: "Attendance" },
-    { sNo: 3, action: "WorkPlace" },
-    { sNo: 4, action: "Role" },
-    { sNo: 5, action: "Department" },
-    { sNo: 6, action: "Holiday" },
-    { sNo: 7, action: "Employee" },
-    { sNo: 8, action: "Company" },
-    { sNo: 9, action: "TimePattern" },
-    { sNo: 9, action: "Payroll" }
-  ];
-  
-  const newRole = {
-    RoleName: req.body?.RoleName || "",
-    
-    // Create userPermissions object with dynamic action names
-    userPermissions: actions.reduce((acc, { action }) => {
-      acc[action] = {
-        view: req.body?.userPermissions?.[action]?.view || false,
-        add: req.body?.userPermissions?.[action]?.add || false,
-        edit: req.body?.userPermissions?.[action]?.edit || false,
-        delete: req.body?.userPermissions?.[action]?.delete || false
-      };
-      return acc;
-    }, {}),
-    
-    // Create pageAuth object with dynamic page names
-    pageAuth: pages.reduce((acc, page) => {
-      acc[page] = req.body?.pageAuth?.[page] || "not allow";
-      return acc;
-    }, {})
-  };
-  
   try {
-    const userPermissionValidation  = userPermissionsValidation(req?.body?.userPermissions)
-    const validation = RoleAndPermissionValidation.validate(newRole);
-    const { error } = validation;
-    if (error) {
-      res.status(400).send({ error: error.details[0].message })
-    } else {
-      const role = await RoleAndPermission.create(newRole);
-      res.send({ message: `${newRole?.RoleName} Role and permission has been added!` })
+    const newRole = req.body;
+
+    // Validate userPermissions
+    const { error: userPermissionsError } = userPermissionsValidation.validate(newRole.userPermissions);
+    if (userPermissionsError) {
+      return res.status(400).send({ error: userPermissionsError.details[0].message });
     }
+
+    // Validate pageAuth
+    const { error: pageAuthError } = pageAuthValidation.validate(newRole.pageAuth);
+    if (pageAuthError) {
+      return res.status(400).send({ error: pageAuthError.details[0].message });
+    }
+
+    // Create and save user permissions and page authorization in the database
+    const userPermission = await UserPermission.create(newRole.userPermissions);
+    const pageAuth = await PageAuth.create(newRole.pageAuth);
+
+    // Finalize new role data with references
+    const finalRoleData = {
+      RoleName: newRole.RoleName,
+      userPermissions: userPermission._id,
+      pageAuth: pageAuth._id
+    };
+
+    const role = await RoleAndPermission.create(finalRoleData);
+    res.send({ message: `${newRole.RoleName} Role and permission has been added!` });
   } catch (error) {
-    res.status(500).send({ error: error.message })
+    res.status(500).send({ error: error.message });
   }
 });
 
 // Update role
 router.put('/:id', verifyAdminHR, async (req, res) => {
-  const pages = [
-    "Dashboard", "JobDesk", "Employee", "Leave",
-    "Attendance", "Administration", "Settings"
-  ];
-  
-  const actions = [
-    { sNo: 1, action: "Leave" },
-    { sNo: 2, action: "Attendance" },
-    { sNo: 3, action: "WorkPlace" },
-    { sNo: 4, action: "Role" },
-    { sNo: 5, action: "Department" },
-    { sNo: 6, action: "Holiday" },
-    { sNo: 7, action: "Employee" },
-    { sNo: 8, action: "Company" },
-    { sNo: 9, action: "TimePattern" },
-    { sNo: 9, action: "Payroll" }
-  ];
-  
-  const newRole = {
-    RoleName: req.body?.RoleName || "",
-    
-    // Create userPermissions object with dynamic action names
-    userPermissions: actions.reduce((acc, { action }) => {
-      acc[action] = {
-        view: req.body?.userPermissions?.[action]?.view || false,
-        add: req.body?.userPermissions?.[action]?.add || false,
-        edit: req.body?.userPermissions?.[action]?.edit || false,
-        delete: req.body?.userPermissions?.[action]?.delete || false
-      };
-      return acc;
-    }, {}),
-    
-    // Create pageAuth object with dynamic page names
-    pageAuth: pages.reduce((acc, page) => {
-      acc[page] = req.body?.pageAuth?.[page] || "not allow";
-      return acc;
-    }, {})
-  };
-
   try {
-    const validation = RoleAndPermissionValidation.validate(newRole);
-    const { error } = validation;
-    if (error) {
-      console.log(error);
-      return res.status(400).send({ error: error.details[0].message });
-    } else {
-      const role = await RoleAndPermission.findByIdAndUpdate(req.params.id, newRole, { new: true });
-      if (!role) {
-        return res.status(404).send({ error: 'Role not found' });
-      }
-      return res.send({ message: `${newRole.RoleName} has been updated!` });
+    const updatedRole = req.body;
+
+    // Validate userPermissions
+    const { error: userPermissionsError } = userPermissionsValidation.validate(updatedRole.userPermissions);
+    if (userPermissionsError) {
+      return res.status(400).send({ error: userPermissionsError.details[0].message });
     }
+
+    // Validate pageAuth
+    const { error: pageAuthError } = pageAuthValidation.validate(updatedRole.pageAuth);
+    if (pageAuthError) {
+      return res.status(400).send({ error: pageAuthError.details[0].message });
+    }
+
+    // Update user permissions and page authorization in the database
+    const userPermission = await UserPermission.findByIdAndUpdate(
+      updatedRole.userPermissionsId,
+      updatedRole.userPermissions,
+      { new: true }
+    );
+    const pageAuth = await PageAuth.findByIdAndUpdate(
+      updatedRole.pageAuthId,
+      updatedRole.pageAuth,
+      { new: true }
+    );
+
+    if (!userPermission || !pageAuth) {
+      return res.status(404).send({ error: "User permissions or page authorization not found" });
+    }
+
+    // Update role with references to updated user permissions and page authorization
+    const finalRoleData = {
+      RoleName: updatedRole.RoleName,
+      userPermissions: userPermission._id,
+      pageAuth: pageAuth._id
+    };
+
+    const role = await RoleAndPermission.findByIdAndUpdate(req.params.id, finalRoleData, { new: true });
+    if (!role) {
+      return res.status(404).send({ error: 'Role not found' });
+    }
+
+    return res.send({ message: `${updatedRole.RoleName} has been updated!` });
   } catch (error) {
     console.log(error);
     return res.status(500).send({ error: error.message });
