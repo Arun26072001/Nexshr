@@ -1,29 +1,26 @@
-var mongoose = require('mongoose');
-var Joi = require('joi');
+const mongoose = require('mongoose');
+const Joi = require('joi');
 
-const actionAuthSchema = new mongoose.Schema({
-  name: {type: String},
-  toView: {type: Boolean},
-  toEdit: {type: Boolean},
-  toAdd: {type: Boolean},
-  toDelete: {type: Boolean}
-}, {_id: false})
-
-var roleSchema = new mongoose.Schema({
-  RoleName: { type: String, required: true, unique: true },
-  company: [{ type: mongoose.Schema.Types.ObjectId, ref: "Company" }],
-  pageAuth: {type: mongoose.Schema.Types.Mixed},
-  actionAuth: actionAuthSchema
+// Define the Mongoose schema
+const RoleAndPermissionSchema = new mongoose.Schema({
+  RoleName: { type: String, required: true },
+  userPermissions: { type: mongoose.Schema.Types.ObjectId, ref: "UserPermission" },
+  pageAuth: { type: mongoose.Schema.Types.ObjectId, ref: "PageAuth" }
 });
 
-var Role = mongoose.model("Role", roleSchema);
+// Create the model
+const RoleAndPermission = mongoose.model('RoleAndPermission', RoleAndPermissionSchema);
 
-const RoleValidation = Joi.object().keys({
-  RoleName: Joi.string()
-    .max(200)
-    .required(),
-  company: Joi.required()
+// Define Joi validation schema
+// Ensure userPermissionsSchemaJoi and pageAuthSchemaJoi are defined or imported
+const RoleAndPermissionValidation = Joi.object({
+  RoleName: Joi.string().required().label("Role Name"),
+  userPermissions: Joi.string().label("User Permissions"), // Ensure objectId extension if needed
+  pageAuth: Joi.string().label("Page Authorization") // Ensure objectId extension if needed
 });
 
-module.exports = { Role, RoleValidation };
-
+// Export the model and validation schema
+module.exports = {
+  RoleAndPermission,
+  RoleAndPermissionValidation
+};

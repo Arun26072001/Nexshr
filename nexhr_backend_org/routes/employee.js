@@ -234,8 +234,6 @@ router.put("/:id", verifyHR, async (req, res) => {
   }
 });
 
-
-
 router.delete("/:id", verifyHR, (req, res) => {
   Employee.findByIdAndRemove({ _id: req.params.id }, function (err, employee) {
     if (err) {

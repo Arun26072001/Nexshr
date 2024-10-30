@@ -10,16 +10,15 @@ import TableRow from '@mui/material/TableRow';
 import { fetchPayslip, getclockinsDataById, getTotalWorkingHourPerDay } from './ReuseableAPI';
 import EditRoundedIcon from '@mui/icons-material/EditRounded';
 import RemoveRedEyeRoundedIcon from '@mui/icons-material/RemoveRedEyeRounded';
-import { useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { Dropdown } from 'rsuite';
-import DropdownItem from 'rsuite/esm/Dropdown/DropdownItem';
 import ViewAttendanceModel from './ViewAttendanceModel';
 import { toast } from 'react-toastify';
-import { Checkbox } from "rsuite";
 import { TimerStates } from './payslip/HRMDashboard';
 import KeyRoundedIcon from '@mui/icons-material/KeyRounded';
 
-export default function LeaveTable({ data, manageAuthorization, getCheckedValue, roleObj, getCheckAll }) {
+export default function LeaveTable({ data, getCheckedValue, roleObj, getCheckAll, deleteRole }) {
+    const navigate = useNavigate();
     const { changeEmpEditForm } = useContext(TimerStates)
     const [page, setPage] = useState(0);
     const [rowsPerPage, setRowsPerPage] = useState(10);
@@ -234,6 +233,42 @@ export default function LeaveTable({ data, manageAuthorization, getCheckedValue,
             getter: (row) => row?.action
         },
         {
+            id: 'all',
+            label: 'All',
+            minWidth: 130,
+            align: 'center',
+            getter: (row) => (
+                <input
+                    className="form-check-input"
+                    type="checkbox"
+                    disabled={params['*'].includes("view") ? true : false}
+                    name={`${row.action}`}
+                    checked={roleObj?.userPermissions?.[row.action]?.add === true
+                        && roleObj?.userPermissions?.[row.action]?.view === true
+                        && roleObj?.userPermissions?.[row.action]?.edit === true
+                        && roleObj?.userPermissions?.[row.action]?.delete === true}
+                    onChange={(e) => getCheckAll(e)}
+                />
+            )
+        },
+        {
+            id: 'add',
+            label: 'Add',
+            minWidth: 100,
+            align: 'center',
+            getter: (row) => (
+                <input
+                    className="form-check-input"
+                    type="checkbox"
+                    name={`add-${row.action}`}
+                    disabled={params['*'].includes("view") ? true : false}
+                    checked={roleObj?.userPermissions?.[row.action]?.add || false}
+                    onChange={(e) => getCheckedValue(e)}
+                />
+
+            )
+        },
+        {
             id: 'view',
             label: 'View',
             minWidth: 100,
@@ -243,7 +278,8 @@ export default function LeaveTable({ data, manageAuthorization, getCheckedValue,
                     className="form-check-input"
                     type="checkbox"
                     name={`view-${row.action}`}
-                    checked={roleObj?.[row.action]?.view || false}
+                    disabled={params['*'].includes("view") ? true : false}
+                    checked={roleObj?.userPermissions?.[row.action]?.view || false}
                     onChange={(e) => getCheckedValue(e)}
                 />
             )
@@ -258,7 +294,8 @@ export default function LeaveTable({ data, manageAuthorization, getCheckedValue,
                     className="form-check-input"
                     type="checkbox"
                     name={`edit-${row.action}`}
-                    checked={roleObj?.[row.action]?.edit || false}
+                    disabled={params['*'].includes("view") ? true : false}
+                    checked={roleObj?.userPermissions?.[row.action]?.edit || false}
                     onChange={(e) => getCheckedValue(e)}
                 />
             )
@@ -273,43 +310,13 @@ export default function LeaveTable({ data, manageAuthorization, getCheckedValue,
                     className="form-check-input"
                     type="checkbox"
                     name={`delete-${row.action}`}
-                    checked={roleObj?.[row.action]?.delete || false}
+                    disabled={params['*'].includes("view") ? true : false}
+                    checked={roleObj?.userPermissions?.[row.action]?.delete || false}
                     onChange={(e) => getCheckedValue(e)}
-                />
-            )
-        },
-        {
-            id: 'update',
-            label: 'Update',
-            minWidth: 100,
-            align: 'center',
-            getter: (row) => (
-                <input
-                    className="form-check-input"
-                    type="checkbox"
-                    name={`update-${row.action}`}
-                    checked={roleObj?.[row.action]?.update || false}
-                    onChange={(e) => getCheckedValue(e)}
-                />
-
-            )
-        },
-        {
-            id: 'all',
-            label: 'All',
-            minWidth: 130,
-            align: 'center',
-            getter: (row) => (
-                <input
-                    className="form-check-input"
-                    type="checkbox"
-                    name={`${row.action}`}
-                    onChange={(e) => getCheckAll(e)}
                 />
             )
         }
     ];
-
 
     const column7 = [
         {
@@ -324,22 +331,33 @@ export default function LeaveTable({ data, manageAuthorization, getCheckedValue,
             id: 'RoleName',
             label: 'Role',
             minWidth: 120,
-            align: 'center',
+            align: 'left',
             getter: (row) => row?.RoleName
         },
+        // {
+        //     id: 'CompanyName',
+        //     label: 'Company',
+        //     minWidth: 120,
+        //     align: 'left',
+        //     getter: (row) => row?.company?.map((item) => item.CompanyName)
+        // },
         {
-            id: 'CompanyName',
-            label: 'Company',
-            minWidth: 120,
-            align: 'center',
-            getter: (row) => row?.company?.map((item) => item.CompanyName)
-        }, {
             id: 'auth',
             label: 'Manage Authorization',
             minWidth: 120,
             align: 'center',
         }
     ]
+
+    const column8 = [
+        { id: 'FirstName', label: 'Name', minWidth: 130, align: "left", getter: (row) => row.employee.FirstName[0].toUpperCase() + row.employee.FirstName.slice(1) + row.employee.LastName || 'Unknown' },
+        { id: 'periodOfLeave', label: 'Period Of Leave', align: "left", minWidth: 150, getter: (row) => row.periodOfLeave },
+        { id: 'fromDate', label: 'Start Date', minWidth: 130, align: 'left', getter: (row) => row.fromDate ? row.fromDate.split("T")[0] : 'N/A' },
+        { id: 'toDate', label: 'End Date', minWidth: 130, align: 'left', getter: (row) => row.toDate ? row.toDate.split("T")[0] : 'N/A' },
+        { id: 'leaveType', label: 'Type', minWidth: 130, align: 'left', getter: (row) => row.leaveType },
+        { id: 'reasonForLeave', label: 'Reason', minWidth: 130, align: 'left', getter: (row) => row.reasonForLeave },
+        { id: 'status', label: 'Status', minWidth: 130, align: 'left', getter: (row) => row.status },
+    ];
 
     function toggleView() {
         setOpenModal(!openModal);
@@ -387,7 +405,7 @@ export default function LeaveTable({ data, manageAuthorization, getCheckedValue,
     useEffect(() => {
         setRows(data || []);
         data.map((item) => {
-            if (item.fromDate) {
+            if (item.fromDate && params['*'] === "leave-request") {
                 return setColumns(column1);
             } else if (item.code) {
                 return setColumns(column3);
@@ -403,6 +421,11 @@ export default function LeaveTable({ data, manageAuthorization, getCheckedValue,
                 return setColumns(column6);
             } else if (item.RoleName) {
                 return setColumns(column7);
+            }
+            else if (item.fromDate && params['*'] === "status"
+                || item.fromDate && params['*'] === "leave-summary"
+                || item.fromDate && params['*'] === "calender") {
+                return setColumns(column8);
             }
             else {
                 return setColumns(column2)
@@ -444,12 +467,12 @@ export default function LeaveTable({ data, manageAuthorization, getCheckedValue,
                                         // Render actions based on column.id and params
                                         const renderActions = () => {
                                             if (column.id === "Action") {
-                                                if (params['*'] === "request") {
+                                                if (params['*'] === "leave-request") {
                                                     return (
-                                                        <Dropdown title={<EditRoundedIcon style={{ cursor: "pointer" }} />} noCaret>
-                                                            <Dropdown.Item>Change log</Dropdown.Item>
-                                                            <Dropdown.Item>Approve</Dropdown.Item>
-                                                            <Dropdown.Item>Reject</Dropdown.Item>
+                                                        <Dropdown placement='leftStart' title={<EditRoundedIcon style={{ cursor: "pointer" }} />} noCaret>
+                                                            <Dropdown.Item style={{ minWidth: 120 }}>Response</Dropdown.Item>
+                                                            <Dropdown.Item style={{ minWidth: 120 }}>Approve</Dropdown.Item>
+                                                            <Dropdown.Item style={{ minWidth: 120 }}>Reject</Dropdown.Item>
                                                         </Dropdown>
                                                     );
                                                 } else if (params['*'] === "payslip" || params['*'] === "daily-log") {
@@ -460,17 +483,17 @@ export default function LeaveTable({ data, manageAuthorization, getCheckedValue,
                                                 } else if (params['*'] === "employee") {
                                                     return (
                                                         <Dropdown title={<EditRoundedIcon style={{ cursor: "pointer" }} />} noCaret>
-                                                            <Dropdown.Item onClick={() => changeEmpEditForm(row._id)}>Edit</Dropdown.Item>
-                                                            <Dropdown.Item>Delete</Dropdown.Item>
+                                                            <Dropdown.Item style={{ minWidth: 120 }} onClick={() => changeEmpEditForm(row._id)}>Edit</Dropdown.Item>
+                                                            <Dropdown.Item style={{ minWidth: 120 }}>Delete</Dropdown.Item>
                                                         </Dropdown>
                                                     );
                                                 }
-                                            } else if (column.id === "auth" && params['*'] === "role") {
+                                            } else if (column.id === "auth") {
                                                 return (
                                                     <Dropdown title={<KeyRoundedIcon style={{ cursor: "pointer" }} />} noCaret>
-                                                        <Dropdown.Item>View</Dropdown.Item>
-                                                        <Dropdown.Item onClick={() => manageAuthorization(row._id)}>Edit</Dropdown.Item>
-                                                        <Dropdown.Item>Delete</Dropdown.Item>
+                                                        <Dropdown.Item style={{ minWidth: 120 }} onClick={() => navigate(`view/${row._id}`)}>View</Dropdown.Item>
+                                                        <Dropdown.Item style={{ minWidth: 120 }} onClick={() => navigate(`edit/${row._id}`)}>Edit</Dropdown.Item>
+                                                        <Dropdown.Item style={{ minWidth: 120 }} onClick={() => deleteRole(row._id)}>Delete</Dropdown.Item>
                                                     </Dropdown>
                                                 );
                                             }

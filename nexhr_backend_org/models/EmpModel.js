@@ -27,7 +27,7 @@ var employeeSchema = new mongoose.Schema({
   },
   position: [{ type: mongoose.Schema.Types.ObjectId, ref: "Position" }],
   department: [{ type: mongoose.Schema.Types.ObjectId, ref: "Department" }],
-  role: [{type: mongoose.Schema.Types.ObjectId, ref: "Role"}],
+  role: [{type: mongoose.Schema.Types.ObjectId, ref: "RoleAndPermission"}],
   company: [{ type: mongoose.Schema.Types.ObjectId, ref: "Company" }],
   description: {type: String},
   dateOfJoining: { type: String },
