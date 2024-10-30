@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const Joi = require('joi');
 
 // Mongoose schema for permissions
 const permissionSchema = new mongoose.Schema({

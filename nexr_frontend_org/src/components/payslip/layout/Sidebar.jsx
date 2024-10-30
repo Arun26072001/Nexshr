@@ -187,63 +187,7 @@ const Sidebar = () => {
                             </li>
                         </>
                     )}
-                {/* Administration Section */}
-                {account === "1" && (
-                    <>
-                        <li className={`nav-item`} >
-                            <NavLink className={`nav-link ${activeNavLink === "administration" ? "active" : ""}`} onClick={() => toggleActiveLink("administration")}>
-                                <span className="p-0 m-0">
-                                    <img src={adminIcon} alt="Admin Icon" />
-                                </span>
-                                <span className="sideBarTxt">Administration</span>
-                                <span className="KeyboardArrowDownSharpIcon">
-                                    <KeyboardArrowDownSharpIcon />
-                                </span>
-                            </NavLink>
-                            {activeNavLink === "administration" && (
-                                <ul className="nav-content p-2">
-                                    <li className={`submenu_navlist ${activeSubmenu === "Role" ? "active" : ""}`} onClick={() => setActiveSubmenu("Role")}>
-                                        <NavLink to={`/${whoIs}/administration/role`} className="nav-lists">Role</NavLink>
-                                    </li>
-                                    <li className={`submenu_navlist ${activeSubmenu === "Department" ? "active" : ""}`} onClick={() => setActiveSubmenu("Department")}>
-                                        <NavLink to={`/${whoIs}/administration/department`} className="nav-lists">Department</NavLink>
-                                    </li>
-                                    <li className={`submenu_navlist ${activeSubmenu === "Holiday" ? "active" : ""}`} onClick={() => setActiveSubmenu("Holiday")}>
-                                        <NavLink to={`/${whoIs}/administration/holiday`} className="nav-lists">Holiday</NavLink>
-                                    </li>
-                                    <li className={`submenu_navlist ${activeSubmenu === "Announcement" ? "active" : ""}`} onClick={() => setActiveSubmenu("Announcement")}>
-                                        <NavLink to={`/${whoIs}/administration/announcement`} className="nav-lists">Announcement</NavLink>
-                                    </li>
-                                </ul>
-                            )}
-                        </li>
-                        {/* Settings Section */}
-                        <li className={`nav-item`} >
-                            <NavLink className={`nav-link ${activeNavLink === "settings" ? "active" : ""}`} onClick={() => toggleActiveLink("settings")}>
-                                <span className="p-0 m-0">
-                                    <img src={settingsIcon} alt="Settings Icon" />
-                                </span>
-                                <span className="sideBarTxt">Settings</span>
-                                <span className="KeyboardArrowDownSharpIcon">
-                                    <KeyboardArrowDownSharpIcon />
-                                </span>
-                            </NavLink>
-                            {activeNavLink === "settings" && (
-                                <ul className="nav-content p-2">
-                                    <li className={`submenu_navlist ${activeSubmenu === "Profile" ? "active" : ""}`} onClick={() => setActiveSubmenu("Profile")}>
-                                        <NavLink to={`/${whoIs}/settings/`} className="nav-lists">General</NavLink>
-                                    </li>
-                                    <li className={`submenu_navlist ${activeSubmenu === "Account" ? "active" : ""}`} onClick={() => setActiveSubmenu("Account")}>
-                                        <NavLink to={`/${whoIs}/settings/account`} className="nav-lists">Account</NavLink>
-                                    </li>
-                                    <li className={`submenu_navlist ${activeSubmenu === "Payroll" ? "active" : ""}`} onClick={() => setActiveSubmenu("Payroll")}>
-                                        <NavLink to={`/${whoIs}/settings/payroll`} className="nav-lists">Payroll</NavLink>
-                                    </li>
-                                </ul>
-                            )}
-                        </li>
-                    </>
-                )}
+             
 
 
             </ul>
