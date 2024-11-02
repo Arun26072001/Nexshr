@@ -26,7 +26,30 @@ const Login = () => {
     } else if (Account === "3") {
       navigate("/emp")
     }
-  }, [])
+  }, []);
+
+  // useEffect(() => {
+  //   async function checkNetworkConnection() {
+  //     try {
+  //       const connectionMsg = await axios.get(`${url}/`);
+  //       console.log(connectionMsg?.data?.message);
+  //       console.log(isLogin && window.location.pathname);
+  //       if (isLogin && window.location.pathname === "/") {
+          
+  //         if (account === '1') {
+  //           navigate("/admin")
+  //         } else if (account === '2') {
+  //           navigate("/hr")
+  //         } else if (account === '3') {
+  //           navigate("/emp")
+  //         }
+  //       }
+  //     } catch (error) {
+  //       navigate("/no-internet-connection");
+  //     }
+  //   }
+  //   checkNetworkConnection();
+  // }, []);
 
   return (
     <div>

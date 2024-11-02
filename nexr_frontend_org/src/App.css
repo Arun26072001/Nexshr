@@ -580,3 +580,10 @@ textarea.form-control {
   border-radius: .25rem;
   transition: border-color .15s ease-in-out, box-shadow .15s ease-in-out;
 }
+
+/* NoInternet style */
+.noConnectionImg{
+  width: 100px;
+  height: 100px;
+  object-fit: cover;
+}

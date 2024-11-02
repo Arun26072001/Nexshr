@@ -67,7 +67,7 @@ mongoose.set("useUnifiedTopology", true);
 mongoose
   .connect(mongoURI)
   .then(() => console.log("db connection successful"))
-  .catch(err => console.log(err));
+  .catch(err => console.log(err.message));
 
 //for request body
 app.use(express.json());
@@ -75,7 +75,13 @@ app.use(express.json());
 
 //API AUTHS
 app.get("/", (req, res) => {
-  res.send("employee management system API 😀");
+  require('dns').resolve('www.google.com', function (err) {
+    if (err) {
+      res.status(1024).send("Network not Connected!")
+    } else {
+      res.send({message: "API and Network connected!"})
+    }
+  });
 });
 
 app.use('/api/login', login)
