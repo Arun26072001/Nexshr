@@ -28,6 +28,9 @@ import PayrollValue from './PayrollValue';
 import PayslipRouter from './PayslipRouter';
 import { EssentialValues } from '../../App';
 import AddEmployee from '../AddEmployee';
+import Roles from '../Administration/Roles';
+import PageAndActionAuth from '../Settings/PageAndActionAuth';
+import Announce from '../Announcement/announce';
 
 export const LeaveStates = createContext(null);
 export const TimerStates = createContext(null);
@@ -51,8 +54,7 @@ export default function HRMDashboard() {
     const [isStartLogin, setIsStartLogin] = useState(localStorage.getItem("isStartLogin") === "false" ? false : localStorage.getItem("isStartLogin") === "true" ? true : false);
     const [isStartActivity, setIsStartActivity] = useState(localStorage.getItem("isStartActivity") === "false" ? false : localStorage.getItem("isStartActivity") === "true" ? true : false);
     const navigate = useNavigate();
-    // console.log(isStartActivity, isStartLogin);
-    // debugger;
+    const [reloadRole, setReloadRole] = useState(false);
     const currentDate = new Date();
     const currentHours = currentDate.getHours().toString().padStart(2, '0');
     const currentMinutes = currentDate.getMinutes().toString().padStart(2, '0');
@@ -106,7 +108,7 @@ export default function HRMDashboard() {
             }
         };
         // // try to add clockins data
-        if (!updatedState?._id) {
+        if (!updatedState?._id && !isStartLogin) {
             try {
                 const clockinsData = await addDataAPI(updatedState);
                 if (clockinsData) {
@@ -127,7 +129,7 @@ export default function HRMDashboard() {
                 console.error('Error in add Clockins timer:', error);
             }
             // try to update clockins data
-        } else {
+        } else if (updatedState._id && !isStartLogin) {
 
             try {
                 // Call the API with the updated state
@@ -146,6 +148,8 @@ export default function HRMDashboard() {
     };
 
     const stopLoginTimer = async () => {
+        console.log("try to stop");
+
         const updatedState = {
             ...workTimeTracker,
             login: {
@@ -155,19 +159,14 @@ export default function HRMDashboard() {
             }
         };
 
-        if (updatedState?._id && isStartActivity) {
+        if (updatedState?._id && isStartLogin) {
 
             // Call the API with the updated state
             const updatedData = await updateDataAPI(updatedState);
             setWorkTimeTracker(updatedData);
             localStorage.setItem('isStartLogin', false);
             setIsStartLogin(false);
-            toast.success(`${timeOption} Timer has been stopped!`)
             updateClockins();
-        } else {
-            localStorage.setItem('isStartLogin', true);
-            setIsStartLogin(true);
-            return toast.error("You did't punch-in");
         }
     }
     // console.log(workTimeTracker);
@@ -235,6 +234,21 @@ export default function HRMDashboard() {
             }
         }
     };
+
+    function changeEmpEditForm(id) {
+
+        if (isEditEmp) {
+            navigate(-1);
+            setIsEditEmp(false);
+        } else {
+            navigate(`employee/edit/${id}`);
+            setIsEditEmp(true);
+        }
+    }
+
+    function reloadRolePage(){
+        setReloadRole(!reloadRole)
+    }
 
     useEffect(() => {
         const getLeaveData = async () => {
@@ -321,27 +335,15 @@ export default function HRMDashboard() {
         localStorage.setItem("isStartActivity", isStartActivity);
     }, [isStartLogin, isStartActivity]);
 
-    function changeEmpEditForm() {
-        console.log("calll");
-        
-        if (isEditEmp) {
-            navigate(-1);
-            setIsEditEmp(false);
-        } else {
-            navigate(`employee/edit`);
-            setIsEditEmp(true);
-        }
-    }
-
     return (
-        <TimerStates.Provider value={{ workTimeTracker, updateWorkTracker, startLoginTimer, stopLoginTimer, startActivityTimer, stopActivityTimer, setWorkTimeTracker, updateClockins, whoIs, timeOption, isStartLogin, isStartActivity, changeEmpEditForm, isEditEmp }}>
+        <TimerStates.Provider value={{ workTimeTracker, reloadRolePage,updateWorkTracker, startLoginTimer, stopLoginTimer, startActivityTimer, stopActivityTimer, setWorkTimeTracker, updateClockins, whoIs, timeOption, isStartLogin, isStartActivity, changeEmpEditForm, isEditEmp }}>
             <Routes >
                 <Route path="/" element={<Parent />} >
                     <Route index element={<Dashboard data={data} />} />
                     <Route path="job-desk/*" element={<JobDesk />} />
                     <Route path="employee" element={<Employee />} />
                     <Route path="employee/add" element={<Employees />} />
-                    <Route path="employee/edit" element={<AddEmployee />} />
+                    <Route path="employee/edit/:id" element={<AddEmployee />} />
                     <Route path="leave/*" element={
                         <LeaveStates.Provider value={{ daterangeValue, setDaterangeValue, isLoading, leaveRequests, filterLeaveRequests, empName, setEmpName }} >
                             <Routes>
@@ -363,7 +365,22 @@ export default function HRMDashboard() {
                         </Routes>
                     }>
                     </Route>
-                    <Route path="administration/" element={<Administration />} />
+                    <Route path="administration/*" element={
+                        <Routes>
+                            <Route index path="role/*" element={
+                                <Routes>
+                                    <Route index element={<Roles />} />
+                                    <Route path="add" element={<PageAndActionAuth />} />
+                                    <Route path="edit/:id" element={<PageAndActionAuth />} />
+                                    <Route path="view/:id" element={<PageAndActionAuth />} />
+                                </Routes>
+                            } />
+                            {/* <Route path="/shift" element={<Shift />} /> */}
+                            {/* <Route path="/department" element={<Department />} /> */}
+                            {/* <Route path="/holiday" element={<Holiday />} /> */}
+                            <Route path="/announcement" element={<Announce />} />
+                        </Routes>
+                    } />
                     <Route path="settings/*" element={
                         <Routes>
                             <Route index element={<Settings />} />

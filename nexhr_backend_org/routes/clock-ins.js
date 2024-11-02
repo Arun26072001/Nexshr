@@ -33,7 +33,6 @@ async function checkLoginForOfficeTime(scheduledTime, actualTime) {
 // Function to calculate working hours between start and end times
 function getTotalWorkingHourPerDay(startingTime, endingTime) {
     if (startingTime !== "00:00" && endingTime !== "00:00") {
-        console.log(startingTime, endingTime);
 
         // Convert time strings to Date objects (using today's date)
         const today = new Date();
@@ -376,11 +375,9 @@ router.get("/employee/:empId", verifyAdminHREmployee, async (req, res) => {
         // Process employee clock-in data
         employee.clockIns.forEach(async (clockIn) => {
             const { startingTime, endingTime } = clockIn.login;
-            console.log(clockIn);
 
             // Calculate total working hours for this employee clock-in
             const workingHours = getTotalWorkingHourPerDay(startingTime, endingTime);
-            console.log(workingHours);
 
             totalEmpWorkingHours += workingHours;
 
