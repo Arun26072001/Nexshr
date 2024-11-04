@@ -1,6 +1,7 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const Joi = require('joi');
+// const admin = require('firebase-admin');
 
 const router = express.Router();
 
@@ -36,12 +37,22 @@ router.post('/', async (req, res) => {
   try {
     const newAnnouncement = new Announcement(value);
     const savedAnnouncement = await newAnnouncement.save();
-    res.status(201).json({ message: 'Announcement created successfully!', data: savedAnnouncement });
+    // Define the notification payload
+    const message = {
+      notification: {
+        title: "New Announcement!",
+        body: `Title: ${value.title}\nMessage: ${value.message}`,
+      },
+      topic: "loggedInUsers", // Topic to target all logged-in users
+    };
+
+    // Send the notification
+    await messaging().send(message);
+    res.status(201).json({ message: 'Announcement created and notification sent!', data: savedAnnouncement });
   } catch (err) {
     res.status(500).json({ error: "Internal error creating announcement", details: err.message });
   }
 });
-
 module.exports = router;
 
 
