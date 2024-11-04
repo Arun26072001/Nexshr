@@ -14,13 +14,13 @@ const pageAuthSchema = new mongoose.Schema({
 const PageAuth = mongoose.model("PageAuth", pageAuthSchema);
 
 const pageAuthValidation = Joi.object({
-    Administration: Joi.string().valid("allow", "not allow").required(),
-    Attendance: Joi.string().valid("allow", "not allow").required(),
-    Dashboard: Joi.string().valid("allow", "not allow").required(),
-    Employee: Joi.string().valid("allow", "not allow").required(),
-    JobDesk: Joi.string().valid("allow", "not allow").required(),
-    Leave: Joi.string().valid("allow", "not allow").required(),
-    Settings: Joi.string().valid("allow", "not allow").required(),
+    Administration: Joi.string().optional(),
+    Attendance: Joi.string().optional(),
+    Dashboard: Joi.string().optional(),
+    Employee: Joi.string().optional(),
+    JobDesk: Joi.string().optional(),
+    Leave: Joi.string().optional(),
+    Settings: Joi.string().optional(),
 });
 
 module.exports = { PageAuth, pageAuthValidation }

@@ -73,7 +73,6 @@ export default function PageAndActionAuth() {
                     Authorization: token || ""
                 }
             });
-            console.log(role.data);
 
             setRoleObj(role.data);
         } catch (error) {
