@@ -92,8 +92,18 @@ const App = () => {
         localStorage.setItem("_id", decodedData._id);
         localStorage.setItem("Name", `${decodedData.FirstName} ${decodedData.LastName}`);
         localStorage.setItem("annualLeaveEntitment", decodedData.annualLeaveEntitlement);
+        localStorage.setItem("userPermissions", JSON.stringify(decodedData.roleData.userPermissions))
 
-        window.location.reload();
+        Object.entries(decodedData.roleData.pageAuth).forEach(([key, value]) => {
+          if (key !== '_id' && key !== "__v") {
+            return localStorage.setItem(`${key}`, value)
+          }
+        })
+
+
+        if (!localStorage.getItem("token")) {
+          window.location.reload();
+        }
 
         if (accountType === 1) {
           navigate("/admin");
@@ -145,8 +155,6 @@ const App = () => {
         }
       } catch (error) {
         if (error) {
-          console.log(error);
-
           navigate("/no-internet-connection");
         }
       }

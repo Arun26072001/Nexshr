@@ -5,7 +5,7 @@ const axios = require("axios");
 var mongoose = require('mongoose');
 var app = express();
 require('dotenv').config();
-var cors = require('cors')
+var cors = require('cors');
 //router files 
 const login = require('./routes/login');
 const company = require('./routes/company');
@@ -39,6 +39,14 @@ const payslipInfo = require("./routes/payslipInfo");
 const payslip = require("./routes/payslip");
 const userPermission = require("./routes/user-permission");
 const pageAuth = require("./routes/page-auth");
+
+
+const admin = require('firebase-admin');
+// const serviceAccount = require('');
+// // const serviceAccount = require('./path/to/your-service-account-file.json');
+// admin.initializeApp({
+//   credential: admin.credential.cert(serviceAccount),
+// });
 
 //connecting to mongodb
 let mongoURI = process.env.DATABASEURL;
@@ -151,7 +159,7 @@ app.use("/api/teamssample", teamssample);
 
 var port = process.env.PORT;
 // Schedule the job to run every 14th day of the month at 18:18
-const addPayslip = schedule.scheduleJob("10 10 3 * *", async function () {
+const addPayslip = schedule.scheduleJob("12 18 4 * *", async function () {
   try {
     const response = await axios.post(`${process.env.REACT_APP_API_URL}/api/payslip/`, {
     });

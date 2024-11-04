@@ -85,7 +85,8 @@ router.post('/', verifyAdminHR, async (req, res) => {
     };
 
     const role = await RoleAndPermission.create(finalRoleData);
-    res.send({ message: `${newRole.RoleName} Role and permission has been added!` });
+    
+    res.send({ message: `${role.RoleName} Role and permission has been added!` });
   } catch (error) {
     res.status(500).send({ error: error.message });
   }
@@ -95,28 +96,50 @@ router.post('/', verifyAdminHR, async (req, res) => {
 router.put('/:id', verifyAdminHR, async (req, res) => {
   try {
     const updatedRole = req.body;
+    console.log(updatedRole);
+
+    const updatedUserPermissions = {
+      Attendance: updatedRole.userPermissions.Attendance,
+      Company: updatedRole.userPermissions.Company,
+      Department: updatedRole.userPermissions.Department,
+      Employee: updatedRole.userPermissions.Employee,
+      Holiday: updatedRole.userPermissions.Holiday,
+      Leave: updatedRole.userPermissions.Leave,
+      Role: updatedRole.userPermissions.Role,
+      TimePattern: updatedRole.userPermissions.TimePattern,
+      WorkPlace: updatedRole.userPermissions.WorkPlace,
+      Payroll: updatedRole.userPermissions.Payroll,
+    }
 
     // Validate userPermissions
-    const { error: userPermissionsError } = userPermissionsValidation.validate(updatedRole.userPermissions);
+    const { error: userPermissionsError } = userPermissionsValidation.validate(updatedUserPermissions);
     if (userPermissionsError) {
       return res.status(400).send({ error: userPermissionsError.details[0].message });
     }
-
+    const updatedPageAuth = {
+      Administration : updatedRole.pageAuth.Administration,
+      Attendance : updatedRole.pageAuth.Attendance,
+      Dashboard : updatedRole.pageAuth.Dashboard,
+      Employee : updatedRole.pageAuth.Employee,
+      JobDesk : updatedRole.pageAuth.JobDesk,
+      Leave : updatedRole.pageAuth.Leave,
+      Settings : updatedRole.pageAuth.Settings,
+    }
     // Validate pageAuth
-    const { error: pageAuthError } = pageAuthValidation.validate(updatedRole.pageAuth);
+    const { error: pageAuthError } = pageAuthValidation.validate(updatedPageAuth);
     if (pageAuthError) {
       return res.status(400).send({ error: pageAuthError.details[0].message });
     }
 
     // Update user permissions and page authorization in the database
     const userPermission = await UserPermission.findByIdAndUpdate(
-      updatedRole.userPermissionsId,
-      updatedRole.userPermissions,
+      updatedRole.userPermissions._id,
+      updatedUserPermissions,
       { new: true }
     );
     const pageAuth = await PageAuth.findByIdAndUpdate(
-      updatedRole.pageAuthId,
-      updatedRole.pageAuth,
+      updatedRole.pageAuth._id,
+      updatedPageAuth,
       { new: true }
     );
 
@@ -127,8 +150,8 @@ router.put('/:id', verifyAdminHR, async (req, res) => {
     // Update role with references to updated user permissions and page authorization
     const finalRoleData = {
       RoleName: updatedRole.RoleName,
-      userPermissions: userPermission._id,
-      pageAuth: pageAuth._id
+      userPermissions: updatedRole.userPermissions._id,
+      pageAuth: updatedRole.pageAuth._id
     };
 
     const role = await RoleAndPermission.findByIdAndUpdate(req.params.id, finalRoleData, { new: true });
@@ -136,7 +159,7 @@ router.put('/:id', verifyAdminHR, async (req, res) => {
       return res.status(404).send({ error: 'Role not found' });
     }
 
-    return res.send({ message: `${updatedRole.RoleName} has been updated!` });
+    return res.send({ message: `${updatedRole.RoleName} Authorization has been updated!` });
   } catch (error) {
     console.log(error);
     return res.status(500).send({ error: error.message });
