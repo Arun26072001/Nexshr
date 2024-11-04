@@ -26,10 +26,10 @@ const UserPermission = mongoose.model("UserPermission", userPermissionsSchema);
 
 // Joi validation schema
 const permissionSchemaJoi = Joi.object({
-    view: Joi.boolean().required(),
-    edit: Joi.boolean().required(),
-    add: Joi.boolean().required(),
-    delete: Joi.boolean().required(),
+    view: Joi.boolean().optional(),
+    edit: Joi.boolean().optional(),
+    add: Joi.boolean().optional(),
+    delete: Joi.boolean().optional(),
 });
 
 const userPermissionsValidation = Joi.object({

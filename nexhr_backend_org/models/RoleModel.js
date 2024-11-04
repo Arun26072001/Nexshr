@@ -3,7 +3,7 @@ const Joi = require('joi');
 
 // Define the Mongoose schema
 const RoleAndPermissionSchema = new mongoose.Schema({
-  RoleName: { type: String, required: true },
+  RoleName: { type: String, unique: true },
   userPermissions: { type: mongoose.Schema.Types.ObjectId, ref: "UserPermission" },
   pageAuth: { type: mongoose.Schema.Types.ObjectId, ref: "PageAuth" }
 });
