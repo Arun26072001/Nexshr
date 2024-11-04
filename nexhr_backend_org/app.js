@@ -5,7 +5,7 @@ const axios = require("axios");
 var mongoose = require('mongoose');
 var app = express();
 require('dotenv').config();
-var cors = require('cors')
+var cors = require('cors');
 //router files 
 const login = require('./routes/login');
 const company = require('./routes/company');
@@ -37,6 +37,14 @@ const announcement = require("./routes/announcement");
 const teamssample = require("./routes/teamssample");
 const payslipInfo = require("./routes/payslipInfo");
 const payslip = require("./routes/payslip");
+
+
+const admin = require('firebase-admin');
+// const serviceAccount = require('');
+// // const serviceAccount = require('./path/to/your-service-account-file.json');
+// admin.initializeApp({
+//   credential: admin.credential.cert(serviceAccount),
+// });
 
 //connecting to mongodb
 let mongoURI = process.env.DATABASEURL;
