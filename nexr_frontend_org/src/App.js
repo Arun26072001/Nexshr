@@ -141,8 +141,6 @@ const App = () => {
     async function checkNetworkConnection() {
       try {
         const connectionMsg = await axios.get(`${url}/`);
-        console.log(connectionMsg?.data?.message);
-        console.log(isLogin && window.location.pathname);
         if (isLogin && window.location.pathname === "/") {
 
           if (account === '1') {

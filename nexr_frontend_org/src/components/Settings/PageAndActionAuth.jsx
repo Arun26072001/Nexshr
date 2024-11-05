@@ -22,7 +22,8 @@ export default function PageAndActionAuth() {
         { sNo: 6, action: "Holiday" },
         { sNo: 7, action: "Employee" },
         { sNo: 8, action: "Company" },
-        { sNo: 9, action: "TimePattern" }
+        { sNo: 9, action: "TimePattern" },
+        { sNo: 10, action: "Payroll" }
     ];
 
     function getCheckedValue(e) {
@@ -66,6 +67,8 @@ export default function PageAndActionAuth() {
             }
         }))
     }
+    console.log(roleObj);
+    
     async function fetchRoleById() {
         try {
             const role = await axios.get(`${url}/api/role/${id}`, {
@@ -112,15 +115,17 @@ export default function PageAndActionAuth() {
     }
 
     async function getInitialRoleObj() {
+        const roleName = prompt("Please Enter Role Name: ");
         try {
             const roleData = await axios.get(`${url}/api/role/name`, {
                 headers: {
                     authorization: token || ""
                 }
             });
-            console.log(roleData.data);
-            setRoleObj(roleData.data)
-
+            setRoleObj({
+                ...roleData.data,
+                RoleName: roleName || "Employee"
+            })
         } catch (error) {
             console.log(error);
             toast.error(error?.response?.data?.error)

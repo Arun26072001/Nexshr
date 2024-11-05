@@ -11,7 +11,7 @@ import Home from '../Home';
 import { TimerStates } from './HRMDashboard';
 
 const Dashboard = () => {
-    const {updateClockins} = useContext(TimerStates)
+    const { updateClockins } = useContext(TimerStates)
     const account = localStorage.getItem("Account");
     const { handleLogout } = useContext(EssentialValues);
     const empId = localStorage.getItem("_id");
@@ -27,7 +27,7 @@ const Dashboard = () => {
             if (empId) {
                 setIsLoading(true);
                 const data = await fetchEmployeeData(empId);
-                
+
                 if (data) {
                     const workingHour = await getTotalWorkingHourPerDay(data.workingTimePattern.StartingTime, data.workingTimePattern.FinishingTime);
 
@@ -44,17 +44,19 @@ const Dashboard = () => {
                         totalWorkingHourPercentage,
                         totalWorkedHourPercentage
                     });
-                    setIsLoading(false);
+
                     // Check if `empId` is available and fetch clock-in data
                     if (empId) {
                         const clockinsData = await getDataAPI(empId);
                         setDailyLoginData(clockinsData);
+
                     } else {
                         console.log("No clockins ID");
                     }
 
                     // Set leave data with working hours
                     setLeaveData({ ...data, workingHour });
+                    setIsLoading(false);
                 } else {
                     toast.error("Error in fetch workingtimePattern data!");
                     setLeaveData({});
@@ -70,30 +72,30 @@ const Dashboard = () => {
     useEffect(() => {
         gettingEmpdata();
     }, [empId]);
-    
+
     return (
         <div className='dashboard-parent'>
             <ActivityTimeTracker leaveData={leaveData} handleLogout={handleLogout} updateClockins={updateClockins} />
             {
                 isLoading ? <Loading /> :
-                    leaveData && leaveData.annualLeaveEntitlement && monthlyLoginData && leaveData && dailyLogindata ? (
+                    leaveData && leaveData?.annualLeaveEntitlement && monthlyLoginData && dailyLogindata ? (
                         <>
                             <div className="allowance row container-fluid mx-auto g-2">
                                 <div className='col-lg-3 col-md-3 col-6 my-1 text-center'>
                                     <p className='leaveIndicatorTxt'>Total leave allowance</p>
-                                    <p className='text-primary number'>{leaveData.annualLeaveEntitlement}</p>
+                                    <p className='text-primary number'>{leaveData?.annualLeaveEntitlement}</p>
                                 </div>
                                 <div className='col-lg-3 col-md-3 col-6 my-1 text-center'>
                                     <p className='leaveIndicatorTxt'>Total leave taken</p>
-                                    <p className='text-primary number'>{leaveData.totalTakenLeaveCount}</p>
+                                    <p className='text-primary number'>{leaveData?.totalTakenLeaveCount}</p>
                                 </div>
                                 <div className='col-lg-3 col-md-3 col-6 my-1 text-center'>
                                     <p className='leaveIndicatorTxt'>Total leave available</p>
-                                    <p className='text-primary number'>{Number(leaveData.annualLeaveEntitlement) - Number(leaveData.totalTakenLeaveCount)}</p>
+                                    <p className='text-primary number'>{Number(leaveData?.annualLeaveEntitlement) - Number(leaveData.totalTakenLeaveCount)}</p>
                                 </div>
                                 <div className='col-lg-3 col-md-3 col-6 my-1 text-center'>
                                     <p className='leaveIndicatorTxt'>Leave request pending</p>
-                                    <p className='text-primary number'>{leaveData.pendingLeaveRequests}</p>
+                                    <p className='text-primary number'>{leaveData?.pendingLeaveRequests}</p>
                                 </div>
                             </div>
                             <div className='container-fluid mx-auto time row g-2'>
@@ -122,14 +124,14 @@ const Dashboard = () => {
                                         <div className='col-lg-6 col-md-6 col-12'>
                                             <div className='space row'>
                                                 <p className='col-lg-6 col-md-6 col-sm-6 col-6 text-start'><span className='text_gap '>Total</span></p>
-                                                <p className='col-lg-6 col-md-6 col-sm-6 col-6 text-end'><span className='value'>{monthlyLoginData.companyTotalWorkingHour} hour</span></p>
+                                                <p className='col-lg-6 col-md-6 col-sm-6 col-6 text-end'><span className='value'>{monthlyLoginData?.companyTotalWorkingHour} hour</span></p>
                                             </div>
                                             <div className="progress">
                                                 <div
                                                     className="progress-bar progress-bar-striped"
                                                     role="progressbar"
-                                                    style={{ width: `${monthlyLoginData.totalWorkingHourPercentage}%` }}
-                                                    aria-valuenow={monthlyLoginData.totalWorkingHourPercentage}
+                                                    style={{ width: `${monthlyLoginData?.totalWorkingHourPercentage}%` }}
+                                                    aria-valuenow={monthlyLoginData?.totalWorkingHourPercentage}
                                                     aria-valuemin="0"
                                                     aria-valuemax="100"
                                                 >
@@ -147,8 +149,8 @@ const Dashboard = () => {
                                                 <div
                                                     className="progress-bar progress-bar-striped"
                                                     role="progressbar"
-                                                    style={{ width: `${monthlyLoginData.totalWorkedHourPercentage}%` }}
-                                                    aria-valuenow={monthlyLoginData.totalWorkedHourPercentage}
+                                                    style={{ width: `${monthlyLoginData?.totalWorkedHourPercentage}%` }}
+                                                    aria-valuenow={monthlyLoginData?.totalWorkedHourPercentage}
                                                     aria-valuemin="0"
                                                     aria-valuemax="100"
                                                 >
@@ -159,7 +161,7 @@ const Dashboard = () => {
                                         <div className='col-lg-6 col-md-6 col-sm-6 col-12'>
                                             <div className='space row'>
                                                 <div className='col-lg-6 col-md-6 col-sm-6 col-6 text-start'><span className='text_gap'>Shortage time</span></div>
-                                                <div className='col-lg-6 col-md-6 col-sm-6 col-6 text-end'><span className='value'>{monthlyLoginData.companyTotalWorkingHour - monthlyLoginData.totalEmpWorkingHours} hour</span></div>
+                                                <div className='col-lg-6 col-md-6 col-sm-6 col-6 text-end'><span className='value'>{monthlyLoginData?.companyTotalWorkingHour - monthlyLoginData?.totalEmpWorkingHours} hour</span></div>
                                             </div>
                                             <div className="progress">
                                                 <div className="progress-bar progress-bar-striped" role="progressbar" style={{ width: "50%" }} aria-valuenow="10" aria-valuemin="0" aria-valuemax="100"></div>

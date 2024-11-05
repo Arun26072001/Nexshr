@@ -42,7 +42,7 @@ const userPermissionsValidation = Joi.object({
     Role: permissionSchemaJoi,
     TimePattern: permissionSchemaJoi,
     WorkPlace: permissionSchemaJoi,
-    Payroll: permissionSchemaJoi
+    Payroll: Joi.allow(null)
 });
 
 module.exports = { UserPermission, userPermissionsValidation }

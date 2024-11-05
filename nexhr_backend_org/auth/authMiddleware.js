@@ -161,12 +161,12 @@ function verifyAdmin(req, res, next) {
     // if(decodedData.Account)
     jwt.verify(Header, jwtKey, (err, authData) => {
       if (err) {
-        res.sendStatus(401);
+        res.status(401).send({ error: err.message });
       } else {
         if (authData.Account == 1) {
           next();
         } else {
-          res.sendStatus(401);
+          res.status(401).send({ message: "unAuthorize: Admin can only do this action!" });
         }
       }
     });

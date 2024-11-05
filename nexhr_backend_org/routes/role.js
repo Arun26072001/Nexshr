@@ -43,7 +43,7 @@ router.get("/:id", verifyAdmin, async (req, res) => {
 });
 
 // Get all roles
-router.get('/', verifyAdminHR, (req, res) => {
+router.get('/', verifyAdmin, (req, res) => {
   RoleAndPermission.find()
     .populate("userPermissions")
     .populate("pageAuth")
@@ -57,7 +57,7 @@ router.get('/', verifyAdminHR, (req, res) => {
 });
 
 // Add new role
-router.post('/', verifyAdminHR, async (req, res) => {
+router.post('/', verifyAdmin, async (req, res) => {
   try {
     const newRole = req.body;
 
@@ -93,10 +93,9 @@ router.post('/', verifyAdminHR, async (req, res) => {
 });
 
 // Update role
-router.put('/:id', verifyAdminHR, async (req, res) => {
+router.put('/:id', verifyAdmin, async (req, res) => {
   try {
     const updatedRole = req.body;
-    console.log(updatedRole);
 
     const updatedUserPermissions = {
       Attendance: updatedRole.userPermissions.Attendance,
@@ -166,25 +165,6 @@ router.put('/:id', verifyAdminHR, async (req, res) => {
   }
 });
 
-// router.delete('/:id', verifyAdminHR, (req, res) => {
-//   Employee.find({ role: req.params.id }, (err, employees) => {
-//     if (err) {
-//       return res.status(500).send(err);
-//     }
-//     if (employees.length === 0) {
-//       Role.findByIdAndRemove(req.params.id, (err, role) => {
-//         if (err) {
-//           return res.status(500).send('Error deleting role');
-//         }
-//         return res.send(role);
-//       });
-//     } else {
-//       return res.status(403).send('This role is associated with an employee and cannot be deleted');
-//     }
-//   });
-// });
-
-// Delete role
 router.delete("/:id", verifyAdmin, async (req, res) => {
   try {
     const isEmpRole = await Employee.find({ role: { $in: req.params.id } });
@@ -200,3 +180,22 @@ router.delete("/:id", verifyAdmin, async (req, res) => {
 })
 
 module.exports = router;
+      // router.delete('/:id', verifyAdminHR, (req, res) => {
+      //   Employee.find({ role: req.params.id }, (err, employees) => {
+      //     if (err) {
+      //       return res.status(500).send(err);
+      //     }
+      //     if (employees.length === 0) {
+      //       Role.findByIdAndRemove(req.params.id, (err, role) => {
+      //         if (err) {
+      //           return res.status(500).send('Error deleting role');
+      //         }
+      //         return res.send(role);
+      //       });
+      //     } else {
+      //       return res.status(403).send('This role is associated with an employee and cannot be deleted');
+      //     }
+      //   });
+      // });
+      
+      // Delete role
