@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const Joi = require('joi');
-const { verifyHREmployee, verifyAdminHREmployee } = require("../auth/authMiddleware");
+const { verifyAdminHREmployee } = require("../auth/authMiddleware");
 const { clockInsValidation, ClockIns } = require("../models/ClockInsModel");
 const { Employee } = require("../models/EmpModel");
 const { getDayDifference } = require("./leave-app");
@@ -129,23 +129,6 @@ router.post("/:id", verifyAdminHREmployee, async (req, res) => {
 
 router.get("/:id", verifyAdminHREmployee, async (req, res) => {
 
-    // const convertToMinutes = (start, end) => {
-    //     if (start !== "00:00" && end !== "00:00") {
-    //         const [endHour, endMin] = end.split(":").map(Number);
-    //         const [startHour, startMin] = start.split(":").map(Number);
-
-    //         const startTime = new Date(2000, 0, 1, startHour, startMin);
-    //         const endTime = new Date(2000, 0, 1, endHour, endMin);
-
-    //         const diffMs = endTime - startTime; // Difference in milliseconds
-    //         const diffMinutes = Math.floor(diffMs / (1000 * 60)); // Convert to minutes
-
-    //         return diffMinutes > 0 ? diffMinutes : 0; // Ensure non-negative value
-    //     } else {
-    //         return 0;
-    //     }
-    // };
-
     function timeToMinutes(timeStr) {
         // Split the time string into hours, minutes, and seconds
         const [hours, minutes, seconds] = timeStr.split(':').map(Number);
@@ -227,7 +210,7 @@ router.get("/item/:id", verifyAdminHREmployee, async (req, res) => {
     };
 
     try {
-        const timeData = await ClockIns.findById(req.params.id).populate({path: "employee", select: "_id FirstName LastName"});
+        const timeData = await ClockIns.findById(req.params.id).populate({ path: "employee", select: "_id FirstName LastName" });
         if (!timeData) {
             return res.status(404).send({ message: "Not found", details: "Id is not found! Please verify it." });
         }
@@ -429,3 +412,20 @@ router.put("/:id", verifyAdminHREmployee, (req, res) => {
 })
 
 module.exports = router;
+
+  // const convertToMinutes = (start, end) => {
+    //     if (start !== "00:00" && end !== "00:00") {
+    //         const [endHour, endMin] = end.split(":").map(Number);
+    //         const [startHour, startMin] = start.split(":").map(Number);
+
+    //         const startTime = new Date(2000, 0, 1, startHour, startMin);
+    //         const endTime = new Date(2000, 0, 1, endHour, endMin);
+
+    //         const diffMs = endTime - startTime; // Difference in milliseconds
+    //         const diffMinutes = Math.floor(diffMs / (1000 * 60)); // Convert to minutes
+
+    //         return diffMinutes > 0 ? diffMinutes : 0; // Ensure non-negative value
+    //     } else {
+    //         return 0;
+    //     }
+    // };

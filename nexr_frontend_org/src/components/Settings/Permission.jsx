@@ -7,6 +7,7 @@ import Loading from '../Loader';
 import { Input, InputGroup } from 'rsuite';
 import { fetchAllEmployees, fetchRoles } from '../ReuseableAPI';
 import { toast } from 'react-toastify';
+import NoDataFound from '../payslip/NoDataFound';
 
 
 const Permission = () => {
@@ -15,14 +16,17 @@ const Permission = () => {
     const names = ['Users', 'Roles', 'Direct Reports', 'Permissions'];
     const [roles, setRoles] = useState([]);
     const [empName, setEmpName] = useState("");
-    // const url = process.env.REACT_APP_API_URL;
+    const [isLoading, setIsLoading] = useState(false);
 
     useEffect(() => {
         const getEmployees = async () => {
+            setIsLoading(true);
             try {
                 const emps = await fetchAllEmployees();
                 setEmployees(emps);
                 setFullemployees(emps);
+                setIsLoading(false);
+
             } catch (err) {
                 toast.error(err)
             }
@@ -32,9 +36,11 @@ const Permission = () => {
 
     useEffect(() => {
         const fetchEmpRoles = async () => {
+            setIsLoading(true);
             try {
                 const rolesData = await fetchRoles();
                 setRoles(rolesData);
+                setIsLoading(false);
             } catch (err) {
                 console.log(err);
                 toast.error(err?.response?.data?.message)
@@ -51,7 +57,6 @@ const Permission = () => {
             setEmployees(fullEmployees.filter((emp) => emp.FirstName.includes(e)));
         }
     }
-    console.log(employees);
 
     return (
         <div className="container">
@@ -70,59 +75,60 @@ const Permission = () => {
                     </InputGroup>
                 </div>
             </div>
-
-            {employees.length > 0 ? (
-                <table className="table table-striped my-2">
-                    <thead>
-                        <tr className='text-center'>
-                            {names.map((name, index) => (
-                                <th key={index}>{name}</th>
-                            ))}
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {employees.map((emp) => (
-                            <tr key={emp._id}> {/* Added key assuming _id is unique for each employee */}
-                                <td>
-                                    <div className="td-parent gap-1">
-                                        <div className="nameHolder">
-                                            {`${emp.FirstName[0]}${emp.LastName[0]}`}
-                                        </div>
-                                        {emp.FirstName} {emp.LastName} <br />
-                                    </div>
-                                </td>
-                                <td>
-                                    <select name="" id="" className="form-control">
-                                        <option value={emp?.role[0]?._id} >{emp?.role[0]?.RoleName}</option>
-                                        {roles.map((role) => (
-                                            <option key={role._id} value={role._id}> {/* Added key */}
-                                                {role.RoleName}
-                                            </option>
-                                        ))}
-                                    </select>
-                                    {/* <div className='d-flex justify-content-center align-items-center'>
+            {
+                isLoading ? <Loading /> :
+                    employees.length > 0 ? (
+                        <table className="table table-striped my-2">
+                            <thead>
+                                <tr className='text-center'>
+                                    {names.map((name, index) => (
+                                        <th key={index}>{name}</th>
+                                    ))}
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {employees.map((emp) => (
+                                    <tr key={emp._id}> {/* Added key assuming _id is unique for each employee */}
+                                        <td>
+                                            <div className="td-parent gap-1">
+                                                <div className="nameHolder">
+                                                    {`${emp.FirstName[0]}${emp.LastName[0]}`}
+                                                </div>
+                                                {emp.FirstName} {emp.LastName} <br />
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <select name="" id="" className="form-control">
+                                                <option value={emp?.role[0]?._id} >{emp?.role[0]?.RoleName}</option>
+                                                {roles.map((role) => (
+                                                    <option key={role._id} value={role._id}> {/* Added key */}
+                                                        {role.RoleName}
+                                                    </option>
+                                                ))}
+                                            </select>
+                                            {/* <div className='d-flex justify-content-center align-items-center'>
                                         <button className='button m-0'>Edit accessing Permissions</button>
                                     </div> */}
-                                </td>
-                                <td>
-                                    <div className='td-parent gap-2'>
-                                        <input type="checkbox" className="styleRadio" />
-                                        Payroll
-                                    </div>
-                                </td>
-                                <td>
-                                    <div className='td-parent gap-2'>
-                                        <input type="checkbox" className="styleRadio" />
-                                        Payroll
-                                    </div>
-                                </td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
-            ) : (
-                <Loading />
-            )}
+                                        </td>
+                                        <td>
+                                            <div className='td-parent gap-2 d-flex justify-content-center text-secondary'>
+                                                {emp?.role[0]?.RoleName === "Admin" ? "everyone" : emp?.role[0]?.RoleName === "Human Resource" ? "Select People" : null}
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div className='td-parent gap-2' title='People with this additional permission level can access the payroll navigator in order to view and amend payroll information including salary and run payroll reports for the entire company.'>
+                                                <input type="checkbox" className="styleRadio" checked={emp?.role[0]?.RoleName === "Admin" ? true : false} />
+                                                Payroll
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    ) : (
+                        <NoDataFound message={"Employees of role and permission Data not found!"} />
+                    )
+            }
 
         </div>
 
