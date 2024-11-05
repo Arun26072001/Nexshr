@@ -64,7 +64,8 @@ app.use(cors({
   credentials: true
 }));
 
-// Middleware to handle OPTIONS requests
+// Middl
+// eware to handle OPTIONS requests
 app.options('*', cors());
 
 mongoose.set("useNewUrlParser", true);
@@ -169,5 +170,8 @@ const addPayslip = schedule.scheduleJob("12 18 4 * *", async function () {
   }
 });
 
+process.on('uncaughtException', function (err) {
+  console.log(err);
+}); 
 
 app.listen(port, () => console.log(`Example app listening on port ${port}!`));
