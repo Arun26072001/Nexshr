@@ -41,6 +41,8 @@ const getDataAPI = async (empId) => {
         });
 
         const data = response.data;
+        console.log(data);
+        
         return data;
     } catch (error) {
         return error?.response?.data?.message;
@@ -143,7 +145,7 @@ const fetchEmployeeData = async (id) => {
 
     } catch (error) {
         if (error.response && error.response.data && error.response.data.message) {
-            toast.error(error.response.data.message)
+            toast.error(error?.response?.data?.details)
             return error;
         }
     }
@@ -247,6 +249,19 @@ const fetchPayslipFromEmp = async (empId) => {
     }
 }
 
+const fetchRoles = async () => {
+    try {
+        const roles = await axios.get(url + "/api/role", {
+            headers: {
+                authorization: localStorage.getItem("token") || ""
+            }
+        });
+        return roles.data;
+    } catch (error) {
+        return error?.response?.data?.message
+    }
+}
+
 const fetchPayslip = async (id) => {
     try {
         const payslip = await axios.get(`${url}/api/payslip/${id}`);
@@ -289,5 +304,6 @@ export {
     gettingClockinsData,
     fetchAllEmployees,
     formatTime,
-    fetchWorkplace
+    fetchWorkplace,
+    fetchRoles
 };

@@ -6,7 +6,7 @@ var employeeSchema = new mongoose.Schema({
   LastName: { type: String },
   Email: { type: String},
   Password: { type: String },
-  teamLead: { type: mongoose.Types.ObjectId, ref: "Employee" },
+  teamLead: [{ type: mongoose.Types.ObjectId, ref: "Employee" }],
   phone: { type: String},
   panNumber: {type: String},
   Account: { type: Number, default: 3 },
@@ -27,14 +27,14 @@ var employeeSchema = new mongoose.Schema({
   },
   position: [{ type: mongoose.Schema.Types.ObjectId, ref: "Position" }],
   department: [{ type: mongoose.Schema.Types.ObjectId, ref: "Department" }],
-  role: [{type: mongoose.Schema.Types.ObjectId, ref: "Role"}],
+  role: [{type: mongoose.Schema.Types.ObjectId, ref: "RoleAndPermission"}],
   company: [{ type: mongoose.Schema.Types.ObjectId, ref: "Company" }],
   description: {type: String},
   dateOfJoining: { type: String },
   employmentType: { type: String }, // e.g., full-time, part-time, contract
   // salary: [{ type: mongoose.Schema.Types.ObjectId, ref: "Salary" }],
   benefits: [{ type: String }],
-  managerId: { type: mongoose.Schema.Types.ObjectId, ref: "Employee" }, // Reference to another employee
+  managerId: [{ type: mongoose.Schema.Types.ObjectId, ref: "Employee" }], // Reference to another employee
   emergencyContacts: [
     {
       name: { type: String },

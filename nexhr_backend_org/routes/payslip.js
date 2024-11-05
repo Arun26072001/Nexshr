@@ -35,8 +35,8 @@ router.get("/:id", async (req, res) => {
 
 router.post("/", async (req, res) => {
   const now = new Date();
-  let startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-  let endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0); // End of the current month
+  let startOfMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+  let endOfMonth = new Date(now.getFullYear(), now.getMonth(), 0); // End of the current month
 
   try {
     const employees = await Employee.find().populate({
@@ -81,7 +81,8 @@ router.post("/", async (req, res) => {
       });
 
       payslip['status'] = "pending"
-      payslip['period'] = `${startOfMonth} - ${endOfMonth}`
+      payslip['period'] = `${startOfMonth.getDate()}-${startOfMonth.getMonth() + 1}-${startOfMonth.getFullYear()} to ${endOfMonth.getDate()}-${endOfMonth.getMonth() + 1}-${endOfMonth.getFullYear()}`;
+
 
       const body = {
         employee: emp._id,

@@ -12,7 +12,7 @@ import { TimerStates } from "./HRMDashboard";
 
 const Leave = () => {
     const navigate = useNavigate();
-    const {whoIs} = useContext(TimerStates);
+    const { whoIs } = useContext(TimerStates);
     const empId = localStorage.getItem("_id");
     const [leaveRequests, setLeaveRequests] = useState({});
     const [fullLeaveRequests, setFullLeaveRequests] = useState([]);
@@ -20,6 +20,7 @@ const Leave = () => {
     const token = localStorage.getItem('token');
     const url = process.env.REACT_APP_API_URL;
     const [daterangeValue, setDaterangeValue] = useState("");
+    const [isLoading, setIsLoading] = useState(false);
 
     function filterLeaveRequests() {
         if (empName === "") {
@@ -33,7 +34,7 @@ const Leave = () => {
     useEffect(() => {
         const getLeaveData = async () => {
             try {
-
+                setIsLoading(true);
                 const leaveData = await axios.get(`${url}/api/leave-application/date-range/${empId}`, {
                     params: {
                         daterangeValue
@@ -42,8 +43,11 @@ const Leave = () => {
                         authorization: token || ""
                     }
                 })
+                console.log(leaveData.data);
+
                 setLeaveRequests(leaveData.data);
                 setFullLeaveRequests(leaveData.data.leaveData);
+                setIsLoading(false);
             } catch (err) {
                 toast.error(err?.response?.data?.message)
             }
@@ -79,6 +83,7 @@ const Leave = () => {
     useEffect(() => {
         filterLeaveRequests();
     }, [empName])
+    console.log(leaveRequests);
 
     return (
         <div >
@@ -88,9 +93,9 @@ const Leave = () => {
                     Leave
                 </div>
                 <div className="col-6 d-flex justify-content-between">
-                        <button className="button m-0" onClick={()=>navigate(`/${whoIs}/leave-request`)}>
-                            Add Leave
-                        </button>
+                    <button className="button m-0" onClick={() => navigate(`/${whoIs}/leave-request`)}>
+                        Add Leave
+                    </button>
                     <DateRangePicker size="md" className="ml-1" showOneCalendar placement="bottomEnd" value={daterangeValue} placeholder="Select Date" onChange={setDaterangeValue} />
                 </div>
             </div>
@@ -139,11 +144,10 @@ const Leave = () => {
                 </div>
 
                 {
-                    leaveRequests?.leaveData?.length > 0 ?
-                        <LeaveTable data={leaveRequests.leaveData} />
-                        : leaveRequests?.leaveData?.length === 0 ?
-                            <NoDataFound message={"No Leave request for this employee Name"} />
-                            : <Loading />
+                    isLoading ? <Loading /> :
+                        leaveRequests?.leaveData?.length > 0 ?
+                            <LeaveTable data={leaveRequests.leaveData} />
+                            : <NoDataFound message={"Leave data not for this month!"} />
                 }
             </div>
         </div>

@@ -1,56 +1,25 @@
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import editIcon from "../imgs/male_avatar.png";
 import maleAvatar from "../imgs/EditIcon.png";
 import { useFormik } from "formik";
 import * as Yup from "yup";
 import axios from "axios";
 import { toast } from "react-toastify";
-import { Link } from "react-router-dom";
 import "./leaveForm.css";
-import { fetchEmployeeData, fetchPayslipInfo } from "./ReuseableAPI";
+import { fetchPayslipInfo } from "./ReuseableAPI";
+import { TimerStates } from "./payslip/HRMDashboard";
+import { useParams } from "react-router-dom";
 
-const EditEmployeeform = ({ details, handleScroll, handlePersonal, handleFinancial, handleJob, handleContact, handleEmployment, timePatterns, personalRef, contactRef, employmentRef, jobRef, financialRef, payslipRef, countries, companies, departments, positions, roles, leads, managers }) => {
+const EditEmployeeform = ({ details, empData, handleScroll, handlePersonal, handleFinancial, handleJob, handleContact, handleEmployment, timePatterns, personalRef, contactRef, employmentRef, jobRef, financialRef, payslipRef, countries, companies, departments, positions, roles, leads, managers }) => {
+    const {id} = useParams();
+    const { changeEmpEditForm } = useContext(TimerStates);
     const [timeDifference, setTimeDifference] = useState(0);
     const [payslipFields, setPayslipFields] = useState([]);
     const token = localStorage.getItem("token");
     const url = process.env.REACT_APP_API_URL;
-    const [employeeObj, setEmployeeObj] = useState({
-        FirstName: "John",
-        LastName: "Doe",
-        Email: "johndoe@example.com",
-        Password: "password123",
-        teamLead: "Jane Smith",
-        managerId: "123456",
-        phone: "123-456-7890",
-        company: "TechCorp",
-        dateOfBirth: "1990-01-01",
-        gender: "Male",
-        address: {
-            city: "San Francisco",
-            state: "California",
-            country: "USA",
-            zipCode: "94103"
-        },
-        position: "Software Engineer",
-        department: "Engineering",
-        role: "Developer",
-        description: "Responsible for developing web applications",
-        dateOfJoining: "2022-01-10",
-        employmentType: "fullTime",
-        workingTimePattern: "9-5, Mon-Fri",
-        annualLeaveYearStart: "2024-01-01",
-        companyWorkingHourPerWeek: "40",
-        publicHoliday: "10",
-        entitlement: "25 days",
-        fullTimeAnnualLeave: "20 days",
-        annualLeaveEntitlement: "20",
-        basicSalary: "75000",
-        bankName: "Bank of America",
-        accountNo: "9876543210",
-        accountHolderName: "John Doe",
-        IFSCcode: "BOFA123456",
-        taxDeduction: "15%"
-    });
+    const [employeeObj, setEmployeeObj] = useState(
+        empData
+    );
 
     const empFormValidation = Yup.object().shape({
         FirstName: Yup.string().required('First Name is required'),
@@ -86,7 +55,7 @@ const EditEmployeeform = ({ details, handleScroll, handlePersonal, handleFinanci
         accountNo: Yup.string().min(10, "Account No digits must be between 10 to 14").max(14, "Account No digits must be between 10 to 14").required("Account No is required"),
         accountHolderName: Yup.string().min(2, "invalid Holder Name").max(50).required("Holder name is Required"),
         IFSCcode: Yup.string().min(11, "IFSC code must be 11 characters").max(11, "IFSC code must be 11 characters").required("IFSC code is required"),
-        taxDeduction: Yup.string().min(2, "invalid value").required("Tax deduction is required")
+        taxDeduction: Yup.string().min(0, "invalid value").required("Tax deduction is required")
     });
 
     const formik = useFormik({
@@ -94,13 +63,13 @@ const EditEmployeeform = ({ details, handleScroll, handlePersonal, handleFinanci
         validationSchema: empFormValidation,
         onSubmit: async (values, { resetForm }) => {
             try {
-                const res = await axios.post(`${url}/api/employee`, values, {
+                const res = await axios.put(`${url}/api/employee/${id}`, values, {
                     headers: {
                         authorization: token || ""
                     }
                 })
                 toast.success(res.data.message);
-                resetForm();
+                changeEmpEditForm();
 
             } catch (err) {
                 console.log(err);
@@ -113,6 +82,8 @@ const EditEmployeeform = ({ details, handleScroll, handlePersonal, handleFinanci
         }
     })
 
+    console.log(formik.errors);
+    
     function navToError() {
         if (formik.errors.FirstName
             || formik.errors.LastName
@@ -175,7 +146,7 @@ const EditEmployeeform = ({ details, handleScroll, handlePersonal, handleFinanci
                     const minutesDiff = Math.floor((timeDiff % (1000 * 60 * 60)) / (1000 * 60));
 
                     setTimeDifference((((hoursDiff * 60) + minutesDiff) / 60) * selectedPattern.WeeklyDays);
-                    console.log((((hoursDiff * 60) + minutesDiff) / 60) * selectedPattern.WeeklyDays);
+                    // console.log((((hoursDiff * 60) + minutesDiff) / 60) * selectedPattern.WeeklyDays);
                 }
             }
         };
@@ -212,15 +183,10 @@ const EditEmployeeform = ({ details, handleScroll, handlePersonal, handleFinanci
         getPayslipInfo();
     }, []);
 
-    // useEffect(() => {
-    //     const gettingEmpData = async () => {
-
-    //     }
-    //     const empData = fetchEmployeeData()
-    // }, [])
 
     const hourAndMin = timeDifference.toString().split(".");
     const [hour, min] = hourAndMin;
+    console.log(empData.position);
 
     return (
         <form onSubmit={formik.handleSubmit}>
@@ -304,7 +270,7 @@ const EditEmployeeform = ({ details, handleScroll, handlePersonal, handleFinanci
                                 <div className="inputLabel">Position</div>
                                 <select name="position" className={`selectInput ${formik.touched.position && formik.errors.position ? "error" : ""}`}
                                     onChange={formik.handleChange}
-                                    value={formik.values.position}>
+                                    value={formik?.values?.position || empData?.position || ""}>
                                     <option >Select Position</option>
                                     {
                                         positions.map((position) => (
@@ -323,7 +289,7 @@ const EditEmployeeform = ({ details, handleScroll, handlePersonal, handleFinanci
                                 <div className="inputLabel">Role</div>
                                 <select name="role" className={`selectInput ${formik.touched.role && formik.errors.role ? "error" : ""}`}
                                     onChange={formik.handleChange}
-                                    value={formik.values.role}>
+                                    value={formik.values.role || empData?.role || ""}>
                                     <option >Select Role</option>
                                     {
                                         roles.map((role) => (
@@ -443,14 +409,19 @@ const EditEmployeeform = ({ details, handleScroll, handlePersonal, handleFinanci
                                     className={`selectInput ${formik.touched.workingTimePattern && formik.errors.workingTimePattern ? "error" : ""}`}
                                     name="workingTimePattern"
                                     onChange={formik.handleChange}
-                                    value={formik.values.workingTimePattern} >
-                                    <option>Select Work Time Pattern</option>
-                                    {
-                                        timePatterns.map((pattern) => (
-                                            <option key={pattern._id} value={pattern._id}>{pattern.PatternName}</option>
-                                        ))
-                                    }
+                                    value={formik.values.workingTimePattern || empData?.workingTimePattern || ""} // Set initial value from empData if formik value is not set
+                                >
+                                    <option value="">Select Work Time Pattern</option>
+                                    {timePatterns.map((pattern) => (
+                                        <option key={pattern._id} value={pattern._id}
+                                            selected={pattern._id === formik.values.workingTimePattern._id}
+                                        >
+
+                                            {pattern.PatternName}
+                                        </option>
+                                    ))}
                                 </select>
+
                                 {formik.touched.workingTimePattern && formik.errors.workingTimePattern ? (
                                     <div className="text-center text-danger">{formik.errors.workingTimePattern}</div>
                                 ) : null}
@@ -461,7 +432,7 @@ const EditEmployeeform = ({ details, handleScroll, handlePersonal, handleFinanci
                                     className={`selectInput ${formik.touched.company && formik.errors.company ? "error" : ""}`}
                                     name="company"
                                     onChange={formik.handleChange}
-                                    value={formik.values.company} >
+                                    value={formik.values.company || empData.company || ""} >
                                     <option>Select Company</option>
                                     {
                                         companies.map((company) => (
@@ -607,7 +578,10 @@ const EditEmployeeform = ({ details, handleScroll, handlePersonal, handleFinanci
                         <div className="row d-flex justify-content-center my-3">
                             <div className="col-lg-6">
                                 <div className="inputLabel">Manager</div>
-                                <select name="managerId" onChange={formik.handleChange} className={`inputField ${formik.touched.managerId && formik.errors.managerId ? "error" : ""}`}>
+                                <select name="managerId" onChange={formik.handleChange}
+                                    className={`inputField ${formik.touched.managerId && formik.errors.managerId ? "error" : ""}`}
+                                    value={formik.values.managerId || empData?.managerId || ""}
+                                >
                                     <option >Select Manager</option>
                                     {
                                         managers.map((manager) => (
@@ -621,12 +595,22 @@ const EditEmployeeform = ({ details, handleScroll, handlePersonal, handleFinanci
                             </div>
                             <div className="col-lg-6">
                                 <div className="inputLabel">Team Lead</div>
-                                <select name="teamLead" onChange={formik.handleChange} className={`selectInput ${formik.touched.teamLead && formik.errors.teamLead ? "error" : ""}`}>
-                                    <option >Select TeamLead</option>
+                                <select
+                                    name="teamLead"
+                                    onChange={formik.handleChange}
+                                    className={`selectInput ${formik.touched.teamLead && formik.errors.teamLead ? "error" : ""}`}
+                                    value={formik.values.teamLead || empData?.teamLead || ""}
+                                >
+                                    <option value="">Select Team Lead</option>
                                     {leads.map((lead) => (
-                                        <option key={lead._id} value={lead._id}>{lead.FirstName}</option>
+                                        <option key={lead._id} value={lead._id}
+                                        // selected={empData?.teamLead === formik?.values?.teamLead}
+                                        >
+                                            {lead.FirstName}
+                                        </option>
                                     ))}
                                 </select>
+
                                 {formik.touched.teamLead && formik.errors.teamLead ? (
                                     <div className="text-center text-danger">{formik.errors.teamLead}</div>
                                 ) : null}
@@ -645,6 +629,7 @@ const EditEmployeeform = ({ details, handleScroll, handlePersonal, handleFinanci
                                     cols={50}
                                     rows={10}
                                     style={{ height: "100px" }}
+                                    value={formik.values.description || empData.description || ""}
                                 />
                                 {formik.touched.description && formik.errors.description ? (
                                     <div className="text-center text-danger">{formik.errors.description}</div>
@@ -813,15 +798,13 @@ const EditEmployeeform = ({ details, handleScroll, handlePersonal, handleFinanci
             <div className="btnBackground">
                 <div className="fixedPositionBtns">
                     <div className="w-50">
-                        <button className="outline-btn mx-2" >
-                            <Link to={"/hr/employee"} className="text-dark">
-                                Cancel
-                            </Link>
+                        <button className="outline-btn mx-2" onClick={changeEmpEditForm}>
+                            Cancel
                         </button>
                     </div>
                     <div className="w-50">
                         <button type="submit" className="button px-5 py-2" onClick={navToError}>
-                            Save
+                            Update
                         </button>
                     </div>
                 </div>

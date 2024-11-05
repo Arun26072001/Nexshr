@@ -52,6 +52,8 @@ export default function Navbar() {
     async function stopTimer() {
         if (workRef.current) {
             await stopLoginTimer();
+            // console.log(isStartLogin);
+
             if (!isStartLogin) {
                 clearInterval(workRef.current);  // Stop the timer
                 workRef.current = null;  // Reset the reference
@@ -60,11 +62,12 @@ export default function Navbar() {
     }
 
     useEffect(() => {
-
         if (isStartLogin) {
             console.log("starting login timer");
 
             startTimer();
+        } else if (!isStartLogin) {
+            stopTimer();
         }
         // Cleanup interval when component unmounts
         return () => stopTimer();

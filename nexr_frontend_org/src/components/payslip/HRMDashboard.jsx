@@ -28,15 +28,21 @@ import PayrollValue from './PayrollValue';
 import PayslipRouter from './PayslipRouter';
 import { EssentialValues } from '../../App';
 import AddEmployee from '../AddEmployee';
+import Roles from '../Administration/Roles';
+import PageAndActionAuth from '../Settings/PageAndActionAuth';
+import Announce from '../Announcement/announce';
 
 export const LeaveStates = createContext(null);
 export const TimerStates = createContext(null);
 
 export default function HRMDashboard() {
-    const { data } = useContext(EssentialValues)
+    const { data } = useContext(EssentialValues);
+    const strPermissionData = localStorage.getItem("userPermissions");
+    const userPermissions = JSON.parse(strPermissionData);
     const [attendanceData, setAttendanceData] = useState([]);
     const [attendanceForSummary, setAttendanceForSummary] = useState({});
     const empId = localStorage.getItem("_id");
+    const Account =  localStorage.getItem("Account")
     const [leaveRequests, setLeaveRequests] = useState({});
     const [fullLeaveRequests, setFullLeaveRequests] = useState([]);
     const [empName, setEmpName] = useState("");
@@ -51,8 +57,7 @@ export default function HRMDashboard() {
     const [isStartLogin, setIsStartLogin] = useState(localStorage.getItem("isStartLogin") === "false" ? false : localStorage.getItem("isStartLogin") === "true" ? true : false);
     const [isStartActivity, setIsStartActivity] = useState(localStorage.getItem("isStartActivity") === "false" ? false : localStorage.getItem("isStartActivity") === "true" ? true : false);
     const navigate = useNavigate();
-    // console.log(isStartActivity, isStartLogin);
-    // debugger;
+    const [reloadRole, setReloadRole] = useState(false);
     const currentDate = new Date();
     const currentHours = currentDate.getHours().toString().padStart(2, '0');
     const currentMinutes = currentDate.getMinutes().toString().padStart(2, '0');
@@ -74,7 +79,6 @@ export default function HRMDashboard() {
         eveningBreak: { ...startAndEndTime },
         event: { ...startAndEndTime }
     });
-    // console.log(workTimeTracker);
 
     const [checkClockins, setCheckClockins] = useState(false);
     function updateClockins() {
@@ -106,7 +110,7 @@ export default function HRMDashboard() {
             }
         };
         // // try to add clockins data
-        if (!updatedState?._id) {
+        if (!updatedState?._id && !isStartLogin) {
             try {
                 const clockinsData = await addDataAPI(updatedState);
                 if (clockinsData) {
@@ -127,7 +131,7 @@ export default function HRMDashboard() {
                 console.error('Error in add Clockins timer:', error);
             }
             // try to update clockins data
-        } else {
+        } else if (updatedState._id && !isStartLogin) {
 
             try {
                 // Call the API with the updated state
@@ -146,6 +150,8 @@ export default function HRMDashboard() {
     };
 
     const stopLoginTimer = async () => {
+        console.log("try to stop");
+
         const updatedState = {
             ...workTimeTracker,
             login: {
@@ -155,19 +161,14 @@ export default function HRMDashboard() {
             }
         };
 
-        if (updatedState?._id && isStartActivity) {
+        if (updatedState?._id && isStartLogin) {
 
             // Call the API with the updated state
             const updatedData = await updateDataAPI(updatedState);
             setWorkTimeTracker(updatedData);
             localStorage.setItem('isStartLogin', false);
             setIsStartLogin(false);
-            toast.success(`${timeOption} Timer has been stopped!`)
             updateClockins();
-        } else {
-            localStorage.setItem('isStartLogin', true);
-            setIsStartLogin(true);
-            return toast.error("You did't punch-in");
         }
     }
     // console.log(workTimeTracker);
@@ -236,6 +237,21 @@ export default function HRMDashboard() {
         }
     };
 
+    function changeEmpEditForm(id) {
+
+        if (isEditEmp) {
+            navigate(-1);
+            setIsEditEmp(false);
+        } else {
+            navigate(`employee/edit/${id}`);
+            setIsEditEmp(true);
+        }
+    }
+
+    function reloadRolePage() {
+        setReloadRole(!reloadRole)
+    }
+
     useEffect(() => {
         const getLeaveData = async () => {
             setIsLoading(true);
@@ -285,16 +301,24 @@ export default function HRMDashboard() {
 
 
     useEffect(() => {
-        if (data?.Account) {
-            if (data.Account === '1') {
-                setWhoIs("admin");
-            } else if (data.Account === '2') {
-                setWhoIs("hr");
-            } else if (data.Account === '3') {
-                setWhoIs("emp");
+        if (Account) {
+            switch (Account) {
+                case '1':
+                    setWhoIs("admin");
+                    break;
+                case '2':
+                    setWhoIs("hr");
+                    break;
+                case '3':
+                    setWhoIs("emp");
+                    break;
+                default:
+                    // Optional: handle unexpected Account values
+                    break;
             }
         }
-    }, [empId]);
+
+    }, [Account]);
 
     // get workTimeTracker from DB in Initially
     useEffect(() => {
@@ -321,27 +345,15 @@ export default function HRMDashboard() {
         localStorage.setItem("isStartActivity", isStartActivity);
     }, [isStartLogin, isStartActivity]);
 
-    function changeEmpEditForm() {
-        console.log("calll");
-        
-        if (isEditEmp) {
-            navigate(-1);
-            setIsEditEmp(false);
-        } else {
-            navigate(`employee/edit`);
-            setIsEditEmp(true);
-        }
-    }
-
     return (
-        <TimerStates.Provider value={{ workTimeTracker, updateWorkTracker, startLoginTimer, stopLoginTimer, startActivityTimer, stopActivityTimer, setWorkTimeTracker, updateClockins, whoIs, timeOption, isStartLogin, isStartActivity, changeEmpEditForm, isEditEmp }}>
+        <TimerStates.Provider value={{ workTimeTracker, reloadRolePage, updateWorkTracker, startLoginTimer, stopLoginTimer, startActivityTimer, stopActivityTimer, setWorkTimeTracker, updateClockins, whoIs, timeOption, isStartLogin, isStartActivity, changeEmpEditForm, isEditEmp }}>
             <Routes >
                 <Route path="/" element={<Parent />} >
                     <Route index element={<Dashboard data={data} />} />
                     <Route path="job-desk/*" element={<JobDesk />} />
                     <Route path="employee" element={<Employee />} />
-                    <Route path="employee/add" element={<Employees />} />
-                    <Route path="employee/edit" element={<AddEmployee />} />
+                    <Route path="employee/add" element={userPermissions?.Employee?.add ? <Employees /> : <UnAuthorize />} />
+                    <Route path="employee/edit/:id" element={userPermissions?.Employee?.edit ? <AddEmployee /> : <UnAuthorize />} />
                     <Route path="leave/*" element={
                         <LeaveStates.Provider value={{ daterangeValue, setDaterangeValue, isLoading, leaveRequests, filterLeaveRequests, empName, setEmpName }} >
                             <Routes>
@@ -352,8 +364,8 @@ export default function HRMDashboard() {
                             </Routes>
                         </LeaveStates.Provider>
                     } />
-                    <Route path='/leave-request' element={<LeaveRequestForm />} />
-                    <Route path="/leave-request/edit/:id" element={<EditLeaveRequestForm />} />
+                    <Route path='/leave-request' element={userPermissions?.Leave?.add ? <LeaveRequestForm /> : <UnAuthorize />} />
+                    <Route path="/leave-request/edit/:id" element={userPermissions?.Leave?.add ? <EditLeaveRequestForm /> : <UnAuthorize />} />
                     <Route path="attendance/*" element={
                         <Routes>
                             <Route index path="attendance-request" element={<Request attendanceData={attendanceData} isLoading={waitForAttendance} />} />
@@ -363,7 +375,22 @@ export default function HRMDashboard() {
                         </Routes>
                     }>
                     </Route>
-                    <Route path="administration/" element={<Administration />} />
+                    <Route path="administration/*" element={
+                        <Routes>
+                            <Route index path="role/*" element={
+                                <Routes>
+                                    <Route index element={<Roles />} />
+                                    <Route path="add" element={userPermissions?.Attendance?.add ? <PageAndActionAuth /> : <UnAuthorize />} />
+                                    <Route path="edit/:id" element={userPermissions?.Attendance?.edit ? <PageAndActionAuth /> : <UnAuthorize />} />
+                                    <Route path="view/:id" element={userPermissions?.Attendance?.view ? <PageAndActionAuth /> : <UnAuthorize />} />
+                                </Routes>
+                            } />
+                            {/* <Route path="/shift" element={<Shift />} /> */}
+                            {/* <Route path="/department" element={<Department />} /> */}
+                            {/* <Route path="/holiday" element={<Holiday />} /> */}
+                            <Route path="/announcement" element={<Announce />} />
+                        </Routes>
+                    } />
                     <Route path="settings/*" element={
                         <Routes>
                             <Route index element={<Settings />} />

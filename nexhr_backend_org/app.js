@@ -5,7 +5,7 @@ const axios = require("axios");
 var mongoose = require('mongoose');
 var app = express();
 require('dotenv').config();
-var cors = require('cors')
+var cors = require('cors');
 //router files 
 const login = require('./routes/login');
 const company = require('./routes/company');
@@ -33,8 +33,20 @@ const applicationSettings = require("./routes/application-settings");
 const attendance = require("./routes/attendance");
 const clockIns = require("./routes/clock-ins")
 const team = require("./routes/team");
+const announcement = require("./routes/announcement");
+const teamssample = require("./routes/teamssample");
 const payslipInfo = require("./routes/payslipInfo");
 const payslip = require("./routes/payslip");
+const userPermission = require("./routes/user-permission");
+const pageAuth = require("./routes/page-auth");
+
+
+const admin = require('firebase-admin');
+// const serviceAccount = require('');
+// // const serviceAccount = require('./path/to/your-service-account-file.json');
+// admin.initializeApp({
+//   credential: admin.credential.cert(serviceAccount),
+// });
 
 //connecting to mongodb
 let mongoURI = process.env.DATABASEURL;
@@ -63,7 +75,7 @@ mongoose.set("useUnifiedTopology", true);
 mongoose
   .connect(mongoURI)
   .then(() => console.log("db connection successful"))
-  .catch(err => console.log(err));
+  .catch(err => console.log(err.message));
 
 //for request body
 app.use(express.json());
@@ -71,7 +83,13 @@ app.use(express.json());
 
 //API AUTHS
 app.get("/", (req, res) => {
-  res.send("employee management system API 😀");
+  require('dns').resolve('www.google.com', function (err) {
+    if (err) {
+      res.status(1024).send("Network not Connected!")
+    } else {
+      res.send({message: "API and Network connected!"})
+    }
+  });
 });
 
 app.use('/api/login', login)
@@ -130,10 +148,18 @@ app.use('/api/time-pattern', timePattern);
 app.use("/api/attendance", attendance)
 //use clock-ins router
 app.use("/api/clock-ins", clockIns);
+// use user persmission router
+app.use("/api/user-permission", userPermission);
+// user page auth router
+app.use("/api/page-auth", pageAuth);
+
+app.use("/announcement", announcement);
+
+app.use("/api/teamssample", teamssample);
 
 var port = process.env.PORT;
 // Schedule the job to run every 14th day of the month at 18:18
-const addPayslip = schedule.scheduleJob("10 10 3 * *", async function () {
+const addPayslip = schedule.scheduleJob("12 18 4 * *", async function () {
   try {
     const response = await axios.post(`${process.env.REACT_APP_API_URL}/api/payslip/`, {
     });
