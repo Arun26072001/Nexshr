@@ -424,6 +424,7 @@ export default function LeaveTable({ data, getCheckedValue, roleObj, getCheckAll
             }
             else if (item.fromDate && params['*'] === "status"
                 || item.fromDate && params['*'] === "leave-summary"
+                || item.fromDate && params['*'] === "leave"
                 || item.fromDate && params['*'] === "calender") {
                 return setColumns(column8);
             }

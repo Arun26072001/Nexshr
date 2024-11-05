@@ -1,15 +1,16 @@
 import React, { useEffect, useState } from "react";
-import editIcon from "../imgs/male_avatar.png";
-import maleAvatar from "../imgs/EditIcon.png";
+// import editIcon from "../imgs/male_avatar.png";
+// import maleAvatar from "../imgs/EditIcon.png";
 import { useFormik } from "formik";
 import * as Yup from "yup";
 import axios from "axios";
 import { toast } from "react-toastify";
-import { Link } from "react-router-dom";
 import "./leaveForm.css";
 import { fetchPayslipInfo } from "./ReuseableAPI";
+import { useNavigate } from "react-router-dom";
 
 const AddEmployeeForm = ({ details, handleScroll, handlePersonal, handleFinancial, handleJob, handleContact, handleEmployment, timePatterns, personalRef, contactRef, employmentRef, jobRef, financialRef, payslipRef, countries, companies, departments, positions, roles, leads, managers }) => {
+    const navigate = useNavigate()
     const [timeDifference, setTimeDifference] = useState(0);
     const [payslipFields, setPayslipFields] = useState([]);
     const token = localStorage.getItem("token");
@@ -231,154 +232,120 @@ const AddEmployeeForm = ({ details, handleScroll, handlePersonal, handleFinancia
                 </div>
 
                 <div className="detailsParent" >
-                    {
-                        // employeeObj.length > 0 ?
-                        // (<div className="personalDetails" ref={personalRef}>
-                        //     {/* <div className="d-flex justify-content-end"> */}
-                        //     <img src={editIcon} alt="" className="editIcon" />
-                        //     {/* <div style={{ fontSize: "12px", color: "gray" }}>Edit</div> */}
-                        //     {/* </div> */}
-                        //     <div className="d-flex justify-content-center my-3">
-                        //         <div className="avatar">
-                        //             <img src={maleAvatar} alt="" style={{ width: "150px", height: "150px" }} />
-                        //         </div>
-                        //     </div>
-                        //     <div className="titleTextLabel">Employee Name</div>
-                        //     <div className="titleText">
-                        //         Arun Kumar
-                        //     </div>
-                        //     <div className="titleTextLabel">Department</div>
-                        //     <div className="titleText">
-                        //         Development
-                        //     </div>
-
-                        //     <div className="row my-3 d-flex align-items-center justify-content-center">
-                        //         <div className="col-lg-6">
-                        //             <div className="titleTextLabel">Job Title</div>
-                        //             <div className="titleText">MERN Stack Developer</div>
-                        //         </div>
-                        //         <div className="col-lg-6">
-                        //             <div className="titleTextLabel">Job Category</div>
-                        //             <div className="titleText">Full Time</div>
-                        //         </div>
-                        //     </div>
-                        // </div>)
-                        // :
-                        (<div className="personalDetails" ref={personalRef}>
-                            <div className="row my-3 d-flex justify-content-center">
-                                <div className="titleText col-lg-12">
-                                    Personal Details
-                                </div>
-                                <div className="col-lg-6">
-                                    <div className="inputLabel">First Name</div>
-                                    <input type="text"
-                                        className={`inputField ${formik.touched.FirstName && formik.errors.FirstName ? "error" : ""}`}
-                                        name="FirstName"
-                                        onChange={formik.handleChange}
-                                        value={formik.values.FirstName} />
-                                    {formik.touched.FirstName && formik.errors.FirstName ? (
-                                        <div className="text-center text-danger">{formik.errors.FirstName}</div>
-                                    ) : null}
-                                </div>
-                                <div className="col-lg-6">
-                                    <div className="inputLabel">Last Name</div>
-                                    <input type="text"
-                                        className={`inputField ${formik.touched.LastName && formik.errors.LastName ? "error" : ""}`}
-                                        name="LastName"
-                                        onChange={formik.handleChange}
-                                        value={formik.values.LastName} />
-                                    {formik.touched.LastName && formik.errors.LastName ? (
-                                        <div className="text-center text-danger">{formik.errors.LastName}</div>
-                                    ) : null}
-                                </div>
+                    <div className="personalDetails" ref={personalRef}>
+                        <div className="row my-3 d-flex justify-content-center">
+                            <div className="titleText col-lg-12">
+                                Personal Details
                             </div>
-
-                            <div className="row my-3 d-flex align-items-center justify-content-center">
-                                <div className="col-lg-6">
-                                    <div className="inputLabel">Gender</div>
-                                    <select name="gender"
-                                        className={`selectInput ${formik.touched.gender && formik.errors.gender ? "error" : ""}`}
-                                        onChange={formik.handleChange}
-                                        value={formik.values.gender}>
-                                        <option >Select gender</option>
-                                        <option value="male">Male</option>
-                                        <option value="female">Female</option>
-                                    </select>
-                                    {formik.touched.gender && formik.errors.gender ? (
-                                        <div className="text-center text-danger">{formik.errors.gender}</div>
-                                    ) : null}
-                                </div>
-                                <div className="col-lg-6">
-                                    <div className="inputLabel">Department</div>
-                                    <select name="department" className={`selectInput ${formik.touched.department && formik.errors.department ? "error" : ""}`}
-                                        onChange={formik.handleChange}
-                                        value={formik.values.department}>
-                                        <option >Select Department</option>
-                                        {
-                                            departments.map((department) => (
-                                                <option key={department._id} value={department._id}>{department.DepartmentName}</option>
-                                            ))
-                                        }
-                                    </select>
-                                    {formik.touched.department && formik.errors.department ? (
-                                        <div className="text-center text-danger">{formik.errors.department}</div>
-                                    ) : null}
-                                </div>
+                            <div className="col-lg-6">
+                                <div className="inputLabel">First Name</div>
+                                <input type="text"
+                                    className={`inputField ${formik.touched.FirstName && formik.errors.FirstName ? "error" : ""}`}
+                                    name="FirstName"
+                                    onChange={formik.handleChange}
+                                    value={formik.values.FirstName} />
+                                {formik.touched.FirstName && formik.errors.FirstName ? (
+                                    <div className="text-center text-danger">{formik.errors.FirstName}</div>
+                                ) : null}
                             </div>
-
-                            <div className="row d-flex justify-content-center">
-                                <div className="col-lg-12">
-                                    <div className="inputLabel">Position</div>
-                                    <select name="position" className={`selectInput ${formik.touched.position && formik.errors.position ? "error" : ""}`}
-                                        onChange={formik.handleChange}
-                                        value={formik.values.position}>
-                                        <option >Select Position</option>
-                                        {
-                                            positions.map((position) => (
-                                                <option key={position._id} value={position._id}>{position.PositionName}</option>
-                                            ))
-                                        }
-                                    </select>
-                                    {formik.touched.position && formik.errors.position ? (
-                                        <div className="text-center text-danger">{formik.errors.position}</div>
-                                    ) : null}
-                                </div>
+                            <div className="col-lg-6">
+                                <div className="inputLabel">Last Name</div>
+                                <input type="text"
+                                    className={`inputField ${formik.touched.LastName && formik.errors.LastName ? "error" : ""}`}
+                                    name="LastName"
+                                    onChange={formik.handleChange}
+                                    value={formik.values.LastName} />
+                                {formik.touched.LastName && formik.errors.LastName ? (
+                                    <div className="text-center text-danger">{formik.errors.LastName}</div>
+                                ) : null}
                             </div>
+                        </div>
 
-                            <div className="row my-3 d-flex align-items-center justify-content-center">
-                                <div className="col-lg-6">
-                                    <div className="inputLabel">Role</div>
-                                    <select name="role" className={`selectInput ${formik.touched.role && formik.errors.role ? "error" : ""}`}
-                                        onChange={formik.handleChange}
-                                        value={formik.values.role}>
-                                        <option >Select Role</option>
-                                        {
-                                            roles.map((role) => (
-                                                <option key={role._id} value={role._id}>{role.RoleName}</option>
-                                            ))
-                                        }
-                                    </select>
-                                    {formik.touched.role && formik.errors.role ? (
-                                        <div className="text-center text-danger">{formik.errors.role}</div>
-                                    ) : null}
-                                </div>
-                                <div className="col-lg-6">
-                                    <div className="inputLabel">Employment Type</div>
-                                    <select name="employmentType" className={`selectInput ${formik.touched.employmentType && formik.errors.employmentType ? "error" : ""}`}
-                                        onChange={formik.handleChange}
-                                        value={formik.values.employmentType}>
-                                        <option >Employment Type</option>
-                                        <option value="full-time">Full Time</option>
-                                        <option value="part-time">Part Time</option>
-                                        <option value="intern">Contract</option>
-                                    </select>
-                                    {formik.touched.employmentType && formik.errors.employmentType ? (
-                                        <div className="text-center text-danger">{formik.errors.employmentType}</div>
-                                    ) : null}
-                                </div>
+                        <div className="row my-3 d-flex align-items-center justify-content-center">
+                            <div className="col-lg-6">
+                                <div className="inputLabel">Gender</div>
+                                <select name="gender"
+                                    className={`selectInput ${formik.touched.gender && formik.errors.gender ? "error" : ""}`}
+                                    onChange={formik.handleChange}
+                                    value={formik.values.gender}>
+                                    <option >Select gender</option>
+                                    <option value="male">Male</option>
+                                    <option value="female">Female</option>
+                                </select>
+                                {formik.touched.gender && formik.errors.gender ? (
+                                    <div className="text-center text-danger">{formik.errors.gender}</div>
+                                ) : null}
                             </div>
-                        </div>)
-                    }
+                            <div className="col-lg-6">
+                                <div className="inputLabel">Department</div>
+                                <select name="department" className={`selectInput ${formik.touched.department && formik.errors.department ? "error" : ""}`}
+                                    onChange={formik.handleChange}
+                                    value={formik.values.department}>
+                                    <option >Select Department</option>
+                                    {
+                                        departments.map((department) => (
+                                            <option key={department._id} value={department._id}>{department.DepartmentName}</option>
+                                        ))
+                                    }
+                                </select>
+                                {formik.touched.department && formik.errors.department ? (
+                                    <div className="text-center text-danger">{formik.errors.department}</div>
+                                ) : null}
+                            </div>
+                        </div>
+
+                        <div className="row d-flex justify-content-center">
+                            <div className="col-lg-12">
+                                <div className="inputLabel">Position</div>
+                                <select name="position" className={`selectInput ${formik.touched.position && formik.errors.position ? "error" : ""}`}
+                                    onChange={formik.handleChange}
+                                    value={formik.values.position}>
+                                    <option >Select Position</option>
+                                    {
+                                        positions.map((position) => (
+                                            <option key={position._id} value={position._id}>{position.PositionName}</option>
+                                        ))
+                                    }
+                                </select>
+                                {formik.touched.position && formik.errors.position ? (
+                                    <div className="text-center text-danger">{formik.errors.position}</div>
+                                ) : null}
+                            </div>
+                        </div>
+
+                        <div className="row my-3 d-flex align-items-center justify-content-center">
+                            <div className="col-lg-6">
+                                <div className="inputLabel">Role</div>
+                                <select name="role" className={`selectInput ${formik.touched.role && formik.errors.role ? "error" : ""}`}
+                                    onChange={formik.handleChange}
+                                    value={formik.values.role}>
+                                    <option >Select Role</option>
+                                    {
+                                        roles.map((role) => (
+                                            <option key={role._id} value={role._id}>{role.RoleName}</option>
+                                        ))
+                                    }
+                                </select>
+                                {formik.touched.role && formik.errors.role ? (
+                                    <div className="text-center text-danger">{formik.errors.role}</div>
+                                ) : null}
+                            </div>
+                            <div className="col-lg-6">
+                                <div className="inputLabel">Employment Type</div>
+                                <select name="employmentType" className={`selectInput ${formik.touched.employmentType && formik.errors.employmentType ? "error" : ""}`}
+                                    onChange={formik.handleChange}
+                                    value={formik.values.employmentType}>
+                                    <option >Employment Type</option>
+                                    <option value="full-time">Full Time</option>
+                                    <option value="part-time">Part Time</option>
+                                    <option value="intern">Contract</option>
+                                </select>
+                                {formik.touched.employmentType && formik.errors.employmentType ? (
+                                    <div className="text-center text-danger">{formik.errors.employmentType}</div>
+                                ) : null}
+                            </div>
+                        </div>
+                    </div>
                     <div className="contactDetails" ref={contactRef}>
                         <div className="row d-flex justify-content-center my-3">
                             <div className="titleText col-lg-12">
@@ -840,10 +807,8 @@ const AddEmployeeForm = ({ details, handleScroll, handlePersonal, handleFinancia
             <div className="btnBackground">
                 <div className="fixedPositionBtns">
                     <div className="w-50">
-                        <button className="outline-btn mx-2" >
-                            <Link to={"/hr/employee"} className="text-dark">
-                                Cancel
-                            </Link>
+                        <button className="outline-btn mx-2" onClick={() => navigate(-1)} >
+                            Cancel
                         </button>
                     </div>
                     <div className="w-50">

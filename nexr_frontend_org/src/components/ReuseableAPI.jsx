@@ -41,6 +41,8 @@ const getDataAPI = async (empId) => {
         });
 
         const data = response.data;
+        console.log(data);
+        
         return data;
     } catch (error) {
         return error?.response?.data?.message;
