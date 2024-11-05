@@ -24,54 +24,60 @@ const Dashboard = () => {
 
     const gettingEmpdata = async () => {
         try {
-            if (empId) {
-                setIsLoading(true);
-                const data = await fetchEmployeeData(empId);
-
-                if (data) {
-                    const workingHour = await getTotalWorkingHourPerDay(data.workingTimePattern.StartingTime, data.workingTimePattern.FinishingTime);
-
-                    // Fetch clock-ins data
-                    const getEmpMonthPunchIns = await gettingClockinsData(empId);
-
-                    // Calculate total working hour percentage and total worked hour percentage
-                    const totalWorkingHourPercentage = (getEmpMonthPunchIns.companyTotalWorkingHour / getEmpMonthPunchIns.totalWorkingHoursPerMonth) * 100;
-                    const totalWorkedHourPercentage = (getEmpMonthPunchIns.totalEmpWorkingHours / getEmpMonthPunchIns.companyTotalWorkingHour) * 100;
-
-                    // Set the monthly login data
-                    setMonthlyLoginData({
-                        ...getEmpMonthPunchIns,
-                        totalWorkingHourPercentage,
-                        totalWorkedHourPercentage
-                    });
-
-                    // Check if `empId` is available and fetch clock-in data
-                    if (empId) {
-                        const clockinsData = await getDataAPI(empId);
-                        setDailyLoginData(clockinsData);
-
-                    } else {
-                        console.log("No clockins ID");
-                    }
-
-                    // Set leave data with working hours
-                    setLeaveData({ ...data, workingHour });
-                    setIsLoading(false);
-                } else {
-                    toast.error("Error in fetch workingtimePattern data!");
-                    setLeaveData({});
-                }
-
+            if (!empId) return; // Exit early if empId is not provided
+    
+            setIsLoading(true);
+    
+            // Fetch employee data
+            const data = await fetchEmployeeData(empId);
+            console.log(data);
+    
+            if (!data) {
+                toast.error("Error in fetching workingTimePattern data!");
+                setLeaveData({});
+                return;
             }
+    
+            // Calculate working hours for the day
+            const workingHour = await getTotalWorkingHourPerDay(data.workingTimePattern.StartingTime, data.workingTimePattern.FinishingTime);
+    
+            // Fetch clock-ins data
+            const getEmpMonthPunchIns = await gettingClockinsData(empId);
+    
+            // Calculate total working hour percentage and total worked hour percentage
+            const totalWorkingHourPercentage = (getEmpMonthPunchIns.companyTotalWorkingHour / getEmpMonthPunchIns.totalWorkingHoursPerMonth) * 100;
+            const totalWorkedHourPercentage = (getEmpMonthPunchIns.totalEmpWorkingHours / getEmpMonthPunchIns.companyTotalWorkingHour) * 100;
+    
+            // Set the monthly login data
+            setMonthlyLoginData({
+                ...getEmpMonthPunchIns,
+                totalWorkingHourPercentage,
+                totalWorkedHourPercentage
+            });
+    
+            // Fetch daily clock-in data
+            const clockinsData = await getDataAPI(empId);
+            console.log(clockinsData);
+    
+            setDailyLoginData(clockinsData);
+    
+            // Set leave data with working hours
+            setLeaveData({ ...data, workingHour });
+    
         } catch (error) {
-            toast.error(error);
+            toast.error(error.message || "An error occurred while fetching employee data.");
             setLeaveData({});
+        } finally {
+            setIsLoading(false); // Ensure loading state is always updated
         }
-    }
-
+    };
+    
     useEffect(() => {
         gettingEmpdata();
     }, [empId]);
+    
+    console.log(leaveData);
+
 
     return (
         <div className='dashboard-parent'>
@@ -190,8 +196,6 @@ const Dashboard = () => {
                         </>
                     ) : <NoDataFound message={"leave data not found!"} />
             }
-
-
         </div>
     );
 };

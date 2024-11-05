@@ -58,7 +58,6 @@ const Roles = () => {
                     <div className='col-lg-6 col-6 d-flex gap-2 justify-content-end'>
                         {/* <Popup /> */}
                         {/* <div className='ms-2'> */}
-                        <button className='button m-0' onClick={() => navigate(`add`)}>+ Add Role</button>
                         {/* <button className="btn attends btn-light" type="button" id="dropdownMenuButton1">
                             <svg width="16" height="17" viewBox="0 0 16 17" fill="none" xmlns="http://www.w3.org/2000/svg">
                                 <g clip-path="url(#clip0_2250_1079)">
@@ -74,6 +73,7 @@ const Roles = () => {
                             Setting
                         </button> */}
                         {/* </div> */}
+                        <button className='button m-0' onClick={() => navigate(`add`)}>+ Add Role</button>
                     </div>
                 </div>
                 {
