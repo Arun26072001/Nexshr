@@ -9,18 +9,41 @@ const { PageAuth, pageAuthValidation } = require('../models/PageAuth');
 // get role by roleName
 router.get("/name", verifyAdmin, async (req, res) => {
   try {
-    const role = await RoleAndPermission.findOne({ RoleName: "Employee" })
+    const roleData = await RoleAndPermission.findOne({ RoleName: "Employee" })
       .populate("userPermissions")
       .populate("pageAuth")
       .exec();
-    if (!role) {
+    if (!roleData) {
       res.status(404).send({ error: "Data not found in given Employee" })
     } else {
-      res.send(role);
+      let role = {
+        RoleName: roleData?.RoleName,
+        pageAuth: {
+            Administration: roleData?.pageAuth?.Administration,
+            Attendance: roleData?.pageAuth?.Attendance,
+            Dashboard: roleData?.pageAuth?.Dashboard,
+            Employee: roleData?.pageAuth?.Employee,
+            JobDesk: roleData?.pageAuth?.JobDesk,
+            Leave: roleData?.pageAuth?.Leave,
+            Settings: roleData?.pageAuth?.Settings,
+        },
+        userPermissions: {
+            Attendance: roleData?.userPermissions?.Attendance ,
+            Company: roleData?.userPermissions?.Company ,
+            Department: roleData?.userPermissions?.Department ,
+            Employee: roleData?.userPermissions?.Employee ,
+            Holiday: roleData?.userPermissions?.Holiday ,
+            Leave: roleData?.userPermissions?.Leave ,
+            Role: roleData?.userPermissions?.Role,
+            TimePattern: roleData?.userPermissions?.TimePattern,
+            WorkPlace: roleData?.userPermissions?.WorkPlace,
+            Payroll: roleData?.userPermissions?.Payroll ,
+        }
+    }
+      res.send(role)
     }
   } catch (error) {
     console.log(error);
-
     res.status(500).send({ error: error.message })
   }
 })
@@ -58,8 +81,8 @@ router.get('/', verifyAdmin, (req, res) => {
 
 // Add new role
 router.post('/', verifyAdmin, async (req, res) => {
+  const newRole = req.body;
   try {
-    const newRole = req.body;
 
     // Validate userPermissions
     const { error: userPermissionsError } = userPermissionsValidation.validate(newRole.userPermissions);
