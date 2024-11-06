@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useContext } from 'react';
 import PropTypes from 'prop-types';
 import Tabs from '@mui/material/Tabs';
 import Tab from '@mui/material/Tab';
@@ -9,7 +9,8 @@ import CoronavirusIcon from '@mui/icons-material/Coronavirus';
 import WatchLaterIcon from '@mui/icons-material/WatchLater';
 import { fetchLeaveRequests } from './ReuseableAPI';
 import CircleBar from './CircleProcess';
-import { NavLink } from 'react-router-dom';
+import { NavLink, useNavigate } from 'react-router-dom';
+import { TimerStates } from './payslip/HRMDashboard';
 
 
 function CustomTabPanel(props) {
@@ -52,6 +53,8 @@ export default function Twotabs() {
   // const tomarrow = new Date(today.setDate(today.getDate() + 1)).toISOString().split("T")[0];
   // const yesterday = new Date(today.setDate(today.getDate() - 1)).toISOString().split("T")[0];
   // const [emps, setEmps] = useState([]);
+  const { whoIs } = useContext(TimerStates);
+  const navigate = useNavigate();
   const annualLeave = localStorage.getItem("annualLeaveEntitment");
   const empId = localStorage.getItem("_id");
   const [value, setValue] = useState(0);
@@ -95,7 +98,9 @@ export default function Twotabs() {
     const gettingLeaveRequests = async () => {
       if (empId) {
         const leaveReqs = await fetchLeaveRequests(empId);
-        if (leaveReqs?.requests?.leaveApplication) {
+        console.log(leaveReqs);
+
+        if (leaveReqs?.requests?.leaveApplication?.length > 0) {
           setLeaveRequests(leaveReqs.requests.leaveApplication);
 
           leaveReqs.requests.leaveApplication.forEach((req) => {
@@ -106,6 +111,8 @@ export default function Twotabs() {
 
             setTakenLeave(prev => prev + dayDifference);  // Set this to the correct unit (e.g., days)
           });
+        } else {
+          setTakenLeave(0);
         }
       }
     }
@@ -130,9 +137,7 @@ export default function Twotabs() {
         <div className='empActivies'>
           <div className="d-flex justify-content-between w-100" style={{ fontSize: "12px", fontWeight: 600, gap: "10px" }}>
             <div className='w-50'>
-              <NavLink to={"/hr/leave-request"}>
-                <button className='button'>Request time off</button>
-              </NavLink>
+              <button className='button' onClick={() => navigate(`/${whoIs}/leave-request`)}>Request time off</button>
             </div>
             <div className='w-50'>
               <button className="outline-btn">Absence history</button>
@@ -140,7 +145,7 @@ export default function Twotabs() {
           </div>
           <div className="row" >
             <div className="leaveCircle col-lg-6 col-sm-12 col-md-12 p-0" >
-              <CircleBar annualLeave={annualLeave} takenLeave={takenLeave} />
+              <CircleBar annualLeave={Number(annualLeave)} takenLeave={takenLeave} />
             </div>
 
             <div className='text-center col-lg-6 col-sm-12 col-md-12 p-0 m-auto' style={{ fontSize: "13px" }} >

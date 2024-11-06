@@ -1,18 +1,19 @@
 import React from "react";
 
-const CircleBar = ({ empLength, leaveCount, annualLeave ,takenLeave}) => {
+const CircleBar = ({ empLength, leaveCount, annualLeave, takenLeave }) => {
   let offset;
   const radius = 54;
   const circumference = 2 * Math.PI * radius;
   let percentage;
-  
-  if(annualLeave && takenLeave){
+
+  if (annualLeave && takenLeave) {
     percentage = takenLeave / annualLeave;
     offset = circumference - percentage * circumference;
-  }else if(empLength && leaveCount){
+
+  } else if (empLength && leaveCount) {
     percentage = leaveCount / empLength;
     offset = circumference - percentage * circumference;
-  }else{
+  } else {
     offset = circumference;
   }
 
@@ -36,13 +37,13 @@ const CircleBar = ({ empLength, leaveCount, annualLeave ,takenLeave}) => {
       </svg>
       <input
         type="number"
-        value={leaveCount ? leaveCount 
-          : takenLeave ? takenLeave 
-          : 0}
+        value={leaveCount ? leaveCount
+          : takenLeave ? takenLeave
+            : 0}
         min={0}
-        max={empLength ? empLength 
-          : annualLeave ? annualLeave 
-          : 0}
+        max={empLength ? empLength
+          : annualLeave ? annualLeave
+            : 0}
         readOnly
         className="progress-input"
       />

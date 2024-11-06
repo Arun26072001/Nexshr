@@ -42,7 +42,7 @@ export default function HRMDashboard() {
     const [attendanceData, setAttendanceData] = useState([]);
     const [attendanceForSummary, setAttendanceForSummary] = useState({});
     const empId = localStorage.getItem("_id");
-    const Account =  localStorage.getItem("Account")
+    const Account = localStorage.getItem("Account")
     const [leaveRequests, setLeaveRequests] = useState({});
     const [fullLeaveRequests, setFullLeaveRequests] = useState([]);
     const [empName, setEmpName] = useState("");
@@ -238,7 +238,6 @@ export default function HRMDashboard() {
     };
 
     function changeEmpEditForm(id) {
-
         if (isEditEmp) {
             navigate(-1);
             setIsEditEmp(false);
@@ -256,7 +255,7 @@ export default function HRMDashboard() {
         const getLeaveData = async () => {
             setIsLoading(true);
             try {
-                const leaveData = await axios.get(`${url}/api/leave-application/date-range/${empId}`, {
+                const leaveData = await axios.get(`${url}/api/leave-application/date-range/${whoIs}`, {
                     params: {
                         daterangeValue
                     },
@@ -273,8 +272,10 @@ export default function HRMDashboard() {
                 setIsLoading(false);
             }
         }
-        getLeaveData();
-    }, [daterangeValue, empId]);
+        if (whoIs && Account === '2' || Account === '1') {
+            getLeaveData();
+        }
+    }, [daterangeValue, empId, whoIs]);
 
     const getClocknsData = useCallback(async () => {
         if (!empId) return;

@@ -116,7 +116,7 @@ export default function PayslipUI({ payslipId, handleViewPayslip }) {
 
     return (
         <div className="modal-overlay">
-            <div className="modal-content m-auto" style={{width: "fit-content"}}>
+            <div className="modal-content m-auto" style={{ width: "fit-content" }}>
                 <div className="container" ref={payslipRef} style={{ width: "600px" }}>
                     {/* Header section */}
                     <div className='d-flex payslipHeader'>
@@ -141,9 +141,9 @@ export default function PayslipUI({ payslipId, handleViewPayslip }) {
                         </div>
                         <div className='text-center'>
                             <img src={logo} alt="logo" className='avatar' />
-                            <p className='payslipTxt'>Payslip For This Month</p>
+                            <p className='payslipTxt'>Payslip For This period of Month</p>
                             <p className='payslipTxt m-0'>
-                                <b>{new Date().toLocaleString('default', { month: 'long' })} {new Date().getFullYear()}</b>
+                                <b>{payslips?.payslip?.period || "N/A"}</b>
                             </p>
                         </div>
                     </div>
