@@ -12,6 +12,7 @@ const Summary = () => {
     const empId = localStorage.getItem("_id");
     const [employees, setEmployees] = useState([]);
     const [clockinsData, setClockinsData] = useState({});
+    const [isLoading, setIsLoading] = useState(false);
     const [chartData, setChartData] = useState({
         labels: ['Early', 'Late', 'Regular'],
         datasets: [{
@@ -34,6 +35,7 @@ const Summary = () => {
 
     // Fetch clockins data
     async function selectEmpClockins(id) {
+        setIsLoading(true)
         if (id) {
             const data = await gettingClockinsData(id);
             if (data) {
@@ -52,6 +54,7 @@ const Summary = () => {
                 }],
             });
         }
+        setIsLoading(false);
     }
 
     const getEmpData = async () => {
@@ -102,59 +105,56 @@ const Summary = () => {
                     </button>
                 </div>
             </div>
-
-            {clockinsData?.clockIns?.length > 0 ? (
-                <>
-                    <div className='row container-fluid attendanceFile'>
-                        <div className="row d-flex justify-content-end">
-                            <div className="col-12 col-md-4">
-                                <select className="form-select" onChange={(e) => selectEmpClockins(e.target.value)}>
-                                    <option value="">Select Profile</option>
-                                    {employees?.map((employee) => (
-                                        <option key={employee._id} value={employee._id}>
-                                            {`${employee.FirstName} ${employee.LastName}`}
-                                        </option>
-                                    ))}
-                                </select>
+            {
+                isLoading ? <Loading /> :
+                    <>
+                        <div className='row container-fluid attendanceFile'>
+                            <div className="row d-flex justify-content-end">
+                                <div className="col-12 col-md-4">
+                                    <select className="form-select" onChange={(e) => selectEmpClockins(e.target.value)}>
+                                        <option value="">Select Profile</option>
+                                        {employees?.map((employee) => (
+                                            <option key={employee._id} value={employee._id}>
+                                                {`${employee.FirstName} ${employee.LastName}`}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+                            </div>
+                            <div className='col-lg-6 d-flex align-items-center justify-content-center'>
+                                <div className="d-flex justify-content-center" style={{ width: '300px', height: '200px' }}>
+                                    <Doughnut data={chartData} options={options} />
+                                </div>
+                            </div>
+                            <div className='col-lg-6'>
+                                <div className='row summary-card'>
+                                    <div className='col-lg-5'>
+                                        <p className='numvalue'>{clockinsData?.companyTotalWorkingHour}</p>
+                                        <p>Total schedule hour</p>
+                                    </div>
+                                    <div className='col-lg-2'><div className="summary-divider"></div></div>
+                                    <div className='col-lg-5'>
+                                        <p className='numvalue'>{Number(clockinsData?.totalLeaveDays) * 9} hr</p>
+                                        <p>Leave hour</p>
+                                    </div>
+                                </div>
+                                <div className='row summary-card mt-2'>
+                                    <div className='col-lg-5'>
+                                        <p className='numvalue'>{clockinsData?.totalEmpWorkingHours} hr</p>
+                                        <p>Total work</p>
+                                    </div>
+                                    <div className='col-lg-2'><div className="summary-divider"></div></div>
+                                    <div className='col-lg-5'>
+                                        <p className='numvalue'>{(Number(clockinsData?.totalEmpWorkingHours) / 9).toFixed(2)} days</p>
+                                        <p>Total active</p>
+                                    </div>
+                                </div>
                             </div>
                         </div>
-                        <div className='col-lg-6 d-flex align-items-center justify-content-center'>
-                            <div className="d-flex justify-content-center" style={{ width: '300px', height: '200px' }}>
-                                <Doughnut data={chartData} options={options} />
-                            </div>
-                        </div>
-                        <div className='col-lg-6'>
-                            <div className='row summary-card'>
-                                <div className='col-lg-5'>
-                                    <p className='numvalue'>{clockinsData?.companyTotalWorkingHour}</p>
-                                    <p>Total schedule hour</p>
-                                </div>
-                                <div className='col-lg-2'><div className="summary-divider"></div></div>
-                                <div className='col-lg-5'>
-                                    <p className='numvalue'>{Number(clockinsData?.totalLeaveDays) * 9} hr</p>
-                                    <p>Leave hour</p>
-                                </div>
-                            </div>
-                            <div className='row summary-card mt-2'>
-                                <div className='col-lg-5'>
-                                    <p className='numvalue'>{clockinsData?.totalEmpWorkingHours} hr</p>
-                                    <p>Total work</p>
-                                </div>
-                                <div className='col-lg-2'><div className="summary-divider"></div></div>
-                                <div className='col-lg-5'>
-                                    <p className='numvalue'>{(Number(clockinsData?.totalEmpWorkingHours) / 9).toFixed(2)} days</p>
-                                    <p>Total active</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <LeaveTable data={clockinsData.clockIns} />
-                </>
-            ) : clockinsData?.clockIns?.length === 0 ? (
-                <NoDataFound message={"Attendance data not found"} />
-            ) : (
-                <Loading />
-            )}
+                        {clockinsData?.clockIns?.length > 0 ?
+                            <LeaveTable data={clockinsData.clockIns} /> : <NoDataFound message={"Attendance data not found"} />}
+                    </>
+            }
         </div>
     );
 };

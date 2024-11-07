@@ -61,6 +61,7 @@ function verifyEmployee(req, res, next) {
 
 function verifyHREmployee(req, res, next) {
   const Header = req.headers["authorization"];
+  console.log("call");
 
 
   if (typeof Header !== "undefined") {

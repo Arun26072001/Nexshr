@@ -166,7 +166,7 @@ router.get("/:id", verifyAdminHREmployee, async (req, res) => {
                 const startingTime = timeData.clockIns[0][activity]?.startingTime || "00:00";
                 const endingTime = timeData.clockIns[0][activity]?.endingTime || "00:00";
                 // const timeCalMins = convertToMinutes(startingTime, endingTime);
-                const timeCalMins = timeToMinutes(timeData.clockIns[0][activity]?.timeHolder);
+                const timeCalMins = timeToMinutes(timeData?.clockIns[0][activity]?.timeHolder || "00:00:00");
 
                 return {
                     activity,
@@ -191,6 +191,8 @@ router.get("/:id", verifyAdminHREmployee, async (req, res) => {
         }
 
     } catch (err) {
+        console.log(err);
+
         res.status(500).send({ error: err.message });
     }
 });
@@ -385,7 +387,6 @@ router.get("/employee/:empId", verifyAdminHREmployee, async (req, res) => {
     }
 });
 
-
 router.put("/:id", verifyAdminHREmployee, (req, res) => {
     let body = req.body;
     // if (req.body['meeting'].takenTime) {
@@ -412,20 +413,3 @@ router.put("/:id", verifyAdminHREmployee, (req, res) => {
 })
 
 module.exports = router;
-
-  // const convertToMinutes = (start, end) => {
-    //     if (start !== "00:00" && end !== "00:00") {
-    //         const [endHour, endMin] = end.split(":").map(Number);
-    //         const [startHour, startMin] = start.split(":").map(Number);
-
-    //         const startTime = new Date(2000, 0, 1, startHour, startMin);
-    //         const endTime = new Date(2000, 0, 1, endHour, endMin);
-
-    //         const diffMs = endTime - startTime; // Difference in milliseconds
-    //         const diffMinutes = Math.floor(diffMs / (1000 * 60)); // Convert to minutes
-
-    //         return diffMinutes > 0 ? diffMinutes : 0; // Ensure non-negative value
-    //     } else {
-    //         return 0;
-    //     }
-    // };
