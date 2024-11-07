@@ -807,7 +807,7 @@ const AddEmployeeForm = ({ details, handleScroll, handlePersonal, handleFinancia
             <div className="btnBackground">
                 <div className="fixedPositionBtns">
                     <div className="w-50">
-                        <button className="outline-btn mx-2" onClick={() => navigate(-1)} >
+                        <button type="button" className="outline-btn mx-2" onClick={() => navigate(-1)} >
                             Cancel
                         </button>
                     </div>

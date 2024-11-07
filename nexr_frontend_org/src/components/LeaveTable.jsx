@@ -365,6 +365,7 @@ export default function LeaveTable({ data, getCheckedValue, roleObj, getCheckAll
 
     function getValueForView(value) {
         const [id, page] = value;
+        console.log(id, value);
 
         if (page === 'daily-log') {
             async function fetchAttendanceData() {
@@ -383,7 +384,7 @@ export default function LeaveTable({ data, getCheckedValue, roleObj, getCheckAll
                 }
             }
             fetchAttendanceData();
-        } else {
+        } else if (page === "payslip") {
             async function fetchPayslips() {
                 try {
                     const slips = await fetchPayslip(id);
