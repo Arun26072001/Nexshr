@@ -66,7 +66,7 @@ router.get("/:id", verifyAdmin, async (req, res) => {
 });
 
 // Get all roles
-router.get('/', verifyAdmin, (req, res) => {
+router.get('/', verifyAdminHR, (req, res) => {
   RoleAndPermission.find()
     .populate("userPermissions")
     .populate("pageAuth")

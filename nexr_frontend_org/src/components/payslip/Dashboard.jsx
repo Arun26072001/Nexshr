@@ -7,63 +7,57 @@ import Loading from '../Loader';
 import { EssentialValues } from '../../App';
 import { toast } from 'react-toastify';
 import NoDataFound from './NoDataFound';
-import Home from '../Home';
 import { TimerStates } from './HRMDashboard';
 
 const Dashboard = () => {
     const { updateClockins } = useContext(TimerStates)
-    const account = localStorage.getItem("Account");
     const { handleLogout } = useContext(EssentialValues);
     const empId = localStorage.getItem("_id");
     const [leaveData, setLeaveData] = useState({});
     const [isLoading, setIsLoading] = useState(false);
     const [dailyLogindata, setDailyLoginData] = useState({})
     const [monthlyLoginData, setMonthlyLoginData] = useState({});
-    const [workedTime, setWorkedTime] = useState("00:00");
-    const [balanceTime, setBalanceTime] = useState("00:00");
 
     const gettingEmpdata = async () => {
         try {
             if (!empId) return; // Exit early if empId is not provided
-    
+
             setIsLoading(true);
-    
+
             // Fetch employee data
             const data = await fetchEmployeeData(empId);
-            console.log(data);
-    
             if (!data) {
                 toast.error("Error in fetching workingTimePattern data!");
                 setLeaveData({});
                 return;
             }
-    
+
             // Calculate working hours for the day
             const workingHour = await getTotalWorkingHourPerDay(data.workingTimePattern.StartingTime, data.workingTimePattern.FinishingTime);
-    
+
             // Fetch clock-ins data
             const getEmpMonthPunchIns = await gettingClockinsData(empId);
-    
+
             // Calculate total working hour percentage and total worked hour percentage
             const totalWorkingHourPercentage = (getEmpMonthPunchIns.companyTotalWorkingHour / getEmpMonthPunchIns.totalWorkingHoursPerMonth) * 100;
             const totalWorkedHourPercentage = (getEmpMonthPunchIns.totalEmpWorkingHours / getEmpMonthPunchIns.companyTotalWorkingHour) * 100;
-    
+
             // Set the monthly login data
             setMonthlyLoginData({
                 ...getEmpMonthPunchIns,
                 totalWorkingHourPercentage,
                 totalWorkedHourPercentage
             });
-    
+
             // Fetch daily clock-in data
             const clockinsData = await getDataAPI(empId);
             console.log(clockinsData);
-    
+
             setDailyLoginData(clockinsData);
-    
+
             // Set leave data with working hours
             setLeaveData({ ...data, workingHour });
-    
+
         } catch (error) {
             toast.error(error.message || "An error occurred while fetching employee data.");
             setLeaveData({});
@@ -71,13 +65,19 @@ const Dashboard = () => {
             setIsLoading(false); // Ensure loading state is always updated
         }
     };
-    
+
+    function getPadStartHourAndMin(time) {
+        const [hour, min] = String(time)?.split(".").map(Number);
+
+        const padStartHour = String(hour).padStart(2, "0");
+        const paddStartMin = String(min || 0).padStart(2, "0");
+
+        return `${padStartHour}:${paddStartMin}`;
+    }
+
     useEffect(() => {
         gettingEmpdata();
     }, [empId]);
-    
-    console.log(leaveData);
-
 
     return (
         <div className='dashboard-parent'>
@@ -114,11 +114,11 @@ const Dashboard = () => {
                                             <p className='sub_text'>Scheduled</p>
                                         </div>
                                         <div className='col-lg-3 col-md-3 col-4 timeLogBox'>
-                                            <p>{workedTime}</p>
+                                            <p>{monthlyLoginData?.totalEmpWorkingHours}</p>
                                             <p className='sub_text'>Worked</p>
                                         </div>
                                         <div className='col-lg-3 col-md-3 col-4 timeLogBox'>
-                                            <p>{balanceTime}</p>
+                                            <p>{getPadStartHourAndMin(monthlyLoginData?.companyTotalWorkingHour - monthlyLoginData?.totalEmpWorkingHours)}</p>
                                             <p className='sub_text'>Balance</p>
                                         </div>
                                     </div>
@@ -186,13 +186,15 @@ const Dashboard = () => {
                                     </div>
                                 </div>
                             </div>
-                            <>
-                                {
+                            {/* {
                                     account === '1' || account === '3' ?
-                                        <Home updateClockins={updateClockins} /> : null
-                                }
-                                <NexHRDashboard updateClockins={updateClockins} />
-                            </>
+                                        <div>
+                                            <Home updateClockins={updateClockins} />
+                                            <Twotabs />
+                                        </div>
+                                        : null
+                                } */}
+                            <NexHRDashboard updateClockins={updateClockins} />
                         </>
                     ) : <NoDataFound message={"leave data not found!"} />
             }

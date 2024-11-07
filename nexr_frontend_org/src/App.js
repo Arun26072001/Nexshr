@@ -114,7 +114,7 @@ const App = () => {
         }
       }
     } catch (error) {
-      if (error?.response?.data?.details.includes("buffering timed out after 10000ms")) {
+      if (error?.response?.data?.details?.includes("buffering timed out after 10000ms")) {
         navigate("/no-internet-connection")
       }
       setPass(false);

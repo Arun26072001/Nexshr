@@ -102,8 +102,8 @@ export default function Home() {
                 </Box>
                 {/* {
         data.length > 0 ? */}
-                <CustomTabPanel value={value} index={0} className="bg-light tabParent">
-                    <div className='row'>
+                <CustomTabPanel value={value} index={0} className="tabParent" style={{backgroundColor: "white"}}>
+                    <div className='row align-items-center'>
                         <div className='col-lg-6 col-md-6 col-12'>
                             <table className='table table-striped'>
                                 <thead>
