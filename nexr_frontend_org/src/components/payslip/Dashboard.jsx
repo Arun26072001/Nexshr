@@ -7,8 +7,6 @@ import Loading from '../Loader';
 import { EssentialValues } from '../../App';
 import { toast } from 'react-toastify';
 import NoDataFound from './NoDataFound';
-import Home from '../Home';
-import Twotabs from '../TwoTabs';
 import { TimerStates } from './HRMDashboard';
 
 const Dashboard = () => {

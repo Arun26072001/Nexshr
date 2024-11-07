@@ -272,7 +272,9 @@ export default function HRMDashboard() {
                 setIsLoading(false);
             }
         }
-        if (whoIs && Account === '2' || Account === '1') {
+        if ((whoIs) && (Account === '2' || Account === '1')) {
+            console.log(whoIs);
+
             getLeaveData();
         }
     }, [daterangeValue, empId, whoIs]);
