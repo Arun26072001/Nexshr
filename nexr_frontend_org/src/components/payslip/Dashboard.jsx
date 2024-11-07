@@ -78,6 +78,7 @@ const Dashboard = () => {
     useEffect(() => {
         gettingEmpdata();
     }, [empId]);
+console.log(leaveData);
 
     return (
         <div className='dashboard-parent'>
