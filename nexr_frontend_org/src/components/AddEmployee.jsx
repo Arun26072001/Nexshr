@@ -176,7 +176,7 @@ const AddEmployee = () => {
     try {
       const employees = await fetchAllEmployees();
 
-      let filterManager = employees.filter(emp => emp.role.some((rol) => rol.RoleName === "Manager")).map(emp => emp);
+      let filterManager = employees.filter(emp => emp.position.some((pos) => pos.PositionName === "Manager")).map(emp => emp);;
 
       setManagers(filterManager);
 
