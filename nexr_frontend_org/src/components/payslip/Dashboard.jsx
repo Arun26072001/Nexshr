@@ -68,10 +68,13 @@ const Dashboard = () => {
     console.log(dailyLogindata);
 
     function getPadStartHourAndMin(time) {
+        console.log(time);
+
         const [hour, min] = String(time)?.split(".").map(Number);
 
         const padStartHour = String(hour).padStart(2, "0");
         const paddStartMin = String(min || 0).padStart(2, "0");
+        console.log(padStartHour, paddStartMin);
 
         return `${padStartHour}:${paddStartMin}`;
     }
@@ -115,11 +118,11 @@ const Dashboard = () => {
                                             <p className='sub_text'>Scheduled</p>
                                         </div>
                                         <div className='col-lg-3 col-md-3 col-4 timeLogBox'>
-                                            <p>{(dailyLogindata?.empTotalWorkingHours).toFixed(2)}</p>
+                                            <p>{(dailyLogindata?.empTotalWorkingHours)?.toFixed(2) || "00:00"}</p>
                                             <p className='sub_text'>Worked</p>
                                         </div>
                                         <div className='col-lg-3 col-md-3 col-4 timeLogBox'>
-                                            <p>{getPadStartHourAndMin(leaveData?.workingHour - Number(dailyLogindata?.empTotalWorkingHours).toFixed(2))}</p>
+                                            <p>{getPadStartHourAndMin(leaveData?.workingHour - Number(dailyLogindata?.empTotalWorkingHours)?.toFixed(2) || 0)}</p>
                                             <p className='sub_text'>Balance</p>
                                         </div>
                                     </div>

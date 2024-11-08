@@ -165,6 +165,9 @@ const Sidebar = () => {
                             <li className={`submenu_navlist ${activeSubmenu === "Department" ? "active" : ""}`} onClick={() => setActiveSubmenu("Department")}>
                                 <NavLink to={`/${whoIs}/administration/department`} className="nav-lists">Department</NavLink>
                             </li>
+                            <li className={`submenu_navlist ${activeSubmenu === "Position" ? "active" : ""}`} onClick={() => setActiveSubmenu("Position")}>
+                                <NavLink to={`/${whoIs}/administration/position`} className="nav-lists">Position</NavLink>
+                            </li>
                             <li className={`submenu_navlist ${activeSubmenu === "Holiday" ? "active" : ""}`} onClick={() => setActiveSubmenu("Holiday")}>
                                 <NavLink to={`/${whoIs}/administration/holiday`} className="nav-lists">Holiday</NavLink>
                             </li>

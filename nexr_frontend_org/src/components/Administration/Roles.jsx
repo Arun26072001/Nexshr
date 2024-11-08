@@ -13,7 +13,7 @@ import axios from 'axios';
 const Roles = () => {
     const url = process.env.REACT_APP_API_URL;
     const token = localStorage.getItem("token");
-    const { whoIs, reloadRolePage } = useContext(TimerStates);
+    const { reloadRolePage } = useContext(TimerStates);
     const [isLoading, setIsLoading] = useState(false);
     const [roles, setRoles] = useState([]);
     const navigate = useNavigate(); 
