@@ -151,6 +151,7 @@ export default function HRMDashboard() {
 
     const stopLoginTimer = async () => {
         console.log("try to stop");
+        console.log(currentTime);
 
         const updatedState = {
             ...workTimeTracker,
