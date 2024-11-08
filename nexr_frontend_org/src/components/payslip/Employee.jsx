@@ -5,12 +5,12 @@ import "./dashboard.css";
 import LeaveTable from '../LeaveTable';
 import { fetchEmployees } from '../ReuseableAPI';
 import Loading from '../Loader';
-import {useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import NoDataFound from './NoDataFound';
 import { TimerStates } from './HRMDashboard';
 
 export default function Employee() {
-    const {whoIs} = useContext(TimerStates);
+    const { whoIs } = useContext(TimerStates);
     const [employees, setEmployees] = useState([]);
     const [empName, setEmpName] = useState("");
     const [allEmployees, setAllEmployees] = useState([]);
@@ -52,6 +52,7 @@ export default function Employee() {
         }
         filterEmployees();
     }, [empName]);
+    console.log(employees);
 
 
     return (

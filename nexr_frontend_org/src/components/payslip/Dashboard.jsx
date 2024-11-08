@@ -65,6 +65,7 @@ const Dashboard = () => {
             setIsLoading(false); // Ensure loading state is always updated
         }
     };
+    console.log(dailyLogindata);
 
     function getPadStartHourAndMin(time) {
         const [hour, min] = String(time)?.split(".").map(Number);
@@ -114,11 +115,11 @@ const Dashboard = () => {
                                             <p className='sub_text'>Scheduled</p>
                                         </div>
                                         <div className='col-lg-3 col-md-3 col-4 timeLogBox'>
-                                            <p>{monthlyLoginData?.totalEmpWorkingHours}</p>
+                                            <p>{(dailyLogindata?.empTotalWorkingHours).toFixed(2)}</p>
                                             <p className='sub_text'>Worked</p>
                                         </div>
                                         <div className='col-lg-3 col-md-3 col-4 timeLogBox'>
-                                            <p>{getPadStartHourAndMin(monthlyLoginData?.companyTotalWorkingHour - monthlyLoginData?.totalEmpWorkingHours)}</p>
+                                            <p>{getPadStartHourAndMin(leaveData?.workingHour - Number(dailyLogindata?.empTotalWorkingHours).toFixed(2))}</p>
                                             <p className='sub_text'>Balance</p>
                                         </div>
                                     </div>

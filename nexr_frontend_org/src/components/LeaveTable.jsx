@@ -408,7 +408,7 @@ export default function LeaveTable({ data, getCheckedValue, roleObj, getCheckAll
         data.map((item) => {
             if (item.fromDate && params['*'] === "leave-request") {
                 return setColumns(column1);
-            } else if (item.code) {
+            } else if (item.employmentType) {
                 return setColumns(column3);
             } else if (item.date && params['*'] === "attendance-summary"
                 || item.date && params['*'] === "details"

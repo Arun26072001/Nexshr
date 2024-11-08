@@ -33,6 +33,12 @@ router.post("/", async (req, res) => {
         if (!emp) {
             return res.status(400).send({ message: "Invalid Credentials" })
         } else {
+            const empDataWithEmailVerified = {
+                ...emp,
+                isVerifyEmail: true
+            };
+
+            const updateIsEmailVerify = await Employee.findByIdAndUpdate(emp._id, empDataWithEmailVerified, { new: true })
             const empData = {
                 _id: emp._id,
                 Account: emp.Account,
