@@ -67,6 +67,7 @@ var employeeSchema = new mongoose.Schema({
   // //financial details
   basicSalary: { type: String },
   lossOfPay: {type: String},
+  isVerifyEmail: {type: Boolean, default: false},
   bankName: { type: String},
   accountNo: { type: String, unique: true},
   accountHolderName: { type: String },

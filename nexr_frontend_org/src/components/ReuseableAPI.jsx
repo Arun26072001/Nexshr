@@ -41,7 +41,6 @@ const getDataAPI = async (empId) => {
         });
 
         const data = response.data;
-        console.log(data);
 
         return data;
     } catch (error) {
@@ -144,6 +143,7 @@ const fetchEmployeeData = async (id) => {
                 authorization: token || ""
             }
         });
+        console.log(response.data)
         return response.data;
 
     } catch (error) {

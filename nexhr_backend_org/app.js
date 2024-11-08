@@ -81,7 +81,6 @@ mongoose
 //for request body
 app.use(express.json());
 
-
 //API AUTHS
 app.get("/", (req, res) => {
   require('dns').resolve('www.google.com', function (err) {
