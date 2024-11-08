@@ -131,7 +131,7 @@ router.get('/:id', verifyAdminHREmployee, async (req, res) => {
 
 router.post("/", verifyAdminHR, async (req, res) => {
   try {
-    const { Email, phone, basicSalary, FirstName, LastName } = req.body;
+    const { Email, phone, basicSalary, FirstName, LastName,Password } = req.body;
 
     // Check if email or phone number already exists
     const emailExists = await Employee.exists({ Email });
@@ -265,6 +265,9 @@ router.post("/", verifyAdminHR, async (req, res) => {
           </div>
           <div class="content">
             <p>Hey ${FirstName} ${LastName} 👋,</p>
+            <p><b>Your credentials</b></p><br />
+            <p><b>Email</b> ${Email}</p><br />
+             <p><b>Password</b> ${Password}</p><br />
             <p>Thank you for registering! Please confirm your email by clicking the button below.</p>
             <a href="${process.env.FRONTEND_URL}" class="button">Confirm Email</a>
           </div>
