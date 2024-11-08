@@ -81,54 +81,54 @@ export default function LeaveTable({ data, getCheckedValue, roleObj, getCheckAll
         {
             id: 'FirstName',
             label: 'Profile',
-            minWidth: 170,
+            minWidth: 100,
             getter: (row) => row.FirstName + row.LastName || 'N/A'
         },
         {
             id: 'serialNo',
             label: 'ID',
-            minWidth: 170,
+            minWidth: 100,
             getter: (row) => row.serialNo || 'N/A'
         },
         {
             id: 'employmentType',
             label: 'Status',
-            minWidth: 170,
+            minWidth: 100,
             align: 'center',
             getter: (row) => row.employmentType || 'N/A'
         },
         {
             id: 'DepartmentName',
             label: 'Department',
-            minWidth: 170,
+            minWidth: 100,
             align: 'center',
             getter: (row) => row.department.map(dep => dep.DepartmentName) || 'N/A'
         },
         {
             id: 'StratingTime',
             label: 'Shift',
-            minWidth: 170,
+            minWidth: 100,
             align: 'center',
             getter: (row) => row.workingTimePattern.StartingTime || 'N/A'
         },
         {
             id: 'dateOfJoining',
             label: 'Joining Date',
-            minWidth: 170,
+            minWidth: 100,
             align: 'center',
             getter: (row) => row.dateOfJoining
         },
         {
             id: 'RoleName',
             label: 'Role',
-            minWidth: 170,
+            minWidth: 100,
             align: 'center',
             getter: (row) => row.role.map(item => item.RoleName) || 'N/A'
         },
         {
             id: "Action",
             label: "Action",
-            minWidth: 100,
+            minWidth: 60,
             align: "center"
         }
     ];
