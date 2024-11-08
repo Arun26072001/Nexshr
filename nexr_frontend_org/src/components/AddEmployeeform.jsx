@@ -62,7 +62,7 @@ const AddEmployeeForm = ({ details, handleScroll, handlePersonal, handleFinancia
         teamLead: Yup.string().required("teamLead is required"), // assuming it's an ObjectId or string
         managerId: Yup.string().required("manager is required"),
         phone: Yup.string().min(10, "Phone number must be 10 degits").max(10, "Phone number must be 10 degits").required("Phone is Required"), // can add phone validation if needed
-        dateOfBirth: Yup.date().optional().nullable(),
+        dateOfBirth: Yup.string().required("Date of Birth is required"),
         gender: Yup.string().oneOf(['male', 'female'], 'invalid gender').required('Gender is required'),
         address: Yup.object().shape({
             city: Yup.string().optional(),
@@ -217,6 +217,7 @@ const AddEmployeeForm = ({ details, handleScroll, handlePersonal, handleFinancia
     const [hour, min] = hourAndMin;
 
 
+
     return (
         <form onSubmit={formik.handleSubmit}>
             <div className="empForm">
@@ -295,7 +296,7 @@ const AddEmployeeForm = ({ details, handleScroll, handlePersonal, handleFinancia
                         </div>
 
                         <div className="row d-flex justify-content-center">
-                            <div className="col-lg-12">
+                            <div className="col-lg-6">
                                 <div className="inputLabel">Position</div>
                                 <select name="position" className={`selectInput ${formik.touched.position && formik.errors.position ? "error" : ""}`}
                                     onChange={formik.handleChange}
@@ -309,6 +310,20 @@ const AddEmployeeForm = ({ details, handleScroll, handlePersonal, handleFinancia
                                 </select>
                                 {formik.touched.position && formik.errors.position ? (
                                     <div className="text-center text-danger">{formik.errors.position}</div>
+                                ) : null}
+                            </div>
+
+                            <div className="col-lg-6">
+                                <div className="inputLabel">Date Of Birth</div>
+                                <input
+                                    type="date"
+                                    className={`inputField ${formik.touched.dateOfBirth && formik.errors.dateOfBirth ? "error" : ""}`}
+                                    name="dateOfBirth"
+                                    onChange={formik.handleChange}
+                                    value={formik.values.dateOfBirth}
+                                />
+                                {formik.touched.dateOfBirth && formik.errors.dateOfBirth ? (
+                                    <div className="text-center text-danger">{formik.errors.dateOfBirth}</div>
                                 ) : null}
                             </div>
                         </div>
