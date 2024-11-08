@@ -4,9 +4,6 @@ const { Department, DepartmentValidation } = require('../models/DepartmentModel'
 const { Employee } = require('../models/EmpModel');
 const Joi = require('joi');
 const { verifyAdminHR } = require('../auth/authMiddleware');
-const { path } = require('./company');
-
-const jwtKey = process.env.ACCCESS_SECRET_KEY;
 
 router.get("/", async (req, res) => {
   try {
@@ -40,7 +37,7 @@ router.post("/", verifyAdminHR, (req, res) => {
           console.log(err);
           res.status(500).send({ Error: err });
         } else {
-          res.send("new department has been added!");
+          res.send({message: "new department has been added!"});
         }
       });
     }

@@ -28,7 +28,7 @@ const CustomDropdown = () => {
 
   return (
     <div className={`ms-auto col-lg-6 custom-dropdown ${isStartActivity ? 'disabled' : ''}`}>
-      <div className="dropdown-header" onClick={() => setIsOpen(!isOpen)}>
+      <div className="dropdown-header" onClick={() => !isStartActivity && setIsOpen(!isOpen)}>
         <div className="dropdown-header-content">
           {options?.find(opt => opt?.value === selectedOption).icon}
           <span>{options?.find(opt => opt?.value === selectedOption).label || 'Select an option'}</span>
