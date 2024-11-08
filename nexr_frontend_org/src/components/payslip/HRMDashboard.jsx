@@ -31,6 +31,8 @@ import AddEmployee from '../AddEmployee';
 import Roles from '../Administration/Roles';
 import PageAndActionAuth from '../Settings/PageAndActionAuth';
 import Announce from '../Announcement/announce';
+import Department from '../Administration/Department';
+import Position from '../Administration/Position';
 
 export const LeaveStates = createContext(null);
 export const TimerStates = createContext(null);
@@ -390,7 +392,8 @@ export default function HRMDashboard() {
                                 </Routes>
                             } />
                             {/* <Route path="/shift" element={<Shift />} /> */}
-                            {/* <Route path="/department" element={<Department />} /> */}
+                            <Route path="/department" element={<Department />} />
+                            <Route path="/position" element={<Position />} />
                             {/* <Route path="/holiday" element={<Holiday />} /> */}
                             <Route path="/announcement" element={<Announce />} />
                         </Routes>
