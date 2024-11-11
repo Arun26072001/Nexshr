@@ -292,7 +292,7 @@ router.post("/", verifyAdminHR, async (req, res) => {
     };
 
     transporter.sendMail(mailOptions, (err, info) => {
-      console.log(mailOptions);
+      console.log(process.env.MAIL, process.env.MAILPASSWORD);
       
       if (err) {
         console.error("Email error:", err.message);
