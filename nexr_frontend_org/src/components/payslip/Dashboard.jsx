@@ -82,13 +82,14 @@ const Dashboard = () => {
     useEffect(() => {
         gettingEmpdata();
     }, [empId]);
+    
 
     return (
         <div className='dashboard-parent'>
             <ActivityTimeTracker leaveData={leaveData} handleLogout={handleLogout} updateClockins={updateClockins} />
             {
                 isLoading ? <Loading /> :
-                    leaveData && leaveData?.annualLeaveEntitlement && monthlyLoginData && dailyLogindata ? (
+                    leaveData && leaveData?.annualLeaveEntitlement && monthlyLoginData ? (
                         <>
                             <div className="allowance row container-fluid mx-auto g-2">
                                 <div className='col-lg-3 col-md-3 col-6 my-1 text-center'>

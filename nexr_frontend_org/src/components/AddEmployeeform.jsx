@@ -53,17 +53,54 @@ const AddEmployeeForm = ({ details, handleScroll, handlePersonal, handleFinancia
         taxDeduction: ""
     });
 
+    // const empFormValidation = Yup.object().shape({
+    //     FirstName: Yup.string().required('First Name is required'),
+    //     LastName: Yup.string().required('Last Name is required'),
+    //     Email: Yup.string().email('Invalid email format').required('Email is required'),
+    //     Password: Yup.string().min(6, 'Password must be at least 6 characters').required('Password is required'),
+    //     company: Yup.string().notOneOf(["Select Company"]).required("company is required"),
+    //     teamLead: Yup.string().required("teamLead is required"), // assuming it's an ObjectId or string
+    //     managerId: Yup.string().required("manager is required"),
+    //     phone: Yup.string().min(10, "Phone number must be 10 degits").max(10, "Phone number must be 10 degits").required("Phone is Required"), // can add phone validation if needed
+    //     dateOfBirth: Yup.string().required("Date of Birth is required"),
+    //     gender: Yup.string().oneOf(['male', 'female'], 'invalid gender').required('Gender is required'),
+    //     address: Yup.object().shape({
+    //         city: Yup.string().optional(),
+    //         state: Yup.string().optional(),
+    //         country: Yup.string().optional(),
+    //         zipCode: Yup.string().optional(),
+    //     }).optional(),
+    //     position: Yup.string().required("Position is Required"),
+    //     department: Yup.string().required("Department is Required"),
+    //     role: Yup.string().required("Role is required"),
+    //     description: Yup.string().min(10, "mininum 10 characters must be in description").required("Description is required"),
+    //     dateOfJoining: Yup.string().required("Joining date is Required"),
+    //     employmentType: Yup.string().oneOf(['full-time', 'part-time', 'contract'], 'Invalid employment type').required("Employment type is Required"),
+    //     workingTimePattern: Yup.string().notOneOf(["Select Work Time Pattern"]).required("Time pattern is Required"),
+    //     annualLeaveYearStart: Yup.date().optional().nullable(),
+    //     entitlement: Yup.number().required("Entitlement is Required"),
+    //     publicHoliday: Yup.string().required("public holiday field is required"),
+    //     fullTimeAnnualLeave: Yup.number().required("AnnualLeave is Required"),
+    //     annualLeaveEntitlement: Yup.number().required("leave Entitlemenet is Required"),
+    //     basicSalary: Yup.string().min(4, "invalid Salary").max(10).required("Salary is required"),
+    //     bankName: Yup.string().min(2, "invalid Bank name").max(200).required("Bank name is required"),
+    //     accountNo: Yup.string().min(10, "Account No digits must be between 10 to 14").max(14, "Account No digits must be between 10 to 14").required("Account No is required"),
+    //     accountHolderName: Yup.string().min(2, "invalid Holder Name").max(50).required("Holder name is Required"),
+    //     IFSCcode: Yup.string().min(11, "IFSC code must be 11 characters").max(11, "IFSC code must be 11 characters").required("IFSC code is required"),
+    //     taxDeduction: Yup.string().min(2, "invalid value").required("Tax deduction is required")
+    // });
+
     const empFormValidation = Yup.object().shape({
         FirstName: Yup.string().required('First Name is required'),
         LastName: Yup.string().required('Last Name is required'),
         Email: Yup.string().email('Invalid email format').required('Email is required'),
         Password: Yup.string().min(6, 'Password must be at least 6 characters').required('Password is required'),
         company: Yup.string().notOneOf(["Select Company"]).required("company is required"),
-        teamLead: Yup.string().required("teamLead is required"), // assuming it's an ObjectId or string
-        managerId: Yup.string().required("manager is required"),
-        phone: Yup.string().min(10, "Phone number must be 10 degits").max(10, "Phone number must be 10 degits").required("Phone is Required"), // can add phone validation if needed
-        dateOfBirth: Yup.string().required("Date of Birth is required"),
-        gender: Yup.string().oneOf(['male', 'female'], 'invalid gender').required('Gender is required'),
+        teamLead: Yup.string().required("Team lead is required"),
+        managerId: Yup.string().required("manager is required"), 
+        phone: Yup.string().min(10, "Phone number must be 10 digits").max(10, "Phone number must be 10 digits"), // Optional
+        dateOfBirth: Yup.string(), // Optional
+        gender: Yup.string().oneOf(['male', 'female'], 'Invalid gender'), // Changed to optional
         address: Yup.object().shape({
             city: Yup.string().optional(),
             state: Yup.string().optional(),
@@ -73,22 +110,23 @@ const AddEmployeeForm = ({ details, handleScroll, handlePersonal, handleFinancia
         position: Yup.string().required("Position is Required"),
         department: Yup.string().required("Department is Required"),
         role: Yup.string().required("Role is required"),
-        description: Yup.string().min(10, "mininum 10 characters must be in description").required("Description is required"),
+        description: Yup.string().min(10, "Minimum 10 characters must be in description"), // Changed to optional
         dateOfJoining: Yup.string().required("Joining date is Required"),
-        employmentType: Yup.string().oneOf(['full-time', 'part-time', 'contract'], 'Invalid employment type').required("Employment type is Required"),
+        employmentType: Yup.string().oneOf(['full-time', 'part-time', 'contract'], 'Invalid employment type').required("Employement type is required"), // Changed to optional
         workingTimePattern: Yup.string().notOneOf(["Select Work Time Pattern"]).required("Time pattern is Required"),
         annualLeaveYearStart: Yup.date().optional().nullable(),
-        entitlement: Yup.number().required("Entitlement is Required"),
-        publicHoliday: Yup.string().required("public holiday field is required"),
-        fullTimeAnnualLeave: Yup.number().required("AnnualLeave is Required"),
-        annualLeaveEntitlement: Yup.number().required("leave Entitlemenet is Required"),
-        basicSalary: Yup.string().min(4, "invalid Salary").max(10).required("Salary is required"),
-        bankName: Yup.string().min(2, "invalid Bank name").max(200).required("Bank name is required"),
-        accountNo: Yup.string().min(10, "Account No digits must be between 10 to 14").max(14, "Account No digits must be between 10 to 14").required("Account No is required"),
-        accountHolderName: Yup.string().min(2, "invalid Holder Name").max(50).required("Holder name is Required"),
-        IFSCcode: Yup.string().min(11, "IFSC code must be 11 characters").max(11, "IFSC code must be 11 characters").required("IFSC code is required"),
-        taxDeduction: Yup.string().min(2, "invalid value").required("Tax deduction is required")
+        entitlement: Yup.number(), // Changed to optional
+        publicHoliday: Yup.string(), // Optional
+        fullTimeAnnualLeave: Yup.number(), // Changed to optional
+        annualLeaveEntitlement: Yup.number().required("AnnualLeave is required"), // Optional
+        basicSalary: Yup.string().min(4, "Invalid Salary").max(10), // Changed to optional
+        bankName: Yup.string().min(2, "Invalid Bank name").max(200), // Changed to optional
+        accountNo: Yup.string().min(10, "Account No digits must be between 10 to 14").max(14, "Account No digits must be between 10 to 14"), // Changed to optional
+        accountHolderName: Yup.string().min(2, "Invalid Holder Name").max(50), // Changed to optional
+        IFSCcode: Yup.string().min(11, "IFSC code must be 11 characters").max(11, "IFSC code must be 11 characters"), // Changed to optional
+        taxDeduction: Yup.string().min(2, "Invalid value") // Changed to optional
     });
+
 
     const formik = useFormik({
         initialValues: employeeObj,
