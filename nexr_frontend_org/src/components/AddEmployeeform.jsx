@@ -1,15 +1,16 @@
 import React, { useEffect, useState } from "react";
-import editIcon from "../imgs/male_avatar.png";
-import maleAvatar from "../imgs/EditIcon.png";
+// import editIcon from "../imgs/male_avatar.png";
+// import maleAvatar from "../imgs/EditIcon.png";
 import { useFormik } from "formik";
 import * as Yup from "yup";
 import axios from "axios";
 import { toast } from "react-toastify";
-import { Link } from "react-router-dom";
 import "./leaveForm.css";
 import { fetchPayslipInfo } from "./ReuseableAPI";
+import { useNavigate } from "react-router-dom";
 
 const AddEmployeeForm = ({ details, handleScroll, handlePersonal, handleFinancial, handleJob, handleContact, handleEmployment, timePatterns, personalRef, contactRef, employmentRef, jobRef, financialRef, payslipRef, countries, companies, departments, positions, roles, leads, managers }) => {
+    const navigate = useNavigate()
     const [timeDifference, setTimeDifference] = useState(0);
     const [payslipFields, setPayslipFields] = useState([]);
     const token = localStorage.getItem("token");
@@ -52,17 +53,54 @@ const AddEmployeeForm = ({ details, handleScroll, handlePersonal, handleFinancia
         taxDeduction: ""
     });
 
+    // const empFormValidation = Yup.object().shape({
+    //     FirstName: Yup.string().required('First Name is required'),
+    //     LastName: Yup.string().required('Last Name is required'),
+    //     Email: Yup.string().email('Invalid email format').required('Email is required'),
+    //     Password: Yup.string().min(6, 'Password must be at least 6 characters').required('Password is required'),
+    //     company: Yup.string().notOneOf(["Select Company"]).required("company is required"),
+    //     teamLead: Yup.string().required("teamLead is required"), // assuming it's an ObjectId or string
+    //     managerId: Yup.string().required("manager is required"),
+    //     phone: Yup.string().min(10, "Phone number must be 10 degits").max(10, "Phone number must be 10 degits").required("Phone is Required"), // can add phone validation if needed
+    //     dateOfBirth: Yup.string().required("Date of Birth is required"),
+    //     gender: Yup.string().oneOf(['male', 'female'], 'invalid gender').required('Gender is required'),
+    //     address: Yup.object().shape({
+    //         city: Yup.string().optional(),
+    //         state: Yup.string().optional(),
+    //         country: Yup.string().optional(),
+    //         zipCode: Yup.string().optional(),
+    //     }).optional(),
+    //     position: Yup.string().required("Position is Required"),
+    //     department: Yup.string().required("Department is Required"),
+    //     role: Yup.string().required("Role is required"),
+    //     description: Yup.string().min(10, "mininum 10 characters must be in description").required("Description is required"),
+    //     dateOfJoining: Yup.string().required("Joining date is Required"),
+    //     employmentType: Yup.string().oneOf(['full-time', 'part-time', 'contract'], 'Invalid employment type').required("Employment type is Required"),
+    //     workingTimePattern: Yup.string().notOneOf(["Select Work Time Pattern"]).required("Time pattern is Required"),
+    //     annualLeaveYearStart: Yup.date().optional().nullable(),
+    //     entitlement: Yup.number().required("Entitlement is Required"),
+    //     publicHoliday: Yup.string().required("public holiday field is required"),
+    //     fullTimeAnnualLeave: Yup.number().required("AnnualLeave is Required"),
+    //     annualLeaveEntitlement: Yup.number().required("leave Entitlemenet is Required"),
+    //     basicSalary: Yup.string().min(4, "invalid Salary").max(10).required("Salary is required"),
+    //     bankName: Yup.string().min(2, "invalid Bank name").max(200).required("Bank name is required"),
+    //     accountNo: Yup.string().min(10, "Account No digits must be between 10 to 14").max(14, "Account No digits must be between 10 to 14").required("Account No is required"),
+    //     accountHolderName: Yup.string().min(2, "invalid Holder Name").max(50).required("Holder name is Required"),
+    //     IFSCcode: Yup.string().min(11, "IFSC code must be 11 characters").max(11, "IFSC code must be 11 characters").required("IFSC code is required"),
+    //     taxDeduction: Yup.string().min(2, "invalid value").required("Tax deduction is required")
+    // });
+
     const empFormValidation = Yup.object().shape({
         FirstName: Yup.string().required('First Name is required'),
         LastName: Yup.string().required('Last Name is required'),
         Email: Yup.string().email('Invalid email format').required('Email is required'),
         Password: Yup.string().min(6, 'Password must be at least 6 characters').required('Password is required'),
-        company: Yup.string().notOneOf(["Select Company"]).required("company is required"),
-        teamLead: Yup.string().required("teamLead is required"), // assuming it's an ObjectId or string
-        managerId: Yup.string().required("manager is required"),
-        phone: Yup.string().min(10, "Phone number must be 10 degits").max(10, "Phone number must be 10 degits").required("Phone is Required"), // can add phone validation if needed
-        dateOfBirth: Yup.date().optional().nullable(),
-        gender: Yup.string().oneOf(['male', 'female'], 'invalid gender').required('Gender is required'),
+        company: Yup.string(),
+        teamLead: Yup.string(),
+        managerId: Yup.string(), 
+        phone: Yup.string().min(10, "Phone number must be 10 digits").max(10, "Phone number must be 10 digits"), // Optional
+        dateOfBirth: Yup.string(), // Optional
+        gender: Yup.string().oneOf(['male', 'female'], 'Invalid gender'), // Changed to optional
         address: Yup.object().shape({
             city: Yup.string().optional(),
             state: Yup.string().optional(),
@@ -72,22 +110,23 @@ const AddEmployeeForm = ({ details, handleScroll, handlePersonal, handleFinancia
         position: Yup.string().required("Position is Required"),
         department: Yup.string().required("Department is Required"),
         role: Yup.string().required("Role is required"),
-        description: Yup.string().min(10, "mininum 10 characters must be in description").required("Description is required"),
-        dateOfJoining: Yup.string().required("Joining date is Required"),
-        employmentType: Yup.string().oneOf(['full-time', 'part-time', 'contract'], 'Invalid employment type').required("Employment type is Required"),
+        description: Yup.string().min(10, "Minimum 10 characters must be in description"), // Changed to optional
+        dateOfJoining: Yup.string(),
+        employmentType: Yup.string().oneOf(['full-time', 'part-time', 'contract'], 'Invalid employment type').required("Employement type is required"), // Changed to optional
         workingTimePattern: Yup.string().notOneOf(["Select Work Time Pattern"]).required("Time pattern is Required"),
         annualLeaveYearStart: Yup.date().optional().nullable(),
-        entitlement: Yup.number().required("Entitlement is Required"),
-        publicHoliday: Yup.string().required("public holiday field is required"),
-        fullTimeAnnualLeave: Yup.number().required("AnnualLeave is Required"),
-        annualLeaveEntitlement: Yup.number().required("leave Entitlemenet is Required"),
-        basicSalary: Yup.string().min(4, "invalid Salary").max(10).required("Salary is required"),
-        bankName: Yup.string().min(2, "invalid Bank name").max(200).required("Bank name is required"),
-        accountNo: Yup.string().min(10, "Account No digits must be between 10 to 14").max(14, "Account No digits must be between 10 to 14").required("Account No is required"),
-        accountHolderName: Yup.string().min(2, "invalid Holder Name").max(50).required("Holder name is Required"),
-        IFSCcode: Yup.string().min(11, "IFSC code must be 11 characters").max(11, "IFSC code must be 11 characters").required("IFSC code is required"),
-        taxDeduction: Yup.string().min(2, "invalid value").required("Tax deduction is required")
+        entitlement: Yup.number(), // Changed to optional
+        publicHoliday: Yup.string(), // Optional
+        fullTimeAnnualLeave: Yup.number(), // Changed to optional
+        annualLeaveEntitlement: Yup.number() , // Optional
+        basicSalary: Yup.string().min(4, "Invalid Salary").max(10), // Changed to optional
+        bankName: Yup.string().min(2, "Invalid Bank name").max(200), // Changed to optional
+        accountNo: Yup.string().min(10, "Account No digits must be between 10 to 14").max(14, "Account No digits must be between 10 to 14"), // Changed to optional
+        accountHolderName: Yup.string().min(2, "Invalid Holder Name").max(50), // Changed to optional
+        IFSCcode: Yup.string().min(11, "IFSC code must be 11 characters").max(11, "IFSC code must be 11 characters"), // Changed to optional
+        taxDeduction: Yup.string().min(2, "Invalid value") // Changed to optional
     });
+
 
     const formik = useFormik({
         initialValues: employeeObj,
@@ -216,6 +255,7 @@ const AddEmployeeForm = ({ details, handleScroll, handlePersonal, handleFinancia
     const [hour, min] = hourAndMin;
 
 
+
     return (
         <form onSubmit={formik.handleSubmit}>
             <div className="empForm">
@@ -231,154 +271,134 @@ const AddEmployeeForm = ({ details, handleScroll, handlePersonal, handleFinancia
                 </div>
 
                 <div className="detailsParent" >
-                    {
-                        // employeeObj.length > 0 ?
-                        // (<div className="personalDetails" ref={personalRef}>
-                        //     {/* <div className="d-flex justify-content-end"> */}
-                        //     <img src={editIcon} alt="" className="editIcon" />
-                        //     {/* <div style={{ fontSize: "12px", color: "gray" }}>Edit</div> */}
-                        //     {/* </div> */}
-                        //     <div className="d-flex justify-content-center my-3">
-                        //         <div className="avatar">
-                        //             <img src={maleAvatar} alt="" style={{ width: "150px", height: "150px" }} />
-                        //         </div>
-                        //     </div>
-                        //     <div className="titleTextLabel">Employee Name</div>
-                        //     <div className="titleText">
-                        //         Arun Kumar
-                        //     </div>
-                        //     <div className="titleTextLabel">Department</div>
-                        //     <div className="titleText">
-                        //         Development
-                        //     </div>
+                    <div className="personalDetails" ref={personalRef}>
+                        <div className="row my-3 d-flex justify-content-center">
+                            <div className="titleText col-lg-12">
+                                Personal Details
+                            </div>
+                            <div className="col-lg-6">
+                                <div className="inputLabel">First Name</div>
+                                <input type="text"
+                                    className={`inputField ${formik.touched.FirstName && formik.errors.FirstName ? "error" : ""}`}
+                                    name="FirstName"
+                                    onChange={formik.handleChange}
+                                    value={formik.values.FirstName} />
+                                {formik.touched.FirstName && formik.errors.FirstName ? (
+                                    <div className="text-center text-danger">{formik.errors.FirstName}</div>
+                                ) : null}
+                            </div>
+                            <div className="col-lg-6">
+                                <div className="inputLabel">Last Name</div>
+                                <input type="text"
+                                    className={`inputField ${formik.touched.LastName && formik.errors.LastName ? "error" : ""}`}
+                                    name="LastName"
+                                    onChange={formik.handleChange}
+                                    value={formik.values.LastName} />
+                                {formik.touched.LastName && formik.errors.LastName ? (
+                                    <div className="text-center text-danger">{formik.errors.LastName}</div>
+                                ) : null}
+                            </div>
+                        </div>
 
-                        //     <div className="row my-3 d-flex align-items-center justify-content-center">
-                        //         <div className="col-lg-6">
-                        //             <div className="titleTextLabel">Job Title</div>
-                        //             <div className="titleText">MERN Stack Developer</div>
-                        //         </div>
-                        //         <div className="col-lg-6">
-                        //             <div className="titleTextLabel">Job Category</div>
-                        //             <div className="titleText">Full Time</div>
-                        //         </div>
-                        //     </div>
-                        // </div>)
-                        // :
-                        (<div className="personalDetails" ref={personalRef}>
-                            <div className="row my-3 d-flex justify-content-center">
-                                <div className="titleText col-lg-12">
-                                    Personal Details
-                                </div>
-                                <div className="col-lg-6">
-                                    <div className="inputLabel">First Name</div>
-                                    <input type="text"
-                                        className={`inputField ${formik.touched.FirstName && formik.errors.FirstName ? "error" : ""}`}
-                                        name="FirstName"
-                                        onChange={formik.handleChange}
-                                        value={formik.values.FirstName} />
-                                    {formik.touched.FirstName && formik.errors.FirstName ? (
-                                        <div className="text-center text-danger">{formik.errors.FirstName}</div>
-                                    ) : null}
-                                </div>
-                                <div className="col-lg-6">
-                                    <div className="inputLabel">Last Name</div>
-                                    <input type="text"
-                                        className={`inputField ${formik.touched.LastName && formik.errors.LastName ? "error" : ""}`}
-                                        name="LastName"
-                                        onChange={formik.handleChange}
-                                        value={formik.values.LastName} />
-                                    {formik.touched.LastName && formik.errors.LastName ? (
-                                        <div className="text-center text-danger">{formik.errors.LastName}</div>
-                                    ) : null}
-                                </div>
+                        <div className="row my-3 d-flex align-items-center justify-content-center">
+                            <div className="col-lg-6">
+                                <div className="inputLabel">Gender</div>
+                                <select name="gender"
+                                    className={`selectInput ${formik.touched.gender && formik.errors.gender ? "error" : ""}`}
+                                    onChange={formik.handleChange}
+                                    value={formik.values.gender}>
+                                    <option >Select gender</option>
+                                    <option value="male">Male</option>
+                                    <option value="female">Female</option>
+                                </select>
+                                {formik.touched.gender && formik.errors.gender ? (
+                                    <div className="text-center text-danger">{formik.errors.gender}</div>
+                                ) : null}
+                            </div>
+                            <div className="col-lg-6">
+                                <div className="inputLabel">Department</div>
+                                <select name="department" className={`selectInput ${formik.touched.department && formik.errors.department ? "error" : ""}`}
+                                    onChange={formik.handleChange}
+                                    value={formik.values.department}>
+                                    <option >Select Department</option>
+                                    {
+                                        departments.map((department) => (
+                                            <option key={department._id} value={department._id}>{department.DepartmentName}</option>
+                                        ))
+                                    }
+                                </select>
+                                {formik.touched.department && formik.errors.department ? (
+                                    <div className="text-center text-danger">{formik.errors.department}</div>
+                                ) : null}
+                            </div>
+                        </div>
+
+                        <div className="row d-flex justify-content-center">
+                            <div className="col-lg-6">
+                                <div className="inputLabel">Position</div>
+                                <select name="position" className={`selectInput ${formik.touched.position && formik.errors.position ? "error" : ""}`}
+                                    onChange={formik.handleChange}
+                                    value={formik.values.position}>
+                                    <option >Select Position</option>
+                                    {
+                                        positions.map((position) => (
+                                            <option key={position._id} value={position._id}>{position.PositionName}</option>
+                                        ))
+                                    }
+                                </select>
+                                {formik.touched.position && formik.errors.position ? (
+                                    <div className="text-center text-danger">{formik.errors.position}</div>
+                                ) : null}
                             </div>
 
-                            <div className="row my-3 d-flex align-items-center justify-content-center">
-                                <div className="col-lg-6">
-                                    <div className="inputLabel">Gender</div>
-                                    <select name="gender"
-                                        className={`selectInput ${formik.touched.gender && formik.errors.gender ? "error" : ""}`}
-                                        onChange={formik.handleChange}
-                                        value={formik.values.gender}>
-                                        <option >Select gender</option>
-                                        <option value="male">Male</option>
-                                        <option value="female">Female</option>
-                                    </select>
-                                    {formik.touched.gender && formik.errors.gender ? (
-                                        <div className="text-center text-danger">{formik.errors.gender}</div>
-                                    ) : null}
-                                </div>
-                                <div className="col-lg-6">
-                                    <div className="inputLabel">Department</div>
-                                    <select name="department" className={`selectInput ${formik.touched.department && formik.errors.department ? "error" : ""}`}
-                                        onChange={formik.handleChange}
-                                        value={formik.values.department}>
-                                        <option >Select Department</option>
-                                        {
-                                            departments.map((department) => (
-                                                <option key={department._id} value={department._id}>{department.DepartmentName}</option>
-                                            ))
-                                        }
-                                    </select>
-                                    {formik.touched.department && formik.errors.department ? (
-                                        <div className="text-center text-danger">{formik.errors.department}</div>
-                                    ) : null}
-                                </div>
+                            <div className="col-lg-6">
+                                <div className="inputLabel">Date Of Birth</div>
+                                <input
+                                    type="date"
+                                    className={`inputField ${formik.touched.dateOfBirth && formik.errors.dateOfBirth ? "error" : ""}`}
+                                    name="dateOfBirth"
+                                    onChange={formik.handleChange}
+                                    value={formik.values.dateOfBirth}
+                                />
+                                {formik.touched.dateOfBirth && formik.errors.dateOfBirth ? (
+                                    <div className="text-center text-danger">{formik.errors.dateOfBirth}</div>
+                                ) : null}
                             </div>
+                        </div>
 
-                            <div className="row d-flex justify-content-center">
-                                <div className="col-lg-12">
-                                    <div className="inputLabel">Position</div>
-                                    <select name="position" className={`selectInput ${formik.touched.position && formik.errors.position ? "error" : ""}`}
-                                        onChange={formik.handleChange}
-                                        value={formik.values.position}>
-                                        <option >Select Position</option>
-                                        {
-                                            positions.map((position) => (
-                                                <option key={position._id} value={position._id}>{position.PositionName}</option>
-                                            ))
-                                        }
-                                    </select>
-                                    {formik.touched.position && formik.errors.position ? (
-                                        <div className="text-center text-danger">{formik.errors.position}</div>
-                                    ) : null}
-                                </div>
+                        <div className="row my-3 d-flex align-items-center justify-content-center">
+                            <div className="col-lg-6">
+                                <div className="inputLabel">Role</div>
+                                <select name="role" className={`selectInput ${formik.touched.role && formik.errors.role ? "error" : ""}`}
+                                    onChange={formik.handleChange}
+                                    value={formik.values.role}>
+                                    <option >Select Role</option>
+                                    {
+                                        roles.map((role) => (
+                                            <option key={role._id} value={role._id}>{role.RoleName}</option>
+                                        ))
+                                    }
+                                </select>
+                                {formik.touched.role && formik.errors.role ? (
+                                    <div className="text-center text-danger">{formik.errors.role}</div>
+                                ) : null}
                             </div>
-
-                            <div className="row my-3 d-flex align-items-center justify-content-center">
-                                <div className="col-lg-6">
-                                    <div className="inputLabel">Role</div>
-                                    <select name="role" className={`selectInput ${formik.touched.role && formik.errors.role ? "error" : ""}`}
-                                        onChange={formik.handleChange}
-                                        value={formik.values.role}>
-                                        <option >Select Role</option>
-                                        {
-                                            roles.map((role) => (
-                                                <option key={role._id} value={role._id}>{role.RoleName}</option>
-                                            ))
-                                        }
-                                    </select>
-                                    {formik.touched.role && formik.errors.role ? (
-                                        <div className="text-center text-danger">{formik.errors.role}</div>
-                                    ) : null}
-                                </div>
-                                <div className="col-lg-6">
-                                    <div className="inputLabel">Employment Type</div>
-                                    <select name="employmentType" className={`selectInput ${formik.touched.employmentType && formik.errors.employmentType ? "error" : ""}`}
-                                        onChange={formik.handleChange}
-                                        value={formik.values.employmentType}>
-                                        <option >Employment Type</option>
-                                        <option value="full-time">Full Time</option>
-                                        <option value="part-time">Part Time</option>
-                                        <option value="intern">Contract</option>
-                                    </select>
-                                    {formik.touched.employmentType && formik.errors.employmentType ? (
-                                        <div className="text-center text-danger">{formik.errors.employmentType}</div>
-                                    ) : null}
-                                </div>
+                            <div className="col-lg-6">
+                                <div className="inputLabel">Employment Type</div>
+                                <select name="employmentType" className={`selectInput ${formik.touched.employmentType && formik.errors.employmentType ? "error" : ""}`}
+                                    onChange={formik.handleChange}
+                                    value={formik.values.employmentType}>
+                                    <option >Employment Type</option>
+                                    <option value="full-time">Full Time</option>
+                                    <option value="part-time">Part Time</option>
+                                    <option value="intern">Contract</option>
+                                </select>
+                                {formik.touched.employmentType && formik.errors.employmentType ? (
+                                    <div className="text-center text-danger">{formik.errors.employmentType}</div>
+                                ) : null}
                             </div>
-                        </div>)
-                    }
+                        </div>
+                    </div>
                     <div className="contactDetails" ref={contactRef}>
                         <div className="row d-flex justify-content-center my-3">
                             <div className="titleText col-lg-12">
@@ -634,7 +654,9 @@ const AddEmployeeForm = ({ details, handleScroll, handlePersonal, handleFinancia
                         <div className="row d-flex justify-content-center my-3">
                             <div className="col-lg-6">
                                 <div className="inputLabel">Manager</div>
-                                <select name="managerId" onChange={formik.handleChange} className={`inputField ${formik.touched.managerId && formik.errors.managerId ? "error" : ""}`}>
+                                <select name="managerId" onChange={formik.handleChange} className={`inputField ${formik.touched.managerId && formik.errors.managerId ? "error" : ""}`}
+                                value={formik.values.managerId || ""}
+                                >
                                     <option >Select Manager</option>
                                     {
                                         managers.map((manager) => (
@@ -648,7 +670,9 @@ const AddEmployeeForm = ({ details, handleScroll, handlePersonal, handleFinancia
                             </div>
                             <div className="col-lg-6">
                                 <div className="inputLabel">Team Lead</div>
-                                <select name="teamLead" onChange={formik.handleChange} className={`selectInput ${formik.touched.teamLead && formik.errors.teamLead ? "error" : ""}`}>
+                                <select name="teamLead" onChange={formik.handleChange} className={`selectInput ${formik.touched.teamLead && formik.errors.teamLead ? "error" : ""}`}
+                                value={formik.values.teamLead || ""}
+                                >
                                     <option >Select TeamLead</option>
                                     {leads.map((lead) => (
                                         <option key={lead._id} value={lead._id}>{lead.FirstName}</option>
@@ -840,10 +864,8 @@ const AddEmployeeForm = ({ details, handleScroll, handlePersonal, handleFinancia
             <div className="btnBackground">
                 <div className="fixedPositionBtns">
                     <div className="w-50">
-                        <button className="outline-btn mx-2" >
-                            <Link to={"/hr/employee"} className="text-dark">
-                                Cancel
-                            </Link>
+                        <button type="button" className="outline-btn mx-2" onClick={() => navigate(-1)} >
+                            Cancel
                         </button>
                     </div>
                     <div className="w-50">

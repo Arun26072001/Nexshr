@@ -3,10 +3,10 @@ const Joi = require('joi');
 
 // Mongoose schema for permissions
 const permissionSchema = new mongoose.Schema({
-    view: { type: Boolean, required: true },
-    edit: { type: Boolean, required: true },
-    add: { type: Boolean, required: true },
-    delete: { type: Boolean, required: true }
+    view: { type: Boolean, default: false },
+    edit: { type: Boolean, default: false },
+    add: { type: Boolean, default: false },
+    delete: { type: Boolean, default: false }
 }, { _id: false });
 
 const userPermissionsSchema = new mongoose.Schema({
@@ -22,14 +22,14 @@ const userPermissionsSchema = new mongoose.Schema({
     Payroll: permissionSchema
 });
 
-const UserPermission = mongoose.model("userPermission", userPermissionsSchema);
+const UserPermission = mongoose.model("UserPermission", userPermissionsSchema);
 
 // Joi validation schema
 const permissionSchemaJoi = Joi.object({
-    view: Joi.boolean().required(),
-    edit: Joi.boolean().required(),
-    add: Joi.boolean().required(),
-    delete: Joi.boolean().required(),
+    view: Joi.boolean().optional(),
+    edit: Joi.boolean().optional(),
+    add: Joi.boolean().optional(),
+    delete: Joi.boolean().optional(),
 });
 
 const userPermissionsValidation = Joi.object({
@@ -42,7 +42,7 @@ const userPermissionsValidation = Joi.object({
     Role: permissionSchemaJoi,
     TimePattern: permissionSchemaJoi,
     WorkPlace: permissionSchemaJoi,
-    Payroll: permissionSchemaJoi
+    Payroll: Joi.allow(null)
 });
 
-module.exports = {UserPermission, userPermissionsValidation}
+module.exports = { UserPermission, userPermissionsValidation }

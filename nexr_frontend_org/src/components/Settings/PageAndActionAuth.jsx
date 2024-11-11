@@ -12,10 +12,7 @@ export default function PageAndActionAuth() {
 
     const url = process.env.REACT_APP_API_URL;
     const token = localStorage.getItem("token");
-    const pages = ["Dashboard", "JobDesk",
-        "Employee", "Leave",
-        "Attendance", "Administration",
-        "Settings"];
+    const [roleObj, setRoleObj] = useState({});
     const actions = [
         { sNo: 1, action: "Leave" },
         { sNo: 2, action: "Attendance" },
@@ -28,9 +25,6 @@ export default function PageAndActionAuth() {
         { sNo: 9, action: "TimePattern" },
         { sNo: 10, action: "Payroll" }
     ];
-    const [roleObj, setRoleObj] = useState({
-        pageAuth: {}
-    });
 
     function getCheckedValue(e) {
         const { name, checked } = e.target;
@@ -73,6 +67,8 @@ export default function PageAndActionAuth() {
             }
         }))
     }
+    console.log(roleObj);
+    
     async function fetchRoleById() {
         try {
             const role = await axios.get(`${url}/api/role/${id}`, {
@@ -80,7 +76,6 @@ export default function PageAndActionAuth() {
                     Authorization: token || ""
                 }
             });
-            console.log(role.data);
 
             setRoleObj(role.data);
         } catch (error) {
@@ -119,17 +114,29 @@ export default function PageAndActionAuth() {
         }
     }
 
+    async function getInitialRoleObj() {
+        const roleName = prompt("Please Enter Role Name: ");
+        try {
+            const roleData = await axios.get(`${url}/api/role/name`, {
+                headers: {
+                    authorization: token || ""
+                }
+            });
+            setRoleObj({
+                ...roleData.data,
+                RoleName: roleName || "Employee"
+            })
+        } catch (error) {
+            console.log(error);
+            toast.error(error?.response?.data?.error)
+        }
+    }
+
     useEffect(() => {
         if (id) {
             fetchRoleById()
         } else {
-            if (!roleObj?.RoleName) {
-                const RoleName = prompt("Please Enter RoleName: ")?.trim();
-                setRoleObj((pre) => ({
-                    ...pre,
-                    RoleName
-                }))
-            }
+            getInitialRoleObj()
         }
     }, [id])
 
@@ -140,23 +147,36 @@ export default function PageAndActionAuth() {
 
                 <h5 className='text-start my-2'>Page Authorization</h5>
                 {
-                    pages?.map((page) => {
-                        return <div className="row container d-flex align-items-center justify-content-center gap-2 my-2">
-                            <div className="col-lg-5">
-                                <p className='text-start'>{page}</p>
+                    Object.entries(roleObj?.pageAuth || {}).map(([page, auth]) => {
+                        // Skip '_id' and '__v' fields
+                        if (page === '_id' || page === '__v') {
+                            return null;
+                        }
+                        return (
+                            <div key={page} className="row d-flex align-items-center justify-content-center gap-2 my-2">
+                                <div className="col-lg-5">
+                                    <p className="text-start">{page}</p>
+                                </div>
+                                <div className="col-lg-5">
+                                    <select
+                                        name={page}
+                                        className="form-control"
+                                        disabled={params['*']?.includes("view")}
+                                        value={auth}
+                                        onChange={(e) => changePageAuth(e)}
+                                    >
+                                        <option>Select Page Auth</option>
+                                        <option value="allow">Allow</option>
+                                        <option value="not allow">Not Allow</option>
+                                    </select>
+                                </div>
                             </div>
-                            <div className="col-lg-5">
-                                <select name={page} className='form-control' disabled={params['*']?.includes("view") ? true : false} value={roleObj?.pageAuth[page]} onChange={(e) => changePageAuth(e)}>
-                                    <option >Select Page Auth</option>
-                                    <option value="allow">Allow</option>
-                                    <option value="not allow">Not Allow</option>
-                                </select>
-                            </div>
-                        </div>
+                        );
                     })
                 }
+
                 <h5 className="text-start my-2">Actions Authorization</h5>
-                {<LeaveTable data={actions} roleObj={roleObj} getCheckedValue={getCheckedValue} getCheckAll={getCheckAll} />}
+                <LeaveTable data={actions} roleObj={roleObj} getCheckedValue={getCheckedValue} getCheckAll={getCheckAll} />
                 {
                     !params['*'].includes("view") ?
                         <div className="row d-flex justify-content-center">

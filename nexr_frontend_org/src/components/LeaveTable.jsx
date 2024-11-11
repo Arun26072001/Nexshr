@@ -17,7 +17,7 @@ import { toast } from 'react-toastify';
 import { TimerStates } from './payslip/HRMDashboard';
 import KeyRoundedIcon from '@mui/icons-material/KeyRounded';
 
-export default function LeaveTable({ data, getCheckedValue, roleObj, getCheckAll, deleteRole }) {
+export default function LeaveTable({ data, getCheckedValue, getEditDepartmentId,roleObj, getCheckAll, deleteRole, deleteDepartment }) {
     const navigate = useNavigate();
     const { changeEmpEditForm } = useContext(TimerStates)
     const [page, setPage] = useState(0);
@@ -81,54 +81,54 @@ export default function LeaveTable({ data, getCheckedValue, roleObj, getCheckAll
         {
             id: 'FirstName',
             label: 'Profile',
-            minWidth: 170,
+            minWidth: 100,
             getter: (row) => row.FirstName + row.LastName || 'N/A'
         },
         {
             id: 'serialNo',
             label: 'ID',
-            minWidth: 170,
+            minWidth: 100,
             getter: (row) => row.serialNo || 'N/A'
         },
         {
             id: 'employmentType',
             label: 'Status',
-            minWidth: 170,
+            minWidth: 100,
             align: 'center',
             getter: (row) => row.employmentType || 'N/A'
         },
         {
             id: 'DepartmentName',
             label: 'Department',
-            minWidth: 170,
+            minWidth: 100,
             align: 'center',
             getter: (row) => row.department.map(dep => dep.DepartmentName) || 'N/A'
         },
         {
             id: 'StratingTime',
             label: 'Shift',
-            minWidth: 170,
+            minWidth: 100,
             align: 'center',
             getter: (row) => row.workingTimePattern.StartingTime || 'N/A'
         },
         {
             id: 'dateOfJoining',
             label: 'Joining Date',
-            minWidth: 170,
+            minWidth: 100,
             align: 'center',
             getter: (row) => row.dateOfJoining
         },
         {
             id: 'RoleName',
             label: 'Role',
-            minWidth: 170,
+            minWidth: 100,
             align: 'center',
             getter: (row) => row.role.map(item => item.RoleName) || 'N/A'
         },
         {
             id: "Action",
             label: "Action",
-            minWidth: 100,
+            minWidth: 60,
             align: "center"
         }
     ];
@@ -334,13 +334,6 @@ export default function LeaveTable({ data, getCheckedValue, roleObj, getCheckAll
             align: 'left',
             getter: (row) => row?.RoleName
         },
-        // {
-        //     id: 'CompanyName',
-        //     label: 'Company',
-        //     minWidth: 120,
-        //     align: 'left',
-        //     getter: (row) => row?.company?.map((item) => item.CompanyName)
-        // },
         {
             id: 'auth',
             label: 'Manage Authorization',
@@ -359,12 +352,45 @@ export default function LeaveTable({ data, getCheckedValue, roleObj, getCheckAll
         { id: 'status', label: 'Status', minWidth: 130, align: 'left', getter: (row) => row.status },
     ];
 
+    const column9 = [
+        {
+            id: 'DepartmentName',
+            label: 'Deparment',
+            minWidth: 120,
+            align: 'left',
+            getter: (row) => row?.DepartmentName
+        },
+        {
+            id: 'Manage',
+            label: 'Manage Departments',
+            minWidth: 120,
+            align: 'center',
+        }
+    ]
+
+    const column10 = [
+        {
+            id: 'PositionName',
+            label: 'Position',
+            minWidth: 120,
+            align: 'left',
+            getter: (row) => row?.PositionName
+        },
+        {
+            id: 'Manage',
+            label: 'Manage Position',
+            minWidth: 120,
+            align: 'center',
+        }
+    ]
+
     function toggleView() {
         setOpenModal(!openModal);
     }
 
     function getValueForView(value) {
         const [id, page] = value;
+        console.log(id, value);
 
         if (page === 'daily-log') {
             async function fetchAttendanceData() {
@@ -383,7 +409,7 @@ export default function LeaveTable({ data, getCheckedValue, roleObj, getCheckAll
                 }
             }
             fetchAttendanceData();
-        } else {
+        } else if (page === "payslip") {
             async function fetchPayslips() {
                 try {
                     const slips = await fetchPayslip(id);
@@ -407,7 +433,7 @@ export default function LeaveTable({ data, getCheckedValue, roleObj, getCheckAll
         data.map((item) => {
             if (item.fromDate && params['*'] === "leave-request") {
                 return setColumns(column1);
-            } else if (item.code) {
+            } else if (item.employmentType) {
                 return setColumns(column3);
             } else if (item.date && params['*'] === "attendance-summary"
                 || item.date && params['*'] === "details"
@@ -424,14 +450,21 @@ export default function LeaveTable({ data, getCheckedValue, roleObj, getCheckAll
             }
             else if (item.fromDate && params['*'] === "status"
                 || item.fromDate && params['*'] === "leave-summary"
+                || item.fromDate && params['*'] === "leave"
                 || item.fromDate && params['*'] === "calender") {
                 return setColumns(column8);
+            } else if (item.DepartmentName) {
+                return setColumns(column9)
+            } else if (item.PositionName) {
+                return setColumns(column10)
             }
             else {
                 return setColumns(column2)
             }
         })
     }, [data]);
+    console.log(params['*']);
+
 
     return (
         <div className="container-fluid my-3">
@@ -496,6 +529,13 @@ export default function LeaveTable({ data, getCheckedValue, roleObj, getCheckAll
                                                         <Dropdown.Item style={{ minWidth: 120 }} onClick={() => deleteRole(row._id)}>Delete</Dropdown.Item>
                                                     </Dropdown>
                                                 );
+                                            } else if (params["*"] === "department" || params["*"] === "position") {
+                                                return (
+                                                    <Dropdown title={<EditRoundedIcon style={{ cursor: "pointer" }} />} noCaret>
+                                                        <Dropdown.Item style={{ minWidth: 120 }} onClick={() => params["*"] === "department" ? getEditDepartmentId(row._id) : changeEmpEditForm(row._id)}>Edit</Dropdown.Item>
+                                                        <Dropdown.Item style={{ minWidth: 120 }} onClick={()=> params["*"] === "department" ? deleteDepartment(row._id) : null}>Delete</Dropdown.Item>
+                                                    </Dropdown>
+                                                );
                                             }
                                             return null;
                                         };
@@ -506,7 +546,7 @@ export default function LeaveTable({ data, getCheckedValue, roleObj, getCheckAll
                                                 align={column.align}
                                                 className={cellClass}
                                             >
-                                                {column.id === "Action" || column.id === "auth" ? renderActions() : value}
+                                                {column.id === "Action" || column.id === "auth" || column.id === "Manage" ? renderActions() : value}
                                             </TableCell>
                                         );
                                     })}
@@ -533,6 +573,5 @@ export default function LeaveTable({ data, getCheckedValue, roleObj, getCheckAll
                     <ViewAttendanceModel modelData={modelData} toggleView={toggleView} totalHours={totalHours} openModal={openModal} /> : null
             }
         </div >
-
     );
 }

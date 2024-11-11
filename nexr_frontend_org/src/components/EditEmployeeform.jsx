@@ -11,7 +11,7 @@ import { TimerStates } from "./payslip/HRMDashboard";
 import { useParams } from "react-router-dom";
 
 const EditEmployeeform = ({ details, empData, handleScroll, handlePersonal, handleFinancial, handleJob, handleContact, handleEmployment, timePatterns, personalRef, contactRef, employmentRef, jobRef, financialRef, payslipRef, countries, companies, departments, positions, roles, leads, managers }) => {
-    const {id} = useParams();
+    const { id } = useParams();
     const { changeEmpEditForm } = useContext(TimerStates);
     const [timeDifference, setTimeDifference] = useState(0);
     const [payslipFields, setPayslipFields] = useState([]);
@@ -83,7 +83,7 @@ const EditEmployeeform = ({ details, empData, handleScroll, handlePersonal, hand
     })
 
     console.log(formik.errors);
-    
+
     function navToError() {
         if (formik.errors.FirstName
             || formik.errors.LastName
@@ -736,8 +736,9 @@ const EditEmployeeform = ({ details, empData, handleScroll, handlePersonal, hand
                                 payslipFields.length > 0 &&
                                 payslipFields.map((data, index) => {
                                     let calculatedValue = "";
-
-                                    if (data.fieldName === "incomeTax") {
+                                    if (data.fieldName === "basicSalary") {
+                                        return null;
+                                    } if (data.fieldName === "incomeTax") {
                                         const salary = Number(formik.values.basicSalary);
 
                                         if (salary >= 84000) {

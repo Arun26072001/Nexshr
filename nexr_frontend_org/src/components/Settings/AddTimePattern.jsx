@@ -149,7 +149,7 @@ const AddTimePattern = ({ handleAddWorkingTime, dom, reload }) => {
                 <p className="styleText my-2">
                     Enter start and end times for your working time pattern.
                 </p>
-                <div className="row mx-auto g-3">
+                <div className="row mx-auto gap-2 d-flex align-items-center">
                     {/* Start Time */}
                     <div className="col-lg-2 text-center">
                         <span className="styletext">Start</span>
@@ -201,7 +201,7 @@ const AddTimePattern = ({ handleAddWorkingTime, dom, reload }) => {
                     {/* Repeat Days */}
                     <div className="col-lg-4 text-center">
                         <span className="styletext">Repeat</span>
-                        <div className="d-flex justify-content-center">
+                        <div className="d-flex justify-content-center align-items-center">
                             {days.map((day) => (
                                 <WeekDay key={day} day={day} calDay={timePattern} setCalDay={setTimePattern} />
                             ))}

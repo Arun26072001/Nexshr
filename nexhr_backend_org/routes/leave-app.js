@@ -3,12 +3,9 @@ const leaveApp = express.Router();
 const { LeaveApplication,
   LeaveApplicationValidation
 } = require('../models/LeaveAppModel')
-const { Role } = require("../models/RoleModel");
-const Joi = require('joi');
+const { RoleAndPermission } = require("../models/RoleModel");
 const { Employee } = require('../models/EmpModel');
 const { verifyHR, verifyHREmployee, verifyEmployee, verifyAdmin, verifyAdminHREmployee } = require('../auth/authMiddleware');
-const jwtKey = process.env.ACCCESS_SECRET_KEY;
-const jwt = require("jsonwebtoken");
 
 function getDayDifference(leave) {
   let toDate = new Date(leave.toDate);
@@ -62,7 +59,7 @@ leaveApp.get("/emp/:empId", verifyAdminHREmployee, async (req, res) => {
     // // Add the new property to the object
     // requests.takenLeaveCount = typesOfLeaveTaken;
 
-    const roleIds = await Role.find({ RoleName: requests?.role[0].RoleName }, "_id");
+    const roleIds = await RoleAndPermission.find({ RoleName: requests?.role[0].RoleName }, "_id");
     const collegues = await Employee.find({ role: { $in: roleIds } }, "FirstName LastName Email phone");
     const empIds = await Employee.find({ Account: 3, _id: { $nin: req.params.empId } });
     const peopleOnLeave = await LeaveApplication.find(
@@ -134,8 +131,9 @@ leaveApp.get("/:id", verifyHREmployee, async (req, res) => {
   }
 })
 
-// to get leave range date of data
-leaveApp.get("/date-range/:empId", verifyAdminHREmployee, (req, res) => {
+
+// get employee of leave data
+leaveApp.get("/date-range/hr", verifyHR, async (req, res) => {
   const now = new Date();
   let startOfMonth;
   let endOfMonth;
@@ -144,111 +142,138 @@ leaveApp.get("/date-range/:empId", verifyAdminHREmployee, (req, res) => {
     endOfMonth = new Date(req.query.daterangeValue[1]);
   } else {
     startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-    endOfMonth = new Date();
+    endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
   }
 
-  const Header = req.headers["authorization"]
-  jwt.verify(Header, jwtKey, async (err, authData) => {
-    if (authData.Account == 2) {
-      try {
-        // if a person has account 2, can get date range of all emp leave data
-        const employeesLeaveData = await Employee.find({ Account: 3 }, "_id FirstName LastName")
-          .populate({
-            path: "leaveApplication",
-            match: {
-              fromDate: {
-                $gte: startOfMonth,
-                $lte: endOfMonth
-              },
-              toDate: {
-                $gte: startOfMonth,
-                $lte: endOfMonth
-              }
-            },
-            populate: { path: "employee", select: "FirstName LastName" }
-          });
+  try {
+    // if a person has account 2, can get date range of all emp leave data
+    const employeesLeaveData = await Employee.find({ Account: 3 }, "_id FirstName LastName")
+      .populate({
+        path: "leaveApplication",
+        match: {
+          fromDate: {
+            $gte: startOfMonth,
+            $lte: endOfMonth
+          },
+          toDate: {
+            $gte: startOfMonth,
+            $lte: endOfMonth
+          }
+        },
+        populate: { path: "employee", select: "FirstName LastName" }
+      });
 
-        const leaveData = employeesLeaveData.map(data => data.leaveApplication).flat()
-        const approvedLeave = leaveData.filter(data => data.status === "approved");
-        const leaveInHours = approvedLeave.reduce((total, data) => total + getDayDifference(data) * 9, 0);
-        const pendingLeave = leaveData.filter(data => data.status === "pending");
-        const upComingLeave = leaveData.filter(data => new Date(data.date).getTime() > new Date().getTime())
-        const peoplesOnLeave = approvedLeave.filter(data => new Date(data.date).getTime() === new Date().getTime())
-        res.send({ leaveData, approvedLeave, peoplesOnLeave, pendingLeave, upComingLeave, leaveInHours });
-      } catch (err) {
-        res.status(500).send({ message: "Error in getting employees leave data", details: err.message })
-      }
-    } else if (authData.Account == 3) {
-      try {
-        // if a person has account 3, can get date range of his leave data
-        const employeeLeaveData = await Employee.findById(req.params.empId, "_id FirstName LastName")
-          .populate({
-            path: "leaveApplication",
-            match: {
-              fromDate: {
-                $gte: startOfMonth,
-                $lte: endOfMonth
-              },
-              toDate: {
-                $gte: startOfMonth,
-                $lte: endOfMonth
-              }
-            },
-            populate: { path: "employee", select: "FirstName LastName" } // need name in table
-          });
-        if (employeeLeaveData.length > 0) {
-          const leaveData = employeeLeaveData.map(data => data.leaveApplication).flat()
-          const approvedLeave = leaveData.filter(data => data.status === "approved");
-          const leaveInHours = approvedLeave.reduce((total, data) => total + getDayDifference(data) * 9, 0);
-          const pendingLeave = leaveData.filter(data => data.status === "pending");
-          const upComingLeave = leaveData.filter(data => new Date(data.date).getTime() > new Date().getTime())
-          const peoplesOnLeave = approvedLeave.filter(data => new Date(data.date).getTime() === new Date().getTime())
-          res.send({ leaveData, approvedLeave, peoplesOnLeave, pendingLeave, upComingLeave, leaveInHours });
-        } else {
-          res.send({
-            leaveData: [],
-            approvedLeave: [],
-            peoplesOnLeave: [],
-            pendingLeave: [],
-            upComingLeave: [],
-            leaveInHours: 0
-          })
-        }
+    const leaveData = employeesLeaveData.map(data => data.leaveApplication).flat()
+    const approvedLeave = leaveData.filter(data => data.status === "approved");
+    const leaveInHours = approvedLeave.reduce((total, data) => total + getDayDifference(data) * 9, 0);
+    const pendingLeave = leaveData.filter(data => data.status === "pending");
+    const upComingLeave = leaveData.filter(data => new Date(data.date).getTime() > new Date().getTime())
+    const peoplesOnLeave = approvedLeave.filter(data => new Date(data.date).getTime() === new Date().getTime())
+    res.send({ leaveData, approvedLeave, peoplesOnLeave, pendingLeave, upComingLeave, leaveInHours });
+  } catch (err) {
+    res.status(500).send({ message: "Error in getting employees leave data", details: err.message })
+  }
+})
 
-      } catch (err) {
-        res.status(500).send({ message: "Error in getting emp of leave reqests", details: err.message })
-      }
-    }else{
-      try {
-        // if a person has account 2, can get date range of all emp leave data
-        const employeesLeaveData = await Employee.find({}, "_id FirstName LastName")
-          .populate({
-            path: "leaveApplication",
-            match: {
-              fromDate: {
-                $gte: startOfMonth,
-                $lte: endOfMonth
-              },
-              toDate: {
-                $gte: startOfMonth,
-                $lte: endOfMonth
-              }
-            },
-            populate: { path: "employee", select: "FirstName LastName" }
-          });
+leaveApp.get("/date-range/admin", verifyAdmin, async (req, res) => {
+  console.log("call admin");
 
-        const leaveData = employeesLeaveData.map(data => data.leaveApplication).flat()
-        const approvedLeave = leaveData.filter(data => data.status === "approved");
-        const leaveInHours = approvedLeave.reduce((total, data) => total + getDayDifference(data) * 9, 0);
-        const pendingLeave = leaveData.filter(data => data.status === "pending");
-        const upComingLeave = leaveData.filter(data => new Date(data.date).getTime() > new Date().getTime())
-        const peoplesOnLeave = approvedLeave.filter(data => new Date(data.date).getTime() === new Date().getTime())
-        res.send({ leaveData, approvedLeave, peoplesOnLeave, pendingLeave, upComingLeave, leaveInHours });
-      } catch (err) {
-        res.status(500).send({ message: "Error in getting employees leave data", details: err.message })
-      }
+  const now = new Date();
+  let startOfMonth;
+  let endOfMonth;
+  if (req?.query?.daterangeValue) {
+    startOfMonth = new Date(req.query.daterangeValue[0]);
+    endOfMonth = new Date(req.query.daterangeValue[1]);
+  } else {
+    startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+  }
+
+  try {
+    // if a person has account 2, can get date range of all emp leave data
+    const employeesLeaveData = await Employee.find({}, "_id FirstName LastName")
+      .populate({
+        path: "leaveApplication",
+        match: {
+          fromDate: {
+            $gte: startOfMonth,
+            $lte: endOfMonth
+          },
+          toDate: {
+            $gte: startOfMonth,
+            $lte: endOfMonth
+          }
+        },
+        populate: { path: "employee", select: "FirstName LastName" }
+      });
+
+    const leaveData = employeesLeaveData.map(data => data.leaveApplication).flat()
+    const approvedLeave = leaveData.filter(data => data.status === "approved");
+    const leaveInHours = approvedLeave.reduce((total, data) => total + getDayDifference(data) * 9, 0);
+    const pendingLeave = leaveData.filter(data => data.status === "pending");
+    const upComingLeave = leaveData.filter(data => new Date(data.date).getTime() > new Date().getTime())
+    const peoplesOnLeave = approvedLeave.filter(data => new Date(data.date).getTime() === new Date().getTime())
+    res.send({ leaveData, approvedLeave, peoplesOnLeave, pendingLeave, upComingLeave, leaveInHours });
+  } catch (err) {
+    res.status(500).send({ message: "Error in getting employees leave data", details: err.message })
+  }
+})
+
+// to get leave range date of data
+leaveApp.get("/date-range/:empId", verifyAdminHREmployee, async (req, res) => {
+  const now = new Date();
+  let startOfMonth;
+  let endOfMonth;
+  if (req?.query?.daterangeValue) {
+    startOfMonth = new Date(req.query.daterangeValue[0]);
+    endOfMonth = new Date(req.query.daterangeValue[1]);
+  } else {
+    startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+  }
+
+  // const Header = req.headers["authorization"]
+  // jwt.verify(Header, jwtKey, async (err, authData) => {
+  try {
+    // if a person has account 3, can get date range of his leave data
+    const employeeLeaveData = await Employee.findById(req.params.empId, "_id FirstName LastName")
+      .populate({
+        path: "leaveApplication",
+        match: {
+          fromDate: {
+            $gte: startOfMonth,
+            $lte: endOfMonth
+          },
+          toDate: {
+            $gte: startOfMonth,
+            $lte: endOfMonth
+          }
+        },
+        populate: { path: "employee", select: "FirstName LastName" } // need name in table
+      });
+
+    if (employeeLeaveData?.leaveApplication.length > 0) {
+      const leaveData = employeeLeaveData.leaveApplication.map(data => data).flat()
+      const approvedLeave = leaveData.filter(data => data.status === "approved");
+      const leaveInHours = approvedLeave.reduce((total, data) => total + getDayDifference(data) * 9, 0);
+      const pendingLeave = leaveData.filter(data => data.status === "pending");
+      const upComingLeave = leaveData.filter(data => new Date(data.date).getTime() > new Date().getTime())
+      const peoplesOnLeave = approvedLeave.filter(data => new Date(data.date).getTime() === new Date().getTime())
+      res.send({ leaveData, approvedLeave, peoplesOnLeave, pendingLeave, upComingLeave, leaveInHours });
+    } else {
+      res.send({
+        leaveData: [],
+        approvedLeave: [],
+        peoplesOnLeave: [],
+        pendingLeave: [],
+        upComingLeave: [],
+        leaveInHours: 0
+      })
     }
-  });
+
+  } catch (err) {
+    res.status(500).send({ message: "Error in getting emp of leave reqests", details: err.message })
+  }
 })
 
 leaveApp.get("/", verifyAdmin, async (req, res) => {
@@ -269,7 +294,7 @@ leaveApp.get("/", verifyAdmin, async (req, res) => {
   }
 });
 
-leaveApp.post("/:empId", verifyHREmployee, async (req, res) => {
+leaveApp.post("/:empId", verifyAdminHREmployee, async (req, res) => {
   try {
     // Handle empty `coverBy` value
     if (req.body.coverBy === "") {
@@ -383,8 +408,6 @@ leaveApp.post("/:empId", verifyHREmployee, async (req, res) => {
     });
   }
 });
-
-
 
 leaveApp.put("/:id", verifyHREmployee, async (req, res) => {
   try {

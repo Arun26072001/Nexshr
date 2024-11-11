@@ -27,7 +27,7 @@ const ApexChart = ({ activitiesData }) => {
   };
 
   return (
-    <div className="d-flex justify-content-center" style={{ width: '400px', height: '300px' }}>
+    <div className="d-flex" style={{ width: '338px', height: '300px' }}>
       <Pie data={data} options={options} />
     </div>
   );

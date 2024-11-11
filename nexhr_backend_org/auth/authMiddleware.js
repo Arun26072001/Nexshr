@@ -61,6 +61,7 @@ function verifyEmployee(req, res, next) {
 
 function verifyHREmployee(req, res, next) {
   const Header = req.headers["authorization"];
+  console.log("call");
 
 
   if (typeof Header !== "undefined") {
@@ -161,18 +162,18 @@ function verifyAdmin(req, res, next) {
     // if(decodedData.Account)
     jwt.verify(Header, jwtKey, (err, authData) => {
       if (err) {
-        res.sendStatus(401);
+        res.status(401).send({ error: err.message });
       } else {
         if (authData.Account == 1) {
           next();
         } else {
-          res.sendStatus(401);
+          res.status(401).send({ message: "unAuthorize: Admin can only do this action!" });
         }
       }
     });
   } else {
     // Forbidden
-    res.sendStatus(401);
+    res.status(401).send({messsage: "Can't access Auth token!"});
   }
 }
 

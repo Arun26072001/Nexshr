@@ -85,6 +85,8 @@ const ClockIns = () => {
         }
     }, [timeOption, workTimeTracker, isStartActivity]);
 
+    console.log(workTimeTracker);
+    
     return (
         <>
             <div className="clockins">

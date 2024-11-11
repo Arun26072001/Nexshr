@@ -8,10 +8,12 @@ import { Routes, Route, useNavigate, Navigate } from "react-router-dom";
 import { toast, ToastContainer } from "react-toastify";
 import { jwtDecode } from "jwt-decode";
 import "react-toastify/dist/ReactToastify.css";
+import NoInternet from "./components/NoInternet.jsx";
 
 // check to update
 export const EssentialValues = createContext(null);
 const App = () => {
+  const url = process.env.REACT_APP_API_URL;
   const account = localStorage.getItem("Account");
   const isStartLogin = localStorage.getItem('isStartLogin') === "false" ? false : localStorage.getItem('isStartLogin') === "true" ? true : false
   const isStartActivity = localStorage.getItem('isStartActivity') === "false" ? false : localStorage.getItem('isStartActivity') === "true" ? true : false
@@ -90,8 +92,18 @@ const App = () => {
         localStorage.setItem("_id", decodedData._id);
         localStorage.setItem("Name", `${decodedData.FirstName} ${decodedData.LastName}`);
         localStorage.setItem("annualLeaveEntitment", decodedData.annualLeaveEntitlement);
+        localStorage.setItem("userPermissions", JSON.stringify(decodedData.roleData.userPermissions))
 
-        window.location.reload();
+        Object.entries(decodedData.roleData.pageAuth).forEach(([key, value]) => {
+          if (key !== '_id' && key !== "__v") {
+            return localStorage.setItem(`${key}`, value)
+          }
+        })
+
+
+        if (!localStorage.getItem("token")) {
+          window.location.reload();
+        }
 
         if (accountType === 1) {
           navigate("/admin");
@@ -102,28 +114,51 @@ const App = () => {
         }
       }
     } catch (error) {
-      console.log(error);
+      if (error?.response?.data?.details?.includes("buffering timed out after 10000ms")) {
+        navigate("/no-internet-connection")
+      }
       setPass(false);
       setLoading(false);
     }
   };
 
+  // useEffect(() => {
+  //   const navigateToAccount = () => {
+  //     if (isLogin && window.location.pathname === "/") {
+  //       if (account === '1') {
+  //         navigate("/admin")
+  //       } else if (account === '2') {
+  //         navigate("/hr")
+  //       } else if (account === '3') {
+  //         navigate("/emp")
+  //       }
+  //     }
+  //   }
+  //   navigateToAccount()
+  // }, [data]);
+
   useEffect(() => {
-    const navigateToAccount = () => {
-      if (isLogin && window.location.pathname === "/") {
-        if (account === '1') {
-          navigate("/admin")
-        } else if (account === '2') {
-          navigate("/hr")
-        } else if (account === '3') {
-          navigate("/emp")
+    async function checkNetworkConnection() {
+      try {
+        const connectionMsg = await axios.get(`${url}/`);
+        if (isLogin && window.location.pathname === "/") {
+
+          if (account === '1') {
+            navigate("/admin")
+          } else if (account === '2') {
+            navigate("/hr")
+          } else if (account === '3') {
+            navigate("/emp")
+          }
+        }
+      } catch (error) {
+        if (error) {
+          navigate("/no-internet-connection");
         }
       }
     }
-    navigateToAccount()
+    checkNetworkConnection();
   }, [data]);
-
-
 
   return (
     <EssentialValues.Provider value={{ data, handleLogout, handleSubmit, loading, pass, isLogin }}>
@@ -136,6 +171,7 @@ const App = () => {
         <Route path=":who/*" element={isLogin && account === '1' ? <HRMDashboard /> : <Navigate to={"/login"} />} />
         <Route path="hr/*" element={isLogin && account === '2' ? <HRMDashboard /> : <Navigate to={"/login"} />} />
         <Route path="emp/*" element={isLogin && account === '3' ? <HRMDashboard /> : <Navigate to={"/login"} />} />
+        <Route path="no-internet-connection" element={<NoInternet />} />
       </Routes>
     </EssentialValues.Provider>
   );

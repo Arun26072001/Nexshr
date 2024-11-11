@@ -41,6 +41,7 @@ const getDataAPI = async (empId) => {
         });
 
         const data = response.data;
+
         return data;
     } catch (error) {
         return error?.response?.data?.message;
@@ -134,11 +135,15 @@ async function deleteLeave(id) {
 
 const fetchEmployeeData = async (id) => {
     try {
+        if (!token) {
+            window.location.reload();
+        }
         const response = await axios.get(`${url}/api/employee/${id}`, {
             headers: {
                 authorization: token || ""
             }
         });
+        console.log(response.data)
         return response.data;
 
     } catch (error) {

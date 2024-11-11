@@ -3,7 +3,7 @@ import { useState, useRef, useEffect } from "react";
 import "./leaveForm.css";
 import axios from "axios";
 import AddEmployeeForm from "./AddEmployeeform";
-import { fetchAllEmployees, fetchEmployeeData, fetchEmployees, getDepartments } from "./ReuseableAPI";
+import { fetchAllEmployees, fetchEmployeeData, fetchEmployees, fetchRoles, getDepartments } from "./ReuseableAPI";
 import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "react-toastify";
 import EditEmployeeform from "./EditEmployeeform";
@@ -35,9 +35,6 @@ const AddEmployee = () => {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
 
-  console.log(employeeObj);
-  
-  
   function handlePersonal() {
     if (personalRef.current) {
       const scrollDown = personalRef.current.getBoundingClientRect().top + window.scrollY;
@@ -179,7 +176,7 @@ const AddEmployee = () => {
     try {
       const employees = await fetchAllEmployees();
 
-      let filterManager = employees.filter(emp => emp.role.some((rol) => rol.RoleName === "Manager")).map(emp => emp);
+      let filterManager = employees.filter(emp => emp.position.some((pos) => pos.PositionName === "Manager")).map(emp => emp);;
 
       setManagers(filterManager);
 
@@ -188,7 +185,7 @@ const AddEmployee = () => {
     }
   };
 
-  async function fetchRoles() {
+  async function gettingRoleData() {
     try {
       const roleData = await fetchRoles();
       setRoles(roleData)
@@ -295,7 +292,7 @@ const AddEmployee = () => {
     }
     fetchDepartments();
     fetchPositions();
-    fetchRoles();
+    gettingRoleData();
     fetchCompanies();
     fetchCountries();
     fetchtimePatterns();

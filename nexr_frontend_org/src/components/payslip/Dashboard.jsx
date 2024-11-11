@@ -7,93 +7,106 @@ import Loading from '../Loader';
 import { EssentialValues } from '../../App';
 import { toast } from 'react-toastify';
 import NoDataFound from './NoDataFound';
-import Home from '../Home';
 import { TimerStates } from './HRMDashboard';
 
 const Dashboard = () => {
-    const {updateClockins} = useContext(TimerStates)
-    const account = localStorage.getItem("Account");
+    const { updateClockins } = useContext(TimerStates)
     const { handleLogout } = useContext(EssentialValues);
     const empId = localStorage.getItem("_id");
     const [leaveData, setLeaveData] = useState({});
     const [isLoading, setIsLoading] = useState(false);
     const [dailyLogindata, setDailyLoginData] = useState({})
     const [monthlyLoginData, setMonthlyLoginData] = useState({});
-    const [workedTime, setWorkedTime] = useState("00:00");
-    const [balanceTime, setBalanceTime] = useState("00:00");
 
     const gettingEmpdata = async () => {
         try {
-            if (empId) {
-                setIsLoading(true);
-                const data = await fetchEmployeeData(empId);
-                
-                if (data) {
-                    const workingHour = await getTotalWorkingHourPerDay(data.workingTimePattern.StartingTime, data.workingTimePattern.FinishingTime);
+            if (!empId) return; // Exit early if empId is not provided
 
-                    // Fetch clock-ins data
-                    const getEmpMonthPunchIns = await gettingClockinsData(empId);
+            setIsLoading(true);
 
-                    // Calculate total working hour percentage and total worked hour percentage
-                    const totalWorkingHourPercentage = (getEmpMonthPunchIns.companyTotalWorkingHour / getEmpMonthPunchIns.totalWorkingHoursPerMonth) * 100;
-                    const totalWorkedHourPercentage = (getEmpMonthPunchIns.totalEmpWorkingHours / getEmpMonthPunchIns.companyTotalWorkingHour) * 100;
-
-                    // Set the monthly login data
-                    setMonthlyLoginData({
-                        ...getEmpMonthPunchIns,
-                        totalWorkingHourPercentage,
-                        totalWorkedHourPercentage
-                    });
-                    setIsLoading(false);
-                    // Check if `empId` is available and fetch clock-in data
-                    if (empId) {
-                        const clockinsData = await getDataAPI(empId);
-                        setDailyLoginData(clockinsData);
-                    } else {
-                        console.log("No clockins ID");
-                    }
-
-                    // Set leave data with working hours
-                    setLeaveData({ ...data, workingHour });
-                } else {
-                    toast.error("Error in fetch workingtimePattern data!");
-                    setLeaveData({});
-                }
-
+            // Fetch employee data
+            const data = await fetchEmployeeData(empId);
+            if (!data) {
+                toast.error("Error in fetching workingTimePattern data!");
+                setLeaveData({});
+                return;
             }
+
+            // Calculate working hours for the day
+            const workingHour = await getTotalWorkingHourPerDay(data.workingTimePattern.StartingTime, data.workingTimePattern.FinishingTime);
+
+            // Fetch clock-ins data
+            const getEmpMonthPunchIns = await gettingClockinsData(empId);
+
+            // Calculate total working hour percentage and total worked hour percentage
+            const totalWorkingHourPercentage = (getEmpMonthPunchIns.companyTotalWorkingHour / getEmpMonthPunchIns.totalWorkingHoursPerMonth) * 100;
+            const totalWorkedHourPercentage = (getEmpMonthPunchIns.totalEmpWorkingHours / getEmpMonthPunchIns.companyTotalWorkingHour) * 100;
+
+            // Set the monthly login data
+            setMonthlyLoginData({
+                ...getEmpMonthPunchIns,
+                totalWorkingHourPercentage,
+                totalWorkedHourPercentage
+            });
+
+            // Fetch daily clock-in data
+            const clockinsData = await getDataAPI(empId);
+            console.log(clockinsData);
+
+            setDailyLoginData(clockinsData);
+
+            // Set leave data with working hours
+            setLeaveData({ ...data, workingHour });
+
         } catch (error) {
-            toast.error(error);
+            toast.error(error.message || "An error occurred while fetching employee data.");
             setLeaveData({});
+        } finally {
+            setIsLoading(false); // Ensure loading state is always updated
         }
+    };
+    console.log(dailyLogindata);
+
+    function getPadStartHourAndMin(time) {
+        console.log(time);
+
+        const [hour, min] = String(time)?.split(".").map(Number);
+
+        const padStartHour = String(hour).padStart(2, "0");
+        const paddStartMin = String(min || 0).padStart(2, "0");
+        console.log(padStartHour, paddStartMin);
+
+        return `${padStartHour}:${paddStartMin}`;
     }
 
     useEffect(() => {
         gettingEmpdata();
     }, [empId]);
     
+
     return (
         <div className='dashboard-parent'>
             <ActivityTimeTracker leaveData={leaveData} handleLogout={handleLogout} updateClockins={updateClockins} />
             {
                 isLoading ? <Loading /> :
-                    leaveData && leaveData.annualLeaveEntitlement && monthlyLoginData && leaveData && dailyLogindata ? (
+                    leaveData && leaveData?.annualLeaveEntitlement && monthlyLoginData ? (
                         <>
                             <div className="allowance row container-fluid mx-auto g-2">
                                 <div className='col-lg-3 col-md-3 col-6 my-1 text-center'>
                                     <p className='leaveIndicatorTxt'>Total leave allowance</p>
-                                    <p className='text-primary number'>{leaveData.annualLeaveEntitlement}</p>
+                                    <p className='text-primary number'>{leaveData?.annualLeaveEntitlement}</p>
                                 </div>
                                 <div className='col-lg-3 col-md-3 col-6 my-1 text-center'>
                                     <p className='leaveIndicatorTxt'>Total leave taken</p>
-                                    <p className='text-primary number'>{leaveData.totalTakenLeaveCount}</p>
+                                    <p className='text-primary number'>{leaveData?.totalTakenLeaveCount}</p>
                                 </div>
                                 <div className='col-lg-3 col-md-3 col-6 my-1 text-center'>
                                     <p className='leaveIndicatorTxt'>Total leave available</p>
-                                    <p className='text-primary number'>{Number(leaveData.annualLeaveEntitlement) - Number(leaveData.totalTakenLeaveCount)}</p>
+                                    <p className='text-primary number'>{Number(leaveData?.annualLeaveEntitlement) - Number(leaveData.totalTakenLeaveCount)}</p>
                                 </div>
                                 <div className='col-lg-3 col-md-3 col-6 my-1 text-center'>
                                     <p className='leaveIndicatorTxt'>Leave request pending</p>
-                                    <p className='text-primary number'>{leaveData.pendingLeaveRequests}</p>
+                                    <p className='text-primary number'>{leaveData?.pendingLeaveRequests}</p>
                                 </div>
                             </div>
                             <div className='container-fluid mx-auto time row g-2'>
@@ -106,11 +119,11 @@ const Dashboard = () => {
                                             <p className='sub_text'>Scheduled</p>
                                         </div>
                                         <div className='col-lg-3 col-md-3 col-4 timeLogBox'>
-                                            <p>{workedTime}</p>
+                                            <p>{(dailyLogindata?.empTotalWorkingHours)?.toFixed(2) || "00:00"}</p>
                                             <p className='sub_text'>Worked</p>
                                         </div>
                                         <div className='col-lg-3 col-md-3 col-4 timeLogBox'>
-                                            <p>{balanceTime}</p>
+                                            <p>{getPadStartHourAndMin(leaveData?.workingHour - Number(dailyLogindata?.empTotalWorkingHours)?.toFixed(2) || 0)}</p>
                                             <p className='sub_text'>Balance</p>
                                         </div>
                                     </div>
@@ -122,14 +135,14 @@ const Dashboard = () => {
                                         <div className='col-lg-6 col-md-6 col-12'>
                                             <div className='space row'>
                                                 <p className='col-lg-6 col-md-6 col-sm-6 col-6 text-start'><span className='text_gap '>Total</span></p>
-                                                <p className='col-lg-6 col-md-6 col-sm-6 col-6 text-end'><span className='value'>{monthlyLoginData.companyTotalWorkingHour} hour</span></p>
+                                                <p className='col-lg-6 col-md-6 col-sm-6 col-6 text-end'><span className='value'>{monthlyLoginData?.companyTotalWorkingHour} hour</span></p>
                                             </div>
                                             <div className="progress">
                                                 <div
                                                     className="progress-bar progress-bar-striped"
                                                     role="progressbar"
-                                                    style={{ width: `${monthlyLoginData.totalWorkingHourPercentage}%` }}
-                                                    aria-valuenow={monthlyLoginData.totalWorkingHourPercentage}
+                                                    style={{ width: `${monthlyLoginData?.totalWorkingHourPercentage}%` }}
+                                                    aria-valuenow={monthlyLoginData?.totalWorkingHourPercentage}
                                                     aria-valuemin="0"
                                                     aria-valuemax="100"
                                                 >
@@ -147,8 +160,8 @@ const Dashboard = () => {
                                                 <div
                                                     className="progress-bar progress-bar-striped"
                                                     role="progressbar"
-                                                    style={{ width: `${monthlyLoginData.totalWorkedHourPercentage}%` }}
-                                                    aria-valuenow={monthlyLoginData.totalWorkedHourPercentage}
+                                                    style={{ width: `${monthlyLoginData?.totalWorkedHourPercentage}%` }}
+                                                    aria-valuenow={monthlyLoginData?.totalWorkedHourPercentage}
                                                     aria-valuemin="0"
                                                     aria-valuemax="100"
                                                 >
@@ -159,7 +172,7 @@ const Dashboard = () => {
                                         <div className='col-lg-6 col-md-6 col-sm-6 col-12'>
                                             <div className='space row'>
                                                 <div className='col-lg-6 col-md-6 col-sm-6 col-6 text-start'><span className='text_gap'>Shortage time</span></div>
-                                                <div className='col-lg-6 col-md-6 col-sm-6 col-6 text-end'><span className='value'>{monthlyLoginData.companyTotalWorkingHour - monthlyLoginData.totalEmpWorkingHours} hour</span></div>
+                                                <div className='col-lg-6 col-md-6 col-sm-6 col-6 text-end'><span className='value'>{monthlyLoginData?.companyTotalWorkingHour - monthlyLoginData?.totalEmpWorkingHours} hour</span></div>
                                             </div>
                                             <div className="progress">
                                                 <div className="progress-bar progress-bar-striped" role="progressbar" style={{ width: "50%" }} aria-valuenow="10" aria-valuemin="0" aria-valuemax="100"></div>
@@ -178,18 +191,18 @@ const Dashboard = () => {
                                     </div>
                                 </div>
                             </div>
-                            <>
-                                {
+                            {/* {
                                     account === '1' || account === '3' ?
-                                        <Home updateClockins={updateClockins} /> : null
-                                }
-                                <NexHRDashboard updateClockins={updateClockins} />
-                            </>
+                                        <div>
+                                            <Home updateClockins={updateClockins} />
+                                            <Twotabs />
+                                        </div>
+                                        : null
+                                } */}
+                            <NexHRDashboard updateClockins={updateClockins} />
                         </>
                     ) : <NoDataFound message={"leave data not found!"} />
             }
-
-
         </div>
     );
 };
