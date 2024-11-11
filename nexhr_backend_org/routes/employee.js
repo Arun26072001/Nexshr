@@ -135,15 +135,15 @@ router.post("/", verifyAdminHR, async (req, res) => {
 
     // Check if email or phone number already exists
     const emailExists = await Employee.exists({ Email });
-    const phoneExists = await Employee.exists({ phone });
+    // const phoneExists = await Employee.exists({ phone });
 
     if (emailExists) {
       return res.status(400).json({ message: "Email already exists" });
     }
 
-    if (phoneExists) {
-      return res.status(400).json({ message: "Phone number already exists" });
-    }
+    // if (phoneExists) {
+    //   return res.status(400).json({ message: "Phone number already exists" });
+    // }
 
     // Fetch payslip data
     const payslipData = await PaySlipInfo.findOne().exec();

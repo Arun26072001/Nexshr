@@ -654,7 +654,9 @@ const AddEmployeeForm = ({ details, handleScroll, handlePersonal, handleFinancia
                         <div className="row d-flex justify-content-center my-3">
                             <div className="col-lg-6">
                                 <div className="inputLabel">Manager</div>
-                                <select name="managerId" onChange={formik.handleChange} className={`inputField ${formik.touched.managerId && formik.errors.managerId ? "error" : ""}`}>
+                                <select name="managerId" onChange={formik.handleChange} className={`inputField ${formik.touched.managerId && formik.errors.managerId ? "error" : ""}`}
+                                value={formik.values.managerId || ""}
+                                >
                                     <option >Select Manager</option>
                                     {
                                         managers.map((manager) => (
@@ -668,7 +670,9 @@ const AddEmployeeForm = ({ details, handleScroll, handlePersonal, handleFinancia
                             </div>
                             <div className="col-lg-6">
                                 <div className="inputLabel">Team Lead</div>
-                                <select name="teamLead" onChange={formik.handleChange} className={`selectInput ${formik.touched.teamLead && formik.errors.teamLead ? "error" : ""}`}>
+                                <select name="teamLead" onChange={formik.handleChange} className={`selectInput ${formik.touched.teamLead && formik.errors.teamLead ? "error" : ""}`}
+                                value={formik.values.teamLead || ""}
+                                >
                                     <option >Select TeamLead</option>
                                     {leads.map((lead) => (
                                         <option key={lead._id} value={lead._id}>{lead.FirstName}</option>
