@@ -131,7 +131,7 @@ router.get('/:id', verifyAdminHREmployee, async (req, res) => {
 
 router.post("/", verifyAdminHR, async (req, res) => {
   try {
-    const { Email, phone, basicSalary, FirstName, LastName,Password } = req.body;
+    const { Email, phone, basicSalary, FirstName, LastName, Password } = req.body;
 
     // Check if email or phone number already exists
     const emailExists = await Employee.exists({ Email });
@@ -202,10 +202,12 @@ router.post("/", verifyAdminHR, async (req, res) => {
     // updated for testing
     const employeeData = {
       ...req.body,
-      teamLead: ["665601de20a3c61c646a135f"],
-      managerId: ["6651e4a810994f1d24cf3a19"],
-      company: ["6651a5eb6115df44c0cc7151"],
+      teamLead: req.body.teamLead || ["665601de20a3c61c646a135f"],
+      managerId: req.body.managerId || ["6651e4a810994f1d24cf3a19"],
+      company: req.body.company || ["6651a5eb6115df44c0cc7151"],
       annualLeaveEntitlement: req.body.annualLeaveEntitlement || 21,
+      accountNo: "9038948932",
+      IFSCcode: "SBI920210",
       payslipFields,
     };
     // Save the employee data
