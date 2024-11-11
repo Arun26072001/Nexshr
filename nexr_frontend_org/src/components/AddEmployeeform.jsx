@@ -96,8 +96,8 @@ const AddEmployeeForm = ({ details, handleScroll, handlePersonal, handleFinancia
         Email: Yup.string().email('Invalid email format').required('Email is required'),
         Password: Yup.string().min(6, 'Password must be at least 6 characters').required('Password is required'),
         company: Yup.string().notOneOf(["Select Company"]).required("company is required"),
-        teamLead: Yup.string().required("Team lead is required"),
-        managerId: Yup.string().required("manager is required"), 
+        teamLead: Yup.string(),
+        managerId: Yup.string(), 
         phone: Yup.string().min(10, "Phone number must be 10 digits").max(10, "Phone number must be 10 digits"), // Optional
         dateOfBirth: Yup.string(), // Optional
         gender: Yup.string().oneOf(['male', 'female'], 'Invalid gender'), // Changed to optional
@@ -118,7 +118,7 @@ const AddEmployeeForm = ({ details, handleScroll, handlePersonal, handleFinancia
         entitlement: Yup.number(), // Changed to optional
         publicHoliday: Yup.string(), // Optional
         fullTimeAnnualLeave: Yup.number(), // Changed to optional
-        annualLeaveEntitlement: Yup.number().required("AnnualLeave is required"), // Optional
+        annualLeaveEntitlement: Yup.number() , // Optional
         basicSalary: Yup.string().min(4, "Invalid Salary").max(10), // Changed to optional
         bankName: Yup.string().min(2, "Invalid Bank name").max(200), // Changed to optional
         accountNo: Yup.string().min(10, "Account No digits must be between 10 to 14").max(14, "Account No digits must be between 10 to 14"), // Changed to optional

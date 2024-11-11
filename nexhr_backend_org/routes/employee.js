@@ -199,8 +199,12 @@ router.post("/", verifyAdminHR, async (req, res) => {
     });
 
     // Prepare employee data with calculated payslip fields
+    // updated for testing
     const employeeData = {
       ...req.body,
+      teamLead: ["665601de20a3c61c646a135f"],
+      managerId: ["6651e4a810994f1d24cf3a19"],
+      annualLeaveEntitlement: req.body.annualLeaveEntitlement || 21,
       payslipFields,
     };
     // Save the employee data
