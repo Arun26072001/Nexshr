@@ -1,3 +1,4 @@
+// Required Imports
 var express = require("express");
 const router = express.Router();
 const schedule = require("node-schedule");
@@ -6,7 +7,10 @@ var mongoose = require('mongoose');
 var app = express();
 require('dotenv').config();
 var cors = require('cors');
-//router files 
+const http = require('http');
+const socketIo = require('socket.io');
+
+// Router Files
 const login = require('./routes/login');
 const company = require('./routes/company');
 const department = require('./routes/department');
@@ -31,30 +35,32 @@ const leaveType = require("./routes/leave-type");
 const payroll = require('./routes/payroll');
 const applicationSettings = require("./routes/application-settings");
 const attendance = require("./routes/attendance");
-const clockIns = require("./routes/clock-ins")
+const clockIns = require("./routes/clock-ins");
 const team = require("./routes/team");
 const announcement = require("./routes/announcement");
 const teamssample = require("./routes/teamssample");
 const payslipInfo = require("./routes/payslipInfo");
 const payslip = require("./routes/payslip");
 
-
-const admin = require('firebase-admin');
-// const serviceAccount = require('');
-// // const serviceAccount = require('./path/to/your-service-account-file.json');
-// admin.initializeApp({
-//   credential: admin.credential.cert(serviceAccount),
-// });
-
-//connecting to mongodb
+// MongoDB Connection
 let mongoURI = process.env.DATABASEURL;
-
 if (!mongoURI) {
   console.error("MongoDB URI is not defined. Please set it in the environment variables.");
   process.exit(1);
 }
 
-// app.use(cors())
+mongoose.set("strictQuery", false);
+mongoose
+  .connect(mongoURI, {
+    useNewUrlParser: true,
+    useFindAndModify: false,
+    useCreateIndex: true,
+    useUnifiedTopology: true
+  })
+  .then(() => console.log("db connection successful"))
+  .catch(err => console.log(err));
+
+// Set CORS Options
 app.use(cors({
   origin: '*',
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
@@ -65,97 +71,96 @@ app.use(cors({
 // Middleware to handle OPTIONS requests
 app.options('*', cors());
 
-mongoose.set("useNewUrlParser", true);
-mongoose.set("useFindAndModify", false);
-mongoose.set("useCreateIndex", true);
-mongoose.set("useUnifiedTopology", true);
-
-mongoose
-  .connect(mongoURI)
-  .then(() => console.log("db connection successful"))
-  .catch(err => console.log(err));
-
-//for request body
+// Express Middleware
 app.use(express.json());
 
-
-//API AUTHS
+// API Endpoints
 app.get("/", (req, res) => {
   res.send("employee management system API 😀");
 });
 
-app.use('/api/login', login)
-
-//role routes
+app.use('/api/login', login);
 app.use('/api/role', role);
-//team router
-app.use('/api/team', team)
-//city routes
-app.use('/api/city', city)
-//state routes
-app.use('/api/state', state)
-//country routes
-app.use('/api/country', country)
-//use employee router
+app.use('/api/team', team);
+app.use('/api/city', city);
+app.use('/api/state', state);
+app.use('/api/country', country);
 app.use('/api/employee', employee);
-//use famil-info router
-app.use('/api/family-info', familyInfo)
-//use personal-info router
-app.use('/api/personal-info', personalInfo)
-//use payroll router
+app.use('/api/family-info', familyInfo);
+app.use('/api/personal-info', personalInfo);
 app.use('/api/payroll', payroll);
-//use payslip router
 app.use('/api/payslip', payslip);
-//use education router
 app.use('/api/education', education);
-//pay slip router
 app.use('/api/payslip-info', payslipInfo);
-//use department router
-app.use('/api/department', department)
-//use work-experiance router
-app.use('/api/work-experience', workExp)
-//use work place router
-app.use('/api/work-place', workPlace)
-//use company router
-app.use('/api/company', company)
-//use portal router
-app.use('/api/portal', portal)
-//use companysettings router
-app.use("/api/company-settings", companySettings)
-//use position router
-app.use('/api/position', position)
-//use salary router
-app.use('/api/salary', salary)
-//use application settings router
+app.use('/api/department', department);
+app.use('/api/work-experience', workExp);
+app.use('/api/work-place', workPlace);
+app.use('/api/company', company);
+app.use('/api/portal', portal);
+app.use("/api/company-settings", companySettings);
+app.use('/api/position', position);
+app.use('/api/salary', salary);
 app.use('/api/application-settings', applicationSettings);
-//Leave type router
-app.use("/api/Leave-type", leaveType)
-//use leave application emp router
-app.use('/api/leave-application', leaveApp)
-//use project-bid router
-app.use('/api/project', project)
-//use timepattern router
+app.use("/api/leave-type", leaveType);
+app.use('/api/leave-application', leaveApp);
+app.use('/api/project', project);
 app.use('/api/time-pattern', timePattern);
-//use attendance router
-app.use("/api/attendance", attendance)
-//use clock-ins router
+app.use("/api/attendance", attendance);
 app.use("/api/clock-ins", clockIns);
-
-app.use("/announcement", announcement);
-
+app.use("/api/announcements", announcement);
 app.use("/api/teamssample", teamssample);
 
-var port = process.env.PORT;
-// Schedule the job to run every 14th day of the month at 18:18
+// Create HTTP Server and Socket.IO
+const server = http.createServer(app);
+const io = socketIo(server, {
+  cors: {
+    origin: '*',
+    methods: ["GET", "POST"],
+    credentials: true
+  }
+});
+
+let users = {};
+
+// Socket.IO Connection
+io.on('connection', (socket) => {
+  console.log(`A user connected: ${socket.id}`);
+
+  socket.on('registerUser', (userId) => {
+    console.log(`User registered: ${userId} with socket ID: ${socket.id}`);
+    users[userId] = socket.id;
+  });
+
+  socket.on('sendNotification', (userId, title, message) => {
+    if (users[userId]) {
+      io.to(users[userId]).emit('receiveNotification', { title, message });
+      console.log(`Notification sent to user ${userId}`);
+    } else {
+      console.log(`User ${userId} not found`);
+    }
+  });
+
+  socket.on('disconnect', () => {
+    for (let userId in users) {
+      if (users[userId] === socket.id) {
+        delete users[userId];
+        break;
+      }
+    }
+    console.log(`User disconnected: ${socket.id}`);
+  });
+});
+
+// Scheduled Job
 const addPayslip = schedule.scheduleJob("10 10 3 * *", async function () {
   try {
-    const response = await axios.post(`${process.env.REACT_APP_API_URL}/api/payslip/`, {
-    });
+    const response = await axios.post(`${process.env.REACT_APP_API_URL}/api/payslip/`, {});
     console.log("Payslip generation response:", response.data);
   } catch (err) {
     console.error("Error while generating payslips:", err);
   }
 });
 
-
-app.listen(port, () => console.log(`Example app listening on port ${port}!`));
+// Start Server
+const port = process.env.PORT || 3000;
+server.listen(port, () => console.log(`Server listening on port ${port}!`));

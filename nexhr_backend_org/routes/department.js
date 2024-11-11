@@ -4,7 +4,7 @@ const { Department, DepartmentValidation } = require('../models/DepartmentModel'
 const { Employee } = require('../models/EmpModel');
 const Joi = require('joi');
 const { verifyAdminHR } = require('../auth/authMiddleware');
-const { path } = require('./company');
+
 
 const jwtKey = process.env.ACCCESS_SECRET_KEY;
 
