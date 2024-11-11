@@ -6,45 +6,101 @@ import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import axios from 'axios';
 import { getDepartments } from '../ReuseableAPI';
+import CommonModel from './CommonModel';
 
 export default function Department() {
     const url = process.env.REACT_APP_API_URL;
     const token = localStorage.getItem("token");
-    const [department, setDepartment] = useState({});
+    const [departmentObj, setDepartmentObj] = useState({});
     const [departments, setDepartments] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
     const [isDepartmentsDataUpdate, setIsDepartmentDataUpdate] = useState(false);
+    const [isAddDepartment, setIsAddDepartment] = useState(false);
     const navigate = useNavigate();
 
     function reloadDepartmentPage() {
         setIsDepartmentDataUpdate(!isDepartmentsDataUpdate)
     }
 
+    function modifyDepartments() {
+        setIsAddDepartment(!isAddDepartment);
+    }
+
+    function changeDepartment(e) {
+        const { name, value } = e.target;
+        setDepartmentObj((prev) => ({
+            ...prev,
+            [name]: value
+        }))
+    }
     async function addDepartment() {
         try {
-            const msg = await axios.post(url + "/api/department", department, {
+            const msg = await axios.post(url + "/api/department", departmentObj, {
                 headers: {
                     authorization: token || ""
                 }
             });
             toast.success(msg?.data?.message);
+            modifyDepartments();
+            reloadDepartmentPage();
         } catch (error) {
-            return error?.response?.data?.message
+            return toast.error(error?.response?.data?.message)
         }
     }
 
     async function deleteDepartment(id) {
         try {
-            const deleteRole = await axios.delete(`${url}/api/role/${id}`, {
+            const deleteDep = await axios.delete(`${url}/api/department/${id}`, {
                 headers: {
                     Authorization: token || ""
                 }
             });
-            toast.success(deleteRole?.data?.message);
+            toast.success(deleteDep?.data?.message);
             reloadDepartmentPage();
         } catch (error) {
             console.log(error);
             toast.error(error?.response?.data?.message)
+        }
+    }
+
+    async function editDepartment() {
+        try {
+            // Assuming the correct API endpoint for editing a department is '/api/department/${id}'
+            const response = await axios.put(`${url}/api/department/${departmentObj._id}`, departmentObj, {
+                headers: {
+                    Authorization: token || ""
+                }
+            });
+
+            // Assuming the API response contains a success message
+            toast.success(response?.data?.message);
+            modifyDepartments();
+            // Reload the department page (or trigger any necessary updates)
+            reloadDepartmentPage();
+        } catch (error) {
+            // Log the error in case of issues
+            console.error("Error editing department:", error);
+
+            // Show an error toast with the message from the API (or a generic error message if not available)
+            const errorMessage = error?.response?.data?.message || error.message || "Something went wrong";
+            toast.error(errorMessage);
+        }
+    }
+
+    async function getEditDepartmentId(id) {
+        try {
+            const department = await axios.get(`${url}/api/department/${id}`, {
+                headers: {
+                    Authorization: token || ""
+                }
+            });
+            console.log(department.data);
+
+            setDepartmentObj(department.data);
+            modifyDepartments();
+        } catch (error) {
+            console.log(error);
+            toast.error(error);
         }
     }
 
@@ -66,25 +122,24 @@ export default function Department() {
 
         fetchDepartments()
     }, [isDepartmentsDataUpdate]);
-    console.log(departments);
-
 
     return (
         isLoading ? <Loading /> :
-            <div className='dashboard-parent pt-4'>
-                <div className="row">
-                    <div className='col-lg-6 col-6'>
-                        <h5 className='text-daily'>Department</h5>
+            isAddDepartment ? <CommonModel departmentObj={departmentObj} editDepartment={editDepartment} changeDepartment={changeDepartment} isAddDepartment={isAddDepartment} addDepartment={addDepartment} modifyDepartments={modifyDepartments} /> :
+                <div className='dashboard-parent pt-4'>
+                    <div className="row">
+                        <div className='col-lg-6 col-6'>
+                            <h5 className='text-daily'>Department</h5>
+                        </div>
+                        <div className='col-lg-6 col-6 d-flex gap-2 justify-content-end'>
+                            <button className='button m-0' onClick={modifyDepartments}>+ Add Department</button>
+                        </div>
                     </div>
-                    <div className='col-lg-6 col-6 d-flex gap-2 justify-content-end'>
-                        <button className='button m-0' onClick={() => navigate(`add`)}>+ Add Department</button>
-                    </div>
+                    {
+                        departments.length > 0 ?
+                            <LeaveTable data={departments} deleteDepartment={deleteDepartment} getEditDepartmentId={getEditDepartmentId} />
+                            : <NoDataFound message={"Departments data not found"} />
+                    }
                 </div>
-                {
-                    departments.length > 0 ?
-                        <LeaveTable data={departments} deleteDepartment={deleteDepartment} />
-                        : <NoDataFound message={"Departments data not found"} />
-                }
-            </div>
     )
 }

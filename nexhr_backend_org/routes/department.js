@@ -8,13 +8,26 @@ const { verifyAdminHR } = require('../auth/authMiddleware');
 router.get("/", async (req, res) => {
   try {
     const departments = await Department.find()
-    .populate({
-      path: 'company',
-      select: '_id CompanyName' 
-    });
+      .populate({
+        path: 'company',
+        select: '_id CompanyName'
+      });
     res.send(departments);
   } catch (err) {
-    res.status(500).send({ Error: err.message });
+    res.status(500).send({ error: err.message });
+  }
+});
+
+router.get("/:id", async (req, res) => {
+  try {
+    const department = await Department.findById(req.params.id)
+      .populate({
+        path: 'company',
+        select: '_id CompanyName'
+      });
+    res.send(department);
+  } catch (err) {
+    res.status(500).send({ error: err.message });
   }
 });
 
@@ -23,21 +36,15 @@ router.post("/", verifyAdminHR, (req, res) => {
   Joi.validate(req.body, DepartmentValidation, (err, result) => {
     if (err) {
       console.log(err);
-      res.status(400).send(err.details[0].message);
+      res.status(400).send({ message: err.details[0].message });
     } else {
-      let newDepartment;
 
-      newDepartment = {
-        DepartmentName: req.body.DepartmentName,
-        company: req.body.CompanyID
-      };
-
-      Department.create(newDepartment, function (err, department) {
+      Department.create(req.body, function (err, department) {
         if (err) {
           console.log(err);
           res.status(500).send({ Error: err });
         } else {
-          res.send({message: "new department has been added!"});
+          res.send({ message: "new department has been added!" });
         }
       });
     }
@@ -46,17 +53,16 @@ router.post("/", verifyAdminHR, (req, res) => {
 });
 
 router.put("/:id", verifyAdminHR, (req, res) => {
-  Joi.validate(req.body, DepartmentValidation, (err, result) => {
+  let updateDepartment;
+  updateDepartment = {
+    DepartmentName: req.body.DepartmentName,
+    company: req.body.company
+  };
+  Joi.validate(updateDepartment, DepartmentValidation, (err, result) => {
     if (err) {
       console.log(err);
-      res.status(400).send(err.details[0].message);
+      res.status(400).send({ message: err.details[0].message });
     } else {
-      let updateDepartment;
-
-      updateDepartment = {
-        DepartmentName: req.body.DepartmentName,
-        company: req.body.CompanyID
-      };
 
       Department.findByIdAndUpdate(req.params.id, {
         $set: updateDepartment
@@ -65,9 +71,9 @@ router.put("/:id", verifyAdminHR, (req, res) => {
         department
       ) {
         if (err) {
-          res.status(500).send(err, "check url and data");
+          res.status(500).send({ message: err.message });
         } else {
-          res.send("department has been updated!");
+          res.send({ message: "department has been updated!" });
         }
       });
     }
