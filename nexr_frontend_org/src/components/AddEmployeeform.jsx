@@ -95,7 +95,7 @@ const AddEmployeeForm = ({ details, handleScroll, handlePersonal, handleFinancia
         LastName: Yup.string().required('Last Name is required'),
         Email: Yup.string().email('Invalid email format').required('Email is required'),
         Password: Yup.string().min(6, 'Password must be at least 6 characters').required('Password is required'),
-        company: Yup.string().notOneOf(["Select Company"]).required("company is required"),
+        company: Yup.string(),
         teamLead: Yup.string(),
         managerId: Yup.string(), 
         phone: Yup.string().min(10, "Phone number must be 10 digits").max(10, "Phone number must be 10 digits"), // Optional
