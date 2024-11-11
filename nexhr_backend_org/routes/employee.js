@@ -6,14 +6,6 @@ const { getDayDifference } = require('./leave-app');
 const { PaySlipInfo } = require('../models/PaySlipInfoModel');
 const nodemailer = require("nodemailer");
 
-const transporter = nodemailer.createTransport({
-  service: "gmail",
-  auth: {
-    user: process.env.MAIL,
-    pass: process.env.MAILPASSWORD
-  }
-})
-
 router.get("/", verifyAdminHR, async (req, res) => {
   try {
     const employees = await Employee.find({ Account: 3 }, "_id FirstName LastName employmentType dateOfJoining gender working code docType serialNo")
@@ -285,15 +277,23 @@ router.post("/", verifyAdminHR, async (req, res) => {
 
     // Send an email to the employee for verification
     const mailOptions = {
-      from: process.env.EMAIL,
+      from: process.env.FROM_EMAIL,
       to: Email,
       subject: "Welcome to NexsHR",
       html: htmlContent,
     };
 
+    const transporter = nodemailer.createTransport({
+      service: "gmail",
+      auth: {
+        user: process.env.FROM_MAIL,
+        pass: process.env.MAILPASSWORD
+      }
+    })
+
     transporter.sendMail(mailOptions, (err, info) => {
       console.log(process.env.MAIL, process.env.MAILPASSWORD);
-      
+
       if (err) {
         console.error("Email error:", err.message);
       } else {
