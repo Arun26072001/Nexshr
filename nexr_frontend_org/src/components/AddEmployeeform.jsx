@@ -111,7 +111,7 @@ const AddEmployeeForm = ({ details, handleScroll, handlePersonal, handleFinancia
         department: Yup.string().required("Department is Required"),
         role: Yup.string().required("Role is required"),
         description: Yup.string().min(10, "Minimum 10 characters must be in description"), // Changed to optional
-        dateOfJoining: Yup.string().required("Joining date is Required"),
+        dateOfJoining: Yup.string(),
         employmentType: Yup.string().oneOf(['full-time', 'part-time', 'contract'], 'Invalid employment type').required("Employement type is required"), // Changed to optional
         workingTimePattern: Yup.string().notOneOf(["Select Work Time Pattern"]).required("Time pattern is Required"),
         annualLeaveYearStart: Yup.date().optional().nullable(),
