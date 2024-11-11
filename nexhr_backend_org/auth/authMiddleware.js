@@ -173,7 +173,7 @@ function verifyAdmin(req, res, next) {
     });
   } else {
     // Forbidden
-    res.sendStatus(401);
+    res.status(401).send({messsage: "Can't access Auth token!"});
   }
 }
 
