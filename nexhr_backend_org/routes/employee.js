@@ -203,8 +203,6 @@ router.post("/", verifyAdminHR, async (req, res) => {
       ...req.body,
       payslipFields,
     };
-    console.log(employeeData);
-
     // Save the employee data
     const employee = await Employee.create(employeeData);
 
@@ -307,7 +305,7 @@ router.post("/", verifyAdminHR, async (req, res) => {
       return res.status(404).json({ error: "Not Found", message: err.message });
     }
 
-    return res.status(500).json({ error: "Internal Server Error", message: "An internal server error occurred." });
+    return res.status(500).json({ error: "Internal Server Error", message: err.message });
   }
 });
 

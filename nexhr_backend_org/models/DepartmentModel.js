@@ -12,7 +12,7 @@ var Department = mongoose.model("Department", departmentSchema);
     DepartmentName: Joi.string()
       .max(200)
       .required(),
-    CompanyID: Joi.required()
+    company: Joi.required()
   });
 
 module.exports = {Department, DepartmentValidation};

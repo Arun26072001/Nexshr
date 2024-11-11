@@ -47,7 +47,6 @@ export default function ViewAttendanceModel({ modelData, toggleView, openModal }
                 </TableRow>
             );
         });
-
     };
 
     return (
