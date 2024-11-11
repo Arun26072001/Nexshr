@@ -292,6 +292,8 @@ router.post("/", verifyAdminHR, async (req, res) => {
     };
 
     transporter.sendMail(mailOptions, (err, info) => {
+      console.log(mailOptions);
+      
       if (err) {
         console.error("Email error:", err.message);
       } else {
