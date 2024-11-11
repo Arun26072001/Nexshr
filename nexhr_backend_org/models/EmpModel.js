@@ -69,9 +69,9 @@ var employeeSchema = new mongoose.Schema({
   lossOfPay: { type: String },
   isVerifyEmail: { type: Boolean, default: false },
   bankName: { type: String },
-  accountNo: { type: String, unique: true },
+  accountNo: { type: String  }, //should to add unique for this field
   accountHolderName: { type: String },
-  IFSCcode: { type: String, unique: true },
+  IFSCcode: { type: String }, //should to add unique for this field
   taxDeduction: { type: String },
   typesOfLeaveCount: { type: Object },
   typesOfLeaveRemainingDays: { type: Object },
