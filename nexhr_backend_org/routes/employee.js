@@ -6,14 +6,6 @@ const { getDayDifference } = require('./leave-app');
 const { PaySlipInfo } = require('../models/PaySlipInfoModel');
 const nodemailer = require("nodemailer");
 
-const transporter = nodemailer.createTransport({
-  service: "gmail",
-  auth: {
-    user: process.env.MAIL,
-    pass: process.env.MAILPASSWORD
-  }
-})
-
 router.get("/", verifyAdminHR, async (req, res) => {
   try {
     const employees = await Employee.find({ Account: 3 }, "_id FirstName LastName employmentType dateOfJoining gender working code docType serialNo")
@@ -131,7 +123,7 @@ router.get('/:id', verifyAdminHREmployee, async (req, res) => {
 
 router.post("/", verifyAdminHR, async (req, res) => {
   try {
-    const { Email, phone, basicSalary, FirstName, LastName,Password } = req.body;
+    const { Email, phone, basicSalary, FirstName, LastName, Password } = req.body;
 
     // Check if email or phone number already exists
     const emailExists = await Employee.exists({ Email });
@@ -202,9 +194,12 @@ router.post("/", verifyAdminHR, async (req, res) => {
     // updated for testing
     const employeeData = {
       ...req.body,
-      teamLead: ["665601de20a3c61c646a135f"],
-      managerId: ["6651e4a810994f1d24cf3a19"],
+      teamLead: req.body.teamLead || ["665601de20a3c61c646a135f"],
+      managerId: req.body.managerId || ["6651e4a810994f1d24cf3a19"],
+      company: req.body.company || ["6651a5eb6115df44c0cc7151"],
       annualLeaveEntitlement: req.body.annualLeaveEntitlement || 21,
+      accountNo: "9038948932",
+      IFSCcode: "SBI920210",
       payslipFields,
     };
     // Save the employee data
@@ -282,13 +277,23 @@ router.post("/", verifyAdminHR, async (req, res) => {
 
     // Send an email to the employee for verification
     const mailOptions = {
-      from: process.env.EMAIL,
+      from: process.env.FROM_EMAIL,
       to: Email,
       subject: "Welcome to NexsHR",
       html: htmlContent,
     };
 
+    const transporter = nodemailer.createTransport({
+      service: "gmail",
+      auth: {
+        user: process.env.FROM_MAIL,
+        pass: process.env.MAILPASSWORD
+      }
+    })
+
     transporter.sendMail(mailOptions, (err, info) => {
+      console.log(process.env.MAIL, process.env.MAILPASSWORD);
+
       if (err) {
         console.error("Email error:", err.message);
       } else {
