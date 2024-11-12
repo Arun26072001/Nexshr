@@ -587,3 +587,20 @@ textarea.form-control {
   height: 100px;
   object-fit: cover;
 }
+
+.searchInputIcon {
+  display: flex;
+  justify-content: flex-start;
+  padding: 16px;
+}
+
+.searchInputIcon input[type="text"] {
+  background-image: url(''); /* Add icon URL or path */
+  background-position: 15px center;
+  background-repeat: no-repeat;
+  padding: 12px 20px 12px 40px;
+  border: 1px solid #c2c2c2;
+  border-radius: 4px;
+  width: 300px; /* Adjust as needed */
+  font-size: 16px;
+}
