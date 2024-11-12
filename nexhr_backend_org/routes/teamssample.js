@@ -13,7 +13,7 @@ const teams = [
                 label: 'Designing',
                 value: 'designing',
                 children: [
-                    { label: 'Alice', value: 'alice',id:1 },
+                    { label: 'Alice', value: 'alice',id:'1' },
                     { label: 'Bob', value: 'bob',id:2 },
                     { label: 'Charlie', value: 'charlie',id:3}
                 ]

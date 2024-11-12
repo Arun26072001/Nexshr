@@ -477,6 +477,7 @@ const AnnouncementComponent = () => {
     const [team_member, setTeam_member] = useState([]);
     const token = localStorage.getItem('token');
     const Account = localStorage.getItem('Account');
+    const _id = localStorage.getItem('_id');
     
     const headers = {
         'Content-Type': 'application/json',
@@ -491,16 +492,21 @@ const AnnouncementComponent = () => {
         const fetchData = async () => {
             try {
                 const response = await axios.get(
-                    `${process.env.REACT_APP_API_URL}/api/teamssample`, 
-                    { headers }
+                    `${process.env.REACT_APP_API_URL}/api/team/user`, 
+                   { headers: {
+                        authorization: token || ""
+                   }},
                 );
-                setTeam_member(response?.data?.teams || []);
+                setTeam_member(response?.data?.Team || []);
             } catch (error) {
                 console.error('Error fetching team members:', error);
             }
         };
         fetchData();
     }, []);
+
+
+    
 
     // Send push notifications after form submission
     
@@ -553,7 +559,7 @@ const AnnouncementComponent = () => {
     
     // Register for notifications and subscribe to socket events
     useEffect(() => {
-        const userId = '7'; // Replace with actual user ID
+        const userId = "665601de20a3c61c646a135f"; // Replace with actual user ID
         socket.emit('registerUser', userId);
 
         // Receive notifications from the server
