@@ -1,20 +1,20 @@
 import axios from 'axios';
 import React, { useEffect, useState } from 'react';
-import { Modal, Button, Input } from 'rsuite';
-import 'rsuite/dist/rsuite.min.css'; // Make sure to import the CSS
+import { Modal, Button } from 'rsuite';
+import 'rsuite/dist/rsuite.min.css';
 
 const CommonModel = ({
-    changeDepartment,
-    isAddDepartment,
-    departmentObj,
-    modifyDepartments,
-    addDepartment,
-    editDepartment
+    dataObj,
+    editData,
+    changeData,
+    isAddData,
+    addData,
+    modifyData,
+    type // New prop to determine if it's for "department" or "position"
 }) => {
     const [companies, setCompanies] = useState([]);
     const url = process.env.REACT_APP_API_URL;
     const token = localStorage.getItem("token");
-    console.log(departmentObj?.company[0]?.CompanyName);
 
     // Fetch companies data
     const fetchCompanies = async () => {
@@ -36,55 +36,57 @@ const CommonModel = ({
     }, []);
 
     return (
-        <Modal open={isAddDepartment} size={'sm'} backdrop="static">
+        <Modal open={isAddData} size="sm" backdrop="static">
             <Modal.Header>
                 <Modal.Title>
-                    {departmentObj?._id ? "Edit Department" : "Add a Department"}
+                    {dataObj?._id ? `Edit ${type}` : `Add a ${type}`}
                 </Modal.Title>
             </Modal.Header>
 
             <Modal.Body>
                 <div className="modelInput">
-                    <p>Department Name</p>
+                    <p>{type} Name</p>
                     <input
                         className='form-control'
                         type="text"
-                        name="DepartmentName"
-                        value={departmentObj?.DepartmentName || ""}
-                        onChange={(e) => changeDepartment(e)}
-                        placeholder="Please enter a Department name..."
+                        name={`${type}Name`}
+                        value={dataObj?.[`${type}Name`] || ""}
+                        onChange={changeData}
+                        placeholder={`Please enter a ${type} name...`}
                     />
                 </div>
-                <div className="modelInput">
-                    <p>Company</p>
-                    <select
-                        className='form-control'
-                        name="company"
-                        value={departmentObj?.company[0]?._id || departmentObj.company || ""}
-                        onChange={(e) => changeDepartment(e)}
-                    >
-                        <option value="">Select a Company</option>
-                        {
-                            companies.map((company) => (
+                {type === "Department" || type === "Position" ? (
+                    <div className="modelInput">
+                        <p>Company</p>
+                        <select
+                            className='form-control'
+                            name="company"
+                            value={
+                                Array.isArray(dataObj?.company) ? dataObj.company[0]?._id : dataObj?.company || ""
+                            }
+                            onChange={changeData}
+                        >
+                            <option value="">Select a Company</option>
+                            {companies.map((company) => (
                                 <option key={company._id} value={company._id}>
                                     {company.CompanyName}
                                 </option>
-                            ))
-                        }
-                    </select>
-                </div>
+                            ))}
+                        </select>
+                    </div>
+                ) : null}
             </Modal.Body>
 
             <Modal.Footer>
-                <Button onClick={modifyDepartments} appearance="subtle">
+                <Button onClick={modifyData} appearance="subtle">
                     Close
                 </Button>
                 <Button
-                    onClick={departmentObj?._id ? editDepartment : addDepartment}
+                    onClick={dataObj?._id ? editData : addData}
                     appearance="primary"
-                    disabled={!departmentObj?.DepartmentName || !departmentObj?.company}
+                    disabled={!dataObj?.[`${type}Name`] || (type === "department" && !dataObj?.company)}
                 >
-                    {departmentObj?._id ? "Update" : "Save"}
+                    {dataObj?._id ? "Update" : "Save"}
                 </Button>
             </Modal.Footer>
         </Modal>

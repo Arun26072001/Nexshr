@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const Joi = require('joi');
-const { verifyAdminHREmployee } = require("../auth/authMiddleware");
+const { verifyAdminHREmployee, verifyAdminHR } = require("../auth/authMiddleware");
 const { clockInsValidation, ClockIns } = require("../models/ClockInsModel");
 const { Employee } = require("../models/EmpModel");
 const { getDayDifference } = require("./leave-app");
@@ -386,6 +386,15 @@ router.get("/employee/:empId", verifyAdminHREmployee, async (req, res) => {
         res.status(500).send({ message: "Server error", details: error.message });
     }
 });
+
+router.get("/", verifyAdminHR, async (req, res) => {
+    try {
+        const attendanceData = await ClockIns.find({}).populate({ path: "employee", select: "FirstName LastName" });
+        res.send(attendanceData);
+    } catch (error) {
+        res.status(500).send({ message: error.message })
+    }
+})
 
 router.put("/:id", verifyAdminHREmployee, (req, res) => {
     let body = req.body;

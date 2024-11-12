@@ -125,7 +125,15 @@ export default function Department() {
 
     return (
         isLoading ? <Loading /> :
-            isAddDepartment ? <CommonModel departmentObj={departmentObj} editDepartment={editDepartment} changeDepartment={changeDepartment} isAddDepartment={isAddDepartment} addDepartment={addDepartment} modifyDepartments={modifyDepartments} /> :
+            isAddDepartment ? <CommonModel
+                dataObj={departmentObj}
+                editData={editDepartment}
+                changeData={changeDepartment}
+                isAddData={isAddDepartment}
+                addData={addDepartment}
+                modifyData={modifyDepartments}
+                type="Department"
+                /> :
                 <div className='dashboard-parent pt-4'>
                     <div className="row">
                         <div className='col-lg-6 col-6'>
