@@ -25,10 +25,10 @@ const Announce = () => {
 
             <div className='tabline mt-3 p-4'>
 
-                <div class="row"><div class="col-lg-6 searchInputIcon">
+                {/* <div class="row"><div class="col-lg-6 searchInputIcon">
                     <input type="text" class="payrunInput" placeholder="Search" />
-                    </div>
-                    </div>
+                    </div> */}
+                    {/* </div> */}
 
                 <div className='profiles mt-3'>
 

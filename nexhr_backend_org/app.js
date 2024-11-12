@@ -43,6 +43,7 @@ const payslipInfo = require("./routes/payslipInfo");
 const payslip = require("./routes/payslip");
 const userPermission = require("./routes/user-permission");
 const pageAuth = require("./routes/page-auth");
+const organization = require("./routes/organization");
 
 // MongoDB Connection
 const mongoURI = process.env.DATABASEURL;
@@ -56,6 +57,7 @@ mongoose
   .connect(mongoURI, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
+    
   })
   .then(() => console.log("db connection successful"))
   .catch(err => console.log(err));
@@ -118,6 +120,7 @@ app.use("/api/announcements", announcement);
 app.use("/api/teamssample", teamssample);
 app.use("/api/user-permission", userPermission);
 app.use("/api/page-auth", pageAuth);
+app.use("/api/org", organization);
 
 // Create HTTP Server and Socket.IO
 const server = http.createServer(app);

@@ -155,7 +155,26 @@ router.post('/', async (req, res) => {
     res.status(500).json({ error: 'Error creating announcement', details: error.message });
   }
 });
-
+// GET route to retrieve all announcements
+router.get('/', async (req, res) => {
+  try {
+    // Use .find() to get all announcements from the database
+    const announcements = await Announcement.find();
+    
+    // Send the announcements with custom response structure
+    res.status(200).json({
+      status: true,
+      status_code: 200,
+      Team: announcements
+    });
+  } catch (error) {
+    console.error('Error retrieving announcements:', error);
+    res.status(500).json({
+      error: 'Error retrieving announcements',
+      details: error.message
+    });
+  }
+});
 module.exports = router;
 
 
