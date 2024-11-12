@@ -5,6 +5,9 @@ const { Employee } = require('../models/EmpModel');
 const Joi = require('joi');
 const { verifyAdminHR } = require('../auth/authMiddleware');
 
+
+const jwtKey = process.env.ACCCESS_SECRET_KEY;
+
 router.get("/", async (req, res) => {
   try {
     const departments = await Department.find()

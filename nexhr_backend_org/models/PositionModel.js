@@ -16,7 +16,7 @@ var positionSchema = new mongoose.Schema({
       PositionName: Joi.string()
       .max(200)
       .required(),
-      CompanyID: Joi.required()
+      company: Joi.required()
     });
     
     var Position = mongoose.model("Position", positionSchema);
