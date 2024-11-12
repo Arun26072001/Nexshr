@@ -20,6 +20,48 @@ router.get("/",verifyAdminHR , async(req, res)=>{
         res.status(500).send({message: "internal server error", details: err.message});
     }
 })
+router.get("/user", verifyAdminHR, async (req, res) => {
+    try {
+      const teams = await Team.find()
+        .populate({
+          path: "employees", // Populate employees field
+          select: "_id FirstName LastName", // Select only required fields
+        });
+  
+      // Format each team and its employees
+      const teamData = teams.map((team) => ({
+        label: team.teamName, // Set teamName for the team label
+        value: team.teamName, // Set teamName for the team value
+        children: team.employees.map((employee) => ({
+          label: `${employee.FirstName} ${employee.LastName}`, // Full name for employee label
+          value: employee.FirstName.toLowerCase(), // First name for employee value
+          id: employee._id.toString(), // MongoDB _id as employee id
+        })),
+      }));
+  
+      // Create a "Select All" option that includes all teams and employees
+      const selectAllOption = {
+        label: 'Select All',
+        value: 'select-all',
+        children: teamData,
+      };
+  
+      // Add "Select All" option at the beginning of the response
+      const formattedTeams = [selectAllOption, ...teamData];
+  
+      // Send the response back with status, status_code, and Team array
+      res.status(200).json({
+        status: true,
+        status_code: 200,
+        Team: formattedTeams
+      });
+  
+    } catch (err) {
+      console.error(err);
+      res.status(500).send({ message: "Internal server error", details: err.message });
+    }
+  });
+  
 
 router.get("/:id", verifyAdminHR, async(req, res)=>{
     try{
