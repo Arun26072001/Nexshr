@@ -1,6 +1,7 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const Joi = require('joi');
+const { verifyAdminHR, verifyAdminHREmployee } = require('../auth/authMiddleware');
 // const admin = require('firebase-admin');
 
 const router = express.Router();
@@ -28,7 +29,7 @@ const announcementValidationSchema = Joi.object({
 
 
 // POST route to create an announcement
-router.post('/', async (req, res) => {
+router.post('/', verifyAdminHR, async (req, res) => {
   const { error, value } = announcementValidationSchema.validate(req.body);
   if (error) {
     return res.status(400).json({ error: error.details[0].message });
@@ -54,6 +55,8 @@ router.post('/', async (req, res) => {
   }
 });
 module.exports = router;
+
+
 
 
 

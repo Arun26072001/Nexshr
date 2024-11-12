@@ -289,7 +289,6 @@ export default function HRMDashboard() {
             const data = await gettingClockinsData(empId);
             if (data) {
                 setAttendanceForSummary(data);
-                setAttendanceData(data.clockIns);
             } else {
                 toast.error("Error in fetch attendance Data");
             }
@@ -301,8 +300,24 @@ export default function HRMDashboard() {
         }
     }, [empId]);
 
+    const getAttendanceData = async () => {
+        try {
+            const empOfAttendances = await axios.get(`${url}/api/clock-ins/`, {
+                headers: {
+                    Authorization: token || ""
+                }
+            });
+            setAttendanceData(empOfAttendances.data);
+        } catch (error) {
+            console.error(error);
+        }
+    }
+
     useEffect(() => {
         getClocknsData();
+        if (Account === "1" || Account === "2") {
+            getAttendanceData()
+        }
     }, [getClocknsData]);
 
 

@@ -1,89 +1,148 @@
 import React, { useEffect, useState } from 'react';
-import LeaveTable from '../LeaveTable';
 import NoDataFound from '../payslip/NoDataFound';
 import Loading from '../Loader';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import axios from 'axios';
-import { getPositions } from '../ReuseableAPI';
+import CommonModel from './CommonModel';
+import LeaveTable from '../LeaveTable';
 
 export default function Position() {
     const url = process.env.REACT_APP_API_URL;
     const token = localStorage.getItem("token");
-    const [position, setPosition] = useState({});
+    const [positionObj, setPositionObj] = useState({});
     const [positions, setPositions] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
     const [isPositionsDataUpdate, setIsPositionsDataUpdate] = useState(false);
+    const [isAddPosition, setIsAddPosition] = useState(false);
     const navigate = useNavigate();
 
     function reloadPositionPage() {
         setIsPositionsDataUpdate(!isPositionsDataUpdate);
     }
 
+    function modifyPositions() {
+        setIsAddPosition(!isAddPosition);
+    }
+
+    function changePosition(e) {
+        const { name, value } = e.target;
+        setPositionObj((prev) => ({
+            ...prev,
+            [name]: value,
+        }));
+    }
+
     async function addPosition() {
         try {
-            const msg = await axios.post(`${url}/api/position`, position, {
+            const msg = await axios.post(url + "/api/position", positionObj, {
                 headers: {
-                    authorization: token || ""
+                    Authorization: token || ""
                 }
             });
             toast.success(msg?.data?.message);
+            modifyPositions();
+            reloadPositionPage();
         } catch (error) {
-            toast.error(error?.response?.data?.message);
+            toast.error(error?.response?.data?.message || "Failed to add position");
         }
     }
 
     async function deletePosition(id) {
         try {
-            const deleteResponse = await axios.delete(`${url}/api/position/${id}`, {
+            const deletePos = await axios.delete(`${url}/api/position/${id}`, {
                 headers: {
                     Authorization: token || ""
                 }
             });
-            toast.success(deleteResponse?.data?.message);
+            toast.success(deletePos?.data?.message);
             reloadPositionPage();
         } catch (error) {
-            console.log(error);
-            toast.error(error?.response?.data?.message);
+            console.error("Error deleting position:", error);
+            toast.error(error?.response?.data?.message || "Failed to delete position");
+        }
+    }
+
+    async function editPosition() {
+        try {
+            const response = await axios.put(`${url}/api/position/${positionObj._id}`, positionObj, {
+                headers: {
+                    Authorization: token || ""
+                }
+            });
+            toast.success(response?.data?.message);
+            modifyPositions();
+            reloadPositionPage();
+        } catch (error) {
+            console.error("Error editing position:", error);
+            const errorMessage = error?.response?.data?.message || error.message || "Something went wrong";
+            toast.error(errorMessage);
+        }
+    }
+
+    async function getEditPositionId(id) {
+        try {
+            const position = await axios.get(`${url}/api/position/${id}`, {
+                headers: {
+                    Authorization: token || ""
+                }
+            });
+            setPositionObj(position.data);
+            modifyPositions();
+        } catch (error) {
+            console.error("Error fetching position:", error);
+            toast.error("Failed to load position data");
         }
     }
 
     useEffect(() => {
-        async function fetchPositions() {
+        const fetchPositions = async () => {
             setIsLoading(true);
             try {
-              const positions = await axios.get(url + "/api/position", {
-                headers: {
-                  authorization: token || ""
-                }
-              });
-              setPositions(positions.data);
-        
-            } catch (err) {
-              console.log(err.data);
+                const response = await axios.get(url + "/api/position", {
+                    headers: {
+                        Authorization: token || ""
+                    }
+                });
+                setPositions(response.data);
+            } catch (error) {
+                console.error("Error fetching positions:", error);
+                toast.error("Failed to load positions data");
             }
             setIsLoading(false);
-          }
+        };
 
         fetchPositions();
     }, [isPositionsDataUpdate]);
 
     return (
         isLoading ? <Loading /> :
-            <div className='dashboard-parent pt-4'>
-                <div className="row">
-                    <div className='col-lg-6 col-6'>
-                        <h5 className='text-daily'>Position</h5>
+            isAddPosition ? (
+                <CommonModel
+                    dataObj={positionObj}
+                    editData={editPosition}
+                    changeData={changePosition}
+                    isAddData={isAddPosition}
+                    addData={addPosition}
+                    modifyData={modifyPositions}
+                    type="Position"
+                />
+            ) : (
+                <div className='dashboard-parent pt-4'>
+                    <div className="row">
+                        <div className='col-lg-6 col-6'>
+                            <h5 className='text-daily'>Position</h5>
+                        </div>
+                        <div className='col-lg-6 col-6 d-flex gap-2 justify-content-end'>
+                            <button className='button m-0' onClick={modifyPositions}>+ Add Position</button>
+                        </div>
                     </div>
-                    <div className='col-lg-6 col-6 d-flex gap-2 justify-content-end'>
-                        <button className='button m-0' onClick={() => navigate(`add`)}>+ Add Position</button>
-                    </div>
+                    {
+                        positions.length > 0 ?
+                            <LeaveTable data={positions} deletePosition={deletePosition} getEditPositionId={getEditPositionId} />
+                            : <NoDataFound message={"Position data not found"} />
+                    }
                 </div>
-                {
-                    positions.length > 0 ?
-                        <LeaveTable data={positions} deleteDepartment={deletePosition} />
-                        : <NoDataFound message={"Positions data not found"} />
-                }
-            </div>
+            )
     );
 }
