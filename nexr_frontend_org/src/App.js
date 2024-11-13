@@ -125,7 +125,7 @@ const App = () => {
   useEffect(() => {
     localStorage.setItem("isStartLogin", isStartLogin);
     localStorage.setItem("isStartActivity", isStartActivity);
-}, [isStartLogin, isStartActivity]);
+  }, [isStartLogin, isStartActivity]);
 
   useEffect(() => {
     async function checkNetworkConnection() {
@@ -149,6 +149,15 @@ const App = () => {
     }
     checkNetworkConnection();
   }, [data]);
+
+  // window.addEventListener("beforeunload", function (e) {
+  //   // Display the confirmation dialog only if necessary
+  //   if (isStartLogin || isStartActivity) {
+  //     e.preventDefault(); // Required for some browsers
+  //     e.returnValue = ""; // Required for modern browsers to show the confirmation dialog
+  //     toast.warning("You can't close the tab until the timer stops.");
+  //   }
+  // });
 
   return (
     <EssentialValues.Provider value={{ data, handleLogout, handleSubmit, loading, pass, isLogin, isStartLogin, setIsStartLogin, isStartActivity, setIsStartActivity }}>

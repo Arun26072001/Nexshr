@@ -537,7 +537,7 @@ input::-webkit-inner-spin-button {
     position: relative;
     display: flex;
     flex-direction: column;
-    width: 100%;
+    width: fit-content;
     pointer-events: auto;
     background-color: #fff;
     background-clip: padding-box;
@@ -590,7 +590,7 @@ textarea.form-control {
 
 .searchInputIcon {
   display: flex;
-  justify-content: flex-start;
+  justify-content: flex-end;
   padding: 16px;
 }
 

@@ -157,7 +157,7 @@ router.get("/:id", verifyAdminHREmployee, async (req, res) => {
             });
 
         // const timeData = await ClockIns.findById(req.params.id).populate({path: "employee", select: "_id FirstName LastName"});
-        if (timeData.clockIns.length === 0) {
+        if (timeData?.clockIns?.length === 0) {
             return res.status(404).send({ message: "Please Login!" });
         } else {
             const activities = ["login", "meeting", "morningBreak", "lunch", "eveningBreak", "event"];

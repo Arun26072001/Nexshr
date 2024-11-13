@@ -155,6 +155,8 @@ li.nav-item.active {
   font-weight: 700;
   padding: 7px 10px;
   line-height: 24px;
+  display: flex;
+  align-items: center;
 }
 
 .leaveDateParent {

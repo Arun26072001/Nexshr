@@ -5,6 +5,48 @@ const { verifyHR, verifyAdminHREmployee, verifyAdminHR } = require('../auth/auth
 const { getDayDifference } = require('./leave-app');
 const { PaySlipInfo } = require('../models/PaySlipInfoModel');
 const nodemailer = require("nodemailer");
+const EmpModel = require("../models/EmpModel");
+const { Org } = require('../models/OrganizationModel');
+const mongoose = require("mongoose");
+
+const employeeModels = {};
+
+function getEmployeeModel(orgName) {
+  // If model already exists in the object, return it; otherwise, create it
+  if (!employeeModels[orgName]) {
+    employeeModels[orgName] = mongoose.model(`${orgName}Employee`, EmpModel.employeeSchema);
+  } console.log(employeeModels);
+
+  return employeeModels[orgName];
+}
+
+router.post("/:id", async (req, res) => {
+  try {
+    // Fetch organization data
+    const orgData = await Org.findById(req.params.id, "orgName");
+
+    if (!orgData) {
+      return res.status(404).send({ error: "Organization data not found!" });
+    }
+
+    const { orgName } = orgData;
+    console.log("Organization Name:", orgName);
+
+    // Get or create the model for this organization
+    const OrgEmployeeModel = getEmployeeModel(orgName);
+    console.log(OrgEmployeeModel);
+
+    // Now you can use OrgEmployeeModel to add or query employees for this org
+    // Example: adding a new employee
+    // const newEmployee = new OrgEmployeeModel(req.body);
+    // await newEmployee.save();
+
+    // res.status(201).send({ message: "Employee added successfully", employee: newEmployee });
+  } catch (error) {
+    console.error("Error:", error);
+    res.status(500).send({ error: "Internal Server Error" });
+  }
+});
 
 router.get("/", verifyAdminHR, async (req, res) => {
   try {
@@ -119,7 +161,6 @@ router.get('/:id', verifyAdminHREmployee, async (req, res) => {
     res.status(500).send({ details: err.message });
   }
 });
-
 
 router.post("/", verifyAdminHR, async (req, res) => {
   try {
@@ -317,7 +358,6 @@ router.post("/", verifyAdminHR, async (req, res) => {
     return res.status(500).json({ error: "Internal Server Error", message: err.message });
   }
 });
-
 
 router.put("/:id", verifyHR, async (req, res) => {
   try {

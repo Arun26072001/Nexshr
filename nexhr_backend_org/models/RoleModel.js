@@ -24,3 +24,8 @@ module.exports = {
   RoleAndPermission,
   RoleAndPermissionValidation
 };
+
+
+module.exports.AddNewRoleCollection = function(orgName) {
+  return mongoose.model(orgName+"role", RoleAndPermissionSchema)
+}

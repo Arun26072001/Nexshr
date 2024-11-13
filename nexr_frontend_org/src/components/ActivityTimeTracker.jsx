@@ -3,6 +3,7 @@ import "./ClockInsStyle.css";
 import CustomDropdown from './CustomDropDown';
 import PowerSettingsNewRoundedIcon from '@mui/icons-material/PowerSettingsNewRounded';
 import { TimerStates } from './payslip/HRMDashboard';
+import { toast } from 'react-toastify';
 
 const ActivityTimeTracker = () => {
     const { startActivityTimer, stopActivityTimer, workTimeTracker, isStartActivity, timeOption } = useContext(TimerStates);
@@ -56,12 +57,9 @@ const ActivityTimeTracker = () => {
         }
     }
 
-    // // Stop timer when isStartActivity changes to false
-    // useEffect(() => {
-    //     if (!isStartActivity) {
-    //         stopIt();  // Stop the timer if the activity stops
-    //     }
-    // }, [isStartActivity]);
+    function plsPunchIn() {
+        return toast.warning("Please Punchin!")
+    }
 
     // Start timer when the activity starts
     useEffect(() => {
@@ -109,7 +107,7 @@ const ActivityTimeTracker = () => {
                             className={`btn btn-outline-${isStartActivity ? "success" : "danger"}`}
                             style={{ padding: "10px 15px" }}
                             title={isStartActivity ? "Stop" : "Start"}
-                            onClick={isStartActivity ? stopIt : startIt}
+                            onClick={workTimeTracker?._id ? (isStartActivity ? stopIt : startIt) : (plsPunchIn)}
                             id="startActivityTimerBtn"
                         >
                             <PowerSettingsNewRoundedIcon />

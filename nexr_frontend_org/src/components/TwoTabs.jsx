@@ -98,8 +98,6 @@ export default function Twotabs() {
     const gettingLeaveRequests = async () => {
       if (empId) {
         const leaveReqs = await fetchLeaveRequests(empId);
-        console.log(leaveReqs);
-
         if (leaveReqs?.requests?.leaveApplication?.length > 0) {
           setLeaveRequests(leaveReqs.requests.leaveApplication);
 
