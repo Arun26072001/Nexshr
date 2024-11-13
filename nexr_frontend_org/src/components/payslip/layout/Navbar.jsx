@@ -63,8 +63,6 @@ export default function Navbar() {
 
     useEffect(() => {
         if (isStartLogin) {
-            console.log("starting login timer");
-
             startTimer();
         } else if (!isStartLogin) {
             stopTimer();

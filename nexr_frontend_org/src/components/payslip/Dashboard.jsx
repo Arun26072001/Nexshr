@@ -65,17 +65,12 @@ const Dashboard = () => {
             setIsLoading(false); // Ensure loading state is always updated
         }
     };
-    console.log(dailyLogindata);
 
     function getPadStartHourAndMin(time) {
-        console.log(time);
-
         const [hour, min] = String(time)?.split(".").map(Number);
 
         const padStartHour = String(hour).padStart(2, "0");
         const paddStartMin = String(min || 0).padStart(2, "0");
-        console.log(padStartHour, paddStartMin);
-
         return `${padStartHour}:${paddStartMin}`;
     }
 
