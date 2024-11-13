@@ -38,7 +38,7 @@ export const LeaveStates = createContext(null);
 export const TimerStates = createContext(null);
 
 export default function HRMDashboard() {
-    const { data } = useContext(EssentialValues);
+    const { data, isStartLogin, isStartActivity, setIsStartLogin, setIsStartActivity } = useContext(EssentialValues);
     const strPermissionData = localStorage.getItem("userPermissions");
     const userPermissions = JSON.parse(strPermissionData);
     const [attendanceData, setAttendanceData] = useState([]);
@@ -56,8 +56,8 @@ export default function HRMDashboard() {
     const [daterangeValue, setDaterangeValue] = useState("");
     const [isEditEmp, setIsEditEmp] = useState(false);
     const [timeOption, setTimeOption] = useState(localStorage.getItem("timeOption") || "meeting");
-    const [isStartLogin, setIsStartLogin] = useState(localStorage.getItem("isStartLogin") === "false" ? false : localStorage.getItem("isStartLogin") === "true" ? true : false);
-    const [isStartActivity, setIsStartActivity] = useState(localStorage.getItem("isStartActivity") === "false" ? false : localStorage.getItem("isStartActivity") === "true" ? true : false);
+    // const [isStartLogin, setIsStartLogin] = useState(localStorage.getItem("isStartLogin") === "false" ? false : localStorage.getItem("isStartLogin") === "true" ? true : false);
+    // const [isStartActivity, setIsStartActivity] = useState(localStorage.getItem("isStartActivity") === "false" ? false : localStorage.getItem("isStartActivity") === "true" ? true : false);
     const navigate = useNavigate();
     const [reloadRole, setReloadRole] = useState(false);
     const currentDate = new Date();
@@ -102,8 +102,6 @@ export default function HRMDashboard() {
     }
 
     const startLoginTimer = async () => {
-        console.log("initial call to start");
-
         const updatedState = {
             ...workTimeTracker,
             login: {
@@ -122,7 +120,6 @@ export default function HRMDashboard() {
                     localStorage.setItem("isStartLogin", true);
                     updateClockins();
                 } else {
-
                     return toast.warning("You have already started work")
                 }
 
@@ -152,8 +149,6 @@ export default function HRMDashboard() {
     };
 
     const stopLoginTimer = async () => {
-        console.log("try to stop");
-        console.log(currentTime);
 
         const updatedState = {
             ...workTimeTracker,
@@ -177,8 +172,6 @@ export default function HRMDashboard() {
     // console.log(workTimeTracker);
 
     const startActivityTimer = async () => {
-        console.log("initial call to stop");
-
         const updatedState = {
             ...workTimeTracker,
             [timeOption]: {
