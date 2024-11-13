@@ -645,6 +645,8 @@ const AnnouncementComponent = () => {
             );
         }
     };
+
+
     // Helper function to find user ID by value
     const findUserIdByValue = (value) => {
         for (const team of team_member) {
@@ -658,6 +660,7 @@ const AnnouncementComponent = () => {
         }
         return null; // Return null if user not found
     };
+    console.log("Single user selection:", selectedUsers, "Found ID:", findUserIdByValue(selectedUsers[0]));
 
     // Helper function to get all user IDs from the teams structure
     const getAllUserIdsFromTeams = (teams) => {

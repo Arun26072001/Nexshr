@@ -47,7 +47,7 @@ router.get("/user", verifyAdminHR, async (req, res) => {
       };
   
       // Add "Select All" option at the beginning of the response
-      const formattedTeams = [selectAllOption, ...teamData];
+      const formattedTeams = [selectAllOption];
   
       // Send the response back with status, status_code, and Team array
       res.status(200).json({

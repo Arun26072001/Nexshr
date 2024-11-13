@@ -76,21 +76,30 @@
 // module.exports = router;
 const express = require('express');
 const mongoose = require('mongoose');
-const Joi = require('joi');// Ensure the path is correct
+const Joi = require('joi');
 
 const router = express.Router();
 
-// Schema and Model for Announcement
+// Announcement Schema and Model
 const announcementSchema = new mongoose.Schema({
   title: { type: String, required: true, trim: true },
   startDate: { type: Date, required: true },
   endDate: { type: Date, required: true },
   selectTeamMembers: [String],
   message: { type: String, required: true, trim: true },
-  role: { type: String, required: true }
+  role: { type: String, required: true },
+  announcementId: { type: Number, required: true, unique: true }
 });
 
 const Announcement = mongoose.model('Announcement', announcementSchema);
+
+// Counter Schema and Model for tracking the next announcementId
+const counterSchema = new mongoose.Schema({
+  name: { type: String, required: true, unique: true },
+  value: { type: Number, required: true }
+});
+
+const Counter = mongoose.model('Counter', counterSchema);
 
 // Joi Validation Schema for Announcement
 const announcementValidationSchema = Joi.object({
@@ -102,52 +111,51 @@ const announcementValidationSchema = Joi.object({
   role: Joi.string().valid('1', '2').required()
 });
 
-// POST route to create an announcement
-router.post('/', async (req, res) => {
-  const { title, startDate, endDate, message, selectTeamMembers, role } = req.body;
+// Initialize the counter document if it doesn't exist
+async function initializeCounter() {
+  const counter = await Counter.findOne({ name: 'announcementId' });
+  if (!counter) {
+    await new Counter({ name: 'announcementId', value: 1 }).save();
+  }
+}
 
-  // Validate the request body
-  const { error, value } = announcementValidationSchema.validate(req.body);
+initializeCounter(); // Call this at the start of the application
+
+// Function to get the next announcementId with retry mechanism
+async function getNextAnnouncementId() {
+  while (true) {
+    // Find and increment the counter atomically
+    const counter = await Counter.findOneAndUpdate(
+      { name: 'announcementId' },
+      { $inc: { value: 1 } },
+      { new: true }
+    );
+
+    // Check if the incremented announcementId already exists
+    const existingAnnouncement = await Announcement.findOne({ announcementId: counter.value });
+    if (!existingAnnouncement) {
+      return counter.value;
+    }
+  }
+}
+
+// POST route to create a new announcement
+router.post('/', async (req, res) => {
+  const { error } = announcementValidationSchema.validate(req.body);
   if (error) {
     return res.status(400).json({ error: error.details[0].message });
   }
 
   try {
-    // Create a new announcement
-    const newAnnouncement = new Announcement(value);
+    // Get the next sequential announcementId
+    const announcementId = await getNextAnnouncementId();
+
+    // Create a new announcement document
+    const newAnnouncement = new Announcement({ ...req.body, announcementId });
     const savedAnnouncement = await newAnnouncement.save();
 
-    // Define the notification payload for Firebase
-    const firebaseMessage = {
-      notification: {
-        title: `Announcement: ${title}`,
-        body: `Title: ${title}\nMessage: ${message}`,
-      },
-      data: {
-        startDate: new Date(startDate).toISOString(),
-        endDate: new Date(endDate).toISOString(),
-        role: String(role),
-        selectTeamMembers: JSON.stringify(selectTeamMembers),
-      },
-      topic: "loggedInUsers" // Ensure this topic is correct
-    };
-
-    // // Send Firebase notification
-    // if (messaging && typeof messaging.send === 'function') {
-    //   await messaging.send(firebaseMessage);
-    //   console.log('Notification sent successfully');
-    // } else {
-    //   console.error("Messaging service is not properly initialized.");
-    //   return res.status(500).json({ error: 'Messaging service is not initialized.' });
-    // }
-
-    // Call sendChatNotification if it's defined
-    if (typeof sendChatNotification === 'function') {
-      sendChatNotification(newAnnouncement);
-    }
-
     res.status(201).json({
-      message: 'Announcement created and notifications sent!',
+      message: 'Announcement created successfully!',
       data: savedAnnouncement
     });
   } catch (error) {
@@ -155,13 +163,11 @@ router.post('/', async (req, res) => {
     res.status(500).json({ error: 'Error creating announcement', details: error.message });
   }
 });
+
 // GET route to retrieve all announcements
 router.get('/', async (req, res) => {
   try {
-    // Use .find() to get all announcements from the database
     const announcements = await Announcement.find();
-    
-    // Send the announcements with custom response structure
     res.status(200).json({
       status: true,
       status_code: 200,
@@ -175,7 +181,27 @@ router.get('/', async (req, res) => {
     });
   }
 });
+
+// DELETE route to delete an announcement by announcementId
+router.delete('/:announcementId', async (req, res) => {
+  const { announcementId } = req.params;
+
+  try {
+    const result = await Announcement.findOneAndDelete({ announcementId });
+    if (!result) {
+      return res.status(404).json({ error: 'Announcement not found' });
+    }
+
+    res.status(200).json({ message: 'Announcement deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting announcement:', error);
+    res.status(500).json({ error: 'Error deleting announcement', details: error.message });
+  }
+});
+
 module.exports = router;
+
+
 
 
 // const express = require('express');

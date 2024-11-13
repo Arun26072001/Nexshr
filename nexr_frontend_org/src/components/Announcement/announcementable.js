@@ -98,12 +98,99 @@
 // }
 
 
+// import React, { useEffect, useState } from 'react';
+// import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper } from '@mui/material';
+// import '../..//App.css'; // Assuming you have a CSS file for custom styles
+
+// export default function AnnouncementTable() {
+//   const [announcements, setAnnouncements] = useState([]);
+
+//   const token = localStorage.getItem('token');
+
+//   const headers = {
+//     'Content-Type': 'application/json',
+//     Authorization: `Bearer ${token}`,
+//     Accept: 'application/json',
+//     'Access-Control-Allow-Origin': '*',
+//   };
+
+//   useEffect(() => {
+//     const fetchAnnouncements = async () => {
+//       try {
+//         const response = await fetch(`${process.env.REACT_APP_API_URL}/api/announcements`,
+//           {
+//             headers: {
+//               authorization: token || ""
+//             }
+//           },
+//         );
+//         if (!response.ok) {
+//           throw new Error('Failed to fetch announcements');
+//         }
+//         const data = await response.json();
+//         setAnnouncements(data.Team || data); // Adjust based on your API response structure
+//       } catch (error) {
+//         console.error('Error fetching announcements:', error);
+//       }
+//     };
+
+//     fetchAnnouncements();
+//   }, []);
+
+//   const [searchTermcategory, setsearchTermcategory] = useState("");
+
+//   const filteredListscategory = announcements?.filter((item) =>
+//     item?.title?.toLowerCase().includes(searchTermcategory?.toLowerCase())
+//   );
+
+//   return (
+//     <Paper sx={{ width: '100%', overflow: 'hidden' }}>
+//       {/* Search bar container */}
+//       <div className="searchInputIcon">
+//         <input
+//           type="text"
+//           placeholder="Search"
+//           value={searchTermcategory}
+//           onChange={(e) => setsearchTermcategory(e.target.value)}
+//         />
+//       </div>
+
+//       <TableContainer sx={{ maxHeight: 440 }}>
+//         <Table stickyHeader aria-label="sticky table">
+//           <TableHead>
+//             <TableRow>
+//               <TableCell>Title</TableCell>
+//               <TableCell>Start Date</TableCell>
+//               <TableCell>End Date</TableCell>
+//               <TableCell>Description</TableCell>
+//             </TableRow>
+//           </TableHead>
+//           <TableBody>
+//             {filteredListscategory?.map((announcement, index) => (
+//               <TableRow hover key={index}>
+//                 <TableCell>{announcement.title}</TableCell>
+//                 <TableCell>{new Date(announcement.startDate).toLocaleDateString()}</TableCell>
+//                 <TableCell>{new Date(announcement.endDate).toLocaleDateString()}</TableCell>
+//                 <TableCell>{announcement.message}</TableCell>
+//               </TableRow>
+//             ))}
+//           </TableBody>
+//         </Table>
+//       </TableContainer>
+//     </Paper>
+//   );
+// }
 import React, { useEffect, useState } from 'react';
-import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper } from '@mui/material';
+import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, IconButton, Menu, MenuItem } from '@mui/material';
+import MoreVertIcon from '@mui/icons-material/MoreVert';  // For vertical dots
+import { ToastContainer, toast } from 'react-toastify'; // Import ToastContainer and toast
+import 'react-toastify/dist/ReactToastify.css'; // Import toast styles
 import '../..//App.css'; // Assuming you have a CSS file for custom styles
 
 export default function AnnouncementTable() {
   const [announcements, setAnnouncements] = useState([]);
+  const [anchorEl, setAnchorEl] = useState(null);  // For managing the menu anchor element
+  const [currentAnnouncementId, setCurrentAnnouncementId] = useState(null); // Track current announcement for deletion
 
   const token = localStorage.getItem('token');
 
@@ -117,13 +204,9 @@ export default function AnnouncementTable() {
   useEffect(() => {
     const fetchAnnouncements = async () => {
       try {
-        const response = await fetch(`${process.env.REACT_APP_API_URL}/api/announcements`,
-          {
-            headers: {
-              authorization: token || ""
-            }
-          },
-        );
+        const response = await fetch(`${process.env.REACT_APP_API_URL}/api/announcements`, {
+          headers: { authorization: token || "" }
+        });
         if (!response.ok) {
           throw new Error('Failed to fetch announcements');
         }
@@ -142,6 +225,46 @@ export default function AnnouncementTable() {
   const filteredListscategory = announcements?.filter((item) =>
     item?.title?.toLowerCase().includes(searchTermcategory?.toLowerCase())
   );
+
+  // Function to handle delete
+ // Function to handle delete
+const handleDelete = async (announcementId) => {
+  if (announcementId) {
+    try {
+      const response = await fetch(`${process.env.REACT_APP_API_URL}/api/announcements/${announcementId}`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to delete announcement');
+      }
+
+      // Remove the deleted announcement from the state
+      setAnnouncements(announcements.filter(announcement => announcement.announcementId !== announcementId));
+      setAnchorEl(null); // Close the menu after deletion
+
+      // Show success notification
+      toast.success('Announcement deleted successfully!');
+    } catch (error) {
+      console.error('Error deleting announcement:', error);
+      toast.error('Failed to delete announcement!');
+    }
+  }
+};
+
+
+  // Open menu
+  const handleMenuOpen = (event, announcementId) => {
+    setAnchorEl(event.currentTarget);
+    setCurrentAnnouncementId(announcementId);  // Set the current announcement ID for deletion
+  };
+
+  // Close menu
+  const handleMenuClose = () => {
+    setAnchorEl(null);
+    setCurrentAnnouncementId(null); // Reset the currentAnnouncementId when menu is closed
+  };
 
   return (
     <Paper sx={{ width: '100%', overflow: 'hidden' }}>
@@ -163,20 +286,44 @@ export default function AnnouncementTable() {
               <TableCell>Start Date</TableCell>
               <TableCell>End Date</TableCell>
               <TableCell>Description</TableCell>
+              <TableCell>Actions</TableCell> {/* Add Actions column */}
             </TableRow>
           </TableHead>
           <TableBody>
-            {filteredListscategory?.map((announcement, index) => (
-              <TableRow hover key={index}>
+            {filteredListscategory?.map((announcement) => (
+              <TableRow hover key={announcement.announcementId}>
                 <TableCell>{announcement.title}</TableCell>
                 <TableCell>{new Date(announcement.startDate).toLocaleDateString()}</TableCell>
                 <TableCell>{new Date(announcement.endDate).toLocaleDateString()}</TableCell>
                 <TableCell>{announcement.message}</TableCell>
+                <TableCell>
+                  {/* Vertical dots (More options) with small size */}
+                  <IconButton
+                    onClick={(event) => handleMenuOpen(event, announcement.announcementId)}
+                    size="small"
+                  >
+                    <MoreVertIcon />
+                  </IconButton>
+                  {/* Show Menu only for the clicked row */}
+                  <Menu
+                    anchorEl={anchorEl}
+                    open={Boolean(anchorEl) && currentAnnouncementId === announcement.announcementId}
+                    onClose={handleMenuClose}
+                  >
+                    <MenuItem onClick={() =>
+                      handleDelete(
+                        announcement?.announcementId
+                      )
+                    }>Delete</MenuItem>
+                  </Menu>
+                </TableCell>
               </TableRow>
             ))}
           </TableBody>
         </Table>
       </TableContainer>
+
+      <ToastContainer />
     </Paper>
   );
 }
