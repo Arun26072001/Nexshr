@@ -59,3 +59,7 @@ const applicationSettingsValidation = Joi.object({
 
 
 module.exports = {applicationSettings, applicationSettingsValidation};
+
+module.exports.AddNewAppSettingsCollection = function(orgName) {
+  return mongoose.model(orgName+"AppSettings", applicationSettingsSchema)
+}

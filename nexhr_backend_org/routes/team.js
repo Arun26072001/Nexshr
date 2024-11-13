@@ -19,7 +19,8 @@ router.get("/",verifyAdminHR , async(req, res)=>{
         console.error(err)
         res.status(500).send({message: "internal server error", details: err.message});
     }
-})
+});
+
 router.get("/user", verifyAdminHR, async (req, res) => {
     try {
       const teams = await Team.find()
@@ -62,7 +63,6 @@ router.get("/user", verifyAdminHR, async (req, res) => {
     }
   });
   
-
 router.get("/:id", verifyAdminHR, async(req, res)=>{
     try{
         const response = await Team.findById(req.params.id)

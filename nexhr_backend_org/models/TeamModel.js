@@ -24,3 +24,7 @@ const TeamValidation = Joi.object({
 module.exports = {
     Team, TeamValidation
 }
+
+module.exports.AddNewTeamCollection = function(orgName) {
+    return mongoose.model(orgName+"Team", TeamSchema)
+  }

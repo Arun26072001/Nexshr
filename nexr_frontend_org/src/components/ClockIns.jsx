@@ -3,6 +3,7 @@ import "./ClockInsStyle.css";
 import CustomDropdown from './CustomDropDown';
 import PowerSettingsNewRoundedIcon from '@mui/icons-material/PowerSettingsNewRounded';
 import { TimerStates } from './payslip/HRMDashboard';
+import { toast } from 'react-toastify';
 
 const ClockIns = () => {
     const { startActivityTimer, stopActivityTimer, workTimeTracker, isStartActivity, timeOption } = useContext(TimerStates);
@@ -56,23 +57,22 @@ const ClockIns = () => {
         }
     }
 
-    // // Stop timer when isStartActivity changes to false
-    // useEffect(() => {
-    //     if (!isStartActivity) {
-    //         stopIt();  // Stop the timer if the activity stops
-    //     }
-    // }, [isStartActivity]);
+    function plsPunchIn() {
+        return toast.warning("Please Punchin!")
+    }
 
     // Start timer when the activity starts
     useEffect(() => {
         if (isStartActivity) {
             console.log("starting activity timer");
-            
+
             startIt();
         }
         // Cleanup interval on component unmount
-        return () => {console.log("call to unmount")
-         stopIt()};
+        return () => {
+            console.log("call to unmount")
+            stopIt()
+        };
     }, [isStartActivity]);
 
     // Initialize time based on selected workTimeTracker and timeOption
@@ -85,8 +85,6 @@ const ClockIns = () => {
         }
     }, [timeOption, workTimeTracker, isStartActivity]);
 
-    console.log(workTimeTracker);
-    
     return (
         <>
             <div className="clockins">
@@ -111,7 +109,7 @@ const ClockIns = () => {
                             className={`btn btn-outline-${isStartActivity ? "success" : "danger"}`}
                             style={{ padding: "10px 15px" }}
                             title={isStartActivity ? "Stop" : "Start"}
-                            onClick={isStartActivity ? stopIt : startIt}
+                            onClick={workTimeTracker?._id ? (isStartActivity ? stopIt : startIt) : (plsPunchIn)}
                             id="startActivityTimerBtn"
                         >
                             <PowerSettingsNewRoundedIcon />

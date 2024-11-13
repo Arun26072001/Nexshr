@@ -76,7 +76,7 @@ export default function Employee() {
                 {/* content */}
                 <div className='px-3'>
                     <div className="row">
-                        <div className="col-lg-6 searchInputIcon">
+                        <div className="col-lg-12 searchInputIcon">
                             <input type="text" className='payrunInput' onChange={(e) => setEmpName(e.target.value)} placeholder='Search' />
                         </div>
                     </div>
