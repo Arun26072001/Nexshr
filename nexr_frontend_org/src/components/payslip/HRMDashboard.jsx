@@ -3,7 +3,6 @@ import Parent from '../Parent'
 import Dashboard from './Dashboard';
 import JobDesk from './Jobdesk';
 import Employee from './Employee';
-import Administration from './Administration';
 import { Route, Routes, useNavigate } from 'react-router-dom';
 import Employees from './Employees';
 import Request from '../attendance/Request';
@@ -90,6 +89,7 @@ export default function HRMDashboard() {
     function updateWorkTracker(value) {
         setTimeOption(value);
     }
+
 
     function filterLeaveRequests() {
         if (empName === "") {
@@ -313,6 +313,7 @@ export default function HRMDashboard() {
         }
     }, [getClocknsData]);
 
+console.log("worktimeTracker: ",workTimeTracker);
 
     useEffect(() => {
         if (Account) {

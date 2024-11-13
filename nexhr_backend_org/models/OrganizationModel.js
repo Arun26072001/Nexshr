@@ -20,19 +20,11 @@
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
-// Define the subdocument schema as a named schema
-const feedSchema = new Schema({
-    Name: { type: String },
-    Email: { type: String },
-    password: { type: String }
-}, { strict: false });
-
 // Now use feedSchema in appFormSchema
 var orgSchema = new Schema({
     orgName: { type: String },
     orgImg: { type: String },
     createdAt: { type: Date, default: Date.now },
-    feeds: [feedSchema] // Referencing the named schema here
 }, { strict: false });
 
 const Org = mongoose.model("Org", orgSchema);

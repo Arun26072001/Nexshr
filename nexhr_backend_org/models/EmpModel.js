@@ -79,7 +79,6 @@ var employeeSchema = new mongoose.Schema({
   payslip: [{ type: mongoose.Schema.Types.ObjectId, ref: "payslip" }]
 });
 
-
 var Employee = mongoose.model("Employee", employeeSchema);
 
 const EmployeeValidation = Joi.object({
@@ -196,5 +195,10 @@ module.exports = {
   Employee,
   EmployeeValidation,
   EmployeePersonalInfoValidation,
-  EmployeeValidationUpdate
+  EmployeeValidationUpdate,
+  employeeSchema
 };
+
+// module.exports.AddNewEmpModel = function(org_name) {
+//   return mongoose.model(org_name+"Employee", employeeSchema)
+// }

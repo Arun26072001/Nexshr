@@ -9,13 +9,13 @@ async function createEmpCollection(orgName){
         email: {type: String},
         password: {type: String}
     });
-    mongoose.model(`${orgName}Employee`, empSchema);
+    const Employee = mongoose.model(`${orgName}Employee`, empSchema);
 }
 
 router.post("/", async (req, res) => {
     try {
         const addOrg = await Org.create(req.body);
-        createEmpCollection(req.body.orgName)
+        // createEmpCollection(req.body.orgName)
         res.send({ message: `Org has been saved ${addOrg}` })
     } catch (err) {
         res.status(500).send({ error: err.message })
