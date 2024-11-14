@@ -147,7 +147,7 @@ const LeaveRequestForm = (props) => {
                 <option >Select Leave type</option>
                 {
                   Object.entries(typeOfLeave).map((data) => {
-                    return <option value={`${data[0]} leave`} >{data[0]} Leave</option>
+                    return <option value={`${data[0]} leave`} >{data[0].charAt(0).toUpperCase()+data[0].slice(1)} Leave</option>
                   })
                 }
               </select>

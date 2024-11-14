@@ -4,6 +4,7 @@ const Joi = require('joi');
 const { Employee } = require('../models/EmpModel');
 const jwt = require('jsonwebtoken');
 const dotenv = require("dotenv");
+const { Org } = require('../models/OrganizationModel');
 
 dotenv.config();
 
@@ -38,14 +39,17 @@ router.post("/", async (req, res) => {
                 isVerifyEmail: true
             };
 
-            const updateIsEmailVerify = await Employee.findByIdAndUpdate(emp._id, empDataWithEmailVerified, { new: true })
+            const updateIsEmailVerify = await Employee.findByIdAndUpdate(emp._id, empDataWithEmailVerified, { new: true });
+            const {orgName} = await Org.findById({_id: emp.orgId[0]});
             const empData = {
                 _id: emp._id,
                 Account: emp.Account,
                 FirstName: emp.FirstName,
                 LastName: emp.LastName,
                 annualLeaveEntitlement: emp.annualLeaveEntitlement,
-                roleData: emp?.role[0]
+                roleData: emp?.role[0],
+                orgId: emp.orgId,
+                orgName
             };
             const token = jwt.sign(empData, jwtKey);
             return res.send(token);

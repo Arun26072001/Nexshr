@@ -313,8 +313,6 @@ export default function HRMDashboard() {
         }
     }, [getClocknsData]);
 
-console.log("worktimeTracker: ",workTimeTracker);
-
     useEffect(() => {
         if (Account) {
             switch (Account) {

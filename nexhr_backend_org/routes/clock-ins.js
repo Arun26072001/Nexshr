@@ -5,6 +5,8 @@ const { verifyAdminHREmployee, verifyAdminHR } = require("../auth/authMiddleware
 const { clockInsValidation, ClockIns } = require("../models/ClockInsModel");
 const { Employee } = require("../models/EmpModel");
 const { getDayDifference } = require("./leave-app");
+const jwt = require("jsonwebtoken");
+const getEmployeeModel = require("./employee")
 
 async function checkLoginForOfficeTime(scheduledTime, actualTime) {
     // Parse scheduled and actual time into hours and minutes
@@ -143,7 +145,12 @@ router.get("/:id", verifyAdminHREmployee, async (req, res) => {
         // Create start and end of the day for the date comparison
         const startOfDay = new Date(queryDate.setHours(0, 0, 0, 0)); // Set time to 00:00:00.000
         const endOfDay = new Date(queryDate.setHours(23, 59, 59, 999)); // Set time to 23:59:59.999
-
+        // const {orgName} = jwt.decode(req.headers['authorization']);
+        // console.log(orgName);
+        
+        // const OrgEmployeeModel = getEmployeeModel(orgName);
+        // console.log(OrgEmployeeModel);
+        
         const timeData = await Employee.findById({ _id: req.params.id }, "clockIns")
             .populate({
                 path: "clockIns",

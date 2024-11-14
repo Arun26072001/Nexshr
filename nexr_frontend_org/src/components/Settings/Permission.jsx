@@ -25,11 +25,11 @@ const Permission = () => {
                 const emps = await fetchAllEmployees();
                 setEmployees(emps);
                 setFullemployees(emps);
-                setIsLoading(false);
 
             } catch (err) {
                 toast.error(err)
             }
+            setIsLoading(false);
         }
         getEmployees();
     }, [])
@@ -40,11 +40,13 @@ const Permission = () => {
             try {
                 const rolesData = await fetchRoles();
                 setRoles(rolesData);
-                setIsLoading(false);
+                console.log(rolesData);
+
             } catch (err) {
                 console.log(err);
                 toast.error(err?.response?.data?.message)
             }
+            setIsLoading(false);
         }
         fetchEmpRoles();
     }, [])
@@ -57,6 +59,7 @@ const Permission = () => {
             setEmployees(fullEmployees.filter((emp) => emp.FirstName.includes(e)));
         }
     }
+    console.log(employees);
 
     return (
         <div className="container">
@@ -77,7 +80,7 @@ const Permission = () => {
             </div>
             {
                 isLoading ? <Loading /> :
-                    employees.length > 0 ? (
+                    employees?.length > 0 ? (
                         <table className="table table-striped my-2">
                             <thead>
                                 <tr className='text-center'>
@@ -87,7 +90,7 @@ const Permission = () => {
                                 </tr>
                             </thead>
                             <tbody>
-                                {employees.map((emp) => (
+                                {employees?.map((emp) => (
                                     <tr key={emp._id}> {/* Added key assuming _id is unique for each employee */}
                                         <td>
                                             <div className="td-parent gap-1">

@@ -28,13 +28,13 @@ var employeeSchema = new mongoose.Schema({
   position: [{ type: mongoose.Schema.Types.ObjectId, ref: "Position" }],
   department: [{ type: mongoose.Schema.Types.ObjectId, ref: "Department" }],
   role: [{ type: mongoose.Schema.Types.ObjectId, ref: "RoleAndPermission" }],
-  company: [{ type: mongoose.Schema.Types.ObjectId, ref: "Company", default: [] }],
+  company: [{ type: mongoose.Schema.Types.ObjectId, ref: "Company" }],
   description: { type: String },
   dateOfJoining: { type: String },
   employmentType: { type: String }, // e.g., full-time, part-time, contract
   // salary: [{ type: mongoose.Schema.Types.ObjectId, ref: "Salary" }],
   benefits: [{ type: String }],
-  managerId: [{ type: mongoose.Schema.Types.ObjectId, ref: "Employee", default: [] }], // Reference to another employee
+  managerId: [{ type: mongoose.Schema.Types.ObjectId, ref: "Employee" }], // Reference to another employee
   emergencyContacts: [
     {
       name: { type: String },
@@ -69,7 +69,7 @@ var employeeSchema = new mongoose.Schema({
   lossOfPay: { type: String },
   isVerifyEmail: { type: Boolean, default: false },
   bankName: { type: String },
-  accountNo: { type: String  }, //should to add unique for this field
+  accountNo: { type: String }, //should to add unique for this field
   accountHolderName: { type: String },
   IFSCcode: { type: String }, //should to add unique for this field
   taxDeduction: { type: String },

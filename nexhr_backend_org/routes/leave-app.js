@@ -176,7 +176,6 @@ leaveApp.get("/date-range/hr", verifyHR, async (req, res) => {
 })
 
 leaveApp.get("/date-range/admin", verifyAdmin, async (req, res) => {
-  console.log("call admin");
 
   const now = new Date();
   let startOfMonth;
@@ -389,6 +388,59 @@ leaveApp.post("/:empId", verifyAdminHREmployee, async (req, res) => {
 
               // Save the updated employee document
               await empData.save();
+
+              const htmlContent = `
+      <!DOCTYPE html>
+      <html lang="en">
+      <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>NexsHR</title>
+        <style>
+          body { font-family: Arial, sans-serif; background-color: #f6f9fc; color: #333; }
+          .container { max-width: 600px; margin: auto; padding: 20px; background-color: #fff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); }
+          .header { text-align: center; padding: 20px; }
+          .header img { max-width: 100px; }
+          .content { margin: 20px 0; }
+          .button { display: inline-block; padding: 10px 20px; background-color: #28a745; color: #fff !important; text-decoration: none; border-radius: 5px; margin-top: 10px; }
+          .footer { text-align: center; font-size: 14px; margin-top: 20px; color: #777; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <img src="https://imagedelivery.net/r89jzjNfZziPHJz5JXGOCw/1dd59d6a-7b64-49d7-ea24-1366e2f48300/public" alt="Logo" />
+            <h1>Welcome to NexsHR</h1>
+          </div>
+          <div class="content">
+            <p>Hey ${FirstName} ${LastName} 👋,</p>
+            <p><b>Your credentials</b></p><br />
+            <p><b>Email</b>: ${Email}</p><br />
+            <p><b>Password</b>: ${Password}</p><br />
+            <p>Thank you for registering! Please confirm your email by clicking the button below.</p>
+            <a href="${process.env.FRONTEND_URL}" class="button">Confirm Email</a>
+          </div>
+          <div class="footer">
+            <p>Have questions? Need help? <a href="mailto:webnexs29@gmail.com">Contact our support team</a>.</p>
+          </div>
+        </div>
+      </body>
+      </html>`;
+
+              const transporter = nodemailer.createTransport({
+                service: "gmail",
+                auth: {
+                  user: process.env.FROM_MAIL,
+                  pass: process.env.MAILPASSWORD,
+                },
+              });
+
+              await transporter.sendMail({
+                from: process.env.FROM_MAIL,
+                to: Email,
+                subject: "Welcome to NexsHR",
+                html: htmlContent,
+              });
 
               return res.status(201).send({ message: "Leave Request has been sent to Higher Authority." });
             }

@@ -44,6 +44,7 @@ const payslip = require("./routes/payslip");
 const userPermission = require("./routes/user-permission");
 const pageAuth = require("./routes/page-auth");
 const organization = require("./routes/organization");
+const userAccount = require("./routes/user-account");
 
 // MongoDB Connection
 const mongoURI = process.env.DATABASEURL;
@@ -57,7 +58,7 @@ mongoose
   .connect(mongoURI, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
-    
+
   })
   .then(() => console.log("db connection successful"))
   .catch(err => console.log(err));
@@ -88,6 +89,8 @@ app.get("/", (req, res) => {
 });
 
 // Routers
+app.use("/api/user-account", userAccount);
+app.use("/api/org", organization);
 app.use("/api/login", login);
 app.use("/api/role", role);
 app.use("/api/team", team);
@@ -120,7 +123,6 @@ app.use("/api/announcements", announcement);
 app.use("/api/teamssample", teamssample);
 app.use("/api/user-permission", userPermission);
 app.use("/api/page-auth", pageAuth);
-app.use("/api/org", organization);
 
 // Create HTTP Server and Socket.IO
 const server = http.createServer(app);

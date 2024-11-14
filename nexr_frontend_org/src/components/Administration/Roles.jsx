@@ -38,6 +38,8 @@ const Roles = () => {
             setIsLoading(true);
             try {
                 const roleData = await fetchRoles();
+                console.log(roleData);
+                
                 setRoles(roleData);
             } catch (err) {
                 console.log(err);

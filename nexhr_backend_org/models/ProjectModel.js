@@ -60,10 +60,5 @@ const ProjectValidation = Joi.object().keys({
 });
 
 module.exports = {
-  Project, ProjectValidation
+  Project, ProjectValidation, projectSchema
 };
-
-
-module.exports.AddNewProjectCollection = function (orgName) {
-  return mongoose.model(orgName + "Project", projectSchema)
-}

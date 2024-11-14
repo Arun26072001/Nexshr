@@ -595,7 +595,7 @@ textarea.form-control {
 }
 
 .searchInputIcon input[type="text"] {
-  background-image: url(''); /* Add icon URL or path */
+  /* background-image: url('');  */
   background-position: 15px center;
   background-repeat: no-repeat;
   padding: 12px 20px 12px 40px;
