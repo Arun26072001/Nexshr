@@ -104,8 +104,8 @@ const TimePattern = (props) => {
             <>
                 <div className="d-flex align-items-center justify-content-between m-3">
                     <div>
-                        <h4>Current working time patterns</h4>
-                        <p className="styleText">
+                        <h5>CURRENT WORKING TIME PATTERNS </h5>
+                        <p className="styleText mt-3">
                             New employees imported into the system will be defaulted to the pattern: <b>{timePatterns.length > 0 && timePatterns[timePatterns.length - 1].PatternName}</b>
                         </p>
                     </div>
@@ -117,7 +117,7 @@ const TimePattern = (props) => {
                 </div>
                 {timePatterns.length > 0 ? (<table className='table table-striped my-2'>
                     <thead>
-                        <tr style={{ backgroundColor: "#BBE9FF", textAlign:"center" }}>
+                        <tr style={{ backgroundColor: "#BBE9FF", textAlign: "center" }}>
                             {names.map((name, index) => (
                                 <th key={index}>{name}</th>
                             ))}
@@ -128,18 +128,23 @@ const TimePattern = (props) => {
                             <React.Fragment key={pattern._id}>
                                 {curState && <EditTimePattern handleSubmit={handleSubmit} patternName={patternName} changePatternName={changePatternName} closeModel={closeModel} pattern={curState} />}
                                 <tr>
-                                    <td>
-                                        <div className="d-flex align-items-center">
+                                    <td className="text-center">
+
+                                        <div className="col-lg-12 row">
+                                            <div className="col-lg-6"> {pattern.PatternName}</div>
+                                            <div className="col-lg-6">{pattern.DefaultPattern && <div className="defaultDesign text-lead">Default</div>}</div>
+                                        </div>
+                                        {/* <div className="d-flex align-items-center">
                                             <div>
                                                 {pattern.PatternName}
                                             </div>
                                             {pattern.DefaultPattern && <div className="defaultDesign text-lead">Default</div>}
-                                        </div>
+                                        </div> */}
                                     </td>
-                                    <td>
+                                    <td className="text-center">
                                         Monday - {days[pattern.WeeklyDays - 1]}day
                                     </td>
-                                    <td className="d-flex justify-content-between">
+                                    <td className="d-flex justify-content-between align-item-center">
                                         <div className="text-primary d-flex align-items-center">
                                             <GroupOutlinedIcon fontSize="large" color="primary" />
                                             <span className="px-2">0</span>

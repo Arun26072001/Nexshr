@@ -60,13 +60,13 @@ const Permission = () => {
 
     return (
         <div className="container">
-            <h4>Permissions</h4>
-            <p style={{ fontSize: "15px", color: "rgb(178 174 174)" }}>Assign or revoke for your employees</p>
+            <h5>PERMISSIONS</h5>
+            <p style={{ fontSize: "15px", color: "rgb(178 174 174)", marginTop: "10px" }}>Assign or revoke for your employees</p>
             <div className="row">
-                <div className="col-lg-4">
+                <div className="col-lg-4 mt-2">
                     <InputGroup inside style={{ width: 300, marginBottom: 10 }}>
                         <InputGroup.Addon><SearchIcon /></InputGroup.Addon>
-                        <Input placeholder='Find Name' value={empName} onChange={filterEmps} />
+                        <Input placeholder="Search user's names" value={empName} onChange={filterEmps} style={{ marginTop: "0", width: "100%", padding: "-8px" }} />
                         <InputGroup.Addon style={{ cursor: "pointer" }} >
                             <span onClick={() => setEmpName("")}>
                                 <CloseIcon />
@@ -78,7 +78,7 @@ const Permission = () => {
             {
                 isLoading ? <Loading /> :
                     employees.length > 0 ? (
-                        <table className="table table-striped my-2">
+                        <table className="table table-striped my-4">
                             <thead>
                                 <tr className='text-center'>
                                     {names.map((name, index) => (
