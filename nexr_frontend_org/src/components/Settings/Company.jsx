@@ -128,7 +128,7 @@ export default function CompanyTab() {
   return (
   <>
     <Box
-      className="aaa"
+      className="aaa total_company_details"
       sx={{ flexGrow: 1, bgcolor: 'background.paper', display: 'flex', height: 'fit-content' }}
     >
       <Tabs
@@ -151,11 +151,11 @@ export default function CompanyTab() {
         <div className="row">
           <div className="col-lg-12">
             <div className="box-content">
-              <h5 className='my-3'>Company wide Settings</h5>
-              <h6 className='my-2'>Comapany name</h6>
+              <h5 className='my-3'>COMPANY WIDE SETTINGS</h5>    
               <div className="row">
                 <div className="col-lg-4">
-                  <input type="text" name='CompanyName' onChange={(e)=>handleComName(e)} placeholder='Company name' className='form-control mb-2' />
+                <h6 className='my-2'>Company Name</h6>
+                  <input type="text" name='CompanyName' onChange={(e)=>handleComName(e)} placeholder='Enter Company Name' className='form-control mb-2' />
                 </div>
               </div>
             </div>
@@ -167,7 +167,7 @@ export default function CompanyTab() {
         <div className="row">
           <div className="col-lg-12">
             <div className="box-content">
-              <h5 className='my-3'>Employee Settings</h5>
+              <h5 className='my-3'>EMPLOYEE SETTINGS</h5>
               <div className="row">
                 <div className="col-lg-8">
                   <h6 className='my-2'>Employee Status</h6>
@@ -181,9 +181,9 @@ export default function CompanyTab() {
                   <h6 className='my-2'>Hide Email Address</h6>
                   <p>Show or hide employee email addresses from others employees. this will affect: </p>
 
-                  <ul>
+                  <ul className='subpoint'>
                     <li>The Employee hub</li>
-                    <li>The contact deatils on the mobile app</li>
+                    <li>The contact details on the mobile app</li>
                   </ul>
                 </div>
                 <RadioButtons names={names} RadioOption={RadioOption.EmpEmail} name={"EmpEmail"} handleRadioOption={handleRadioOption} />
@@ -206,8 +206,8 @@ export default function CompanyTab() {
           <div className="row">
             <div className="col-lg-12">
               <div className="box-content">
-                <h5 className='my-3'>Overtime and TOIL</h5>
-                <h6 className='my-2'>overtime</h6>
+                <h5 className='my-3'>OVERTIME AND TOIL</h5>
+                <h6 className='my-2'>Overtime</h6>
                 <p>Overtime refers to any hours worked by an employee that exceed their normal acheduled working hours.</p>
 
                 <div className="row my-2">
@@ -260,15 +260,15 @@ export default function CompanyTab() {
           <div className="row">
             <div className="col-lg-12">
               <div className="box-content">
-                <h5 className='my-3'>Absence and Entitilement</h5>
+                <h5 className='my-3'>ABSENCE AND ENTITILEMENT</h5>
                 <div className="row my-2">
                   <div className="col-lg-8">
                     <h6>
                       Absence conflict when not in teams
                     </h6>
-                    <p>
+                    <p className='my-2'>
                       If <b>enabled</b>, this setting allows you to also see absence conflicts between employees who haven't been added to a team.
-                      <br /> <br />
+                      <br />
                       If <b>disabled</b>, employees who haven't been added to a team won't show as absence conflicts with each other.
                     </p>
                   </div>
@@ -318,7 +318,7 @@ export default function CompanyTab() {
           <div className="row">
             <div className="col-lg-12">
               <div className="box-content">
-                <h5 className='my-3'>Rotas</h5>
+                <h5 className='my-3'>ROTAS</h5>
                 <div className="row my-2">
                   <div className="col-lg-8">
                     <h6>
@@ -364,8 +364,8 @@ export default function CompanyTab() {
                   </div>
 
                   <div className='col-lg-4 text-center'>
-                    <button className='button' style={{fontSize: "15px"}}>
-                      Select eligible employees
+                    <button className='button' style={{fontSize: "13px", width: "100%"}}>
+                      Select Eligible Employees
                     </button>
                   </div>
                 </div>
