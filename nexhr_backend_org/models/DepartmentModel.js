@@ -16,8 +16,3 @@ var Department = mongoose.model("Department", departmentSchema);
   });
 
 module.exports = {Department, DepartmentValidation, departmentSchema};
-
-
-// module.exports.AddNewDepCollection = function(orgName) {
-//   return mongoose.model(orgName+"Department", departmentSchema)
-// }

@@ -15,4 +15,4 @@ const OrgValidation = Joi.object({
     orgName: Joi.string().required().label("Organization Name"),
     orgImg: Joi.string().required().label("Organization Image")
 })
-module.exports = { Org, orgSchema };
+module.exports = { Org, orgSchema, OrgValidation };

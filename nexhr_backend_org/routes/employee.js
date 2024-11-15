@@ -5,27 +5,13 @@ const { verifyHR, verifyAdminHREmployee, verifyAdminHR } = require('../auth/auth
 const { getDayDifference } = require('./leave-app');
 const { PaySlipInfo } = require('../models/PaySlipInfoModel');
 const nodemailer = require("nodemailer");
-const { Org } = require('../models/OrganizationModel');
-const mongoose = require("mongoose");
 const { getPayslipInfoModel } = require('./payslipInfo');
-const jwt = require("jsonwebtoken");
-
-const employeeModels = {};
-
-function getEmployeeModel(orgName) {
-  // If model already exists in the object, return it; otherwise, create it
-  if (!employeeModels[orgName]) {
-    employeeModels[orgName] = mongoose.model(`${orgName}Employee`, employeeSchema);
-  }
-
-  return employeeModels[orgName];
-}
 
 router.get("/", verifyAdminHR, async (req, res) => {
   try {
-    const {orgName} = jwt.decode(req.headers['authorization']);
-    const OrgEmployeeModel = getEmployeeModel(orgName)
-    const employees = await OrgEmployeeModel.find({ Account: 3 }, "_id FirstName LastName employmentType dateOfJoining gender working code docType serialNo")
+    // const {orgName} = jwt.decode(req.headers['authorization']);
+    // const Employee = getEmployeeModel(orgName)
+    const employees = await Employee.find({ Account: 3 }, "_id FirstName LastName employmentType dateOfJoining gender working code docType serialNo")
       .populate({
         path: "orgId"
       })
@@ -59,7 +45,7 @@ router.get("/", verifyAdminHR, async (req, res) => {
 router.get("/all", verifyAdminHR, async (req, res) => {
   try {
     // const {orgName} = jwt.decode(req.headers['authorization']);
-    // const OrgEmployeeModel = getEmployeeModel(orgName)
+    // const Employee = getEmployeeModel(orgName)
     const employees = await Employee.find({}, "_id FirstName LastName employmentType dateOfJoining gender working code docType serialNo")
       .populate({
         path: "company",
@@ -97,8 +83,8 @@ router.get('/:id', verifyAdminHREmployee, async (req, res) => {
 
   try {
     // const {orgName} = jwt.decode(req.headers['authorization']);
-    // const OrgEmployeeModel = getEmployeeModel(orgName);
-    // console.log(OrgEmployeeModel);
+    // const Employee = getEmployeeModel(orgName);
+    // console.log(Employee);
     // to change with orgnameEmployee
     const emp = await Employee.findById(req.params.id)
       .populate({ path: "role" })
@@ -146,11 +132,11 @@ router.post("/", verifyAdminHR, async (req, res) => {
   try {
     const { Email, phone, basicSalary, FirstName, LastName, Password, teamLead, managerId, company, annualLeaveEntitlement } = req.body;
 
-    const {orgName, orgId} = jwt.decode(req.headers['authorization']);
-    const OrgEmployeeModel = getEmployeeModel(orgName)
+    // const {orgName, orgId} = jwt.decode(req.headers['authorization']);
+    // const Employee = getEmployeeModel(orgName)
 
     // Check if email already exists
-    if (await OrgEmployeeModel.exists({ Email })) {
+    if (await Employee.exists({ Email })) {
       return res.status(400).json({ message: "Email already exists" });
     }
 
@@ -195,7 +181,6 @@ router.post("/", verifyAdminHR, async (req, res) => {
 
     const employeeData = {
       ...req.body,
-      orgId,
       teamLead: teamLead || ["665601de20a3c61c646a135f"],
       managerId: managerId || ["6651e4a810994f1d24cf3a19"],
       company: company || ["6651a5eb6115df44c0cc7151"],
@@ -205,7 +190,7 @@ router.post("/", verifyAdminHR, async (req, res) => {
       payslipFields,
     };
 
-    const employee = await OrgEmployeeModel.create(employeeData);
+    const employee = await Employee.create(employeeData);
 
     const htmlContent = `
       <!DOCTYPE html>
@@ -286,9 +271,9 @@ router.put("/:id", verifyHR, async (req, res) => {
         ['companyWorkingHourPerWeek']: `${req.body.hour}.${req.body.mins}`
       };
     }
-    const {orgName} = jwt.decode(req.headers['authorization']);
-    const OrgEmployeeModel = getEmployeeModel(orgName)
-    const updatedEmp = await OrgEmployeeModel.findByIdAndUpdate(req.params.id, newEmployee)
+    // const {orgName} = jwt.decode(req.headers['authorization']);
+    // const Employee = getEmployeeModel(orgName)
+    const updatedEmp = await Employee.findByIdAndUpdate(req.params.id, newEmployee)
     res.send({ message: "Employee data has been updated!" });
   } catch (err) {
     res.status(500).send(err)
@@ -296,9 +281,9 @@ router.put("/:id", verifyHR, async (req, res) => {
 });
 
 router.delete("/:id", verifyHR, (req, res) => {
-  const {orgName} = jwt.decode(req.headers['authorization']);
-  const OrgEmployeeModel = getEmployeeModel(orgName)
-  OrgEmployeeModel.findByIdAndRemove({ _id: req.params.id }, function (err, employee) {
+  // const {orgName} = jwt.decode(req.headers['authorization']);
+  // const Employee = getEmployeeModel(orgName)
+  Employee.findByIdAndRemove({ _id: req.params.id }, function (err, employee) {
     if (err) {
       console.log(err);
       res.send("error");
@@ -310,5 +295,5 @@ router.delete("/:id", verifyHR, (req, res) => {
   });
 });
 
-module.getEmployeeModel = getEmployeeModel;
+// module.getEmployeeModel = getEmployeeModel;
 module.exports = router;

@@ -4,20 +4,20 @@ const { verifyHR, verifyAdminHR } = require("../auth/authMiddleware");
 const { TeamValidation, Team, TeamSchema } = require("../models/TeamModel");
 const mongoose = require("mongoose");
 
-const teamModels = {};
+// const teamModels = {};
 
-function getTeamModel(orgName) {
-    if (!teamModels[orgName]) {
-        teamModels[orgName] = mongoose.model(`${orgName}Team`, TeamSchema)
-    }
-    return teamModels[orgName];
-}
+// function getTeamModel(orgName) {
+//     if (!teamModels[orgName]) {
+//         teamModels[orgName] = mongoose.model(`${orgName}Team`, TeamSchema)
+//     }
+//     return teamModels[orgName];
+// }
 
 router.get("/", verifyAdminHR, async (req, res) => {
     try {
-        const { orgName } = jwt.decode(req.headers['authorization']);
-        const OrgTeamModel = getTeamModel(orgName)
-        const teams = await OrgTeamModel.find()
+        // const { orgName } = jwt.decode(req.headers['authorization']);
+        // const Team = getTeamModel(orgName)
+        const teams = await Team.find()
             .populate({
                 path: "employees",
                 select: "_id FirstName LastName"
@@ -35,9 +35,9 @@ router.get("/", verifyAdminHR, async (req, res) => {
 
 router.get("/user", verifyAdminHR, async (req, res) => {
     try {
-        const { orgName } = jwt.decode(req.headers['authorization']);
-        const OrgTeamModel = getTeamModel(orgName)
-        const teams = await OrgTeamModel.find()
+        // const { orgName } = jwt.decode(req.headers['authorization']);
+        // const Team = getTeamModel(orgName)
+        const teams = await Team.find()
             .populate({
                 path: "employees", // Populate employees field
                 select: "_id FirstName LastName", // Select only required fields
@@ -79,9 +79,9 @@ router.get("/user", verifyAdminHR, async (req, res) => {
 
 router.get("/:id", verifyAdminHR, async (req, res) => {
     try {
-        const {orgName} = jwt.decode(req.headers['authorization']);
-        const OrgTeamModel = getTeamModel(orgName)
-        const response = await OrgTeamModel.findById(req.params.id)
+        // const {orgName} = jwt.decode(req.headers['authorization']);
+        // const Team = getTeamModel(orgName)
+        const response = await Team.findById(req.params.id)
             .populate({
                 path: "employees",
                 select: "_id FirstName LastName",
@@ -106,10 +106,10 @@ router.get("/:id", verifyAdminHR, async (req, res) => {
 
 router.post("/", verifyAdminHR, async (req, res) => {
     try {
-        const validatedTeam = await TeamValidation.validate(req.body);
-        const {orgName} = jwt.decode(req.headers['authorization']);
-        const OrgTeamModel = getTeamModel(orgName)
-        const newTeam = await OrgTeamModel.create(validatedTeam);
+        // const validatedTeam = await TeamValidation.validate(req.body);
+        // const {orgName} = jwt.decode(req.headers['authorization']);
+        const Team = getTeamModel(orgName)
+        const newTeam = await Team.create(validatedTeam);
         res.send({ message: "Team added!", newTeam });
     } catch (err) {
         console.error(err); // Use console.error for logging errors
@@ -123,10 +123,10 @@ router.post("/", verifyAdminHR, async (req, res) => {
 
 router.put("/:id", verifyAdminHR, async (req, res) => {
     try {
-        const validatedTeam = await TeamValidation.validate(req.body);
-        const {orgName} = jwt.decode(req.headers['authorization']);
-        const OrgTeamModel = getTeamModel(orgName)
-        const response = await OrgTeamModel.findByIdAndUpdate(req.params.id, validatedTeam)
+        // const validatedTeam = await TeamValidation.validate(req.body);
+        // const {orgName} = jwt.decode(req.headers['authorization']);
+        const Team = getTeamModel(orgName)
+        const response = await Team.findByIdAndUpdate(req.params.id, validatedTeam)
         if (!response) {
             res.status(404).send({ message: "Team not found!" })
         }
@@ -142,9 +142,9 @@ router.put("/:id", verifyAdminHR, async (req, res) => {
 
 router.delete("/:id", verifyAdminHR, async (req, res) => {
     try {
-        const {orgName} = jwt.decode(req.headers['authorization']);
-        const OrgTeamModel = getTeamModel(orgName)
-        const response = await OrgTeamModel.findByIdAndDelete(req.params.id);
+        // const {orgName} = jwt.decode(req.headers['authorization']);
+        // const Team = getTeamModel(orgName)
+        const response = await Team.findByIdAndDelete(req.params.id);
         if (!response) {
             res.status(404).send({ message: "Team not found!" })
         } else {

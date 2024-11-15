@@ -20,7 +20,7 @@ function getDepartmentModel(orgName) {
 router.get("/", async (req, res) => {
   try {
     // const {orgName} = jwt.decode(req.headers['authorization']);
-    // const OrgDepartmentModel = getDepartmentModel(orgName)
+    // const Department = getDepartmentModel(orgName)
     const departments = await Department.find()
       .populate({
         path: 'company',
@@ -35,7 +35,7 @@ router.get("/", async (req, res) => {
 router.get("/:id", async (req, res) => {
   try {
     // const {orgName} = jwt.decode(req.headers['authorization']);
-    // const OrgDepartmentModel = getDepartmentModel(orgName)
+    // const Department = getDepartmentModel(orgName)
     const department = await Department.findById(req.params.id)
       .populate({
         path: 'company',
@@ -54,9 +54,9 @@ router.post("/", verifyAdminHR, (req, res) => {
       console.log(err);
       res.status(400).send({ message: err.details[0].message });
     } else {
-      const {orgName} = jwt.decode(req.headers['authorization']);
-      const OrgDepartmentModel = getDepartmentModel(orgName)  
-      OrgDepartmentModel.create(req.body, function (err, department) {
+      // const {orgName} = jwt.decode(req.headers['authorization']);
+      // const Department = getDepartmentModel(orgName)  
+      Department.create(req.body, function (err, department) {
         if (err) {
           console.log(err);
           res.status(500).send({ Error: err });
@@ -79,9 +79,9 @@ router.put("/:id", verifyAdminHR, (req, res) => {
       console.log(err);
       res.status(400).send({ message: err.details[0].message });
     } else {
-      const {orgName} = jwt.decode(req.headers['authorization']);
-      const OrgDepartmentModel = getDepartmentModel(orgName)  
-      OrgDepartmentModel.findByIdAndUpdate(req.params.id, {
+      // const {orgName} = jwt.decode(req.headers['authorization']);
+      // const Department = getDepartmentModel(orgName)  
+      Department.findByIdAndUpdate(req.params.id, {
         $set: updateDepartment
       }, function (
         err,
@@ -98,17 +98,17 @@ router.put("/:id", verifyAdminHR, (req, res) => {
 });
 
 router.delete("/:id", verifyAdminHR, (req, res) => {
-  const {orgName} = jwt.decode(req.headers['authorization']);
-  const OrgEmployeeModel = getEmployeeModel(orgName);
-  OrgEmployeeModel.find({ department: req.params.id }, function (err, d) {
+  // const {orgName} = jwt.decode(req.headers['authorization']);
+  // const OrgEmployeeModel = getEmployeeModel(orgName);
+  Employee.find({ department: req.params.id }, function (err, d) {
     if (err) {
       console.log(err);
       res.send(err);
     } else {
       console.log(d);
       if (d.length == 0) {
-        const OrgDepartmentModel = getDepartmentModel(orgName)
-        OrgDepartmentModel.findByIdAndRemove({ _id: req.params.id }, function (
+        // const Department = getDepartmentModel(orgName)
+        Department.findByIdAndRemove({ _id: req.params.id }, function (
           err,
           department
         ) {

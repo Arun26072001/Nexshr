@@ -79,10 +79,8 @@ const LeaveRequestForm = (props) => {
           resetForm();
           navigate(-1);
         } catch (err) {
-          if (err.response && err.response.data && err.response.data.message) {
-            toast.error(err.response.data.message)
+            toast.error(err?.response?.data?.message)
             console.log(err);
-          }
         }
       }
     }

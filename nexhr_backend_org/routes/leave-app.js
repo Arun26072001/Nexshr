@@ -2,10 +2,11 @@ const express = require('express');
 const leaveApp = express.Router();
 const { LeaveApplication,
   LeaveApplicationValidation
-} = require('../models/LeaveAppModel')
-const { RoleAndPermission } = require("../models/RoleModel");
+} = require('../models/LeaveAppModel');
+const nodemailer = require("nodemailer");
 const { Employee } = require('../models/EmpModel');
 const { verifyHR, verifyHREmployee, verifyEmployee, verifyAdmin, verifyAdminHREmployee } = require('../auth/authMiddleware');
+const { Position } = require('../models/PositionModel');
 
 function getDayDifference(leave) {
   let toDate = new Date(leave.toDate);
@@ -25,7 +26,7 @@ leaveApp.get("/emp/:empId", verifyAdminHREmployee, async (req, res) => {
         }
       })
       .populate({
-        path: "role"
+        path: "position"
       })
       .exec();
 
@@ -59,8 +60,12 @@ leaveApp.get("/emp/:empId", verifyAdminHREmployee, async (req, res) => {
     // // Add the new property to the object
     // requests.takenLeaveCount = typesOfLeaveTaken;
 
-    const roleIds = await RoleAndPermission.find({ RoleName: requests?.role[0].RoleName }, "_id");
-    const collegues = await Employee.find({ role: { $in: roleIds } }, "FirstName LastName Email phone");
+    const positionIds = await Position.find({ PositionName: requests?.position[0].PositionName }, "_id");
+    const collegues = await Employee.find({
+      position: { $in: positionIds }, 
+      _id: { $nin: [req.params.empId] }  
+    }, "FirstName LastName Email phone");
+    
     const empIds = await Employee.find({ Account: 3, _id: { $nin: req.params.empId } });
     const peopleOnLeave = await LeaveApplication.find(
       { employee: { $in: empIds }, fromDate: new Date().toISOString().split("T")[0], status: "approved" }
@@ -344,7 +349,7 @@ leaveApp.post("/:empId", verifyAdminHREmployee, async (req, res) => {
 
       // Fetch employee's leave count and remaining leave days
       const empData = await Employee.findById(req.params.empId, "typesOfLeaveCount typesOfLeaveRemainingDays").exec();
-
+      const relievingOffData = await Employee.findById(req.body.coverBy, "Email FirstName LastName");
       let leaveTypeName = req.body.leaveType.split(" ")[0];
       const leaveDaysCount = empData?.typesOfLeaveRemainingDays[leaveTypeName];
 
@@ -410,18 +415,17 @@ leaveApp.post("/:empId", verifyAdminHREmployee, async (req, res) => {
         <div class="container">
           <div class="header">
             <img src="https://imagedelivery.net/r89jzjNfZziPHJz5JXGOCw/1dd59d6a-7b64-49d7-ea24-1366e2f48300/public" alt="Logo" />
-            <h1>Welcome to NexsHR</h1>
+            <h1>${empData.FirstName} of task relieving Officer ${relievingOffData.FirstName}</h1>
           </div>
           <div class="content">
-            <p>Hey ${FirstName} ${LastName} 👋,</p>
-            <p><b>Your credentials</b></p><br />
-            <p><b>Email</b>: ${Email}</p><br />
-            <p><b>Password</b>: ${Password}</p><br />
-            <p>Thank you for registering! Please confirm your email by clicking the button below.</p>
-            <a href="${process.env.FRONTEND_URL}" class="button">Confirm Email</a>
+              <p>Hi ${relievingOffData.FirstName},</p><br /><br />
+              <p>I wanted to inform you that I’ll be out of the office tomorrow.</p>
+              <p>I have ensured that all my tasks are up to date,</p>
+               <p>but I am assigning my remaining responsibilities to you in my absence.</p><br />
+               <p style={text-align: "center"}>Thank you!</p>
           </div>
           <div class="footer">
-            <p>Have questions? Need help? <a href="mailto:webnexs29@gmail.com">Contact our support team</a>.</p>
+            <p>Have questions? Need help? <a href="mailto:webnexs29@gmail.com">Contact our Team Head</a>.</p>
           </div>
         </div>
       </body>
@@ -437,8 +441,8 @@ leaveApp.post("/:empId", verifyAdminHREmployee, async (req, res) => {
 
               await transporter.sendMail({
                 from: process.env.FROM_MAIL,
-                to: Email,
-                subject: "Welcome to NexsHR",
+                to: relievingOffData.Email,
+                subject: "Task Relieving request",
                 html: htmlContent,
               });
 
@@ -455,8 +459,7 @@ leaveApp.post("/:empId", verifyAdminHREmployee, async (req, res) => {
   } catch (err) {
     console.log(err.message);
     return res.status(500).send({
-      message: "Internal Server Error",
-      details: err.message
+      message: err.message
     });
   }
 });

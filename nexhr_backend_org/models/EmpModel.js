@@ -6,7 +6,7 @@ var employeeSchema = new mongoose.Schema({
   LastName: { type: String },
   Email: { type: String },
   Password: { type: String },
-  teamLead: [{ type: mongoose.Types.ObjectId, ref: "Employee", default: [] }],
+  teamLead: [{ type: mongoose.Types.ObjectId, ref: "Employee" }],
   phone: { type: String },
   panNumber: { type: String },
   Account: { type: Number, default: 3 },
