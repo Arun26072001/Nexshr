@@ -1,29 +1,17 @@
 const express = require('express');
 const router = express.Router();
-const { Employee } = require('../models/EmpModel');
 const { verifyAdminHR, verifyAdmin } = require('../auth/authMiddleware');
-const { RoleAndPermission, RoleAndPermissionValidation, RoleAndPermissionSchema } = require('../models/RoleModel');
-const { userPermissionsValidation, UserPermission } = require('../models/UserPermissionModel');
-const { PageAuth, pageAuthValidation } = require('../models/PageAuth');
+const { getRoleAndPermissionModel } = require('../OrgModels/OrgRoleAndPermissionModel');
+const { getEmployeeModel } = require('../OrgModels/OrgEmpModel');
 
-// const RoleAndPermissionModels = {};
-
-// function getRoleAndPermissionModel(orgName) {
-//   // If model already exists in the object, return it; otherwise, create it
-//   if (!RoleAndPermissionModels[orgName]) {
-//     RoleAndPermissionModels[orgName] = mongoose.model(`${orgName}RoleAndPermission`, RoleAndPermissionSchema);
-//   }
-
-//   return RoleAndPermissionModels[orgName];
-// }
 
 // get role by roleName
 router.get("/name", verifyAdmin, async (req, res) => {
   try {
-    // const { orgName } = jwt.decode(req.headers['authorization']);
-    // const RoleAndPermission = getRoleAndPermissionModel(orgName)
+    const { orgName } = jwt.decode(req.headers['authorization']);
+    const OrgRoleAndPermission = getRoleAndPermissionModel(orgName);
 
-    const roleData = await RoleAndPermission.findOne({ RoleName: "Employee" })
+    const roleData = await OrgRoleAndPermission.findOne({ RoleName: "Employee" })
       .populate("userPermissions")
       .populate("pageAuth")
       .exec();
@@ -33,27 +21,27 @@ router.get("/name", verifyAdmin, async (req, res) => {
       let role = {
         RoleName: roleData?.RoleName,
         pageAuth: {
-            Administration: roleData?.pageAuth?.Administration,
-            Attendance: roleData?.pageAuth?.Attendance,
-            Dashboard: roleData?.pageAuth?.Dashboard,
-            Employee: roleData?.pageAuth?.Employee,
-            JobDesk: roleData?.pageAuth?.JobDesk,
-            Leave: roleData?.pageAuth?.Leave,
-            Settings: roleData?.pageAuth?.Settings,
+          Administration: roleData?.pageAuth?.Administration,
+          Attendance: roleData?.pageAuth?.Attendance,
+          Dashboard: roleData?.pageAuth?.Dashboard,
+          Employee: roleData?.pageAuth?.Employee,
+          JobDesk: roleData?.pageAuth?.JobDesk,
+          Leave: roleData?.pageAuth?.Leave,
+          Settings: roleData?.pageAuth?.Settings,
         },
         userPermissions: {
-            Attendance: roleData?.userPermissions?.Attendance ,
-            Company: roleData?.userPermissions?.Company ,
-            Department: roleData?.userPermissions?.Department ,
-            Employee: roleData?.userPermissions?.Employee ,
-            Holiday: roleData?.userPermissions?.Holiday ,
-            Leave: roleData?.userPermissions?.Leave ,
-            Role: roleData?.userPermissions?.Role,
-            TimePattern: roleData?.userPermissions?.TimePattern,
-            WorkPlace: roleData?.userPermissions?.WorkPlace,
-            Payroll: roleData?.userPermissions?.Payroll ,
+          Attendance: roleData?.userPermissions?.Attendance,
+          Company: roleData?.userPermissions?.Company,
+          Department: roleData?.userPermissions?.Department,
+          Employee: roleData?.userPermissions?.Employee,
+          Holiday: roleData?.userPermissions?.Holiday,
+          Leave: roleData?.userPermissions?.Leave,
+          Role: roleData?.userPermissions?.Role,
+          TimePattern: roleData?.userPermissions?.TimePattern,
+          WorkPlace: roleData?.userPermissions?.WorkPlace,
+          Payroll: roleData?.userPermissions?.Payroll,
         }
-    }
+      }
       res.send(role)
     }
   } catch (error) {
@@ -65,9 +53,9 @@ router.get("/name", verifyAdmin, async (req, res) => {
 // role get by id
 router.get("/:id", verifyAdmin, async (req, res) => {
   try {
-    // const { orgName } = jwt.decode(req.headers['authorization']);
-    // const RoleAndPermission = getRoleAndPermissionModel(orgName)
-    const role = await RoleAndPermission.findById(req.params.id)
+    const { orgName } = jwt.decode(req.headers['authorization']);
+    const OrgRoleAndPermission = getRoleAndPermissionModel(orgName);
+    const role = await OrgRoleAndPermission.findById(req.params.id)
       .populate("userPermissions")
       .populate("pageAuth")
       .exec();
@@ -83,10 +71,10 @@ router.get("/:id", verifyAdmin, async (req, res) => {
 
 // Get all roles
 router.get('/', verifyAdminHR, (req, res) => {
-  // const { orgName } = jwt.decode(req.headers['authorization']);
-  // const RoleAndPermission = getRoleAndPermissionModel(orgName)
+  const { orgName } = jwt.decode(req.headers['authorization']);
+  const OrgRoleAndPermission = getRoleAndPermissionModel(orgName);
 
-  RoleAndPermission.find()
+  OrgRoleAndPermission.find()
     .populate("userPermissions")
     .populate("pageAuth")
     // .populate('company')
@@ -125,10 +113,10 @@ router.post('/', verifyAdmin, async (req, res) => {
       userPermissions: userPermission._id,
       pageAuth: pageAuth._id
     };
-    // const { orgName } = jwt.decode(req.headers['authorization']);
-    // const RoleAndPermission = getRoleAndPermissionModel(orgName)
+    const { orgName } = jwt.decode(req.headers['authorization']);
+    const OrgRoleAndPermission = getRoleAndPermissionModel(orgName);
 
-    const role = await RoleAndPermission.create(finalRoleData);
+    const role = await OrgRoleAndPermission.create(finalRoleData);
     res.send({ message: `${role.RoleName} Role and permission has been added!` });
   } catch (error) {
     res.status(500).send({ error: error.message });
@@ -159,13 +147,13 @@ router.put('/:id', verifyAdmin, async (req, res) => {
       return res.status(400).send({ error: userPermissionsError.details[0].message });
     }
     const updatedPageAuth = {
-      Administration : updatedRole.pageAuth.Administration,
-      Attendance : updatedRole.pageAuth.Attendance,
-      Dashboard : updatedRole.pageAuth.Dashboard,
-      Employee : updatedRole.pageAuth.Employee,
-      JobDesk : updatedRole.pageAuth.JobDesk,
-      Leave : updatedRole.pageAuth.Leave,
-      Settings : updatedRole.pageAuth.Settings,
+      Administration: updatedRole.pageAuth.Administration,
+      Attendance: updatedRole.pageAuth.Attendance,
+      Dashboard: updatedRole.pageAuth.Dashboard,
+      Employee: updatedRole.pageAuth.Employee,
+      JobDesk: updatedRole.pageAuth.JobDesk,
+      Leave: updatedRole.pageAuth.Leave,
+      Settings: updatedRole.pageAuth.Settings,
     }
     // Validate pageAuth
     const { error: pageAuthError } = pageAuthValidation.validate(updatedPageAuth);
@@ -195,9 +183,9 @@ router.put('/:id', verifyAdmin, async (req, res) => {
       userPermissions: updatedRole.userPermissions._id,
       pageAuth: updatedRole.pageAuth._id
     };
-    // const { orgName } = jwt.decode(req.headers['authorization']);
-    // const RoleAndPermission = getRoleAndPermissionModel(orgName)
-    const role = await RoleAndPermission.findByIdAndUpdate(req.params.id, finalRoleData, { new: true });
+    const { orgName } = jwt.decode(req.headers['authorization']);
+    const OrgRoleAndPermission = getRoleAndPermissionModel(orgName);
+    const role = await OrgRoleAndPermission.findByIdAndUpdate(req.params.id, finalRoleData, { new: true });
     if (!role) {
       return res.status(404).send({ error: 'Role not found' });
     }
@@ -211,13 +199,12 @@ router.put('/:id', verifyAdmin, async (req, res) => {
 
 router.delete("/:id", verifyAdmin, async (req, res) => {
   try {
-    // const {orgName} = jwt.decode(req.headers['authorization']);
-    // const OrgEmployeeModel = getEmployeeModel(orgName);
-    const isEmpRole = await Employee.find({ role: { $in: req.params.id } });
+    const {orgName} = jwt.decode(req.headers['authorization']);
+    const OrgEmployeeModel = getEmployeeModel(orgName);
+    const isEmpRole = await OrgEmployeeModel.find({ role: { $in: req.params.id } });
     if (isEmpRole.length === 0) {
-      // const { orgName } = jwt.decode(req.headers['authorization']);
-      // const RoleAndPermission = getRoleAndPermissionModel(orgName)
-      const deleteRole = await RoleAndPermission.findByIdAndDelete(req.params.id);
+      const OrgRoleAndPermission = getRoleAndPermissionModel(orgName);
+      const deleteRole = await OrgRoleAndPermission.findByIdAndDelete(req.params.id);
       res.send({ message: "Role has been deleted!" })
     } else {
       res.status(400).send({ message: "Please remove Employees from this role!" })

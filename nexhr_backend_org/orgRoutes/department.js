@@ -1,6 +1,5 @@
 const express = require('express');
 const router = express.Router()
-const { Employee } = require('../models/EmpModel');
 const Joi = require('joi');
 const { verifyAdminHR } = require('../auth/authMiddleware');
 const { getEmployeeModel } = require('./employee');
@@ -76,7 +75,7 @@ router.put("/:id", verifyAdminHR, (req, res) => {
         if (err) {
           res.status(500).send({ message: err.message });
         } else {
-          res.send({ message: "department has been updated!" });
+          res.send({ message: `${department.DepartmentName} has been updated!` });
         }
       });
     }

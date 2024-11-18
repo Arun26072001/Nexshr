@@ -1,15 +1,12 @@
 const express = require('express');
 const router = express.Router();
 const Joi = require('joi');
-const { Employee } = require('../models/EmpModel');
 const jwt = require('jsonwebtoken');
-const dotenv = require("dotenv");
-
-dotenv.config();
+const { getEmployeeModel } = require('../OrgModels/OrgEmpModel');
+const { Org } = require('../OrgModels/OrganizationModel');
 
 const jwtKey = process.env.ACCCESS_SECRET_KEY;
-
-router.post("/", async (req, res) => {
+router.post("/:orgId", async (req, res) => {
     const schema = Joi.object({
         Email: Joi.string().max(200).required(),
         Password: Joi.string().max(100).required()
@@ -22,14 +19,22 @@ router.post("/", async (req, res) => {
     }
 
     try {
-        const emp = await Employee.findOne({ Email: req.body.Email.toLowerCase(), Password: req.body.Password })
-            .populate({
-                path: "role",
-                populate: [
-                    { path: "userPermissions" },
-                    { path: "pageAuth" }
-                ]
-            })
+        const orgData = await Org.findById({ _id: req.params.orgId })
+        
+        const { orgName } = orgData;
+        console.log(orgName);
+        
+        const OrgEmployee = getEmployeeModel(orgName);
+        const emp = await OrgEmployee.findOne({ Email: req.body.Email.toLowerCase(), Password: req.body.Password })
+        // .populate({
+        //     path: `role`,
+        //     populate: [
+        //         { path: `userPermissions` },
+        //         { path: `pageAuth` }
+        //     ]
+        // })
+        console.log(emp);
+            
         if (!emp) {
             return res.status(400).send({ message: "Invalid Credentials" })
         } else {
@@ -38,7 +43,7 @@ router.post("/", async (req, res) => {
                 isVerifyEmail: true
             };
 
-            const updateIsEmailVerify = await Employee.findByIdAndUpdate(emp._id, empDataWithEmailVerified, { new: true });
+            const updateIsEmailVerify = await OrgEmployee.findByIdAndUpdate(emp._id, empDataWithEmailVerified, { new: true });
             const empData = {
                 _id: emp._id,
                 Account: emp.Account,
@@ -47,6 +52,7 @@ router.post("/", async (req, res) => {
                 annualLeaveEntitlement: emp.annualLeaveEntitlement,
                 roleData: emp?.role[0]
             };
+
             const token = jwt.sign(empData, jwtKey);
             return res.send(token);
         }

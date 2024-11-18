@@ -31,7 +31,7 @@ const getEmployeeSchema = function (orgName) {
             position: [{ type: mongoose.Schema.Types.ObjectId, ref: `${orgName}Position` }],
             department: [{ type: mongoose.Schema.Types.ObjectId, ref: `${orgName}Department` }],
             role: [{ type: mongoose.Schema.Types.ObjectId, ref: `${orgName}RoleAndPermission` }],
-            company: [{ type: mongoose.Schema.Types.ObjectId, ref: `${orgName}Company` }],
+            orgs: [{ type: mongoose.Schema.Types.ObjectId, ref: `org` }],
             description: { type: String },
             dateOfJoining: { type: String },
             employmentType: { type: String }, // e.g., full-time, part-time, contract
@@ -90,7 +90,7 @@ const employeeModels = {};
 function getEmployeeModel(orgName) {
     // If model already exists in the object, return it; otherwise, create it
     if (!employeeModels[orgName]) {
-        employeeModels[orgName] = mongoose.model(`${orgName}Employee`, getEmployeeSchema(orgName));
+        employeeModels[orgName] = mongoose.model(`${orgName}_Employee`, getEmployeeSchema(orgName));
     }
     return employeeModels[orgName];
 }

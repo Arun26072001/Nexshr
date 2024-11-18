@@ -11,18 +11,9 @@ router.get("/:id", verifyHREmployee, (req, res) => {
       // .populate({ path: "city", populate: { path: "state" } ,populate: { populate: { path: "country" } } })
       .populate({
         path: "role position department"
-        //   // populate: {
-        //   //   path: "state",
-        //   //   model: "State",
-        //   //   populate: {
-        //   //     path: "country",
-        //   //     model: "Country"
-        //   //   }
-        //   // }
       })
       .select("-salary -education -familyInfo -workExperience")
       .exec(function (err, employee) {
-        // employee = employees;
         res.send(employee);
       });
   });

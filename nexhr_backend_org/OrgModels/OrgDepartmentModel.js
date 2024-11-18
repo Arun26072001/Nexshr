@@ -1,3 +1,5 @@
+
+const Joi = require("joi")
 const mongoose = require("mongoose");
 
 const OrgDepartmentSchemas = {};
@@ -15,7 +17,7 @@ const OrgDepartmentModels = {};
 
 function getDepartmentModel(orgName) {
     if (!OrgDepartmentModels[orgName]) {
-        OrgDepartmentModels[orgName] = mongoose.model(`${orgName}Department`, getDepartmentSchema(orgName))
+        OrgDepartmentModels[orgName] = mongoose.model(`${orgName}_Department`, getDepartmentSchema(orgName))
     }
     return OrgDepartmentModels[orgName];
 }

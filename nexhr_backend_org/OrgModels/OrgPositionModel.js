@@ -1,5 +1,5 @@
 const mongoose = require("mongoose");
-
+const Joi = require("joi");
 const OrgPositionSchemas = {}; // Store Position schemas for each organization
 
 function getPositionSchema(orgName) {
@@ -17,7 +17,7 @@ const OrgPositionModels = {}; // Store Position models for each organization
 function getPositionModel(orgName) {
     if (!OrgPositionModels[orgName]) {
         OrgPositionModels[orgName] = mongoose.model(
-            `${orgName}Position`, // Dynamic collection name for Position
+            `${orgName}_Position`, // Dynamic collection name for Position
             getPositionSchema(orgName)
         );
     }

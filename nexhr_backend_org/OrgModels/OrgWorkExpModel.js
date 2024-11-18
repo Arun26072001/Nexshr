@@ -1,5 +1,5 @@
 const mongoose = require("mongoose");
-
+const Joi = require("joi");
 const OrgWorkExpSchemas = {};
 
 function getWorkExpSchema(orgName) {
@@ -18,7 +18,7 @@ const OrgWorkExpModels = {};
 
 function getWorkExpModel(orgName) {
     if (!OrgWorkExpModels[orgName]) {
-        OrgWorkExpModels[orgName] = mongoose.model(`${orgName}WorkExp`, getWorkExpSchema(orgName));
+        OrgWorkExpModels[orgName] = mongoose.model(`${orgName}_WorkExp`, getWorkExpSchema(orgName));
     }
     return OrgWorkExpModels[orgName];
 }

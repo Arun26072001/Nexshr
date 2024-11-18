@@ -1,5 +1,5 @@
 const mongoose = require("mongoose")
-
+const Joi = require("joi");
 const UserPermissionSchemas = {};
 
 function getUserPermissionSchema(orgName) {
@@ -32,7 +32,7 @@ const UserPermissionModels = {};
 function getUserPermissionModel(orgName) {
     if (!UserPermissionModels[orgName]) {
         UserPermissionModels[orgName] = mongoose.model(
-            `${orgName}UserPermission`,
+            `${orgName}_UserPermission`,
             getUserPermissionSchema(orgName)
         );
     }

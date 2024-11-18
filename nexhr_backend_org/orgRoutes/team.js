@@ -119,6 +119,10 @@ router.put("/:id", verifyAdminHR, async (req, res) => {
             lead: req.body.lead
         }
         const validatedTeam = await TeamValidation.validate(req.body);
+        const {error} = validatedTeam;
+        if(error){
+            res.status(400).send({error: error.details[0].message})
+        }
         const {orgName} = jwt.decode(req.headers['authorization']);
         const Team = getTeamModel(orgName)
         const response = await Team.findByIdAndUpdate(req.params.id, validatedTeam)
@@ -137,9 +141,9 @@ router.put("/:id", verifyAdminHR, async (req, res) => {
 
 router.delete("/:id", verifyAdminHR, async (req, res) => {
     try {
-        // const {orgName} = jwt.decode(req.headers['authorization']);
-        // const Team = getTeamModel(orgName)
-        const response = await Team.findByIdAndDelete(req.params.id);
+        const {orgName} = jwt.decode(req.headers['authorization']);
+        const OrgTeam = getTeamModel(orgName)
+        const response = await OrgTeam.findByIdAndDelete(req.params.id);
         if (!response) {
             res.status(404).send({ message: "Team not found!" })
         } else {

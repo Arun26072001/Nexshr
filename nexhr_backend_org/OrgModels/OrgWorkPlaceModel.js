@@ -1,5 +1,5 @@
 const mongoose = require("mongoose");
-
+const Joi = require("joi");
 const WorkPlaceSchemas = {};
 
 function getWorkPlaceSchema(orgName) {
@@ -22,7 +22,7 @@ const WorkPlaceModels = {};
 
 function getWorkPlaceModel(orgName) {
     if (!WorkPlaceModels[orgName]) {
-        WorkPlaceModels[orgName] = mongoose.model(`${orgName}WorkPlace`, getWorkPlaceSchema(orgName));
+        WorkPlaceModels[orgName] = mongoose.model(`${orgName}_WorkPlace`, getWorkPlaceSchema(orgName));
     }
     return WorkPlaceModels[orgName];
 }
@@ -36,8 +36,8 @@ const WorkPlaceValidation = Joi.object().keys({
         .max(100)
         .required(),
     Address_2: Joi.string().optional(),
-    Country: Joi.array().items(Joi.objectId().required()).min(1).required(),
-    State: Joi.array().items(Joi.objectId().required()).min(1).required(),
+    Country: Joi.array().items(Joi.string().required()).min(1).required(),
+    State: Joi.array().items(Joi.string().required()).min(1).required(),
     Town: Joi.string()
         .max(100)
         .required(),

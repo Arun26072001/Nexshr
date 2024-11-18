@@ -1,5 +1,5 @@
 const mongoose = require("mongoose");
-
+const Joi = require("joi");
 const OrgClockinSchemas = {};
 
 function getClockinSchema(orgName) {
@@ -62,7 +62,7 @@ const OrgClockinModels = {};
 
 function getClockinModel(orgName) {
     if (!OrgClockinModels[orgName]) {
-        OrgClockinModels[orgName] = mongoose.model(`${orgName}Clockins`, getClockinSchema(orgName));
+        OrgClockinModels[orgName] = mongoose.model(`${orgName}_Clockins`, getClockinSchema(orgName));
     }
     return OrgClockinModels[orgName];
 }

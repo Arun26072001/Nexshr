@@ -1,5 +1,5 @@
 const mongoose = require("mongoose");
-const { Project } = require("../models/ProjectModel");
+const Joi = require("joi");
 
 const OrgProjectSchemas = {};
 function getProjectSchema(orgName) {
@@ -33,7 +33,7 @@ const OrgProjectModels = {};
 
 function getProjectModel(orgName) {
     if (!OrgProjectModels[orgName]) {
-        OrgProjectModels[orgName] = mongoose.model(`${orgName}Project`, getProjectSchema(orgName));
+        OrgProjectModels[orgName] = mongoose.model(`${orgName}_Project`, getProjectSchema(orgName));
     }
     return OrgProjectModels[orgName];
 }

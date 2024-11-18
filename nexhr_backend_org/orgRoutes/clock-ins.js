@@ -1,13 +1,10 @@
 const express = require("express");
 const router = express.Router();
-const Joi = require('joi');
 const { verifyAdminHREmployee, verifyAdminHR } = require("../auth/authMiddleware");
-const { clockInsValidation, ClockIns } = require("../models/ClockInsModel");
-const { Employee } = require("../models/EmpModel");
 const { getDayDifference } = require("./leave-app");
 const jwt = require("jsonwebtoken");
 const getEmployeeModel = require("./employee");
-const { getClockinModel } = require("../OrgModels/OrgClockinsModel");
+const { getClockinModel, clockInsValidation } = require("../OrgModels/OrgClockinsModel");
 
 async function checkLoginForOfficeTime(scheduledTime, actualTime) {
     // Parse scheduled and actual time into hours and minutes
@@ -62,6 +59,9 @@ function getTotalWorkingHourPerDay(startingTime, endingTime) {
 }
 
 router.post("/:id", verifyAdminHREmployee, async (req, res) => {
+    const { orgName } = jwt.decode(req.headers['authorization']);
+    const OrgEmployee = getEmployeeModel(orgName);
+    const OrgClockinsModel = getClockinModel(orgName);
     let regular = 0;
     let late = 0;
     let early = 0;
@@ -115,9 +115,7 @@ router.post("/:id", verifyAdminHREmployee, async (req, res) => {
                 punchInMsg,
                 employee: req.params.id
             };
-            const { orgName } = jwt.decode(req.headers['authorization']);
-            const OrgClockIns = getClockinModel(orgName)
-            const clockIns = await OrgClockIns.create(newClockIns);
+            const clockIns = await OrgClockinsModel.create(newClockIns);
 
             // Save the clock-in data to the employee's record
             emp.clockIns.push(clockIns._id);
@@ -147,11 +145,7 @@ router.get("/:id", verifyAdminHREmployee, async (req, res) => {
         // Create start and end of the day for the date comparison
         const startOfDay = new Date(queryDate.setHours(0, 0, 0, 0)); // Set time to 00:00:00.000
         const endOfDay = new Date(queryDate.setHours(23, 59, 59, 999)); // Set time to 23:59:59.999
-        // const {orgName} = jwt.decode(req.headers['authorization']);
-        // console.log(orgName);
 
-        // const OrgEmployeeModel = getEmployeeModel(orgName);
-        // console.log(OrgEmployeeModel);
         const { orgName } = jwt.decode(req.headers['authorization']);
         const OrgEmployeeModel = getEmployeeModel(orgName);
         const timeData = await OrgEmployeeModel.findById({ _id: req.params.id }, "clockIns")
@@ -202,7 +196,6 @@ router.get("/:id", verifyAdminHREmployee, async (req, res) => {
 
     } catch (err) {
         console.log(err);
-
         res.status(500).send({ error: err.message });
     }
 });
@@ -222,7 +215,9 @@ router.get("/item/:id", verifyAdminHREmployee, async (req, res) => {
     };
 
     try {
-        const timeData = await ClockIns.findById(req.params.id).populate({ path: "employee", select: "_id FirstName LastName" });
+        const { orgName } = jwt.decode(req.headers['authorization']);
+        const OrgClockInsModel = getClockinModel(orgName);
+        const timeData = await OrgClockInsModel.findById(req.params.id).populate({ path: "employee", select: "_id FirstName LastName" });
         if (!timeData) {
             return res.status(404).send({ message: "Not found", details: "Id is not found! Please verify it." });
         }
@@ -319,7 +314,7 @@ router.get("/employee/:empId", verifyAdminHREmployee, async (req, res) => {
 
     try {
         const { orgName } = jwt.decode(req.headers['authorization']);
-        const OrgEmployee = getEmployeeModel(orgName)
+        const OrgEmployee = getEmployeeModel(orgName);
         const employee = await OrgEmployee.findById(req.params.empId, "_id FirstName LastName clockIns leaveApplication")
             .populate({
                 path: "clockIns",
@@ -348,7 +343,6 @@ router.get("/employee/:empId", verifyAdminHREmployee, async (req, res) => {
                     status: "approved"
                 }
             });
-
 
         if (!employee) {
             return res.status(400).send({ message: "No Employee found with given ID" });
@@ -414,7 +408,7 @@ router.put("/:id", verifyAdminHREmployee, (req, res) => {
     let body = req.body;
     const { orgName } = jwt.decode(req.headers['authorization']);
     const OrgClockIns = getClockinModel(orgName);
-    
+
     OrgClockIns.findByIdAndUpdate(req.params.id, body, {
         new: true
     }, (err, data) => {

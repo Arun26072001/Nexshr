@@ -1,5 +1,5 @@
 const mongoose = require("mongoose");
-
+const Joi = require("joi");
 const OrgTimePatternSchemas = {};
 
 // Function to get the time pattern schema for a specific organization
@@ -23,17 +23,17 @@ const OrgTimePatternModels = {};
 // Function to get the time pattern model for a specific organization
 function getTimePatternModel(orgName) {
     if (!OrgTimePatternModels[orgName]) {
-        OrgTimePatternModels[orgName] = mongoose.model(`${orgName}TimePattern`, getTimePatternSchema(orgName));
+        OrgTimePatternModels[orgName] = mongoose.model(`${orgName}_TimePattern`, getTimePatternSchema(orgName));
     }
     return OrgTimePatternModels[orgName];
 }
 
-const timePatternValidation = Joi.object({
+const timePatternValidation = Joi.object().keys({
     PatternName: Joi.string().required(),  // PatternName should be a non-empty string
     DefaultPattern: Joi.boolean().required(),  // DefaultPattern should be a boolean
-    StartingTime: Joi.string().pattern(/^([01]?[0-9]|2[0-3]):([0-5][0-9])$/).required(),  // Time format (HH:MM)
-    FinishingTime: Joi.string().pattern(/^([01]?[0-9]|2[0-3]):([0-5][0-9])$/).required(),  // Time format (HH:MM)
-    BreakTime: Joi.string().pattern(/^([01]?[0-9]|2[0-3]):([0-5][0-9])$/).required(),  // Time format (HH:MM)
+    StartingTime: Joi.string().regex(/^([01]?[0-9]|2[0-3]):([0-5][0-9])$/).required(),  // Time format (HH:MM)
+    FinishingTime: Joi.string().regex(/^([01]?[0-9]|2[0-3]):([0-5][0-9])$/).required(),  // Time format (HH:MM)
+    BreakTime: Joi.string().regex(/^([01]?[0-9]|2[0-3]):([0-5][0-9])$/).required(),  // Time format (HH:MM)
     WeeklyDays: Joi.number().integer().min(1).max(7).required(),  // WeeklyDays should be a number between 1 and 7
     PublicHoliday: Joi.string().required()  // PublicHoliday should be a non-empty string
 });

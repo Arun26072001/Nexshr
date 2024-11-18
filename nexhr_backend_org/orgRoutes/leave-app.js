@@ -1,11 +1,9 @@
 const express = require('express');
 const leaveApp = express.Router();
-const { LeaveApplication,
-  LeaveApplicationValidation
-} = require('../models/LeaveAppModel')
-const { RoleAndPermission } = require("../models/RoleModel");
-const { Employee } = require('../models/EmpModel');
 const { verifyHR, verifyHREmployee, verifyEmployee, verifyAdmin, verifyAdminHREmployee } = require('../auth/authMiddleware');
+const { getEmployeeModel } = require('../OrgModels/OrgEmpModel');
+const { getRoleAndPermissionModel } = require('../OrgModels/OrgRoleAndPermissionModel');
+const { getLeaveApplicationModel, LeaveApplicationValidation } = require('../OrgModels/OrgLeaveApplicationModel');
 
 function getDayDifference(leave) {
   let toDate = new Date(leave.toDate);
@@ -16,7 +14,9 @@ function getDayDifference(leave) {
 
 leaveApp.get("/emp/:empId", verifyAdminHREmployee, async (req, res) => {
   try { //verifyHREmployee this API is use for emp and Hr to fetch their leave reqs
-    let requests = await Employee.findById(req.params.empId, "_id FirstName LastName Email phone typesOfLeaveCount typesOfLeaveRemainingDays")
+    const { orgName } = jwt.decode(req.headers['authorization']);
+    const OrgEmployee = getEmployeeModel(orgName)
+    let requests = await OrgEmployee.findById(req.params.empId, "_id FirstName LastName Email phone typesOfLeaveCount typesOfLeaveRemainingDays")
       .populate({
         path: "leaveApplication",
         populate: {
@@ -58,11 +58,12 @@ leaveApp.get("/emp/:empId", verifyAdminHREmployee, async (req, res) => {
 
     // // Add the new property to the object
     // requests.takenLeaveCount = typesOfLeaveTaken;
-
-    const roleIds = await RoleAndPermission.find({ RoleName: requests?.role[0].RoleName }, "_id");
-    const collegues = await Employee.find({ role: { $in: roleIds } }, "FirstName LastName Email phone");
-    const empIds = await Employee.find({ Account: 3, _id: { $nin: req.params.empId } });
-    const peopleOnLeave = await LeaveApplication.find(
+    const OrgRolesAndPermission = getRoleAndPermissionModel(orgName)
+    const roleIds = await OrgRolesAndPermission.find({ RoleName: requests?.role[0].RoleName }, "_id");
+    const collegues = await OrgEmployee.find({ role: { $in: roleIds } }, "FirstName LastName Email phone");
+    const empIds = await OrgEmployee.find({ Account: 3, _id: { $nin: req.params.empId } });
+    const OrgLeaveApplication = getLeaveApplicationModel(orgName)
+    const peopleOnLeave = await OrgLeaveApplication.find(
       { employee: { $in: empIds }, fromDate: new Date().toISOString().split("T")[0], status: "approved" }
       , "_id fromDate toDate").populate({ path: "employee", select: "_id FirstName LastName" })
     res.send({ requests, collegues, peopleOnLeave });
@@ -81,7 +82,9 @@ leaveApp.get("/emp/:empId", verifyAdminHREmployee, async (req, res) => {
 leaveApp.get("/hr", verifyHR, async (req, res) => {
   try {
     // Fetch employee IDs with Account: 3
-    const empIds = await Employee.find({ Account: 3 }, "_id");
+    const { orgName } = jwt.decode(req.headers['authorization']);
+    const OrgEmployee = getEmployeeModel(orgName)
+    const empIds = await OrgEmployee.find({ Account: 3 }, "_id");
 
     // Check if any employees are found
     if (empIds.length === 0) {
@@ -91,7 +94,7 @@ leaveApp.get("/hr", verifyHR, async (req, res) => {
     }
 
     // Fetch leave requests for these employees
-    const leaveReqs = await Employee.find({ _id: { $in: empIds } }, "_id FirstName LastName")
+    const leaveReqs = await OrgEmployee.find({ _id: { $in: empIds } }, "_id FirstName LastName")
       .populate({
         path: "leaveApplication",
         populate: { path: "employee", select: "_id FirstName LastName" }
@@ -120,7 +123,9 @@ leaveApp.get("/hr", verifyHR, async (req, res) => {
 
 leaveApp.get("/:id", verifyHREmployee, async (req, res) => {
   try {
-    const leaveReq = await LeaveApplication.findById(req.params.id);
+    const { orgName } = jwt.decode(req.headers['authorization']);
+    const OrgLeaveApplication = getLeaveApplicationModel(orgName)
+    const leaveReq = await OrgLeaveApplication.findById(req.params.id);
     if (!leaveReq) {
       res.status(203).send("Id not found")
     } else {
@@ -146,8 +151,11 @@ leaveApp.get("/date-range/hr", verifyHR, async (req, res) => {
   }
 
   try {
+    const { orgName } = jwt.decode(req.headers['authorization']);
+    const OrgEmployee = getEmployeeModel(orgName)
+
     // if a person has account 2, can get date range of all emp leave data
-    const employeesLeaveData = await Employee.find({ Account: 3 }, "_id FirstName LastName")
+    const employeesLeaveData = await OrgEmployee.find({ Account: 3 }, "_id FirstName LastName")
       .populate({
         path: "leaveApplication",
         match: {
@@ -190,7 +198,9 @@ leaveApp.get("/date-range/admin", verifyAdmin, async (req, res) => {
 
   try {
     // if a person has account 2, can get date range of all emp leave data
-    const employeesLeaveData = await Employee.find({}, "_id FirstName LastName")
+    const { orgName } = jwt.decode(req.headers['authorization']);
+    const OrgEmployee = getEmployeeModel(orgName)
+    const employeesLeaveData = await OrgEmployee.find({}, "_id FirstName LastName")
       .populate({
         path: "leaveApplication",
         match: {
@@ -235,7 +245,9 @@ leaveApp.get("/date-range/:empId", verifyAdminHREmployee, async (req, res) => {
   // jwt.verify(Header, jwtKey, async (err, authData) => {
   try {
     // if a person has account 3, can get date range of his leave data
-    const employeeLeaveData = await Employee.findById(req.params.empId, "_id FirstName LastName")
+    const { orgName } = jwt.decode(req.headers['authorization']);
+    const OrgEmployee = getEmployeeModel(orgName)
+    const employeeLeaveData = await OrgEmployee.findById(req.params.empId, "_id FirstName LastName")
       .populate({
         path: "leaveApplication",
         match: {
@@ -277,7 +289,9 @@ leaveApp.get("/date-range/:empId", verifyAdminHREmployee, async (req, res) => {
 
 leaveApp.get("/", verifyAdmin, async (req, res) => {
   try {
-    const requests = await LeaveApplication.find().populate({
+    const { orgName } = jwt.decode(req.headers['authorization']);
+    const OrgLeaveApplication = getLeaveApplicationModel(orgName)
+    const requests = await OrgLeaveApplication.find().populate({
       path: "employee",
       select: "FirstName LastName"
     });
@@ -313,9 +327,12 @@ leaveApp.post("/:empId", verifyAdminHREmployee, async (req, res) => {
     };
 
     let takenLeaveCount = 0;
+    const { orgName } = jwt.decode(req.headers['authorization']);
+    const OrgLeaveApplication = getLeaveApplicationModel(orgName);
+    const OrgEmployee = getEmployeeModel(orgName);
 
     // Fetch approved leave applications for the specific employee
-    const leaveData = await LeaveApplication.find({
+    const leaveData = await OrgLeaveApplication.find({
       leaveType: {
         $regex: new RegExp("^" + req.body.leaveType, "i")
       },
@@ -324,7 +341,7 @@ leaveApp.post("/:empId", verifyAdminHREmployee, async (req, res) => {
     });
 
     // Fetch pending leave applications for the specific employee and leave type
-    const pendingLeaveData = await LeaveApplication.find({
+    const pendingLeaveData = await OrgLeaveApplication.find({
       leaveType: {
         $regex: new RegExp("^" + req.body.leaveType, "i")
       },
@@ -343,7 +360,7 @@ leaveApp.post("/:empId", verifyAdminHREmployee, async (req, res) => {
       });
 
       // Fetch employee's leave count and remaining leave days
-      const empData = await Employee.findById(req.params.empId, "typesOfLeaveCount typesOfLeaveRemainingDays").exec();
+      const empData = await OrgEmployee.findById(req.params.empId, "typesOfLeaveCount typesOfLeaveRemainingDays").exec();
 
       let leaveTypeName = req.body.leaveType.split(" ")[0];
       const leaveDaysCount = empData?.typesOfLeaveRemainingDays[leaveTypeName];
@@ -354,7 +371,7 @@ leaveApp.post("/:empId", verifyAdminHREmployee, async (req, res) => {
         let GoingToTakeLeave = getDayDifference(req.body);
 
         // Check if the employee has already submitted a leave request for the same date
-        const reqDate = await LeaveApplication.find({ fromDate: leaveRequest.fromDate, employee: req.params.empId });
+        const reqDate = await OrgLeaveApplication.find({ fromDate: leaveRequest.fromDate, employee: req.params.empId });
         if (reqDate.length > 0) {
           return res.status(400).send({ message: "Already sent a request on this date." });
         } else {
@@ -463,8 +480,10 @@ leaveApp.post("/:empId", verifyAdminHREmployee, async (req, res) => {
 
 leaveApp.put("/:id", verifyHREmployee, async (req, res) => {
   try {
-    const updatedReq = await LeaveApplication.findByIdAndUpdate(req.params.id, req.body);
-    res.send({ message: `Application has been ${req.body.status}` })
+    const { orgName } = jwt.decode(req.headers['authorization']);
+    const OrgLeaveApplication = getLeaveApplicationModel(orgName)
+    const updatedReq = await OrgLeaveApplication.findByIdAndUpdate(req.params.id, req.body);
+    res.send({ message: `Application has been ${updatedReq.status}` })
   } catch (err) {
     res.status(500).send({ message: "Internal server error", details: err.message })
   }
@@ -472,12 +491,15 @@ leaveApp.put("/:id", verifyHREmployee, async (req, res) => {
 
 leaveApp.delete("/:empId/:leaveId", verifyEmployee, async (req, res) => {
   try {
-    const emp = await Employee.findById(req.params.empId);
+    const { orgName } = jwt.decode(req.headers['authorization']);
+    const OrgEmployee = getEmployeeModel(orgName);
+    const OrgLeaveApplication = getLeaveApplicationModel(orgName)
+    const emp = await OrgEmployee.findById(req.params.empId);
     if (!emp) {
       res.status(404).send({ message: "Employee not found in this ID" })
     }
     else {
-      const dltLeave = await LeaveApplication.findByIdAndRemove(req.params.leaveId)
+      const dltLeave = await OrgLeaveApplication.findByIdAndRemove(req.params.leaveId)
       if (!dltLeave) {
         return res.status(409).send({ message: "Error in deleting leave or leave not found" })
       } else {

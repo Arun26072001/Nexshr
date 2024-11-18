@@ -1,26 +1,15 @@
 const express = require('express');
 const router = express.Router();
-const { Position, PositionValidation, positionSchema } = require('../models/PositionModel');
-const { Employee } = require('../models/EmpModel');
 const Joi = require('joi');
 const { verifyAdminHR } = require('../auth/authMiddleware');
-const mongoose = require("mongoose");
-
-// const positionModel = {};
-// function getPositionModel(orgName) {
-//   // If model already exists in the object, return it; otherwise, create it
-//   if (!positionModel[orgName]) {
-//     positionModel[orgName] = mongoose.model(`${orgName}Position`, positionSchema);
-//   }
-
-//   return positionModel[orgName];
-// }
+const { getPositionModel } = require('../OrgModels/OrgPositionModel');
+const { getEmployeeModel } = require('../OrgModels/OrgEmpModel');
 
 router.get("/", verifyAdminHR, (req, res) => {
-  // const { orgName } = jwt.decode(req.headers['authorization']);
-  // const Position = getPositionModel(orgName)
-  Position.find()
-    .populate("company")
+  const { orgName } = jwt.decode(req.headers['authorization']);
+  const OrgPosition = getPositionModel(orgName)
+  OrgPosition.find()
+    .populate("orgId")
     .exec(function (err, positions) {
       if (err) {
         res.status(500).send({ Error: err })
@@ -30,13 +19,13 @@ router.get("/", verifyAdminHR, (req, res) => {
 });
 
 router.get("/:id", verifyAdminHR, (req, res) => {
-  // const { orgName } = jwt.decode(req.headers['authorization']);
-  // const Position = getPositionModel(orgName)
-  Position.findById({ _id: req.params.id })
-    .populate("company")
+  const { orgName } = jwt.decode(req.headers['authorization']);
+  const OrgPosition = getPositionModel(orgName)
+  OrgPosition.findById({ _id: req.params.id })
+    .populate("orgId")
     .exec(function (err, position) {
       if (err) {
-        res.status(500).send({ Error: err })
+        res.status(500).send({ error: err.message })
       }
       res.send(position);
     });
@@ -76,9 +65,9 @@ router.post("/", verifyAdminHR, (req, res) => {
       console.log(err);
       res.status(400).send({ message: err.details[0].message });
     } else {
-      // const { orgName } = jwt.decode(req.headers['authorization']);
-      // const Position = getPositionModel(orgName)
-      Position.create(req.body, function (err, position) {
+      const { orgName } = jwt.decode(req.headers['authorization']);
+      const OrgPosition = getPositionModel(orgName)
+      OrgPosition.create(req.body, function (err, position) {
         if (err) {
           res.status(500).send({ message: err.message });
         } else {
@@ -101,9 +90,9 @@ router.put("/:id", verifyAdminHR, (req, res) => {
       console.log(err);
       res.status(400).send({ message: err.details[0].message });
     } else {
-      // const { orgName } = jwt.decode(req.headers['authorization']);
-      // const Position = getPositionModel(orgName)
-      Position.findByIdAndUpdate(req.params.id, updatedPosition, function (
+      const { orgName } = jwt.decode(req.headers['authorization']);
+      const OrgPosition = getPositionModel(orgName)
+      OrgPosition.findByIdAndUpdate(req.params.id, updatedPosition, function (
         err,
         position
       ) {
@@ -117,38 +106,37 @@ router.put("/:id", verifyAdminHR, (req, res) => {
   });
 });
 
-router.delete("/:id", verifyAdminHR, (req, res) => {
-  // const { orgName } = jwt.decode(req.headers['authorization']);
-  // const OrgEmployeeModel = getEmployeeModel(orgName);
-  Position.find({ position: req.params.id }, function (err, p) {
-    if (err) {
-      console.log(err);
-      res.send(err);
-    } else {
-      if (p.length == 0) {
-        const { orgName } = jwt.decode(req.headers['authorization']);
-        const Position = getPositionModel(orgName)
-        Position.findByIdAndRemove(req.params.id, function (
-          err,
-          position
-        ) {
-          if (!err) {
-            res.send("position has been deleted!");
-          } else {
-            res.status(403).send(err);
-          }
-        });
-        console.log("delete");
-        console.log(req.params.id);
-      } else {
-        res
-          .status(403)
-          .send(
-            "This Position is associated with Employee so you can not delete this"
-          );
-      }
+router.delete("/:id", verifyAdminHR, async (req, res) => {
+  try {
+    // Extract orgName from the token
+    const { orgName } = jwt.decode(req.headers['authorization']);
+    if (!orgName) {
+      return res.status(401).send("Unauthorized: Invalid token");
     }
-  });
+
+    // Get the models
+    const OrgEmployeeModel = getEmployeeModel(orgName);
+    const PositionModel = getPositionModel(orgName);
+
+    // Check if the position is associated with any employees
+    const employees = await OrgEmployeeModel.find({ position: req.params.id });
+    if (employees.length > 0) {
+      return res.status(403).send(
+        "This position is associated with an employee, so it cannot be deleted."
+      );
+    }
+
+    // Delete the position
+    const deletedPosition = await PositionModel.findByIdAndRemove(req.params.id);
+    if (!deletedPosition) {
+      return res.status(404).send("Position not found");
+    }
+
+    res.send("Position has been deleted!");
+  } catch (error) {
+    console.error("Error deleting position:", error);
+    res.status(500).send("An error occurred while processing the request");
+  }
 });
 
 module.exports = router

@@ -3,11 +3,11 @@ const router = express.Router();
 const Joi = require('joi');
 const jwt = require("jsonwebtoken");
 const { verifyHR } = require('../auth/authMiddleware');
-const { getOrganizationSettingsModel } = require('../OrgModels/OrgSettingsModel');
+const { getOrganizationSettingsModel, OrgSettingsValidation } = require('../OrgModels/OrgSettingsModel');
 
 
 router.post("/",verifyHR, (req, res)=>{
-    Joi.validate(req.body, CompanySettingsValidation, (err, result)=>{
+    Joi.validate(req.body, OrgSettingsValidation, (err, result)=>{
       if(err) {
         res.sendStatus(404)
       }else{

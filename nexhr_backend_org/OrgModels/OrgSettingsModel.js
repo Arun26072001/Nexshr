@@ -1,5 +1,5 @@
 const mongoose = require("mongoose");
-
+const Joi = require("joi");
 const OrganizationSettingsSchemas = {};
 
 function getOrganizationSettingsSchema(orgName) {
@@ -26,12 +26,12 @@ const OrganizationSettingsModels = {};
 
 function getOrganizationSettingsModel(orgName) {
     if (!OrganizationSettingsModels[orgName]) {
-        OrganizationSettingsModels[orgName] = mongoose.model(`${orgName}Settings`, getOrganizationSettingsSchema(orgName));
+        OrganizationSettingsModels[orgName] = mongoose.model(`${orgName}_Settings`, getOrganizationSettingsSchema(orgName));
     }
     return OrganizationSettingsModels[orgName];
 }
 
-const CompanySettingsValidation = Joi.object().keys({
+const OrgSettingsValidation = Joi.object().keys({
     _id: Joi.optional(),
     CompanyName: Joi.string()
         .max(100)
@@ -71,4 +71,4 @@ const CompanySettingsValidation = Joi.object().keys({
         .required()
 });
 
-module.exports = { getOrganizationSettingsModel, CompanySettingsValidation }
+module.exports = { getOrganizationSettingsModel, OrgSettingsValidation }

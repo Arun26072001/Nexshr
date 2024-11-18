@@ -13,7 +13,7 @@ router.get("/", verifyAdminHR, async (req, res) => {
     const OrgEmployeeModel = getEmployeeModel(orgName)
     const employees = await OrgEmployeeModel.find({ Account: 3 }, "_id FirstName LastName employmentType dateOfJoining gender working code docType serialNo")
       .populate({
-        path: "orgId"
+        path: "orgs"
       })
       .populate({
         path: "position"
@@ -48,11 +48,10 @@ router.get("/all", verifyAdminHR, async (req, res) => {
     const OrgEmployeeModel = getEmployeeModel(orgName)
     const employees = await OrgEmployeeModel.find({}, "_id FirstName LastName employmentType dateOfJoining gender working code docType serialNo")
       .populate({
-        path: "company",
-        select: "_id CompanyName Town"
+        path: "orgs"
       })
       .populate({
-        path: "position"
+        path: `position`
       })
       .populate({
         path: "department"
@@ -129,9 +128,9 @@ router.get('/:id', verifyAdminHREmployee, async (req, res) => {
 
 router.post("/", verifyAdminHR, async (req, res) => {
   try {
-    const { Email, phone, basicSalary, FirstName, LastName, Password, teamLead, managerId, company, annualLeaveEntitlement } = req.body;
+    const { Email, phone, basicSalary, FirstName, LastName, Password, teamLead, managerId, annualLeaveEntitlement } = req.body;
 
-    const { orgName } = jwt.decode(req.headers['authorization']);
+    const { orgName, orgId } = jwt.decode(req.headers['authorization']);
     const OrgEmployeeModel = getEmployeeModel(orgName)
 
     // Check if email already exists
@@ -182,7 +181,7 @@ router.post("/", verifyAdminHR, async (req, res) => {
       ...req.body,
       teamLead: teamLead || ["665601de20a3c61c646a135f"],
       managerId: managerId || ["6651e4a810994f1d24cf3a19"],
-      company: company || ["6651a5eb6115df44c0cc7151"],
+      orgs: [orgId],
       annualLeaveEntitlement: annualLeaveEntitlement || 21,
       accountNo: "9038948932",
       IFSCcode: "SBI920210",
@@ -270,7 +269,7 @@ router.put("/:id", verifyHR, async (req, res) => {
         ['companyWorkingHourPerWeek']: `${req.body.hour}.${req.body.mins}`
       };
     }
-    const {orgName} = jwt.decode(req.headers['authorization']);
+    const { orgName } = jwt.decode(req.headers['authorization']);
     const OrgEmployee = getEmployeeModel(orgName)
     const updatedEmp = await OrgEmployee.findByIdAndUpdate(req.params.id, newEmployee)
     res.send({ message: "Employee data has been updated!" });

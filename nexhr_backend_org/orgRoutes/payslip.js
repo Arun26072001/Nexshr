@@ -1,8 +1,6 @@
 const express = require("express");
-const { Employee } = require("../models/EmpModel");
-// const { LeaveApplication } = require("../models/LeaveAppModel");
-// const { PaySlipInfo } = require("../models/PaySlipInfoModel");
-const { Payslip } = require("../models/PaySlipModel");
+const { getEmployeeModel } = require("../OrgModels/OrgEmpModel");
+const { getPayslipModel } = require("../OrgModels/OrgPayslipModel");
 const router = express.Router();
 
 function getDayDifference(leave) {
@@ -14,7 +12,9 @@ function getDayDifference(leave) {
 
 router.get("/:id", async (req, res) => {
   try {
-    const payslip = await Payslip.findById({ _id: req.params.id }).populate({
+    const { orgName } = jwt.decode(req.headers['authorization']);
+    const OrgPayslip =  getOrgPortalModel(orgName)
+    const payslip = await OrgPayslip.findById({ _id: req.params.id }).populate({
       path: "employee",
       populate: [
         { path: "company" },
@@ -39,7 +39,9 @@ router.post("/", async (req, res) => {
   let endOfMonth = new Date(now.getFullYear(), now.getMonth(), 0); // End of the current month
 
   try {
-    const employees = await Employee.find().populate({
+    const { orgName } = jwt.decode(req.headers['authorization']);
+    const OrgEmployee = getEmployeeModel(orgName)
+    const employees = await OrgEmployee.find().populate({
       path: "leaveApplication",
       match: {
         fromDate: {
@@ -88,8 +90,8 @@ router.post("/", async (req, res) => {
         employee: emp._id,
         payslip
       };
-
-      const payslipData = await Payslip.create(body); // Generate payslip and return the promise
+      const OrgPayslip = getPayslipModel(orgName)
+      const payslipData = await OrgPayslip.create(body); // Generate payslip and return the promise
 
       emp.payslip.push(payslipData._id);
       await emp.save();
@@ -97,7 +99,7 @@ router.post("/", async (req, res) => {
 
     // Wait for all payslip creations to complete
     const generatedPayslips = await Promise.all(payslipPromises);
-    res.send({ message: "payslip has been generated for " })
+    res.send({ message: "payslip has been generated", Generated: generatedPayslips })
 
   } catch (err) {
     console.error("Error:", err);
@@ -107,7 +109,9 @@ router.post("/", async (req, res) => {
 
 router.get("/emp/:empId", async (req, res) => {
   try {
-    const payslips = await Payslip.find({ employee: req.params.empId }).populate("employee").exec();
+    const { orgName } = jwt.decode(req.headers['authorization']);
+    const OrgPayslip = getPayslipModel(orgName)
+    const payslips = await OrgPayslip.find({ employee: req.params.empId }).populate("employee").exec();
     res.send(payslips);
   } catch (err) {
     res.status(500).send({ error: err.message })

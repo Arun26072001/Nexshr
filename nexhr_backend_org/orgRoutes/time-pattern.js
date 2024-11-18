@@ -25,10 +25,7 @@ router.post("/", verifyAdminHR, (req, res) => {
   // console.log("46: "+req.body);
   Joi.validate(req.body, TimePatternValidation, (err, result) => {
     if (err) {
-      res.status(400)
-      res.json({
-        "status": 400
-      });
+      res.status(400).send({error: err.details[0].message})
     } else {
       let newTimepattern = req.body;
       const { orgName } = jwt.decode(req.headers['authorization']);

@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-
+const Joi = require("joi");
 // Store schemas for different organizations
 const OrgLeaveApplicationSchemas = {};
 
@@ -31,14 +31,14 @@ function getLeaveApplicationModel(orgName) {
     // If the model for the organization doesn't exist, create it
     if (!OrgLeaveApplicationModels[orgName]) {
         OrgLeaveApplicationModels[orgName] = mongoose.model(
-            `${orgName}LeaveApplication`, // Collection name
+            `${orgName}_LeaveApplication`, // Collection name
             getLeaveApplicationSchema(orgName)
         );
     }
     return OrgLeaveApplicationModels[orgName];
 }
 
-const LeaveApplicationValidation = Joi.object({
+const LeaveApplicationValidation = Joi.object().keys({
     employee: Joi.string().required().regex(/^[0-9a-fA-F]{24}$/).label('employee'),
     leaveType: Joi.string().required().label('leaveType'),
     fromDate: Joi.date().required().label('fromDate'),

@@ -1,21 +1,22 @@
 const express = require('express');
-const { verifyHR } = require('../auth/authMiddleware');
 const router = express.Router();
 const Joi = require('joi');
-const { Employee } = require('../models/EmpModel');
-const { PayrollValidation, Payroll } = require('../models/PayrollModel');
-
+const { verifyHR } = require('../auth/authMiddleware');
+const { getEmployeeModel } = require('../OrgModels/OrgEmpModel');
 
 router.post("/:id", verifyHR, (req, res) => {
     Joi.validate(req.body, PayrollValidation, (err, result) => {
         if (err) {
             res.status(400).send("Invalid data");
         } else {
-            Employee.findById(req.params.id, (err, emp) => {
+            const { orgName } = jwt.decode(req.headers['authorization']);
+            const OrgEmployee =  getEmployeeModel(orgName)
+            OrgEmployee.findById(req.params.id, (err, emp) => {
                 if (!emp) {
                     res.status(404).send("Employee not found!");
                 } else {
                     const newPayroll = req.body;
+                    
                     Payroll.create(newPayroll, (err, payroll) => {
                         if (err) {
                             res.status(500).send("Payroll number unique!, Please check data!");

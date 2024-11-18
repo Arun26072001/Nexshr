@@ -1,24 +1,13 @@
 const express = require('express');
 const router = express.Router();
-const { Project, ProjectValidation } = require('../models/ProjectModel');
-const { verifyAdmin } = require('../auth/authMiddleware');
 const Joi = require("joi");
-
-// const projectModels = {};
-
-// function getProjectModel(orgName) {
-//   // If model already exists in the object, return it; otherwise, create it
-//   if (!projectModels[orgName]) {
-//     projectModels[orgName] = mongoose.model(`${orgName}Project`, projectSchema);
-//   }
-
-//   return projectModels[orgName];
-// }
+const { getProjectModel } = require('../OrgModels/OrgProjectModel');
+const { verifyAdmin } = require('../auth/authMiddleware');
 
 router.get("/", verifyAdmin, (req, res) => {
-  // const { orgName } = jwt.decode(req.headers['authorization']);
-  // const Project = getProjectModel(orgName)
-  Project.find()
+  const { orgName } = jwt.decode(req.headers['authorization']);
+  const OrgProject = getProjectModel(orgName)
+  OrgProject.find()
     .populate("portals")
     .exec(function (err, project) {
       if (err) {
@@ -48,9 +37,9 @@ router.post("/", verifyAdmin, (req, res) => {
         Status: req.body.Status,
         Remark: req.body.Remark
       };
-      // const { orgName } = jwt.decode(req.headers['authorization']);
-      // const Project = getProjectModel(orgName)
-      Project.create(newProject, function (err, project) {
+      const { orgName } = jwt.decode(req.headers['authorization']);
+      const OrgProject = getProjectModel(orgName)
+      OrgProject.create(newProject, function (err, project) {
         if (err) {
           console.log(err.message);
           res.send("error");
@@ -82,9 +71,9 @@ router.put("/:id", verifyAdmin, (req, res) => {
         Status: req.body.Status,
         Remark: req.body.Remark
       };
-      // const { orgName } = jwt.decode(req.headers['authorization']);
-      // const Project = getProjectModel(orgName)
-      Project.findByIdAndUpdate(req.params.id, updateProject, function (
+      const { orgName } = jwt.decode(req.headers['authorization']);
+      const OrgProject = getProjectModel(orgName)
+      OrgProject.findByIdAndUpdate(req.params.id, updateProject, function (
         err,
         Project
       ) {
@@ -99,9 +88,9 @@ router.put("/:id", verifyAdmin, (req, res) => {
 });
 
 router.delete("/:id", verifyAdmin, (req, res) => {
-  // const { orgName } = jwt.decode(req.headers['authorization']);
-  // const Project = getProjectModel(orgName)
-  Project.findByIdAndRemove({ _id: req.params.id }, function (err, project) {
+  const { orgName } = jwt.decode(req.headers['authorization']);
+  const OrgProject = getProjectModel(orgName)
+  OrgProject.findByIdAndRemove({ _id: req.params.id }, function (err, project) {
     if (err) {
       console.log("error");
       res.send("err");

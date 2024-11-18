@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const Joi = require("joi");
 const PageAuthSchemas = {};
 
 function getPageAuthSchema(orgName) {
@@ -20,7 +21,7 @@ const PageAuthModels = {};
 
 function getPageAuthModel(orgName) {
     if (!PageAuthModels[orgName]) {
-        PageAuthModels[orgName] = mongoose.model(`${orgName}PageAuth`, getPageAuthSchema(orgName));
+        PageAuthModels[orgName] = mongoose.model(`${orgName}_PageAuth`, getPageAuthSchema(orgName));
     }
     return PageAuthModels[orgName];
 }

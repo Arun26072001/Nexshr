@@ -1,5 +1,5 @@
 const mongoose = require("mongoose");
-
+const Joi = require("joi");
 const OrgRoleAndPermissionSchemas = {};
 
 function getRoleAndPermissionSchema(orgName) {
@@ -18,14 +18,14 @@ const OrgRoleAndPermissionModels = {};
 function getRoleAndPermissionModel(orgName) {
     if (!OrgRoleAndPermissionModels[orgName]) {
         OrgRoleAndPermissionModels[orgName] = mongoose.model(
-            `${orgName}RoleAndPermission`,
+            `${orgName}_RoleAndPermission`,
             getRoleAndPermissionSchema(orgName)
         );
     }
     return OrgRoleAndPermissionModels[orgName];
 }
 
-const RoleAndPermissionValidation = Joi.object({
+const RoleAndPermissionValidation = Joi.object().keys({
     RoleName: Joi.string().required().label("Role Name"),
     userPermissions: Joi.string().label("User Permissions"), // Ensure objectId extension if needed
     pageAuth: Joi.string().label("Page Authorization") // Ensure objectId extension if needed

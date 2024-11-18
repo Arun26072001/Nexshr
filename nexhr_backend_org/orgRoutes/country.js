@@ -1,10 +1,8 @@
 const express = require('express');
 const router = express.Router();
-const {Country, CountryValidation} = require('../models/CountryModel');
-const {State} = require('../models/StateModel');
-const {City} = require('../models/CityModel');
 const Joi = require('joi');
 const { verifyHR, verifyAdminHR } = require('../auth/authMiddleware');
+const { Country } = require('../OrgModels/CountryModel');
 
 router.get("/", verifyAdminHR, (req, res) => {
     Country.find()

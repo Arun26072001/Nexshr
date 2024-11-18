@@ -5,7 +5,7 @@ const OrgPayslipSchemas = {};
 function getPayslipSchema(orgName) {
     if (!OrgPayslipSchemas[orgName]) {
         OrgPayslipSchemas[orgName] = new mongoose.Schema({
-            employee: { type: mongoose.Schema.Types.ObjectId, ref: `${orgName}Employee` },
+            employee: { type: mongoose.Schema.Types.ObjectId, ref: `${orgName}_Employee` },
             payslip: {
                 type: mongoose.Schema.Types.Mixed, default: {}
             }
@@ -18,7 +18,7 @@ const OrgPayslipModels = {};
 
 function getPayslipModel(orgName) {
     if (!OrgPayslipModels[orgName]) {
-        OrgPayslipModels[orgName] = mongoose.model(`${orgName}Payslip`, getPayslipSchema(orgName));
+        OrgPayslipModels[orgName] = mongoose.model(`${orgName}_Payslip`, getPayslipSchema(orgName));
     }
     return OrgPayslipModels[orgName];
 }
