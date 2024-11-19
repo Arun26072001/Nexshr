@@ -59,10 +59,6 @@ export default function HRMDashboard() {
     // const [isStartActivity, setIsStartActivity] = useState(localStorage.getItem("isStartActivity") === "false" ? false : localStorage.getItem("isStartActivity") === "true" ? true : false);
     const navigate = useNavigate();
     const [reloadRole, setReloadRole] = useState(false);
-    const currentDate = new Date();
-    const currentHours = currentDate.getHours().toString().padStart(2, '0');
-    const currentMinutes = currentDate.getMinutes().toString().padStart(2, '0');
-    const currentTime = `${currentHours}:${currentMinutes}`;
     // files for payroll
     const files = ['payroll', 'value', 'manage', 'payslip'];
     const startAndEndTime = {
@@ -90,7 +86,6 @@ export default function HRMDashboard() {
         setTimeOption(value);
     }
 
-
     function filterLeaveRequests() {
         if (empName === "") {
             setLeaveRequests(fullLeaveRequests);
@@ -102,6 +97,10 @@ export default function HRMDashboard() {
     }
 
     const startLoginTimer = async () => {
+        const currentDate = new Date();
+        const currentHours = currentDate.getHours().toString().padStart(2, '0');
+        const currentMinutes = currentDate.getMinutes().toString().padStart(2, '0');
+        const currentTime = `${currentHours}:${currentMinutes}`;
         const updatedState = {
             ...workTimeTracker,
             login: {
@@ -149,7 +148,10 @@ export default function HRMDashboard() {
     };
 
     const stopLoginTimer = async () => {
-
+        const currentDate = new Date();
+        const currentHours = currentDate.getHours().toString().padStart(2, '0');
+        const currentMinutes = currentDate.getMinutes().toString().padStart(2, '0');
+        const currentTime = `${currentHours}:${currentMinutes}`;
         const updatedState = {
             ...workTimeTracker,
             login: {
@@ -169,9 +171,12 @@ export default function HRMDashboard() {
             updateClockins();
         }
     }
-    // console.log(workTimeTracker);
 
     const startActivityTimer = async () => {
+        const currentDate = new Date();
+        const currentHours = currentDate.getHours().toString().padStart(2, '0');
+        const currentMinutes = currentDate.getMinutes().toString().padStart(2, '0');
+        const currentTime = `${currentHours}:${currentMinutes}`;
         const updatedState = {
             ...workTimeTracker,
             [timeOption]: {
@@ -209,6 +214,10 @@ export default function HRMDashboard() {
     };
 
     const stopActivityTimer = async () => {
+        const currentDate = new Date();
+        const currentHours = currentDate.getHours().toString().padStart(2, '0');
+        const currentMinutes = currentDate.getMinutes().toString().padStart(2, '0');
+        const currentTime = `${currentHours}:${currentMinutes}`;
         const updatedState = (prev) => ({
             ...prev,
             [timeOption]: {
@@ -247,6 +256,16 @@ export default function HRMDashboard() {
         setReloadRole(!reloadRole)
     }
 
+    // timers will stop. when browser window is close
+    window.addEventListener('onunload', function (e) {
+        console.log("call to unload");
+        
+        // stopLoginTimer();
+        // stopActivityTimer();
+        // e.preventDefault();
+        // e.returnValue = '';
+    });
+
     useEffect(() => {
         const getLeaveData = async () => {
             setIsLoading(true);
@@ -275,6 +294,7 @@ export default function HRMDashboard() {
         }
     }, [daterangeValue, empId, whoIs]);
 
+    // get attendance summary page table of data
     const getClocknsData = useCallback(async () => {
         if (!empId) return;
         setWaitForAttendance(true);
@@ -306,6 +326,7 @@ export default function HRMDashboard() {
         }
     }
 
+    // to view attendance data for admin and hr
     useEffect(() => {
         getClocknsData();
         if (Account === "1" || Account === "2") {

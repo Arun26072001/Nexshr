@@ -9,52 +9,50 @@ dotenv.config();
 const jwtKey = process.env.ACCCESS_SECRET_KEY;
 
 router.post("/", async (req, res) => {
-console.log("heee");
+    try {
+        const loginValidation = Joi.object({
+            Email: Joi.string().max(200).required(),
+            Password: Joi.string().max(100).required()
+        });
 
-    // try {
-    //     const loginValidation = Joi.object({
-    //         Email: Joi.string().max(200).required(),
-    //         Password: Joi.string().max(100).required()
-    //     });
+        const { error } = loginValidation.validate(req.body);
+        if (error) {
+            console.log("Validation error: " + error);
+            return res.status(400).send(error.details[0].message);
+        } else {
+            const emp = await Employee.findOne({ Email: req.body.Email.toLowerCase(), Password: req.body.Password })
+                .populate({
+                    path: "role",
+                    populate: [
+                        { path: "userPermissions" },
+                        { path: "pageAuth" }
+                    ]
+                })
+            if (!emp) {
+                return res.status(400).send({ message: "Invalid Credentials" })
+            } else {
+                const empDataWithEmailVerified = {
+                    ...emp,
+                    isVerifyEmail: true
+                };
 
-    //     const { error } = loginValidation.validate(req.body);
-    //     if (error) {
-    //         console.log("Validation error: " + error);
-    //         return res.status(400).send(error.details[0].message);
-    //     } else {
-    //         const emp = await Employee.findOne({ Email: req.body.Email.toLowerCase(), Password: req.body.Password })
-    //             // .populate({
-    //             //     path: "role",
-    //             //     populate: [
-    //             //         { path: "userPermissions" },
-    //             //         { path: "pageAuth" }
-    //             //     ]
-    //             // })
-    //         if (!emp) {
-    //             return res.status(400).send({ message: "Invalid Credentials" })
-    //         } else {
-    //             const empDataWithEmailVerified = {
-    //                 ...emp,
-    //                 isVerifyEmail: true
-    //             };
-
-    //             const updateIsEmailVerify = await Employee.findByIdAndUpdate(emp._id, empDataWithEmailVerified, { new: true });
-    //             const empData = {
-    //                 _id: emp._id,
-    //                 Account: emp.Account,
-    //                 FirstName: emp.FirstName,
-    //                 LastName: emp.LastName,
-    //                 annualLeaveEntitlement: emp.annualLeaveEntitlement,
-    //                 roleData: emp?.role[0]
-    //             };
-    //             const token = jwt.sign(empData, jwtKey);
-    //             return res.send(token);
-    //         }
-    //     }
-    // } catch (err) {
-    //     console.log(err);
-    //     res.status(500).send({ message: "Internal server Error", details: err.message });
-    // }
+                const updateIsEmailVerify = await Employee.findByIdAndUpdate(emp._id, empDataWithEmailVerified, { new: true });
+                const empData = {
+                    _id: emp._id,
+                    Account: emp.Account,
+                    FirstName: emp.FirstName,
+                    LastName: emp.LastName,
+                    annualLeaveEntitlement: emp.annualLeaveEntitlement,
+                    roleData: emp?.role[0]
+                };
+                const token = jwt.sign(empData, jwtKey);
+                return res.send(token);
+            }
+        }
+    } catch (err) {
+        console.log(err);
+        res.status(500).send({ message: "Internal server Error", details: err.message });
+    }
 });
 
 

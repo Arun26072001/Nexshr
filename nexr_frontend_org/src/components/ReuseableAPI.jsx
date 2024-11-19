@@ -76,8 +76,6 @@ const addDataAPI = async (body) => {
 };
 
 function removeClockinsData() {
-    localStorage.removeItem('timeOption');
-    localStorage.removeItem('clockinsId');
     localStorage.removeItem('loginTimer');
     localStorage.removeItem("activityTimer");
     localStorage.removeItem("isStartActivity");

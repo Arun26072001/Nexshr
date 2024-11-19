@@ -75,6 +75,13 @@ const Dashboard = () => {
         return `${padStartHour}:${padStartMin}`;
     }
 
+    function getOverTime(companyWorkingTime, empWorkingTime) {
+        if (empWorkingTime && companyWorkingTime && empWorkingTime > companyWorkingTime) {
+            return empWorkingTime - companyWorkingTime
+        }
+        return 0;
+    }
+
     useEffect(() => {
         gettingEmpdata();
     }, [empId]);
@@ -109,7 +116,7 @@ const Dashboard = () => {
                                 <p className='leaveIndicatorTxt'>Today</p>
                                 <div className='row gap-3 text-center d-flex justify-content-center'>
                                     <div className='col-lg-3 col-md-3 col-4 timeLogBox'>
-                                        <p>{formatTime(leaveData?.workingHour) || "00:00:00"}</p>
+                                        <p>{formatTime(leaveData?.workingHour || 0)}</p>
                                         <p className='sub_text'>Scheduled</p>
                                     </div>
                                     <div className='col-lg-3 col-md-3 col-4 timeLogBox'>
@@ -176,7 +183,7 @@ const Dashboard = () => {
                                     <div className='col-lg-6 col-md-6 col-sm-6 col-12'>
                                         <div className='space row'>
                                             <div className='col-lg-6 col-md-6 col-sm-6 col-6 text-start'><span className='text_gap'>Over time</span></div>
-                                            <div className='col-lg-6 col-md-6 col-sm-6 col-6 text-end'><span className='value'>0 hour</span></div>
+                                            <div className='col-lg-6 col-md-6 col-sm-6 col-6 text-end'><span className='value'>{getOverTime(monthlyLoginData?.companyTotalWorkingHour, monthlyLoginData?.totalEmpWorkingHours)} hour</span></div>
                                         </div>
                                         <div className="progress">
                                             <div className="progress-bar progress-bar-striped" role="progressbar" style={{ width: "0%" }} aria-valuenow="10" aria-valuemin="0" aria-valuemax="100"></div>

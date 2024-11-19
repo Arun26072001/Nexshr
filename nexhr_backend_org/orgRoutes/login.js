@@ -50,7 +50,9 @@ router.post("/:orgId", async (req, res) => {
                 FirstName: emp.FirstName,
                 LastName: emp.LastName,
                 annualLeaveEntitlement: emp.annualLeaveEntitlement,
-                roleData: emp?.role[0]
+                roleData: emp?.role[0],
+                // orgId: req.params.orgId,
+                // orgName: orgName
             };
 
             const token = jwt.sign(empData, jwtKey);

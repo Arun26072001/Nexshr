@@ -4,6 +4,7 @@ const { verifyHR, verifyHREmployee, verifyEmployee, verifyAdmin, verifyAdminHREm
 const { getEmployeeModel } = require('../OrgModels/OrgEmpModel');
 const { getRoleAndPermissionModel } = require('../OrgModels/OrgRoleAndPermissionModel');
 const { getLeaveApplicationModel, LeaveApplicationValidation } = require('../OrgModels/OrgLeaveApplicationModel');
+const jwt = require("jsonwebtoken");
 
 function getDayDifference(leave) {
   let toDate = new Date(leave.toDate);

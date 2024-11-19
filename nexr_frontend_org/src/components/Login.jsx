@@ -16,11 +16,11 @@ const Login = () => {
   const Account = localStorage.getItem("Account");
   const navigate = useNavigate();
   const { handleSubmit, loading, pass } = useContext(EssentialValues);
-  const { id } = useParams();
+  // const { id } = useParams();
   
 
   useEffect(() => {
-    localStorage.setItem("orgId", id)
+    // localStorage.setItem("orgId", id)
     if (Account === "1") {
       navigate("/admin")
     }
@@ -29,7 +29,7 @@ const Login = () => {
     } else if (Account === "3") {
       navigate("/emp")
     }
-  }, [id]);
+  }, []);
 
   // useEffect(() => {
   //   async function checkNetworkConnection() {

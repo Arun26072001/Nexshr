@@ -3,8 +3,8 @@ const router = express.Router();
 const { verifyAdminHREmployee, verifyAdminHR } = require("../auth/authMiddleware");
 const { getDayDifference } = require("./leave-app");
 const jwt = require("jsonwebtoken");
-const getEmployeeModel = require("./employee");
 const { getClockinModel, clockInsValidation } = require("../OrgModels/OrgClockinsModel");
+const { getEmployeeModel } = require("../OrgModels/OrgEmpModel");
 
 async function checkLoginForOfficeTime(scheduledTime, actualTime) {
     // Parse scheduled and actual time into hours and minutes

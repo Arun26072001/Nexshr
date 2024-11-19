@@ -62,7 +62,7 @@ const App = () => {
     };
 
     try {
-      const login = await axios.post(process.env.REACT_APP_API_URL + `/api/login/${localStorage.getItem("orgId")}`, bodyLogin)
+      const login = await axios.post(process.env.REACT_APP_API_URL + `/api/login`, bodyLogin)
       let decodedData = jwtDecode(login.data);
       console.log(decodedData);
       
@@ -94,7 +94,7 @@ const App = () => {
         localStorage.setItem("Account", accountType);
         localStorage.setItem("_id", decodedData._id);
         localStorage.setItem("Name", `${decodedData.FirstName} ${decodedData.LastName}`);
-        localStorage.setItem("annualLeaveEntitment", decodedData.annualLeaveEntitlement);
+        localStorage.setItem("annualLeaveEntitment", decodedData.annualLeaveEntitlement || 0);
         localStorage.setItem("userPermissions", JSON.stringify(decodedData.roleData.userPermissions))
 
         Object.entries(decodedData.roleData.pageAuth).forEach(([key, value]) => {
@@ -158,7 +158,7 @@ const App = () => {
     <EssentialValues.Provider value={{ data, handleLogout, handleSubmit, loading, pass, isLogin, isStartLogin, setIsStartLogin, isStartActivity, setIsStartActivity }}>
       <ToastContainer />
       <Routes>
-        <Route path="/:id/login/" element={<Login />} />
+        <Route path="login/" element={<Login />} />
         <Route path="/" element={isLogin ? <Layout /> : <Navigate to={"/login"} />} >
           <Route path="*" element={<Layout />} />
         </Route>
