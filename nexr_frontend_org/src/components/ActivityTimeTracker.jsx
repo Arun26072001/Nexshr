@@ -18,6 +18,7 @@ const ActivityTimeTracker = () => {
 
     // Timer logic to increment time
     const incrementTime = () => {
+        lastCheckTimeRef.current = Date.now();
         setSec((prevSec) => {
             let newSec = prevSec + 1;
 
@@ -34,12 +35,15 @@ const ActivityTimeTracker = () => {
             }
             return newSec;
         });
+        console.log(lastCheckTimeRef.current);
+
     };
 
     // Function to update time after inactivity
     const syncTimerAfterPause = () => {
         const now = Date.now();
         const diff = now - lastCheckTimeRef.current;
+        console.log("diff: ", diff);
 
         if (diff > 3000 && isStartActivity) {
             const secondsToAdd = Math.floor(diff / 1000);
