@@ -285,6 +285,21 @@ const getDepartments = async () => {
     }
 }
 
+  // Add seconds to a given time
+  const addSecondsToTime = (timeString, secondsToAdd) => {
+    const [hours, minutes, seconds] = timeString.split(":").map(Number);
+    const totalSeconds = hours * 3600 + minutes * 60 + seconds + secondsToAdd;
+
+    const newHours = Math.floor(totalSeconds / 3600) % 24;
+    const newMinutes = Math.floor((totalSeconds % 3600) / 60);
+    const newSeconds = totalSeconds % 60;
+
+    return {
+        hours: String(newHours).padStart(2, "0"),
+        minutes: String(newMinutes).padStart(2, "0"),
+        seconds: String(newSeconds).padStart(2, "0"),
+    };
+};
 
 export {
     addDataAPI,
@@ -300,6 +315,7 @@ export {
     getclockinsDataById,
     fetchEmployeeData,
     fetchEmployees,
+    addSecondsToTime,
     fetchEmpLeaveRequests,
     getTotalWorkingHourPerDay,
     gettingClockinsData,
