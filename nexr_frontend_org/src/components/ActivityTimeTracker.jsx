@@ -4,6 +4,8 @@ import CustomDropdown from "./CustomDropDown";
 import PowerSettingsNewRoundedIcon from "@mui/icons-material/PowerSettingsNewRounded";
 import { TimerStates } from "./payslip/HRMDashboard";
 import { toast } from "react-toastify";
+import { addSecondsToTime } from "./ReuseableAPI";
+import { Experimental_CssVarsProvider } from "@mui/material";
 
 const ActivityTimeTracker = () => {
     const { startActivityTimer, stopActivityTimer, workTimeTracker, isStartActivity, timeOption } = useContext(TimerStates);
@@ -34,12 +36,16 @@ const ActivityTimeTracker = () => {
             }
             return newSec;
         });
+
     };
 
     // Function to update time after inactivity
     const syncTimerAfterPause = () => {
         const now = Date.now();
         const diff = now - lastCheckTimeRef.current;
+        console.log("wakeup");
+
+        console.log("diff: ", diff);
 
         if (diff > 3000 && isStartActivity) {
             const secondsToAdd = Math.floor(diff / 1000);
@@ -47,6 +53,9 @@ const ActivityTimeTracker = () => {
             setHour(Number(updatedTime.hours));
             setMin(Number(updatedTime.minutes));
             setSec(Number(updatedTime.seconds));
+            startTimer();
+        }else{
+            startTimer();
         }
 
         lastCheckTimeRef.current = now; // Reset last check time
@@ -71,21 +80,11 @@ const ActivityTimeTracker = () => {
         }
     };
 
-    // Add seconds to a given time
-    const addSecondsToTime = (timeString, secondsToAdd) => {
-        const [hours, minutes, seconds] = timeString.split(":").map(Number);
-        const totalSeconds = hours * 3600 + minutes * 60 + seconds + secondsToAdd;
+    function stopTimerAndSetTime() {
+        lastCheckTimeRef.current = Date.now()
+        stopTimer();
+    }
 
-        const newHours = Math.floor(totalSeconds / 3600) % 24;
-        const newMinutes = Math.floor((totalSeconds % 3600) / 60);
-        const newSeconds = totalSeconds % 60;
-
-        return {
-            hours: String(newHours).padStart(2, "0"),
-            minutes: String(newMinutes).padStart(2, "0"),
-            seconds: String(newSeconds).padStart(2, "0"),
-        };
-    };
 
     // Display warning if no punch-in
     const warnPunchIn = () => toast.warning("Please Punch In!");
@@ -105,6 +104,8 @@ const ActivityTimeTracker = () => {
         const handleVisibilityChange = () => {
             if (!document.hidden) {
                 syncTimerAfterPause();
+            } else {
+                stopTimerAndSetTime()
             }
         };
 
