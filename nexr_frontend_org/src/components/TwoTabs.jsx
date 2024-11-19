@@ -133,11 +133,11 @@ export default function Twotabs() {
       </Box>
       <CustomTabPanel value={value} index={0} className="bg-light tabParent">
         <div className='empActivies'>
-          <div className="d-flex justify-content-between w-100" style={{ fontSize: "12px", fontWeight: 600, gap: "10px" }}>
-            <div className='w-50'>
+          <div className="d-flex justify-content-between w-100" style={{ fontSize: "12px", fontWeight: 600}}>
+            <div className=''>
               <button className='button' onClick={() => navigate(`/${whoIs}/leave-request`)}>Request time off</button>
             </div>
-            <div className='w-50'>
+            <div className=''>
               <button className="outline-btn">Absence history</button>
             </div>
           </div>

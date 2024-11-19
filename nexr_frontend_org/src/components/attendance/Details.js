@@ -11,7 +11,7 @@ const Details = ({ attendanceData, isLoading }) => {
     return (
         isLoading ? <Loading /> :
             <div className='dashboard-parent pt-4'>
-                <div className="row">
+                <div className="row p-3">
                     <div className='col-lg-6 col-6'>
                         <h5 className='text-daily'>Attendance Details</h5>
                     </div>
