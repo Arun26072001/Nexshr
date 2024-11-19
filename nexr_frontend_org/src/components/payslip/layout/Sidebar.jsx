@@ -2,213 +2,179 @@ import React, { useContext, useState } from 'react';
 import { NavLink, useParams } from 'react-router-dom';
 import './sidebar.css';
 import KeyboardArrowDownSharpIcon from '@mui/icons-material/KeyboardArrowDownSharp';
-import settingsIcon from "../../../asserts/settingsIcon.svg";
-import jobDeskIcon from "../../../asserts/jobDeskIcon.svg";
-import userIcon from "../../../asserts/userIcon.svg";
-import leaveIcon from "../../../asserts/leaveIcon.svg";
-import attendanceIcon from "../../../asserts/attendanceIcon.svg";
-import adminIcon from "../../../asserts/adminIcon.svg";
-import homeIcon from "../../../asserts/homeIcon.svg";
+import settingsIcon from '../../../asserts/settingsIcon.svg';
+import jobDeskIcon from '../../../asserts/jobDeskIcon.svg';
+import userIcon from '../../../asserts/userIcon.svg';
+import leaveIcon from '../../../asserts/leaveIcon.svg';
+import attendanceIcon from '../../../asserts/attendanceIcon.svg';
+import adminIcon from '../../../asserts/adminIcon.svg';
+import homeIcon from '../../../asserts/homeIcon.svg';
 import { TimerStates } from '../HRMDashboard';
 import { EssentialValues } from '../../../App';
 
 const Sidebar = () => {
-    let dashboard = localStorage.getItem('Dashboard');
-    let jobdesk = localStorage.getItem('JobDesk');
-    let employee = localStorage.getItem('Employee');
-    let leave = localStorage.getItem('Leave');
-    let attandance = localStorage.getItem('Attendance');
-    let admin = localStorage.getItem('Administration');
-    let settings = localStorage.getItem('Settings');
+  const dashboard = localStorage.getItem('Dashboard');
+  const jobDesk = localStorage.getItem('JobDesk');
+  const employee = localStorage.getItem('Employee');
+  const leave = localStorage.getItem('Leave');
+  const attendance = localStorage.getItem('Attendance');
+  const admin = localStorage.getItem('Administration');
+  const settings = localStorage.getItem('Settings');
 
-    const { whoIs } = useContext(TimerStates);
+  const { whoIs } = useContext(TimerStates);
+  const { handleLogout } = useContext(EssentialValues);
+  const param = useParams();
+  const [activeSubmenu, setActiveSubmenu] = useState(param['*']);
+  const [activeNavLink, setActiveNavLink] = useState();
+  const [isOpen, setIsOpen] = useState(true);
 
-    const { handleLogout } = useContext(EssentialValues)
-    // const account = localStorage.getItem("Account");
-    const param = useParams();
-    const [activeSubmenu, setActiveSubmenu] = useState(param['*']);
-    const [activeNavLink, setActiveNavLink] = useState();
-    const [isOpen, setIsOpen] = useState(true);
+  const toggleActiveLink = (name) => {
+    setActiveNavLink(activeNavLink === name ? '' : name);
+  };
 
-    function toggleActiveLink(name) {
-        if (activeNavLink === name) {
-            setActiveNavLink("")
-        } else {
-            setActiveNavLink(name)
-        }
-    }
+  const handleActiveMenu = (nav) => {
+    setActiveNavLink(nav);
+    setActiveSubmenu('');
+  };
 
-    function handleActiveMenu(nav) {
-        setActiveNavLink(nav);
-        setActiveSubmenu("")
-    }
+  const renderNavLink = (condition, path, icon, text, key) => {
     return (
-        <div style={{ width: isOpen ? "250px" : "50px" }} className="sidebar sidebar_hrm">
-            <ul className="sidebar-nav p-0" id="sidebar-nav">
-
-                {/* Dashboard Link */}
-                {
-                    dashboard === "allow" && <li className={`${activeNavLink === "dashboard" ? "active" : "nav-item"}`} onClick={() => handleActiveMenu("dashboard")}>
-                        <NavLink className="nav-link" to={`/${whoIs}`}>
-                            <span className="p-0 m-0">
-                                <img src={homeIcon} alt="Dashboard Icon" />
-                            </span>
-                            <span className="sideBarTxt">Dashboard</span>
-                        </NavLink>
-                    </li>
-                }
-
-                {/* Job Desk Link */}
-                {
-                    jobdesk === "allow" && <li className={`${activeNavLink === "jobDesk" ? "active" : "nav-item"}`} onClick={() => handleActiveMenu("jobDesk")}>
-                        <NavLink className="nav-link" to={`/${whoIs}/job-desk/attendance`}>
-                            <span className="p-0 m-0">
-                                <img src={jobDeskIcon} alt="Job Desk Icon" />
-                            </span>
-                            <span className="sideBarTxt">Job Desk</span>
-                        </NavLink>
-                    </li>
-                }
-                {/* Employee Link */}
-
-                {employee === "allow" &&
-                    <li className={`${activeNavLink === "employee" ? "active" : "nav-item"}`} onClick={() => handleActiveMenu("employee")}>
-                        <NavLink className="nav-link" to={`/${whoIs}/employee`}>
-                            <span className="p-0 m-0">
-                                <img src={userIcon} alt="Employee Icon" />
-                            </span>
-                            <span className="sideBarTxt">Employee</span>
-                        </NavLink>
-                    </li>
-                }
-                {/* Leave Section */}
-                {
-                    leave === "allow" &&
-                    <li className={`nav-item`} >
-                        <NavLink className={`nav-link ${activeNavLink === "leave" ? "active" : ""}`} onClick={() => toggleActiveLink("leave")}>
-                            <span className="p-0 m-0">
-                                <img src={leaveIcon} alt="Leave Icon" />
-                            </span>
-                            <span className="sideBarTxt">Leave</span>
-                            <span className="KeyboardArrowDownSharpIcon">
-                                <KeyboardArrowDownSharpIcon />
-                            </span>
-                        </NavLink>
-                        {activeNavLink === "leave" && (
-                            <ul className="nav-content p-2">
-                                <li className={`submenu_navlist ${activeSubmenu === "status" ? "active" : ""}`} onClick={() => setActiveSubmenu("status")}>
-                                    <NavLink to={`/${whoIs}/leave/status`} className="nav-lists">Status</NavLink>
-                                </li>
-                                <li className={`submenu_navlist ${activeSubmenu === "leave-request" ? "active" : ""}`} onClick={() => setActiveSubmenu("leave-request")}>
-                                    <NavLink to={`/${whoIs}/leave/leave-request`} className="nav-lists">Request</NavLink>
-                                </li>
-                                <li className={`submenu_navlist ${activeSubmenu === "calendar" ? "active" : ""}`} onClick={() => setActiveSubmenu("calendar")}>
-                                    <NavLink to={`/${whoIs}/leave/calender`} className="nav-lists">Calendar</NavLink>
-                                </li>
-                                <li className={`submenu_navlist ${activeSubmenu === "leave-summary" ? "active" : ""}`} onClick={() => setActiveSubmenu("leave-summary")}>
-                                    <NavLink to={`/${whoIs}/leave/leave-summary`} className="nav-lists">Summary</NavLink>
-                                </li>
-                            </ul>
-                        )}
-                    </li>
-                }
-                {/* Attendance Section */}
-                {attandance === "allow" &&
-                    <li className={`nav-item`} >
-                        <NavLink className={`nav-link ${activeNavLink === "attendance" ? "active" : ""}`} onClick={() => toggleActiveLink("attendance")}>
-                            <span className="p-0 m-0">
-                                <img src={attendanceIcon} alt="Attendance Icon" />
-                            </span>
-                            <span className="sideBarTxt">Attendance</span>
-                            <span className="KeyboardArrowDownSharpIcon">
-                                <KeyboardArrowDownSharpIcon />
-                            </span>
-                        </NavLink>
-                        {activeNavLink === "attendance" && (
-                            <ul className="nav-content p-2">
-                                <li className={`submenu_navlist ${activeSubmenu === "daily-log" ? "active" : ""}`} onClick={() => setActiveSubmenu("daily-log")}>
-                                    <NavLink to={`/${whoIs}/attendance/daily-log`} className="nav-lists">Daily Log</NavLink>
-                                </li>
-                                <li className={`submenu_navlist ${activeSubmenu === "attendance-request" ? "active" : ""}`} onClick={() => setActiveSubmenu("attendance-request")}>
-                                    <NavLink to={`/${whoIs}/attendance/attendance-request`} className="nav-lists">Request</NavLink>
-                                </li>
-                                <li className={`submenu_navlist ${activeSubmenu === "details" ? "active" : ""}`} onClick={() => setActiveSubmenu("details")}>
-                                    <NavLink to={`/${whoIs}/attendance/details`} className="nav-lists">Details</NavLink>
-                                </li>
-                                <li className={`submenu_navlist ${activeSubmenu === "attendance-summary" ? "active" : ""}`} onClick={() => setActiveSubmenu("attendance-summary")}>
-                                    <NavLink to={`/${whoIs}/attendance/attendance-summary`} className="nav-lists">Summary</NavLink>
-                                </li>
-                            </ul>
-                        )}
-                    </li>
-                }
-
-                {/* Administration Section */}
-                {admin === "allow" && <li className={`nav-item`} >
-                    <NavLink className={`nav-link ${activeNavLink === "administration" ? "active" : ""}`} onClick={() => toggleActiveLink("administration")}>
-                        <span className="p-0 m-0">
-                            <img src={adminIcon} alt="Admin Icon" />
-                        </span>
-                        <span className="sideBarTxt">Administration</span>
-                        <span className="KeyboardArrowDownSharpIcon">
-                            <KeyboardArrowDownSharpIcon />
-                        </span>
-                    </NavLink>
-                    {activeNavLink === "administration" && (
-                        <ul className="nav-content p-2">
-                            <li className={`submenu_navlist ${activeSubmenu === "Role" ? "active" : ""}`} onClick={() => setActiveSubmenu("Role")}>
-                                <NavLink to={`/${whoIs}/administration/role`} className="nav-lists">Role</NavLink>
-                            </li>
-                            <li className={`submenu_navlist ${activeSubmenu === "Shift" ? "active" : ""}`} onClick={() => setActiveSubmenu("Shift")}>
-                                <NavLink to={`/${whoIs}/administration/shift`} className="nav-lists">Shift</NavLink>
-                            </li>
-                            <li className={`submenu_navlist ${activeSubmenu === "Department" ? "active" : ""}`} onClick={() => setActiveSubmenu("Department")}>
-                                <NavLink to={`/${whoIs}/administration/department`} className="nav-lists">Department</NavLink>
-                            </li>
-                            <li className={`submenu_navlist ${activeSubmenu === "Position" ? "active" : ""}`} onClick={() => setActiveSubmenu("Position")}>
-                                <NavLink to={`/${whoIs}/administration/position`} className="nav-lists">Position</NavLink>
-                            </li>
-                            <li className={`submenu_navlist ${activeSubmenu === "Holiday" ? "active" : ""}`} onClick={() => setActiveSubmenu("Holiday")}>
-                                <NavLink to={`/${whoIs}/administration/holiday`} className="nav-lists">Holiday</NavLink>
-                            </li>
-                            <li className={`submenu_navlist ${activeSubmenu === "Announcement" ? "active" : ""}`} onClick={() => setActiveSubmenu("Announcement")}>
-                                <NavLink to={`/${whoIs}/administration/announcement`} className="nav-lists">Announcement</NavLink>
-                            </li>
-                        </ul>
-                    )}
-                </li>}
-                {/* Settings Section */}
-                {settings === "allow" && <li className={`nav-item`} >
-                    <NavLink className={`nav-link ${activeNavLink === "settings" ? "active" : ""}`} onClick={() => toggleActiveLink("settings")}>
-                        <span className="p-0 m-0">
-                            <img src={settingsIcon} alt="Settings Icon" />
-                        </span>
-                        <span className="sideBarTxt">Settings</span>
-                        <span className="KeyboardArrowDownSharpIcon">
-                            <KeyboardArrowDownSharpIcon />
-                        </span>
-                    </NavLink>
-                    {activeNavLink === "settings" && (
-                        <ul className="nav-content p-2">
-                            <li className={`submenu_navlist ${activeSubmenu === "Profile" ? "active" : ""}`} onClick={() => setActiveSubmenu("Profile")}>
-                                <NavLink to={`/${whoIs}/settings/`} className="nav-lists">General</NavLink>
-                            </li>
-                            <li className={`submenu_navlist ${activeSubmenu === "Account" ? "active" : ""}`} onClick={() => setActiveSubmenu("Account")}>
-                                <NavLink to={`/${whoIs}/settings/account`} className="nav-lists">Account</NavLink>
-                            </li>
-                            <li className={`submenu_navlist ${activeSubmenu === "Payroll" ? "active" : ""}`} onClick={() => setActiveSubmenu("Payroll")}>
-                                <NavLink to={`/${whoIs}/settings/payroll`} className="nav-lists">Payroll</NavLink>
-                            </li>
-                        </ul>
-                    )}
-                </li>}
-
-            </ul>
-            <div class="logOutBtnParent p-3" onClick={handleLogout}>
-                <button class="w-100 log_out">Logout</button>
-            </div>
-        </div >
+      condition && (
+        <li
+          key={key}
+          className={`nav-item ${activeNavLink === key ? 'active' : ''}`}
+          onClick={() => handleActiveMenu(key)}
+        >
+          <NavLink className="nav-link" to={path}>
+            <span>
+              <img src={icon} alt={`${text} Icon`} />
+            </span>
+            <span className="sideBarTxt">{text}</span>
+          </NavLink>
+        </li>
+      )
     );
+  };
+
+  const renderSubMenu = (menuKey, submenuItems, icon, label) => {
+    return (
+      <li className="nav-item">
+        <NavLink
+          className={`nav-link ${activeNavLink === menuKey ? 'active' : ''}`}
+          onClick={() => toggleActiveLink(menuKey)}
+        >
+          <span>
+            <img src={icon} alt={`${label} Icon`} />
+          </span>
+          <span className="sideBarTxt">{label}</span>
+          <span className="KeyboardArrowDownSharpIcon">
+            <KeyboardArrowDownSharpIcon />
+          </span>
+        </NavLink>
+        {activeNavLink === menuKey && (
+          <ul className="nav-content p-2">
+            {submenuItems.map((item) => (
+              <li
+                key={item.key}
+                className={`submenu_navlist ${activeSubmenu === item.key ? 'active' : ''}`}
+                onClick={() => setActiveSubmenu(item.key)}
+              >
+                <NavLink to={item.path} className="nav-lists">
+                  {item.label}
+                </NavLink>
+              </li>
+            ))}
+          </ul>
+        )}
+      </li>
+    );
+  };
+
+  return (
+    <div style={{ width: isOpen ? '250px' : '50px' }} className="sidebar sidebar_hrm">
+      <ul className="sidebar-nav p-0" id="sidebar-nav">
+        {renderNavLink(
+          dashboard === 'allow' || ['admin', 'hr', 'employee'].includes(whoIs),
+          `/${whoIs}`,
+          homeIcon,
+          'Dashboard',
+          'dashboard'
+        )}
+
+        {renderNavLink(
+          jobDesk === 'allow' || ['admin', 'hr', 'employee'].includes(whoIs),
+          `/${whoIs}/job-desk/attendance`,
+          jobDeskIcon,
+          'Job Desk',
+          'jobDesk'
+        )}
+
+        {renderNavLink(
+          employee === 'allow' || ['admin', 'hr', 'employee'].includes(whoIs),
+          `/${whoIs}/employee`,
+          userIcon,
+          'Employee',
+          'employee'
+        )}
+
+        {(leave === 'allow' || ['admin', 'hr'].includes(whoIs)) &&
+          renderSubMenu(
+            'leave',
+            [
+              { key: 'status', path: `/${whoIs}/leave/status`, label: 'Status' },
+              { key: 'leave-request', path: `/${whoIs}/leave/leave-request`, label: 'Leave Request' },
+              { key: 'calendar', path: `/${whoIs}/leave/calendar`, label: 'Calendar' },
+              { key: 'leave-summary', path: `/${whoIs}/leave/leave-summary`, label: 'Leave Summary' }
+            ],
+            leaveIcon,
+            'Leave'
+          )}
+
+        {(attendance === 'allow' || ['admin', 'hr'].includes(whoIs)) &&
+          renderSubMenu(
+            'attendance',
+            [
+              { key: 'daily-log', path: `/${whoIs}/attendance/daily-log`, label: 'Daily Log' },
+              { key: 'attendance-request', path: `/${whoIs}/attendance/attendance-request`, label: 'Attendance Request' },
+              { key: 'details', path: `/${whoIs}/attendance/details`, label: 'Details' },
+              { key: 'attendance-summary', path: `/${whoIs}/attendance/attendance-summary`, label: 'Attendance Summary' }
+            ],
+            attendanceIcon,
+            'Attendance'
+          )}
+
+        {(admin === 'allow' || whoIs === 'admin') &&
+          renderSubMenu(
+            'administration',
+            [
+              { key: 'role', path: `/${whoIs}/administration/role`, label: 'Role' },
+              { key: 'shift', path: `/${whoIs}/administration/shift`, label: 'Shift' },
+              { key: 'department', path: `/${whoIs}/administration/department`, label: 'Department' },
+              { key: 'position', path: `/${whoIs}/administration/position`, label: 'Position' },
+              { key: 'holiday', path: `/${whoIs}/administration/holiday`, label: 'Holiday' },
+              { key: 'announcement', path: `/${whoIs}/administration/announcement`, label: 'Announcement' }
+            ],
+            adminIcon,
+            'Administration'
+          )}
+
+        {(settings === 'allow' || whoIs === 'admin') &&
+          renderSubMenu(
+            'settings',
+            [
+              { key: 'profile', path: `/${whoIs}/settings/profile`, label: 'Profile' },
+              { key: 'account', path: `/${whoIs}/settings/account`, label: 'Account' },
+              { key: 'payroll', path: `/${whoIs}/settings/payroll`, label: 'Payroll' }
+            ],
+            settingsIcon,
+            'Settings'
+          )}
+      </ul>
+      <div className="logOutBtnParent p-3" onClick={handleLogout}>
+        <button className="w-100 log_out">Logout</button>
+      </div>
+    </div>
+  );
 };
 
 export default Sidebar;

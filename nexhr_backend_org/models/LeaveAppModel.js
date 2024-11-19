@@ -1,5 +1,4 @@
 const mongoose = require('mongoose');
-const autoIncrement = require('mongoose-auto-increment');
 const Joi = require('joi');
 
 var leaveApplicationSchema = new mongoose.Schema({
@@ -17,11 +16,10 @@ var leaveApplicationSchema = new mongoose.Schema({
   approverId: { type: mongoose.Schema.Types.ObjectId, ref: 'Employee' }
  });
 
-//  autoIncrement.initialize(mongoose.connection)
-leaveApplicationSchema.plugin(autoIncrement.plugin, {
-  model: "LeaveApplication",
-  field: "LeaveApplicationID"
-})
+// leaveApplicationSchema.plugin(autoIncrement.plugin, {
+//   model: "LeaveApplication",
+//   field: "LeaveApplicationID"
+// })
 
 var LeaveApplication = mongoose.model(
   "LeaveApplication",

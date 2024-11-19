@@ -2,10 +2,11 @@ const express = require('express');
 const leaveApp = express.Router();
 const { LeaveApplication,
   LeaveApplicationValidation
-} = require('../models/LeaveAppModel')
-const { RoleAndPermission } = require("../models/RoleModel");
+} = require('../models/LeaveAppModel');
+const nodemailer = require("nodemailer");
 const { Employee } = require('../models/EmpModel');
 const { verifyHR, verifyHREmployee, verifyEmployee, verifyAdmin, verifyAdminHREmployee } = require('../auth/authMiddleware');
+const { Position } = require('../models/PositionModel');
 
 function getDayDifference(leave) {
   let toDate = new Date(leave.toDate);
@@ -25,7 +26,7 @@ leaveApp.get("/emp/:empId", verifyAdminHREmployee, async (req, res) => {
         }
       })
       .populate({
-        path: "role"
+        path: "position"
       })
       .exec();
 
@@ -59,8 +60,12 @@ leaveApp.get("/emp/:empId", verifyAdminHREmployee, async (req, res) => {
     // // Add the new property to the object
     // requests.takenLeaveCount = typesOfLeaveTaken;
 
-    const roleIds = await RoleAndPermission.find({ RoleName: requests?.role[0].RoleName }, "_id");
-    const collegues = await Employee.find({ role: { $in: roleIds } }, "FirstName LastName Email phone");
+    const positionIds = await Position.find({ PositionName: requests?.position[0].PositionName }, "_id");
+    const collegues = await Employee.find({
+      position: { $in: positionIds }, 
+      _id: { $nin: [req.params.empId] }  
+    }, "FirstName LastName Email phone");
+    
     const empIds = await Employee.find({ Account: 3, _id: { $nin: req.params.empId } });
     const peopleOnLeave = await LeaveApplication.find(
       { employee: { $in: empIds }, fromDate: new Date().toISOString().split("T")[0], status: "approved" }
@@ -176,7 +181,6 @@ leaveApp.get("/date-range/hr", verifyHR, async (req, res) => {
 })
 
 leaveApp.get("/date-range/admin", verifyAdmin, async (req, res) => {
-  console.log("call admin");
 
   const now = new Date();
   let startOfMonth;
@@ -345,7 +349,7 @@ leaveApp.post("/:empId", verifyAdminHREmployee, async (req, res) => {
 
       // Fetch employee's leave count and remaining leave days
       const empData = await Employee.findById(req.params.empId, "typesOfLeaveCount typesOfLeaveRemainingDays").exec();
-
+      const relievingOffData = await Employee.findById(req.body.coverBy, "Email FirstName LastName");
       let leaveTypeName = req.body.leaveType.split(" ")[0];
       const leaveDaysCount = empData?.typesOfLeaveRemainingDays[leaveTypeName];
 
@@ -390,6 +394,58 @@ leaveApp.post("/:empId", verifyAdminHREmployee, async (req, res) => {
               // Save the updated employee document
               await empData.save();
 
+              const htmlContent = `
+      <!DOCTYPE html>
+      <html lang="en">
+      <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>NexsHR</title>
+        <style>
+          body { font-family: Arial, sans-serif; background-color: #f6f9fc; color: #333; }
+          .container { max-width: 600px; margin: auto; padding: 20px; background-color: #fff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); }
+          .header { text-align: center; padding: 20px; }
+          .header img { max-width: 100px; }
+          .content { margin: 20px 0; }
+          .button { display: inline-block; padding: 10px 20px; background-color: #28a745; color: #fff !important; text-decoration: none; border-radius: 5px; margin-top: 10px; }
+          .footer { text-align: center; font-size: 14px; margin-top: 20px; color: #777; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <img src="https://imagedelivery.net/r89jzjNfZziPHJz5JXGOCw/1dd59d6a-7b64-49d7-ea24-1366e2f48300/public" alt="Logo" />
+            <h1>${empData.FirstName} of task relieving Officer ${relievingOffData.FirstName}</h1>
+          </div>
+          <div class="content">
+              <p>Hi ${relievingOffData.FirstName},</p><br /><br />
+              <p>I wanted to inform you that I’ll be out of the office tomorrow.</p>
+              <p>I have ensured that all my tasks are up to date,</p>
+               <p>but I am assigning my remaining responsibilities to you in my absence.</p><br />
+               <p style={text-align: "center"}>Thank you!</p>
+          </div>
+          <div class="footer">
+            <p>Have questions? Need help? <a href="mailto:webnexs29@gmail.com">Contact our Team Head</a>.</p>
+          </div>
+        </div>
+      </body>
+      </html>`;
+
+              const transporter = nodemailer.createTransport({
+                service: "gmail",
+                auth: {
+                  user: process.env.FROM_MAIL,
+                  pass: process.env.MAILPASSWORD,
+                },
+              });
+
+              await transporter.sendMail({
+                from: process.env.FROM_MAIL,
+                to: relievingOffData.Email,
+                subject: "Task Relieving request",
+                html: htmlContent,
+              });
+
               return res.status(201).send({ message: "Leave Request has been sent to Higher Authority." });
             }
           }
@@ -403,8 +459,7 @@ leaveApp.post("/:empId", verifyAdminHREmployee, async (req, res) => {
   } catch (err) {
     console.log(err.message);
     return res.status(500).send({
-      message: "Internal Server Error",
-      details: err.message
+      message: err.message
     });
   }
 });

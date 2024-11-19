@@ -22,7 +22,3 @@ const PositionValidation = Joi.object().keys({
 var Position = mongoose.model("Position", positionSchema);
 
 module.exports = { Position, PositionValidation , positionSchema};
-
-// module.exports.AddNewPositionCollection = function (orgName) {
-//   return mongoose.model(orgName + "Position", positionSchema)
-// }

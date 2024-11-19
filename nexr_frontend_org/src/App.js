@@ -27,7 +27,8 @@ const App = () => {
   const [pass, setPass] = useState(true);
   const [isLogin, setIsLogin] = useState(localStorage.getItem("isLogin") === "true");
 
-  const handleSubmit = async event => {
+
+  const handleSubmit = async (event) => {
     event.preventDefault();
     setPass(true);
     setLoading(true);
@@ -54,15 +55,17 @@ const App = () => {
     }
 
   };
-
-  const login = async (id, pass) => {
+  const login = async (email, pass) => {
     let bodyLogin = {
-      Email: id,
+      Email: email,
       Password: pass
     };
+
     try {
-      const login = await axios.post(process.env.REACT_APP_API_URL + "/api/login", bodyLogin)
+      const login = await axios.post(process.env.REACT_APP_API_URL + `/api/login`, bodyLogin)
       let decodedData = jwtDecode(login.data);
+      console.log(decodedData);
+      
       localStorage.setItem("token", login.data);
       if ((login === undefined || login === null ||
         decodedData.Account === undefined ||
@@ -91,7 +94,7 @@ const App = () => {
         localStorage.setItem("Account", accountType);
         localStorage.setItem("_id", decodedData._id);
         localStorage.setItem("Name", `${decodedData.FirstName} ${decodedData.LastName}`);
-        localStorage.setItem("annualLeaveEntitment", decodedData.annualLeaveEntitlement);
+        localStorage.setItem("annualLeaveEntitment", decodedData.annualLeaveEntitlement || 0);
         localStorage.setItem("userPermissions", JSON.stringify(decodedData.roleData.userPermissions))
 
         Object.entries(decodedData.roleData.pageAuth).forEach(([key, value]) => {
@@ -150,20 +153,12 @@ const App = () => {
     checkNetworkConnection();
   }, [data]);
 
-  // window.addEventListener("beforeunload", function (e) {
-  //   // Display the confirmation dialog only if necessary
-  //   if (isStartLogin || isStartActivity) {
-  //     e.preventDefault(); // Required for some browsers
-  //     e.returnValue = ""; // Required for modern browsers to show the confirmation dialog
-  //     toast.warning("You can't close the tab until the timer stops.");
-  //   }
-  // });
 
   return (
     <EssentialValues.Provider value={{ data, handleLogout, handleSubmit, loading, pass, isLogin, isStartLogin, setIsStartLogin, isStartActivity, setIsStartActivity }}>
       <ToastContainer />
       <Routes>
-        <Route path="login" element={<Login />} />
+        <Route path="login/" element={<Login />} />
         <Route path="/" element={isLogin ? <Layout /> : <Navigate to={"/login"} />} >
           <Route path="*" element={<Layout />} />
         </Route>

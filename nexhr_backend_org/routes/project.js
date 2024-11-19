@@ -4,9 +4,20 @@ const { Project, ProjectValidation } = require('../models/ProjectModel');
 const { verifyAdmin } = require('../auth/authMiddleware');
 const Joi = require("joi");
 
-router.get("/", verifyAdmin, (req, res) => {
-  // var employee = {};
+// const projectModels = {};
 
+// function getProjectModel(orgName) {
+//   // If model already exists in the object, return it; otherwise, create it
+//   if (!projectModels[orgName]) {
+//     projectModels[orgName] = mongoose.model(`${orgName}Project`, projectSchema);
+//   }
+
+//   return projectModels[orgName];
+// }
+
+router.get("/", verifyAdmin, (req, res) => {
+  // const { orgName } = jwt.decode(req.headers['authorization']);
+  // const Project = getProjectModel(orgName)
   Project.find()
     .populate("portals")
     .exec(function (err, project) {
@@ -25,8 +36,8 @@ router.post("/", verifyAdmin, (req, res) => {
       console.log(err);
       res.status(400).send(err.details[0].message);
     } else {
-      let project;
-      project = {
+      let newProject;
+      newProject = {
         ProjectTitle: req.body.ProjectTitle,
         ProjectURL: req.body.ProjectURL,
         ProjectDesc: req.body.ProjectDesc,
@@ -37,7 +48,9 @@ router.post("/", verifyAdmin, (req, res) => {
         Status: req.body.Status,
         Remark: req.body.Remark
       };
-      Project.create(project, function (err, project) {
+      // const { orgName } = jwt.decode(req.headers['authorization']);
+      // const Project = getProjectModel(orgName)
+      Project.create(newProject, function (err, project) {
         if (err) {
           console.log(err.message);
           res.send("error");
@@ -69,7 +82,8 @@ router.put("/:id", verifyAdmin, (req, res) => {
         Status: req.body.Status,
         Remark: req.body.Remark
       };
-
+      // const { orgName } = jwt.decode(req.headers['authorization']);
+      // const Project = getProjectModel(orgName)
       Project.findByIdAndUpdate(req.params.id, updateProject, function (
         err,
         Project
@@ -81,13 +95,12 @@ router.put("/:id", verifyAdmin, (req, res) => {
         }
       });
     }
-
-    console.log("put");
-    console.log(req.body);
   });
 });
 
 router.delete("/:id", verifyAdmin, (req, res) => {
+  // const { orgName } = jwt.decode(req.headers['authorization']);
+  // const Project = getProjectModel(orgName)
   Project.findByIdAndRemove({ _id: req.params.id }, function (err, project) {
     if (err) {
       console.log("error");

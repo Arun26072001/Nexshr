@@ -1,0 +1,424 @@
+const express = require("express");
+const router = express.Router();
+const { verifyAdminHREmployee, verifyAdminHR } = require("../auth/authMiddleware");
+const { getDayDifference } = require("./leave-app");
+const jwt = require("jsonwebtoken");
+const { getClockinModel, clockInsValidation } = require("../OrgModels/OrgClockinsModel");
+const { getEmployeeModel } = require("../OrgModels/OrgEmpModel");
+
+async function checkLoginForOfficeTime(scheduledTime, actualTime) {
+    // Parse scheduled and actual time into hours and minutes
+    const [scheduledHours, scheduledMinutes] = scheduledTime.split(':').map(Number);
+    const [actualHours, actualMinutes] = actualTime.split(':').map(Number);
+
+    // Create Date objects for both scheduled and actual times
+    const scheduledDate = new Date(2000, 0, 1, scheduledHours, scheduledMinutes);
+    const actualDate = new Date(2000, 0, 1, actualHours, actualMinutes);
+
+    // Calculate the difference in milliseconds
+    const timeDifference = actualDate - scheduledDate;
+
+    // Convert milliseconds to minutes
+    const differenceInMinutes = Math.abs(Math.floor(timeDifference / (1000 * 60)));
+
+    if (timeDifference > 0) {
+        return `You came ${differenceInMinutes} minutes late today.`;
+    } else if (timeDifference < 0) {
+        return `You came ${differenceInMinutes} minutes early today.`;
+    } else {
+        return `You came on time today.`;
+    }
+}
+
+// Function to calculate working hours between start and end times
+function getTotalWorkingHourPerDay(startingTime, endingTime) {
+    if (startingTime !== "00:00" && endingTime !== "00:00") {
+
+        // Convert time strings to Date objects (using today's date)
+        const today = new Date();
+        const start = new Date(today.getFullYear(), today.getMonth(), today.getDate(), ...startingTime?.split(':').map(Number));
+        const end = new Date(today.getFullYear(), today.getMonth(), today.getDate(), ...endingTime?.split(':').map(Number));
+
+        // Calculate the difference in milliseconds
+        const startTime = start.getTime();
+        const endTime = end.getTime();
+        let timeDifference;
+        if (endTime > startTime) {
+            timeDifference = end - start;
+        } else {
+            timeDifference = start - end
+        }
+
+        // Convert the difference to minutes
+        const minutesDifference = Math.floor(timeDifference / (1000 * 60));
+
+        return minutesDifference / 60;
+    } else {
+        return 0;
+    }
+}
+
+router.post("/:id", verifyAdminHREmployee, async (req, res) => {
+    const { orgName } = jwt.decode(req.headers['authorization']);
+    const OrgEmployee = getEmployeeModel(orgName);
+    const OrgClockinsModel = getClockinModel(orgName);
+    let regular = 0;
+    let late = 0;
+    let early = 0;
+
+    // Function to check login times and update status counts
+    async function checkLogin(scheduledTime, actualTime) {
+        const [scheduledHours, scheduledMinutes] = scheduledTime.split(':').map(Number);
+        const [actualHours, actualMinutes] = actualTime.split(':').map(Number);
+
+        const scheduledDate = new Date(2000, 0, 1, scheduledHours, scheduledMinutes);
+        const actualDate = new Date(2000, 0, 1, actualHours, actualMinutes);
+
+        if (actualDate > scheduledDate) {
+            late += 1;
+            return "Late";
+        } else if (actualDate < scheduledDate) {
+            early += 1;
+            return "Early";
+        } else {
+            regular += 1;
+            return "On Time";
+        }
+    }
+
+    try {
+        const today = new Date();
+        const startOfDay = new Date(today.setHours(0, 0, 0, 0)); // Set time to 00:00:00.000
+        const endOfDay = new Date(today.setHours(23, 59, 59, 999));
+
+        const emp = await Employee.findById(req.params.id)
+            .populate({ path: "clockIns", match: { date: { $gte: startOfDay, $lte: endOfDay } } });
+
+        if (emp?.clockIns?.length > 0) {
+            return res.status(409).send({ message: "You have already PunchIn!" });
+        }
+
+        // Validate input data
+        const { error } = clockInsValidation.validate(req.body);
+        if (error) {
+            return res.status(400).send({ message: error.message });
+        }
+
+        // Proceed with login checks
+        const result = req.body;
+        if (result?.login?.startingTime) {
+            const behaviour = await checkLogin("09:30", result.login.startingTime);
+            const punchInMsg = await checkLoginForOfficeTime("09:30", result.login.startingTime)
+            let newClockIns = {
+                ...req.body,
+                behaviour,
+                punchInMsg,
+                employee: req.params.id
+            };
+            const clockIns = await OrgClockinsModel.create(newClockIns);
+
+            // Save the clock-in data to the employee's record
+            emp.clockIns.push(clockIns._id);
+            await emp.save(); // Fixed save function usage
+
+            res.status(201).send(clockIns);
+        }
+    } catch (error) {
+        res.status(500).send({ error: error.message });
+    }
+});
+
+
+router.get("/:id", verifyAdminHREmployee, async (req, res) => {
+
+    function timeToMinutes(timeStr) {
+        // Split the time string into hours, minutes, and seconds
+        const [hours, minutes, seconds] = timeStr.split(':').map(Number);
+        // Calculate total minutes
+        const totalMinutes = (hours * 60) + minutes;
+        return totalMinutes || 0;
+    }
+
+    try {
+        const queryDate = new Date(req.query.date); // Parse the query date
+
+        // Create start and end of the day for the date comparison
+        const startOfDay = new Date(queryDate.setHours(0, 0, 0, 0)); // Set time to 00:00:00.000
+        const endOfDay = new Date(queryDate.setHours(23, 59, 59, 999)); // Set time to 23:59:59.999
+
+        const { orgName } = jwt.decode(req.headers['authorization']);
+        const OrgEmployeeModel = getEmployeeModel(orgName);
+        const timeData = await OrgEmployeeModel.findById({ _id: req.params.id }, "clockIns")
+            .populate({
+                path: "clockIns",
+                match: {
+                    date: {
+                        $gte: startOfDay,
+                        $lt: endOfDay,
+                    },
+                },
+                populate: { path: "employee", select: "_id FirstName LastName" }
+            });
+
+        // const timeData = await ClockIns.findById(req.params.id).populate({path: "employee", select: "_id FirstName LastName"});
+        if (timeData?.clockIns?.length === 0) {
+            return res.status(404).send({ message: "Please Login!" });
+        } else {
+            const activities = ["login", "meeting", "morningBreak", "lunch", "eveningBreak", "event"];
+
+            const activitiesData = activities.map((activity) => {
+                const startingTime = timeData.clockIns[0][activity]?.startingTime || "00:00";
+                const endingTime = timeData.clockIns[0][activity]?.endingTime || "00:00";
+                // const timeCalMins = convertToMinutes(startingTime, endingTime);
+                const timeCalMins = timeToMinutes(timeData?.clockIns[0][activity]?.timeHolder || "00:00:00");
+
+                return {
+                    activity,
+                    startingTime,
+                    endingTime,
+                    timeCalMins
+                };
+            });
+
+            // Sum up the total minutes for all activities
+            const totalEmpWorkingMinutes = activitiesData.reduce((total, activity) => total + activity.timeCalMins, 0);
+
+            // Convert total minutes to hours and minutes format
+            const hours = Math.floor(totalEmpWorkingMinutes / 60);
+            const minutes = totalEmpWorkingMinutes % 60;
+
+            return res.send({
+                timeData,
+                activitiesData,
+                empTotalWorkingHours: (hours + minutes) / 60
+            });
+        }
+
+    } catch (err) {
+        console.log(err);
+        res.status(500).send({ error: err.message });
+    }
+});
+
+router.get("/item/:id", verifyAdminHREmployee, async (req, res) => {
+    const convertToMinutes = (start, end) => {
+        const [endHour, endMin] = end.split(":").map(Number);
+        const [startHour, startMin] = start.split(":").map(Number);
+
+        const startTime = new Date(2000, 0, 1, startHour, startMin);
+        const endTime = new Date(2000, 0, 1, endHour, endMin);
+
+        const diffMs = endTime - startTime; // Difference in milliseconds
+        const diffMinutes = Math.floor(diffMs / (1000 * 60)); // Convert to minutes
+
+        return diffMinutes > 0 ? diffMinutes : 0; // Ensure non-negative value
+    };
+
+    try {
+        const { orgName } = jwt.decode(req.headers['authorization']);
+        const OrgClockInsModel = getClockinModel(orgName);
+        const timeData = await OrgClockInsModel.findById(req.params.id).populate({ path: "employee", select: "_id FirstName LastName" });
+        if (!timeData) {
+            return res.status(404).send({ message: "Not found", details: "Id is not found! Please verify it." });
+        }
+
+        const activities = ["login", "meeting", "morningBreak", "lunch", "eveningBreak", "event"];
+
+        const activitiesData = activities.map((activity) => {
+            const startingTime = timeData[activity]?.startingTime || "00:00";
+            const endingTime = timeData[activity]?.endingTime || "00:00";
+            const timeCalMins = convertToMinutes(startingTime, endingTime);
+
+            return {
+                activity,
+                startingTime,
+                endingTime,
+                timeCalMins
+            };
+        });
+
+        // Sum up the total minutes for all activities
+        const totalEmpWorkingMinutes = activitiesData.reduce((total, activity) => total + activity.timeCalMins, 0);
+
+        // Convert total minutes to hours and minutes format
+        const hours = Math.floor(totalEmpWorkingMinutes / 60);
+        const minutes = totalEmpWorkingMinutes % 60;
+
+        res.send({
+            timeData,
+            activitiesData,
+            empTotalWorkingHours: (hours + minutes) / 60
+        });
+
+    } catch (err) {
+        res.status(500).send({ message: "Internal server error", details: err.message });
+    }
+});
+
+// get login and logout data from employee
+router.get("/employee/:empId", verifyAdminHREmployee, async (req, res) => {
+
+    let totalEmpWorkingHours = 0; // Track total working hours for the employee
+    let totalLeaveDays = 0;
+
+    const now = new Date();
+    let startOfMonth;
+    let endOfMonth;
+    if (req?.query?.daterangeValue) {
+        startOfMonth = new Date(req.query.daterangeValue[0]);
+        endOfMonth = new Date(req.query.daterangeValue[1]);
+    } else {
+        startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+        endOfMonth = new Date();
+    }
+
+    let regular = 0;
+    let late = 0;
+    let early = 0;
+    // Function to check login times and update status counts
+    async function checkLogin(scheduledTime, actualTime) {
+        const [scheduledHours, scheduledMinutes] = scheduledTime.split(':').map(Number);
+        const [actualHours, actualMinutes] = actualTime.split(':').map(Number);
+
+        const scheduledDate = new Date(2000, 0, 1, scheduledHours, scheduledMinutes);
+        const actualDate = new Date(2000, 0, 1, actualHours, actualMinutes);
+
+        if (actualDate > scheduledDate) {
+            late += 1;
+            return "Late";
+        } else if (actualDate < scheduledDate) {
+            early += 1;
+            return "Early";
+        } else {
+            regular += 1;
+            return "On Time";
+        }
+    }
+
+    // Function to calculate total working hours excluding weekends
+    async function getTotalWorkingHoursExcludingWeekends(startDate, endDate, dailyHours = 8) {
+        const start = new Date(startDate);
+        const end = new Date(endDate);
+        let totalWorkingHours = 0;
+
+        // Iterate through each date in the range
+        for (let date = new Date(start); date <= end; date.setDate(date.getDate() + 1)) {
+            const dayOfWeek = date.getDay();
+            if (dayOfWeek !== 0 && dayOfWeek !== 6) { // Exclude weekends (Sundays and Saturdays)
+                totalWorkingHours += dailyHours;
+            }
+        }
+
+        return totalWorkingHours;
+    }
+
+    try {
+        const { orgName } = jwt.decode(req.headers['authorization']);
+        const OrgEmployee = getEmployeeModel(orgName);
+        const employee = await OrgEmployee.findById(req.params.empId, "_id FirstName LastName clockIns leaveApplication")
+            .populate({
+                path: "clockIns",
+                match: {
+                    date: {
+                        $gte: startOfMonth,
+                        $lte: endOfMonth
+                    }
+                },
+                populate: {
+                    path: "employee", // Ensure this matches the defined model name
+                    select: "_id FirstName LastName"
+                }
+            })
+            .populate({
+                path: "leaveApplication",
+                match: {
+                    fromDate: {
+                        $gte: startOfMonth,
+                        $lte: endOfMonth
+                    },
+                    toDate: {
+                        $gte: startOfMonth,
+                        $lte: endOfMonth
+                    },
+                    status: "approved"
+                }
+            });
+
+        if (!employee) {
+            return res.status(400).send({ message: "No Employee found with given ID" });
+        }
+
+        // Calculate company's total working hours per month excluding weekends
+        const companyTotalWorkingHour = await getTotalWorkingHoursExcludingWeekends(
+            startOfMonth,
+            endOfMonth
+        );
+        const totalWorkingHoursPerMonth = await getTotalWorkingHoursExcludingWeekends(
+            startOfMonth,
+            new Date(now.getFullYear(), now.getMonth() + 1, 0)
+        )
+
+        //get lastMonth of leave days
+        employee.leaveApplication.forEach((leave) => {
+            totalLeaveDays += getDayDifference(leave)
+        })
+
+        // Process employee clock-in data
+        employee.clockIns.forEach(async (clockIn) => {
+            const { startingTime, endingTime } = clockIn.login;
+
+            // Calculate total working hours for this employee clock-in
+            const workingHours = getTotalWorkingHourPerDay(startingTime, endingTime);
+
+            totalEmpWorkingHours += workingHours;
+
+            // Compare with scheduled time (assumed to be "09:00")
+            await checkLogin("09:00", startingTime);
+        });
+
+        // Return the response with collected data
+        res.send({
+            totalRegularLogins: regular,
+            totalLateLogins: late,
+            totalEarlyLogins: early,
+            companyTotalWorkingHour,
+            totalWorkingHoursPerMonth,
+            totalEmpWorkingHours: totalEmpWorkingHours.toFixed(2),// Return total working hours for the employee
+            totalLeaveDays,
+            clockIns: employee.clockIns
+        });
+    } catch (error) {
+        console.error(error);
+        res.status(500).send({ message: "Server error", details: error.message });
+    }
+});
+
+router.get("/", verifyAdminHR, async (req, res) => {
+    try {
+        const { orgName } = jwt.decode(req.headers['authorization']);
+        const OrgClockIns = getClockinModel(orgName)
+        const attendanceData = await OrgClockIns.find({}).populate({ path: "employee", select: "FirstName LastName" });
+        res.send(attendanceData);
+    } catch (error) {
+        res.status(500).send({ message: error.message })
+    }
+})
+
+router.put("/:id", verifyAdminHREmployee, (req, res) => {
+    let body = req.body;
+    const { orgName } = jwt.decode(req.headers['authorization']);
+    const OrgClockIns = getClockinModel(orgName);
+
+    OrgClockIns.findByIdAndUpdate(req.params.id, body, {
+        new: true
+    }, (err, data) => {
+        if (err) {
+            res.status(500).send({ message: "Internal server Error", details: err.details })
+        } else {
+            delete data._id;
+            res.send(data);
+        }
+    })
+})
+
+module.exports = router;

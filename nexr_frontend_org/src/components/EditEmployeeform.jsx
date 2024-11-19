@@ -82,8 +82,6 @@ const EditEmployeeform = ({ details, empData, handleScroll, handlePersonal, hand
         }
     })
 
-    console.log(formik.errors);
-
     function navToError() {
         if (formik.errors.FirstName
             || formik.errors.LastName
@@ -186,7 +184,6 @@ const EditEmployeeform = ({ details, empData, handleScroll, handlePersonal, hand
 
     const hourAndMin = timeDifference.toString().split(".");
     const [hour, min] = hourAndMin;
-    console.log(empData.position);
 
     return (
         <form onSubmit={formik.handleSubmit}>

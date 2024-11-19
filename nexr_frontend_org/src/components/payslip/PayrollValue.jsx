@@ -44,6 +44,7 @@ export default function PayrollValue() {
             ]
         }
     ];
+    
     console.log(multiSelector);
 
     return (

@@ -1,5 +1,4 @@
 var mongoose = require('mongoose');
-var autoIncrement = require('mongoose-auto-increment');
 var Joi = require("joi");
 
 var timePatternSchema = new mongoose.Schema({
@@ -13,11 +12,11 @@ var timePatternSchema = new mongoose.Schema({
 })
 
 var TimePattern = mongoose.model("TimePattern", timePatternSchema);
-autoIncrement.initialize(mongoose.connection);
-timePatternSchema.plugin(autoIncrement.plugin, {
-    model: "TimePattern",
-    field: "TimePatternID"
-})
+// autoIncrement.initialize(mongoose.connection);
+// timePatternSchema.plugin(autoIncrement.plugin, {
+//     model: "TimePattern",
+//     field: "TimePatternID"
+// })
 
 var TimePatternValidation = Joi.object().keys({
     _id: Joi.optional(),
