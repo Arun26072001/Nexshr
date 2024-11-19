@@ -42,6 +42,63 @@ router.get("/", verifyAdminHR, async (req, res) => {
 
 });
 
+router.get("/user", verifyAdminHR, async (req, res) => {
+  try {
+    const employees = await Employee.find({ Account: 3 }, "_id FirstName LastName")
+      .populate({
+        path: "department", 
+        select: "DepartmentName", 
+      });
+
+   
+    const departmentMap = {};
+
+    employees.forEach((employee) => {
+      employee.department.forEach((dept) => {
+        const departmentName = dept.DepartmentName;
+
+        if (!departmentMap[departmentName]) {
+          departmentMap[departmentName] = [];
+        }
+
+        departmentMap[departmentName].push({
+          label: `${employee.FirstName} ${employee.LastName}`, 
+          value: employee.FirstName.toLowerCase(), 
+          id: employee._id.toString(), 
+        });
+      });
+    });
+
+   
+    const teamData = Object.keys(departmentMap).map((departmentName) => ({
+      label: departmentName,
+      value: departmentName, 
+      children: departmentMap[departmentName], 
+    }));
+
+    const selectAllOption = {
+      label: "Select All",
+      value: "select-all",
+      children: teamData,
+    };
+
+    
+    const formattedTeams = [selectAllOption];
+
+    
+    res.status(200).json({
+      status: true,
+      status_code: 200,
+      Team: formattedTeams,
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).send({ message: "Internal server error", details: err.message });
+  }
+});
+
+
+
 router.get("/all", verifyAdminHR, async (req, res) => {
   try {
     // const {orgName} = jwt.decode(req.headers['authorization']);

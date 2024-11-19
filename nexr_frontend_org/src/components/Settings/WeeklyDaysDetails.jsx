@@ -41,14 +41,25 @@ const WeeklyDaysDetails = ({ pattern }) => {
     return (
         <div className="content">
             {days.slice(0, pattern.WeeklyDays).map((name, index) => (
-                <ul key={index} className="list-unstyled">
-                    <li><p className="lead"><b>{name}</b>{"  "+pattern.StartingTime} - {pattern.FinishingTime+"  "}{pattern.BreakTime} mins break</p></li>
+                <ul key={index} className="d-flex list-unstyled mb-2">
+                <div style={{ width: "20%" }} className="text-muted">
+                     <li>
+                     <p className="text-muted mb-0" style={{ fontSize: "13px", fontWeight: "bold" }}>{name}</p>
+                    </li>
+                    </div>
+                    <div style={{ width: "20%" }} className="text-muted"><p className="mb-0">{`${pattern.StartingTime} - ${pattern.FinishingTime} `}</p>
+                    </div>
+                    <div style={{ width: "20%" }} className="text-secondary">
+                   <p className="mb-0">{pattern.BreakTime} mins break</p></div>
+                 
+                  
+                  
                 </ul>
             ))}
-            <>
-                <p><b>{pattern.WeeklyDays}</b> working days totaling <b>{calculateTotalHours(pattern.StartingTime, pattern.FinishingTime, pattern.BreakTime).toFixed(2)}</b> hrs excluding breaks.</p>
-                <p>Public holidays are deducted from the annual leave entitlement.</p>
-            </>
+            <div className="mt-3">
+                <p className="text-muted mb-1"><b>{pattern.WeeklyDays}</b> working days totaling <b>{calculateTotalHours(pattern.StartingTime, pattern.FinishingTime, pattern.BreakTime).toFixed(2)}</b> hrs excluding breaks.</p>
+                <p  className="text-muted">Public holidays are deducted from the annual leave entitlement.</p>
+            </div>
         </div>
     )
 };

@@ -70,7 +70,6 @@ router.get("/user", verifyAdminHR, async (req, res) => {
             status_code: 200,
             Team: formattedTeams
         });
-
     } catch (err) {
         console.error(err);
         res.status(500).send({ message: "Internal server error", details: err.message });

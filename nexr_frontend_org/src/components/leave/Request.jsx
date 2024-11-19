@@ -16,21 +16,20 @@ export default function LeaveRequest() {
             <Loading />
         ) : (
             <div>
-                <div className="row">
-                    <div className="col-lg-6 payslipTitle">
+                    <div className="payslipTitle">
                         Leave Request
                     </div>
-                    <div className="col-lg-6 searchInputIcon">
+                    
+                <div className="leaveContainer d-block">
+                <div className="col-lg-6 searchInputIcon">
                         <input
                             type="text"
                             className='payrunInput'
                             value={empName}
                             onChange={(e) => setEmpName(e.target.value)}
-                            placeholder='Search'
+                            placeholder='Search Employee'
                         />
                     </div>
-                </div>
-                <div className="leaveContainer d-block">
                     <div className="w-100 d-flex justify-content-center">
                         <div className="leaveBoard">
                             {/* Leave taken */}
