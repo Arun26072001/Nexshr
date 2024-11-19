@@ -7,8 +7,4 @@ const PayslipInfoSchema = new mongoose.Schema({
 
 const PaySlipInfo = mongoose.model("payslipInfo", PayslipInfoSchema);
 
-module.exports = { PaySlipInfo }
-
-module.exports.AddNewPayslipInfoCollection = function (orgName) {
-  return mongoose.model(orgName + "payslipinfo", PayslipInfoSchema)
-}
+module.exports = { PaySlipInfo, PayslipInfoSchema }

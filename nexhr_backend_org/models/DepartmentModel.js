@@ -15,9 +15,4 @@ var Department = mongoose.model("Department", departmentSchema);
     company: Joi.required()
   });
 
-module.exports = {Department, DepartmentValidation};
-
-
-module.exports.AddNewDepCollection = function(orgName) {
-  return mongoose.model(orgName+"Department", departmentSchema)
-}
+module.exports = {Department, DepartmentValidation, departmentSchema};

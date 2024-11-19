@@ -331,7 +331,7 @@ export default function LeaveTable({ data, getCheckedValue, getEditDepartmentId,
             id: 'RoleName',
             label: 'Role',
             minWidth: 120,
-            align: 'left',
+            align: 'center',
             getter: (row) => row?.RoleName
         },
         {
@@ -355,7 +355,7 @@ export default function LeaveTable({ data, getCheckedValue, getEditDepartmentId,
     const column9 = [
         {
             id: 'DepartmentName',
-            label: 'Deparment',
+            label: 'Departments',
             minWidth: 120,
             align: 'left',
             getter: (row) => row?.DepartmentName

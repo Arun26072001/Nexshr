@@ -2,7 +2,7 @@ import React, { useEffect, useContext } from "react";
 import Logo from "../imgs/webnexs_logo.png";
 import { css } from "@emotion/react"; // Update the import for emotion
 import { ScaleLoader } from "react-spinners";
-import { Navigate, useNavigate } from "react-router-dom";
+import { Navigate, useNavigate, useParams } from "react-router-dom";
 import { EssentialValues } from "../App";
 import "./Login.css";
 
@@ -16,8 +16,11 @@ const Login = () => {
   const Account = localStorage.getItem("Account");
   const navigate = useNavigate();
   const { handleSubmit, loading, pass } = useContext(EssentialValues);
+  // const { id } = useParams();
+  
 
   useEffect(() => {
+    // localStorage.setItem("orgId", id)
     if (Account === "1") {
       navigate("/admin")
     }
@@ -35,7 +38,7 @@ const Login = () => {
   //       console.log(connectionMsg?.data?.message);
   //       console.log(isLogin && window.location.pathname);
   //       if (isLogin && window.location.pathname === "/") {
-          
+
   //         if (account === '1') {
   //           navigate("/admin")
   //         } else if (account === '2') {

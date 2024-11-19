@@ -36,6 +36,19 @@ export default function Status() {
                 {/* Display leave data or no data found */}
                 <div>
                     <div className="leaveContainer d-block">
+                      <div className='px-3 my-3'>
+                            <div className="row">
+                                <div className="col-lg-12 searchInputIcon">
+                                    <input
+                                        type="text"
+                                        className='payrunInput'
+                                        value={empName}
+                                        onChange={(e) => setEmpName(e.target.value)}
+                                        placeholder='Search Employee'
+                                    />
+                                </div>
+                            </div>
+                        </div>
                         <div className="w-100 d-flex justify-content-center">
                             <div className="leaveBoard">
                                 <div className="leaveData">
@@ -70,23 +83,12 @@ export default function Status() {
                                 </div>
                             </div>
                         </div>
-                        <div className='px-3 my-3'>
-                            <div className="row">
-                                <div className="col-lg-12 searchInputIcon">
-                                    <input
-                                        type="text"
-                                        className='payrunInput'
-                                        value={empName}
-                                        onChange={(e) => setEmpName(e.target.value)}
-                                        placeholder='Search Employee'
-                                    />
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                        
+                    
 
                     {leaveRequests?.leaveData?.length > 0 ?
                         <LeaveTable data={leaveRequests.leaveData} /> : <NoDataFound message="No Leave request for this employee Name" />}
+                    </div>
                 </div>
             </div>
 

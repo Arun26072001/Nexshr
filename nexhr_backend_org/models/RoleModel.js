@@ -22,10 +22,6 @@ const RoleAndPermissionValidation = Joi.object({
 // Export the model and validation schema
 module.exports = {
   RoleAndPermission,
-  RoleAndPermissionValidation
+  RoleAndPermissionValidation,
+  RoleAndPermissionSchema
 };
-
-
-module.exports.AddNewRoleCollection = function(orgName) {
-  return mongoose.model(orgName+"role", RoleAndPermissionSchema)
-}

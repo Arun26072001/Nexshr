@@ -7,10 +7,10 @@ const TeamSchema = mongoose.Schema({
         type: String,
         unique: true
     },
-    employees: [{type: mongoose.Types.ObjectId, ref: "Employee"}],
+    employees: [{ type: mongoose.Types.ObjectId, ref: "Employee" }],
     lead: {
         type: mongoose.Types.ObjectId, ref: "Employee"
-    } 
+    }
 })
 
 const Team = mongoose.model("Team", TeamSchema);
@@ -22,9 +22,11 @@ const TeamValidation = Joi.object({
 })
 
 module.exports = {
-    Team, TeamValidation
+    Team, 
+    TeamValidation,
+    TeamSchema
 }
 
-module.exports.AddNewTeamCollection = function(orgName) {
-    return mongoose.model(orgName+"Team", TeamSchema)
-  }
+// module.exports.AddNewTeamCollection = function(orgName) {
+//     return mongoose.model(orgName+"Team", TeamSchema)
+//   }

@@ -67,7 +67,6 @@ export default function PageAndActionAuth() {
             }
         }))
     }
-    console.log(roleObj);
     
     async function fetchRoleById() {
         try {

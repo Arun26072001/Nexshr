@@ -11,6 +11,41 @@ const http = require("http");
 const socketIo = require("socket.io");
 
 // Router Files
+// const login = require("./orgRoutes/login");
+// // const org = require("./orgRoutes/organization");
+// const department = require("./orgRoutes/department");
+// const role = require("./orgRoutes/role");
+// const position = require("./orgRoutes/position");
+// const city = require("./orgRoutes/city");
+// const portal = require("./orgRoutes/portal");
+// const employee = require("./orgRoutes/employee");
+// const familyInfo = require("./orgRoutes/family-info");
+// const salary = require("./orgRoutes/salary");
+// const education = require("./orgRoutes/education");
+// const { leaveApp } = require("./orgRoutes/leave-app");
+// const state = require("./orgRoutes/state");
+// const country = require("./orgRoutes/country");
+// const project = require("./orgRoutes/project");
+// const personalInfo = require("./orgRoutes/personal-info");
+// const workExp = require("./orgRoutes/work-exp");
+// const timePattern = require("./orgRoutes/time-pattern");
+// const companySettings = require("./orgRoutes/company-settings");
+// const workPlace = require("./orgRoutes/work-place");
+// const leaveType = require("./orgRoutes/leave-type");
+// const payroll = require("./orgRoutes/payroll");
+// const applicationSettings = require("./orgRoutes/application-settings");
+// const attendance = require("./orgRoutes/attendance");
+// const clockIns = require("./orgRoutes/clock-ins");
+// const team = require("./orgRoutes/team");
+// const announcement = require("./orgRoutes/announcement");
+// const teamssample = require("./orgRoutes/teamssample");
+// const payslipInfo = require("./orgRoutes/payslipInfo");
+// const payslip = require("./orgRoutes/payslip");
+// const userPermission = require("./orgRoutes/user-permission");
+// const pageAuth = require("./orgRoutes/page-auth");
+// const organization = require("./orgRoutes/organization");
+// const userAccount = require("./orgRoutes/user-account");
+
 const login = require("./routes/login");
 const company = require("./routes/company");
 const department = require("./routes/department");
@@ -44,6 +79,7 @@ const payslip = require("./routes/payslip");
 const userPermission = require("./routes/user-permission");
 const pageAuth = require("./routes/page-auth");
 const organization = require("./routes/organization");
+const userAccount = require("./routes/user-account");
 
 // MongoDB Connection
 const mongoURI = process.env.DATABASEURL;
@@ -57,7 +93,7 @@ mongoose
   .connect(mongoURI, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
-    
+
   })
   .then(() => console.log("db connection successful"))
   .catch(err => console.log(err));
@@ -88,6 +124,8 @@ app.get("/", (req, res) => {
 });
 
 // Routers
+app.use("/api/user-account", userAccount);
+app.use("/api/company", company);
 app.use("/api/login", login);
 app.use("/api/role", role);
 app.use("/api/team", team);
@@ -104,7 +142,7 @@ app.use("/api/payslip-info", payslipInfo);
 app.use("/api/department", department);
 app.use("/api/work-experience", workExp);
 app.use("/api/work-place", workPlace);
-app.use("/api/company", company);
+// app.use("/api/company", company);
 app.use("/api/portal", portal);
 app.use("/api/company-settings", companySettings);
 app.use("/api/position", position);
@@ -120,7 +158,6 @@ app.use("/api/announcements", announcement);
 app.use("/api/teamssample", teamssample);
 app.use("/api/user-permission", userPermission);
 app.use("/api/page-auth", pageAuth);
-app.use("/api/org", organization);
 
 // Create HTTP Server and Socket.IO
 const server = http.createServer(app);

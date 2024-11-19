@@ -1,14 +1,12 @@
 import React, { useContext, useEffect, useRef, useState } from 'react';
 import './navbar.css';
 import Webnexs from "../../../imgs/webnexs_logo.png";
-// import Profile from "../../../imgs/male_avatar.png";
-// import MyStopwatch from './StopWatchTimer';
 import TableRowsRoundedIcon from '@mui/icons-material/TableRowsRounded';
-import ProfileImgUploader from '../../ImgUploader';
+// import ProfileImgUploader from '../../ImgUploader';
 import PunchIn from "../../../asserts/PunchIn.svg";
 import PunchOut from "../../../asserts/punchOut.svg";
 import { TimerStates } from '../HRMDashboard';
-import { Dropdown, IconButton, Popover, Whisper } from 'rsuite';
+import { Dropdown, Popover, Whisper } from 'rsuite';
 import logo from "../../../imgs/male_avatar.png";
 import { EssentialValues } from '../../../App';
 

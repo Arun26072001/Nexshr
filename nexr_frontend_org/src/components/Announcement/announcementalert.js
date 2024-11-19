@@ -492,7 +492,7 @@ const AnnouncementComponent = () => {
         const fetchData = async () => {
             try {
                 const response = await axios.get(
-                    `${process.env.REACT_APP_API_URL}/api/team/user`, 
+                    `${process.env.REACT_APP_API_URL}/api/employee/user`, 
                    { headers: {
                         authorization: token || ""
                    }},
@@ -505,12 +505,6 @@ const AnnouncementComponent = () => {
         fetchData();
     }, []);
 
-
-    
-
-    // Send push notifications after form submission
-    
-    // Open modal to create a new announcement
     const openModal = () => {
         setIsModalOpen(true);
     };
@@ -524,7 +518,7 @@ const AnnouncementComponent = () => {
         setSelectedUsers([]);
     };
 
-    // Handle form submission for announcement creation and sending notifications
+   
     const handleSubmit = async (e) => {
         e.preventDefault();
     
@@ -543,7 +537,7 @@ const AnnouncementComponent = () => {
         };
     
         try {
-            // Submit announcement to the backend
+            
             await axios.post(
                 `${process.env.REACT_APP_API_URL}/api/announcements`,
                 formData,
@@ -557,26 +551,26 @@ const AnnouncementComponent = () => {
 
 
     
-    // Register for notifications and subscribe to socket events
+    
     useEffect(() => {
-        const userId = "665601de20a3c61c646a135f"; // Replace with actual user ID
+        const userId = "6732dc5eaa4b04df4496db28"; 
         socket.emit('registerUser', userId);
 
-        // Receive notifications from the server
+        
        socket.on('receiveNotification', ({ title, message }) => {
-            console.log("Received notification:", title, message);  // Debugging line
+            console.log("Received notification:", title, message);  
             
-            // Dummy company logo and name
+         
             const companyLogo = 'https://imagedelivery.net/r89jzjNfZziPHJz5JXGOCw/1dd59d6a-7b64-49d7-ea24-1366e2f48300/public'; // Replace with your company logo URL
-            const companyName = 'Webnexs'; // Replace with your company name
+            const companyName = 'Webnexs'; 
             
             toaster.push(
                 <Notification 
                     header={
                         <div style={{ display: 'flex', alignItems: 'center' }}>
-                            {/* Company Logo */}
+                           
                             <img src={companyLogo} alt="Company Logo" style={{ width: 50, height: 50, marginRight: 10 }} />
-                            {/* Company Name */}
+                         
                             <span style={{ fontWeight: 'bold', fontSize: '16px' }}>{companyName}</span>
                         </div>
                     } 
@@ -599,17 +593,17 @@ const AnnouncementComponent = () => {
         if (selectedUsers.length > 0 && title && message) {
             let userIds = [];
     
-            // Helper function to get IDs for selected teams
+           
             const getUserIdsForTeam = (teamValue) => {
                 const team = team_member[0].children.find(team => team.value === teamValue);
                 return team ? team.children.map(user => user.id) : [];
             };
     
             if (selectedUsers.includes('select-all')) {
-                // Get all user IDs across all teams
+               
                 userIds = team_member[0].children.flatMap(team => team.children.map(user => user.id));
             } else {
-                // Iterate through selected teams and add their members
+                
                 const teamKeys = ['designing', 'developers', 'testing', 'digital-marketing', 'sales'];
                 teamKeys.forEach(teamKey => {
                     if (selectedUsers.includes(teamKey)) {
@@ -617,13 +611,13 @@ const AnnouncementComponent = () => {
                     }
                 });
     
-                // Add specific user IDs if individual users are selected
+                
                 userIds.push(...selectedUsers.map(value => findUserIdByValue(value)).filter(userId => userId !== null));
             }
     
             if (userIds.length > 0) {
                 userIds.forEach(userId => {
-                    // Emit the notification to each user
+                   
                     socket.emit('sendNotification', userId, title, message);
                 });
                 setTitle('');
@@ -645,27 +639,30 @@ const AnnouncementComponent = () => {
             );
         }
     };
-    // Helper function to find user ID by value
+
+
+    
     const findUserIdByValue = (value) => {
         for (const team of team_member) {
             for (const category of team.children) {
                 for (const user of category.children) {
                     if (user.value === value) {
-                        return user.id; // Return the user ID
+                        return user.id; 
                     }
                 }
             }
         }
-        return null; // Return null if user not found
+        return null; 
     };
+    console.log("Single user selection:", selectedUsers, "Found ID:", findUserIdByValue(selectedUsers[0]));
 
-    // Helper function to get all user IDs from the teams structure
+    
     const getAllUserIdsFromTeams = (teams) => {
         let allUserIds = [];
         teams.forEach(team => {
             team.children.forEach(category => {
                 category.children.forEach(user => {
-                    allUserIds.push(user.id); // Add each user's ID to the list
+                    allUserIds.push(user.id); 
                 });
             });
         });
@@ -681,8 +678,8 @@ const AnnouncementComponent = () => {
 
             {isModalOpen && (
                 <div className="modal show d-block" tabIndex="-1" role="dialog">
-                    <div className="modal-dialog modal-lg" role="document">
-                        <div className="modal-content modal-lg p-3">
+                    <div className="modal-dialog modal-content modal-lg" role="document">
+                        <div className="modal-lg">
                             <div className="modal-header" style={{ padding: '0px 0px 10px 0px' }}>
                                 <h5 className="title">Add announcement</h5>
                                 <button type="button" className="close" onClick={closeModal}>
@@ -756,14 +753,7 @@ const AnnouncementComponent = () => {
 
                                 <div className="modal-actions">
                                     <button type="button" className="btn btn-secondary" onClick={closeModal}>Cancel</button>
-                                    <button
-  type="submit"
-  className="btn btn-primary"
-  onClick={(event) => { handleSubmit(event); handleSendNotification(); }}
->
-  Save
-</button>
-
+                                   <button type="submit" className="btn btn-primary"onClick={(event) => { handleSubmit(event); handleSendNotification(); }}>Save</button>
                                 </div>
                             </div>
                         </div>

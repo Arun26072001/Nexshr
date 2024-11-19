@@ -29,8 +29,6 @@ const applicationSettingsSchema = new mongoose.Schema({
 
 const applicationSettings = mongoose.model('applicationSettings', applicationSettingsSchema);
 
-
-
 const settingsValidation = Joi.object({
   theme: Joi.object({
     primaryColor: Joi.string().required(),
@@ -58,8 +56,8 @@ const applicationSettingsValidation = Joi.object({
 });
 
 
-module.exports = {applicationSettings, applicationSettingsValidation};
-
-module.exports.AddNewAppSettingsCollection = function(orgName) {
-  return mongoose.model(orgName+"AppSettings", applicationSettingsSchema)
-}
+module.exports = {
+  applicationSettings,
+  applicationSettingsValidation,
+  applicationSettingsSchema
+};

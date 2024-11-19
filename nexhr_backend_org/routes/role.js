@@ -2,13 +2,27 @@ const express = require('express');
 const router = express.Router();
 const { Employee } = require('../models/EmpModel');
 const { verifyAdminHR, verifyAdmin } = require('../auth/authMiddleware');
-const { RoleAndPermission, RoleAndPermissionValidation } = require('../models/RoleModel');
+const { RoleAndPermission, RoleAndPermissionValidation, RoleAndPermissionSchema } = require('../models/RoleModel');
 const { userPermissionsValidation, UserPermission } = require('../models/UserPermissionModel');
 const { PageAuth, pageAuthValidation } = require('../models/PageAuth');
+
+// const RoleAndPermissionModels = {};
+
+// function getRoleAndPermissionModel(orgName) {
+//   // If model already exists in the object, return it; otherwise, create it
+//   if (!RoleAndPermissionModels[orgName]) {
+//     RoleAndPermissionModels[orgName] = mongoose.model(`${orgName}RoleAndPermission`, RoleAndPermissionSchema);
+//   }
+
+//   return RoleAndPermissionModels[orgName];
+// }
 
 // get role by roleName
 router.get("/name", verifyAdmin, async (req, res) => {
   try {
+    // const { orgName } = jwt.decode(req.headers['authorization']);
+    // const RoleAndPermission = getRoleAndPermissionModel(orgName)
+
     const roleData = await RoleAndPermission.findOne({ RoleName: "Employee" })
       .populate("userPermissions")
       .populate("pageAuth")
@@ -51,6 +65,8 @@ router.get("/name", verifyAdmin, async (req, res) => {
 // role get by id
 router.get("/:id", verifyAdmin, async (req, res) => {
   try {
+    // const { orgName } = jwt.decode(req.headers['authorization']);
+    // const RoleAndPermission = getRoleAndPermissionModel(orgName)
     const role = await RoleAndPermission.findById(req.params.id)
       .populate("userPermissions")
       .populate("pageAuth")
@@ -67,6 +83,9 @@ router.get("/:id", verifyAdmin, async (req, res) => {
 
 // Get all roles
 router.get('/', verifyAdminHR, (req, res) => {
+  // const { orgName } = jwt.decode(req.headers['authorization']);
+  // const RoleAndPermission = getRoleAndPermissionModel(orgName)
+
   RoleAndPermission.find()
     .populate("userPermissions")
     .populate("pageAuth")
@@ -106,9 +125,10 @@ router.post('/', verifyAdmin, async (req, res) => {
       userPermissions: userPermission._id,
       pageAuth: pageAuth._id
     };
+    // const { orgName } = jwt.decode(req.headers['authorization']);
+    // const RoleAndPermission = getRoleAndPermissionModel(orgName)
 
     const role = await RoleAndPermission.create(finalRoleData);
-    
     res.send({ message: `${role.RoleName} Role and permission has been added!` });
   } catch (error) {
     res.status(500).send({ error: error.message });
@@ -175,7 +195,8 @@ router.put('/:id', verifyAdmin, async (req, res) => {
       userPermissions: updatedRole.userPermissions._id,
       pageAuth: updatedRole.pageAuth._id
     };
-
+    // const { orgName } = jwt.decode(req.headers['authorization']);
+    // const RoleAndPermission = getRoleAndPermissionModel(orgName)
     const role = await RoleAndPermission.findByIdAndUpdate(req.params.id, finalRoleData, { new: true });
     if (!role) {
       return res.status(404).send({ error: 'Role not found' });
@@ -190,8 +211,12 @@ router.put('/:id', verifyAdmin, async (req, res) => {
 
 router.delete("/:id", verifyAdmin, async (req, res) => {
   try {
+    // const {orgName} = jwt.decode(req.headers['authorization']);
+    // const OrgEmployeeModel = getEmployeeModel(orgName);
     const isEmpRole = await Employee.find({ role: { $in: req.params.id } });
     if (isEmpRole.length === 0) {
+      // const { orgName } = jwt.decode(req.headers['authorization']);
+      // const RoleAndPermission = getRoleAndPermissionModel(orgName)
       const deleteRole = await RoleAndPermission.findByIdAndDelete(req.params.id);
       res.send({ message: "Role has been deleted!" })
     } else {
@@ -203,22 +228,4 @@ router.delete("/:id", verifyAdmin, async (req, res) => {
 })
 
 module.exports = router;
-      // router.delete('/:id', verifyAdminHR, (req, res) => {
-      //   Employee.find({ role: req.params.id }, (err, employees) => {
-      //     if (err) {
-      //       return res.status(500).send(err);
-      //     }
-      //     if (employees.length === 0) {
-      //       Role.findByIdAndRemove(req.params.id, (err, role) => {
-      //         if (err) {
-      //           return res.status(500).send('Error deleting role');
-      //         }
-      //         return res.send(role);
-      //       });
-      //     } else {
-      //       return res.status(403).send('This role is associated with an employee and cannot be deleted');
-      //     }
-      //   });
-      // });
-      
-      // Delete role
+
