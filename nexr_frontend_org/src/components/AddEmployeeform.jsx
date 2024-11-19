@@ -138,7 +138,7 @@ const AddEmployeeForm = ({ details, handleScroll, handlePersonal, handleFinancia
                         authorization: token || ""
                     }
                 })
-                toast.success(res.data.message);
+                toast.success(res.data.message);    
                 resetForm();
 
             } catch (err) {
