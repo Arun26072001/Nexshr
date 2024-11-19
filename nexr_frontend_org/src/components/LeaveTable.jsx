@@ -179,7 +179,7 @@ export default function LeaveTable({ data, getCheckedValue, getEditDepartmentId,
     ];
 
     const column5 = [
-        { id: 'Name', label: 'Name', minWidth: 170, align: 'center', getter: (row) => row.employee.FirstName ? `${row.employee.FirstName[0].toUpperCase() + row.employee.FirstName.slice(1)}` : 'N/A' },
+        { id: 'Name', label: 'Name', minWidth: 170, align: 'left', getter: (row) => row.employee.FirstName ? `${row.employee.FirstName[0].toUpperCase() + row.employee.FirstName.slice(1)}` : 'N/A' },
         {
             id: 'date',
             label: 'Date',
@@ -222,7 +222,7 @@ export default function LeaveTable({ data, getCheckedValue, getEditDepartmentId,
             id: 'sNo',
             label: 'S.No',
             minWidth: 50,
-            align: 'center',
+            align: 'left',
             getter: (row) => row.sNo // Generates the serial number (S.No)
         },
         {

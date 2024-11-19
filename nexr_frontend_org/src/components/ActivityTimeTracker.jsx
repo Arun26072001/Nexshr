@@ -105,7 +105,7 @@ const ActivityTimeTracker = () => {
                     <div className='leaveIndicator'>
                         <button
                             className={`btn btn-outline-${isStartActivity ? "success" : "danger"}`}
-                            style={{ padding: "10px 15px" }}
+                            style={{ padding: "15px 15px" }}
                             title={isStartActivity ? "Stop" : "Start"}
                             onClick={workTimeTracker?._id ? (isStartActivity ? stopIt : startIt) : (plsPunchIn)}
                             id="startActivityTimerBtn"
