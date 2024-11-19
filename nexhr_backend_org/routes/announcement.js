@@ -74,13 +74,14 @@
 // });
 
 // module.exports = router;
+
+
 const express = require('express');
 const mongoose = require('mongoose');
 const Joi = require('joi');
 
 const router = express.Router();
 
-// Announcement Schema and Model
 const announcementSchema = new mongoose.Schema({
   title: { type: String, required: true, trim: true },
   startDate: { type: Date, required: true },
@@ -93,7 +94,7 @@ const announcementSchema = new mongoose.Schema({
 
 const Announcement = mongoose.model('Announcement', announcementSchema);
 
-// Counter Schema and Model for tracking the next announcementId
+
 const counterSchema = new mongoose.Schema({
   name: { type: String, required: true, unique: true },
   value: { type: Number, required: true }
@@ -101,7 +102,6 @@ const counterSchema = new mongoose.Schema({
 
 const Counter = mongoose.model('Counter', counterSchema);
 
-// Joi Validation Schema for Announcement
 const announcementValidationSchema = Joi.object({
   title: Joi.string().required(),
   startDate: Joi.date().required(),
@@ -111,7 +111,7 @@ const announcementValidationSchema = Joi.object({
   role: Joi.string().valid('1', '2').required()
 });
 
-// Initialize the counter document if it doesn't exist
+
 async function initializeCounter() {
   const counter = await Counter.findOne({ name: 'announcementId' });
   if (!counter) {
@@ -119,19 +119,17 @@ async function initializeCounter() {
   }
 }
 
-initializeCounter(); // Call this at the start of the application
+initializeCounter(); 
 
-// Function to get the next announcementId with retry mechanism
 async function getNextAnnouncementId() {
   while (true) {
-    // Find and increment the counter atomically
     const counter = await Counter.findOneAndUpdate(
       { name: 'announcementId' },
       { $inc: { value: 1 } },
       { new: true }
     );
 
-    // Check if the incremented announcementId already exists
+    
     const existingAnnouncement = await Announcement.findOne({ announcementId: counter.value });
     if (!existingAnnouncement) {
       return counter.value;
@@ -139,7 +137,7 @@ async function getNextAnnouncementId() {
   }
 }
 
-// POST route to create a new announcement
+
 router.post('/', async (req, res) => {
   const { error } = announcementValidationSchema.validate(req.body);
   if (error) {
@@ -147,10 +145,9 @@ router.post('/', async (req, res) => {
   }
 
   try {
-    // Get the next sequential announcementId
+   
     const announcementId = await getNextAnnouncementId();
 
-    // Create a new announcement document
     const newAnnouncement = new Announcement({ ...req.body, announcementId });
     const savedAnnouncement = await newAnnouncement.save();
 
@@ -164,7 +161,7 @@ router.post('/', async (req, res) => {
   }
 });
 
-// GET route to retrieve all announcements
+
 router.get('/', async (req, res) => {
   try {
     const announcements = await Announcement.find();
@@ -182,7 +179,7 @@ router.get('/', async (req, res) => {
   }
 });
 
-// DELETE route to delete an announcement by announcementId
+
 router.delete('/:announcementId', async (req, res) => {
   const { announcementId } = req.params;
 

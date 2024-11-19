@@ -45,7 +45,7 @@ export default function PayrollValue() {
         }
     ];
     console.log(multiSelector);
-    
+
     return (
         <div>
             <div className='payslipTitle'>How Badge value work?</div>
@@ -53,28 +53,40 @@ export default function PayrollValue() {
                 isShowInstructions &&
                 <DefinitionToggle title={"How payrun works?"} instructions={instructions} handleShowNotification={handleShowNotification} />
             }
-
-            <div className="row px-3">
-                <div className="py-2">
+            <div className="p-3">
+                <div>
                     <span>Allowance</span>
                 </div>
-                <MultiCascader data={data} value={multiSelector} onChange={setMultiSelector} className="col-12" />
-
-                <div className="py-2">
+                <div className='mt-2'>
+                <MultiCascader
+                    data={data}
+                    value={multiSelector}
+                    onChange={setMultiSelector}
+                    className="col-12"
+                />
+                </div>
+                <div className='mt-2'>
                     <span>Deduction</span>
                 </div>
-                <MultiCascader data={data} className="col-12" />
-            </div>
-
-            <div className="row">
-                <div className="col-lg-3 col-12">
-                    <div className="btnParent mx-auto">
-                        <button className="button">Save</button>
-                        <button className="outline-btn" style={{ background: "#e0e0e0", border: "none" }}>Cancel</button>
-                    </div>
+                <div className='mt-2'>
+                <MultiCascader
+                    data={data}
+                    className="col-12"
+                />
                 </div>
             </div>
 
+
+            <div className="row">
+          <div className="col-lg-12 text-end">
+            <div className="btnParent mt-1 d-inline-flex gap-2" style={{ padding: "0px 30px" }}>
+              <button className="outline-btn" style={{ background: "#e0e0e0", border: "none" }}>
+                Cancel
+              </button>
+              <button className="button">Save</button>
+            </div>
+          </div>
+        </div>
         </div>
     )
 }

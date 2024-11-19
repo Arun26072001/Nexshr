@@ -30,7 +30,7 @@ router.get("/user", verifyAdminHR, async (req, res) => {
         });
   
       // Format each team and its employees
-      const teamData = teams.map((team) => ({
+      const teamData = teams?.map((team) => ({
         label: team.teamName, // Set teamName for the team label
         value: team.teamName, // Set teamName for the team value
         children: team.employees.map((employee) => ({

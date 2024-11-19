@@ -170,7 +170,7 @@
 }
 
 input[type="radio"] {
-    border: #007bff;
+    border: 2px solid #007bff;
 }
 
 
@@ -269,7 +269,7 @@ input[type="time"]::-webkit-calendar-picker-indicator {
 
 svg.MuiSvgIcon-root.css-20bmp1-MuiSvgIcon-root {
     font-size: 15px;
-    margin-right: 2px;
+    margin-right: 3px;
 }
 
 .subpoint li {
@@ -279,7 +279,7 @@ svg.MuiSvgIcon-root.css-20bmp1-MuiSvgIcon-root {
 
 .subpoint li::before {
     content: '\2022';
-    color:rgb(100, 100, 100);
+    color: rgb(100, 100, 100);
     font-size: 20px;
 }
 
@@ -304,12 +304,15 @@ svg.MuiSvgIcon-root.css-20bmp1-MuiSvgIcon-root {
     width: 2px;
     right: 0;
 }
+
 button.outline-btn.false.border-0 {
-    width: 50%;
+    width: 88%;
 }
+
 button.outline-btn.enable.border-0 {
-    width: 50%;
+    width: 88%;
 }
+
 span.MuiTabs-indicator.css-12ld6eb-MuiTabs-indicator {
     position: absolute;
     height: 2px;
@@ -322,9 +325,15 @@ span.MuiTabs-indicator.css-12ld6eb-MuiTabs-indicator {
     width: 3px;
     right: 0;
 }
+
 .styleText li::before {
-    content: "\2022"; 
-    color:rgb(100, 100, 100);; 
-    font-size: 20px; 
-    margin-right: 8px; 
-  }
+    content: "\2022";
+    color: rgb(100, 100, 100);
+    ;
+    font-size: 20px;
+    margin-right: 8px;
+}
+
+.css-19kzrtu {
+    padding: 24px 0 0 24px !important;
+}

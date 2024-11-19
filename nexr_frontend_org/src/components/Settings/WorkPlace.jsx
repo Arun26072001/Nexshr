@@ -317,9 +317,9 @@
 //               {workPlace.EmpID.length}
 //             </div>
 //           </td>
-//           <td className="d-flex justify-content-center align-items-center">
+//           <td className="justify-content-center align-items-center">
 //   {/* Action icons */}
-//   <div className="d-flex align-items-center justify-content-center" style={{ flexDirection: 'column' }}>
+//   <div className="align-items-center justify-content-center" style={{ flexDirection: 'column' }}>
 //     <EditOutlinedIcon
 //       fontSize="large"
 //       style={{ cursor: 'pointer', marginBottom: '5px' }} // Adjusted margin to give space between icons
@@ -350,6 +350,11 @@
 // };
 
 // export default WorkPlaceTab;
+
+
+
+
+
 import React, { useEffect, useState } from "react";
 import GroupOutlinedIcon from '@mui/icons-material/GroupOutlined';
 import InfoIcon from '@mui/icons-material/Info';
@@ -373,10 +378,10 @@ const WorkPlaceTab = () => {
   const [changeWorkPlace, setChangeWorkPlace] = useState(false);
   const url = process.env.REACT_APP_API_URL;
   const [workPlaces, setWorkPlaces] = useState([]);
-  
+
   const [anchorEl, setAnchorEl] = useState(null); // State for Menu anchor
   const [selectedWorkPlace, setSelectedWorkPlace] = useState(null); // Store selected workplace for actions
-  
+
   const token = localStorage.getItem("token");
 
   // Handle opening and closing the menu
@@ -422,14 +427,14 @@ const WorkPlaceTab = () => {
     axios.get(url + "/api/work-place/" + id, {
       headers: { authorization: token || "" }
     })
-    .then((res) => {
-      console.log(res.data);
-      setEditWorkPlace(res.data);
-      setEditModel(true);
-    })
-    .catch((err) => {
-      console.log(err);
-    });
+      .then((res) => {
+        console.log(res.data);
+        setEditWorkPlace(res.data);
+        setEditModel(true);
+      })
+      .catch((err) => {
+        console.log(err);
+      });
   }
 
   function handleDelete(workPlace) {
@@ -439,13 +444,13 @@ const WorkPlaceTab = () => {
       axios.delete(`${url}/api/work-place/${workPlace._id}`, {
         headers: { authorization: token || "" }
       })
-      .then((res) => {
-        toast.success(res.data);
-        setChangeWorkPlace(!changeWorkPlace);
-      })
-      .catch((err) => {
-        toast.error(err);
-      });
+        .then((res) => {
+          toast.success(res.data);
+          setChangeWorkPlace(!changeWorkPlace);
+        })
+        .catch((err) => {
+          toast.error(err);
+        });
     }
   }
 
@@ -517,7 +522,7 @@ const WorkPlaceTab = () => {
       )}
 
       {workPlaces.length > 0 ? (
-        <table className="table table-striped my-2 mt-3">
+        <table className="table table-striped my-2 mt-4">
           <thead>
             <tr className="text-center">
               <th>Name</th>
@@ -532,12 +537,9 @@ const WorkPlaceTab = () => {
                 <td><b>{workPlace.CompanyName}</b></td>
                 <td>
                   <div>
-                    {workPlace.Address_1} <br />
-                    {workPlace.Address_2} <br />
-                    {workPlace.Town} <br />
-                    {workPlace.State[1]} <br />
-                    {workPlace.PostCode} {workPlace.Country[1]}
+                    {workPlace.Address_1}, {workPlace.Address_2}, {workPlace.Town}, {workPlace.State[1]}, {workPlace.PostCode}, {workPlace.Country[1]}
                   </div>
+
                 </td>
                 <td>
                   <div style={{ fontSize: '17px' }} className="text-primary">
@@ -545,31 +547,28 @@ const WorkPlaceTab = () => {
                     {workPlace.EmpID.length}
                   </div>
                 </td>
-                <td className="d-flex justify-content-center align-items-center">
+                <td className="justify-content-center align-items-center">
                   <MoreVertIcon
                     fontSize="large"
-                    style={{ cursor: 'pointer', padding: '5px', backgroundColor: '#f0f0f0', borderRadius: '50%' }} // Background for vertical icon
-                    onClick={(e) => handleClick(e, workPlace)} // Open the menu on click
+                    onClick={(e) => handleClick(e, workPlace)}
                   />
                   <Menu
                     anchorEl={anchorEl}
                     open={Boolean(anchorEl)}
                     onClose={handleClose}
                   >
-                    {/* Remove background for Edit and Delete */}
+
                     <MenuItem
-                      style={{ backgroundColor: 'transparent', padding: '10px' }} // Remove background for Edit
                       onClick={() => { handleEdit(selectedWorkPlace._id); handleClose(); }}
                     >
                       Edit
                     </MenuItem>
                     <MenuItem
-                      style={{ backgroundColor: 'transparent', padding: '10px' }} // Remove background for Delete
                       onClick={() => { handleDelete(selectedWorkPlace); handleClose(); }}
                     >
                       Delete
                     </MenuItem>
-                    {/* Additional items can have a normal background */}
+
                   </Menu>
                 </td>
               </tr>
@@ -577,7 +576,7 @@ const WorkPlaceTab = () => {
           </tbody>
         </table>
       ) : (
-        <div className="d-flex align-items-center justify-content-center">
+        <div className="align-items-center justify-content-center">
           <Loading />
         </div>
       )}
