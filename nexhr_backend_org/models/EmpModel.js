@@ -4,20 +4,20 @@ const Joi = require('joi');
 var employeeSchema = new mongoose.Schema({
   FirstName: { type: String },
   LastName: { type: String },
-  Email: { type: String},
+  Email: { type: String },
   Password: { type: String },
   teamLead: [{ type: mongoose.Types.ObjectId, ref: "Employee" }],
-  phone: { type: String},
-  panNumber: {type: String},
+  phone: { type: String },
+  panNumber: { type: String },
   Account: { type: Number, default: 3 },
   dateOfBirth: { type: String },
   clockIns: [{ type: mongoose.Schema.Types.ObjectId, ref: "clockIns" }],
   gender: { type: String },
-  code: {type: String},
-  serialNo: {type: String},
-  working: {type: String, default: "Yes"},
-  docType: {type: String},
-  leaveApplication: [{type: mongoose.Schema.Types.ObjectId, ref: "LeaveApplication"}],
+  code: { type: String },
+  serialNo: { type: String },
+  working: { type: String, default: "Yes" },
+  docType: { type: String },
+  leaveApplication: [{ type: mongoose.Schema.Types.ObjectId, ref: "LeaveApplication" }],
   address: {
     street: { type: String },
     city: { type: String },
@@ -27,9 +27,9 @@ var employeeSchema = new mongoose.Schema({
   },
   position: [{ type: mongoose.Schema.Types.ObjectId, ref: "Position" }],
   department: [{ type: mongoose.Schema.Types.ObjectId, ref: "Department" }],
-  role: [{type: mongoose.Schema.Types.ObjectId, ref: "RoleAndPermission"}],
+  role: [{ type: mongoose.Schema.Types.ObjectId, ref: "RoleAndPermission" }],
   company: [{ type: mongoose.Schema.Types.ObjectId, ref: "Company" }],
-  description: {type: String},
+  description: { type: String },
   dateOfJoining: { type: String },
   employmentType: { type: String }, // e.g., full-time, part-time, contract
   // salary: [{ type: mongoose.Schema.Types.ObjectId, ref: "Salary" }],
@@ -66,17 +66,17 @@ var employeeSchema = new mongoose.Schema({
   },
   // //financial details
   basicSalary: { type: String },
-  lossOfPay: {type: String},
-  isVerifyEmail: {type: Boolean, default: false},
-  bankName: { type: String},
-  accountNo: { type: String, unique: true},
+  lossOfPay: { type: String },
+  isVerifyEmail: { type: Boolean, default: false },
+  bankName: { type: String },
+  accountNo: { type: String }, //should to add unique for this field
   accountHolderName: { type: String },
-  IFSCcode: { type: String, unique: true },
+  IFSCcode: { type: String }, //should to add unique for this field
   taxDeduction: { type: String },
-  typesOfLeaveCount: {type: Object},
-  typesOfLeaveRemainingDays: {type: Object},
-  payslipFields: {type: Object},
-  payslip: [{type: mongoose.Schema.Types.ObjectId, ref:"payslip"}]
+  typesOfLeaveCount: { type: Object },
+  typesOfLeaveRemainingDays: { type: Object },
+  payslipFields: { type: Object },
+  payslip: [{ type: mongoose.Schema.Types.ObjectId, ref: "payslip" }]
 });
 
 var Employee = mongoose.model("Employee", employeeSchema);
@@ -195,5 +195,10 @@ module.exports = {
   Employee,
   EmployeeValidation,
   EmployeePersonalInfoValidation,
-  EmployeeValidationUpdate
+  EmployeeValidationUpdate,
+  employeeSchema
 };
+
+// module.exports.AddNewEmpModel = function(org_name) {
+//   return mongoose.model(org_name+"Employee", employeeSchema)
+// }

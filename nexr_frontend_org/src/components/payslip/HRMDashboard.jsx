@@ -3,7 +3,6 @@ import Parent from '../Parent'
 import Dashboard from './Dashboard';
 import JobDesk from './Jobdesk';
 import Employee from './Employee';
-import Administration from './Administration';
 import { Route, Routes, useNavigate } from 'react-router-dom';
 import Employees from './Employees';
 import Request from '../attendance/Request';
@@ -38,7 +37,7 @@ export const LeaveStates = createContext(null);
 export const TimerStates = createContext(null);
 
 export default function HRMDashboard() {
-    const { data } = useContext(EssentialValues);
+    const { data, isStartLogin, isStartActivity, setIsStartLogin, setIsStartActivity } = useContext(EssentialValues);
     const strPermissionData = localStorage.getItem("userPermissions");
     const userPermissions = JSON.parse(strPermissionData);
     const [attendanceData, setAttendanceData] = useState([]);
@@ -56,14 +55,10 @@ export default function HRMDashboard() {
     const [daterangeValue, setDaterangeValue] = useState("");
     const [isEditEmp, setIsEditEmp] = useState(false);
     const [timeOption, setTimeOption] = useState(localStorage.getItem("timeOption") || "meeting");
-    const [isStartLogin, setIsStartLogin] = useState(localStorage.getItem("isStartLogin") === "false" ? false : localStorage.getItem("isStartLogin") === "true" ? true : false);
-    const [isStartActivity, setIsStartActivity] = useState(localStorage.getItem("isStartActivity") === "false" ? false : localStorage.getItem("isStartActivity") === "true" ? true : false);
+    // const [isStartLogin, setIsStartLogin] = useState(localStorage.getItem("isStartLogin") === "false" ? false : localStorage.getItem("isStartLogin") === "true" ? true : false);
+    // const [isStartActivity, setIsStartActivity] = useState(localStorage.getItem("isStartActivity") === "false" ? false : localStorage.getItem("isStartActivity") === "true" ? true : false);
     const navigate = useNavigate();
     const [reloadRole, setReloadRole] = useState(false);
-    const currentDate = new Date();
-    const currentHours = currentDate.getHours().toString().padStart(2, '0');
-    const currentMinutes = currentDate.getMinutes().toString().padStart(2, '0');
-    const currentTime = `${currentHours}:${currentMinutes}`;
     // files for payroll
     const files = ['payroll', 'value', 'manage', 'payslip'];
     const startAndEndTime = {
@@ -102,8 +97,10 @@ export default function HRMDashboard() {
     }
 
     const startLoginTimer = async () => {
-        console.log("initial call to start");
-
+        const currentDate = new Date();
+        const currentHours = currentDate.getHours().toString().padStart(2, '0');
+        const currentMinutes = currentDate.getMinutes().toString().padStart(2, '0');
+        const currentTime = `${currentHours}:${currentMinutes}`;
         const updatedState = {
             ...workTimeTracker,
             login: {
@@ -122,7 +119,6 @@ export default function HRMDashboard() {
                     localStorage.setItem("isStartLogin", true);
                     updateClockins();
                 } else {
-
                     return toast.warning("You have already started work")
                 }
 
@@ -152,9 +148,10 @@ export default function HRMDashboard() {
     };
 
     const stopLoginTimer = async () => {
-        console.log("try to stop");
-        console.log(currentTime);
-
+        const currentDate = new Date();
+        const currentHours = currentDate.getHours().toString().padStart(2, '0');
+        const currentMinutes = currentDate.getMinutes().toString().padStart(2, '0');
+        const currentTime = `${currentHours}:${currentMinutes}`;
         const updatedState = {
             ...workTimeTracker,
             login: {
@@ -174,11 +171,12 @@ export default function HRMDashboard() {
             updateClockins();
         }
     }
-    // console.log(workTimeTracker);
 
     const startActivityTimer = async () => {
-        console.log("initial call to stop");
-
+        const currentDate = new Date();
+        const currentHours = currentDate.getHours().toString().padStart(2, '0');
+        const currentMinutes = currentDate.getMinutes().toString().padStart(2, '0');
+        const currentTime = `${currentHours}:${currentMinutes}`;
         const updatedState = {
             ...workTimeTracker,
             [timeOption]: {
@@ -216,6 +214,10 @@ export default function HRMDashboard() {
     };
 
     const stopActivityTimer = async () => {
+        const currentDate = new Date();
+        const currentHours = currentDate.getHours().toString().padStart(2, '0');
+        const currentMinutes = currentDate.getMinutes().toString().padStart(2, '0');
+        const currentTime = `${currentHours}:${currentMinutes}`;
         const updatedState = (prev) => ({
             ...prev,
             [timeOption]: {
@@ -254,6 +256,16 @@ export default function HRMDashboard() {
         setReloadRole(!reloadRole)
     }
 
+    // timers will stop. when browser window is close
+    window.addEventListener('onunload', function (e) {
+        console.log("call to unload");
+        
+        // stopLoginTimer();
+        // stopActivityTimer();
+        // e.preventDefault();
+        // e.returnValue = '';
+    });
+
     useEffect(() => {
         const getLeaveData = async () => {
             setIsLoading(true);
@@ -282,6 +294,7 @@ export default function HRMDashboard() {
         }
     }, [daterangeValue, empId, whoIs]);
 
+    // get attendance summary page table of data
     const getClocknsData = useCallback(async () => {
         if (!empId) return;
         setWaitForAttendance(true);
@@ -289,7 +302,6 @@ export default function HRMDashboard() {
             const data = await gettingClockinsData(empId);
             if (data) {
                 setAttendanceForSummary(data);
-                setAttendanceData(data.clockIns);
             } else {
                 toast.error("Error in fetch attendance Data");
             }
@@ -301,10 +313,26 @@ export default function HRMDashboard() {
         }
     }, [empId]);
 
+    const getAttendanceData = async () => {
+        try {
+            const empOfAttendances = await axios.get(`${url}/api/clock-ins/`, {
+                headers: {
+                    Authorization: token || ""
+                }
+            });
+            setAttendanceData(empOfAttendances.data);
+        } catch (error) {
+            console.error(error);
+        }
+    }
+
+    // to view attendance data for admin and hr
     useEffect(() => {
         getClocknsData();
+        if (Account === "1" || Account === "2") {
+            getAttendanceData()
+        }
     }, [getClocknsData]);
-
 
     useEffect(() => {
         if (Account) {

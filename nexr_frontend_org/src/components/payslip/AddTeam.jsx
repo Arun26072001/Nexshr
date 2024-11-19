@@ -17,7 +17,7 @@ const AddTeam = (props) => {
             </div>
             <div className="card-footer">
                 <button className="outline-btn">Close</button>
-                <button className="btnRose" disabled={`${teamName } ?  false : true ` } onChange={(e)=> setTeamName(e.target.value)} >Select employees</button>
+                <button className="btnRose" disabled={`${teamName} ?  false : true ` } onChange={(e)=> setTeamName(e.target.value)} >Select employees</button>
             </div>
         </div>
       </div>

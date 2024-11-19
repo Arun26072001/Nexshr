@@ -12,11 +12,6 @@ const attendanceSchema = new mongoose.Schema({
 
   const Attendance = mongoose.model('Attendance', attendanceSchema);
 
-  // attendanceSchema.plugin(autoIncrement.plugin({
-  //   model: "Attendence",
-  //   field: "AttendenceId"
-  // }))
-
   const AttendanceValidation = Joi.object({
     employee: Joi.string().required().regex(/^[0-9a-fA-F]{24}$/).label('Employee ID'),
     date: Joi.date().required().label('Date'),

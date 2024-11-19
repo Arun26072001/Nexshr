@@ -15,8 +15,8 @@ export const EssentialValues = createContext(null);
 const App = () => {
   const url = process.env.REACT_APP_API_URL;
   const account = localStorage.getItem("Account");
-  const isStartLogin = localStorage.getItem('isStartLogin') === "false" ? false : localStorage.getItem('isStartLogin') === "true" ? true : false
-  const isStartActivity = localStorage.getItem('isStartActivity') === "false" ? false : localStorage.getItem('isStartActivity') === "true" ? true : false
+  const [isStartLogin, setIsStartLogin] = useState(localStorage.getItem("isStartLogin") === "false" ? false : localStorage.getItem("isStartLogin") === "true" ? true : false);
+  const [isStartActivity, setIsStartActivity] = useState(localStorage.getItem("isStartActivity") === "false" ? false : localStorage.getItem("isStartActivity") === "true" ? true : false);
   const [data, setData] = useState({
     _id: localStorage.getItem("_id") || "",
     Account: localStorage.getItem("Account") || "",
@@ -27,7 +27,8 @@ const App = () => {
   const [pass, setPass] = useState(true);
   const [isLogin, setIsLogin] = useState(localStorage.getItem("isLogin") === "true");
 
-  const handleSubmit = async event => {
+
+  const handleSubmit = async (event) => {
     event.preventDefault();
     setPass(true);
     setLoading(true);
@@ -39,7 +40,7 @@ const App = () => {
     console.log(isStartLogin, isStartActivity);
     if (localStorage.getItem('empId')) {
       toast.warn(`Please Enter full details for this employee`);
-
+      console.log(isStartLogin, isStartActivity);
     } else if (isStartLogin || isStartActivity) {
       toast.warn("you can't logout until timer stop.")
     } else {
@@ -54,15 +55,17 @@ const App = () => {
     }
 
   };
-
-  const login = async (id, pass) => {
+  const login = async (email, pass) => {
     let bodyLogin = {
-      Email: id,
+      Email: email,
       Password: pass
     };
+
     try {
-      const login = await axios.post(process.env.REACT_APP_API_URL + "/api/login", bodyLogin)
+      const login = await axios.post(process.env.REACT_APP_API_URL + `/api/login`, bodyLogin)
       let decodedData = jwtDecode(login.data);
+      console.log(decodedData);
+      
       localStorage.setItem("token", login.data);
       if ((login === undefined || login === null ||
         decodedData.Account === undefined ||
@@ -91,7 +94,7 @@ const App = () => {
         localStorage.setItem("Account", accountType);
         localStorage.setItem("_id", decodedData._id);
         localStorage.setItem("Name", `${decodedData.FirstName} ${decodedData.LastName}`);
-        localStorage.setItem("annualLeaveEntitment", decodedData.annualLeaveEntitlement);
+        localStorage.setItem("annualLeaveEntitment", decodedData.annualLeaveEntitlement || 0);
         localStorage.setItem("userPermissions", JSON.stringify(decodedData.roleData.userPermissions))
 
         Object.entries(decodedData.roleData.pageAuth).forEach(([key, value]) => {
@@ -122,20 +125,10 @@ const App = () => {
     }
   };
 
-  // useEffect(() => {
-  //   const navigateToAccount = () => {
-  //     if (isLogin && window.location.pathname === "/") {
-  //       if (account === '1') {
-  //         navigate("/admin")
-  //       } else if (account === '2') {
-  //         navigate("/hr")
-  //       } else if (account === '3') {
-  //         navigate("/emp")
-  //       }
-  //     }
-  //   }
-  //   navigateToAccount()
-  // }, [data]);
+  useEffect(() => {
+    localStorage.setItem("isStartLogin", isStartLogin);
+    localStorage.setItem("isStartActivity", isStartActivity);
+  }, [isStartLogin, isStartActivity]);
 
   useEffect(() => {
     async function checkNetworkConnection() {
@@ -160,11 +153,12 @@ const App = () => {
     checkNetworkConnection();
   }, [data]);
 
+
   return (
-    <EssentialValues.Provider value={{ data, handleLogout, handleSubmit, loading, pass, isLogin }}>
+    <EssentialValues.Provider value={{ data, handleLogout, handleSubmit, loading, pass, isLogin, isStartLogin, setIsStartLogin, isStartActivity, setIsStartActivity }}>
       <ToastContainer />
       <Routes>
-        <Route path="login" element={<Login />} />
+        <Route path="login/" element={<Login />} />
         <Route path="/" element={isLogin ? <Layout /> : <Navigate to={"/login"} />} >
           <Route path="*" element={<Layout />} />
         </Route>

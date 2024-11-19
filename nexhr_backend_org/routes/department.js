@@ -1,20 +1,49 @@
 const express = require('express');
 const router = express.Router()
-const { Department, DepartmentValidation } = require('../models/DepartmentModel');
+const { Department, DepartmentValidation, departmentSchema } = require('../models/DepartmentModel');
 const { Employee } = require('../models/EmpModel');
 const Joi = require('joi');
 const { verifyAdminHR } = require('../auth/authMiddleware');
+const { getEmployeeModel } = require('./employee');
+
+const departmentModels = {};
+
+function getDepartmentModel(orgName) {
+  // If model already exists in the object, return it; otherwise, create it
+  if (!departmentModels[orgName]) {
+    departmentModels[orgName] = mongoose.model(`${orgName}Department`, departmentSchema);
+  }
+
+  return departmentModels[orgName];
+}
 
 router.get("/", async (req, res) => {
   try {
+    // const {orgName} = jwt.decode(req.headers['authorization']);
+    // const Department = getDepartmentModel(orgName)
     const departments = await Department.find()
-    .populate({
-      path: 'company',
-      select: '_id CompanyName' 
-    });
+      .populate({
+        path: 'company',
+        select: '_id CompanyName'
+      });
     res.send(departments);
   } catch (err) {
-    res.status(500).send({ Error: err.message });
+    res.status(500).send({ error: err.message });
+  }
+});
+
+router.get("/:id", async (req, res) => {
+  try {
+    // const {orgName} = jwt.decode(req.headers['authorization']);
+    // const Department = getDepartmentModel(orgName)
+    const department = await Department.findById(req.params.id)
+      .populate({
+        path: 'company',
+        select: '_id CompanyName'
+      });
+    res.send(department);
+  } catch (err) {
+    res.status(500).send({ error: err.message });
   }
 });
 
@@ -23,41 +52,35 @@ router.post("/", verifyAdminHR, (req, res) => {
   Joi.validate(req.body, DepartmentValidation, (err, result) => {
     if (err) {
       console.log(err);
-      res.status(400).send(err.details[0].message);
+      res.status(400).send({ message: err.details[0].message });
     } else {
-      let newDepartment;
-
-      newDepartment = {
-        DepartmentName: req.body.DepartmentName,
-        company: req.body.CompanyID
-      };
-
-      Department.create(newDepartment, function (err, department) {
+      // const {orgName} = jwt.decode(req.headers['authorization']);
+      // const Department = getDepartmentModel(orgName)  
+      Department.create(req.body, function (err, department) {
         if (err) {
           console.log(err);
           res.status(500).send({ Error: err });
         } else {
-          res.send({message: "new department has been added!"});
+          res.send({ message: "new department has been added!" });
         }
       });
     }
-    console.log(req.body);
   });
 });
 
 router.put("/:id", verifyAdminHR, (req, res) => {
-  Joi.validate(req.body, DepartmentValidation, (err, result) => {
+  let updateDepartment;
+  updateDepartment = {
+    DepartmentName: req.body.DepartmentName,
+    company: req.body.company
+  };
+  Joi.validate(updateDepartment, DepartmentValidation, (err, result) => {
     if (err) {
       console.log(err);
-      res.status(400).send(err.details[0].message);
+      res.status(400).send({ message: err.details[0].message });
     } else {
-      let updateDepartment;
-
-      updateDepartment = {
-        DepartmentName: req.body.DepartmentName,
-        company: req.body.CompanyID
-      };
-
+      // const {orgName} = jwt.decode(req.headers['authorization']);
+      // const Department = getDepartmentModel(orgName)  
       Department.findByIdAndUpdate(req.params.id, {
         $set: updateDepartment
       }, function (
@@ -65,19 +88,18 @@ router.put("/:id", verifyAdminHR, (req, res) => {
         department
       ) {
         if (err) {
-          res.status(500).send(err, "check url and data");
+          res.status(500).send({ message: err.message });
         } else {
-          res.send("department has been updated!");
+          res.send({ message: "department has been updated!" });
         }
       });
     }
-
-    console.log("put");
-    console.log(req.body);
   });
 });
 
 router.delete("/:id", verifyAdminHR, (req, res) => {
+  // const {orgName} = jwt.decode(req.headers['authorization']);
+  // const OrgEmployeeModel = getEmployeeModel(orgName);
   Employee.find({ department: req.params.id }, function (err, d) {
     if (err) {
       console.log(err);
@@ -85,6 +107,7 @@ router.delete("/:id", verifyAdminHR, (req, res) => {
     } else {
       console.log(d);
       if (d.length == 0) {
+        // const Department = getDepartmentModel(orgName)
         Department.findByIdAndRemove({ _id: req.params.id }, function (
           err,
           department

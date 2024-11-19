@@ -22,5 +22,6 @@ const RoleAndPermissionValidation = Joi.object({
 // Export the model and validation schema
 module.exports = {
   RoleAndPermission,
-  RoleAndPermissionValidation
+  RoleAndPermissionValidation,
+  RoleAndPermissionSchema
 };

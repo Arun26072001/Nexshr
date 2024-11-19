@@ -92,11 +92,11 @@ const Leave = () => {
                 <div className="payslipTitle col-6">
                     Leave
                 </div>
-                <div className="col-6 d-flex justify-content-between">
-                    <button className="button m-0" onClick={() => navigate(`/${whoIs}/leave-request`)}>
+                <div className="col-6 d-flex justify-content-end">
+                    <DateRangePicker size="md" className="ml-1" showOneCalendar placement="bottomEnd" value={daterangeValue} placeholder="Select Date" onChange={setDaterangeValue} />
+                    <button className="button m-1" onClick={() => navigate(`/${whoIs}/leave-request`)}>
                         Add Leave
                     </button>
-                    <DateRangePicker size="md" className="ml-1" showOneCalendar placement="bottomEnd" value={daterangeValue} placeholder="Select Date" onChange={setDaterangeValue} />
                 </div>
             </div>
 

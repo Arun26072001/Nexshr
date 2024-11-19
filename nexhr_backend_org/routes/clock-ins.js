@@ -1,10 +1,12 @@
 const express = require("express");
 const router = express.Router();
 const Joi = require('joi');
-const { verifyAdminHREmployee } = require("../auth/authMiddleware");
+const { verifyAdminHREmployee, verifyAdminHR } = require("../auth/authMiddleware");
 const { clockInsValidation, ClockIns } = require("../models/ClockInsModel");
 const { Employee } = require("../models/EmpModel");
 const { getDayDifference } = require("./leave-app");
+const jwt = require("jsonwebtoken");
+const getEmployeeModel = require("./employee")
 
 async function checkLoginForOfficeTime(scheduledTime, actualTime) {
     // Parse scheduled and actual time into hours and minutes
@@ -143,7 +145,12 @@ router.get("/:id", verifyAdminHREmployee, async (req, res) => {
         // Create start and end of the day for the date comparison
         const startOfDay = new Date(queryDate.setHours(0, 0, 0, 0)); // Set time to 00:00:00.000
         const endOfDay = new Date(queryDate.setHours(23, 59, 59, 999)); // Set time to 23:59:59.999
-
+        // const {orgName} = jwt.decode(req.headers['authorization']);
+        // console.log(orgName);
+        
+        // const OrgEmployeeModel = getEmployeeModel(orgName);
+        // console.log(OrgEmployeeModel);
+        
         const timeData = await Employee.findById({ _id: req.params.id }, "clockIns")
             .populate({
                 path: "clockIns",
@@ -157,7 +164,7 @@ router.get("/:id", verifyAdminHREmployee, async (req, res) => {
             });
 
         // const timeData = await ClockIns.findById(req.params.id).populate({path: "employee", select: "_id FirstName LastName"});
-        if (timeData.clockIns.length === 0) {
+        if (timeData?.clockIns?.length === 0) {
             return res.status(404).send({ message: "Please Login!" });
         } else {
             const activities = ["login", "meeting", "morningBreak", "lunch", "eveningBreak", "event"];
@@ -386,6 +393,15 @@ router.get("/employee/:empId", verifyAdminHREmployee, async (req, res) => {
         res.status(500).send({ message: "Server error", details: error.message });
     }
 });
+
+router.get("/", verifyAdminHR, async (req, res) => {
+    try {
+        const attendanceData = await ClockIns.find({}).populate({ path: "employee", select: "FirstName LastName" });
+        res.send(attendanceData);
+    } catch (error) {
+        res.status(500).send({ message: error.message })
+    }
+})
 
 router.put("/:id", verifyAdminHREmployee, (req, res) => {
     let body = req.body;

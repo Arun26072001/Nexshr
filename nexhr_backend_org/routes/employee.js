@@ -1,25 +1,19 @@
 const express = require('express');
 const router = express.Router();
-const { Employee } = require('../models/EmpModel');
+const { Employee, employeeSchema } = require('../models/EmpModel');
 const { verifyHR, verifyAdminHREmployee, verifyAdminHR } = require('../auth/authMiddleware');
 const { getDayDifference } = require('./leave-app');
 const { PaySlipInfo } = require('../models/PaySlipInfoModel');
 const nodemailer = require("nodemailer");
-
-const transporter = nodemailer.createTransport({
-  service: "gmail",
-  auth: {
-    user: process.env.MAIL,
-    pass: process.env.MAILPASSWORD
-  }
-})
+const { getPayslipInfoModel } = require('./payslipInfo');
 
 router.get("/", verifyAdminHR, async (req, res) => {
   try {
+    // const {orgName} = jwt.decode(req.headers['authorization']);
+    // const Employee = getEmployeeModel(orgName)
     const employees = await Employee.find({ Account: 3 }, "_id FirstName LastName employmentType dateOfJoining gender working code docType serialNo")
       .populate({
-        path: "company",
-        select: "_id CompanyName Town"
+        path: "orgId"
       })
       .populate({
         path: "position"
@@ -48,8 +42,67 @@ router.get("/", verifyAdminHR, async (req, res) => {
 
 });
 
+router.get("/user", verifyAdminHR, async (req, res) => {
+  try {
+    const employees = await Employee.find({ Account: 3 }, "_id FirstName LastName")
+      .populate({
+        path: "department", 
+        select: "DepartmentName", 
+      });
+
+   
+    const departmentMap = {};
+
+    employees.forEach((employee) => {
+      employee.department.forEach((dept) => {
+        const departmentName = dept.DepartmentName;
+
+        if (!departmentMap[departmentName]) {
+          departmentMap[departmentName] = [];
+        }
+
+        departmentMap[departmentName].push({
+          label: `${employee.FirstName} ${employee.LastName}`, 
+          value: employee.FirstName.toLowerCase(), 
+          id: employee._id.toString(), 
+        });
+      });
+    });
+
+   
+    const teamData = Object.keys(departmentMap).map((departmentName) => ({
+      label: departmentName,
+      value: departmentName, 
+      children: departmentMap[departmentName], 
+    }));
+
+    const selectAllOption = {
+      label: "Select All",
+      value: "select-all",
+      children: teamData,
+    };
+
+    
+    const formattedTeams = [selectAllOption];
+
+    
+    res.status(200).json({
+      status: true,
+      status_code: 200,
+      Team: formattedTeams,
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).send({ message: "Internal server error", details: err.message });
+  }
+});
+
+
+
 router.get("/all", verifyAdminHR, async (req, res) => {
   try {
+    // const {orgName} = jwt.decode(req.headers['authorization']);
+    // const Employee = getEmployeeModel(orgName)
     const employees = await Employee.find({}, "_id FirstName LastName employmentType dateOfJoining gender working code docType serialNo")
       .populate({
         path: "company",
@@ -77,7 +130,7 @@ router.get("/all", verifyAdminHR, async (req, res) => {
     res.send(employees)
   } catch (err) {
     console.log(err);
-    res.status(500).send({ message: "Internal server error", details: err.details })
+    res.status(500).send({ message: "Internal server error", details: err.message })
   }
 
 });
@@ -86,6 +139,10 @@ router.get('/:id', verifyAdminHREmployee, async (req, res) => {
   let totalTakenLeaveCount = 0;
 
   try {
+    // const {orgName} = jwt.decode(req.headers['authorization']);
+    // const Employee = getEmployeeModel(orgName);
+    // console.log(Employee);
+    // to change with orgnameEmployee
     const emp = await Employee.findById(req.params.id)
       .populate({ path: "role" })
       .populate("leaveApplication")
@@ -128,46 +185,35 @@ router.get('/:id', verifyAdminHREmployee, async (req, res) => {
   }
 });
 
-
 router.post("/", verifyAdminHR, async (req, res) => {
   try {
-    const { Email, phone, basicSalary, FirstName, LastName,Password } = req.body;
+    const { Email, phone, basicSalary, FirstName, LastName, Password, teamLead, managerId, company, annualLeaveEntitlement } = req.body;
 
-    // Check if email or phone number already exists
-    const emailExists = await Employee.exists({ Email });
-    const phoneExists = await Employee.exists({ phone });
+    // const {orgName, orgId} = jwt.decode(req.headers['authorization']);
+    // const Employee = getEmployeeModel(orgName)
 
-    if (emailExists) {
+    // Check if email already exists
+    if (await Employee.exists({ Email })) {
       return res.status(400).json({ message: "Email already exists" });
     }
 
-    if (phoneExists) {
-      return res.status(400).json({ message: "Phone number already exists" });
-    }
-
-    // Fetch payslip data
-    const payslipData = await PaySlipInfo.findOne().exec();
+    const OrgPayslipInfoModel = getPayslipInfoModel(orgName);
+    const payslipData = await OrgPayslipInfoModel.findOne().exec();
     if (!payslipData) {
       return res.status(400).json({ message: "Payslip data not found" });
     }
 
-    // Initialize object to hold calculated values
     const payslipFields = {};
+    const basicSalaryNumber = Number(basicSalary);
 
-    // Calculate values based on payslip fields
     payslipData.payslipFields.forEach((data) => {
-      const basicSalaryNumber = Number(basicSalary);
       let calculatedValue = 0;
 
       switch (data.fieldName) {
         case "incomeTax":
-          if (basicSalaryNumber >= 84000) {
-            calculatedValue = (30 / 100) * basicSalaryNumber; // 30% tax for >= 84,000
-          } else if (basicSalaryNumber > 42000) {
-            calculatedValue = (20 / 100) * basicSalaryNumber; // 20% tax for > 42,000
-          } else if (basicSalaryNumber >= 25000) {
-            calculatedValue = (5 / 100) * basicSalaryNumber;  // 5% tax for 25,001 to 42,000
-          }
+          if (basicSalaryNumber >= 84000) calculatedValue = (30 / 100) * basicSalaryNumber;
+          else if (basicSalaryNumber > 42000) calculatedValue = (20 / 100) * basicSalaryNumber;
+          else if (basicSalaryNumber >= 25000) calculatedValue = (5 / 100) * basicSalaryNumber;
           break;
         case "houseRentAllowance":
         case "conveyanceAllowance":
@@ -176,39 +222,33 @@ router.post("/", verifyAdminHR, async (req, res) => {
           calculatedValue = (data.value / 100) * basicSalaryNumber;
           break;
         case "ProvidentFund":
-          if (basicSalaryNumber > 15000) {
-            calculatedValue = (12 / 100) * basicSalaryNumber;
-          }
+          if (basicSalaryNumber > 15000) calculatedValue = (12 / 100) * basicSalaryNumber;
           break;
         case "Professional Tax":
-          if (basicSalaryNumber > 21000) {
-            calculatedValue = 130;
-          }
+          if (basicSalaryNumber > 21000) calculatedValue = 130;
           break;
         case "ESI":
-          if (basicSalaryNumber > 21000) {
-            calculatedValue = (0.75 / 100) * basicSalaryNumber;
-          }
+          if (basicSalaryNumber > 21000) calculatedValue = (0.75 / 100) * basicSalaryNumber;
           break;
         default:
           calculatedValue = 0;
       }
-
-      // Store calculated value for the field
       payslipFields[data.fieldName] = calculatedValue;
     });
 
-    // Prepare employee data with calculated payslip fields
     const employeeData = {
       ...req.body,
+      teamLead: teamLead || ["665601de20a3c61c646a135f"],
+      managerId: managerId || ["6651e4a810994f1d24cf3a19"],
+      company: company || ["6651a5eb6115df44c0cc7151"],
+      annualLeaveEntitlement: annualLeaveEntitlement || 21,
+      accountNo: "9038948932",
+      IFSCcode: "SBI920210",
       payslipFields,
     };
-    console.log(employeeData);
 
-    // Save the employee data
     const employee = await Employee.create(employeeData);
 
-    // Define the email HTML content
     const htmlContent = `
       <!DOCTYPE html>
       <html lang="en">
@@ -217,44 +257,13 @@ router.post("/", verifyAdminHR, async (req, res) => {
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>NexsHR</title>
         <style>
-          body {
-            font-family: Arial, sans-serif;
-            background-color: #f6f9fc;
-            color: #333;
-          }
-          .container {
-            max-width: 600px;
-            margin: auto;
-            padding: 20px;
-            background-color: #fff;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-          }
-          .header {
-            text-align: center;
-            padding: 20px;
-          }
-          .header img {
-            max-width: 100px;
-          }
-          .content {
-            margin: 20px 0;
-          }
-          .button {
-            display: inline-block;
-            padding: 10px 20px;
-            background-color: #28a745;
-            color: #fff !important;
-            text-decoration: none;
-            border-radius: 5px;
-            margin-top: 10px;
-          }
-          .footer {
-            text-align: center;
-            font-size: 14px;
-            margin-top: 20px;
-            color: #777;
-          }
+          body { font-family: Arial, sans-serif; background-color: #f6f9fc; color: #333; }
+          .container { max-width: 600px; margin: auto; padding: 20px; background-color: #fff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); }
+          .header { text-align: center; padding: 20px; }
+          .header img { max-width: 100px; }
+          .content { margin: 20px 0; }
+          .button { display: inline-block; padding: 10px 20px; background-color: #28a745; color: #fff !important; text-decoration: none; border-radius: 5px; margin-top: 10px; }
+          .footer { text-align: center; font-size: 14px; margin-top: 20px; color: #777; }
         </style>
       </head>
       <body>
@@ -266,8 +275,8 @@ router.post("/", verifyAdminHR, async (req, res) => {
           <div class="content">
             <p>Hey ${FirstName} ${LastName} 👋,</p>
             <p><b>Your credentials</b></p><br />
-            <p><b>Email</b> ${Email}</p><br />
-             <p><b>Password</b> ${Password}</p><br />
+            <p><b>Email</b>: ${Email}</p><br />
+            <p><b>Password</b>: ${Password}</p><br />
             <p>Thank you for registering! Please confirm your email by clicking the button below.</p>
             <a href="${process.env.FRONTEND_URL}" class="button">Confirm Email</a>
           </div>
@@ -278,23 +287,21 @@ router.post("/", verifyAdminHR, async (req, res) => {
       </body>
       </html>`;
 
-    // Send an email to the employee for verification
-    const mailOptions = {
-      from: process.env.EMAIL,
+    const transporter = nodemailer.createTransport({
+      service: "gmail",
+      auth: {
+        user: process.env.FROM_MAIL,
+        pass: process.env.MAILPASSWORD,
+      },
+    });
+
+    await transporter.sendMail({
+      from: process.env.FROM_MAIL,
       to: Email,
       subject: "Welcome to NexsHR",
       html: htmlContent,
-    };
-
-    transporter.sendMail(mailOptions, (err, info) => {
-      if (err) {
-        console.error("Email error:", err.message);
-      } else {
-        console.log(`Email sent to ${Email}. ${info.response}`);
-      }
     });
 
-    // Return success response
     res.status(201).json({ message: "Employee details saved successfully!", employee });
   } catch (err) {
     console.error("Error:", err);
@@ -307,15 +314,13 @@ router.post("/", verifyAdminHR, async (req, res) => {
       return res.status(404).json({ error: "Not Found", message: err.message });
     }
 
-    return res.status(500).json({ error: "Internal Server Error", message: "An internal server error occurred." });
+    res.status(500).json({ error: "Internal Server Error", message: err.message });
   }
 });
-
 
 router.put("/:id", verifyHR, async (req, res) => {
   try {
     let newEmployee = req.body;
-    console.log(newEmployee);
 
     if (req.body.hour && req.body.mins) {
       newEmployee = {
@@ -323,6 +328,8 @@ router.put("/:id", verifyHR, async (req, res) => {
         ['companyWorkingHourPerWeek']: `${req.body.hour}.${req.body.mins}`
       };
     }
+    // const {orgName} = jwt.decode(req.headers['authorization']);
+    // const Employee = getEmployeeModel(orgName)
     const updatedEmp = await Employee.findByIdAndUpdate(req.params.id, newEmployee)
     res.send({ message: "Employee data has been updated!" });
   } catch (err) {
@@ -331,6 +338,8 @@ router.put("/:id", verifyHR, async (req, res) => {
 });
 
 router.delete("/:id", verifyHR, (req, res) => {
+  // const {orgName} = jwt.decode(req.headers['authorization']);
+  // const Employee = getEmployeeModel(orgName)
   Employee.findByIdAndRemove({ _id: req.params.id }, function (err, employee) {
     if (err) {
       console.log(err);
@@ -343,24 +352,5 @@ router.delete("/:id", verifyHR, (req, res) => {
   });
 });
 
-// router.get('/searchName/:name', verifyHR, (req, res) => {
-//   const searchTerm = req.params.name.trim(); // Trim any leading/trailing whitespace
-
-//   // Construct a regex pattern for case-insensitive search
-//   const regexPattern = new RegExp(searchTerm, 'i');
-
-//   Employee.find({ FirstName: { $regex: regexPattern } })
-//     .populate('company')
-//     .populate('position')
-//     .exec((err, employees) => {
-//       if (err) {
-//         return res.status(500).send(err); // Return a 500 status for server errors
-//       }
-//       if (employees.length === 0) {
-//         return res.status(204).send({ message: "Employee not found" }); // Return a 404 status if no employees match the criteria
-//       }
-//       return res.send(employees);
-//     });
-// });
-
+// module.getEmployeeModel = getEmployeeModel;
 module.exports = router;

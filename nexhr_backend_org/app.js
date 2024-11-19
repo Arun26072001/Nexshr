@@ -1,37 +1,76 @@
-var express = require("express");
+// Required Imports
+const express = require("express");
 const router = express.Router();
 const schedule = require("node-schedule");
 const axios = require("axios");
-var mongoose = require('mongoose');
-var app = express();
-require('dotenv').config();
-var cors = require('cors');
-//router files 
-const login = require('./routes/login');
-const company = require('./routes/company');
-const department = require('./routes/department');
-const role = require('./routes/role');
-const position = require('./routes/position');
-const city = require('./routes/city');
-const portal = require('./routes/portal');
-const employee = require('./routes/employee');
-const familyInfo = require('./routes/family-info');
-const salary = require('./routes/salary');
-const education = require('./routes/education');
-const { leaveApp } = require('./routes/leave-app');
-const state = require('./routes/state');
-const country = require('./routes/country');
-const project = require('./routes/project');
-const personalInfo = require('./routes/personal-info');
-const workExp = require('./routes/work-exp');
-const timePattern = require('./routes/time-pattern');
-const companySettings = require('./routes/company-settings');
+const mongoose = require("mongoose");
+const app = express();
+require("dotenv").config();
+const cors = require("cors");
+const http = require("http");
+const socketIo = require("socket.io");
+
+// Router Files
+// const login = require("./orgRoutes/login");
+// // const org = require("./orgRoutes/organization");
+// const department = require("./orgRoutes/department");
+// const role = require("./orgRoutes/role");
+// const position = require("./orgRoutes/position");
+// const city = require("./orgRoutes/city");
+// const portal = require("./orgRoutes/portal");
+// const employee = require("./orgRoutes/employee");
+// const familyInfo = require("./orgRoutes/family-info");
+// const salary = require("./orgRoutes/salary");
+// const education = require("./orgRoutes/education");
+// const { leaveApp } = require("./orgRoutes/leave-app");
+// const state = require("./orgRoutes/state");
+// const country = require("./orgRoutes/country");
+// const project = require("./orgRoutes/project");
+// const personalInfo = require("./orgRoutes/personal-info");
+// const workExp = require("./orgRoutes/work-exp");
+// const timePattern = require("./orgRoutes/time-pattern");
+// const companySettings = require("./orgRoutes/company-settings");
+// const workPlace = require("./orgRoutes/work-place");
+// const leaveType = require("./orgRoutes/leave-type");
+// const payroll = require("./orgRoutes/payroll");
+// const applicationSettings = require("./orgRoutes/application-settings");
+// const attendance = require("./orgRoutes/attendance");
+// const clockIns = require("./orgRoutes/clock-ins");
+// const team = require("./orgRoutes/team");
+// const announcement = require("./orgRoutes/announcement");
+// const teamssample = require("./orgRoutes/teamssample");
+// const payslipInfo = require("./orgRoutes/payslipInfo");
+// const payslip = require("./orgRoutes/payslip");
+// const userPermission = require("./orgRoutes/user-permission");
+// const pageAuth = require("./orgRoutes/page-auth");
+// const organization = require("./orgRoutes/organization");
+// const userAccount = require("./orgRoutes/user-account");
+
+const login = require("./routes/login");
+const company = require("./routes/company");
+const department = require("./routes/department");
+const role = require("./routes/role");
+const position = require("./routes/position");
+const city = require("./routes/city");
+const portal = require("./routes/portal");
+const employee = require("./routes/employee");
+const familyInfo = require("./routes/family-info");
+const salary = require("./routes/salary");
+const education = require("./routes/education");
+const { leaveApp } = require("./routes/leave-app");
+const state = require("./routes/state");
+const country = require("./routes/country");
+const project = require("./routes/project");
+const personalInfo = require("./routes/personal-info");
+const workExp = require("./routes/work-exp");
+const timePattern = require("./routes/time-pattern");
+const companySettings = require("./routes/company-settings");
 const workPlace = require("./routes/work-place");
 const leaveType = require("./routes/leave-type");
-const payroll = require('./routes/payroll');
+const payroll = require("./routes/payroll");
 const applicationSettings = require("./routes/application-settings");
 const attendance = require("./routes/attendance");
-const clockIns = require("./routes/clock-ins")
+const clockIns = require("./routes/clock-ins");
 const team = require("./routes/team");
 const announcement = require("./routes/announcement");
 const teamssample = require("./routes/teamssample");
@@ -39,138 +78,141 @@ const payslipInfo = require("./routes/payslipInfo");
 const payslip = require("./routes/payslip");
 const userPermission = require("./routes/user-permission");
 const pageAuth = require("./routes/page-auth");
+const organization = require("./routes/organization");
+const userAccount = require("./routes/user-account");
 
-
-const admin = require('firebase-admin');
-// const serviceAccount = require('');
-// // const serviceAccount = require('./path/to/your-service-account-file.json');
-// admin.initializeApp({
-//   credential: admin.credential.cert(serviceAccount),
-// });
-
-//connecting to mongodb
-let mongoURI = process.env.DATABASEURL;
-
+// MongoDB Connection
+const mongoURI = process.env.DATABASEURL;
 if (!mongoURI) {
   console.error("MongoDB URI is not defined. Please set it in the environment variables.");
   process.exit(1);
 }
 
-// app.use(cors())
-app.use(cors({
-  origin: '*',
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: '*',
-  credentials: true
-}));
-
-// Middl
-// eware to handle OPTIONS requests
-app.options('*', cors());
-
-mongoose.set("useNewUrlParser", true);
-mongoose.set("useFindAndModify", false);
-mongoose.set("useCreateIndex", true);
-mongoose.set("useUnifiedTopology", true);
-
+mongoose.set("strictQuery", false);
 mongoose
-  .connect(mongoURI)
-  .then(() => console.log("db connection successful"))
-  .catch(err => console.log(err.message));
+  .connect(mongoURI, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
 
-//for request body
+  })
+  .then(() => console.log("db connection successful"))
+  .catch(err => console.log(err));
+
+// Set CORS Options
+app.use(
+  cors({
+    origin: "*",
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: "*",
+    credentials: true,
+  })
+);
+app.options("*", cors());
+
+// Express Middleware
 app.use(express.json());
 
-//API AUTHS
+// API Endpoints
 app.get("/", (req, res) => {
-  require('dns').resolve('www.google.com', function (err) {
+  require("dns").resolve("www.google.com", function (err) {
     if (err) {
-      res.status(1024).send("Network not Connected!")
+      res.status(1024).send("Network not Connected!");
     } else {
-      res.send({message: "API and Network connected!"})
+      res.send({ message: "API and Network connected!" });
     }
   });
 });
 
-app.use('/api/login', login)
-
-//role routes
-app.use('/api/role', role);
-//team router
-app.use('/api/team', team)
-//city routes
-app.use('/api/city', city)
-//state routes
-app.use('/api/state', state)
-//country routes
-app.use('/api/country', country)
-//use employee router
-app.use('/api/employee', employee);
-//use famil-info router
-app.use('/api/family-info', familyInfo)
-//use personal-info router
-app.use('/api/personal-info', personalInfo)
-//use payroll router
-app.use('/api/payroll', payroll);
-//use payslip router
-app.use('/api/payslip', payslip);
-//use education router
-app.use('/api/education', education);
-//pay slip router
-app.use('/api/payslip-info', payslipInfo);
-//use department router
-app.use('/api/department', department)
-//use work-experiance router
-app.use('/api/work-experience', workExp)
-//use work place router
-app.use('/api/work-place', workPlace)
-//use company router
-app.use('/api/company', company)
-//use portal router
-app.use('/api/portal', portal)
-//use companysettings router
-app.use("/api/company-settings", companySettings)
-//use position router
-app.use('/api/position', position)
-//use salary router
-app.use('/api/salary', salary)
-//use application settings router
-app.use('/api/application-settings', applicationSettings);
-//Leave type router
-app.use("/api/Leave-type", leaveType)
-//use leave application emp router
-app.use('/api/leave-application', leaveApp)
-//use project-bid router
-app.use('/api/project', project)
-//use timepattern router
-app.use('/api/time-pattern', timePattern);
-//use attendance router
-app.use("/api/attendance", attendance)
-//use clock-ins router
+// Routers
+app.use("/api/user-account", userAccount);
+app.use("/api/company", company);
+app.use("/api/login", login);
+app.use("/api/role", role);
+app.use("/api/team", team);
+app.use("/api/city", city);
+app.use("/api/state", state);
+app.use("/api/country", country);
+app.use("/api/employee", employee);
+app.use("/api/family-info", familyInfo);
+app.use("/api/personal-info", personalInfo);
+app.use("/api/payroll", payroll);
+app.use("/api/payslip", payslip);
+app.use("/api/education", education);
+app.use("/api/payslip-info", payslipInfo);
+app.use("/api/department", department);
+app.use("/api/work-experience", workExp);
+app.use("/api/work-place", workPlace);
+// app.use("/api/company", company);
+app.use("/api/portal", portal);
+app.use("/api/company-settings", companySettings);
+app.use("/api/position", position);
+app.use("/api/salary", salary);
+app.use("/api/application-settings", applicationSettings);
+app.use("/api/leave-type", leaveType);
+app.use("/api/leave-application", leaveApp);
+app.use("/api/project", project);
+app.use("/api/time-pattern", timePattern);
+app.use("/api/attendance", attendance);
 app.use("/api/clock-ins", clockIns);
-// use user persmission router
+app.use("/api/announcements", announcement);
+app.use("/api/teamssample", teamssample);
 app.use("/api/user-permission", userPermission);
-// user page auth router
 app.use("/api/page-auth", pageAuth);
 
-app.use("/announcement", announcement);
+// Create HTTP Server and Socket.IO
+const server = http.createServer(app);
+const io = socketIo(server, {
+  cors: {
+    origin: "*",
+    methods: ["GET", "POST"],
+    credentials: true,
+  },
+});
 
-app.use("/api/teamssample", teamssample);
+let users = {};
 
-var port = process.env.PORT;
-// Schedule the job to run every 14th day of the month at 18:18
-const addPayslip = schedule.scheduleJob("12 18 4 * *", async function () {
+// Socket.IO Connection
+io.on("connection", (socket) => {
+  console.log(`A user connected: ${socket.id}`);
+
+  socket.on("registerUser", (userId) => {
+    console.log(`User registered: ${userId} with socket ID: ${socket.id}`);
+    users[userId] = socket.id;
+  });
+
+  socket.on("sendNotification", (userId, title, message) => {
+    if (users[userId]) {
+      io.to(users[userId]).emit("receiveNotification", { title, message });
+      console.log(`Notification sent to user ${userId}`);
+    } else {
+      console.log(`User ${userId} not found`);
+    }
+  });
+
+  socket.on("disconnect", () => {
+    for (let userId in users) {
+      if (users[userId] === socket.id) {
+        delete users[userId];
+        break;
+      }
+    }
+    console.log(`User disconnected: ${socket.id}`);
+  });
+});
+
+// Scheduled Job
+const addPayslip = schedule.scheduleJob("10 10 3 * *", async function () {
   try {
-    const response = await axios.post(`${process.env.REACT_APP_API_URL}/api/payslip/`, {
-    });
+    const response = await axios.post(`${process.env.REACT_APP_API_URL}/api/payslip/`, {});
     console.log("Payslip generation response:", response.data);
   } catch (err) {
     console.error("Error while generating payslips:", err);
   }
 });
 
-process.on('uncaughtException', function (err) {
+// Start Server
+const port = process.env.PORT;
+server.listen(port, () => console.log(`Server listening on port ${port}!`));
+process.on("uncaughtException", (err) => {
   console.log(err);
-}); 
-
-app.listen(port, () => console.log(`Example app listening on port ${port}!`));
+});

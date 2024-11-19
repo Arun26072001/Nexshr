@@ -7,7 +7,7 @@ import { getDepartments } from '../ReuseableAPI';
 import { TimerStates } from './HRMDashboard';
 
 export default function PayrollManage() {
-    const {whoIs} = useContext(TimerStates);
+    const { whoIs } = useContext(TimerStates);
     const [isShowInstructions, setShowInstruction] = useState(true);
     const [departments, setDepartments] = useState([]);
     function handleShowNotification() {
@@ -74,37 +74,45 @@ export default function PayrollManage() {
     }, [])
     return (
         <div>
-            <div className='payslipTitle'>Manage audience</div>
+            <div className='payslipTitle'>MANAGE AUDIENCE</div>
             {
                 isShowInstructions &&
                 <DefinitionToggle title="Restriction Note" instructions={instructions} handleShowNotification={handleShowNotification} />
             }
 
-            <div className="row px-3">
-                <div className="py-2">
+            <div className="p-3">
+                <div className='mt-2'>
                     <span>Department Preference</span>
                 </div>
+                <div className='mt-2'>
                 <MultiCascader data={data} className="col-12" />
+                </div>
 
-                <div className="py-2">
+                <div className='mt-2'>
                     <span>User Preference</span>
                 </div>
+                <div className='mt-2'>
                 <MultiCascader data={data} className="col-12" />
+                </div>
 
-                <div className="py-2">
+                <div className='mt-2'>
                     <span>Employee status Preference</span>
                 </div>
+                <div className='mt-2'>
                 <MultiCascader data={data} className="col-12" />
+                </div>
             </div>
 
             <div className="row">
-                <div className="col-lg-3 col-12">
-                    <div className="btnParent mx-auto">
-                        <button className="button">Save</button>
-                        <button className="outline-btn" style={{ background: "#e0e0e0", border: "none" }}>Cancel</button>
-                    </div>
-                </div>
+          <div className="col-lg-12 text-end">
+            <div className="btnParent mt-1 d-inline-flex gap-2" style={{ padding: "0px 30px" }}>
+              <button className="outline-btn" style={{ background: "#e0e0e0", border: "none" }}>
+                Cancel
+              </button>
+              <button className="button">Save</button>
             </div>
+          </div>
+        </div>
 
         </div>
     )

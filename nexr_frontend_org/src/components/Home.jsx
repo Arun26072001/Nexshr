@@ -8,6 +8,7 @@ import { getDataAPI } from './ReuseableAPI';
 import ApexChart from './ApexChart';
 import { TimerStates } from './payslip/HRMDashboard';
 import Loading from './Loader';
+import NoDataFound from './payslip/NoDataFound';
 
 function CustomTabPanel(props) {
     const { children, value, index, ...other } = props;
@@ -69,7 +70,7 @@ export default function Home() {
     };
 
     useEffect(() => {
-        const getClockInsData = async () => {     
+        const getClockInsData = async () => {
             try {
                 setLoading(true);
                 if (!isStartLogin && !isStartActivity && empId) {
@@ -89,7 +90,6 @@ export default function Home() {
         getClockInsData();
     }, [updateClockins]);
 
-
     return (
         isLoading ? <Loading /> :
             <Box sx={{ width: '100%' }}>
@@ -102,8 +102,8 @@ export default function Home() {
                 </Box>
                 {/* {
         data.length > 0 ? */}
-                <CustomTabPanel value={value} index={0} className="tabParent" style={{backgroundColor: "white"}}>
-                    <div className='row align-items-center'>
+                <CustomTabPanel value={value} index={0} className="tabParent" style={{ backgroundColor: "white" }}>
+                    <div className='row'>
                         <div className='col-lg-6 col-md-6 col-12'>
                             <table className='table table-striped'>
                                 <thead>
@@ -134,9 +134,12 @@ export default function Home() {
                         </div>
                         <div className='col-lg-6 col-md-6 col-12'>
                             <p className='chartTitle'>Time Activity</p>
-
+                            {
+                                [isStartActivity, isStartLogin].includes(true) ?
+                                    <NoDataFound message={"You can't view time value, until stop timers"} /> :
+                                    <ApexChart activitiesData={tableData} />
+                            }
                             {/* <PieChartGraph listOfActivity={listOfActivity} /> */}
-                            <ApexChart activitiesData={tableData} />
                         </div>
                     </div>
                 </CustomTabPanel>

@@ -111,7 +111,7 @@ const Summary = () => {
                         <div className='row container-fluid attendanceFile'>
                             <div className="row d-flex justify-content-end">
                                 <div className="col-12 col-md-4">
-                                    <select className="form-select" onChange={(e) => selectEmpClockins(e.target.value)}>
+                                    <select className="form-select mt-2" onChange={(e) => selectEmpClockins(e.target.value)}>
                                         <option value="">Select Profile</option>
                                         {employees?.map((employee) => (
                                             <option key={employee._id} value={employee._id}>

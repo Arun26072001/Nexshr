@@ -3,6 +3,7 @@
   border-bottom: 1px dotted black;
   justify-content: space-between;
 }
+
 .brightLogo {
   height: 75px;
   width: 75px;
@@ -15,10 +16,19 @@
   color: #ffff;
 }
 
+.payslip_header .modal-content {
+  background-color: white;
+  padding: 20px;
+  border-radius: 10px;
+  width: 450px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
 .boxBorder {
   border: 2px double black;
 }
-.boxBorder > div {
+
+.boxBorder>div {
   border-bottom: 2px double;
   padding: 10px 30px;
   text-align: center;

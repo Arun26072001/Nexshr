@@ -75,7 +75,7 @@ a {
 
 .outline-btn {
   border: 2px solid black;
-  padding: 7px 12px;
+  padding: 9px 12px;
   font-size: 13px;
   border-radius: 5px;
   font-weight: 500;
@@ -89,7 +89,7 @@ a {
 .button {
   cursor: pointer;
   margin: auto;
-  padding: 7px 12px;
+  padding: 3px 12px;
   font-size: 13px;
   border-radius: 5px;
   background: black;
@@ -99,6 +99,7 @@ a {
   box-shadow: rgba(0, 0, 0, 0.16) 0px 1px 4px;
   /* width: 100%; */
   width: fit-content;
+  margin-right: 15px !important;
 }
 
 ::-webkit-scrollbar {
@@ -537,7 +538,7 @@ input::-webkit-inner-spin-button {
     position: relative;
     display: flex;
     flex-direction: column;
-    width: 100%;
+    width: fit-content;
     pointer-events: auto;
     background-color: #fff;
     background-clip: padding-box;
@@ -586,4 +587,22 @@ textarea.form-control {
   width: 100px;
   height: 100px;
   object-fit: cover;
+}
+
+.searchInputIcon {
+  display: flex;
+  justify-content: flex-start;
+  padding: 16px;
+  margin-left: -6px;
+}
+
+.searchInputIcon input[type="text"] {
+  /* background-image: url(''); Add icon URL or path */
+  background-position: 15px center;
+  background-repeat: no-repeat;
+  padding: 12px 20px 12px 40px;
+  border: 1px solid #c2c2c2;
+  border-radius: 4px;
+  width: 300px; /* Adjust as needed */
+  font-size: 16px;
 }

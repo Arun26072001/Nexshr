@@ -173,7 +173,53 @@ function verifyAdmin(req, res, next) {
     });
   } else {
     // Forbidden
-    res.sendStatus(401);
+    res.status(401).send({messsage: "Can't access Auth token!"});
+  }
+}
+
+function verifyAdmin(req, res, next) {
+  const Header = req.headers["authorization"];
+
+  if (typeof Header !== "undefined") {
+    // decodedData = jwt.decode(req.headers['authorization']);
+    // if(decodedData.Account)
+    jwt.verify(Header, jwtKey, (err, authData) => {
+      if (err) {
+        res.status(401).send({ error: err.message });
+      } else {
+        if (authData.Account == 1) {
+          next();
+        } else {
+          res.status(401).send({ message: "unAuthorize: Admin can only do this action!" });
+        }
+      }
+    });
+  } else {
+    // Forbidden
+    res.status(401).send({messsage: "Can't access Auth token!"});
+  }
+}
+
+function verifySuperAdmin(req, res, next) {
+  const Header = req.headers["authorization"];
+
+  if (typeof Header !== "undefined") {
+    // decodedData = jwt.decode(req.headers['authorization']);
+    // if(decodedData.Account)
+    jwt.verify(Header, jwtKey, (err, authData) => {
+      if (err) {
+        res.status(401).send({ error: err.message });
+      } else {
+        if (authData.Account == 0) {
+          next();
+        } else {
+          res.status(401).send({ message: "unAuthorize: Super Admin can only do this action!" });
+        }
+      }
+    });
+  } else {
+    // Forbidden
+    res.status(401).send({messsage: "Can't access Auth token!"});
   }
 }
 
@@ -183,5 +229,6 @@ module.exports = {
   verifyHREmployee,
   verifyAdminHR,
   verifyAdmin,
-  verifyAdminHREmployee
+  verifyAdminHREmployee,
+  verifySuperAdmin
 }

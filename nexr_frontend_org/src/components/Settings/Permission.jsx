@@ -25,11 +25,11 @@ const Permission = () => {
                 const emps = await fetchAllEmployees();
                 setEmployees(emps);
                 setFullemployees(emps);
-                setIsLoading(false);
 
             } catch (err) {
                 toast.error(err)
             }
+            setIsLoading(false);
         }
         getEmployees();
     }, [])
@@ -40,11 +40,13 @@ const Permission = () => {
             try {
                 const rolesData = await fetchRoles();
                 setRoles(rolesData);
-                setIsLoading(false);
+                console.log(rolesData);
+
             } catch (err) {
                 console.log(err);
                 toast.error(err?.response?.data?.message)
             }
+            setIsLoading(false);
         }
         fetchEmpRoles();
     }, [])
@@ -57,16 +59,17 @@ const Permission = () => {
             setEmployees(fullEmployees.filter((emp) => emp.FirstName.includes(e)));
         }
     }
+    console.log(employees);
 
     return (
         <div className="container">
-            <h4>Permissions</h4>
-            <p style={{ fontSize: "15px", color: "rgb(178 174 174)" }}>Assign or revoke for your employees</p>
+            <h5>PERMISSIONS</h5>
+            <p style={{ fontSize: "15px", color: "rgb(178 174 174)", marginTop: "10px" }}>Assign or revoke for your employees</p>
             <div className="row">
-                <div className="col-lg-4">
+                <div className="col-lg-4 mt-2">
                     <InputGroup inside style={{ width: 300, marginBottom: 10 }}>
                         <InputGroup.Addon><SearchIcon /></InputGroup.Addon>
-                        <Input placeholder='Find Name' value={empName} onChange={filterEmps} />
+                        <Input placeholder="Search user's names" value={empName} onChange={filterEmps} style={{ marginTop: "0", width: "100%", padding: "-8px" }} />
                         <InputGroup.Addon style={{ cursor: "pointer" }} >
                             <span onClick={() => setEmpName("")}>
                                 <CloseIcon />
@@ -78,7 +81,7 @@ const Permission = () => {
             {
                 isLoading ? <Loading /> :
                     employees.length > 0 ? (
-                        <table className="table table-striped my-2">
+                        <table className="table table-striped my-4">
                             <thead>
                                 <tr className='text-center'>
                                     {names.map((name, index) => (
@@ -87,7 +90,7 @@ const Permission = () => {
                                 </tr>
                             </thead>
                             <tbody>
-                                {employees.map((emp) => (
+                                {employees?.map((emp) => (
                                     <tr key={emp._id}> {/* Added key assuming _id is unique for each employee */}
                                         <td>
                                             <div className="td-parent gap-1">

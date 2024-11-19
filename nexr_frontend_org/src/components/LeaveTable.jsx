@@ -17,7 +17,7 @@ import { toast } from 'react-toastify';
 import { TimerStates } from './payslip/HRMDashboard';
 import KeyRoundedIcon from '@mui/icons-material/KeyRounded';
 
-export default function LeaveTable({ data, getCheckedValue, roleObj, getCheckAll, deleteRole, deleteDepartment }) {
+export default function LeaveTable({ data, getCheckedValue, getEditDepartmentId, roleObj, getCheckAll, deleteRole, deleteDepartment, deletePosition, getEditPositionId }) {
     const navigate = useNavigate();
     const { changeEmpEditForm } = useContext(TimerStates)
     const [page, setPage] = useState(0);
@@ -134,7 +134,7 @@ export default function LeaveTable({ data, getCheckedValue, roleObj, getCheckAll
     ];
 
     const column4 = [
-        { id: 'FirstName', label: 'Profile', minWidth: 170, getter: (row) => row.employee.FirstName + row.employee.LastName || 'Unknown' },
+        { id: 'FirstName', label: 'Profile', minWidth: 170, getter: (row) => row?.employee?.FirstName + row?.employee?.LastName || 'Unknown' },
         {
             id: 'date',
             label: 'Date',
@@ -331,7 +331,7 @@ export default function LeaveTable({ data, getCheckedValue, roleObj, getCheckAll
             id: 'RoleName',
             label: 'Role',
             minWidth: 120,
-            align: 'left',
+            align: 'center',
             getter: (row) => row?.RoleName
         },
         {
@@ -355,7 +355,7 @@ export default function LeaveTable({ data, getCheckedValue, roleObj, getCheckAll
     const column9 = [
         {
             id: 'DepartmentName',
-            label: 'Deparment',
+            label: 'Departments',
             minWidth: 120,
             align: 'left',
             getter: (row) => row?.DepartmentName
@@ -463,7 +463,6 @@ export default function LeaveTable({ data, getCheckedValue, roleObj, getCheckAll
             }
         })
     }, [data]);
-    console.log(params['*']);
 
 
     return (
@@ -532,8 +531,8 @@ export default function LeaveTable({ data, getCheckedValue, roleObj, getCheckAll
                                             } else if (params["*"] === "department" || params["*"] === "position") {
                                                 return (
                                                     <Dropdown title={<EditRoundedIcon style={{ cursor: "pointer" }} />} noCaret>
-                                                        <Dropdown.Item style={{ minWidth: 120 }} onClick={() => changeEmpEditForm(row._id)}>Edit</Dropdown.Item>
-                                                        <Dropdown.Item style={{ minWidth: 120 }}>Delete</Dropdown.Item>
+                                                        <Dropdown.Item style={{ minWidth: 120 }} onClick={() => params["*"] === "department" ? getEditDepartmentId(row._id) : params["*"] === "position" ? getEditPositionId(row._id) : changeEmpEditForm(row._id)}>Edit</Dropdown.Item>
+                                                        <Dropdown.Item style={{ minWidth: 120 }} onClick={() => params["*"] === "department" ? deleteDepartment(row._id) : params["*"] === "position" ? deletePosition(row._id) : null}>Delete</Dropdown.Item>
                                                     </Dropdown>
                                                 );
                                             }

@@ -98,8 +98,6 @@ export default function Twotabs() {
     const gettingLeaveRequests = async () => {
       if (empId) {
         const leaveReqs = await fetchLeaveRequests(empId);
-        console.log(leaveReqs);
-
         if (leaveReqs?.requests?.leaveApplication?.length > 0) {
           setLeaveRequests(leaveReqs.requests.leaveApplication);
 
@@ -145,15 +143,15 @@ export default function Twotabs() {
           </div>
           <div className="row" >
             <div className="leaveCircle col-lg-6 col-sm-12 col-md-12 p-0" >
-              <CircleBar annualLeave={Number(annualLeave)} takenLeave={takenLeave} />
+              <CircleBar annualLeave={Number(annualLeave || 0)} takenLeave={takenLeave || 0} />
             </div>
 
             <div className='text-center col-lg-6 col-sm-12 col-md-12 p-0 m-auto' style={{ fontSize: "13px" }} >
               {/* <div className='d-flex text-center'> */}
-              <p><b>{Number(annualLeave) - takenLeave} Days</b> Remaining</p>
+              <p><b>{(Number(annualLeave) - takenLeave) || 0} Days</b> Remaining</p>
               {/* </div> */}
               {/* <div className='d-flex text-center'> */}
-              <p><b>{annualLeave} Days</b> Allowance</p>
+              <p><b>{annualLeave || 0} Days</b> Allowance</p>
               {/* </div> */}
             </div>
           </div>
