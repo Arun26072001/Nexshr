@@ -140,7 +140,7 @@ router.get("/:id", verifyAdminHREmployee, async (req, res) => {
 
     try {
         
-        const queryDate = new Date(String(req.query.date));
+        const queryDate = new Date();
         if (isNaN(queryDate.getTime())) {
             return res.status(400).send({ message: "Invalid date provided." });
         }
