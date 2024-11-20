@@ -7,11 +7,19 @@ import PunchIn from "../../../asserts/PunchIn.svg";
 import PunchOut from "../../../asserts/punchOut.svg";
 import { TimerStates } from '../HRMDashboard';
 import { Dropdown, Popover, Whisper } from 'rsuite';
-import logo from "../../../imgs/male_avatar.png";
+import userImg from "../../../imgs/male_avatar.png";
 import { EssentialValues } from '../../../App';
 import { addSecondsToTime } from '../../ReuseableAPI';
+import axios from 'axios';
+import { useParams } from 'react-router-dom';
+import { toast } from 'react-toastify';
 
 export default function Navbar() {
+    const url = process.env.REACT_APP_API_URL
+    const token = localStorage.getItem("token");
+    const orgId = localStorage.getItem("orgId");
+    const empImg = localStorage.getItem("userProfile")
+    const [organization, setOrganization] = useState({});
     const { handleLogout } = useContext(EssentialValues)
     const { startLoginTimer, stopLoginTimer, workTimeTracker, isStartLogin } = useContext(TimerStates);
     const [sec, setSec] = useState(() => parseInt(localStorage.getItem("loginTimer")?.split(':')[2]) || 0);
@@ -19,7 +27,6 @@ export default function Navbar() {
     const [hour, setHour] = useState(() => parseInt(localStorage.getItem("loginTimer")?.split(':')[0]) || 0);
     const workRef = useRef(null);  // Use ref to store interval ID
     const lastCheckTimeRef = useRef(Date.now())
-    // debugger;
 
     // Timer logic to increment time
     const incrementTime = () => {
@@ -114,7 +121,7 @@ export default function Navbar() {
     // Sync timer with inactivity
     useEffect(() => {
         const handleVisibilityChange = () => {
-            if (!document.hidden && isStartLogin) {
+            if (!document.hidden) {
                 syncTimerAfterPause();
             } else {
                 stopOnlyTimer();
@@ -139,6 +146,23 @@ export default function Navbar() {
             setSec(newSec);
         }
     }, [workTimeTracker, isStartLogin]);
+
+    useEffect(() => {
+        async function gettingOrgdata() {
+            try {
+                const org = await axios.get(`${url}/api/organization/${orgId}`, {
+                    headers: {
+                        Authorization: token || ""
+                    }
+                })
+                setOrganization(org.data);
+            } catch (error) {
+                console.error(error);
+                // toast.error(error?.response?.data?.error)
+            }
+        }
+        gettingOrgdata()
+    }, [])
 
     const renderMenu = ({ onClose, right, top, className }, ref) => {
         const handleSelect = eventKey => {
@@ -166,8 +190,8 @@ export default function Navbar() {
                     <div className='sidebarIcon'>
                         <TableRowsRoundedIcon />
                     </div>
-                    <img src={Webnexs} className="logowebnexslogo" />
-                    <span style={{ fontSize: "16px", fontWeight: "700" }}>NexHR</span>
+                    <img src={organization.orgImg || Webnexs} className="organization_logo" alt="organization_logo" />
+                    <span style={{ fontSize: "16px", fontWeight: "700" }}>{organization.orgName || "NexHR"}</span>
                 </div>
 
                 <div className='col-lg-4 d-flex align-items-center justify-content-center'>
@@ -231,7 +255,7 @@ export default function Navbar() {
                     {/* <img src={Profile} className="avatar ms-3" /> */}
                     {/* <ProfileImgUploader /> */}
                     <Whisper placement="bottomEnd" trigger="click" speaker={renderMenu}>
-                        <img src={logo} className='avatar-toggle' />
+                        <img src={empImg ? empImg : userImg} className='avatar-toggle' alt='emp_profile' />
                     </Whisper>
                 </div>
             </div>

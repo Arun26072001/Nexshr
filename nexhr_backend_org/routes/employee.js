@@ -12,9 +12,9 @@ router.get("/", verifyAdminHR, async (req, res) => {
     // const {orgName} = jwt.decode(req.headers['authorization']);
     // const Employee = getEmployeeModel(orgName)
     const employees = await Employee.find({ Account: 3 }, "_id FirstName LastName employmentType dateOfJoining gender working code docType serialNo")
-      .populate({
-        path: "orgId"
-      })
+      // .populate({
+      //   path: "orgId"
+      // })
       .populate({
         path: "position"
       })
@@ -37,7 +37,7 @@ router.get("/", verifyAdminHR, async (req, res) => {
     res.send(employees)
   } catch (err) {
     console.log(err);
-    res.status(500).send({ message: "Internal server error", details: err.details })
+    res.status(500).send({ message: err.message })
   }
 
 });

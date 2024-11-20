@@ -120,7 +120,7 @@ const ActivityTimeTracker = () => {
         const handleVisibilityChange = () => {
             console.log(isStartActivity);
             
-            if (!document.hidden && isStartActivity) {
+            if (!document.hidden) {
                 syncTimerAfterPause();
             } else {
                 stopOnlyTimer();

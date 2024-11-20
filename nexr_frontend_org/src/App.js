@@ -65,7 +65,7 @@ const App = () => {
       const login = await axios.post(process.env.REACT_APP_API_URL + `/api/login`, bodyLogin)
       let decodedData = jwtDecode(login.data);
       console.log(decodedData);
-      
+
       localStorage.setItem("token", login.data);
       if ((login === undefined || login === null ||
         decodedData.Account === undefined ||
@@ -89,7 +89,7 @@ const App = () => {
         setPass(true);
         setLoading(false);
         setIsLogin(true);
-
+        localStorage.setItem("userProfile", decodedData.profile);
         localStorage.setItem("isLogin", true);
         localStorage.setItem("Account", accountType);
         localStorage.setItem("_id", decodedData._id);

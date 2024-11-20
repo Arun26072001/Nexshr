@@ -40,6 +40,7 @@ router.post("/", async (req, res) => {
                 const empData = {
                     _id: emp._id,
                     Account: emp.Account,
+                    profile: emp.profile,
                     FirstName: emp.FirstName,
                     LastName: emp.LastName,
                     annualLeaveEntitlement: emp.annualLeaveEntitlement,
