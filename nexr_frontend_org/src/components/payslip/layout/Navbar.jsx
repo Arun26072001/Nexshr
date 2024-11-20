@@ -20,125 +20,125 @@ export default function Navbar() {
     const workRef = useRef(null);  // Use ref to store interval ID
     const lastCheckTimeRef = useRef(Date.now())
     // debugger;
-    
-   // Timer logic to increment time
-   const incrementTime = () => {
-    setSec((prevSec) => {
-        let newSec = prevSec + 1;
 
-        if (newSec > 59) {
-            newSec = 0;
-            setMin((prevMin) => {
-                let newMin = prevMin + 1;
-                if (newMin > 59) {
-                    newMin = 0;
-                    setHour((prevHour) => (prevHour + 1) % 24); // Wrap hours at 24
-                }
-                return newMin;
-            });
-        }
-        return newSec;
-    });
-};
+    // Timer logic to increment time
+    const incrementTime = () => {
+        setSec((prevSec) => {
+            let newSec = prevSec + 1;
 
-// start and stop timer only
-function stopOnlyTimer() {
-    if (workRef.current && isStartLogin) {
-        clearInterval(workRef.current);
-        workRef.current = null;
-    }
-}
+            if (newSec > 59) {
+                newSec = 0;
+                setMin((prevMin) => {
+                    let newMin = prevMin + 1;
+                    if (newMin > 59) {
+                        newMin = 0;
+                        setHour((prevHour) => (prevHour + 1) % 24); // Wrap hours at 24
+                    }
+                    return newMin;
+                });
+            }
+            return newSec;
+        });
+    };
 
-function startOnlyTimer() {
-    // console.log("call timer only fun: ", workTimeTracker._id, isStartLogin);
-    if (!workRef.current) {
-        if (isStartLogin) {
-            workRef.current = setInterval(incrementTime, 1000);
+    // start and stop timer only
+    function stopOnlyTimer() {
+        if (workRef.current && isStartLogin) {
+            clearInterval(workRef.current);
+            workRef.current = null;
         }
     }
-}
 
-// Function to start the timer
-const startTimer = async () => {
-    if (!workRef.current) {
-        await startLoginTimer();
-        if (isStartLogin) {
-            workRef.current = setInterval(incrementTime, 1000);
+    function startOnlyTimer() {
+        // console.log("call timer only fun: ", workTimeTracker._id, isStartLogin);
+        if (!workRef.current) {
+            if (isStartLogin) {
+                workRef.current = setInterval(incrementTime, 1000);
+            }
         }
     }
-};
 
-// Function to stop the timer
-const stopTimer = async () => {
-    if (workRef.current && isStartLogin) {
-        await stopLoginTimer();
-        clearInterval(workRef.current);
-        workRef.current = null;
-    }
-};
-
-const syncTimerAfterPause = () => {
-    const now = Date.now();
-    const diff = now - lastCheckTimeRef.current;
-    // console.log("Wakeup called.");
-    // console.log("Time difference since last check (ms):", diff);
-
-    if (diff > 3000 && isStartLogin) {
-        const secondsToAdd = Math.floor(diff / 1000);
-        // console.log("Seconds to add:", secondsToAdd);
-
-        const updatedTime = addSecondsToTime(`${parseInt(localStorage.getItem("loginTimer")?.split(':')[0])}:${parseInt(localStorage.getItem("loginTimer")?.split(':')[1])}:${parseInt(localStorage.getItem("loginTimer")?.split(':')[2])}`, secondsToAdd);
-        // console.log("Updated time:", updatedTime);
-
-        // Combine updates into a single state update
-        setHour(Number(updatedTime.hours));
-        setMin(Number(updatedTime.minutes));
-        setSec(Number(updatedTime.seconds));
-    }
-
-    startOnlyTimer();
-    lastCheckTimeRef.current = now; // Reset last check time
-};
-
-
-// Start/Stop timer based on activity state
-useEffect(() => {
-    if (isStartLogin) {
-        startTimer();
-    } else {
-        stopTimer();
-    }
-    return () => stopTimer(); // Cleanup on unmount
-}, [isStartLogin]);
-
-// Sync timer with inactivity
-useEffect(() => {
-    const handleVisibilityChange = () => {
-        if (!document.hidden) {
-            syncTimerAfterPause();
-        } else {
-            stopOnlyTimer();
+    // Function to start the timer
+    const startTimer = async () => {
+        if (!workRef.current) {
+            await startLoginTimer();
+            if (isStartLogin) {
+                workRef.current = setInterval(incrementTime, 1000);
+            }
         }
     };
 
-    document.addEventListener("visibilitychange", handleVisibilityChange);
-    return () => document.removeEventListener("visibilitychange", handleVisibilityChange);
-}, []);
+    // Function to stop the timer
+    const stopTimer = async () => {
+        if (workRef.current && isStartLogin) {
+            await stopLoginTimer();
+            clearInterval(workRef.current);
+            workRef.current = null;
+        }
+    };
 
-// Sync state with localStorage
-useEffect(() => {
-    localStorage.setItem("loginTimer", `${hour}:${min}:${sec}`);
-}, [hour, min, sec]);
+    const syncTimerAfterPause = () => {
+        const now = Date.now();
+        const diff = now - lastCheckTimeRef.current;
+        // console.log("Wakeup called.");
+        // console.log("Time difference since last check (ms):", diff);
 
- // Initialize time based on selected workTimeTracker and timeOption
-useEffect(() => {
-    if (!isStartLogin && workTimeTracker?.login?.timeHolder) {
-        const [newHour, newMin, newSec] = workTimeTracker?.login?.timeHolder?.split(":").map(Number);
-        setHour(newHour);
-        setMin(newMin);
-        setSec(newSec);
-    }
-}, [workTimeTracker, isStartLogin]);
+        if (diff > 3000 && isStartLogin) {
+            const secondsToAdd = Math.floor(diff / 1000);
+            // console.log("Seconds to add:", secondsToAdd);
+
+            const updatedTime = addSecondsToTime(`${parseInt(localStorage.getItem("loginTimer")?.split(':')[0])}:${parseInt(localStorage.getItem("loginTimer")?.split(':')[1])}:${parseInt(localStorage.getItem("loginTimer")?.split(':')[2])}`, secondsToAdd);
+            // console.log("Updated time:", updatedTime);
+
+            // Combine updates into a single state update
+            setHour(Number(updatedTime.hours));
+            setMin(Number(updatedTime.minutes));
+            setSec(Number(updatedTime.seconds));
+        }
+
+        startOnlyTimer();
+        lastCheckTimeRef.current = now; // Reset last check time
+    };
+
+
+    // Start/Stop timer based on activity state
+    useEffect(() => {
+        if (isStartLogin) {
+            startTimer();
+        } else {
+            stopTimer();
+        }
+        return () => stopTimer(); // Cleanup on unmount
+    }, [isStartLogin]);
+
+    // Sync timer with inactivity
+    useEffect(() => {
+        const handleVisibilityChange = () => {
+            if (!document.hidden && isStartLogin) {
+                syncTimerAfterPause();
+            } else {
+                stopOnlyTimer();
+            }
+        };
+
+        document.addEventListener("visibilitychange", handleVisibilityChange);
+        return () => document.removeEventListener("visibilitychange", handleVisibilityChange);
+    }, []);
+
+    // Sync state with localStorage
+    useEffect(() => {
+        localStorage.setItem("loginTimer", `${hour}:${min}:${sec}`);
+    }, [hour, min, sec]);
+
+    // Initialize time based on selected workTimeTracker and timeOption
+    useEffect(() => {
+        if (!isStartLogin && workTimeTracker?.login?.timeHolder) {
+            const [newHour, newMin, newSec] = workTimeTracker?.login?.timeHolder?.split(":").map(Number);
+            setHour(newHour);
+            setMin(newMin);
+            setSec(newSec);
+        }
+    }, [workTimeTracker, isStartLogin]);
 
     const renderMenu = ({ onClose, right, top, className }, ref) => {
         const handleSelect = eventKey => {
@@ -238,68 +238,3 @@ useEffect(() => {
         </div>
     );
 }
-
-                    //     setSec((prevSec) => {
-                    //         let newSec = prevSec + 1;
-                
-                    //         if (newSec > 59) {
-                    //             newSec = 0;  // Reset seconds to 0
-                    //             setMin((prevMin) => {
-                    //                 let newMin = prevMin + 1;
-                    //                 if (newMin > 59) {
-                    //                     newMin = 0;  // Reset minutes to 0
-                    //                     setHour((prevHour) => prevHour + 1);
-                    //                 }
-                    //                 return newMin;
-                    //             });
-                    //         }
-                    //         return newSec;
-                    //     });
-                    // }
-                
-                    // async function startTimer() {
-                    //     if (!workRef.current) {
-                    //         await startLoginTimer();
-                    //         if (isStartLogin) {
-                    //             workRef.current = setInterval(setTime, 1000);  // Start the timer
-                    //         }
-                    //     }
-                    // }
-                
-                    // async function stopTimer() {
-                    //     if (workRef.current) {
-                    //         await stopLoginTimer();
-                    //         // console.log(isStartLogin);
-                
-                    //         if (!isStartLogin) {
-                    //             clearInterval(workRef.current);  // Stop the timer
-                    //             workRef.current = null;  // Reset the reference
-                    //         }
-                    //     }
-                    // }
-                    // useEffect(() => {
-                    //     if (isStartLogin) {
-                    //         startTimer();
-                    //     } else if (!isStartLogin) {
-                    //         stopTimer();
-                    //     }
-                    //     // Cleanup interval when component unmounts
-                    //     return () => stopTimer();
-                    // }, [isStartLogin]);  // Ensure the effect re-runs if isTimerStarted changes
-                
-                    // // Assuming sec, min, hour are your state variables
-                    // useEffect(() => {
-                
-                    //     // This effect runs every time sec, min, or hour changes
-                    //     localStorage.setItem("loginTimer", `${hour}:${min}:${sec}`);
-                    // }, [sec, min, hour]);
-                
-                    // // Initialize time based on selected workTimeTracker and timeOption
-                    // useEffect(() => {
-                    //     if (!isStartLogin && workTimeTracker?.login?.timeHolder) {
-                    //         const [newHour, newMin, newSec] = workTimeTracker?.login?.timeHolder?.split(":").map(Number);
-                    //         setHour(newHour);
-                    //         setMin(newMin);
-                    //         setSec(newSec);
-                    //     }
-                    // }, [workTimeTracker, isStartLogin]);

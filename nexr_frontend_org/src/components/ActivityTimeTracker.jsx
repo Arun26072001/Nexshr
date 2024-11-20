@@ -9,7 +9,6 @@ import { addSecondsToTime } from "./ReuseableAPI";
 const ActivityTimeTracker = () => {
     const { startActivityTimer, stopActivityTimer, workTimeTracker, isStartActivity, timeOption } = useContext(TimerStates);
     const EmpName = localStorage.getItem("Name") || "Employee";
-
     // Timer states
     const [sec, setSec] = useState(() => parseInt(localStorage.getItem("activityTimer")?.split(":")[2]) || 0);
     const [min, setMin] = useState(() => parseInt(localStorage.getItem("activityTimer")?.split(":")[1]) || 0);
@@ -39,16 +38,17 @@ const ActivityTimeTracker = () => {
 
     // start and stop timer only
     function stopOnlyTimer() {
+
         if (timerRef.current && isStartActivity) {
             clearInterval(timerRef.current);
             timerRef.current = null;
         }
     }
 
-
     function startOnlyTimer() {
         // console.log("call timer only fun: ", workTimeTracker._id, isStartActivity);
-        
+        console.log(isStartActivity);
+
         if (!timerRef.current) {
             if (isStartActivity) {
                 timerRef.current = setInterval(incrementTime, 1000);
@@ -58,6 +58,8 @@ const ActivityTimeTracker = () => {
 
     // Function to start the timer
     const startTimer = async () => {
+        console.log("call to start in startTimer");
+
         if (!timerRef.current) {
             await startActivityTimer();
             if (isStartActivity) {
@@ -76,12 +78,14 @@ const ActivityTimeTracker = () => {
     };
 
     const syncTimerAfterPause = () => {
+        console.log("call to start in sync");
+
         const now = Date.now();
         const diff = now - lastCheckTimeRef.current;
         // console.log("Wakeup called.");
         // console.log("Time difference since last check (ms):", diff);
 
-        if (diff > 3000 && isStartActivity) {
+        if (diff > 3000 && isStartActivity && workTimeTracker._id) {
             const secondsToAdd = Math.floor(diff / 1000);
             // console.log("Seconds to add:", secondsToAdd);
 
@@ -114,7 +118,7 @@ const ActivityTimeTracker = () => {
     // Sync timer with inactivity
     useEffect(() => {
         const handleVisibilityChange = () => {
-            if (!document.hidden) {
+            if (!document.hidden && isStartActivity) {
                 syncTimerAfterPause();
             } else {
                 stopOnlyTimer();
