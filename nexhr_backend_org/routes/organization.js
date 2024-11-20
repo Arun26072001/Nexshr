@@ -4,7 +4,6 @@ const router = express.Router();
 const mongoose = require("mongoose");
 const { verifySuperAdmin } = require("../auth/authMiddleware");
 const { UserAccount } = require("../OrgModels/UserAccountModel");
-const { getEmployeeModel } = require("./employee");
 
 const OrgTeamSchemas = {};
 function getTeamSchema(orgName) {
@@ -25,7 +24,7 @@ function getTeamSchema(orgName) {
 
 const OrgTeamModels = {};
 function getTeamModel(orgName) {
-    if(!OrgTeamModels[orgName]){
+    if (!OrgTeamModels[orgName]) {
         OrgTeamModels[orgName] = mongoose.model(`${orgName}Team`, getTeamSchema(orgName))
     }
 }
@@ -33,7 +32,7 @@ function getTeamModel(orgName) {
 
 
 function getDepartmentModel(orgName) {
-    if(!OrgTeamModels[orgName]){
+    if (!OrgTeamModels[orgName]) {
         OrgTeamModels[orgName] = mongoose.model(`${orgName}Department`, getDepartmentSchema(orgName))
     }
     return OrgTeamModels[orgName];
@@ -102,5 +101,17 @@ router.post("/:id", async (req, res) => {
     }
 });
 
+router.get("/:id", async (req, res) => {
+    try {
+        const org = await Org.findById({_id: req.params.id});
+        if(!org){
+            res.status(404).send({error: "Org not found in this id."})
+        }else{
+            res.send(org);
+        }
+    } catch (error) {
+        res.status(500).send({error: error.message})
+    }   
+})
 
 module.exports = router;
