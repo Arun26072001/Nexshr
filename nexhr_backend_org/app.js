@@ -135,6 +135,7 @@ app.use("/api/country", country);
 app.use("/api/employee", employee);
 app.use("/api/family-info", familyInfo);
 app.use("/api/personal-info", personalInfo);
+app.use("/api/organization", organization);
 app.use("/api/payroll", payroll);
 app.use("/api/payslip", payslip);
 app.use("/api/education", education);

@@ -226,7 +226,7 @@ export default function HRMDashboard() {
                 timeHolder: localStorage.getItem("activityTimer")
             },
         });
-        console.log(workTimeTracker?._id, isStartActivity);
+        // console.log(workTimeTracker?._id, isStartActivity);
 
         if (workTimeTracker?._id && isStartActivity) {
             try {

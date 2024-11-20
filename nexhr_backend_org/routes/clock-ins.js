@@ -122,8 +122,8 @@ router.post("/:id", verifyAdminHREmployee, async (req, res) => {
             await emp.save(); // Fixed save function usage
 
             res.status(201).send(clockIns);
-        }else{
-            res.status(400).send({error: "You must start Punchin Timer"})
+        } else {
+            res.status(400).send({ error: "You must start Punchin Timer" })
         }
     } catch (error) {
         res.status(500).send({ error: error.message });
@@ -132,28 +132,25 @@ router.post("/:id", verifyAdminHREmployee, async (req, res) => {
 
 
 router.get("/:id", verifyAdminHREmployee, async (req, res) => {
-
+    // Helper function to convert time in HH:MM:SS format to total minutes
     function timeToMinutes(timeStr) {
-        // Split the time string into hours, minutes, and seconds
-        const [hours, minutes, seconds] = timeStr.split(':').map(Number);
-        // Calculate total minutes
-        const totalMinutes = (hours * 60) + minutes;
-        return totalMinutes || 0;
+        const [hours, minutes, seconds] = timeStr.split(":").map(Number);
+        return (hours * 60) + minutes || 0; // Defaults to 0 if input is invalid
     }
 
     try {
-        const queryDate = new Date(req.query.date); // Parse the query date
+        
+        const queryDate = new Date(String(req.query.date));
+        // if (isNaN(queryDate.getTime())) {
+        //     return res.status(400).send({ message: "Invalid date provided." });
+        // }
 
         // Create start and end of the day for the date comparison
-        const startOfDay = new Date(queryDate.setHours(0, 0, 0, 0)); // Set time to 00:00:00.000
-        const endOfDay = new Date(queryDate.setHours(23, 59, 59, 999)); // Set time to 23:59:59.999
-        // const {orgName} = jwt.decode(req.headers['authorization']);
-        // console.log(orgName);
-        
-        // const OrgEmployeeModel = getEmployeeModel(orgName);
-        // console.log(OrgEmployeeModel);
-        
-        const timeData = await Employee.findById({ _id: req.params.id }, "clockIns")
+        const startOfDay = new Date(queryDate.setHours(0, 0, 0, 0));
+        const endOfDay = new Date(queryDate.setHours(23, 59, 59, 999));
+
+        // Fetch employee's clock-ins for the given date
+        const timeData = await Employee.findById(req.params.id, "clockIns")
             .populate({
                 path: "clockIns",
                 match: {
@@ -162,49 +159,50 @@ router.get("/:id", verifyAdminHREmployee, async (req, res) => {
                         $lt: endOfDay,
                     },
                 },
-                populate: { path: "employee", select: "_id FirstName LastName" }
+                populate: { path: "employee", select: "_id FirstName LastName" },
             });
 
-        // const timeData = await ClockIns.findById(req.params.id).populate({path: "employee", select: "_id FirstName LastName"});
-        if (timeData?.clockIns?.length === 0) {
-            return res.status(404).send({ message: "Please Login!" });
-        } else {
-            const activities = ["login", "meeting", "morningBreak", "lunch", "eveningBreak", "event"];
-
-            const activitiesData = activities.map((activity) => {
-                const startingTime = timeData.clockIns[0][activity]?.startingTime || "00:00";
-                const endingTime = timeData.clockIns[0][activity]?.endingTime || "00:00";
-                // const timeCalMins = convertToMinutes(startingTime, endingTime);
-                const timeCalMins = timeToMinutes(timeData?.clockIns[0][activity]?.timeHolder || "00:00:00");
-
-                return {
-                    activity,
-                    startingTime,
-                    endingTime,
-                    timeCalMins
-                };
-            });
-
-            // Sum up the total minutes for all activities
-            const totalEmpWorkingMinutes = activitiesData.reduce((total, activity) => total + activity.timeCalMins, 0);
-
-            // Convert total minutes to hours and minutes format
-            const hours = Math.floor(totalEmpWorkingMinutes / 60);
-            const minutes = totalEmpWorkingMinutes % 60;
-
-            return res.send({
-                timeData,
-                activitiesData,
-                empTotalWorkingHours: (hours + minutes) / 60
-            });
+        if (!timeData || timeData.clockIns.length === 0) {
+            return res.status(404).send({ message: "No clock-ins found for the given date." });
         }
 
-    } catch (err) {
-        console.log(err);
+        // Define activities and calculate times
+        const activities = ["login", "meeting", "morningBreak", "lunch", "eveningBreak", "event"];
+        const clockIn = timeData.clockIns[0]; // Assuming the first clock-in for the day
 
-        res.status(500).send({ error: err.message });
+        const activitiesData = activities.map((activity) => {
+            const startingTime = clockIn[activity]?.startingTime || "00:00";
+            const endingTime = clockIn[activity]?.endingTime || "00:00";
+            const timeCalMins = timeToMinutes(clockIn[activity]?.timeHolder || "00:00:00");
+
+            return {
+                activity,
+                startingTime,
+                endingTime,
+                timeCalMins,
+            };
+        });
+
+        // Calculate total working minutes
+        const totalEmpWorkingMinutes = activitiesData.reduce((total, activity) => total + activity.timeCalMins, 0);
+
+        // Convert total minutes to hours and minutes
+        const hours = Math.floor(totalEmpWorkingMinutes / 60);
+        const minutes = totalEmpWorkingMinutes % 60;
+
+        // Respond with calculated data
+        return res.send({
+            timeData,
+            activitiesData,
+            empTotalWorkingHours: (hours + minutes / 60).toFixed(2), // Rounded to 2 decimal places
+        });
+
+    } catch (err) {
+        console.error(err);
+        return res.status(500).send({ error: err.message });
     }
 });
+
 
 router.get("/item/:id", verifyAdminHREmployee, async (req, res) => {
     const convertToMinutes = (start, end) => {
