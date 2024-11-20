@@ -94,7 +94,7 @@ const Summary = () => {
 
     return (
         <div className='dashboard-parent pt-4'>
-            <div className="d-flex justify-content-between align-items-center">
+            <div className="d-flex justify-content-between align-items-center p-3">
                 <h5 className='text-daily'>Summary</h5>
                 <div className='d-flex'>
                     <Popup />
@@ -108,7 +108,7 @@ const Summary = () => {
             {
                 isLoading ? <Loading /> :
                     <>
-                        <div className='row container-fluid attendanceFile'>
+                        <div className='row container-fluid attendanceFile m-0'>
                             <div className="row d-flex justify-content-end">
                                 <div className="col-12 col-md-4">
                                     <select className="form-select mt-2" onChange={(e) => selectEmpClockins(e.target.value)}>
