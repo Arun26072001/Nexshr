@@ -10,7 +10,7 @@ const Request = ({ attendanceData, isLoading }) => {
     return (
         isLoading ? <Loading /> :
             <div className='dashboard-parent pt-4'>
-                <div className="d-flex  justify-content-between align-items-center">
+                <div className="d-flex  justify-content-between align-items-start p-3">
                     <div>
                         <h5 className='text-daily'>Request</h5>
                     </div>
