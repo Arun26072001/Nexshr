@@ -85,6 +85,8 @@ const Dashboard = () => {
     useEffect(() => {
         gettingEmpdata();
     }, [empId]);
+    console.log(dailyLogindata);
+
 
     return (
         <div className='dashboard-parent'>
@@ -120,7 +122,7 @@ const Dashboard = () => {
                                         <p className='sub_text'>Scheduled</p>
                                     </div>
                                     <div className='col-lg-3 col-md-3 col-4 timeLogBox'>
-                                        <p>{(dailyLogindata?.empTotalWorkingHours)?.toFixed(2) || "00:00"}</p>
+                                        <p>{dailyLogindata?.empTotalWorkingHours ? dailyLogindata?.empTotalWorkingHours : "00:00"}</p>
                                         <p className='sub_text'>Worked</p>
                                     </div>
                                     <div className='col-lg-3 col-md-3 col-4 timeLogBox'>
