@@ -140,10 +140,10 @@ router.get("/:id", verifyAdminHREmployee, async (req, res) => {
 
     try {
         
-        const queryDate = new Date();
-        if (isNaN(queryDate.getTime())) {
-            return res.status(400).send({ message: "Invalid date provided." });
-        }
+        const queryDate = new Date(String(req.query.date));
+        // if (isNaN(queryDate.getTime())) {
+        //     return res.status(400).send({ message: "Invalid date provided." });
+        // }
 
         // Create start and end of the day for the date comparison
         const startOfDay = new Date(queryDate.setHours(0, 0, 0, 0));
