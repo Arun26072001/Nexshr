@@ -5,7 +5,6 @@ import PowerSettingsNewRoundedIcon from "@mui/icons-material/PowerSettingsNewRou
 import { TimerStates } from "./payslip/HRMDashboard";
 import { toast } from "react-toastify";
 import { addSecondsToTime } from "./ReuseableAPI";
-import { Experimental_CssVarsProvider } from "@mui/material";
 
 const ActivityTimeTracker = () => {
     const { startActivityTimer, stopActivityTimer, workTimeTracker, isStartActivity, timeOption } = useContext(TimerStates);
@@ -36,30 +35,26 @@ const ActivityTimeTracker = () => {
             }
             return newSec;
         });
-
     };
 
-    // Function to update time after inactivity
-    const syncTimerAfterPause = () => {
-        const now = Date.now();
-        const diff = now - lastCheckTimeRef.current;
-        console.log("wakeup");
-
-        console.log("diff: ", diff);
-
-        if (diff > 3000 && isStartActivity) {
-            const secondsToAdd = Math.floor(diff / 1000);
-            const updatedTime = addSecondsToTime(`${hour}:${min}:${sec}`, secondsToAdd);
-            setHour(Number(updatedTime.hours));
-            setMin(Number(updatedTime.minutes));
-            setSec(Number(updatedTime.seconds));
-            startTimer();
-        }else{
-            startTimer();
+    // start and stop timer only
+    function stopOnlyTimer() {
+        if (timerRef.current && isStartActivity) {
+            clearInterval(timerRef.current);
+            timerRef.current = null;
         }
+    }
 
-        lastCheckTimeRef.current = now; // Reset last check time
-    };
+
+    function startOnlyTimer() {
+        console.log("call timer only fun: ", workTimeTracker._id, isStartActivity);
+        
+        if (!timerRef.current) {
+            if (isStartActivity && workTimeTracker._id) {
+                timerRef.current = setInterval(incrementTime, 1000);
+            }
+        }
+    }
 
     // Function to start the timer
     const startTimer = async () => {
@@ -80,11 +75,28 @@ const ActivityTimeTracker = () => {
         }
     };
 
-    function stopTimerAndSetTime() {
-        lastCheckTimeRef.current = Date.now()
-        stopTimer();
-    }
+    const syncTimerAfterPause = () => {
+        const now = Date.now();
+        const diff = now - lastCheckTimeRef.current;
+        console.log("Wakeup called.");
+        console.log("Time difference since last check (ms):", diff);
 
+        if (diff > 3000 && isStartActivity) {
+            const secondsToAdd = Math.floor(diff / 1000);
+            console.log("Seconds to add:", secondsToAdd);
+
+            const updatedTime = addSecondsToTime(`${parseInt(localStorage.getItem("activityTimer")?.split(":")[0])}:${parseInt(localStorage.getItem("activityTimer")?.split(":")[1])}:${parseInt(localStorage.getItem("activityTimer")?.split(":")[2])}`, secondsToAdd);
+            console.log("Updated time:", updatedTime);
+
+            // Combine updates into a single state update
+            setHour(Number(updatedTime.hours));
+            setMin(Number(updatedTime.minutes));
+            setSec(Number(updatedTime.seconds));
+        }
+
+        startOnlyTimer();
+        lastCheckTimeRef.current = now; // Reset last check time
+    };
 
     // Display warning if no punch-in
     const warnPunchIn = () => toast.warning("Please Punch In!");
@@ -105,7 +117,7 @@ const ActivityTimeTracker = () => {
             if (!document.hidden) {
                 syncTimerAfterPause();
             } else {
-                stopTimerAndSetTime()
+                stopOnlyTimer();
             }
         };
 
@@ -121,12 +133,15 @@ const ActivityTimeTracker = () => {
     // Initialize timer with workTimeTracker
     useEffect(() => {
         if (!isStartActivity && workTimeTracker?.[timeOption]?.timeHolder) {
-            const [newHour, newMin, newSec] = workTimeTracker[timeOption].timeHolder.split(":").map(Number);
+            const [newHour, newMin, newSec] = workTimeTracker[timeOption].timeHolder
+                .split(":")
+                .map(Number);
             setHour(newHour);
             setMin(newMin);
             setSec(newSec);
         }
     }, [timeOption, workTimeTracker, isStartActivity]);
+
 
     return (
         <>

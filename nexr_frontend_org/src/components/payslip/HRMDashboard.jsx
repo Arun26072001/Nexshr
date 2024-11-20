@@ -181,7 +181,7 @@ export default function HRMDashboard() {
             ...workTimeTracker,
             [timeOption]: {
                 ...workTimeTracker[timeOption],
-                startingTime: workTimeTracker[timeOption].startingTime !== "00:00" ? workTimeTracker[timeOption].startingTime : currentTime
+                startingTime: workTimeTracker[timeOption]?.startingTime !== "00:00" ? workTimeTracker[timeOption]?.startingTime : currentTime
             },
         };
 

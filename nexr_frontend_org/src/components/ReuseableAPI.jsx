@@ -36,7 +36,7 @@ async function getTotalWorkingHourPerDay(start, end) {
 const getDataAPI = async (empId) => {
     try {
         const response = await axios.get(`${url}/api/clock-ins/${empId}`, {
-            params: { date: new Date() },
+            params: { date: Date() },
             headers: { authorization: token || '' },
         });
 
@@ -285,11 +285,23 @@ const getDepartments = async () => {
     }
 }
 
-  // Add seconds to a given time
-  const addSecondsToTime = (timeString, secondsToAdd) => {
-    const [hours, minutes, seconds] = timeString.split(":").map(Number);
-    const totalSeconds = hours * 3600 + minutes * 60 + seconds + secondsToAdd;
 
+const addSecondsToTime = (timeString, secondsToAdd) => {
+    console.log(timeString);
+    
+    // Validate and normalize the timeString format
+    if (!/^\d{1,2}:\d{1,2}:\d{1,2}$/.test(timeString)) {
+        console.error("Invalid time format:", timeString);
+        return { hours: "00", minutes: "00", seconds: "00" };
+    }
+
+    // Split and convert to numbers
+    const [hours, minutes, seconds] = timeString.split(":").map(Number);
+
+    // Ensure totalSeconds is non-negative
+    const totalSeconds = Math.max(0, hours * 3600 + minutes * 60 + seconds + secondsToAdd);
+
+    // Calculate new time components
     const newHours = Math.floor(totalSeconds / 3600) % 24;
     const newMinutes = Math.floor((totalSeconds % 3600) / 60);
     const newSeconds = totalSeconds % 60;
@@ -300,6 +312,7 @@ const getDepartments = async () => {
         seconds: String(newSeconds).padStart(2, "0"),
     };
 };
+
 
 export {
     addDataAPI,
