@@ -1,12 +1,12 @@
 const express = require("express");
 const router = express.Router();
-const Joi = require('joi');
 const { verifyAdminHREmployee, verifyAdminHR } = require("../auth/authMiddleware");
 const { clockInsValidation, ClockIns } = require("../models/ClockInsModel");
 const { Employee } = require("../models/EmpModel");
 const { getDayDifference } = require("./leave-app");
-const jwt = require("jsonwebtoken");
-const getEmployeeModel = require("./employee")
+// const Joi = require('joi');
+// const jwt = require("jsonwebtoken");
+// const getEmployeeModel = require("./employee")
 
 async function checkLoginForOfficeTime(scheduledTime, actualTime) {
     // Parse scheduled and actual time into hours and minutes
@@ -122,6 +122,8 @@ router.post("/:id", verifyAdminHREmployee, async (req, res) => {
             await emp.save(); // Fixed save function usage
 
             res.status(201).send(clockIns);
+        }else{
+            res.status(400).send({error: "You must start Punchin Timer"})
         }
     } catch (error) {
         res.status(500).send({ error: error.message });
