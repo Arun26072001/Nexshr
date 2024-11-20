@@ -118,6 +118,8 @@ const ActivityTimeTracker = () => {
     // Sync timer with inactivity
     useEffect(() => {
         const handleVisibilityChange = () => {
+            console.log(isStartActivity);
+            
             if (!document.hidden && isStartActivity) {
                 syncTimerAfterPause();
             } else {
