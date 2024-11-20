@@ -37,7 +37,7 @@ const App = () => {
   };
 
   const handleLogout = () => {
-    console.log(isStartLogin, isStartActivity);
+    // console.log(isStartLogin, isStartActivity);
     if (localStorage.getItem('empId')) {
       toast.warn(`Please Enter full details for this employee`);
       console.log(isStartLogin, isStartActivity);
