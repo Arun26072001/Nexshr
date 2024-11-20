@@ -287,8 +287,6 @@ const getDepartments = async () => {
 
 
 const addSecondsToTime = (timeString, secondsToAdd) => {
-    console.log(timeString);
-    
     // Validate and normalize the timeString format
     if (!/^\d{1,2}:\d{1,2}:\d{1,2}$/.test(timeString)) {
         console.error("Invalid time format:", timeString);

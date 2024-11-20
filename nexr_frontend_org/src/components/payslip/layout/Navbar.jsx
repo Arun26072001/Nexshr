@@ -50,9 +50,9 @@ function stopOnlyTimer() {
 }
 
 function startOnlyTimer() {
-    console.log("call timer only fun: ", workTimeTracker._id, isStartLogin);
+    // console.log("call timer only fun: ", workTimeTracker._id, isStartLogin);
     if (!workRef.current) {
-        if (isStartLogin && workTimeTracker._id) {
+        if (isStartLogin) {
             workRef.current = setInterval(incrementTime, 1000);
         }
     }
@@ -80,15 +80,15 @@ const stopTimer = async () => {
 const syncTimerAfterPause = () => {
     const now = Date.now();
     const diff = now - lastCheckTimeRef.current;
-    console.log("Wakeup called.");
-    console.log("Time difference since last check (ms):", diff);
+    // console.log("Wakeup called.");
+    // console.log("Time difference since last check (ms):", diff);
 
     if (diff > 3000 && isStartLogin) {
         const secondsToAdd = Math.floor(diff / 1000);
-        console.log("Seconds to add:", secondsToAdd);
+        // console.log("Seconds to add:", secondsToAdd);
 
         const updatedTime = addSecondsToTime(`${parseInt(localStorage.getItem("loginTimer")?.split(':')[0])}:${parseInt(localStorage.getItem("loginTimer")?.split(':')[1])}:${parseInt(localStorage.getItem("loginTimer")?.split(':')[2])}`, secondsToAdd);
-        console.log("Updated time:", updatedTime);
+        // console.log("Updated time:", updatedTime);
 
         // Combine updates into a single state update
         setHour(Number(updatedTime.hours));

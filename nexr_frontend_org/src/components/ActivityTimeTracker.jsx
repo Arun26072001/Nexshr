@@ -47,10 +47,10 @@ const ActivityTimeTracker = () => {
 
 
     function startOnlyTimer() {
-        console.log("call timer only fun: ", workTimeTracker._id, isStartActivity);
+        // console.log("call timer only fun: ", workTimeTracker._id, isStartActivity);
         
         if (!timerRef.current) {
-            if (isStartActivity && workTimeTracker._id) {
+            if (isStartActivity) {
                 timerRef.current = setInterval(incrementTime, 1000);
             }
         }
@@ -78,15 +78,15 @@ const ActivityTimeTracker = () => {
     const syncTimerAfterPause = () => {
         const now = Date.now();
         const diff = now - lastCheckTimeRef.current;
-        console.log("Wakeup called.");
-        console.log("Time difference since last check (ms):", diff);
+        // console.log("Wakeup called.");
+        // console.log("Time difference since last check (ms):", diff);
 
         if (diff > 3000 && isStartActivity) {
             const secondsToAdd = Math.floor(diff / 1000);
-            console.log("Seconds to add:", secondsToAdd);
+            // console.log("Seconds to add:", secondsToAdd);
 
             const updatedTime = addSecondsToTime(`${parseInt(localStorage.getItem("activityTimer")?.split(":")[0])}:${parseInt(localStorage.getItem("activityTimer")?.split(":")[1])}:${parseInt(localStorage.getItem("activityTimer")?.split(":")[2])}`, secondsToAdd);
-            console.log("Updated time:", updatedTime);
+            // console.log("Updated time:", updatedTime);
 
             // Combine updates into a single state update
             setHour(Number(updatedTime.hours));
