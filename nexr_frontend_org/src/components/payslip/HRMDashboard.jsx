@@ -226,6 +226,7 @@ export default function HRMDashboard() {
                 timeHolder: localStorage.getItem("activityTimer")
             },
         });
+        console.log(workTimeTracker?._id, isStartActivity);
 
         if (workTimeTracker?._id && isStartActivity) {
             try {
@@ -259,7 +260,7 @@ export default function HRMDashboard() {
     // timers will stop. when browser window is close
     window.addEventListener('onunload', function (e) {
         console.log("call to unload");
-        
+
         // stopLoginTimer();
         // stopActivityTimer();
         // e.preventDefault();
