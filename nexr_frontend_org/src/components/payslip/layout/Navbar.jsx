@@ -26,7 +26,9 @@ export default function Navbar() {
     const [min, setMin] = useState(() => parseInt(localStorage.getItem("loginTimer")?.split(':')[1]) || 0);
     const [hour, setHour] = useState(() => parseInt(localStorage.getItem("loginTimer")?.split(':')[0]) || 0);
     const workRef = useRef(null);  // Use ref to store interval ID
-    const lastCheckTimeRef = useRef(Date.now())
+    const lastCheckTimeRef = useRef(Date.now());
+    console.log(isStartLogin);
+
 
     // Timer logic to increment time
     const incrementTime = () => {
@@ -90,7 +92,7 @@ export default function Navbar() {
         // console.log("Wakeup called.");
         // console.log("Time difference since last check (ms):", diff);
 
-        if (diff > 3000 && isStartLogin) {
+        if (diff > 3000 && isStartLogin && workTimeTracker._id) {
             const secondsToAdd = Math.floor(diff / 1000);
             // console.log("Seconds to add:", secondsToAdd);
 
@@ -147,22 +149,22 @@ export default function Navbar() {
         }
     }, [workTimeTracker, isStartLogin]);
 
-    useEffect(() => {
-        async function gettingOrgdata() {
-            try {
-                const org = await axios.get(`${url}/api/organization/${orgId}`, {
-                    headers: {
-                        Authorization: token || ""
-                    }
-                })
-                setOrganization(org.data);
-            } catch (error) {
-                console.error(error);
-                // toast.error(error?.response?.data?.error)
-            }
-        }
-        gettingOrgdata()
-    }, [])
+    // useEffect(() => {
+    //     async function gettingOrgdata() {
+    //         try {
+    //             const org = await axios.get(`${url}/api/organization/${orgId}`, {
+    //                 headers: {
+    //                     Authorization: token || ""
+    //                 }
+    //             })
+    //             setOrganization(org.data);
+    //         } catch (error) {
+    //             console.error(error);
+    //             // toast.error(error?.response?.data?.error)
+    //         }
+    //     }
+    //     gettingOrgdata()
+    // }, [])
 
     const renderMenu = ({ onClose, right, top, className }, ref) => {
         const handleSelect = eventKey => {

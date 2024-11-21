@@ -5,21 +5,38 @@ const userAccountSchema = new mongoose.Schema({
     name: { type: String },
     email: { type: String },
     password: { type: String },
+    countryCode: { type: String },
+    phone: { type: String },
     orgs: [{ type: mongoose.Schema.Types.ObjectId, ref: "Organization" }],
     createdAt: { type: Date, default: Date.now },
     expiresAt: { type: Date },
-    Account: {type: Number, default: 0}
+    Account: { type: Number, default: 0 }
 })
 
 const UserAccount = mongoose.model("UserAccount", userAccountSchema);
 
-const userAccountValidation = Joi.object().keys({
-    name: Joi.string().required(),
-    email: Joi.string().email().required(),
-    password: Joi.string().min(8).required(),  // Minimum 8 characters for password
-    orgId: Joi.array().items(Joi.string().regex(/^[0-9a-fA-F]{24}$/)).optional(), // Valid MongoDB ObjectId
-    createdAt: Joi.date(), 
-    expiresAt: Joi.date().greater(Joi.ref('createdAt')).optional() // Should be a date after createdAt
+const userAccountValidation = Joi.object({
+    name: Joi.string()
+        .min(1)
+        .max(100)
+        .required(),
+
+    email: Joi.string()
+        .email()
+        .required(),
+
+    password: Joi.string()
+        .min(6)
+        .max(128)
+        .required(),
+
+    countryCode: Joi.string()
+        .required(),
+
+    phone: Joi.string()
+        .regex(/^\d{7,15}$/) // Accepts 7 to 15 digits
+        .required()
 });
 
-module.exports = {UserAccount, userAccountValidation}
+
+module.exports = { UserAccount, userAccountValidation }

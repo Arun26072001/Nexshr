@@ -5,9 +5,11 @@ import PowerSettingsNewRoundedIcon from "@mui/icons-material/PowerSettingsNewRou
 import { TimerStates } from "./payslip/HRMDashboard";
 import { toast } from "react-toastify";
 import { addSecondsToTime } from "./ReuseableAPI";
+import { EssentialValues } from "../App";
 
 const ActivityTimeTracker = () => {
     const { startActivityTimer, stopActivityTimer, workTimeTracker, isStartActivity, timeOption } = useContext(TimerStates);
+    const { setIsStartActivity } = useContext(EssentialValues);
     const EmpName = localStorage.getItem("Name") || "Employee";
     // Timer states
     const [sec, setSec] = useState(() => parseInt(localStorage.getItem("activityTimer")?.split(":")[2]) || 0);
@@ -15,6 +17,8 @@ const ActivityTimeTracker = () => {
     const [hour, setHour] = useState(() => parseInt(localStorage.getItem("activityTimer")?.split(":")[0]) || 0);
     const timerRef = useRef(null);
     const lastCheckTimeRef = useRef(Date.now());
+    // console.log(isStartActivity);
+
 
     // Timer logic to increment time
     const incrementTime = () => {
@@ -40,6 +44,7 @@ const ActivityTimeTracker = () => {
     function stopOnlyTimer() {
 
         if (timerRef.current && isStartActivity) {
+            // setIsStartActivity(false);
             clearInterval(timerRef.current);
             timerRef.current = null;
         }
@@ -47,9 +52,10 @@ const ActivityTimeTracker = () => {
 
     function startOnlyTimer() {
         // console.log("call timer only fun: ", workTimeTracker._id, isStartActivity);
-        console.log(isStartActivity);
+        // console.log(isStartActivity);
 
         if (!timerRef.current) {
+            // setIsStartActivity(true);
             if (isStartActivity) {
                 timerRef.current = setInterval(incrementTime, 1000);
             }
@@ -58,7 +64,7 @@ const ActivityTimeTracker = () => {
 
     // Function to start the timer
     const startTimer = async () => {
-        console.log("call to start in startTimer");
+        // console.log("call to start in startTimer");
 
         if (!timerRef.current) {
             await startActivityTimer();
@@ -79,18 +85,20 @@ const ActivityTimeTracker = () => {
 
     const syncTimerAfterPause = () => {
         console.log("call to start in sync");
+        console.log(isStartActivity);
+
 
         const now = Date.now();
         const diff = now - lastCheckTimeRef.current;
-        // console.log("Wakeup called.");
-        // console.log("Time difference since last check (ms):", diff);
+        console.log("Wakeup called.");
+        console.log("Time difference since last check (ms):", diff);
 
         if (diff > 3000 && isStartActivity && workTimeTracker._id) {
             const secondsToAdd = Math.floor(diff / 1000);
-            // console.log("Seconds to add:", secondsToAdd);
+            console.log("Seconds to add:", secondsToAdd);
 
             const updatedTime = addSecondsToTime(`${parseInt(localStorage.getItem("activityTimer")?.split(":")[0])}:${parseInt(localStorage.getItem("activityTimer")?.split(":")[1])}:${parseInt(localStorage.getItem("activityTimer")?.split(":")[2])}`, secondsToAdd);
-            // console.log("Updated time:", updatedTime);
+            console.log("Updated time:", updatedTime);
 
             // Combine updates into a single state update
             setHour(Number(updatedTime.hours));
@@ -119,7 +127,7 @@ const ActivityTimeTracker = () => {
     useEffect(() => {
         const handleVisibilityChange = () => {
             console.log(isStartActivity);
-            
+
             if (!document.hidden) {
                 syncTimerAfterPause();
             } else {
