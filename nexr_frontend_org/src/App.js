@@ -9,24 +9,28 @@ import { toast, ToastContainer } from "react-toastify";
 import { jwtDecode } from "jwt-decode";
 import "react-toastify/dist/ReactToastify.css";
 import NoInternet from "./components/NoInternet.jsx";
+import Cookies from 'universal-cookie';
 
 // check to update
 export const EssentialValues = createContext(null);
 const App = () => {
   const url = process.env.REACT_APP_API_URL;
-  const account = localStorage.getItem("Account");
-  const [isStartLogin, setIsStartLogin] = useState(localStorage.getItem("isStartLogin") === "false" ? false : localStorage.getItem("isStartLogin") === "true" ? true : false);
-  const [isStartActivity, setIsStartActivity] = useState(localStorage.getItem("isStartActivity") === "false" ? false : localStorage.getItem("isStartActivity") === "true" ? true : false);
+  const cookies = new Cookies();
+  const token = cookies.get("token");
+  const {
+    Account, _id, FirstName, LastName
+  } = jwtDecode(token);
+  const [isStartLogin, setIsStartLogin] = useState(cookies.get("isStartLogin") === "false" ? false : cookies.get("isStartLogin") === "true" ? true : false);
+  const [isStartActivity, setIsStartActivity] = useState(cookies.get("isStartActivity") === "false" ? false : cookies.get("isStartActivity") === "true" ? true : false);
   const [data, setData] = useState({
-    _id: localStorage.getItem("_id") || "",
-    Account: localStorage.getItem("Account") || "",
-    Name: localStorage.getItem("Name") || ""
+    _id: _id || "",
+    Account: Account || "",
+    Name: FirstName || ""
   });
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [pass, setPass] = useState(true);
-  const [isLogin, setIsLogin] = useState(localStorage.getItem("isLogin") === "true");
-
+  const [isLogin, setIsLogin] = useState(cookies.get("isLogin") || false);
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -38,10 +42,11 @@ const App = () => {
 
   const handleLogout = () => {
     // console.log(isStartLogin, isStartActivity);
-    if (localStorage.getItem('empId')) {
-      toast.warn(`Please Enter full details for this employee`);
-      console.log(isStartLogin, isStartActivity);
-    } else if (isStartLogin || isStartActivity) {
+    // if (localStorage.getItem('empId')) {
+    //   toast.warn(`Please Enter full details for this employee`);
+    //   console.log(isStartLogin, isStartActivity);
+    // } else
+    if (isStartLogin || isStartActivity) {
       toast.warn("you can't logout until timer stop.")
     } else {
       localStorage.clear();
@@ -55,6 +60,7 @@ const App = () => {
     }
 
   };
+
   const login = async (email, pass) => {
     let bodyLogin = {
       Email: email,
@@ -66,7 +72,7 @@ const App = () => {
       let decodedData = jwtDecode(login.data);
       console.log(decodedData);
 
-      localStorage.setItem("token", login.data);
+      cookies.set("token", login.data, "/");
       if ((login === undefined || login === null ||
         decodedData.Account === undefined ||
         decodedData.Account === null) &&
@@ -89,22 +95,9 @@ const App = () => {
         setPass(true);
         setLoading(false);
         setIsLogin(true);
-        localStorage.setItem("userProfile", decodedData.profile);
-        localStorage.setItem("isLogin", true);
-        localStorage.setItem("Account", accountType);
-        localStorage.setItem("_id", decodedData._id);
-        localStorage.setItem("Name", `${decodedData.FirstName} ${decodedData.LastName}`);
-        localStorage.setItem("annualLeaveEntitment", decodedData.annualLeaveEntitlement || 0);
-        localStorage.setItem("userPermissions", JSON.stringify(decodedData.roleData.userPermissions))
+        cookies.set("isLogin", true);
 
-        Object.entries(decodedData.roleData.pageAuth).forEach(([key, value]) => {
-          if (key !== '_id' && key !== "__v") {
-            return localStorage.setItem(`${key}`, value)
-          }
-        })
-
-
-        if (!localStorage.getItem("token")) {
+        if (!cookies.get("token")) {
           window.location.reload();
         }
 
@@ -126,21 +119,24 @@ const App = () => {
   };
 
   useEffect(() => {
-    localStorage.setItem("isStartLogin", isStartLogin);
-    localStorage.setItem("isStartActivity", isStartActivity);
+    cookies.set("isStartLogin", isStartLogin, { path: "/" });
+    cookies.set("isStartActivity", isStartActivity, { path: "/" });
   }, [isStartLogin, isStartActivity]);
 
   useEffect(() => {
     async function checkNetworkConnection() {
+      console.log("call ini");
+
       try {
         const connectionMsg = await axios.get(`${url}/`);
         if (isLogin && window.location.pathname === "/") {
+          console.log(Account);
 
-          if (account === '1') {
+          if (Account === 1) {
             navigate("/admin")
-          } else if (account === '2') {
+          } else if (Account === 2) {
             navigate("/hr")
-          } else if (account === '3') {
+          } else if (Account === 3) {
             navigate("/emp")
           }
         }
@@ -153,7 +149,6 @@ const App = () => {
     checkNetworkConnection();
   }, [data]);
 
-
   return (
     <EssentialValues.Provider value={{ data, handleLogout, handleSubmit, loading, pass, isLogin, isStartLogin, setIsStartLogin, isStartActivity, setIsStartActivity }}>
       <ToastContainer />
@@ -162,9 +157,9 @@ const App = () => {
         <Route path="/" element={isLogin ? <Layout /> : <Navigate to={"/login"} />} >
           <Route path="*" element={<Layout />} />
         </Route>
-        <Route path=":who/*" element={isLogin && account === '1' ? <HRMDashboard /> : <Navigate to={"/login"} />} />
-        <Route path="hr/*" element={isLogin && account === '2' ? <HRMDashboard /> : <Navigate to={"/login"} />} />
-        <Route path="emp/*" element={isLogin && account === '3' ? <HRMDashboard /> : <Navigate to={"/login"} />} />
+        <Route path="admin/*" element={isLogin && Account === 1 ? <HRMDashboard /> : <Navigate to={"/login"} />} />
+        <Route path="hr/*" element={isLogin && Account === 2 ? <HRMDashboard /> : <Navigate to={"/login"} />} />
+        <Route path="emp/*" element={isLogin && Account === 3 ? <HRMDashboard /> : <Navigate to={"/login"} />} />
         <Route path="no-internet-connection" element={<NoInternet />} />
       </Routes>
     </EssentialValues.Provider>

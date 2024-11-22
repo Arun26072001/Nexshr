@@ -32,22 +32,23 @@ import PageAndActionAuth from '../Settings/PageAndActionAuth';
 import Announce from '../Announcement/announce';
 import Department from '../Administration/Department';
 import Position from '../Administration/Position';
+import Cookies from "universal-cookie";
+import { jwtDecode } from 'jwt-decode';
 
 export const LeaveStates = createContext(null);
 export const TimerStates = createContext(null);
 
 export default function HRMDashboard() {
     const { data, isStartLogin, isStartActivity, setIsStartLogin, setIsStartActivity } = useContext(EssentialValues);
-    const strPermissionData = localStorage.getItem("userPermissions");
-    const userPermissions = JSON.parse(strPermissionData);
+    const cookies = new Cookies();
+    const token = cookies.get("token")
+    const { roleData, _id, Account } = jwtDecode(token);
+    const { userPermissions } = roleData;
     const [attendanceData, setAttendanceData] = useState([]);
     const [attendanceForSummary, setAttendanceForSummary] = useState({});
-    const empId = localStorage.getItem("_id");
-    const Account = localStorage.getItem("Account")
     const [leaveRequests, setLeaveRequests] = useState({});
     const [fullLeaveRequests, setFullLeaveRequests] = useState([]);
     const [empName, setEmpName] = useState("");
-    const token = localStorage.getItem('token');
     const [whoIs, setWhoIs] = useState("");
     const [isLoading, setIsLoading] = useState(false);
     const [waitForAttendance, setWaitForAttendance] = useState(false);
@@ -293,14 +294,14 @@ export default function HRMDashboard() {
 
             getLeaveData();
         }
-    }, [daterangeValue, empId, whoIs]);
+    }, [daterangeValue, _id, whoIs]);
 
     // get attendance summary page table of data
     const getClocknsData = useCallback(async () => {
-        if (!empId) return;
+        if (!_id) return;
         setWaitForAttendance(true);
         try {
-            const data = await gettingClockinsData(empId);
+            const data = await gettingClockinsData(_id);
             if (data) {
                 setAttendanceForSummary(data);
             } else {
@@ -312,7 +313,7 @@ export default function HRMDashboard() {
         } finally {
             setWaitForAttendance(false);
         }
-    }, [empId]);
+    }, [_id]);
 
     const getAttendanceData = async () => {
         try {
@@ -338,7 +339,7 @@ export default function HRMDashboard() {
     useEffect(() => {
         if (Account) {
             switch (Account) {
-                case '1':
+                case 1:
                     setWhoIs("admin");
                     break;
                 case '2':
@@ -359,8 +360,8 @@ export default function HRMDashboard() {
     useEffect(() => {
         const getClockInsData = async () => {
             try {
-                if (empId) {
-                    const { timeData } = await getDataAPI(empId);
+                if (_id) {
+                    const { timeData } = await getDataAPI(_id);
                     if (timeData?.clockIns[0]?._id) {
                         setWorkTimeTracker(timeData.clockIns[0])
                     } else {

@@ -11,15 +11,17 @@ import adminIcon from '../../../asserts/adminIcon.svg';
 import homeIcon from '../../../asserts/homeIcon.svg';
 import { TimerStates } from '../HRMDashboard';
 import { EssentialValues } from '../../../App';
+import Cookies from "universal-cookie";
+import { jwtDecode } from "jwt-decode";
 
 const Sidebar = () => {
-  const dashboard = localStorage.getItem('Dashboard');
-  const jobDesk = localStorage.getItem('JobDesk');
-  const employee = localStorage.getItem('Employee');
-  const leave = localStorage.getItem('Leave');
-  const attendance = localStorage.getItem('Attendance');
-  const admin = localStorage.getItem('Administration');
-  const settings = localStorage.getItem('Settings');
+  const cookies = new Cookies();
+  const { roleData } = jwtDecode(cookies.get("token"));
+  console.log(roleData);
+  
+  const { Dashboard, JobDesk, Employee,
+    Leave, Attendance, Administration,
+    Settings } = roleData.pageAuth;
 
   const { whoIs } = useContext(TimerStates);
   const { handleLogout } = useContext(EssentialValues);
@@ -94,7 +96,7 @@ const Sidebar = () => {
     <div style={{ width: isOpen ? '250px' : '50px' }} className="sidebar sidebar_hrm">
       <ul className="sidebar-nav p-0" id="sidebar-nav">
         {renderNavLink(
-          dashboard === 'allow' || ['admin', 'hr', 'employee'].includes(whoIs),
+          Dashboard === 'allow' || ['admin', 'hr', 'employee'].includes(whoIs),
           `/${whoIs}`,
           homeIcon,
           'Dashboard',
@@ -102,7 +104,7 @@ const Sidebar = () => {
         )}
 
         {renderNavLink(
-          jobDesk === 'allow' || ['admin', 'hr', 'employee'].includes(whoIs),
+          JobDesk === 'allow' || ['admin', 'hr', 'employee'].includes(whoIs),
           `/${whoIs}/job-desk/attendance`,
           jobDeskIcon,
           'Job Desk',
@@ -110,14 +112,14 @@ const Sidebar = () => {
         )}
 
         {renderNavLink(
-          employee === 'allow' || ['admin', 'hr', 'employee'].includes(whoIs),
+          Employee === 'allow' || ['admin', 'hr', 'employee'].includes(whoIs),
           `/${whoIs}/employee`,
           userIcon,
           'Employee',
           'employee'
         )}
 
-        {(leave === 'allow' || ['admin', 'hr'].includes(whoIs)) &&
+        {(Leave === 'allow' || ['admin', 'hr'].includes(whoIs)) &&
           renderSubMenu(
             'leave',
             [
@@ -130,7 +132,7 @@ const Sidebar = () => {
             'Leave'
           )}
 
-        {(attendance === 'allow' || ['admin', 'hr'].includes(whoIs)) &&
+        {(Attendance === 'allow' || ['admin', 'hr'].includes(whoIs)) &&
           renderSubMenu(
             'attendance',
             [
@@ -143,7 +145,7 @@ const Sidebar = () => {
             'Attendance'
           )}
 
-        {(admin === 'allow' || whoIs === 'admin') &&
+        {(Administration === 'allow' || whoIs === 'admin') &&
           renderSubMenu(
             'administration',
             [
@@ -158,7 +160,7 @@ const Sidebar = () => {
             'Administration'
           )}
 
-        {(settings === 'allow' || whoIs === 'admin') &&
+        {(Settings === 'allow' || whoIs === 'admin') &&
           renderSubMenu(
             'settings',
             [

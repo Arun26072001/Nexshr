@@ -9,7 +9,7 @@ var employeeSchema = new mongoose.Schema({
   teamLead: [{ type: mongoose.Types.ObjectId, ref: "Employee" }],
   phone: { type: String },
   panNumber: { type: String },
-  profile: {type: String},
+  profile: { type: String },
   Account: { type: Number, default: 3 },
   dateOfBirth: { type: String },
   clockIns: [{ type: mongoose.Schema.Types.ObjectId, ref: "clockIns" }],

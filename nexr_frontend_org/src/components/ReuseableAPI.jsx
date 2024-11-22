@@ -1,11 +1,13 @@
 import axios from 'axios';
 import { toast } from 'react-toastify';
+import { jwtDecode } from 'jwt-decode';
+import Cookies from "universal-cookie";
+const cookies = new Cookies();
+const token = cookies.get('token');
 const url = process.env.REACT_APP_API_URL;
-const empId = localStorage.getItem('_id');
-const token = localStorage.getItem('token');
+const { _id } = jwtDecode(token);
 
 const updateDataAPI = async (body) => {
-
     try {
         if (body._id) {
             const response = await axios.put(`${url}/api/clock-ins/${body._id}`, body, {
@@ -33,9 +35,9 @@ async function getTotalWorkingHourPerDay(start, end) {
     return diffHrs > 0 ? diffHrs : 0; // Ensure non-negative value
 }
 
-const getDataAPI = async (empId) => {
+const getDataAPI = async (_id) => {
     try {
-        const response = await axios.get(`${url}/api/clock-ins/${empId}`, {
+        const response = await axios.get(`${url}/api/clock-ins/${_id}`, {
             params: { date: new Date().toISOString() },
             headers: { authorization: token || '' },
         });
@@ -64,7 +66,7 @@ const getclockinsDataById = async (id) => {
 
 const addDataAPI = async (body) => {
     try {
-        const response = await axios.post(`${url}/api/clock-ins/${empId}`, body, {
+        const response = await axios.post(`${url}/api/clock-ins/${_id}`, body, {
             headers: { authorization: token || '' },
         });
         // localStorage.setItem('clockinsId', response.data._id);
@@ -99,9 +101,9 @@ const fetchEmpLeaveRequests = async () => {
     }
 }
 
-const fetchLeaveRequests = async (empId) => {
+const fetchLeaveRequests = async (_id) => {
     try {
-        const res = await axios.get(`${url}/api/leave-application/emp/${empId}`, {
+        const res = await axios.get(`${url}/api/leave-application/emp/${_id}`, {
             headers: {
                 authorization: token || ""
             }
@@ -117,7 +119,7 @@ const fetchLeaveRequests = async (empId) => {
 
 async function deleteLeave(id) {
     try {
-        let deletedMsg = await axios.delete(`${url}/api/leave-application/${empId}/${id}`, {
+        let deletedMsg = await axios.delete(`${url}/api/leave-application/${_id}/${id}`, {
             headers: {
                 authorization: token || ""
             }
@@ -141,7 +143,6 @@ const fetchEmployeeData = async (id) => {
                 authorization: token || ""
             }
         });
-        console.log(response.data)
         return response.data;
 
     } catch (error) {
@@ -188,9 +189,9 @@ const fetchAllEmployees = async () => {
     }
 }
 
-const gettingClockinsData = async (empId) => {
+const gettingClockinsData = async (_id) => {
     try {
-        const dashboard = await axios.get(`${url}/api/clock-ins/employee/${empId}`, {
+        const dashboard = await axios.get(`${url}/api/clock-ins/employee/${_id}`, {
             headers: {
                 authorization: token || ""
             }
@@ -241,9 +242,9 @@ const fetchPayslipInfo = async () => {
     }
 }
 
-const fetchPayslipFromEmp = async (empId) => {
+const fetchPayslipFromEmp = async (_id) => {
     try {
-        const payslip = await axios.get(`${url}/api/payslip/emp/${empId}`);
+        const payslip = await axios.get(`${url}/api/payslip/emp/${_id}`);
         return payslip.data;
     } catch (error) {
         return error?.response?.data?.message

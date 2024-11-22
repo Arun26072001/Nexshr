@@ -7,11 +7,12 @@ import Loading from '../Loader';
 import { EssentialValues } from '../../App';
 import { toast } from 'react-toastify';
 import { TimerStates } from './HRMDashboard';
+import Cookies from 'universal-cookie';
 
 const Dashboard = () => {
     const { updateClockins } = useContext(TimerStates)
-    const { handleLogout } = useContext(EssentialValues);
-    const empId = localStorage.getItem("_id");
+    const { handleLogout, data } = useContext(EssentialValues);
+    const {_id} = data;
     const [leaveData, setLeaveData] = useState({});
     const [isLoading, setIsLoading] = useState(false);
     const [dailyLogindata, setDailyLoginData] = useState({})
@@ -19,12 +20,12 @@ const Dashboard = () => {
 
     const gettingEmpdata = async () => {
         try {
-            if (!empId) return; // Exit early if empId is not provided
+            if (!_id) return; // Exit early if _id is not provided
 
             setIsLoading(true);
 
             // Fetch employee data
-            const data = await fetchEmployeeData(empId);
+            const data = await fetchEmployeeData(_id);
             if (!data) {
                 toast.error("Error in fetching workingTimePattern data!");
                 setLeaveData({});
@@ -35,7 +36,7 @@ const Dashboard = () => {
             const workingHour = await getTotalWorkingHourPerDay(data.workingTimePattern.StartingTime, data.workingTimePattern.FinishingTime);
 
             // Fetch clock-ins data
-            const getEmpMonthPunchIns = await gettingClockinsData(empId);
+            const getEmpMonthPunchIns = await gettingClockinsData(_id);
 
             // Calculate total working hour percentage and total worked hour percentage
             const totalWorkingHourPercentage = (getEmpMonthPunchIns.companyTotalWorkingHour / getEmpMonthPunchIns.totalWorkingHoursPerMonth) * 100;
@@ -49,8 +50,7 @@ const Dashboard = () => {
             });
 
             // Fetch daily clock-in data
-            const clockinsData = await getDataAPI(empId);
-            console.log(clockinsData);
+            const clockinsData = await getDataAPI(_id);
 
             setDailyLoginData(clockinsData);
 
@@ -84,9 +84,7 @@ const Dashboard = () => {
 
     useEffect(() => {
         gettingEmpdata();
-    }, [empId]);
-    console.log(dailyLogindata);
-
+    }, [_id]);
 
     return (
         <div className='dashboard-parent'>

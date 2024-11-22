@@ -2,24 +2,30 @@ const express = require('express');
 const router = express.Router();
 const Joi = require('joi');
 const { LeaveType, LeaveTypeValidation } = require('../models/LeaveTypeModel');
+const { verifyAdminHREmployee, verifyAdminHR } = require('../auth/authMiddleware');
 
-router.post("/", (req, res)=>{
-    Joi.validate(req.body, LeaveTypeValidation ,(err, ok)=>{
-        if(err) {
-            res.status(403).send("Data not valid!")
-        }else{ 
-            LeaveType.create(req.body, (err, result)=>{
-                if(err) {
-                    res.status(500).send("check Schema model data's type!")
-                }else{
-                    res.send({
-                        "status": "ok",
-                        "response": "Added"
-                    })
-                }
-            })
+router.post("/", verifyAdminHR, async (req, res) => {
+    try {
+        const validation = LeaveTypeValidation.validate(req.body);
+        const { error } = validation;
+        if (error) {
+            res.status(400).send({ error: error.details[0].message })
+        } else {
+            const addLeaveType = await LeaveType.create(req.body);
+            res.send({ message: `${addLeaveType.LeaveName} has been added!` })
         }
-    })
+    } catch (error) {
+        res.status(500).send({ error: error.message })
+    }
+});
+
+router.get("/", verifyAdminHREmployee, async (req, res) => {
+    try {
+        const leaveTypes = await LeaveType.find().exec();
+        res.send(leaveTypes)
+    } catch (error) {
+        res.status(500).send({ error: error.message });
+    }
 })
 
 module.exports = router;
