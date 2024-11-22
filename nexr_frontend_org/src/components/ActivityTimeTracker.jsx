@@ -9,16 +9,14 @@ import { EssentialValues } from "../App";
 
 const ActivityTimeTracker = () => {
     const { startActivityTimer, stopActivityTimer, workTimeTracker, isStartActivity, timeOption } = useContext(TimerStates);
-    const { setIsStartActivity } = useContext(EssentialValues);
-    const EmpName = localStorage.getItem("Name") || "Employee";
+    const { setIsStartActivity, data } = useContext(EssentialValues);
+    const { Name } = data;
     // Timer states
     const [sec, setSec] = useState(() => parseInt(localStorage.getItem("activityTimer")?.split(":")[2]) || 0);
     const [min, setMin] = useState(() => parseInt(localStorage.getItem("activityTimer")?.split(":")[1]) || 0);
     const [hour, setHour] = useState(() => parseInt(localStorage.getItem("activityTimer")?.split(":")[0]) || 0);
     const timerRef = useRef(null);
     const lastCheckTimeRef = useRef(Date.now());
-    // console.log(isStartActivity);
-
 
     // Timer logic to increment time
     const incrementTime = () => {
@@ -165,7 +163,7 @@ const ActivityTimeTracker = () => {
             </div>
             <div className='good container-fluid row mx-auto'>
                 <div className="col-lg-6 col-md-4 col-12">
-                    <div><h6>Good to see you, {EmpName[0].toUpperCase() + EmpName.slice(1)} 👋</h6></div>
+                    <div><h6>Good to see you, {Name[0].toUpperCase() + Name.slice(1)} 👋</h6></div>
                     <div className='sub_text'>
                         {workTimeTracker?.punchInMsg || "Waiting for Login"}
                     </div>

@@ -181,6 +181,10 @@ const EditEmployeeform = ({ details, empData, handleScroll, handlePersonal, hand
         getPayslipInfo();
     }, []);
 
+    function changeImg(value) {
+        const filePath = URL.createObjectURL(value);
+        formik.setFieldValue("profile", filePath);
+    }
 
     const hourAndMin = timeDifference.toString().split(".");
     const [hour, min] = hourAndMin;
@@ -311,6 +315,14 @@ const EditEmployeeform = ({ details, empData, handleScroll, handlePersonal, hand
                                 {formik.touched.employmentType && formik.errors.employmentType ? (
                                     <div className="text-center text-danger">{formik.errors.employmentType}</div>
                                 ) : null}
+                            </div>
+
+                            <div className="my-3">
+                                <span className="inputLabel">
+                                    Attach Employee profile (recommended for JPG)
+                                </span>
+                                <input type="file" name="profile" className="fileInput"
+                                    onChange={(e)=>changeImg(e.target.files[0])} />
                             </div>
                         </div>
                     </div>

@@ -1,5 +1,4 @@
 const mongoose = require("mongoose");
-const autoIncrement = require("mongoose-auto-increment") 
 const Joi = require('joi');
 
 const LeaveTypeSchema = new mongoose.Schema({
@@ -11,11 +10,6 @@ const LeaveTypeSchema = new mongoose.Schema({
 })
 
 const LeaveType = mongoose.model("LeaveType", LeaveTypeSchema);
-autoIncrement.initialize(mongoose.connection);
-LeaveTypeSchema.plugin(autoIncrement.plugin, {
-    model: "LeaveType",
-    field: "LeaveID"
-})
 
 const LeaveTypeValidation = Joi.object().keys({
     LeaveName: Joi.string().required(),

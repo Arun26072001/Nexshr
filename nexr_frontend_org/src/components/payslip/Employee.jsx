@@ -8,6 +8,7 @@ import Loading from '../Loader';
 import { useNavigate } from 'react-router-dom';
 import NoDataFound from './NoDataFound';
 import { TimerStates } from './HRMDashboard';
+import Cookies from "universal-cookie";
 
 export default function Employee() {
     const { whoIs } = useContext(TimerStates);
@@ -20,7 +21,6 @@ export default function Employee() {
 
     useEffect(() => {
         const fetchEmployeeData = async () => {
-            setIsLoading(true);
             try {
                 const empData = await fetchEmployees();
                 setEmployees(empData);
@@ -29,11 +29,10 @@ export default function Employee() {
                 setErrorData(error.response.data.message)
                 toast.error("Failed to fetch employees");
             }
-            setIsLoading(false);
         };
-
+        setIsLoading(true);
         fetchEmployeeData();
-
+        setIsLoading(false);
         // Cleanup function if needed (optional)
         return () => {
             setEmployees([]);  // Clear employee list on unmount, if necessary
@@ -53,6 +52,7 @@ export default function Employee() {
         }
         filterEmployees();
     }, [empName]);
+
 
     return (
         <>

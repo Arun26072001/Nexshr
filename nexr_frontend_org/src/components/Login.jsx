@@ -5,6 +5,8 @@ import { ScaleLoader } from "react-spinners";
 import { Navigate, useNavigate, useParams } from "react-router-dom";
 import { EssentialValues } from "../App";
 import "./Login.css";
+import Cookies from "universal-cookie";
+import { jwtDecode } from "jwt-decode";
 
 const override = css`
   display: block;
@@ -13,20 +15,20 @@ const override = css`
 `;
 
 const Login = () => {
-  const Account = localStorage.getItem("Account");
+  const cookies = new Cookies();
+  const { Account } = jwtDecode(cookies.get("token"));
+  
   const navigate = useNavigate();
   const { handleSubmit, loading, pass } = useContext(EssentialValues);
-  // const { id } = useParams();
-  
 
   useEffect(() => {
     // localStorage.setItem("orgId", id)
-    if (Account === "1") {
+    if (Account === 1) {
       navigate("/admin")
     }
-    else if (Account === "2") {
+    else if (Account === 2) {
       navigate("/hr")
-    } else if (Account === "3") {
+    } else if (Account === 3) {
       navigate("/emp")
     }
   }, []);

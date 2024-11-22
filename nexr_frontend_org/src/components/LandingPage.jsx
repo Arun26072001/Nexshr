@@ -45,7 +45,7 @@ export default function LandingPage() {
         if (!registerData.name) errors.name = "Name is required.";
         if (!registerData.email) errors.email = "Email is required.";
         if (!registerData.password) errors.password = "Password is required.";
-        if (!registerData.countryCode) errors.countryCode = "Country is required.";
+        if (!registerData.countryCode) errors.countryCode = "Country code is required.";
         if (!registerData.phone) errors.phone = "Phone number is required.";
         if (registerData.phone && !/^\d+$/.test(registerData.phone)) {
             errors.phone = "Phone number must contain only digits.";
@@ -91,7 +91,7 @@ export default function LandingPage() {
         <div className="body">
             <ToastContainer />
             <div className="container">
-                <div className="row justify-content-center">
+                <div className="row justify-content-center align-items-center">
                     {/* Left Section */}
                     <div className="col-lg-6 col-md-12">
                         <div className="d-flex align-items-center justify-content-center">
