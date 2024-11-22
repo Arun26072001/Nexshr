@@ -1,0 +1,38 @@
+.body{
+    background-color: #f7fafc;
+    height: 100%;
+    width: 100%;
+}
+
+.logo{
+    width: 70px;
+    height: 70px;
+    object-fit: cover;
+}
+
+.logo_font{
+    font-size: 40px;
+    font-weight: 700;
+}
+
+.sub_title{
+    text-align: left;
+    font-size: 24px;
+    font-weight: 800;
+}
+.sub_title_txt{
+    font-size: 18px;
+    text-align: left;
+}
+
+li{
+    font-size: 17px;
+    font-weight: 500;
+    margin: 10px 0px;
+    list-style-type: disc;
+}
+
+.selector {
+    height: 50px !important;
+    margin: 0px !important;
+}

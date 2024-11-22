@@ -10,15 +10,14 @@ import { Dropdown, Popover, Whisper } from 'rsuite';
 import userImg from "../../../imgs/male_avatar.png";
 import { EssentialValues } from '../../../App';
 import { addSecondsToTime } from '../../ReuseableAPI';
-import axios from 'axios';
-import { useParams } from 'react-router-dom';
-import { toast } from 'react-toastify';
+import Cookies from "universal-cookie";
+import { jwtDecode } from 'jwt-decode';
 
 export default function Navbar() {
-    const url = process.env.REACT_APP_API_URL
-    const token = localStorage.getItem("token");
-    const orgId = localStorage.getItem("orgId");
-    const empImg = localStorage.getItem("userProfile")
+    const cookies = new Cookies();
+    const token = cookies.get('token');
+    const url = process.env.REACT_APP_API_URL;
+    const { orgId, userProfile } = jwtDecode(token);
     const [organization, setOrganization] = useState({});
     const { handleLogout } = useContext(EssentialValues)
     const { startLoginTimer, stopLoginTimer, workTimeTracker, isStartLogin } = useContext(TimerStates);
@@ -26,7 +25,7 @@ export default function Navbar() {
     const [min, setMin] = useState(() => parseInt(localStorage.getItem("loginTimer")?.split(':')[1]) || 0);
     const [hour, setHour] = useState(() => parseInt(localStorage.getItem("loginTimer")?.split(':')[0]) || 0);
     const workRef = useRef(null);  // Use ref to store interval ID
-    const lastCheckTimeRef = useRef(Date.now())
+    const lastCheckTimeRef = useRef(Date.now());
 
     // Timer logic to increment time
     const incrementTime = () => {
@@ -90,7 +89,7 @@ export default function Navbar() {
         // console.log("Wakeup called.");
         // console.log("Time difference since last check (ms):", diff);
 
-        if (diff > 3000 && isStartLogin) {
+        if (diff > 3000 && isStartLogin && workTimeTracker._id) {
             const secondsToAdd = Math.floor(diff / 1000);
             // console.log("Seconds to add:", secondsToAdd);
 
@@ -147,22 +146,22 @@ export default function Navbar() {
         }
     }, [workTimeTracker, isStartLogin]);
 
-    useEffect(() => {
-        async function gettingOrgdata() {
-            try {
-                const org = await axios.get(`${url}/api/organization/${orgId}`, {
-                    headers: {
-                        Authorization: token || ""
-                    }
-                })
-                setOrganization(org.data);
-            } catch (error) {
-                console.error(error);
-                // toast.error(error?.response?.data?.error)
-            }
-        }
-        gettingOrgdata()
-    }, [])
+    // useEffect(() => {
+    //     async function gettingOrgdata() {
+    //         try {
+    //             const org = await axios.get(`${url}/api/organization/${orgId}`, {
+    //                 headers: {
+    //                     Authorization: token || ""
+    //                 }
+    //             })
+    //             setOrganization(org.data);
+    //         } catch (error) {
+    //             console.error(error);
+    //             // toast.error(error?.response?.data?.error)
+    //         }
+    //     }
+    //     gettingOrgdata()
+    // }, [])
 
     const renderMenu = ({ onClose, right, top, className }, ref) => {
         const handleSelect = eventKey => {
@@ -255,7 +254,7 @@ export default function Navbar() {
                     {/* <img src={Profile} className="avatar ms-3" /> */}
                     {/* <ProfileImgUploader /> */}
                     <Whisper placement="bottomEnd" trigger="click" speaker={renderMenu}>
-                        <img src={empImg ? empImg : userImg} className='avatar-toggle' alt='emp_profile' />
+                        <img src={userProfile !== undefined ? userProfile : userImg} className='avatar-toggle' alt='emp_profile' />
                     </Whisper>
                 </div>
             </div>

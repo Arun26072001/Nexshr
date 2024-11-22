@@ -41,8 +41,6 @@ export default function PayslipInfo() {
     }
 
     async function submitPayslip() {
-        console.log(payslips);
-
         try {
             const payslip = await axios.post(`${url}/api/payslip-info`, payslips, {
                 headers: {

@@ -1,6 +1,4 @@
 import React, { useEffect, useState } from "react";
-// import editIcon from "../imgs/male_avatar.png";
-// import maleAvatar from "../imgs/EditIcon.png";
 import { useFormik } from "formik";
 import * as Yup from "yup";
 import axios from "axios";
@@ -8,6 +6,8 @@ import { toast } from "react-toastify";
 import "./leaveForm.css";
 import { fetchPayslipInfo } from "./ReuseableAPI";
 import { useNavigate } from "react-router-dom";
+import { TagPicker } from "rsuite";
+import NoDataFound from "./payslip/NoDataFound";
 
 const AddEmployeeForm = ({ details, handleScroll, handlePersonal, handleFinancial, handleJob, handleContact, handleEmployment, timePatterns, personalRef, contactRef, employmentRef, jobRef, financialRef, payslipRef, countries, companies, departments, positions, roles, leads, managers }) => {
     const navigate = useNavigate()
@@ -15,6 +15,11 @@ const AddEmployeeForm = ({ details, handleScroll, handlePersonal, handleFinancia
     const [payslipFields, setPayslipFields] = useState([]);
     const token = localStorage.getItem("token");
     const url = process.env.REACT_APP_API_URL;
+    const [leaveTypes, setLeaveTypes] = useState([]);
+    const [selectedLeaveTypes, setSelectedLeavetypes] = useState([]);
+    const [isLoading, setIsLoading] = useState(false);
+    const [errorData, setErrorData] = useState("");
+    const [splitError, setSplitError] = useState("");
     const [employeeObj, setEmployeeObj] = useState({
         FirstName: "",
         LastName: "",
@@ -35,6 +40,7 @@ const AddEmployeeForm = ({ details, handleScroll, handlePersonal, handleFinancia
         position: "",
         department: "",
         role: "",
+        profile: "",
         description: "",
         dateOfJoining: "",
         employmentType: "",
@@ -42,9 +48,10 @@ const AddEmployeeForm = ({ details, handleScroll, handlePersonal, handleFinancia
         annualLeaveYearStart: "",
         companyWorkingHourPerWeek: "",
         publicHoliday: "",
-        entitlement: "",
-        fullTimeAnnualLeave: "",
+        // entitlement: "",
+        // fullTimeAnnualLeave: "",
         annualLeaveEntitlement: "",
+        typesOfLeaveCount: {},
         basicSalary: "",
         bankName: "",
         accountNo: "",
@@ -97,7 +104,8 @@ const AddEmployeeForm = ({ details, handleScroll, handlePersonal, handleFinancia
         Password: Yup.string().min(6, 'Password must be at least 6 characters').required('Password is required'),
         company: Yup.string(),
         teamLead: Yup.string(),
-        managerId: Yup.string(), 
+        managerId: Yup.string(),
+        profile: Yup.string().optional(),
         phone: Yup.string().min(10, "Phone number must be 10 digits").max(10, "Phone number must be 10 digits"), // Optional
         dateOfBirth: Yup.string(), // Optional
         gender: Yup.string().oneOf(['male', 'female'], 'Invalid gender'), // Changed to optional
@@ -118,7 +126,7 @@ const AddEmployeeForm = ({ details, handleScroll, handlePersonal, handleFinancia
         entitlement: Yup.number(), // Changed to optional
         publicHoliday: Yup.string(), // Optional
         fullTimeAnnualLeave: Yup.number(), // Changed to optional
-        annualLeaveEntitlement: Yup.number() , // Optional
+        annualLeaveEntitlement: Yup.number(), // Optional
         basicSalary: Yup.string().min(4, "Invalid Salary").max(10), // Changed to optional
         bankName: Yup.string().min(2, "Invalid Bank name").max(200), // Changed to optional
         accountNo: Yup.string().min(10, "Account No digits must be between 10 to 14").max(14, "Account No digits must be between 10 to 14"), // Changed to optional
@@ -138,7 +146,7 @@ const AddEmployeeForm = ({ details, handleScroll, handlePersonal, handleFinancia
                         authorization: token || ""
                     }
                 })
-                toast.success(res.data.message);    
+                toast.success(res.data.message);
                 resetForm();
 
             } catch (err) {
@@ -254,6 +262,54 @@ const AddEmployeeForm = ({ details, handleScroll, handlePersonal, handleFinancia
     const hourAndMin = timeDifference.toString().split(".");
     const [hour, min] = hourAndMin;
 
+    function changeImg(value) {
+        const filePath = URL.createObjectURL(value);
+        formik.setFieldValue("profile", filePath);
+    }
+
+    function handleTagSelector(value) {
+        setSelectedLeavetypes(value);
+    }
+
+    function getValueforLeave(e) {
+        const { name, value } = e.target;
+
+        const totalOfSplited = Object.values(formik.values.typesOfLeaveCount || {})
+            .map(Number) 
+            .reduce((acc, curr) => acc + curr, 0);
+
+        const annualLeaveEntitlement = Number(formik.values.annualLeaveEntitlement);
+
+        if (totalOfSplited + Number(value) > annualLeaveEntitlement) {
+            setSplitError("Getting more than Annual leave value!");
+        } else {
+            setSplitError(""); 
+            formik.setFieldValue("typesOfLeaveCount", {
+                ...formik.values.typesOfLeaveCount,
+                [name]: Number(value), 
+            });
+        }
+    }
+
+
+    useEffect(() => {
+        const gettingLeaveTypes = async () => {
+            try {
+                const leaveTypes = await axios.get(`${url}/api/leave-type`, {
+                    headers: {
+                        Authorization: token || ""
+                    }
+                });
+                setLeaveTypes(leaveTypes.data.map((leave) => ({ label: leave.LeaveName, value: leave.LeaveName })));
+            } catch (error) {
+                setErrorData(error.response.data.error)
+            }
+        }
+
+        setIsLoading(true);
+        gettingLeaveTypes();
+        setIsLoading(false);
+    }, []);
 
 
     return (
@@ -396,6 +452,16 @@ const AddEmployeeForm = ({ details, handleScroll, handlePersonal, handleFinancia
                                 {formik.touched.employmentType && formik.errors.employmentType ? (
                                     <div className="text-center text-danger">{formik.errors.employmentType}</div>
                                 ) : null}
+                            </div>
+
+                            <div className="my-3">
+                                <span className="inputLabel">
+                                    Attach Employee profile (recommended for JPG)
+                                </span>
+                                <input type="file" name="profile" className="fileInput"
+                                    onChange={(e) => changeImg(e.target.files[0])}
+                                />
+
                             </div>
                         </div>
                     </div>
@@ -599,6 +665,10 @@ const AddEmployeeForm = ({ details, handleScroll, handlePersonal, handleFinancia
                         </div>
 
                         <div className="row d-flex justify-content-center">
+                            {
+                                splitError &&
+                                <div className="text-center text-danger">{splitError}</div>
+                            }
                             <div className="col-lg-6 my-2">
                                 <div className="inputLabel">
                                     Annual Leave Entitlement
@@ -614,34 +684,28 @@ const AddEmployeeForm = ({ details, handleScroll, handlePersonal, handleFinancia
                             </div>
                             <div className="col-lg-6 my-2">
                                 <div className="inputLabel">
-                                    FullTime Annual Leave
+                                    Select Leave Types
                                 </div>
-                                <input type="number"
-                                    onChange={formik.handleChange}
-                                    name="fullTimeAnnualLeave"
-                                    value={formik.values.fullTimeAnnualLeave}
-                                    className={`inputField ${formik.touched.fullTimeAnnualLeave && formik.errors.fullTimeAnnualLeave ? "error" : ""}`} />
-                                {formik.touched.fullTimeAnnualLeave && formik.errors.fullTimeAnnualLeave ? (
-                                    <div className="text-center text-danger">{formik.errors.fullTimeAnnualLeave}</div>
-                                ) : null}
+                                <TagPicker data={leaveTypes} disabled={formik.values.annualLeaveEntitlement ? false : true} title={!formik.values.annualLeaveEntitlement && "Please Enter Annual Leave"} size="lg" onChange={handleTagSelector} value={selectedLeaveTypes} className="rsuite_selector" style={{ width: 300, marginTop: "5px", border: "none", }} />
                             </div>
+                        </div>
+                        <div className="row d-flex justify-content-center">
+                            {
+
+                                selectedLeaveTypes?.map((leaveName, index) => {
+                                    return <div key={index} className="col-lg-6 my-2">
+                                        <div className="inputLabel">
+                                            Choose {leaveName} count
+                                        </div>
+                                        <input type="number"
+                                            onChange={(e) => getValueforLeave(e)}
+                                            name={leaveName}
+                                            className={`inputField`} />
+                                    </div>
+                                })
+                            }
                         </div>
 
-                        <div className="row d-flex justify-content-center">
-                            <div className="col-lg-12 my-2">
-                                <div className="inputLabel">
-                                    Entitlement
-                                </div>
-                                <input type="number"
-                                    onChange={formik.handleChange}
-                                    name="entitlement"
-                                    value={formik.values.entitlement}
-                                    className={`inputField ${formik.touched.entitlement && formik.errors.entitlement ? "error" : ""}`} />
-                                {formik.touched.entitlement && formik.errors.entitlement ? (
-                                    <div className="text-center text-danger">{formik.errors.entitlement}</div>
-                                ) : null}
-                            </div>
-                        </div>
                     </div>
 
                     <div className="jobDetails" ref={jobRef}>
@@ -655,7 +719,7 @@ const AddEmployeeForm = ({ details, handleScroll, handlePersonal, handleFinancia
                             <div className="col-lg-6">
                                 <div className="inputLabel">Manager</div>
                                 <select name="managerId" onChange={formik.handleChange} className={`inputField ${formik.touched.managerId && formik.errors.managerId ? "error" : ""}`}
-                                value={formik.values.managerId || ""}
+                                    value={formik.values.managerId || ""}
                                 >
                                     <option >Select Manager</option>
                                     {
@@ -671,7 +735,7 @@ const AddEmployeeForm = ({ details, handleScroll, handlePersonal, handleFinancia
                             <div className="col-lg-6">
                                 <div className="inputLabel">Team Lead</div>
                                 <select name="teamLead" onChange={formik.handleChange} className={`selectInput ${formik.touched.teamLead && formik.errors.teamLead ? "error" : ""}`}
-                                value={formik.values.teamLead || ""}
+                                    value={formik.values.teamLead || ""}
                                 >
                                     <option >Select TeamLead</option>
                                     {leads.map((lead) => (
@@ -869,7 +933,7 @@ const AddEmployeeForm = ({ details, handleScroll, handlePersonal, handleFinancia
                         </button>
                     </div>
                     <div className="w-50">
-                        <button type="submit" className="button px-5 py-2" onClick={navToError}>
+                        <button type="submit" className="button px-5 py-2" disabled={splitError ? true : false} onClick={navToError}>
                             Save
                         </button>
                     </div>
