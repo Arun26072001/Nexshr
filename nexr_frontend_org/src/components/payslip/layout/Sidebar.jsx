@@ -17,13 +17,12 @@ import { jwtDecode } from "jwt-decode";
 const Sidebar = () => {
   const cookies = new Cookies();
   const { roleData } = jwtDecode(cookies.get("token"));
-  console.log(roleData);
   
   const { Dashboard, JobDesk, Employee,
     Leave, Attendance, Administration,
     Settings } = roleData.pageAuth;
-
   const { whoIs } = useContext(TimerStates);
+  
   const { handleLogout } = useContext(EssentialValues);
   const param = useParams();
   const [activeSubmenu, setActiveSubmenu] = useState(param['*']);
@@ -164,7 +163,7 @@ const Sidebar = () => {
           renderSubMenu(
             'settings',
             [
-              { key: 'profile', path: `/${whoIs}/settings/profile`, label: 'Profile' },
+              { key: 'genderal', path: `/${whoIs}/settings/`, label: 'Genderal' },
               { key: 'account', path: `/${whoIs}/settings/account`, label: 'Account' },
               { key: 'payroll', path: `/${whoIs}/settings/payroll`, label: 'Payroll' }
             ],

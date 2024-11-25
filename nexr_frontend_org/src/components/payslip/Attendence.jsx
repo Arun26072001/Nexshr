@@ -7,11 +7,14 @@ import Loading from "../Loader";
 import { formatTime } from "../ReuseableAPI";
 import NoDataFound from "./NoDataFound";
 import { toast } from "react-toastify";
+import Cookies from "universal-cookie";
+import { jwtDecode } from "jwt-decode";
 
 const Attendence = (props) => {
+  const cookies = new Cookies();
+  const token = cookies.get("token");
+  const { _id } = jwtDecode(token);
   const url = process.env.REACT_APP_API_URL;
-  const empId = localStorage.getItem("_id")
-  const token = localStorage.getItem("token");
   const [clockInsData, setclockInsData] = useState({});
   const [regularHeight, setRegularHeight] = useState(0);
   const [lateHeight, setLateHeight] = useState(0);
@@ -53,13 +56,13 @@ const Attendence = (props) => {
   useEffect(() => {
     const getClockins = async () => {
       setIsLoading(true);
-      if (empId) {
-        const dashboard = await axios.get(`${url}/api/clock-ins/employee/${empId}`, {
+      if (_id) {
+        const dashboard = await axios.get(`${url}/api/clock-ins/employee/${_id}`, {
           params: {
             daterangeValue
           },
           headers: {
-            authorization: token || ""
+            Authorization: `Bearer ${token}`
           }
         });
         setclockInsData(dashboard.data);
@@ -80,12 +83,12 @@ const Attendence = (props) => {
       }
     }
     getClockins()
-  }, [empId, daterangeValue])
+  }, [_id, daterangeValue])
 
   //   useEffect(() => {
   //     const getLeaveData = async () => {
   //         try {
-  //             const leaveData = await axios.get(`${url}/api/leave-application/date-range/${empId}`, {
+  //             const leaveData = await axios.get(`${url}/api/leave-application/date-range/${_id}`, {
   //                 params: {
   //                     daterangeValue
   //                 },
@@ -103,7 +106,7 @@ const Attendence = (props) => {
   //     }
 
   //     getLeaveData();
-  // }, [daterangeValue, empId])
+  // }, [daterangeValue, _id])
 
   return (
     <div>

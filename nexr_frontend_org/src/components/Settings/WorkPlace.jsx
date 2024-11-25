@@ -360,8 +360,6 @@ import GroupOutlinedIcon from '@mui/icons-material/GroupOutlined';
 import InfoIcon from '@mui/icons-material/Info';
 import "./SettingsStyle.css";
 import axios from "axios";
-import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
-import DeleteOutlineOutlinedIcon from '@mui/icons-material/DeleteOutlineOutlined';
 import MoreVertIcon from '@mui/icons-material/MoreVert'; // For vertical ellipsis
 import { Menu, MenuItem } from "@mui/material"; // Menu and MenuItem for actions
 import { toast } from "react-toastify";
@@ -407,7 +405,7 @@ const WorkPlaceTab = () => {
       if (name === "Country") {
         try {
           const states = await axios.get(`${url}/api/country/${values[0]}`, {
-            headers: { authorization: token || "" }
+            Authorization: `Bearer ${token}` || ""
           });
           setStateData(states)
         } catch (err) {
@@ -425,7 +423,7 @@ const WorkPlaceTab = () => {
 
   function handleEdit(id) {
     axios.get(url + "/api/work-place/" + id, {
-      headers: { authorization: token || "" }
+      Authorization: `Bearer ${token}` || ""
     })
       .then((res) => {
         console.log(res.data);
@@ -442,7 +440,7 @@ const WorkPlaceTab = () => {
       return toast.error(`Can't delete workPlace. There Have ${workPlace.EmpID.length} Employees!`);
     } else {
       axios.delete(`${url}/api/work-place/${workPlace._id}`, {
-        headers: { authorization: token || "" }
+        Authorization: `Bearer ${token}` || ""
       })
         .then((res) => {
           toast.success(res.data);

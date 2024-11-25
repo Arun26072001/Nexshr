@@ -2,7 +2,6 @@ import React from "react";
 
 const WeeklyDaysDetails = ({ pattern }) => {
     const days = ["Mon", "Tues", "Wednes", "Thus", "Fri", "Sat", "Sun"];
-    console.log(pattern);
 
     const calculateTotalHours = (startTime, endTime, breakTime) => {
         if (!startTime || !endTime || breakTime === undefined) {

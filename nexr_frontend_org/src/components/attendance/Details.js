@@ -1,7 +1,5 @@
 import React from 'react';
 import './Attendence.css';
-import { Link } from 'react-router-dom';
-import Detailtable from "./Detailtable";
 import Popup from './Popup';
 import LeaveTable from '../LeaveTable';
 import NoDataFound from '../payslip/NoDataFound';

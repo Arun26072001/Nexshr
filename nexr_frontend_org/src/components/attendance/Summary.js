@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import Popup from './Popup';
 import { Doughnut } from 'react-chartjs-2';
 import { fetchEmployees, gettingClockinsData } from '../ReuseableAPI';
@@ -7,9 +7,11 @@ import LeaveTable from '../LeaveTable';
 import NoDataFound from '../payslip/NoDataFound';
 import Loading from '../Loader';
 import "./Summary.css";
+import { EssentialValues } from '../../App';
 
 const Summary = () => {
-    const empId = localStorage.getItem("_id");
+    const { data } = useContext(EssentialValues);
+    const { _id } = data;
     const [employees, setEmployees] = useState([]);
     const [clockinsData, setClockinsData] = useState({});
     const [isLoading, setIsLoading] = useState(false);
@@ -38,6 +40,8 @@ const Summary = () => {
         setIsLoading(true)
         if (id) {
             const data = await gettingClockinsData(id);
+            console.log(data);
+            
             if (data) {
                 setClockinsData(data);
                 updateChartData(data);
@@ -78,8 +82,8 @@ const Summary = () => {
 
     useEffect(() => {
         const getClockinsData = async () => {
-            if (empId) {
-                const data = await gettingClockinsData(empId);
+            if (_id) {
+                const data = await gettingClockinsData(_id);
                 if (data) {
                     setClockinsData(data);
                     updateChartData(data);
@@ -90,8 +94,8 @@ const Summary = () => {
         };
         getClockinsData();
         getEmpData();
-    }, [empId]);
-
+    }, [_id]);
+    
     return (
         <div className='dashboard-parent pt-4'>
             <div className="d-flex justify-content-between align-items-center p-3">

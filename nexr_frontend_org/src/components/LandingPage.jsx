@@ -7,6 +7,7 @@ import axios from "axios";
 import { toast, ToastContainer } from "react-toastify";
 import VisibilityOutlinedIcon from "@mui/icons-material/VisibilityOutlined";
 import VisibilityOffOutlinedIcon from "@mui/icons-material/VisibilityOffOutlined";
+import Cookies from "universal-cookie";
 
 export default function LandingPage() {
     const [registerData, setRegisterData] = useState({
@@ -19,8 +20,8 @@ export default function LandingPage() {
     const [errorData, setErrorData] = useState({});
     const [visible, setVisible] = useState(false);
     const url = process.env.REACT_APP_API_URL;
-    const token = localStorage.getItem("token");
-    console.log(registerData);
+    const cookies = new Cookies();
+    const token = cookies.get("token");
 
     // Toggle Password Visibility
     const togglePasswordVisibility = () => setVisible((prev) => !prev);
@@ -67,7 +68,7 @@ export default function LandingPage() {
                 registerData,
                 {
                     headers: {
-                        Authorization: token || "",
+                      Authorization: `Bearer ${token}` || ""
                     },
                 }
             );

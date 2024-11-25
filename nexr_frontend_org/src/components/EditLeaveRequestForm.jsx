@@ -5,12 +5,14 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
 import { toast } from "react-toastify";
 import { fetchLeaveRequests } from "./ReuseableAPI";
+import Cookies from "universal-cookie";
 
 const EditLeaveRequestForm = () => {
     const { id } = useParams();
     const url = process.env.REACT_APP_API_URL;
     const empId = localStorage.getItem("_id");
-    const token = localStorage.getItem("token");
+    const cookies = new Cookies();
+    const token = cookies.get("token");
     const [colleagues, setColleagues] = useState([]);
     const navigate = useNavigate();
     const [formData, setFormData] = useState({
@@ -30,7 +32,7 @@ const EditLeaveRequestForm = () => {
                 try {
                     const response = await axios.get(`${url}/api/leave-application/${id}`, {
                         headers: {
-                            authorization: token || ""
+                            Authorization: `Bearer ${token}` || ""
                         }
                     });
                     setFormData(response.data);
@@ -66,7 +68,7 @@ const EditLeaveRequestForm = () => {
         try {
             const res = await axios.put(`${url}/api/leave-application/${id}`, formData, {
                 headers: {
-                    authorization: token || ""
+                    Authorization: `Bearer ${token}` || ""
                 }
             });
             toast.success(res.data.message);
@@ -75,9 +77,6 @@ const EditLeaveRequestForm = () => {
             toast.error(error.response.data.details);
         }
     };
-
-    console.log(formData);
-
     return (
         <form onSubmit={handleSubmit}>
             <div className="leaveFormContainer">
@@ -210,7 +209,7 @@ const EditLeaveRequestForm = () => {
 
                     <div className="row gap-2 d-flex align-items-center justify-content-center my-4">
                         <div className="col-12 col-lg-5 col-md-5">
-                            <button className="btn btn-outline-dark w-100" onClick={()=>navigate(-1)}>Cancel</button>
+                            <button className="btn btn-outline-dark w-100" onClick={() => navigate(-1)}>Cancel</button>
                         </div>
                         <div className="col-12 col-lg-5 my-2 col-md-5">
                             <button className="btn btn-dark w-100" type="submit">Update</button>

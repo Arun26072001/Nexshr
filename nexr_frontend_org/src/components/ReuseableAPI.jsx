@@ -11,7 +11,7 @@ const updateDataAPI = async (body) => {
     try {
         if (body._id) {
             const response = await axios.put(`${url}/api/clock-ins/${body._id}`, body, {
-                headers: { authorization: token || '' },
+                headers: { Authorization: `Bearer ${token}` || "" }
             });
             console.log('Updated successfully:', response.data);
             return response.data;
@@ -39,7 +39,7 @@ const getDataAPI = async (_id) => {
     try {
         const response = await axios.get(`${url}/api/clock-ins/${_id}`, {
             params: { date: new Date().toISOString() },
-            headers: { authorization: token || '' },
+            headers: { Authorization: `Bearer ${token}` || "" }
         });
 
         const data = response.data;
@@ -54,7 +54,7 @@ const getDataAPI = async (_id) => {
 const getclockinsDataById = async (id) => {
     try {
         const response = await axios.get(`${url}/api/clock-ins/item/${id}`, {
-            headers: { authorization: token || '' },
+            headers: { Authorization: `Bearer ${token}` || "" }
         });
 
         const data = response.data;
@@ -67,7 +67,7 @@ const getclockinsDataById = async (id) => {
 const addDataAPI = async (body) => {
     try {
         const response = await axios.post(`${url}/api/clock-ins/${_id}`, body, {
-            headers: { authorization: token || '' },
+            headers: { Authorization: `Bearer ${token}` || "" }
         });
         // localStorage.setItem('clockinsId', response.data._id);
         console.log('Added successfully:', response.data);
@@ -88,7 +88,7 @@ const fetchEmpLeaveRequests = async () => {
     try {
         const res = await axios.get(`${url}/api/leave-application/hr`, {
             headers: {
-                authorization: token || ""
+                Authorization: `Bearer ${token}` || ""
             }
         })
         return res.data;
@@ -105,7 +105,7 @@ const fetchLeaveRequests = async (_id) => {
     try {
         const res = await axios.get(`${url}/api/leave-application/emp/${_id}`, {
             headers: {
-                authorization: token || ""
+                Authorization: `Bearer ${token}` || ""
             }
         });
         return res.data;
@@ -121,7 +121,7 @@ async function deleteLeave(id) {
     try {
         let deletedMsg = await axios.delete(`${url}/api/leave-application/${_id}/${id}`, {
             headers: {
-                authorization: token || ""
+                Authorization: `Bearer ${token}` || ""
             }
         })
 
@@ -140,7 +140,7 @@ const fetchEmployeeData = async (id) => {
         }
         const response = await axios.get(`${url}/api/employee/${id}`, {
             headers: {
-                authorization: token || ""
+                Authorization: `Bearer ${token}` || ""
             }
         });
         return response.data;
@@ -157,12 +157,11 @@ const fetchEmployees = async () => {
     try {
         const res = await axios.get(`${url}/api/employee`, {
             headers: {
-                authorization: token || ""
+                Authorization: `Bearer ${token}` || ""
             }
         });
         return res.data;
     } catch (err) {
-        console.log(err);
         if (err.response && err.response.data && err.response.data.message) {
             return err.response.data.message;
         } else {
@@ -175,7 +174,7 @@ const fetchAllEmployees = async () => {
     try {
         const res = await axios.get(`${url}/api/employee/all`, {
             headers: {
-                authorization: token || ""
+                Authorization: `Bearer ${token}` || ""
             }
         });
         return res.data;
@@ -193,10 +192,12 @@ const gettingClockinsData = async (_id) => {
     try {
         const dashboard = await axios.get(`${url}/api/clock-ins/employee/${_id}`, {
             headers: {
-                authorization: token || ""
+                Authorization: `Bearer ${token}` || ""
             }
         })
-        return dashboard.data
+
+        return dashboard.data;
+
     } catch (err) {
         toast.error(err.message)
     }
@@ -220,7 +221,7 @@ const fetchWorkplace = async () => {
     try {
         const workPlaces = await axios.get(url + "/api/work-place", {
             headers: {
-                authorization: token || ""
+                Authorization: `Bearer ${token}`
             }
         })
         return workPlaces.data;
@@ -233,7 +234,7 @@ const fetchPayslipInfo = async () => {
     try {
         const payslipInfo = await axios.get(`${url}/api/payslip-info`, {
             headers: {
-                authorization: token || ""
+                Authorization: `Bearer ${token}` || ""
             }
         });
         return payslipInfo.data;
@@ -255,7 +256,7 @@ const fetchRoles = async () => {
     try {
         const roles = await axios.get(url + "/api/role", {
             headers: {
-                authorization: localStorage.getItem("token") || ""
+                Authorization: `Bearer ${token}` || ""
             }
         });
         return roles.data;
@@ -277,7 +278,7 @@ const getDepartments = async () => {
     try {
         const departments = await axios.get(url + "/api/department", {
             headers: {
-                authorization: token || ""
+                Authorization: `Bearer ${token}`
             }
         });
         return departments.data;

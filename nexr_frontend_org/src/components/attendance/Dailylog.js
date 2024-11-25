@@ -6,7 +6,6 @@ import NoDataFound from '../payslip/NoDataFound';
 import Loading from '../Loader';
 
 const Dailylog = ({ attendanceData, isLoading }) => {
-    console.log(attendanceData);
 
     return (
         isLoading ? <Loading /> :
