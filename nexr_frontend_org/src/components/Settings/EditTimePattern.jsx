@@ -2,8 +2,6 @@ import React, { useEffect, useState } from "react"
 
 const EditTimePattern = ({pattern, patternName, changePatternName, handleSubmit, closeModel}) => {
     const [isRename, setIsRename] = useState(true);
-    console.log(patternName);
-    console.log(pattern.PatternName);
     useEffect(()=>{
       if(patternName === pattern.PatternName) {
         setIsRename(true)

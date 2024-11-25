@@ -1,9 +1,9 @@
-import React, { useContext, useState } from "react"
+import React, { useContext } from "react"
 import Attendence from "./Attendence";
 import Leave from "./Leave";
 import Folder from "./Folder";
 import Assets from "./Assets";
-import Payrun from "./Payrun";
+// import Payrun from "./Payrun";
 import Payslip from "./Payslip";
 import Address from "./Address";
 import Contact from "./Contact";
@@ -16,7 +16,7 @@ import { TimerStates } from "./HRMDashboard";
 
 
 const JobDesk = () => {
-    const { whoIs } = useContext(TimerStates);
+    // const { whoIs } = useContext(TimerStates);
     const jobDeskFiles = [
         'attendance', 'leave', "folder", "history",
         'salary', 'payslip', 'contact', 'social',

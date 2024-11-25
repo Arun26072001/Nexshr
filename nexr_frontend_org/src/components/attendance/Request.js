@@ -6,7 +6,7 @@ import NoDataFound from '../payslip/NoDataFound';
 import Loading from '../Loader';
 
 const Request = ({ attendanceData, isLoading }) => {
-
+    
     return (
         isLoading ? <Loading /> :
             <div className='dashboard-parent pt-4'>

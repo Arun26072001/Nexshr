@@ -7,7 +7,7 @@ const SelectEmp = ({emp, EmpID, active,action, removeEmp}) => {
   const changeSelectEmp = async (emp)=> {
     if(EmpID.length > 0){
       let isEmp = await EmpID.map(id =>(
-         id == emp._id
+         id === emp._id
       ));
       console.log(isEmp);
       isEmp.map(has =>{

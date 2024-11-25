@@ -12,9 +12,6 @@ export default function LeaveSummary() {
     useEffect(() => {
         filterLeaveRequests();
     }, [empName, daterangeValue]);
-    console.log(leaveRequests);
-
-
     return (
         <div>
             <div className="leaveDateParent">

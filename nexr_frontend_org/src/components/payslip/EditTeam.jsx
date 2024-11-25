@@ -1,6 +1,6 @@
 import React from 'react';
 import "./editModel.css";
-import { Modal, Button, Input } from 'rsuite';
+import { Modal, Button } from 'rsuite';
 import 'rsuite/dist/rsuite.min.css'; // Make sure to import the CSS
 
 const EditModel = ({ team, setTeamName, toggleAddTeam, toggleAssignEmp }) => {

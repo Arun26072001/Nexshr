@@ -6,10 +6,12 @@ import { toast } from 'react-toastify';
 import axios from 'axios';
 import CommonModel from './CommonModel';
 import LeaveTable from '../LeaveTable';
+import Cookies from 'universal-cookie';
 
 export default function Position() {
     const url = process.env.REACT_APP_API_URL;
-    const token = localStorage.getItem("token");
+    const cookies = new Cookies();
+    const token = cookies.get('token');
     const [positionObj, setPositionObj] = useState({});
     const [positions, setPositions] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
@@ -37,7 +39,7 @@ export default function Position() {
         try {
             const msg = await axios.post(url + "/api/position", positionObj, {
                 headers: {
-                    Authorization: token || ""
+                    Authorization: `Bearer ${token}`
                 }
             });
             toast.success(msg?.data?.message);
@@ -52,7 +54,7 @@ export default function Position() {
         try {
             const deletePos = await axios.delete(`${url}/api/position/${id}`, {
                 headers: {
-                    Authorization: token || ""
+                    Authorization: `Bearer ${token}`
                 }
             });
             toast.success(deletePos?.data?.message);
@@ -67,7 +69,7 @@ export default function Position() {
         try {
             const response = await axios.put(`${url}/api/position/${positionObj._id}`, positionObj, {
                 headers: {
-                    Authorization: token || ""
+                    Authorization: `Bearer ${token}`
                 }
             });
             toast.success(response?.data?.message);
@@ -84,7 +86,7 @@ export default function Position() {
         try {
             const position = await axios.get(`${url}/api/position/${id}`, {
                 headers: {
-                    Authorization: token || ""
+                    Authorization: `Bearer ${token}`
                 }
             });
             setPositionObj(position.data);
@@ -101,7 +103,7 @@ export default function Position() {
             try {
                 const response = await axios.get(url + "/api/position", {
                     headers: {
-                        Authorization: token || ""
+                        Authorization: `Bearer ${token}`
                     }
                 });
                 setPositions(response.data);

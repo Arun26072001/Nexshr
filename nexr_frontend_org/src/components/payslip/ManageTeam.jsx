@@ -102,7 +102,7 @@ const ManageTeam = () => {
     const deleteTeam = async (id) => {
         try {
             const res = await axios.delete(`${url}/api/team/${id}`, {
-                headers: { authorization: token || "" }
+                   Authorization: `Bearer ${token}` || ""
             });
 
             toast.success(res.data.message);
@@ -115,7 +115,7 @@ const ManageTeam = () => {
     const editTeam = async (team) => {
         try {
             const res = await axios.get(`${url}/api/team/${team._id}`, {
-                headers: { authorization: token || "" }
+                Authorization: `Bearer ${token}` || ""
             });
             setEditTeamObj(res.data);
             toggleAddTeam();
@@ -132,7 +132,7 @@ const ManageTeam = () => {
             };
 
             const response = await axios.post(`${url}/api/team`, newTeamObj, {
-                headers: { authorization: token || "" }
+                Authorization: `Bearer ${token}` || ""
             });
 
             toggleAssignEmp();
@@ -153,7 +153,7 @@ const ManageTeam = () => {
             };
 
             const res = await axios.put(`${url}/api/team/${editTeamObj._id}`, updatedTeamObj, {
-                headers: { authorization: token || "" }
+                Authorization: `Bearer ${token}` || ""
             });
 
             toggleAssignEmp();
@@ -174,7 +174,7 @@ const ManageTeam = () => {
             setIsLoading(true);
             try {
                 const res = await axios.get(`${url}/api/team`, {
-                    headers: { authorization: token || "" }
+                    Authorization: `Bearer ${token}` || ""
                 });
 
                 setTeams(res.data);

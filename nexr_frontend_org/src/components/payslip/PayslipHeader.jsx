@@ -1,11 +1,12 @@
 import React from "react";
-import { Link } from "react-router-dom";
+// import { Link } from "react-router-dom";
 import './header.css';
 import Bipay from "../../../image/bipay.png"; // Adjust the path accordingly
 // import Searchicon from "../../../image/searchicon.png";
 import { MdLanguage } from "react-icons/md";
 import { SlBell } from "react-icons/sl";
 import Avatar from "../../../image/avatar.png";
+
 function Header() {
   return (
 

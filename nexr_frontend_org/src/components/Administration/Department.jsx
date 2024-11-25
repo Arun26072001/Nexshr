@@ -7,10 +7,12 @@ import { toast } from 'react-toastify';
 import axios from 'axios';
 import { getDepartments } from '../ReuseableAPI';
 import CommonModel from './CommonModel';
+import Cookies from 'universal-cookie';
 
 export default function Department() {
     const url = process.env.REACT_APP_API_URL;
-    const token = localStorage.getItem("token");
+    const cookies = new Cookies();
+    const token = cookies.get('token');
     const [departmentObj, setDepartmentObj] = useState({});
     const [departments, setDepartments] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
@@ -37,7 +39,7 @@ export default function Department() {
         try {
             const msg = await axios.post(url + "/api/department", departmentObj, {
                 headers: {
-                    authorization: token || ""
+                    authorization: `Bearer ${token}`
                 }
             });
             toast.success(msg?.data?.message);
@@ -52,7 +54,7 @@ export default function Department() {
         try {
             const deleteDep = await axios.delete(`${url}/api/department/${id}`, {
                 headers: {
-                    Authorization: token || ""
+                    Authorization: `Bearer ${token}`
                 }
             });
             toast.success(deleteDep?.data?.message);
@@ -68,7 +70,7 @@ export default function Department() {
             // Assuming the correct API endpoint for editing a department is '/api/department/${id}'
             const response = await axios.put(`${url}/api/department/${departmentObj._id}`, departmentObj, {
                 headers: {
-                    Authorization: token || ""
+                    Authorization: `Bearer ${token}`
                 }
             });
 
@@ -91,7 +93,7 @@ export default function Department() {
         try {
             const department = await axios.get(`${url}/api/department/${id}`, {
                 headers: {
-                    Authorization: token || ""
+                    Authorization: `Bearer ${token}`
                 }
             });
             console.log(department.data);

@@ -494,7 +494,7 @@ const AnnouncementComponent = () => {
                 const response = await axios.get(
                     `${process.env.REACT_APP_API_URL}/api/employee/user`, 
                    { headers: {
-                        authorization: token || ""
+                        authorization: `Bearer ${token}`
                    }},
                 );
                 setTeam_member(response?.data?.Team || []);

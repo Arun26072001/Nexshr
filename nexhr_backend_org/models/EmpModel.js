@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const Joi = require('joi');
+const jwt = require("jsonwebtoken");
 
 var employeeSchema = new mongoose.Schema({
   FirstName: { type: String },
@@ -15,6 +16,7 @@ var employeeSchema = new mongoose.Schema({
   clockIns: [{ type: mongoose.Schema.Types.ObjectId, ref: "clockIns" }],
   gender: { type: String },
   code: { type: String },
+  isLogin: { type: Boolean, default: false },
   serialNo: { type: String },
   working: { type: String, default: "Yes" },
   docType: { type: String },
@@ -191,6 +193,7 @@ const EmployeePersonalInfoValidation = Joi.object().keys({
     .max(200)
     .required()
 });
+
 
 module.exports = {
   Employee,

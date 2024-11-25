@@ -10,28 +10,27 @@ import { jwtDecode } from "jwt-decode";
 
 const override = css`
   display: block;
-  margin: 0 auto;
+  margin: 0 auto; 
   border-color: red;
 `;
 
-const Login = () => {
-  const cookies = new Cookies();
-  const { Account } = jwtDecode(cookies.get("token"));
-  
+const Login = ({ isLogin }) => {
   const navigate = useNavigate();
-  const { handleSubmit, loading, pass } = useContext(EssentialValues);
-
-  useEffect(() => {
-    // localStorage.setItem("orgId", id)
-    if (Account === 1) {
-      navigate("/admin")
-    }
-    else if (Account === 2) {
-      navigate("/hr")
-    } else if (Account === 3) {
-      navigate("/emp")
-    }
-  }, []);
+  const { handleSubmit, loading, pass, data } = useContext(EssentialValues);
+  // const cookies = new Cookies();
+  // console.log(data.Account, isLogin);
+  
+  // useEffect(() => {
+  //   // localStorage.setItem("orgId", id)
+  //   if (data.Account === 1 && isLogin) {
+  //     navigate("/admin")
+  //   }
+  //   else if (data.Account === 2 && isLogin) {
+  //     navigate("/hr")
+  //   } else if (data.Account === 3 && isLogin) {
+  //     navigate("/emp")
+  //   }
+  // }, []);
 
   // useEffect(() => {
   //   async function checkNetworkConnection() {
@@ -58,10 +57,10 @@ const Login = () => {
 
   return (
     <div>
-      {Account === 1
+      {data.Account === 1 && isLogin
         ? <Navigate to={"/admin"} />
-        : Account === 2 ? <Navigate to={"/hr"} />
-          : Account === 3 ? <Navigate to={"/emp"} />
+        : data.Account === 2 && isLogin ? <Navigate to={"/hr"} />
+          : data.Account === 3 && isLogin ? <Navigate to={"/emp"} />
             : ""}
       <div className="container">
         <div id="main-outer-div">

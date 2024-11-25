@@ -451,7 +451,7 @@ export default function LeaveTable({ data, getCheckedValue, getEditDepartmentId,
             else if (item.fromDate && params['*'] === "status"
                 || item.fromDate && params['*'] === "leave-summary"
                 || item.fromDate && params['*'] === "leave"
-                || item.fromDate && params['*'] === "calender") {
+                || item.fromDate && params['*'] === "calendar") {
                 return setColumns(column8);
             } else if (item.DepartmentName) {
                 return setColumns(column9)

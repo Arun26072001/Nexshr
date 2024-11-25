@@ -2,7 +2,7 @@ import React, { useContext, useEffect, useState } from 'react'
 import { NavLink, useParams } from 'react-router-dom';
 import { TimerStates } from './HRMDashboard';
 
-export default function NavModelRouter({files }) {
+export default function NavModelRouter({files}) {
     const params = useParams();
     const [selectedFile, setSelectedFile] = useState(params['*'] || files[0]);
     const [parentPath, setParentPath] = useState("");

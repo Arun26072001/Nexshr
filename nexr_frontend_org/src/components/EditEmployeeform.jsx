@@ -9,13 +9,15 @@ import "./leaveForm.css";
 import { fetchPayslipInfo } from "./ReuseableAPI";
 import { TimerStates } from "./payslip/HRMDashboard";
 import { useParams } from "react-router-dom";
+import Cookies from "universal-cookie";
 
 const EditEmployeeform = ({ details, empData, handleScroll, handlePersonal, handleFinancial, handleJob, handleContact, handleEmployment, timePatterns, personalRef, contactRef, employmentRef, jobRef, financialRef, payslipRef, countries, companies, departments, positions, roles, leads, managers }) => {
     const { id } = useParams();
     const { changeEmpEditForm } = useContext(TimerStates);
     const [timeDifference, setTimeDifference] = useState(0);
     const [payslipFields, setPayslipFields] = useState([]);
-    const token = localStorage.getItem("token");
+    const cookies = new Cookies();
+    const token = cookies.get("token");
     const url = process.env.REACT_APP_API_URL;
     const [employeeObj, setEmployeeObj] = useState(
         empData
@@ -65,7 +67,7 @@ const EditEmployeeform = ({ details, empData, handleScroll, handlePersonal, hand
             try {
                 const res = await axios.put(`${url}/api/employee/${id}`, values, {
                     headers: {
-                        authorization: token || ""
+                        Authorization: `Bearer ${token}` || ""
                     }
                 })
                 toast.success(res.data.message);

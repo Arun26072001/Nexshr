@@ -9,10 +9,12 @@ import LeaveTable from '../LeaveTable';
 import NoDataFound from '../payslip/NoDataFound';
 import { TimerStates } from '../payslip/HRMDashboard';
 import axios from 'axios';
+import Cookies from 'universal-cookie';
 
 const Roles = () => {
     const url = process.env.REACT_APP_API_URL;
-    const token = localStorage.getItem("token");
+    const cookies = new Cookies();
+    const token = cookies.get('token');
     const { reloadRolePage } = useContext(TimerStates);
     const [isLoading, setIsLoading] = useState(false);
     const [roles, setRoles] = useState([]);
@@ -22,7 +24,7 @@ const Roles = () => {
         try {
             const deleteRole = await axios.delete(`${url}/api/role/${id}`, {
                 headers: {
-                    Authorization: token || ""
+                    Authorization: `Bearer ${token}`
                 }
             });
             toast.success(deleteRole?.data?.message);
@@ -38,8 +40,6 @@ const Roles = () => {
             setIsLoading(true);
             try {
                 const roleData = await fetchRoles();
-                console.log(roleData);
-
                 setRoles(roleData);
             } catch (err) {
                 console.log(err);
