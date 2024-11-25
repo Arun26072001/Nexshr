@@ -163,7 +163,7 @@ const Sidebar = () => {
           renderSubMenu(
             'settings',
             [
-              { key: 'profile', path: `/${whoIs}/settings/profile`, label: 'Profile' },
+              { key: 'genderal', path: `/${whoIs}/settings/`, label: 'Genderal' },
               { key: 'account', path: `/${whoIs}/settings/account`, label: 'Account' },
               { key: 'payroll', path: `/${whoIs}/settings/payroll`, label: 'Payroll' }
             ],

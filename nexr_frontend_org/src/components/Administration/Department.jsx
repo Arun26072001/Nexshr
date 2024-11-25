@@ -7,10 +7,12 @@ import { toast } from 'react-toastify';
 import axios from 'axios';
 import { getDepartments } from '../ReuseableAPI';
 import CommonModel from './CommonModel';
+import Cookies from 'universal-cookie';
 
 export default function Department() {
     const url = process.env.REACT_APP_API_URL;
-    const token = localStorage.getItem("token");
+    const cookies = new Cookies();
+    const token = cookies.get('token');
     const [departmentObj, setDepartmentObj] = useState({});
     const [departments, setDepartments] = useState([]);
     const [isLoading, setIsLoading] = useState(false);

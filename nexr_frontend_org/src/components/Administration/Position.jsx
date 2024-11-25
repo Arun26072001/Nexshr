@@ -6,10 +6,12 @@ import { toast } from 'react-toastify';
 import axios from 'axios';
 import CommonModel from './CommonModel';
 import LeaveTable from '../LeaveTable';
+import Cookies from 'universal-cookie';
 
 export default function Position() {
     const url = process.env.REACT_APP_API_URL;
-    const token = localStorage.getItem("token");
+    const cookies = new Cookies();
+    const token = cookies.get('token');
     const [positionObj, setPositionObj] = useState({});
     const [positions, setPositions] = useState([]);
     const [isLoading, setIsLoading] = useState(false);

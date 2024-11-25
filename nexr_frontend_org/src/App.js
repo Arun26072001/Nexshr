@@ -17,11 +17,12 @@ const App = () => {
   const url = process.env.REACT_APP_API_URL;
   const cookies = new Cookies();
   const token = cookies.get("token");
-  const [isLogin, setIsLogin] = useState(cookies.get("isLogin"));
+  console.log(token);
+  
+  const [isLogin, setIsLogin] = useState(cookies.get("isLogin") ? true : false);
   const {
     Account, _id, FirstName, LastName
   } = jwtDecode(token);
-  console.log(token);
 
   const [isStartLogin, setIsStartLogin] = useState(cookies.get("isStartLogin") ? true : false);
   const [isStartActivity, setIsStartActivity] = useState(cookies.get("isStartActivity") ? true : false);
@@ -101,6 +102,8 @@ const App = () => {
         };
         handleLogin();
         if (!cookies.get("token")) {
+          console.log("no token");
+
           window.location.reload();
         }
 
@@ -128,12 +131,9 @@ const App = () => {
 
   useEffect(() => {
     async function checkNetworkConnection() {
-      console.log("aaaaaa");
-
       try {
         const connectionMsg = await axios.get(`${url}/`);
         if (isLogin && window.location.pathname === "/") {
-          console.log(Account);
 
           if (Account === 1) {
             return navigate("/admin")
@@ -150,15 +150,14 @@ const App = () => {
       }
     }
     checkNetworkConnection();
-  }, []);
-  console.log(isLogin);
+  }, [Account]);
 
   return (
     <EssentialValues.Provider value={{ data, handleLogout, handleSubmit, loading, pass, isLogin, isStartLogin, setIsStartLogin, isStartActivity, setIsStartActivity }}>
       <ToastContainer />
       <Routes>
         <Route path="login/" element={<Login isLogin={isLogin} />} />
-        <Route path="/" element={isLogin ? <Layout /> : <Navigate to={"/login"} />} >
+        <Route path="/" element={isLogin ? <Layout isLogin={isLogin} /> : <Navigate to={"/login"} />} >
           <Route path="*" element={<Layout />} />
         </Route>
         <Route path="admin/*" element={isLogin && Account === 1 ? <HRMDashboard /> : <Navigate to={"/login"} />} />

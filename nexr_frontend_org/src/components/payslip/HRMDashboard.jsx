@@ -331,7 +331,9 @@ export default function HRMDashboard() {
     useEffect(() => {
         getClocknsData();
         if (Account === 1 || Account === 2) {
-            getAttendanceData()
+            setIsLoading(true);
+            getAttendanceData();
+            setIsLoading(false);
         }
     }, [getClocknsData]);
 
@@ -381,35 +383,101 @@ export default function HRMDashboard() {
     }, [isStartLogin, isStartActivity]);
 
     return (
+        // <TimerStates.Provider value={{ workTimeTracker, reloadRolePage, updateWorkTracker, startLoginTimer, stopLoginTimer, startActivityTimer, stopActivityTimer, setWorkTimeTracker, updateClockins, whoIs, timeOption, isStartLogin, isStartActivity, changeEmpEditForm, isEditEmp }}>
+        //     <Routes >
+        //         <Route path="/" element={<Parent />} >
+        //             <Route index element={<Dashboard data={data} />} />
+        //             <Route path="job-desk/*" element={<JobDesk />} />
+        //             <Route path="employee" element={<Employee />} />
+        //             <Route path="employee/add" element={userPermissions?.Employee?.add ? <Employees /> : <UnAuthorize />} />
+        //             <Route path="employee/edit/:id" element={userPermissions?.Employee?.edit ? <AddEmployee /> : <UnAuthorize />} />
+        //             <Route path="leave/*" element={
+        //                 <LeaveStates.Provider value={{ daterangeValue, setDaterangeValue, isLoading, leaveRequests, filterLeaveRequests, empName, setEmpName }} >
+        //                     <Routes>
+        //                         <Route index path='status' element={<Status />} />
+        //                         <Route path='leave-request' element={<LeaveRequest />} />
+        //                         <Route path='calendar' element={<LeaveCalender />} />
+        //                         <Route path='leave-summary' element={<LeaveSummary />} />
+        //                     </Routes>
+        //                 </LeaveStates.Provider>
+        //             } />
+
+        //             <Route path="attendance/*" element={
+        //                 <Routes>
+        //                     <Route index path="attendance-request/" element={<Request attendanceData={attendanceData} isLoading={isLoading} />} />
+        //                     <Route path="daily-log" element={<Dailylog attendanceData={attendanceData} isLoading={isLoading} />} />
+        //                     <Route path="details" element={<Details attendanceData={attendanceData} isLoading={isLoading} />} />
+        //                     <Route path="attendance-summary" element={<Summary attendanceData={attendanceForSummary} isLoading={waitForAttendance} />} />
+        //                 </Routes>
+        //             } />
+
+        //             <Route path='/leave-request' element={userPermissions?.Leave?.add ? <LeaveRequestForm /> : <UnAuthorize />} />
+        //             <Route path="/leave-request/edit/:id" element={userPermissions?.Leave?.add ? <EditLeaveRequestForm /> : <UnAuthorize />} />
+        //             <Route path="administration/*" element={
+        //                 <Routes>
+        //                     <Route index path="role/*" element={
+        //                         <Routes>
+        //                             <Route index element={<Roles />} />
+        //                             <Route path="add" element={userPermissions?.Attendance?.add ? <PageAndActionAuth /> : <UnAuthorize />} />
+        //                             <Route path="edit/:id" element={userPermissions?.Attendance?.edit ? <PageAndActionAuth /> : <UnAuthorize />} />
+        //                             <Route path="view/:id" element={userPermissions?.Attendance?.view ? <PageAndActionAuth /> : <UnAuthorize />} />
+        //                         </Routes>
+        //                     } />
+        //                     {/* <Route path="/shift" element={<Shift />} /> */}
+        //                     <Route path="/department" element={<Department />} />
+        //                     <Route path="/position" element={<Position />} />
+        //                     {/* <Route path="/holiday" element={<Holiday />} /> */}
+        //                     <Route path="/announcement" element={<Announce />} />
+        //                 </Routes>
+        //             } />
+        //             <Route path="settings/*" element={
+        //                 <Routes>
+        //                     {/* <Route index element={<Settings />} /> */}
+        //                     <Route path="/" element={<PayslipRouter whoIs={whoIs} files={files} />}>
+        //                         <Route index element={<Settings />} />
+        //                         <Route path="payroll" element={<Payroll whoIs={whoIs} />} />
+        //                         <Route path="value" element={<PayrollValue />} />
+        //                         <Route path="manage" element={<PayrollManage />} />
+        //                         <Route path="payslip" element={<PayslipInfo />} />
+        //                     </Route>
+        //                 </Routes>
+        //             } />
+
+        //             <Route path="*" element={<p>404</p>} />
+        //             <Route path="unauthorize" element={<UnAuthorize />} />
+        //         </Route>
+        //     </Routes>
+        // </TimerStates.Provider>
         <TimerStates.Provider value={{ workTimeTracker, reloadRolePage, updateWorkTracker, startLoginTimer, stopLoginTimer, startActivityTimer, stopActivityTimer, setWorkTimeTracker, updateClockins, whoIs, timeOption, isStartLogin, isStartActivity, changeEmpEditForm, isEditEmp }}>
-            <Routes >
-                <Route path="/" element={<Parent />} >
+            <Routes>
+                <Route path="/" element={<Parent />}>
                     <Route index element={<Dashboard data={data} />} />
                     <Route path="job-desk/*" element={<JobDesk />} />
                     <Route path="employee" element={<Employee />} />
                     <Route path="employee/add" element={userPermissions?.Employee?.add ? <Employees /> : <UnAuthorize />} />
                     <Route path="employee/edit/:id" element={userPermissions?.Employee?.edit ? <AddEmployee /> : <UnAuthorize />} />
+
                     <Route path="leave/*" element={
-                        <LeaveStates.Provider value={{ daterangeValue, setDaterangeValue, isLoading, leaveRequests, filterLeaveRequests, empName, setEmpName }} >
+                        <LeaveStates.Provider value={{ daterangeValue, setDaterangeValue, isLoading, leaveRequests, filterLeaveRequests, empName, setEmpName }}>
                             <Routes>
-                                <Route index path='status' element={<Status />} />
-                                <Route path='leave-request' element={<LeaveRequest />} />
-                                <Route path='calendar' element={<LeaveCalender />} />
-                                <Route path='leave-summary' element={<LeaveSummary />} />
+                                <Route index path="status" element={<Status />} />
+                                <Route path="leave-request" element={<LeaveRequest />} />
+                                <Route path="calendar" element={<LeaveCalender />} />
+                                <Route path="leave-summary" element={<LeaveSummary />} />
                             </Routes>
                         </LeaveStates.Provider>
                     } />
-                    <Route path='/leave-request' element={userPermissions?.Leave?.add ? <LeaveRequestForm /> : <UnAuthorize />} />
-                    <Route path="/leave-request/edit/:id" element={userPermissions?.Leave?.add ? <EditLeaveRequestForm /> : <UnAuthorize />} />
-                    <Route path="attendance/*" element={
-                        <Routes>
-                            <Route index path="attendance-request" element={<Request attendanceData={attendanceData} isLoading={waitForAttendance} />} />
-                            <Route path="daily-log" element={<Dailylog attendanceData={attendanceData} isLoading={waitForAttendance} />} />
-                            <Route path="details" element={<Details attendanceData={attendanceData} isLoading={waitForAttendance} />} />
-                            <Route path="attendance-summary" element={<Summary attendanceData={attendanceForSummary} isLoading={waitForAttendance} />} />
-                        </Routes>
-                    }>
+
+                    <Route path="attendance/*">
+                        <Route index path='attendance-request' element={<Request attendanceData={attendanceData} isLoading={isLoading} />} />
+                        <Route path="daily-log" element={<Dailylog attendanceData={attendanceData} isLoading={isLoading} />} />
+                        <Route path="details" element={<Details attendanceData={attendanceData} isLoading={isLoading} />} />
+                        <Route path="attendance-summary" element={<Summary attendanceData={attendanceForSummary} isLoading={waitForAttendance} />} />
                     </Route>
+
+                    <Route path="/leave-request" element={userPermissions?.Leave?.add ? <LeaveRequestForm /> : <UnAuthorize />} />
+                    <Route path="/leave-request/edit/:id" element={userPermissions?.Leave?.add ? <EditLeaveRequestForm /> : <UnAuthorize />} />
+
                     <Route path="administration/*" element={
                         <Routes>
                             <Route index path="role/*" element={
@@ -420,17 +488,16 @@ export default function HRMDashboard() {
                                     <Route path="view/:id" element={userPermissions?.Attendance?.view ? <PageAndActionAuth /> : <UnAuthorize />} />
                                 </Routes>
                             } />
-                            {/* <Route path="/shift" element={<Shift />} /> */}
                             <Route path="/department" element={<Department />} />
                             <Route path="/position" element={<Position />} />
-                            {/* <Route path="/holiday" element={<Holiday />} /> */}
                             <Route path="/announcement" element={<Announce />} />
                         </Routes>
                     } />
+
                     <Route path="settings/*" element={
                         <Routes>
-                            <Route index element={<Settings />} />
                             <Route path="/" element={<PayslipRouter whoIs={whoIs} files={files} />}>
+                                <Route index element={<Settings />} />
                                 <Route path="payroll" element={<Payroll whoIs={whoIs} />} />
                                 <Route path="value" element={<PayrollValue />} />
                                 <Route path="manage" element={<PayrollManage />} />
@@ -444,5 +511,6 @@ export default function HRMDashboard() {
                 </Route>
             </Routes>
         </TimerStates.Provider>
+
     )
 }
