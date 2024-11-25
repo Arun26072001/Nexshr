@@ -91,7 +91,6 @@ export default function HRMDashboard() {
         if (empName === "") {
             setLeaveRequests(fullLeaveRequests);
         } else {
-            console.log(fullLeaveRequests);
             const filterRequests = fullLeaveRequests?.leaveData.filter((leave) => leave.employee.FirstName.toLowerCase().includes(empName));
             setLeaveRequests((pre) => ({ ...pre, leaveData: filterRequests }));
         }
@@ -277,7 +276,7 @@ export default function HRMDashboard() {
                         daterangeValue
                     },
                     headers: {
-                        authorization: token || ""
+                        Authorization: `Bearer ${token}` || ""
                     }
                 })
 
@@ -289,7 +288,7 @@ export default function HRMDashboard() {
                 setIsLoading(false);
             }
         }
-        if ((whoIs) && (Account === '2' || Account === '1')) {
+        if ((whoIs) && (Account === 2 || Account === 1)) {
             console.log(whoIs);
 
             getLeaveData();
@@ -319,7 +318,7 @@ export default function HRMDashboard() {
         try {
             const empOfAttendances = await axios.get(`${url}/api/clock-ins/`, {
                 headers: {
-                    Authorization: token || ""
+                    Authorization: `Bearer ${token}` || ""
                 }
             });
             setAttendanceData(empOfAttendances.data);
@@ -331,7 +330,7 @@ export default function HRMDashboard() {
     // to view attendance data for admin and hr
     useEffect(() => {
         getClocknsData();
-        if (Account === "1" || Account === "2") {
+        if (Account === 1 || Account === 2) {
             getAttendanceData()
         }
     }, [getClocknsData]);
@@ -342,10 +341,10 @@ export default function HRMDashboard() {
                 case 1:
                     setWhoIs("admin");
                     break;
-                case '2':
+                case 2:
                     setWhoIs("hr");
                     break;
-                case '3':
+                case 3:
                     setWhoIs("emp");
                     break;
                 default:
@@ -395,7 +394,7 @@ export default function HRMDashboard() {
                             <Routes>
                                 <Route index path='status' element={<Status />} />
                                 <Route path='leave-request' element={<LeaveRequest />} />
-                                <Route path='calender' element={<LeaveCalender />} />
+                                <Route path='calendar' element={<LeaveCalender />} />
                                 <Route path='leave-summary' element={<LeaveSummary />} />
                             </Routes>
                         </LeaveStates.Provider>

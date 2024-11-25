@@ -40,7 +40,6 @@ const Permission = () => {
             try {
                 const rolesData = await fetchRoles();
                 setRoles(rolesData);
-                console.log(rolesData);
 
             } catch (err) {
                 console.log(err);
@@ -59,7 +58,6 @@ const Permission = () => {
             setEmployees(fullEmployees.filter((emp) => emp.FirstName.includes(e)));
         }
     }
-    console.log(employees);
 
     return (
         <div className="container">

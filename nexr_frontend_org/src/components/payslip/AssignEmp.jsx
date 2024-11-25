@@ -55,12 +55,11 @@ const AssignEmp = ({ handleSubmit, teamObj, updateTeamObj, toggleAssignEmp, team
             try {
                 const res = await axios.get(`${url}/api/employee`, {
                     headers: {
-                        authorization: token || ""
+                        Authorization: `Bearer ${token}`
                     }
                 });
                 setEmployees(res.data);
                 setFilteredEmps(res.data);
-                console.log(res.data);
 
             } catch (err) {
                 console.log(err);
@@ -79,10 +78,10 @@ const AssignEmp = ({ handleSubmit, teamObj, updateTeamObj, toggleAssignEmp, team
                     return acc;
                 }, new Map()); // Use a Map to keep unique teamLeads by _id
             console.log(uniqueTeamLeads);
-            
+
             setTeamLeads(Array.from(uniqueTeamLeads.values())); // Convert back to array of teamLead objects
         }
-        
+
         filterLead();
     }, [updateTeamObj, teamObj]);
 
@@ -111,7 +110,7 @@ const AssignEmp = ({ handleSubmit, teamObj, updateTeamObj, toggleAssignEmp, team
                         />
                     </div>
                     <div className="col-lg-8 my-2">
-                        <select className="form-control" name="lead" onChange={(e)=>setTeamLead(e)}>
+                        <select className="form-control" name="lead" onChange={(e) => setTeamLead(e)}>
                             <option value="">Select a Team Lead for {teamObj.teamName}</option>
                             {
                                 teamLeads.map((lead) => {

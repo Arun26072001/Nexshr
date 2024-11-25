@@ -1,8 +1,6 @@
 import React, { useState } from "react"
 import './SettingsStyle.css';
 import RadioButtons from "./RadioButtons";
-// import "../../EmployeeHub/style.css";
-// import "../../NavBar.css";
 
 const Notification = () => {
   const [textAreaLen, setTextAreaLen] = useState(0);
@@ -19,9 +17,9 @@ const Notification = () => {
   // Step 2: Handle button click events
   const handleRadioOption = (e) => {
     let { name, value } = e.target;
-    if (value == 0) {
+    if (value === 0) {
       value = 1;
-    } else if (value == 1) {
+    } else if (value === 1) {
       value = 0;
     }
     setRadioOption({

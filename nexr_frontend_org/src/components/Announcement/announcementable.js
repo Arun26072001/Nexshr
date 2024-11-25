@@ -120,7 +120,7 @@
 //         const response = await fetch(`${process.env.REACT_APP_API_URL}/api/announcements`,
 //           {
 //             headers: {
-//               authorization: token || ""
+//               authorization: `Bearer ${token}`
 //             }
 //           },
 //         );
@@ -205,7 +205,7 @@ export default function AnnouncementTable() {
     const fetchAnnouncements = async () => {
       try {
         const response = await fetch(`${process.env.REACT_APP_API_URL}/api/announcements`, {
-          headers: { authorization: token || "" }
+          headers: { authorization: `Bearer ${token}` }
         });
         if (!response.ok) {
           throw new Error('Failed to fetch announcements');

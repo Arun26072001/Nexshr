@@ -33,7 +33,8 @@ router.post("/", async (req, res) => {
             } else {
                 const empDataWithEmailVerified = {
                     ...emp,
-                    isVerifyEmail: true
+                    isVerifyEmail: true,
+                    isLogin: true
                 };
 
                 const updateIsEmailVerify = await Employee.findByIdAndUpdate(emp._id, empDataWithEmailVerified, { new: true });
@@ -44,7 +45,8 @@ router.post("/", async (req, res) => {
                     FirstName: emp.FirstName,
                     LastName: emp.LastName,
                     annualLeaveEntitlement: emp.annualLeaveEntitlement,
-                    roleData: emp?.role[0]
+                    roleData: emp?.role[0],
+                    isLogin: updateIsEmailVerify.isLogin
                 };
                 const token = jwt.sign(empData, jwtKey);
                 return res.send(token);

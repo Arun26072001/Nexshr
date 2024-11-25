@@ -17,20 +17,22 @@ const App = () => {
   const url = process.env.REACT_APP_API_URL;
   const cookies = new Cookies();
   const token = cookies.get("token");
+  const [isLogin, setIsLogin] = useState(cookies.get("isLogin"));
   const {
     Account, _id, FirstName, LastName
   } = jwtDecode(token);
-  const [isStartLogin, setIsStartLogin] = useState(cookies.get("isStartLogin") === "false" ? false : cookies.get("isStartLogin") === "true" ? true : false);
-  const [isStartActivity, setIsStartActivity] = useState(cookies.get("isStartActivity") === "false" ? false : cookies.get("isStartActivity") === "true" ? true : false);
+  console.log(token);
+
+  const [isStartLogin, setIsStartLogin] = useState(cookies.get("isStartLogin") ? true : false);
+  const [isStartActivity, setIsStartActivity] = useState(cookies.get("isStartActivity") ? true : false);
   const [data, setData] = useState({
     _id: _id || "",
     Account: Account || "",
-    Name: FirstName || ""
+    Name: FirstName + " " + LastName || ""
   });
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [pass, setPass] = useState(true);
-  const [isLogin, setIsLogin] = useState(cookies.get("isLogin") || false);
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -41,22 +43,22 @@ const App = () => {
   };
 
   const handleLogout = () => {
-    // console.log(isStartLogin, isStartActivity);
-    // if (localStorage.getItem('empId')) {
-    //   toast.warn(`Please Enter full details for this employee`);
-    //   console.log(isStartLogin, isStartActivity);
-    // } else
     if (isStartLogin || isStartActivity) {
       toast.warn("you can't logout until timer stop.")
     } else {
-      localStorage.clear();
+      const handleLogout = () => {
+        setIsLogin(false);
+        cookies.set("isLogin", false, { path: "/" });
+      };
+      handleLogout();
       setData({
         _id: "",
         Account: "",
         Name: ""
       });
       setIsLogin(false);
-      navigate("/login")
+      navigate("/login");
+      window.location.reload();
     }
 
   };
@@ -70,7 +72,6 @@ const App = () => {
     try {
       const login = await axios.post(process.env.REACT_APP_API_URL + `/api/login`, bodyLogin)
       let decodedData = jwtDecode(login.data);
-      console.log(decodedData);
 
       cookies.set("token", login.data, "/");
       if ((login === undefined || login === null ||
@@ -94,9 +95,11 @@ const App = () => {
 
         setPass(true);
         setLoading(false);
-        setIsLogin(true);
-        cookies.set("isLogin", true);
-
+        const handleLogin = () => {
+          setIsLogin(true);
+          cookies.set("isLogin", true, { path: "/" });
+        };
+        handleLogin();
         if (!cookies.get("token")) {
           window.location.reload();
         }
@@ -125,7 +128,7 @@ const App = () => {
 
   useEffect(() => {
     async function checkNetworkConnection() {
-      console.log("call ini");
+      console.log("aaaaaa");
 
       try {
         const connectionMsg = await axios.get(`${url}/`);
@@ -133,11 +136,11 @@ const App = () => {
           console.log(Account);
 
           if (Account === 1) {
-            navigate("/admin")
+            return navigate("/admin")
           } else if (Account === 2) {
-            navigate("/hr")
+            return navigate("/hr")
           } else if (Account === 3) {
-            navigate("/emp")
+            return navigate("/emp")
           }
         }
       } catch (error) {
@@ -147,13 +150,14 @@ const App = () => {
       }
     }
     checkNetworkConnection();
-  }, [data]);
+  }, []);
+  console.log(isLogin);
 
   return (
     <EssentialValues.Provider value={{ data, handleLogout, handleSubmit, loading, pass, isLogin, isStartLogin, setIsStartLogin, isStartActivity, setIsStartActivity }}>
       <ToastContainer />
       <Routes>
-        <Route path="login/" element={<Login />} />
+        <Route path="login/" element={<Login isLogin={isLogin} />} />
         <Route path="/" element={isLogin ? <Layout /> : <Navigate to={"/login"} />} >
           <Route path="*" element={<Layout />} />
         </Route>

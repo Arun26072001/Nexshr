@@ -10,6 +10,7 @@ import { toast } from 'react-toastify';
 import InputComponent from './InputComponent';
 import SelectEmp from './SelectEmp';
 import { fetchEmployees } from '../ReuseableAPI';
+import Cookies from 'universal-cookie';
 
 
 function CustomTabPanel(props) {
@@ -43,7 +44,8 @@ function a11yProps(index) {
 
 export default function EditWorkingPlace({ editWorkPlace, removeEmp, modifyWorkPlace, onChangeEdit, ChangeAssignEmp, changeEditModel }) {
   const url = process.env.REACT_APP_API_URL;
-  const token = localStorage.getItem("token");
+  const cookies = new Cookies();
+  const token = cookies.get("token");
   const [empName, setEmpName] = useState("");
   const [employees, setEmployees] = useState([]);
   const [filteredEmps, setFilteredEmps] = useState([]);
@@ -103,7 +105,7 @@ export default function EditWorkingPlace({ editWorkPlace, removeEmp, modifyWorkP
     // console.log(body);
     axios.put(url + "/api/work-place/" + editWorkPlace._id, body, {
       headers: {
-        authorization: token || ""
+        Authorization: `Bearer ${token}` || ""
       }
     }).then(res => {
       modifyWorkPlace()
@@ -120,14 +122,14 @@ export default function EditWorkingPlace({ editWorkPlace, removeEmp, modifyWorkP
       try {
         const countryResponse = await axios.get(`${url}/api/country`, {
           headers: {
-            authorization: token || ""
+            Authorization: `Bearer ${token}` || ""
           }
         });
         setCountryData(countryResponse.data);
 
         const stateResponse = await axios.get(`${url}/api/country/${editWorkPlace.Country._id}`, {
           headers: {
-            authorization: token || ""
+            Authorization: `Bearer ${token}` || ""
           }
         });
         setStateData(stateResponse.data.states);
@@ -152,10 +154,6 @@ export default function EditWorkingPlace({ editWorkPlace, removeEmp, modifyWorkP
     }
     getEmps();
   }, [])
-
-
-  console.log(editWorkPlace);
-
 
   return (
     <Box sx={{ width: '100%', backgroundColor: 'white', padding: "10px" }}>

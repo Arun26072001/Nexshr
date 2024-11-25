@@ -21,7 +21,7 @@ const CommonModel = ({
         try {
             const response = await axios.get(url + "/api/company", {
                 headers: {
-                    authorization: token || ""
+                    authorization: `Bearer ${token}`
                 }
             });
             setCompanies(response.data);

@@ -22,7 +22,7 @@ const Roles = () => {
         try {
             const deleteRole = await axios.delete(`${url}/api/role/${id}`, {
                 headers: {
-                    Authorization: token || ""
+                    Authorization: `Bearer ${token}`
                 }
             });
             toast.success(deleteRole?.data?.message);

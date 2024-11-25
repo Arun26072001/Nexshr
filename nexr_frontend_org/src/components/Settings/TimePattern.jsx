@@ -10,10 +10,12 @@ import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
 import EditTimePattern from "./EditTimePattern";
 import WeeklyDaysDetails from "./WeeklyDaysDetails";
 import Loading from "../Loader";
+import Cookies from "universal-cookie";
 
 const TimePattern = (props) => {
     const url = process.env.REACT_APP_API_URL;
-    const token = localStorage.getItem("token");
+    const cookies = new Cookies();
+    const token = cookies.get("token");
     const [workingTime, setWorkingTime] = useState(false);
     const [patternName, setPatternName] = useState("");
     const names = ["Names", "Days", "Assigned"];

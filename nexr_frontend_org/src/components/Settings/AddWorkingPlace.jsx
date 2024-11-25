@@ -10,6 +10,8 @@ import { useState, useEffect } from 'react';
 import SelectEmp from './SelectEmp';
 // import TableSummary from './TableSummary';
 import { toast } from 'react-toastify';
+import Cookies from 'universal-cookie';
+import { fetchEmployees } from '../ReuseableAPI';
 
 
 function CustomTabPanel(props) {
@@ -43,7 +45,8 @@ function a11yProps(index) {
 
 export default function AddWorkingPlace({ changeModel, updateWorkPlaces }) {
   const url = process.env.REACT_APP_API_URL;
-  const token = localStorage.getItem("token");
+  const cookies = new Cookies();
+  const token = cookies.get("token");
   const [empName, setEmpName] = useState("");
   const [employees, setEmployees] = useState([]);
   const [filteredEmps, setFilteredEmps] = useState([]);
@@ -84,21 +87,19 @@ export default function AddWorkingPlace({ changeModel, updateWorkPlaces }) {
 
   function onChangeWorkPlace(e) {
     const { name, value } = e.target;
-    console.log(name, value);
     if (name === "Country" || name === "State") {
       let values = value.split(",");
       setWorkPlace(prevWorkPlace => ({
         ...prevWorkPlace,
         [name]: values
       }));
-      if (name == "Country") {
+      if (name === "Country") {
         axios.get(`${url}/api/country/${values[0]}`, {
           headers: {
-            authorization: token || ""
+            Authorization: `Bearer ${token}` || ""
           }
         })
           .then((res) => {
-            console.log(res.data.states);
             setStateData(res.data.states);
           })
           .catch((err) => {
@@ -123,7 +124,7 @@ export default function AddWorkingPlace({ changeModel, updateWorkPlaces }) {
 
   function handleNext(e) {
     e.preventDefault()
-    if (value == 0 || value < 2) {
+    if (value === 0 || value < 2) {
       setValue(value + 1)
     }
   }
@@ -139,7 +140,7 @@ export default function AddWorkingPlace({ changeModel, updateWorkPlaces }) {
     const body = workPlace;
     await axios.post(url + "/api/work-place", body, {
       headers: {
-        authorization: token || ""
+        Authorization: `Bearer ${token}` || ""
       }
     }).then(res => {
       toast.success(res.data.message);
@@ -184,7 +185,7 @@ export default function AddWorkingPlace({ changeModel, updateWorkPlaces }) {
   useEffect(() => {
     axios.get(url + "/api/country", {
       headers: {
-        authorization: token || ""
+        Authorization: `Bearer ${token}` || ""
       }
     })
       .then(res => {
@@ -197,22 +198,17 @@ export default function AddWorkingPlace({ changeModel, updateWorkPlaces }) {
 
   useEffect(() => {
     async function fetchEmps() {
-      await axios.get(url + `/api/employee`, {
-        headers: {
-          authorization: token || ""
-        }
-      }).then((res) => {
-        setEmployees(res.data)
-        setFilteredEmps(res.data)
-      }).catch((err) => {
-        console.log(err);
-        setEmployees([]);
-      })
+      try {
+        const empsData = await fetchEmployees();
+        setEmployees(empsData)
+        setFilteredEmps(empsData)
+      } catch (error) {
+        toast.error(error.response.data.message)
+      }
+
     }
     fetchEmps()
-  }, [])
-
-  console.log(employees);
+  }, []);
   return (
     <Box sx={{ width: '100%', backgroundColor: 'white', padding: "10px" }}>
       <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
@@ -295,8 +291,8 @@ export default function AddWorkingPlace({ changeModel, updateWorkPlaces }) {
         </CustomTabPanel>
         <div className="d-flex justify-content-between">
           {/* <div> */}
-            {value > 0 && <button className="button m-0" onClick={handleBack}>Back</button>}
-            <button className="btn btn-secondary" onClick={changeModel}>Cancel</button>
+          {value > 0 && <button className="button m-0" onClick={handleBack}>Back</button>}
+          <button className="btn btn-secondary" onClick={changeModel}>Cancel</button>
           {/* </div> */}
           {value !== 1 ?
             <button className="button m-0" disabled={!isButtonEnabled} onClick={(e) => handleNext(e)}>

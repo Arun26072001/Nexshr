@@ -37,7 +37,7 @@ export default function Department() {
         try {
             const msg = await axios.post(url + "/api/department", departmentObj, {
                 headers: {
-                    authorization: token || ""
+                    authorization: `Bearer ${token}`
                 }
             });
             toast.success(msg?.data?.message);
@@ -52,7 +52,7 @@ export default function Department() {
         try {
             const deleteDep = await axios.delete(`${url}/api/department/${id}`, {
                 headers: {
-                    Authorization: token || ""
+                    Authorization: `Bearer ${token}`
                 }
             });
             toast.success(deleteDep?.data?.message);
@@ -68,7 +68,7 @@ export default function Department() {
             // Assuming the correct API endpoint for editing a department is '/api/department/${id}'
             const response = await axios.put(`${url}/api/department/${departmentObj._id}`, departmentObj, {
                 headers: {
-                    Authorization: token || ""
+                    Authorization: `Bearer ${token}`
                 }
             });
 
@@ -91,7 +91,7 @@ export default function Department() {
         try {
             const department = await axios.get(`${url}/api/department/${id}`, {
                 headers: {
-                    Authorization: token || ""
+                    Authorization: `Bearer ${token}`
                 }
             });
             console.log(department.data);

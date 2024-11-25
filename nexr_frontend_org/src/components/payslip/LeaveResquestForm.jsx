@@ -7,12 +7,14 @@ import axios from "axios";
 import { toast } from "react-toastify";
 import Loading from "../Loader";
 import { fetchLeaveRequests } from "../ReuseableAPI";
-
+import Cookies from "universal-cookie";
+import { jwtDecode } from "jwt-decode";
 
 const LeaveRequestForm = (props) => {
   const url = process.env.REACT_APP_API_URL;
-  const empId = localStorage.getItem("_id");
-  const token = localStorage.getItem("token");
+  const cookies = new Cookies();
+  const token = cookies.get("token");
+  const {_id} = jwtDecode(token);
   const [collegues, setCollegues] = useState([])
   const [error, setError] = useState("");
   const [isShowPeriodOfLeave, setIsShowPeriodOfLeave] = useState(false);
@@ -70,7 +72,7 @@ const LeaveRequestForm = (props) => {
     onSubmit: async (values, { resetForm }) => {
       if (error === "") {
         try {
-          const res = await axios.post(`${url}/api/leave-application/${empId}`, values, {
+          const res = await axios.post(`${url}/api/leave-application/${_id}`, values, {
             headers: {
               authorization: token || ""
             }
@@ -91,8 +93,6 @@ const LeaveRequestForm = (props) => {
 
   useEffect(() => {
     if (formik.values.fromDate && formik.values.toDate) {
-      console.log(formik.values.fromDate);
-      console.log(formik.values.toDate);
       let fromDateTime = new Date(formik.values.fromDate).getTime();
       let toDateTime = new Date(formik.values.toDate).getTime();
       if (fromDateTime > toDateTime) {
@@ -108,23 +108,23 @@ const LeaveRequestForm = (props) => {
 
   useEffect(() => {
     const gettingLeaveRequests = async () => {
-      if (empId) {
-        const leaveReqs = await fetchLeaveRequests(empId);
+      if (_id) {
+        const leaveReqs = await fetchLeaveRequests(_id);
         console.log(leaveReqs);
 
         // fetch leave types from db
         setTypOfLeave(leaveReqs?.requests?.typesOfLeaveCount)
-        const emps = leaveReqs.collegues.filter((emp) => (emp._id !== empId))
+        const emps = leaveReqs.collegues.filter((emp) => (emp._id !== _id))
         setCollegues(emps)
       } else {
-        toast.error("empId still not load in app.")
+        toast.error("_id still not load in app.")
       }
     }
     gettingLeaveRequests();
     // if (leaveType) {  // assign leavetType initially from params
     //   leaveObj.leaveType = leaveType;
     // }
-  }, [empId])
+  }, [_id])
 
 
   return (

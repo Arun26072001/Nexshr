@@ -82,21 +82,18 @@ const ActivityTimeTracker = () => {
     };
 
     const syncTimerAfterPause = () => {
-        console.log("call to start in sync");
-        console.log(isStartActivity);
-
 
         const now = Date.now();
         const diff = now - lastCheckTimeRef.current;
-        console.log("Wakeup called.");
-        console.log("Time difference since last check (ms):", diff);
+        // console.log("Wakeup called.");
+        // console.log("Time difference since last check (ms):", diff);
 
         if (diff > 3000 && isStartActivity && workTimeTracker._id) {
             const secondsToAdd = Math.floor(diff / 1000);
-            console.log("Seconds to add:", secondsToAdd);
+            // console.log("Seconds to add:", secondsToAdd);
 
             const updatedTime = addSecondsToTime(`${parseInt(localStorage.getItem("activityTimer")?.split(":")[0])}:${parseInt(localStorage.getItem("activityTimer")?.split(":")[1])}:${parseInt(localStorage.getItem("activityTimer")?.split(":")[2])}`, secondsToAdd);
-            console.log("Updated time:", updatedTime);
+            // console.log("Updated time:", updatedTime);
 
             // Combine updates into a single state update
             setHour(Number(updatedTime.hours));
@@ -124,7 +121,7 @@ const ActivityTimeTracker = () => {
     // Sync timer with inactivity
     useEffect(() => {
         const handleVisibilityChange = () => {
-            console.log(isStartActivity);
+            // console.log(isStartActivity);
 
             if (!document.hidden) {
                 syncTimerAfterPause();
