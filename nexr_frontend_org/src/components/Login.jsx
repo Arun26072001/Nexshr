@@ -17,6 +17,8 @@ const override = css`
 const Login = ({ isLogin }) => {
   const navigate = useNavigate();
   const { handleSubmit, loading, pass, data } = useContext(EssentialValues);
+  console.log("came to login");
+  
   // const cookies = new Cookies();
   // console.log(data.Account, isLogin);
   
@@ -32,36 +34,13 @@ const Login = ({ isLogin }) => {
   //   }
   // }, []);
 
-  // useEffect(() => {
-  //   async function checkNetworkConnection() {
-  //     try {
-  //       const connectionMsg = await axios.get(`${url}/`);
-  //       console.log(connectionMsg?.data?.message);
-  //       console.log(isLogin && window.location.pathname);
-  //       if (isLogin && window.location.pathname === "/") {
-
-  //         if (account === '1') {
-  //           navigate("/admin")
-  //         } else if (account === '2') {
-  //           navigate("/hr")
-  //         } else if (account === '3') {
-  //           navigate("/emp")
-  //         }
-  //       }
-  //     } catch (error) {
-  //       navigate("/no-internet-connection");
-  //     }
-  //   }
-  //   checkNetworkConnection();
-  // }, []);
-
   return (
     <div>
-      {data.Account === 1 && isLogin
+      {/* {data.Account === 1 && isLogin
         ? <Navigate to={"/admin"} />
         : data.Account === 2 && isLogin ? <Navigate to={"/hr"} />
           : data.Account === 3 && isLogin ? <Navigate to={"/emp"} />
-            : ""}
+            : ""} */}
       <div className="container">
         <div id="main-outer-div">
           <div id="logo-div">

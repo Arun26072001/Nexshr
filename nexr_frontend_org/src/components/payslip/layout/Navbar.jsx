@@ -49,23 +49,29 @@ export default function Navbar() {
 
     // start and stop timer only
     function stopOnlyTimer() {
-        if (workRef.current && isStartLogin) {
+        // if (workRef.current && isStartLogin) {
+        //     console.log(localStorage.getItem("loginTimer"));
+
             clearInterval(workRef.current);
             workRef.current = null;
-        }
+        // }
     }
 
     function startOnlyTimer() {
         // console.log("call timer only fun: ", workTimeTracker._id, isStartLogin);
-        if (!workRef.current) {
+        // if (!workRef.current) {
+        //     console.log("checking..");
+            
             if (isStartLogin) {
                 workRef.current = setInterval(incrementTime, 1000);
             }
-        }
+        // }
     }
 
     // Function to start the timer
     const startTimer = async () => {
+        console.log("call to start");
+        
         if (!workRef.current) {
             await startLoginTimer();
             if (isStartLogin) {
@@ -86,15 +92,16 @@ export default function Navbar() {
     const syncTimerAfterPause = () => {
         const now = Date.now();
         const diff = now - lastCheckTimeRef.current;
-        // console.log("Wakeup called.");
-        // console.log("Time difference since last check (ms):", diff);
-
-        if (diff > 3000 && isStartLogin && workTimeTracker._id) {
+        console.log("Wakeup called.");
+        console.log("Time difference since last check (ms):", diff);
+        // console.log(isStartLogin, workTimeTracker._id);
+        if (diff > 3000) {
+            // if (diff > 3000 && isStartLogin && workTimeTracker._id) {
             const secondsToAdd = Math.floor(diff / 1000);
-            // console.log("Seconds to add:", secondsToAdd);
-
+            console.log("Seconds to add:", secondsToAdd);
+            console.log(localStorage.getItem("loginTimer"));
             const updatedTime = addSecondsToTime(`${parseInt(localStorage.getItem("loginTimer")?.split(':')[0])}:${parseInt(localStorage.getItem("loginTimer")?.split(':')[1])}:${parseInt(localStorage.getItem("loginTimer")?.split(':')[2])}`, secondsToAdd);
-            // console.log("Updated time:", updatedTime);
+            console.log("Updated time:", updatedTime);
 
             // Combine updates into a single state update
             setHour(Number(updatedTime.hours));
@@ -110,6 +117,8 @@ export default function Navbar() {
     // Start/Stop timer based on activity state
     useEffect(() => {
         if (isStartLogin) {
+            console.log(isStartLogin);
+            
             startTimer();
         } else {
             stopTimer();
@@ -120,16 +129,22 @@ export default function Navbar() {
     // Sync timer with inactivity
     useEffect(() => {
         const handleVisibilityChange = () => {
-            if (!document.hidden) {
-                syncTimerAfterPause();
-            } else {
-                stopOnlyTimer();
+            console.log("call while visible", isStartLogin);
+            
+            if (isStartLogin) {
+                console.log("yes");
+                
+                if (!document.hidden) {
+                    syncTimerAfterPause();
+                } else {
+                    stopOnlyTimer();
+                }
             }
         };
-
+        
         document.addEventListener("visibilitychange", handleVisibilityChange);
         return () => document.removeEventListener("visibilitychange", handleVisibilityChange);
-    }, []);
+    }, [isStartLogin]);
 
     // Sync state with localStorage
     useEffect(() => {

@@ -12,7 +12,8 @@ export default function Status() {
     useEffect(() => {
         filterLeaveRequests();
     }, [empName, daterangeValue]);
-
+    console.log(leaveRequests);
+    
     return (
         isLoading ? <Loading /> :
             <div>
@@ -36,7 +37,7 @@ export default function Status() {
                 {/* Display leave data or no data found */}
                 <div>
                     <div className="leaveContainer d-block">
-                      <div className='px-3 my-3'>
+                        <div className='px-3 my-3'>
                             <div className="row">
                                 <div className="col-lg-12 searchInputIcon">
                                     <input
@@ -83,11 +84,13 @@ export default function Status() {
                                 </div>
                             </div>
                         </div>
-                        
-                    
 
-                    {leaveRequests?.leaveData?.length > 0 ?
-                        <LeaveTable data={leaveRequests.leaveData} /> : <NoDataFound message="No Leave request for this employee Name" />}
+
+
+                        {
+                            leaveRequests?.leaveData?.length > 0 ?
+                                <LeaveTable data={leaveRequests.leaveData} /> : <NoDataFound message="No Leave request for this employee Name" />
+                        }
                     </div>
                 </div>
             </div>

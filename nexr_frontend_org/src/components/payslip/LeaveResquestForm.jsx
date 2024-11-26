@@ -14,7 +14,7 @@ const LeaveRequestForm = (props) => {
   const url = process.env.REACT_APP_API_URL;
   const cookies = new Cookies();
   const token = cookies.get("token");
-  const {_id} = jwtDecode(token);
+  const { _id } = jwtDecode(token);
   const [collegues, setCollegues] = useState([])
   const [error, setError] = useState("");
   const [isShowPeriodOfLeave, setIsShowPeriodOfLeave] = useState(false);
@@ -81,8 +81,8 @@ const LeaveRequestForm = (props) => {
           resetForm();
           navigate(-1);
         } catch (err) {
-            toast.error(err?.response?.data?.message)
-            console.log(err);
+          toast.error(err?.response?.data?.message)
+          console.log(err);
         }
       }
     }
@@ -131,7 +131,7 @@ const LeaveRequestForm = (props) => {
     typeOfLeave ?
       (<form onSubmit={formik.handleSubmit} >
         <div className="leaveFormContainer">
-          <div className="leaveFormParent">
+          <div className="leaveFormParent" style={{ width: "600px" }}>
             <div className="heading">
               <h5 className="my-3"><LibraryBooksIcon /> Leave Request Form</h5>
               <p className="text-dark">Fill the required fields below to apply for annual leave</p>
@@ -145,7 +145,7 @@ const LeaveRequestForm = (props) => {
                 <option >Select Leave type</option>
                 {
                   Object.entries(typeOfLeave).map((data) => {
-                    return <option value={`${data[0]} leave`} >{data[0].charAt(0).toUpperCase()+data[0].slice(1)} Leave</option>
+                    return <option value={`${data[0]} leave`} >{data[0].charAt(0).toUpperCase() + data[0].slice(1)} Leave</option>
                   })
                 }
               </select>

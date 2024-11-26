@@ -41,23 +41,23 @@ const ActivityTimeTracker = () => {
     // start and stop timer only
     function stopOnlyTimer() {
 
-        if (timerRef.current && isStartActivity) {
-            // setIsStartActivity(false);
-            clearInterval(timerRef.current);
-            timerRef.current = null;
-        }
+        // if (timerRef.current && isStartActivity) {
+        // setIsStartActivity(false);
+        clearInterval(timerRef.current);
+        timerRef.current = null;
+        // }
     }
 
     function startOnlyTimer() {
         // console.log("call timer only fun: ", workTimeTracker._id, isStartActivity);
         // console.log(isStartActivity);
 
-        if (!timerRef.current) {
-            // setIsStartActivity(true);
-            if (isStartActivity) {
-                timerRef.current = setInterval(incrementTime, 1000);
-            }
+        // if (!timerRef.current) {
+        //     // setIsStartActivity(true);
+        if (isStartActivity) {
+            timerRef.current = setInterval(incrementTime, 1000);
         }
+        // }
     }
 
     // Function to start the timer
@@ -88,7 +88,8 @@ const ActivityTimeTracker = () => {
         // console.log("Wakeup called.");
         // console.log("Time difference since last check (ms):", diff);
 
-        if (diff > 3000 && isStartActivity && workTimeTracker._id) {
+        // if (diff > 3000 && isStartActivity && workTimeTracker._id) {
+        if (diff > 3000) {
             const secondsToAdd = Math.floor(diff / 1000);
             // console.log("Seconds to add:", secondsToAdd);
 
@@ -122,17 +123,18 @@ const ActivityTimeTracker = () => {
     useEffect(() => {
         const handleVisibilityChange = () => {
             // console.log(isStartActivity);
-
-            if (!document.hidden) {
-                syncTimerAfterPause();
-            } else {
-                stopOnlyTimer();
+            if (isStartActivity) {
+                if (!document.hidden) {
+                    syncTimerAfterPause();
+                } else {
+                    stopOnlyTimer();
+                }
             }
         };
 
         document.addEventListener("visibilitychange", handleVisibilityChange);
         return () => document.removeEventListener("visibilitychange", handleVisibilityChange);
-    }, []);
+    }, [isStartActivity]);
 
     // Sync state with localStorage
     useEffect(() => {
@@ -160,7 +162,7 @@ const ActivityTimeTracker = () => {
             </div>
             <div className='good container-fluid row mx-auto'>
                 <div className="col-lg-6 col-md-4 col-12">
-                    <div><h6>Good to see you, {Name[0].toUpperCase() + Name.slice(1)} 👋</h6></div>
+                    <div><h6>Good to see you, {Name[0]?.toUpperCase() + Name?.slice(1)} 👋</h6></div>
                     <div className='sub_text'>
                         {workTimeTracker?.punchInMsg || "Waiting for Login"}
                     </div>
