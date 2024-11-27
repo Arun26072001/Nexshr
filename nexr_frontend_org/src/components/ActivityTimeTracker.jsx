@@ -18,84 +18,64 @@ const ActivityTimeTracker = () => {
     const timerRef = useRef(null);
     const lastCheckTimeRef = useRef(Date.now());
 
-    // Timer logic to increment time
+    // Increment time logic
     const incrementTime = () => {
+        lastCheckTimeRef.current += 1000 
         setSec((prevSec) => {
-            let newSec = prevSec + 1;
-
-            if (newSec > 59) {
-                newSec = 0;
+            if (prevSec === 59) {
                 setMin((prevMin) => {
-                    let newMin = prevMin + 1;
-                    if (newMin > 59) {
-                        newMin = 0;
-                        setHour((prevHour) => (prevHour + 1) % 24); // Wrap hours at 24
+                    if (prevMin === 59) {
+                        setHour((prevHour) => (prevHour + 1) % 24); // Wrap at 24 hours
+                        return 0;
                     }
-                    return newMin;
+                    return prevMin + 1;
                 });
+                return 0;
             }
-            return newSec;
+            return prevSec + 1;
         });
     };
 
-    // start and stop timer only
-    function stopOnlyTimer() {
-
-        // if (timerRef.current && isStartActivity) {
-        // setIsStartActivity(false);
-        clearInterval(timerRef.current);
-        timerRef.current = null;
-        // }
-    }
-
-    function startOnlyTimer() {
-        // console.log("call timer only fun: ", workTimeTracker._id, isStartActivity);
-        // console.log(isStartActivity);
-
-        // if (!timerRef.current) {
-        //     // setIsStartActivity(true);
-        if (isStartActivity) {
+    // Start timer
+    const startOnlyTimer = () => {
+        if (isStartActivity && !timerRef.current) {
             timerRef.current = setInterval(incrementTime, 1000);
-        }
-        // }
-    }
-
-    // Function to start the timer
-    const startTimer = async () => {
-        // console.log("call to start in startTimer");
-
-        if (!timerRef.current) {
-            await startActivityTimer();
-            if (isStartActivity) {
-                timerRef.current = setInterval(incrementTime, 1000);
-            }
         }
     };
 
-    // Function to stop the timer
-    const stopTimer = async () => {
-        if (timerRef.current && isStartActivity) {
-            await stopActivityTimer();
+    // Stop timer
+    const stopOnlyTimer = () => {
+        if (timerRef.current) {
             clearInterval(timerRef.current);
             timerRef.current = null;
         }
     };
 
-    const syncTimerAfterPause = () => {
+    // Start timer with backend sync
+    const startTimer = async () => {
+        if (!timerRef.current) {
+            await startActivityTimer(); // Backend API call
+            startOnlyTimer();
+        }
+    };
 
+    // Stop timer with backend sync
+    const stopTimer = async () => {
+        if (timerRef.current) {
+            await stopActivityTimer(); // Backend API call
+            stopOnlyTimer();
+        }
+    };
+
+    // Sync timer after inactivity
+    const syncTimerAfterPause = () => {
         const now = Date.now();
         const diff = now - lastCheckTimeRef.current;
-        // console.log("Wakeup called.");
-        // console.log("Time difference since last check (ms):", diff);
 
-        // if (diff > 3000 && isStartActivity && workTimeTracker._id) {
         if (diff > 3000) {
             const secondsToAdd = Math.floor(diff / 1000);
-            // console.log("Seconds to add:", secondsToAdd);
-
-            const updatedTime = addSecondsToTime(`${parseInt(localStorage.getItem("activityTimer")?.split(":")[0])}:${parseInt(localStorage.getItem("activityTimer")?.split(":")[1])}:${parseInt(localStorage.getItem("activityTimer")?.split(":")[2])}`, secondsToAdd);
-            // console.log("Updated time:", updatedTime);
-
+            const updatedTime = addSecondsToTime(`${parseInt(localStorage.getItem("activityTimer")?.split(':')[0])}:${parseInt(localStorage.getItem("activityTimer")?.split(':')[1])}:${parseInt(localStorage.getItem("activityTimer")?.split(':')[2])}`, secondsToAdd);
+            console.log("Updated time:", updatedTime);
             // Combine updates into a single state update
             setHour(Number(updatedTime.hours));
             setMin(Number(updatedTime.minutes));
@@ -103,37 +83,34 @@ const ActivityTimeTracker = () => {
         }
 
         startOnlyTimer();
-        lastCheckTimeRef.current = now; // Reset last check time
+        lastCheckTimeRef.current = now;
     };
 
-    // Display warning if no punch-in
-    const warnPunchIn = () => toast.warning("Please Punch In!");
-
-    // Start/Stop timer based on activity state
-    useEffect(() => {
-        if (isStartActivity) {
-            startTimer();
-        } else {
-            stopTimer();
-        }
-        return () => stopTimer(); // Cleanup on unmount
-    }, [isStartActivity]);
-
-    // Sync timer with inactivity
+    // Visibility change handler
     useEffect(() => {
         const handleVisibilityChange = () => {
-            // console.log(isStartActivity);
             if (isStartActivity) {
-                if (!document.hidden) {
-                    syncTimerAfterPause();
-                } else {
+                if (document.hidden) {
                     stopOnlyTimer();
+                } else {
+                    syncTimerAfterPause();
                 }
             }
         };
 
         document.addEventListener("visibilitychange", handleVisibilityChange);
         return () => document.removeEventListener("visibilitychange", handleVisibilityChange);
+    }, [isStartActivity]);
+
+    // Start/stop timer based on `isStartActivity`
+    useEffect(() => {
+        if (isStartActivity) {
+            startTimer();
+        } else {
+            stopTimer();
+        }
+
+        return () => stopOnlyTimer(); // Cleanup on unmount
     }, [isStartActivity]);
 
     // Sync state with localStorage
@@ -153,6 +130,8 @@ const ActivityTimeTracker = () => {
         }
     }, [timeOption, workTimeTracker, isStartActivity]);
 
+    // Display warning if no punch-in
+    const warnPunchIn = () => toast.warning("Please Punch In!");
 
     return (
         <>

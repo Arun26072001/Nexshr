@@ -10,9 +10,9 @@ function getTeamSchema(orgName) {
                 type: String,
                 unique: true
             },
-            employees: [{ type: mongoose.Types.ObjectId, ref: `${orgName}Employee` }],
+            employees: [{ type: mongoose.Types.ObjectId, ref: `${orgName}_Employee` }],
             lead: {
-                type: mongoose.Types.ObjectId, ref: `${orgName}Employee`
+                type: mongoose.Types.ObjectId, ref: `${orgName}_Employee`
             }
         })
     }

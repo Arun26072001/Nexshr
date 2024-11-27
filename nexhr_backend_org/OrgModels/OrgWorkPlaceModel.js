@@ -11,7 +11,7 @@ function getWorkPlaceSchema(orgName) {
             Country: { type: mongoose.Schema.Types.ObjectId, ref: "Country" },
             State: { type: mongoose.Schema.Types.ObjectId, ref: "State" },
             PostCode: { type: Number },
-            EmpID: [{ type: mongoose.Schema.Types.ObjectId, ref: `${orgName}Employee` }],
+            EmpID: [{ type: mongoose.Schema.Types.ObjectId, ref: `${orgName}_Employee` }],
             Town: { type: String },
         })
     }

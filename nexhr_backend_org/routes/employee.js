@@ -98,7 +98,6 @@ router.get("/user", verifyAdminHR, async (req, res) => {
 });
 
 
-
 router.get("/all", verifyAdminHR, async (req, res) => {
   try {
     // const {orgName} = jwt.decode(req.headers['authorization']);
