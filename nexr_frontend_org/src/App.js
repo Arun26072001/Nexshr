@@ -127,7 +127,6 @@ const App = () => {
   //   };
   //   checkNetworkConnection();
   // }, [isLogin, data.Account, navigate, url]);
-  console.log(isLogin);
 
   return (
     <EssentialValues.Provider
@@ -148,29 +147,44 @@ const App = () => {
       <ToastContainer />
       <Routes>
         <Route path="/login" element={<Login isLogin={isLogin} />} />
-        {/* <Route  path="/"  element={isLogin && token ? <Layout /> : <Navigate to="/login" />}
+
+        {/* Main route with conditional rendering based on login state */}
+        <Route
+          path="/"
+          element={isLogin && token ? <Layout /> : <Navigate to="/login" />}
         >
           <Route path="*" element={<Layout />} />
-        </Route> */}
-        {
-          isLogin && data.Account &&
+        </Route>
+
+        {/* Conditional routes based on the account type */}
+        {isLogin && data?.Account && (
           <>
             <Route
               path="admin/*"
-              element={isLogin && Number(data.Account) === 1 ? <HRMDashboard /> : <Navigate to="/login" />}
+              element={
+                Number(data.Account) === 1 ? <HRMDashboard /> : <Navigate to="/login" />
+              }
             />
             <Route
               path="hr/*"
-              element={isLogin && Number(data.Account) === 2 ? <HRMDashboard /> : <Navigate to="/login" />}
+              element={
+                Number(data.Account) === 2 ? <HRMDashboard /> : <Navigate to="/login" />
+              }
             />
             <Route
               path="emp/*"
-              element={isLogin && Number(data.Account) === 3 ? <HRMDashboard /> : <Navigate to="/login" />}
+              element={
+                Number(data.Account) === 3 ? <HRMDashboard /> : <Navigate to="/login" />
+              }
             />
           </>
-          // <Route path="no-internet-connection" element={<NoInternet />} />
-        }      </Routes>
+        )}
+
+        {/* Example of a fallback route */}
+        <Route path="no-internet-connection" element={<NoInternet />} />
+      </Routes>
     </EssentialValues.Provider>
+
   );
 };
 
