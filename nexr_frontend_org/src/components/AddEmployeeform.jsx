@@ -8,12 +8,14 @@ import { fetchPayslipInfo } from "./ReuseableAPI";
 import { useNavigate } from "react-router-dom";
 import { TagPicker } from "rsuite";
 import NoDataFound from "./payslip/NoDataFound";
+import Cookies from "universal-cookie";
 
 const AddEmployeeForm = ({ details, handleScroll, handlePersonal, handleFinancial, handleJob, handleContact, handleEmployment, timePatterns, personalRef, contactRef, employmentRef, jobRef, financialRef, payslipRef, countries, companies, departments, positions, roles, leads, managers }) => {
     const navigate = useNavigate()
     const [timeDifference, setTimeDifference] = useState(0);
     const [payslipFields, setPayslipFields] = useState([]);
-    const token = localStorage.getItem("token");
+    const cookies = new Cookies();
+    const token = cookies.get("token");
     const url = process.env.REACT_APP_API_URL;
     const [leaveTypes, setLeaveTypes] = useState([]);
     const [selectedLeaveTypes, setSelectedLeavetypes] = useState([]);
@@ -297,7 +299,7 @@ const AddEmployeeForm = ({ details, handleScroll, handlePersonal, handleFinancia
             try {
                 const leaveTypes = await axios.get(`${url}/api/leave-type`, {
                     headers: {
-                        Authorization: token || ""
+                        Authorization: `Bearer ${token}` || ""
                     }
                 });
                 setLeaveTypes(leaveTypes.data.map((leave) => ({ label: leave.LeaveName, value: leave.LeaveName })));
@@ -686,7 +688,7 @@ const AddEmployeeForm = ({ details, handleScroll, handlePersonal, handleFinancia
                                 <div className="inputLabel">
                                     Select Leave Types
                                 </div>
-                                <TagPicker data={leaveTypes} disabled={formik.values.annualLeaveEntitlement ? false : true} title={!formik.values.annualLeaveEntitlement && "Please Enter Annual Leave"} size="lg" onChange={handleTagSelector} value={selectedLeaveTypes} className="rsuite_selector" style={{ width: 300, marginTop: "5px", border: "none", }} />
+                                <TagPicker data={leaveTypes} disabled={formik.values.annualLeaveEntitlement ? false : true} title={!formik.values.annualLeaveEntitlement && "Please Enter Annual Leave"} size="lg" onChange={handleTagSelector} value={selectedLeaveTypes} className={formik.values.annualLeaveEntitlement ? "rsuite_selector" : "rsuite_selector_disabled" } style={{ width: 300, marginTop: "5px", border: "none" }} />
                             </div>
                         </div>
                         <div className="row d-flex justify-content-center">

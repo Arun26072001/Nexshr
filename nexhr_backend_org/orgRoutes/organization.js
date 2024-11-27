@@ -71,6 +71,7 @@ router.post("/:id", async (req, res) => {
         userAccountData.orgs.push(orgData?._id);
         await userAccountData.save();
 
+        //create empty static collections creation
         createCollections(orgData.orgName);
         const newEmp = {
             Email: req.body.Email,

@@ -3,9 +3,27 @@ import { toast } from 'react-toastify';
 import { jwtDecode } from 'jwt-decode';
 import Cookies from "universal-cookie";
 const cookies = new Cookies();
-const token = cookies.get('token');
 const url = process.env.REACT_APP_API_URL;
-const { _id } = jwtDecode(token);
+const token = cookies.get("token") || "";
+let _id = "";
+
+// Check if token structure is valid
+if (token.split(".").length !== 3) {
+  console.error("Invalid or missing token:", token);
+  // Handle invalid token (e.g., redirect to login, clear cookies)
+} else {
+  try {
+    const decoded = jwtDecode(token);
+    // console.log("Decoded Token:", decoded);
+    // Access specific token fields
+    _id = decoded._id
+    
+  } catch (error) {
+    console.error("Error decoding token:", error.message);
+    // Handle decoding error (e.g., clear cookies, redirect)
+  }
+}
+
 
 const updateDataAPI = async (body) => {
     try {
