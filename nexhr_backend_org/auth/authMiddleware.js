@@ -81,7 +81,7 @@ function verifyHREmployee(req, res, next) {
 
 function verifyAdminHREmployee(req, res, next) {
   const token = req.headers['authorization'].split(" ")[1];
-  console.log(token);
+  console.log("84", token);
 
   if (typeof token !== "undefined") {
     jwt.verify(token, jwtKey, (err, authData) => {
