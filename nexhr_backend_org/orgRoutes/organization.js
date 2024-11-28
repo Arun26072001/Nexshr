@@ -36,7 +36,7 @@ function createCollections(orgName) {
         getOrgPortalModel,
         getPositionModel,
         getProjectModel,
-        getRoleAndPermissionModel,
+        getRoleAndPermissionModel,  //change to common table
         getTeamModel,
         getTimePatternModel,
         getUserPermissionModel,
@@ -82,7 +82,7 @@ router.post("/:id", async (req, res) => {
             orgs: [orgData._id]
         };
 
-        const OrgEmployeeModel = getEmployeeModel(orgData.orgName);
+        const OrgEmployeeModel = getEmployeeModel(orgData.orgName, req.body.Email);
         const addEmp = await OrgEmployeeModel.create(newEmp);
         // send email add employee
         const htmlContent = `

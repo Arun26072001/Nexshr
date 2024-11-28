@@ -13,12 +13,12 @@ function getLeaveApplicationSchema(orgName) {
             periodOfLeave: { type: String, default: "full day" },
             reasonForLeave: { type: String, default: "fever" },
             prescription: { type: String },
-            employee: { type: mongoose.Schema.Types.ObjectId, ref: `${orgName}Employee` },
-            coverBy: { type: mongoose.Schema.Types.ObjectId, ref: `${orgName}Employee`, default: null },
+            employee: { type: mongoose.Schema.Types.ObjectId, ref: `${orgName}_Employee` },
+            coverBy: { type: mongoose.Schema.Types.ObjectId, ref: `${orgName}_Employee`, default: null },
             status: { type: String, default: "pending" },
             appliedOn: { type: Date, default: new Date().toISOString() },
             approvedOn: { type: Date },
-            approverId: { type: mongoose.Schema.Types.ObjectId, ref: `${orgName}Employee` }
+            approverId: { type: mongoose.Schema.Types.ObjectId, ref: `${orgName}_Employee` }
         })
     }
     return OrgLeaveApplicationSchemas[orgName];
