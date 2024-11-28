@@ -106,7 +106,7 @@ export default function HRMDashboard() {
             ...workTimeTracker,
             login: {
                 ...workTimeTracker?.login,
-                startingTime: workTimeTracker?.login?.startingTime !== "00:00" ? workTimeTracker.login.startingTime : currentTime
+                startingTime: workTimeTracker?.login?.startingTime !== "00:00" ? workTimeTracker?.login?.startingTime : currentTime
             }
         };
         // // try to add clockins data
@@ -149,8 +149,6 @@ export default function HRMDashboard() {
     };
 
     const stopLoginTimer = async () => {
-        console.log("call to start: Direct fun");
-
         const currentDate = new Date();
         const currentHours = currentDate.getHours().toString().padStart(2, '0');
         const currentMinutes = currentDate.getMinutes().toString().padStart(2, '0');
@@ -165,7 +163,6 @@ export default function HRMDashboard() {
         };
 
         if (updatedState?._id && isStartLogin) {
-
             // Call the API with the updated state
             const updatedData = await updateDataAPI(updatedState);
             setWorkTimeTracker(updatedData);
