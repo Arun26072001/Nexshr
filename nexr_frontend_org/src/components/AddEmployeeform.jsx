@@ -11,12 +11,14 @@ import NoDataFound from "./payslip/NoDataFound";
 import Cookies from "universal-cookie";
 
 const AddEmployeeForm = ({ details, handleScroll, handlePersonal, handleFinancial, handleJob, handleContact, handleEmployment, timePatterns, personalRef, contactRef, employmentRef, jobRef, financialRef, payslipRef, countries, companies, departments, positions, roles, leads, managers }) => {
+    const orgId = localStorage.getItem("orgId");
     const navigate = useNavigate()
     const [timeDifference, setTimeDifference] = useState(0);
     const [payslipFields, setPayslipFields] = useState([]);
     const cookies = new Cookies();
     const token = cookies.get("token");
     const url = process.env.REACT_APP_API_URL;
+    const cen_url = process.env.CENTRALIZATION_BASEURL;
     const [leaveTypes, setLeaveTypes] = useState([]);
     const [selectedLeaveTypes, setSelectedLeavetypes] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
@@ -143,9 +145,25 @@ const AddEmployeeForm = ({ details, handleScroll, handlePersonal, handleFinancia
         validationSchema: empFormValidation,
         onSubmit: async (values, { resetForm }) => {
             try {
-                const res = await axios.post(`${url}/api/employee`, values, {
+                // add user details in centralization user table
+                const userTableData = {
+                    name: formik.values.FirstName,
+                    email_id: formik.values.Email,
+                    password: formik.values.Password,
+                    contry_code: "+91",
+                    phone: formik.values.phone,
+                    nexhr_organisations: [orgId],
+                    registerfrom: 3,
+                    registertype: 0
+                }
+                const registerInCentralize = await axios.post(`${cen_url}/register`, userTableData);
+                const newEmp = {
+                    ...values,
+                    userData: registerInCentralize.data.user_details._id
+                }
+                const res = await axios.post(`${url}/api/employee`, newEmp, {
                     headers: {
-                        authorization: token || ""
+                        Authorization: `Bearer ${token}` || ""
                     }
                 })
                 toast.success(res.data.message);
@@ -277,7 +295,7 @@ const AddEmployeeForm = ({ details, handleScroll, handlePersonal, handleFinancia
         const { name, value } = e.target;
 
         const totalOfSplited = Object.values(formik.values.typesOfLeaveCount || {})
-            .map(Number) 
+            .map(Number)
             .reduce((acc, curr) => acc + curr, 0);
 
         const annualLeaveEntitlement = Number(formik.values.annualLeaveEntitlement);
@@ -285,10 +303,10 @@ const AddEmployeeForm = ({ details, handleScroll, handlePersonal, handleFinancia
         if (totalOfSplited + Number(value) > annualLeaveEntitlement) {
             setSplitError("Getting more than Annual leave value!");
         } else {
-            setSplitError(""); 
+            setSplitError("");
             formik.setFieldValue("typesOfLeaveCount", {
                 ...formik.values.typesOfLeaveCount,
-                [name]: Number(value), 
+                [name]: Number(value),
             });
         }
     }
@@ -688,7 +706,7 @@ const AddEmployeeForm = ({ details, handleScroll, handlePersonal, handleFinancia
                                 <div className="inputLabel">
                                     Select Leave Types
                                 </div>
-                                <TagPicker data={leaveTypes} disabled={formik.values.annualLeaveEntitlement ? false : true} title={!formik.values.annualLeaveEntitlement && "Please Enter Annual Leave"} size="lg" onChange={handleTagSelector} value={selectedLeaveTypes} className={formik.values.annualLeaveEntitlement ? "rsuite_selector" : "rsuite_selector_disabled" } style={{ width: 300, marginTop: "5px", border: "none" }} />
+                                <TagPicker data={leaveTypes} disabled={formik.values.annualLeaveEntitlement ? false : true} title={!formik.values.annualLeaveEntitlement && "Please Enter Annual Leave"} size="lg" onChange={handleTagSelector} value={selectedLeaveTypes} className={formik.values.annualLeaveEntitlement ? "rsuite_selector" : "rsuite_selector_disabled"} style={{ width: 300, marginTop: "5px", border: "none" }} />
                             </div>
                         </div>
                         <div className="row d-flex justify-content-center">

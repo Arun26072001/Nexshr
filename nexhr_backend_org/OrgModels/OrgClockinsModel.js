@@ -52,7 +52,7 @@ function getClockinSchema(orgName) {
             },
             behaviour: { type: String },
             punchInMsg: { type: String },
-            employee: { type: mongoose.Types.ObjectId, ref: `${orgName}Employee` }
+            employee: { type: mongoose.Types.ObjectId, ref: `${orgName}_Employee` }
         })
     }
     return OrgClockinSchemas[orgName];

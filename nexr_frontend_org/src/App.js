@@ -18,7 +18,7 @@ const App = () => {
   const url = process.env.REACT_APP_API_URL;
   const cookies = new Cookies();
   const navigate = useNavigate();
-
+  const cen_url = process.env.CENTRALIZATION_BASEURL;
   const [token, setToken] = useState(cookies.get("token") || "");
   const [isLogin, setIsLogin] = useState(!!cookies.get("isLogin"));
   const [isStartLogin, setIsStartLogin] = useState(!!cookies.get("isStartLogin"));
@@ -104,9 +104,24 @@ const App = () => {
     }
   };
 
+  // const login = async (email, password) => {
+  //   const verifyUserEmail = await axios.post(`${cen_url}/verify_user`, email)
+  //   if(verifyUserEmail.data.status === "true"){
+  //     const loginData = {
+  //       email,
+  //       password,
+  //       loginfrom: 3
+  //     }
+  //     const loginEmp = await axios.post(`${cen_url}/login`, loginData);
+  //     const decodedData = jwtDecode(loginEmp.data.token);
+  //     const userId = decodedData.user_details._id;
+  //     const empData = await axios.get()
+  //   }
+  // }
+
   useEffect(() => {
-    cookies.set("isStartLogin", isStartLogin, { path: "/" });
-    cookies.set("isStartActivity", isStartActivity, { path: "/" });
+    localStorage.setItem("isStartLogin", isStartLogin);
+    localStorage.setItem("isStartActivity", isStartActivity);
   }, [isStartLogin, isStartActivity]);
 
   // useEffect(() => {
