@@ -20,7 +20,7 @@ const ActivityTimeTracker = () => {
 
     // Increment time logic
     const incrementTime = () => {
-        lastCheckTimeRef.current += 1000 
+        lastCheckTimeRef.current += 1000
         setSec((prevSec) => {
             if (prevSec === 59) {
                 setMin((prevMin) => {
@@ -100,7 +100,7 @@ const ActivityTimeTracker = () => {
 
         document.addEventListener("visibilitychange", handleVisibilityChange);
         return () => document.removeEventListener("visibilitychange", handleVisibilityChange);
-    }, [isStartActivity]);
+    }, []);
 
     // Start/stop timer based on `isStartActivity`
     useEffect(() => {
