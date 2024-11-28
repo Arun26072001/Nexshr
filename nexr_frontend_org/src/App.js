@@ -120,8 +120,8 @@ const App = () => {
   // }
 
   useEffect(() => {
-    cookies.set("isStartLogin", isStartLogin, { path: "/" });
-    cookies.set("isStartActivity", isStartActivity, { path: "/" });
+    localStorage.setItem("isStartLogin", isStartLogin);
+    localStorage.setItem("isStartActivity", isStartActivity);
   }, [isStartLogin, isStartActivity]);
 
   // useEffect(() => {

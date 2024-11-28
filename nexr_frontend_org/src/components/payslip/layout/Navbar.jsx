@@ -78,6 +78,8 @@ export default function Navbar() {
 
     // Sync timer after inactivity
     const syncTimerAfterPause = () => {
+        console.log("call at inital");
+        
         const now = Date.now();
         const diff = now - lastCheckTimeRef.current;
 
@@ -111,13 +113,11 @@ export default function Navbar() {
 
         document.addEventListener("visibilitychange", handleVisibilityChange);
         return () => document.removeEventListener("visibilitychange", handleVisibilityChange);
-    }, [isStartLogin]);
+    }, []);
 
      // Start/Stop timer based on activity state
      useEffect(() => {
         if (isStartLogin) {
-            console.log(isStartLogin);
-
             startTimer();
         } else {
             stopTimer();
