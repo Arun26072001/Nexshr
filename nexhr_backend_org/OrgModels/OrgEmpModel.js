@@ -17,7 +17,7 @@ const getEmployeeSchema = function (orgName, email) {
             clockIns: [{ type: mongoose.Schema.Types.ObjectId, ref: `${orgName}_clockIns` }],
             gender: { type: String },
             code: { type: String },
-            userData: {type: mongoose.Schema.Types.ObjectId, ref: `user_${email[0]}`},
+            userData: {type: String},
             serialNo: { type: String },
             working: { type: String, default: "Yes" },
             docType: { type: String },
@@ -31,7 +31,7 @@ const getEmployeeSchema = function (orgName, email) {
             },
             position: [{ type: mongoose.Schema.Types.ObjectId, ref: `${orgName}_Position` }],
             department: [{ type: mongoose.Schema.Types.ObjectId, ref: `${orgName}_Department` }],
-            role: [{ type: mongoose.Schema.Types.ObjectId, ref: `${orgName}_RoleAndPermission` }],
+            role: [{ type: mongoose.Schema.Types.ObjectId, ref: `RoleAndPermission` }],
             orgs: [{ type: mongoose.Schema.Types.ObjectId, ref: `org` }],
             description: { type: String },
             dateOfJoining: { type: String },
@@ -91,7 +91,7 @@ const employeeModels = {};
 function getEmployeeModel(orgName,email) {
     // If model already exists in the object, return it; otherwise, create it
     if (!employeeModels[orgName]) {
-        employeeModels[orgName] = mongoose.model(`${orgName}_Employee`, getEmployeeSchema(orgName, email));
+        employeeModels[orgName] = mongoose.model(`${orgName}_employee`, getEmployeeSchema(orgName, email));
     }
     return employeeModels[orgName];
 }

@@ -1,6 +1,7 @@
 const express = require("express");
 const { getEmployeeModel } = require("../OrgModels/OrgEmpModel");
 const { getPayslipModel } = require("../OrgModels/OrgPayslipModel");
+const { Org } = require("../OrgModels/OrganizationModel");
 const router = express.Router();
 
 function getDayDifference(leave) {
@@ -10,9 +11,9 @@ function getDayDifference(leave) {
   return timeDifference / (1000 * 60 * 60 * 24);
 }
 
-router.get("/:id", async (req, res) => {
+router.get("/:orgId/:id", async (req, res) => {
   try {
-    const { orgName } = jwt.decode(req.headers['authorization']);
+    const { orgName } = await Org.findById({ _id: req.params.orgId });
     const OrgPayslip =  getOrgPortalModel(orgName)
     const payslip = await OrgPayslip.findById({ _id: req.params.id }).populate({
       path: "employee",
@@ -33,13 +34,13 @@ router.get("/:id", async (req, res) => {
   }
 })
 
-router.post("/", async (req, res) => {
+router.post("/:orgId", async (req, res) => {
   const now = new Date();
   let startOfMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
   let endOfMonth = new Date(now.getFullYear(), now.getMonth(), 0); // End of the current month
 
   try {
-    const { orgName } = jwt.decode(req.headers['authorization']);
+    const { orgName } = await Org.findById({ _id: req.params.orgId });
     const OrgEmployee = getEmployeeModel(orgName)
     const employees = await OrgEmployee.find().populate({
       path: "leaveApplication",
@@ -107,9 +108,9 @@ router.post("/", async (req, res) => {
   }
 });
 
-router.get("/emp/:empId", async (req, res) => {
+router.get("/emp/:orgId/:empId", async (req, res) => {
   try {
-    const { orgName } = jwt.decode(req.headers['authorization']);
+    const { orgName } = await Org.findById({ _id: req.params.orgId });
     const OrgPayslip = getPayslipModel(orgName)
     const payslips = await OrgPayslip.find({ employee: req.params.empId }).populate("employee").exec();
     res.send(payslips);

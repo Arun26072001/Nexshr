@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import "./payslip.css";
 import axios from "axios";
 import LeaveTable from "../LeaveTable";
@@ -8,12 +8,15 @@ import { formatTime } from "../ReuseableAPI";
 import NoDataFound from "./NoDataFound";
 import { toast } from "react-toastify";
 import Cookies from "universal-cookie";
-import { jwtDecode } from "jwt-decode";
+import { EssentialValues } from "../../App";
 
 const Attendence = (props) => {
   const cookies = new Cookies();
-  const token = cookies.get("token");
-  const { _id } = jwtDecode(token);
+  const { data, token } = useContext(EssentialValues)
+  const { _id } = data;
+  console.log(_id);
+
+  const orgId = cookies.get("orgId")
   const url = process.env.REACT_APP_API_URL;
   const [clockInsData, setclockInsData] = useState({});
   const [regularHeight, setRegularHeight] = useState(0);
@@ -55,34 +58,35 @@ const Attendence = (props) => {
 
   useEffect(() => {
     const getClockins = async () => {
-      setIsLoading(true);
-      if (_id) {
-        const dashboard = await axios.get(`${url}/api/clock-ins/employee/${_id}`, {
+      try {
+        const dashboard = await axios.get(`${url}/api/clock-ins/employee/${orgId}/${_id}`, {
           params: {
             daterangeValue
           },
           headers: {
             Authorization: `Bearer ${token}`
           }
-        });
+        })
         setclockInsData(dashboard.data);
         setTableData(dashboard.data.clockIns);
         const { totalEarlyLogins, totalLateLogins, totalRegularLogins } = dashboard.data;
         const totalLogins = totalEarlyLogins + totalLateLogins + totalRegularLogins
-
         // Calculate height percentages
         if (totalLogins > 0) {
           setRegularHeight((totalRegularLogins / totalLogins) * 100);
           setLateHeight((totalLateLogins / totalLogins) * 100);
           setEarlyHeight((totalEarlyLogins / totalLogins) * 100);
         }
-        setIsLoading(false);
-      } else {
-        setIsLoading(false);
-        toast.error("Employee Id not found!")
+      } catch (error) {
+        console.log(error);
       }
+
     }
-    getClockins()
+    if (_id) {
+      setIsLoading(true);
+      getClockins();
+      setIsLoading(false);
+    }
   }, [_id, daterangeValue])
 
   //   useEffect(() => {

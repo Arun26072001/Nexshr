@@ -1,11 +1,12 @@
 const express = require("express");
 const { verifyAdminHREmployee, verifyAdmin } = require("../auth/authMiddleware");
+const { Org } = require("../OrgModels/OrganizationModel");
+const { getPayslipInfoModel } = require("../OrgModels/OrgPayslipInfo");
 const router = express.Router();
 
-
-router.get("/", verifyAdminHREmployee, async (req, res) => {
+router.get("/:orgId", verifyAdminHREmployee, async (req, res) => {
     try {
-        const { orgName } = jwt.decode(req.headers['authorization']);
+        const { orgName } = await Org.findById({ _id: req.params.orgId });
         const PaySlipInfo = getPayslipInfoModel(orgName)
         const payslipData = await PaySlipInfo.findOne().exec();
         if (!payslipData) {
@@ -19,10 +20,10 @@ router.get("/", verifyAdminHREmployee, async (req, res) => {
 
 })
 
-router.post("/", verifyAdmin, async (req, res) => {
+router.post("/:orgId", verifyAdmin, async (req, res) => {
     try {
         const payslip = { payslipFields: req.body };
-        const { orgName } = jwt.decode(req.headers['authorization']);
+        const { orgName } = await Org.findById({ _id: req.params.orgId });
         const PaySlipInfo = getPayslipInfoModel(orgName)
         const data = await PaySlipInfo.create(payslip);
         res.send({ message: "Payslip has been added", payslipData: data });

@@ -12,7 +12,8 @@ import Cookies from 'universal-cookie';
 const Dashboard = () => {
     const { updateClockins } = useContext(TimerStates)
     const { handleLogout, data } = useContext(EssentialValues);
-    const {_id} = data;
+    const { email, _id } = data;
+
     const [leaveData, setLeaveData] = useState({});
     const [isLoading, setIsLoading] = useState(false);
     const [dailyLogindata, setDailyLoginData] = useState({})
@@ -20,12 +21,12 @@ const Dashboard = () => {
 
     const gettingEmpdata = async () => {
         try {
-            if (!_id) return; // Exit early if _id is not provided
+            if (!email) return; // Exit early if _id is not provided
 
             setIsLoading(true);
 
             // Fetch employee data
-            const data = await fetchEmployeeData(_id);
+            const data = await fetchEmployeeData(email);
             if (!data) {
                 toast.error("Error in fetching workingTimePattern data!");
                 setLeaveData({});
@@ -33,14 +34,14 @@ const Dashboard = () => {
             }
 
             // Calculate working hours for the day
-            const workingHour = await getTotalWorkingHourPerDay(data.workingTimePattern.StartingTime, data.workingTimePattern.FinishingTime);
+            const workingHour = await getTotalWorkingHourPerDay(data?.workingTimePattern?.StartingTime, data?.workingTimePattern?.FinishingTime);
 
             // Fetch clock-ins data
             const getEmpMonthPunchIns = await gettingClockinsData(_id);
 
             // Calculate total working hour percentage and total worked hour percentage
-            const totalWorkingHourPercentage = (getEmpMonthPunchIns.companyTotalWorkingHour / getEmpMonthPunchIns.totalWorkingHoursPerMonth) * 100;
-            const totalWorkedHourPercentage = (getEmpMonthPunchIns.totalEmpWorkingHours / getEmpMonthPunchIns.companyTotalWorkingHour) * 100;
+            const totalWorkingHourPercentage = (getEmpMonthPunchIns?.companyTotalWorkingHour / getEmpMonthPunchIns?.totalWorkingHoursPerMonth) * 100;
+            const totalWorkedHourPercentage = (getEmpMonthPunchIns?.totalEmpWorkingHours / getEmpMonthPunchIns?.companyTotalWorkingHour) * 100;
 
             // Set the monthly login data
             setMonthlyLoginData({
@@ -136,7 +137,7 @@ const Dashboard = () => {
                                     <div className='col-lg-6 col-md-6 col-12'>
                                         <div className='space row'>
                                             <p className='col-lg-6 col-md-6 col-sm-6 col-6 text-start'><span className='text_gap '>Total</span></p>
-                                            <p className='col-lg-6 col-md-6 col-sm-6 col-6 text-end'><span className='value'>{monthlyLoginData?.companyTotalWorkingHour} hour</span></p>
+                                            <p className='col-lg-6 col-md-6 col-sm-6 col-6 text-end'><span className='value'>{monthlyLoginData?.companyTotalWorkingHour || 0} hour</span></p>
                                         </div>
                                         <div className="progress">
                                             <div
@@ -173,10 +174,10 @@ const Dashboard = () => {
                                     <div className='col-lg-6 col-md-6 col-sm-6 col-12'>
                                         <div className='space row'>
                                             <div className='col-lg-6 col-md-6 col-sm-6 col-6 text-start'><span className='text_gap'>Shortage time</span></div>
-                                            <div className='col-lg-6 col-md-6 col-sm-6 col-6 text-end'><span className='value'>{(monthlyLoginData?.companyTotalWorkingHour - monthlyLoginData?.totalEmpWorkingHours)?.toFixed(2) || 0} hour</span></div>
+                                            <div className='col-lg-6 col-md-6 col-sm-6 col-6 text-end'><span className='value'>{(monthlyLoginData?.companyTotalWorkingHour || 0 - monthlyLoginData?.totalEmpWorkingHours || 0)?.toFixed(2)} hour</span></div>
                                         </div>
                                         <div className="progress">
-                                            <div className="progress-bar progress-bar-striped" role="progressbar" style={{ width: "50%" }} aria-valuenow="10" aria-valuemin="0" aria-valuemax="100"></div>
+                                            <div className="progress-bar progress-bar-striped" role="progressbar" style={{ width: `${monthlyLoginData?.companyTotalWorkingHour || 0 - monthlyLoginData?.totalEmpWorkingHours || 0}%` }} aria-valuenow="10" aria-valuemin="0" aria-valuemax="100"></div>
                                         </div>
                                     </div>
 
@@ -186,7 +187,7 @@ const Dashboard = () => {
                                             <div className='col-lg-6 col-md-6 col-sm-6 col-6 text-end'><span className='value'>{getOverTime(monthlyLoginData?.companyTotalWorkingHour, monthlyLoginData?.totalEmpWorkingHours)} hour</span></div>
                                         </div>
                                         <div className="progress">
-                                            <div className="progress-bar progress-bar-striped" role="progressbar" style={{ width: "0%" }} aria-valuenow="10" aria-valuemin="0" aria-valuemax="100"></div>
+                                            <div className="progress-bar progress-bar-striped" role="progressbar" style={{ width: `${getOverTime(monthlyLoginData?.companyTotalWorkingHour, monthlyLoginData?.totalEmpWorkingHours)}%` }} aria-valuenow="10" aria-valuemin="0" aria-valuemax="100"></div>
                                         </div>
                                     </div>
                                 </div>

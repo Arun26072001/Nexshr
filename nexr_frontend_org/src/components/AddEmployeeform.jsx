@@ -279,7 +279,7 @@ const AddEmployeeForm = ({ details, handleScroll, handlePersonal, handleFinancia
         getPayslipInfo();
     }, []);
 
-    const hourAndMin = timeDifference.toString().split(".");
+    const hourAndMin = timeDifference?.toString()?.split(".");
     const [hour, min] = hourAndMin;
 
     function changeImg(value) {
