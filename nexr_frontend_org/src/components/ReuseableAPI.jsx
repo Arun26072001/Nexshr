@@ -1,6 +1,5 @@
 import axios from 'axios';
 import { toast } from 'react-toastify';
-import { jwtDecode } from 'jwt-decode';
 import Cookies from "universal-cookie";
 const cookies = new Cookies();
 const url = process.env.REACT_APP_API_URL;
@@ -206,9 +205,9 @@ const fetchAllEmployees = async () => {
     }
 }
 
-const gettingClockinsData = async (_id) => {
+const gettingClockinsData = async (id) => {
     try {
-        const dashboard = await axios.get(`${url}/api/clock-ins/employee/${orgId}/${_id}`, {
+        const dashboard = await axios.get(`${url}/api/clock-ins/employee/${orgId}/${id}`, {
             headers: {
                 Authorization: `Bearer ${token}` || ""
             }

@@ -11,13 +11,14 @@ import userImg from "../../../imgs/male_avatar.png";
 import { EssentialValues } from '../../../App';
 import { addSecondsToTime } from '../../ReuseableAPI';
 import Cookies from "universal-cookie";
-import { jwtDecode } from 'jwt-decode';
+import axios from 'axios';
 
 export default function Navbar() {
     const cookies = new Cookies();
     const token = cookies.get('token');
     const url = process.env.REACT_APP_API_URL;
-    const { orgId, userProfile } = jwtDecode(token);
+    const { data, Profile } = useContext(EssentialValues);
+    const { orgId } = data;
     const [organization, setOrganization] = useState({});
     const { handleLogout } = useContext(EssentialValues)
     const { startLoginTimer, stopLoginTimer, workTimeTracker, isStartLogin } = useContext(TimerStates);
@@ -29,7 +30,7 @@ export default function Navbar() {
 
     // Increment time logic
     const incrementTime = () => {
-        lastCheckTimeRef.current += 1000 
+        lastCheckTimeRef.current += 1000
         setSec((prevSec) => {
             if (prevSec === 59) {
                 setMin((prevMin) => {
@@ -96,8 +97,8 @@ export default function Navbar() {
     };
 
 
-     // Visibility change handler
-     useEffect(() => {
+    // Visibility change handler
+    useEffect(() => {
         const handleVisibilityChange = () => {
 
             if (isStartLogin) {
@@ -113,8 +114,8 @@ export default function Navbar() {
         return () => document.removeEventListener("visibilitychange", handleVisibilityChange);
     }, [isStartLogin]);
 
-     // Start/Stop timer based on activity state
-     useEffect(() => {
+    // Start/Stop timer based on activity state
+    useEffect(() => {
         if (isStartLogin) {
             startTimer();
         } else {
@@ -138,22 +139,22 @@ export default function Navbar() {
         }
     }, [workTimeTracker, isStartLogin]);
 
-    // useEffect(() => {
-    //     async function gettingOrgdata() {
-    //         try {
-    //             const org = await axios.get(`${url}/api/organization/${orgId}`, {
-    //                 headers: {
-    //                     Authorization: token || ""
-    //                 }
-    //             })
-    //             setOrganization(org.data);
-    //         } catch (error) {
-    //             console.error(error);
-    //             // toast.error(error?.response?.data?.error)
-    //         }
-    //     }
-    //     gettingOrgdata()
-    // }, [])
+    useEffect(() => {
+        async function gettingOrgdata() {
+            try {
+                const org = await axios.get(`${url}/api/organization/${orgId}`, {
+                    headers: {
+                        Authorization: token || ""
+                    }
+                })
+                setOrganization(org.data);
+            } catch (error) {
+                console.error(error);
+                // toast.error(error?.response?.data?.error)
+            }
+        }
+        gettingOrgdata()
+    }, [])
 
     const renderMenu = ({ onClose, right, top, className }, ref) => {
         const handleSelect = eventKey => {
@@ -181,8 +182,9 @@ export default function Navbar() {
                     <div className='sidebarIcon'>
                         <TableRowsRoundedIcon />
                     </div>
-                    <img src={organization.orgImg || Webnexs} className="organization_logo" alt="organization_logo" />
-                    <span style={{ fontSize: "16px", fontWeight: "700" }}>{organization.orgName || "NexHR"}</span>
+                    {/* <img src={organization?.orgImg || Webnexs} className="organization_logo" alt="organization_logo" /> */}
+                    <img src={Webnexs} className="organization_logo" alt="organization_logo" />
+                    <span style={{ fontSize: "16px", fontWeight: "700" }}>{organization?.orgName ? organization.orgName[0].toUpperCase() + organization.orgName.slice(1) : "NexHR"}</span>
                 </div>
 
                 <div className='col-lg-4 d-flex align-items-center justify-content-center'>
@@ -246,7 +248,8 @@ export default function Navbar() {
                     {/* <img src={Profile} className="avatar ms-3" /> */}
                     {/* <ProfileImgUploader /> */}
                     <Whisper placement="bottomEnd" trigger="click" speaker={renderMenu}>
-                        <img src={userProfile !== undefined ? userProfile : userImg} className='avatar-toggle' alt='emp_profile' />
+                        {/* <img src={Profile !== undefined ? Profile : userImg} className='avatar-toggle' alt='emp_profile' />*/}
+                        <img src={userImg} className='avatar-toggle' alt='emp_profile' />
                     </Whisper>
                 </div>
             </div>

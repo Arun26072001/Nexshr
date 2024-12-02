@@ -33,8 +33,6 @@ import Announce from '../Announcement/announce';
 import Department from '../Administration/Department';
 import Position from '../Administration/Position';
 import Cookies from "universal-cookie";
-import { jwtDecode } from 'jwt-decode';
-import Layout from '../Layout';
 
 export const LeaveStates = createContext(null);
 export const TimerStates = createContext(null);
@@ -390,7 +388,7 @@ export default function HRMDashboard() {
             <LeaveStates.Provider value={{ daterangeValue, setDaterangeValue, isLoading, leaveRequests, filterLeaveRequests, empName, setEmpName }}>
                 <Routes>
                     <Route path="/" element={<Parent />}>
-                        <Route index element={<Dashboard data={data} />} />
+                        <Route index element={<Dashboard />} />
                         <Route path="job-desk/*" element={<JobDesk />} />
                         <Route path="employee" element={<Employee />} />
                         {/* <Route path="employee/add" element={userPermissions?.Employee?.add ? <Employees /> : <UnAuthorize />} /> */}

@@ -7,13 +7,11 @@ import Loading from '../Loader';
 import { EssentialValues } from '../../App';
 import { toast } from 'react-toastify';
 import { TimerStates } from './HRMDashboard';
-import Cookies from 'universal-cookie';
 
 const Dashboard = () => {
     const { updateClockins } = useContext(TimerStates)
     const { handleLogout, data } = useContext(EssentialValues);
-    const { email, _id } = data;
-
+    const { _id, email, profile } = data;
     const [leaveData, setLeaveData] = useState({});
     const [isLoading, setIsLoading] = useState(false);
     const [dailyLogindata, setDailyLoginData] = useState({})
@@ -21,7 +19,10 @@ const Dashboard = () => {
 
     const gettingEmpdata = async () => {
         try {
-            if (!email) return; // Exit early if _id is not provided
+            if (!email) {
+                console.error("Email is not provided.");
+                return; // Exit early if email is not provided
+            }
 
             setIsLoading(true);
 
@@ -30,41 +31,73 @@ const Dashboard = () => {
             if (!data) {
                 toast.error("Error in fetching workingTimePattern data!");
                 setLeaveData({});
-                return;
+                return; // Exit early if data is not fetched
             }
 
-            // Calculate working hours for the day
-            const workingHour = await getTotalWorkingHourPerDay(data?.workingTimePattern?.StartingTime, data?.workingTimePattern?.FinishingTime);
+            // Ensure workingTimePattern exists before accessing its properties
+            const startingTime = data?.workingTimePattern?.StartingTime || null;
+            const finishingTime = data?.workingTimePattern?.FinishingTime || null;
+
+            if (!startingTime || !finishingTime) {
+                console.warn("Working time pattern is missing or incomplete.");
+            }
+
+            const workingHour = startingTime && finishingTime
+                ? await getTotalWorkingHourPerDay(startingTime, finishingTime)
+                : 0; // Default to 0 if times are unavailable
 
             // Fetch clock-ins data
             const getEmpMonthPunchIns = await gettingClockinsData(_id);
 
-            // Calculate total working hour percentage and total worked hour percentage
-            const totalWorkingHourPercentage = (getEmpMonthPunchIns?.companyTotalWorkingHour / getEmpMonthPunchIns?.totalWorkingHoursPerMonth) * 100;
-            const totalWorkedHourPercentage = (getEmpMonthPunchIns?.totalEmpWorkingHours / getEmpMonthPunchIns?.companyTotalWorkingHour) * 100;
+            if (!getEmpMonthPunchIns) {
+                console.error("Clock-ins data is undefined.");
+            }
+
+            const companyTotalWorkingHour = getEmpMonthPunchIns?.companyTotalWorkingHour || 0;
+            const totalWorkingHoursPerMonth = getEmpMonthPunchIns?.totalWorkingHoursPerMonth || 0;
+            const totalEmpWorkingHours = getEmpMonthPunchIns?.totalEmpWorkingHours || 0;
+
+            const totalWorkingHourPercentage =
+                totalWorkingHoursPerMonth > 0
+                    ? (companyTotalWorkingHour / totalWorkingHoursPerMonth) * 100
+                    : 0;
+
+            const totalWorkedHourPercentage =
+                companyTotalWorkingHour > 0
+                    ? (totalEmpWorkingHours / companyTotalWorkingHour) * 100
+                    : 0;
 
             // Set the monthly login data
             setMonthlyLoginData({
                 ...getEmpMonthPunchIns,
                 totalWorkingHourPercentage,
-                totalWorkedHourPercentage
+                totalWorkedHourPercentage,
             });
 
             // Fetch daily clock-in data
             const clockinsData = await getDataAPI(_id);
 
-            setDailyLoginData(clockinsData);
+            if (!clockinsData) {
+                console.warn("Daily clock-in data is undefined.");
+            }
+
+            setDailyLoginData(clockinsData || []);
 
             // Set leave data with working hours
-            setLeaveData({ ...data, workingHour });
+            setLeaveData({
+                ...data,
+                workingHour,
+            });
 
         } catch (error) {
-            toast.error(error.message || "An error occurred while fetching employee data.");
+            console.error("Error fetching employee data:", error.message);
+            // toast.error(error.message || "An error occurred while fetching employee data.");
             setLeaveData({});
         } finally {
             setIsLoading(false); // Ensure loading state is always updated
         }
     };
+
 
     function getPadStartHourAndMin(time) {
         if (isNaN(time) || time < 0) return "00:00";

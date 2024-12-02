@@ -1,14 +1,15 @@
-import React, { useEffect } from "react";
+import React, { useContext, useEffect } from "react";
 import "./org_list.css";
 import Logo from "../imgs/webnexs_logo.png";
 import Cookies from "universal-cookie";
 import { useNavigate } from "react-router-dom";
+import { EssentialValues } from "../App";
 
-const OrgList = ({ org, goToDash, data }) => {
-    const navigator = useNavigate();
+const OrgList = ({ org, goToDash }) => {
     const cookies = new Cookies();
-    const Account = cookies.get("Account");
-    const orgId = cookies.get("orgId");
+    const navigator = useNavigate();
+    const {data} = useContext(EssentialValues);
+    const {Account, orgId} = data;
 
     useEffect(() => {
         if (Account === 1) {
@@ -18,7 +19,7 @@ const OrgList = ({ org, goToDash, data }) => {
         } else if (Account === 3) {
             navigator(`/${orgId}/emp`)
         }
-    }, [])
+    }, [Account, orgId])
     return (
         <div className="main-outer-div">
             {org?.map((orgData, index) => {

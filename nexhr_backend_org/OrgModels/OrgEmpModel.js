@@ -14,7 +14,7 @@ const getEmployeeSchema = function (orgName, email) {
             panNumber: { type: String },
             Account: { type: Number, default: 3 },
             dateOfBirth: { type: String },
-            clockIns: [{ type: mongoose.Schema.Types.ObjectId, ref: `${orgName}_clockIns` }],
+            clockIns: [{ type: mongoose.Schema.Types.ObjectId, ref: `${orgName}_clockins` }],
             gender: { type: String },
             code: { type: String },
             userData: {type: String},
@@ -38,7 +38,7 @@ const getEmployeeSchema = function (orgName, email) {
             employmentType: { type: String }, // e.g., full-time, part-time, contract
             // salary: [{ type: mongoose.Schema.Types.ObjectId, ref: "Salary" }],
             benefits: [{ type: String }],
-            managerId: [{ type: mongoose.Schema.Types.ObjectId, ref: `${orgName}_Employee` }], // Reference to another employee
+            managerId: [{ type: mongoose.Schema.Types.ObjectId, ref: `${orgName}_employee` }], // Reference to another employee
             emergencyContacts: [
                 {
                     name: { type: String },

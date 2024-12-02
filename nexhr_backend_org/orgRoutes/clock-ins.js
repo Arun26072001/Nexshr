@@ -1,5 +1,6 @@
 const express = require("express");
 const router = express.Router();
+const mongoose = require("mongoose");
 const { verifyAdminHREmployee, verifyAdminHR } = require("../auth/authMiddleware");
 const { getDayDifference } = require("./leave-app");
 const { getClockinModel, clockInsValidation } = require("../OrgModels/OrgClockinsModel");
@@ -150,16 +151,16 @@ router.get("/:orgId/:id", verifyAdminHREmployee, async (req, res) => {
         // const { orgName } = jwt.decode(req.headers['authorization']);
         const OrgEmployeeModel = getEmployeeModel(orgName);
         const timeData = await OrgEmployeeModel.findById({ _id: req.params.id }, "clockIns")
-            .populate({
-                path: `clockIns`,
-                match: {
-                    date: {
-                        $gte: startOfDay,
-                        $lt: endOfDay,
-                    },
-                },
-                populate: { path: "employee", select: "_id FirstName LastName" }
-            });
+            // .populate({
+            //     path: `clockIns`,
+            //     match: {
+            //         date: {
+            //             $gte: startOfDay,
+            //             $lt: endOfDay,
+            //         },
+            //     },
+            //     populate: { path: "employee", select: "_id FirstName LastName" }
+            // });
         // const timeData = await ClockIns.findById(req.params.id).populate({path: "employee", select: "_id FirstName LastName"});
         if (timeData?.clockIns?.length > 0) {
             const activities = ["login", "meeting", "morningBreak", "lunch", "eveningBreak", "event"];
@@ -256,7 +257,7 @@ router.get("/item/:orgId/:id", verifyAdminHREmployee, async (req, res) => {
 });
 
 // get login and logout data from employee
-router.get("/employee/:orgId/:empId", verifyAdminHREmployee, async (req, res) => {
+router.get("/employee/:orgId/:id", verifyAdminHREmployee, async (req, res) => {
 
     let totalEmpWorkingHours = 0; // Track total working hours for the employee
     let totalLeaveDays = 0;
@@ -315,34 +316,36 @@ router.get("/employee/:orgId/:empId", verifyAdminHREmployee, async (req, res) =>
     try {
         const { orgName } = await Org.findById({ _id: req.params.orgId });
         const OrgEmployee = getEmployeeModel(orgName);
-        const employee = await OrgEmployee.findById(req.params.empId, "_id FirstName LastName clockIns leaveApplication")
-            .populate({
-                path: `clockIns`,
-                match: {
-                    date: {
-                        $gte: startOfMonth,
-                        $lte: endOfMonth
-                    }
-                },
-                populate: {
-                    path: `employee`, // Ensure this matches the defined model name
-                    select: "_id FirstName LastName"
-                }
-            })
-            .populate({
-                path: `leaveApplication`,
-                match: {
-                    fromDate: {
-                        $gte: startOfMonth,
-                        $lte: endOfMonth
-                    },
-                    toDate: {
-                        $gte: startOfMonth,
-                        $lte: endOfMonth
-                    },
-                    status: "approved"
-                }
-            });
+        const employee = await OrgEmployee.findOne({ _id: req.params.id }, "_id FirstName LastName clockIns leaveApplication")
+        // .populate({
+        //     path: `clockIns`,
+        // match: {
+        //     date: {
+        //         $gte: startOfMonth,
+        //         $lte: endOfMonth
+        //     }
+        // },
+        // populate: {
+        //     path: `employee`, // Ensure this matches the defined model name
+        //     select: "_id FirstName LastName"
+        // }
+        // })
+        // .populate({
+        //     path: `leaveApplication`,
+        //     match: {
+        //         fromDate: {
+        //             $gte: startOfMonth,
+        //             $lte: endOfMonth
+        //         },
+        //         toDate: {
+        //             $gte: startOfMonth,
+        //             $lte: endOfMonth
+        //         },
+        //         status: "approved"
+        //     }
+        // });
+        console.log(mongoose.models);
+
 
         if (!employee) {
             return res.status(400).send({ message: "No Employee found with given ID" });

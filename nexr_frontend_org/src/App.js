@@ -11,6 +11,7 @@ import "react-toastify/dist/ReactToastify.css";
 import NoInternet from "./components/NoInternet.jsx";
 import Cookies from "universal-cookie";
 import OrgList from "./components/OrgList.jsx";
+import { fetchEmployeeData } from "./components/ReuseableAPI.jsx";
 
 // Context
 export const EssentialValues = createContext(null);
@@ -18,7 +19,6 @@ export const EssentialValues = createContext(null);
 const App = () => {
   const cookies = new Cookies();
   const [org, setOrg] = useState(null);
-  const [empData, setEmpData] = useState({});
   const [orgIds, setOrgIds] = useState(cookies.get("orgIds") || "")
   const url = process.env.REACT_APP_API_URL;
   const cen_url = process.env.REACT_APP_CENTRALIZATION_BASEURL;
@@ -34,15 +34,17 @@ const App = () => {
   const [showOfflineAlert, setShowOfflineAlert] = useState(false);
 
   useEffect(() => {
-    function getData() {
+    async function getData() {
       try {
-        const { email_id, id } = jwtDecode(token) || {};
+        const { _id, Email, FirstName, LastName, Account, profile } = await fetchEmployeeData(cookies.get("email"))
+
         setData({
-          _id: id || "",
-          email: email_id || "",
-          name: cookies.get("name") || "",
-          Account: cookies.get("Account") || 0,
+          _id,
+          email: Email || "",
+          name: FirstName + LastName || "",
+          Account: Account || 0,
           orgId: cookies.get("orgId") || "",
+          profile
         });
       } catch (error) {
         console.error("Error decoding token:", error);
@@ -82,29 +84,33 @@ const App = () => {
 
 
   const goToDash = async (orgId) => {
+    console.log(orgId);
+
     try {
-      const empData = await axios.get(`${url}/api/employee/${orgId}/${data.email}`, {
+      const emp = await axios.get(`${url}/api/employee/${orgId}/${data.email}`, {
         headers: {
           Authorization: `Bearer ${token}` || ""
         }
       });
-      setEmpData(empData.data);
+      console.log(emp);
+      
       setData((prev) => ({
         ...prev,
-        Account: empData.data.Account,
-        name: empData.data.FirstName + " " + empData.data.LastName,
-        orgId
+        Account: emp.data.Account,
+        name: emp.data.FirstName + " " + emp.data.LastName,
+        orgId,
+        profile: emp.data.profile,
+        _id: emp.data._id
       }))
-      cookies.set("name", empData.data.FirstName + " " + empData.data.LastName, { path: "/" })
+      cookies.set("empId", emp.data._id, { path: "/" })
       cookies.set("orgId", orgId, { path: "/" });
-      cookies.set("Account", empData.data.Account, { path: "/" });
       // Navigate based on account type
       const accountRoutes = {
         1: "/admin",
         2: "/hr",
         3: "/emp",
       };
-      navigate(`/${orgId}${accountRoutes[empData.data.Account]}` || "/login");
+      navigate(`/${orgId}${accountRoutes[emp.data.Account]}` || "/login");
     } catch (error) {
       console.log(error);
     }
@@ -147,52 +153,84 @@ const App = () => {
 
   const login = async (email, password) => {
     try {
+      setLoading(true); // Start loading
+
+      // Step 1: Verify User Email
       const verifyUserEmail = await axios.post(`${cen_url}/verify_user`, { email_id: email });
-      // check error in verify email
-      if (verifyUserEmail.data.status === "false") {
+      // console.log(verifyUserEmail.data);
+
+      if (!verifyUserEmail.data.user_details._id) {
         setLoading(false);
         setPass(false);
+        console.error("Email verification failed.");
+        return; // Exit early
       }
-      if (verifyUserEmail.data.user_details.email_id) {
-        const loginData = {
-          email_id: email,
-          password,
-          loginfrom: 3
-        }
-        const loginEmp = await axios.post(`${cen_url}/login`, loginData);
-        // check error in login
-        if (loginEmp.data.status === "false") {
-          setLoading(false);
-          setPass(false);
-        } else {
-          cookies.set("token", loginEmp.data.token, { path: "/" })
-          setIsLogin(true);
-          setToken(loginEmp.data.token);
-          setData({
-            _id: loginEmp.data.user_details._id,
-            email: loginEmp.data.user_details.email_id,
-            name: loginEmp.data.user_details.name
-          })
-          cookies.set("isLogin", true, { path: "/" });
-          const essentialData = await axios.post(`${cen_url}/view`, { token: loginEmp.data.token });
-          cookies.set("orgIds", essentialData.data.user_details.nexhr_organisations, { path: "/" });
-          const orgIds = essentialData.data.user_details.nexhr_organisations.split(",");
-          if (orgIds.length > 0) {
-            const orgsData = await axios.post(`${url}/api/organization`, { orgs: orgIds });
-            setOrg(orgsData.data);
-            navigate("/org-list");
-          } else {
-            const orgData = await axios.get(`${url}/api/organization/${essentialData.data.user_details.nexhr_organisations}`);
-            setOrg(orgData.data);
-            goToDash(orgData.data._id)
-          }
-        }
+
+      const userDetails = verifyUserEmail.data.user_details;
+      if (!userDetails || !userDetails.email_id) {
+        setLoading(false);
+        setPass(false);
+        console.error("User details not found.");
+        return; // Exit early
+      }
+
+      // Step 2: Login User
+      const loginData = {
+        email_id: email,
+        password,
+        loginfrom: 3,
+      };
+      const loginEmp = await axios.post(`${cen_url}/login`, loginData);
+
+      if (!loginEmp.data || loginEmp.data.status === "false") {
+        setLoading(false);
+        setPass(false);
+        console.error("Login failed.");
+        return; // Exit early
+      }
+
+      // Step 3: Set User Data and Token
+      const token = loginEmp.data.token;
+      const user = loginEmp.data.user_details;
+
+      cookies.set("token", token, { path: "/" });
+      cookies.set("isLogin", true, { path: "/" });
+      cookies.set("email", user.email_id, { path: "/" })
+      setIsLogin(true);
+      setToken(token);
+      setData({
+        cen_user_id: user._id,
+        email: user.email_id,
+        name: user.name,
+      });
+
+      // Step 4: Fetch Essential Data
+      const essentialData = await axios.post(`${cen_url}/view`, { token });
+
+      const orgIds = essentialData.data?.user_details?.nexhr_organisations?.split(",") || [];
+      cookies.set("orgIds", essentialData.data?.user_details?.nexhr_organisations, { path: "/" });
+
+      if (orgIds.length > 0) {
+        // Multiple organizations
+        const orgsData = await axios.post(`${url}/api/organization`, { orgs: orgIds });
+        setOrg(orgsData.data);
+        navigate("/org-list");
+      } else {
+        // Single organization
+        const orgId = essentialData?.data?.user_details?.nexhr_organisations;
+        const orgData = await axios.get(`${url}/api/organization/${orgId}`);
+        setOrg(orgData.data);
+        goToDash(orgData.data._id);
       }
 
     } catch (error) {
-      console.log(error);
+      console.error("An error occurred during login:", error.message);
+      setLoading(false);
+      setPass(false); // Reset states on failure
+    } finally {
+      setLoading(false); // Ensure loading stops
     }
-  }
+  };
 
   useEffect(() => {
     localStorage.setItem("isStartLogin", isStartLogin);
@@ -246,6 +284,7 @@ const App = () => {
   //     window.removeEventListener('offline', handleOffline);
   //   };
   // }, []);
+  console.log(data.Account);
 
   return (
     <EssentialValues.Provider
