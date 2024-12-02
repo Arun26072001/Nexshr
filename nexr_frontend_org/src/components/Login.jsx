@@ -17,22 +17,6 @@ const override = css`
 const Login = ({ isLogin }) => {
   const navigate = useNavigate();
   const { handleSubmit, loading, pass, data } = useContext(EssentialValues);
-  console.log("came to login");
-  
-  // const cookies = new Cookies();
-  // console.log(data.Account, isLogin);
-  
-  // useEffect(() => {
-  //   // localStorage.setItem("orgId", id)
-  //   if (data.Account === 1 && isLogin) {
-  //     navigate("/admin")
-  //   }
-  //   else if (data.Account === 2 && isLogin) {
-  //     navigate("/hr")
-  //   } else if (data.Account === 3 && isLogin) {
-  //     navigate("/emp")
-  //   }
-  // }, []);
 
   return (
     <div>
@@ -42,7 +26,7 @@ const Login = ({ isLogin }) => {
           : data.Account === 3 && isLogin ? <Navigate to={"/emp"} />
             : ""} */}
       <div className="container">
-        <div id="main-outer-div">
+        <div className="main-outer-div">
           <div id="logo-div">
             <img id="logo-img" src={Logo} alt="Webnexs Logo" />
           </div>

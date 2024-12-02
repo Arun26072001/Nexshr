@@ -7,12 +7,11 @@ import Loading from '../Loader';
 import { EssentialValues } from '../../App';
 import { toast } from 'react-toastify';
 import { TimerStates } from './HRMDashboard';
-import Cookies from 'universal-cookie';
 
 const Dashboard = () => {
     const { updateClockins } = useContext(TimerStates)
     const { handleLogout, data } = useContext(EssentialValues);
-    const {_id} = data;
+    const { _id, email, profile } = data;
     const [leaveData, setLeaveData] = useState({});
     const [isLoading, setIsLoading] = useState(false);
     const [dailyLogindata, setDailyLoginData] = useState({})
@@ -20,50 +19,85 @@ const Dashboard = () => {
 
     const gettingEmpdata = async () => {
         try {
-            if (!_id) return; // Exit early if _id is not provided
+            if (!email) {
+                console.error("Email is not provided.");
+                return; // Exit early if email is not provided
+            }
 
             setIsLoading(true);
 
             // Fetch employee data
-            const data = await fetchEmployeeData(_id);
+            const data = await fetchEmployeeData(email);
             if (!data) {
                 toast.error("Error in fetching workingTimePattern data!");
                 setLeaveData({});
-                return;
+                return; // Exit early if data is not fetched
             }
 
-            // Calculate working hours for the day
-            const workingHour = await getTotalWorkingHourPerDay(data.workingTimePattern.StartingTime, data.workingTimePattern.FinishingTime);
+            // Ensure workingTimePattern exists before accessing its properties
+            const startingTime = data?.workingTimePattern?.StartingTime || null;
+            const finishingTime = data?.workingTimePattern?.FinishingTime || null;
+
+            if (!startingTime || !finishingTime) {
+                console.warn("Working time pattern is missing or incomplete.");
+            }
+
+            const workingHour = startingTime && finishingTime
+                ? await getTotalWorkingHourPerDay(startingTime, finishingTime)
+                : 0; // Default to 0 if times are unavailable
 
             // Fetch clock-ins data
             const getEmpMonthPunchIns = await gettingClockinsData(_id);
 
-            // Calculate total working hour percentage and total worked hour percentage
-            const totalWorkingHourPercentage = (getEmpMonthPunchIns.companyTotalWorkingHour / getEmpMonthPunchIns.totalWorkingHoursPerMonth) * 100;
-            const totalWorkedHourPercentage = (getEmpMonthPunchIns.totalEmpWorkingHours / getEmpMonthPunchIns.companyTotalWorkingHour) * 100;
+            if (!getEmpMonthPunchIns) {
+                console.error("Clock-ins data is undefined.");
+            }
+
+            const companyTotalWorkingHour = getEmpMonthPunchIns?.companyTotalWorkingHour || 0;
+            const totalWorkingHoursPerMonth = getEmpMonthPunchIns?.totalWorkingHoursPerMonth || 0;
+            const totalEmpWorkingHours = getEmpMonthPunchIns?.totalEmpWorkingHours || 0;
+
+            const totalWorkingHourPercentage =
+                totalWorkingHoursPerMonth > 0
+                    ? (companyTotalWorkingHour / totalWorkingHoursPerMonth) * 100
+                    : 0;
+
+            const totalWorkedHourPercentage =
+                companyTotalWorkingHour > 0
+                    ? (totalEmpWorkingHours / companyTotalWorkingHour) * 100
+                    : 0;
 
             // Set the monthly login data
             setMonthlyLoginData({
                 ...getEmpMonthPunchIns,
                 totalWorkingHourPercentage,
-                totalWorkedHourPercentage
+                totalWorkedHourPercentage,
             });
 
             // Fetch daily clock-in data
             const clockinsData = await getDataAPI(_id);
 
-            setDailyLoginData(clockinsData);
+            if (!clockinsData) {
+                console.warn("Daily clock-in data is undefined.");
+            }
+
+            setDailyLoginData(clockinsData || []);
 
             // Set leave data with working hours
-            setLeaveData({ ...data, workingHour });
+            setLeaveData({
+                ...data,
+                workingHour,
+            });
 
         } catch (error) {
-            toast.error(error.message || "An error occurred while fetching employee data.");
+            console.error("Error fetching employee data:", error.message);
+            // toast.error(error.message || "An error occurred while fetching employee data.");
             setLeaveData({});
         } finally {
             setIsLoading(false); // Ensure loading state is always updated
         }
     };
+
 
     function getPadStartHourAndMin(time) {
         if (isNaN(time) || time < 0) return "00:00";
@@ -136,7 +170,7 @@ const Dashboard = () => {
                                     <div className='col-lg-6 col-md-6 col-12'>
                                         <div className='space row'>
                                             <p className='col-lg-6 col-md-6 col-sm-6 col-6 text-start'><span className='text_gap '>Total</span></p>
-                                            <p className='col-lg-6 col-md-6 col-sm-6 col-6 text-end'><span className='value'>{monthlyLoginData?.companyTotalWorkingHour} hour</span></p>
+                                            <p className='col-lg-6 col-md-6 col-sm-6 col-6 text-end'><span className='value'>{monthlyLoginData?.companyTotalWorkingHour || 0} hour</span></p>
                                         </div>
                                         <div className="progress">
                                             <div
@@ -173,10 +207,10 @@ const Dashboard = () => {
                                     <div className='col-lg-6 col-md-6 col-sm-6 col-12'>
                                         <div className='space row'>
                                             <div className='col-lg-6 col-md-6 col-sm-6 col-6 text-start'><span className='text_gap'>Shortage time</span></div>
-                                            <div className='col-lg-6 col-md-6 col-sm-6 col-6 text-end'><span className='value'>{(monthlyLoginData?.companyTotalWorkingHour - monthlyLoginData?.totalEmpWorkingHours)?.toFixed(2) || 0} hour</span></div>
+                                            <div className='col-lg-6 col-md-6 col-sm-6 col-6 text-end'><span className='value'>{(monthlyLoginData?.companyTotalWorkingHour || 0 - monthlyLoginData?.totalEmpWorkingHours || 0)?.toFixed(2)} hour</span></div>
                                         </div>
                                         <div className="progress">
-                                            <div className="progress-bar progress-bar-striped" role="progressbar" style={{ width: "50%" }} aria-valuenow="10" aria-valuemin="0" aria-valuemax="100"></div>
+                                            <div className="progress-bar progress-bar-striped" role="progressbar" style={{ width: `${monthlyLoginData?.companyTotalWorkingHour || 0 - monthlyLoginData?.totalEmpWorkingHours || 0}%` }} aria-valuenow="10" aria-valuemin="0" aria-valuemax="100"></div>
                                         </div>
                                     </div>
 
@@ -186,7 +220,7 @@ const Dashboard = () => {
                                             <div className='col-lg-6 col-md-6 col-sm-6 col-6 text-end'><span className='value'>{getOverTime(monthlyLoginData?.companyTotalWorkingHour, monthlyLoginData?.totalEmpWorkingHours)} hour</span></div>
                                         </div>
                                         <div className="progress">
-                                            <div className="progress-bar progress-bar-striped" role="progressbar" style={{ width: "0%" }} aria-valuenow="10" aria-valuemin="0" aria-valuemax="100"></div>
+                                            <div className="progress-bar progress-bar-striped" role="progressbar" style={{ width: `${getOverTime(monthlyLoginData?.companyTotalWorkingHour, monthlyLoginData?.totalEmpWorkingHours)}%` }} aria-valuenow="10" aria-valuemin="0" aria-valuemax="100"></div>
                                         </div>
                                     </div>
                                 </div>

@@ -3,10 +3,13 @@ const router = express.Router()
 const Joi = require('joi');
 const { verifyAdminHR } = require('../auth/authMiddleware');
 const { getEmployeeModel } = require('./employee');
+const { Org } = require('../OrgModels/OrganizationModel');
+const { getDepartmentModel } = require('../OrgModels/OrgDepartmentModel');
 
-router.get("/", async (req, res) => {
+router.get("/:orgId", async (req, res) => {
   try {
-    const {orgName} = jwt.decode(req.headers['authorization']);
+    // const {orgName} = jwt.decode(req.headers['authorization']);
+    const { orgName } = await Org.findById({ _id: req.params.orgId });
     const OrgDepartment = getDepartmentModel(orgName)
     const departments = await OrgDepartment.find()
       .populate({
@@ -18,9 +21,10 @@ router.get("/", async (req, res) => {
   }
 });
 
-router.get("/:id", async (req, res) => {
+router.get("/:orgId/:id", async (req, res) => {
   try {
-    const {orgName} = jwt.decode(req.headers['authorization']);
+    const { orgName } = await Org.findById({ _id: req.params.orgId });
+    // const {orgName} = jwt.decode(req.headers['authorization']);
     const OrgDepartment = getDepartmentModel(orgName)
     const department = await OrgDepartment.findById(req.params.id)
       .populate({
@@ -33,13 +37,14 @@ router.get("/:id", async (req, res) => {
 });
 
 
-router.post("/", verifyAdminHR, (req, res) => {
-  Joi.validate(req.body, DepartmentValidation, (err, result) => {
+router.post("/:orgId/", verifyAdminHR, async(req, res) => {
+  Joi.validate(req.body, DepartmentValidation, async(err, result) => {
     if (err) {
       console.log(err);
       res.status(400).send({ message: err.details[0].message });
     } else {
-      const {orgName} = jwt.decode(req.headers['authorization']);
+      const { orgName } = await Org.findById({ _id: req.params.orgId });
+      // const { orgName } = jwt.decode(req.headers['authorization']);
       const OrgDepartment = getDepartmentModel(orgName)
       OrgDepartment.create(req.body, function (err, department) {
         if (err) {
@@ -53,19 +58,20 @@ router.post("/", verifyAdminHR, (req, res) => {
   });
 });
 
-router.put("/:id", verifyAdminHR, (req, res) => {
+router.put("/:orgId/:id", verifyAdminHR, (req, res) => {
   let updateDepartment;
   updateDepartment = {
     DepartmentName: req.body.DepartmentName,
     orgId: req.body.orgId
   };
-  Joi.validate(updateDepartment, DepartmentValidation, (err, result) => {
+  Joi.validate(updateDepartment, DepartmentValidation, async(err, result) => {
     if (err) {
       console.log(err);
       res.status(400).send({ message: err.details[0].message });
     } else {
-      const {orgName} = jwt.decode(req.headers['authorization']);
-      const OrgDepartment = getDepartmentModel(orgName); 
+      const { orgName } = await Org.findById({ _id: req.params.orgId });
+      // const { orgName } = jwt.decode(req.headers['authorization']);
+      const OrgDepartment = getDepartmentModel(orgName);
       OrgDepartment.findByIdAndUpdate(req.params.id, {
         $set: updateDepartment
       }, function (
@@ -82,8 +88,9 @@ router.put("/:id", verifyAdminHR, (req, res) => {
   });
 });
 
-router.delete("/:id", verifyAdminHR, (req, res) => {
-  const {orgName} = jwt.decode(req.headers['authorization']);
+router.delete("/:orgId/:id", verifyAdminHR, async(req, res) => {
+  const { orgName } = await Org.findById({ _id: req.params.orgId });
+  // const { orgName } = jwt.decode(req.headers['authorization']);
   const OrgEmployeeModel = getEmployeeModel(orgName);
   OrgEmployeeModel.find({ department: req.params.id }, function (err, d) {
     if (err) {

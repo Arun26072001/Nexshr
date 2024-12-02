@@ -8,25 +8,26 @@ import Loading from "../Loader";
 import { EssentialValues } from "../../App";
 
 const Payslip = (props) => {
-    const {data} = useContext(EssentialValues);
-    const {_id} = data;
+    const { data } = useContext(EssentialValues);
+    const { _id } = data;
     const [payslips, setPayslips] = useState([]);
     const [daterangeValue, setDaterangeValue] = useState("");
     const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState("");
 
     useEffect(() => {
         async function fetchPayslips() {
-            setIsLoading(true);
             try {
                 const slips = await fetchPayslipFromEmp(_id);
                 setPayslips(slips);
             } catch (err) {
-                toast.error(err?.response?.data?.error)
+                setError(err?.response?.data?.error)
             }
-            setIsLoading(false);
         }
 
+        setIsLoading(true);
         fetchPayslips();
+        setIsLoading(false);
     }, [_id])
     return (
         isLoading ? <Loading /> :
@@ -75,9 +76,11 @@ const Payslip = (props) => {
                     </div>
 
                 </div>
-                {payslips.length > 0 ?
-                    <LeaveTable data={payslips} />
-                    : <NoDataFound message={"Sorry! No payslip data in your account."} />
+                {
+                    error ? <NoDataFound message={error} />
+                        : payslips?.length > 0 ?
+                            <LeaveTable data={payslips} />
+                            : <NoDataFound message={"Sorry! No payslip data in your account."} />
                 }
             </div>
     )

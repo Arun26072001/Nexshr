@@ -5,8 +5,8 @@ const { verifyAdminHR } = require('../auth/authMiddleware');
 const { getTimePatternModel } = require('../OrgModels/OrgTimePatternModel');
 
 
-router.get("/", verifyAdminHR, (req, res) => {
-  const { orgName } = jwt.decode(req.headers['authorization']);
+router.get("/:orgId", verifyAdminHR, async(req, res) => {
+  const { orgName } = await Org.findById({ _id: req.params.orgId });
   const orgTimePattern = getTimePatternModel(orgName);
   orgTimePattern.find()
     .exec((err, pattern) => {
@@ -21,14 +21,14 @@ router.get("/", verifyAdminHR, (req, res) => {
     })
 })
 
-router.post("/", verifyAdminHR, (req, res) => {
+router.post("/:orgId", verifyAdminHR, (req, res) => {
   // console.log("46: "+req.body);
-  Joi.validate(req.body, TimePatternValidation, (err, result) => {
+  Joi.validate(req.body, TimePatternValidation, async(err, result) => {
     if (err) {
       res.status(400).send({error: err.details[0].message})
     } else {
       let newTimepattern = req.body;
-      const { orgName } = jwt.decode(req.headers['authorization']);
+      const { orgName } = await Org.findById({ _id: req.params.orgId });
       const orgTimePattern = getTimePatternModel(orgName);
       orgTimePattern.create(newTimepattern, (err, data) => {
         if (err) {
@@ -42,8 +42,8 @@ router.post("/", verifyAdminHR, (req, res) => {
   })
 })
 
-router.put("/:id", verifyAdminHR, (req, res) => {
-  const { orgName } = jwt.decode(req.headers['authorization']);
+router.put("/:orgId/:id", verifyAdminHR, async(req, res) => {
+  const { orgName } = await Org.findById({ _id: req.params.orgId });
   const orgTimePattern = getTimePatternModel(orgName);
   orgTimePattern.findByIdAndUpdate(req.params.id, {
     $set: {
@@ -58,8 +58,8 @@ router.put("/:id", verifyAdminHR, (req, res) => {
   })
 })
 
-router.delete("/:id", verifyAdminHR, (req, res) => {
-  const { orgName } = jwt.decode(req.headers['authorization']);
+router.delete("/:orgId/:id", verifyAdminHR, async(req, res) => {
+  const { orgName } = await Org.findById({ _id: req.params.orgId });
   const orgTimePattern = getTimePatternModel(orgName);
   orgTimePattern.findByIdAndDelete(req.params.id, (err, result) => {
     if (err) {

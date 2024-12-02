@@ -16,14 +16,14 @@ import { jwtDecode } from "jwt-decode";
 
 const Sidebar = () => {
   const cookies = new Cookies();
-  const { roleData } = jwtDecode(cookies.get("token"));
+  // const { roleData } = jwtDecode(cookies.get("token"));
   
   const { Dashboard, JobDesk, Employee,
     Leave, Attendance, Administration,
-    Settings } = roleData.pageAuth;
+    Settings } = "";
   const { whoIs } = useContext(TimerStates);
   
-  const { handleLogout } = useContext(EssentialValues);
+  const { handleLogout, data } = useContext(EssentialValues);
   const param = useParams();
   const [activeSubmenu, setActiveSubmenu] = useState(param['*']);
   const [activeNavLink, setActiveNavLink] = useState();
@@ -96,7 +96,7 @@ const Sidebar = () => {
       <ul className="sidebar-nav p-0" id="sidebar-nav">
         {renderNavLink(
           Dashboard === 'allow' || ['admin', 'hr', 'employee'].includes(whoIs),
-          `/${whoIs}`,
+          `/${data.orgId}/${whoIs}`,
           homeIcon,
           'Dashboard',
           'dashboard'
@@ -104,7 +104,7 @@ const Sidebar = () => {
 
         {renderNavLink(
           JobDesk === 'allow' || ['admin', 'hr', 'employee'].includes(whoIs),
-          `/${whoIs}/job-desk/attendance`,
+          `/${data.orgId}/${whoIs}/job-desk/attendance`,
           jobDeskIcon,
           'Job Desk',
           'jobDesk'
@@ -112,7 +112,7 @@ const Sidebar = () => {
 
         {renderNavLink(
           Employee === 'allow' || ['admin', 'hr', 'employee'].includes(whoIs),
-          `/${whoIs}/employee`,
+          `/${data.orgId}/${whoIs}/employee`,
           userIcon,
           'Employee',
           'employee'
@@ -122,10 +122,10 @@ const Sidebar = () => {
           renderSubMenu(
             'leave',
             [
-              { key: 'status', path: `/${whoIs}/leave/status`, label: 'Status' },
-              { key: 'leave-request', path: `/${whoIs}/leave/leave-request`, label: 'Leave Request' },
-              { key: 'calendar', path: `/${whoIs}/leave/calendar`, label: 'Calendar' },
-              { key: 'leave-summary', path: `/${whoIs}/leave/leave-summary`, label: 'Leave Summary' }
+              { key: 'status', path: `/${data.orgId}/${whoIs}/leave/status`, label: 'Status' },
+              { key: 'leave-request', path: `/${data.orgId}/${whoIs}/leave/leave-request`, label: 'Leave Request' },
+              { key: 'calendar', path: `/${data.orgId}/${whoIs}/leave/calendar`, label: 'Calendar' },
+              { key: 'leave-summary', path: `/${data.orgId}/${whoIs}/leave/leave-summary`, label: 'Leave Summary' }
             ],
             leaveIcon,
             'Leave'
@@ -135,10 +135,10 @@ const Sidebar = () => {
           renderSubMenu(
             'attendance',
             [
-              { key: 'daily-log', path: `/${whoIs}/attendance/daily-log`, label: 'Daily Log' },
-              { key: 'attendance-request', path: `/${whoIs}/attendance/attendance-request`, label: 'Attendance Request' },
-              { key: 'details', path: `/${whoIs}/attendance/details`, label: 'Details' },
-              { key: 'attendance-summary', path: `/${whoIs}/attendance/attendance-summary`, label: 'Attendance Summary' }
+              { key: 'daily-log', path: `/${data.orgId}/${whoIs}/attendance/daily-log`, label: 'Daily Log' },
+              { key: 'attendance-request', path: `/${data.orgId}/${whoIs}/attendance/attendance-request`, label: 'Attendance Request' },
+              { key: 'details', path: `/${data.orgId}/${whoIs}/attendance/details`, label: 'Details' },
+              { key: 'attendance-summary', path: `/${data.orgId}/${whoIs}/attendance/attendance-summary`, label: 'Attendance Summary' }
             ],
             attendanceIcon,
             'Attendance'
@@ -148,12 +148,12 @@ const Sidebar = () => {
           renderSubMenu(
             'administration',
             [
-              { key: 'role', path: `/${whoIs}/administration/role`, label: 'Role' },
-              { key: 'shift', path: `/${whoIs}/administration/shift`, label: 'Shift' },
-              { key: 'department', path: `/${whoIs}/administration/department`, label: 'Department' },
-              { key: 'position', path: `/${whoIs}/administration/position`, label: 'Position' },
-              { key: 'holiday', path: `/${whoIs}/administration/holiday`, label: 'Holiday' },
-              { key: 'announcement', path: `/${whoIs}/administration/announcement`, label: 'Announcement' }
+              { key: 'role', path: `/${data.orgId}/${whoIs}/administration/role`, label: 'Role' },
+              { key: 'shift', path: `/${data.orgId}/${whoIs}/administration/shift`, label: 'Shift' },
+              { key: 'department', path: `/${data.orgId}/${whoIs}/administration/department`, label: 'Department' },
+              { key: 'position', path: `/${data.orgId}/${whoIs}/administration/position`, label: 'Position' },
+              { key: 'holiday', path: `/${data.orgId}/${whoIs}/administration/holiday`, label: 'Holiday' },
+              { key: 'announcement', path: `/${data.orgId}/${whoIs}/administration/announcement`, label: 'Announcement' }
             ],
             adminIcon,
             'Administration'
@@ -163,9 +163,9 @@ const Sidebar = () => {
           renderSubMenu(
             'settings',
             [
-              { key: 'genderal', path: `/${whoIs}/settings/`, label: 'Genderal' },
-              { key: 'account', path: `/${whoIs}/settings/account`, label: 'Account' },
-              { key: 'payroll', path: `/${whoIs}/settings/payroll`, label: 'Payroll' }
+              { key: 'genderal', path: `/${data.orgId}/${whoIs}/settings/`, label: 'Genderal' },
+              { key: 'account', path: `/${data.orgId}/${whoIs}/settings/account`, label: 'Account' },
+              { key: 'payroll', path: `/${data.orgId}/${whoIs}/settings/payroll`, label: 'Payroll' }
             ],
             settingsIcon,
             'Settings'

@@ -62,7 +62,7 @@ const OrgClockinModels = {};
 
 function getClockinModel(orgName) {
     if (!OrgClockinModels[orgName]) {
-        OrgClockinModels[orgName] = mongoose.model(`${orgName}_Clockins`, getClockinSchema(orgName));
+        OrgClockinModels[orgName] = mongoose.model(`${orgName}_clockins`, getClockinSchema(orgName));
     }
     return OrgClockinModels[orgName];
 }

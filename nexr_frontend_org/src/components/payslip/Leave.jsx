@@ -11,11 +11,13 @@ import { useNavigate } from "react-router-dom";
 import { TimerStates } from "./HRMDashboard";
 import Cookies from "universal-cookie";
 import { jwtDecode } from "jwt-decode";
+import { EssentialValues } from "../../App";
 
 const Leave = () => {
     const cookies = new Cookies();
     const token = cookies.get("token");
-    const {_id} = jwtDecode(token);
+    const {data} = useContext(EssentialValues);
+    const { _id, orgId } = data;
     const navigate = useNavigate();
     const { whoIs } = useContext(TimerStates);
     const [leaveRequests, setLeaveRequests] = useState({});
@@ -38,12 +40,12 @@ const Leave = () => {
         const getLeaveData = async () => {
             try {
                 setIsLoading(true);
-                const leaveData = await axios.get(`${url}/api/leave-application/date-range/${_id}`, {
+                const leaveData = await axios.get(`${url}/api/leave-application/date-range/${orgId}/${_id}`, {
                     params: {
                         daterangeValue
                     },
                     headers: {
-                        authorization: token || ""
+                        authorization: `Bearer ${token} ` || ""
                     }
                 })
                 console.log(leaveData.data);

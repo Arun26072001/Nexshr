@@ -19,6 +19,7 @@ const Roles = () => {
     const [isLoading, setIsLoading] = useState(false);
     const [roles, setRoles] = useState([]);
     const navigate = useNavigate();
+    const [error, setError] = useState("");
 
     async function deleteRoleAndPermission(id) {
         try {
@@ -37,17 +38,18 @@ const Roles = () => {
 
     useEffect(() => {
         const fetchEmpRoles = async () => {
-            setIsLoading(true);
             try {
                 const roleData = await fetchRoles();
                 setRoles(roleData);
             } catch (err) {
                 console.log(err);
-                toast.error(err?.response?.data?.message)
+                setError(err.response.data.error)
             }
-            setIsLoading(false);
         }
+        
+        setIsLoading(true);
         fetchEmpRoles();
+        setIsLoading(false);
     }, [reloadRolePage])
 
     return (
@@ -62,9 +64,10 @@ const Roles = () => {
                     </div>
                 </div>
                 {
+                    error ? <NoDataFound message={error} /> :
                     roles.length > 0 ?
                         <LeaveTable data={roles} deleteRole={deleteRoleAndPermission} />
-                        : <NoDataFound message={"Roles data not found"} />
+                        : <NoDataFound message={"Roles and permissions data not found!"} />
                 }
             </div>
     );

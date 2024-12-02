@@ -1,10 +1,11 @@
 const express = require("express");
 const router = express.Router();
+const mongoose = require("mongoose");
 const { verifyAdminHREmployee, verifyAdminHR } = require("../auth/authMiddleware");
 const { getDayDifference } = require("./leave-app");
-const jwt = require("jsonwebtoken");
 const { getClockinModel, clockInsValidation } = require("../OrgModels/OrgClockinsModel");
 const { getEmployeeModel } = require("../OrgModels/OrgEmpModel");
+const { Org } = require("../OrgModels/OrganizationModel");
 
 async function checkLoginForOfficeTime(scheduledTime, actualTime) {
     // Parse scheduled and actual time into hours and minutes
@@ -58,8 +59,9 @@ function getTotalWorkingHourPerDay(startingTime, endingTime) {
     }
 }
 
-router.post("/:id", verifyAdminHREmployee, async (req, res) => {
-    const { orgName } = jwt.decode(req.headers['authorization']);
+router.post("/:orgId/:id", verifyAdminHREmployee, async (req, res) => {
+    // const { orgName } = jwt.decode(req.headers['authorization']);
+    const { orgName } = await Org.findById({ _id: req.params.orgId });
     const OrgEmployee = getEmployeeModel(orgName);
     const OrgClockinsModel = getClockinModel(orgName);
     let regular = 0;
@@ -91,8 +93,8 @@ router.post("/:id", verifyAdminHREmployee, async (req, res) => {
         const startOfDay = new Date(today.setHours(0, 0, 0, 0)); // Set time to 00:00:00.000
         const endOfDay = new Date(today.setHours(23, 59, 59, 999));
 
-        const emp = await Employee.findById(req.params.id)
-            .populate({ path: "clockIns", match: { date: { $gte: startOfDay, $lte: endOfDay } } });
+        const emp = await OrgEmployee.findById(req.params.id)
+            .populate({ path: `clockIns`, match: { date: { $gte: startOfDay, $lte: endOfDay } } });
 
         if (emp?.clockIns?.length > 0) {
             return res.status(409).send({ message: "You have already PunchIn!" });
@@ -129,11 +131,11 @@ router.post("/:id", verifyAdminHREmployee, async (req, res) => {
 });
 
 
-router.get("/:id", verifyAdminHREmployee, async (req, res) => {
-
+router.get("/:orgId/:id", verifyAdminHREmployee, async (req, res) => {
+    const { orgName } = await Org.findById({ _id: req.params.orgId });
     function timeToMinutes(timeStr) {
         // Split the time string into hours, minutes, and seconds
-        const [hours, minutes, seconds] = timeStr.split(':').map(Number);
+        const [hours, minutes, seconds] = timeStr?.split(':').map(Number);
         // Calculate total minutes
         const totalMinutes = (hours * 60) + minutes;
         return totalMinutes || 0;
@@ -146,24 +148,21 @@ router.get("/:id", verifyAdminHREmployee, async (req, res) => {
         const startOfDay = new Date(queryDate.setHours(0, 0, 0, 0)); // Set time to 00:00:00.000
         const endOfDay = new Date(queryDate.setHours(23, 59, 59, 999)); // Set time to 23:59:59.999
 
-        const { orgName } = jwt.decode(req.headers['authorization']);
+        // const { orgName } = jwt.decode(req.headers['authorization']);
         const OrgEmployeeModel = getEmployeeModel(orgName);
         const timeData = await OrgEmployeeModel.findById({ _id: req.params.id }, "clockIns")
-            .populate({
-                path: "clockIns",
-                match: {
-                    date: {
-                        $gte: startOfDay,
-                        $lt: endOfDay,
-                    },
-                },
-                populate: { path: "employee", select: "_id FirstName LastName" }
-            });
-
+            // .populate({
+            //     path: `clockIns`,
+            //     match: {
+            //         date: {
+            //             $gte: startOfDay,
+            //             $lt: endOfDay,
+            //         },
+            //     },
+            //     populate: { path: "employee", select: "_id FirstName LastName" }
+            // });
         // const timeData = await ClockIns.findById(req.params.id).populate({path: "employee", select: "_id FirstName LastName"});
-        if (timeData?.clockIns?.length === 0) {
-            return res.status(404).send({ message: "Please Login!" });
-        } else {
+        if (timeData?.clockIns?.length > 0) {
             const activities = ["login", "meeting", "morningBreak", "lunch", "eveningBreak", "event"];
 
             const activitiesData = activities.map((activity) => {
@@ -192,6 +191,8 @@ router.get("/:id", verifyAdminHREmployee, async (req, res) => {
                 activitiesData,
                 empTotalWorkingHours: (hours + minutes) / 60
             });
+        } else {
+            return res.status(404).send({ message: "Please Login!" });
         }
 
     } catch (err) {
@@ -200,7 +201,7 @@ router.get("/:id", verifyAdminHREmployee, async (req, res) => {
     }
 });
 
-router.get("/item/:id", verifyAdminHREmployee, async (req, res) => {
+router.get("/item/:orgId/:id", verifyAdminHREmployee, async (req, res) => {
     const convertToMinutes = (start, end) => {
         const [endHour, endMin] = end.split(":").map(Number);
         const [startHour, startMin] = start.split(":").map(Number);
@@ -215,7 +216,7 @@ router.get("/item/:id", verifyAdminHREmployee, async (req, res) => {
     };
 
     try {
-        const { orgName } = jwt.decode(req.headers['authorization']);
+        const { orgName } = await Org.findById({ _id: req.params.orgId });
         const OrgClockInsModel = getClockinModel(orgName);
         const timeData = await OrgClockInsModel.findById(req.params.id).populate({ path: "employee", select: "_id FirstName LastName" });
         if (!timeData) {
@@ -256,7 +257,7 @@ router.get("/item/:id", verifyAdminHREmployee, async (req, res) => {
 });
 
 // get login and logout data from employee
-router.get("/employee/:empId", verifyAdminHREmployee, async (req, res) => {
+router.get("/employee/:orgId/:id", verifyAdminHREmployee, async (req, res) => {
 
     let totalEmpWorkingHours = 0; // Track total working hours for the employee
     let totalLeaveDays = 0;
@@ -313,36 +314,38 @@ router.get("/employee/:empId", verifyAdminHREmployee, async (req, res) => {
     }
 
     try {
-        const { orgName } = jwt.decode(req.headers['authorization']);
+        const { orgName } = await Org.findById({ _id: req.params.orgId });
         const OrgEmployee = getEmployeeModel(orgName);
-        const employee = await OrgEmployee.findById(req.params.empId, "_id FirstName LastName clockIns leaveApplication")
-            .populate({
-                path: "clockIns",
-                match: {
-                    date: {
-                        $gte: startOfMonth,
-                        $lte: endOfMonth
-                    }
-                },
-                populate: {
-                    path: "employee", // Ensure this matches the defined model name
-                    select: "_id FirstName LastName"
-                }
-            })
-            .populate({
-                path: "leaveApplication",
-                match: {
-                    fromDate: {
-                        $gte: startOfMonth,
-                        $lte: endOfMonth
-                    },
-                    toDate: {
-                        $gte: startOfMonth,
-                        $lte: endOfMonth
-                    },
-                    status: "approved"
-                }
-            });
+        const employee = await OrgEmployee.findOne({ _id: req.params.id }, "_id FirstName LastName clockIns leaveApplication")
+        // .populate({
+        //     path: `clockIns`,
+        // match: {
+        //     date: {
+        //         $gte: startOfMonth,
+        //         $lte: endOfMonth
+        //     }
+        // },
+        // populate: {
+        //     path: `employee`, // Ensure this matches the defined model name
+        //     select: "_id FirstName LastName"
+        // }
+        // })
+        // .populate({
+        //     path: `leaveApplication`,
+        //     match: {
+        //         fromDate: {
+        //             $gte: startOfMonth,
+        //             $lte: endOfMonth
+        //         },
+        //         toDate: {
+        //             $gte: startOfMonth,
+        //             $lte: endOfMonth
+        //         },
+        //         status: "approved"
+        //     }
+        // });
+        console.log(mongoose.models);
+
 
         if (!employee) {
             return res.status(400).send({ message: "No Employee found with given ID" });
@@ -393,9 +396,9 @@ router.get("/employee/:empId", verifyAdminHREmployee, async (req, res) => {
     }
 });
 
-router.get("/", verifyAdminHR, async (req, res) => {
+router.get("/:orgId/", verifyAdminHR, async (req, res) => {
     try {
-        const { orgName } = jwt.decode(req.headers['authorization']);
+        const { orgName } = await Org.findById({ _id: req.params.orgId });
         const OrgClockIns = getClockinModel(orgName)
         const attendanceData = await OrgClockIns.find({}).populate({ path: "employee", select: "FirstName LastName" });
         res.send(attendanceData);
@@ -404,9 +407,10 @@ router.get("/", verifyAdminHR, async (req, res) => {
     }
 })
 
-router.put("/:id", verifyAdminHREmployee, (req, res) => {
+router.put("/:orgId/:id", verifyAdminHREmployee, async (req, res) => {
     let body = req.body;
-    const { orgName } = jwt.decode(req.headers['authorization']);
+    // const { orgName } = jwt.decode(req.headers['authorization']);
+    const { orgName } = await Org.findById({ _id: req.params.orgId });
     const OrgClockIns = getClockinModel(orgName);
 
     OrgClockIns.findByIdAndUpdate(req.params.id, body, {
