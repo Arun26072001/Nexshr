@@ -4,22 +4,24 @@ const Joi = require('joi');
 const { verifyAdminHR } = require('../auth/authMiddleware');
 const { getPositionModel } = require('../OrgModels/OrgPositionModel');
 const { getEmployeeModel } = require('../OrgModels/OrgEmpModel');
+const { Org } = require('../OrgModels/OrganizationModel');
 
-router.get("/", verifyAdminHR, (req, res) => {
-  const { orgName } = jwt.decode(req.headers['authorization']);
+router.get("/:orgId", verifyAdminHR, async (req, res) => {
+  // const { orgName } = jwt.decode(req.headers['authorization']);
+  const { orgName } = await Org.findById({ _id: req.params.orgId });
   const OrgPosition = getPositionModel(orgName)
   OrgPosition.find()
     .populate("orgId")
     .exec(function (err, positions) {
       if (err) {
-        res.status(500).send({ Error: err })
+        res.status(500).send({ error: err.message })
       }
       res.send(positions);
     });
 });
 
-router.get("/:id", verifyAdminHR, (req, res) => {
-  const { orgName } = jwt.decode(req.headers['authorization']);
+router.get("/:orgId/:id", verifyAdminHR, async (req, res) => {
+  const { orgName } = await Org.findById({ _id: req.params.orgId });
   const OrgPosition = getPositionModel(orgName)
   OrgPosition.findById({ _id: req.params.id })
     .populate("orgId")
@@ -59,13 +61,13 @@ router.get("/:id", verifyAdminHR, (req, res) => {
 //   }
 // });
 
-router.post("/", verifyAdminHR, (req, res) => {
-  Joi.validate(req.body, PositionValidation, (err, result) => {
+router.post("/:orgId", verifyAdminHR, async (req, res) => {
+  Joi.validate(req.body, PositionValidation, async (err, result) => {
     if (err) {
       console.log(err);
-      res.status(400).send({ message: err.details[0].message });
+      res.status(400).send({ error: err.details[0].message });
     } else {
-      const { orgName } = jwt.decode(req.headers['authorization']);
+      const { orgName } = await Org.findById({ _id: req.params.orgId });
       const OrgPosition = getPositionModel(orgName)
       OrgPosition.create(req.body, function (err, position) {
         if (err) {
@@ -80,17 +82,17 @@ router.post("/", verifyAdminHR, (req, res) => {
   });
 });
 
-router.put("/:id", verifyAdminHR, (req, res) => {
+router.put("/:orgId/:id", verifyAdminHR, (req, res) => {
   let updatedPosition = {
     PositionName: req.body.PositionName,
     company: req.body.company
   }
-  Joi.validate(updatedPosition, PositionValidation, (err, result) => {
+  Joi.validate(updatedPosition, PositionValidation, async (err, result) => {
     if (err) {
       console.log(err);
       res.status(400).send({ message: err.details[0].message });
     } else {
-      const { orgName } = jwt.decode(req.headers['authorization']);
+      const { orgName } = await Org.findById({ _id: req.params.orgId });
       const OrgPosition = getPositionModel(orgName)
       OrgPosition.findByIdAndUpdate(req.params.id, updatedPosition, function (
         err,
@@ -99,17 +101,17 @@ router.put("/:id", verifyAdminHR, (req, res) => {
         if (err) {
           res.status(500).send(err);
         } else {
-          res.send("position has been updated! " + position.PositionName);
+          res.send({ message: "position has been updated! " + position.PositionName });
         }
       });
     }
   });
 });
 
-router.delete("/:id", verifyAdminHR, async (req, res) => {
+router.delete("/:orgId/:id", verifyAdminHR, async (req, res) => {
   try {
     // Extract orgName from the token
-    const { orgName } = jwt.decode(req.headers['authorization']);
+    const { orgName } = await Org.findById({ _id: req.params.orgId });
     if (!orgName) {
       return res.status(401).send("Unauthorized: Invalid token");
     }

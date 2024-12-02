@@ -1,14 +1,17 @@
 const express = require('express');
 const router = express.Router();
 const { verifyAdminHR, verifyAdmin } = require('../auth/authMiddleware');
-const { getRoleAndPermissionModel } = require('../OrgModels/OrgRoleAndPermissionModel');
+const { getRoleAndPermissionModel, RoleAndPermissionValidation } = require('../OrgModels/OrgRoleAndPermissionModel');
 const { getEmployeeModel } = require('../OrgModels/OrgEmpModel');
+const { getUserPermissionModel, userPermissionsValidation } = require('../OrgModels/OrgUserPermissionModel');
+const { getPageAuthModel, pageAuthValidation } = require('../OrgModels/OrgPageAuthModel');
+const { Org } = require('../OrgModels/OrganizationModel');
 
 
 // get role by roleName
-router.get("/name", verifyAdmin, async (req, res) => {
+router.get("/:orgId/name", verifyAdmin, async (req, res) => {
   try {
-    const { orgName } = jwt.decode(req.headers['authorization']);
+    const { orgName } = await Org.findById({ _id: req.params.orgId });
     const OrgRoleAndPermission = getRoleAndPermissionModel(orgName);
 
     const roleData = await OrgRoleAndPermission.findOne({ RoleName: "Employee" })
@@ -51,9 +54,9 @@ router.get("/name", verifyAdmin, async (req, res) => {
 })
 
 // role get by id
-router.get("/:id", verifyAdmin, async (req, res) => {
+router.get("/:orgId/:id", verifyAdmin, async (req, res) => {
   try {
-    const { orgName } = jwt.decode(req.headers['authorization']);
+    const { orgName } = await Org.findById({ _id: req.params.orgId });
     const OrgRoleAndPermission = getRoleAndPermissionModel(orgName);
     const role = await OrgRoleAndPermission.findById(req.params.id)
       .populate("userPermissions")
@@ -70,8 +73,9 @@ router.get("/:id", verifyAdmin, async (req, res) => {
 });
 
 // Get all roles
-router.get('/', verifyAdminHR, (req, res) => {
-  const { orgName } = jwt.decode(req.headers['authorization']);
+router.get('/:orgId', verifyAdminHR, async (req, res) => {
+  // const { orgName } = jwt.decode(req.headers['authorization']);
+  const { orgName } = await Org.findById({ _id: req.params.orgId });
   const OrgRoleAndPermission = getRoleAndPermissionModel(orgName);
 
   OrgRoleAndPermission.find()
@@ -87,10 +91,10 @@ router.get('/', verifyAdminHR, (req, res) => {
 });
 
 // Add new role
-router.post('/', verifyAdmin, async (req, res) => {
+router.post('/:orgId', verifyAdmin, async (req, res) => {
   const newRole = req.body;
   try {
-
+    const { orgName } = await Org.findById({ _id: req.params.orgId });
     // Validate userPermissions
     const { error: userPermissionsError } = userPermissionsValidation.validate(newRole.userPermissions);
     if (userPermissionsError) {
@@ -102,10 +106,11 @@ router.post('/', verifyAdmin, async (req, res) => {
     if (pageAuthError) {
       return res.status(400).send({ error: pageAuthError.details[0].message });
     }
-
+    const OrgUserPermissionModel = getUserPermissionModel(orgName);
+    const OrgPageAuthModel = getPageAuthModel(orgName);
     // Create and save user permissions and page authorization in the database
-    const userPermission = await UserPermission.create(newRole.userPermissions);
-    const pageAuth = await PageAuth.create(newRole.pageAuth);
+    const userPermission = await OrgUserPermissionModel.create(newRole.userPermissions);
+    const pageAuth = await OrgPageAuthModel.create(newRole.pageAuth);
 
     // Finalize new role data with references
     const finalRoleData = {
@@ -113,7 +118,6 @@ router.post('/', verifyAdmin, async (req, res) => {
       userPermissions: userPermission._id,
       pageAuth: pageAuth._id
     };
-    const { orgName } = jwt.decode(req.headers['authorization']);
     const OrgRoleAndPermission = getRoleAndPermissionModel(orgName);
 
     const role = await OrgRoleAndPermission.create(finalRoleData);
@@ -124,7 +128,7 @@ router.post('/', verifyAdmin, async (req, res) => {
 });
 
 // Update role
-router.put('/:id', verifyAdmin, async (req, res) => {
+router.put('/:orgId/:id', verifyAdmin, async (req, res) => {
   try {
     const updatedRole = req.body;
 
@@ -155,6 +159,8 @@ router.put('/:id', verifyAdmin, async (req, res) => {
       Leave: updatedRole.pageAuth.Leave,
       Settings: updatedRole.pageAuth.Settings,
     }
+    const OrgUserPermissionModel = getUserPermissionModel(orgName);
+    const OrgPageAuthModel = getPageAuthModel(orgName);
     // Validate pageAuth
     const { error: pageAuthError } = pageAuthValidation.validate(updatedPageAuth);
     if (pageAuthError) {
@@ -199,7 +205,7 @@ router.put('/:id', verifyAdmin, async (req, res) => {
 
 router.delete("/:id", verifyAdmin, async (req, res) => {
   try {
-    const {orgName} = jwt.decode(req.headers['authorization']);
+    const { orgName } = jwt.decode(req.headers['authorization']);
     const OrgEmployeeModel = getEmployeeModel(orgName);
     const isEmpRole = await OrgEmployeeModel.find({ role: { $in: req.params.id } });
     if (isEmpRole.length === 0) {

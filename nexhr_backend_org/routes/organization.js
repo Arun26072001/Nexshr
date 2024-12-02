@@ -103,15 +103,28 @@ router.post("/:id", async (req, res) => {
 
 router.get("/:id", async (req, res) => {
     try {
-        const org = await Org.findById({_id: req.params.id});
-        if(!org){
-            res.status(404).send({error: "Org not found in this id."})
-        }else{
+        const org = await Org.findById({ _id: req.params.id });
+        if (!org) {
+            res.status(404).send({ error: "Org not found in this id." })
+        } else {
             res.send(org);
         }
     } catch (error) {
-        res.status(500).send({error: error.message})
-    }   
+        res.status(500).send({ error: error.message })
+    }
+});
+
+router.post("/", async (req, res) => {
+    try {
+        const orgs = await Org.find({ _id: { $in: req.body.orgs } });
+        if (orgs.length < 1) {
+            return res.status(404).send({ error: "Not found orgs in given id!" })
+        } else {
+            return res.send(orgs)
+        }
+    } catch (error) {
+        return res.status(500).send({error: error.message})
+    }
 })
 
 module.exports = router;

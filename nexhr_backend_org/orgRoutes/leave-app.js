@@ -5,6 +5,7 @@ const { getEmployeeModel } = require('../OrgModels/OrgEmpModel');
 const { getRoleAndPermissionModel } = require('../OrgModels/OrgRoleAndPermissionModel');
 const { getLeaveApplicationModel, LeaveApplicationValidation } = require('../OrgModels/OrgLeaveApplicationModel');
 const jwt = require("jsonwebtoken");
+const { Org } = require('../OrgModels/OrganizationModel');
 
 function getDayDifference(leave) {
   let toDate = new Date(leave.toDate);
@@ -13,9 +14,9 @@ function getDayDifference(leave) {
   return timeDifference / (1000 * 60 * 60 * 24);
 }
 
-leaveApp.get("/emp/:empId", verifyAdminHREmployee, async (req, res) => {
+leaveApp.get("/emp/:orgId/:empId", verifyAdminHREmployee, async (req, res) => {
   try { //verifyHREmployee this API is use for emp and Hr to fetch their leave reqs
-    const { orgName } = jwt.decode(req.headers['authorization']);
+    const { orgName } = await Org.findById({ _id: req.params.orgId });
     const OrgEmployee = getEmployeeModel(orgName)
     let requests = await OrgEmployee.findById(req.params.empId, "_id FirstName LastName Email phone typesOfLeaveCount typesOfLeaveRemainingDays")
       .populate({
@@ -80,10 +81,10 @@ leaveApp.get("/emp/:empId", verifyAdminHREmployee, async (req, res) => {
 });
 
 // get all leave request from emp and hr
-leaveApp.get("/hr", verifyHR, async (req, res) => {
+leaveApp.get("/:orgId/hr", verifyHR, async (req, res) => {
   try {
     // Fetch employee IDs with Account: 3
-    const { orgName } = jwt.decode(req.headers['authorization']);
+    const { orgName } = await Org.findById({ _id: req.params.orgId });
     const OrgEmployee = getEmployeeModel(orgName)
     const empIds = await OrgEmployee.find({ Account: 3 }, "_id");
 
@@ -122,9 +123,9 @@ leaveApp.get("/hr", verifyHR, async (req, res) => {
 
 // get all leave requests from all employees
 
-leaveApp.get("/:id", verifyHREmployee, async (req, res) => {
+leaveApp.get("/:orgId/:id", verifyHREmployee, async (req, res) => {
   try {
-    const { orgName } = jwt.decode(req.headers['authorization']);
+    const { orgName } = await Org.findById({ _id: req.params.orgId });
     const OrgLeaveApplication = getLeaveApplicationModel(orgName)
     const leaveReq = await OrgLeaveApplication.findById(req.params.id);
     if (!leaveReq) {
@@ -139,7 +140,7 @@ leaveApp.get("/:id", verifyHREmployee, async (req, res) => {
 
 
 // get employee of leave data
-leaveApp.get("/date-range/hr", verifyHR, async (req, res) => {
+leaveApp.get("/date-range/:orgId/hr", verifyHR, async (req, res) => {
   const now = new Date();
   let startOfMonth;
   let endOfMonth;
@@ -152,7 +153,7 @@ leaveApp.get("/date-range/hr", verifyHR, async (req, res) => {
   }
 
   try {
-    const { orgName } = jwt.decode(req.headers['authorization']);
+    const { orgName } = await Org.findById({ _id: req.params.orgId });
     const OrgEmployee = getEmployeeModel(orgName)
 
     // if a person has account 2, can get date range of all emp leave data
@@ -184,7 +185,7 @@ leaveApp.get("/date-range/hr", verifyHR, async (req, res) => {
   }
 })
 
-leaveApp.get("/date-range/admin", verifyAdmin, async (req, res) => {
+leaveApp.get("/date-range/:orgId/admin", verifyAdmin, async (req, res) => {
 
   const now = new Date();
   let startOfMonth;
@@ -199,7 +200,7 @@ leaveApp.get("/date-range/admin", verifyAdmin, async (req, res) => {
 
   try {
     // if a person has account 2, can get date range of all emp leave data
-    const { orgName } = jwt.decode(req.headers['authorization']);
+    const { orgName } = await Org.findById({ _id: req.params.orgId });
     const OrgEmployee = getEmployeeModel(orgName)
     const employeesLeaveData = await OrgEmployee.find({}, "_id FirstName LastName")
       .populate({
@@ -230,7 +231,7 @@ leaveApp.get("/date-range/admin", verifyAdmin, async (req, res) => {
 })
 
 // to get leave range date of data
-leaveApp.get("/date-range/:empId", verifyAdminHREmployee, async (req, res) => {
+leaveApp.get("/date-range/:orgId/:empId", verifyAdminHREmployee, async (req, res) => {
   const now = new Date();
   let startOfMonth;
   let endOfMonth;
@@ -246,7 +247,7 @@ leaveApp.get("/date-range/:empId", verifyAdminHREmployee, async (req, res) => {
   // jwt.verify(Header, jwtKey, async (err, authData) => {
   try {
     // if a person has account 3, can get date range of his leave data
-    const { orgName } = jwt.decode(req.headers['authorization']);
+    const { orgName } = await Org.findById({ _id: req.params.orgId });
     const OrgEmployee = getEmployeeModel(orgName)
     const employeeLeaveData = await OrgEmployee.findById(req.params.empId, "_id FirstName LastName")
       .populate({
@@ -288,9 +289,9 @@ leaveApp.get("/date-range/:empId", verifyAdminHREmployee, async (req, res) => {
   }
 })
 
-leaveApp.get("/", verifyAdmin, async (req, res) => {
+leaveApp.get("/:orgId", verifyAdmin, async (req, res) => {
   try {
-    const { orgName } = jwt.decode(req.headers['authorization']);
+    const { orgName } = await Org.findById({ _id: req.params.orgId });
     const OrgLeaveApplication = getLeaveApplicationModel(orgName)
     const requests = await OrgLeaveApplication.find().populate({
       path: "employee",
@@ -308,7 +309,7 @@ leaveApp.get("/", verifyAdmin, async (req, res) => {
   }
 });
 
-leaveApp.post("/:empId", verifyAdminHREmployee, async (req, res) => {
+leaveApp.post("/:orgId/:empId", verifyAdminHREmployee, async (req, res) => {
   try {
     // Handle empty `coverBy` value
     if (req.body.coverBy === "") {
@@ -328,7 +329,7 @@ leaveApp.post("/:empId", verifyAdminHREmployee, async (req, res) => {
     };
 
     let takenLeaveCount = 0;
-    const { orgName } = jwt.decode(req.headers['authorization']);
+    const { orgName } = await Org.findById({ _id: req.params.orgId });
     const OrgLeaveApplication = getLeaveApplicationModel(orgName);
     const OrgEmployee = getEmployeeModel(orgName);
 
@@ -479,7 +480,7 @@ leaveApp.post("/:empId", verifyAdminHREmployee, async (req, res) => {
   }
 });
 
-leaveApp.put("/:id", verifyHREmployee, async (req, res) => {
+leaveApp.put("/:orgId/:id", verifyHREmployee, async (req, res) => {
   try {
     const { orgName } = jwt.decode(req.headers['authorization']);
     const OrgLeaveApplication = getLeaveApplicationModel(orgName)

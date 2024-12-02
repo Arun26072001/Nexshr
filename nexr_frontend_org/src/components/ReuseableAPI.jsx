@@ -1,34 +1,33 @@
 import axios from 'axios';
 import { toast } from 'react-toastify';
-import { jwtDecode } from 'jwt-decode';
 import Cookies from "universal-cookie";
 const cookies = new Cookies();
 const url = process.env.REACT_APP_API_URL;
 const token = cookies.get("token") || "";
 let _id = "";
+const orgId = cookies.get("orgId") || "";
 
-// Check if token structure is valid
-if (token.split(".").length !== 3) {
-  console.error("Invalid or missing token:", token);
-  // Handle invalid token (e.g., redirect to login, clear cookies)
-} else {
-  try {
-    const decoded = jwtDecode(token);
-    // console.log("Decoded Token:", decoded);
-    // Access specific token fields
-    _id = decoded._id
-    
-  } catch (error) {
-    console.error("Error decoding token:", error.message);
-    // Handle decoding error (e.g., clear cookies, redirect)
-  }
-}
+// // Check if token structure is valid
+// if (token.split(".").length !== 3) {
+//   console.error("Invalid or missing token:", token);
+//   // Handle invalid token (e.g., redirect to login, clear cookies)
+// } else {
+//   try {
+//     const decoded = jwtDecode(token);
+//     // console.log("Decoded Token:", decoded);
+//     // Access specific token fields
+//     _id = decoded._id
 
+//   } catch (error) {
+//     console.error("Error decoding token:", error.message);
+//     // Handle decoding error (e.g., clear cookies, redirect)
+//   }
+// }
 
 const updateDataAPI = async (body) => {
     try {
         if (body._id) {
-            const response = await axios.put(`${url}/api/clock-ins/${body._id}`, body, {
+            const response = await axios.put(`${url}/api/clock-ins/${orgId}/${body._id}`, body, {
                 headers: { Authorization: `Bearer ${token}` || "" }
             });
             console.log('Updated successfully:', response.data);
@@ -55,7 +54,7 @@ async function getTotalWorkingHourPerDay(start, end) {
 
 const getDataAPI = async (_id) => {
     try {
-        const response = await axios.get(`${url}/api/clock-ins/${_id}`, {
+        const response = await axios.get(`${url}/api/clock-ins/${orgId}/${_id}`, {
             params: { date: new Date().toISOString() },
             headers: { Authorization: `Bearer ${token}` || "" }
         });
@@ -71,7 +70,7 @@ const getDataAPI = async (_id) => {
 
 const getclockinsDataById = async (id) => {
     try {
-        const response = await axios.get(`${url}/api/clock-ins/item/${id}`, {
+        const response = await axios.get(`${url}/api/clock-ins/item/${orgId}/${id}`, {
             headers: { Authorization: `Bearer ${token}` || "" }
         });
 
@@ -84,7 +83,7 @@ const getclockinsDataById = async (id) => {
 
 const addDataAPI = async (body) => {
     try {
-        const response = await axios.post(`${url}/api/clock-ins/${_id}`, body, {
+        const response = await axios.post(`${url}/api/clock-ins/${orgId}/${_id}`, body, {
             headers: { Authorization: `Bearer ${token}` || "" }
         });
         // localStorage.setItem('clockinsId', response.data._id);
@@ -104,7 +103,7 @@ function removeClockinsData() {
 
 const fetchEmpLeaveRequests = async () => {
     try {
-        const res = await axios.get(`${url}/api/leave-application/hr`, {
+        const res = await axios.get(`${url}/api/leave-application/${orgId}/hr`, {
             headers: {
                 Authorization: `Bearer ${token}` || ""
             }
@@ -121,7 +120,7 @@ const fetchEmpLeaveRequests = async () => {
 
 const fetchLeaveRequests = async (_id) => {
     try {
-        const res = await axios.get(`${url}/api/leave-application/emp/${_id}`, {
+        const res = await axios.get(`${url}/api/leave-application/emp/${orgId}/${_id}`, {
             headers: {
                 Authorization: `Bearer ${token}` || ""
             }
@@ -137,7 +136,7 @@ const fetchLeaveRequests = async (_id) => {
 
 async function deleteLeave(id) {
     try {
-        let deletedMsg = await axios.delete(`${url}/api/leave-application/${_id}/${id}`, {
+        let deletedMsg = await axios.delete(`${url}/api/leave-application/${orgId}/${id}`, {
             headers: {
                 Authorization: `Bearer ${token}` || ""
             }
@@ -156,7 +155,7 @@ const fetchEmployeeData = async (id) => {
         if (!token) {
             window.location.reload();
         }
-        const response = await axios.get(`${url}/api/employee/${id}`, {
+        const response = await axios.get(`${url}/api/employee/${orgId}/${id}`, {
             headers: {
                 Authorization: `Bearer ${token}` || ""
             }
@@ -173,7 +172,7 @@ const fetchEmployeeData = async (id) => {
 
 const fetchEmployees = async () => {
     try {
-        const res = await axios.get(`${url}/api/employee`, {
+        const res = await axios.get(`${url}/api/employee/${orgId}`, {
             headers: {
                 Authorization: `Bearer ${token}` || ""
             }
@@ -190,7 +189,7 @@ const fetchEmployees = async () => {
 
 const fetchAllEmployees = async () => {
     try {
-        const res = await axios.get(`${url}/api/employee/all`, {
+        const res = await axios.get(`${url}/api/employee/${orgId}/all`, {
             headers: {
                 Authorization: `Bearer ${token}` || ""
             }
@@ -206,9 +205,9 @@ const fetchAllEmployees = async () => {
     }
 }
 
-const gettingClockinsData = async (_id) => {
+const gettingClockinsData = async (id) => {
     try {
-        const dashboard = await axios.get(`${url}/api/clock-ins/employee/${_id}`, {
+        const dashboard = await axios.get(`${url}/api/clock-ins/employee/${orgId}/${id}`, {
             headers: {
                 Authorization: `Bearer ${token}` || ""
             }
@@ -237,7 +236,7 @@ function formatTime(fractionalHours) {
 
 const fetchWorkplace = async () => {
     try {
-        const workPlaces = await axios.get(url + "/api/work-place", {
+        const workPlaces = await axios.get(`${url}/api/work-place/${orgId}`, {
             headers: {
                 Authorization: `Bearer ${token}`
             }
@@ -250,7 +249,7 @@ const fetchWorkplace = async () => {
 
 const fetchPayslipInfo = async () => {
     try {
-        const payslipInfo = await axios.get(`${url}/api/payslip-info`, {
+        const payslipInfo = await axios.get(`${url}/api/payslip-info/${orgId}`, {
             headers: {
                 Authorization: `Bearer ${token}` || ""
             }
@@ -263,7 +262,7 @@ const fetchPayslipInfo = async () => {
 
 const fetchPayslipFromEmp = async (_id) => {
     try {
-        const payslip = await axios.get(`${url}/api/payslip/emp/${_id}`);
+        const payslip = await axios.get(`${url}/api/payslip/emp/${orgId}/${_id}`);
         return payslip.data;
     } catch (error) {
         return error?.response?.data?.message
@@ -272,7 +271,7 @@ const fetchPayslipFromEmp = async (_id) => {
 
 const fetchRoles = async () => {
     try {
-        const roles = await axios.get(url + "/api/role", {
+        const roles = await axios.get(`${url}/api/role/${orgId}`, {
             headers: {
                 Authorization: `Bearer ${token}` || ""
             }
@@ -285,7 +284,7 @@ const fetchRoles = async () => {
 
 const fetchPayslip = async (id) => {
     try {
-        const payslip = await axios.get(`${url}/api/payslip/${id}`);
+        const payslip = await axios.get(`${url}/api/payslip/${orgId}/${id}`);
         return payslip.data;
     } catch (error) {
         return error?.response?.data?.message
@@ -294,7 +293,7 @@ const fetchPayslip = async (id) => {
 
 const getDepartments = async () => {
     try {
-        const departments = await axios.get(url + "/api/department", {
+        const departments = await axios.get(`${url}/api/department/${orgId}`, {
             headers: {
                 Authorization: `Bearer ${token}`
             }
