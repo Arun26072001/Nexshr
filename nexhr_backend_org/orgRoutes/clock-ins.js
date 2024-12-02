@@ -130,7 +130,6 @@ router.post("/:orgId/:id", verifyAdminHREmployee, async (req, res) => {
     }
 });
 
-
 router.get("/:orgId/:id", verifyAdminHREmployee, async (req, res) => {
     const { orgName } = await Org.findById({ _id: req.params.orgId });
     function timeToMinutes(timeStr) {

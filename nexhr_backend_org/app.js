@@ -9,6 +9,7 @@ require("dotenv").config();
 const cors = require("cors");
 const http = require("http");
 const socketIo = require("socket.io");
+console.log(process.env.CENTRALIZATION_BASEURL);
 
 // Router Files
 const login = require("./orgRoutes/login");
