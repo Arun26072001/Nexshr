@@ -5,27 +5,9 @@ const OrgClockinSchemas = {};
 function getClockinSchema(orgName) {
     if (!OrgClockinSchemas[orgName]) {
         const timeRangeSchema = new mongoose.Schema({
-            startingTime: {
-                type: String,
-                validate: {
-                    validator: function (v) {
-                        return /^([0-1]\d|2[0-3]):([0-5]\d)$/.test(v);
-                    },
-                    message: props => `${props.value} is not a valid time!`
-                }
-            },
-            endingTime: {
-                type: String,
-                validate: {
-                    validator: function (v) {
-                        return /^([0-1]\d|2[0-3]):([0-5]\d)$/.test(v);
-                    },
-                    message: props => `${props.value} is not a valid time!`
-                }
-            },
-            timeHolder: {
-                type: String
-            }
+            startingTime: [{ type: String }],
+            endingTime: [{ type: String }],
+            timeHolder: { type: String }
         }, { _id: false })
 
         OrgClockinSchemas[orgName] = new mongoose.Schema({

@@ -150,19 +150,40 @@ router.get("/:orgId/:id", verifyAdminHREmployee, async (req, res) => {
         // const { orgName } = jwt.decode(req.headers['authorization']);
         const OrgEmployeeModel = getEmployeeModel(orgName);
         const timeData = await OrgEmployeeModel.findById({ _id: req.params.id }, "clockIns")
-            // .populate({
-            //     path: `clockIns`,
-            //     match: {
-            //         date: {
-            //             $gte: startOfDay,
-            //             $lt: endOfDay,
-            //         },
-            //     },
-            //     populate: { path: "employee", select: "_id FirstName LastName" }
-            // });
+            .populate({
+                path: `clockIns`,
+                match: {
+                    date: {
+                        $gte: startOfDay,
+                        $lt: endOfDay,
+                    },
+                },
+                populate: { path: "employee", select: "_id FirstName LastName" }
+            });
         // const timeData = await ClockIns.findById(req.params.id).populate({path: "employee", select: "_id FirstName LastName"});
         if (timeData?.clockIns?.length > 0) {
             const activities = ["login", "meeting", "morningBreak", "lunch", "eveningBreak", "event"];
+
+            // Get current time in minutes
+            const currentTimeInMinutes = timeToMinutes(`${new Date().getHours()}:${new Date().getMinutes()}`);
+
+            activities.map((activity) => {
+                let startingTimes = timeData.clockIns[0][activity]?.startingTime;
+                let endingTimes = timeData.clockIns[0][activity]?.endingTime;
+
+                const values = startingTimes.map((time, index) => {
+                    let value = 0;
+                    if (time && endingTimes[index]) {
+                        const timeInMin = timeToMinutes(time);
+                        const endTimeInMin = timeToMinutes(endingTimes[index]);
+                        value = Math.abs(endTimeInMin - timeInMin); // Calculate absolute difference
+                    }
+                    return value;
+                });
+
+                const totalValue = values.reduce((acc, value) =>  acc + value ,0)
+                console.log({timerHolder: totalValue + (currentTimeInMinutes - timeToMinutes(startingTimes[startingTimes.length - 1]))})
+            })
 
             const activitiesData = activities.map((activity) => {
                 const startingTime = timeData.clockIns[0][activity]?.startingTime || "00:00";
@@ -407,7 +428,6 @@ router.get("/:orgId/", verifyAdminHR, async (req, res) => {
 })
 
 router.put("/:orgId/:id", verifyAdminHREmployee, async (req, res) => {
-    let body = req.body;
     // const { orgName } = jwt.decode(req.headers['authorization']);
     const { orgName } = await Org.findById({ _id: req.params.orgId });
     const OrgClockIns = getClockinModel(orgName);
