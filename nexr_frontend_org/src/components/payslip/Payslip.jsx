@@ -1,34 +1,31 @@
-import React, { useContext, useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { DateRangePicker } from "rsuite";
 import LeaveTable from "../LeaveTable";
 import NoDataFound from "./NoDataFound";
 import { toast } from "react-toastify";
 import { fetchPayslipFromEmp } from "../ReuseableAPI";
 import Loading from "../Loader";
-import { EssentialValues } from "../../App";
 
 const Payslip = (props) => {
-    const { data } = useContext(EssentialValues);
-    const { _id } = data;
+    const empId = localStorage.getItem("_id")
     const [payslips, setPayslips] = useState([]);
     const [daterangeValue, setDaterangeValue] = useState("");
     const [isLoading, setIsLoading] = useState(false);
-    const [error, setError] = useState("");
 
     useEffect(() => {
         async function fetchPayslips() {
+            setIsLoading(true);
             try {
-                const slips = await fetchPayslipFromEmp(_id);
+                const slips = await fetchPayslipFromEmp(empId);
                 setPayslips(slips);
             } catch (err) {
-                setError(err?.response?.data?.error)
+                toast.error(err?.response?.data?.error)
             }
+            setIsLoading(false);
         }
 
-        setIsLoading(true);
         fetchPayslips();
-        setIsLoading(false);
-    }, [_id])
+    }, [empId])
     return (
         isLoading ? <Loading /> :
             <div>
@@ -76,11 +73,9 @@ const Payslip = (props) => {
                     </div>
 
                 </div>
-                {
-                    error ? <NoDataFound message={error} />
-                        : payslips?.length > 0 ?
-                            <LeaveTable data={payslips} />
-                            : <NoDataFound message={"Sorry! No payslip data in your account."} />
+                {payslips.length > 0 ?
+                    <LeaveTable data={payslips} />
+                    : <NoDataFound message={"Sorry! No payslip data in your account."} />
                 }
             </div>
     )

@@ -9,7 +9,6 @@ import ApexChart from './ApexChart';
 import { TimerStates } from './payslip/HRMDashboard';
 import Loading from './Loader';
 import NoDataFound from './payslip/NoDataFound';
-import { EssentialValues } from '../App';
 
 function CustomTabPanel(props) {
     const { children, value, index, ...other } = props;
@@ -49,8 +48,7 @@ export default function Home() {
     const { isStartLogin, isStartActivity, updateClockins } = useContext(TimerStates);
     const [value, setValue] = useState(0);
     const [isLoading, setLoading] = useState(true); // Track loading state
-    const { data } = useContext(EssentialValues);
-    const { _id } = data;
+    const empId = localStorage.getItem('_id');
 
     const staticData = {
         startingTime: "00:00",
@@ -75,8 +73,8 @@ export default function Home() {
         const getClockInsData = async () => {
             try {
                 setLoading(true);
-                if (!isStartLogin && !isStartActivity && _id) {
-                    const { activitiesData } = await getDataAPI(_id);
+                if (!isStartLogin && !isStartActivity && empId) {
+                    const { activitiesData } = await getDataAPI(empId);
                     if (activitiesData) {
                         setTableData(activitiesData)
                     } else {

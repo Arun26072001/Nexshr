@@ -11,19 +11,18 @@ import adminIcon from '../../../asserts/adminIcon.svg';
 import homeIcon from '../../../asserts/homeIcon.svg';
 import { TimerStates } from '../HRMDashboard';
 import { EssentialValues } from '../../../App';
-import Cookies from "universal-cookie";
-import { jwtDecode } from "jwt-decode";
 
 const Sidebar = () => {
-  const cookies = new Cookies();
-  // const { roleData } = jwtDecode(cookies.get("token"));
-  
-  const { Dashboard, JobDesk, Employee,
-    Leave, Attendance, Administration,
-    Settings } = "";
+  const dashboard = localStorage.getItem('Dashboard');
+  const jobDesk = localStorage.getItem('JobDesk');
+  const employee = localStorage.getItem('Employee');
+  const leave = localStorage.getItem('Leave');
+  const attendance = localStorage.getItem('Attendance');
+  const admin = localStorage.getItem('Administration');
+  const settings = localStorage.getItem('Settings');
+
   const { whoIs } = useContext(TimerStates);
-  
-  const { handleLogout, data } = useContext(EssentialValues);
+  const { handleLogout } = useContext(EssentialValues);
   const param = useParams();
   const [activeSubmenu, setActiveSubmenu] = useState(param['*']);
   const [activeNavLink, setActiveNavLink] = useState();
@@ -95,77 +94,77 @@ const Sidebar = () => {
     <div style={{ width: isOpen ? '250px' : '50px' }} className="sidebar sidebar_hrm">
       <ul className="sidebar-nav p-0" id="sidebar-nav">
         {renderNavLink(
-          Dashboard === 'allow' || ['admin', 'hr', 'employee'].includes(whoIs),
-          `/${data.orgId}/${whoIs}`,
+          dashboard === 'allow' || ['admin', 'hr', 'employee'].includes(whoIs),
+          `/${whoIs}`,
           homeIcon,
           'Dashboard',
           'dashboard'
         )}
 
         {renderNavLink(
-          JobDesk === 'allow' || ['admin', 'hr', 'employee'].includes(whoIs),
-          `/${data.orgId}/${whoIs}/job-desk/attendance`,
+          jobDesk === 'allow' || ['admin', 'hr', 'employee'].includes(whoIs),
+          `/${whoIs}/job-desk/attendance`,
           jobDeskIcon,
           'Job Desk',
           'jobDesk'
         )}
 
         {renderNavLink(
-          Employee === 'allow' || ['admin', 'hr', 'employee'].includes(whoIs),
-          `/${data.orgId}/${whoIs}/employee`,
+          employee === 'allow' || ['admin', 'hr', 'employee'].includes(whoIs),
+          `/${whoIs}/employee`,
           userIcon,
           'Employee',
           'employee'
         )}
 
-        {(Leave === 'allow' || ['admin', 'hr'].includes(whoIs)) &&
+        {(leave === 'allow' || ['admin', 'hr'].includes(whoIs)) &&
           renderSubMenu(
             'leave',
             [
-              { key: 'status', path: `/${data.orgId}/${whoIs}/leave/status`, label: 'Status' },
-              { key: 'leave-request', path: `/${data.orgId}/${whoIs}/leave/leave-request`, label: 'Leave Request' },
-              { key: 'calendar', path: `/${data.orgId}/${whoIs}/leave/calendar`, label: 'Calendar' },
-              { key: 'leave-summary', path: `/${data.orgId}/${whoIs}/leave/leave-summary`, label: 'Leave Summary' }
+              { key: 'status', path: `/${whoIs}/leave/status`, label: 'Status' },
+              { key: 'leave-request', path: `/${whoIs}/leave/leave-request`, label: 'Leave Request' },
+              { key: 'calendar', path: `/${whoIs}/leave/calendar`, label: 'Calendar' },
+              { key: 'leave-summary', path: `/${whoIs}/leave/leave-summary`, label: 'Leave Summary' }
             ],
             leaveIcon,
             'Leave'
           )}
 
-        {(Attendance === 'allow' || ['admin', 'hr'].includes(whoIs)) &&
+        {(attendance === 'allow' || ['admin', 'hr'].includes(whoIs)) &&
           renderSubMenu(
             'attendance',
             [
-              { key: 'daily-log', path: `/${data.orgId}/${whoIs}/attendance/daily-log`, label: 'Daily Log' },
-              { key: 'attendance-request', path: `/${data.orgId}/${whoIs}/attendance/attendance-request`, label: 'Attendance Request' },
-              { key: 'details', path: `/${data.orgId}/${whoIs}/attendance/details`, label: 'Details' },
-              { key: 'attendance-summary', path: `/${data.orgId}/${whoIs}/attendance/attendance-summary`, label: 'Attendance Summary' }
+              { key: 'daily-log', path: `/${whoIs}/attendance/daily-log`, label: 'Daily Log' },
+              { key: 'attendance-request', path: `/${whoIs}/attendance/attendance-request`, label: 'Attendance Request' },
+              { key: 'details', path: `/${whoIs}/attendance/details`, label: 'Details' },
+              { key: 'attendance-summary', path: `/${whoIs}/attendance/attendance-summary`, label: 'Attendance Summary' }
             ],
             attendanceIcon,
             'Attendance'
           )}
 
-        {(Administration === 'allow' || whoIs === 'admin') &&
+        {(admin === 'allow' || whoIs === 'admin') &&
           renderSubMenu(
             'administration',
             [
-              { key: 'role', path: `/${data.orgId}/${whoIs}/administration/role`, label: 'Role' },
-              { key: 'shift', path: `/${data.orgId}/${whoIs}/administration/shift`, label: 'Shift' },
-              { key: 'department', path: `/${data.orgId}/${whoIs}/administration/department`, label: 'Department' },
-              { key: 'position', path: `/${data.orgId}/${whoIs}/administration/position`, label: 'Position' },
-              { key: 'holiday', path: `/${data.orgId}/${whoIs}/administration/holiday`, label: 'Holiday' },
-              { key: 'announcement', path: `/${data.orgId}/${whoIs}/administration/announcement`, label: 'Announcement' }
+              { key: 'role', path: `/${whoIs}/administration/role`, label: 'Role' },
+              { key: 'shift', path: `/${whoIs}/administration/shift`, label: 'Shift' },
+              { key: 'department', path: `/${whoIs}/administration/department`, label: 'Department' },
+              { key: 'position', path: `/${whoIs}/administration/position`, label: 'Position' },
+              { key: 'holiday', path: `/${whoIs}/administration/holiday`, label: 'Holiday' },
+              { key: 'announcement', path: `/${whoIs}/administration/announcement`, label: 'Announcement' }
             ],
             adminIcon,
             'Administration'
           )}
 
-        {(Settings === 'allow' || whoIs === 'admin') &&
+        {(settings === 'allow' || whoIs === 'admin') &&
           renderSubMenu(
             'settings',
             [
-              { key: 'genderal', path: `/${data.orgId}/${whoIs}/settings/`, label: 'Genderal' },
-              { key: 'account', path: `/${data.orgId}/${whoIs}/settings/account`, label: 'Account' },
-              { key: 'payroll', path: `/${data.orgId}/${whoIs}/settings/payroll`, label: 'Payroll' }
+              { key: 'profile', path: `/${whoIs}/settings/profile`, label: 'Profile' },
+              { key: 'account', path: `/${whoIs}/settings/account`, label: 'Account' },
+              { key: 'payroll', path: `/${whoIs}/settings/payroll`, label: 'Payroll' }
             ],
             settingsIcon,
             'Settings'

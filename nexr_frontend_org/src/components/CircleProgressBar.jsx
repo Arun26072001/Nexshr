@@ -3,12 +3,11 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { toast } from 'react-toastify';
 import CircleBar from './CircleProcess';
-import Cookies from 'universal-cookie';
 
 const CircleProgressBar = () => {
   const url = process.env.REACT_APP_API_URL;
-  const cookies = new Cookies();
-  const token = cookies.get("token");
+  const token = localStorage.getItem("token");
+
   const [todayLeaveCount, setTodayLeaveCount] = useState(0);
   const [tomorrowLeaveCount, setTomorrowLeaveCount] = useState(0);
   const [yesterdayLeaveCount, setYesterdayLeaveCount] = useState(0);
@@ -45,7 +44,7 @@ const CircleProgressBar = () => {
         // Fetch leave requests
         const leaveRes = await axios.get(`${url}/api/leave-application/hr`, {
           headers: {
-            authorization: `Bearer ${token}`,
+            authorization: token || "",
           },
         });
         setLeaveRequests(leaveRes.data);
@@ -53,7 +52,7 @@ const CircleProgressBar = () => {
         // Fetch employees
         const empRes = await axios.get(`${url}/api/employee`, {
           headers: {
-            Authorization: `Bearer ${token}` || ""
+            authorization: token || "",
           },
         });
         setEmps(empRes.data);

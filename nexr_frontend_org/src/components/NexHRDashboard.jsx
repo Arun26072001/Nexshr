@@ -6,21 +6,20 @@ import { NavLink } from "react-router-dom";
 import Twotabs from "./TwoTabs";
 import "./NexHRDashboard.css";
 import { TimerStates } from "./payslip/HRMDashboard";
-import { EssentialValues } from "../App";
 
 const NexHRDashboard = ({ updateClockins }) => {
   const { whoIs } = useContext(TimerStates);
-  const {data} = useContext(EssentialValues);
-  const {Account} = data;
-  
+  const account = localStorage.getItem("Account");
+
   return (
+
 
     (<div className="row">
       {/* <ClockIns /> */}
       <div className="col-lg-8 col-md-8 col-12" >
         {/* Left card */}
         <Card style={{ border: '2px solid rgb(208 210 210)', height: '100%' }}>
-          {Account === '2' &&
+          {account === '2' &&
             <>
               <div className="d-flex align-items-center justify-content-between m-2">
                 <span className="bold m-2">

@@ -32,22 +32,22 @@ import PageAndActionAuth from '../Settings/PageAndActionAuth';
 import Announce from '../Announcement/announce';
 import Department from '../Administration/Department';
 import Position from '../Administration/Position';
-import Cookies from "universal-cookie";
 
 export const LeaveStates = createContext(null);
 export const TimerStates = createContext(null);
 
 export default function HRMDashboard() {
-    const { data, isStartLogin, isStartActivity, setIsStartLogin, setIsStartActivity, token } = useContext(EssentialValues);
-    const cookies = new Cookies();
-    // const token = cookies.get("token")
-    // const { roleData, _id, Account } = jwtDecode(token);
-    // const { userPermissions } = roleData;
+    const { data, isStartLogin, isStartActivity, setIsStartLogin, setIsStartActivity } = useContext(EssentialValues);
+    const strPermissionData = localStorage.getItem("userPermissions");
+    const userPermissions = JSON.parse(strPermissionData);
     const [attendanceData, setAttendanceData] = useState([]);
     const [attendanceForSummary, setAttendanceForSummary] = useState({});
+    const empId = localStorage.getItem("_id");
+    const Account = localStorage.getItem("Account")
     const [leaveRequests, setLeaveRequests] = useState({});
     const [fullLeaveRequests, setFullLeaveRequests] = useState([]);
     const [empName, setEmpName] = useState("");
+    const token = localStorage.getItem('token');
     const [whoIs, setWhoIs] = useState("");
     const [isLoading, setIsLoading] = useState(false);
     const [waitForAttendance, setWaitForAttendance] = useState(false);
@@ -90,6 +90,7 @@ export default function HRMDashboard() {
         if (empName === "") {
             setLeaveRequests(fullLeaveRequests);
         } else {
+            console.log(fullLeaveRequests);
             const filterRequests = fullLeaveRequests?.leaveData.filter((leave) => leave.employee.FirstName.toLowerCase().includes(empName));
             setLeaveRequests((pre) => ({ ...pre, leaveData: filterRequests }));
         }
@@ -104,7 +105,7 @@ export default function HRMDashboard() {
             ...workTimeTracker,
             login: {
                 ...workTimeTracker?.login,
-                startingTime: workTimeTracker?.login?.startingTime !== "00:00" ? workTimeTracker?.login?.startingTime : currentTime
+                startingTime: workTimeTracker?.login?.startingTime !== "00:00" ? workTimeTracker.login.startingTime : currentTime
             }
         };
         // // try to add clockins data
@@ -161,6 +162,7 @@ export default function HRMDashboard() {
         };
 
         if (updatedState?._id && isStartLogin) {
+
             // Call the API with the updated state
             const updatedData = await updateDataAPI(updatedState);
             setWorkTimeTracker(updatedData);
@@ -171,7 +173,6 @@ export default function HRMDashboard() {
     }
 
     const startActivityTimer = async () => {
-
         const currentDate = new Date();
         const currentHours = currentDate.getHours().toString().padStart(2, '0');
         const currentMinutes = currentDate.getMinutes().toString().padStart(2, '0');
@@ -184,34 +185,33 @@ export default function HRMDashboard() {
             },
         };
 
-        // // Check if clockinsId is present
-        // if (!workTimeTracker?._id) {
-        //     try {
-        //         const clockinsData = await addDataAPI(updatedState);
-        //         setWorkTimeTracker(clockinsData);
-        //         setIsStartActivity(true);
-        //         localStorage.setItem("isStartActivity", true)
-        //         updateClockins();
-        //     } catch (error) {
-        //         return toast.warning(`You have already started ${timeOption}`)
-        //     }
-        // } 
-        // else {
-        try {
-            if (workTimeTracker?._id && !isStartActivity) {
-                // Call the API with the updated state
-                await updateDataAPI(updatedState);
-                localStorage.setItem("isStartActivity", true);
+        // Check if clockinsId is present
+        if (!workTimeTracker?._id) {
+            try {
+                const clockinsData = await addDataAPI(updatedState);
+                setWorkTimeTracker(clockinsData);
                 setIsStartActivity(true);
-                setWorkTimeTracker(updatedState);
-                toast.success(`${timeOption} timer has been started!`)
+                localStorage.setItem("isStartActivity", true)
+                updateClockins();
+            } catch (error) {
+                return toast.warning(`You have already started ${timeOption}`)
             }
-        } catch (error) {
-            console.error('Error updating data:', error);
-            toast.error('Failed to update the timer. Please try again.');
+        } else {
+            try {
+                if (workTimeTracker?._id && !isStartActivity) {
+                    // Call the API with the updated state
+                    await updateDataAPI(updatedState);
+                    localStorage.setItem("isStartActivity", true);
+                    setIsStartActivity(true);
+                    setWorkTimeTracker(updatedState);
+                    toast.success(`${timeOption} timer has been started!`)
+                }
+            } catch (error) {
+                console.error('Error updating data:', error);
+                toast.error('Failed to update the timer. Please try again.');
+            }
         }
-    }
-    // };
+    };
 
     const stopActivityTimer = async () => {
         const currentDate = new Date();
@@ -226,7 +226,7 @@ export default function HRMDashboard() {
                 timeHolder: localStorage.getItem("activityTimer")
             },
         });
-        // console.log(workTimeTracker?._id, isStartActivity);
+        console.log(workTimeTracker?._id, isStartActivity);
 
         if (workTimeTracker?._id && isStartActivity) {
             try {
@@ -267,85 +267,84 @@ export default function HRMDashboard() {
         // e.returnValue = '';
     });
 
-    // useEffect(() => {
-    //     const getLeaveData = async () => {
-    //         try {
-    //             const leaveData = await axios.get(`${url}/api/leave-application/date-range/${whoIs}`, {
-    //                 params: {
-    //                     daterangeValue
-    //                 },
-    //                 headers: {
-    //                     Authorization: `Bearer ${token}` || ""
-    //                 }
-    //             })
+    useEffect(() => {
+        const getLeaveData = async () => {
+            setIsLoading(true);
+            try {
+                const leaveData = await axios.get(`${url}/api/leave-application/date-range/${whoIs}`, {
+                    params: {
+                        daterangeValue
+                    },
+                    headers: {
+                        authorization: token || ""
+                    }
+                })
 
-    //             setLeaveRequests(leaveData.data);
-    //             setFullLeaveRequests(leaveData.data);
-    //         } catch (err) {
-    //             toast.error(err?.response?.data?.message);
-    //         }
-    //     }
-    //     if ((whoIs) && (Account === 2 || Account === 1)) {
-    //         console.log(whoIs);
+                setLeaveRequests(leaveData.data);
+                setFullLeaveRequests(leaveData.data);
+                setIsLoading(false);
+            } catch (err) {
+                toast.error(err?.response?.data?.message);
+                setIsLoading(false);
+            }
+        }
+        if ((whoIs) && (Account === '2' || Account === '1')) {
+            console.log(whoIs);
 
-    //         setIsLoading(true);
-    //         getLeaveData();
-    //         setIsLoading(false);
-    //     }
-    // }, [daterangeValue, _id, whoIs]);
+            getLeaveData();
+        }
+    }, [daterangeValue, empId, whoIs]);
 
-    // // get attendance summary page table of data
-    // const getClocknsData = useCallback(async () => {
-    //     if (!_id) return;
-    //     setWaitForAttendance(true);
-    //     try {
-    //         const data = await gettingClockinsData(_id);
-    //         if (data) {
-    //             setAttendanceForSummary(data);
-    //         } else {
-    //             toast.error("Error in fetch attendance Data");
-    //         }
-    //     } catch (err) {
-    //         console.error(err);
-    //         toast.error(err?.response?.data?.message);
-    //     } finally {
-    //         setWaitForAttendance(false);
-    //     }
-    // }, [_id]);
+    // get attendance summary page table of data
+    const getClocknsData = useCallback(async () => {
+        if (!empId) return;
+        setWaitForAttendance(true);
+        try {
+            const data = await gettingClockinsData(empId);
+            if (data) {
+                setAttendanceForSummary(data);
+            } else {
+                toast.error("Error in fetch attendance Data");
+            }
+        } catch (err) {
+            console.error(err);
+            toast.error(err?.response?.data?.message);
+        } finally {
+            setWaitForAttendance(false);
+        }
+    }, [empId]);
 
-    // const getAttendanceData = async () => {
-    //     try {
-    //         const empOfAttendances = await axios.get(`${url}/api/clock-ins/`, {
-    //             headers: {
-    //                 Authorization: `Bearer ${token}` || ""
-    //             }
-    //         });
-    //         setAttendanceData(empOfAttendances.data);
-    //     } catch (error) {
-    //         console.error(error);
-    //     }
-    // }
+    const getAttendanceData = async () => {
+        try {
+            const empOfAttendances = await axios.get(`${url}/api/clock-ins/`, {
+                headers: {
+                    Authorization: token || ""
+                }
+            });
+            setAttendanceData(empOfAttendances.data);
+        } catch (error) {
+            console.error(error);
+        }
+    }
 
-    // // to view attendance data for admin and hr
-    // useEffect(() => {
-    //     getClocknsData();
-    //     if (Account === 1 || Account === 2) {
-    //         setIsLoading(true);
-    //         getAttendanceData();
-    //         setIsLoading(false);
-    //     }
-    // }, [getClocknsData]);
+    // to view attendance data for admin and hr
+    useEffect(() => {
+        getClocknsData();
+        if (Account === "1" || Account === "2") {
+            getAttendanceData()
+        }
+    }, [getClocknsData]);
 
     useEffect(() => {
-        if (data.Account) {
-            switch (data.Account) {
-                case 1:
+        if (Account) {
+            switch (Account) {
+                case '1':
                     setWhoIs("admin");
                     break;
-                case 2:
+                case '2':
                     setWhoIs("hr");
                     break;
-                case 3:
+                case '3':
                     setWhoIs("emp");
                     break;
                 default:
@@ -354,27 +353,27 @@ export default function HRMDashboard() {
             }
         }
 
-    }, [data.Account]);
+    }, [Account]);
 
-    // // get workTimeTracker from DB in Initially
-    // useEffect(() => {
-    //     const getClockInsData = async () => {
-    //         try {
-    //             if (_id) {
-    //                 const { timeData } = await getDataAPI(_id);
-    //                 if (timeData?.clockIns[0]?._id) {
-    //                     setWorkTimeTracker(timeData.clockIns[0])
-    //                 } else {
-    //                     setWorkTimeTracker({ ...workTimeTracker });
-    //                     removeClockinsData();
-    //                 }
-    //             }
-    //         } catch (error) {
-    //             console.log(error);
-    //         }
-    //     }
-    //     getClockInsData()
-    // }, []);
+    // get workTimeTracker from DB in Initially
+    useEffect(() => {
+        const getClockInsData = async () => {
+            try {
+                if (empId) {
+                    const { timeData } = await getDataAPI(empId);
+                    if (timeData?.clockIns[0]?._id) {
+                        setWorkTimeTracker(timeData.clockIns[0])
+                    } else {
+                        setWorkTimeTracker({ ...workTimeTracker });
+                        removeClockinsData();
+                    }
+                }
+            } catch (error) {
+                console.log(error);
+            }
+        }
+        getClockInsData()
+    }, []);
 
     useEffect(() => {
         localStorage.setItem("isStartLogin", isStartLogin);
@@ -382,130 +381,68 @@ export default function HRMDashboard() {
     }, [isStartLogin, isStartActivity]);
 
     return (
-        <TimerStates.Provider value={{
-            workTimeTracker, reloadRolePage, updateWorkTracker, startLoginTimer, stopLoginTimer, startActivityTimer, stopActivityTimer, setWorkTimeTracker, updateClockins, whoIs, timeOption, isStartLogin, isStartActivity, changeEmpEditForm, isEditEmp
-        }}>
-            <LeaveStates.Provider value={{ daterangeValue, setDaterangeValue, isLoading, leaveRequests, filterLeaveRequests, empName, setEmpName }}>
-                <Routes>
-                    <Route path="/" element={<Parent />}>
-                        <Route index element={<Dashboard />} />
-                        <Route path="job-desk/*" element={<JobDesk />} />
-                        <Route path="employee" element={<Employee />} />
-                        {/* <Route path="employee/add" element={userPermissions?.Employee?.add ? <Employees /> : <UnAuthorize />} /> */}
-                        <Route path="employee/add" element={<Employees />} />
-                        <Route path="employee/edit/:id" element={<AddEmployee />} />
-                        <Route path="employee/edit/:id" element={<AddEmployee />} />
-                        <Route index path="leave/status" element={<Status />} />
-                        <Route path="leave/leave-request" element={<LeaveRequest />} />
-                        <Route path="leave/calendar" element={<LeaveCalender />} />
-                        <Route path="leave/leave-summary" element={<LeaveSummary />} />
-                        <Route index path='attendance/attendance-request' element={<Request attendanceData={attendanceData} isLoading={isLoading} />} />
-                        <Route path="attendance/daily-log" element={<Dailylog attendanceData={attendanceData} isLoading={isLoading} />} />
-                        <Route path="attendance/details" element={<Details attendanceData={attendanceData} isLoading={isLoading} />} />
-                        <Route path="attendance/attendance-summary" element={<Summary attendanceData={attendanceForSummary} isLoading={waitForAttendance} />} />
-                        <Route path="/leave-request" element={<LeaveRequestForm />} />
-                        <Route path="/leave-request/edit/:id" element={<EditLeaveRequestForm />} />
-                        <Route path="administration/*" element={
+        <TimerStates.Provider value={{ workTimeTracker, reloadRolePage, updateWorkTracker, startLoginTimer, stopLoginTimer, startActivityTimer, stopActivityTimer, setWorkTimeTracker, updateClockins, whoIs, timeOption, isStartLogin, isStartActivity, changeEmpEditForm, isEditEmp }}>
+            <Routes >
+                <Route path="/" element={<Parent />} >
+                    <Route index element={<Dashboard data={data} />} />
+                    <Route path="job-desk/*" element={<JobDesk />} />
+                    <Route path="employee" element={<Employee />} />
+                    <Route path="employee/add" element={userPermissions?.Employee?.add ? <Employees /> : <UnAuthorize />} />
+                    <Route path="employee/edit/:id" element={userPermissions?.Employee?.edit ? <AddEmployee /> : <UnAuthorize />} />
+                    <Route path="leave/*" element={
+                        <LeaveStates.Provider value={{ daterangeValue, setDaterangeValue, isLoading, leaveRequests, filterLeaveRequests, empName, setEmpName }} >
                             <Routes>
-                                <Route index path="role/*" element={
-                                    <Routes>
-                                        <Route index element={<Roles />} />
-                                        <Route path="add" element={<PageAndActionAuth />} />
-                                        <Route path="edit/:id" element={<PageAndActionAuth />} />
-                                        <Route path="view/:id" element={<PageAndActionAuth />} />
-                                    </Routes>
-                                } />
-                                {/* <Route path="/shift" element={<Shift />} /> */}
-                                <Route path="/department" element={<Department />} />
-                                <Route path="/position" element={<Position />} />
-                                {/* <Route path="/holiday" element={<Holiday />} /> */}
-                                <Route path="/announcement" element={<Announce />} />
+                                <Route index path='status' element={<Status />} />
+                                <Route path='leave-request' element={<LeaveRequest />} />
+                                <Route path='calender' element={<LeaveCalender />} />
+                                <Route path='leave-summary' element={<LeaveSummary />} />
                             </Routes>
-                        } />
-                        <Route path="settings/*" element={
-                            <Routes>
-                                {/* <Route index element={<Settings />} /> */}
-                                <Route path="/" element={<PayslipRouter whoIs={whoIs} files={files} />}>
-                                    <Route index element={<Settings />} />
-                                    <Route path="payroll" element={<Payroll whoIs={whoIs} />} />
-                                    <Route path="value" element={<PayrollValue />} />
-                                    <Route path="manage" element={<PayrollManage />} />
-                                    <Route path="payslip" element={<PayslipInfo />} />
-                                </Route>
-                            </Routes>
-                        } />
-                        <Route path="*" element={<p>404</p>} />
-                        <Route path="unauthorize" element={<UnAuthorize />} />
+                        </LeaveStates.Provider>
+                    } />
+                    <Route path='/leave-request' element={userPermissions?.Leave?.add ? <LeaveRequestForm /> : <UnAuthorize />} />
+                    <Route path="/leave-request/edit/:id" element={userPermissions?.Leave?.add ? <EditLeaveRequestForm /> : <UnAuthorize />} />
+                    <Route path="attendance/*" element={
+                        <Routes>
+                            <Route index path="attendance-request" element={<Request attendanceData={attendanceData} isLoading={waitForAttendance} />} />
+                            <Route path="daily-log" element={<Dailylog attendanceData={attendanceData} isLoading={waitForAttendance} />} />
+                            <Route path="details" element={<Details attendanceData={attendanceData} isLoading={waitForAttendance} />} />
+                            <Route path="attendance-summary" element={<Summary attendanceData={attendanceForSummary} isLoading={waitForAttendance} />} />
+                        </Routes>
+                    }>
                     </Route>
-                </Routes>
-            </LeaveStates.Provider>
-        </TimerStates.Provider>
+                    <Route path="administration/*" element={
+                        <Routes>
+                            <Route index path="role/*" element={
+                                <Routes>
+                                    <Route index element={<Roles />} />
+                                    <Route path="add" element={userPermissions?.Attendance?.add ? <PageAndActionAuth /> : <UnAuthorize />} />
+                                    <Route path="edit/:id" element={userPermissions?.Attendance?.edit ? <PageAndActionAuth /> : <UnAuthorize />} />
+                                    <Route path="view/:id" element={userPermissions?.Attendance?.view ? <PageAndActionAuth /> : <UnAuthorize />} />
+                                </Routes>
+                            } />
+                            {/* <Route path="/shift" element={<Shift />} /> */}
+                            <Route path="/department" element={<Department />} />
+                            <Route path="/position" element={<Position />} />
+                            {/* <Route path="/holiday" element={<Holiday />} /> */}
+                            <Route path="/announcement" element={<Announce />} />
+                        </Routes>
+                    } />
+                    <Route path="settings/*" element={
+                        <Routes>
+                            <Route index element={<Settings />} />
+                            <Route path="/" element={<PayslipRouter whoIs={whoIs} files={files} />}>
+                                <Route path="payroll" element={<Payroll whoIs={whoIs} />} />
+                                <Route path="value" element={<PayrollValue />} />
+                                <Route path="manage" element={<PayrollManage />} />
+                                <Route path="payslip" element={<PayslipInfo />} />
+                            </Route>
+                        </Routes>
+                    } />
 
+                    <Route path="*" element={<p>404</p>} />
+                    <Route path="unauthorize" element={<UnAuthorize />} />
+                </Route>
+            </Routes>
+        </TimerStates.Provider>
     )
 }
-
-// <TimerStates.Provider value={{ workTimeTracker, reloadRolePage, updateWorkTracker, startLoginTimer, stopLoginTimer, startActivityTimer, stopActivityTimer, setWorkTimeTracker, updateClockins, whoIs, timeOption, isStartLogin, isStartActivity, changeEmpEditForm, isEditEmp }}>
-//     <Routes >
-//         <Route path="/" element={<Parent />} >
-//             <Route index element={<Dashboard data={data} />} />
-//             <Route path="job-desk/*" element={<JobDesk />} />
-//             <Route path="employee" element={<Employee />} />
-//             <Route path="employee/add" element={userPermissions?.Employee?.add ? <Employees /> : <UnAuthorize />} />
-//             <Route path="employee/edit/:id" element={userPermissions?.Employee?.edit ? <AddEmployee /> : <UnAuthorize />} />
-//             <Route path="leave/*" element={
-//                 <LeaveStates.Provider value={{ daterangeValue, setDaterangeValue, isLoading, leaveRequests, filterLeaveRequests, empName, setEmpName }} >
-//                     <Routes>
-//                         <Route index path='status' element={<Status />} />
-//                         <Route path='leave-request' element={<LeaveRequest />} />
-//                         <Route path='calendar' element={<LeaveCalender />} />
-//                         <Route path='leave-summary' element={<LeaveSummary />} />
-//                     </Routes>
-//                 </LeaveStates.Provider>
-//             } />
-
-//             <Route path="attendance/*" element={
-//                 <Routes>
-//                     <Route index path="attendance-request/" element={<Request attendanceData={attendanceData} isLoading={isLoading} />} />
-//                     <Route path="daily-log" element={<Dailylog attendanceData={attendanceData} isLoading={isLoading} />} />
-//                     <Route path="details" element={<Details attendanceData={attendanceData} isLoading={isLoading} />} />
-//                     <Route path="attendance-summary" element={<Summary attendanceData={attendanceForSummary} isLoading={waitForAttendance} />} />
-//                 </Routes>
-//             } />
-
-//             <Route path='/leave-request' element={userPermissions?.Leave?.add ? <LeaveRequestForm /> : <UnAuthorize />} />
-//             <Route path="/leave-request/edit/:id" element={userPermissions?.Leave?.add ? <EditLeaveRequestForm /> : <UnAuthorize />} />
-//             <Route path="administration/*" element={
-//                 <Routes>
-//                     <Route index path="role/*" element={
-//                         <Routes>
-//                             <Route index element={<Roles />} />
-//                             <Route path="add" element={userPermissions?.Attendance?.add ? <PageAndActionAuth /> : <UnAuthorize />} />
-//                             <Route path="edit/:id" element={userPermissions?.Attendance?.edit ? <PageAndActionAuth /> : <UnAuthorize />} />
-//                             <Route path="view/:id" element={userPermissions?.Attendance?.view ? <PageAndActionAuth /> : <UnAuthorize />} />
-//                         </Routes>
-//                     } />
-//                     {/* <Route path="/shift" element={<Shift />} /> */}
-//                     <Route path="/department" element={<Department />} />
-//                     <Route path="/position" element={<Position />} />
-//                     {/* <Route path="/holiday" element={<Holiday />} /> */}
-//                     <Route path="/announcement" element={<Announce />} />
-//                 </Routes>
-//             } />
-//             <Route path="settings/*" element={
-//                 <Routes>
-//                     {/* <Route index element={<Settings />} /> */}
-//                     <Route path="/" element={<PayslipRouter whoIs={whoIs} files={files} />}>
-//                         <Route index element={<Settings />} />
-//                         <Route path="payroll" element={<Payroll whoIs={whoIs} />} />
-//                         <Route path="value" element={<PayrollValue />} />
-//                         <Route path="manage" element={<PayrollManage />} />
-//                         <Route path="payslip" element={<PayslipInfo />} />
-//                     </Route>
-//                 </Routes>
-//             } />
-
-//             <Route path="*" element={<p>404</p>} />
-//             <Route path="unauthorize" element={<UnAuthorize />} />
-//         </Route>
-//     </Routes>
-// </TimerStates.Provider>
