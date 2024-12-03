@@ -76,7 +76,7 @@ const App = () => {
     cookies.remove("name", { path: "/" })
     cookies.remove("Account", { path: "/" })
     cookies.remove("isLogin", { path: "/" });
-    cookies.remove("token", { path: "/" });
+    // cookies.remove("token", { path: "/" });
     cookies.remove("orgId", { path: "/" })
     setData({ _id: "", Account: "", name: "", orgId: "" });
     navigate("/login");
