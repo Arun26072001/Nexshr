@@ -9,7 +9,6 @@ import { toast } from "react-toastify";
 import EditEmployeeform from "./EditEmployeeform";
 import { TimerStates } from "./payslip/HRMDashboard";
 import Loading from "./Loader";
-import Cookies from "universal-cookie";
 
 const AddEmployee = () => {
   const { id } = useParams();
@@ -32,8 +31,7 @@ const AddEmployee = () => {
   const jobRef = useRef(null);
   const financialRef = useRef(null);
   const url = process.env.REACT_APP_API_URL;
-  const cookies = new Cookies();
-  const token = cookies.get("token");
+  const token = localStorage.getItem("token");
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
 
@@ -123,7 +121,7 @@ const AddEmployee = () => {
     try {
       const positions = await axios.get(url + "/api/position", {
         headers: {
-          Authorization: `Bearer ${token}` || ""
+          authorization: token || ""
         }
       });
       setPositions(positions.data);
@@ -137,7 +135,7 @@ const AddEmployee = () => {
     try {
       const patterns = await axios.get(url + "/api/time-pattern", {
         headers: {
-          Authorization: `Bearer ${token}` || ""
+          authorization: token || ""
         }
       });
       setTimePatterns(patterns.data);
@@ -151,7 +149,7 @@ const AddEmployee = () => {
     try {
       const company = await axios.get(url + "/api/company", {
         headers: {
-          Authorization: `Bearer ${token}` || ""
+          authorization: token || ""
         }
       });
       setCompanies(company.data);
@@ -200,7 +198,7 @@ const AddEmployee = () => {
     try {
       const res = await axios.get(`${url}/api/country`, {
         headers: {
-          Authorization: `Bearer ${token}` || ""
+          authorization: token || ""
         }
       })
       setCountries(res.data)

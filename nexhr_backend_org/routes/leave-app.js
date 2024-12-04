@@ -7,6 +7,9 @@ const nodemailer = require("nodemailer");
 const { Employee } = require('../models/EmpModel');
 const { verifyHR, verifyHREmployee, verifyEmployee, verifyAdmin, verifyAdminHREmployee } = require('../auth/authMiddleware');
 const { Position } = require('../models/PositionModel');
+const { Team } = require('../models/TeamModel');
+const { dynamicPathMiddleware } = require('../imgStorage');
+const now = new Date();
 
 function getDayDifference(leave) {
   let toDate = new Date(leave.toDate);
@@ -62,15 +65,36 @@ leaveApp.get("/emp/:empId", verifyAdminHREmployee, async (req, res) => {
 
     const positionIds = await Position.find({ PositionName: requests?.position[0].PositionName }, "_id");
     const collegues = await Employee.find({
-      position: { $in: positionIds }, 
-      _id: { $nin: [req.params.empId] }  
+      position: { $in: positionIds },
+      _id: { $nin: [req.params.empId] }
     }, "FirstName LastName Email phone");
-    
+
     const empIds = await Employee.find({ Account: 3, _id: { $nin: req.params.empId } });
     const peopleOnLeave = await LeaveApplication.find(
       { employee: { $in: empIds }, fromDate: new Date().toISOString().split("T")[0], status: "approved" }
       , "_id fromDate toDate").populate({ path: "employee", select: "_id FirstName LastName" })
-    res.send({ requests, collegues, peopleOnLeave });
+
+    const teamMembers = await Team.findOne({ employees: { $in: req.params.empId } }, "employees").exec();
+    let peopleLeaveOnMonth;
+    if (teamMembers?._id) {
+      peopleLeaveOnMonth = await LeaveApplication.find(
+        {
+          employee: { $in: teamMembers.employees },
+          fromDate: {
+            $gte: new Date().toISOString().split("T")[0],
+            $lte: new Date(now.getFullYear(), now.getMonth() + 1, 0)
+          },
+          toDate: {
+            $gte: new Date().toISOString().split("T")[0],
+            $lte: new Date(now.getFullYear(), now.getMonth() + 1, 0)
+          },
+          status: "approved"
+        }
+        , "fromDate toDate");
+    } else {
+      peopleLeaveOnMonth = []
+    }
+    res.send({ requests, collegues, peopleOnLeave, peopleLeaveOnMonth });
 
     if (!requests || !collegues || !peopleOnLeave) {
       res.status(404).send({ message: "requests or collegues or peopleOnLeave something not found!" })
@@ -139,7 +163,6 @@ leaveApp.get("/:id", verifyHREmployee, async (req, res) => {
 
 // get employee of leave data
 leaveApp.get("/date-range/hr", verifyHR, async (req, res) => {
-  const now = new Date();
   let startOfMonth;
   let endOfMonth;
   if (req?.query?.daterangeValue) {
@@ -182,7 +205,6 @@ leaveApp.get("/date-range/hr", verifyHR, async (req, res) => {
 
 leaveApp.get("/date-range/admin", verifyAdmin, async (req, res) => {
 
-  const now = new Date();
   let startOfMonth;
   let endOfMonth;
   if (req?.query?.daterangeValue) {
@@ -301,12 +323,12 @@ leaveApp.get("/", verifyAdmin, async (req, res) => {
 leaveApp.post("/:empId", verifyAdminHREmployee, async (req, res) => {
   try {
     // Handle empty `coverBy` value
-    if (req.body.coverBy === "") {
-      req.body.coverBy = null;
-    }
+    req.body.coverBy = req.body.coverBy === "" ? null : req.body.coverBy;
+
+    dynamicPathMiddleware(null, "/upload/imgs");
 
     // Construct the leave request object
-    let leaveRequest = {
+    const leaveRequest = {
       leaveType: req.body.leaveType.toLowerCase(),
       fromDate: req.body.fromDate,
       toDate: req.body.toDate,
@@ -314,87 +336,76 @@ leaveApp.post("/:empId", verifyAdminHREmployee, async (req, res) => {
       reasonForLeave: req.body.reasonForLeave,
       prescription: req.body.prescription,
       coverBy: req.body.coverBy,
-      employee: req.params.empId
+      employee: req.params.empId,
     };
 
-    let takenLeaveCount = 0;
-
-    // Fetch approved leave applications for the specific employee
-    const leaveData = await LeaveApplication.find({
-      leaveType: {
-        $regex: new RegExp("^" + req.body.leaveType, "i")
-      },
-      status: "approved",
-      employee: req.params.empId // Check leaves for the specific employee
-    });
-
-    // Fetch pending leave applications for the specific employee and leave type
+    // Check if there are pending leaves for the same type
     const pendingLeaveData = await LeaveApplication.find({
-      leaveType: {
-        $regex: new RegExp("^" + req.body.leaveType, "i")
-      },
+      leaveType: { $regex: new RegExp("^" + req.body.leaveType, "i") },
       status: "pending",
-      employee: req.params.empId // Check leaves for the specific employee
+      employee: req.params.empId,
     });
 
-    // If there are pending leaves of the same type, return an error
     if (pendingLeaveData.length > 0) {
-      return res.status(400).send({ message: "Please wait for Previous Leave Response!" });
-    } else {
-      // Calculate the total number of leave days already taken
-      leaveData.map((data) => {
-        const value = getDayDifference(data);
-        takenLeaveCount = takenLeaveCount + value;
-      });
+      return res.status(400).send({ message: "Please wait for the previous leave response!" });
+    }
 
-      // Fetch employee's leave count and remaining leave days
-      const empData = await Employee.findById(req.params.empId, "typesOfLeaveCount typesOfLeaveRemainingDays").exec();
-      const relievingOffData = await Employee.findById(req.body.coverBy, "Email FirstName LastName");
-      let leaveTypeName = req.body.leaveType.split(" ")[0];
-      const leaveDaysCount = empData?.typesOfLeaveRemainingDays[leaveTypeName];
+    // Fetch approved leave data for calculating taken leave count
+    const approvedLeaveData = await LeaveApplication.find({
+      leaveType: { $regex: new RegExp("^" + req.body.leaveType, "i") },
+      status: "approved",
+      employee: req.params.empId,
+    });
 
-      // Check if the employee has remaining leave days
-      if (Number(leaveDaysCount) > takenLeaveCount) {
-        // Calculate the number of days for the requested leave
-        let GoingToTakeLeave = getDayDifference(req.body);
+    const takenLeaveCount = approvedLeaveData.reduce(
+      (acc, leave) => acc + getDayDifference(leave),
+      0
+    );
 
-        // Check if the employee has already submitted a leave request for the same date
-        const reqDate = await LeaveApplication.find({ fromDate: leaveRequest.fromDate, employee: req.params.empId });
-        if (reqDate.length > 0) {
-          return res.status(400).send({ message: "Already sent a request on this date." });
-        } else {
-          // Validate the leave request
-          const { error } = LeaveApplicationValidation.validate(leaveRequest);
-          if (error) {
-            console.error('Validation Error:', error);
-            return res.status(400).send({ message: "Validation Error", details: error.message });
-          } else {
-            // Fetch employee data
-            const empData = await Employee.findById(req.params.empId);
-            if (!empData) {
-              return res.status(400).send(`No employee found for ID ${req.params.empId}`);
-            } else {
-              // Create a new leave application
-              const newLeaveApp = await LeaveApplication.create(leaveRequest);
+    // Fetch employee leave data
+    const empData = await Employee.findById(req.params.empId, "typesOfLeaveCount typesOfLeaveRemainingDays leaveApplication");
+    if (!empData) {
+      return res.status(400).send({ message: `No employee found for ID ${req.params.empId}` });
+    }
 
-              // If leave is 0 days, set it to 1
-              if (GoingToTakeLeave === 0) {
-                GoingToTakeLeave = 1;
-              }
+    const relievingOffData = await Employee.findById(req.body.coverBy, "Email FirstName LastName");
+    const leaveTypeName = req.body.leaveType.split(" ")[0];
+    const leaveDaysCount = empData?.typesOfLeaveRemainingDays[leaveTypeName] || 0;
 
-              // Update the employee's remaining leave days
-              empData.typesOfLeaveRemainingDays = {
-                ...empData.typesOfLeaveRemainingDays,
-                [leaveTypeName]: Number(leaveDaysCount) - GoingToTakeLeave
-              };
+    if (leaveDaysCount <= takenLeaveCount) {
+      return res.status(400).send({ message: `${leaveTypeName} leave limit reached.` });
+    }
 
-              // Push the leave application ID to the employee's leave applications array
-              empData.leaveApplication.push(newLeaveApp._id);
+    // Check if leave request for the same date already exists
+    const existingRequest = await LeaveApplication.findOne({
+      fromDate: leaveRequest.fromDate,
+      employee: req.params.empId,
+    });
+    if (existingRequest) {
+      return res.status(400).send({ message: "Already sent a request on this date." });
+    }
 
-              // Save the updated employee document
-              await empData.save();
+    // Validate the leave request
+    const { error } = LeaveApplicationValidation.validate(leaveRequest);
+    if (error) {
+      console.error("Validation Error:", error);
+      return res.status(400).send({ message: "Validation Error", details: error.message });
+    }
 
-              const htmlContent = `
+    // Calculate the number of leave days being taken
+    let goingToTakeLeave = getDayDifference(req.body);
+    if (goingToTakeLeave === 0) goingToTakeLeave = 1;
+
+    // Update employee's leave days and create the leave application
+    empData.typesOfLeaveRemainingDays[leaveTypeName] =
+      leaveDaysCount - goingToTakeLeave;
+
+    const newLeaveApp = await LeaveApplication.create(leaveRequest);
+    empData.leaveApplication.push(newLeaveApp._id);
+    await empData.save();
+
+    // Prepare and send the email
+    const htmlContent = `
       <!DOCTYPE html>
       <html lang="en">
       <head>
@@ -407,7 +418,6 @@ leaveApp.post("/:empId", verifyAdminHREmployee, async (req, res) => {
           .header { text-align: center; padding: 20px; }
           .header img { max-width: 100px; }
           .content { margin: 20px 0; }
-          .button { display: inline-block; padding: 10px 20px; background-color: #28a745; color: #fff !important; text-decoration: none; border-radius: 5px; margin-top: 10px; }
           .footer { text-align: center; font-size: 14px; margin-top: 20px; color: #777; }
         </style>
       </head>
@@ -415,54 +425,43 @@ leaveApp.post("/:empId", verifyAdminHREmployee, async (req, res) => {
         <div class="container">
           <div class="header">
             <img src="https://imagedelivery.net/r89jzjNfZziPHJz5JXGOCw/1dd59d6a-7b64-49d7-ea24-1366e2f48300/public" alt="Logo" />
-            <h1>${empData.FirstName} of task relieving Officer ${relievingOffData.FirstName}</h1>
+            <h1>${empData.FirstName} has assigned a task to ${relievingOffData.FirstName}</h1>
           </div>
           <div class="content">
-              <p>Hi ${relievingOffData.FirstName},</p><br /><br />
-              <p>I wanted to inform you that I’ll be out of the office tomorrow.</p>
-              <p>I have ensured that all my tasks are up to date,</p>
-               <p>but I am assigning my remaining responsibilities to you in my absence.</p><br />
-               <p style={text-align: "center"}>Thank you!</p>
+              <p>Hi ${relievingOffData.FirstName},</p>
+              <p>${empData.FirstName} has assigned some tasks to you during their leave period. Please take note.</p>
+              <p>Thank you!</p>
           </div>
           <div class="footer">
-            <p>Have questions? Need help? <a href="mailto:webnexs29@gmail.com">Contact our Team Head</a>.</p>
+            <p>Need help? <a href="mailto:webnexs29@gmail.com">Contact our Team Head</a>.</p>
           </div>
         </div>
       </body>
-      </html>`;
+      </html>
+    `;
 
-              const transporter = nodemailer.createTransport({
-                service: "gmail",
-                auth: {
-                  user: process.env.FROM_MAIL,
-                  pass: process.env.MAILPASSWORD,
-                },
-              });
-
-              await transporter.sendMail({
-                from: process.env.FROM_MAIL,
-                to: relievingOffData.Email,
-                subject: "Task Relieving request",
-                html: htmlContent,
-              });
-
-              return res.status(201).send({ message: "Leave Request has been sent to Higher Authority." });
-            }
-          }
-        }
-      } else {
-        // If the employee has reached the limit of leave days
-        return res.status(400).send({ message: `${leaveTypeName} leave limit reached.` });
-      }
-    }
-
-  } catch (err) {
-    console.log(err.message);
-    return res.status(500).send({
-      message: err.message
+    const transporter = nodemailer.createTransport({
+      service: "gmail",
+      auth: {
+        user: process.env.FROM_MAIL,
+        pass: process.env.MAILPASSWORD,
+      },
     });
+
+    await transporter.sendMail({
+      from: process.env.FROM_MAIL,
+      to: relievingOffData.Email,
+      subject: "Task Relieving Request",
+      html: htmlContent,
+    });
+
+    return res.status(201).send({ message: "Leave Request has been sent to Higher Authority." });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).send({ message: err.message });
   }
 });
+
 
 leaveApp.put("/:id", verifyHREmployee, async (req, res) => {
   try {

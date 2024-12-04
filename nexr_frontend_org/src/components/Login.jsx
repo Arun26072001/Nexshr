@@ -5,28 +5,64 @@ import { ScaleLoader } from "react-spinners";
 import { Navigate, useNavigate, useParams } from "react-router-dom";
 import { EssentialValues } from "../App";
 import "./Login.css";
-import Cookies from "universal-cookie";
-import { jwtDecode } from "jwt-decode";
 
 const override = css`
   display: block;
-  margin: 0 auto; 
+  margin: 0 auto;
   border-color: red;
 `;
 
-const Login = ({ isLogin }) => {
+const Login = () => {
   const navigate = useNavigate();
   const { handleSubmit, loading, pass, data } = useContext(EssentialValues);
+  console.log(typeof data.Account);
+
+  // const { id } = useParams();
+
+  // useEffect(() => {
+  //   // localStorage.setItem("orgId", id)
+  //   if (Account === "1") {
+  //     navigate("/admin")
+  //   }
+  //   else if (Account === "2") {
+  //     navigate("/hr")
+  //   } else if (Account === "3") {
+  //     navigate("/emp")
+  //   }
+  // }, []);
+
+  // useEffect(() => {
+  //   async function checkNetworkConnection() {
+  //     try {
+  //       const connectionMsg = await axios.get(`${url}/`);
+  //       console.log(connectionMsg?.data?.message);
+  //       console.log(isLogin && window.location.pathname);
+  //       if (isLogin && window.location.pathname === "/") {
+
+  //         if (account === '1') {
+  //           navigate("/admin")
+  //         } else if (account === '2') {
+  //           navigate("/hr")
+  //         } else if (account === '3') {
+  //           navigate("/emp")
+  //         }
+  //       }
+  //     } catch (error) {
+  //       navigate("/no-internet-connection");
+  //     }
+  //   }
+  //   checkNetworkConnection();
+  // }, []);
 
   return (
     <div>
-      {/* {data.Account === 1 && isLogin
+      {data.Account === '1'
         ? <Navigate to={"/admin"} />
-        : data.Account === 2 && isLogin ? <Navigate to={"/hr"} />
-          : data.Account === 3 && isLogin ? <Navigate to={"/emp"} />
-            : ""} */}
+        : data.Account === '2' ? <Navigate to={"/hr"} />
+          : data.Account === '3' ? <Navigate to={"/emp"} />
+            : ""}
       <div className="container">
-        <div className="main-outer-div">
+        <div id="main-outer-div">
           <div id="logo-div">
             <img id="logo-img" src={Logo} alt="Webnexs Logo" />
           </div>

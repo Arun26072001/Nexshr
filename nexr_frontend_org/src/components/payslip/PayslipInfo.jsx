@@ -2,12 +2,10 @@ import axios from 'axios';
 import React, { useEffect, useState } from 'react'
 import { toast } from 'react-toastify';
 import { fetchPayslipInfo } from '../ReuseableAPI';
-import Cookies from 'universal-cookie';
 
 export default function PayslipInfo() {
     const url = process.env.REACT_APP_API_URL;
-    const cookies = new Cookies();
-    const token = cookies.get("token");
+    const token = localStorage.getItem("token");
     const [payslips, setPayslips] = useState([]);
 
 
@@ -43,10 +41,12 @@ export default function PayslipInfo() {
     }
 
     async function submitPayslip() {
+        console.log(payslips);
+
         try {
             const payslip = await axios.post(`${url}/api/payslip-info`, payslips, {
                 headers: {
-                    Authorization: `Bearer ${token}` || ""
+                    Authorization: token || ""
                 }
             })
             toast.success(payslip?.data?.message);

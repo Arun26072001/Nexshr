@@ -1,4 +1,6 @@
 import React, { useEffect, useState } from "react";
+// import editIcon from "../imgs/male_avatar.png";
+// import maleAvatar from "../imgs/EditIcon.png";
 import { useFormik } from "formik";
 import * as Yup from "yup";
 import axios from "axios";
@@ -7,18 +9,13 @@ import "./leaveForm.css";
 import { fetchPayslipInfo } from "./ReuseableAPI";
 import { useNavigate } from "react-router-dom";
 import { TagPicker } from "rsuite";
-import NoDataFound from "./payslip/NoDataFound";
-import Cookies from "universal-cookie";
 
 const AddEmployeeForm = ({ details, handleScroll, handlePersonal, handleFinancial, handleJob, handleContact, handleEmployment, timePatterns, personalRef, contactRef, employmentRef, jobRef, financialRef, payslipRef, countries, companies, departments, positions, roles, leads, managers }) => {
-    const orgId = localStorage.getItem("orgId");
     const navigate = useNavigate()
     const [timeDifference, setTimeDifference] = useState(0);
     const [payslipFields, setPayslipFields] = useState([]);
-    const cookies = new Cookies();
-    const token = cookies.get("token");
+    const token = localStorage.getItem("token");
     const url = process.env.REACT_APP_API_URL;
-    const cen_url = process.env.CENTRALIZATION_BASEURL;
     const [leaveTypes, setLeaveTypes] = useState([]);
     const [selectedLeaveTypes, setSelectedLeavetypes] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
@@ -44,7 +41,6 @@ const AddEmployeeForm = ({ details, handleScroll, handlePersonal, handleFinancia
         position: "",
         department: "",
         role: "",
-        profile: "",
         description: "",
         dateOfJoining: "",
         employmentType: "",
@@ -52,10 +48,9 @@ const AddEmployeeForm = ({ details, handleScroll, handlePersonal, handleFinancia
         annualLeaveYearStart: "",
         companyWorkingHourPerWeek: "",
         publicHoliday: "",
-        // entitlement: "",
-        // fullTimeAnnualLeave: "",
+        entitlement: "",
+        fullTimeAnnualLeave: "",
         annualLeaveEntitlement: "",
-        typesOfLeaveCount: {},
         basicSalary: "",
         bankName: "",
         accountNo: "",
@@ -109,7 +104,6 @@ const AddEmployeeForm = ({ details, handleScroll, handlePersonal, handleFinancia
         company: Yup.string(),
         teamLead: Yup.string(),
         managerId: Yup.string(),
-        profile: Yup.string().optional(),
         phone: Yup.string().min(10, "Phone number must be 10 digits").max(10, "Phone number must be 10 digits"), // Optional
         dateOfBirth: Yup.string(), // Optional
         gender: Yup.string().oneOf(['male', 'female'], 'Invalid gender'), // Changed to optional
@@ -145,25 +139,9 @@ const AddEmployeeForm = ({ details, handleScroll, handlePersonal, handleFinancia
         validationSchema: empFormValidation,
         onSubmit: async (values, { resetForm }) => {
             try {
-                // add user details in centralization user table
-                const userTableData = {
-                    name: formik.values.FirstName,
-                    email_id: formik.values.Email,
-                    password: formik.values.Password,
-                    contry_code: "+91",
-                    phone: formik.values.phone,
-                    nexhr_organisations: [orgId],
-                    registerfrom: 3,
-                    registertype: 0
-                }
-                const registerInCentralize = await axios.post(`${cen_url}/register`, userTableData);
-                const newEmp = {
-                    ...values,
-                    userData: registerInCentralize.data.user_details._id
-                }
-                const res = await axios.post(`${url}/api/employee`, newEmp, {
+                const res = await axios.post(`${url}/api/employee`, values, {
                     headers: {
-                        Authorization: `Bearer ${token}` || ""
+                        authorization: token || ""
                     }
                 })
                 toast.success(res.data.message);
@@ -279,7 +257,7 @@ const AddEmployeeForm = ({ details, handleScroll, handlePersonal, handleFinancia
         getPayslipInfo();
     }, []);
 
-    const hourAndMin = timeDifference?.toString()?.split(".");
+    const hourAndMin = timeDifference.toString().split(".");
     const [hour, min] = hourAndMin;
 
     function changeImg(value) {
@@ -330,7 +308,6 @@ const AddEmployeeForm = ({ details, handleScroll, handlePersonal, handleFinancia
         gettingLeaveTypes();
         setIsLoading(false);
     }, []);
-
 
     return (
         <form onSubmit={formik.handleSubmit}>
@@ -472,16 +449,6 @@ const AddEmployeeForm = ({ details, handleScroll, handlePersonal, handleFinancia
                                 {formik.touched.employmentType && formik.errors.employmentType ? (
                                     <div className="text-center text-danger">{formik.errors.employmentType}</div>
                                 ) : null}
-                            </div>
-
-                            <div className="my-3">
-                                <span className="inputLabel">
-                                    Attach Employee profile (recommended for JPG)
-                                </span>
-                                <input type="file" name="profile" className="fileInput"
-                                    onChange={(e) => changeImg(e.target.files[0])}
-                                />
-
                             </div>
                         </div>
                     </div>
@@ -725,7 +692,6 @@ const AddEmployeeForm = ({ details, handleScroll, handlePersonal, handleFinancia
                                 })
                             }
                         </div>
-
                     </div>
 
                     <div className="jobDetails" ref={jobRef}>
@@ -886,7 +852,9 @@ const AddEmployeeForm = ({ details, handleScroll, handlePersonal, handleFinancia
                                 payslipFields.length > 0 &&
                                 payslipFields.map((data, index) => {
                                     let calculatedValue = "";
-
+                                    if (data.fieldName === "basicSalary") {
+                                        return null;
+                                    }
                                     if (data.fieldName === "incomeTax") {
                                         const salary = Number(formik.values.basicSalary);
 
@@ -953,7 +921,7 @@ const AddEmployeeForm = ({ details, handleScroll, handlePersonal, handleFinancia
                         </button>
                     </div>
                     <div className="w-50">
-                        <button type="submit" className="button px-5 py-2" disabled={splitError ? true : false} onClick={navToError}>
+                        <button type="submit" className="button px-5 py-2" onClick={navToError}>
                             Save
                         </button>
                     </div>

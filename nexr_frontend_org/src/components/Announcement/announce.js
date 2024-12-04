@@ -3,9 +3,6 @@ import React from 'react';
 import Announcementalert from './announcementalert';
 import Announcementable from './announcementable';
 
-
-
-
 const Announce = () => {
     return (
         <div className='dashboard-parent py-4'>

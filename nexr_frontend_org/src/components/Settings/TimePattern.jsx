@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import AddTimePattern from "./AddTimePattern";
 import axios from "axios";
 import { toast } from "react-toastify";
@@ -10,14 +10,10 @@ import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
 import EditTimePattern from "./EditTimePattern";
 import WeeklyDaysDetails from "./WeeklyDaysDetails";
 import Loading from "../Loader";
-import Cookies from "universal-cookie";
-import { EssentialValues } from "../../App";
 
 const TimePattern = (props) => {
     const url = process.env.REACT_APP_API_URL;
-    const cookies = new Cookies();
-    const token = cookies.get("token");
-    const {orgId} = useContext(EssentialValues);
+    const token = localStorage.getItem("token");
     const [workingTime, setWorkingTime] = useState(false);
     const [patternName, setPatternName] = useState("");
     const names = ["Names", "Days", "Assigned"];

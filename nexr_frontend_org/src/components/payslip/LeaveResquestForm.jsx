@@ -7,20 +7,23 @@ import axios from "axios";
 import { toast } from "react-toastify";
 import Loading from "../Loader";
 import { fetchLeaveRequests } from "../ReuseableAPI";
-import Cookies from "universal-cookie";
-import { jwtDecode } from "jwt-decode";
+import "react-datepicker/dist/react-datepicker.css";
+import DatePicker from "react-datepicker";
+
 
 const LeaveRequestForm = (props) => {
   const url = process.env.REACT_APP_API_URL;
-  const cookies = new Cookies();
-  const token = cookies.get("token");
-  const { _id } = jwtDecode(token);
+  const empId = localStorage.getItem("_id");
+  const token = localStorage.getItem("token");
   const [collegues, setCollegues] = useState([])
   const [error, setError] = useState("");
   const [isShowPeriodOfLeave, setIsShowPeriodOfLeave] = useState(false);
   const navigate = useNavigate();
   const [typeOfLeave, setTypOfLeave] = useState(null);
-
+  const [excludedDates, setExcludeDates] = useState([]);
+  const [file,setFile] = useState("");
+  console.log(file);
+  
   let leaveObj = {
     leaveType: "",
     fromDate: "",
@@ -72,7 +75,7 @@ const LeaveRequestForm = (props) => {
     onSubmit: async (values, { resetForm }) => {
       if (error === "") {
         try {
-          const res = await axios.post(`${url}/api/leave-application/${_id}`, values, {
+          const res = await axios.post(`${url}/api/leave-application/${empId}`, values, {
             headers: {
               authorization: token || ""
             }
@@ -108,24 +111,33 @@ const LeaveRequestForm = (props) => {
 
   useEffect(() => {
     const gettingLeaveRequests = async () => {
-      if (_id) {
-        const leaveReqs = await fetchLeaveRequests(_id);
-        console.log(leaveReqs);
+      try {
+        if (empId) {
+          const leaveReqs = await fetchLeaveRequests(empId);
+          
+          const fromDates = leaveReqs?.peopleLeaveOnMonth.map((leave)=> new Date(leave.fromDate))
+          const toDates = leaveReqs?.peopleLeaveOnMonth.map((leave)=> new Date(leave.toDate))
+          setExcludeDates([...fromDates, ...toDates])
+          // Set types of leave
+          setTypOfLeave(leaveReqs?.requests?.typesOfLeaveCount);
 
-        // fetch leave types from db
-        setTypOfLeave(leaveReqs?.requests?.typesOfLeaveCount)
-        const emps = leaveReqs.collegues.filter((emp) => (emp._id !== _id))
-        setCollegues(emps)
-      } else {
-        toast.error("_id still not load in app.")
+          // Filter colleagues
+          const emps = leaveReqs.collegues.filter((emp) => emp._id !== empId);
+          setCollegues(emps);
+        } else {
+          toast.error("empId is not loaded in the app.");
+        }
+      } catch (error) {
+        console.error("Error fetching leave requests:", error);
+        toast.error("Failed to fetch leave requests. Please try again.");
       }
-    }
+    };
+
     gettingLeaveRequests();
     // if (leaveType) {  // assign leavetType initially from params
     //   leaveObj.leaveType = leaveType;
     // }
-  }, [_id])
-
+  }, [empId])
 
   return (
     typeOfLeave ?
@@ -157,19 +169,29 @@ const LeaveRequestForm = (props) => {
             <div className="row my-3">
               <div className="col-12 col-lg-6 col-md-6">
                 <span className="inputLabel">Start Date</span>
-                <input type="date" name="fromDate" min={new Date().toISOString().split("T")[0]} className={`inputField ${formik.touched.fromDate && formik.errors.fromDate ? "error" : ""}`}
-                  onChange={formik.handleChange}
-                  value={formik.values.fromDate} />
+                <DatePicker
+                  className={`inputField ${formik.touched.fromDate && formik.errors.fromDate ? "error" : ""}`}
+                  selected={formik.values.fromDate}
+                  onChange={(date) => formik.setFieldValue("fromDate", date.toISOString().split("T")[0])}
+                  minDate={new Date()}
+                  startDate={new Date()}
+                excludeDates={excludedDates} // Pass an array of dates
+                />
                 {formik.touched.fromDate && formik.errors.fromDate ? (
                   <div className="text-center text-danger">{formik.errors.fromDate}</div>
                 ) : null}
+
               </div>
               <div className="col-12 col-lg-6 col-md-6">
                 <span className="inputLabel">End Date</span>
-                <input type="date" name="toDate" className={`inputField ${formik.touched.toDate && formik.errors.toDate ? "error" : ""}`}
-                  min={new Date().toISOString().split("T")[0]}
-                  onChange={formik.handleChange}
-                  value={formik.values.toDate} />
+                <DatePicker
+                  className={`inputField ${formik.touched.toDate && formik.errors.toDate ? "error" : ""}`}
+                  selected={formik.values.toDate}
+                  onChange={(date) => formik.setFieldValue("toDate", date.toISOString().split("T")[0])}
+                  minDate={new Date()}
+                  startDate={new Date()}
+                  excludeDates={excludedDates} // Pass an array of dates
+                />
                 {formik.errors.toDate && formik.touched.toDate ? (
                   <div className="text-center text-danger">{formik.errors.toDate}</div>
                 ) : error && <div className="text-center text-danger">{error}</div>}
@@ -206,7 +228,7 @@ const LeaveRequestForm = (props) => {
                 Attach handover document (pdf, jpg, docx or any other format)
               </span>
               <input type="file" name="prescription" className="fileInput"
-                onChange={formik.handleChange}
+                onChange={(e)=>setFile(e.target.files[0].name)}
                 value={formik.values.prescription} />
             </div>
 

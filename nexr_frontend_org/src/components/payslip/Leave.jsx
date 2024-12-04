@@ -9,20 +9,15 @@ import Loading from "../Loader";
 import NoDataFound from "./NoDataFound";
 import { useNavigate } from "react-router-dom";
 import { TimerStates } from "./HRMDashboard";
-import Cookies from "universal-cookie";
-import { jwtDecode } from "jwt-decode";
-import { EssentialValues } from "../../App";
 
 const Leave = () => {
-    const cookies = new Cookies();
-    const token = cookies.get("token");
-    const {data} = useContext(EssentialValues);
-    const { _id, orgId } = data;
     const navigate = useNavigate();
     const { whoIs } = useContext(TimerStates);
+    const empId = localStorage.getItem("_id");
     const [leaveRequests, setLeaveRequests] = useState({});
     const [fullLeaveRequests, setFullLeaveRequests] = useState([]);
     const [empName, setEmpName] = useState("");
+    const token = localStorage.getItem('token');
     const url = process.env.REACT_APP_API_URL;
     const [daterangeValue, setDaterangeValue] = useState("");
     const [isLoading, setIsLoading] = useState(false);
@@ -40,12 +35,12 @@ const Leave = () => {
         const getLeaveData = async () => {
             try {
                 setIsLoading(true);
-                const leaveData = await axios.get(`${url}/api/leave-application/date-range/${orgId}/${_id}`, {
+                const leaveData = await axios.get(`${url}/api/leave-application/date-range/${empId}`, {
                     params: {
                         daterangeValue
                     },
                     headers: {
-                        authorization: `Bearer ${token} ` || ""
+                        authorization: token || ""
                     }
                 })
                 console.log(leaveData.data);
@@ -59,16 +54,16 @@ const Leave = () => {
         }
         // 
         getLeaveData();
-    }, [daterangeValue, _id])
+    }, [daterangeValue, empId])
 
     // useEffect(() => {
     //     const gettingEmpLeaveReqests = async () => {
-    //         if (_id && Account == '2') {
+    //         if (empId && Account == '2') {
     //             const leaveData = await fetchEmpLeaveRequests();
     //             setLeaveRequests(leaveData);
     //             setFullLeaveRequests(leaveData);
     //         } else {
-    //             const leaveData = await fetchLeaveRequests(_id);
+    //             const leaveData = await fetchLeaveRequests(empId);
     //             if (leaveData) {
     //                 // console.log(leaveData.requests.leaveApplication);
     //                 setLeaveRequests(leaveData.requests.leaveApplication);
@@ -83,11 +78,12 @@ const Leave = () => {
     //     return () => {
     //         setLeaveRequests([])
     //     }
-    // }, [_id])
+    // }, [empId])
 
     useEffect(() => {
         filterLeaveRequests();
     }, [empName])
+    console.log(leaveRequests);
 
     return (
         <div >

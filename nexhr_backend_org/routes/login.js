@@ -20,6 +20,8 @@ router.post("/", async (req, res) => {
             console.log("Validation error: " + error);
             return res.status(400).send(error.details[0].message);
         } else {
+            console.log(req.body);
+            
             const emp = await Employee.findOne({ Email: req.body.Email.toLowerCase(), Password: req.body.Password })
                 .populate({
                     path: "role",

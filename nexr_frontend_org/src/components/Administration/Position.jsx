@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import NoDataFound from '../payslip/NoDataFound';
 import Loading from '../Loader';
 import { useNavigate } from 'react-router-dom';
@@ -6,21 +6,16 @@ import { toast } from 'react-toastify';
 import axios from 'axios';
 import CommonModel from './CommonModel';
 import LeaveTable from '../LeaveTable';
-import Cookies from 'universal-cookie';
-import { EssentialValues } from '../../App';
 
 export default function Position() {
     const url = process.env.REACT_APP_API_URL;
-    const { data } = useContext(EssentialValues);
-    const cookies = new Cookies();
-    const token = cookies.get('token');
+    const token = localStorage.getItem("token");
     const [positionObj, setPositionObj] = useState({});
     const [positions, setPositions] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
     const [isPositionsDataUpdate, setIsPositionsDataUpdate] = useState(false);
     const [isAddPosition, setIsAddPosition] = useState(false);
     const navigate = useNavigate();
-    const [error, setError] = useState("");
 
     function reloadPositionPage() {
         setIsPositionsDataUpdate(!isPositionsDataUpdate);
@@ -40,9 +35,9 @@ export default function Position() {
 
     async function addPosition() {
         try {
-            const msg = await axios.post(`${url}/api/position/${data.orgId}/${data.orgId}`, positionObj, {
+            const msg = await axios.post(url + "/api/position", positionObj, {
                 headers: {
-                    Authorization: `Bearer ${token}`
+                    Authorization: token || ""
                 }
             });
             toast.success(msg?.data?.message);
@@ -55,9 +50,9 @@ export default function Position() {
 
     async function deletePosition(id) {
         try {
-            const deletePos = await axios.delete(`${url}/api/position/${data.orgId}/${id}`, {
+            const deletePos = await axios.delete(`${url}/api/position/${id}`, {
                 headers: {
-                    Authorization: `Bearer ${token}`
+                    Authorization: token || ""
                 }
             });
             toast.success(deletePos?.data?.message);
@@ -70,9 +65,9 @@ export default function Position() {
 
     async function editPosition() {
         try {
-            const response = await axios.put(`${url}/api/position/${data.orgId}/${positionObj._id}`, positionObj, {
+            const response = await axios.put(`${url}/api/position/${positionObj._id}`, positionObj, {
                 headers: {
-                    Authorization: `Bearer ${token}`
+                    Authorization: token || ""
                 }
             });
             toast.success(response?.data?.message);
@@ -87,9 +82,9 @@ export default function Position() {
 
     async function getEditPositionId(id) {
         try {
-            const position = await axios.get(`${url}/api/position/${data.orgId}/${id}`, {
+            const position = await axios.get(`${url}/api/position/${id}`, {
                 headers: {
-                    Authorization: `Bearer ${token}`
+                    Authorization: token || ""
                 }
             });
             setPositionObj(position.data);
@@ -102,21 +97,22 @@ export default function Position() {
 
     useEffect(() => {
         const fetchPositions = async () => {
+            setIsLoading(true);
             try {
-                const response = await axios.get(`${url}/api/position/${data.orgId}`, {
+                const response = await axios.get(url + "/api/position", {
                     headers: {
-                        Authorization: `Bearer ${token}`
+                        Authorization: token || ""
                     }
                 });
                 setPositions(response.data);
             } catch (error) {
-                setError(error.response.data.error)
+                console.error("Error fetching positions:", error);
+                toast.error("Failed to load positions data");
             }
+            setIsLoading(false);
         };
 
-        setIsLoading(true);
         fetchPositions();
-        setIsLoading(false);
     }, [isPositionsDataUpdate]);
 
     return (
@@ -142,10 +138,9 @@ export default function Position() {
                         </div>
                     </div>
                     {
-                        error ? <NoDataFound message={error} /> :
-                            positions.length > 0 ?
-                                <LeaveTable data={positions} deletePosition={deletePosition} getEditPositionId={getEditPositionId} />
-                                : <NoDataFound message={"Position data not found"} />
+                        positions.length > 0 ?
+                            <LeaveTable data={positions} deletePosition={deletePosition} getEditPositionId={getEditPositionId} />
+                            : <NoDataFound message={"Position data not found"} />
                     }
                 </div>
             )

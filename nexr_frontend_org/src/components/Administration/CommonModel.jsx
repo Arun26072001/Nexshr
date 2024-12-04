@@ -2,7 +2,6 @@ import axios from 'axios';
 import React, { useEffect, useState } from 'react';
 import { Modal, Button } from 'rsuite';
 import 'rsuite/dist/rsuite.min.css';
-import Cookies from 'universal-cookie';
 
 const CommonModel = ({
     dataObj,
@@ -15,15 +14,14 @@ const CommonModel = ({
 }) => {
     const [companies, setCompanies] = useState([]);
     const url = process.env.REACT_APP_API_URL;
-    const cookies = new Cookies();
-    const token = cookies.get('token');
+    const token = localStorage.getItem("token");
 
     // Fetch companies data
     const fetchCompanies = async () => {
         try {
             const response = await axios.get(url + "/api/company", {
                 headers: {
-                    authorization: `Bearer ${token}` ||""
+                    authorization: token || ""
                 }
             });
             setCompanies(response.data);
