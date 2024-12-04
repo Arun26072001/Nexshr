@@ -3,7 +3,7 @@
   height: auto;
 }
 
-.main-outer-div {
+#main-outer-div {
   position: relative;
   background-color: #fff;
   width: 80%;

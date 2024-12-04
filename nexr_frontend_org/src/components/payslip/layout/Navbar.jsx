@@ -7,85 +7,89 @@ import PunchIn from "../../../asserts/PunchIn.svg";
 import PunchOut from "../../../asserts/punchOut.svg";
 import { TimerStates } from '../HRMDashboard';
 import { Dropdown, Popover, Whisper } from 'rsuite';
-import userImg from "../../../imgs/male_avatar.png";
+import logo from "../../../imgs/male_avatar.png";
 import { EssentialValues } from '../../../App';
 import { addSecondsToTime } from '../../ReuseableAPI';
-import Cookies from "universal-cookie";
-import axios from 'axios';
 
 export default function Navbar() {
-    const cookies = new Cookies();
-    const token = cookies.get('token');
-    const url = process.env.REACT_APP_API_URL;
-    const { data, Profile } = useContext(EssentialValues);
-    const { orgId } = data;
-    const [organization, setOrganization] = useState({});
     const { handleLogout } = useContext(EssentialValues)
     const { startLoginTimer, stopLoginTimer, workTimeTracker, isStartLogin } = useContext(TimerStates);
     const [sec, setSec] = useState(() => parseInt(localStorage.getItem("loginTimer")?.split(':')[2]) || 0);
     const [min, setMin] = useState(() => parseInt(localStorage.getItem("loginTimer")?.split(':')[1]) || 0);
     const [hour, setHour] = useState(() => parseInt(localStorage.getItem("loginTimer")?.split(':')[0]) || 0);
     const workRef = useRef(null);  // Use ref to store interval ID
-    const lastCheckTimeRef = useRef(Date.now());
+    const lastCheckTimeRef = useRef(Date.now())
+    // debugger;
 
-    // Increment time logic
+    // Timer logic to increment time
     const incrementTime = () => {
-        lastCheckTimeRef.current += 1000
         setSec((prevSec) => {
-            if (prevSec === 59) {
+            let newSec = prevSec + 1;
+
+            if (newSec > 59) {
+                newSec = 0;
                 setMin((prevMin) => {
-                    if (prevMin === 59) {
-                        setHour((prevHour) => (prevHour + 1) % 24); // Wrap at 24 hours
-                        return 0;
+                    let newMin = prevMin + 1;
+                    if (newMin > 59) {
+                        newMin = 0;
+                        setHour((prevHour) => (prevHour + 1) % 24); // Wrap hours at 24
                     }
-                    return prevMin + 1;
+                    return newMin;
                 });
-                return 0;
             }
-            return prevSec + 1;
+            return newSec;
         });
     };
 
-    // Stop timer
-    const stopOnlyTimer = () => {
-        if (workRef.current) {
+    // start and stop timer only
+    function stopOnlyTimer() {
+        if (workRef.current && isStartLogin) {
+            clearInterval(workRef.current);
+            workRef.current = null;
+        }
+    }
+
+    function startOnlyTimer() {
+        // console.log("call timer only fun: ", workTimeTracker._id, isStartLogin);
+        if (!workRef.current) {
+            if (isStartLogin) {
+                workRef.current = setInterval(incrementTime, 1000);
+            }
+        }
+    }
+
+    // Function to start the timer
+    const startTimer = async () => {
+        if (!workRef.current) {
+            await startLoginTimer();
+            if (isStartLogin) {
+                workRef.current = setInterval(incrementTime, 1000);
+            }
+        }
+    };
+
+    // Function to stop the timer
+    const stopTimer = async () => {
+        if (workRef.current && isStartLogin) {
+            await stopLoginTimer();
             clearInterval(workRef.current);
             workRef.current = null;
         }
     };
 
-    // Start timer
-    const startOnlyTimer = () => {
-        if (isStartLogin && !workRef.current) {
-            workRef.current = setInterval(incrementTime, 1000);
-        }
-    };
-
-    // Start timer with backend sync
-    const startTimer = async () => {
-        if (!workRef.current) {
-            await startLoginTimer(); // Backend API call
-            startOnlyTimer();
-        }
-    };
-
-    // Stop timer with backend sync
-    const stopTimer = async () => {
-        if (workRef.current) {
-            await stopLoginTimer(); // Backend API call
-            stopOnlyTimer();
-        }
-    };
-
-    // Sync timer after inactivity
     const syncTimerAfterPause = () => {
         const now = Date.now();
         const diff = now - lastCheckTimeRef.current;
+        // console.log("Wakeup called.");
+        // console.log("Time difference since last check (ms):", diff);
 
-        if (diff > 3000) {
+        if (diff > 3000 && isStartLogin) {
             const secondsToAdd = Math.floor(diff / 1000);
+            // console.log("Seconds to add:", secondsToAdd);
+
             const updatedTime = addSecondsToTime(`${parseInt(localStorage.getItem("loginTimer")?.split(':')[0])}:${parseInt(localStorage.getItem("loginTimer")?.split(':')[1])}:${parseInt(localStorage.getItem("loginTimer")?.split(':')[2])}`, secondsToAdd);
-            console.log("Updated time:", updatedTime);
+            // console.log("Updated time:", updatedTime);
+
             // Combine updates into a single state update
             setHour(Number(updatedTime.hours));
             setMin(Number(updatedTime.minutes));
@@ -93,26 +97,9 @@ export default function Navbar() {
         }
 
         startOnlyTimer();
-        lastCheckTimeRef.current = now;
+        lastCheckTimeRef.current = now; // Reset last check time
     };
 
-
-    // Visibility change handler
-    useEffect(() => {
-        const handleVisibilityChange = () => {
-
-            if (isStartLogin) {
-                if (document.hidden) {
-                    stopOnlyTimer();
-                } else {
-                    syncTimerAfterPause();
-                }
-            }
-        };
-
-        document.addEventListener("visibilitychange", handleVisibilityChange);
-        return () => document.removeEventListener("visibilitychange", handleVisibilityChange);
-    }, [isStartLogin]);
 
     // Start/Stop timer based on activity state
     useEffect(() => {
@@ -122,6 +109,20 @@ export default function Navbar() {
             stopTimer();
         }
         return () => stopTimer(); // Cleanup on unmount
+    }, [isStartLogin]);
+
+    // Sync timer with inactivity
+    useEffect(() => {
+        const handleVisibilityChange = () => {
+            if (!document.hidden && isStartLogin) {
+                syncTimerAfterPause();
+            } else {
+                stopOnlyTimer();
+            }
+        };
+
+        document.addEventListener("visibilitychange", handleVisibilityChange);
+        return () => document.removeEventListener("visibilitychange", handleVisibilityChange);
     }, []);
 
     // Sync state with localStorage
@@ -138,23 +139,6 @@ export default function Navbar() {
             setSec(newSec);
         }
     }, [workTimeTracker, isStartLogin]);
-
-    useEffect(() => {
-        async function gettingOrgdata() {
-            try {
-                const org = await axios.get(`${url}/api/organization/${orgId}`, {
-                    headers: {
-                        Authorization: token || ""
-                    }
-                })
-                setOrganization(org.data);
-            } catch (error) {
-                console.error(error);
-                // toast.error(error?.response?.data?.error)
-            }
-        }
-        gettingOrgdata()
-    }, [])
 
     const renderMenu = ({ onClose, right, top, className }, ref) => {
         const handleSelect = eventKey => {
@@ -182,9 +166,8 @@ export default function Navbar() {
                     <div className='sidebarIcon'>
                         <TableRowsRoundedIcon />
                     </div>
-                    {/* <img src={organization?.orgImg || Webnexs} className="organization_logo" alt="organization_logo" /> */}
-                    <img src={Webnexs} className="organization_logo" alt="organization_logo" />
-                    <span style={{ fontSize: "16px", fontWeight: "700" }}>{organization?.orgName ? organization.orgName[0].toUpperCase() + organization.orgName.slice(1) : "NexHR"}</span>
+                    <img src={Webnexs} className="organization_logo" />
+                    <span style={{ fontSize: "16px", fontWeight: "700" }}>NexHR</span>
                 </div>
 
                 <div className='col-lg-4 d-flex align-items-center justify-content-center'>
@@ -248,8 +231,7 @@ export default function Navbar() {
                     {/* <img src={Profile} className="avatar ms-3" /> */}
                     {/* <ProfileImgUploader /> */}
                     <Whisper placement="bottomEnd" trigger="click" speaker={renderMenu}>
-                        {/* <img src={Profile !== undefined ? Profile : userImg} className='avatar-toggle' alt='emp_profile' />*/}
-                        <img src={userImg} className='avatar-toggle' alt='emp_profile' />
+                        <img src={logo} className='avatar-toggle' />
                     </Whisper>
                 </div>
             </div>

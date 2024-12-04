@@ -5,12 +5,10 @@ import PowerSettingsNewRoundedIcon from "@mui/icons-material/PowerSettingsNewRou
 import { TimerStates } from "./payslip/HRMDashboard";
 import { toast } from "react-toastify";
 import { addSecondsToTime } from "./ReuseableAPI";
-import { EssentialValues } from "../App";
 
 const ActivityTimeTracker = () => {
     const { startActivityTimer, stopActivityTimer, workTimeTracker, isStartActivity, timeOption } = useContext(TimerStates);
-    const { setIsStartActivity, data } = useContext(EssentialValues);
-    const { name } = data;
+    const EmpName = localStorage.getItem("Name") || "Employee";
     // Timer states
     const [sec, setSec] = useState(() => parseInt(localStorage.getItem("activityTimer")?.split(":")[2]) || 0);
     const [min, setMin] = useState(() => parseInt(localStorage.getItem("activityTimer")?.split(":")[1]) || 0);
@@ -18,64 +16,82 @@ const ActivityTimeTracker = () => {
     const timerRef = useRef(null);
     const lastCheckTimeRef = useRef(Date.now());
 
-    // Increment time logic
+    // Timer logic to increment time
     const incrementTime = () => {
-        lastCheckTimeRef.current += 1000
         setSec((prevSec) => {
-            if (prevSec === 59) {
+            let newSec = prevSec + 1;
+
+            if (newSec > 59) {
+                newSec = 0;
                 setMin((prevMin) => {
-                    if (prevMin === 59) {
-                        setHour((prevHour) => (prevHour + 1) % 24); // Wrap at 24 hours
-                        return 0;
+                    let newMin = prevMin + 1;
+                    if (newMin > 59) {
+                        newMin = 0;
+                        setHour((prevHour) => (prevHour + 1) % 24); // Wrap hours at 24
                     }
-                    return prevMin + 1;
+                    return newMin;
                 });
-                return 0;
             }
-            return prevSec + 1;
+            return newSec;
         });
     };
 
-    // Start timer
-    const startOnlyTimer = () => {
-        if (isStartActivity && !timerRef.current) {
-            timerRef.current = setInterval(incrementTime, 1000);
+    // start and stop timer only
+    function stopOnlyTimer() {
+
+        if (timerRef.current && isStartActivity) {
+            clearInterval(timerRef.current);
+            timerRef.current = null;
+        }
+    }
+
+    function startOnlyTimer() {
+        // console.log("call timer only fun: ", workTimeTracker._id, isStartActivity);
+        console.log(isStartActivity);
+
+        if (!timerRef.current) {
+            if (isStartActivity) {
+                timerRef.current = setInterval(incrementTime, 1000);
+            }
+        }
+    }
+
+    // Function to start the timer
+    const startTimer = async () => {
+        console.log("call to start in startTimer");
+
+        if (!timerRef.current) {
+            await startActivityTimer();
+            if (isStartActivity) {
+                timerRef.current = setInterval(incrementTime, 1000);
+            }
         }
     };
 
-    // Stop timer
-    const stopOnlyTimer = () => {
-        if (timerRef.current) {
+    // Function to stop the timer
+    const stopTimer = async () => {
+        if (timerRef.current && isStartActivity) {
+            await stopActivityTimer();
             clearInterval(timerRef.current);
             timerRef.current = null;
         }
     };
 
-    // Start timer with backend sync
-    const startTimer = async () => {
-        if (!timerRef.current) {
-            await startActivityTimer(); // Backend API call
-            startOnlyTimer();
-        }
-    };
-
-    // Stop timer with backend sync
-    const stopTimer = async () => {
-        if (timerRef.current) {
-            await stopActivityTimer(); // Backend API call
-            stopOnlyTimer();
-        }
-    };
-
-    // Sync timer after inactivity
     const syncTimerAfterPause = () => {
+        console.log("call to start in sync");
+
         const now = Date.now();
         const diff = now - lastCheckTimeRef.current;
+        // console.log("Wakeup called.");
+        // console.log("Time difference since last check (ms):", diff);
 
-        if (diff > 3000) {
+        if (diff > 3000 && isStartActivity && workTimeTracker._id) {
             const secondsToAdd = Math.floor(diff / 1000);
-            const updatedTime = addSecondsToTime(`${parseInt(localStorage.getItem("activityTimer")?.split(':')[0])}:${parseInt(localStorage.getItem("activityTimer")?.split(':')[1])}:${parseInt(localStorage.getItem("activityTimer")?.split(':')[2])}`, secondsToAdd);
-            console.log("Updated time:", updatedTime);
+            // console.log("Seconds to add:", secondsToAdd);
+
+            const updatedTime = addSecondsToTime(`${parseInt(localStorage.getItem("activityTimer")?.split(":")[0])}:${parseInt(localStorage.getItem("activityTimer")?.split(":")[1])}:${parseInt(localStorage.getItem("activityTimer")?.split(":")[2])}`, secondsToAdd);
+            // console.log("Updated time:", updatedTime);
+
             // Combine updates into a single state update
             setHour(Number(updatedTime.hours));
             setMin(Number(updatedTime.minutes));
@@ -83,35 +99,35 @@ const ActivityTimeTracker = () => {
         }
 
         startOnlyTimer();
-        lastCheckTimeRef.current = now;
+        lastCheckTimeRef.current = now; // Reset last check time
     };
 
-    // Visibility change handler
-    useEffect(() => {
-        const handleVisibilityChange = () => {
-            if (isStartActivity) {
-                if (document.hidden) {
-                    stopOnlyTimer();
-                } else {
-                    syncTimerAfterPause();
-                }
-            }
-        };
+    // Display warning if no punch-in
+    const warnPunchIn = () => toast.warning("Please Punch In!");
 
-        document.addEventListener("visibilitychange", handleVisibilityChange);
-        return () => document.removeEventListener("visibilitychange", handleVisibilityChange);
-    }, []);
-
-    // Start/stop timer based on `isStartActivity`
+    // Start/Stop timer based on activity state
     useEffect(() => {
         if (isStartActivity) {
             startTimer();
         } else {
             stopTimer();
         }
-
-        return () => stopOnlyTimer(); // Cleanup on unmount
+        return () => stopTimer(); // Cleanup on unmount
     }, [isStartActivity]);
+
+    // Sync timer with inactivity
+    useEffect(() => {
+        const handleVisibilityChange = () => {
+            if (!document.hidden && isStartActivity) {
+                syncTimerAfterPause();
+            } else {
+                stopOnlyTimer();
+            }
+        };
+
+        document.addEventListener("visibilitychange", handleVisibilityChange);
+        return () => document.removeEventListener("visibilitychange", handleVisibilityChange);
+    }, []);
 
     // Sync state with localStorage
     useEffect(() => {
@@ -130,8 +146,6 @@ const ActivityTimeTracker = () => {
         }
     }, [timeOption, workTimeTracker, isStartActivity]);
 
-    // Display warning if no punch-in
-    const warnPunchIn = () => toast.warning("Please Punch In!");
 
     return (
         <>
@@ -141,7 +155,7 @@ const ActivityTimeTracker = () => {
             </div>
             <div className='good container-fluid row mx-auto'>
                 <div className="col-lg-6 col-md-4 col-12">
-                    <div><h6>Good to see you, {name[0]?.toUpperCase() + name?.slice(1)} 👋</h6></div>
+                    <div><h6>Good to see you, {EmpName[0].toUpperCase() + EmpName.slice(1)} 👋</h6></div>
                     <div className='sub_text'>
                         {workTimeTracker?.punchInMsg || "Waiting for Login"}
                     </div>

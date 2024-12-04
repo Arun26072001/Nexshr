@@ -9,15 +9,13 @@ import "./leaveForm.css";
 import { fetchPayslipInfo } from "./ReuseableAPI";
 import { TimerStates } from "./payslip/HRMDashboard";
 import { useParams } from "react-router-dom";
-import Cookies from "universal-cookie";
 
 const EditEmployeeform = ({ details, empData, handleScroll, handlePersonal, handleFinancial, handleJob, handleContact, handleEmployment, timePatterns, personalRef, contactRef, employmentRef, jobRef, financialRef, payslipRef, countries, companies, departments, positions, roles, leads, managers }) => {
     const { id } = useParams();
     const { changeEmpEditForm } = useContext(TimerStates);
     const [timeDifference, setTimeDifference] = useState(0);
     const [payslipFields, setPayslipFields] = useState([]);
-    const cookies = new Cookies();
-    const token = cookies.get("token");
+    const token = localStorage.getItem("token");
     const url = process.env.REACT_APP_API_URL;
     const [employeeObj, setEmployeeObj] = useState(
         empData
@@ -67,7 +65,7 @@ const EditEmployeeform = ({ details, empData, handleScroll, handlePersonal, hand
             try {
                 const res = await axios.put(`${url}/api/employee/${id}`, values, {
                     headers: {
-                        Authorization: `Bearer ${token}` || ""
+                        authorization: token || ""
                     }
                 })
                 toast.success(res.data.message);
@@ -183,10 +181,6 @@ const EditEmployeeform = ({ details, empData, handleScroll, handlePersonal, hand
         getPayslipInfo();
     }, []);
 
-    function changeImg(value) {
-        const filePath = URL.createObjectURL(value);
-        formik.setFieldValue("profile", filePath);
-    }
 
     const hourAndMin = timeDifference.toString().split(".");
     const [hour, min] = hourAndMin;
@@ -317,14 +311,6 @@ const EditEmployeeform = ({ details, empData, handleScroll, handlePersonal, hand
                                 {formik.touched.employmentType && formik.errors.employmentType ? (
                                     <div className="text-center text-danger">{formik.errors.employmentType}</div>
                                 ) : null}
-                            </div>
-
-                            <div className="my-3">
-                                <span className="inputLabel">
-                                    Attach Employee profile (recommended for JPG)
-                                </span>
-                                <input type="file" name="profile" className="fileInput"
-                                    onChange={(e)=>changeImg(e.target.files[0])} />
                             </div>
                         </div>
                     </div>

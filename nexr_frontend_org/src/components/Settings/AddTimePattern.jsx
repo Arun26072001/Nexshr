@@ -5,13 +5,11 @@ import { Switch } from "@mui/material";
 import axios from "axios";
 import { toast } from "react-toastify";
 import WeekDay from "./WeekDays";
-import Cookies from "universal-cookie";
+import { InputGroup } from "rsuite";
 
+const url = process.env.REACT_APP_API_URL;
 
 const AddTimePattern = ({ handleAddWorkingTime, dom, reload }) => {
-    const url = process.env.REACT_APP_API_URL;
-    const cookies = new Cookies();
-    const token = cookies.get("token");
     const days = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
     const [timeDifference, setTimeDifference] = useState(0);
 
@@ -89,7 +87,7 @@ const AddTimePattern = ({ handleAddWorkingTime, dom, reload }) => {
         axios.post(`${url}/api/time-pattern`, body,
             {
                 headers: {
-                       Authorization: `Bearer ${token}` || ""
+                    authorization: localStorage.getItem("token") || ""
                 }
             }
         ).then((res) => {

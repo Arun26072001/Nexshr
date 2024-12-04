@@ -63,6 +63,8 @@ const Summary = () => {
 
     const getEmpData = async () => {
         const emps = await fetchEmployees();
+        console.log(emps);
+        
         setEmployees(emps);
     };
 

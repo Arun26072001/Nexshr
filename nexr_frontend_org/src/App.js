@@ -6,229 +6,124 @@ import Login from "./components/Login.jsx";
 import HRMDashboard from "./components/payslip/HRMDashboard.jsx";
 import { Routes, Route, useNavigate, Navigate } from "react-router-dom";
 import { toast, ToastContainer } from "react-toastify";
-import { jwtDecode } from "jwt-decode"; // Fixed import
+import { jwtDecode } from "jwt-decode";
 import "react-toastify/dist/ReactToastify.css";
 import NoInternet from "./components/NoInternet.jsx";
-import Cookies from "universal-cookie";
-import OrgList from "./components/OrgList.jsx";
-import { fetchEmployeeData } from "./components/ReuseableAPI.jsx";
 
-// Context
+// check to update
 export const EssentialValues = createContext(null);
-
 const App = () => {
-  const cookies = new Cookies();
-  const [org, setOrg] = useState(null);
-  const [orgIds, setOrgIds] = useState(cookies.get("orgIds") || "")
   const url = process.env.REACT_APP_API_URL;
-  const cen_url = process.env.REACT_APP_CENTRALIZATION_BASEURL;
+  const [isStartLogin, setIsStartLogin] = useState(localStorage.getItem("isStartLogin") === "false" ? false : localStorage.getItem("isStartLogin") === "true" ? true : false);
+  const [isStartActivity, setIsStartActivity] = useState(localStorage.getItem("isStartActivity") === "false" ? false : localStorage.getItem("isStartActivity") === "true" ? true : false);
+  const [data, setData] = useState({
+    _id: localStorage.getItem("_id") || "",
+    Account: localStorage.getItem("Account") || "",
+    Name: localStorage.getItem("Name") || "",
+    token: localStorage.getItem("token") || "",
+    annualLeave: localStorage.getItem("annualLeaveEntitment") || 0
+  });
   const navigate = useNavigate();
-  const [token, setToken] = useState(cookies.get("token") || "");
-  const [isLogin, setIsLogin] = useState(cookies.get("isLogin") || "");
-  const [isStartLogin, setIsStartLogin] = useState(!!cookies.get("isStartLogin"));
-  const [isStartActivity, setIsStartActivity] = useState(!!cookies.get("isStartActivity"));
-  const [data, setData] = useState({ _id: "", email: "", name: "", Account: 0, orgId: "" });
   const [loading, setLoading] = useState(false);
   const [pass, setPass] = useState(true);
-  const [isOnline, setIsOnline] = useState(navigator.onLine);
-  const [showOfflineAlert, setShowOfflineAlert] = useState(false);
-
-  useEffect(() => {
-    async function getData() {
-      try {
-        const { _id, Email, FirstName, LastName, Account, profile } = await fetchEmployeeData(cookies.get("email"))
-
-        setData({
-          _id,
-          email: Email || "",
-          name: FirstName + LastName || "",
-          Account: Account || 0,
-          orgId: cookies.get("orgId") || "",
-          profile
-        });
-      } catch (error) {
-        console.error("Error decoding token:", error);
-      }
-    }
-
-    if (token) {
-      getData();
-    }
-  }, [token]);
+  const [isLogin, setIsLogin] = useState(localStorage.getItem("isLogin") === "true");
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-    const email = event.target[0].value;
-    const password = event.target[1].value;
     setPass(true);
     setLoading(true);
-    await login(email, password);
+    await login(event.target[0].value, event.target[1].value);
     event.target.reset();
   };
 
   const handleLogout = () => {
+    // console.log(isStartLogin, isStartActivity);
+    // // if (localStorage.getItem('empId')) {
+    // //   toast.warn(`Please Enter full details for this employee`);
+    // //   console.log(isStartLogin, isStartActivity);
+    // // }
+    // //  else
     if (isStartLogin || isStartActivity) {
-      toast.warn("You can't logout until the timer is stopped.");
-      return;
-    }
-
-    setIsLogin(false);
-    cookies.remove("name", { path: "/" })
-    cookies.remove("Account", { path: "/" })
-    cookies.remove("isLogin", { path: "/" });
-    // cookies.remove("token", { path: "/" });
-    cookies.remove("orgId", { path: "/" })
-    setData({ _id: "", Account: "", name: "", orgId: "" });
-    navigate("/login");
-  };
-
-
-  const goToDash = async (orgId) => {
-    console.log(orgId);
-
-    try {
-      const emp = await axios.get(`${url}/api/employee/${orgId}/${data.email}`, {
-        headers: {
-          Authorization: `Bearer ${token}` || ""
-        }
-      });
-      console.log(emp);
-      
-      setData((prev) => ({
-        ...prev,
-        Account: emp.data.Account,
-        name: emp.data.FirstName + " " + emp.data.LastName,
-        orgId,
-        profile: emp.data.profile,
-        _id: emp.data._id
-      }))
-      cookies.set("empId", emp.data._id, { path: "/" })
-      cookies.set("orgId", orgId, { path: "/" });
-      // Navigate based on account type
-      const accountRoutes = {
-        1: "/admin",
-        2: "/hr",
-        3: "/emp",
-      };
-      navigate(`/${orgId}${accountRoutes[emp.data.Account]}` || "/login");
-    } catch (error) {
-      console.log(error);
-    }
-  }
-
-  // const login = async (email, password) => {
-  //   try {
-  //     const response = await axios.post(`${url}/api/login`, { Email: email, Password: password });
-  //     const decodedData = jwtDecode(response.data);
-
-  //     cookies.set("token", response.data, { path: "/" });
-  //     setToken(response.data);
-
-  //     setData({
-  //       _id: decodedData._id,
-  //       Account: decodedData.Account,
-  //       Name: `${decodedData.FirstName} ${decodedData.LastName}`,
-  //     });
-
-  //     setIsLogin(true);
-  //     cookies.set("isLogin", true, { path: "/" });
-
-  //     // Navigate based on account type
-  //     const accountRoutes = {
-  //       1: "/admin",
-  //       2: "/hr",
-  //       3: "/emp",
-  //     };
-  //     navigate(accountRoutes[decodedData.Account] || "/login");
-  //   } catch (error) {
-  //     setPass(false);
-  //     setLoading(false);
-  //     if (error.response?.data?.details?.includes("buffering timed out")) {
-  //       navigate("/no-internet-connection");
-  //     } else {
-  //       toast.error("Login failed. Please try again.");
-  //     }
-  //   }
-  // };
-
-  const login = async (email, password) => {
-    try {
-      setLoading(true); // Start loading
-
-      // Step 1: Verify User Email
-      const verifyUserEmail = await axios.post(`${cen_url}/verify_user`, { email_id: email });
-      // console.log(verifyUserEmail.data);
-
-      if (!verifyUserEmail.data.user_details._id) {
-        setLoading(false);
-        setPass(false);
-        console.error("Email verification failed.");
-        return; // Exit early
-      }
-
-      const userDetails = verifyUserEmail.data.user_details;
-      if (!userDetails || !userDetails.email_id) {
-        setLoading(false);
-        setPass(false);
-        console.error("User details not found.");
-        return; // Exit early
-      }
-
-      // Step 2: Login User
-      const loginData = {
-        email_id: email,
-        password,
-        loginfrom: 3,
-      };
-      const loginEmp = await axios.post(`${cen_url}/login`, loginData);
-
-      if (!loginEmp.data || loginEmp.data.status === "false") {
-        setLoading(false);
-        setPass(false);
-        console.error("Login failed.");
-        return; // Exit early
-      }
-
-      // Step 3: Set User Data and Token
-      const token = loginEmp.data.token;
-      const user = loginEmp.data.user_details;
-
-      cookies.set("token", token, { path: "/" });
-      cookies.set("isLogin", true, { path: "/" });
-      cookies.set("email", user.email_id, { path: "/" })
-      setIsLogin(true);
-      setToken(token);
+      toast.warn("you can't logout until timer stop.")
+    } else {
+      localStorage.clear();
       setData({
-        cen_user_id: user._id,
-        email: user.email_id,
-        name: user.name,
+        _id: "",
+        Account: "",
+        Name: "",
+        token: "",
+        annualLeave: ""
       });
+      setIsLogin(false);
+      navigate("/login")
+    }
 
-      // Step 4: Fetch Essential Data
-      const essentialData = await axios.post(`${cen_url}/view`, { token });
+  };
+  const login = async (email, pass) => {
+    let bodyLogin = {
+      Email: email,
+      Password: pass
+    };
 
-      const orgIds = essentialData.data?.user_details?.nexhr_organisations?.split(",") || [];
-      cookies.set("orgIds", essentialData.data?.user_details?.nexhr_organisations, { path: "/" });
-
-      if (orgIds.length > 0) {
-        // Multiple organizations
-        const orgsData = await axios.post(`${url}/api/organization`, { orgs: orgIds });
-        setOrg(orgsData.data);
-        navigate("/org-list");
+    try {
+      const login = await axios.post(process.env.REACT_APP_API_URL + `/api/login`, bodyLogin)
+      let decodedData = jwtDecode(login.data);
+      localStorage.setItem("token", login.data);
+      if ((login === undefined || login === null ||
+        decodedData.Account === undefined ||
+        decodedData.Account === null) &&
+        !(
+          decodedData.Account === 1 ||
+          decodedData.Account === 2 ||
+          decodedData.Account === 3
+        )
+      ) {
+        setPass(false);
+        setLoading(false);
       } else {
-        // Single organization
-        const orgId = essentialData?.data?.user_details?.nexhr_organisations;
-        const orgData = await axios.get(`${url}/api/organization/${orgId}`);
-        setOrg(orgData.data);
-        goToDash(orgData.data._id);
-      }
+        const accountType = decodedData.Account;
+        setData({
+          _id: decodedData._id,
+          Account: accountType,
+          Name: `${decodedData.FirstName} ${decodedData.LastName}`,
+          token: login.data,
+          annualLeave: decodedData.annualLeaveEntitlement
+        });
 
+        setPass(true);
+        setLoading(false);
+        setIsLogin(true);
+
+        localStorage.setItem("isLogin", true);
+        localStorage.setItem("Account", accountType);
+        localStorage.setItem("_id", decodedData._id);
+        localStorage.setItem("Name", `${decodedData.FirstName} ${decodedData.LastName}`);
+        localStorage.setItem("annualLeaveEntitment", decodedData.annualLeaveEntitlement || 0);
+        // localStorage.setItem("userPermissions", JSON.stringify(decodedData.roleData.userPermissions))
+
+        // Object.entries(decodedData.roleData.pageAuth).forEach(([key, value]) => {
+        //   if (key !== '_id' && key !== "__v") {
+        //     return localStorage.setItem(`${key}`, value)
+        //   }
+        // })
+        // if (!localStorage.getItem("token")) {
+        //   window.location.reload();
+        // }
+
+        if (accountType === 1) {
+          navigate("/admin");
+        } else if (accountType === 2) {
+          navigate("/hr");
+        } else if (accountType === 3) {
+          navigate("/emp");
+        }
+      }
     } catch (error) {
-      console.error("An error occurred during login:", error.message);
+      if (error?.response?.data?.details?.includes("buffering timed out after 10000ms")) {
+        navigate("/no-internet-connection")
+      }
+      setPass(false);
       setLoading(false);
-      setPass(false); // Reset states on failure
-    } finally {
-      setLoading(false); // Ensure loading stops
     }
   };
 
@@ -238,114 +133,43 @@ const App = () => {
   }, [isStartLogin, isStartActivity]);
 
   useEffect(() => {
-    const getOrgdata = async () => {
+    async function checkNetworkConnection() {
       try {
-        const arrayId = orgIds?.split(",");
-        if (arrayId.length > 0) {
-          const orgsData = await axios.post(`${url}/api/organization`, { orgs: arrayId });
-          setOrg(orgsData.data);
-          navigate("/org-list");
-        } else {
-          const orgData = await axios.get(`${url}/api/organization/${orgIds}`);
-          setOrg(orgData.data);
+        const connectionMsg = await axios.get(`${url}/`);
+        if (isLogin && window.location.pathname === "/") {
+          console.log(data.Account);
+
+          if (data.Account === '1') {
+            navigate("/admin")
+          } else if (data.Account === '2') {
+            navigate("/hr")
+          } else if (data.Account === '3') {
+            navigate("/emp")
+          }
         }
       } catch (error) {
-        console.log(error);
-
-        setPass(true);
-        toast.error(error.message)
+        if (error) {
+          navigate("/no-internet-connection");
+        }
       }
     }
-
-    if (orgIds && token) {
-      getOrgdata()
-    }
-  }, [])
-
-  // useEffect(() => {
-  //   const handleOnline = () => {
-  //     setIsOnline(true);
-  //     setShowOfflineAlert(true);
-  //     setTimeout(() => {
-  //       setShowOfflineAlert(false);
-  //     }, 5000);
-  //   };
-
-  //   const handleOffline = () => {
-  //     setIsOnline(false);
-  //     setShowOfflineAlert(true);
-  //   };
-
-  //   window.addEventListener('online', handleOnline);
-  //   window.addEventListener('offline', handleOffline);
-
-  //   return () => {
-  //     window.removeEventListener('online', handleOnline);
-  //     window.removeEventListener('offline', handleOffline);
-  //   };
-  // }, []);
-  console.log(data.Account);
+    checkNetworkConnection();
+  }, [data]);
 
   return (
-    <EssentialValues.Provider
-      value={{
-        data,
-        handleLogout,
-        handleSubmit,
-        loading,
-        pass,
-        isLogin,
-        isStartLogin,
-        setIsStartLogin,
-        isStartActivity,
-        setIsStartActivity,
-        token
-      }}
-    >
+    <EssentialValues.Provider value={{ data, handleLogout, handleSubmit, loading, pass, isLogin, isStartLogin, setIsStartLogin, isStartActivity, setIsStartActivity }}>
       <ToastContainer />
       <Routes>
-        <Route path="/login" element={<Login isLogin={isLogin} />} />
-
-        {/* Main route with conditional rendering based on login state */}
-        <Route
-          path="/"
-          element={token && org?.length > 0 ? <OrgList goToDash={goToDash} org={org} /> : <Navigate to="/login" />}
-        >
+        <Route path="login/" element={<Login />} />
+        <Route path="/" element={isLogin ? <Layout /> : <Navigate to={"/login"} />} >
           <Route path="*" element={<Layout />} />
         </Route>
-
-        <Route path="/org-list" element={token && org?.length > 0 ? <OrgList goToDash={goToDash} org={org} /> : <Navigate to={"/login"} />} />
-
-        {/* Conditional routes based on the account type */}
-        {isLogin && data?.Account && (
-          <>
-            <Route
-              path="/:orgId/admin/*"
-              element={
-                Number(data.Account) === 1 ?
-                  <HRMDashboard /> : <Navigate to="/login" />
-              }
-            />
-            <Route
-              path="/:orgId/hr/*"
-              element={
-                Number(data.Account) === 2 ? <HRMDashboard /> : <Navigate to="/login" />
-              }
-            />
-            <Route
-              path="/:orgId/emp/*"
-              element={
-                Number(data.Account) === 3 ? <HRMDashboard /> : <Navigate to="/login" />
-              }
-            />
-          </>
-        )}
-
-        {/* Example of a fallback route */}
+        <Route path="admin/*" element={isLogin && data.token && data.Account === '1' ? <HRMDashboard /> : <Navigate to={"/login"} />} />
+        <Route path="hr/*" element={isLogin && data.token && data.Account === '2' ? <HRMDashboard /> : <Navigate to={"/login"} />} />
+        <Route path="emp/*" element={isLogin && data.token && data.Account === '3' ? <HRMDashboard /> : <Navigate to={"/login"} />} />
         <Route path="no-internet-connection" element={<NoInternet />} />
       </Routes>
     </EssentialValues.Provider>
-
   );
 };
 

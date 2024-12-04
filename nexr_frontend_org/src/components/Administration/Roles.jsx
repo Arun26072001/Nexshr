@@ -9,23 +9,20 @@ import LeaveTable from '../LeaveTable';
 import NoDataFound from '../payslip/NoDataFound';
 import { TimerStates } from '../payslip/HRMDashboard';
 import axios from 'axios';
-import Cookies from 'universal-cookie';
 
 const Roles = () => {
     const url = process.env.REACT_APP_API_URL;
-    const cookies = new Cookies();
-    const token = cookies.get('token');
+    const token = localStorage.getItem("token");
     const { reloadRolePage } = useContext(TimerStates);
     const [isLoading, setIsLoading] = useState(false);
     const [roles, setRoles] = useState([]);
     const navigate = useNavigate();
-    const [error, setError] = useState("");
 
     async function deleteRoleAndPermission(id) {
         try {
             const deleteRole = await axios.delete(`${url}/api/role/${id}`, {
                 headers: {
-                    Authorization: `Bearer ${token}`
+                    Authorization: token || ""
                 }
             });
             toast.success(deleteRole?.data?.message);
@@ -38,18 +35,19 @@ const Roles = () => {
 
     useEffect(() => {
         const fetchEmpRoles = async () => {
+            setIsLoading(true);
             try {
                 const roleData = await fetchRoles();
+                console.log(roleData);
+
                 setRoles(roleData);
             } catch (err) {
                 console.log(err);
-                setError(err.response.data.error)
+                toast.error(err?.response?.data?.message)
             }
+            setIsLoading(false);
         }
-        
-        setIsLoading(true);
         fetchEmpRoles();
-        setIsLoading(false);
     }, [reloadRolePage])
 
     return (
@@ -64,10 +62,9 @@ const Roles = () => {
                     </div>
                 </div>
                 {
-                    error ? <NoDataFound message={error} /> :
                     roles.length > 0 ?
                         <LeaveTable data={roles} deleteRole={deleteRoleAndPermission} />
-                        : <NoDataFound message={"Roles and permissions data not found!"} />
+                        : <NoDataFound message={"Roles data not found"} />
                 }
             </div>
     );

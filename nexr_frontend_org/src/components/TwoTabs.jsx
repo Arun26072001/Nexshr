@@ -11,6 +11,7 @@ import { fetchLeaveRequests } from './ReuseableAPI';
 import CircleBar from './CircleProcess';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { TimerStates } from './payslip/HRMDashboard';
+import { EssentialValues } from '../App';
 
 
 function CustomTabPanel(props) {
@@ -46,17 +47,17 @@ function a11yProps(index) {
   };
 }
 
+// const [todayLeaveCount, setTodayLeaveCount] = useState(0);
+// const [tomarrowLeaveCount, setTomarrowLeaveCount] = useState(0);
+// const [yesterDayleaveCount, setYesterDayLeaveCount] = useState(0);
+// const tomarrow = new Date(today.setDate(today.getDate() + 1)).toISOString().split("T")[0];
+// const yesterday = new Date(today.setDate(today.getDate() - 1)).toISOString().split("T")[0];
+// const [emps, setEmps] = useState([]);
 export default function Twotabs() {
-  // const [todayLeaveCount, setTodayLeaveCount] = useState(0);
-  // const [tomarrowLeaveCount, setTomarrowLeaveCount] = useState(0);
-  // const [yesterDayleaveCount, setYesterDayLeaveCount] = useState(0);
-  // const tomarrow = new Date(today.setDate(today.getDate() + 1)).toISOString().split("T")[0];
-  // const yesterday = new Date(today.setDate(today.getDate() - 1)).toISOString().split("T")[0];
-  // const [emps, setEmps] = useState([]);
   const { whoIs } = useContext(TimerStates);
   const navigate = useNavigate();
-  const annualLeave = localStorage.getItem("annualLeaveEntitment");
-  const empId = localStorage.getItem("_id");
+  const { data } = useContext(EssentialValues);
+  const { token, annualLeave, _id } = data;
   const [value, setValue] = useState(0);
   const [takenLeave, setTakenLeave] = useState(0);
   const today = new Date();
@@ -96,8 +97,8 @@ export default function Twotabs() {
   useEffect(() => {
     // debugger;
     const gettingLeaveRequests = async () => {
-      if (empId) {
-        const leaveReqs = await fetchLeaveRequests(empId);
+      if (_id) {
+        const leaveReqs = await fetchLeaveRequests(_id);
         if (leaveReqs?.requests?.leaveApplication?.length > 0) {
           setLeaveRequests(leaveReqs.requests.leaveApplication);
 
@@ -133,7 +134,7 @@ export default function Twotabs() {
       </Box>
       <CustomTabPanel value={value} index={0} className="bg-light tabParent">
         <div className='empActivies'>
-          <div className="d-flex justify-content-between w-100" style={{ fontSize: "12px", fontWeight: 600}}>
+          <div className="d-flex justify-content-between w-100" style={{ fontSize: "12px", fontWeight: 600 }}>
             <div className=''>
               <button className='button' onClick={() => navigate(`/${whoIs}/leave-request`)}>Request time off</button>
             </div>
