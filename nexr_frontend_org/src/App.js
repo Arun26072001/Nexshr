@@ -14,8 +14,11 @@ import NoInternet from "./components/NoInternet.jsx";
 export const EssentialValues = createContext(null);
 const App = () => {
   const url = process.env.REACT_APP_API_URL;
-  const [isStartLogin, setIsStartLogin] = useState(localStorage.getItem("isStartLogin") === "false" ? false : localStorage.getItem("isStartLogin") === "true" ? true : false);
-  const [isStartActivity, setIsStartActivity] = useState(localStorage.getItem("isStartActivity") === "false" ? false : localStorage.getItem("isStartActivity") === "true" ? true : false);
+  const getBooleanFromLocalStorage = (key) => localStorage.getItem(key) === "true";
+
+  const [isStartLogin, setIsStartLogin] = useState(getBooleanFromLocalStorage("isStartLogin"));
+  const [isStartActivity, setIsStartActivity] = useState(getBooleanFromLocalStorage("isStartActivity"));
+  
   const [data, setData] = useState({
     _id: localStorage.getItem("_id") || "",
     Account: localStorage.getItem("Account") || "",

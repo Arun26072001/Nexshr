@@ -38,22 +38,22 @@ export default function LeaveTable({ data, getCheckedValue, getEditDepartmentId,
         setPage(0);
     };
 
-    useEffect(() => {
-        const computeTotalHours = async () => {
-            const newTotalHours = {};
-            for (const entry of data) {
-                const clockIn = entry?.login; // Adjust according to your data structure
-                if (clockIn?.startingTime && clockIn?.endingTime) {
-                    newTotalHours[entry._id] = (await getTotalWorkingHourPerDay(clockIn.startingTime, clockIn.endingTime)).toFixed(2);
-                } else {
-                    newTotalHours[entry._id] = 'N/A';
-                }
-            }
-            setTotalHours(newTotalHours);
-        };
+    // useEffect(() => {
+    //     const computeTotalHours = async () => {
+    //         const newTotalHours = {};
+    //         for (const entry of data) {
+    //             const clockIn = entry?.login; // Adjust according to your data structure
+    //             if (clockIn?.startingTime && clockIn?.endingTime) {
+    //                 newTotalHours[entry._id] = (await getTotalWorkingHourPerDay(clockIn.startingTime, clockIn.endingTime)).toFixed(2);
+    //             } else {
+    //                 newTotalHours[entry._id] = 'N/A';
+    //             }
+    //         }
+    //         setTotalHours(newTotalHours);
+    //     };
 
-        computeTotalHours();
-    }, [data]);
+    //     computeTotalHours();
+    // }, [data]);
 
     const column1 = [
         { id: 'FirstName', label: 'Name', minWidth: 130, align: "left", getter: (row) => row.employee.FirstName[0].toUpperCase() + row.employee.FirstName.slice(1) + row.employee.LastName || 'Unknown' },
@@ -116,7 +116,7 @@ export default function LeaveTable({ data, getCheckedValue, getEditDepartmentId,
             label: 'Joining Date',
             minWidth: 100,
             align: 'center',
-            getter: (row) => row.dateOfJoining
+            getter: (row) => row.dateOfJoining || 'N/A'
         },
         {
             id: 'RoleName',
@@ -147,21 +147,21 @@ export default function LeaveTable({ data, getCheckedValue, getEditDepartmentId,
             label: 'Punch In',
             minWidth: 130,
             align: 'center',
-            getter: (row) => row?.login?.startingTime ? row?.login?.startingTime : "N/A"
+            getter: (row) => row?.login?.startingTime ? row?.login?.startingTime[0] : "N/A"
         },
         {
             id: 'punchOut',
             label: 'Punch Out',
             minWidth: 130,
             align: 'center',
-            getter: (row) => row?.login?.endingTime ? row.login.endingTime : "N/A"
+            getter: (row) => row?.login?.endingTime ? row.login.endingTime[row.login.endingTime.length - 1] : "N/A"
         },
         {
             id: 'totalHour',
             label: 'Total Hour',
             minWidth: 130,
             align: 'center',
-            getter: (row) => totalHours?.[row._id] || 0
+            getter: (row) => row?.login?.timeHolder || 0
         },
         {
             id: 'behaviour',
@@ -192,21 +192,21 @@ export default function LeaveTable({ data, getCheckedValue, getEditDepartmentId,
             label: 'Punch In',
             minWidth: 130,
             align: 'left',
-            getter: (row) => row?.login?.startingTime ? row?.login?.startingTime : "N/A"
+            getter: (row) => row?.login?.startingTime ? row?.login?.startingTime[0] : "N/A"
         },
         {
             id: 'punchOut',
             label: 'Punch Out',
             minWidth: 130,
             align: 'left',
-            getter: (row) => row?.login?.endingTime ? row.login.endingTime : "N/A"
+            getter: (row) => row?.login?.endingTime ? row.login.endingTime[row?.login?.endingTime.length - 1] : "N/A"
         },
         {
             id: 'totalHour',
             label: 'Total Hour',
             minWidth: 130,
             align: 'left',
-            getter: (row) => totalHours?.[row._id] || 0
+            getter: (row) => row?.login?.timeHolder || 0
         },
         {
             id: 'behaviour',

@@ -60,6 +60,19 @@ function getTotalWorkingHourPerDay(startingTime, endingTime) {
     }
 }
 
+function formatTimeFromMinutes(minutes) {
+    const hours = Math.floor(minutes / 60); // Get the number of hours
+    const mins = Math.floor(minutes % 60); // Get the remaining minutes
+    const secs = 0; // Assume 0 seconds since it's not provided
+
+    // Format each part to ensure two digits (e.g., "04" instead of "4")
+    const formattedHours = String(hours).padStart(2, '0');
+    const formattedMinutes = String(mins).padStart(2, '0');
+    const formattedSeconds = String(secs).padStart(2, '0');
+
+    return `${formattedHours}:${formattedMinutes}:${formattedSeconds}`;
+}
+
 router.post("/:id", verifyAdminHREmployee, async (req, res) => {
     let regular = 0;
     let late = 0;
@@ -106,8 +119,8 @@ router.post("/:id", verifyAdminHREmployee, async (req, res) => {
         // Proceed with login checks
         const result = req.body;
         if (result?.login?.startingTime) {
-            const behaviour = await checkLogin("09:30", result.login.startingTime);
-            const punchInMsg = await checkLoginForOfficeTime("09:30", result.login.startingTime)
+            const behaviour = await checkLogin("09:30", result.login.startingTime[0]);
+            const punchInMsg = await checkLoginForOfficeTime("09:30", result.login.startingTime[0])
             let newClockIns = {
                 ...req.body,
                 behaviour,
@@ -126,6 +139,7 @@ router.post("/:id", verifyAdminHREmployee, async (req, res) => {
             res.status(400).send({ error: "You must start Punchin Timer" })
         }
     } catch (error) {
+        console.log(error);
         res.status(500).send({ error: error.message });
     }
 });
@@ -174,21 +188,23 @@ router.get("/:id", verifyAdminHREmployee, async (req, res) => {
         const currentTimeInMinutes = timeToMinutes(`${new Date().getHours()}:${new Date().getMinutes()}`);
 
         activities.map((activity) => {
-            let startingTimes = timeData.clockIns[0][activity]?.startingTime;
-            let endingTimes = timeData.clockIns[0][activity]?.endingTime;
+            let startingTimes = clockIn[activity]?.startingTime;
+            let endingTimes = clockIn[activity]?.endingTime;
 
-            const values = startingTimes.map((time, index) => {
+            const values = startingTimes?.map((time, index) => {
                 let value = 0;
                 if (time && endingTimes[index]) {
                     const timeInMin = timeToMinutes(time);
                     const endTimeInMin = timeToMinutes(endingTimes[index]);
                     value = Math.abs(endTimeInMin - timeInMin); // Calculate absolute difference
+                } else if (time) {
+                    value = (currentTimeInMinutes - timeToMinutes(startingTimes[startingTimes?.length - 1]))
                 }
                 return value;
             });
-
-            const totalValue = values.reduce((acc, value) => acc + value, 0)
-            console.log({ timerHolder: totalValue + (currentTimeInMinutes - timeToMinutes(startingTimes[startingTimes.length - 1])) })
+            const totalValue = values?.reduce((acc, value) => acc + value, 0)
+            const timeHolder = formatTimeFromMinutes(totalValue);
+            clockIn[activity].timeHolder = timeHolder;
         })
 
         const activitiesData = activities.map((activity) => {
@@ -210,7 +226,8 @@ router.get("/:id", verifyAdminHREmployee, async (req, res) => {
         // Convert total minutes to hours and minutes
         const hours = Math.floor(totalEmpWorkingMinutes / 60);
         const minutes = totalEmpWorkingMinutes % 60;
-
+        console.log(timeData.meeting);
+        
         // Respond with calculated data
         return res.send({
             timeData,
@@ -390,12 +407,12 @@ router.get("/employee/:empId", verifyAdminHREmployee, async (req, res) => {
             const { startingTime, endingTime } = clockIn.login;
 
             // Calculate total working hours for this employee clock-in
-            const workingHours = getTotalWorkingHourPerDay(startingTime, endingTime);
+            const workingHours = getTotalWorkingHourPerDay(startingTime[0], endingTime[endingTime.length - 1]);
 
             totalEmpWorkingHours += workingHours;
 
             // Compare with scheduled time (assumed to be "09:00")
-            await checkLogin("09:00", startingTime);
+            await checkLogin("09:00", startingTime[0]);
         });
 
         // Return the response with collected data

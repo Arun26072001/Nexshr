@@ -9,17 +9,20 @@ import { TimerStates } from '../HRMDashboard';
 import { Dropdown, Popover, Whisper } from 'rsuite';
 import logo from "../../../imgs/male_avatar.png";
 import { EssentialValues } from '../../../App';
-import { addSecondsToTime } from '../../ReuseableAPI';
 
 export default function Navbar() {
     const { handleLogout } = useContext(EssentialValues)
-    const { startLoginTimer, stopLoginTimer, workTimeTracker, isStartLogin } = useContext(TimerStates);
-    const [sec, setSec] = useState(() => parseInt(localStorage.getItem("loginTimer")?.split(':')[2]) || 0);
-    const [min, setMin] = useState(() => parseInt(localStorage.getItem("loginTimer")?.split(':')[1]) || 0);
-    const [hour, setHour] = useState(() => parseInt(localStorage.getItem("loginTimer")?.split(':')[0]) || 0);
+    const { startLoginTimer, stopLoginTimer, workTimeTracker, isStartLogin, trackTimer } = useContext(TimerStates);
+    // const [sec, setSec] = useState(() => parseInt(localStorage.getItem("loginTimer")?.split(':')[2]) || 0);
+    // const [min, setMin] = useState(() => parseInt(localStorage.getItem("loginTimer")?.split(':')[1]) || 0);
+    // const [hour, setHour] = useState(() => parseInt(localStorage.getItem("loginTimer")?.split(':')[0]) || 0);
+    const [sec, setSec] = useState(workTimeTracker?.login?.timeHolder?.split(':')[2])
+    const [min, setMin] = useState(workTimeTracker?.login?.timeHolder?.split(':')[1])
+    const [hour, setHour] = useState(workTimeTracker?.login?.timeHolder?.split(':')[0])
+    const [isStartTime, setIsstartTime] = useState(workTimeTracker?.login?.startingTime?.length === workTimeTracker?.login?.endingTime?.length)
+
     const workRef = useRef(null);  // Use ref to store interval ID
-    const lastCheckTimeRef = useRef(Date.now())
-    // debugger;
+    // const lastCheckTimeRef = useRef(Date.now())
 
     // Timer logic to increment time
     const incrementTime = () => {
@@ -52,9 +55,9 @@ export default function Navbar() {
     function startOnlyTimer() {
         // console.log("call timer only fun: ", workTimeTracker._id, isStartLogin);
         if (!workRef.current) {
-            if (isStartLogin) {
-                workRef.current = setInterval(incrementTime, 1000);
-            }
+            // if (isStartLogin) {
+            workRef.current = setInterval(incrementTime, 1000);
+            // }
         }
     }
 
@@ -70,55 +73,52 @@ export default function Navbar() {
 
     // Function to stop the timer
     const stopTimer = async () => {
-        if (workRef.current && isStartLogin) {
+        if (workRef.current) {
             await stopLoginTimer();
             clearInterval(workRef.current);
             workRef.current = null;
         }
     };
 
-    const syncTimerAfterPause = () => {
-        const now = Date.now();
-        const diff = now - lastCheckTimeRef.current;
-        // console.log("Wakeup called.");
-        // console.log("Time difference since last check (ms):", diff);
+    // const syncTimerAfterPause = () => {
+    //     const now = Date.now();
+    //     const diff = now - lastCheckTimeRef.current;
+    //     // console.log("Wakeup called.");
+    //     // console.log("Time difference since last check (ms):", diff);
 
-        if (diff > 3000 && isStartLogin) {
-            const secondsToAdd = Math.floor(diff / 1000);
-            // console.log("Seconds to add:", secondsToAdd);
+    //     if (diff > 3000 && isStartLogin) {
+    //         const secondsToAdd = Math.floor(diff / 1000);
+    //         // console.log("Seconds to add:", secondsToAdd);
 
-            const updatedTime = addSecondsToTime(`${parseInt(localStorage.getItem("loginTimer")?.split(':')[0])}:${parseInt(localStorage.getItem("loginTimer")?.split(':')[1])}:${parseInt(localStorage.getItem("loginTimer")?.split(':')[2])}`, secondsToAdd);
-            // console.log("Updated time:", updatedTime);
+    //         const updatedTime = addSecondsToTime(`${parseInt(localStorage.getItem("loginTimer")?.split(':')[0])}:${parseInt(localStorage.getItem("loginTimer")?.split(':')[1])}:${parseInt(localStorage.getItem("loginTimer")?.split(':')[2])}`, secondsToAdd);
+    //         // console.log("Updated time:", updatedTime);
 
-            // Combine updates into a single state update
-            setHour(Number(updatedTime.hours));
-            setMin(Number(updatedTime.minutes));
-            setSec(Number(updatedTime.seconds));
-        }
+    //         // Combine updates into a single state update
+    //         setHour(Number(updatedTime.hours));
+    //         setMin(Number(updatedTime.minutes));
+    //         setSec(Number(updatedTime.seconds));
+    //     }
 
-        startOnlyTimer();
-        lastCheckTimeRef.current = now; // Reset last check time
-    };
+    //     startOnlyTimer();
+    //     lastCheckTimeRef.current = now; // Reset last check time
+    // };
 
 
     // Start/Stop timer based on activity state
     useEffect(() => {
-        if (isStartLogin) {
-            startTimer();
-        } else {
-            stopTimer();
+        if (workTimeTracker?.login?.startingTime?.length !== workTimeTracker?.login?.endingTime?.length) {
+            startOnlyTimer();
         }
+        // else {
+        //     stopOnlyTimer();
+        // }
         return () => stopTimer(); // Cleanup on unmount
-    }, [isStartLogin]);
+    }, [workTimeTracker]);
 
     // Sync timer with inactivity
     useEffect(() => {
         const handleVisibilityChange = () => {
-            if (!document.hidden && isStartLogin) {
-                syncTimerAfterPause();
-            } else {
-                stopOnlyTimer();
-            }
+            trackTimer();
         };
 
         document.addEventListener("visibilitychange", handleVisibilityChange);
@@ -126,13 +126,13 @@ export default function Navbar() {
     }, []);
 
     // Sync state with localStorage
-    useEffect(() => {
-        localStorage.setItem("loginTimer", `${hour}:${min}:${sec}`);
-    }, [hour, min, sec]);
+    // useEffect(() => {
+    //     localStorage.setItem("loginTimer", `${hour}:${min}:${sec}`);
+    // }, [hour, min, sec]);
 
     // Initialize time based on selected workTimeTracker and timeOption
     useEffect(() => {
-        if (!isStartLogin && workTimeTracker?.login?.timeHolder) {
+        if (workTimeTracker?.login?.timeHolder) {
             const [newHour, newMin, newSec] = workTimeTracker?.login?.timeHolder?.split(":").map(Number);
             setHour(newHour);
             setMin(newMin);
@@ -159,6 +159,7 @@ export default function Navbar() {
             </Popover>
         );
     };
+
     return (
         <div className="webnxs">
             <div className="row mx-auto">
@@ -180,21 +181,21 @@ export default function Navbar() {
 
                 <div className="col-lg-4 col-md-6 col-4 d-flex align-items-center justify-content-between">
                     <div className="punchBtnParent">
-                        <button className='punchBtn' disabled={isStartLogin} onClick={() => startTimer()} style={{ backgroundColor: "#CEE5D3" }}>
+                        <button className='punchBtn' disabled={isStartTime} onClick={() => startTimer()} style={{ backgroundColor: "#CEE5D3" }}>
                             <img src={PunchIn} alt="" />
                         </button>
                         <div className="">
-                            <div className='timerText'>{workTimeTracker?.login?.startingTime}</div>
+                            <p className='timerText'>{workTimeTracker?.login?.startingTime.length > 0 ? workTimeTracker?.login?.startingTime[workTimeTracker?.login?.startingTime.length - 1] : "00:00"}</p>
                             <div className='sub_text'>Punch In</div>
                         </div>
                     </div>
                     <div className="punchBtnParent">
-                        <button className='punchBtn' onClick={() => stopTimer()} disabled={!isStartLogin} style={{ backgroundColor: "#FFD6DB" }}>
+                        <button className='punchBtn' onClick={() => stopTimer()} disabled={!isStartTime} style={{ backgroundColor: "#FFD6DB" }}>
                             <img src={PunchOut} alt="" />
                         </button>
 
                         <div className="">
-                            <p className='timerText'>{workTimeTracker?.login?.endingTime}</p>
+                            <p className='timerText'>{workTimeTracker?.login?.endingTime.length > 0 ? workTimeTracker?.login?.endingTime[workTimeTracker?.login?.endingTime.length - 1] : "00:00"}</p>
                             <p className='sub_text'>Punch Out</p>
                         </div>
                     </div>

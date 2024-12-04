@@ -7,20 +7,33 @@ import { toast } from "react-toastify";
 import { addSecondsToTime } from "./ReuseableAPI";
 
 const ActivityTimeTracker = () => {
-    const { startActivityTimer, stopActivityTimer, workTimeTracker, isStartActivity, timeOption } = useContext(TimerStates);
-    const EmpName = localStorage.getItem("Name") || "Employee";
-    // Timer states
-    const [sec, setSec] = useState(() => parseInt(localStorage.getItem("activityTimer")?.split(":")[2]) || 0);
-    const [min, setMin] = useState(() => parseInt(localStorage.getItem("activityTimer")?.split(":")[1]) || 0);
-    const [hour, setHour] = useState(() => parseInt(localStorage.getItem("activityTimer")?.split(":")[0]) || 0);
-    const timerRef = useRef(null);
-    const lastCheckTimeRef = useRef(Date.now());
+    const {
+        startActivityTimer,
+        stopActivityTimer,
+        workTimeTracker,
+        isStartActivity,
+        timeOption,
+        trackTimer
+    } = useContext(TimerStates);
 
-    // Timer logic to increment time
+    const EmpName = localStorage.getItem("Name") || "Employee";
+
+    const [sec, setSec] = useState(
+        Number(workTimeTracker?.[timeOption]?.timeHolder?.split(':')[2] || 0)
+    );
+    const [min, setMin] = useState(
+        Number(workTimeTracker?.[timeOption]?.timeHolder?.split(':')[1] || 0)
+    );
+    const [hour, setHour] = useState(
+        Number(workTimeTracker?.[timeOption]?.timeHolder?.split(':')[0] || 0)
+    );
+
+    const timerRef = useRef(null);
+
+    // Timer increment logic
     const incrementTime = () => {
         setSec((prevSec) => {
             let newSec = prevSec + 1;
-
             if (newSec > 59) {
                 newSec = 0;
                 setMin((prevMin) => {
@@ -36,107 +49,66 @@ const ActivityTimeTracker = () => {
         });
     };
 
-    // start and stop timer only
-    function stopOnlyTimer() {
-
-        if (timerRef.current && isStartActivity) {
-            clearInterval(timerRef.current);
-            timerRef.current = null;
-        }
-    }
-
-    function startOnlyTimer() {
-        // console.log("call timer only fun: ", workTimeTracker._id, isStartActivity);
-        console.log(isStartActivity);
-
+    // Start the timer
+    const startOnlyTimer = () => {
         if (!timerRef.current) {
-            if (isStartActivity) {
-                timerRef.current = setInterval(incrementTime, 1000);
-            }
-        }
-    }
-
-    // Function to start the timer
-    const startTimer = async () => {
-        console.log("call to start in startTimer");
-
-        if (!timerRef.current) {
-            await startActivityTimer();
-            if (isStartActivity) {
-                timerRef.current = setInterval(incrementTime, 1000);
-            }
+            timerRef.current = setInterval(incrementTime, 1000);
         }
     };
 
-    // Function to stop the timer
+
+    // Stop the timer
+    const stopOnlyTimer = () => {
+        console.log(timerRef.current);
+
+        if (timerRef.current) {
+            clearInterval(timerRef.current);
+            timerRef.current = null;
+        }
+    };
+
+    // Start the timer with activity
+    const startTimer = async () => {
+        if (!timerRef.current) {
+            await startActivityTimer();
+            // if (isStartLogin) {
+            timerRef.current = setInterval(incrementTime, 1000);
+            // }
+        }
+    };
+
+    // Stop the timer with activity
     const stopTimer = async () => {
-        if (timerRef.current && isStartActivity) {
+        if (timerRef.current) {
             await stopActivityTimer();
             clearInterval(timerRef.current);
             timerRef.current = null;
         }
     };
 
-    const syncTimerAfterPause = () => {
-        console.log("call to start in sync");
-
-        const now = Date.now();
-        const diff = now - lastCheckTimeRef.current;
-        // console.log("Wakeup called.");
-        // console.log("Time difference since last check (ms):", diff);
-
-        if (diff > 3000 && isStartActivity && workTimeTracker._id) {
-            const secondsToAdd = Math.floor(diff / 1000);
-            // console.log("Seconds to add:", secondsToAdd);
-
-            const updatedTime = addSecondsToTime(`${parseInt(localStorage.getItem("activityTimer")?.split(":")[0])}:${parseInt(localStorage.getItem("activityTimer")?.split(":")[1])}:${parseInt(localStorage.getItem("activityTimer")?.split(":")[2])}`, secondsToAdd);
-            // console.log("Updated time:", updatedTime);
-
-            // Combine updates into a single state update
-            setHour(Number(updatedTime.hours));
-            setMin(Number(updatedTime.minutes));
-            setSec(Number(updatedTime.seconds));
-        }
-
-        startOnlyTimer();
-        lastCheckTimeRef.current = now; // Reset last check time
+    // Display warning if no punch-in
+    const warnPunchIn = () => {
+        toast.warning("Please Punch In!")
     };
 
-    // Display warning if no punch-in
-    const warnPunchIn = () => toast.warning("Please Punch In!");
 
-    // Start/Stop timer based on activity state
+    // Manage timer state based on startingTime and endingTime
     useEffect(() => {
-        if (isStartActivity) {
-            startTimer();
+        const startLength = workTimeTracker?.[timeOption]?.startingTime?.length || 0;
+        const endLength = workTimeTracker?.[timeOption]?.endingTime?.length || 0;
+
+        if (startLength !== endLength) {
+            startOnlyTimer();
         } else {
-            stopTimer();
+            stopOnlyTimer();
         }
-        return () => stopTimer(); // Cleanup on unmount
-    }, [isStartActivity]);
 
-    // Sync timer with inactivity
+        return () => stopOnlyTimer(); // Cleanup on unmount
+    }, [workTimeTracker, timeOption, isStartActivity]);
+
+    // Sync state with workTimeTracker
     useEffect(() => {
-        const handleVisibilityChange = () => {
-            if (!document.hidden && isStartActivity) {
-                syncTimerAfterPause();
-            } else {
-                stopOnlyTimer();
-            }
-        };
-
-        document.addEventListener("visibilitychange", handleVisibilityChange);
-        return () => document.removeEventListener("visibilitychange", handleVisibilityChange);
-    }, []);
-
-    // Sync state with localStorage
-    useEffect(() => {
-        localStorage.setItem("activityTimer", `${hour}:${min}:${sec}`);
-    }, [hour, min, sec]);
-
-    // Initialize timer with workTimeTracker
-    useEffect(() => {
-        if (!isStartActivity && workTimeTracker?.[timeOption]?.timeHolder) {
+        if (workTimeTracker?.[timeOption]?.timeHolder) {
             const [newHour, newMin, newSec] = workTimeTracker[timeOption].timeHolder
                 .split(":")
                 .map(Number);
@@ -144,8 +116,7 @@ const ActivityTimeTracker = () => {
             setMin(newMin);
             setSec(newSec);
         }
-    }, [timeOption, workTimeTracker, isStartActivity]);
-
+    }, [timeOption, workTimeTracker]);
 
     return (
         <>
@@ -171,7 +142,15 @@ const ActivityTimeTracker = () => {
                             className={`btn btn-outline-${isStartActivity ? "success" : "danger"}`}
                             style={{ padding: "15px 15px" }}
                             title={isStartActivity ? "Stop" : "Start"}
-                            onClick={workTimeTracker?._id ? (isStartActivity ? stopTimer : startTimer) : (warnPunchIn)}
+                            onClick={
+                                workTimeTracker?._id
+                                    ? (isStartActivity
+                                        ? stopTimer
+                                        : (workTimeTracker?.[timeOption]?.startingTime?.length === workTimeTracker?.[timeOption]?.endingTime?.length
+                                            ? startTimer
+                                            : warnPunchIn))
+                                    : null
+                            }
                             id="startActivityTimerBtn"
                         >
                             <PowerSettingsNewRoundedIcon />

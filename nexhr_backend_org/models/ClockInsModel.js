@@ -39,21 +39,24 @@ const clockInsSchema = new mongoose.Schema({
 const ClockIns = mongoose.model('clockIns', clockInsSchema);
 
 // Joi validation schema
-const timeRangeValidation = Joi.object({
-  startingTime: Joi.string(),
-  endingTime: Joi.string(),
-  // takenTime: Joi.number(),
-  timeHolder: Joi.string()
+const timeRangeValidate = Joi.object({
+  startingTime: Joi.array().items(Joi.string().allow('')).allow(null).optional(),
+  endingTime: Joi.array().items(Joi.string().allow('')).allow(null).optional(),
+  timeHolder: Joi.string().allow('').optional()
 });
 
+// Define the main validation schema
 const clockInsValidation = Joi.object({
-  date: Joi.string().required(),
-  login: timeRangeValidation,
-  meeting: timeRangeValidation,
-  morningBreak: timeRangeValidation,
-  lunch: timeRangeValidation,
-  eveningBreak: timeRangeValidation,
-  event: timeRangeValidation
+  date: Joi.date().required(), // Date is required
+  login: timeRangeValidate.optional(),
+  meeting: timeRangeValidate.optional(),
+  morningBreak: timeRangeValidate.optional(),
+  lunch: timeRangeValidate.optional(),
+  eveningBreak: timeRangeValidate.optional(),
+  event: timeRangeValidate.optional(),
+  behaviour: Joi.string().optional(), // Behaviour is optional
+  punchInMsg: Joi.string().optional(), // PunchInMsg is optional
+  employee: Joi.string().optional() // Employee ObjectId is required
 });
 
 
