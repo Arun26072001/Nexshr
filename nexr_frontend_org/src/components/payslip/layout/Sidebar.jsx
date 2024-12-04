@@ -11,8 +11,12 @@ import adminIcon from '../../../asserts/adminIcon.svg';
 import homeIcon from '../../../asserts/homeIcon.svg';
 import { TimerStates } from '../HRMDashboard';
 import { EssentialValues } from '../../../App';
+import { jwtDecode } from 'jwt-decode';
 
 const Sidebar = () => {
+  const {data} = useContext(EssentialValues);
+  const {token} = data;
+  const decodedData = jwtDecode(token);
   const dashboard = localStorage.getItem('Dashboard');
   const jobDesk = localStorage.getItem('JobDesk');
   const employee = localStorage.getItem('Employee');

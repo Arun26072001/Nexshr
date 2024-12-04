@@ -5,7 +5,6 @@ const empId = localStorage.getItem('_id');
 const token = localStorage.getItem('token');
 
 const updateDataAPI = async (body) => {
-
     try {
         if (body._id) {
             const response = await axios.put(`${url}/api/clock-ins/${body._id}`, body, {
@@ -84,6 +83,8 @@ function removeClockinsData() {
 
 const fetchEmpLeaveRequests = async () => {
     try {
+        console.log(token);
+        
         const res = await axios.get(`${url}/api/leave-application/hr`, {
             headers: {
                 authorization: token || ""

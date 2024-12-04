@@ -4,7 +4,7 @@ const axios = require("axios");
 const cen_url = process.env.CENTRALIZATION_BASEURL;
 
 function verifyHR(req, res, next) {
-  const token = req.headers['authorization'].split(" ")[1];
+  const token = req.headers['authorization'];
   
   if (typeof token !== "undefined") {
     // decodedData = jwt.decode(req.headers['authorization']);
@@ -29,7 +29,7 @@ function verifyHR(req, res, next) {
 
 
 function verifyEmployee(req, res, next) {
-  const token = req.headers['authorization'].split(" ")[1];
+  const token = req.headers['authorization'];
 
   if (typeof token !== "undefined") {
     // decodedData = jwt.decode(req.headers['authorization']);
@@ -61,7 +61,7 @@ function verifyEmployee(req, res, next) {
 }
 
 function verifyHREmployee(req, res, next) {
-  const token = req.headers['authorization'].split(" ")[1];
+  const token = req.headers['authorization'];
   if (typeof token !== "undefined") {
     jwt.verify(token, jwtKey, (err, authData) => {
       if (err) {
@@ -122,7 +122,7 @@ async function verifyAdminHREmployee(req, res, next) {
 
 function verifyAdminHR(req, res, next) {
   
-  const token = req.headers['authorization'].split(" ")[1];
+  const token = req.headers['authorization'];
 
   if (typeof token !== "undefined") {
     // decodedData = jwt.decode(req.headers['authorization']);
@@ -145,7 +145,7 @@ function verifyAdminHR(req, res, next) {
 }
 
 function verifyAdmin(req, res, next) {
-  const token = req.headers['authorization'].split(" ")[1];
+  const token = req.headers['authorization'];
 
   if (typeof token !== "undefined") {
     // decodedData = jwt.decode(req.headers['authorization']);
@@ -168,7 +168,7 @@ function verifyAdmin(req, res, next) {
 }
 
 function verifyAdmin(req, res, next) {
-  const token = req.headers['authorization'].split(" ")[1];
+  const token = req.headers['authorization'];
 
   if (typeof token !== "undefined") {
     // decodedData = jwt.decode(req.headers['authorization']);
@@ -191,7 +191,7 @@ function verifyAdmin(req, res, next) {
 }
 
 function verifySuperAdmin(req, res, next) {
-  const token = req.headers['authorization'].split(" ")[1];
+  const token = req.headers['authorization'];
 
   if (typeof token !== "undefined") {
     // decodedData = jwt.decode(req.headers['authorization']);

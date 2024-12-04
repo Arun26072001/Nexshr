@@ -1,13 +1,14 @@
-import React, { useEffect, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 
 import axios from 'axios';
 import { toast } from 'react-toastify';
 import CircleBar from './CircleProcess';
+import { EssentialValues } from '../App';
 
 const CircleProgressBar = () => {
+  const {data} = useContext(EssentialValues);
+  const {token} = data;
   const url = process.env.REACT_APP_API_URL;
-  const token = localStorage.getItem("token");
-
   const [todayLeaveCount, setTodayLeaveCount] = useState(0);
   const [tomorrowLeaveCount, setTomorrowLeaveCount] = useState(0);
   const [yesterdayLeaveCount, setYesterdayLeaveCount] = useState(0);

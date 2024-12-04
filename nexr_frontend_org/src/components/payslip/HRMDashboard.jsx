@@ -38,16 +38,12 @@ export const TimerStates = createContext(null);
 
 export default function HRMDashboard() {
     const { data, isStartLogin, isStartActivity, setIsStartLogin, setIsStartActivity } = useContext(EssentialValues);
-    const strPermissionData = localStorage.getItem("userPermissions");
-    const userPermissions = JSON.parse(strPermissionData);
+    const {token, Account, _id} = data;
     const [attendanceData, setAttendanceData] = useState([]);
     const [attendanceForSummary, setAttendanceForSummary] = useState({});
-    const empId = localStorage.getItem("_id");
-    const Account = localStorage.getItem("Account")
     const [leaveRequests, setLeaveRequests] = useState({});
     const [fullLeaveRequests, setFullLeaveRequests] = useState([]);
     const [empName, setEmpName] = useState("");
-    const token = localStorage.getItem('token');
     const [whoIs, setWhoIs] = useState("");
     const [isLoading, setIsLoading] = useState(false);
     const [waitForAttendance, setWaitForAttendance] = useState(false);
@@ -55,8 +51,6 @@ export default function HRMDashboard() {
     const [daterangeValue, setDaterangeValue] = useState("");
     const [isEditEmp, setIsEditEmp] = useState(false);
     const [timeOption, setTimeOption] = useState(localStorage.getItem("timeOption") || "meeting");
-    // const [isStartLogin, setIsStartLogin] = useState(localStorage.getItem("isStartLogin") === "false" ? false : localStorage.getItem("isStartLogin") === "true" ? true : false);
-    // const [isStartActivity, setIsStartActivity] = useState(localStorage.getItem("isStartActivity") === "false" ? false : localStorage.getItem("isStartActivity") === "true" ? true : false);
     const navigate = useNavigate();
     const [reloadRole, setReloadRole] = useState(false);
     // files for payroll
@@ -293,14 +287,14 @@ export default function HRMDashboard() {
 
             getLeaveData();
         }
-    }, [daterangeValue, empId, whoIs]);
+    }, [daterangeValue, _id, whoIs]);
 
     // get attendance summary page table of data
     const getClocknsData = useCallback(async () => {
-        if (!empId) return;
+        if (!_id) return;
         setWaitForAttendance(true);
         try {
-            const data = await gettingClockinsData(empId);
+            const data = await gettingClockinsData(_id);
             if (data) {
                 setAttendanceForSummary(data);
             } else {
@@ -312,7 +306,7 @@ export default function HRMDashboard() {
         } finally {
             setWaitForAttendance(false);
         }
-    }, [empId]);
+    }, [_id]);
 
     const getAttendanceData = async () => {
         try {
@@ -359,8 +353,8 @@ export default function HRMDashboard() {
     useEffect(() => {
         const getClockInsData = async () => {
             try {
-                if (empId) {
-                    const { timeData } = await getDataAPI(empId);
+                if (_id) {
+                    const { timeData } = await getDataAPI(_id);
                     if (timeData?.clockIns[0]?._id) {
                         setWorkTimeTracker(timeData.clockIns[0])
                     } else {
@@ -387,8 +381,8 @@ export default function HRMDashboard() {
                     <Route index element={<Dashboard data={data} />} />
                     <Route path="job-desk/*" element={<JobDesk />} />
                     <Route path="employee" element={<Employee />} />
-                    <Route path="employee/add" element={userPermissions?.Employee?.add ? <Employees /> : <UnAuthorize />} />
-                    <Route path="employee/edit/:id" element={userPermissions?.Employee?.edit ? <AddEmployee /> : <UnAuthorize />} />
+                    <Route path="employee/add" element={ <Employees />} />
+                    <Route path="employee/edit/:id" element={ <AddEmployee /> } />
                     <Route path="leave/*" element={
                         <LeaveStates.Provider value={{ daterangeValue, setDaterangeValue, isLoading, leaveRequests, filterLeaveRequests, empName, setEmpName }} >
                             <Routes>
@@ -399,8 +393,8 @@ export default function HRMDashboard() {
                             </Routes>
                         </LeaveStates.Provider>
                     } />
-                    <Route path='/leave-request' element={userPermissions?.Leave?.add ? <LeaveRequestForm /> : <UnAuthorize />} />
-                    <Route path="/leave-request/edit/:id" element={userPermissions?.Leave?.add ? <EditLeaveRequestForm /> : <UnAuthorize />} />
+                    <Route path='/leave-request' element={ <LeaveRequestForm /> } />
+                    <Route path="/leave-request/edit/:id" element={<EditLeaveRequestForm /> } />
                     <Route path="attendance/*" element={
                         <Routes>
                             <Route index path="attendance-request" element={<Request attendanceData={attendanceData} isLoading={waitForAttendance} />} />
@@ -415,9 +409,9 @@ export default function HRMDashboard() {
                             <Route index path="role/*" element={
                                 <Routes>
                                     <Route index element={<Roles />} />
-                                    <Route path="add" element={userPermissions?.Attendance?.add ? <PageAndActionAuth /> : <UnAuthorize />} />
-                                    <Route path="edit/:id" element={userPermissions?.Attendance?.edit ? <PageAndActionAuth /> : <UnAuthorize />} />
-                                    <Route path="view/:id" element={userPermissions?.Attendance?.view ? <PageAndActionAuth /> : <UnAuthorize />} />
+                                    <Route path="add" element={<PageAndActionAuth /> } />
+                                    <Route path="edit/:id" element={<PageAndActionAuth /> } />
+                                    <Route path="view/:id" element={<PageAndActionAuth />} />
                                 </Routes>
                             } />
                             {/* <Route path="/shift" element={<Shift />} /> */}

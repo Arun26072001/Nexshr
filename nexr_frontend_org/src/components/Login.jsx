@@ -13,23 +13,23 @@ const override = css`
 `;
 
 const Login = () => {
-  const Account = localStorage.getItem("Account");
   const navigate = useNavigate();
-  const { handleSubmit, loading, pass } = useContext(EssentialValues);
-  // const { id } = useParams();
-  
+  const { handleSubmit, loading, pass, data } = useContext(EssentialValues);
+  console.log(typeof data.Account);
 
-  useEffect(() => {
-    // localStorage.setItem("orgId", id)
-    if (Account === "1") {
-      navigate("/admin")
-    }
-    else if (Account === "2") {
-      navigate("/hr")
-    } else if (Account === "3") {
-      navigate("/emp")
-    }
-  }, []);
+  // const { id } = useParams();
+
+  // useEffect(() => {
+  //   // localStorage.setItem("orgId", id)
+  //   if (Account === "1") {
+  //     navigate("/admin")
+  //   }
+  //   else if (Account === "2") {
+  //     navigate("/hr")
+  //   } else if (Account === "3") {
+  //     navigate("/emp")
+  //   }
+  // }, []);
 
   // useEffect(() => {
   //   async function checkNetworkConnection() {
@@ -56,10 +56,10 @@ const Login = () => {
 
   return (
     <div>
-      {Account === 1
+      {data.Account === '1'
         ? <Navigate to={"/admin"} />
-        : Account === 2 ? <Navigate to={"/hr"} />
-          : Account === 3 ? <Navigate to={"/emp"} />
+        : data.Account === '2' ? <Navigate to={"/hr"} />
+          : data.Account === '3' ? <Navigate to={"/emp"} />
             : ""}
       <div className="container">
         <div id="main-outer-div">
