@@ -158,7 +158,7 @@ const Summary = () => {
                             </div>
                         </div>
                         {clockinsData?.clockIns?.length > 0 ?
-                            <LeaveTable data={clockinsData.clockIns} /> : <NoDataFound message={"Attendance data not found"} />}
+                            <LeaveTable data={clockinsData.clockIns} /> : <NoDataFound message={"No Attendance data for this month!"} />}
                     </>
             }
         </div>

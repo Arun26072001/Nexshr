@@ -139,7 +139,7 @@ router.get("/:id", verifyAdminHREmployee, async (req, res) => {
     }
 
     try {
-        
+
         const queryDate = new Date(String(req.query.date));
         // if (isNaN(queryDate.getTime())) {
         //     return res.status(400).send({ message: "Invalid date provided." });
@@ -169,6 +169,27 @@ router.get("/:id", verifyAdminHREmployee, async (req, res) => {
         // Define activities and calculate times
         const activities = ["login", "meeting", "morningBreak", "lunch", "eveningBreak", "event"];
         const clockIn = timeData.clockIns[0]; // Assuming the first clock-in for the day
+
+        // Get current time in minutes
+        const currentTimeInMinutes = timeToMinutes(`${new Date().getHours()}:${new Date().getMinutes()}`);
+
+        activities.map((activity) => {
+            let startingTimes = timeData.clockIns[0][activity]?.startingTime;
+            let endingTimes = timeData.clockIns[0][activity]?.endingTime;
+
+            const values = startingTimes.map((time, index) => {
+                let value = 0;
+                if (time && endingTimes[index]) {
+                    const timeInMin = timeToMinutes(time);
+                    const endTimeInMin = timeToMinutes(endingTimes[index]);
+                    value = Math.abs(endTimeInMin - timeInMin); // Calculate absolute difference
+                }
+                return value;
+            });
+
+            const totalValue = values.reduce((acc, value) => acc + value, 0)
+            console.log({ timerHolder: totalValue + (currentTimeInMinutes - timeToMinutes(startingTimes[startingTimes.length - 1])) })
+        })
 
         const activitiesData = activities.map((activity) => {
             const startingTime = clockIn[activity]?.startingTime || "00:00";

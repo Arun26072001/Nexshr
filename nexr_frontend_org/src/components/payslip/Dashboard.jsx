@@ -120,7 +120,7 @@ const Dashboard = () => {
                                         <p className='sub_text'>Scheduled</p>
                                     </div>
                                     <div className='col-lg-3 col-md-3 col-4 timeLogBox'>
-                                        <p>{(dailyLogindata?.empTotalWorkingHours)?.toFixed(2) || "00:00"}</p>
+                                        <p>{dailyLogindata?.empTotalWorkingHours ? dailyLogindata?.empTotalWorkingHours : "00:00"}</p>
                                         <p className='sub_text'>Worked</p>
                                     </div>
                                     <div className='col-lg-3 col-md-3 col-4 timeLogBox'>
@@ -136,7 +136,7 @@ const Dashboard = () => {
                                     <div className='col-lg-6 col-md-6 col-12'>
                                         <div className='space row'>
                                             <p className='col-lg-6 col-md-6 col-sm-6 col-6 text-start'><span className='text_gap '>Total</span></p>
-                                            <p className='col-lg-6 col-md-6 col-sm-6 col-6 text-end'><span className='value'>{monthlyLoginData?.companyTotalWorkingHour} hour</span></p>
+                                            <p className='col-lg-6 col-md-6 col-sm-6 col-6 text-end'><span className='value'>{monthlyLoginData?.companyTotalWorkingHour || 0} hour</span></p>
                                         </div>
                                         <div className="progress">
                                             <div
@@ -173,10 +173,10 @@ const Dashboard = () => {
                                     <div className='col-lg-6 col-md-6 col-sm-6 col-12'>
                                         <div className='space row'>
                                             <div className='col-lg-6 col-md-6 col-sm-6 col-6 text-start'><span className='text_gap'>Shortage time</span></div>
-                                            <div className='col-lg-6 col-md-6 col-sm-6 col-6 text-end'><span className='value'>{(monthlyLoginData?.companyTotalWorkingHour - monthlyLoginData?.totalEmpWorkingHours) || 0} hour</span></div>
+                                            <div className='col-lg-6 col-md-6 col-sm-6 col-6 text-end'><span className='value'>{(monthlyLoginData?.companyTotalWorkingHour || 0 - monthlyLoginData?.totalEmpWorkingHours || 0)?.toFixed(2)} hour</span></div>
                                         </div>
                                         <div className="progress">
-                                            <div className="progress-bar progress-bar-striped" role="progressbar" style={{ width: "50%" }} aria-valuenow="10" aria-valuemin="0" aria-valuemax="100"></div>
+                                            <div className="progress-bar progress-bar-striped" role="progressbar" style={{ width: `${monthlyLoginData?.companyTotalWorkingHour || 0 - monthlyLoginData?.totalEmpWorkingHours || 0}%` }} aria-valuenow="10" aria-valuemin="0" aria-valuemax="100"></div>
                                         </div>
                                     </div>
 
@@ -186,7 +186,7 @@ const Dashboard = () => {
                                             <div className='col-lg-6 col-md-6 col-sm-6 col-6 text-end'><span className='value'>{getOverTime(monthlyLoginData?.companyTotalWorkingHour, monthlyLoginData?.totalEmpWorkingHours)} hour</span></div>
                                         </div>
                                         <div className="progress">
-                                            <div className="progress-bar progress-bar-striped" role="progressbar" style={{ width: "0%" }} aria-valuenow="10" aria-valuemin="0" aria-valuemax="100"></div>
+                                            <div className="progress-bar progress-bar-striped" role="progressbar" style={{ width: `${getOverTime(monthlyLoginData?.companyTotalWorkingHour, monthlyLoginData?.totalEmpWorkingHours)}%` }} aria-valuenow="10" aria-valuemin="0" aria-valuemax="100"></div>
                                         </div>
                                     </div>
                                 </div>

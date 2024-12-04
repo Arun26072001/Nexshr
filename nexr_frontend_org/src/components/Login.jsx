@@ -15,18 +15,17 @@ const override = css`
 const Login = () => {
   const navigate = useNavigate();
   const { handleSubmit, loading, pass, data } = useContext(EssentialValues);
-  console.log(typeof data.Account);
 
   // const { id } = useParams();
 
   // useEffect(() => {
   //   // localStorage.setItem("orgId", id)
-  //   if (Account === "1") {
+  //   if (String(data.Account) === "1") {
   //     navigate("/admin")
   //   }
-  //   else if (Account === "2") {
+  //   else if (String(data.Account) === "2") {
   //     navigate("/hr")
-  //   } else if (Account === "3") {
+  //   } else if (String(data.Account) === "3") {
   //     navigate("/emp")
   //   }
   // }, []);
@@ -56,11 +55,6 @@ const Login = () => {
 
   return (
     <div>
-      {data.Account === '1'
-        ? <Navigate to={"/admin"} />
-        : data.Account === '2' ? <Navigate to={"/hr"} />
-          : data.Account === '3' ? <Navigate to={"/emp"} />
-            : ""}
       <div className="container">
         <div id="main-outer-div">
           <div id="logo-div">

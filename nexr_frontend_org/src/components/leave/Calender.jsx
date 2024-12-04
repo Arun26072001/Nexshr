@@ -35,8 +35,8 @@ export default function LeaveCalender() {
             {
                 isLoading ? <Loading /> :
                     <div className="leaveContainer d-block">
-                           {/* Search Input */}
-                           <div className='px-3 my-3'>
+                        {/* Search Input */}
+                        <div className='px-3 my-3'>
                             <div className="row">
                                 <div className="col-lg-12 searchInputIcon">
                                     <input
@@ -84,7 +84,7 @@ export default function LeaveCalender() {
                             </div>
                         </div>
 
-                     
+
                         {/* Leave Table */}
                         {leaveRequests?.leaveData?.length > 0 ? <LeaveTable data={leaveRequests.leaveData} />
                             : <NoDataFound message={"No Leave request for this employee Name"} />}

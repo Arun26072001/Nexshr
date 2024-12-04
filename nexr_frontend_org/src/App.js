@@ -137,8 +137,6 @@ const App = () => {
       try {
         const connectionMsg = await axios.get(`${url}/`);
         if (isLogin && window.location.pathname === "/") {
-          console.log(data.Account);
-
           if (data.Account === '1') {
             navigate("/admin")
           } else if (data.Account === '2') {
@@ -155,18 +153,18 @@ const App = () => {
     }
     checkNetworkConnection();
   }, [data]);
-
+  
   return (
     <EssentialValues.Provider value={{ data, handleLogout, handleSubmit, loading, pass, isLogin, isStartLogin, setIsStartLogin, isStartActivity, setIsStartActivity }}>
       <ToastContainer />
       <Routes>
         <Route path="login/" element={<Login />} />
-        <Route path="/" element={isLogin ? <Layout /> : <Navigate to={"/login"} />} >
+        {/* <Route path="/" element={isLogin ? <Layout /> : <Navigate to={"/login"} />} >
           <Route path="*" element={<Layout />} />
-        </Route>
-        <Route path="admin/*" element={isLogin && data.token && data.Account === '1' ? <HRMDashboard /> : <Navigate to={"/login"} />} />
-        <Route path="hr/*" element={isLogin && data.token && data.Account === '2' ? <HRMDashboard /> : <Navigate to={"/login"} />} />
-        <Route path="emp/*" element={isLogin && data.token && data.Account === '3' ? <HRMDashboard /> : <Navigate to={"/login"} />} />
+        </Route> */}
+        <Route path="admin/*" element={isLogin && data.token && String(data.Account) === '1' ? <HRMDashboard /> : <Navigate to={"/login"} />} />
+        <Route path="hr/*" element={isLogin && data.token && String(data.Account) === '2' ? <HRMDashboard /> : <Navigate to={"/login"} />} />
+        <Route path="emp/*" element={isLogin && data.token && String(data.Account) === '3' ? <HRMDashboard /> : <Navigate to={"/login"} />} />
         <Route path="no-internet-connection" element={<NoInternet />} />
       </Routes>
     </EssentialValues.Provider>

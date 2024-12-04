@@ -256,7 +256,7 @@ export default function PayslipUI({ payslipId, handleViewPayslip }) {
                             Amount in words: <b>Indian Rupee {numberToWords(earnings - deductions) || "N/A"} Only</b>
                         </p>
                         <p className='payslipTxt'>
-                            Through this document, we also confirm that the company name "<b>{payslips?.employee?.company[0].CompanyName}</b>" is a legal part of <b>Bright Livingstone Consultancy PVT. LTD.</b> and is located in Chennai.
+                            Through this document, we also confirm that the company name "<b>{payslips?.employee?.company[0]?.CompanyName}</b>" is a legal part of <b>Bright Livingstone Consultancy PVT. LTD.</b> and is located in Chennai.
                         </p>
                     </div>
                     <p className='py-2 payslipTxt text-center'>

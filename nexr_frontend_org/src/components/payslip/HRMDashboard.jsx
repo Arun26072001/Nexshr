@@ -38,7 +38,7 @@ export const TimerStates = createContext(null);
 
 export default function HRMDashboard() {
     const { data, isStartLogin, isStartActivity, setIsStartLogin, setIsStartActivity } = useContext(EssentialValues);
-    const {token, Account, _id} = data;
+    const { token, Account, _id } = data;
     const [attendanceData, setAttendanceData] = useState([]);
     const [attendanceForSummary, setAttendanceForSummary] = useState({});
     const [leaveRequests, setLeaveRequests] = useState({});
@@ -56,8 +56,8 @@ export default function HRMDashboard() {
     // files for payroll
     const files = ['payroll', 'value', 'manage', 'payslip'];
     const startAndEndTime = {
-        startingTime: "00:00",
-        endingTime: "00:00",
+        startingTime: ["00:00"],
+        endingTime: ["00:00"],
         timeHolder: "00:00:00",
     };
 
@@ -99,7 +99,8 @@ export default function HRMDashboard() {
             ...workTimeTracker,
             login: {
                 ...workTimeTracker?.login,
-                startingTime: workTimeTracker?.login?.startingTime !== "00:00" ? workTimeTracker.login.startingTime : currentTime
+                // startingTime: workTimeTracker?.login?.startingTime !== "00:00" ? workTimeTracker.login.startingTime : currentTime
+                startingTime: [...workTimeTracker?.login?.startingTime, currentTime]
             }
         };
         // // try to add clockins data
@@ -150,7 +151,7 @@ export default function HRMDashboard() {
             ...workTimeTracker,
             login: {
                 ...workTimeTracker?.login,
-                endingTime: currentTime,
+                endingTime: [...workTimeTracker?.login?.endingTime, currentTime],
                 timeHolder: localStorage.getItem("loginTimer")
             }
         };
@@ -381,20 +382,20 @@ export default function HRMDashboard() {
                     <Route index element={<Dashboard data={data} />} />
                     <Route path="job-desk/*" element={<JobDesk />} />
                     <Route path="employee" element={<Employee />} />
-                    <Route path="employee/add" element={ <Employees />} />
-                    <Route path="employee/edit/:id" element={ <AddEmployee /> } />
+                    <Route path="employee/add" element={<Employees />} />
+                    <Route path="employee/edit/:id" element={<AddEmployee />} />
                     <Route path="leave/*" element={
                         <LeaveStates.Provider value={{ daterangeValue, setDaterangeValue, isLoading, leaveRequests, filterLeaveRequests, empName, setEmpName }} >
                             <Routes>
                                 <Route index path='status' element={<Status />} />
                                 <Route path='leave-request' element={<LeaveRequest />} />
-                                <Route path='calender' element={<LeaveCalender />} />
+                                <Route path='calendar' element={<LeaveCalender />} />
                                 <Route path='leave-summary' element={<LeaveSummary />} />
                             </Routes>
                         </LeaveStates.Provider>
                     } />
-                    <Route path='/leave-request' element={ <LeaveRequestForm /> } />
-                    <Route path="/leave-request/edit/:id" element={<EditLeaveRequestForm /> } />
+                    <Route path='/leave-request' element={<LeaveRequestForm />} />
+                    <Route path="/leave-request/edit/:id" element={<EditLeaveRequestForm />} />
                     <Route path="attendance/*" element={
                         <Routes>
                             <Route index path="attendance-request" element={<Request attendanceData={attendanceData} isLoading={waitForAttendance} />} />
@@ -409,8 +410,8 @@ export default function HRMDashboard() {
                             <Route index path="role/*" element={
                                 <Routes>
                                     <Route index element={<Roles />} />
-                                    <Route path="add" element={<PageAndActionAuth /> } />
-                                    <Route path="edit/:id" element={<PageAndActionAuth /> } />
+                                    <Route path="add" element={<PageAndActionAuth />} />
+                                    <Route path="edit/:id" element={<PageAndActionAuth />} />
                                     <Route path="view/:id" element={<PageAndActionAuth />} />
                                 </Routes>
                             } />

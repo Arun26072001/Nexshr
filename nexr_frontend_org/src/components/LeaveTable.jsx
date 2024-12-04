@@ -57,12 +57,12 @@ export default function LeaveTable({ data, getCheckedValue, getEditDepartmentId,
 
     const column1 = [
         { id: 'FirstName', label: 'Name', minWidth: 130, align: "left", getter: (row) => row.employee.FirstName[0].toUpperCase() + row.employee.FirstName.slice(1) + row.employee.LastName || 'Unknown' },
-        { id: 'periodOfLeave', label: 'Period Of Leave', align: "left", minWidth: 150, getter: (row) => row?.periodOfLeave },
+        { id: 'periodOfLeave', label: 'Period Of Leave', align: "left", minWidth: 150, getter: (row) => row.periodOfLeave },
         { id: 'fromDate', label: 'Start Date', minWidth: 130, align: 'left', getter: (row) => row.fromDate ? row.fromDate.split("T")[0] : 'N/A' },
         { id: 'toDate', label: 'End Date', minWidth: 130, align: 'left', getter: (row) => row.toDate ? row.toDate.split("T")[0] : 'N/A' },
-        { id: 'leaveType', label: 'Type', minWidth: 130, align: 'left', getter: (row) => row?.leaveType },
-        { id: 'reasonForLeave', label: 'Reason', minWidth: 130, align: 'left', getter: (row) => row?.reasonForLeave },
-        { id: 'status', label: 'Status', minWidth: 130, align: 'left', getter: (row) => row?.status },
+        { id: 'leaveType', label: 'Type', minWidth: 130, align: 'left', getter: (row) => row.leaveType },
+        { id: 'reasonForLeave', label: 'Reason', minWidth: 130, align: 'left', getter: (row) => row.reasonForLeave },
+        { id: 'status', label: 'Status', minWidth: 130, align: 'left', getter: (row) => row.status },
         { id: "Action", label: "Action", minWidth: 100, align: "left" }
     ];
 
@@ -344,12 +344,12 @@ export default function LeaveTable({ data, getCheckedValue, getEditDepartmentId,
 
     const column8 = [
         { id: 'FirstName', label: 'Name', minWidth: 130, align: "left", getter: (row) => row.employee.FirstName[0].toUpperCase() + row.employee.FirstName.slice(1) + row.employee.LastName || 'Unknown' },
-        { id: 'periodOfLeave', label: 'Period Of Leave', align: "left", minWidth: 150, getter: (row) => row?.periodOfLeave },
+        { id: 'periodOfLeave', label: 'Period Of Leave', align: "left", minWidth: 150, getter: (row) => row.periodOfLeave },
         { id: 'fromDate', label: 'Start Date', minWidth: 130, align: 'left', getter: (row) => row.fromDate ? row.fromDate.split("T")[0] : 'N/A' },
         { id: 'toDate', label: 'End Date', minWidth: 130, align: 'left', getter: (row) => row.toDate ? row.toDate.split("T")[0] : 'N/A' },
-        { id: 'leaveType', label: 'Type', minWidth: 130, align: 'left', getter: (row) => row?.leaveType },
-        { id: 'reasonForLeave', label: 'Reason', minWidth: 130, align: 'left', getter: (row) => row?.reasonForLeave },
-        { id: 'status', label: 'Status', minWidth: 130, align: 'left', getter: (row) => row?.status },
+        { id: 'leaveType', label: 'Type', minWidth: 130, align: 'left', getter: (row) => row.leaveType },
+        { id: 'reasonForLeave', label: 'Reason', minWidth: 130, align: 'left', getter: (row) => row.reasonForLeave },
+        { id: 'status', label: 'Status', minWidth: 130, align: 'left', getter: (row) => row.status },
     ];
 
     const column9 = [
@@ -427,18 +427,18 @@ export default function LeaveTable({ data, getCheckedValue, getEditDepartmentId,
         }
     }
 
-    
+
     useEffect(() => {
         setRows(data || []);
         data.map((item) => {
-            if (item.fromDate && params['*'] === "leave/leave-request") {
+            if (item.fromDate && params['*'] === "leave-request") {
                 return setColumns(column1);
             } else if (item.employmentType) {
                 return setColumns(column3);
-            } else if (item.date && params['*'] === "attendance/attendance-summary"
-                || item.date && params['*'] === "attendance/details"
-                || item.date && params['*'] === "attendance/attendance-request"
-                || item.date && params['*'] === "attendance/attendance"
+            } else if (item.date && params['*'] === "attendance-summary"
+                || item.date && params['*'] === "details"
+                || item.date && params['*'] === "attendance-request"
+                || item.date && params['*'] === "attendance"
             ) {
                 return setColumns(column5);
             } else if (item.date) {
@@ -448,10 +448,10 @@ export default function LeaveTable({ data, getCheckedValue, getEditDepartmentId,
             } else if (item.RoleName) {
                 return setColumns(column7);
             }
-            else if (item.fromDate && params['*'] === "leave/status"
-                || item.fromDate && params['*'] === "leave/leave-summary"
+            else if (item.fromDate && params['*'] === "status"
+                || item.fromDate && params['*'] === "leave-summary"
                 || item.fromDate && params['*'] === "leave"
-                || item.fromDate && params['*'] === "leave/calendar") {
+                || item.fromDate && params['*'] === "calendar") {
                 return setColumns(column8);
             } else if (item.DepartmentName) {
                 return setColumns(column9)
@@ -552,6 +552,7 @@ export default function LeaveTable({ data, getCheckedValue, getEditDepartmentId,
                                 </TableRow>
                             ))}
                         </TableBody>
+
                     </Table>
                 </TableContainer>
                 <TablePagination
