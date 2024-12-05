@@ -1,8 +1,8 @@
 .sidebar {
   background-color: #f4f4f4;
   color: #b7b7b7;
-  height: calc(100vh - var(--header-height));
-  top: var(--header-height);
+  height: calc(100vh);
+  top: 57px;
   left: 0;
   overflow: auto;
   position: fixed;

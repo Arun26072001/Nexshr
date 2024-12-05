@@ -9,7 +9,7 @@ h1 {
 }
 
 :root {
-  --header-height: 55px;
+  --header-height: fit-content;
 }
 
 body {

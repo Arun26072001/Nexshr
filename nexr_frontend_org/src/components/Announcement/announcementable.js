@@ -109,7 +109,7 @@
 
 //   const headers = {
 //     'Content-Type': 'application/json',
-//     Authorization: `Bearer ${token}`,
+//     Authorization: `${token}`,
 //     Accept: 'application/json',
 //     'Access-Control-Allow-Origin': '*',
 //   };
@@ -120,7 +120,7 @@
 //         const response = await fetch(`${process.env.REACT_APP_API_URL}/api/announcements`,
 //           {
 //             headers: {
-//               authorization: `Bearer ${token}`
+//               authorization: `${token}`
 //             }
 //           },
 //         );
@@ -196,7 +196,7 @@ export default function AnnouncementTable() {
 
   const headers = {
     'Content-Type': 'application/json',
-    Authorization: `Bearer ${token}`,
+    Authorization: `${token}`,
     Accept: 'application/json',
     'Access-Control-Allow-Origin': '*',
   };
@@ -205,7 +205,7 @@ export default function AnnouncementTable() {
     const fetchAnnouncements = async () => {
       try {
         const response = await fetch(`${process.env.REACT_APP_API_URL}/api/announcements`, {
-          headers: { authorization: `Bearer ${token}` }
+          headers: { authorization: `${token}` }
         });
         if (!response.ok) {
           throw new Error('Failed to fetch announcements');
@@ -233,7 +233,7 @@ const handleDelete = async (announcementId) => {
     try {
       const response = await fetch(`${process.env.REACT_APP_API_URL}/api/announcements/${announcementId}`, {
         method: 'DELETE',
-        headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }
+        headers: { 'Authorization': `${token}`, 'Content-Type': 'application/json' }
       });
 
       if (!response.ok) {

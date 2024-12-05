@@ -8,7 +8,8 @@ const { Employee } = require('../models/EmpModel');
 const { verifyHR, verifyHREmployee, verifyEmployee, verifyAdmin, verifyAdminHREmployee } = require('../auth/authMiddleware');
 const { Position } = require('../models/PositionModel');
 const { Team } = require('../models/TeamModel');
-const { dynamicPathMiddleware } = require('../imgStorage');
+const axios = require("axios");
+
 const now = new Date();
 
 function getDayDifference(leave) {
@@ -325,8 +326,6 @@ leaveApp.post("/:empId", verifyAdminHREmployee, async (req, res) => {
     // Handle empty `coverBy` value
     req.body.coverBy = req.body.coverBy === "" ? null : req.body.coverBy;
 
-    dynamicPathMiddleware(null, "/upload/imgs");
-
     // Construct the leave request object
     const leaveRequest = {
       leaveType: req.body.leaveType.toLowerCase(),
@@ -363,7 +362,7 @@ leaveApp.post("/:empId", verifyAdminHREmployee, async (req, res) => {
     );
 
     // Fetch employee leave data
-    const empData = await Employee.findById(req.params.empId, "typesOfLeaveCount typesOfLeaveRemainingDays leaveApplication");
+    const empData = await Employee.findById(req.params.empId);
     if (!empData) {
       return res.status(400).send({ message: `No employee found for ID ${req.params.empId}` });
     }
@@ -404,56 +403,58 @@ leaveApp.post("/:empId", verifyAdminHREmployee, async (req, res) => {
     empData.leaveApplication.push(newLeaveApp._id);
     await empData.save();
 
-    // Prepare and send the email
-    const htmlContent = `
-      <!DOCTYPE html>
-      <html lang="en">
-      <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>NexsHR</title>
-        <style>
-          body { font-family: Arial, sans-serif; background-color: #f6f9fc; color: #333; }
-          .container { max-width: 600px; margin: auto; padding: 20px; background-color: #fff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); }
-          .header { text-align: center; padding: 20px; }
-          .header img { max-width: 100px; }
-          .content { margin: 20px 0; }
-          .footer { text-align: center; font-size: 14px; margin-top: 20px; color: #777; }
-        </style>
-      </head>
-      <body>
-        <div class="container">
-          <div class="header">
-            <img src="https://imagedelivery.net/r89jzjNfZziPHJz5JXGOCw/1dd59d6a-7b64-49d7-ea24-1366e2f48300/public" alt="Logo" />
-            <h1>${empData.FirstName} has assigned a task to ${relievingOffData.FirstName}</h1>
-          </div>
-          <div class="content">
-              <p>Hi ${relievingOffData.FirstName},</p>
-              <p>${empData.FirstName} has assigned some tasks to you during their leave period. Please take note.</p>
-              <p>Thank you!</p>
-          </div>
-          <div class="footer">
-            <p>Need help? <a href="mailto:webnexs29@gmail.com">Contact our Team Head</a>.</p>
-          </div>
-        </div>
-      </body>
-      </html>
-    `;
+    if (req.body.coverBy) {
+      // Prepare and send the email
+      const htmlContent = `
+     <!DOCTYPE html>
+     <html lang="en">
+     <head>
+       <meta charset="UTF-8">
+       <meta name="viewport" content="width=device-width, initial-scale=1.0">
+       <title>NexsHR</title>
+       <style>
+         body { font-family: Arial, sans-serif; background-color: #f6f9fc; color: #333; }
+         .container { max-width: 600px; margin: auto; padding: 20px; background-color: #fff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); }
+         .header { text-align: center; padding: 20px; }
+         .header img { max-width: 100px; }
+         .content { margin: 20px 0; }
+         .footer { text-align: center; font-size: 14px; margin-top: 20px; color: #777; }
+       </style>
+     </head>
+     <body>
+       <div class="container">
+         <div class="header">
+           <img src="https://imagedelivery.net/r89jzjNfZziPHJz5JXGOCw/1dd59d6a-7b64-49d7-ea24-1366e2f48300/public" alt="Logo" />
+           <h1>${empData.FirstName} has assigned a task to ${relievingOffData.FirstName}</h1>
+         </div>
+         <div class="content">
+             <p>Hi ${relievingOffData.FirstName},</p>
+             <p>${empData.FirstName} has assigned some tasks to you during their leave period. Please take note.</p>
+             <p>Thank you!</p>
+         </div>
+         <div class="footer">
+           <p>Need help? <a href="mailto:webnexs29@gmail.com">Contact our Team Head</a>.</p>
+         </div>
+       </div>
+     </body>
+     </html>
+   `;
 
-    const transporter = nodemailer.createTransport({
-      service: "gmail",
-      auth: {
-        user: process.env.FROM_MAIL,
-        pass: process.env.MAILPASSWORD,
-      },
-    });
+      const transporter = nodemailer.createTransport({
+        service: "gmail",
+        auth: {
+          user: process.env.FROM_MAIL,
+          pass: process.env.MAILPASSWORD,
+        },
+      });
 
-    await transporter.sendMail({
-      from: process.env.FROM_MAIL,
-      to: relievingOffData.Email,
-      subject: "Task Relieving Request",
-      html: htmlContent,
-    });
+      await transporter.sendMail({
+        from: process.env.FROM_MAIL,
+        to: relievingOffData.Email,
+        subject: "Task Relieving Request",
+        html: htmlContent,
+      });
+    }
 
     return res.status(201).send({ message: "Leave Request has been sent to Higher Authority." });
   } catch (err) {

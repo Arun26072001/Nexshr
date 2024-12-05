@@ -55,7 +55,7 @@ const AssignEmp = ({ handleSubmit, teamObj, updateTeamObj, toggleAssignEmp, team
             try {
                 const res = await axios.get(`${url}/api/employee`, {
                     headers: {
-                        Authorization: `Bearer ${token}`
+                        Authorization: `${token}`
                     }
                 });
                 setEmployees(res.data);

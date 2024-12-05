@@ -122,9 +122,10 @@ export default function HRMDashboard() {
                 console.error('Error in add Clockins timer:', error);
             }
             // try to update clockins data
-        } else if (updatedState._id) {
+        } else {
 
             try {
+                trackTimer();
                 // Call the API with the updated state
                 const updatedData = await updateDataAPI(updatedState);
                 setWorkTimeTracker(updatedData);
@@ -143,7 +144,7 @@ export default function HRMDashboard() {
     const stopLoginTimer = async () => {
         console.log("call to stop");
         console.log(workTimeTracker.login.timeHolder);
-
+        trackTimer();
         const currentDate = new Date();
         const currentHours = currentDate.getHours().toString().padStart(2, '0');
         const currentMinutes = currentDate.getMinutes().toString().padStart(2, '0');
@@ -201,8 +202,7 @@ export default function HRMDashboard() {
     };
 
     const stopActivityTimer = async () => {
-        console.log("call to stop activity");
-
+        trackTimer();
         const currentDate = new Date();
         const currentHours = currentDate.getHours().toString().padStart(2, '0');
         const currentMinutes = currentDate.getMinutes().toString().padStart(2, '0');
@@ -215,6 +215,7 @@ export default function HRMDashboard() {
                 timeHolder: workTimeTracker[timeOption].timeHolder
             },
         });
+        
         // console.log(workTimeTracker?._id, isStartActivity);
 
         // if (workTimeTracker?._id) {

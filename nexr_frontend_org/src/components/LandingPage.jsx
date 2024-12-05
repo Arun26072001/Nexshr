@@ -68,7 +68,7 @@ export default function LandingPage() {
                 registerData,
                 {
                     headers: {
-                      Authorization: `Bearer ${token}` || ""
+                      Authorization: `${token}` || ""
                     },
                 }
             );

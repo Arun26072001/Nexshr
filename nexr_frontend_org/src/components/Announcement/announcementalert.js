@@ -198,7 +198,7 @@
 
 //     const headers = {
 //         "Content-Type": "application/json",
-//         Authorization: `Bearer ${token}`,
+//         Authorization: `${token}`,
 //         Accept: "application/json",
 //         "Access-Control-Allow-Origin": "*",
 //     };
@@ -481,7 +481,7 @@ const AnnouncementComponent = () => {
     
     const headers = {
         'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
+        Authorization: `${token}`,
         Accept: 'application/json',
         'Access-Control-Allow-Origin': '*',
     };
@@ -494,7 +494,7 @@ const AnnouncementComponent = () => {
                 const response = await axios.get(
                     `${process.env.REACT_APP_API_URL}/api/employee/user`, 
                    { headers: {
-                        authorization: `Bearer ${token}`
+                        authorization: `${token}`
                    }},
                 );
                 setTeam_member(response?.data?.Team || []);

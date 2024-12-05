@@ -9,6 +9,7 @@ require("dotenv").config();
 const cors = require("cors");
 const http = require("http");
 const socketIo = require("socket.io");
+const path = require("path");
 
 // Router Files
 // const login = require("./orgRoutes/login");
@@ -80,7 +81,7 @@ const userPermission = require("./routes/user-permission");
 const pageAuth = require("./routes/page-auth");
 const organization = require("./routes/organization");
 const userAccount = require("./routes/user-account");
-const imgUpload = require("./routes/imgUpload");
+const imgUpload = require('./routes/imgUpload');
 
 // MongoDB Connection
 const mongoURI = process.env.DATABASEURL;
@@ -112,6 +113,9 @@ app.options("*", cors());
 
 // Express Middleware
 app.use(express.json());
+
+const uploadsDir = path.join(__dirname, 'uploads/imgs');
+app.use('/uploads/imgs', express.static(uploadsDir));
 
 // API Endpoints
 app.get("/", (req, res) => {
@@ -160,7 +164,7 @@ app.use("/api/announcements", announcement);
 app.use("/api/teamssample", teamssample);
 app.use("/api/user-permission", userPermission);
 app.use("/api/page-auth", pageAuth);
-app.use("/api/upload/img", imgUpload)
+app.use("/api/upload", imgUpload);
 
 
 // Create HTTP Server and Socket.IO

@@ -208,8 +208,8 @@ router.get("/:id", verifyAdminHREmployee, async (req, res) => {
         })
 
         const activitiesData = activities.map((activity) => {
-            const startingTime = clockIn[activity]?.startingTime || "00:00";
-            const endingTime = clockIn[activity]?.endingTime || "00:00";
+            const startingTime = clockIn[activity]?.startingTime[0] || "00:00";
+            const endingTime = clockIn[activity]?.endingTime[clockIn[activity]?.endingTime.length - 1] || "00:00";
             const timeCalMins = timeToMinutes(clockIn[activity]?.timeHolder || "00:00:00");
 
             return {
@@ -226,8 +226,7 @@ router.get("/:id", verifyAdminHREmployee, async (req, res) => {
         // Convert total minutes to hours and minutes
         const hours = Math.floor(totalEmpWorkingMinutes / 60);
         const minutes = totalEmpWorkingMinutes % 60;
-        console.log(timeData.meeting);
-        
+
         // Respond with calculated data
         return res.send({
             timeData,

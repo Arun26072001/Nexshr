@@ -405,7 +405,7 @@ const WorkPlaceTab = () => {
       if (name === "Country") {
         try {
           const states = await axios.get(`${url}/api/country/${values[0]}`, {
-            Authorization: `Bearer ${token}` || ""
+            Authorization: `${token}` || ""
           });
           setStateData(states)
         } catch (err) {
@@ -423,7 +423,7 @@ const WorkPlaceTab = () => {
 
   function handleEdit(id) {
     axios.get(url + "/api/work-place/" + id, {
-      Authorization: `Bearer ${token}` || ""
+      Authorization: `${token}` || ""
     })
       .then((res) => {
         console.log(res.data);
@@ -440,7 +440,7 @@ const WorkPlaceTab = () => {
       return toast.error(`Can't delete workPlace. There Have ${workPlace.EmpID.length} Employees!`);
     } else {
       axios.delete(`${url}/api/work-place/${workPlace._id}`, {
-        Authorization: `Bearer ${token}` || ""
+        Authorization: `${token}` || ""
       })
         .then((res) => {
           toast.success(res.data);

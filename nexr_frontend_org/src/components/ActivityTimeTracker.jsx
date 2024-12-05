@@ -59,8 +59,6 @@ const ActivityTimeTracker = () => {
 
     // Stop the timer
     const stopOnlyTimer = () => {
-        console.log(timerRef.current);
-
         if (timerRef.current) {
             clearInterval(timerRef.current);
             timerRef.current = null;
@@ -71,6 +69,7 @@ const ActivityTimeTracker = () => {
     const startTimer = async () => {
         if (!timerRef.current) {
             await startActivityTimer();
+            trackTimer()
             // if (isStartLogin) {
             timerRef.current = setInterval(incrementTime, 1000);
             // }
@@ -79,6 +78,8 @@ const ActivityTimeTracker = () => {
 
     // Stop the timer with activity
     const stopTimer = async () => {
+        console.log("try to stop");
+        
         if (timerRef.current) {
             await stopActivityTimer();
             clearInterval(timerRef.current);
