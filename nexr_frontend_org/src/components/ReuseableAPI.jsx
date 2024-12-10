@@ -35,7 +35,7 @@ async function getTotalWorkingHourPerDay(start, end) {
 const getDataAPI = async (empId) => {
     try {
         const response = await axios.get(`${url}/api/clock-ins/${empId}`, {
-            params: { date: new Date().toISOString() },
+            params: { date:new Date().toISOString() },
             headers: { authorization: token || '' },
         });
 

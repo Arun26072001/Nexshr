@@ -31,7 +31,7 @@ async function checkLoginForOfficeTime(scheduledTime, actualTime) {
 
 // Function to calculate working hours between start and end times
 function getTotalWorkingHourPerDay(startingTime, endingTime) {
-    if (startingTime !== "00:00:00" && endingTime !== "00:00:00") {
+    if (startingTime !== "00:00:00" && endingTime !== "") {
 
         // Convert time strings to Date objects (using today's date)
         const today = new Date();
@@ -148,7 +148,7 @@ router.get("/:id", verifyAdminHREmployee, async (req, res) => {
     // Helper function to convert time in HH:MM:SS format to total minutes
     function timeToMinutes(timeStr) {
         const [hours, minutes, seconds] = timeStr.split(":").map(Number);
-        return Number(((hours * 60) + minutes + (seconds / 60)).toFixed()) || 0; // Defaults to 0 if input is invalid
+        return Number(((hours * 60) + minutes + (seconds / 60)).toFixed(2)) || 0; // Defaults to 0 if input is invalid
     }
 
     try {
@@ -196,6 +196,8 @@ router.get("/:id", verifyAdminHREmployee, async (req, res) => {
                 } else if (time) {
                     value = (currentTimeInMinutes - timeToMinutes(startingTimes[startingTimes?.length - 1]))
                 }
+                console.log(value);
+                
                 return value;
             });
             const totalValue = values?.reduce((acc, value) => acc + value, 0)
