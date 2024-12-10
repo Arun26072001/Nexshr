@@ -5,6 +5,7 @@ const cen_url = process.env.CENTRALIZATION_BASEURL;
 
 function verifyHR(req, res, next) {
   const token = req.headers['authorization'];
+  console.log(token);
   
   if (typeof token !== "undefined") {
     // decodedData = jwt.decode(req.headers['authorization']);

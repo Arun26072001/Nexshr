@@ -367,7 +367,7 @@ export default function HRMDashboard() {
                     }
                 }
             } catch (error) {
-                console.warning(error);
+                console.warn(error);
             }
         }
         getClockInsData()
