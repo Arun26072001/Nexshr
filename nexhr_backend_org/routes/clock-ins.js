@@ -182,6 +182,7 @@ router.get("/:id", verifyAdminHREmployee, async (req, res) => {
 
         // Get current time in minutes
         const currentTimeInMinutes = timeToMinutes(`${new Date().getHours()}:${new Date().getMinutes()}:${new Date().getSeconds()}`);
+        console.log(`${new Date().getHours()}:${new Date().getMinutes()}:${new Date().getSeconds()}`);
 
         activities.map((activity) => {
             let startingTimes = clockIn[activity]?.startingTime;
@@ -197,7 +198,7 @@ router.get("/:id", verifyAdminHREmployee, async (req, res) => {
                     value = (currentTimeInMinutes - timeToMinutes(startingTimes[startingTimes?.length - 1]))
                 }
                 console.log(value);
-                
+
                 return value;
             });
             const totalValue = values?.reduce((acc, value) => acc + value, 0)
