@@ -44,7 +44,7 @@ const EmpCard = ({ team, deleteTeam, editTeam }) => {
                     {team.teamName[0]}
                 </div>
                 <div>
-                    <div style={{ fontWeight: 600 }}>{team.teamName}</div>
+                    <div style={{ fontWeight: 600 }}>{team.teamName[0].toUpperCase()+team.teamName.slice(1)}</div>
                     <div>{team.employees.length} member</div>
                 </div>
                 <div >

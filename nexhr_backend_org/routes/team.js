@@ -29,7 +29,7 @@ router.get("/", verifyAdminHR, async (req, res) => {
         res.send(teams)
     } catch (err) {
         console.error(err)
-        res.status(500).send({ message: "internal server error", details: err.message });
+        res.status(500).send({ error: err.message });
     }
 });
 
@@ -105,20 +105,26 @@ router.get("/:id", verifyAdminHR, async (req, res) => {
 
 router.post("/", verifyAdminHR, async (req, res) => {
     try {
-        // const validatedTeam = await TeamValidation.validate(req.body);
-        // const {orgName} = jwt.decode(req.headers['authorization']);
-        const Team = getTeamModel(orgName)
-        const newTeam = await Team.create(validatedTeam);
-        res.send({ message: "Team added!", newTeam });
-    } catch (err) {
-        console.error(err); // Use console.error for logging errors
-        if (err.name === 'ValidationError') {
-            res.status(400).send({ message: "Validation Error", details: err.details });
-        } else {
-            res.status(500).send({ message: "Internal Server Error" });
+        const validation = TeamValidation.validate(req.body);
+        const { error } = validation;
+        const isTeamName = await Team.find({ teamName: req.body.teamName }).exec();
+        if (isTeamName.length > 0) {
+            return req.status(400).send({ error: `${isTeamName.teamName} Already exist!` })
         }
+        const isTeamLead = await Team.find({ lead: req.body.lead }).populate("lead");
+        if (isTeamLead.length > 0) {
+            return req.status(400).send({ error: `${isTeamLead.lead.FirstName} already lead in ${isTeamLead.teamName}` })
+        }
+        if (error) {
+            return res.status(400).send({ error: error.details[0].message })
+        } else {
+            const newTeam = await Team.create(req.body);
+            res.send({ message: `new ${newTeam.teamName} team has been added!`, newTeam })
+        }
+    } catch (error) {
+        res.status(500).send({ error: error.message })
     }
-});
+})
 
 router.put("/:id", verifyAdminHR, async (req, res) => {
     try {

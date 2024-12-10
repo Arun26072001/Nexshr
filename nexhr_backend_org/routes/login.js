@@ -30,6 +30,8 @@ router.post("/", async (req, res) => {
                         { path: "pageAuth" }
                     ]
                 })
+                console.log(emp);
+                
             if (!emp) {
                 return res.status(400).send({ message: "Invalid Credentials" })
             } else {

@@ -6,7 +6,7 @@ const cen_url = process.env.CENTRALIZATION_BASEURL;
 function verifyHR(req, res, next) {
   const token = req.headers['authorization'];
   // console.log(token);
-  
+
   if (typeof token !== "undefined") {
     // decodedData = jwt.decode(req.headers['authorization']);
     // if(decodedData.Account)
@@ -93,7 +93,7 @@ async function verifyAdminHREmployee(req, res, next) {
   // }else{
   // }
   if (typeof token !== "undefined") {
-    
+
     jwt.verify(token, jwtKey, (err, authData) => {
       if (err) {
         console.log("error in verify");
@@ -122,28 +122,40 @@ async function verifyAdminHREmployee(req, res, next) {
 }
 
 function verifyAdminHR(req, res, next) {
-  
-  const token = req.headers['authorization'];
+  // Retrieve the token from the Authorization header
+  const authHeader = req.headers['authorization'];
 
-  if (typeof token !== "undefined") {
-    // decodedData = jwt.decode(req.headers['authorization']);
-    // if(decodedData.Account)
-    jwt.verify(token, jwtKey, (err, authData) => {
-      if (err) {
-        res.sendStatus(401);
-      } else {
-        if (authData.Account == 1 || authData.Account == 2) {
-          next();
-        } else {
-          res.sendStatus(401);
-        }
-      }
-    });
-  } else {
-    // Forbidden
-    res.sendStatus(401);
+  if (!authHeader) {
+    // If no Authorization header is present
+    console.log("Missing authorization token");
+    return res.status(401).json({ error: "Authorization token is required" });
   }
+
+  // Extract the token (e.g., "Bearer <token>")
+  const token = authHeader.startsWith("Bearer ") ? authHeader.split(" ")[1] : authHeader;
+
+  // Verify the token
+  jwt.verify(token, jwtKey, (err, authData) => {
+    if (err) {
+      // Handle token verification errors
+      console.error("Token verification error:", err.message);
+      return res.status(401).json({ error: "Invalid or expired token" });
+    }
+
+    // Check if the user has admin or HR access
+    if (authData.Account === 1 || authData.Account === 2) {
+      // User is authorized
+      next();
+    } else {
+      // User is not authorized
+      console.warn("Unauthorized access attempt");
+      return res.status(403).json({ error: "Access denied" });
+    }
+  });
 }
+
+module.exports = verifyAdminHR;
+
 
 function verifyAdmin(req, res, next) {
   const token = req.headers['authorization'];
@@ -216,18 +228,18 @@ function verifySuperAdmin(req, res, next) {
 
 const dynamicPathMiddleware = (type, customPath) => {
   return (req, res, next) => {
-      let getPath;
+    let getPath;
 
-      if (customPath) {
-          getPath = path.join(__dirname, '..', customPath);
-      } else {
-          let basePath = routeToDirectoryMap[type] || 'uploads/images/';
-          getPath = path.join(__dirname, '..', basePath);
-      }
-      req.uploadPath = getPath;
-      console.log(`Full Path: ${getPath}`);
-      ensureDirectoryExistence(getPath);
-      next();
+    if (customPath) {
+      getPath = path.join(__dirname, '..', customPath);
+    } else {
+      let basePath = routeToDirectoryMap[type] || 'uploads/images/';
+      getPath = path.join(__dirname, '..', basePath);
+    }
+    req.uploadPath = getPath;
+    console.log(`Full Path: ${getPath}`);
+    ensureDirectoryExistence(getPath);
+    next();
   };
 };
 

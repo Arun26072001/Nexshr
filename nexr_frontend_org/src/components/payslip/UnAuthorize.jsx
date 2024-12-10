@@ -11,7 +11,7 @@ export default function UnAuthorize() {
             <h3 className='my-2'>401</h3>
             <p className='my-2'>You access this page!</p>
 
-            <button onClick={()=>navigate(`/${whoIs}`)} className='button' >Get Back</button>
+            <button onClick={()=>navigate(-1)} className='button' >Get Back</button>
         </div>          
     )
 }

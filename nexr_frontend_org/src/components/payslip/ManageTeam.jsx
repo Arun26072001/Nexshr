@@ -5,14 +5,15 @@ import { toast } from "react-toastify";
 import AssignEmp from "./AssignEmp";
 import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
 import EditTeam from "./EditTeam";
-import { Input, InputGroup } from "rsuite";
+import { Input, InputGroup, SelectPicker } from "rsuite";
 import { useNavigate } from "react-router-dom";
 import NoDataFound from "./NoDataFound";
 import Loading from "../Loader";
 import { TimerStates } from "./HRMDashboard";
+import { EssentialValues } from "../../App";
 
 const ManageTeam = () => {
-    const {whoIs} = useContext(TimerStates);
+    const { whoIs } = useContext(TimerStates);
     const [teamObj, setTeamObj] = useState({
         teamName: "",
         employees: [],
@@ -26,8 +27,10 @@ const ManageTeam = () => {
     const [editTeamObj, setEditTeamObj] = useState(null); // Null indicates no team is being edited
     const [teams, setTeams] = useState([]);
     const [filteredTeams, setFilteredTeams] = useState([]);
+    const [leads, setLeads] = useState([]);
     const url = process.env.REACT_APP_API_URL;
-    const token = localStorage.getItem("token");
+    const { data } = useContext(EssentialValues);
+    const { token } = data;
     const navigate = useNavigate();
 
     const filterTeam = (e) => {
@@ -55,7 +58,7 @@ const ManageTeam = () => {
     };
 
     const changeTeamObj = (e) => {
-        const {name, value} = e.target;
+        const { name, value } = e.target;
         if (editTeamObj) {
             setEditTeamObj((prev) => ({
                 ...prev,
@@ -95,6 +98,7 @@ const ManageTeam = () => {
         }
     };
 
+
     const reloadUI = () => {
         reload(!dom);
     };
@@ -102,7 +106,9 @@ const ManageTeam = () => {
     const deleteTeam = async (id) => {
         try {
             const res = await axios.delete(`${url}/api/team/${id}`, {
-                   Authorization: `${token}` || ""
+                headers: {
+                    Authorization: `${token}` || ""
+                }
             });
 
             toast.success(res.data.message);
@@ -114,9 +120,13 @@ const ManageTeam = () => {
 
     const editTeam = async (team) => {
         try {
-            const res = await axios.get(`${url}/api/team/${team._id}`, {
-                Authorization: `${token}` || ""
-            });
+            const res = await axios.get(`${url}/api/team/${team._id}`,
+                {
+                    headers: {
+                        Authorization: `${token}` || ""
+                    }
+                }
+            );
             setEditTeamObj(res.data);
             toggleAddTeam();
         } catch (err) {
@@ -132,15 +142,22 @@ const ManageTeam = () => {
             };
 
             const response = await axios.post(`${url}/api/team`, newTeamObj, {
-                Authorization: `${token}` || ""
+                headers: {
+                    Authorization: `${token}` || ""
+                }
             });
 
             toggleAssignEmp();
             toggleAddTeam();
+            setTeamObj({
+                teamName: "",
+                employees: [],
+                lead: ""
+            })
             reloadUI();
             toast.success(response.data.message);
         } catch (err) {
-            toast.error(err.message);
+            toast.error(err.response.data.error);
         }
     };
 
@@ -153,42 +170,59 @@ const ManageTeam = () => {
             };
 
             const res = await axios.put(`${url}/api/team/${editTeamObj._id}`, updatedTeamObj, {
-                Authorization: `${token}` || ""
+                headers: {
+                    Authorization: `${token}` || ""
+                }
             });
 
             toggleAssignEmp();
             toggleAddTeam();
             reloadUI();
             toast.success(res.data.message);
-            console.log(res.data);
-            
+
         } catch (err) {
             console.log(err);
-            
+
             toast.error(err.message);
         }
     };
 
+    async function fetchLeads() {
+        try {
+            const teamLeads = await axios.get(`${url}/api/employee/lead`, {
+                headers: {
+                    Authorization: token || ""
+                }
+            })
+            setLeads(teamLeads.data);
+        } catch (error) {
+            toast.error(error.repsonse.data.error)
+        }
+    }
+
     useEffect(() => {
         const fetchTeams = async () => {
-            setIsLoading(true);
             try {
                 const res = await axios.get(`${url}/api/team`, {
-                    Authorization: `${token}` || ""
+                    headers: {
+                        Authorization: `${token}` || ""
+                    }
                 });
+                console.log(res.data);
 
                 setTeams(res.data);
                 setFilteredTeams(res.data);
-                setIsLoading(false);
             } catch (err) {
-                toast.error(err.message);
-                if (err?.response?.status === 401) {
-                    navigate("/admin/unauthorize");
-                }
+                console.log(err);
+
+                toast.error(err.response.data.error);
             }
         };
 
+        setIsLoading(true);
         fetchTeams();
+        fetchLeads();
+        setIsLoading(false);
     }, [dom]);
 
     return (
@@ -207,6 +241,7 @@ const ManageTeam = () => {
 
                 {addTeam && (
                     <EditTeam
+                        leads={leads}
                         team={editTeamObj ? editTeamObj : teamObj}
                         setTeamName={changeTeamObj} // to update teamName
                         toggleAddTeam={toggleAddTeam}

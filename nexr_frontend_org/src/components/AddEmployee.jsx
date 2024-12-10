@@ -155,7 +155,7 @@ const AddEmployee = () => {
       setCompanies(company.data);
 
     } catch (err) {
-      console.log(err.data);
+      console.log(err);
     }
   }
 

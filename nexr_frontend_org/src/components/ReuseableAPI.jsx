@@ -181,11 +181,7 @@ const fetchAllEmployees = async () => {
         return res.data;
     } catch (err) {
         console.log(err);
-        if (err.response && err.response.data && err.response.data.message) {
-            return err.response.data.message;
-        } else {
-            return err;
-        }
+        toast.error(err.response.data.message)
     }
 }
 

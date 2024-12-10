@@ -146,6 +146,21 @@ leaveApp.get("/hr", verifyHR, async (req, res) => {
   }
 });
 
+leaveApp.get("/lead/:id", verifyEmployee, async (req, res) => {
+  try {
+    const team = await Team.findOne({ lead: req.params.id }).exec();
+    if (!team) {
+      return res.status(404).send({ error: "You are not lead in any team" })
+    } else {
+      const { employees } = team;
+      const teamLeaves = await LeaveApplication.find({ employee: { $in: employees } });
+      res.send(teamLeaves);
+    }
+  } catch (error) {
+    res.status(500).send({ error: error.message })
+  }
+})
+
 // get all leave requests from all employees
 
 leaveApp.get("/:id", verifyHREmployee, async (req, res) => {

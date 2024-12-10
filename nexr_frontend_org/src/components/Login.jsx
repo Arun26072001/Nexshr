@@ -18,17 +18,17 @@ const Login = () => {
 
   // const { id } = useParams();
 
-  // useEffect(() => {
-  //   // localStorage.setItem("orgId", id)
-  //   if (String(data.Account) === "1") {
-  //     navigate("/admin")
-  //   }
-  //   else if (String(data.Account) === "2") {
-  //     navigate("/hr")
-  //   } else if (String(data.Account) === "3") {
-  //     navigate("/emp")
-  //   }
-  // }, []);
+  useEffect(() => {
+    // localStorage.setItem("orgId", id)
+    if (String(data.Account) === "1") {
+      navigate("/admin")
+    }
+    else if (String(data.Account) === "2") {
+      navigate("/hr")
+    } else if (String(data.Account) === "3") {
+      navigate("/emp")
+    }
+  }, []);
 
   // useEffect(() => {
   //   async function checkNetworkConnection() {

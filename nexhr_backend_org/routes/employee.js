@@ -46,11 +46,11 @@ router.get("/user", verifyAdminHR, async (req, res) => {
   try {
     const employees = await Employee.find({ Account: 3 }, "_id FirstName LastName")
       .populate({
-        path: "department", 
-        select: "DepartmentName", 
+        path: "department",
+        select: "DepartmentName",
       });
 
-   
+
     const departmentMap = {};
 
     employees.forEach((employee) => {
@@ -62,18 +62,18 @@ router.get("/user", verifyAdminHR, async (req, res) => {
         }
 
         departmentMap[departmentName].push({
-          label: `${employee.FirstName} ${employee.LastName}`, 
-          value: employee.FirstName.toLowerCase(), 
-          id: employee._id.toString(), 
+          label: `${employee.FirstName} ${employee.LastName}`,
+          value: employee.FirstName.toLowerCase(),
+          id: employee._id.toString(),
         });
       });
     });
 
-   
+
     const teamData = Object.keys(departmentMap).map((departmentName) => ({
       label: departmentName,
-      value: departmentName, 
-      children: departmentMap[departmentName], 
+      value: departmentName,
+      children: departmentMap[departmentName],
     }));
 
     const selectAllOption = {
@@ -82,10 +82,10 @@ router.get("/user", verifyAdminHR, async (req, res) => {
       children: teamData,
     };
 
-    
+
     const formattedTeams = [selectAllOption];
 
-    
+
     res.status(200).json({
       status: true,
       status_code: 200,
@@ -129,10 +129,20 @@ router.get("/all", verifyAdminHR, async (req, res) => {
     res.send(employees)
   } catch (err) {
     console.log(err);
-    res.status(500).send({ message: "Internal server error", details: err.message })
+    res.status(500).send({ error: err.message })
   }
 
 });
+
+router.get("/lead", verifyAdminHR, async (req, res) => {
+  try {
+    const teamLeads = await Employee.find({}, "FirstName LastName").populate("position").exec();
+    const filterTeamLeads = teamLeads.filter((lead) => lead.position[0].PositionName === "TL");
+    res.send(filterTeamLeads);
+  } catch (err) {
+    res.status(500).send({ error: err.message })
+  }
+})
 
 router.get('/:id', verifyAdminHREmployee, async (req, res) => {
   let totalTakenLeaveCount = 0;
