@@ -95,7 +95,8 @@ export default function HRMDashboard() {
         const currentDate = new Date();
         const currentHours = currentDate.getHours().toString().padStart(2, '0');
         const currentMinutes = currentDate.getMinutes().toString().padStart(2, '0');
-        const currentTime = `${currentHours}:${currentMinutes}`;
+        const currentSeconds = currentDate.getSeconds().toString().padStart(2, '0');
+        const currentTime = `${currentHours}:${currentMinutes}:${currentSeconds}`;
         const updatedState = {
             ...workTimeTracker,
             login: {
@@ -148,7 +149,8 @@ export default function HRMDashboard() {
         const currentDate = new Date();
         const currentHours = currentDate.getHours().toString().padStart(2, '0');
         const currentMinutes = currentDate.getMinutes().toString().padStart(2, '0');
-        const currentTime = `${currentHours}:${currentMinutes}`;
+        const currentSeconds = currentDate.getSeconds().toString().padStart(2, '0');
+        const currentTime = `${currentHours}:${currentMinutes}:${currentSeconds}`;
         const updatedState = {
             ...workTimeTracker,
             login: {
@@ -177,7 +179,8 @@ export default function HRMDashboard() {
         const currentDate = new Date();
         const currentHours = currentDate.getHours().toString().padStart(2, '0');
         const currentMinutes = currentDate.getMinutes().toString().padStart(2, '0');
-        const currentTime = `${currentHours}:${currentMinutes}`;
+        const currentSeconds = currentDate.getSeconds().toString().padStart(2, '0');
+        const currentTime = `${currentHours}:${currentMinutes}:${currentSeconds}`;
         const updatedState = {
             ...workTimeTracker,
             [timeOption]: {
@@ -206,7 +209,8 @@ export default function HRMDashboard() {
         const currentDate = new Date();
         const currentHours = currentDate.getHours().toString().padStart(2, '0');
         const currentMinutes = currentDate.getMinutes().toString().padStart(2, '0');
-        const currentTime = `${currentHours}:${currentMinutes}`;
+        const currentSeconds = currentDate.getSeconds().toString().padStart(2, '0');
+        const currentTime = `${currentHours}:${currentMinutes}:${currentSeconds}`;
         const updatedState = (prev) => ({
             ...prev,
             [timeOption]: {
@@ -215,7 +219,7 @@ export default function HRMDashboard() {
                 timeHolder: workTimeTracker[timeOption].timeHolder
             },
         });
-        
+
         // console.log(workTimeTracker?._id, isStartActivity);
 
         // if (workTimeTracker?._id) {

@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Shared Timer</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        text-align: center;
+        border-radius: 10px;
+        box-shadow: rgba(0, 0, 0, 0.35) 0px 5px 15px;
+        padding: 10px;
+      }
+
+      #startButton,
+      #stopButton {
+        padding: 8px;
+        border-radius: 3px;
+        color: white;
+        cursor: pointer;
+        border: none;
+        font-size: 12px;
+        font-weight: 500;
+      }
+      #startButton {
+        background-color: #355F2E;
+      }
+      #stopButton {
+        background-color: #FF2929;
+      }
+    </style>
+  </head>
+  <body>
+    <h1 id="timer">00:00:00</h1>
+    <button id="startButton">Start</button>
+    <button id="stopButton">Stop</button>
+    <script src="content.js"></script>
+  </body>
+</html>

@@ -75,7 +75,7 @@ export default function Navbar() {
     // Function to stop the timer
     const stopTimer = async () => {
         console.log("call timer to stop from fun.");
-        
+
         if (workRef.current) {
             await stopLoginTimer();
             clearInterval(workRef.current);
@@ -83,37 +83,12 @@ export default function Navbar() {
         }
     };
 
-    // const syncTimerAfterPause = () => {
-    //     const now = Date.now();
-    //     const diff = now - lastCheckTimeRef.current;
-    //     // console.log("Wakeup called.");
-    //     // console.log("Time difference since last check (ms):", diff);
-
-    //     if (diff > 3000 && isStartLogin) {
-    //         const secondsToAdd = Math.floor(diff / 1000);
-    //         // console.log("Seconds to add:", secondsToAdd);
-
-    //         const updatedTime = addSecondsToTime(`${parseInt(localStorage.getItem("loginTimer")?.split(':')[0])}:${parseInt(localStorage.getItem("loginTimer")?.split(':')[1])}:${parseInt(localStorage.getItem("loginTimer")?.split(':')[2])}`, secondsToAdd);
-    //         // console.log("Updated time:", updatedTime);
-
-    //         // Combine updates into a single state update
-    //         setHour(Number(updatedTime.hours));
-    //         setMin(Number(updatedTime.minutes));
-    //         setSec(Number(updatedTime.seconds));
-    //     }
-
-    //     startOnlyTimer();
-    //     lastCheckTimeRef.current = now; // Reset last check time
-    // };
-
-
-    // Start/Stop timer based on activity state
-    useEffect(() => {
+      useEffect(() => {
         const startLength = workTimeTracker?.login?.startingTime?.length || 0;
         const endLength = workTimeTracker?.login?.endingTime?.length || 0;
         if (workTimeTracker._id) { //timer start to allow, if is timer data in obj 
             console.log("ok ");
-            
+
             if (startLength !== endLength) {
                 startOnlyTimer();
             } else {
@@ -167,7 +142,7 @@ export default function Navbar() {
             </Popover>
         );
     };
-    
+
     return (
         <div className="webnxs">
             <div className="row mx-auto">
@@ -175,7 +150,7 @@ export default function Navbar() {
                     <div className='sidebarIcon'>
                         <TableRowsRoundedIcon />
                     </div>
-                    <img src={Webnexs} className="organization_logo" />
+                    <img src={Webnexs} className="organization_logo" alt='logo' />
                     <span style={{ fontSize: "16px", fontWeight: "700" }}>NexHR</span>
                 </div>
 
@@ -193,15 +168,15 @@ export default function Navbar() {
                         <div className="punchBtnParent">
                             <button
                                 className='punchBtn'
-                                disabled={isStartLogin}
+                                disabled={workTimeTracker.login.startingTime.length !== workTimeTracker.login.endingTime.length}
                                 onClick={() => startTimer()}
                                 style={{ backgroundColor: "#CEE5D3" }}
                             >
-                                <img src={PunchIn} alt="" />
+                                <img src={PunchIn} width="25" height="25" alt="startTimer_btn" />
                             </button>
                             <div className="">
                                 <p className='timerText'>
-                                    {workTimeTracker?.login?.endingTime.length > 0
+                                    {workTimeTracker?.login?.startingTime.length > 0
                                         ? workTimeTracker?.login?.startingTime[0]
                                         : "00:00"}
                                 </p>
@@ -213,10 +188,10 @@ export default function Navbar() {
                             <button
                                 className='punchBtn'
                                 onClick={() => stopTimer()}
-                                disabled={!isStartLogin}
+                                disabled={workTimeTracker.login.startingTime.length === workTimeTracker.login.endingTime.length}
                                 style={{ backgroundColor: "#FFD6DB" }}
                             >
-                                <img src={PunchOut} alt="" />
+                                <img src={PunchOut} width="25" height="25" alt="stoptimer_btn" />
                             </button>
                             <div className="">
                                 <p className='timerText'>
@@ -263,7 +238,7 @@ export default function Navbar() {
                     </span>
                     {/* Profile Section */}
                     <Whisper placement="bottomEnd" trigger="click" speaker={renderMenu}>
-                        <img src={logo} className='avatar-toggle' />
+                        <img src={logo} className='avatar-toggle' alt='emp_img' />
                     </Whisper>
                 </div>
 

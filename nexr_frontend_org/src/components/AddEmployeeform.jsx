@@ -282,7 +282,6 @@ const AddEmployeeForm = ({ details, handleScroll, handlePersonal, handleFinancia
             }
         }
     }
-console.log(formik.values);
 
     function handleTagSelector(value) {
         setSelectedLeavetypes(value);

@@ -8,11 +8,6 @@ var citySchema = new mongoose.Schema({
   });
   
   var City = mongoose.model("City", citySchema);
-  // autoIncrement.initialize(mongoose.connection)
-  // citySchema.plugin(autoIncrement.plugin, {
-  //   model: "City",
-  //   field: "CityID"
-  // });
 
   const CityValidation = Joi.object().keys({
     _id: Joi.optional(),

@@ -47,7 +47,7 @@ const Sidebar = () => {
         >
           <NavLink className="nav-link" to={path}>
             <span>
-              <img src={icon} alt={`${text} Icon`} />
+              <img src={icon} width={"22"} height={"22"} alt={`${text} Icon`} />
             </span>
             <span className="sideBarTxt">{text}</span>
           </NavLink>
@@ -64,7 +64,7 @@ const Sidebar = () => {
           onClick={() => toggleActiveLink(menuKey)}
         >
           <span>
-            <img src={icon} alt={`${label} Icon`} />
+            <img src={icon} width={"22"} height={"22"} alt={`${label} Icon`} />
           </span>
           <span className="sideBarTxt">{label}</span>
           <span className="KeyboardArrowDownSharpIcon">

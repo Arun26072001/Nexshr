@@ -8,11 +8,6 @@ var countrySchema = new mongoose.Schema({
   });
   
   var Country = mongoose.model("Country", countrySchema);
-  // autoIncrement.initialize(mongoose.connection);
-  // countrySchema.plugin(autoIncrement.plugin, {
-  //   model: "Country",
-  //   field: "CountryID"
-  // });
 
   const CountryValidation = Joi.object().keys({
     _id: Joi.optional(),

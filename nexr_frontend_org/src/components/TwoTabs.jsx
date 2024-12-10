@@ -47,12 +47,6 @@ function a11yProps(index) {
   };
 }
 
-// const [todayLeaveCount, setTodayLeaveCount] = useState(0);
-// const [tomarrowLeaveCount, setTomarrowLeaveCount] = useState(0);
-// const [yesterDayleaveCount, setYesterDayLeaveCount] = useState(0);
-// const tomarrow = new Date(today.setDate(today.getDate() + 1)).toISOString().split("T")[0];
-// const yesterday = new Date(today.setDate(today.getDate() - 1)).toISOString().split("T")[0];
-// const [emps, setEmps] = useState([]);
 export default function Twotabs() {
   const { whoIs } = useContext(TimerStates);
   const navigate = useNavigate();

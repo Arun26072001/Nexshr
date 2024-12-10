@@ -9,7 +9,6 @@
   box-shadow: rgba(0, 0, 0, 0.1) 0px 1px 3px 0px,
     rgba(0, 0, 0, 0.06) 0px 1px 2px 0px;
 }
-
 .sideBarTxt {
   font-size: 14px;
   font-weight: 500;
@@ -117,7 +116,6 @@ li {
   /* padding: 10px; */
   background: #e9ecef;
 }
-
 
 .sidebar_hrm a {
   color: #000;

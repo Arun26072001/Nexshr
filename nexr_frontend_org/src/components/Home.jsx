@@ -45,7 +45,7 @@ function a11yProps(index) {
 }
 
 export default function Home() {
-    const { isStartLogin, isStartActivity, updateClockins } = useContext(TimerStates);
+    const { isStartLogin, isStartActivity, updateClockins, workTimeTracker, timeOption } = useContext(TimerStates);
     const [value, setValue] = useState(0);
     const [isLoading, setLoading] = useState(true); // Track loading state
     const empId = localStorage.getItem('_id');
@@ -135,9 +135,10 @@ export default function Home() {
                         <div className='col-lg-6 col-md-6 col-12'>
                             <p className='chartTitle'>Time Activity</p>
                             {
-                                [isStartActivity, isStartLogin].includes(true) ?
-                                    <NoDataFound message={"You can't view time value, until stop timers"} /> :
-                                    <ApexChart activitiesData={tableData} />
+                                workTimeTracker.login.startingTime.length === workTimeTracker.login.endingTime.length &&
+                                    workTimeTracker[timeOption].startingTime.length === workTimeTracker[timeOption].endingTime.length ?
+                                    <ApexChart activitiesData={tableData} /> :
+                                    <NoDataFound message={"You can't view time value, until stop timers"} />
                             }
                             {/* <PieChartGraph listOfActivity={listOfActivity} /> */}
                         </div>

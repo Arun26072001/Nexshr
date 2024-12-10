@@ -16,7 +16,7 @@ const NexHRDashboard = ({ updateClockins }) => {
 
     (<div className="row">
       {/* <ClockIns /> */}
-      <div className="col-lg-8 col-md-8 col-12" >
+      <div className="col-lg-8 col-md-12 col-12" >
         {/* Left card */}
         <Card style={{ border: '2px solid rgb(208 210 210)', height: '100%' }}>
           {account === '2' &&
@@ -35,7 +35,7 @@ const NexHRDashboard = ({ updateClockins }) => {
           <Home updateClockins={updateClockins} />
         </Card>
       </div>
-      <div className="col-lg-4 col-md-4 col-12">
+      <div className="col-lg-4 col-md-8 col-12 d-flex jsutify-content-center">
         {/* right Card */}
         <Twotabs />
       </div>

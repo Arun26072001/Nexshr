@@ -5,6 +5,7 @@ import PowerSettingsNewRoundedIcon from "@mui/icons-material/PowerSettingsNewRou
 import { TimerStates } from "./payslip/HRMDashboard";
 import { toast } from "react-toastify";
 import { addSecondsToTime } from "./ReuseableAPI";
+import WavingHandRoundedIcon from '@mui/icons-material/WavingHandRounded';
 
 const ActivityTimeTracker = () => {
     const {
@@ -79,7 +80,7 @@ const ActivityTimeTracker = () => {
     // Stop the timer with activity
     const stopTimer = async () => {
         console.log("try to stop");
-        
+
         if (timerRef.current) {
             await stopActivityTimer();
             clearInterval(timerRef.current);
@@ -127,7 +128,7 @@ const ActivityTimeTracker = () => {
             </div>
             <div className='good container-fluid row mx-auto'>
                 <div className="col-lg-6 col-md-4 col-12">
-                    <div><h6>Good to see you, {EmpName[0].toUpperCase() + EmpName.slice(1)} 👋</h6></div>
+                    <p style={{ fontSize: "15px", fontWeight: "600" }}>Good to see you, {EmpName[0]?.toUpperCase() + EmpName?.slice(1)} <WavingHandRoundedIcon sx={{color: "#FCC737"}} /></p>
                     <div className='sub_text'>
                         {workTimeTracker?.punchInMsg || "Waiting for Login"}
                     </div>

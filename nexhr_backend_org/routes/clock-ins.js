@@ -4,9 +4,6 @@ const { verifyAdminHREmployee, verifyAdminHR } = require("../auth/authMiddleware
 const { clockInsValidation, ClockIns } = require("../models/ClockInsModel");
 const { Employee } = require("../models/EmpModel");
 const { getDayDifference } = require("./leave-app");
-// const Joi = require('joi');
-// const jwt = require("jsonwebtoken");
-// const getEmployeeModel = require("./employee")
 
 async function checkLoginForOfficeTime(scheduledTime, actualTime) {
     // Parse scheduled and actual time into hours and minutes
@@ -34,7 +31,7 @@ async function checkLoginForOfficeTime(scheduledTime, actualTime) {
 
 // Function to calculate working hours between start and end times
 function getTotalWorkingHourPerDay(startingTime, endingTime) {
-    if (startingTime !== "00:00" && endingTime !== "00:00") {
+    if (startingTime !== "00:00:00" && endingTime !== "00:00:00") {
 
         // Convert time strings to Date objects (using today's date)
         const today = new Date();
@@ -118,9 +115,11 @@ router.post("/:id", verifyAdminHREmployee, async (req, res) => {
 
         // Proceed with login checks
         const result = req.body;
-        if (result?.login?.startingTime) {
-            const behaviour = await checkLogin("09:30", result.login.startingTime[0]);
-            const punchInMsg = await checkLoginForOfficeTime("09:30", result.login.startingTime[0])
+        if (result?.login?.startingTime[0]) {
+            const splitTime = result?.login?.startingTime[0]?.split(":");
+            const loginTime = `${splitTime[0]}:${splitTime[1]}`
+            const behaviour = await checkLogin("09:30", loginTime);
+            const punchInMsg = await checkLoginForOfficeTime("09:30", loginTime)
             let newClockIns = {
                 ...req.body,
                 behaviour,
@@ -149,15 +148,12 @@ router.get("/:id", verifyAdminHREmployee, async (req, res) => {
     // Helper function to convert time in HH:MM:SS format to total minutes
     function timeToMinutes(timeStr) {
         const [hours, minutes, seconds] = timeStr.split(":").map(Number);
-        return (hours * 60) + minutes || 0; // Defaults to 0 if input is invalid
+        return Number(((hours * 60) + minutes + (seconds / 60)).toFixed()) || 0; // Defaults to 0 if input is invalid
     }
 
     try {
 
         const queryDate = new Date(String(req.query.date));
-        // if (isNaN(queryDate.getTime())) {
-        //     return res.status(400).send({ message: "Invalid date provided." });
-        // }
 
         // Create start and end of the day for the date comparison
         const startOfDay = new Date(queryDate.setHours(0, 0, 0, 0));
@@ -185,7 +181,7 @@ router.get("/:id", verifyAdminHREmployee, async (req, res) => {
         const clockIn = timeData.clockIns[0]; // Assuming the first clock-in for the day
 
         // Get current time in minutes
-        const currentTimeInMinutes = timeToMinutes(`${new Date().getHours()}:${new Date().getMinutes()}`);
+        const currentTimeInMinutes = timeToMinutes(`${new Date().getHours()}:${new Date().getMinutes()}:${new Date().getSeconds()}`);
 
         activities.map((activity) => {
             let startingTimes = clockIn[activity]?.startingTime;
@@ -442,16 +438,6 @@ router.get("/", verifyAdminHR, async (req, res) => {
 
 router.put("/:id", verifyAdminHREmployee, (req, res) => {
     let body = req.body;
-    // if (req.body['meeting'].takenTime) {
-    //     const takenTime = req.body['meeting'].takenTime;
-    //     body = {
-    //         ...req.body,
-    //         ['login']: {
-    //             ...req.body['login'],
-    //             timeHolder: req.body['login'].timeHolder - takenTime
-    //         }
-    //     }
-    // }
 
     ClockIns.findByIdAndUpdate(req.params.id, body, {
         new: true

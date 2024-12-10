@@ -96,15 +96,15 @@ const CircleProgressBar = () => {
 
   return (
     <div className='row d-flex justify-content-center'>
-      <div className='col-lg-4 col-md-4 col-6'>
+      <div className='col-lg-4 col-md-4 col-12'>
         <p className='text-center'>{formatDate(yesterday).replace(",", "")}</p>
         <CircleBar empLength={emps.length} leaveCount={yesterdayLeaveCount} />
       </div>
-      <div className='col-lg-4 col-md-4 col-6'>
+      <div className='col-lg-4 col-md-4 col-12'>
         <p className='text-center text-primary'>{formatDate(today).replace(",", "")}</p>
         <CircleBar empLength={emps.length} leaveCount={todayLeaveCount} />
       </div>
-      <div className='col-lg-4 col-md-4 col-6'>
+      <div className='col-lg-4 col-md-4 col-12'>
         <p className='text-center'>{formatDate(tomorrow).replace(",", "")}</p>
         <CircleBar empLength={emps.length} leaveCount={tomorrowLeaveCount} />
       </div>
