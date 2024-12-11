@@ -20,6 +20,7 @@ const Sidebar = () => {
     Attendance, Administration, Settings
   } = decodedData?.roleData?.pageAuth;
   const param = useParams();
+  console.log(whoIs);
 
   const [activeSubmenu, setActiveSubmenu] = useState(param['*']);
   const [activeNavLink, setActiveNavLink] = useState();

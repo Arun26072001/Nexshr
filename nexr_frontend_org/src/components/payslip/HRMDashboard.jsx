@@ -286,6 +286,8 @@ export default function HRMDashboard() {
         }
 
         const getLeaveDataFromTeam = async () => {
+            console.log("kkkk");
+            
             setIsLoading(true);
             try {
                 const leaveData = await axios.get(`${url}/api/leave-application/lead/${_id}`, {
@@ -298,7 +300,7 @@ export default function HRMDashboard() {
                 })
 
                 setLeaveRequests(leaveData.data);
-                setFullLeaveRequests(leaveData.data.leaveData);                
+                setFullLeaveRequests(leaveData.data);
             } catch (err) {
                 toast.error(err?.response?.data?.message);
             }

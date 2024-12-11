@@ -38,6 +38,7 @@ export default function LeaveRequest() {
         filterLeaveRequests();
     }, [empName, daterangeValue]);
 
+    console.log(leaveRequests);
     
     return (
         isLoading ? (
