@@ -17,7 +17,7 @@ import { toast } from 'react-toastify';
 import { TimerStates } from './payslip/HRMDashboard';
 import KeyRoundedIcon from '@mui/icons-material/KeyRounded';
 
-export default function LeaveTable({ data, getCheckedValue, getEditDepartmentId, roleObj, getCheckAll, deleteRole, deleteDepartment, deletePosition, getEditPositionId }) {
+export default function LeaveTable({ data, getCheckedValue, getEditDepartmentId, roleObj, getCheckAll, deleteRole, deleteDepartment, deletePosition, getEditPositionId, replyToLeave }) {
     const navigate = useNavigate();
     const { changeEmpEditForm } = useContext(TimerStates)
     const [page, setPage] = useState(0);
@@ -502,9 +502,9 @@ export default function LeaveTable({ data, getCheckedValue, getEditDepartmentId,
                                                 if (params['*'] === "leave-request") {
                                                     return (
                                                         <Dropdown placement='leftStart' title={<EditRoundedIcon style={{ cursor: "pointer" }} />} noCaret>
-                                                            <Dropdown.Item style={{ minWidth: 120 }}>Response</Dropdown.Item>
-                                                            <Dropdown.Item style={{ minWidth: 120 }}>Approve</Dropdown.Item>
-                                                            <Dropdown.Item style={{ minWidth: 120 }}>Reject</Dropdown.Item>
+                                                            {/* <Dropdown.Item style={{ minWidth: 120 }}>Response</Dropdown.Item> */}
+                                                            <Dropdown.Item style={{ minWidth: 120 }} onClick={()=>replyToLeave(row, "approved")}>Approve</Dropdown.Item>
+                                                            <Dropdown.Item style={{ minWidth: 120 }} onClick={()=>replyToLeave(row, "rejected")}>Reject</Dropdown.Item>
                                                         </Dropdown>
                                                     );
                                                 } else if (params['*'] === "payslip" || params['*'] === "daily-log") {

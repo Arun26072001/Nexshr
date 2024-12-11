@@ -41,7 +41,7 @@ function verifyEmployee(req, res, next) {
         console.log(err);
         res.sendStatus(401);
       } else {
-        if (authData._id === req.params.empId) {
+        if (authData._id === req.params.id) {
           // console.log(authData._id, req.params.empId);
           if (authData.Account == 3) {
             next();

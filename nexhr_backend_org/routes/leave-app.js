@@ -8,7 +8,6 @@ const { Employee } = require('../models/EmpModel');
 const { verifyHR, verifyHREmployee, verifyEmployee, verifyAdmin, verifyAdminHREmployee } = require('../auth/authMiddleware');
 const { Position } = require('../models/PositionModel');
 const { Team } = require('../models/TeamModel');
-const axios = require("axios");
 
 const now = new Date();
 
@@ -148,13 +147,41 @@ leaveApp.get("/hr", verifyHR, async (req, res) => {
 
 leaveApp.get("/lead/:id", verifyEmployee, async (req, res) => {
   try {
+    let startOfMonth;
+    let endOfMonth;
+    if (req?.query?.daterangeValue) {
+      startOfMonth = new Date(req.query.daterangeValue[0]);
+      endOfMonth = new Date(req.query.daterangeValue[1]);
+    } else {
+      startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+      endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+    }
     const team = await Team.findOne({ lead: req.params.id }).exec();
     if (!team) {
       return res.status(404).send({ error: "You are not lead in any team" })
     } else {
       const { employees } = team;
-      const teamLeaves = await LeaveApplication.find({ employee: { $in: employees } });
-      res.send(teamLeaves);
+      const teamLeaves = await LeaveApplication.find({
+        employee: { $in: employees },
+        fromDate: {
+          $gte: startOfMonth,
+          $lte: endOfMonth
+        },
+        toDate: {
+          $gte: startOfMonth,
+          $lte: endOfMonth
+        }
+      })
+        .populate({
+          path: "employee",
+          select: "FirstName LastName"
+        });
+      const approvedLeave = teamLeaves.filter(data => data.status === "approved");
+      const pendingLeave = teamLeaves.filter(data => data.status === "pending");
+      const upComingLeave = approvedLeave.filter(data => new Date(data.fromDate).getTime() > new Date().getTime())
+      const peoplesOnLeave = approvedLeave.filter(data => new Date(data.fromDate).getTime() === new Date().getTime())
+      const takenLeave = approvedLeave.filter(data => new Date(data.fromDate).getTime() < new Date().getTime())
+      res.send({ leaveData: teamLeaves, pendingLeave, upComingLeave, peoplesOnLeave, takenLeave });
     }
   } catch (error) {
     res.status(500).send({ error: error.message })
@@ -481,10 +508,21 @@ leaveApp.post("/:empId", verifyAdminHREmployee, async (req, res) => {
 
 leaveApp.put("/:id", verifyHREmployee, async (req, res) => {
   try {
-    const updatedReq = await LeaveApplication.findByIdAndUpdate(req.params.id, req.body);
-    res.send({ message: `Application has been ${req.body.status}` })
+    const today = new Date();
+
+    // Create start and end of the day for the date comparison
+    const startOfDay = new Date(today.setHours(0, 0, 0, 0));
+
+    const isGreaterthanToday = await LeaveApplication.findOne({ _id: req.params.id, fromDate: { $gte: startOfDay } });
+    if (isGreaterthanToday) {
+      const updatedReq = await LeaveApplication.findByIdAndUpdate(req.params.id, req.body, { new: true });
+      res.send({ message: `Application has been ${updatedReq.status}` })
+    } else {
+      res.status(400).send({ error: `Leave request has been expired.` })
+    }
   } catch (err) {
-    res.status(500).send({ message: "Internal server error", details: err.message })
+    console.log(err);
+    res.status(500).send({ error: err.message })
   }
 })
 

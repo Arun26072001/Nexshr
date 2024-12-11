@@ -14,7 +14,6 @@ import { Route, Routes } from "react-router-dom";
 import PayslipRouter from "./PayslipRouter";
 
 const JobDesk = () => {
-    // const { whoIs } = useContext(TimerStates);
     const jobDeskFiles = [
         'attendance', 'leave', "folder", "history",
         'salary', 'payslip', 'contact', 'social',

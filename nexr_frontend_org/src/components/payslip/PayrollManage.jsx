@@ -4,10 +4,10 @@ import { MultiCascader } from 'rsuite';
 import { NavLink } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { getDepartments } from '../ReuseableAPI';
-import { TimerStates } from './HRMDashboard';
+import { EssentialValues } from '../../App';
 
 export default function PayrollManage() {
-    const { whoIs } = useContext(TimerStates);
+    const { whoIs } = useContext(EssentialValues);
     const [isShowInstructions, setShowInstruction] = useState(true);
     const [departments, setDepartments] = useState([]);
     function handleShowNotification() {

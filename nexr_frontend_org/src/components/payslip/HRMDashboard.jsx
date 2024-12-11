@@ -32,19 +32,21 @@ import PageAndActionAuth from '../Settings/PageAndActionAuth';
 import Announce from '../Announcement/announce';
 import Department from '../Administration/Department';
 import Position from '../Administration/Position';
+import Loading from '../Loader';
+import { jwtDecode } from 'jwt-decode';
 
 export const LeaveStates = createContext(null);
 export const TimerStates = createContext(null);
 
 export default function HRMDashboard() {
-    const { data, isStartLogin, isStartActivity, setIsStartLogin, setIsStartActivity } = useContext(EssentialValues);
+    const { data, isStartLogin, isStartActivity, setIsStartLogin, setIsStartActivity, whoIs } = useContext(EssentialValues);
     const { token, Account, _id } = data;
+    const { isTeamLead } = jwtDecode(token);
     const [attendanceData, setAttendanceData] = useState([]);
     const [attendanceForSummary, setAttendanceForSummary] = useState({});
-    const [leaveRequests, setLeaveRequests] = useState({});
+    const [leaveRequests, setLeaveRequests] = useState([]);
     const [fullLeaveRequests, setFullLeaveRequests] = useState([]);
     const [empName, setEmpName] = useState("");
-    const [whoIs, setWhoIs] = useState("");
     const [isLoading, setIsLoading] = useState(false);
     const [waitForAttendance, setWaitForAttendance] = useState(false);
     const url = process.env.REACT_APP_API_URL;
@@ -54,6 +56,7 @@ export default function HRMDashboard() {
     const navigate = useNavigate();
     const [reloadRole, setReloadRole] = useState(false);
     const [syncTimer, setSyncTimer] = useState(false);
+    const [isUpdatedRequest, setIsUpdatedReqests] = useState(false);
     // files for payroll
     const files = ['payroll', 'value', 'manage', 'payslip'];
     const startAndEndTime = {
@@ -85,7 +88,6 @@ export default function HRMDashboard() {
         if (empName === "") {
             setLeaveRequests(fullLeaveRequests);
         } else {
-            console.log(fullLeaveRequests);
             const filterRequests = fullLeaveRequests?.leaveData.filter((leave) => leave.employee.FirstName.toLowerCase().includes(empName));
             setLeaveRequests((pre) => ({ ...pre, leaveData: filterRequests }));
         }
@@ -174,8 +176,6 @@ export default function HRMDashboard() {
     }
 
     const startActivityTimer = async () => {
-        console.log("call to start activity");
-
         const currentDate = new Date();
         const currentHours = currentDate.getHours().toString().padStart(2, '0');
         const currentMinutes = currentDate.getMinutes().toString().padStart(2, '0');
@@ -251,15 +251,18 @@ export default function HRMDashboard() {
         setReloadRole(!reloadRole)
     }
 
+    function changeRequests() {
+        setIsUpdatedReqests(!isUpdatedRequest);
+    }
     // timers will stop. when browser window is close
-    window.addEventListener('onunload', function (e) {
-        console.log("call to unload");
+    // window.addEventListener('onunload', function (e) {
+    //     console.log("call to unload");
 
-        // stopLoginTimer();
-        // stopActivityTimer();
-        // e.preventDefault();
-        // e.returnValue = '';
-    });
+    //     // stopLoginTimer();
+    //     // stopActivityTimer();
+    //     // e.preventDefault();
+    //     // e.returnValue = '';
+    // });
 
     useEffect(() => {
         const getLeaveData = async () => {
@@ -276,18 +279,37 @@ export default function HRMDashboard() {
 
                 setLeaveRequests(leaveData.data);
                 setFullLeaveRequests(leaveData.data);
-                setIsLoading(false);
             } catch (err) {
                 toast.error(err?.response?.data?.message);
-                setIsLoading(false);
             }
+            setIsLoading(false);
         }
-        if ((whoIs) && (Account === '2' || Account === '1')) {
-            console.log(whoIs);
 
-            getLeaveData();
+        const getLeaveDataFromTeam = async () => {
+            setIsLoading(true);
+            try {
+                const leaveData = await axios.get(`${url}/api/leave-application/lead/${_id}`, {
+                    params: {
+                        daterangeValue
+                    },
+                    headers: {
+                        authorization: token || ""
+                    }
+                })
+
+                setLeaveRequests(leaveData.data);
+                setFullLeaveRequests(leaveData.data.leaveData);                
+            } catch (err) {
+                toast.error(err?.response?.data?.message);
+            }
+            setIsLoading(false);
         }
-    }, [daterangeValue, _id, whoIs]);
+        if ((whoIs) && (String(Account) === '2' || String(Account) === '1')) {
+            getLeaveData();
+        } else if (whoIs && isTeamLead) {
+            getLeaveDataFromTeam()
+        }
+    }, [daterangeValue, _id, whoIs, isUpdatedRequest]);
 
     // get attendance summary page table of data
     const getClocknsData = useCallback(async () => {
@@ -329,26 +351,6 @@ export default function HRMDashboard() {
         }
     }, [getClocknsData]);
 
-    useEffect(() => {
-        if (Account) {
-            switch (Account) {
-                case '1':
-                    setWhoIs("admin");
-                    break;
-                case '2':
-                    setWhoIs("hr");
-                    break;
-                case '3':
-                    setWhoIs("emp");
-                    break;
-                default:
-                    // Optional: handle unexpected Account values
-                    break;
-            }
-        }
-
-    }, [Account]);
-
     function trackTimer() {
         setSyncTimer(!syncTimer);
     }
@@ -379,7 +381,7 @@ export default function HRMDashboard() {
     }, [isStartLogin, isStartActivity]);
 
     return (
-        <TimerStates.Provider value={{ workTimeTracker, reloadRolePage, updateWorkTracker, trackTimer, startLoginTimer, stopLoginTimer, startActivityTimer, stopActivityTimer, setWorkTimeTracker, updateClockins, whoIs, timeOption, isStartLogin, isStartActivity, changeEmpEditForm, isEditEmp }}>
+        <TimerStates.Provider value={{ workTimeTracker, reloadRolePage, updateWorkTracker, trackTimer, startLoginTimer, stopLoginTimer, startActivityTimer, stopActivityTimer, setWorkTimeTracker, updateClockins, timeOption, isStartLogin, isStartActivity, changeEmpEditForm, isEditEmp }}>
             <Routes >
                 <Route path="/" element={<Parent />} >
                     <Route index element={<Dashboard data={data} />} />
@@ -388,7 +390,7 @@ export default function HRMDashboard() {
                     <Route path="employee/add" element={<Employees />} />
                     <Route path="employee/edit/:id" element={<AddEmployee />} />
                     <Route path="leave/*" element={
-                        <LeaveStates.Provider value={{ daterangeValue, setDaterangeValue, isLoading, leaveRequests, filterLeaveRequests, empName, setEmpName }} >
+                        <LeaveStates.Provider value={{ daterangeValue, setDaterangeValue, isLoading, leaveRequests, filterLeaveRequests, empName, setEmpName, changeRequests }} >
                             <Routes>
                                 <Route index path='status' element={<Status />} />
                                 <Route path='leave-request' element={<LeaveRequest />} />

@@ -7,10 +7,10 @@ import { fetchEmployees } from '../ReuseableAPI';
 import Loading from '../Loader';
 import { useNavigate } from 'react-router-dom';
 import NoDataFound from './NoDataFound';
-import { TimerStates } from './HRMDashboard';
+import { EssentialValues } from '../../App';
 
 export default function Employee() {
-    const { whoIs } = useContext(TimerStates);
+    const { whoIs } = useContext(EssentialValues);
     const [employees, setEmployees] = useState([]);
     const [empName, setEmpName] = useState("");
     const [allEmployees, setAllEmployees] = useState([]);

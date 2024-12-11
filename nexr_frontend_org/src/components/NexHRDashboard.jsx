@@ -5,21 +5,20 @@ import CircleProgressBar from "./CircleProgressBar";
 import { NavLink } from "react-router-dom";
 import Twotabs from "./TwoTabs";
 import "./NexHRDashboard.css";
-import { TimerStates } from "./payslip/HRMDashboard";
+import { EssentialValues } from "../App";
+import { jwtDecode } from "jwt-decode";
 
 const NexHRDashboard = ({ updateClockins }) => {
-  const { whoIs } = useContext(TimerStates);
-  const account = localStorage.getItem("Account");
-
+  const { whoIs, data } = useContext(EssentialValues);
+  const { token, Account, _id } = data;
+  const { isTeamLead } = jwtDecode(token);
   return (
-
-
     (<div className="row">
       {/* <ClockIns /> */}
       <div className="col-lg-8 col-md-12 col-12" >
         {/* Left card */}
         <Card style={{ border: '2px solid rgb(208 210 210)', height: '100%' }}>
-          {account === '2' &&
+          {(Account === '2' || isTeamLead) &&
             <>
               <div className="d-flex align-items-center justify-content-between m-2">
                 <span className="bold m-2">
@@ -29,7 +28,7 @@ const NexHRDashboard = ({ updateClockins }) => {
                   <button className="button">+ Add Time of</button>
                 </NavLink>
               </div>
-              <CircleProgressBar />
+              <CircleProgressBar token={token} isTeamLead={isTeamLead} account={Account} id={_id} />
             </>
           }
           <Home updateClockins={updateClockins} />

@@ -11,7 +11,6 @@ import "react-datepicker/dist/react-datepicker.css";
 import DatePicker from "react-datepicker";
 
 const LeaveRequestForm = () => {
-  const params = useParams();
   const url = process.env.REACT_APP_API_URL;
   const empId = localStorage.getItem("_id");
   const token = localStorage.getItem("token");
@@ -21,8 +20,6 @@ const LeaveRequestForm = () => {
   const navigate = useNavigate();
   const [typeOfLeave, setTypOfLeave] = useState(null);
   const [excludedDates, setExcludeDates] = useState([]);
-  const [file, setFile] = useState(null);
-  console.log(file);
 
   let leaveObj = {
     leaveType: "",
@@ -92,19 +89,16 @@ const LeaveRequestForm = () => {
     },
   });
 
-  function handleShowPeriodOfLeave() {
-    setIsShowPeriodOfLeave(!isShowPeriodOfLeave);
-  }
-
   useEffect(() => {
     if (formik.values.fromDate && formik.values.toDate) {
       let fromDateTime = new Date(formik.values.fromDate).getTime();
       let toDateTime = new Date(formik.values.toDate).getTime();
       if (fromDateTime > toDateTime) {
         return setError("Please select next start date");
-      } else if (formik.values.fromDate === formik.values.toDate) {
-        return handleShowPeriodOfLeave();
+      } else if (new Date(formik.values.fromDate).getTime() === new Date(formik.values.toDate).getTime()) {
+        return setIsShowPeriodOfLeave(true);
       } else {
+        setIsShowPeriodOfLeave(false)
         setError("");
       }
     }
@@ -142,7 +136,7 @@ const LeaveRequestForm = () => {
     const files = event.target.files;
     if (files.length > 0) {
       const file = files[0];
-      
+
       const formData = new FormData();
       formData.append('profile', file);
 

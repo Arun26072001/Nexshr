@@ -15,10 +15,10 @@ export const EssentialValues = createContext(null);
 const App = () => {
   const url = process.env.REACT_APP_API_URL;
   const getBooleanFromLocalStorage = (key) => localStorage.getItem(key) === "true";
-
+  const [whoIs, setWhoIs] = useState("");
   const [isStartLogin, setIsStartLogin] = useState(getBooleanFromLocalStorage("isStartLogin"));
   const [isStartActivity, setIsStartActivity] = useState(getBooleanFromLocalStorage("isStartActivity"));
-  
+
   const [data, setData] = useState({
     _id: localStorage.getItem("_id") || "",
     Account: localStorage.getItem("Account") || "",
@@ -40,12 +40,6 @@ const App = () => {
   };
 
   const handleLogout = () => {
-    // console.log(isStartLogin, isStartActivity);
-    // // if (localStorage.getItem('empId')) {
-    // //   toast.warn(`Please Enter full details for this employee`);
-    // //   console.log(isStartLogin, isStartActivity);
-    // // }
-    // //  else
     if (isStartLogin || isStartActivity) {
       toast.warn("you can't logout until timer stop.")
     } else {
@@ -62,6 +56,26 @@ const App = () => {
     }
 
   };
+
+  function assignWhoIs() {
+    if (data.Account) {
+      switch (data.Account) {
+        case '1':
+          setWhoIs("admin");
+          break;
+        case '2':
+          setWhoIs("hr");
+          break;
+        case '3':
+          setWhoIs("emp");
+          break;
+        default:
+          // Optional: handle unexpected Account values
+          break;
+      }
+    }
+  }
+
   const login = async (email, pass) => {
     let bodyLogin = {
       Email: email,
@@ -102,16 +116,6 @@ const App = () => {
         localStorage.setItem("_id", decodedData._id);
         localStorage.setItem("Name", `${decodedData.FirstName} ${decodedData.LastName}`);
         localStorage.setItem("annualLeaveEntitment", decodedData.annualLeaveEntitlement || 0);
-        // localStorage.setItem("userPermissions", JSON.stringify(decodedData.roleData.userPermissions))
-
-        // Object.entries(decodedData.roleData.pageAuth).forEach(([key, value]) => {
-        //   if (key !== '_id' && key !== "__v") {
-        //     return localStorage.setItem(`${key}`, value)
-        //   }
-        // })
-        // if (!localStorage.getItem("token")) {
-        //   window.location.reload();
-        // }
 
         if (accountType === 1) {
           navigate("/admin");
@@ -136,6 +140,10 @@ const App = () => {
   }, [isStartLogin, isStartActivity]);
 
   useEffect(() => {
+    assignWhoIs()
+  }, [data.Account]);
+
+  useEffect(() => {
     async function checkNetworkConnection() {
       try {
         const connectionMsg = await axios.get(`${url}/`);
@@ -156,18 +164,18 @@ const App = () => {
     }
     checkNetworkConnection();
   }, [data]);
-  
+
   return (
-    <EssentialValues.Provider value={{ data, handleLogout, handleSubmit, loading, pass, isLogin, isStartLogin, setIsStartLogin, isStartActivity, setIsStartActivity }}>
+    <EssentialValues.Provider value={{ data, handleLogout, handleSubmit, loading, pass, isLogin, isStartLogin, setIsStartLogin, isStartActivity, whoIs, setIsStartActivity }}>
       <ToastContainer />
       <Routes>
         <Route path="login/" element={<Login />} />
         {/* <Route path="/" element={isLogin ? <Layout /> : <Navigate to={"/login"} />} >
           <Route path="*" element={<Layout />} />
         </Route> */}
-        <Route path="admin/*" element={isLogin && data.token && String(data.Account) === '1' ? <HRMDashboard /> : <Navigate to={"/login"} />} />
-        <Route path="hr/*" element={isLogin && data.token && String(data.Account) === '2' ? <HRMDashboard /> : <Navigate to={"/login"} />} />
-        <Route path="emp/*" element={isLogin && data.token && String(data.Account) === '3' ? <HRMDashboard /> : <Navigate to={"/login"} />} />
+        <Route path="admin/*" element={isLogin && data.token && whoIs !== undefined && String(data.Account) === '1' ? <HRMDashboard /> : <Navigate to={"/login"} />} />
+        <Route path="hr/*" element={isLogin && data.token && whoIs !== undefined && String(data.Account) === '2' ? <HRMDashboard /> : <Navigate to={"/login"} />} />
+        <Route path="emp/*" element={isLogin && data.token && whoIs !== undefined && String(data.Account) === '3' ? <HRMDashboard /> : <Navigate to={"/login"} />} />
         <Route path="no-internet-connection" element={<NoInternet />} />
       </Routes>
     </EssentialValues.Provider>

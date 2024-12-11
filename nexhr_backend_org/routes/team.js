@@ -1,17 +1,9 @@
 const express = require("express");
 const router = express.Router();
-const { verifyHR, verifyAdminHR } = require("../auth/authMiddleware");
+const { verifyHR, verifyAdminHR, verifyEmployee } = require("../auth/authMiddleware");
 const { TeamValidation, Team, TeamSchema } = require("../models/TeamModel");
 const mongoose = require("mongoose");
-
-// const teamModels = {};
-
-// function getTeamModel(orgName) {
-//     if (!teamModels[orgName]) {
-//         teamModels[orgName] = mongoose.model(`${orgName}Team`, TeamSchema)
-//     }
-//     return teamModels[orgName];
-// }
+const { Employee } = require("../models/EmpModel");
 
 router.get("/", verifyAdminHR, async (req, res) => {
     try {
@@ -103,6 +95,33 @@ router.get("/:id", verifyAdminHR, async (req, res) => {
     }
 })
 
+router.get("/lead/:id", verifyEmployee, async (req, res) => {
+    try {
+        // const {orgName} = jwt.decode(req.headers['authorization']);
+        // const Team = getTeamModel(orgName)
+        const response = await Team.findOne({ lead: req.params.id })
+            .populate({
+                path: "employees",
+                select: "_id FirstName LastName",
+                populate: {
+                    path: 'teamLead',
+                    select: "_id FirstName LastName",
+                    populate: {
+                        path: "department"
+                    }
+                }
+            })
+        if (!response) {
+            res.status(404).send({ message: "team not found" })
+        } else {
+            res.send(response);
+        }
+    } catch (err) {
+        console.log(err);
+        res.status(500).send({ message: "Error in get a team of Employee", details: err })
+    }
+})
+
 router.post("/", verifyAdminHR, async (req, res) => {
     try {
         const validation = TeamValidation.validate(req.body);
@@ -119,6 +138,11 @@ router.post("/", verifyAdminHR, async (req, res) => {
             return res.status(400).send({ error: error.details[0].message })
         } else {
             const newTeam = await Team.create(req.body);
+            const emps = await Employee.find({ _id: req.body.employees });
+            emps.map(async (emp) => {
+                emp.teamLead[0] = req.body.lead
+                await emp.save();
+            })
             res.send({ message: `new ${newTeam.teamName} team has been added!`, newTeam })
         }
     } catch (error) {

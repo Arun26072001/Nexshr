@@ -9,11 +9,9 @@ import { Input, InputGroup, SelectPicker } from "rsuite";
 import { useNavigate } from "react-router-dom";
 import NoDataFound from "./NoDataFound";
 import Loading from "../Loader";
-import { TimerStates } from "./HRMDashboard";
 import { EssentialValues } from "../../App";
 
 const ManageTeam = () => {
-    const { whoIs } = useContext(TimerStates);
     const [teamObj, setTeamObj] = useState({
         teamName: "",
         employees: [],
@@ -29,7 +27,7 @@ const ManageTeam = () => {
     const [filteredTeams, setFilteredTeams] = useState([]);
     const [leads, setLeads] = useState([]);
     const url = process.env.REACT_APP_API_URL;
-    const { data } = useContext(EssentialValues);
+    const { data, whoIs } = useContext(EssentialValues);
     const { token } = data;
     const navigate = useNavigate();
 

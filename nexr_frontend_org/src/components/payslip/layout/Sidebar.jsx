@@ -9,21 +9,18 @@ import leaveIcon from '../../../asserts/leaveIcon.svg';
 import attendanceIcon from '../../../asserts/attendanceIcon.svg';
 import adminIcon from '../../../asserts/adminIcon.svg';
 import homeIcon from '../../../asserts/homeIcon.svg';
-import { TimerStates } from '../HRMDashboard';
 import { EssentialValues } from '../../../App';
 import { jwtDecode } from 'jwt-decode';
 
 const Sidebar = () => {
-  const { data } = useContext(EssentialValues);
+  const { data, whoIs, handleLogout } = useContext(EssentialValues)
   const { token } = data;
   const decodedData = jwtDecode(token);
   const { Dashboard, JobDesk, Employee, Leave,
     Attendance, Administration, Settings
   } = decodedData?.roleData?.pageAuth;
-
-  const { whoIs } = useContext(TimerStates);
-  const { handleLogout } = useContext(EssentialValues);
   const param = useParams();
+
   const [activeSubmenu, setActiveSubmenu] = useState(param['*']);
   const [activeNavLink, setActiveNavLink] = useState();
   const [isOpen, setIsOpen] = useState(true);
@@ -129,6 +126,16 @@ const Sidebar = () => {
             leaveIcon,
             'Leave'
           )}
+
+        {(decodedData.isTeamLead && whoIs === "emp" &&
+          renderSubMenu(
+            'leave',
+            [
+              { key: 'leave-request', path: `/${whoIs}/leave/leave-request`, label: 'Leave Request' },
+            ],
+            leaveIcon,
+            'Leave'
+          ))}
 
         {(Attendance === 'allow' || ['admin', 'hr'].includes(whoIs)) &&
           renderSubMenu(

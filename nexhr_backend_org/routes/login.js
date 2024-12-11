@@ -4,6 +4,7 @@ const Joi = require('joi');
 const { Employee } = require('../models/EmpModel');
 const jwt = require('jsonwebtoken');
 const dotenv = require("dotenv");
+const { Team } = require('../models/TeamModel');
 dotenv.config();
 
 const jwtKey = process.env.ACCCESS_SECRET_KEY;
@@ -20,8 +21,6 @@ router.post("/", async (req, res) => {
             console.log("Validation error: " + error);
             return res.status(400).send(error.details[0].message);
         } else {
-            console.log(req.body);
-            
             const emp = await Employee.findOne({ Email: req.body.Email.toLowerCase(), Password: req.body.Password })
                 .populate({
                     path: "role",
@@ -30,7 +29,6 @@ router.post("/", async (req, res) => {
                         { path: "pageAuth" }
                     ]
                 })
-                console.log(emp);
                 
             if (!emp) {
                 return res.status(400).send({ message: "Invalid Credentials" })
@@ -40,7 +38,12 @@ router.post("/", async (req, res) => {
                     isVerifyEmail: true,
                     isLogin: true
                 };
-
+                // check to emp is team lead
+                let isTeamLead = false;
+                const team = await Team.findOne({lead: emp._id});
+                if(team){
+                    isTeamLead = true;
+                }
                 const updateIsEmailVerify = await Employee.findByIdAndUpdate(emp._id, empDataWithEmailVerified, { new: true });
                 const empData = {
                     _id: emp._id,
@@ -50,7 +53,8 @@ router.post("/", async (req, res) => {
                     LastName: emp.LastName,
                     annualLeaveEntitlement: emp.annualLeaveEntitlement,
                     roleData: emp?.role[0],
-                    isLogin: updateIsEmailVerify.isLogin
+                    isLogin: updateIsEmailVerify.isLogin,
+                    isTeamLead
                 };
                 const token = jwt.sign(empData, jwtKey);
                 return res.send(token);

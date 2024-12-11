@@ -48,10 +48,10 @@ function a11yProps(index) {
 }
 
 export default function Twotabs() {
-  const { whoIs } = useContext(TimerStates);
+  const { whoIs } = useContext(EssentialValues);
   const navigate = useNavigate();
   const { data } = useContext(EssentialValues);
-  const { token, annualLeave, _id } = data;
+  const { annualLeave, _id } = data;
   const [value, setValue] = useState(0);
   const [takenLeave, setTakenLeave] = useState(0);
   const today = new Date();

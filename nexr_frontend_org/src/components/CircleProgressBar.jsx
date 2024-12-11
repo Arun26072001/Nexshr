@@ -1,13 +1,9 @@
 import React, { useContext, useEffect, useState } from 'react';
-
 import axios from 'axios';
 import { toast } from 'react-toastify';
 import CircleBar from './CircleProcess';
-import { EssentialValues } from '../App';
 
-const CircleProgressBar = () => {
-  const {data} = useContext(EssentialValues);
-  const {token} = data;
+const CircleProgressBar = ({ isTeamLead, token, account, id }) => {
   const url = process.env.REACT_APP_API_URL;
   const [todayLeaveCount, setTodayLeaveCount] = useState(0);
   const [tomorrowLeaveCount, setTomorrowLeaveCount] = useState(0);
@@ -65,11 +61,43 @@ const CircleProgressBar = () => {
       }
     }
 
-    fetchData();
+    async function fetchDataInTeam() {
+      console.log("call");
+      
+      try {
+        // Fetch leave requests
+        const leaveRes = await axios.get(`${url}/api/leave-application/lead/${id}`, {
+          headers: {
+            authorization: token || "",
+          },
+        });
+        setLeaveRequests(leaveRes.data.leaveData);
+        // console.log(leaveRes.data);
+
+        // Fetch employees
+        const empRes = await axios.get(`${url}/api/team/lead/${id}`, {
+          headers: {
+            authorization: token || "",
+          },
+        });
+        setEmps(empRes.data.employees);
+
+      } catch (err) {
+        if (err.response && err.response.data && err.response.data.message) {
+          toast.error(err.response.data.message);
+        }
+      }
+    }
+
+    if (account === "2") {
+      fetchData();
+    } else if (account === "3" && isTeamLead) {
+      fetchDataInTeam();
+    }
   }, [url, token]);
 
   useEffect(() => {
-    const getLeaveCounts = async()=> {
+    const getLeaveCounts = async () => {
       setTodayLeaveCount(0);
       setTomorrowLeaveCount(0);
       setYesterdayLeaveCount(0);
@@ -79,7 +107,7 @@ const CircleProgressBar = () => {
       const yesterdayDate = yesterday.toISOString().split("T")[0];
 
       leaveRequests.forEach((request) => {
-        const appliedDate = new Date(request.appliedOn).toISOString().split("T")[0];
+        const appliedDate = new Date(request.fromDate).toISOString().split("T")[0];
 
         if (appliedDate === todayDate) {
           setTodayLeaveCount((prev) => prev + 1);
@@ -93,6 +121,7 @@ const CircleProgressBar = () => {
 
     getLeaveCounts();
   }, [leaveRequests]);
+console.log(emps);
 
   return (
     <div className='row d-flex justify-content-center'>
