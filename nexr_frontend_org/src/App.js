@@ -170,9 +170,9 @@ const App = () => {
       <ToastContainer />
       <Routes>
         <Route path="login/" element={<Login />} />
-        {/* <Route path="/" element={isLogin ? <Layout /> : <Navigate to={"/login"} />} >
+        <Route path="/" element={isLogin ? <Layout /> : <Navigate to={"/login"} />} >
           <Route path="*" element={<Layout />} />
-        </Route> */}
+        </Route>
         <Route path="admin/*" element={isLogin && data.token && whoIs !== undefined && String(data.Account) === '1' ? <HRMDashboard /> : <Navigate to={"/login"} />} />
         <Route path="hr/*" element={isLogin && data.token && whoIs !== undefined && String(data.Account) === '2' ? <HRMDashboard /> : <Navigate to={"/login"} />} />
         <Route path="emp/*" element={isLogin && data.token && whoIs !== undefined && String(data.Account) === '3' ? <HRMDashboard /> : <Navigate to={"/login"} />} />

@@ -242,7 +242,9 @@ leaveApp.get("/date-range/hr", verifyHR, async (req, res) => {
     const peoplesOnLeave = approvedLeave.filter(data => new Date(data.date).getTime() === new Date().getTime())
     res.send({ leaveData, approvedLeave, peoplesOnLeave, pendingLeave, upComingLeave, leaveInHours });
   } catch (err) {
-    res.status(500).send({ message: "Error in getting employees leave data", details: err.message })
+    console.log(err);
+    
+    res.status(500).send({ error: err.message })
   }
 })
 
@@ -284,7 +286,7 @@ leaveApp.get("/date-range/admin", verifyAdmin, async (req, res) => {
     const peoplesOnLeave = approvedLeave.filter(data => new Date(data.date).getTime() === new Date().getTime())
     res.send({ leaveData, approvedLeave, peoplesOnLeave, pendingLeave, upComingLeave, leaveInHours });
   } catch (err) {
-    res.status(500).send({ message: "Error in getting employees leave data", details: err.message })
+    res.status(500).send({ errpr: err.message })
   }
 })
 

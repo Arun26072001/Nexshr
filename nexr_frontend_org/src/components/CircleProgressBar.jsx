@@ -62,7 +62,6 @@ const CircleProgressBar = ({ isTeamLead, token, account, id }) => {
     }
 
     async function fetchDataInTeam() {
-      console.log("call");
       
       try {
         // Fetch leave requests
@@ -72,7 +71,6 @@ const CircleProgressBar = ({ isTeamLead, token, account, id }) => {
           },
         });
         setLeaveRequests(leaveRes.data.leaveData);
-        // console.log(leaveRes.data);
 
         // Fetch employees
         const empRes = await axios.get(`${url}/api/team/lead/${id}`, {
@@ -121,7 +119,8 @@ const CircleProgressBar = ({ isTeamLead, token, account, id }) => {
 
     getLeaveCounts();
   }, [leaveRequests]);
-console.log(emps);
+  console.log(emps.length);
+  
 
   return (
     <div className='row d-flex justify-content-center'>
