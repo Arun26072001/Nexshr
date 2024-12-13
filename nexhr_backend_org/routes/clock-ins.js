@@ -183,6 +183,7 @@ router.get("/:id", verifyAdminHREmployee, async (req, res) => {
         // Get current time in minutes
         const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
         const now = new Date().toLocaleTimeString('en-US', { timeZone: timezone });
+        console.log(now);
         const [hour, min, sec] = now.split(":").map(Number);
         const currentTimeInMinutes = timeToMinutes(`${hour}:${min}:${sec}`);
         console.log("187: ", currentTimeInMinutes); // Example for New York time
