@@ -180,10 +180,11 @@ router.get("/:id", verifyAdminHREmployee, async (req, res) => {
         const activities = ["login", "meeting", "morningBreak", "lunch", "eveningBreak", "event"];
         const clockIn = timeData.clockIns[0]; // Assuming the first clock-in for the day
 
-        const currentISTTime = new Date().toLocaleTimeString('en-US', { timeZone: 'Asia/Kolkata' });
-        console.log("IST Time:", currentISTTime);
-        console.log(`${new Date().getHours()}-${new Date().getMinutes()}-${new Date().getSeconds()}`);
-        
+        // Get current time in minutes
+        const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+        const now = new Date().toLocaleTimeString('en-US', { timeZone: timezone });
+        const currentTimeInMinutes = timeToMinutes(`${now.getHours()}:${now.getMinutes()}:${now.getSeconds()}`);
+        console.log("187: ", currentTimeInMinutes); // Example for New York time
 
         activities.map((activity) => {
             let startingTimes = clockIn[activity]?.startingTime;
