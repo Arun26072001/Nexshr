@@ -284,7 +284,7 @@ router.post("/", verifyAdminHR, async (req, res) => {
             <p><b>Your credentials</b></p><br />
             <p><b>Email</b>: ${Email}</p><br />
             <p><b>Password</b>: ${Password}</p><br />
-            <p>Thank you for registering! Please confirm your email by clicking the button below.</p>
+            <p>Your details has been register! Please confirm your email by clicking the button below.</p>
             <a href="${process.env.FRONTEND_URL}" class="button">Confirm Email</a>
           </div>
           <div class="footer">
