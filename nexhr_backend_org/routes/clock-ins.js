@@ -182,6 +182,8 @@ router.get("/:id", verifyAdminHREmployee, async (req, res) => {
 
         const currentISTTime = new Date().toLocaleTimeString('en-US', { timeZone: 'Asia/Kolkata' });
         console.log("IST Time:", currentISTTime);
+        console.log(`${new Date().getHours()}-${new Date().getMinutes()}-${new Date().getSeconds()}`);
+        
 
         activities.map((activity) => {
             let startingTimes = clockIn[activity]?.startingTime;
