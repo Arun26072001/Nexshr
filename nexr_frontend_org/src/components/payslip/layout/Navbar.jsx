@@ -10,12 +10,9 @@ import { Dropdown, Popover, Whisper } from 'rsuite';
 import logo from "../../../imgs/male_avatar.png";
 import { EssentialValues } from '../../../App';
 
-export default function Navbar() {
+export default function Navbar({handleSideBar}) {
     const { handleLogout } = useContext(EssentialValues)
     const { startLoginTimer, stopLoginTimer, workTimeTracker, isStartLogin, trackTimer } = useContext(TimerStates);
-    // const [sec, setSec] = useState(() => parseInt(localStorage.getItem("loginTimer")?.split(':')[2]) || 0);
-    // const [min, setMin] = useState(() => parseInt(localStorage.getItem("loginTimer")?.split(':')[1]) || 0);
-    // const [hour, setHour] = useState(() => parseInt(localStorage.getItem("loginTimer")?.split(':')[0]) || 0);
     const [sec, setSec] = useState(workTimeTracker?.login?.timeHolder?.split(':')[2])
     const [min, setMin] = useState(workTimeTracker?.login?.timeHolder?.split(':')[1])
     const [hour, setHour] = useState(workTimeTracker?.login?.timeHolder?.split(':')[0])
@@ -147,7 +144,7 @@ export default function Navbar() {
         <div className="webnxs">
             <div className="row mx-auto">
                 <div className="col-lg-3 col-md-3 col-6 d-flex align-items-center">
-                    <div className='sidebarIcon'>
+                    <div className='sidebarIcon' onClick={handleSideBar}>
                         <TableRowsRoundedIcon />
                     </div>
                     <img src={Webnexs} className="organization_logo" alt='logo' />

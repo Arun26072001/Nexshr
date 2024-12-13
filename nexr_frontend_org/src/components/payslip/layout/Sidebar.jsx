@@ -12,7 +12,7 @@ import homeIcon from '../../../asserts/homeIcon.svg';
 import { EssentialValues } from '../../../App';
 import { jwtDecode } from 'jwt-decode';
 
-const Sidebar = () => {
+const Sidebar = ({ sideBar, handleSideBar }) => {
   const { data, whoIs, handleLogout } = useContext(EssentialValues)
   const { token } = data;
   const decodedData = jwtDecode(token);
@@ -20,11 +20,9 @@ const Sidebar = () => {
     Attendance, Administration, Settings
   } = decodedData?.roleData?.pageAuth;
   const param = useParams();
-  console.log(whoIs);
 
   const [activeSubmenu, setActiveSubmenu] = useState(param['*']);
   const [activeNavLink, setActiveNavLink] = useState();
-  const [isOpen, setIsOpen] = useState(true);
 
   const toggleActiveLink = (name) => {
     setActiveNavLink(activeNavLink === name ? '' : name);
@@ -89,7 +87,7 @@ const Sidebar = () => {
   };
 
   return (
-    <div style={{ width: isOpen ? '250px' : '50px' }} className="sidebar sidebar_hrm">
+    <div style={{ width: '250px' }} className={`${!sideBar ? "d-none" : ""} sidebar sidebar_hrm`}>
       <ul className="sidebar-nav p-0" id="sidebar-nav">
         {renderNavLink(
           Dashboard === 'allow' || ['admin', 'hr', 'employee'].includes(whoIs),
@@ -128,7 +126,8 @@ const Sidebar = () => {
             'Leave'
           )}
 
-        {(decodedData.isTeamLead && whoIs === "emp" &&
+        {((decodedData.isTeamLead && whoIs === "emp")
+          || (decodedData.isTeamHead && whoIs === "emp") &&
           renderSubMenu(
             'leave',
             [

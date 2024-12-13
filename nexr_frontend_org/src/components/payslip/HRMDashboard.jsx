@@ -41,7 +41,7 @@ export const TimerStates = createContext(null);
 export default function HRMDashboard() {
     const { data, isStartLogin, isStartActivity, setIsStartLogin, setIsStartActivity, whoIs } = useContext(EssentialValues);
     const { token, Account, _id } = data;
-    const { isTeamLead } = jwtDecode(token);
+    const { isTeamLead, isTeamHead } = jwtDecode(token);
     const [attendanceData, setAttendanceData] = useState([]);
     const [attendanceForSummary, setAttendanceForSummary] = useState({});
     const [leaveRequests, setLeaveRequests] = useState([]);
@@ -285,12 +285,11 @@ export default function HRMDashboard() {
             setIsLoading(false);
         }
 
-        const getLeaveDataFromTeam = async () => {
-            console.log("kkkk");
-            
+        const getLeaveDataFromTeam = async (who) => {
+
             setIsLoading(true);
             try {
-                const leaveData = await axios.get(`${url}/api/leave-application/lead/${_id}`, {
+                const leaveData = await axios.get(`${url}/api/leave-application/${who}/${_id}`, {
                     params: {
                         daterangeValue
                     },
@@ -298,7 +297,7 @@ export default function HRMDashboard() {
                         authorization: token || ""
                     }
                 })
-
+                console.log(leaveData.data);
                 setLeaveRequests(leaveData.data);
                 setFullLeaveRequests(leaveData.data);
             } catch (err) {
@@ -308,8 +307,8 @@ export default function HRMDashboard() {
         }
         if ((whoIs) && (String(Account) === '2' || String(Account) === '1')) {
             getLeaveData();
-        } else if (whoIs && isTeamLead) {
-            getLeaveDataFromTeam()
+        } else if ((whoIs && isTeamLead) || (whoIs && isTeamHead)) {
+            getLeaveDataFromTeam(isTeamHead ? "head" : "lead")
         }
     }, [daterangeValue, _id, whoIs, isUpdatedRequest]);
 

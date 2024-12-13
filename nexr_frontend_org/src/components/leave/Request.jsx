@@ -7,18 +7,33 @@ import axios from "axios";
 import { toast } from 'react-toastify';
 import { EssentialValues } from '../../App';
 import { DateRangePicker } from 'rsuite';
+import { jwtDecode } from 'jwt-decode';
 
 export default function LeaveRequest() {
     const url = process.env.REACT_APP_API_URL;
     const { empName, setEmpName, filterLeaveRequests, isLoading, leaveRequests, changeRequests, daterangeValue, setDaterangeValue } = useContext(LeaveStates);
     const { data } = useContext(EssentialValues);
     const { token } = data;
+    const { isTeamHead, isTeamLead } = jwtDecode(token);
 
     async function replyToLeave(leave, response) {
         try {
-            const updatedLeaveRequest = {
-                ...leave,
-                status: response
+            let updatedLeaveRequest;
+            if (isTeamHead) {
+                updatedLeaveRequest = {
+                    ...leave,
+                    TeamHead: response
+                }
+            } else if (isTeamLead) {
+                updatedLeaveRequest = {
+                    ...leave,
+                    TeamLead: response
+                }
+            } else if (String(data.Account) === "2") {
+                updatedLeaveRequest = {
+                    ...leave,
+                    Hr: response
+                }
             }
 
             const res = await axios.put(`${url}/api/leave-application/${leave._id}`, updatedLeaveRequest, {
@@ -38,8 +53,6 @@ export default function LeaveRequest() {
         filterLeaveRequests();
     }, [empName, daterangeValue]);
 
-    console.log(leaveRequests);
-    
     return (
         isLoading ? (
             <Loading />
@@ -112,7 +125,7 @@ export default function LeaveRequest() {
                     {/* Leave Table */}
                     {
                         leaveRequests?.leaveData?.length > 0 ?
-                            <LeaveTable data={leaveRequests.leaveData} replyToLeave={replyToLeave} /> :
+                            <LeaveTable data={leaveRequests.leaveData} replyToLeave={replyToLeave} isTeamHead={isTeamHead} isTeamLead={isTeamLead} /> :
                             <NoDataFound message={"No Leave request in this month"} />
 
                     }

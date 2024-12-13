@@ -186,6 +186,49 @@ leaveApp.get("/lead/:id", verifyEmployee, async (req, res) => {
   } catch (error) {
     res.status(500).send({ error: error.message })
   }
+});
+
+leaveApp.get("/head/:id", verifyEmployee, async (req, res) => {
+  try {
+    let startOfMonth;
+    let endOfMonth;
+    if (req?.query?.daterangeValue) {
+      startOfMonth = new Date(req.query.daterangeValue[0]);
+      endOfMonth = new Date(req.query.daterangeValue[1]);
+    } else {
+      startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+      endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+    }
+    const team = await Team.findOne({ head: req.params.id }).exec();
+    if (!team) {
+      return res.status(404).send({ error: "You are not head in any team" })
+    } else {
+      const { employees } = team;
+      const teamLeaves = await LeaveApplication.find({
+        employee: { $in: employees },
+        fromDate: {
+          $gte: startOfMonth,
+          $lte: endOfMonth
+        },
+        toDate: {
+          $gte: startOfMonth,
+          $lte: endOfMonth
+        }
+      })
+        .populate({
+          path: "employee",
+          select: "FirstName LastName"
+        });
+      const approvedLeave = teamLeaves.filter(data => data.status === "approved");
+      const pendingLeave = teamLeaves.filter(data => data.status === "pending");
+      const upComingLeave = approvedLeave.filter(data => new Date(data.fromDate).getTime() > new Date().getTime())
+      const peoplesOnLeave = approvedLeave.filter(data => new Date(data.fromDate).getTime() === new Date().getTime())
+      const takenLeave = approvedLeave.filter(data => new Date(data.fromDate).getTime() < new Date().getTime())
+      res.send({ leaveData: teamLeaves, pendingLeave, upComingLeave, peoplesOnLeave, takenLeave });
+    }
+  } catch (error) {
+    res.status(500).send({ error: error.message })
+  }
 })
 
 // get all leave requests from all employees
@@ -243,7 +286,7 @@ leaveApp.get("/date-range/hr", verifyHR, async (req, res) => {
     res.send({ leaveData, approvedLeave, peoplesOnLeave, pendingLeave, upComingLeave, leaveInHours });
   } catch (err) {
     console.log(err);
-    
+
     res.status(500).send({ error: err.message })
   }
 })
@@ -382,6 +425,27 @@ leaveApp.post("/:empId", verifyAdminHREmployee, async (req, res) => {
       employee: req.params.empId,
     };
 
+    if (leaveRequest.leaveType.includes("sick") || leaveRequest.leaveType.includes("medical")) {
+      const today = new Date();
+      const yesterday = new Date();
+      yesterday.setDate(today.getDate() - 1);
+
+      // Convert fromDate to a Date object
+      const fromDate = new Date(leaveRequest.fromDate);
+
+      // Remove time from dates for comparison
+      const isTodayOrYesterday =
+        fromDate.toDateString() === today.toDateString() ||
+        fromDate.toDateString() === yesterday.toDateString();
+
+      if (!isTodayOrYesterday) {
+        return res.status(400).send({
+          error: "Sick leave is only applicable for today or yesterday.",
+        });
+      }
+    }
+
+
     // Check if there are pending leaves for the same type
     const pendingLeaveData = await LeaveApplication.find({
       leaveType: { $regex: new RegExp("^" + req.body.leaveType, "i") },
@@ -390,7 +454,7 @@ leaveApp.post("/:empId", verifyAdminHREmployee, async (req, res) => {
     });
 
     if (pendingLeaveData.length > 0) {
-      return res.status(400).send({ message: "Please wait for the previous leave response!" });
+      return res.status(400).send({ error: "Please wait for the previous leave response!" });
     }
 
     // Fetch approved leave data for calculating taken leave count
@@ -408,7 +472,7 @@ leaveApp.post("/:empId", verifyAdminHREmployee, async (req, res) => {
     // Fetch employee leave data
     const empData = await Employee.findById(req.params.empId);
     if (!empData) {
-      return res.status(400).send({ message: `No employee found for ID ${req.params.empId}` });
+      return res.status(400).send({ error: `No employee found for ID ${req.params.empId}` });
     }
 
     const relievingOffData = await Employee.findById(req.body.coverBy, "Email FirstName LastName");
@@ -416,7 +480,7 @@ leaveApp.post("/:empId", verifyAdminHREmployee, async (req, res) => {
     const leaveDaysCount = empData?.typesOfLeaveRemainingDays[leaveTypeName] || 0;
 
     if (leaveDaysCount <= takenLeaveCount) {
-      return res.status(400).send({ message: `${leaveTypeName} leave limit reached.` });
+      return res.status(400).send({ error: `${leaveTypeName} leave limit reached.` });
     }
 
     // Check if leave request for the same date already exists
@@ -425,14 +489,14 @@ leaveApp.post("/:empId", verifyAdminHREmployee, async (req, res) => {
       employee: req.params.empId,
     });
     if (existingRequest) {
-      return res.status(400).send({ message: "Already sent a request on this date." });
+      return res.status(400).send({ error: "Already sent a request on this date." });
     }
 
     // Validate the leave request
     const { error } = LeaveApplicationValidation.validate(leaveRequest);
     if (error) {
       console.error("Validation Error:", error);
-      return res.status(400).send({ message: "Validation Error", details: error.message });
+      return res.status(400).send({ error: "Validation Error", details: error.message });
     }
 
     // Calculate the number of leave days being taken
@@ -502,8 +566,7 @@ leaveApp.post("/:empId", verifyAdminHREmployee, async (req, res) => {
 
     return res.status(201).send({ message: "Leave Request has been sent to Higher Authority." });
   } catch (err) {
-    console.error(err);
-    return res.status(500).send({ message: err.message });
+    return res.status(500).send({ error: err.message });
   }
 });
 
@@ -514,17 +577,29 @@ leaveApp.put("/:id", verifyHREmployee, async (req, res) => {
 
     // Create start and end of the day for the date comparison
     const startOfDay = new Date(today.setHours(0, 0, 0, 0));
-
-    const isGreaterthanToday = await LeaveApplication.findOne({ _id: req.params.id, fromDate: { $gte: startOfDay } });
+    const approvers = [req.body.Hr, req.body.TeamLead, req.body.TeamHead];
+    const allRApproved = approvers.every(status => status === "approved");
+    let updatedleaveApp;
+    if (allRApproved){
+      updatedleaveApp = {
+        ...req.body,
+        status: true
+      }
+    }else{
+      updatedleaveApp = {
+        ...req.body
+      }
+    }
+      const isGreaterthanToday = await LeaveApplication.findOne({ _id: req.params.id, fromDate: { $gte: startOfDay } });
     if (isGreaterthanToday) {
-      const updatedReq = await LeaveApplication.findByIdAndUpdate(req.params.id, req.body, { new: true });
-      res.send({ message: `Application has been ${updatedReq.status}` })
+      const updatedReq = await LeaveApplication.findByIdAndUpdate(req.params.id, updatedleaveApp, { new: true });
+      return res.send({ message: `You are reply to Leave Application` })
     } else {
-      res.status(400).send({ error: `Leave request has been expired.` })
+      return res.status(400).send({ error: `Leave request has been expired.` })
     }
   } catch (err) {
     console.log(err);
-    res.status(500).send({ error: err.message })
+    return res.status(500).send({ error: err.message })
   }
 })
 

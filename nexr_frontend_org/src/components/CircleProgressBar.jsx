@@ -3,7 +3,7 @@ import axios from 'axios';
 import { toast } from 'react-toastify';
 import CircleBar from './CircleProcess';
 
-const CircleProgressBar = ({ isTeamLead, token, account, id }) => {
+const CircleProgressBar = ({ isTeamLead, token, account, id, isTeamHead }) => {
   const url = process.env.REACT_APP_API_URL;
   const [todayLeaveCount, setTodayLeaveCount] = useState(0);
   const [tomorrowLeaveCount, setTomorrowLeaveCount] = useState(0);
@@ -62,7 +62,6 @@ const CircleProgressBar = ({ isTeamLead, token, account, id }) => {
     }
 
     async function fetchDataInTeam() {
-      
       try {
         // Fetch leave requests
         const leaveRes = await axios.get(`${url}/api/leave-application/lead/${id}`, {
@@ -89,7 +88,7 @@ const CircleProgressBar = ({ isTeamLead, token, account, id }) => {
 
     if (account === "2") {
       fetchData();
-    } else if (account === "3" && isTeamLead) {
+    } else if (account === "3" && isTeamLead || account === "3" && isTeamHead) {
       fetchDataInTeam();
     }
   }, [url, token]);

@@ -17,7 +17,7 @@ import { toast } from 'react-toastify';
 import { TimerStates } from './payslip/HRMDashboard';
 import KeyRoundedIcon from '@mui/icons-material/KeyRounded';
 
-export default function LeaveTable({ data, getCheckedValue, getEditDepartmentId, roleObj, getCheckAll, deleteRole, deleteDepartment, deletePosition, getEditPositionId, replyToLeave }) {
+export default function LeaveTable({ data, getCheckedValue, isTeamHead, isTeamLead, getEditDepartmentId, roleObj, getCheckAll, deleteRole, deleteDepartment, deletePosition, getEditPositionId, replyToLeave }) {
     const navigate = useNavigate();
     const { changeEmpEditForm } = useContext(TimerStates)
     const [page, setPage] = useState(0);
@@ -62,7 +62,23 @@ export default function LeaveTable({ data, getCheckedValue, getEditDepartmentId,
         { id: 'toDate', label: 'End Date', minWidth: 130, align: 'left', getter: (row) => row.toDate ? row.toDate.split("T")[0] : 'N/A' },
         { id: 'leaveType', label: 'Type', minWidth: 130, align: 'left', getter: (row) => row.leaveType },
         { id: 'reasonForLeave', label: 'Reason', minWidth: 130, align: 'left', getter: (row) => row.reasonForLeave },
-        { id: 'status', label: 'Status', minWidth: 130, align: 'left', getter: (row) => row.status },
+        {
+            id: 'status',
+            label: 'Status',
+            minWidth: 130,
+            align: 'left',
+            getter: (row) => {
+                if (isTeamHead) {
+                    return row.TeamHead;
+                } else if (isTeamLead) {
+                    return row.TeamLead;
+                } else if (data.Account === "2") {
+                    return row.Hr;
+                } else {
+                    return row.status;
+                }
+            },
+        },          
         { id: "Action", label: "Action", minWidth: 100, align: "left" }
     ];
 
@@ -503,8 +519,8 @@ export default function LeaveTable({ data, getCheckedValue, getEditDepartmentId,
                                                     return (
                                                         <Dropdown placement='leftStart' title={<EditRoundedIcon style={{ cursor: "pointer" }} />} noCaret>
                                                             {/* <Dropdown.Item style={{ minWidth: 120 }}>Response</Dropdown.Item> */}
-                                                            <Dropdown.Item style={{ minWidth: 120 }} onClick={()=>replyToLeave(row, "approved")}>Approve</Dropdown.Item>
-                                                            <Dropdown.Item style={{ minWidth: 120 }} onClick={()=>replyToLeave(row, "rejected")}>Reject</Dropdown.Item>
+                                                            <Dropdown.Item style={{ minWidth: 120 }} onClick={() => replyToLeave(row, "approved")}>Approve</Dropdown.Item>
+                                                            <Dropdown.Item style={{ minWidth: 120 }} onClick={() => replyToLeave(row, "rejected")}>Reject</Dropdown.Item>
                                                         </Dropdown>
                                                     );
                                                 } else if (params['*'] === "payslip" || params['*'] === "daily-log") {

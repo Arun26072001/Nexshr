@@ -130,7 +130,7 @@ app.get("/", (req, res) => {
 
 // Routers
 app.use("/api/user-account", userAccount);
-// app.use("/api/company", company);
+app.use("/api/company", company);
 app.use("/api/login", login);
 app.use("/api/role", role);
 app.use("/api/team", team);

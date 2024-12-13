@@ -26,6 +26,7 @@ const ManageTeam = () => {
     const [teams, setTeams] = useState([]);
     const [filteredTeams, setFilteredTeams] = useState([]);
     const [leads, setLeads] = useState([]);
+    const [heads, setHeads] = useState([]);
     const url = process.env.REACT_APP_API_URL;
     const { data, whoIs } = useContext(EssentialValues);
     const { token } = data;
@@ -198,6 +199,21 @@ const ManageTeam = () => {
         }
     }
 
+    async function fetchHeads() {
+        try {
+            const teamHeads = await axios.get(`${url}/api/employee/head`, {
+                headers: {
+                    Authorization: token || ""
+                }
+            })
+            console.log(teamHeads);
+            
+            setHeads(teamHeads.data);
+        } catch (error) {
+            toast.error(error.repsonse.data.error)
+        }
+    }
+
     useEffect(() => {
         const fetchTeams = async () => {
             try {
@@ -219,6 +235,7 @@ const ManageTeam = () => {
 
         setIsLoading(true);
         fetchTeams();
+        fetchHeads();
         fetchLeads();
         setIsLoading(false);
     }, [dom]);
@@ -240,6 +257,7 @@ const ManageTeam = () => {
                 {addTeam && (
                     <EditTeam
                         leads={leads}
+                        heads={heads}
                         team={editTeamObj ? editTeamObj : teamObj}
                         setTeamName={changeTeamObj} // to update teamName
                         toggleAddTeam={toggleAddTeam}

@@ -3,8 +3,9 @@ import "./editModel.css";
 import { Modal, Button } from 'rsuite';
 import 'rsuite/dist/rsuite.min.css'; // Make sure to import the CSS
 
-const EditModel = ({ team, setTeamName, toggleAddTeam, toggleAssignEmp, leads }) => {
-console.log(leads);
+const EditModel = ({ team, setTeamName, toggleAddTeam, heads, toggleAssignEmp, leads }) => {
+  console.log(leads);
+  console.log(heads);
 
   return (
     <Modal open={toggleAddTeam} size={'sm'} backdrop="static">
@@ -25,8 +26,17 @@ console.log(leads);
             onChange={(e) => setTeamName(e)}
             placeholder="Please enter a team name..."
           />
+          <p className='mt-2'>Team Head</p>
+          <select className='form-control' name="head" value={team.head} onChange={(e) => setTeamName(e)}>
+            <option>Select the team head</option>
+            {
+              heads.map((head) => {
+                return <option value={head._id}>{head.FirstName}</option>
+              })
+            }
+          </select>
           <p className='mt-2'>Team Lead</p>
-          <select className='form-control' name="lead" onChange={(e) => setTeamName(e)}>
+          <select className='form-control' name="lead" value={team.lead} onChange={(e) => setTeamName(e)}>
             <option>Select the team lead</option>
             {
               leads.map((lead) => {

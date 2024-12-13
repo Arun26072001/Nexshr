@@ -11,7 +11,8 @@ import { jwtDecode } from "jwt-decode";
 const NexHRDashboard = ({ updateClockins }) => {
   const { whoIs, data } = useContext(EssentialValues);
   const { token, Account, _id } = data;
-  const { isTeamLead } = jwtDecode(token);
+  const { isTeamLead, isTeamHead } = jwtDecode(token);
+  
   return (
     (<div className="row">
       {/* <ClockIns /> */}
@@ -28,7 +29,7 @@ const NexHRDashboard = ({ updateClockins }) => {
                   <button className="button">+ Add Time of</button>
                 </NavLink>
               </div>
-              <CircleProgressBar token={token} isTeamLead={isTeamLead} account={Account} id={_id} />
+              <CircleProgressBar token={token} isTeamLead={isTeamLead} account={Account} id={_id} isTeamHead={isTeamHead} />
             </>
           }
           <Home updateClockins={updateClockins} />

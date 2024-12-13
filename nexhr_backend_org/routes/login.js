@@ -29,7 +29,7 @@ router.post("/", async (req, res) => {
                         { path: "pageAuth" }
                     ]
                 })
-                
+
             if (!emp) {
                 return res.status(400).send({ message: "Invalid Credentials" })
             } else {
@@ -40,9 +40,15 @@ router.post("/", async (req, res) => {
                 };
                 // check to emp is team lead
                 let isTeamLead = false;
-                const team = await Team.findOne({lead: emp._id});
-                if(team){
+                const teamlead = await Team.findOne({ lead: emp._id });
+                if (teamlead) {
                     isTeamLead = true;
+                }
+                // check to emp is team lead
+                let isTeamHead = false;
+                const teamhead = await Team.findOne({ head: emp._id });
+                if (teamhead) {
+                    isTeamHead = true;
                 }
                 const updateIsEmailVerify = await Employee.findByIdAndUpdate(emp._id, empDataWithEmailVerified, { new: true });
                 const empData = {
@@ -54,7 +60,8 @@ router.post("/", async (req, res) => {
                     annualLeaveEntitlement: emp.annualLeaveEntitlement,
                     roleData: emp?.role[0],
                     isLogin: updateIsEmailVerify.isLogin,
-                    isTeamLead
+                    isTeamLead,
+                    isTeamHead
                 };
                 const token = jwt.sign(empData, jwtKey);
                 return res.send(token);

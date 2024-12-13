@@ -82,7 +82,7 @@ const LeaveRequestForm = () => {
           resetForm();
           navigate(-1); // Navigate back
         } catch (err) {
-          toast.error(err?.response?.data?.message);
+          toast.error(err?.response?.data?.error);
           console.log(err);
         }
       }

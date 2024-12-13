@@ -12,7 +12,6 @@ export default function Status() {
     useEffect(() => {
         filterLeaveRequests();
     }, [empName, daterangeValue]);
-    console.log(leaveRequests);
     
     return (
         isLoading ? <Loading /> :

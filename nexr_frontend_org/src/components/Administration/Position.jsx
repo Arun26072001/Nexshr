@@ -41,6 +41,7 @@ export default function Position() {
                 }
             });
             toast.success(msg?.data?.message);
+            setPositionObj({});
             modifyPositions();
             reloadPositionPage();
         } catch (error) {

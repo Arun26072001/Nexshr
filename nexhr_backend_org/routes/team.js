@@ -152,9 +152,13 @@ router.post("/", verifyAdminHR, async (req, res) => {
 
 router.put("/:id", verifyAdminHR, async (req, res) => {
     try {
-        // const validatedTeam = await TeamValidation.validate(req.body);
-        // const {orgName} = jwt.decode(req.headers['authorization']);
-        const Team = getTeamModel(orgName)
+        
+        const validatedTeam = {
+            teamName: req.body.teamName,
+            employees: req.body.employees,
+            lead: req.params.lead,
+            head: req.params.head
+        }
         const response = await Team.findByIdAndUpdate(req.params.id, validatedTeam)
         if (!response) {
             res.status(404).send({ message: "Team not found!" })
@@ -164,7 +168,9 @@ router.put("/:id", verifyAdminHR, async (req, res) => {
         if (err.name == "ValidationError") {
             res.status(400).send({ message: "ValidationError", details: err.details })
         } else {
-            res.status(500).send({ message: "Internal Server Error", details: err.details })
+            console.log(err);
+
+            res.status(500).send({ message: err.message })
         }
     }
 })

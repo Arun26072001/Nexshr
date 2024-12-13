@@ -144,6 +144,16 @@ router.get("/lead", verifyAdminHR, async (req, res) => {
   }
 })
 
+router.get("/head", verifyAdminHR, async (req, res) => {
+  try {
+    const positions = await Employee.find({}, "FirstName LastName").populate("position").exec();
+    const filterTeamHeads = positions.filter((head) => head.position[0].PositionName === "Team Head");
+    res.send(filterTeamHeads);
+  } catch (err) {
+    res.status(500).send({ error: err.message })
+  }
+})
+
 router.get('/:id', verifyAdminHREmployee, async (req, res) => {
   let totalTakenLeaveCount = 0;
 
@@ -325,7 +335,7 @@ router.post("/", verifyAdminHR, async (req, res) => {
   }
 });
 
-router.put("/:id", verifyHR, async (req, res) => {
+router.put("/:id", verifyAdminHR, async (req, res) => {
   try {
     let newEmployee = req.body;
 
@@ -337,10 +347,10 @@ router.put("/:id", verifyHR, async (req, res) => {
     }
     // const {orgName} = jwt.decode(req.headers['authorization']);
     // const Employee = getEmployeeModel(orgName)
-    const updatedEmp = await Employee.findByIdAndUpdate(req.params.id, newEmployee)
-    res.send({ message: "Employee data has been updated!" });
+    const updatedEmp = await Employee.findByIdAndUpdate(req.params.id, newEmployee, { new: true })
+    res.send({ message: `${updatedEmp.FirstName} data has been updated!` });
   } catch (err) {
-    res.status(500).send(err)
+    res.status(500).send({ error: err.message })
   }
 });
 

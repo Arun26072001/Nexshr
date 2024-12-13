@@ -1,4 +1,4 @@
-import React, {useState, useContext } from "react"
+import React, {useState, useContext, useEffect } from "react"
 import { Outlet } from "react-router-dom";
 import "./ParentStyle.css";
 import { createContext } from "react";
@@ -12,7 +12,7 @@ export const WorkTimeTrackerContext = createContext(null);
 const Parent = () => {
     const { handleLogout } = useContext(EssentialValues);
     const [isAction, setIsAction] = useState(false);
-    const [sideBar, setSideBar] = useState(false);
+    const [sideBar, setSideBar] = useState(window.innerWidth > 1000 ? true : false);
     const currentDate = new Date();
     const today = `${currentDate.getDate()}/${currentDate.getMonth() + 1}/${currentDate.getFullYear()}`;
 
@@ -23,7 +23,7 @@ const Parent = () => {
     function handleSideBar() {
         setSideBar(!sideBar)
     }
-    
+
     // useEffect(() => {
     //     // debugger;
     //     console.log(getDataAPI());
@@ -42,9 +42,9 @@ const Parent = () => {
     // }, [])
     return (
         <div>
-            <Navbar />
+            <Navbar handleSideBar={handleSideBar} />
             <div className="d-flex marTop">
-                <Sidebar handleLogout={handleLogout} />
+                <Sidebar handleLogout={handleLogout} handleSideBar={handleSideBar} sideBar={sideBar} />
                 <div className="navContent">
                     <Outlet />
                 </div>
