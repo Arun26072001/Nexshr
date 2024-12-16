@@ -99,7 +99,7 @@ export default function HRMDashboard() {
         const currentMinutes = currentDate.getMinutes().toString().padStart(2, '0');
         const currentSeconds = currentDate.getSeconds().toString().padStart(2, '0');
         const currentTime = `${currentHours}:${currentMinutes}:${currentSeconds}`;
-        
+        console.log(currentTime);
         const updatedState = {
             ...workTimeTracker,
             login: {

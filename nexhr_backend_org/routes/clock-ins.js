@@ -31,7 +31,8 @@ async function checkLoginForOfficeTime(scheduledTime, actualTime) {
 
 // Function to calculate working hours between start and end times
 function getTotalWorkingHourPerDay(startingTime, endingTime) {
-    if (startingTime !== "00:00:00" && endingTime !== "") {
+    console.log(endingTime)
+    if (startingTime !== "00:00:00" && endingTime) {
 
         // Convert time strings to Date objects (using today's date)
         const today = new Date();

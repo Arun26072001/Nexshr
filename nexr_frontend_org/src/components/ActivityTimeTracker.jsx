@@ -80,7 +80,8 @@ const ActivityTimeTracker = () => {
     // Stop the timer with activity
     const stopTimer = async () => {
         console.log("try to stop");
-
+        console.log(timerRef.current);
+        
         if (timerRef.current) {
             await stopActivityTimer();
             clearInterval(timerRef.current);
