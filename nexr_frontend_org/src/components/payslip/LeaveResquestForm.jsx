@@ -104,50 +104,63 @@ const LeaveRequestForm = () => {
     }
   }, [formik.values.fromDate, formik.values.toDate]);
 
-  useEffect(() => {
-    const gettingLeaveRequests = async () => {
-      try {
-        if (empId) {
-          const leaveReqs = await fetchLeaveRequests(empId);
+  const gettingLeaveRequests = async () => {
+    try {
+      if (empId) {
+        const leaveReqs = await fetchLeaveRequests(empId);
 
-          const leaveDates = leaveReqs?.peopleLeaveOnMonth.flatMap((leave) => [
-            new Date(leave.fromDate).toISOString(),
-            new Date(leave.toDate).toISOString(),
-          ]) || [];
+        const leaveDates = leaveReqs?.peopleLeaveOnMonth.flatMap((leave) => [
+          new Date(leave.fromDate).toISOString(),
+          new Date(leave.toDate).toISOString(),
+        ]) || [];
 
-          // Count occurrences of each date
-          const dateCounts = leaveDates.reduce((acc, date) => {
-            acc[date] = (acc[date] || 0) + 1;
-            return acc;
-          }, {});
+        // Count occurrences of each date
+        const dateCounts = leaveDates.reduce((acc, date) => {
+          acc[date] = (acc[date] || 0) + 1;
+          return acc;
+        }, {});
 
-          // Filter dates with more than one occurrence
-          const duplicateDates = Object.entries(dateCounts)
-            .filter(([, count]) => count > 1) // Keep only dates with count > 1
-            .map(([date]) => new Date(date)); // Convert back to Date objects
+        // Filter dates with more than one occurrence
+        const duplicateDates = Object.entries(dateCounts)
+          .filter(([, count]) => count > 1) // Keep only dates with count > 1
+          .map(([date]) => new Date(date)); // Convert back to Date objects
 
-          // Update the excludeDates array
-          if (duplicateDates.length > 0) {
-            setExcludeDates((prev) => [...prev, ...duplicateDates]);
-          }
-
-          // Set types of leave
-          setTypOfLeave(leaveReqs?.requests?.typesOfLeaveCount);
-
-          // Filter colleagues
-          const emps = leaveReqs.collegues.filter((emp) => emp._id !== empId);
-          setCollegues(emps);
-        } else {
-          toast.error("empId is not loaded in the app.");
+        // Update the excludeDates array
+        if (duplicateDates.length > 0) {
+          setExcludeDates((prev) => [...prev, ...duplicateDates]);
         }
-      } catch (error) {
-        console.error("Error fetching leave requests:", error);
-        toast.error("Failed to fetch leave requests. Please try again.");
-      }
-    };
 
+        // Set types of leave
+        setTypOfLeave(leaveReqs?.requests?.typesOfLeaveCount);
+
+        // Filter colleagues
+        const emps = leaveReqs.collegues.filter((emp) => emp._id !== empId);
+        setCollegues(emps);
+      } else {
+        toast.error("empId is not loaded in the app.");
+      }
+    } catch (error) {
+      console.error("Error fetching leave requests:", error);
+      toast.error("Failed to fetch leave requests. Please try again.");
+    }
+  };
+  useEffect(() => {
     gettingLeaveRequests();
   }, [empId]);
+
+  function handleLeaveType(e) {
+    const { name, value } = e.target;
+    console.log(name);
+
+    if (value === "medical leave" || value === "sick leave") {
+      setExcludeDates([]);
+      formik.setFieldValue(`${name}`, value);
+    } else {
+      formik.setFieldValue(`${name}`, value);
+      gettingLeaveRequests();
+    }
+  }
+
 
   const handleFileChange = async (event) => {
     const files = event.target.files;
@@ -189,7 +202,7 @@ const LeaveRequestForm = () => {
             <select
               name="leaveType"
               className={`selectInput ${formik.touched.leaveType && formik.errors.leaveType ? "error" : ""}`}
-              onChange={formik.handleChange}
+              onChange={(e) => handleLeaveType(e)}
               value={formik.values.leaveType}
             >
               <option>Select Leave type</option>
