@@ -59,8 +59,9 @@ function getTotalWorkingHourPerDay(startingTime, endingTime) {
 
 function formatTimeFromMinutes(minutes) {
     const hours = Math.floor(minutes / 60); // Get the number of hours
-    const mins = Math.floor(minutes % 60); // Get the remaining minutes
-    const secs = 0; // Assume 0 seconds since it's not provided
+    const mins = Math.floor(minutes % 60); // Get the remaining whole minutes
+    const fractionalPart = minutes % 1; // Get the fractional part of the minutes
+    const secs = Math.round(fractionalPart * 60); // Convert the fractional part to seconds
 
     // Format each part to ensure two digits (e.g., "04" instead of "4")
     const formattedHours = String(hours).padStart(2, '0');
@@ -69,6 +70,7 @@ function formatTimeFromMinutes(minutes) {
 
     return `${formattedHours}:${formattedMinutes}:${formattedSeconds}`;
 }
+
 
 router.post("/:id", verifyAdminHREmployee, async (req, res) => {
     let regular = 0;
@@ -180,29 +182,33 @@ router.get("/:id", verifyAdminHREmployee, async (req, res) => {
         const activities = ["login", "meeting", "morningBreak", "lunch", "eveningBreak", "event"];
         const clockIn = timeData.clockIns[0]; // Assuming the first clock-in for the day
 
-        // Get current time in minutes
-        const now = new Date().toLocaleTimeString('en-US', { timeZone: process.env.TIMEZONE });
-        console.log(now);
-        const [hour, min, sec] = now.split(":").map(Number);
-        const currentTimeInMinutes = timeToMinutes(`${hour}:${min}:${sec}`);
-
         activities.map((activity) => {
             let startingTimes = clockIn[activity]?.startingTime;
             let endingTimes = clockIn[activity]?.endingTime;
 
-            const values = startingTimes?.map((time, index) => {
-                let value = 0;
-                if (time && endingTimes[index]) {
-                    const timeInMin = timeToMinutes(time);
-                    const endTimeInMin = timeToMinutes(endingTimes[index]);
-                    value = Math.abs(endTimeInMin - timeInMin); // Calculate absolute difference
-                } else if (time) {
-                    value = (currentTimeInMinutes - timeToMinutes(startingTimes[startingTimes?.length - 1]))
-                }
-                console.log(value);
+            const getCurrentTimeInMinutes = () => {
+                const now = new Date().toLocaleTimeString('en-US', { timeZone: process.env.TIMEZONE, hourCycle: 'h23' });
+                const timeWithoutSuffix = now.replace(/ AM| PM/, ""); // Remove AM/PM
+                const [hour, min, sec] = timeWithoutSuffix.split(":").map(Number);
+                return timeToMinutes(`${hour}:${min}:${sec}`);
+            };
 
-                return value;
+
+            const values = startingTimes?.map((startTime, index) => {
+                if (!startTime) return 0; // No start time means no value
+
+                let endTimeInMin = 0;
+                if (endingTimes[index]) {
+                    // Calculate time difference with an ending time
+                    endTimeInMin = timeToMinutes(endingTimes[index]);
+                } else {
+                    // Calculate time difference with the current time
+                    endTimeInMin = getCurrentTimeInMinutes();
+                }
+                const startTimeInMin = timeToMinutes(startTime);
+                return Math.abs(endTimeInMin - startTimeInMin);
             });
+
             const totalValue = values?.reduce((acc, value) => acc + value, 0)
             const timeHolder = formatTimeFromMinutes(totalValue);
             clockIn[activity].timeHolder = timeHolder;

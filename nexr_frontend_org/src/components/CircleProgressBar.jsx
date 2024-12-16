@@ -118,8 +118,6 @@ const CircleProgressBar = ({ isTeamLead, token, account, id, isTeamHead }) => {
 
     getLeaveCounts();
   }, [leaveRequests]);
-  console.log(emps.length);
-  
 
   return (
     <div className='row d-flex justify-content-center'>

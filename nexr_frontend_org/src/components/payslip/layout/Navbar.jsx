@@ -10,7 +10,7 @@ import { Dropdown, Popover, Whisper } from 'rsuite';
 import logo from "../../../imgs/male_avatar.png";
 import { EssentialValues } from '../../../App';
 
-export default function Navbar({handleSideBar}) {
+export default function Navbar({ handleSideBar }) {
     const { handleLogout } = useContext(EssentialValues)
     const { startLoginTimer, stopLoginTimer, workTimeTracker, isStartLogin, trackTimer } = useContext(TimerStates);
     const [sec, setSec] = useState(workTimeTracker?.login?.timeHolder?.split(':')[2])
@@ -80,12 +80,10 @@ export default function Navbar({handleSideBar}) {
         }
     };
 
-      useEffect(() => {
+    useEffect(() => {
         const startLength = workTimeTracker?.login?.startingTime?.length || 0;
         const endLength = workTimeTracker?.login?.endingTime?.length || 0;
         if (workTimeTracker._id) { //timer start to allow, if is timer data in obj 
-            console.log("ok ");
-
             if (startLength !== endLength) {
                 startOnlyTimer();
             } else {
@@ -165,7 +163,7 @@ export default function Navbar({handleSideBar}) {
                         <div className="punchBtnParent">
                             <button
                                 className='punchBtn'
-                                disabled={workTimeTracker.login.startingTime.length !== workTimeTracker.login.endingTime.length}
+                                disabled={workTimeTracker?.login?.startingTime?.length !== workTimeTracker?.login?.endingTime?.length}
                                 onClick={() => startTimer()}
                                 style={{ backgroundColor: "#CEE5D3" }}
                             >
@@ -185,14 +183,14 @@ export default function Navbar({handleSideBar}) {
                             <button
                                 className='punchBtn'
                                 onClick={() => stopTimer()}
-                                disabled={workTimeTracker.login.startingTime.length === workTimeTracker.login.endingTime.length}
+                                disabled={workTimeTracker?.login?.startingTime?.length === workTimeTracker?.login?.endingTime?.length}
                                 style={{ backgroundColor: "#FFD6DB" }}
                             >
                                 <img src={PunchOut} width="25" height="25" alt="stoptimer_btn" />
                             </button>
                             <div className="">
                                 <p className='timerText'>
-                                    {workTimeTracker?.login?.endingTime.length > 0
+                                    {workTimeTracker?.login?.endingTime?.length > 0
                                         ? workTimeTracker?.login?.endingTime[workTimeTracker?.login?.endingTime.length - 1]
                                         : "00:00"}
                                 </p>
