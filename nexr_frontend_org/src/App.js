@@ -127,6 +127,8 @@ const App = () => {
   // }, [isLogin, whoIs]);
   // console.log(whoIs);
 
+  console.log(whoIs);
+  
   // Component Rendering
   return (
     <EssentialValues.Provider
@@ -150,7 +152,7 @@ const App = () => {
         <Route
           path="/"
           element={
-            whoIs !== undefined
+            whoIs !== ""
               ? <Navigate to={`/${whoIs}`} />
               : <Navigate to="/login" />
           }
