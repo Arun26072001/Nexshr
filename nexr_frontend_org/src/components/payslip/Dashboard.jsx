@@ -25,6 +25,8 @@ const Dashboard = () => {
 
             // Fetch employee data
             const data = await fetchEmployeeData(empId);
+            console.log(data);
+            
             if (!data) {
                 toast.error("Error in fetching workingTimePattern data!");
                 setLeaveData({});

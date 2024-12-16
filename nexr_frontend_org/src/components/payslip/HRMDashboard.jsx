@@ -146,8 +146,6 @@ export default function HRMDashboard() {
     };
 
     const stopLoginTimer = async () => {
-        console.log("call to stop");
-        console.log(workTimeTracker.login.timeHolder);
         trackTimer();
         const currentDate = new Date();
         const currentHours = currentDate.getHours().toString().padStart(2, '0');

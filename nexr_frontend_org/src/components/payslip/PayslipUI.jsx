@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import "./payslipui.css";
-import logo from "../../imgs/webnexs_logo.png";
+import logo from "../../imgs/webnexs_logo.webp";
 import { fetchPayslip, fetchPayslipInfo } from '../ReuseableAPI';
 import { toast } from 'react-toastify';
 import { jsPDF } from "jspdf";

@@ -8,6 +8,7 @@ const { Employee } = require('../models/EmpModel');
 const { verifyHR, verifyHREmployee, verifyEmployee, verifyAdmin, verifyAdminHREmployee } = require('../auth/authMiddleware');
 const { Position } = require('../models/PositionModel');
 const { Team } = require('../models/TeamModel');
+const e = require('express');
 
 const now = new Date();
 
@@ -15,7 +16,7 @@ function getDayDifference(leave) {
   let toDate = new Date(leave.toDate);
   let fromDate = new Date(leave.fromDate);
   let timeDifference = toDate - fromDate;
-  return timeDifference / (1000 * 60 * 60 * 24);
+  return timeDifference === 0 ? 1 : timeDifference / (1000 * 60 * 60 * 24);
 }
 
 leaveApp.get("/emp/:empId", verifyAdminHREmployee, async (req, res) => {
@@ -499,13 +500,13 @@ leaveApp.post("/:empId", verifyAdminHREmployee, async (req, res) => {
       return res.status(400).send({ error: "Validation Error", details: error.message });
     }
 
-    // Calculate the number of leave days being taken
-    let goingToTakeLeave = getDayDifference(req.body);
-    if (goingToTakeLeave === 0) goingToTakeLeave = 1;
+    // // Calculate the number of leave days being taken
+    // let goingToTakeLeave = getDayDifference(req.body);
+    // if (goingToTakeLeave === 0) goingToTakeLeave = 1;
 
-    // Update employee's leave days and create the leave application
-    empData.typesOfLeaveRemainingDays[leaveTypeName] =
-      leaveDaysCount - goingToTakeLeave;
+    // // Update employee's leave days and create the leave application
+    // empData.typesOfLeaveRemainingDays[leaveTypeName] =
+    //   leaveDaysCount - goingToTakeLeave;
 
     const newLeaveApp = await LeaveApplication.create(leaveRequest);
     empData.leaveApplication.push(newLeaveApp._id);
@@ -571,37 +572,116 @@ leaveApp.post("/:empId", verifyAdminHREmployee, async (req, res) => {
 });
 
 
-leaveApp.put("/:id", verifyHREmployee, async (req, res) => {
+// leaveApp.put("/:id", verifyHREmployee, async (req, res) => {
+//   try {
+//     const today = new Date();
+
+//     // Create start and end of the day for the date comparison
+//     const startOfDay = new Date(today.setHours(0, 0, 0, 0));
+//     const approvers = [req.body.Hr, req.body.TeamLead, req.body.TeamHead];
+//     const allRApproved = approvers.every(status => status === "approved");
+//     const isRejected = approvers.filter(status => status === "rejected");
+//     let updatedleaveApp;
+//     if (isRejected) {
+//       updatedleaveApp = {
+//         ...req.body,
+//         status: false
+//       }
+//     }
+//     if (allRApproved) {
+//       updatedleaveApp = {
+//         ...req.body,
+//         status: true
+//       }
+//     } else {
+//       updatedleaveApp = {
+//         ...req.body
+//       }
+//     }
+//     const isGreaterthanToday = await LeaveApplication.findOne({ _id: req.params.id, fromDate: { $gte: startOfDay } });
+//     if (isGreaterthanToday) {
+//       const updatedReq = await LeaveApplication.findByIdAndUpdate(req.params.id, updatedleaveApp, { new: true });
+//       return res.send({ message: `You are reply to Leave Application` })
+//     } else {
+//       return res.status(400).send({ error: `Leave request has been expired.` })
+//     }
+//   } catch (err) {
+//     console.log(err);
+//     return res.status(500).send({ error: err.message })
+//   }
+// })
+
+leaveApp.put('/:id', verifyHREmployee, async (req, res) => {
   try {
     const today = new Date();
-
-    // Create start and end of the day for the date comparison
     const startOfDay = new Date(today.setHours(0, 0, 0, 0));
-    const approvers = [req.body.Hr, req.body.TeamLead, req.body.TeamHead];
-    const allRApproved = approvers.every(status => status === "approved");
-    let updatedleaveApp;
-    if (allRApproved){
-      updatedleaveApp = {
-        ...req.body,
-        status: true
+
+    const { Hr, TeamLead, TeamHead, employee, leaveType, ...restBody } = req.body;
+    const approvers = [Hr, TeamLead, TeamHead];
+
+    // Determine application status
+    const allApproved = approvers.every(status => status === 'approved');
+    const anyRejected = approvers.some(status => status === 'rejected');
+
+    // Update leave balance if fully approved
+    if (allApproved) {
+      const emp = await Employee.findById(employee);
+      if (!emp) {
+        return res.status(404).send({ error: 'Employee not found.' });
       }
-    }else{
-      updatedleaveApp = {
-        ...req.body
+
+      // Calculate leave days to deduct
+      const leaveDaysTaken = Math.max(getDayDifference(req.body), 1);
+      const leaveTypeKey = leaveType.split(' ')[0];
+
+      if (!emp.typesOfLeaveRemainingDays[leaveTypeKey]) {
+        return res.status(400).send({ error: 'Invalid leave type.' });
       }
+
+      emp.typesOfLeaveRemainingDays[leaveTypeKey] -= leaveDaysTaken;
+      emp.annualLeaveEntitlement -= leaveDaysTaken
+
+      // Prevent negative leave balances
+      if (emp.typesOfLeaveRemainingDays[leaveTypeKey] < 0) {
+        return res.status(400).send({
+          error: 'Insufficient leave balance for the requested leave type.',
+        });
+      }
+
+      await emp.save();
     }
-      const isGreaterthanToday = await LeaveApplication.findOne({ _id: req.params.id, fromDate: { $gte: startOfDay } });
-    if (isGreaterthanToday) {
-      const updatedReq = await LeaveApplication.findByIdAndUpdate(req.params.id, updatedleaveApp, { new: true });
-      return res.send({ message: `You are reply to Leave Application` })
-    } else {
-      return res.status(400).send({ error: `Leave request has been expired.` })
+
+    // Prepare updated leave application data
+    const updatedLeaveApp = {
+      ...restBody,
+      Hr, TeamHead, TeamLead,
+      status: allApproved ? "approved" : anyRejected ? "rejected" : restBody.status,
+    };
+
+    // Update leave application and ensure it's not expired
+    const updatedRequest = await LeaveApplication.findOneAndUpdate(
+      {
+        _id: req.params.id,
+        fromDate: { $gte: startOfDay },
+      },
+      updatedLeaveApp,
+      { new: true }
+    );
+
+    if (!updatedRequest) {
+      return res.status(400).send({ error: 'Leave request has expired.' });
     }
+
+    return res.send({
+      message: 'You have replied to the leave application.',
+      data: updatedRequest,
+    });
   } catch (err) {
-    console.log(err);
-    return res.status(500).send({ error: err.message })
+    console.error(err);
+    return res.status(500).send({ error: 'An error occurred while processing the request.' });
   }
-})
+});
+
 
 leaveApp.delete("/:empId/:leaveId", verifyEmployee, async (req, res) => {
   try {

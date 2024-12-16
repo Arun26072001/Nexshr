@@ -175,6 +175,7 @@ router.get('/:id', verifyAdminHREmployee, async (req, res) => {
     // Filter leave requests
     const pendingLeaveRequests = emp.leaveApplication.filter((leave) => leave.status === "pending");
     const takenLeaveRequests = emp.leaveApplication.filter((leave) => leave.status === "approved");
+    console.log(takenLeaveRequests);
 
     // Calculate total taken leave count
     takenLeaveRequests.forEach((leave) => totalTakenLeaveCount += getDayDifference(leave));
@@ -190,7 +191,6 @@ router.get('/:id', verifyAdminHREmployee, async (req, res) => {
     if (!collegues || collegues.length === 0) {
       return res.status(404).send({ message: "No colleagues found with the same role!" });
     }
-
     // Send response with employee details, pending leave requests, taken leave count, and colleagues
     res.send({
       ...emp.toObject(), // Ensure that you return a plain object, not a Mongoose document

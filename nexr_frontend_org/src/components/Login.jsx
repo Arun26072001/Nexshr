@@ -1,5 +1,5 @@
 import React, { useEffect, useContext } from "react";
-import Logo from "../imgs/webnexs_logo.png";
+import Logo from "../imgs/webnexs_logo.webp";
 import { css } from "@emotion/react"; // Update the import for emotion
 import { ScaleLoader } from "react-spinners";
 import { Navigate, useNavigate, useParams } from "react-router-dom";
@@ -58,7 +58,7 @@ const Login = () => {
       <div className="container">
         <div id="main-outer-div">
           <div id="logo-div">
-            <img id="logo-img" src={Logo} alt="Webnexs Logo" />
+            <img id="logo-img" src={Logo} width={150} height={150} alt="Webnexs Logo" />
           </div>
           <div id="title-div">
             <h4 className="title">Sign in</h4>

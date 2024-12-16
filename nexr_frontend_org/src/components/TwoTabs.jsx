@@ -97,12 +97,14 @@ export default function Twotabs() {
           setLeaveRequests(leaveReqs.requests.leaveApplication);
 
           leaveReqs.requests.leaveApplication.forEach((req) => {
-            let toDate = new Date(req.toDate);
-            let fromDate = new Date(req.fromDate);
-            let timeDifference = toDate - fromDate;
-            const dayDifference = timeDifference / (1000 * 60 * 60 * 24);
+            if (req.status === "pending" || req.status === "approved") {
+              let toDate = new Date(req.toDate);
+              let fromDate = new Date(req.fromDate);
+              let timeDifference = toDate - fromDate;
+              const dayDifference = timeDifference === 0 ? 1 : timeDifference / (1000 * 60 * 60 * 24);
 
-            setTakenLeave(prev => prev + dayDifference);  // Set this to the correct unit (e.g., days)
+              setTakenLeave(prev => prev + dayDifference);  // Set this to the correct unit (e.g., days)
+            }
           });
         } else {
           setTakenLeave(0);

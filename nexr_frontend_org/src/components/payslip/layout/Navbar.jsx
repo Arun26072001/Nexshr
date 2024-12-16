@@ -1,6 +1,6 @@
 import React, { useContext, useEffect, useRef, useState } from 'react';
 import './navbar.css';
-import Webnexs from "../../../imgs/webnexs_logo.png";
+import Webnexs from "../../../imgs/webnexs_logo.webp";
 import TableRowsRoundedIcon from '@mui/icons-material/TableRowsRounded';
 // import ProfileImgUploader from '../../ImgUploader';
 import PunchIn from "../../../asserts/PunchIn.svg";

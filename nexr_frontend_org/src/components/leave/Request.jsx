@@ -35,7 +35,7 @@ export default function LeaveRequest() {
                     Hr: response
                 }
             }
-
+            
             const res = await axios.put(`${url}/api/leave-application/${leave._id}`, updatedLeaveRequest, {
                 headers: {
                     Authorization: token || ""
@@ -125,7 +125,7 @@ export default function LeaveRequest() {
                     {/* Leave Table */}
                     {
                         leaveRequests?.leaveData?.length > 0 ?
-                            <LeaveTable data={leaveRequests.leaveData} replyToLeave={replyToLeave} isTeamHead={isTeamHead} isTeamLead={isTeamLead} /> :
+                            <LeaveTable Account={data.Account} data={leaveRequests.leaveData} replyToLeave={replyToLeave} isTeamHead={isTeamHead} isTeamLead={isTeamLead} /> :
                             <NoDataFound message={"No Leave request in this month"} />
 
                     }

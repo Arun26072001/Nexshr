@@ -1,5 +1,5 @@
 import React from 'react';
-import noInternet from "../imgs/no_internet.png";
+import noInternet from "../imgs/no_internet.webp";
 import { useNavigate } from 'react-router-dom';
 
 export default function NoInternet() {

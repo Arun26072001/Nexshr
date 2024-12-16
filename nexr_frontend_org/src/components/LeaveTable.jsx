@@ -17,7 +17,7 @@ import { toast } from 'react-toastify';
 import { TimerStates } from './payslip/HRMDashboard';
 import KeyRoundedIcon from '@mui/icons-material/KeyRounded';
 
-export default function LeaveTable({ data, getCheckedValue, isTeamHead, isTeamLead, getEditDepartmentId, roleObj, getCheckAll, deleteRole, deleteDepartment, deletePosition, getEditPositionId, replyToLeave }) {
+export default function LeaveTable({ data, Account, getCheckedValue, isTeamHead, isTeamLead, getEditDepartmentId, roleObj, getCheckAll, deleteRole, deleteDepartment, deletePosition, getEditPositionId, replyToLeave }) {
     const navigate = useNavigate();
     const { changeEmpEditForm } = useContext(TimerStates)
     const [page, setPage] = useState(0);
@@ -72,13 +72,13 @@ export default function LeaveTable({ data, getCheckedValue, isTeamHead, isTeamLe
                     return row.TeamHead;
                 } else if (isTeamLead) {
                     return row.TeamLead;
-                } else if (data.Account === "2") {
+                } else if (Account === "2") {
                     return row.Hr;
                 } else {
                     return row.status;
                 }
             },
-        },          
+        },
         { id: "Action", label: "Action", minWidth: 100, align: "left" }
     ];
 

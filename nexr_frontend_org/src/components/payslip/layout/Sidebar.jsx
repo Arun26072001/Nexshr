@@ -126,8 +126,10 @@ const Sidebar = ({ sideBar, handleSideBar }) => {
             'Leave'
           )}
 
-        {((decodedData.isTeamLead && whoIs === "emp")
-          || (decodedData.isTeamHead && whoIs === "emp") &&
+        {(
+          (decodedData.isTeamLead && whoIs === "emp") ||
+          (decodedData.isTeamHead && whoIs === "emp")
+        ) &&
           renderSubMenu(
             'leave',
             [
@@ -135,7 +137,8 @@ const Sidebar = ({ sideBar, handleSideBar }) => {
             ],
             leaveIcon,
             'Leave'
-          ))}
+          )}
+
 
         {(Attendance === 'allow' || ['admin', 'hr'].includes(whoIs)) &&
           renderSubMenu(

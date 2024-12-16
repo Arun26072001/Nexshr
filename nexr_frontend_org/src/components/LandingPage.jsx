@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import Logo from "../imgs/webnexs_logo.png";
+import Logo from "../imgs/webnexs_logo.webp";
 import "./landinPage.css";
 import { allCountries, phoneCodes } from "./countryCode";
 import { Input, SelectPicker, Form, InputGroup } from "rsuite";

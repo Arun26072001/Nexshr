@@ -110,9 +110,26 @@ const LeaveRequestForm = () => {
         if (empId) {
           const leaveReqs = await fetchLeaveRequests(empId);
 
-          const fromDates = leaveReqs?.peopleLeaveOnMonth.map((leave) => new Date(leave.fromDate));
-          const toDates = leaveReqs?.peopleLeaveOnMonth.map((leave) => new Date(leave.toDate));
-          setExcludeDates([...fromDates, ...toDates]);
+          const leaveDates = leaveReqs?.peopleLeaveOnMonth.flatMap((leave) => [
+            new Date(leave.fromDate).toISOString(),
+            new Date(leave.toDate).toISOString(),
+          ]) || [];
+
+          // Count occurrences of each date
+          const dateCounts = leaveDates.reduce((acc, date) => {
+            acc[date] = (acc[date] || 0) + 1;
+            return acc;
+          }, {});
+
+          // Filter dates with more than one occurrence
+          const duplicateDates = Object.entries(dateCounts)
+            .filter(([, count]) => count > 1) // Keep only dates with count > 1
+            .map(([date]) => new Date(date)); // Convert back to Date objects
+
+          // Update the excludeDates array
+          if (duplicateDates.length > 0) {
+            setExcludeDates((prev) => [...prev, ...duplicateDates]);
+          }
 
           // Set types of leave
           setTypOfLeave(leaveReqs?.requests?.typesOfLeaveCount);
