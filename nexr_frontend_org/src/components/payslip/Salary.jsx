@@ -3,9 +3,9 @@ import React from "react"
 const Salary = ({ salaryData }) => {
     return (
         <div>
-            <div className="payslipTitle">
+            <p className="payslipTitle">
                 Salary
-            </div>
+            </p>
             {salaryData ? <div className="salaryCard">
                 <div className="mb-3">
                     <div className="amountFont">Amount</div>

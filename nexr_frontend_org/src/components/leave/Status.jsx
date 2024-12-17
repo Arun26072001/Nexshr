@@ -18,9 +18,9 @@ export default function Status() {
             <div>
                 {/* Top date input and leave label */}
                 <div className="leaveDateParent">
-                    <div className="payslipTitle">
+                    <p className="payslipTitle">
                         Leave Status
-                    </div>
+                    </p>
                     <div>
                         <DateRangePicker
                             size="md"

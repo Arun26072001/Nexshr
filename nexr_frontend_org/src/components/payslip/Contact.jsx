@@ -4,9 +4,9 @@ import Phone from "../../asserts/phone.svg";
 const Contact = (props) => {
   return (
     <div>
-      <div className="payslipTitle">
+      <p className="payslipTitle">
         Contact
-      </div>
+      </p>
 
       <div className="contactParent">
   <div className="d-flex align-items-center justify-content-between p-2">

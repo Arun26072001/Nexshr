@@ -94,7 +94,8 @@ const Dashboard = () => {
             {
                 isLoading ? <Loading /> :
                     <>
-                        <div className="allowance row container-fluid mx-auto g-2">
+                        {/* <div className="allowance row container-fluid mx-auto g-2"> */}
+                        <div className='allowance'>
                             <div className='col-lg-3 col-md-3 col-6 my-1 text-center'>
                                 <p className='leaveIndicatorTxt'>Total leave allowance</p>
                                 <p className='text-primary number'>{leaveData?.annualLeaveEntitlement || 0}</p>
@@ -112,8 +113,8 @@ const Dashboard = () => {
                                 <p className='text-primary number'>{leaveData?.pendingLeaveRequests || 0}</p>
                             </div>
                         </div>
-                        <div className='container-fluid mx-auto time row g-2'>
-                            <h6>Time Log</h6>
+                        <div className='time flex-wrap'>
+                            <h6 className='col-lg-12 col-12'>Time Log</h6>
                             <div className='col-lg-6 col-md-12 col-12'>
                                 <p className='leaveIndicatorTxt'>Today</p>
                                 <div className='row gap-3 text-center d-flex justify-content-center'>

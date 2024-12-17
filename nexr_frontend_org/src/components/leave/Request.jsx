@@ -58,9 +58,9 @@ export default function LeaveRequest() {
             <Loading />
         ) : (
             <div>
-                <div className="payslipTitle">
+                <p className="payslipTitle">
                     Leave Request
-                </div>
+                </p>
 
                 <div className="leaveContainer d-block">
                     <div className="d-flex align-items-center justify-content-between">

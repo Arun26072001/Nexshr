@@ -58,9 +58,9 @@ export default function Employee() {
         <>
             {/* head */}
             <div className='d-flex justify-content-between px-2'>
-                <div className="payslipTitle">
+                <p className="payslipTitle">
                     All Employee
-                </div>
+                </p>
 
                 <div className='d-flex' style={{ gap: "10px" }}>
                     <div className="button" onClick={() => navigate(`/${whoIs}/employee/add`)}>

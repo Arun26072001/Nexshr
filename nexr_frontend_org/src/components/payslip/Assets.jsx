@@ -20,9 +20,9 @@ const Assets = (props) => {
     }, [])
     return (
         <div>
-            <div className="payslipTitle">
+            <p className="payslipTitle">
                 Assets
-            </div>
+            </p>
 
             {
                 empData.length > 0

@@ -30,9 +30,9 @@ const Payslip = (props) => {
         isLoading ? <Loading /> :
             <div>
                 <div className="leaveDateParent">
-                    <div className="payslipTitle">
+                    <p className="payslipTitle">
                         Payslip
-                    </div>
+                    </p>
                     <div>
                         <DateRangePicker size="md" showOneCalendar placement="bottomEnd" value={daterangeValue} placeholder="Select Date" onChange={setDaterangeValue} />
                     </div>

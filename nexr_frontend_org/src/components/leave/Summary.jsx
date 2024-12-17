@@ -15,7 +15,7 @@ export default function LeaveSummary() {
     return (
         <div>
             <div className="leaveDateParent">
-                <div className="payslipTitle">Leave Summary</div>
+                <p className="payslipTitle">Leave Summary</p>
                 <div>
                     <DateRangePicker
                         size="md"

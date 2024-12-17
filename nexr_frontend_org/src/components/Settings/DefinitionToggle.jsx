@@ -9,7 +9,7 @@ export default function DefinitionToggle({ title, handleShowNotification, instru
                 <div className="d-flex">
                     <div className="d-flex align-items-center">
                         <WarningAmberRoundedIcon color="primary" fontSize="large" />
-                        <div className="payslipTitle p-1">{title}</div>
+                        <p className="payslipTitle p-1">{title}</p>
                     </div>
                     <div style={{ marginLeft: "auto", cursor: "pointer" }} onClick={handleShowNotification}><CloseRoundedIcon color="primary" fontSize="large" /></div>
                 </div>

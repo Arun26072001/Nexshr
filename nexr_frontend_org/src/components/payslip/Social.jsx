@@ -4,9 +4,9 @@ import AddRoundedIcon from '@mui/icons-material/AddRounded';
 const Social = (props) => {
   return (
     <div>
-      <div className="payslipTitle">
+      <p className="payslipTitle">
         Social
-      </div>
+      </p>
 
       <div className="socialParent">
         <div className="row ">

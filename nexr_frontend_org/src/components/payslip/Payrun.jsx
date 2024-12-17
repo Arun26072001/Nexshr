@@ -10,7 +10,7 @@ const Payrun = (props) => {
     
     return (
         <>
-            <div className="payslipTitle">Payrun</div>
+            <p className="payslipTitle">Payrun</p>
             <div className="d-flex flex-column align-items-center">
                 {
                     isShowPayrun &&
@@ -19,7 +19,7 @@ const Payrun = (props) => {
                             <div className="d-flex">
                                 <div className="d-flex align-items-center">
                                     <WarningAmberRoundedIcon color="primary" fontSize="large" />
-                                    <div className="payslipTitle p-1">Payrun </div>
+                                    <p className="payslipTitle p-1">Payrun </p>
                                 </div>
                                 <div style={{ marginLeft: "auto", cursor: "pointer" }} onClick={handleShowNotification}><CloseRoundedIcon color="primary" fontSize="large" /></div>
                             </div>

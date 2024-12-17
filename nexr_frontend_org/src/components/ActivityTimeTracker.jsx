@@ -81,7 +81,7 @@ const ActivityTimeTracker = () => {
     const stopTimer = async () => {
         console.log("try to stop");
         console.log(timerRef.current);
-        
+
         if (timerRef.current) {
             await stopActivityTimer();
             clearInterval(timerRef.current);
@@ -121,15 +121,22 @@ const ActivityTimeTracker = () => {
         }
     }, [timeOption, workTimeTracker]);
 
+    const formattedName = EmpName
+        ? EmpName.charAt(0).toUpperCase() + EmpName.slice(1)
+        : '';
     return (
         <>
             <div className="clockins">
-                <div className='payslipTitle'>Dashboard</div>
+                <p className='payslipTitle'>Dashboard</p>
                 <CustomDropdown />
             </div>
             <div className='good container-fluid row mx-auto'>
                 <div className="col-lg-6 col-md-4 col-12">
-                    <p style={{ fontSize: "15px", fontWeight: "600" }}>Good to see you, {EmpName[0]?.toUpperCase() + EmpName?.slice(1)} <WavingHandRoundedIcon sx={{color: "#FCC737"}} /></p>
+                    {/* <p style={{ fontSize: "15px", fontWeight: "600" }}>Good to see you, {EmpName[0]?.toUpperCase() + EmpName?.slice(1)} <WavingHandRoundedIcon sx={{color: "#FCC737"}} /></p> */}
+                    <p style={{ fontSize: '15px', fontWeight: 600, display: 'flex', alignItems: 'center' }}>
+                        Good to see you, {formattedName}
+                        <WavingHandRoundedIcon style={{ color: '#FCC737', marginLeft: '4px' }} />
+                    </p>
                     <div className='sub_text'>
                         {workTimeTracker?.punchInMsg || "Waiting for Login"}
                     </div>

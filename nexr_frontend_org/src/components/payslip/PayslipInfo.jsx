@@ -76,9 +76,9 @@ export default function PayslipInfo() {
     return (
         <div className='payslip_header'>
             <div className="d-flex">
-                <div className="payslipTitle">
+                <p className="payslipTitle">
                     PAYSLIP
-                </div>
+                </p>
                 {/* 
                 <button className='button m-0' onClick={addField}>Add Field</button> */}
 

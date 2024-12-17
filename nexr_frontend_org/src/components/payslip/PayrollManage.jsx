@@ -74,7 +74,7 @@ export default function PayrollManage() {
     }, [])
     return (
         <div>
-            <div className='payslipTitle'>MANAGE AUDIENCE</div>
+            <p className='payslipTitle'>MANAGE AUDIENCE</p>
             {
                 isShowInstructions &&
                 <DefinitionToggle title="Restriction Note" instructions={instructions} handleShowNotification={handleShowNotification} />

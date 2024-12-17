@@ -3,9 +3,9 @@ import React from "react"
 const Address = (props) => {
     return (
         <div>
-            <div className="payslipTitle">
+            <p className="payslipTitle">
                 Address
-            </div>
+            </p>
 
             <div className="px-3">
                 <div className="my-3">

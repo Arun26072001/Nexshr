@@ -15,7 +15,6 @@ const NexHRDashboard = ({ updateClockins }) => {
   
   return (
     (<div className="row">
-      {/* <ClockIns /> */}
       <div className="col-lg-8 col-md-12 col-12" >
         {/* Left card */}
         <Card style={{ border: '2px solid rgb(208 210 210)', height: '100%' }}>

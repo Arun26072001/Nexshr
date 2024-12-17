@@ -9,9 +9,9 @@ const History = (props) => {
     ];
     return (
         <div className="container-fluid">
-            <div className="payslipTitle">
+            <p className="payslipTitle">
                 History
-            </div>
+            </p>
             {historyData.map((item, index) => (
                 <div className="historyCard" key={index}>
                     <div className="salaryFont">{item.salary}</div>

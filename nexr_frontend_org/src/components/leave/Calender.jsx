@@ -17,9 +17,9 @@ export default function LeaveCalender() {
         <div>
             {/* Top date input and leave label */}
             <div className="leaveDateParent">
-                <div className="payslipTitle">
+                <p className="payslipTitle">
                     Calendar
-                </div>
+                </p>
                 <div>
                     <DateRangePicker
                         size="md"

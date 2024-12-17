@@ -88,7 +88,7 @@ const ClockIns = () => {
     return (
         <>
             <div className="clockins">
-                <div className='payslipTitle'>Dashboard</div>
+                <p className='payslipTitle'>Dashboard</p>
                 <CustomDropdown />
             </div>
             <div className='good container-fluid row mx-auto'>
