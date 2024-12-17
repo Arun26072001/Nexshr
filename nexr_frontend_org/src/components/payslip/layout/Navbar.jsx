@@ -7,7 +7,7 @@ import PunchIn from "../../../asserts/PunchIn.svg";
 import PunchOut from "../../../asserts/punchOut.svg";
 import { TimerStates } from '../HRMDashboard';
 import { Dropdown, Popover, Whisper } from 'rsuite';
-import logo from "../../../imgs/male_avatar.png";
+import logo from "../../../imgs/male_avatar.webp";
 import { EssentialValues } from '../../../App';
 
 export default function Navbar({ handleSideBar }) {
@@ -145,7 +145,13 @@ export default function Navbar({ handleSideBar }) {
                     <div className='sidebarIcon' onClick={handleSideBar}>
                         <TableRowsRoundedIcon />
                     </div>
-                    <img src={Webnexs} className="organization_logo" alt='logo' />
+                    <img
+                        src={Webnexs}
+                        width={30}
+                        height={30}
+                        style={{ objectFit: "cover" }}
+                        alt="Webnexs Company Logo"
+                    />
                     <span style={{ fontSize: "16px", fontWeight: "700" }}>NexHR</span>
                 </div>
 
@@ -233,7 +239,7 @@ export default function Navbar({ handleSideBar }) {
                     </span>
                     {/* Profile Section */}
                     <Whisper placement="bottomEnd" trigger="click" speaker={renderMenu}>
-                        <img src={logo} className='avatar-toggle' alt='emp_img' />
+                        <img src={logo} width={40} height={40} alt='emp_img' />
                     </Whisper>
                 </div>
 

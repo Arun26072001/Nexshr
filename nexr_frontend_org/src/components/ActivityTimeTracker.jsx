@@ -130,18 +130,19 @@ const ActivityTimeTracker = () => {
                 <p className='payslipTitle'>Dashboard</p>
                 <CustomDropdown />
             </div>
-            <div className='good container-fluid row mx-auto'>
+            <div className='good'>
                 <div className="col-lg-6 col-md-4 col-12">
                     {/* <p style={{ fontSize: "15px", fontWeight: "600" }}>Good to see you, {EmpName[0]?.toUpperCase() + EmpName?.slice(1)} <WavingHandRoundedIcon sx={{color: "#FCC737"}} /></p> */}
-                    <p style={{ fontSize: '15px', fontWeight: 600, display: 'flex', alignItems: 'center' }}>
-                        Good to see you, {formattedName}
+                    <p style={{ fontSize: '15px', fontWeight: 600 }}>
+                        Good to see you,
+                        {formattedName}
                         <WavingHandRoundedIcon style={{ color: '#FCC737', marginLeft: '4px' }} />
                     </p>
                     <div className='sub_text'>
                         {workTimeTracker?.punchInMsg || "Waiting for Login"}
                     </div>
                 </div>
-                <div className="col-lg-6 d-flex justify-content-end gap-2 align-items-center">
+                <div className="col-lg-6 col-md-4 col-12 d-flex justify-content-end gap-2 align-items-center">
                     <div className={`timer text-light ${isStartActivity ? "bg-success" : "bg-danger"}`}>
                         <span>{hour.toString().padStart(2, '0')}</span> :
                         <span>{min.toString().padStart(2, '0')}</span> :
