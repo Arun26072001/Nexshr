@@ -69,37 +69,29 @@ a {
   padding: 5px !important;
 }
 
-.outline-btn {
-  border: 2px solid black;
+.outline-btn,
+.button {
   padding: 9px 12px;
   font-size: 13px;
   border-radius: 5px;
   font-weight: 500;
+  width: fit-content;
+  box-shadow: rgba(99, 99, 99, 0.2) 0px 2px 8px, rgba(0, 0, 0, 0.16) 0px 1px 4px;
+}
+
+.outline-btn {
+  border: 2px solid black;
   background: white;
   color: black;
-  width: fit-content;
   height: fit-content;
-  box-shadow: rgba(99, 99, 99, 0.2) 0px 2px 8px 0px;
 }
 
 .button {
   cursor: pointer;
-  margin: auto;
-  padding: 11px 12px;
-  font-size: 12px;
-  border-radius: 5px;
+  /* margin: auto 15px auto auto !important; */
   background: black;
   border: none;
   color: white;
-  font-weight: 500;
-  box-shadow: rgba(0, 0, 0, 0.16) 0px 1px 4px;
-  /* width: 100%; */
-  width: fit-content;
-  margin-right: 15px !important;
-}
-
-::-webkit-scrollbar {
-  width: 0px;
 }
 
 .button:disabled {
@@ -121,11 +113,15 @@ a {
   color: white;
 }
 
-.blue_bg {
+::-webkit-scrollbar {
+  width: 0px;
+}
+
+/* .blue_bg {
   border-radius: 10px;
   padding: 10px;
   background-color: #caf4ff;
-}
+} */
 
 .empActivies {
   width: 100%;
@@ -240,7 +236,7 @@ a {
   border: 2px solid gray;
 }
 
-@media (min-width: 992px) {
+/* @media (min-width: 992px) {
   .col-lg-11 {
     flex: 0 0 auto;
     width: 94.666667%;
@@ -249,7 +245,7 @@ a {
   .col-lg-1 {
     width: 3%;
   }
-}
+} */
 
 .box {
   border-radius: 7px;

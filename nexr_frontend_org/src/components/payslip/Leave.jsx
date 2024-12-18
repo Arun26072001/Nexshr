@@ -82,7 +82,6 @@ const Leave = () => {
     useEffect(() => {
         filterLeaveRequests();
     }, [empName])
-    console.log(leaveRequests);
 
     return (
         <div >

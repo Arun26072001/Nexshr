@@ -125,14 +125,14 @@
     color: black;
 }
 
-.button:disabled:hover {
+/* .button:disabled:hover {
     background-color: #b1b1b1;
-}
+} */
 
-.button:hover {
+/* .button:hover {
     background-color: white;
     color: black;
-}
+} */
 
 .outline-btn:hover {
     background-color: black;

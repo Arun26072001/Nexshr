@@ -400,6 +400,15 @@ export default function LeaveTable({ data, Account, getCheckedValue, isTeamHead,
         }
     ]
 
+    const column11 = [
+        { id: 'title', label: 'Title', minWidth: 150, align: 'left', getter: (row) => row.title || 'Untitled' },
+        { id: 'startDate', label: 'Start Date', minWidth: 130, align: 'left', getter: (row) => row.startDate ? row.startDate.split("T")[0] : 'N/A' },
+        { id: 'endDate', label: 'End Date', minWidth: 130, align: 'left', getter: (row) => row.endDate ? row.endDate.split("T")[0] : 'N/A' },
+        { id: 'message', label: 'Message', minWidth: 200, align: 'left', getter: (row) => row.message || 'No message' },
+        { id: 'action', label: 'Action', minWidth: 100, align: 'center', getter: (row) => row.action || 'No action' },
+    ];
+
+
     function toggleView() {
         setOpenModal(!openModal);
     }
@@ -473,6 +482,8 @@ export default function LeaveTable({ data, Account, getCheckedValue, isTeamHead,
                 return setColumns(column9)
             } else if (item.PositionName) {
                 return setColumns(column10)
+            } else if (item.title) {
+                return setColumns(column11)
             }
             else {
                 return setColumns(column2)

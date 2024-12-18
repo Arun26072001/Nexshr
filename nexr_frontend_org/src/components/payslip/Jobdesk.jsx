@@ -11,7 +11,7 @@ import Social from "./Social";
 import History from "./History";
 import Salary from "./Salary";
 import { Route, Routes } from "react-router-dom";
-import PayslipRouter from "./PayslipRouter";
+import PayslipRouter from "../unwanted/PayslipRouter";
 
 const JobDesk = () => {
     const jobDeskFiles = [

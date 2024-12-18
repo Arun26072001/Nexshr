@@ -6,7 +6,7 @@ import TableCell from '@mui/material/TableCell';
 import TableContainer from '@mui/material/TableContainer';
 import TableRow from '@mui/material/TableRow';
 import Loading from './Loader';
-import "./ParentStyle.css";
+import "./payslip/layout/ParentStyle.css";
 import PayslipUI from './payslip/PayslipUI';
 import { useParams } from 'react-router-dom';
 

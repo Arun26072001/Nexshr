@@ -1,16 +1,15 @@
-.punch {
-  padding: 6px 16px 6px 16px;
-  border-radius: 6px 0px 0px 0px;
-  border: 1px 0px 0px 0px;
-  opacity: 0px;
+/* .punch {
+  padding: 6px 16px;
   border-radius: 8px;
+  border: 1px solid transparent;
+  opacity: 0;
 }
 
 .punch .btn-light {
   color: #000;
   background-color: #f8f9fa;
   border-color: #cdcdcd !important;
-}
+} */
 
 .good,
 .time,
@@ -19,7 +18,7 @@
 .leaveContainer,
 .attendanceFile {
   background: rgba(255, 255, 255, 1);
-  padding: 8px 16px 8px 16px;
+  padding: 8px 16px;
   /* gap: 8px; */
   border-radius: 8px;
   margin-top: 24px;
@@ -60,24 +59,16 @@ h6 {
   text-align: center;
 }
 
-.number {
-  font-size: 28px;
-  font-weight: 500;
-  line-height: 36px;
-  letter-spacing: -2.1%;
-}
-
-.total {
-  border-right: 1px solid rgba(224, 224, 224, 1);
-}
-
 .table {
-  color: black;
+  color: #212529;
   font-size: 12px;
   line-height: 18px;
   font-weight: 400;
-  background: rgba(255, 255, 255, 1);
+  background: #fff;
   padding: 5px;
+  width: 100%;
+  margin-bottom: 1rem;
+  border: 1px solid #e8e8e8;
 }
 
 thead {
@@ -149,11 +140,9 @@ thead {
   padding: 0.5rem 1rem;
   color: #000;
   text-decoration: none;
-  transition: color 0.15s ease-in-out, 
-              background-color 0.15s ease-in-out, 
-              border-color 0.15s ease-in-out;
+  transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out,
+    border-color 0.15s ease-in-out;
 }
-
 
 .timeoff {
   width: 100%;
@@ -183,20 +172,6 @@ thead {
   cursor: pointer;
 }
 
-/* .single_circle {
-  width: 150px;
-  height: 150px;
-  border-radius: 50%;
-  border: 2px solid #f2f2f2;
-  line-height: 150px;
-  text-align: center;
-  margin-left: 54%;
-  font-size: 45px;
-  font-weight: 500;
-  background: white;
-  box-shadow: rgba(14, 30, 37, 0.12) 0px 2px 4px 0px, rgba(14, 30, 37, 0.32) 0px 2px 16px 0px;
-} */
-
 .single_circle_side {
   width: 120px;
   height: 120px;
@@ -211,25 +186,6 @@ thead {
   box-shadow: rgba(14, 30, 37, 0.12) 0px 2px 4px 0px,
     rgba(14, 30, 37, 0.32) 0px 2px 16px 0px;
   position: relative;
-}
-
-.time-active {
-  text-align: center;
-}
-
-.timer_watch {
-  border-radius: 5px;
-  font-size: 16px !important;
-  width: 110px;
-  height: 50px;
-  background: white;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: bold;
-}
-.working {
-  background-color: rgb(238, 247, 255);
 }
 
 .buttonactivehover .nav-tabs .nav-item.show .nav-link,
@@ -252,47 +208,8 @@ thead {
   border-bottom: 3px solid rgb(238, 247, 255);
 }
 
-.over {
-  font-weight: bold;
-  color: #01204e;
-}
-
-.addtime {
-  padding: 6px 3px 4px 4px;
-  border-radius: 6px 0px 0px 0px;
-  border: 1px 0px 0px 0px;
-  opacity: 0px;
-  border-radius: 8px;
-  background: black;
-  color: white;
-}
-
-.addtime:hover {
-  background: white;
-  color: black;
-  box-shadow: rgba(0, 0, 0, 0.16);
-  text-transform: none;
-  margin: 0;
-  cursor: pointer;
-}
-
 .absence {
   background-color: rgb(238, 247, 255);
-}
-
-/* .dropdown-toggle::after {
-  display: none;
-} */
-.latesick svg {
-  width: 20px;
-}
-.days_history {
-  font-size: small;
-}
-.login {
-  font-size: 14px;
-  line-height: 22px;
-  font-weight: 400;
 }
 .dropdown-menu svg {
   width: 20px;
@@ -317,3 +234,82 @@ thead {
   border-radius: 0.25rem;
   text-align: start;
 }
+
+.number {
+  font-size: 28px;
+  font-weight: 500;
+  line-height: 36px;
+  letter-spacing: -2.1%;
+}
+
+.total {
+  border-right: 1px solid rgba(224, 224, 224, 1);
+}
+
+/* .single_circle {
+  width: 150px;
+  height: 150px;
+  border-radius: 50%;
+  border: 2px solid #f2f2f2;
+  line-height: 150px;
+  text-align: center;
+  margin-left: 54%;
+  font-size: 45px;
+  font-weight: 500;
+  background: white;
+  box-shadow: rgba(14, 30, 37, 0.12) 0px 2px 4px 0px, rgba(14, 30, 37, 0.32) 0px 2px 16px 0px;
+} */
+/* .time-active {
+  text-align: center;
+} */
+
+/* .timer_watch {
+  border-radius: 5px;
+  font-size: 16px !important;
+  width: 110px;
+  height: 50px;
+  background: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+} */
+
+/* .over {
+    font-weight: bold;
+    color: #01204e;
+  } */
+
+/* .addtime {
+    padding: 6px 3px 4px 4px;
+    border-radius: 6px 0px 0px 0px;
+    border: 1px 0px 0px 0px;
+    opacity: 0px;
+    border-radius: 8px;
+    background: black;
+    color: white;
+  }
+  
+  .addtime:hover {
+    background: white;
+    color: black;
+    box-shadow: rgba(0, 0, 0, 0.16);
+    text-transform: none;
+    margin: 0;
+    cursor: pointer;
+  } */
+
+/* .dropdown-toggle::after {
+    display: none;
+  } */
+/* .latesick svg {
+    width: 20px;
+  } */
+/* .days_history {
+    font-size: small;
+  } */
+/* .login {
+    font-size: 16px;
+    line-height: 22px;
+    font-weight: 400;
+  } */

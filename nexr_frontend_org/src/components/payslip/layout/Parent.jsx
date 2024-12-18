@@ -3,9 +3,9 @@ import React, { useState, useContext, useEffect } from "react"
 import { Outlet } from "react-router-dom";
 import "./ParentStyle.css";
 import { createContext } from "react";
-import { EssentialValues } from "../App";
-import Sidebar from "./payslip/layout/Sidebar";
-import Navbar from "./payslip/layout/Navbar";
+import { EssentialValues } from "../../../App";
+import Sidebar from "./Sidebar";
+import Navbar from "./Navbar";
 
 export const WorkTimeTrackerContext = createContext(null);
 

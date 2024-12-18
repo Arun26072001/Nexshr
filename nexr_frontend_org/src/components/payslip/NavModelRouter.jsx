@@ -1,12 +1,13 @@
 import React, { useContext, useEffect, useState } from 'react'
 import { NavLink, useParams } from 'react-router-dom';
 import { TimerStates } from './HRMDashboard';
+import { EssentialValues } from '../../App';
 
 export default function NavModelRouter({files }) {
     const params = useParams();
     const [selectedFile, setSelectedFile] = useState(params['*'] || files[0]);
     const [parentPath, setParentPath] = useState("");
-    const {whoIs} = useContext(TimerStates);
+    const {whoIs} = useContext(EssentialValues);
 
     useEffect(() => {
         setParentPath(window.location.pathname.split("/")[2])

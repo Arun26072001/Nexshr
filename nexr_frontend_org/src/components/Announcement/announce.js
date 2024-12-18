@@ -1,9 +1,61 @@
-import React from 'react';
-// import '../Attendence/Attendence.css';
+import React, { useEffect, useState } from 'react';
 import Announcementalert from './announcementalert';
 import Announcementable from './announcementable';
+import axios from 'axios';
+import { toast } from 'react-toastify';
 
 const Announce = () => {
+    const [announcements, setAnnouncements] = useState([]);
+    const [changeAnnouncement, setChangeAnnouncement] = useState(false);
+    const [anchorEl, setAnchorEl] = useState(null);  // For managing the menu anchor element
+    const token = localStorage.getItem("token");
+
+    function handleChangeAnnouncement() {
+        setChangeAnnouncement(!changeAnnouncement)
+    }
+
+    // Function to handle delete
+    const handleDelete = async (announcementId) => {
+        if (announcementId) {
+            try {
+                const response = await axios.delete(`${process.env.REACT_APP_API_URL}/api/announcements/${announcementId}`, {
+                    headers: {
+                        Authorization: `${token}`
+                    }
+                });
+
+                if (response.status !== 200) {
+                    throw new Error('Failed to delete announcement');
+                }
+
+                // Remove the deleted announcement from the state
+                setAnnouncements(announcements.filter(announcement => announcement.announcementId !== announcementId));
+                setAnchorEl(null); // Close the menu after deletion
+
+                // Show success notification
+                toast.success('Announcement deleted successfully!');
+            } catch (error) {
+                console.error('Error deleting announcement:', error);
+                toast.error('Failed to delete announcement!');
+            }
+        }
+    };
+
+    useEffect(() => {
+        const fetchAnnouncements = async () => {
+            try {
+                const response = await axios.get(`${process.env.REACT_APP_API_URL}/api/announcements`, {
+                    headers: { authorization: `${token}` }
+                });
+                const data = response.data;
+                setAnnouncements(data.Team || data); // Adjust based on your API response structure
+            } catch (error) {
+                console.error('Error fetching announcements:', error);
+            }
+        };
+
+        fetchAnnouncements();
+    }, [changeAnnouncement]);
     return (
         <div className='dashboard-parent py-4'>
             <div className="d-flex  justify-content-between align-items-center">
@@ -11,25 +63,12 @@ const Announce = () => {
                     <h5 className='text-daily'>Announcement</h5>
                 </div>
                 <div className='d-flex'>
-
-                    <Announcementalert />
-
+                    <Announcementalert handleChangeAnnouncement={handleChangeAnnouncement} />
                 </div>
             </div>
-
-
-
-
             <div className='tabline mt-3 p-4'>
-
-                {/* <div class="row"><div class="col-lg-6 searchInputIcon">
-                    <input type="text" class="payrunInput" placeholder="Search" />
-                    </div> */}
-                    {/* </div> */}
-
                 <div className='profiles mt-3'>
-
-                    <Announcementable />
+                    <Announcementable handleDelete={handleDelete} announcements={announcements} />
                 </div>
             </div>
         </div>

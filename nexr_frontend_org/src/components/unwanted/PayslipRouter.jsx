@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { NavLink, Outlet } from 'react-router-dom';
-import "./payslip.css";
-import NavModelRouter from './NavModelRouter';
+import "../payslip/payslip.css";
+import NavModelRouter from '../payslip/NavModelRouter';
 
 export default function PayslipRouter({ files }) {
 

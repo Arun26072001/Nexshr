@@ -1,7 +1,7 @@
 import React, { useState, createContext, useEffect } from "react";
 import "./App.css";
 import axios from "axios";
-import Layout from "./components/Layout";
+// import Layout from "./components/Layout";
 import Login from "./components/Login.jsx";
 import HRMDashboard from "./components/payslip/HRMDashboard.jsx";
 import { Routes, Route, useNavigate, Navigate } from "react-router-dom";
@@ -72,7 +72,7 @@ const App = () => {
       const accountType = decodedData.Account;
       setData({
         _id: decodedData._id,
-        Account: accountType,
+        Account: String(accountType),
         Name: `${decodedData.FirstName} ${decodedData.LastName}`,
         token: response.data,
         annualLeave: decodedData.annualLeaveEntitlement || 0,

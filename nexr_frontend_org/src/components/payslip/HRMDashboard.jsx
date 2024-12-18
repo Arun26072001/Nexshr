@@ -1,5 +1,4 @@
 import React, { createContext, useCallback, useContext, useEffect, useState } from 'react'
-import Parent from '../Parent'
 import Dashboard from './Dashboard';
 import JobDesk from './Jobdesk';
 import Employee from './Employee';
@@ -24,7 +23,7 @@ import Payroll from "../Settings/Payroll";
 import PayrollManage from './PayrollManage';
 import PayslipInfo from './PayslipInfo';
 import PayrollValue from './PayrollValue';
-import PayslipRouter from './PayslipRouter';
+import PayslipRouter from '../unwanted/PayslipRouter';
 import { EssentialValues } from '../../App';
 import AddEmployee from '../AddEmployee';
 import Roles from '../Administration/Roles';
@@ -33,6 +32,7 @@ import Announce from '../Announcement/announce';
 import Department from '../Administration/Department';
 import Position from '../Administration/Position';
 import { jwtDecode } from 'jwt-decode';
+import Parent from './layout/Parent';
 
 export const LeaveStates = createContext(null);
 export const TimerStates = createContext(null);
@@ -328,6 +328,8 @@ export default function HRMDashboard() {
     }, [_id]);
 
     const getAttendanceData = async () => {
+        console.log("call to get attendance");
+        
         try {
             const empOfAttendances = await axios.get(`${url}/api/clock-ins/`, {
                 headers: {
@@ -342,11 +344,13 @@ export default function HRMDashboard() {
 
     // to view attendance data for admin and hr
     useEffect(() => {
-        getClocknsData();
+        console.log(typeof Account);
+        
         if (Account === "1" || Account === "2") {
             getAttendanceData()
         }
-    }, [getClocknsData]);
+        getClocknsData();
+    }, [getClocknsData, Account]);
 
     function trackTimer() {
         setSyncTimer(!syncTimer);

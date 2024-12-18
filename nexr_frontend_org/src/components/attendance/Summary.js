@@ -40,7 +40,6 @@ const Summary = () => {
         setIsLoading(true)
         if (id) {
             const data = await gettingClockinsData(id);
-            console.log(data);
             
             if (data) {
                 setClockinsData(data);
@@ -63,7 +62,6 @@ const Summary = () => {
 
     const getEmpData = async () => {
         const emps = await fetchEmployees();
-        console.log(emps);
         
         setEmployees(emps);
     };
