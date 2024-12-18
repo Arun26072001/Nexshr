@@ -398,7 +398,7 @@ input::-webkit-inner-spin-button {
 
 .catogary:hover,
 .leaveOption:hover,
-.optionList:hover {
+.optionList:hover, .view {
   background-color: black !important;
   color: white;
   font-weight: 600;

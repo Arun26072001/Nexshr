@@ -15,9 +15,8 @@ import PayslipRouter from "../unwanted/PayslipRouter";
 
 const JobDesk = () => {
     const jobDeskFiles = [
-        'attendance', 'leave', "folder", "history",
-        'salary', 'payslip', 'contact', 'social',
-        'assets', 'address'
+        'attendance', 'leave', 'payslip',
+        'contact', 'social', 'address'
     ];
 
     return (
@@ -26,13 +25,13 @@ const JobDesk = () => {
             <Route path="/" element={<PayslipRouter files={jobDeskFiles} />}>
                 <Route index path="attendance" element={<Attendence />} />
                 <Route path="leave" element={<Leave />} />
-                <Route path="folder" element={<Folder />} />
+                {/* <Route path="folder" element={<Folder />} />
                 <Route path="history" element={<History />} />
-                <Route path="salary" element={<Salary />} />
+                <Route path="salary" element={<Salary />} /> */}
                 <Route path="payslip" element={<Payslip />} />
                 <Route path="contact" element={<Contact />} />
                 <Route path="social" element={<Social />} />
-                <Route path="assets" element={<Assets />} />
+                {/* <Route path="assets" element={<Assets />} /> */}
                 <Route path="address" element={<Address />} />
                 <Route path="*" element={<h1>404</h1>} />
             </Route>

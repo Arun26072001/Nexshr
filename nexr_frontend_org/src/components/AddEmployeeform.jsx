@@ -251,26 +251,28 @@ const AddEmployeeForm = ({ details, handleScroll, handlePersonal, handleFinancia
     function getValueforLeave(e) {
         const { name, value } = e.target;
 
-        const totalOfSplited = Object.values(formik.values.typesOfLeaveCount || {})
+        // Create a new object with the updated value for the specific leave type
+        const updatedTypesOfLeaveCount = {
+            ...formik.values.typesOfLeaveCount,
+            [name]: Number(value),
+        };
+
+        // Calculate the total using the updated `typesOfLeaveCount`
+        const totalOfSplited = Object.values(updatedTypesOfLeaveCount)
             .map(Number)
             .reduce((acc, curr) => acc + curr, 0);
 
         const annualLeaveEntitlement = Number(formik.values.annualLeaveEntitlement);
 
-        if ((totalOfSplited + Number(value)) > annualLeaveEntitlement) {
-            console.log(totalOfSplited, value);
-            console.log(annualLeaveEntitlement);
-            
+        // Check against the annual leave entitlement
+        if (totalOfSplited > annualLeaveEntitlement) {
             setSplitError("Getting more than Annual leave value!");
         } else {
+            // Update the Formik state with the new `typesOfLeaveCount`
+            formik.setFieldValue("typesOfLeaveCount", updatedTypesOfLeaveCount);
             setSplitError("");
-            formik.setFieldValue("typesOfLeaveCount", {
-                ...formik.values.typesOfLeaveCount,
-                [name]: Number(value),
-            });
         }
     }
-
 
     useEffect(() => {
         const gettingLeaveTypes = async () => {
@@ -297,12 +299,12 @@ const AddEmployeeForm = ({ details, handleScroll, handlePersonal, handleFinancia
                 <div className="empForm">
                     <div className="catogaries-container">
                         <div className="catogaries">
-                            <div className={`catogary ${details === "personal" ? "active" : ""}`} onClick={() => handleScroll("personal")}>Personal Details</div>
-                            <div className={`catogary ${details === "contact" ? "active" : ""}`} onClick={() => handleScroll("contact")}>Contact Details</div>
-                            <div className={`catogary ${details === "employment" ? "active" : ""}`} onClick={() => handleScroll("employment")}>Employment Details</div>
-                            <div className={`catogary ${details === "job" ? "active" : ""}`} onClick={() => handleScroll("job")}>Job Details</div>
-                            <div className={`catogary ${details === "financial" ? "active" : ""}`} onClick={() => handleScroll("financial")}>Financial Details</div>
-                            <div className={`catogary ${details === "payslip" ? "active" : ""}`} onClick={() => handleScroll("payslip")}>Payslip Details</div>
+                            <div className={`catogary ${details === "personal" ? "view" : ""}`} onClick={() => handleScroll("personal")}>Personal Details</div>
+                            <div className={`catogary ${details === "contact" ? "view" : ""}`} onClick={() => handleScroll("contact")}>Contact Details</div>
+                            <div className={`catogary ${details === "employment" ? "view" : ""}`} onClick={() => handleScroll("employment")}>Employment Details</div>
+                            <div className={`catogary ${details === "job" ? "view" : ""}`} onClick={() => handleScroll("job")}>Job Details</div>
+                            <div className={`catogary ${details === "financial" ? "view" : ""}`} onClick={() => handleScroll("financial")}>Financial Details</div>
+                            <div className={`catogary ${details === "payslip" ? "view" : ""}`} onClick={() => handleScroll("payslip")}>Payslip Details</div>
                         </div>
                     </div>
 
