@@ -1,80 +1,3 @@
-// announcement.js
-// const express = require('express');
-// const mongoose = require('mongoose');
-// const Joi = require('joi');
-// const { messaging } = require('../firebase'); // Adjust the path as needed
-
-// const router = express.Router();
-
-// // Schema and Model for Announcement
-// const announcementSchema = new mongoose.Schema({
-//   title: { type: String, required: true, trim: true },
-//   startDate: { type: Date, required: true },
-//   endDate: { type: Date, required: true },
-//   selectTeamMembers: [String],
-//   message: { type: String, required: true, trim: true },
-//   role: { type: String, required: true }
-// });
-
-// const Announcement = mongoose.model('Announcement', announcementSchema);
-
-// // Joi Validation Schema for Announcement
-// const announcementValidationSchema = Joi.object({
-//   title: Joi.string().required(),
-//   startDate: Joi.date().required(),
-//   endDate: Joi.date().required(),
-//   message: Joi.string().required(),
-//   selectTeamMembers: Joi.array().items(Joi.string()),
-//   role: Joi.string().valid('1', '2').required()
-// });
-// // POST route to create an announcement
-// router.post('/', async (req, res) => {
-//   const { title, startDate, endDate, message, selectTeamMembers, role } = req.body;
-
-//   // Validate the request body
-//   const { error, value } = announcementValidationSchema.validate(req.body);
-//   if (error) {
-//     return res.status(400).json({ error: error.details[0].message });
-//   }
-
-//   try {
-//     // Create a new announcement
-//     const newAnnouncement = new Announcement(value);
-//     const savedAnnouncement = await newAnnouncement.save();
-
-//     // Define the notification payload for Firebase
-//     const firebaseMessage = {
-//       notification: {
-//         title: `Announcement: ${title}`,
-//         body: `Title: ${title}\nMessage: ${message}`,
-//       },
-//       data: {
-//         startDate: new Date(startDate).toISOString(),
-//         endDate: new Date(endDate).toISOString(),
-//         role: String(role),
-//         selectTeamMembers: JSON.stringify(selectTeamMembers),
-//       },
-//       topic: "loggedInUsers", // Adjust the topic as needed
-//     };
-
-//     // Send Firebase notification
-//     await messaging.send(firebaseMessage);
-
-//     // Assuming sendChatNotification is a function defined elsewhere in your application
-//     sendChatNotification(newAnnouncement);
-
-//     res.status(201).json({
-//       message: 'Announcement created, notifications sent!',
-//       data: savedAnnouncement
-//     });
-//   } catch (error) {
-//     console.error('Error creating announcement:', error);
-//     res.status(500).json({ error: 'Error creating announcement', details: error.message });
-//   }
-// });
-
-// module.exports = router;
-
 
 const express = require('express');
 const mongoose = require('mongoose');
@@ -94,7 +17,6 @@ const announcementSchema = new mongoose.Schema({
 
 const Announcement = mongoose.model('Announcement', announcementSchema);
 
-
 const counterSchema = new mongoose.Schema({
   name: { type: String, required: true, unique: true },
   value: { type: Number, required: true }
@@ -103,14 +25,13 @@ const counterSchema = new mongoose.Schema({
 const Counter = mongoose.model('Counter', counterSchema);
 
 const announcementValidationSchema = Joi.object({
-  title: Joi.string().required(),
-  startDate: Joi.date().required(),
-  endDate: Joi.date().required(),
-  message: Joi.string().required(),
+  title: Joi.string().required().label('title'),
+  startDate: Joi.date().required().label('startDate'),
+  endDate: Joi.date().required().label('endDate').min(Joi.ref('startDate')),
+  message: Joi.string().required().label('message'),
   selectTeamMembers: Joi.array().items(Joi.string()),
   role: Joi.string().valid('1', '2').required()
 });
-
 
 async function initializeCounter() {
   const counter = await Counter.findOne({ name: 'announcementId' });
@@ -119,7 +40,7 @@ async function initializeCounter() {
   }
 }
 
-initializeCounter(); 
+initializeCounter();
 
 async function getNextAnnouncementId() {
   while (true) {
@@ -129,7 +50,7 @@ async function getNextAnnouncementId() {
       { new: true }
     );
 
-    
+
     const existingAnnouncement = await Announcement.findOne({ announcementId: counter.value });
     if (!existingAnnouncement) {
       return counter.value;
@@ -139,13 +60,12 @@ async function getNextAnnouncementId() {
 
 
 router.post('/', async (req, res) => {
-  const { error } = announcementValidationSchema.validate(req.body);
-  if (error) {
-    return res.status(400).json({ error: error.details[0].message });
-  }
 
   try {
-   
+    const { error } = announcementValidationSchema.validate(req.body);
+    if (error) {
+      return res.status(400).send({ error: error.details[0].message });
+    }
     const announcementId = await getNextAnnouncementId();
 
     const newAnnouncement = new Announcement({ ...req.body, announcementId });

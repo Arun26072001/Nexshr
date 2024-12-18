@@ -19,11 +19,6 @@ var leaveApplicationSchema = new mongoose.Schema({
   approverId: { type: mongoose.Schema.Types.ObjectId, ref: 'Employee' }
 });
 
-// leaveApplicationSchema.plugin(autoIncrement.plugin, {
-//   model: "LeaveApplication",
-//   field: "LeaveApplicationID"
-// })
-
 var LeaveApplication = mongoose.model(
   "LeaveApplication",
   leaveApplicationSchema

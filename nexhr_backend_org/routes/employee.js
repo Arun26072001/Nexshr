@@ -85,7 +85,6 @@ router.get("/user", verifyAdminHR, async (req, res) => {
 
     const formattedTeams = [selectAllOption];
 
-
     res.status(200).json({
       status: true,
       status_code: 200,
@@ -216,7 +215,7 @@ router.post("/", verifyAdminHR, async (req, res) => {
       return res.status(400).json({ message: "Email already exists" });
     }
 
-    const OrgPayslipInfoModel = getPayslipInfoModel(orgName);
+    // const OrgPayslipInfoModel = getPayslipInfoModel(orgName);
     const payslipData = await OrgPayslipInfoModel.findOne().exec();
     if (!payslipData) {
       return res.status(400).json({ message: "Payslip data not found" });
