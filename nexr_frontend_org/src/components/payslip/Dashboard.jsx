@@ -95,7 +95,7 @@ const Dashboard = () => {
                 isLoading ? <Loading /> :
                     <>
                         {/* <div className="allowance row container-fluid mx-auto g-2"> */}
-                        <div className='allowance'>
+                        <div className='allowance flex-wrap'>
                             <div className='col-lg-3 col-md-3 col-6 my-1 text-center'>
                                 <p className='leaveIndicatorTxt'>Total leave allowance</p>
                                 <p className='text-primary number'>{leaveData?.annualLeaveEntitlement || 0}</p>

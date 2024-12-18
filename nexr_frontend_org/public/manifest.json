@@ -16,5 +16,9 @@
   "action": {
     "default_popup": "popup.html",
     "default_icon": "webnexs_logo.png"
+  },
+  "externally_connectable": {
+    "ids": ["nbigkafgobepddldjomokkmclaikkfdb"],
+    "matches": ["http://localhost:3336/*"]
   }
 }

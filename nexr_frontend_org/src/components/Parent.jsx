@@ -1,4 +1,5 @@
-import React, {useState, useContext, useEffect } from "react"
+/* eslint-disable no-restricted-globals */
+import React, { useState, useContext, useEffect } from "react"
 import { Outlet } from "react-router-dom";
 import "./ParentStyle.css";
 import { createContext } from "react";
@@ -6,40 +7,35 @@ import { EssentialValues } from "../App";
 import Sidebar from "./payslip/layout/Sidebar";
 import Navbar from "./payslip/layout/Navbar";
 
-
 export const WorkTimeTrackerContext = createContext(null);
 
 const Parent = () => {
     const { handleLogout } = useContext(EssentialValues);
-    const [isAction, setIsAction] = useState(false);
-    const [sideBar, setSideBar] = useState(window.innerWidth > 1000 ? true : false);
-    const currentDate = new Date();
-    const today = `${currentDate.getDate()}/${currentDate.getMonth() + 1}/${currentDate.getFullYear()}`;
-
-       const handleActions = () => {
-        setIsAction(!isAction);
-    };
+    const [sideBar, setSideBar] = useState(screen.width > 1000 ? true : false);
+    // const currentDate = new Date();
+    // const today = `${currentDate.getDate()}/${currentDate.getMonth() + 1}/${currentDate.getFullYear()}`;
 
     function handleSideBar() {
         setSideBar(!sideBar)
     }
 
-    // useEffect(() => {
-    //     // debugger;
-    //     console.log(getDataAPI());
-    //     setWorkTimeTracker(getDataAPI())
-    // }, [])
+    useEffect(() => {
+        const handleResize = () => {
+            if (window.innerWidth > 1000) {
+                setSideBar(true)
+            } else {
+                setSideBar(false)
+            }
+        };
 
-    // useEffect(() => {
-    //     const account = localStorage.getItem("Account");
-    //     if (account == 1) {
-    //         setHowIs("/admin")
-    //     } else if (account == 2) {
-    //         setHowIs("/hr")
-    //     } else if (account == 3) {
-    //         setHowIs("/emp")
-    //     }
-    // }, [])
+        window.addEventListener("resize", handleResize);
+
+        // Cleanup function to remove the event listener
+        return () => {
+            window.removeEventListener("resize", handleResize);
+        };
+    }, []);
+
     return (
         <div>
             <Navbar handleSideBar={handleSideBar} />

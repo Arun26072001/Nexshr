@@ -50,6 +50,15 @@ const App = () => {
     navigate(`/${roles[String(accountType)]}`)
   };
 
+  async function sendEmpIdtoExtension(empId, token) {
+    // const extensionId = "nbigkafgobepddldjomokkmclaikkfdb"; // Replace with your Chrome Extension ID
+    // const data = { empId };
+
+    window.postMessage({ type: "FROM_REACT", payload: { empId, token } }, "*");
+    console.log("send message");
+
+  }
+
   const login = async (email, password) => {
     setLoading(true);
     try {
@@ -80,6 +89,8 @@ const App = () => {
       setPass(true);
       setLoading(false);
       setIsLogin(true);
+      // send emp id for extension
+      sendEmpIdtoExtension(decodedData._id, response.data);
       assignWhoIs(accountType);
 
     } catch (error) {
@@ -125,10 +136,7 @@ const App = () => {
   //   };
   //   checkNetworkConnection();
   // }, [isLogin, whoIs]);
-  // console.log(whoIs);
 
-  console.log(whoIs);
-  
   // Component Rendering
   return (
     <EssentialValues.Provider

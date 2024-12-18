@@ -11,11 +11,18 @@
   z-index: 1000;
 }
 
-@media (max-width: 356px) {
-  .sidebar{
+@media (max-width: 768px) {
+  .sidebar {
+    top: 72px;
+  }
+}
+
+@media (max-width: 480px) {
+  .sidebar {
     top: 127px;
   }
 }
+
 
 .sideBarTxt {
   font-size: 14px;

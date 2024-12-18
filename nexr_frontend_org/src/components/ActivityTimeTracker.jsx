@@ -79,8 +79,8 @@ const ActivityTimeTracker = () => {
 
     // Stop the timer with activity
     const stopTimer = async () => {
-        console.log("try to stop");
-        console.log(timerRef.current);
+        // console.log("try to stop");
+        // console.log(timerRef.current);
 
         if (timerRef.current) {
             await stopActivityTimer();
@@ -130,7 +130,7 @@ const ActivityTimeTracker = () => {
                 <p className='payslipTitle'>Dashboard</p>
                 <CustomDropdown />
             </div>
-            <div className='good'>
+            <div className='good flex-wrap'>
                 <div className="col-lg-6 col-md-4 col-12">
                     {/* <p style={{ fontSize: "15px", fontWeight: "600" }}>Good to see you, {EmpName[0]?.toUpperCase() + EmpName?.slice(1)} <WavingHandRoundedIcon sx={{color: "#FCC737"}} /></p> */}
                     <p style={{ fontSize: '15px', fontWeight: 600 }}>

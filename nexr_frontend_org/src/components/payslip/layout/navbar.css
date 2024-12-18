@@ -1,27 +1,27 @@
 .webnxs {
-    background: white;
-    padding: 4px 3px;
-    position: fixed;
-    width: 100%;
-    top: 0px;
-    z-index: 1000;
-    height: var(--header-height);
+  background: white;
+  padding: 4px 3px;
+  position: fixed;
+  width: 100%;
+  top: 0px;
+  z-index: 1000;
+  height: var(--header-height);
 }
 
-.sidebarIcon{
-    display: none;
+.sidebarIcon {
+  display: none;
 }
 
-@media (max-width: 450px) {
-    .sidebarIcon{
-        display: flex;
-    }
+@media (max-width: 768px) {
+  .sidebarIcon {
+    display: flex;
+  }
 }
 
 .organization_logo {
-    /* width: 30px;
+  /* width: 30px;
     height: 30px; */
-    object-fit: cover;
+  object-fit: cover;
 }
 
 /* .searchParent {

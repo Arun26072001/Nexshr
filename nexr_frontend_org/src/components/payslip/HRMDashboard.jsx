@@ -32,7 +32,6 @@ import PageAndActionAuth from '../Settings/PageAndActionAuth';
 import Announce from '../Announcement/announce';
 import Department from '../Administration/Department';
 import Position from '../Administration/Position';
-import Loading from '../Loader';
 import { jwtDecode } from 'jwt-decode';
 
 export const LeaveStates = createContext(null);
@@ -99,7 +98,6 @@ export default function HRMDashboard() {
         const currentMinutes = currentDate.getMinutes().toString().padStart(2, '0');
         const currentSeconds = currentDate.getSeconds().toString().padStart(2, '0');
         const currentTime = `${currentHours}:${currentMinutes}:${currentSeconds}`;
-        console.log(currentTime);
         const updatedState = {
             ...workTimeTracker,
             login: {
@@ -146,7 +144,6 @@ export default function HRMDashboard() {
     };
 
     const stopLoginTimer = async () => {
-        trackTimer();
         const currentDate = new Date();
         const currentHours = currentDate.getHours().toString().padStart(2, '0');
         const currentMinutes = currentDate.getMinutes().toString().padStart(2, '0');
