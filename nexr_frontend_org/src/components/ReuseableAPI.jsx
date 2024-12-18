@@ -3,6 +3,7 @@ import { toast } from 'react-toastify';
 const url = process.env.REACT_APP_API_URL;
 const empId = localStorage.getItem('_id');
 const token = localStorage.getItem('token');
+// console.log("reuseable: ", token);
 
 const updateDataAPI = async (body) => {
     try {
@@ -35,7 +36,7 @@ async function getTotalWorkingHourPerDay(start, end) {
 const getDataAPI = async (empId) => {
     try {
         const response = await axios.get(`${url}/api/clock-ins/${empId}`, {
-            params: { date:new Date().toISOString() },
+            params: { date: new Date().toISOString() },
             headers: { authorization: token || '' },
         });
 
@@ -84,7 +85,7 @@ function removeClockinsData() {
 const fetchEmpLeaveRequests = async () => {
     try {
         console.log(token);
-        
+
         const res = await axios.get(`${url}/api/leave-application/hr`, {
             headers: {
                 authorization: token || ""

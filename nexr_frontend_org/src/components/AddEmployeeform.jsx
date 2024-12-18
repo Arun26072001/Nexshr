@@ -257,7 +257,10 @@ const AddEmployeeForm = ({ details, handleScroll, handlePersonal, handleFinancia
 
         const annualLeaveEntitlement = Number(formik.values.annualLeaveEntitlement);
 
-        if (totalOfSplited + Number(value) > annualLeaveEntitlement) {
+        if ((totalOfSplited + Number(value)) > annualLeaveEntitlement) {
+            console.log(totalOfSplited, value);
+            console.log(annualLeaveEntitlement);
+            
             setSplitError("Getting more than Annual leave value!");
         } else {
             setSplitError("");
