@@ -181,7 +181,7 @@ let users = {};
 
 // Socket.IO Connection
 io.on("connection", (socket) => {
-  console.log(`A user connected: ${socket.id}`);
+  // console.log(`A user connected: ${socket.id}`);
 
   socket.on("registerUser", (userId) => {
     console.log(`User registered: ${userId} with socket ID: ${socket.id}`);

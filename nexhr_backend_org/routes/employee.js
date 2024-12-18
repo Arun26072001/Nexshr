@@ -216,11 +216,12 @@ router.post("/", verifyAdminHR, async (req, res) => {
     }
 
     // const OrgPayslipInfoModel = getPayslipInfoModel(orgName);
-    const payslipData = await OrgPayslipInfoModel.findOne().exec();
+    // const payslipData = await OrgPayslipInfoModel.findOne().exec();
+    const payslipData = await PaySlipInfo.findOne().exec();
     if (!payslipData) {
       return res.status(400).json({ message: "Payslip data not found" });
     }
-
+    
     const payslipFields = {};
     const basicSalaryNumber = Number(basicSalary);
 
