@@ -5,15 +5,17 @@ import * as Yup from "yup";
 import axios from "axios";
 import { toast } from "react-toastify";
 import "./leaveForm.css";
-import { fetchPayslipInfo } from "./ReuseableAPI";
+import { fetchPayslipInfo, updateEmp } from "./ReuseableAPI";
 import { TimerStates } from "./payslip/HRMDashboard";
 import { useParams } from "react-router-dom";
 import Loading from "./Loader";
 import NoDataFound from "./payslip/NoDataFound";
+import { EssentialValues } from "../App";
 
 const EditEmployeeform = ({ details, empData, handleScroll, handlePersonal, handleFinancial, handleJob, handleContact, handleEmployment, timePatterns, personalRef, contactRef, employmentRef, jobRef, financialRef, payslipRef, countries, companies, departments, positions, roles, leads, managers }) => {
     const { id } = useParams();
     const { changeEmpEditForm } = useContext(TimerStates);
+    const { whoIs } = useContext(EssentialValues);
     const [timeDifference, setTimeDifference] = useState(0);
     const [payslipFields, setPayslipFields] = useState([]);
     const token = localStorage.getItem("token");
@@ -69,14 +71,10 @@ const EditEmployeeform = ({ details, empData, handleScroll, handlePersonal, hand
         validationSchema: empFormValidation,
         onSubmit: async (values, { resetForm }) => {
             try {
-                const res = await axios.put(`${url}/api/employee/${id}`, values, {
-                    headers: {
-                        authorization: token || ""
-                    }
-                })
-                toast.success(res.data.message);
+                const res = await updateEmp({id,values}) 
+                toast.success(res);
                 changeEmpEditForm();
-
+                resetForm();
             } catch (err) {
                 console.log(err);
                 if (err.response && err.response.data && err.response.data.error) {
@@ -211,8 +209,8 @@ const EditEmployeeform = ({ details, empData, handleScroll, handlePersonal, hand
         getPayslipInfo();
     }, []);
 
-    console.log(formik.errors);
-    
+    // console.log(formik.errors);
+
     useEffect(() => {
         const gettingLeaveTypes = async () => {
             try {
@@ -242,12 +240,12 @@ const EditEmployeeform = ({ details, empData, handleScroll, handlePersonal, hand
                     <div className="empForm">
                         <div className="catogaries-container">
                             <div className="catogaries">
-                                <div className={`catogary ${details === "personal" ? "active" : ""}`} onClick={() => handleScroll("personal")}>Personal Details</div>
-                                <div className={`catogary ${details === "contact" ? "active" : ""}`} onClick={() => handleScroll("contact")}>Contact Details</div>
-                                <div className={`catogary ${details === "employment" ? "active" : ""}`} onClick={() => handleScroll("employment")}>Employment Details</div>
-                                <div className={`catogary ${details === "job" ? "active" : ""}`} onClick={() => handleScroll("job")}>Job Details</div>
-                                <div className={`catogary ${details === "financial" ? "active" : ""}`} onClick={() => handleScroll("financial")}>Financial Details</div>
-                                <div className={`catogary ${details === "payslip" ? "active" : ""}`} onClick={() => handleScroll("payslip")}>Payslip Details</div>
+                                <div className={`catogary ${details === "personal" ? "view" : ""}`} onClick={() => handleScroll("personal")}>Personal Details</div>
+                                <div className={`catogary ${details === "contact" ? "view" : ""}`} onClick={() => handleScroll("contact")}>Contact Details</div>
+                                <div className={`catogary ${details === "employment" ? "view" : ""}`} onClick={() => handleScroll("employment")}>Employment Details</div>
+                                <div className={`catogary ${details === "job" ? "view" : ""}`} onClick={() => handleScroll("job")}>Job Details</div>
+                                <div className={`catogary ${details === "financial" ? "view" : ""}`} onClick={() => handleScroll("financial")}>Financial Details</div>
+                                {/* <div className={`catogary ${details === "payslip" ? "view" : ""}`} onClick={() => handleScroll("payslip")}>Payslip Details</div> */}
                             </div>
                         </div>
 
@@ -298,9 +296,12 @@ const EditEmployeeform = ({ details, empData, handleScroll, handlePersonal, hand
                                     </div>
                                     <div className="col-lg-6">
                                         <div className="inputLabel">Department</div>
-                                        <select name="department" className={`selectInput ${formik.touched.department && formik.errors.department ? "error" : ""}`}
-                                            onChange={formik.handleChange}
-                                            value={formik.values.department}>
+                                        <select name="department"
+                                            className={`selectInput ${formik.touched.department && formik.errors.department ? "error" : ""}`}
+                                            disabled={whoIs === "emp" ? true : false}
+                                            onChange={whoIs === "emp" ? null : formik.handleChange}
+                                            value={formik.values.department}
+                                        >
                                             <option >Select Department</option>
                                             {
                                                 departments.map((department) => (
@@ -318,7 +319,8 @@ const EditEmployeeform = ({ details, empData, handleScroll, handlePersonal, hand
                                     <div className="col-lg-12">
                                         <div className="inputLabel">Position</div>
                                         <select name="position" className={`selectInput ${formik.touched.position && formik.errors.position ? "error" : ""}`}
-                                            onChange={formik.handleChange}
+                                            disabled={whoIs === "emp" ? true : false}
+                                            onChange={whoIs === "emp" ? null : formik.handleChange}
                                             value={formik?.values?.position || empData?.position || ""}>
                                             <option >Select Position</option>
                                             {
@@ -337,7 +339,8 @@ const EditEmployeeform = ({ details, empData, handleScroll, handlePersonal, hand
                                     <div className="col-lg-6">
                                         <div className="inputLabel">Role</div>
                                         <select name="role" className={`selectInput ${formik.touched.role && formik.errors.role ? "error" : ""}`}
-                                            onChange={formik.handleChange}
+                                            disabled={whoIs === "emp" ? true : false}
+                                            onChange={whoIs === "emp" ? null : formik.handleChange}
                                             value={formik.values.role || empData?.role || ""}>
                                             <option >Select Role</option>
                                             {
@@ -353,7 +356,8 @@ const EditEmployeeform = ({ details, empData, handleScroll, handlePersonal, hand
                                     <div className="col-lg-6">
                                         <div className="inputLabel">Employment Type</div>
                                         <select name="employmentType" className={`selectInput ${formik.touched.employmentType && formik.errors.employmentType ? "error" : ""}`}
-                                            onChange={formik.handleChange}
+                                            disabled={whoIs === "emp" ? true : false}
+                                            onChange={whoIs === "emp" ? null : formik.handleChange}
                                             value={formik.values.employmentType}>
                                             <option >Employment Type</option>
                                             <option value="full-time">Full Time</option>
@@ -457,7 +461,8 @@ const EditEmployeeform = ({ details, empData, handleScroll, handlePersonal, hand
                                         <select
                                             className={`selectInput ${formik.touched.workingTimePattern && formik.errors.workingTimePattern ? "error" : ""}`}
                                             name="workingTimePattern"
-                                            onChange={formik.handleChange}
+                                            disabled={whoIs === "emp" ? true : false}
+                                            onChange={whoIs === "emp" ? null : formik.handleChange}
                                             value={formik.values.workingTimePattern || empData?.workingTimePattern || ""} // Set initial value from empData if formik value is not set
                                         >
                                             <option value="">Select Work Time Pattern</option>
@@ -480,7 +485,8 @@ const EditEmployeeform = ({ details, empData, handleScroll, handlePersonal, hand
                                         <select
                                             className={`selectInput ${formik.touched.company && formik.errors.company ? "error" : ""}`}
                                             name="company"
-                                            onChange={formik.handleChange}
+                                            disabled={whoIs === "emp" ? true : false}
+                                            onChange={whoIs === "emp" ? null : formik.handleChange}
                                             value={formik.values.company || empData.company || ""} >
                                             <option>Select Company</option>
                                             {
@@ -502,7 +508,8 @@ const EditEmployeeform = ({ details, empData, handleScroll, handlePersonal, hand
                                             type="date"
                                             className={`inputField ${formik.touched.dateOfJoining && formik.errors.dateOfJoining ? "error" : ""}`}
                                             name="dateOfJoining"
-                                            onChange={formik.handleChange}
+                                            disabled={whoIs === "emp" ? true : false}
+                                            onChange={whoIs === "emp" ? null : formik.handleChange}
                                             value={formik.values.dateOfJoining}
                                         />
                                         {formik.touched.dateOfJoining && formik.errors.dateOfJoining ? (
@@ -516,7 +523,8 @@ const EditEmployeeform = ({ details, empData, handleScroll, handlePersonal, hand
                                         <input type="date"
                                             className={`inputField`}
                                             name="annualLeaveYearStart"
-                                            onChange={formik.handleChange}
+                                            disabled={whoIs === "emp" ? true : false}
+                                            onChange={whoIs === "emp" ? null : formik.handleChange}
                                             value={formik.values.annualLeaveYearStart} />
                                     </div>
                                 </div>
@@ -556,7 +564,8 @@ const EditEmployeeform = ({ details, empData, handleScroll, handlePersonal, hand
                                         <select
                                             className={`selectInput ${formik.touched.publicHoliday && formik.errors.publicHoliday ? "error" : ""}`}
                                             name="publicHoliday"
-                                            onChange={formik.handleChange}
+                                            disabled={whoIs === "emp" ? true : false}
+                                            onChange={whoIs === "emp" ? null : formik.handleChange}
                                             value={formik.values.publicHoliday} >
                                             <option>Select Public holiday</option>
                                             {
@@ -582,7 +591,8 @@ const EditEmployeeform = ({ details, empData, handleScroll, handlePersonal, hand
                                         </div>
                                         <input type="number"
                                             value={formik.values.annualLeaveEntitlement}
-                                            onChange={formik.handleChange}
+                                            disabled={whoIs === "emp" ? true : false}
+                                            onChange={whoIs === "emp" ? null : formik.handleChange}
                                             name="annualLeaveEntitlement"
                                             className={`inputField ${formik.touched.annualLeaveEntitlement && formik.errors.annualLeaveEntitlement ? "error" : ""}`} />
                                         {formik.touched.annualLeaveEntitlement && formik.errors.annualLeaveEntitlement ? (
@@ -593,7 +603,7 @@ const EditEmployeeform = ({ details, empData, handleScroll, handlePersonal, hand
                                         <div className="inputLabel">
                                             Select Leave Types
                                         </div>
-                                        <TagPicker data={leaveTypes} disabled={formik.values.annualLeaveEntitlement ? false : true} title={!formik.values.annualLeaveEntitlement && "Please Enter Annual Leave"} size="lg" onChange={handleTagSelector} value={selectedLeaveTypes} className={formik.values.annualLeaveEntitlement ? "rsuite_selector" : "rsuite_selector_disabled"} style={{ width: 300, marginTop: "5px", border: "none" }} />
+                                        <TagPicker data={leaveTypes} disabled={formik.values.annualLeaveEntitlement ? false : true} title={!formik.values.annualLeaveEntitlement && "Please Enter Annual Leave"} size="lg" readOnly onChange={whoIs === "emp" ? null : handleTagSelector} value={selectedLeaveTypes} className={formik.values.annualLeaveEntitlement ? "rsuite_selector" : "rsuite_selector_disabled"} style={{ width: 300, marginTop: "5px", border: "none" }} />
                                     </div>
                                 </div>
                                 <div className="row d-flex justify-content-center">
@@ -772,7 +782,7 @@ const EditEmployeeform = ({ details, empData, handleScroll, handlePersonal, hand
                                 </div>
                             </div>
 
-                            <div className="payslipDetails" ref={payslipRef}>
+                            {/* <div className="payslipDetails" ref={payslipRef}>
                                 <div className="row d-flex justify-content-center my-3">
                                     <div className="titleText col-lg-12">
                                         Payslip Details
@@ -838,8 +848,7 @@ const EditEmployeeform = ({ details, empData, handleScroll, handlePersonal, hand
                                     }
 
                                 </div>
-                            </div>
-
+                            </div> */}
                         </div>
                     </div>
                     <div className="btnBackground">
@@ -850,7 +859,7 @@ const EditEmployeeform = ({ details, empData, handleScroll, handlePersonal, hand
                                 </button>
                             </div>
                             <div className="w-50">
-                                <button type="submit" className="button px-5 py-2" onClick={navToError}>
+                                <button type="submit" className="button" style={{ padding: "12px" }} onClick={navToError}>
                                     Update
                                 </button>
                             </div>

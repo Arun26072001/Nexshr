@@ -142,6 +142,12 @@ function verifyAdminHR(req, res, next) {
       return res.status(401).json({ error: "Invalid or expired token" });
     }
 
+    // Ensure authData is valid and contains the Account field
+    if (!authData || typeof authData.Account === 'undefined') {
+      console.error("Invalid token payload: Account property missing");
+      return res.status(403).json({ error: "Access denied" });
+    }
+
     // Check if the user has admin or HR access
     if (authData.Account === 1 || authData.Account === 2) {
       // User is authorized
@@ -153,9 +159,6 @@ function verifyAdminHR(req, res, next) {
     }
   });
 }
-
-module.exports = verifyAdminHR;
-
 
 function verifyAdmin(req, res, next) {
   const token = req.headers['authorization'];

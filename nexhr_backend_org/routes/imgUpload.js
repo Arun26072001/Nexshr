@@ -1,28 +1,18 @@
 const multer = require('multer');
 const path = require('path');
 const express = require("express");
+const sharp = require("sharp");
+
 const router = express.Router();
 
 // Configure multer for handling file uploads
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    // // Access page_slug from req.body, not from req.file
-    // const page_slug = req.body;
-    // console.log(req.body);
-    
-
-    // // Check if the page_slug exists
-    // if (!page_slug) {
-    //   return cb(new Error('Page slug is required'), false); // Stop processing if no page_slug
-    // }
-
-    // Create a directory for the uploaded files based on page_slug
     cb(null, './uploads/');
   },
   filename: function (req, file, cb) {
-    // Format the filename to include the current time and the original file name
     const timePrefix = new Date().toISOString().replace(/[-T:\.Z]/g, '');
-    const formattedFilename = timePrefix + '-' + file.originalname.replace(/ /g, "-").toLowerCase();
+    const formattedFilename = `${timePrefix}-${file.originalname.replace(/ /g, "-").toLowerCase()}`;
     cb(null, formattedFilename);
   }
 });
@@ -31,39 +21,45 @@ const storage = multer.diskStorage({
 const upload = multer({
   storage: storage,
   fileFilter: (req, file, cb) => {
-    // Define file types allowed
-    const filetypes = /jpeg|jpg|png|gif/;
-    const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
-    const mimetype = filetypes.test(file.mimetype);
+    const allowedTypes = /jpeg|jpg|png|gif|webp/;
+    const isValidExt = allowedTypes.test(path.extname(file.originalname).toLowerCase());
+    const isValidMime = allowedTypes.test(file.mimetype);
 
-    if (mimetype && extname) {
-      return cb(null, true);
+    if (isValidExt && isValidMime) {
+      cb(null, true);
+    } else {
+      cb(new Error('Error: File type not supported!'), false);
     }
-    return cb(new Error('Error: File type not supported!'), false);
   },
-  limits: { fileSize: 10 * 1024 * 1024 } // Optional: Limit file size to 10MB
+  limits: { fileSize: 10 * 1024 * 1024 }, // Limit file size to 10MB
 });
 
-// POST route for uploading files
-router.post("/", upload.single("profile"), (req, res) => {
+// POST route for uploading and converting files
+router.post("/", upload.single("profile"), async (req, res) => {
   try {
-    console.log(req.body)
-
-    // Access the uploaded file
-    const uploadedFile = req.file;
-
-    // If no file is uploaded or no page_slug is provided, return an error
-    if (!uploadedFile) {
+    if (!req.file) {
       return res.status(400).send({ message: 'No file uploaded.' });
     }
 
+    // Define the new file path with a .webp extension
+    const newFilePath = `./uploads/${path.parse(req.file.filename).name}.webp`;
+
+    // Use sharp to convert the uploaded file to WebP format
+    await sharp(req.file.path)
+      .toFormat('webp')
+      .toFile(newFilePath);
+
     // Respond with success message and file details
     res.status(200).send({
-      message: 'File uploaded successfully!',
-      file: uploadedFile
+      message: 'File uploaded and converted successfully!',
+      originalFile: req.file.filename,
+      convertedFile: path.basename(newFilePath),
     });
+
   } catch (error) {
-    console.log(error);
+    console.error(error);
+
+    // Handle errors gracefully
     res.status(500).send({ message: error.message });
   }
 });

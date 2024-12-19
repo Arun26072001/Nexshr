@@ -64,7 +64,7 @@ const AddEmployee = () => {
       })
     }
   }
-  
+
   function handleEmployment() {
     if (employmentRef.current) {
       const scrollDown = employmentRef.current.getBoundingClientRect().top + window.scrollY;
@@ -99,7 +99,7 @@ const AddEmployee = () => {
     setScrolledHeight(window.scrollY || window.pageYOffset);
   }
   window.addEventListener("scroll", getScrollPx);
-  
+
   function handleScroll(value) {
     setDetails(value);
     if (value === "personal") {
@@ -144,7 +144,7 @@ const AddEmployee = () => {
       console.log(err.data);
     }
   }
-  
+
   const fetchCompanies = async () => {
     try {
       const company = await axios.get(url + "/api/company", {
@@ -162,9 +162,9 @@ const AddEmployee = () => {
   const fetchTeamLead = async () => {
     try {
       const employees = await fetchAllEmployees()
-      
+
       let filterTL = employees.filter(emp => emp.position.some((pos) => pos.PositionName === "TL")).map(emp => emp);
-      
+
       setLeads(filterTL);
 
     } catch (err) {
@@ -214,7 +214,7 @@ const AddEmployee = () => {
     try {
       const empData = await fetchEmployeeData(id);
       console.log(empData);
-      
+
       setEmployeeObj({
         FirstName: empData?.FirstName || "",
         LastName: empData?.LastName || "",
@@ -252,16 +252,17 @@ const AddEmployee = () => {
         IFSCcode: empData?.IFSCcode || "",
         taxDeduction: empData?.taxDeduction || ""
       });
-      
+
     } catch (error) {
       console.log(error);
       toast.error(error.message);
     }
   }
-  
-  useEffect(() => {
 
-    if (scrolledHeight > 2400) {
+  useEffect(() => {
+    if (scrolledHeight > 3000) {
+      setDetails("payslip")
+    } else if (scrolledHeight > 2400) {
       setDetails("financial")
     } else if (scrolledHeight > 1850) {
       setDetails("job");
@@ -301,8 +302,8 @@ const AddEmployee = () => {
     setIsLoading(false);
   }, []);
 
-  // console.log(employeeObj);
-  
+  console.log(isEditEmp);
+
   return (
     <>
       {isLoading ? (
@@ -331,8 +332,8 @@ const AddEmployee = () => {
           positions={positions}
           managers={managers}
           timePatterns={timePatterns}
-          />
-        ) : (
+        />
+      ) : (
         <AddEmployeeForm
           details={details}
           companies={companies}
@@ -355,57 +356,10 @@ const AddEmployee = () => {
           positions={positions}
           managers={managers}
           timePatterns={timePatterns}
-          />
-        )}
+        />
+      )}
     </>
-
-)
+  )
 };
 
 export default AddEmployee;
-// function onChangeEmp(e) {
-//   console.log(e.target);
-
-//   const { name, value } = e.target;
-//   setEmployeeObj((prev) => ({
-//     ...prev,
-//     [name]: value
-//   }))
-// }
-
-// if(employeeObj.dateOfJoining !== ""){
-//   const dojGetTime = new Date(employeeObj.dateOfJoining).getTime();
-//   setEmployeeObj((prev)=>({
-//     ...prev,
-//     annualLeaveEntitlement: Math.ceil(new Date().getTime - dojGetTime/(1000*60*60*60*24*365))
-//   }))
-// }
-// console.log(employeeObj);
-        
-          // useEffect(() => {
-          //   const calculateTimeDifference = () => {
-          //     if (timePatterns.length > 0) {
-          //       const selectedPattern = timePatterns.find(pattern => pattern._id === employeeObj.workingTimePattern);
-          //       if (selectedPattern && selectedPattern.StartingTime && selectedPattern.FinishingTime) {
-          //         const [startHour, startMinute] = selectedPattern.StartingTime.split(":").map(num => parseInt(num, 10));
-          //         const [endHour, endMinute] = selectedPattern.FinishingTime.split(":").map(num => parseInt(num, 10));
-        
-          //         const startDate = new Date();
-          //         startDate.setHours(startHour);
-          //         startDate.setMinutes(startMinute);
-        
-          //         const endDate = new Date();
-          //         endDate.setHours(endHour);
-          //         endDate.setMinutes(endMinute);
-        
-          //         const timeDiff = endDate.getTime() - startDate.getTime();
-          //         const hoursDiff = Math.floor(timeDiff / (1000 * 60 * 60));
-          //         const minutesDiff = Math.floor((timeDiff % (1000 * 60 * 60)) / (1000 * 60));
-        
-          //         setTimeDifference((hoursDiff * 60) + minutesDiff);
-          //       }
-          //     }
-          //   };
-        
-          //   calculateTimeDifference();
-          // }, [timePatterns, employeeObj.workingTimePattern]);

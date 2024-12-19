@@ -7,7 +7,7 @@ import TableContainer from '@mui/material/TableContainer';
 import TableHead from '@mui/material/TableHead';
 import TablePagination from '@mui/material/TablePagination';
 import TableRow from '@mui/material/TableRow';
-import { fetchPayslip, getclockinsDataById, getTotalWorkingHourPerDay } from './ReuseableAPI';
+import { fetchPayslip, getclockinsDataById } from './ReuseableAPI';
 import EditRoundedIcon from '@mui/icons-material/EditRounded';
 import RemoveRedEyeRoundedIcon from '@mui/icons-material/RemoveRedEyeRounded';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -415,7 +415,6 @@ export default function LeaveTable({ data, Account, getCheckedValue, isTeamHead,
 
     function getValueForView(value) {
         const [id, page] = value;
-        console.log(id, value);
 
         if (page === 'daily-log') {
             async function fetchAttendanceData() {
@@ -455,7 +454,7 @@ export default function LeaveTable({ data, Account, getCheckedValue, isTeamHead,
 
     useEffect(() => {
         setRows(data || []);
-        data.map((item) => {
+        data?.map((item) => {
             if (item.fromDate && params['*'] === "leave-request") {
                 return setColumns(column1);
             } else if (item.employmentType) {

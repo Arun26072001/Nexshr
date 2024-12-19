@@ -176,11 +176,13 @@ const LeaveRequestForm = () => {
             'Content-Type': 'multipart/form-data'
           }
         });
-        const filename = response.data.file.filename;
+        const filename = response.data.convertedFile;
         formik.setFieldValue("prescription", filename)
 
       } catch (error) {
-        console.error("Error uploading file:", error.response.data.message);
+        console.log(error);
+        
+        // console.error("Error uploading file:", error.response.data.message);
       }
     }
   };

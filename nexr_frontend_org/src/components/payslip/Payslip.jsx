@@ -1,31 +1,12 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { DateRangePicker } from "rsuite";
 import LeaveTable from "../LeaveTable";
 import NoDataFound from "./NoDataFound";
-import { toast } from "react-toastify";
-import { fetchPayslipFromEmp } from "../ReuseableAPI";
 import Loading from "../Loader";
 
-const Payslip = (props) => {
-    const empId = localStorage.getItem("_id")
-    const [payslips, setPayslips] = useState([]);
+const Payslip = ({ payslips, isLoading }) => {
     const [daterangeValue, setDaterangeValue] = useState("");
-    const [isLoading, setIsLoading] = useState(false);
 
-    useEffect(() => {
-        async function fetchPayslips() {
-            setIsLoading(true);
-            try {
-                const slips = await fetchPayslipFromEmp(empId);
-                setPayslips(slips);
-            } catch (err) {
-                toast.error(err?.response?.data?.error)
-            }
-            setIsLoading(false);
-        }
-
-        fetchPayslips();
-    }, [empId])
     return (
         isLoading ? <Loading /> :
             <div>

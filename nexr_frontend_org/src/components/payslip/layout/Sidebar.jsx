@@ -11,10 +11,12 @@ import adminIcon from '../../../asserts/adminIcon.svg';
 import homeIcon from '../../../asserts/homeIcon.svg';
 import { EssentialValues } from '../../../App';
 import { jwtDecode } from 'jwt-decode';
+import { TimerStates } from '../HRMDashboard';
 
 const Sidebar = ({ sideBar, handleSideBar }) => {
-  const { data, whoIs, handleLogout } = useContext(EssentialValues)
-  const { token } = data;
+  const { data, whoIs, handleLogout } = useContext(EssentialValues);
+  const { changeEmpEditForm, setIsEditEmp } = useContext(TimerStates);
+  const { token, _id } = data;
   const decodedData = jwtDecode(token);
   const { Dashboard, JobDesk, Employee, Leave,
     Attendance, Administration, Settings
@@ -34,6 +36,9 @@ const Sidebar = ({ sideBar, handleSideBar }) => {
   };
 
   const renderNavLink = (condition, path, icon, text, key) => {
+    if (path.includes("/employee/edit/")) {
+      setIsEditEmp(true)
+    }
     return (
       condition && (
         <li
@@ -49,7 +54,7 @@ const Sidebar = ({ sideBar, handleSideBar }) => {
           </NavLink>
         </li>
       )
-    );
+    )
   };
 
   const renderSubMenu = (menuKey, submenuItems, icon, label) => {
@@ -106,12 +111,24 @@ const Sidebar = ({ sideBar, handleSideBar }) => {
         )}
 
         {renderNavLink(
-          Employee === 'allow' || ['admin', 'hr', 'employee'].includes(whoIs),
-          `/${whoIs}/employee`,
+          (Employee === 'allow' || ['admin', 'hr', 'emp'].includes(whoIs)),
+          (whoIs === "emp"
+            ? `/${whoIs}/employee/edit/${_id}`
+            : `/${whoIs}/employee`),
           userIcon,
           'Employee',
           'employee'
         )}
+
+        {/* {(Employee === 'allow' || whoIs === "emp" &&
+          renderSubMenu(
+            'leave',
+            [
+              { key: 'edit-employee', changeEmpEditForm(_id) , label: 'Status' }
+            ],
+            userIcon,
+            'Employee'
+          ))} */}
 
         {(Leave === 'allow' || ['admin', 'hr'].includes(whoIs)) &&
           renderSubMenu(

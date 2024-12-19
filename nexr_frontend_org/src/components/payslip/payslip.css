@@ -246,7 +246,10 @@ li.nav-item.active {
   margin: 13px 0px;
   background: #f5f5f5;
   cursor: pointer;
+  /* display: flex;
+  justify-content: space-between; */
 }
+
 .historyCard > * {
   margin: 10px 0px;
 }

@@ -2,7 +2,7 @@ import React, { createContext, useCallback, useContext, useEffect, useState } fr
 import Dashboard from './Dashboard';
 import JobDesk from './Jobdesk';
 import Employee from './Employee';
-import { Route, Routes, useNavigate } from 'react-router-dom';
+import { Route, Routes, useNavigate, useParams } from 'react-router-dom';
 import Employees from './Employees';
 import Request from '../attendance/Request';
 import Dailylog from '../attendance/Dailylog';
@@ -33,11 +33,13 @@ import Department from '../Administration/Department';
 import Position from '../Administration/Position';
 import { jwtDecode } from 'jwt-decode';
 import Parent from './layout/Parent';
+import PayslipUI from './PayslipUI';
 
 export const LeaveStates = createContext(null);
 export const TimerStates = createContext(null);
 
 export default function HRMDashboard() {
+    const params = useParams();
     const { data, isStartLogin, isStartActivity, setIsStartLogin, setIsStartActivity, whoIs } = useContext(EssentialValues);
     const { token, Account, _id } = data;
     const { isTeamLead, isTeamHead } = jwtDecode(token);
@@ -216,9 +218,6 @@ export default function HRMDashboard() {
             },
         });
 
-        // console.log(workTimeTracker?._id, isStartActivity);
-
-        // if (workTimeTracker?._id) {
         try {
             // Call the API with the updated state
             const updatedData = await updateDataAPI(updatedState(workTimeTracker));
@@ -230,14 +229,14 @@ export default function HRMDashboard() {
         } catch (error) {
             toast.error(error.message);
         }
-        // }
-    };
+    }
 
     function changeEmpEditForm(id) {
         if (isEditEmp) {
             navigate(-1);
             setIsEditEmp(false);
         } else {
+            console.log(params);
             navigate(`employee/edit/${id}`);
             setIsEditEmp(true);
         }
@@ -328,8 +327,6 @@ export default function HRMDashboard() {
     }, [_id]);
 
     const getAttendanceData = async () => {
-        console.log("call to get attendance");
-        
         try {
             const empOfAttendances = await axios.get(`${url}/api/clock-ins/`, {
                 headers: {
@@ -344,8 +341,6 @@ export default function HRMDashboard() {
 
     // to view attendance data for admin and hr
     useEffect(() => {
-        console.log(typeof Account);
-        
         if (Account === "1" || Account === "2") {
             getAttendanceData()
         }
@@ -382,7 +377,7 @@ export default function HRMDashboard() {
     }, [isStartLogin, isStartActivity]);
 
     return (
-        <TimerStates.Provider value={{ workTimeTracker, reloadRolePage, updateWorkTracker, trackTimer, startLoginTimer, stopLoginTimer, startActivityTimer, stopActivityTimer, setWorkTimeTracker, updateClockins, timeOption, isStartLogin, isStartActivity, changeEmpEditForm, isEditEmp }}>
+        <TimerStates.Provider value={{ workTimeTracker, reloadRolePage, setIsEditEmp, updateWorkTracker, trackTimer, startLoginTimer, stopLoginTimer, startActivityTimer, stopActivityTimer, setWorkTimeTracker, updateClockins, timeOption, isStartLogin, isStartActivity, changeEmpEditForm, isEditEmp }}>
             <Routes >
                 <Route path="/" element={<Parent />} >
                     <Route index element={<Dashboard data={data} />} />
@@ -439,7 +434,7 @@ export default function HRMDashboard() {
                             </Route>
                         </Routes>
                     } />
-
+                    <Route path='payslip/:id' element={<PayslipUI />} />
                     <Route path="*" element={<p>404</p>} />
                     <Route path="unauthorize" element={<UnAuthorize />} />
                 </Route>

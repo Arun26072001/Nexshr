@@ -5,8 +5,11 @@ import { fetchPayslip, fetchPayslipInfo } from '../ReuseableAPI';
 import { toast } from 'react-toastify';
 import { jsPDF } from "jspdf";
 import html2canvas from 'html2canvas';
+import { useNavigate, useParams } from 'react-router-dom';
 
-export default function PayslipUI({ payslipId, handleViewPayslip }) {
+export default function PayslipUI() {
+    const { id } = useParams();
+    const navigate = useNavigate();
     const payslipRef = useRef(null);
     const [payslips, setPayslips] = useState(null); // Updated to null for initial state
     const [payslipFields, setPayslipFields] = useState([]);
@@ -105,14 +108,14 @@ export default function PayslipUI({ payslipId, handleViewPayslip }) {
     useEffect(() => {
         async function fetchPayslips() {
             try {
-                const slips = await fetchPayslip(payslipId);
+                const slips = await fetchPayslip(id);
                 setPayslips(slips);
             } catch (err) {
                 toast.error(err?.response?.data?.error);
             }
         }
         fetchPayslips();
-    }, [payslipId]);
+    }, [id]);
 
     return (
         <div className="modal-overlay">
@@ -264,7 +267,7 @@ export default function PayslipUI({ payslipId, handleViewPayslip }) {
                     </p>
                 </div>
                 <div className='d-flex justify-content-center py-2 gap-2'>
-                    <button className='button bg-secondary m-0' onClick={handleViewPayslip}>Close</button>
+                    <button className='button bg-secondary m-0' onClick={() => navigate(-1)}>Close</button>
                     <button className='button m-0' onClick={handleDownloadPdf}>Download</button>
                 </div>
             </div>

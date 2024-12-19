@@ -283,6 +283,19 @@ const getDepartments = async () => {
     }
 }
 
+const updateEmp = async (data) => {
+
+    try {
+        const res = await axios.put(`${url}/api/employee/${data.id}`, data.values, {
+            headers: {
+                authorization: token || ""
+            }
+        })
+        return res.data.message;
+    } catch (error) {
+        return error.response.data.error;
+    }
+}
 
 const addSecondsToTime = (timeString, secondsToAdd) => {
     // Validate and normalize the timeString format
@@ -313,6 +326,7 @@ const addSecondsToTime = (timeString, secondsToAdd) => {
 export {
     addDataAPI,
     getDataAPI,
+    updateEmp,
     getDepartments,
     updateDataAPI,
     fetchPayslipFromEmp,

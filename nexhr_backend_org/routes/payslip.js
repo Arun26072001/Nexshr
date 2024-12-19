@@ -81,8 +81,8 @@ router.post("/", async (req, res) => {
       });
 
       payslip['status'] = "pending"
-      payslip['period'] = `${startOfMonth.getDate()}-${startOfMonth.getMonth() + 1}-${startOfMonth.getFullYear()} to ${endOfMonth.getDate()}-${endOfMonth.getMonth() + 1}-${endOfMonth.getFullYear()}`;
-
+      const month = startOfMonth.toLocaleString("default", { month: "long" })
+      payslip['period'] = `${month} ${startOfMonth.getFullYear()}`;
 
       const body = {
         employee: emp._id,

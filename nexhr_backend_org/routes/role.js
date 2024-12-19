@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { Employee } = require('../models/EmpModel');
-const { verifyAdminHR, verifyAdmin } = require('../auth/authMiddleware');
+const { verifyAdminHR, verifyAdmin, verifyAdminHREmployee } = require('../auth/authMiddleware');
 const { RoleAndPermission, RoleAndPermissionValidation, RoleAndPermissionSchema } = require('../models/RoleModel');
 const { userPermissionsValidation, UserPermission } = require('../models/UserPermissionModel');
 const { PageAuth, pageAuthValidation } = require('../models/PageAuth');
@@ -33,27 +33,27 @@ router.get("/name", verifyAdmin, async (req, res) => {
       let role = {
         RoleName: roleData?.RoleName,
         pageAuth: {
-            Administration: roleData?.pageAuth?.Administration,
-            Attendance: roleData?.pageAuth?.Attendance,
-            Dashboard: roleData?.pageAuth?.Dashboard,
-            Employee: roleData?.pageAuth?.Employee,
-            JobDesk: roleData?.pageAuth?.JobDesk,
-            Leave: roleData?.pageAuth?.Leave,
-            Settings: roleData?.pageAuth?.Settings,
+          Administration: roleData?.pageAuth?.Administration,
+          Attendance: roleData?.pageAuth?.Attendance,
+          Dashboard: roleData?.pageAuth?.Dashboard,
+          Employee: roleData?.pageAuth?.Employee,
+          JobDesk: roleData?.pageAuth?.JobDesk,
+          Leave: roleData?.pageAuth?.Leave,
+          Settings: roleData?.pageAuth?.Settings,
         },
         userPermissions: {
-            Attendance: roleData?.userPermissions?.Attendance ,
-            Company: roleData?.userPermissions?.Company ,
-            Department: roleData?.userPermissions?.Department ,
-            Employee: roleData?.userPermissions?.Employee ,
-            Holiday: roleData?.userPermissions?.Holiday ,
-            Leave: roleData?.userPermissions?.Leave ,
-            Role: roleData?.userPermissions?.Role,
-            TimePattern: roleData?.userPermissions?.TimePattern,
-            WorkPlace: roleData?.userPermissions?.WorkPlace,
-            Payroll: roleData?.userPermissions?.Payroll ,
+          Attendance: roleData?.userPermissions?.Attendance,
+          Company: roleData?.userPermissions?.Company,
+          Department: roleData?.userPermissions?.Department,
+          Employee: roleData?.userPermissions?.Employee,
+          Holiday: roleData?.userPermissions?.Holiday,
+          Leave: roleData?.userPermissions?.Leave,
+          Role: roleData?.userPermissions?.Role,
+          TimePattern: roleData?.userPermissions?.TimePattern,
+          WorkPlace: roleData?.userPermissions?.WorkPlace,
+          Payroll: roleData?.userPermissions?.Payroll,
         }
-    }
+      }
       res.send(role)
     }
   } catch (error) {
@@ -82,7 +82,8 @@ router.get("/:id", verifyAdmin, async (req, res) => {
 });
 
 // Get all roles
-router.get('/', verifyAdminHR, (req, res) => {
+// router.get('/', verifyAdminHR, (req, res) => {
+router.get('/', verifyAdminHREmployee, (req, res) => {
   // const { orgName } = jwt.decode(req.headers['authorization']);
   // const RoleAndPermission = getRoleAndPermissionModel(orgName)
 
@@ -159,13 +160,13 @@ router.put('/:id', verifyAdmin, async (req, res) => {
       return res.status(400).send({ error: userPermissionsError.details[0].message });
     }
     const updatedPageAuth = {
-      Administration : updatedRole.pageAuth.Administration,
-      Attendance : updatedRole.pageAuth.Attendance,
-      Dashboard : updatedRole.pageAuth.Dashboard,
-      Employee : updatedRole.pageAuth.Employee,
-      JobDesk : updatedRole.pageAuth.JobDesk,
-      Leave : updatedRole.pageAuth.Leave,
-      Settings : updatedRole.pageAuth.Settings,
+      Administration: updatedRole.pageAuth.Administration,
+      Attendance: updatedRole.pageAuth.Attendance,
+      Dashboard: updatedRole.pageAuth.Dashboard,
+      Employee: updatedRole.pageAuth.Employee,
+      JobDesk: updatedRole.pageAuth.JobDesk,
+      Leave: updatedRole.pageAuth.Leave,
+      Settings: updatedRole.pageAuth.Settings,
     }
     // Validate pageAuth
     const { error: pageAuthError } = pageAuthValidation.validate(updatedPageAuth);

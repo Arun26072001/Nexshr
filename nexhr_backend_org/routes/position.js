@@ -3,7 +3,7 @@ const router = express.Router();
 const { Position, PositionValidation, positionSchema } = require('../models/PositionModel');
 const { Employee } = require('../models/EmpModel');
 const Joi = require('joi');
-const { verifyAdminHR } = require('../auth/authMiddleware');
+const { verifyAdminHR, verifyAdminHREmployee } = require('../auth/authMiddleware');
 const mongoose = require("mongoose");
 
 // const positionModel = {};
@@ -16,7 +16,8 @@ const mongoose = require("mongoose");
 //   return positionModel[orgName];
 // }
 
-router.get("/", verifyAdminHR, (req, res) => {
+// router.get("/", verifyAdminHR, (req, res) => {
+router.get("/", verifyAdminHREmployee, (req, res) => {
   // const { orgName } = jwt.decode(req.headers['authorization']);
   // const Position = getPositionModel(orgName)
   Position.find()

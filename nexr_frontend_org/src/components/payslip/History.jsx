@@ -1,29 +1,61 @@
-import React from "react"
+import React, { useContext } from "react";
+import Loading from "../Loader";
+import { EssentialValues } from "../../App";
+import RemoveRedEyeRoundedIcon from '@mui/icons-material/RemoveRedEyeRounded';
+import { useNavigate } from "react-router-dom";
 
-const History = (props) => {
-    const historyData = [
-        { salary: "$8800", name: "Arun Kumar", date: "6/10/2024", code: "B-10D21" },
-        { salary: "$9000", name: "John Doe", date: "7/10/2024", code: "B-10D22" },
-        { salary: "$8500", name: "Jane Smith", date: "8/10/2024", code: "B-10D23" },
-        { salary: "$8700", name: "Alice Brown", date: "9/10/2024", code: "B-10D24" }
-    ];
+const History = ({ payslips, isLoading }) => {
+    const { data, whoIs } = useContext(EssentialValues);
+    const navigate = useNavigate();
+
+    if (isLoading) {
+        return <Loading />;
+    }
+console.log(payslips);
+
     return (
+        // viewPayslip ? <PayslipUI payslipId={modelData._id} handleViewPayslip={handleViewPayslip} /> :
         <div className="container-fluid">
-            <p className="payslipTitle">
-                History
-            </p>
-            {historyData.map((item, index) => (
-                <div className="historyCard" key={index}>
-                    <div className="salaryFont">{item.salary}</div>
-                    <div className="d-flex">
-                        <div className="historyCardText" style={{borderRight: "2px solid gray" }}>{item.name}</div>
-                        <div className="historyCardText" style={{borderRight: "2px solid gray" }}>{item.date}</div>
-                        <div className="historyCardText">{item.code}</div>
+            <p className="payslipTitle">History</p>
+            {payslips.map((item, index) => {
+                const {
+                    ESI = 0, LossOfPay = 0, ProfessionalTax = 0, ProvidentFund = 0,
+                    bonusAllowance = 0, conveyanceAllowance = 0,
+                    houseRentAllowance = 0, incomeTax = 0, othersAllowance = 0
+                } = item.payslip;
+
+                const basicSalary = Number(item.employee.basicSalary) || 0;
+
+                const Salary =
+                    (basicSalary + bonusAllowance + conveyanceAllowance + houseRentAllowance + othersAllowance) -
+                    (ESI + LossOfPay + ProfessionalTax + ProvidentFund + incomeTax);
+
+                const employeeName = data.Name[0].toUpperCase() + data.Name.slice(1);
+
+                return (
+                    <div className="historyCard" key={index}>
+                        <div className="salaryFont">{Salary} &#8377;</div>
+                        <div className="d-flex justify-content-between">
+                            <div className="d-flex">
+                                <div className="historyCardText" style={{ borderRight: "2px solid gray" }}>
+                                    {employeeName}
+                                </div>
+                                <div className="historyCardText" style={{ borderRight: "2px solid gray" }}>
+                                    {item.payslip.period}
+                                </div>
+                                <div className="historyCardText">
+                                    {item.payslip.status}
+                                </div>
+                            </div>
+                            <div onClick={() => navigate(`/${whoIs}/payslip/${item._id}`)}>
+                                <RemoveRedEyeRoundedIcon style={{ cursor: "pointer" }} />
+                            </div>
+                        </div>
                     </div>
-                </div>
-            ))}
+                );
+            })}
         </div>
-    )
+    );
 };
 
 export default History;

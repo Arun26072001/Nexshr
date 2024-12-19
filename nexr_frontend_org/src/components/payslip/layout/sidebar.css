@@ -74,11 +74,10 @@
 }
 
 .log_out {
-  padding: 6px 16px 6px 16px;
-  border-radius: 6px 0px 0px 0px;
-  border: 1px 0px 0px 0px;
+  padding: 6px 16px;
+  border-radius: 5px;
+  border: 1px;
   opacity: 0px;
-  border-radius: 20px;
   background-color: #000;
   color: white;
 }

@@ -5,11 +5,11 @@ const {State} = require('../models/StateModel');
 const {City} = require('../models/CityModel');
 const jwt = require('jsonwebtoken');
 const Joi = require('joi');
-const { verifyHR, verifyAdminHR } = require('../auth/authMiddleware');
+const { verifyHR, verifyAdminHR, verifyAdminHREmployee } = require('../auth/authMiddleware');
 const jwtKey = process.env.ACCCESS_SECRET_KEY;
 
 
-router.get("/", verifyAdminHR, (req, res) => {
+router.get("/", verifyAdminHREmployee, (req, res) => {
     Country.find()
       .exec(function (err, country) {
         if(err){

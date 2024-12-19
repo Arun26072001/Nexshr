@@ -12,7 +12,7 @@ const Address = (props) => {
         async function gettingEmp() {
             try {
                 const emp = await fetchEmployeeData(data._id);
-                
+
                 setEmpData(emp);
             } catch (error) {
                 setError(error.response.data.error);
@@ -20,8 +20,7 @@ const Address = (props) => {
         }
 
         gettingEmp();
-    }, [])
-    console.log(empData);
+    }, []);
 
     return (
         error ? <NoDataFound message={error} /> :
@@ -30,21 +29,21 @@ const Address = (props) => {
                     Address
                 </p>
 
-                {/* <div className="px-3">
+                <div className="px-3">
                     <div className="my-3">
                         <div className="my-2">
                             Permanent Address
                         </div>
-                        <input type="text" className="payrunInput" value={`${empData.address.street}, ${empData.address.city}, ${empData.address.state}, ${empData.address.state}`} />
+                        <input type="text" className="payrunInput" value={`${empData?.address?.street || "street"}, ${empData?.address?.city || "city"}, ${empData?.address?.state || "state"}, ${empData?.address?.country || "country"}`} />
                     </div>
 
                     <div className="my-3">
                         <div className="my-2">
                             Current Address
                         </div>
-                        <input type="text" className="payrunInput" value={`${empData.address.street}, ${empData.address.city}, ${empData.address.state}, ${empData.address.state}`} />
+                        <input type="text" className="payrunInput" value={`${empData?.address?.street || "street"}, ${empData?.address?.city || "city"}, ${empData?.address?.state || "state"}, ${empData?.address?.country || "country"}`} />
                     </div>
-                </div> */}
+                </div>
 
                 <div className="row">
                     <div className="col-lg-3 col-12">

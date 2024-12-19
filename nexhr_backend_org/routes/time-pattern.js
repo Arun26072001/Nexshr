@@ -2,10 +2,10 @@ const express = require('express');
 const router = express.Router();
 const {TimePattern, TimePatternValidation} = require('../models/TimePatternModel');
 const Joi = require('joi');
-const { verifyAdminHR } = require('../auth/authMiddleware');
+const { verifyAdminHR, verifyAdminHREmployee } = require('../auth/authMiddleware');
 
 
-router.get("/", verifyAdminHR, (req, res)=>{
+router.get("/", verifyAdminHREmployee, (req, res)=>{
     TimePattern.find()
     .exec((err, pattern)=>{
         if(err) {

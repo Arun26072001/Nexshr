@@ -11,7 +11,7 @@ import { EssentialValues } from '../../App';
 
 const Summary = () => {
     const { data } = useContext(EssentialValues);
-    const { _id } = data;
+    const { _id, Name } = data;
     const [employees, setEmployees] = useState([]);
     const [clockinsData, setClockinsData] = useState({});
     const [isLoading, setIsLoading] = useState(false);
@@ -40,7 +40,7 @@ const Summary = () => {
         setIsLoading(true)
         if (id) {
             const data = await gettingClockinsData(id);
-            
+
             if (data) {
                 setClockinsData(data);
                 updateChartData(data);
@@ -62,7 +62,6 @@ const Summary = () => {
 
     const getEmpData = async () => {
         const emps = await fetchEmployees();
-        
         setEmployees(emps);
     };
 
@@ -95,7 +94,7 @@ const Summary = () => {
         getClockinsData();
         getEmpData();
     }, [_id]);
-    
+
     return (
         <div className='dashboard-parent pt-4'>
             <div className="d-flex justify-content-between align-items-center p-3">
@@ -116,7 +115,7 @@ const Summary = () => {
                             <div className="row d-flex justify-content-end">
                                 <div className="col-12 col-md-4">
                                     <select className="form-select mt-2" onChange={(e) => selectEmpClockins(e.target.value)}>
-                                        <option value="">Select Profile</option>
+                                        <option value={_id}>{Name}</option>
                                         {employees?.map((employee) => (
                                             <option key={employee._id} value={employee._id}>
                                                 {`${employee.FirstName} ${employee.LastName}`}

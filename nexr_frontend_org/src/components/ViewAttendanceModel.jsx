@@ -13,10 +13,10 @@ import { useParams } from 'react-router-dom';
 export default function ViewAttendanceModel({ modelData, toggleView, openModal }) {
     const params = useParams();
 
-    const [viewPayslip, setViewPayslip] = useState(false);
-    function handleViewPayslip() {
-        setViewPayslip(!viewPayslip)
-    }
+    // const [viewPayslip, setViewPayslip] = useState(false);
+    // function handleViewPayslip() {
+    //     setViewPayslip(!viewPayslip)
+    // }
     const renderAttendanceRows = () => {
         return Object.keys(modelData).map((key) => {
             // Exclude keys like "title", "__v", "employee", and "_id"
@@ -50,15 +50,16 @@ export default function ViewAttendanceModel({ modelData, toggleView, openModal }
     };
 
     return (
-        viewPayslip ? <PayslipUI payslipId={modelData._id} handleViewPayslip={handleViewPayslip} /> : (modelData ? (
+        // viewPayslip ? <PayslipUI payslipId={modelData._id} handleViewPayslip={handleViewPayslip} /> :
+         (modelData ? (
             <Dialog open={openModal} onClose={toggleView} className='aa'>
                 <DialogTitle className='text-center'>{modelData?.title}</DialogTitle>
-                {
+                {/* {
                     params['*'] === 'payslip' &&
                     <div className="d-flex justify-content-end px-2">
                         <button className='btn btn-primary' onClick={handleViewPayslip} >View Payslip</button>
                     </div>
-                }
+                } */}
                 <DialogContent > {/* Use ref here */}
                     <TableContainer>
                         <Table>

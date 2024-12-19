@@ -7,7 +7,7 @@ var employeeSchema = new mongoose.Schema({
   Email: { type: String },
   Password: { type: String },
   teamLead: [{ type: mongoose.Types.ObjectId, ref: "Employee" }],
-  team: {type: mongoose.Types.ObjectId, ref: "Team"},
+  team: { type: mongoose.Types.ObjectId, ref: "Team" },
   phone: { type: String },
   panNumber: { type: String },
   profile: { type: String },
@@ -28,6 +28,7 @@ var employeeSchema = new mongoose.Schema({
     zipCode: { type: String },
     country: { type: String }
   },
+  social: { type: mongoose.Schema.Types.Mixed, default: {} },
   position: [{ type: mongoose.Schema.Types.ObjectId, ref: "Position" }],
   department: [{ type: mongoose.Schema.Types.ObjectId, ref: "Department" }],
   role: [{ type: mongoose.Schema.Types.ObjectId, ref: "RoleAndPermission" }],

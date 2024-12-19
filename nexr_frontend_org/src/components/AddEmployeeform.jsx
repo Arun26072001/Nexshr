@@ -910,7 +910,7 @@ const AddEmployeeForm = ({ details, handleScroll, handlePersonal, handleFinancia
                             </button>
                         </div>
                         <div className="w-50">
-                            <button type="submit" className="button px-5 py-2" onClick={navToError}>
+                            <button type="submit" className="button" style={{ padding: "12px" }} onClick={navToError}>
                                 Save
                             </button>
                         </div>

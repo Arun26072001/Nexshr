@@ -97,7 +97,7 @@ router.get("/user", verifyAdminHR, async (req, res) => {
 });
 
 
-router.get("/all", verifyAdminHR, async (req, res) => {
+router.get("/all", verifyAdminHREmployee, async (req, res) => {
   try {
     // const {orgName} = jwt.decode(req.headers['authorization']);
     // const Employee = getEmployeeModel(orgName)
@@ -157,10 +157,6 @@ router.get('/:id', verifyAdminHREmployee, async (req, res) => {
   let totalTakenLeaveCount = 0;
 
   try {
-    // const {orgName} = jwt.decode(req.headers['authorization']);
-    // const Employee = getEmployeeModel(orgName);
-    // console.log(Employee);
-    // to change with orgnameEmployee
     const emp = await Employee.findById(req.params.id)
       .populate({ path: "role" })
       .populate("leaveApplication")

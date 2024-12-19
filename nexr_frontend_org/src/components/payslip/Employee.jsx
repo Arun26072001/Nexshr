@@ -87,6 +87,7 @@ export default function Employee() {
                     ) : errorData ? (
                         <NoDataFound message={errorData} />
                     ) : (
+                        // employees.length > 0 &&
                         <LeaveTable data={employees} />
                     )
                 }
