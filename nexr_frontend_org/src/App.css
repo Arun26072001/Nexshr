@@ -133,6 +133,31 @@ a {
   background-color: #caf4ff;
 } */
 
+.good,
+.time,
+.allowance,
+.employee,
+.leaveContainer,
+.attendanceFile {
+  background: rgba(255, 255, 255, 1);
+  padding: 8px 16px;
+  /* gap: 8px; */
+  border-radius: 8px;
+  margin-top: 24px;
+  font-size: small;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.good .btn {
+  font-size: 11px;
+}
+
+.allowance {
+  margin-top: 19px;
+}
+
 .leaveIndicatorTxt {
   color: #404040;
   font-size: 16px;
@@ -254,17 +279,6 @@ a {
   background-color: rgb(12, 12, 12);
   border: 2px solid gray;
 }
-
-/* @media (min-width: 992px) {
-  .col-lg-11 {
-    flex: 0 0 auto;
-    width: 94.666667%;
-  }
-
-  .col-lg-1 {
-    width: 3%;
-  }
-} */
 
 .box {
   border-radius: 7px;
@@ -534,6 +548,52 @@ input::-webkit-inner-spin-button {
 
 .close {
   background: transparent;
+}
+
+/* src/style.css */
+
+.progress {
+  height: 9px;
+}
+
+.progress-circle {
+  position: relative;
+  width: 120px;
+  height: 120px;
+  margin: 20px auto;
+}
+
+.progress-ring {
+  border-radius: 50%;
+  box-shadow: rgba(14, 30, 37, 0.12) 0px 2px 4px 0px,
+    rgba(14, 30, 37, 0.32) 0px 2px 16px 0px;
+  transform: rotate(-90deg);
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+.progress-ring__circle {
+  background-color: white;
+  transition: stroke-dashoffset 0.35s;
+  transform: rotate(0deg);
+  transform-origin: 50% 50%;
+}
+
+.progress-input {
+  position: absolute;
+  width: 80px;
+  height: 40px;
+  border: none;
+  top: 29%;
+  right: 16%;
+  font-size: 2rem;
+  text-align: center;
+  background: transparent;
+  color: black;
+  font-weight: bold;
+  z-index: 2;
+  outline: none;
 }
 
 .modal-content {

@@ -11,30 +11,6 @@
   border-color: #cdcdcd !important;
 } */
 
-.good,
-.time,
-.allowance,
-.employee,
-.leaveContainer,
-.attendanceFile {
-  background: rgba(255, 255, 255, 1);
-  padding: 8px 16px;
-  /* gap: 8px; */
-  border-radius: 8px;
-  margin-top: 24px;
-  font-size: small;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.good .btn {
-  font-size: 11px;
-}
-
-.allowance {
-  margin-top: 19px;
-}
 
 h6 {
   font-size: 1rem;

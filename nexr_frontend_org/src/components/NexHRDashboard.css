@@ -85,18 +85,6 @@
   }
 }
 
-/* src/style.css */
-
-.progress {
-    height: 9px;
-}
-
-.progress-circle {
-  position: relative;
-  width: 120px;
-  height: 120px;
-  margin: 20px auto;
-}
 
 input[type="number"]::-webkit-outer-spin-button,
 input::-webkit-inner-spin-button {
@@ -119,15 +107,6 @@ p {
   margin: 10px;
 }
 
-.progress-ring {
-  border-radius: 50%;
-  box-shadow: rgba(14, 30, 37, 0.12) 0px 2px 4px 0px,
-    rgba(14, 30, 37, 0.32) 0px 2px 16px 0px;
-  transform: rotate(-90deg);
-  position: absolute;
-  top: 0;
-  left: 0;
-}
 
 @media (max-width: 320px) {
   .card-cont {
@@ -135,12 +114,6 @@ p {
   }
 }
 
-.progress-ring__circle {
-  background-color: white;
-  transition: stroke-dashoffset 0.35s;
-  transform: rotate(0deg);
-  transform-origin: 50% 50%;
-}
 
 a {
   text-decoration: none;
@@ -157,21 +130,6 @@ a {
   top: 26%;
   left: 12%;
   font-size: smaller;
-}
-.progress-input {
-  position: absolute;
-  width: 80px;
-  height: 40px;
-  border: none;
-  top: 29%;
-  right: 16%;
-  font-size: 2rem;
-  text-align: center;
-  background: transparent;
-  color: black;
-  font-weight: bold;
-  z-index: 2;
-  outline: none;
 }
 
 .btm-center {
