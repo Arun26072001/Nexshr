@@ -58,7 +58,7 @@ const Login = () => {
       <div className="container">
         <div id="main-outer-div">
           <div id="logo-div">
-            <img id="logo-img" loading="lazy" src={Logo} width={150} height={150} style={{ objectFit: "cover" }} alt="Webnexs Logo" />
+            <img id="logo-img" src={Logo} width={150} height={150} style={{ objectFit: "cover" }} alt="Webnexs Logo" />
           </div>
           <div id="title-div">
             <h4 className="title">Sign in</h4>
