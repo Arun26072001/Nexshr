@@ -61,15 +61,6 @@ thead {
   margin-bottom: 10px;
 }
 
-.timeLogBox {
-  background: rgba(245, 245, 245, 1);
-  font-size: 14px;
-  font-weight: 500;
-  line-height: 18px;
-  border-radius: 8px;
-  padding: 8px 16px;
-}
-
 .main_pages {
   background: white;
   border: 2px solid rgb(208, 210, 210);

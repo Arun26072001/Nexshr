@@ -580,6 +580,15 @@ input::-webkit-inner-spin-button {
   transform-origin: 50% 50%;
 }
 
+.timeLogBox {
+  background: rgba(245, 245, 245, 1);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 18px;
+  border-radius: 8px;
+  padding: 8px 16px;
+}
+
 .progress-input {
   position: absolute;
   width: 80px;
