@@ -1,10 +1,9 @@
 import React, { useState, createContext, useEffect } from "react";
 import "./App.css";
 import axios from "axios";
-// import Layout from "./components/Layout";
 import Login from "./components/Login.jsx";
 import HRMDashboard from "./components/payslip/HRMDashboard.jsx";
-import { Routes, Route, useNavigate, Navigate } from "react-router-dom";
+import { Routes, Route, useNavigate, Navigate, useLocation } from "react-router-dom";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import NoInternet from "./components/NoInternet.jsx";
@@ -20,16 +19,17 @@ const App = () => {
   const [isStartLogin, setIsStartLogin] = useState(localStorage.getItem("isStartLogin") === "true");
   const [isStartActivity, setIsStartActivity] = useState(localStorage.getItem("isStartActivity") === "true");
   const [data, setData] = useState({
-    _id: localStorage.getItem("_id") || "",
-    Account: localStorage.getItem("Account") || "",
-    Name: localStorage.getItem("Name") || "",
-    token: localStorage.getItem("token") || "",
-    annualLeave: localStorage.getItem("annualLeaveEntitment") || 0,
+    _id: null,
+    Account: null,
+    Name: null,
+    token: null,
+    annualLeave: null,
   });
   const [loading, setLoading] = useState(false);
   const [pass, setPass] = useState(true);
   const [isLogin, setIsLogin] = useState(localStorage.getItem("isLogin") === "true");
   const navigate = useNavigate();
+  const location = useLocation();
 
   // Helper Functions
   const handleLogout = () => {
@@ -40,15 +40,27 @@ const App = () => {
     localStorage.clear();
     setData({ _id: "", Account: "", Name: "", token: "", annualLeave: 0 });
     setWhoIs("");
+
     setIsLogin(false);
     navigate("/login");
   };
 
-  const assignWhoIs = (accountType) => {
-    const roles = { "1": "admin", "2": "hr", "3": "emp" };
-    setWhoIs(roles[String(accountType)] || "");
-    navigate(`/${roles[String(accountType)]}`)
+  const replaceMiddleSegment = () => {
+    const pathParts = location.pathname.split('/');
+
+    if (pathParts[1]) {
+      pathParts[1] = whoIs;
+    }
+    const newPath = pathParts.join('/')
+    
+    navigate(newPath, { replace: true });
   };
+
+  // const assignWhoIs = (accountType) => {
+  //   const roles = { "1": "admin", "2": "hr", "3": "emp" };
+  //   setWhoIs(roles[String(accountType)] || "");
+  //   navigate(`/${roles[String(accountType)]}`)
+  // };
 
   async function sendEmpIdtoExtension(empId, token) {
     // const extensionId = "nbigkafgobepddldjomokkmclaikkfdb"; // Replace with your Chrome Extension ID
@@ -91,8 +103,9 @@ const App = () => {
       setIsLogin(true);
       // send emp id for extension
       sendEmpIdtoExtension(decodedData._id, response.data);
-      assignWhoIs(accountType);
-
+      const roles = { "1": "admin", "2": "hr", "3": "emp" };
+      setWhoIs(roles[String(localStorage.getItem("Account"))] || "");
+      navigate(`/${roles[String(localStorage.getItem("Account"))]}`);
     } catch (error) {
       setPass(false);
       setLoading(false);
@@ -117,11 +130,29 @@ const App = () => {
     localStorage.setItem("isStartActivity", isStartActivity);
   }, [isStartLogin, isStartActivity]);
 
+  // useEffect(() => {
+  //   if (data.Account) {
+  //     assignWhoIs(data.Account);
+  //   }
+  // }, []);
+
   useEffect(() => {
-    if (data.Account) {
-      assignWhoIs(data.Account);
+    setData((prev) => ({
+      ...prev,
+      _id: localStorage.getItem("_id") || "",
+      Account: localStorage.getItem("Account") || "",
+      Name: localStorage.getItem("Name") || "",
+      token: localStorage.getItem("token") || "",
+      annualLeave: localStorage.getItem("annualLeaveEntitment") || 0,
+    }))
+    const roles = { "1": "admin", "2": "hr", "3": "emp" };
+    setWhoIs(roles[String(localStorage.getItem("Account"))] || "");
+    
+    if (roles[String(localStorage.getItem("Account"))]) {
+      replaceMiddleSegment()
     }
-  }, [data.Account]);
+  }, [whoIs])
+
 
   // useEffect(() => {
   //   const checkNetworkConnection = async () => {
@@ -157,14 +188,15 @@ const App = () => {
       <ToastContainer />
       <Routes>
         <Route path="login" element={<Login />} />
-        <Route
+        <Route path="/" element={!whoIs && <Navigate to="/login" /> } />
+        {/* <Route
           path="/"
           element={
             whoIs !== ""
               ? <Navigate to={`/${whoIs}`} />
               : <Navigate to="/login" />
           }
-        />
+        /> */}
         <Route
           path="admin/*"
           element={isLogin && whoIs === "admin" && data.token ? <HRMDashboard /> : <Navigate to="/login" />}
@@ -178,6 +210,7 @@ const App = () => {
           element={isLogin && whoIs === "emp" && data.token ? <HRMDashboard /> : <Navigate to="/login" />}
         />
         <Route path="no-internet-connection" element={<NoInternet />} />
+        <Route path="*" element={<h1>404</h1>} />
       </Routes>
     </EssentialValues.Provider>
   );
