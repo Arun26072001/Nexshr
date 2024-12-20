@@ -5,13 +5,23 @@
   font-display: swap;
 }
 
+.marTop {
+  margin-top: 30px;
+}
+
+@media (max-width: 576px) {
+  .marTop {
+    margin-top: 70px;
+  }
+}
+
 h1 {
   line-height: 0px !important;
 }
 
-/* :root {
+:root {
   --header-height: fit-content;
-} */
+}
 
 body {
   margin: 0;
@@ -122,6 +132,15 @@ a {
   padding: 10px;
   background-color: #caf4ff;
 } */
+
+.leaveIndicatorTxt {
+  color: #404040;
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 24px;
+  letter-spacing: -0.011em;
+  text-align: center;
+}
 
 .empActivies {
   width: 100%;
@@ -398,7 +417,8 @@ input::-webkit-inner-spin-button {
 
 .catogary:hover,
 .leaveOption:hover,
-.optionList:hover, .view {
+.optionList:hover,
+.view {
   background-color: black !important;
   color: white;
   font-weight: 600;

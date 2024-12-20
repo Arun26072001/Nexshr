@@ -136,7 +136,3 @@
 .MuiDialog-root .aa:nth-child(4) {
   width: 450px;
 }
-
-.marTop {
-  margin-top: var(--header-height);
-}
