@@ -18,7 +18,7 @@ export default function PayrollManage() {
         <>
             <p>
                 By default, all users are eligible for Payrun and{' '}
-                <NavLink to={`${whoIs}/add-benifits`}>Beneficiary badges</NavLink>.
+                <NavLink to={`/${whoIs}/add-benifits`}>Beneficiary badges</NavLink>.
             </p>
             <p>
                 If you want to restrict some users for the default payrun settings, then

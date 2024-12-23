@@ -1,7 +1,7 @@
 import React, { useContext } from "react";
 import Loading from "../Loader";
 import { EssentialValues } from "../../App";
-import RemoveRedEyeRoundedIcon from '@mui/icons-material/RemoveRedEyeRounded';
+import RequestPageIcon from '@mui/icons-material/RequestPage';
 import { useNavigate } from "react-router-dom";
 
 const History = ({ payslips, isLoading }) => {
@@ -11,7 +11,6 @@ const History = ({ payslips, isLoading }) => {
     if (isLoading) {
         return <Loading />;
     }
-console.log(payslips);
 
     return (
         // viewPayslip ? <PayslipUI payslipId={modelData._id} handleViewPayslip={handleViewPayslip} /> :
@@ -36,7 +35,7 @@ console.log(payslips);
                     <div className="historyCard" key={index}>
                         <div className="salaryFont">{Salary} &#8377;</div>
                         <div className="d-flex justify-content-between">
-                            <div className="d-flex">
+                            <div className="d-flex align-items-center">
                                 <div className="historyCardText" style={{ borderRight: "2px solid gray" }}>
                                     {employeeName}
                                 </div>
@@ -48,7 +47,7 @@ console.log(payslips);
                                 </div>
                             </div>
                             <div onClick={() => navigate(`/${whoIs}/payslip/${item._id}`)}>
-                                <RemoveRedEyeRoundedIcon style={{ cursor: "pointer" }} />
+                                <RequestPageIcon color="primary" fontSize="large" style={{ cursor: "pointer" }} />
                             </div>
                         </div>
                     </div>

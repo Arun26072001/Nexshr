@@ -110,13 +110,15 @@ export default function PayslipUI() {
             try {
                 const slips = await fetchPayslip(id);
                 setPayslips(slips);
+                console.log(slips);
+                
             } catch (err) {
                 toast.error(err?.response?.data?.error);
             }
         }
         fetchPayslips();
     }, [id]);
-
+    
     return (
         <div className="modal-overlay">
             <div className="modal-content m-auto" style={{ width: "fit-content" }}>

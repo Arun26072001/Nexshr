@@ -46,14 +46,19 @@ const App = () => {
   };
 
   const replaceMiddleSegment = () => {
-    const pathParts = location.pathname.split('/');
+    // console.log(location.pathname);
 
-    if (pathParts[1]) {
-      pathParts[1] = whoIs;
-    }
-    const newPath = pathParts.join('/')
-    
-    navigate(newPath, { replace: true });
+    // const pathParts = location.pathname.split('/');
+    // console.log(pathParts);
+
+    // if (pathParts[1]) {
+    //   pathParts[1] = whoIs;
+    // }
+    // const newPath = pathParts.join('/')
+    // console.log(newPath);
+    console.log(location.pathname);
+
+    navigate(location.pathname, { replace: true });
   };
 
   // const assignWhoIs = (accountType) => {
@@ -147,12 +152,14 @@ const App = () => {
     }))
     const roles = { "1": "admin", "2": "hr", "3": "emp" };
     setWhoIs(roles[String(localStorage.getItem("Account"))] || "");
-    
-    if (roles[String(localStorage.getItem("Account"))]) {
-      replaceMiddleSegment()
-    }
-  }, [whoIs])
+    console.log(window.location.pathname);
 
+    if (window.location.pathname !== "/login" || window.location.pathname !== `/${whoIs}`) {
+      if (roles[String(localStorage.getItem("Account"))]) {
+        replaceMiddleSegment()
+      }
+    }
+  }, []);
 
   // useEffect(() => {
   //   const checkNetworkConnection = async () => {
@@ -167,6 +174,11 @@ const App = () => {
   //   };
   //   checkNetworkConnection();
   // }, [isLogin, whoIs]);
+  // if (whoIs) {
+  //   <Navigate to={`/${whoIs}`} />
+  // } else {
+  //   <Navigate to={"/login"} />
+  // }
 
   // Component Rendering
   return (
@@ -188,7 +200,7 @@ const App = () => {
       <ToastContainer />
       <Routes>
         <Route path="login" element={<Login />} />
-        <Route path="/" element={!whoIs && <Navigate to="/login" /> } />
+        <Route path="/" element={!whoIs ? <Navigate to="/login" /> : <Navigate to={`/${whoIs}`} />} />
         {/* <Route
           path="/"
           element={

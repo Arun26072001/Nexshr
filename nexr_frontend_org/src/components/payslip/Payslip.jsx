@@ -10,7 +10,7 @@ const Payslip = ({ payslips, isLoading }) => {
     return (
         isLoading ? <Loading /> :
             <div>
-                <div className="leaveDateParent">
+                <div className="leaveDateParent mb-2">
                     <p className="payslipTitle">
                         Payslip
                     </p>

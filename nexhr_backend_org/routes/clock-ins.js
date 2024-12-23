@@ -303,6 +303,7 @@ router.get("/item/:id", verifyAdminHREmployee, async (req, res) => {
 
 // get login and logout data from employee
 router.get("/employee/:empId", verifyAdminHREmployee, async (req, res) => {
+    const emp = await Employee.findById({ _id: req.params.empId }).exec();
 
     let totalEmpWorkingHours = 0; // Track total working hours for the employee
     let totalLeaveDays = 0;
@@ -315,6 +316,10 @@ router.get("/employee/:empId", verifyAdminHREmployee, async (req, res) => {
         endOfMonth = new Date(req.query.daterangeValue[1]);
     } else {
         startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+        const joiningDate = new Date(emp.dateOfJoining);
+        if (startOfMonth.getTime() < joiningDate.getTime()) {
+            startOfMonth = joiningDate;
+        }
         endOfMonth = new Date();
     }
 

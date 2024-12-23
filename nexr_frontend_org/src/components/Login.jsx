@@ -14,7 +14,7 @@ const Login = () => {
           <img
             id="logo-img"
             src={Logo}
-            loading="lazy"
+            // loading="lazy"
             width={100}
             height={100}
             style={{ objectFit: "cover" }}

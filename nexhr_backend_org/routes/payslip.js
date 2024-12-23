@@ -97,7 +97,7 @@ router.post("/", async (req, res) => {
 
     // Wait for all payslip creations to complete
     const generatedPayslips = await Promise.all(payslipPromises);
-    res.send({ message: "payslip has been generated for " })
+    res.send({ message: "payslip has been generated", generatedPayslips })
 
   } catch (err) {
     console.error("Error:", err);

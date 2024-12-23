@@ -498,9 +498,9 @@ export default function LeaveTable({ data, Account, getCheckedValue, isTeamHead,
                     <Table stickyHeader aria-label="sticky table">
                         <TableHead className='changeColor'>
                             <TableRow sx={{ backgroundColor: "gray" }}>
-                                {columns.map((column) => (
+                                {columns.map((column, index) => (
                                     <TableCell
-                                        key={column.id}
+                                        key={index}
                                         align={column.align}
                                         style={{ minWidth: column.minWidth, minHeight: "50px" }}
                                     >

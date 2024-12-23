@@ -208,8 +208,8 @@ io.on("connection", (socket) => {
   });
 });
 
-// Scheduled Job
-const addPayslip = schedule.scheduleJob("10 10 3 * *", async function () {
+// generate payslip each month of 5th
+const addPayslip = schedule.scheduleJob("10 10 5 * *", async function () {
   try {
     const response = await axios.post(`${process.env.REACT_APP_API_URL}/api/payslip/`, {});
     console.log("Payslip generation response:", response.data);
