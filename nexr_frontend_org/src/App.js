@@ -32,8 +32,6 @@ const App = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  console.log(isOnline);
-
   // Helper Functions
   const handleLogout = () => {
     if (isStartLogin || isStartActivity) {
@@ -131,7 +129,6 @@ const App = () => {
     }))
     const roles = { "1": "admin", "2": "hr", "3": "emp" };
     setWhoIs(roles[String(localStorage.getItem("Account"))] || "");
-    console.log(window.location.pathname);
 
     if (window.location.pathname !== "/login" || window.location.pathname !== `/${whoIs}`) {
       if (roles[String(localStorage.getItem("Account"))]) {
@@ -168,7 +165,7 @@ const App = () => {
 
     if (!isOnline && showOfflineAlert) {
       navigate("/no-internet-connection")
-    } else {
+    } else if (isOnline && !showOfflineAlert && location.pathname === "/no-internet-connection") {
       navigate(`/${whoIs}`)
     }
   }, [isLogin, showOfflineAlert])
@@ -194,7 +191,7 @@ const App = () => {
       <ToastContainer />
       <Routes>
         <Route path="login" element={<Login />} />
-        <Route path="/" element={!whoIs ? <Navigate to="/login" /> : <Navigate to={`/${whoIs}`} />} />
+        <Route path="/" element={whoIs ? <Navigate to={`/${whoIs}`} /> : <Navigate to="/login" />} />
         <Route
           path="admin/*"
           element={isLogin && whoIs === "admin" && data.token ? <HRMDashboard /> : <Navigate to="/login" />}

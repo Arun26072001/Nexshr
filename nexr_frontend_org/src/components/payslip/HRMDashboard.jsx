@@ -42,6 +42,7 @@ export default function HRMDashboard() {
     const params = useParams();
     const { data, isStartLogin, isStartActivity, setIsStartLogin, setIsStartActivity, whoIs } = useContext(EssentialValues);
     const { token, Account, _id } = data;
+    
     const { isTeamLead, isTeamHead } = jwtDecode(token);
     const [attendanceData, setAttendanceData] = useState([]);
     const [attendanceForSummary, setAttendanceForSummary] = useState({});
@@ -426,14 +427,13 @@ export default function HRMDashboard() {
                     } />
                     <Route path="settings/*" element={
                         <Routes>
-                            <Route index element={<Settings />} />
+                            <Route path="profile" element={<Settings />} />
                             <Route path="/" element={<PayslipRouter whoIs={whoIs} files={files} />}>
                                 <Route path="payroll" element={<Payroll whoIs={whoIs} />} />
                                 <Route path="value" element={<PayrollValue />} />
                                 <Route path="manage" element={<PayrollManage />} />
                                 <Route path="payslip" element={<PayslipInfo />} />
                                 <Route path="account" element={<h1 className='text-center'>Under Development</h1>} />
-                                <Route path="profile" element={<h1 className='text-center'>Under Development</h1>} />
                             </Route>
                         </Routes>
                     } />

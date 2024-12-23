@@ -192,23 +192,6 @@ input[type="time"]::-webkit-calendar-picker-indicator {
     color: #007bff;
 }
 
-.MuiButtonBase-root.bbb,
-.MuiButtonBase-root.ccc {
-    /* /* text-transform: capitalize;
-    font-weight: 500;
-    font-size: 14px;
-    align-items: center;
-    color: #3572EF;
-    text-align: left; */
-
-}
-
-/* .MuiButtonBase-root.bbb {
-    width: 226px;
-    padding: 0px;
-    gap: 4px;
-} */
-
 .MuiButtonBase-root.ccc {
     width: fit-content;
     padding: 0px 8px;
@@ -282,11 +265,6 @@ svg.MuiSvgIcon-root.css-20bmp1-MuiSvgIcon-root {
     color: rgb(100, 100, 100);
     font-size: 20px;
 }
-
-
-/* .css-12ld6eb-MuiTabs-indicator {
-    background-color: transparent !important;
-} */
 
 .total_company_details .css-19wsa2m-MuiButtonBase-root-MuiTab-root.Mui-selected {
     color: white !important;
