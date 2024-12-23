@@ -47,8 +47,6 @@ const AddEmployeeForm = ({ details, handleScroll, handlePersonal, handleFinancia
         annualLeaveYearStart: "",
         companyWorkingHourPerWeek: "",
         publicHoliday: "",
-        // entitlement: "",
-        // fullTimeAnnualLeave: "",
         annualLeaveEntitlement: "",
         basicSalary: "",
         bankName: "",
@@ -84,8 +82,6 @@ const AddEmployeeForm = ({ details, handleScroll, handlePersonal, handleFinancia
         workingTimePattern: Yup.string().notOneOf(["Select Work Time Pattern"]).required("Time pattern is Required"),
         annualLeaveYearStart: Yup.date().optional().nullable(),
         publicHoliday: Yup.string().required("public holiday field is required"),
-        // entitlement: Yup.number().required("Entitlement is Required"),
-        // fullTimeAnnualLeave: Yup.number().required("AnnualLeave is Required"),
         annualLeaveEntitlement: Yup.number().required("leave Entitlemenet is Required"),
         basicSalary: Yup.string().min(4, "invalid Salary").max(10).required("Salary is required"),
         bankName: Yup.string().min(2, "invalid Bank name").max(200).required("Bank name is required"),
@@ -284,7 +280,7 @@ const AddEmployeeForm = ({ details, handleScroll, handlePersonal, handleFinancia
                 });
                 setLeaveTypes(leaveTypes.data.map((leave) => ({ label: leave.LeaveName, value: leave.LeaveName })));
             } catch (error) {
-                setErrorData(error.response.data.error)
+                toast.error(error.response.data.error)
             }
         }
 

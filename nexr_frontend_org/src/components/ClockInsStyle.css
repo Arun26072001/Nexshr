@@ -8,13 +8,6 @@
   margin: 0px 5px;
 }
 
-/* .leaveIndicator,
-.summary {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-} */
-
 /* .summary {
   width: 50%;
 } */
@@ -120,9 +113,6 @@
   height: 39px;
   border: none;
   border-radius: 5px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
   cursor: pointer;
 }
 

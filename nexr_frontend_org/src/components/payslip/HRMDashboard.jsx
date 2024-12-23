@@ -432,6 +432,8 @@ export default function HRMDashboard() {
                                 <Route path="value" element={<PayrollValue />} />
                                 <Route path="manage" element={<PayrollManage />} />
                                 <Route path="payslip" element={<PayslipInfo />} />
+                                <Route path="account" element={<h1 className='text-center'>Under Development</h1>} />
+                                <Route path="profile" element={<h1 className='text-center'>Under Development</h1>} />
                             </Route>
                         </Routes>
                     } />

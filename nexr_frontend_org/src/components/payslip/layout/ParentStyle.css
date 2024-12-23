@@ -40,9 +40,6 @@
 }
 
 .sideBarTxt {
-  display: flex;
-  align-items: center;
-  justify-content: center;
   font-size: 16px;
   font-weight: 400;
 }
@@ -74,12 +71,6 @@
   border-radius: 12px;
 }
 
-.avatarNameParent {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
 .avatarNameParent > * {
   margin: 8px;
   color: #353535;
@@ -91,15 +82,6 @@
   margin-top: 0px !important;
 }
 
-/* .avatar {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border: 2px solid white;
-    border-radius: 50%;
-    width: fit-content;
-  }
-  */
 
 .headingFont {
   font-size: 12px;

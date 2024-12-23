@@ -8,7 +8,6 @@ const { Employee } = require('../models/EmpModel');
 const { verifyHR, verifyHREmployee, verifyEmployee, verifyAdmin, verifyAdminHREmployee } = require('../auth/authMiddleware');
 const { Position } = require('../models/PositionModel');
 const { Team } = require('../models/TeamModel');
-const e = require('express');
 
 const now = new Date();
 
@@ -499,14 +498,6 @@ leaveApp.post("/:empId", verifyAdminHREmployee, async (req, res) => {
       console.error("Validation Error:", error);
       return res.status(400).send({ error: "Validation Error", details: error.message });
     }
-
-    // // Calculate the number of leave days being taken
-    // let goingToTakeLeave = getDayDifference(req.body);
-    // if (goingToTakeLeave === 0) goingToTakeLeave = 1;
-
-    // // Update employee's leave days and create the leave application
-    // empData.typesOfLeaveRemainingDays[leaveTypeName] =
-    //   leaveDaysCount - goingToTakeLeave;
 
     const newLeaveApp = await LeaveApplication.create(leaveRequest);
     empData.leaveApplication.push(newLeaveApp._id);
