@@ -26,19 +26,6 @@ h6 {
   margin-top: 0px;
 }
 
-
-.table {
-  color: #212529;
-  font-size: 12px;
-  line-height: 18px;
-  font-weight: 400;
-  background: #fff;
-  padding: 5px;
-  width: 100%;
-  margin-bottom: 1rem;
-  border: 1px solid #e8e8e8;
-}
-
 thead {
   background-color: rgba(224, 224, 224, 1);
 }
@@ -88,11 +75,11 @@ thead {
   margin-top: -18px;
 }
 
-.whos {
+/* .whos {
   padding: 24px;
   background-color: rgb(223, 240, 255);
   margin-top: -18px;
-}
+} */
 
 .nav-link {
   display: block;
@@ -103,7 +90,7 @@ thead {
     border-color 0.15s ease-in-out;
 }
 
-.timeoff {
+/* .timeoff {
   width: 100%;
   background: black;
   color: white;
@@ -129,9 +116,9 @@ thead {
   border-radius: 3px;
   padding: 3px;
   cursor: pointer;
-}
+} */
 
-.single_circle_side {
+/* .single_circle_side {
   width: 120px;
   height: 120px;
   border-radius: 50%;
@@ -145,9 +132,9 @@ thead {
   box-shadow: rgba(14, 30, 37, 0.12) 0px 2px 4px 0px,
     rgba(14, 30, 37, 0.32) 0px 2px 16px 0px;
   position: relative;
-}
+} */
 
-.buttonactivehover .nav-tabs .nav-item.show .nav-link,
+/* .buttonactivehover .nav-tabs .nav-item.show .nav-link,
 .nav-tabs .nav-link.active {
   border: none;
   background: none;
@@ -159,7 +146,7 @@ thead {
 .nav-tabs .nav-link:hover {
   border: none;
   background: none;
-}
+} */
 
 .nav-tabs .nav-link {
   border: none;

@@ -1,317 +1,289 @@
 .MuiButtonBase-root.otline:focus {
-    outline: none;
+  outline: none;
 }
 
 .styleRadio {
-    color: #007bff;
-    margin-top: 2px;
-    width: 25px;
-    height: 25px;
+  color: #007bff;
+  margin-top: 2px;
+  width: 25px;
+  height: 25px;
 }
 
-.position {
-    position: absolute;
-    font-size: 12px;
-    bottom: 18px;
-    left: 81px;
-}
+/* .position {
+  position: absolute;
+  font-size: 12px;
+  bottom: 18px;
+  left: 81px;
+} */
 
-.sml {
-    width: 30px;
-    height: 30px;
-}
+/* .sml {
+  width: 30px;
+  height: 30px;
+} */
 
 .table td {
-    padding: .75rem;
-    vertical-align: middle;
-    border-top: 1px solid #dee2e6;
+  padding: 0.75rem;
+  vertical-align: middle;
+  border-top: 1px solid #dee2e6;
 }
 
 .td-parent {
-    display: flex;
-    align-items: center;
-    text-transform: capitalize;
+  display: flex;
+  align-items: center;
+  text-transform: capitalize;
 }
 
 .defaultDesign {
-    padding: 10px;
-    background-color: #A7E6FF;
-    border-radius: 20px;
-    margin-left: 5px;
-    height: 24px;
-    width: 73px;
-    display: flex;
-    align-items: center;
+  padding: 10px;
+  background-color: #a7e6ff;
+  border-radius: 20px;
+  margin-left: 5px;
+  height: 24px;
+  width: 73px;
+  display: flex;
+  align-items: center;
 }
 
 .content {
-    width: 100%;
-    margin: 20px;
+  width: 100%;
+  margin: 20px;
 }
 
 .nameHolder,
 .hoverStyle {
-    width: 45px;
-    height: 45px;
-    border-radius: 50%;
+  width: 45px;
+  height: 45px;
+  border-radius: 50%;
 }
 
 .nameHolder {
-    background-color: #4B70F5;
-    color: white;
-    text-transform: uppercase;
+  background-color: #4b70f5;
+  color: white;
+  text-transform: uppercase;
 }
 
 .hoverStyle:hover,
 .nameHolder:hover {
-    background-color: #A7E6FF;
-    color: black;
+  background-color: #a7e6ff;
+  color: black;
 }
 
-.td-parent>* {
-    margin: 10px;
+.td-parent > * {
+  margin: 10px;
 }
 
 .Radio-btn {
-    color: #007bff;
-    width: 20px;
-    height: 20px;
+  color: #007bff;
+  width: 20px;
+  height: 20px;
 }
 
 .RadioPosition {
-    position: absolute;
-    top: 10px;
-    right: 10px;
+  position: absolute;
+  top: 10px;
+  right: 10px;
 }
 
 .radios-box {
-    border-radius: 10px;
-    box-shadow: rgba(0, 0, 0, 0.16) 0px 1px 4px;
+  border-radius: 10px;
+  box-shadow: rgba(0, 0, 0, 0.16) 0px 1px 4px;
 }
 
 .box-content {
-    border-radius: 10px;
-    padding: 20px;
-    box-shadow: rgba(60, 64, 67, 0.3) 0px 1px 2px 0px, rgba(60, 64, 67, 0.15) 0px 1px 3px 1px;
+  border-radius: 10px;
+  padding: 20px;
+  box-shadow: rgba(60, 64, 67, 0.3) 0px 1px 2px 0px,
+    rgba(60, 64, 67, 0.15) 0px 1px 3px 1px;
 }
-
-/* li::marker {
-    color: #007bff;
-    font-size: 20px;
-} */
-
-/* li {
-    color: #b1b1b1;
-    font-size: 15px;
-    margin-left: 0;
-} */
 
 .form-check-input {
-    position: relative;
-    margin-top: 0px;
-    margin-left: 0px;
+  position: relative;
+  margin-top: 0px;
+  margin-left: 0px;
 }
 
-
 .btn-outline-primary:hover {
-    background-color: white;
-    color: black;
+  background-color: white;
+  color: black;
 }
 
 .enable {
-    background-color: #A7E6FF !important;
-    font-weight: bold;
-    border-color: #5a5ab7 !important;
-    color: black;
-}
-
-/* .button:disabled:hover {
-    background-color: #b1b1b1;
-} */
-
-/* .button:hover {
-    background-color: white;
-    color: black;
-} */
-
-.outline-btn:hover {
-    background-color: black;
-    color: white;
+  background-color: #a7e6ff !important;
+  font-weight: bold;
+  border-color: #5a5ab7 !important;
+  color: black;
 }
 
 .settingsFooter {
-    display: flex;
-    justify-content: space-between;
-    padding: 10px 20px;
-    border-top: 1px solid #e0e0e0;
-    position: fixed;
-    bottom: 0;
-    left: 250px;
-    right: 0;
-    background-color: white;
-    z-index: 1000;
+  display: flex;
+  justify-content: space-between;
+  padding: 10px 20px;
+  border-top: 1px solid #e0e0e0;
+  position: fixed;
+  bottom: 0;
+  left: 250px;
+  right: 0;
+  background-color: white;
+  z-index: 1000;
 }
 
 .formModal {
-    position: fixed;
-    top: 0;
-    left: 0px;
-    width: 100%;
-    background: rgba(0, 0, 0, .5);
-    z-index: 9999;
-    height: 100%;
-    overflow-y: scroll;
+  position: fixed;
+  top: 0;
+  left: 0px;
+  width: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 9999;
+  height: 100%;
+  overflow-y: scroll;
 }
 
 .btn-outline-primary {
-    color: black;
-    font-weight: bold;
-    border: 1px solid #007bff;
+  color: black;
+  font-weight: bold;
+  border: 1px solid #007bff;
 }
 
 input[type="radio"] {
-    border: 2px solid #007bff;
+  border: 2px solid #007bff;
 }
-
 
 h5,
 h6 {
-    color: rgb(55, 55, 55);
-    font-weight: 600;
+  color: rgb(55, 55, 55);
+  font-weight: 600;
 }
 
 .dayBox {
-    cursor: pointer;
-    border: 2px solid #A7E6FF;
-    border-radius: 5px;
-    margin: 10px;
-    padding: 8px;
+  cursor: pointer;
+  border: 2px solid #a7e6ff;
+  border-radius: 5px;
+  margin: 10px;
+  padding: 8px;
 }
 
 input[type="time"]::-webkit-calendar-picker-indicator {
-    color: #007bff;
+  color: #007bff;
 }
 
 .MuiButtonBase-root.ccc {
-    width: fit-content;
-    padding: 0px 8px;
+  width: fit-content;
+  padding: 0px 8px;
 }
 
 .zzz {
-    width: 80%
+  width: 80%;
 }
 
 .MuiTabs-root.xxx .css-10d9dml-MuiTabs-indicator {
-    left: 0;
+  left: 0;
 }
 
-
 .MuiTabs-root.xxx .MuiButtonBase-root:focus {
-    outline: none;
+  outline: none;
 }
 
 .MuiTabs-flexContainer .MuiButtonBase-root:focus {
-    outline: none;
+  outline: none;
 }
 
 .inputFont {
-    color: gray;
-    font-size: 17px;
-    font-weight: 600;
+  color: gray;
+  font-size: 17px;
+  font-weight: 600;
 }
 
 .outlineDesign {
-    border: 2px solid #ced4da;
-    padding: 4px 25px;
-    border-radius: 4px;
+  border: 2px solid #ced4da;
+  padding: 4px 25px;
+  border-radius: 4px;
 }
 
 .arrow {
-    transition: transform 0.3s ease !important;
-    display: inline-block !important;
-    cursor: pointer;
+  transition: transform 0.3s ease !important;
+  display: inline-block !important;
+  cursor: pointer;
 }
 
 .rotate {
-    transform: rotate(180deg);
+  transform: rotate(180deg);
 }
 
-
 .MuiButtonBase-root.bbb {
-    display: flex;
-    align-items: center;
-    background-color: grey;
-    color: white;
-    font-size: 11px;
-    padding: 12px 16px;
-    margin: 10px;
-    border-radius: 16px 16px 16px 16px;
-    /* border-right: 2px solid #FFFFFF; */
-    text-align: start;
+  display: flex;
+  align-items: center;
+  background-color: #d3d3d9;
+  color: black;
+  font-size: 11px;
+  padding: 12px 16px;
+  margin: 10px;
+  border-radius: 16px 16px 16px 16px;
+  /* border-right: 2px solid #FFFFFF; */
+  text-align: start;
 }
 
 svg.MuiSvgIcon-root.css-20bmp1-MuiSvgIcon-root {
-    font-size: 22px;
-    margin-right: 3px;
+  font-size: 22px;
+  margin-right: 3px;
 }
 
 .subpoint li {
-    position: relative;
-    padding-left: 20px;
+  position: relative;
+  padding-left: 20px;
 }
 
 .subpoint li::before {
-    content: '\2022';
-    color: rgb(100, 100, 100);
-    font-size: 20px;
+  content: "\2022";
+  color: rgb(100, 100, 100);
+  font-size: 20px;
 }
 
-.total_company_details .css-19wsa2m-MuiButtonBase-root-MuiTab-root.Mui-selected {
-    color: white !important;
+.total_company_details
+  .css-19wsa2m-MuiButtonBase-root-MuiTab-root.Mui-selected {
+  color: white !important;
 }
 
 .css-12ld6eb-MuiTabs-indicator {
-    position: absolute;
-    height: 2px;
-    bottom: 0;
-    width: 100%;
-    -webkit-transition: all 300ms cubic-bezier(0.4, 0, 0.2, 1) 0ms;
-    transition: all 300ms cubic-bezier(0.4, 0, 0.2, 1) 0ms;
-    background-color: #ff0000;
-    height: 100%;
-    width: 2px;
-    right: 0;
+  position: absolute;
+  height: 2px;
+  bottom: 0;
+  width: 100%;
+  -webkit-transition: all 300ms cubic-bezier(0.4, 0, 0.2, 1) 0ms;
+  transition: all 300ms cubic-bezier(0.4, 0, 0.2, 1) 0ms;
+  background-color: #ff0000;
+  height: 100%;
+  width: 2px;
+  right: 0;
 }
 
 button.outline-btn.false.border-0 {
-    width: 88%;
+  width: 88%;
 }
 
 button.outline-btn.enable.border-0 {
-    width: 88%;
+  width: 88%;
 }
 
 span.MuiTabs-indicator.css-12ld6eb-MuiTabs-indicator {
-    position: absolute;
-    height: 2px;
-    bottom: 0;
-    width: 100%;
-    -webkit-transition: all 300ms cubic-bezier(0.4, 0, 0.2, 1) 0ms;
-    transition: all 300ms cubic-bezier(0.4, 0, 0.2, 1) 0ms;
-    background-color: #1976d2;
-    height: 100%;
-    width: 3px;
-    right: 0;
+  position: absolute;
+  height: 2px;
+  bottom: 0;
+  width: 100%;
+  -webkit-transition: all 300ms cubic-bezier(0.4, 0, 0.2, 1) 0ms;
+  transition: all 300ms cubic-bezier(0.4, 0, 0.2, 1) 0ms;
+  background-color: #1976d2;
+  height: 100%;
+  width: 3px;
+  right: 0;
 }
 
 .styleText li::before {
-    content: "\2022";
-    color: rgb(100, 100, 100);
-    ;
-    font-size: 20px;
-    margin-right: 8px;
+  content: "\2022";
+  color: rgb(100, 100, 100);
+  font-size: 20px;
+  margin-right: 8px;
 }
 
 .css-19kzrtu {
-    padding: 24px 0 0 24px !important;
+  padding: 24px 0 0 24px !important;
 }

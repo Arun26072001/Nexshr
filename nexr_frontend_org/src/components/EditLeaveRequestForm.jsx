@@ -76,8 +76,6 @@ const EditLeaveRequestForm = () => {
         }
     };
 
-    console.log(formData);
-
     return (
         <form onSubmit={handleSubmit}>
             <div className="leaveFormContainer">

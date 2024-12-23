@@ -4,15 +4,6 @@
   justify-content: center;
 }
 
-/* width: 100%;
-      text-align: center;
-      background: #f4f4f4;
-      position: fixed;
-      height: 50px;
-      bottom: 0px;
-      display: flex;
-      /* align-items: center; */
-
 .leaveFormParent {
   background-color: white;
   /* width: 600px; */
@@ -62,10 +53,6 @@
   border: 2px solid #ec8282;
 }
 
-/* .selectInput, .inputField{
-      padding: 7px;
-  } */
-
 input[type="file"]::file-selector-button {
   background-color: black;
   color: white;
@@ -80,10 +67,6 @@ input[type="file"]::file-selector-button {
   margin: 10px;
   font-size: 14px;
   font-weight: 400;
-}
-
-.robotoFont {
-  font-family: "Roboto";
 }
 
 /* Twotabs styles */

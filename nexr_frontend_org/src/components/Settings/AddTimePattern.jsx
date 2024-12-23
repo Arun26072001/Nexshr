@@ -5,7 +5,6 @@ import { Switch } from "@mui/material";
 import axios from "axios";
 import { toast } from "react-toastify";
 import WeekDay from "./WeekDays";
-import { InputGroup } from "rsuite";
 
 const url = process.env.REACT_APP_API_URL;
 

@@ -12,10 +12,6 @@
   border-radius: 10px;
 }
 
-/* #logo-img {
-  margin: 10% auto;
-} */
-
 #logo-div {
   width: 32%;
   margin: auto;
@@ -31,7 +27,6 @@
   border-radius: 10px;
   height: 40px;
   margin: 10px 0;
-  /* padding: 15px; */
   background-color: #eef3ff;
 }
 

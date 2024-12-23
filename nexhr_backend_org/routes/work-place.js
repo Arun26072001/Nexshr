@@ -7,7 +7,7 @@ const { verifyHR, verifyAdminHR } = require('../auth/authMiddleware');
 
 router.get("/", verifyAdminHR, async (req, res) => {
   try {
-    const workPlaces = await WorkPlace.find().populate("country").exec();
+    const workPlaces = await WorkPlace.find().populate("Country").exec();
     if (!workPlaces) {
       res.status(204).send({ message: "Work place data not found!" })
     }

@@ -8,9 +8,7 @@ import InputComponent from './InputComponent';
 import axios from 'axios';
 import { useState, useEffect } from 'react';
 import SelectEmp from './SelectEmp';
-// import TableSummary from './TableSummary';
 import { toast } from 'react-toastify';
-
 
 function CustomTabPanel(props) {
   const { children, value, index, ...other } = props;
