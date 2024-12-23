@@ -133,6 +133,10 @@ a {
   background-color: #caf4ff;
 } */
 
+.rs-dropdown-toggle, .rs-dropdown-toggle.rs-btn{
+  z-index: 1 !important;
+}
+
 .good,
 .time,
 .allowance,

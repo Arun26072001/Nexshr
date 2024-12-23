@@ -421,6 +421,7 @@ export default function HRMDashboard() {
                             <Route path="/position" element={<Position />} />
                             {/* <Route path="/holiday" element={<Holiday />} /> */}
                             <Route path="/announcement" element={<Announce />} />
+                            <Route path={"/shift"} element={<h1 className='text-center'>Under Development</h1>} />
                         </Routes>
                     } />
                     <Route path="settings/*" element={

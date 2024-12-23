@@ -13,8 +13,9 @@ export const EssentialValues = createContext(null);
 
 const App = () => {
   const url = process.env.REACT_APP_API_URL;
-
   // State Variables
+  const [isOnline, setIsOnline] = useState(navigator.onLine);
+  const [showOfflineAlert, setShowOfflineAlert] = useState(false);
   const [whoIs, setWhoIs] = useState("");
   const [isStartLogin, setIsStartLogin] = useState(localStorage.getItem("isStartLogin") === "true");
   const [isStartActivity, setIsStartActivity] = useState(localStorage.getItem("isStartActivity") === "true");
@@ -31,6 +32,8 @@ const App = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
+  console.log(isOnline);
+
   // Helper Functions
   const handleLogout = () => {
     if (isStartLogin || isStartActivity) {
@@ -46,26 +49,8 @@ const App = () => {
   };
 
   const replaceMiddleSegment = () => {
-    // console.log(location.pathname);
-
-    // const pathParts = location.pathname.split('/');
-    // console.log(pathParts);
-
-    // if (pathParts[1]) {
-    //   pathParts[1] = whoIs;
-    // }
-    // const newPath = pathParts.join('/')
-    // console.log(newPath);
-    console.log(location.pathname);
-
     navigate(location.pathname, { replace: true });
   };
-
-  // const assignWhoIs = (accountType) => {
-  //   const roles = { "1": "admin", "2": "hr", "3": "emp" };
-  //   setWhoIs(roles[String(accountType)] || "");
-  //   navigate(`/${roles[String(accountType)]}`)
-  // };
 
   async function sendEmpIdtoExtension(empId, token) {
     // const extensionId = "nbigkafgobepddldjomokkmclaikkfdb"; // Replace with your Chrome Extension ID
@@ -135,12 +120,6 @@ const App = () => {
     localStorage.setItem("isStartActivity", isStartActivity);
   }, [isStartLogin, isStartActivity]);
 
-  // useEffect(() => {
-  //   if (data.Account) {
-  //     assignWhoIs(data.Account);
-  //   }
-  // }, []);
-
   useEffect(() => {
     setData((prev) => ({
       ...prev,
@@ -161,24 +140,39 @@ const App = () => {
     }
   }, []);
 
-  // useEffect(() => {
-  //   const checkNetworkConnection = async () => {
-  //     try {
-  //       await axios.get(`${url}/`);
-  //       if (isLogin && window.location.pathname === "/") {
-  //         navigate(`/${whoIs}`);
-  //       }
-  //     } catch {
-  //       navigate("/no-internet-connection");
-  //     }
-  //   };
-  //   checkNetworkConnection();
-  // }, [isLogin, whoIs]);
-  // if (whoIs) {
-  //   <Navigate to={`/${whoIs}`} />
-  // } else {
-  //   <Navigate to={"/login"} />
-  // }
+  useEffect(() => {
+    const handleOnline = () => {
+      setIsOnline(true);
+      setShowOfflineAlert(true);
+      setTimeout(() => {
+        setShowOfflineAlert(false);
+      }, 5000);
+    };
+
+    const handleOffline = () => {
+      setIsOnline(false);
+      setShowOfflineAlert(true);
+    };
+
+
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
+
+  useEffect(() => {
+
+    if (!isOnline && showOfflineAlert) {
+      navigate("/no-internet-connection")
+    } else {
+      navigate(`/${whoIs}`)
+    }
+  }, [isLogin, showOfflineAlert])
+
 
   // Component Rendering
   return (
@@ -201,14 +195,6 @@ const App = () => {
       <Routes>
         <Route path="login" element={<Login />} />
         <Route path="/" element={!whoIs ? <Navigate to="/login" /> : <Navigate to={`/${whoIs}`} />} />
-        {/* <Route
-          path="/"
-          element={
-            whoIs !== ""
-              ? <Navigate to={`/${whoIs}`} />
-              : <Navigate to="/login" />
-          }
-        /> */}
         <Route
           path="admin/*"
           element={isLogin && whoIs === "admin" && data.token ? <HRMDashboard /> : <Navigate to="/login" />}
