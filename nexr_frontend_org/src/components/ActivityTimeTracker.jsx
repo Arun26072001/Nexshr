@@ -126,17 +126,17 @@ const ActivityTimeTracker = () => {
     return (
         <>
             <div className="clockins">
-                <p className='payslipTitle'>Dashboard</p>
+                <span className='payslipTitle'>Dashboard</span>
                 <CustomDropdown />
             </div>
-            <div className='good flex-wrap'>
-                <div className="col-lg-6 col-md-4 col-12">
+            <div className='good flex-wrap justify-content-between'>
+                <div className="col-lg-4 col-md-4 col-12">
                     {/* <p style={{ fontSize: "15px", fontWeight: "600" }}>Good to see you, {EmpName[0]?.toUpperCase() + EmpName?.slice(1)} <WavingHandRoundedIcon sx={{color: "#FCC737"}} /></p> */}
-                    <p style={{ fontSize: '15px', fontWeight: 600 }}>
+                    <span style={{ fontSize: '15px', fontWeight: 600 }}>
                         Good to see you,
                         {formattedName}
                         <WavingHandRoundedIcon style={{ color: '#FCC737', marginLeft: '4px' }} />
-                    </p>
+                    </span>
                     <div className='sub_text'>
                         {workTimeTracker?.punchInMsg || "Waiting for Login"}
                     </div>

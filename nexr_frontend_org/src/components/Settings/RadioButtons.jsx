@@ -24,13 +24,7 @@ const RadioButtons = ({ RadioOption, handleRadioOption, names, title, name }) =>
             {(names && names.length >= 1 ? names[0] : "Enable")}
           </div>
         </div>
-        {/* <input
-          className='form-check-input'
-          type="radio"
-          checked={RadioOption === 1 ? true : false}
-          readOnly
-        />{" "}
-        {(names && names.length >= 1 ? names[0] : "Enable")} */}
+
       </button>
       <button name={name} className={`ms-1 outline-btn ${RadioOption === 0 && "enable"} border-0 ${names?.includes("Everyone") && "mt-2"}`}
         onClick={() => handleRadioOption(name, 0)}

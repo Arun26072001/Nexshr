@@ -10,6 +10,7 @@ import Loading from "../Loader";
 import EditWorkingPlace from "./EditWorkPlace";
 import AddWorkingPlace from "./AddWorkingPlace";
 import { fetchWorkplace } from "../ReuseableAPI";
+import CommonModel from "../Administration/CommonModel";
 
 const WorkPlaceTab = () => {
   const [showModel, setShowModel] = useState(false);
@@ -24,7 +25,6 @@ const WorkPlaceTab = () => {
   const [selectedWorkPlace, setSelectedWorkPlace] = useState(null); // Store selected workplace for actions
 
   const token = localStorage.getItem("token");
-  console.log(token);
 
   // Handle opening and closing the menu
   const handleClick = (event, workPlace) => {

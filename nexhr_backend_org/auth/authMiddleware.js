@@ -147,7 +147,7 @@ function verifyAdminHR(req, res, next) {
       console.error("Invalid token payload: Account property missing");
       return res.status(403).json({ error: "Access denied" });
     }
-
+    
     // Check if the user has admin or HR access
     if (authData.Account === 1 || authData.Account === 2) {
       // User is authorized
