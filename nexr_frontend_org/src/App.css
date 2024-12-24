@@ -268,14 +268,6 @@ a {
   border: 2px solid gray;
 }
 
-.box {
-  border-radius: 7px;
-  padding: 10px;
-  box-shadow: rgba(0, 0, 0, 0.1) 0px 4px 12px;
-  height: 100%;
-  cursor: pointer;
-}
-
 .btn-light {
   border: 1px solid #e1dddd;
   border-left: none;
@@ -306,13 +298,6 @@ input::-webkit-inner-spin-button {
   margin: 10px;
 }
 
-.selecter {
-  width: 150px;
-  height: 50px;
-  border-radius: 5px;
-  border: none;
-  background: #feffda;
-}
 
 .btnParent > * {
   margin: 5px;
@@ -603,13 +588,11 @@ textarea.form-control {
 }
 
 .searchInputIcon input[type="text"] {
-  /* background-image: url(''); Add icon URL or path */
   background-position: 15px center;
   background-repeat: no-repeat;
   padding: 12px 20px 12px 40px;
   border: 1px solid #c2c2c2;
   border-radius: 4px;
   width: 300px;
-  /* Adjust as needed */
   font-size: 16px;
 }
