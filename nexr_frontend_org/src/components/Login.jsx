@@ -22,7 +22,7 @@ const Login = () => {
           />
         </div> */}
         <div id="title-div">
-          <h4 className="title">Sign in</h4>
+          <span className="title">Sign in</span>
         </div>
         <div id="outer-login-form-div">
           <form onSubmit={handleSubmit}>
