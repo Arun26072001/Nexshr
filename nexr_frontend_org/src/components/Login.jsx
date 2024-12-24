@@ -15,8 +15,8 @@ const Login = () => {
           <img
             id="logo-img"
             src={Logo}
-            width={100}
-            height={100}
+            width={80}
+            height={80}
             alt="Webnexs Logo"
             style={{ objectFit: "cover" }}
           />
