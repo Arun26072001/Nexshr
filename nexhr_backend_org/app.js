@@ -100,6 +100,15 @@ mongoose
   .then(() => console.log("db connection successful"))
   .catch(err => console.log(err));
 
+app.use((req, res, next) => {
+  const ext = path.extname(req.url);
+  if (['.css', '.js', '.png', '.jpg', '.webp', '.svg', '.woff2'].includes(ext)) {
+    res.setHeader('Cache-Control', 'public, max-age=31536000'); // Cache for 1 year
+    res.setHeader('Expires', new Date(Date.now() + 31536000000).toUTCString());
+  }
+  next();
+});
+
 // Set CORS Options
 app.use(
   cors({
