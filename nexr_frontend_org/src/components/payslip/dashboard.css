@@ -1,17 +1,3 @@
-/* .punch {
-  padding: 6px 16px;
-  border-radius: 8px;
-  border: 1px solid transparent;
-  opacity: 0;
-}
-
-.punch .btn-light {
-  color: #000;
-  background-color: #f8f9fa;
-  border-color: #cdcdcd !important;
-} */
-
-
 h6 {
   font-size: 1rem;
   font-weight: bolder;
@@ -37,15 +23,6 @@ thead {
 .text_gap {
   font-size: x-small;
   color: rgba(158, 158, 158, 1);
-}
-
-.value {
-  font-size: x-small;
-}
-
-.time {
-  /* padding: 31px; */
-  margin-bottom: 10px;
 }
 
 .main_pages {
@@ -75,12 +52,6 @@ thead {
   margin-top: -18px;
 }
 
-/* .whos {
-  padding: 24px;
-  background-color: rgb(223, 240, 255);
-  margin-top: -18px;
-} */
-
 .nav-link {
   display: block;
   padding: 0.5rem 1rem;
@@ -90,64 +61,6 @@ thead {
     border-color 0.15s ease-in-out;
 }
 
-/* .timeoff {
-  width: 100%;
-  background: black;
-  color: white;
-  font-size: 14px;
-  font-weight: 400;
-  box-shadow: rgba(0, 0, 0, 0.16);
-  text-transform: none;
-  margin: 0;
-  border: 2px solid black;
-  border-radius: 3px;
-  padding: 3px;
-  cursor: pointer;
-}
-
-.timeoff:hover {
-  width: 100%;
-  background: white;
-  color: black;
-  box-shadow: rgba(0, 0, 0, 0.16);
-  text-transform: none;
-  margin: 0;
-  border: 2px solid black;
-  border-radius: 3px;
-  padding: 3px;
-  cursor: pointer;
-} */
-
-/* .single_circle_side {
-  width: 120px;
-  height: 120px;
-  border-radius: 50%;
-  border: 2px solid #f2f2f2;
-  line-height: 118px;
-  text-align: center;
-  margin-left: 10%;
-  font-size: 2rem;
-  font-weight: bold;
-  background: white;
-  box-shadow: rgba(14, 30, 37, 0.12) 0px 2px 4px 0px,
-    rgba(14, 30, 37, 0.32) 0px 2px 16px 0px;
-  position: relative;
-} */
-
-/* .buttonactivehover .nav-tabs .nav-item.show .nav-link,
-.nav-tabs .nav-link.active {
-  border: none;
-  background: none;
-  color: black;
-  border-bottom: 3px solid #0d6efd;
-}
-
-.buttonactivehover .nav-tabs .nav-link:focus,
-.nav-tabs .nav-link:hover {
-  border: none;
-  background: none;
-} */
-
 .nav-tabs .nav-link {
   border: none;
   background: none;
@@ -156,6 +69,25 @@ thead {
 
 .absence {
   background-color: rgb(238, 247, 255);
+}
+.dropdown-menu {
+  background-color: #253d90;
+  color: white !important;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  z-index: 1000;
+  display: none;
+  float: left;
+  min-width: 0rem !important;
+  padding: 0.5rem 0;
+  margin: 0.125rem 0 0;
+  font-size: 1rem;
+  text-align: center;
+  list-style: none;
+  background-clip: padding-box;
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  border-radius: 0.25rem;
 }
 .dropdown-menu svg {
   width: 20px;
@@ -181,14 +113,6 @@ thead {
   text-align: start;
 }
 
-.number {
-  font-size: 28px;
-  font-weight: 500;
-  line-height: 36px;
-  letter-spacing: -2.1%;
-}
-
 .total {
   border-right: 1px solid rgba(224, 224, 224, 1);
 }
-

@@ -39,10 +39,8 @@ export const LeaveStates = createContext(null);
 export const TimerStates = createContext(null);
 
 export default function HRMDashboard() {
-    const params = useParams();
     const { data, isStartLogin, isStartActivity, setIsStartLogin, setIsStartActivity, whoIs } = useContext(EssentialValues);
     const { token, Account, _id } = data;
-    
     const { isTeamLead, isTeamHead } = jwtDecode(token);
     const [attendanceData, setAttendanceData] = useState([]);
     const [attendanceForSummary, setAttendanceForSummary] = useState({});
@@ -96,112 +94,87 @@ export default function HRMDashboard() {
     }
 
     const startLoginTimer = async () => {
-        const currentDate = new Date();
-        const currentHours = currentDate.getHours().toString().padStart(2, '0');
-        const currentMinutes = currentDate.getMinutes().toString().padStart(2, '0');
-        const currentSeconds = currentDate.getSeconds().toString().padStart(2, '0');
-        const currentTime = `${currentHours}:${currentMinutes}:${currentSeconds}`;
+        const currentTime = new Date().toTimeString().split(' ')[0];
         const updatedState = {
             ...workTimeTracker,
             login: {
                 ...workTimeTracker?.login,
-                // startingTime: workTimeTracker?.login?.startingTime !== "00:00" ? workTimeTracker.login.startingTime : currentTime
-                startingTime: [...workTimeTracker?.login?.startingTime, currentTime]
-            }
+                startingTime: [...(workTimeTracker?.login?.startingTime || []), currentTime],
+            },
         };
-        // // try to add clockins data
-        if (!updatedState?._id) {
-            try {
+
+        try {
+            if (!updatedState?._id) {
+                // Add new clock-ins data
                 const clockinsData = await addDataAPI(updatedState);
                 if (clockinsData) {
                     setWorkTimeTracker(clockinsData);
-                    // if successfully added clockins timer will start
                     setIsStartLogin(true);
                     localStorage.setItem("isStartLogin", true);
                     updateClockins();
                 }
-            } catch (error) {
-                // else stop the timer
-                setIsStartLogin(false);
-                localStorage.setItem("isStartLogin", false);
-                console.error('Error in add Clockins timer:', error);
-            }
-            // try to update clockins data
-        } else {
-
-            try {
+            } else {
+                // Update existing clock-ins data
                 trackTimer();
-                // Call the API with the updated state
                 const updatedData = await updateDataAPI(updatedState);
                 setWorkTimeTracker(updatedData);
-                // if successfully updated, start the timer
                 setIsStartLogin(true);
                 localStorage.setItem("isStartLogin", true);
-
-            } catch (error) {
-                setIsStartLogin(false);
-                localStorage.setItem("isStartLogin", false);
-                toast.error('Error updating data:', error);
             }
+        } catch (error) {
+            setIsStartLogin(false);
+            localStorage.setItem("isStartLogin", false);
+            toast.error('Error handling data:', error);
         }
     };
 
+
     const stopLoginTimer = async () => {
-        const currentDate = new Date();
-        const currentHours = currentDate.getHours().toString().padStart(2, '0');
-        const currentMinutes = currentDate.getMinutes().toString().padStart(2, '0');
-        const currentSeconds = currentDate.getSeconds().toString().padStart(2, '0');
-        const currentTime = `${currentHours}:${currentMinutes}:${currentSeconds}`;
+        trackTimer();
+        const currentTime = new Date().toTimeString().split(' ')[0];
         const updatedState = {
             ...workTimeTracker,
             login: {
                 ...workTimeTracker?.login,
-                endingTime: [...workTimeTracker?.login?.endingTime, currentTime],
-                timeHolder: workTimeTracker.login.timeHolder
-            }
+                endingTime: [...(workTimeTracker?.login?.endingTime || []), currentTime],
+                timeHolder: workTimeTracker?.login?.timeHolder,
+            },
         };
+
         try {
-            // if (updatedState?._id && isStartLogin) {
-            // Call the API with the updated state
             const updatedData = await updateDataAPI(updatedState);
             setWorkTimeTracker(updatedData);
             localStorage.setItem('isStartLogin', false);
             setIsStartLogin(false);
             updateClockins();
-            // }
         } catch (err) {
-            console.log(err);
+            console.error(err);
         }
-    }
+    };
+
 
     const startActivityTimer = async () => {
-        const currentDate = new Date();
-        const currentHours = currentDate.getHours().toString().padStart(2, '0');
-        const currentMinutes = currentDate.getMinutes().toString().padStart(2, '0');
-        const currentSeconds = currentDate.getSeconds().toString().padStart(2, '0');
-        const currentTime = `${currentHours}:${currentMinutes}:${currentSeconds}`;
+        const currentTime = new Date().toTimeString().split(' ')[0];
         const updatedState = {
             ...workTimeTracker,
             [timeOption]: {
                 ...workTimeTracker[timeOption],
-                startingTime: [...workTimeTracker[timeOption]?.startingTime, currentTime]
-            }
+                startingTime: [...(workTimeTracker[timeOption]?.startingTime || []), currentTime],
+            },
         };
+
         try {
-            // if (workTimeTracker?._id) {
-            // Call the API with the updated state
             await updateDataAPI(updatedState);
             localStorage.setItem("isStartActivity", true);
             setIsStartActivity(true);
             setWorkTimeTracker(updatedState);
-            toast.success(`${timeOption} timer has been started!`)
-            // }
+            toast.success(`${timeOption} timer has been started!`);
         } catch (error) {
             console.error('Error updating data:', error);
             toast.error('Please PunchIn');
         }
-        // }
     };
+
 
     const stopActivityTimer = async () => {
         trackTimer();
@@ -226,7 +199,6 @@ export default function HRMDashboard() {
             localStorage.setItem("isStartActivity", false);
             setIsStartActivity(false);
             updateClockins();
-            // return toast.success(`${timeOption} Timer has been stopped!`);
         } catch (error) {
             toast.error(error.message);
         }
@@ -237,7 +209,6 @@ export default function HRMDashboard() {
             navigate(-1);
             setIsEditEmp(false);
         } else {
-            console.log(params);
             navigate(`employee/edit/${id}`);
             setIsEditEmp(true);
         }
@@ -250,15 +221,6 @@ export default function HRMDashboard() {
     function changeRequests() {
         setIsUpdatedReqests(!isUpdatedRequest);
     }
-    // timers will stop. when browser window is close
-    // window.addEventListener('onunload', function (e) {
-    //     console.log("call to unload");
-
-    //     // stopLoginTimer();
-    //     // stopActivityTimer();
-    //     // e.preventDefault();
-    //     // e.returnValue = '';
-    // });
 
     useEffect(() => {
         const getLeaveData = async () => {
@@ -282,7 +244,6 @@ export default function HRMDashboard() {
         }
 
         const getLeaveDataFromTeam = async (who) => {
-
             setIsLoading(true);
             try {
                 const leaveData = await axios.get(`${url}/api/leave-application/${who}/${_id}`, {
@@ -293,7 +254,6 @@ export default function HRMDashboard() {
                         authorization: token || ""
                     }
                 })
-                console.log(leaveData.data);
                 setLeaveRequests(leaveData.data);
                 setFullLeaveRequests(leaveData.data);
             } catch (err) {

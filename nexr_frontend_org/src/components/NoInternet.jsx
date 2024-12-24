@@ -1,8 +1,8 @@
 import React from 'react';
 import noInternet from "../imgs/no_internet.webp";
+import "./leaveForm.css";
 
 export default function NoInternet() {
-
     return (
         <div className='leaveFormContainer'>
             <div className='leaveFormParent d-block align-content-center text-center'>

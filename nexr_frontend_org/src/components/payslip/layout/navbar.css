@@ -19,42 +19,5 @@
 }
 
 .organization_logo {
-  /* width: 30px;
-    height: 30px; */
   object-fit: cover;
 }
-
-/* .searchParent {
-    display: flex;
-    position: relative;
-    width: fit-content;
-}
-
-.searchParent>input {
-    width: 300px;
-    height: 40px;
-    border: none;
-    border-radius: 10px;
-    padding: 0px 10px;
-}
-
-.searchicon {
-    position: absolute;
-    right: 10px;
-    top: 7px;
-}
-
-.searchlogo {
-    width: 25px;
-    height: 20px;
-    object-fit: contain;
-
-} */
-
-/* .avatar {
-    width: 44px;
-    height: 44px;
-    border: none;
-    padding: 0px;
-    margin: 0;
-} */

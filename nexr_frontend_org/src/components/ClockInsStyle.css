@@ -8,53 +8,11 @@
   margin: 0px 5px;
 }
 
-/* .summary {
-  width: 50%;
-} */
-
 .graphParent {
   width: 50%;
 }
 
-/* .table {
-  width: 100%;
-  margin-bottom: 1rem;
-  color: #212529;
-  border: 1px solid #e8e8e8;
-} */
-
 .leaveIndicator > * {
-  margin: 2px;
-}
-
-/* .timer {
-  font-size: 18px;
-  font-weight: 600;
-} */
-
-/* customeDropDown component style */
-
-/* .custom-dropdown {
-  position: relative;
-  width: 200px;
-  border-radius: 4px;
-} */
-
-.dropdown-header {
-  height: 50px;
-  padding: 10px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  background: black;
-  border: none;
-  font-size: 14px;
-  font-weight: 500;
-  color: white;
-  border-radius: 7px;
-}
-
-.dropdown-header-content > * {
   margin: 2px;
 }
 
@@ -76,13 +34,6 @@
   align-items: center;
 }
 
-.optionList {
-  background-color: #e8e8e8;
-  width: 100%;
-  padding: 7px;
-  border-radius: 3px;
-}
-
 .dropdown-list li:hover {
   background-color: #f0f0f0;
 }
@@ -91,10 +42,10 @@
   margin-right: 10px;
 }
 
-/* .custom-dropdown.disabled .dropdown-header {
+.custom-dropdown.disabled .dropdown-header {
   background-color: #a5a5a5;
   cursor: not-allowed;
-} */
+}
 
 .timerText {
   font-size: 12px;

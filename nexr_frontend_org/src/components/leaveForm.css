@@ -4,6 +4,39 @@
   justify-content: center;
 }
 
+/* NoInternet style */
+.noConnectionImg {
+  width: 100px;
+  height: 100px;
+  object-fit: cover;
+}
+
+.searchInputIcon {
+  display: flex;
+  justify-content: flex-start;
+  padding: 16px;
+  margin-left: -6px;
+}
+
+.btnBackground {
+  width: 100%;
+  text-align: center;
+  background: #f4f4f4;
+  position: fixed;
+  height: 50px;
+  bottom: 0px;
+  display: flex;
+  justify-content: center;
+}
+
+.fixedPositionBtns {
+  display: flex;
+  align-items: center;
+  /* justify-content: center; */
+  width: 20%;
+  gap: 15px;
+}
+
 .leaveFormParent {
   background-color: white;
   /* width: 600px; */

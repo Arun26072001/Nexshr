@@ -4,7 +4,6 @@ import CustomDropdown from "./CustomDropDown";
 import PowerSettingsNewRoundedIcon from "@mui/icons-material/PowerSettingsNewRounded";
 import { TimerStates } from "./payslip/HRMDashboard";
 import { toast } from "react-toastify";
-import { addSecondsToTime } from "./ReuseableAPI";
 import WavingHandRoundedIcon from '@mui/icons-material/WavingHandRounded';
 
 const ActivityTimeTracker = () => {

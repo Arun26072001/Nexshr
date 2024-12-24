@@ -16,31 +16,3 @@
   border-radius: 6px;
 }
 
-.modelInput {
-  display: block;
-  width: 100%;
-  margin: 10px 0px;
-}
-
-.inputFont {
-  color: gray;
-  font-size: 17px;
-  font-weight: 600;
-}
-
-.outlineDesign {
-  border: 2px solid #ced4da;
-  padding: 4px 25px;
-  border-radius: 4px;
-}
-
-.arrow {
-  transition: transform 0.3s ease !important;
-  display: inline-block !important;
-  cursor: pointer;
-}
-
-.rotate {
-  transform: rotate(180deg);
-}
-

@@ -112,15 +112,6 @@ ul {
   border-radius: 10px;
 }
 
-.payslipTitle {
-  font-size: 17px;
-  font-weight: 600;
-  padding: 7px 10px;
-  line-height: 24px;
-  display: flex;
-  align-items: center;
-}
-
 .leaveData {
   width: 33%;
   margin: 10px;

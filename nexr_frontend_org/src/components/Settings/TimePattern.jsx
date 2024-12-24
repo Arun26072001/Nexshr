@@ -10,6 +10,7 @@ import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
 import EditTimePattern from "./EditTimePattern";
 import WeeklyDaysDetails from "./WeeklyDaysDetails";
 import Loading from "../Loader";
+import "../payslip/dashboard.css";
 
 const TimePattern = (props) => {
     const url = process.env.REACT_APP_API_URL;
@@ -57,7 +58,6 @@ const TimePattern = (props) => {
             toast.error(err)
         })
     }
-    console.log(curState);
 
     function changePatternName(e) {
         const { name, value } = e.target;
@@ -134,12 +134,6 @@ const TimePattern = (props) => {
                                             <div className="col-lg-6"> {pattern.PatternName}</div>
                                             <div className="col-lg-6">{pattern.DefaultPattern && <div className="defaultDesign text-lead">Default</div>}</div>
                                         </div>
-                                        {/* <div className="d-flex align-items-center">
-                                            <div>
-                                                {pattern.PatternName}
-                                            </div>
-                                            {pattern.DefaultPattern && <div className="defaultDesign text-lead">Default</div>}
-                                        </div> */}
                                     </td>
                                     <td className="text-center">
                                         Monday - {days[pattern.WeeklyDays - 1]}day

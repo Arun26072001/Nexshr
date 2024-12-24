@@ -1,5 +1,3 @@
-@import url("https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap");
-
 * {
   font-family: "Inter", sans-serif;
   font-display: swap;
@@ -21,12 +19,26 @@ body {
   }
 }
 
+p {
+  margin: 0%;
+  padding: 0px;
+}
+
 h1 {
   line-height: 0px !important;
 }
 
 :root {
   --header-height: fit-content;
+}
+
+.payslipTitle {
+  font-size: 17px;
+  font-weight: 600;
+  padding: 7px 10px;
+  line-height: 24px;
+  display: flex;
+  align-items: center;
 }
 
 .NameLetter,
@@ -56,7 +68,8 @@ h1 {
   justify-content: center;
 }
 
-.nameHolder {
+.nameHolder,
+.hoverStyle {
   background-color: #4b70f5;
   color: white;
   text-transform: uppercase;
@@ -110,7 +123,6 @@ a {
 
 .button {
   cursor: pointer;
-  /* margin: auto 15px auto auto !important; */
   background: black;
   border: none;
   color: white;
@@ -130,7 +142,6 @@ a {
   color: black;
 }
 
-
 ::-webkit-scrollbar {
   width: 0px;
 }
@@ -148,7 +159,6 @@ a {
 .attendanceFile {
   background: rgba(255, 255, 255, 1);
   padding: 8px 16px;
-  /* gap: 8px; */
   border-radius: 8px;
   margin-top: 24px;
   font-size: small;
@@ -190,41 +200,6 @@ a {
   border-radius: 4px;
 }
 
-.dropdown-header {
-  height: 50px;
-  padding: 10px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  background: #feffda;
-  border: none;
-  font-size: 18px;
-  font-weight: 600;
-  color: black;
-}
-
-.dropdown-header > * {
-  padding: 5px;
-}
-
-.dropdown-list {
-  position: absolute;
-  width: 100%;
-  border-radius: 5px;
-  background-color: #fff;
-  list-style: none;
-  margin-top: 3px;
-  padding: 0;
-  z-index: 1000;
-}
-
-.dropdown-list li {
-  padding: 5px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-}
-
 .optionList {
   background-color: #e8e8e8;
   width: 100%;
@@ -232,12 +207,26 @@ a {
   border-radius: 3px;
 }
 
-.dropdown-list li:hover {
-  background-color: #f0f0f0;
+.dropdown-header {
+  height: 50px;
+  padding: 10px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  background: black;
+  border: none;
+  font-size: 14px;
+  font-weight: 500;
+  color: white;
+  border-radius: 7px;
 }
 
-.dropdown-list li svg {
-  margin-right: 10px;
+.dropdown-header > * {
+  padding: 5px;
+}
+
+.dropdown-header-content > * {
+  margin: 2px;
 }
 
 .custom-dropdown.disabled .dropdown-header {
@@ -307,7 +296,6 @@ input::-webkit-inner-spin-button {
 }
 
 .clockins {
-  /* margin-top: 72px; */
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -414,6 +402,21 @@ input::-webkit-inner-spin-button {
   top: 82px;
 }
 
+.value {
+  font-size: x-small;
+}
+
+.time {
+  margin-bottom: 10px;
+}
+
+.number {
+  font-size: 28px;
+  font-weight: 500;
+  line-height: 36px;
+  letter-spacing: -2.1%;
+}
+
 .catogary {
   padding: 18px 50px;
   margin: 10px;
@@ -481,56 +484,7 @@ input::-webkit-inner-spin-button {
   top: 6%;
 }
 
-.btnBackground {
-  width: 100%;
-  text-align: center;
-  background: #f4f4f4;
-  position: fixed;
-  height: 50px;
-  bottom: 0px;
-  display: flex;
-  justify-content: center;
-}
-
-.fixedPositionBtns {
-  display: flex;
-  align-items: center;
-  /* justify-content: center; */
-  width: 20%;
-  gap: 15px;
-}
-
 /* EmpManagement  */
-
-/* .filterExport {
-  display: flex;
-  align-items: center;
-}
-
-.filterExport > * {
-  padding: 10px;
-} */
-
-.dropdown-menu {
-  background-color: #253d90;
-  color: white !important;
-  position: absolute;
-  top: 100%;
-  left: 0;
-  z-index: 1000;
-  display: none;
-  float: left;
-  min-width: 0rem !important;
-  padding: 0.5rem 0;
-  margin: 0.125rem 0 0;
-  font-size: 1rem;
-  text-align: center;
-  list-style: none;
-  background-clip: padding-box;
-  border: 1px solid rgba(0, 0, 0, 0.15);
-  border-radius: 0.25rem;
-}
-
 .searchIcon {
   position: absolute;
   right: 10px;
@@ -547,7 +501,6 @@ input::-webkit-inner-spin-button {
 }
 
 /* src/style.css */
-
 .progress {
   height: 9px;
 }
@@ -650,20 +603,6 @@ textarea.form-control {
   appearance: none;
   border-radius: 0.25rem;
   transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
-}
-
-/* NoInternet style */
-.noConnectionImg {
-  width: 100px;
-  height: 100px;
-  object-fit: cover;
-}
-
-.searchInputIcon {
-  display: flex;
-  justify-content: flex-start;
-  padding: 16px;
-  margin-left: -6px;
 }
 
 .searchInputIcon input[type="text"] {
