@@ -7,20 +7,9 @@ export default function PayslipInfo() {
     const url = process.env.REACT_APP_API_URL;
     const token = localStorage.getItem("token");
     const [payslips, setPayslips] = useState([]);
-
-
-    // const [payslips, setPayslips] = useState([]);
     const [modalVisible, setModalVisible] = useState(false);
     const [fieldName, setFieldName] = useState('');
     const [type, setType] = useState('');
-
-    // const handleAddField = () => {
-    //     const updatedArray = [...payslips, { fieldName, type }];
-    //     setPayslips(updatedArray);
-    //     setFieldName('');
-    //     setType('');
-    //     setModalVisible(false); // Close the modal
-    // };
 
     function addField() {
         const fieldName = prompt("Enter field name: ");

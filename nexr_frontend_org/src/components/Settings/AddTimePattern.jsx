@@ -6,9 +6,9 @@ import axios from "axios";
 import { toast } from "react-toastify";
 import WeekDay from "./WeekDays";
 
-const url = process.env.REACT_APP_API_URL;
 
 const AddTimePattern = ({ handleAddWorkingTime, dom, reload }) => {
+    const url = process.env.REACT_APP_API_URL;
     const days = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
     const [timeDifference, setTimeDifference] = useState(0);
 
@@ -193,7 +193,7 @@ const AddTimePattern = ({ handleAddWorkingTime, dom, reload }) => {
                                 style={{ border: "none" }}
                                 onChange={(e) => ChangeTimePattern(e)}
                             />
-                            <span className="input-group-text" style={{ border: "none", padding:"5px 7px" }}>Mins</span>
+                            <span className="input-group-text" style={{ border: "none", padding: "5px 7px" }}>Mins</span>
                         </div>
                     </div>
 

@@ -20,7 +20,6 @@ const Attendence = (props) => {
   const [isLoading, setIsLoading] = useState(false);
   const [daterangeValue, setDaterangeValue] = useState("");
 
-
   function calculateOverallBehavior(regularCount, lateCount, earlyCount) {
     const totalCount = regularCount + lateCount + earlyCount;
 
@@ -82,33 +81,9 @@ const Attendence = (props) => {
     getClockins()
   }, [empId, daterangeValue])
 
-  //   useEffect(() => {
-  //     const getLeaveData = async () => {
-  //         try {
-  //             const leaveData = await axios.get(`${url}/api/leave-application/date-range/${empId}`, {
-  //                 params: {
-  //                     daterangeValue
-  //                 },
-  //                 headers: {
-  //                     authorization: token || ""
-  //                 }
-  //             })
-  //             console.log(leaveData.data);
-
-  //             setLeaveRequests(leaveData.data);
-  //             setFullLeaveRequests(leaveData.data);
-  //         } catch (err) {
-  //             toast.error(err?.response?.data?.message)
-  //         }
-  //     }
-
-  //     getLeaveData();
-  // }, [daterangeValue, empId])
 
   return (
     <div>
-      {/* <PayslipRouter /> */}
-
       <div className="leaveDateParent">
         <div className="payslipTitle">
           Attendance

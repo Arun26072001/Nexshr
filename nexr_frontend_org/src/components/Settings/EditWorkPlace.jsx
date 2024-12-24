@@ -49,22 +49,12 @@ export default function EditWorkingPlace({ editWorkPlace, removeEmp, modifyWorkP
   const [filteredEmps, setFilteredEmps] = useState([]);
   const [countryData, setCountryData] = useState([]);
   const [stateData, setStateData] = useState([]);
+  const [value, setValue] = useState(0);
 
   // Check if the required fields have values
   const selectedCountry = editWorkPlace.Country.CountryName;
   const selectedState = editWorkPlace.State.StateName;
 
-  const [value, setValue] = useState(0);
-
-  // const handleChange = (event, newValue) => {
-
-  //   if(isButtonEnabled){
-  //     setValue(value + 1)
-  //   }
-  //   else{
-  //     setValue(0)
-  //   }
-  // };
 
   const filterEmps = (e) => {
     setEmpName(e);
@@ -115,7 +105,6 @@ export default function EditWorkingPlace({ editWorkPlace, removeEmp, modifyWorkP
   }
 
   useEffect(() => {
-    // setFilteredEmps(editWorkPlace)
     const fetchData = async () => {
       try {
         const countryResponse = await axios.get(`${url}/api/country`, {
@@ -152,11 +141,7 @@ export default function EditWorkingPlace({ editWorkPlace, removeEmp, modifyWorkP
     }
     getEmps();
   }, [])
-
-
-  console.log(editWorkPlace);
-
-
+  
   return (
     <Box sx={{ width: '100%', backgroundColor: 'white', padding: "10px" }}>
       <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>

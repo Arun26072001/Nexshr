@@ -11,7 +11,7 @@ const Login = () => {
     <div className="container">
       <div id="main-outer-div">
         {/* If you decide to include the logo later, uncomment the following div */}
-        {/* <div id="logo-div">
+        <div id="logo-div">
           <img
             id="logo-img"
             src={Logo}
@@ -20,8 +20,7 @@ const Login = () => {
             alt="Webnexs Logo"
             style={{ objectFit: "cover" }}
           />
-        </div> */}
-
+        </div>
 
         <p className="title">Sign in</p>
 

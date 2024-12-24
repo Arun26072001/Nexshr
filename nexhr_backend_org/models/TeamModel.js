@@ -1,6 +1,5 @@
 const mongoose = require("mongoose");
 const Joi = require("joi");
-Joi.objectId = require('joi-objectid')(Joi);
 
 const TeamSchema = mongoose.Schema({
     teamName: {
@@ -20,7 +19,7 @@ const Team = mongoose.model("Team", TeamSchema);
 
 const TeamValidation = Joi.object({
     teamName: Joi.string().required(),
-    employees: Joi.array().items(Joi.objectId()).required(),
+    employees: Joi.array().items(Joi.string()).required(),
     lead: Joi.string().required(),
     head: Joi.string().required()
 })

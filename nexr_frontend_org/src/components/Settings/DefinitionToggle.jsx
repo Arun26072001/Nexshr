@@ -15,9 +15,6 @@ export default function DefinitionToggle({ title, handleShowNotification, instru
                 </div>
                 <ol>
                     {
-                        // instructions.map((msg) => {
-                        //     return <li>{msg}</li>
-                        // })
                         instructions
                     }
                 </ol>

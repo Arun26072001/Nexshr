@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import LibraryBooksIcon from '@mui/icons-material/LibraryBooks';
 import "./leaveForm.css";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
 import { toast } from "react-toastify";
 import { fetchLeaveRequests } from "./ReuseableAPI";

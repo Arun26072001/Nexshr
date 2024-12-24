@@ -7,7 +7,6 @@ import { LeaveStates } from '../payslip/HRMDashboard';
 
 export default function LeaveSummary() {
     const { empName, setEmpName, filterLeaveRequests, leaveRequests, daterangeValue, isLoading, setDaterangeValue } = useContext(LeaveStates);
-
     // Trigger the filtering whenever empName or daterangeValue changes
     useEffect(() => {
         filterLeaveRequests();
@@ -30,9 +29,9 @@ export default function LeaveSummary() {
             {
                 isLoading ? <Loading /> :
                     <div>
-                        
+
                         <div className="leaveContainer d-block">
-                        <div className="px-3 my-3">
+                            <div className="px-3 my-3">
                                 <div className="row">
                                     <div className="col-lg-12 searchInputIcon">
                                         <input
@@ -67,9 +66,6 @@ export default function LeaveSummary() {
                                     </div>
                                 </div>
                             </div>
-
-                            {/* Search Input */}
-                            
                             {/* Render Leave Table */}
                             {leaveRequests?.leaveData?.length > 0 ?
                                 <LeaveTable data={leaveRequests.leaveData} /> : <NoDataFound message="No Leave request for this employee Name" />}

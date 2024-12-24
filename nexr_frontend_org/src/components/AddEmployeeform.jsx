@@ -18,7 +18,6 @@ const AddEmployeeForm = ({ details, handleScroll, handlePersonal, handleFinancia
     const [leaveTypes, setLeaveTypes] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
     const [selectedLeaveTypes, setSelectedLeavetypes] = useState([]);
-    const [errorData, setErrorData] = useState("");
     const [splitError, setSplitError] = useState("");
     const [employeeObj, setEmployeeObj] = useState({
         FirstName: "",

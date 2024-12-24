@@ -13,7 +13,6 @@ const History = ({ payslips, isLoading }) => {
     }
 
     return (
-        // viewPayslip ? <PayslipUI payslipId={modelData._id} handleViewPayslip={handleViewPayslip} /> :
         <div className="container-fluid">
             <p className="payslipTitle">History</p>
             {payslips.map((item, index) => {

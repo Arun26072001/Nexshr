@@ -1,15 +1,11 @@
 import React, { useContext, useEffect, useState } from "react"
 import Attendence from "./Attendence";
 import Leave from "./Leave";
-// import Folder from "./Folder";
-// import Assets from "./Assets";
-// import Payrun from "./Payrun";
 import Payslip from "./Payslip";
 import Address from "./Address";
 import Contact from "./Contact";
 import Social from "./Social";
 import History from "./History";
-// import Salary from "./Salary";
 import { Route, Routes } from "react-router-dom";
 import PayslipRouter from "../unwanted/PayslipRouter";
 import { fetchEmployeeData, fetchPayslipFromEmp } from "../ReuseableAPI";
@@ -63,9 +59,6 @@ const JobDesk = () => {
                 <Route path="payslip" element={<Payslip payslips={payslips} isLoading={isLoading} />} />
                 <Route path="contact" element={<Contact empObj={empObj} error={error} />} />
                 <Route path="social" element={<Social empObj={empObj} error={error} />} />
-                {/* <Route path="folder" element={<Folder />} />
-                <Route path="salary" element={<Salary />} /> */}
-                {/* <Route path="assets" element={<Assets />} /> */}
                 <Route path="address" element={<Address />} />
                 <Route path="*" element={<h1>404</h1>} />
             </Route>

@@ -22,7 +22,6 @@
     "express-session": "^1.18.0",
     "firebase-admin": "^12.7.0",
     "joi": "^14.3.1",
-    "joi-objectid": "^4.0.2",
     "jsonwebtoken": "^8.5.1",
     "mongoose": "^6.0.12",
     "mongoose-auto-increment": "^5.0.1",

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Button, Dialog, DialogActions, DialogContent, DialogTitle } from '@mui/material';
 import Table from '@mui/material/Table';
 import TableBody from '@mui/material/TableBody';
@@ -7,16 +7,8 @@ import TableContainer from '@mui/material/TableContainer';
 import TableRow from '@mui/material/TableRow';
 import Loading from './Loader';
 import "./payslip/layout/ParentStyle.css";
-import PayslipUI from './payslip/PayslipUI';
-import { useParams } from 'react-router-dom';
 
 export default function ViewAttendanceModel({ modelData, toggleView, openModal }) {
-    const params = useParams();
-
-    // const [viewPayslip, setViewPayslip] = useState(false);
-    // function handleViewPayslip() {
-    //     setViewPayslip(!viewPayslip)
-    // }
     const renderAttendanceRows = () => {
         return Object.keys(modelData).map((key) => {
             // Exclude keys like "title", "__v", "employee", and "_id"
@@ -50,16 +42,10 @@ export default function ViewAttendanceModel({ modelData, toggleView, openModal }
     };
 
     return (
-        // viewPayslip ? <PayslipUI payslipId={modelData._id} handleViewPayslip={handleViewPayslip} /> :
          (modelData ? (
             <Dialog open={openModal} onClose={toggleView} className='aa'>
                 <DialogTitle className='text-center'>{modelData?.title}</DialogTitle>
-                {/* {
-                    params['*'] === 'payslip' &&
-                    <div className="d-flex justify-content-end px-2">
-                        <button className='btn btn-primary' onClick={handleViewPayslip} >View Payslip</button>
-                    </div>
-                } */}
+     
                 <DialogContent > {/* Use ref here */}
                     <TableContainer>
                         <Table>

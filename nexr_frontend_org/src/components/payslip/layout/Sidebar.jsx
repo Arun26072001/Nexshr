@@ -13,9 +13,9 @@ import { EssentialValues } from '../../../App';
 import { jwtDecode } from 'jwt-decode';
 import { TimerStates } from '../HRMDashboard';
 
-const Sidebar = ({ sideBar, handleSideBar }) => {
+const Sidebar = ({ sideBar }) => {
   const { data, whoIs, handleLogout } = useContext(EssentialValues);
-  const { changeEmpEditForm, setIsEditEmp } = useContext(TimerStates);
+  const { setIsEditEmp } = useContext(TimerStates);
   const { token, _id } = data;
   const decodedData = jwtDecode(token);
   const { Dashboard, JobDesk, Employee, Leave,

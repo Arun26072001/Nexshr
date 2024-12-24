@@ -3,7 +3,7 @@ import { useState, useRef, useEffect } from "react";
 import "./leaveForm.css";
 import axios from "axios";
 import AddEmployeeForm from "./AddEmployeeform";
-import { fetchAllEmployees, fetchEmployeeData, fetchEmployees, fetchRoles, getDepartments } from "./ReuseableAPI";
+import { fetchAllEmployees, fetchEmployeeData, fetchRoles, getDepartments } from "./ReuseableAPI";
 import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "react-toastify";
 import EditEmployeeform from "./EditEmployeeform";
@@ -301,8 +301,6 @@ const AddEmployee = () => {
     fetchManagers();
     setIsLoading(false);
   }, []);
-
-  console.log(isEditEmp);
 
   return (
     <>

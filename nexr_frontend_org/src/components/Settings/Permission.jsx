@@ -2,7 +2,6 @@ import CloseIcon from '@mui/icons-material/Close';
 import SearchIcon from '@mui/icons-material/Search';
 import React, { useEffect, useState } from 'react';
 import './SettingsStyle.css';
-import axios from 'axios';
 import Loading from '../Loader';
 import { Input, InputGroup } from 'rsuite';
 import { fetchAllEmployees, fetchRoles } from '../ReuseableAPI';
@@ -107,9 +106,7 @@ const Permission = () => {
                                                     </option>
                                                 ))}
                                             </select>
-                                            {/* <div className='d-flex justify-content-center align-items-center'>
-                                        <button className='button m-0'>Edit accessing Permissions</button>
-                                    </div> */}
+                             
                                         </td>
                                         <td>
                                             <div className='td-parent gap-2 d-flex justify-content-center text-secondary'>

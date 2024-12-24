@@ -3,7 +3,6 @@ import { toast } from 'react-toastify';
 const url = process.env.REACT_APP_API_URL;
 const empId = localStorage.getItem('_id');
 const token = localStorage.getItem('token');
-// console.log("reuseable: ", token);
 
 const updateDataAPI = async (body) => {
     try {

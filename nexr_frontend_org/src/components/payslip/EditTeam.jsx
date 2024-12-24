@@ -4,9 +4,6 @@ import { Modal, Button } from 'rsuite';
 import 'rsuite/dist/rsuite.min.css'; // Make sure to import the CSS
 
 const EditModel = ({ team, setTeamName, toggleAddTeam, heads, toggleAssignEmp, leads }) => {
-  console.log(leads);
-  console.log(heads);
-
   return (
     <Modal open={toggleAddTeam} size={'sm'} backdrop="static">
       <Modal.Header>

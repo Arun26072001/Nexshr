@@ -54,9 +54,7 @@ const EditEmployeeform = ({ details, empData, handleScroll, handlePersonal, hand
         employmentType: Yup.string().oneOf(['full-time', 'part-time', 'contract'], 'Invalid employment type').required("Employment type is Required"),
         workingTimePattern: Yup.string().notOneOf(["Select Work Time Pattern"]).required("Time pattern is Required"),
         annualLeaveYearStart: Yup.date().optional().nullable(),
-        // entitlement: Yup.number().required("Entitlement is Required"),
         publicHoliday: Yup.string().required("public holiday field is required"),
-        // fullTimeAnnualLeave: Yup.number().required("AnnualLeave is Required"),
         annualLeaveEntitlement: Yup.number().required("leave Entitlemenet is Required"),
         basicSalary: Yup.string().min(4, "invalid Salary").max(10).required("Salary is required"),
         bankName: Yup.string().min(2, "invalid Bank name").max(200).required("Bank name is required"),
@@ -71,7 +69,7 @@ const EditEmployeeform = ({ details, empData, handleScroll, handlePersonal, hand
         validationSchema: empFormValidation,
         onSubmit: async (values, { resetForm }) => {
             try {
-                const res = await updateEmp({id,values}) 
+                const res = await updateEmp({ id, values })
                 toast.success(res);
                 changeEmpEditForm();
                 resetForm();
@@ -209,7 +207,6 @@ const EditEmployeeform = ({ details, empData, handleScroll, handlePersonal, hand
         getPayslipInfo();
     }, []);
 
-    // console.log(formik.errors);
 
     useEffect(() => {
         const gettingLeaveTypes = async () => {
@@ -224,7 +221,6 @@ const EditEmployeeform = ({ details, empData, handleScroll, handlePersonal, hand
                 setErrorData(error.response.data.error)
             }
         }
-
         setIsLoading(true);
         gettingLeaveTypes();
         setIsLoading(false);
@@ -245,7 +241,6 @@ const EditEmployeeform = ({ details, empData, handleScroll, handlePersonal, hand
                                 <div className={`catogary ${details === "employment" ? "view" : ""}`} onClick={() => handleScroll("employment")}>Employment Details</div>
                                 <div className={`catogary ${details === "job" ? "view" : ""}`} onClick={() => handleScroll("job")}>Job Details</div>
                                 <div className={`catogary ${details === "financial" ? "view" : ""}`} onClick={() => handleScroll("financial")}>Financial Details</div>
-                                {/* <div className={`catogary ${details === "payslip" ? "view" : ""}`} onClick={() => handleScroll("payslip")}>Payslip Details</div> */}
                             </div>
                         </div>
 
@@ -470,7 +465,6 @@ const EditEmployeeform = ({ details, empData, handleScroll, handlePersonal, hand
                                                 <option key={pattern._id} value={pattern._id}
                                                     selected={pattern._id === formik.values.workingTimePattern._id}
                                                 >
-
                                                     {pattern.PatternName}
                                                 </option>
                                             ))}
@@ -660,7 +654,6 @@ const EditEmployeeform = ({ details, empData, handleScroll, handlePersonal, hand
                                             <option value="">Select Team Lead</option>
                                             {leads.map((lead) => (
                                                 <option key={lead._id} value={lead._id}
-                                                // selected={empData?.teamLead === formik?.values?.teamLead}
                                                 >
                                                     {lead.FirstName}
                                                 </option>
@@ -781,74 +774,6 @@ const EditEmployeeform = ({ details, empData, handleScroll, handlePersonal, hand
                                     </div>
                                 </div>
                             </div>
-
-                            {/* <div className="payslipDetails" ref={payslipRef}>
-                                <div className="row d-flex justify-content-center my-3">
-                                    <div className="titleText col-lg-12">
-                                        Payslip Details
-                                    </div>
-
-                                    {
-                                        payslipFields.length > 0 &&
-                                        payslipFields.map((data, index) => {
-                                            let calculatedValue = "";
-                                            if (data.fieldName === "basicSalary") {
-                                                return null;
-                                            } if (data.fieldName === "incomeTax") {
-                                                const salary = Number(formik.values.basicSalary);
-
-                                                if (salary >= 84000) {
-                                                    calculatedValue = (30 / 100) * salary; // 30% tax for <= 25,000
-                                                } else if (salary > 42000) {
-                                                    calculatedValue = (20 / 100) * salary; // 20% tax for > 42,000
-                                                } else if (salary >= 25000) {
-                                                    calculatedValue = (5 / 100) * salary;  // 5% tax for between 25,001 and 42,000
-                                                } else {
-                                                    calculatedValue = 0;
-                                                }
-                                            } else if (
-                                                data.fieldName === "houseRentAllowance" ||
-                                                data.fieldName === "conveyanceAllowance" ||
-                                                data.fieldName === "othersAllowance" ||
-                                                data.fieldName === "bonusAllowance"
-                                            ) {
-                                                calculatedValue = (data.value / 100) * Number(formik.values.basicSalary);
-                                            } else if (data.fieldName === "ProvidentFund" && Number(formik.values.basicSalary) > 15000) {
-                                                calculatedValue = (12 / 100) * Number(formik.values.basicSalary);
-                                            } else if (data.fieldName === "ProfessionalTax" && Number(formik.values.basicSalary) > 21000) {
-                                                calculatedValue = 130;
-                                            } else if (data.fieldName === "ESI" && Number(formik.values.basicSalary) > 21000) {
-                                                calculatedValue = Number(formik.values.basicSalary) * .75 / 100;
-                                            } else {
-                                                calculatedValue = 0;
-                                            }
-
-                                            // Update the employee object with the calculated value
-                                            // setEmployeeObj((prevEmpData) => ({
-                                            //     ...prevEmpData,
-                                            //     [data.fieldName]: calculatedValue
-                                            // }));
-
-                                            return (
-                                                <div className="col-lg-6" key={index}>
-                                                    <div className="inputLabel">
-                                                        {data.fieldName[0].toUpperCase() + data.fieldName.slice(1)}
-                                                    </div>
-                                                    <input
-                                                        type={data.type}
-                                                        className={`inputField`}
-                                                        name={data.fieldName}
-                                                        onChange={formik.handleChange}
-                                                        value={calculatedValue}
-                                                    />
-                                                </div>
-                                            )
-                                        })
-
-                                    }
-
-                                </div>
-                            </div> */}
                         </div>
                     </div>
                     <div className="btnBackground">

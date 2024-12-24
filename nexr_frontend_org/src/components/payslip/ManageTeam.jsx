@@ -5,7 +5,7 @@ import { toast } from "react-toastify";
 import AssignEmp from "./AssignEmp";
 import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
 import EditTeam from "./EditTeam";
-import { Input, InputGroup, SelectPicker } from "rsuite";
+import { Input, InputGroup } from "rsuite";
 import { useNavigate } from "react-router-dom";
 import NoDataFound from "./NoDataFound";
 import Loading from "../Loader";
@@ -28,9 +28,8 @@ const ManageTeam = () => {
     const [leads, setLeads] = useState([]);
     const [heads, setHeads] = useState([]);
     const url = process.env.REACT_APP_API_URL;
-    const { data, whoIs } = useContext(EssentialValues);
+    const { data } = useContext(EssentialValues);
     const { token } = data;
-    const navigate = useNavigate();
 
     const filterTeam = (e) => {
         setSearchTeam(e);
@@ -207,7 +206,7 @@ const ManageTeam = () => {
                 }
             })
             console.log(teamHeads);
-            
+
             setHeads(teamHeads.data);
         } catch (error) {
             toast.error(error.repsonse.data.error)

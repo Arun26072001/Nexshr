@@ -2,7 +2,6 @@ import React, { useContext, useEffect, useRef, useState } from 'react';
 import './navbar.css';
 import Webnexs from "../../../imgs/webnexs_logo.webp";
 import TableRowsRoundedIcon from '@mui/icons-material/TableRowsRounded';
-// import ProfileImgUploader from '../../ImgUploader';
 import PunchIn from "../../../asserts/PunchIn.svg";
 import PunchOut from "../../../asserts/punchOut.svg";
 import { TimerStates } from '../HRMDashboard';
@@ -16,10 +15,8 @@ export default function Navbar({ handleSideBar }) {
     const [sec, setSec] = useState(workTimeTracker?.login?.timeHolder?.split(':')[2])
     const [min, setMin] = useState(workTimeTracker?.login?.timeHolder?.split(':')[1])
     const [hour, setHour] = useState(workTimeTracker?.login?.timeHolder?.split(':')[0])
-    const [isStartTime, setIsstartTime] = useState(workTimeTracker?.login?.startingTime?.length === workTimeTracker?.login?.endingTime?.length)
 
     const workRef = useRef(null);  // Use ref to store interval ID
-    // const lastCheckTimeRef = useRef(Date.now())
 
     // Timer logic to increment time
     const incrementTime = () => {
@@ -102,11 +99,6 @@ export default function Navbar({ handleSideBar }) {
         document.addEventListener("visibilitychange", handleVisibilityChange);
         return () => document.removeEventListener("visibilitychange", handleVisibilityChange);
     }, []);
-
-    // Sync state with localStorage
-    // useEffect(() => {
-    //     localStorage.setItem("loginTimer", `${hour}:${min}:${sec}`);
-    // }, [hour, min, sec]);
 
     // Initialize time based on selected workTimeTracker and timeOption
     useEffect(() => {
@@ -242,9 +234,6 @@ export default function Navbar({ handleSideBar }) {
                         <img src={logo} width={40} height={40} alt='emp_img' />
                     </Whisper>
                 </div>
-
-                {/* </div> */}
-
             </div>
         </div>
     );

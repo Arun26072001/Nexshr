@@ -3,8 +3,7 @@ import { Modal, Button, Input, Message } from 'rsuite';
 import KeyboardArrowDownOutlinedIcon from '@mui/icons-material/KeyboardArrowDownOutlined';
 import axios from "axios";
 
-const AssignEmp = ({ handleSubmit, teamObj, updateTeamObj, toggleAssignEmp, teams, setTeamLead }) => {
-    console.log(teamObj);
+const AssignEmp = ({ handleSubmit, teamObj, updateTeamObj, toggleAssignEmp, teams }) => {
     const url = process.env.REACT_APP_API_URL;
     const token = localStorage.getItem("token");
     const [nameSearch, setNameSearch] = useState("");
@@ -14,7 +13,6 @@ const AssignEmp = ({ handleSubmit, teamObj, updateTeamObj, toggleAssignEmp, team
     const [selectBy, setSelectBy] = useState("teamName");
     const [filteredItems, setFilteredItems] = useState(teams || []);
     const [filteredEmps, setFilteredEmps] = useState([]);
-    const [teamLeads, setTeamLeads] = useState([]);
     const [employees, setEmployees] = useState([]);
 
     const handleRotate = (key) => {

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import LibraryBooksIcon from '@mui/icons-material/LibraryBooks';
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useFormik } from "formik";
 import * as Yup from "yup";
 import axios from "axios";
@@ -150,8 +150,6 @@ const LeaveRequestForm = () => {
 
   function handleLeaveType(e) {
     const { name, value } = e.target;
-    console.log(name);
-
     if (value === "medical leave" || value === "sick leave") {
       setExcludeDates([]);
       formik.setFieldValue(`${name}`, value);
@@ -181,7 +179,7 @@ const LeaveRequestForm = () => {
 
       } catch (error) {
         console.log(error);
-        
+
         // console.error("Error uploading file:", error.response.data.message);
       }
     }

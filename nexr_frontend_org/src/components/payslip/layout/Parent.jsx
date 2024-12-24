@@ -12,8 +12,6 @@ export const WorkTimeTrackerContext = createContext(null);
 const Parent = () => {
     const { handleLogout } = useContext(EssentialValues);
     const [sideBar, setSideBar] = useState(screen.width > 1000 ? true : false);
-    // const currentDate = new Date();
-    // const today = `${currentDate.getDate()}/${currentDate.getMonth() + 1}/${currentDate.getFullYear()}`;
 
     function handleSideBar() {
         setSideBar(!sideBar)

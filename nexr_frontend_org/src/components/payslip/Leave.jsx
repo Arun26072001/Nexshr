@@ -55,30 +55,6 @@ const Leave = () => {
         getLeaveData();
     }, [daterangeValue, _id])
 
-    // useEffect(() => {
-    //     const gettingEmpLeaveReqests = async () => {
-    //         if (_id && Account == '2') {
-    //             const leaveData = await fetchEmpLeaveRequests();
-    //             setLeaveRequests(leaveData);
-    //             setFullLeaveRequests(leaveData);
-    //         } else {
-    //             const leaveData = await fetchLeaveRequests(_id);
-    //             if (leaveData) {
-    //                 // console.log(leaveData.requests.leaveApplication);
-    //                 setLeaveRequests(leaveData.requests.leaveApplication);
-    //                 setFullLeaveRequests(leaveData.requests.leaveApplication)
-    //             } else {
-    //                 return null
-    //             }
-    //         }
-    //     }
-
-    //     gettingEmpLeaveReqests();
-    //     return () => {
-    //         setLeaveRequests([])
-    //     }
-    // }, [_id])
-
     useEffect(() => {
         filterLeaveRequests();
     }, [empName])

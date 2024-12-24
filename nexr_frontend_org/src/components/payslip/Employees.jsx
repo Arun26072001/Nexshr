@@ -8,7 +8,6 @@ import Box from '@mui/material/Box';
 import AddEmployee from '../AddEmployee';
 import ManageTeam from './ManageTeam';
 import "../leaveForm.css";
-// import EmployeeFill from './EmployeeFill';
 
 function CustomTabPanel(props) {
   const { children, value, index, ...other } = props;

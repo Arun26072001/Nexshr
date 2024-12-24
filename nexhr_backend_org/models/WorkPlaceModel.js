@@ -1,6 +1,5 @@
 const mongoose = require('mongoose');
 var Joi = require('joi');
-Joi.objectId = require('joi-objectid')(Joi);
 
 const WorkPlaceSchema = mongoose.Schema({
     CompanyName: {type: String, unique: true},
@@ -24,8 +23,8 @@ const WorkPlace = mongoose.model("WorkPlace", WorkPlaceSchema);
       .max(100)
       .required(),
     Address_2: Joi.string().optional(),
-    Country: Joi.array().items(Joi.objectId().required()).min(1).required(),
-    State: Joi.array().items(Joi.objectId().required()).min(1).required(),
+    Country: Joi.array().items(Joi.string().required()).min(1).required(),
+    State: Joi.array().items(Joi.string().required()).min(1).required(),
     Town: Joi.string()
     .max(100)
     .required(),

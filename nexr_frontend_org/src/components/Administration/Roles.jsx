@@ -1,6 +1,4 @@
 import React, { useContext, useEffect, useState } from 'react';
-// import './Attendence.css';
-// import PageAndActionAuth from '../Settings/PageAndActionAuth';
 import Loading from '../Loader';
 import { toast } from 'react-toastify';
 import { fetchRoles } from '../ReuseableAPI';

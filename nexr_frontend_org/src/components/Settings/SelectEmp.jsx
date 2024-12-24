@@ -3,7 +3,6 @@ import "./SettingsStyle.css";
 
 const SelectEmp = ({emp, EmpID, active,action, removeEmp}) => {
   const {CompanyName, Town} = emp.company[0];
-
   const changeSelectEmp = async (emp)=> {
     if(EmpID.length > 0){
       let isEmp = await EmpID.map(id =>(

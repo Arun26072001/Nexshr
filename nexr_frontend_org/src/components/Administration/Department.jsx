@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react'
 import LeaveTable from '../LeaveTable'
 import NoDataFound from '../payslip/NoDataFound'
 import Loading from '../Loader';
-import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import axios from 'axios';
 import { getDepartments } from '../ReuseableAPI';
@@ -16,7 +15,6 @@ export default function Department() {
     const [isLoading, setIsLoading] = useState(false);
     const [isDepartmentsDataUpdate, setIsDepartmentDataUpdate] = useState(false);
     const [isAddDepartment, setIsAddDepartment] = useState(false);
-    const navigate = useNavigate();
 
     function reloadDepartmentPage() {
         setIsDepartmentDataUpdate(!isDepartmentsDataUpdate)
@@ -78,9 +76,6 @@ export default function Department() {
             // Reload the department page (or trigger any necessary updates)
             reloadDepartmentPage();
         } catch (error) {
-            // Log the error in case of issues
-            console.error("Error editing department:", error);
-
             // Show an error toast with the message from the API (or a generic error message if not available)
             const errorMessage = error?.response?.data?.message || error.message || "Something went wrong";
             toast.error(errorMessage);
@@ -113,8 +108,6 @@ export default function Department() {
                 setDepartments(departmentsData);
 
             } catch (error) {
-                console.log(error);
-
                 toast.error(error);
             }
             setIsLoading(false);

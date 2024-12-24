@@ -38,23 +38,6 @@ export default function LeaveTable({ data, Account, getCheckedValue, isTeamHead,
         setPage(0);
     };
 
-    // useEffect(() => {
-    //     const computeTotalHours = async () => {
-    //         const newTotalHours = {};
-    //         for (const entry of data) {
-    //             const clockIn = entry?.login; // Adjust according to your data structure
-    //             if (clockIn?.startingTime && clockIn?.endingTime) {
-    //                 newTotalHours[entry._id] = (await getTotalWorkingHourPerDay(clockIn.startingTime, clockIn.endingTime)).toFixed(2);
-    //             } else {
-    //                 newTotalHours[entry._id] = 'N/A';
-    //             }
-    //         }
-    //         setTotalHours(newTotalHours);
-    //     };
-
-    //     computeTotalHours();
-    // }, [data]);
-
     const column1 = [
         { id: 'FirstName', label: 'Name', minWidth: 130, align: "left", getter: (row) => row.employee.FirstName[0].toUpperCase() + row.employee.FirstName.slice(1) + row.employee.LastName || 'Unknown' },
         { id: 'periodOfLeave', label: 'Period Of Leave', align: "left", minWidth: 150, getter: (row) => row.periodOfLeave },
@@ -513,7 +496,7 @@ export default function LeaveTable({ data, Account, getCheckedValue, isTeamHead,
                         <TableBody>
                             {rows.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row, rowIndex) => (
                                 <TableRow hover role="checkbox" tabIndex={-1} key={row.code}>
-                                    {columns.map((column, colIndex) => {
+                                    {columns.map((column) => {
                                         const value = column.getter ? column.getter(row, rowIndex) : row[column.id];
 
                                         // Apply conditional styling for employee type
@@ -592,7 +575,6 @@ export default function LeaveTable({ data, Account, getCheckedValue, isTeamHead,
                 />
             </Paper>
 
-            {/* Modal for Change Log */}
             {
                 openModal ?
                     <ViewAttendanceModel modelData={modelData} toggleView={toggleView} totalHours={totalHours} openModal={openModal} /> : null

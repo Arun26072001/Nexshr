@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import NoDataFound from '../payslip/NoDataFound';
 import Loading from '../Loader';
-import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import axios from 'axios';
 import CommonModel from './CommonModel';
@@ -15,7 +14,6 @@ export default function Position() {
     const [isLoading, setIsLoading] = useState(false);
     const [isPositionsDataUpdate, setIsPositionsDataUpdate] = useState(false);
     const [isAddPosition, setIsAddPosition] = useState(false);
-    const navigate = useNavigate();
 
     function reloadPositionPage() {
         setIsPositionsDataUpdate(!isPositionsDataUpdate);

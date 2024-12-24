@@ -9,10 +9,8 @@ import CoronavirusIcon from '@mui/icons-material/Coronavirus';
 import WatchLaterIcon from '@mui/icons-material/WatchLater';
 import { fetchLeaveRequests } from './ReuseableAPI';
 import CircleBar from './CircleProcess';
-import { NavLink, useNavigate } from 'react-router-dom';
-import { TimerStates } from './payslip/HRMDashboard';
+import { useNavigate } from 'react-router-dom';
 import { EssentialValues } from '../App';
-
 
 function CustomTabPanel(props) {
   const { children, value, index, ...other } = props;
@@ -144,12 +142,8 @@ export default function Twotabs() {
             </div>
 
             <div className='text-center col-lg-6 col-sm-12 col-md-12 p-0 m-auto' style={{ fontSize: "13px" }} >
-              {/* <div className='d-flex text-center'> */}
               <p><b>{(Number(annualLeave) - takenLeave) || 0} Days</b> Remaining</p>
-              {/* </div> */}
-              {/* <div className='d-flex text-center'> */}
               <p><b>{annualLeave || 0} Days</b> Allowance</p>
-              {/* </div> */}
             </div>
           </div>
 

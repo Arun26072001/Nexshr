@@ -1,14 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import io from 'socket.io-client';
-import { Button, Notification, toaster, MultiCascader, VStack } from 'rsuite';
+import { Notification, toaster, MultiCascader, VStack } from 'rsuite';
 import '../../App.css';
 import 'rsuite/dist/rsuite.min.css';
 import { toast } from 'react-toastify';
 
 // Connect to the backend socket
 const socket = io(`${process.env.REACT_APP_API_URL}`, {
-    // const socket = io(`http://localhost:3336`, {
     transports: ['websocket'],
     reconnection: true,
     reconnectionAttempts: 5,
@@ -26,7 +25,6 @@ const AnnouncementComponent = ({ handleChangeAnnouncement }) => {
     const [team_member, setTeam_member] = useState([]);
     const token = localStorage.getItem('token');
     const Account = localStorage.getItem('Account');
-    // const _id = localStorage.getItem('_id');
     const url = process.env.REACT_APP_API_URL;
 
     const headers = {
@@ -127,72 +125,69 @@ const AnnouncementComponent = ({ handleChangeAnnouncement }) => {
         };
     }, []);
 
-    const handleSendNotification = () => {
-        if (selectedUsers.length > 0 && title && message) {
-            let userIds = [];
+    // const handleSendNotification = () => {
+    //     if (selectedUsers.length > 0 && title && message) {
+    //         let userIds = [];
 
 
-            const getUserIdsForTeam = (teamValue) => {
-                const team = team_member[0].children.find(team => team.value === teamValue);
-                return team ? team.children.map(user => user.id) : [];
-            };
+    //         const getUserIdsForTeam = (teamValue) => {
+    //             const team = team_member[0].children.find(team => team.value === teamValue);
+    //             return team ? team.children.map(user => user.id) : [];
+    //         };
 
-            if (selectedUsers.includes('select-all')) {
+    //         if (selectedUsers.includes('select-all')) {
 
-                userIds = team_member[0].children.flatMap(team => team.children.map(user => user.id));
-            } else {
+    //             userIds = team_member[0].children.flatMap(team => team.children.map(user => user.id));
+    //         } else {
 
-                const teamKeys = ['designing', 'developers', 'testing', 'digital-marketing', 'sales'];
-                teamKeys.forEach(teamKey => {
-                    if (selectedUsers.includes(teamKey)) {
-                        userIds.push(...getUserIdsForTeam(teamKey));
-                    }
-                });
-
-
-                userIds.push(...selectedUsers.map(value => findUserIdByValue(value)).filter(userId => userId !== null));
-            }
-
-            if (userIds.length > 0) {
-                userIds.forEach(userId => {
-
-                    socket.emit('sendNotification', userId, title, message);
-                });
-                setTitle('');
-                setMessage('');
-            } else {
-                toaster.push(
-                    <Notification type="warning" header="Warning">
-                        Please select at least one valid user, title, and message
-                    </Notification>,
-                    { placement: 'bottomEnd' }
-                );
-            }
-        } else {
-            toaster.push(
-                <Notification type="warning" header="Warning">
-                    Please select at least one user, title, and message
-                </Notification>,
-                { placement: 'bottomEnd' }
-            );
-        }
-    };
+    //             const teamKeys = ['designing', 'developers', 'testing', 'digital-marketing', 'sales'];
+    //             teamKeys.forEach(teamKey => {
+    //                 if (selectedUsers.includes(teamKey)) {
+    //                     userIds.push(...getUserIdsForTeam(teamKey));
+    //                 }
+    //             });
 
 
+    //             userIds.push(...selectedUsers.map(value => findUserIdByValue(value)).filter(userId => userId !== null));
+    //         }
 
-    const findUserIdByValue = (value) => {
-        for (const team of team_member) {
-            for (const category of team.children) {
-                for (const user of category.children) {
-                    if (user.value === value) {
-                        return user.id;
-                    }
-                }
-            }
-        }
-        return null;
-    };
-    console.log("Single user selection:", selectedUsers, "Found ID:", findUserIdByValue(selectedUsers[0]));
+    //         if (userIds.length > 0) {
+    //             userIds.forEach(userId => {
+
+    //                 socket.emit('sendNotification', userId, title, message);
+    //             });
+    //             setTitle('');
+    //             setMessage('');
+    //         } else {
+    //             toaster.push(
+    //                 <Notification type="warning" header="Warning">
+    //                     Please select at least one valid user, title, and message
+    //                 </Notification>,
+    //                 { placement: 'bottomEnd' }
+    //             );
+    //         }
+    //     } else {
+    //         toaster.push(
+    //             <Notification type="warning" header="Warning">
+    //                 Please select at least one user, title, and message
+    //             </Notification>,
+    //             { placement: 'bottomEnd' }
+    //         );
+    //     }
+    // };
+
+    // const findUserIdByValue = (value) => {
+    //     for (const team of team_member) {
+    //         for (const category of team.children) {
+    //             for (const user of category.children) {
+    //                 if (user.value === value) {
+    //                     return user.id;
+    //                 }
+    //             }
+    //         }
+    //     }
+    //     return null;
+    // };
 
 
     return (

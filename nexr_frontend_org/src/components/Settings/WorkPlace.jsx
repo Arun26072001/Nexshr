@@ -10,7 +10,6 @@ import Loading from "../Loader";
 import EditWorkingPlace from "./EditWorkPlace";
 import AddWorkingPlace from "./AddWorkingPlace";
 import { fetchWorkplace } from "../ReuseableAPI";
-import CommonModel from "../Administration/CommonModel";
 
 const WorkPlaceTab = () => {
   const [showModel, setShowModel] = useState(false);
@@ -200,7 +199,6 @@ const WorkPlaceTab = () => {
                     open={Boolean(anchorEl)}
                     onClose={handleClose}
                   >
-
                     <MenuItem
                       onClick={() => { editToGetWorkPlace(selectedWorkPlace._id); handleClose(); }}
                     >

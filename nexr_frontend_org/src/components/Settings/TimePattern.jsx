@@ -11,7 +11,7 @@ import Loading from "../Loader";
 import "../payslip/dashboard.css";
 import { Dropdown } from "rsuite";
 
-const TimePattern = (props) => {
+const TimePattern = () => {
     const url = process.env.REACT_APP_API_URL;
     const token = localStorage.getItem("token");
     const [workingTime, setWorkingTime] = useState(false);
@@ -141,18 +141,11 @@ const TimePattern = (props) => {
                                         <div className="text-primary d-flex align-items-center">
                                             <GroupOutlinedIcon fontSize="large" color="primary" />
                                             <span className="px-2">0</span>
-                                            {/* <div className="dropdown">
-                                                <span className="nameHolder" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><MoreVertIcon /></span>
-                                                <div className="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                                                    <a className="dropdown-item text-primary" onClick={() => handleEdit(pattern)} data-toggle="modal" data-target="#exampleModalCenter"> <EditOutlinedIcon /> Edit</a>
-                                                    <a className="dropdown-item text-danger" onClick={() => handleDelete(pattern)}><DeleteOutlineOutlinedIcon /> Delete</a>
-                                                </div>
-                                            </div> */}
-                                             <Dropdown placement='leftStart' title={<EditRoundedIcon style={{ cursor: "pointer" }} />} noCaret>
-                                                            {/* <Dropdown.Item style={{ minWidth: 120 }}>Response</Dropdown.Item> */}
-                                                            <Dropdown.Item style={{ minWidth: 120 }} onClick={() => handleEdit(pattern)}>Edit</Dropdown.Item>
-                                                            <Dropdown.Item style={{ minWidth: 120 }} onClick={() => handleDelete(pattern)}>Delete</Dropdown.Item>
-                                                        </Dropdown>
+                                            <Dropdown placement='leftStart' title={<EditRoundedIcon style={{ cursor: "pointer" }} />} noCaret>
+                                                {/* <Dropdown.Item style={{ minWidth: 120 }}>Response</Dropdown.Item> */}
+                                                <Dropdown.Item style={{ minWidth: 120 }} onClick={() => handleEdit(pattern)}>Edit</Dropdown.Item>
+                                                <Dropdown.Item style={{ minWidth: 120 }} onClick={() => handleDelete(pattern)}>Delete</Dropdown.Item>
+                                            </Dropdown>
                                         </div>
                                         <div className="hoverStyle">
                                             <KeyboardArrowDownIcon fontSize="large" color="primary" onClick={() => ChangeShowDays(pattern)} />

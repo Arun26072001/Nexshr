@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState } from "react";
+import React, { useState } from "react";
 import { toast } from "react-toastify";
 import NoDataFound from "./NoDataFound";
 import { updateEmp } from "../ReuseableAPI";

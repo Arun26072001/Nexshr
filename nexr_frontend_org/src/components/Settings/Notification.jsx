@@ -14,7 +14,6 @@ const Notification = () => {
     SpecialOccansionsAccess: 0
   })
 
-  // Step 2: Handle button click events
   const handleRadioOption = (name, value) => {
     setRadioOption({
       ...RadioOption,

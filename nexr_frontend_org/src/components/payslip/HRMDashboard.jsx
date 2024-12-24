@@ -2,7 +2,7 @@ import React, { createContext, useCallback, useContext, useEffect, useState } fr
 import Dashboard from './Dashboard';
 import JobDesk from './Jobdesk';
 import Employee from './Employee';
-import { Route, Routes, useNavigate, useParams } from 'react-router-dom';
+import { Route, Routes, useNavigate } from 'react-router-dom';
 import Employees from './Employees';
 import Request from '../attendance/Request';
 import Dailylog from '../attendance/Dailylog';
