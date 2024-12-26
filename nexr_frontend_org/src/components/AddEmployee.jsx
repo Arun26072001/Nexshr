@@ -188,7 +188,7 @@ const AddEmployee = () => {
   async function gettingRoleData() {
     try {
       const roleData = await fetchRoles();
-      setRoles(roleData)
+      setRoles(roleData.filter((role)=> role.RoleName !== "Admin"))
     } catch (err) {
       console.log(err);
     }
