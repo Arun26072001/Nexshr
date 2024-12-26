@@ -14,7 +14,6 @@ const Social = ({ empObj, error }) => {
     }))
   }
 
-
   async function updateSocialEmp() {
     try {
       const updatedEmpValue = {
@@ -36,7 +35,7 @@ const Social = ({ empObj, error }) => {
         </p>
 
         <div className="socialParent">
-          <div className="row ">
+          <div className="row mt-2">
             <div className="col-lg-3 col-12">
               Instagram
             </div>
@@ -47,7 +46,7 @@ const Social = ({ empObj, error }) => {
             </div>
           </div>
 
-          <div className="row ">
+          <div className="row mt-2">
             <div className="col-lg-3 col-12">
               Twitter
             </div>
@@ -59,7 +58,7 @@ const Social = ({ empObj, error }) => {
             </div>
           </div>
 
-          <div className="row">
+          <div className="row mt-2">
             <div className="col-lg-3 col-12">
               Facebook
             </div>
@@ -70,7 +69,7 @@ const Social = ({ empObj, error }) => {
             </div>
           </div>
 
-          <div className="row">
+          <div className="row mt-2">
             <div className="col-lg-3 col-12">
               <div className="btnParent mx-auto">
                 <button className="outline-btn" style={{ background: "#e0e0e0", border: "none" }}>Cancel</button>

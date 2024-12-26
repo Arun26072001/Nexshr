@@ -377,10 +377,9 @@ export default function HRMDashboard() {
                                     <Route path="view/:id" element={<PageAndActionAuth />} />
                                 </Routes>
                             } />
-                            {/* <Route path="/shift" element={<Shift />} /> */}
                             <Route path="/department" element={<Department />} />
                             <Route path="/position" element={<Position />} />
-                            {/* <Route path="/holiday" element={<Holiday />} /> */}
+                            <Route path="/holiday" element={<h1 className='text-center'>Under Development</h1>} />
                             <Route path="/announcement" element={<Announce />} />
                             <Route path={"/shift"} element={<h1 className='text-center'>Under Development</h1>} />
                         </Routes>

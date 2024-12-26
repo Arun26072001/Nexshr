@@ -9,10 +9,12 @@ import { toast } from "react-toastify";
 import EditEmployeeform from "./EditEmployeeform";
 import { TimerStates } from "./payslip/HRMDashboard";
 import Loading from "./Loader";
+import { EssentialValues } from "../App";
 
 const AddEmployee = () => {
   const { id } = useParams();
   const { isEditEmp } = useContext(TimerStates);
+  const { whoIs } = useContext(EssentialValues);
   const [details, setDetails] = useState("personal");
   const [departments, setDepartments] = useState([]);
   const [roles, setRoles] = useState([]);
@@ -179,7 +181,6 @@ const AddEmployee = () => {
       let filterManager = employees.filter(emp => emp.position.some((pos) => pos.PositionName === "Manager")).map(emp => emp);;
 
       setManagers(filterManager);
-
     } catch (err) {
       console.error(err);
     }
@@ -188,7 +189,11 @@ const AddEmployee = () => {
   async function gettingRoleData() {
     try {
       const roleData = await fetchRoles();
-      setRoles(roleData.filter((role)=> role.RoleName !== "Admin"))
+      if (whoIs === "hr") {
+        setRoles(roleData.filter((role) => ["Employee", "Human Resource", "Manager"].includes(role.RoleName)))
+      } else {
+        setRoles(roleData.filter((role) => !["Employee", "Human Resource", "Manager"].includes(role.RoleName)))
+      }
     } catch (err) {
       console.log(err);
     }
@@ -204,8 +209,8 @@ const AddEmployee = () => {
       setCountries(res.data)
     } catch (err) {
       toast.error(err.message)
-      if (err.status == 401) {
-        navigate("/admin/unauthorize")
+      if (err.status === 401) {
+        navigate(`/${whoIs}/unauthorize`)
       }
     }
   }
@@ -213,7 +218,6 @@ const AddEmployee = () => {
   async function fetchEmployee() {
     try {
       const empData = await fetchEmployeeData(id);
-      console.log(empData);
 
       setEmployeeObj({
         FirstName: empData?.FirstName || "",
@@ -254,7 +258,6 @@ const AddEmployee = () => {
       });
 
     } catch (error) {
-      console.log(error);
       toast.error(error.message);
     }
   }

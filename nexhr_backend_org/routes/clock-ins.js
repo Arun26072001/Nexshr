@@ -270,9 +270,9 @@ router.get("/item/:id", verifyAdminHREmployee, async (req, res) => {
 
         const activities = ["login", "meeting", "morningBreak", "lunch", "eveningBreak", "event"];
 
-        const activitiesData = activities.map((activity) => {
-            const startingTime = timeData[activity]?.startingTime || "00:00";
-            const endingTime = timeData[activity]?.endingTime || "00:00";
+        const activitiesData = activities.map((activity, index) => {
+            const startingTime = timeData[activity]?.startingTime[index] || "00:00";
+            const endingTime = timeData[activity]?.endingTime[index] || "00:00";
             const timeCalMins = convertToMinutes(startingTime, endingTime);
 
             return {

@@ -49,6 +49,7 @@ const JobDesk = () => {
         }
         getEmp();
     }, [])
+    
 
     return (
         <Routes >
@@ -59,7 +60,7 @@ const JobDesk = () => {
                 <Route path="payslip" element={<Payslip payslips={payslips} isLoading={isLoading} />} />
                 <Route path="contact" element={<Contact empObj={empObj} error={error} />} />
                 <Route path="social" element={<Social empObj={empObj} error={error} />} />
-                <Route path="address" element={<Address />} />
+                <Route path="address" element={<Address empData={empObj} error={error} />} />
                 <Route path="*" element={<h1>404</h1>} />
             </Route>
         </Routes>

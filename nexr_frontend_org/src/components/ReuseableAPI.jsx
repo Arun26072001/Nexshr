@@ -180,8 +180,7 @@ const fetchAllEmployees = async () => {
         });
         return res.data;
     } catch (err) {
-        console.log(err);
-        toast.error(err.response.data.message)
+        return err.response.data.message
     }
 }
 

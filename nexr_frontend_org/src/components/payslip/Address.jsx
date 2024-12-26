@@ -1,26 +1,7 @@
-import React, { useContext, useEffect, useState } from "react"
-import { fetchEmployeeData } from "../ReuseableAPI";
-import { EssentialValues } from "../../App";
+import React from "react"
 import NoDataFound from "./NoDataFound";
 
-const Address = (props) => {
-    const { data } = useContext(EssentialValues);
-    const [empData, setEmpData] = useState({});
-    const [error, setError] = useState("");
-
-    useEffect(() => {
-        async function gettingEmp() {
-            try {
-                const emp = await fetchEmployeeData(data._id);
-
-                setEmpData(emp);
-            } catch (error) {
-                setError(error.response.data.error);
-            }
-        }
-
-        gettingEmp();
-    }, []);
+const Address = ({ empData, error }) => {
 
     return (
         error ? <NoDataFound message={error} /> :

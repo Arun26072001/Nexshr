@@ -51,12 +51,8 @@ const App = () => {
   };
 
   async function sendEmpIdtoExtension(empId, token) {
-    // const extensionId = "nbigkafgobepddldjomokkmclaikkfdb"; // Replace with your Chrome Extension ID
-    // const data = { empId };
-
     window.postMessage({ type: "FROM_REACT", payload: { empId, token } }, "*");
     console.log("send message");
-
   }
 
   const login = async (email, password) => {
