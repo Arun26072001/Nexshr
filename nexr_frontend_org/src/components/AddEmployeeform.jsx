@@ -296,25 +296,14 @@ const AddEmployeeForm = ({ details, handleScroll, handlePersonal, handleFinancia
         // Update the field dynamically in formik
         formik.setFieldValue(`address.${name}`, value);
 
-        // // Define dependent field clearing
-        // const clearDependentFields = () => {
-        //     if (name === "country") {
-        //         formik.setFieldValue("address.state", "");
-        //         formik.setFieldValue("address.city", "");
-        //         setStateData([]); // Reset state dropdown
-        //         setCityData([]);  // Reset city dropdown
-        //     } else if (name === "state") {
-        //         formik.setFieldValue("address.city", "");
-        //         setCityData([]); // Reset city dropdown
-        //     }
-        // };
-
         // Fetch data based on the field name
         try {
             if (name === "country") {
                 const { data } = await axios.get(`${url}/api/country/${value}`, {
                     headers: { Authorization: token || "" }
                 });
+                console.log(data);
+                
                 setStateData(data.states || []);
                 // clearDependentFields();
             } else if (name === "state") {
@@ -322,6 +311,8 @@ const AddEmployeeForm = ({ details, handleScroll, handlePersonal, handleFinancia
                     headers: { Authorization: token || "" }
                 });
                 setCityData(data.cities || []);
+                console.log(data);
+                
                 // clearDependentFields();
             }
         } catch (err) {
