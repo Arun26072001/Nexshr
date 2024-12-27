@@ -253,7 +253,6 @@ router.post("/", verifyAdminHR, async (req, res) => {
 
     const employeeData = {
       ...req.body,
-      Email: req.body.Email.toLowerCase(),
       teamLead: teamLead || ["665601de20a3c61c646a135f"],
       managerId: managerId || ["6651e4a810994f1d24cf3a19"],
       company: company || ["6651a5eb6115df44c0cc7151"],

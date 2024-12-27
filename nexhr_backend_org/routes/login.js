@@ -11,8 +11,6 @@ const jwtKey = process.env.ACCCESS_SECRET_KEY;
 
 router.post("/", async (req, res) => {
     try {
-        console.log(req.body);
-        
         const loginValidation = Joi.object({
             Email: Joi.string().max(200).required(),
             Password: Joi.string().max(100).required()
@@ -23,8 +21,10 @@ router.post("/", async (req, res) => {
             console.log("Validation error: " + error);
             return res.status(400).send(error.details[0].message);
         } else {
-            const emp = await Employee.findOne({ Email: req.body.Email.toLowerCase(), Password: req.body.Password })
-            .populate({
+            const emp = await Employee.findOne({
+                Email: { $regex: new RegExp('^' + req.body.Email, 'i') },
+                Password: req.body.Password
+            }).populate({
                 path: "role",
                 populate: [
                     { path: "userPermissions" },
@@ -70,7 +70,7 @@ router.post("/", async (req, res) => {
             }
         }
     } catch (err) {
-        console.log(err);
+        console.log(err.message);
         res.status(500).send({ message: "Internal server Error", details: err.message });
     }
 });
