@@ -288,6 +288,33 @@ const AddEmployeeForm = ({ details, handleScroll, handlePersonal, handleFinancia
         setIsLoading(false);
     }, []);
 
+    // async function onChangeEdit(e) {
+    //     const { name, value } = e.target;
+    //     if (name === "Country" || name === "State") {
+    //       let values = value.split(",");
+    //       setEditWorkPlace((prevEditWorkPlace) => ({
+    //         ...prevEditWorkPlace,
+    //         [name]: values
+    //       }));
+    //       if (name === "Country") {
+    //         try {
+    //           const states = await axios.get(`${url}/api/country/${values[0]}`, {
+    //             Authorization: token || ""
+    //           });
+    //           setStateData(states)
+    //         } catch (err) {
+    //           console.error(err);
+    //           toast.error("Error in fetch state")
+    //         }
+    //       }
+    //     } else {
+    //       setEditWorkPlace((prevEditWorkPlace) => ({
+    //         ...prevEditWorkPlace,
+    //         [name]: value
+    //       }));
+    //     }
+    //   }
+
     return (
         isLoading ? <Loading /> :
             <form onSubmit={formik.handleSubmit}>
@@ -490,11 +517,23 @@ const AddEmployeeForm = ({ details, handleScroll, handlePersonal, handleFinancia
                             <div className="row d-flex justify-content-center my-3">
                                 <div className="col-lg-6">
                                     <div className="inputLabel">Country</div>
-                                    <input type="text"
+                                    {/* <input type="text"
                                         className={`inputField ${formik.touched.country && formik.errors.country ? "error" : ""}`}
                                         name="country"
                                         onChange={formik.handleChange}
-                                        value={formik.values.country} />
+                                        value={formik.values.country} /> */}
+                                    {/* <select
+                                        className={`selectInput ${formik.touched.country && formik.errors.country ? "error" : ""}`}
+                                        name="country"
+                                        onChange={getStateDatandSet}
+                                        value={formik.values.country} >
+                                        <option>Select the Country</option>
+                                        {
+                                            countries.map((country) => (
+                                                <option key={country._id} value={country._id}>{country.CountryName}</option>
+                                            ))
+                                        }
+                                    </select> */}
                                     {formik.touched.country && formik.errors.country ? (
                                         <div className="text-center text-danger">{formik.errors.country}</div>
                                     ) : null}

@@ -23,10 +23,10 @@ var employeeSchema = new mongoose.Schema({
   leaveApplication: [{ type: mongoose.Schema.Types.ObjectId, ref: "LeaveApplication" }],
   address: {
     street: { type: String },
-    city: { type: String },
-    state: { type: String },
-    zipCode: { type: String },
-    country: { type: String }
+    city: { type: mongoose.Schema.Types.ObjectId, ref: "City" },
+    state: { type: mongoose.Schema.Types.ObjectId, ref: "State" },
+    country: { type: mongoose.Schema.Types.ObjectId, ref: "Country" },
+    zipCode: { type: String }
   },
   social: { type: mongoose.Schema.Types.Mixed, default: {} },
   position: [{ type: mongoose.Schema.Types.ObjectId, ref: "Position" }],

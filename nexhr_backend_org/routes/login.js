@@ -11,6 +11,8 @@ const jwtKey = process.env.ACCCESS_SECRET_KEY;
 
 router.post("/", async (req, res) => {
     try {
+        console.log(req.body);
+        
         const loginValidation = Joi.object({
             Email: Joi.string().max(200).required(),
             Password: Joi.string().max(100).required()
@@ -22,13 +24,13 @@ router.post("/", async (req, res) => {
             return res.status(400).send(error.details[0].message);
         } else {
             const emp = await Employee.findOne({ Email: req.body.Email.toLowerCase(), Password: req.body.Password })
-                .populate({
-                    path: "role",
-                    populate: [
-                        { path: "userPermissions" },
-                        { path: "pageAuth" }
-                    ]
-                })
+            .populate({
+                path: "role",
+                populate: [
+                    { path: "userPermissions" },
+                    { path: "pageAuth" }
+                ]
+            })
 
             if (!emp) {
                 return res.status(400).send({ message: "Invalid Credentials" })
