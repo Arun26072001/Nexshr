@@ -17,6 +17,8 @@ const AddEmployeeForm = ({ details, handleScroll, handlePersonal, handleFinancia
     const url = process.env.REACT_APP_API_URL;
     const [leaveTypes, setLeaveTypes] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
+    const [stateData, setStateData] = useState([]);
+    const [cityData, setCityData] = useState([]);
     const [selectedLeaveTypes, setSelectedLeavetypes] = useState([]);
     const [splitError, setSplitError] = useState("");
     const [employeeObj, setEmployeeObj] = useState({
@@ -288,33 +290,46 @@ const AddEmployeeForm = ({ details, handleScroll, handlePersonal, handleFinancia
         setIsLoading(false);
     }, []);
 
-    // async function onChangeEdit(e) {
-    //     const { name, value } = e.target;
-    //     if (name === "Country" || name === "State") {
-    //       let values = value.split(",");
-    //       setEditWorkPlace((prevEditWorkPlace) => ({
-    //         ...prevEditWorkPlace,
-    //         [name]: values
-    //       }));
-    //       if (name === "Country") {
-    //         try {
-    //           const states = await axios.get(`${url}/api/country/${values[0]}`, {
-    //             Authorization: token || ""
-    //           });
-    //           setStateData(states)
-    //         } catch (err) {
-    //           console.error(err);
-    //           toast.error("Error in fetch state")
-    //         }
-    //       }
-    //     } else {
-    //       setEditWorkPlace((prevEditWorkPlace) => ({
-    //         ...prevEditWorkPlace,
-    //         [name]: value
-    //       }));
-    //     }
-    //   }
-
+    async function onChangeAddress(e) {
+        const { name, value } = e.target;
+    
+        // Update the field dynamically in formik
+        formik.setFieldValue(`address.${name}`, value);
+    
+        // Define dependent field clearing
+        const clearDependentFields = () => {
+            if (name === "country") {
+                formik.setFieldValue("address.state", "");
+                formik.setFieldValue("address.city", "");
+                setStateData([]); // Reset state dropdown
+                setCityData([]);  // Reset city dropdown
+            } else if (name === "state") {
+                formik.setFieldValue("address.city", "");
+                setCityData([]); // Reset city dropdown
+            }
+        };
+    
+        // Fetch data based on the field name
+        try {
+            if (name === "country") {
+                const { data } = await axios.get(`${url}/api/country/${value}`, {
+                    headers: { Authorization: token || "" }
+                });
+                setStateData(data.states || []);
+                clearDependentFields();
+            } else if (name === "state") {
+                const { data } = await axios.get(`${url}/api/state/${value}`, {
+                    headers: { Authorization: token || "" }
+                });
+                setCityData(data.cities || []);
+                clearDependentFields();
+            }
+        } catch (err) {
+            console.error(err);
+            toast.error(`Error fetching ${name === "country" ? "states" : "cities"}`);
+        }
+    }
+    
     return (
         isLoading ? <Loading /> :
             <form onSubmit={formik.handleSubmit}>
@@ -522,41 +537,65 @@ const AddEmployeeForm = ({ details, handleScroll, handlePersonal, handleFinancia
                                         name="country"
                                         onChange={formik.handleChange}
                                         value={formik.values.country} /> */}
-                                    {/* <select
+                                    <select
                                         className={`selectInput ${formik.touched.country && formik.errors.country ? "error" : ""}`}
                                         name="country"
-                                        onChange={getStateDatandSet}
+                                        onChange={(e) => onChangeAddress(e)}
                                         value={formik.values.country} >
                                         <option>Select the Country</option>
                                         {
                                             countries.map((country) => (
-                                                <option key={country._id} value={country._id}>{country.CountryName}</option>
+                                                <option key={country._id} value={country.CountryName}>{country.CountryName}</option>
                                             ))
                                         }
-                                    </select> */}
+                                    </select>
                                     {formik.touched.country && formik.errors.country ? (
                                         <div className="text-center text-danger">{formik.errors.country}</div>
                                     ) : null}
                                 </div>
                                 <div className="col-lg-6">
                                     <div className="inputLabel">State</div>
-                                    <input type="text"
+                                    {/* <input type="text"
                                         className={`inputField ${formik.touched.state && formik.errors.state ? "error" : ""}`}
                                         name="state"
                                         onChange={formik.handleChange}
-                                        value={formik.values.state} />
+                                        value={formik.values.state} /> */}
+                                    <select
+                                        className={`selectInput ${formik.touched.state && formik.errors.state ? "error" : ""}`}
+                                        name="state"
+                                        onChange={(e) => onChangeAddress(e)}
+                                        value={formik.values.state} >
+                                        <option>Select the State</option>
+                                        {
+                                            stateData?.map((state) => (
+                                                <option key={state._id} value={state.StateName}>{state.StateName}</option>
+                                            ))
+                                        }
+                                    </select>
                                 </div>
                             </div>
 
                             <div className="row d-flex justify-content-center my-3">
                                 <div className="col-lg-6">
                                     <div className="inputLabel">City</div>
-                                    <input type="text" onChange={formik.handleChange} name="city" className="inputField" />
+                                    {/* <input type="text" onChange={formik.handleChange} name="city" className="inputField" /> */}
+                                    <select
+                                        className={`selectInput ${formik.touched.city && formik.errors.city ? "error" : ""}`}
+                                        name="city"
+                                        onChange={(e) => onChangeAddress(e)}
+                                        value={formik.values.city} >
+                                        <option>Select the City</option>
+                                        {
+                                            cityData?.map((city) => (
+                                                <option key={city._id} value={city.StateName}>{city.CityName}</option>
+                                            ))
+                                        }
+                                    </select>
                                 </div>
+
                                 <div className="col-lg-6">
                                     <div className="inputLabel">Zip Code</div>
                                     <input type="number" onChange={formik.handleChange} name="zipCode" className="inputField" />
-
                                 </div>
                             </div>
                         </div>

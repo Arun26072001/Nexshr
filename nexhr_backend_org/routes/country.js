@@ -20,8 +20,9 @@ router.get("/", verifyAdminHREmployee, (req, res) => {
       });
   });
 
-  router.get("/:id", verifyAdminHR, (req, res) => {
-    Country.findById(req.params.id)
+  // change id from to countryName
+  router.get("/:name", verifyAdminHR, (req, res) => {
+    Country.findOne({CountryName: req.params.name})
       .populate("states")
       .exec((err, country) => {
         if (err) {
@@ -31,8 +32,6 @@ router.get("/", verifyAdminHREmployee, (req, res) => {
         }
       });
   });
-  
-  
   
   router.post("/", verifyHR, (req, res) => {
     Joi.validate(req.body, CountryValidation, (err, result) => {

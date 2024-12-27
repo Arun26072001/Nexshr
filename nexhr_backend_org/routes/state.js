@@ -14,6 +14,19 @@ router.get("/", verifyAdminHR, (req, res) => {
       res.send(state);
     });
 });
+
+  router.get("/:name", verifyAdminHR, (req, res) => {
+    State.findOne({StateName: req.params.name})
+      .populate("cities")
+      .exec((err, stateData) => {
+        if (err) {
+          res.status(500).send(err);
+        } else {
+          res.send(stateData);
+        }
+      });
+  });
+
 //State
 router.post("/", verifyAdminHR, (req, res) => {
   Joi.validate(req.body, StateValidation, (err, result) => {
