@@ -292,23 +292,23 @@ const AddEmployeeForm = ({ details, handleScroll, handlePersonal, handleFinancia
 
     async function onChangeAddress(e) {
         const { name, value } = e.target;
-    
+
         // Update the field dynamically in formik
         formik.setFieldValue(`address.${name}`, value);
-    
-        // Define dependent field clearing
-        const clearDependentFields = () => {
-            if (name === "country") {
-                formik.setFieldValue("address.state", "");
-                formik.setFieldValue("address.city", "");
-                setStateData([]); // Reset state dropdown
-                setCityData([]);  // Reset city dropdown
-            } else if (name === "state") {
-                formik.setFieldValue("address.city", "");
-                setCityData([]); // Reset city dropdown
-            }
-        };
-    
+
+        // // Define dependent field clearing
+        // const clearDependentFields = () => {
+        //     if (name === "country") {
+        //         formik.setFieldValue("address.state", "");
+        //         formik.setFieldValue("address.city", "");
+        //         setStateData([]); // Reset state dropdown
+        //         setCityData([]);  // Reset city dropdown
+        //     } else if (name === "state") {
+        //         formik.setFieldValue("address.city", "");
+        //         setCityData([]); // Reset city dropdown
+        //     }
+        // };
+
         // Fetch data based on the field name
         try {
             if (name === "country") {
@@ -316,20 +316,20 @@ const AddEmployeeForm = ({ details, handleScroll, handlePersonal, handleFinancia
                     headers: { Authorization: token || "" }
                 });
                 setStateData(data.states || []);
-                clearDependentFields();
+                // clearDependentFields();
             } else if (name === "state") {
                 const { data } = await axios.get(`${url}/api/state/${value}`, {
                     headers: { Authorization: token || "" }
                 });
                 setCityData(data.cities || []);
-                clearDependentFields();
+                // clearDependentFields();
             }
         } catch (err) {
             console.error(err);
             toast.error(`Error fetching ${name === "country" ? "states" : "cities"}`);
         }
     }
-    
+
     return (
         isLoading ? <Loading /> :
             <form onSubmit={formik.handleSubmit}>
@@ -555,12 +555,8 @@ const AddEmployeeForm = ({ details, handleScroll, handlePersonal, handleFinancia
                                 </div>
                                 <div className="col-lg-6">
                                     <div className="inputLabel">State</div>
-                                    {/* <input type="text"
-                                        className={`inputField ${formik.touched.state && formik.errors.state ? "error" : ""}`}
-                                        name="state"
-                                        onChange={formik.handleChange}
-                                        value={formik.values.state} /> */}
                                     <select
+                                        disabled={!stateData.length > 0}
                                         className={`selectInput ${formik.touched.state && formik.errors.state ? "error" : ""}`}
                                         name="state"
                                         onChange={(e) => onChangeAddress(e)}
@@ -580,6 +576,7 @@ const AddEmployeeForm = ({ details, handleScroll, handlePersonal, handleFinancia
                                     <div className="inputLabel">City</div>
                                     {/* <input type="text" onChange={formik.handleChange} name="city" className="inputField" /> */}
                                     <select
+                                        disabled={!cityData.length > 0}
                                         className={`selectInput ${formik.touched.city && formik.errors.city ? "error" : ""}`}
                                         name="city"
                                         onChange={(e) => onChangeAddress(e)}
