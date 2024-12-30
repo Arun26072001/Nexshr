@@ -29,6 +29,8 @@ router.get("/:name", verifyAdminHR, async (req, res) => {
     if (!country) {
       return res.status(404).send({ message: "Country not found" });
     }
+    console.log(country);
+    
 
     res.send(country);
   } catch (err) {

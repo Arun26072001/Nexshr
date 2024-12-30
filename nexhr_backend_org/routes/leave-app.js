@@ -476,7 +476,7 @@ leaveApp.post("/:empId", verifyAdminHREmployee, async (req, res) => {
     }
 
     const relievingOffData = await Employee.findById(req.body.coverBy, "Email FirstName LastName");
-    const leaveTypeName = req.body.leaveType.split(" ")[0];
+    const leaveTypeName = req.body.leaveType;
     const leaveDaysCount = empData?.typesOfLeaveRemainingDays[leaveTypeName] || 0;
 
     if (leaveDaysCount <= takenLeaveCount) {

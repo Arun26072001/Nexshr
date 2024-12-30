@@ -258,6 +258,7 @@ router.post("/", verifyAdminHR, async (req, res) => {
       company: company || ["6651a5eb6115df44c0cc7151"],
       annualLeaveEntitlement: annualLeaveEntitlement || 14,
       payslipFields,
+      typesOfLeaveRemainingDays: typesOfLeaveCount
     };
 
     const employee = await Employee.create(employeeData);
@@ -331,7 +332,7 @@ router.post("/", verifyAdminHR, async (req, res) => {
   }
 });
 
-router.put("/:id", verifyAdminHR, async (req, res) => {
+router.put("/:id", verifyAdminHREmployee, async (req, res) => {
   try {
     let newEmployee = req.body;
 

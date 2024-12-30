@@ -302,18 +302,13 @@ const AddEmployeeForm = ({ details, handleScroll, handlePersonal, handleFinancia
                 const { data } = await axios.get(`${url}/api/country/${value}`, {
                     headers: { Authorization: token || "" }
                 });
-                console.log(data);
-                
+
                 setStateData(data.states || []);
-                // clearDependentFields();
             } else if (name === "state") {
                 const { data } = await axios.get(`${url}/api/state/${value}`, {
                     headers: { Authorization: token || "" }
                 });
                 setCityData(data.cities || []);
-                console.log(data);
-                
-                // clearDependentFields();
             }
         } catch (err) {
             console.error(err);

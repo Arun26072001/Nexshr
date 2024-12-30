@@ -8,7 +8,8 @@ import { getDataAPI } from './ReuseableAPI';
 import ApexChart from './ApexChart';
 import { TimerStates } from './payslip/HRMDashboard';
 import Loading from './Loader';
-import NoDataFound from './payslip/NoDataFound';
+import { EssentialValues } from '../App';
+import { jwtDecode } from 'jwt-decode';
 
 function CustomTabPanel(props) {
     const { children, value, index, ...other } = props;
@@ -49,6 +50,8 @@ export default function Home() {
     const [value, setValue] = useState(0);
     const [isLoading, setLoading] = useState(true); // Track loading state
     const empId = localStorage.getItem('_id');
+    const { data, whoIs } = useContext(EssentialValues);    
+    const { isTeamLead, isTeamHead } = jwtDecode(data.token);
 
     const staticData = {
         startingTime: "00:00",
@@ -95,12 +98,14 @@ export default function Home() {
             <Box sx={{ width: '100%' }}>
                 <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
                     <Tabs value={value} onChange={handleChange} aria-label="basic tabs example">
-                        <Tab label="My Summary" {...a11yProps(0)} />
+                        <Tab label={`${whoIs === "admin" ? "Associates Data"
+                            : [isTeamLead, isTeamHead].includes(true) ? "Team Status"
+                                : "My Summary"} `} {...a11yProps(0)} />
                         <Tab label="Working Status" {...a11yProps(1)} />
                         <Tab label="Who's Working" {...a11yProps(2)} />
                     </Tabs>
                 </Box>
-   
+
                 <CustomTabPanel value={value} index={0} className="tabParent" style={{ backgroundColor: "white" }}>
                     <div className='row'>
                         <div className='col-lg-6 col-md-6 col-12'>
@@ -132,14 +137,15 @@ export default function Home() {
                             </table>
                         </div>
                         <div className='col-lg-6 col-md-6 col-12'>
-                            <p className='chartTitle'>Time Activity</p>
                             {
                                 workTimeTracker?.login?.startingTime?.length === workTimeTracker?.login?.endingTime?.length &&
-                                    workTimeTracker[timeOption]?.startingTime?.length === workTimeTracker[timeOption]?.endingTime?.length ?
-                                    <ApexChart activitiesData={tableData} /> :
-                                    <NoDataFound message={"You can't view time value, until stop timers"} />
+                                workTimeTracker[timeOption]?.startingTime?.length === workTimeTracker[timeOption]?.endingTime?.length &&
+                                <>
+                                    <p className='chartTitle'>Time Activity</p>
+                                    <ApexChart activitiesData={tableData} />
+                                </>
+                                // <NoDataFound message={"You can't view time value, until stop timers"} />
                             }
-                            {/* <PieChartGraph listOfActivity={listOfActivity} /> */}
                         </div>
                     </div>
                 </CustomTabPanel>

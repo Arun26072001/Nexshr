@@ -1,5 +1,6 @@
 import React from "react";
 import Phone from "../../asserts/phone.svg";
+import EmailOutlinedIcon from '@mui/icons-material/EmailOutlined';
 
 const Contact = ({empObj}) => {
   
@@ -19,7 +20,8 @@ const Contact = ({empObj}) => {
         </div>
         <div className="d-flex align-items-center justify-content-between p-2">
           <div className="d-flex align-items-center gap-2">
-            <img src={Phone} alt="" />
+            {/* <img src={Phone} alt="" /> */}
+            <EmailOutlinedIcon />
             <span>Email</span>
           </div>
           <div className="text-primary ms-3">{empObj.Email}</div>

@@ -15,7 +15,7 @@ const ActivityTimeTracker = () => {
         timeOption,
         trackTimer
     } = useContext(TimerStates);
-
+    const [isDisabled, setIsDisabled] = useState(false);
     const EmpName = localStorage.getItem("Name") || "Employee";
 
     const [sec, setSec] = useState(
@@ -94,8 +94,10 @@ const ActivityTimeTracker = () => {
         const endLength = workTimeTracker?.[timeOption]?.endingTime?.length || 0;
 
         if (startLength !== endLength) {
+            setIsDisabled(true)
             startOnlyTimer();
         } else {
+            setIsDisabled(false);
             stopOnlyTimer();
         }
 
@@ -121,7 +123,7 @@ const ActivityTimeTracker = () => {
         <>
             <div className="clockins">
                 <span className='payslipTitle'>Dashboard</span>
-                <CustomDropdown />
+                <CustomDropdown isDisabled={isDisabled} />
             </div>
             <div className='good flex-wrap justify-content-between'>
                 <div className="col-lg-4 col-md-4 col-12">
@@ -136,21 +138,21 @@ const ActivityTimeTracker = () => {
                     </div>
                 </div>
                 <div className="col-lg-6 col-md-4 col-12 d-flex justify-content-end gap-2 align-items-center">
-                    <div className={`timer text-light ${isStartActivity ? "bg-success" : "bg-danger"}`}>
+                    <div className={`timer text-light ${isDisabled ? "bg-success" : "bg-danger"}`}>
                         <span>{hour.toString().padStart(2, '0')}</span> :
                         <span>{min.toString().padStart(2, '0')}</span> :
                         <span>{sec.toString().padStart(2, '0')}</span>
                     </div>
                     <div className='leaveIndicator'>
                         <button
-                            className={`btn btn-outline-${isStartActivity ? "success" : "danger"}`}
+                            className={`btn btn-outline-${isDisabled ? "success" : "danger"}`}
                             style={{ padding: "15px 15px" }}
                             title={isStartActivity ? "Stop" : "Start"}
                             onClick={
                                 workTimeTracker?._id
-                                    ? (isStartActivity
+                                    ? (isDisabled
                                         ? stopTimer
-                                        : (workTimeTracker?.[timeOption]?.startingTime?.length === workTimeTracker?.[timeOption]?.endingTime?.length
+                                        : (!isDisabled
                                             ? startTimer
                                             : warnPunchIn))
                                     : null

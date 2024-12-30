@@ -22,10 +22,13 @@ const Social = ({ empObj, error }) => {
       }
       const updateEmpData = await updateEmp(updatedEmpValue);
       toast.success(updateEmpData);
+      console.log(updateEmpData);
+      
     } catch (error) {
       toast.error(error);
     }
   }
+console.log(empObj);
 
   return (
     error ? <NoDataFound message={error} /> :
