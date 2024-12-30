@@ -8,6 +8,7 @@ var employeeSchema = new mongoose.Schema({
   Password: { type: String },
   teamLead: [{ type: mongoose.Types.ObjectId, ref: "Employee" }],
   team: { type: mongoose.Types.ObjectId, ref: "Team" },
+  countryCode: {type: String},
   phone: { type: String },
   panNumber: { type: String },
   profile: { type: String },

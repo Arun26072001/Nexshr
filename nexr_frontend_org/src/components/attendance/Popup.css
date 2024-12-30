@@ -54,10 +54,10 @@
     font-size: 16px;
   }
   
-  textarea {
+  /* textarea {
     height: 80px;
     resize: none;
-  }
+  } */
   
   .modal-actions {
     display: flex;

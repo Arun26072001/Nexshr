@@ -20,7 +20,7 @@ router.get("/", verifyAdminHREmployee, (req, res) => {
     });
 });
 
-router.get("/:name", verifyAdminHR, async (req, res) => {
+router.get("/:name", verifyAdminHREmployee, async (req, res) => {
   try {
     const country = await Country.findOne({ CountryName: req.params.name })
       .populate("states")
@@ -29,9 +29,6 @@ router.get("/:name", verifyAdminHR, async (req, res) => {
     if (!country) {
       return res.status(404).send({ message: "Country not found" });
     }
-    console.log(country);
-    
-
     res.send(country);
   } catch (err) {
     console.error(err);

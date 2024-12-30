@@ -15,6 +15,8 @@ import { EssentialValues } from "../App";
 const EditEmployeeform = ({ details, empData, handleScroll, handlePersonal, handleFinancial, handleJob, handleContact, handleEmployment, timePatterns, personalRef, contactRef, employmentRef, jobRef, financialRef, payslipRef, countries, companies, departments, positions, roles, leads, managers }) => {
     const { id } = useParams();
     const { changeEmpEditForm } = useContext(TimerStates);
+    const [stateData, setStateData] = useState([]);
+    const [cityData, setCityData] = useState([]);
     const { whoIs } = useContext(EssentialValues);
     const [timeDifference, setTimeDifference] = useState(0);
     const [payslipFields, setPayslipFields] = useState([]);
@@ -69,7 +71,7 @@ const EditEmployeeform = ({ details, empData, handleScroll, handlePersonal, hand
         validationSchema: empFormValidation,
         onSubmit: async (values, { resetForm }) => {
             try {
-                const res = await updateEmp({ id, values })
+                const res = await updateEmp(values, id)
                 toast.success(res);
                 changeEmpEditForm();
                 resetForm();
@@ -228,6 +230,31 @@ const EditEmployeeform = ({ details, empData, handleScroll, handlePersonal, hand
 
     const hourAndMin = timeDifference.toString().split(".");
     const [hour, min] = hourAndMin;
+    async function onChangeAddress(e) {
+        const { name, value } = e.target;
+        // Update the field dynamically in formik
+        formik.setFieldValue(`address.${name}`, value);
+        try {
+            if (name === "country") {
+                const { data } = await axios.get(`${url}/api/country/${value}`, {
+                    headers: { Authorization: token || "" }
+                });
+
+                setStateData(data.states || []);
+            } else if (name === "state") {
+                const { data } = await axios.get(`${url}/api/state/${value}`, {
+                    headers: { Authorization: token || "" }
+                });
+                setCityData(data.cities || []);
+            }
+        } catch (err) {
+            console.error(err);
+            toast.error(`Error fetching ${name === "country" ? "states" : "cities"}`);
+        }
+    }
+    
+    console.log(formik.values);
+    
 
     return (
         isLoading ? <Loading /> :
@@ -414,29 +441,56 @@ const EditEmployeeform = ({ details, empData, handleScroll, handlePersonal, hand
                                 <div className="row d-flex justify-content-center my-3">
                                     <div className="col-lg-6">
                                         <div className="inputLabel">Country</div>
-                                        <input type="text"
-                                            className={`inputField ${formik.touched.country && formik.errors.country ? "error" : ""}`}
+                                        <select
+                                            className={`selectInput ${formik.touched.country && formik.errors.country ? "error" : ""}`}
                                             name="country"
-                                            onChange={formik.handleChange}
-                                            value={formik.values.country} />
+                                            onChange={(e) => onChangeAddress(e)}
+                                            value={formik.values.country} >
+                                            <option>Select the Country</option>
+                                            {
+                                                countries.map((country) => (
+                                                    <option key={country._id} value={country.CountryName}>{country.CountryName}</option>
+                                                ))
+                                            }
+                                        </select>
                                         {formik.touched.country && formik.errors.country ? (
                                             <div className="text-center text-danger">{formik.errors.country}</div>
                                         ) : null}
                                     </div>
                                     <div className="col-lg-6">
                                         <div className="inputLabel">State</div>
-                                        <input type="text"
-                                            className={`inputField ${formik.touched.state && formik.errors.state ? "error" : ""}`}
+                                        <select
+                                            disabled={!stateData.length > 0}
+                                            className={`selectInput ${formik.touched.state && formik.errors.state ? "error" : ""}`}
                                             name="state"
-                                            onChange={formik.handleChange}
-                                            value={formik.values.state} />
+                                            onChange={(e) => onChangeAddress(e)}
+                                            value={formik.values.state} >
+                                            <option>Select the State</option>
+                                            {
+                                                stateData?.map((state) => (
+                                                    <option key={state._id} value={state.StateName}>{state.StateName}</option>
+                                                ))
+                                            }
+                                        </select>
                                     </div>
                                 </div>
 
                                 <div className="row d-flex justify-content-center my-3">
                                     <div className="col-lg-6">
                                         <div className="inputLabel">City</div>
-                                        <input type="text" onChange={formik.handleChange} name="city" className="inputField" />
+                                        <select
+                                            disabled={!cityData.length > 0}
+                                            className={`selectInput ${formik.touched.city && formik.errors.city ? "error" : ""}`}
+                                            name="city"
+                                            onChange={(e) => onChangeAddress(e)}
+                                            value={formik.values.city} >
+                                            <option>Select the City</option>
+                                            {
+                                                cityData?.map((city) => (
+                                                    <option key={city._id} value={city.StateName}>{city.CityName}</option>
+                                                ))
+                                            }
+                                        </select>
                                     </div>
                                     <div className="col-lg-6">
                                         <div className="inputLabel">Zip Code</div>

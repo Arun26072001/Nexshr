@@ -562,46 +562,6 @@ leaveApp.post("/:empId", verifyAdminHREmployee, async (req, res) => {
   }
 });
 
-
-// leaveApp.put("/:id", verifyHREmployee, async (req, res) => {
-//   try {
-//     const today = new Date();
-
-//     // Create start and end of the day for the date comparison
-//     const startOfDay = new Date(today.setHours(0, 0, 0, 0));
-//     const approvers = [req.body.Hr, req.body.TeamLead, req.body.TeamHead];
-//     const allRApproved = approvers.every(status => status === "approved");
-//     const isRejected = approvers.filter(status => status === "rejected");
-//     let updatedleaveApp;
-//     if (isRejected) {
-//       updatedleaveApp = {
-//         ...req.body,
-//         status: false
-//       }
-//     }
-//     if (allRApproved) {
-//       updatedleaveApp = {
-//         ...req.body,
-//         status: true
-//       }
-//     } else {
-//       updatedleaveApp = {
-//         ...req.body
-//       }
-//     }
-//     const isGreaterthanToday = await LeaveApplication.findOne({ _id: req.params.id, fromDate: { $gte: startOfDay } });
-//     if (isGreaterthanToday) {
-//       const updatedReq = await LeaveApplication.findByIdAndUpdate(req.params.id, updatedleaveApp, { new: true });
-//       return res.send({ message: `You are reply to Leave Application` })
-//     } else {
-//       return res.status(400).send({ error: `Leave request has been expired.` })
-//     }
-//   } catch (err) {
-//     console.log(err);
-//     return res.status(500).send({ error: err.message })
-//   }
-// })
-
 leaveApp.put('/:id', verifyHREmployee, async (req, res) => {
   try {
     const today = new Date();
@@ -623,14 +583,14 @@ leaveApp.put('/:id', verifyHREmployee, async (req, res) => {
 
       // Calculate leave days to deduct
       const leaveDaysTaken = Math.max(getDayDifference(req.body), 1);
-      const leaveTypeKey = leaveType.split(' ')[0];
+      // const leaveTypeKey = leaveType.split(' ')[0];
 
-      if (!emp.typesOfLeaveRemainingDays[leaveTypeKey]) {
+      if (!emp.typesOfLeaveRemainingDays[leaveType]) {
         return res.status(400).send({ error: 'Invalid leave type.' });
       }
 
-      emp.typesOfLeaveRemainingDays[leaveTypeKey] -= leaveDaysTaken;
-      emp.annualLeaveEntitlement -= leaveDaysTaken
+      emp.typesOfLeaveRemainingDays[leaveType] -= leaveDaysTaken;
+      // emp.annualLeaveEntitlement -= leaveDaysTaken
 
       // Prevent negative leave balances
       if (emp.typesOfLeaveRemainingDays[leaveTypeKey] < 0) {

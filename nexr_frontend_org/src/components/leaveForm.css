@@ -51,7 +51,7 @@
   margin: 10px 0px;
 }
 
-.rsuite_selector > *  {
+.rsuite_selector > * {
   background-color: #f4f4f4;
   border-radius: 15px;
   /* height: 50px; */
@@ -59,8 +59,8 @@
   z-index: 0 !important;
 }
 
-.rsuite_selector_disabled > *{
-  background-color: #F7F7FA;
+.rsuite_selector_disabled > * {
+  background-color: #f7f7fa;
   border-radius: 15px;
   height: 50px !important;
   padding: 7px;
@@ -75,6 +75,19 @@
   border: none;
   border-radius: 15px;
   height: 50px;
+}
+
+.selectInput > * {
+  width: 100%;
+  background-color: #f4f4f4 !important;
+  border: none;
+  border-radius: 15px;
+  height: 50px;
+  border: none;
+  margin-top: 15px;
+  display: flex;
+  align-items: center;
+  z-index: 1 !important;
 }
 
 .selectInput,

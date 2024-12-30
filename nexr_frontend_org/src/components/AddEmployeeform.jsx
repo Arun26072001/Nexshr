@@ -6,8 +6,9 @@ import { toast } from "react-toastify";
 import "./leaveForm.css";
 import { fetchPayslipInfo } from "./ReuseableAPI";
 import { useNavigate } from "react-router-dom";
-import { TagPicker } from "rsuite";
+import { Form, SelectPicker, TagPicker } from "rsuite";
 import Loading from "./Loader";
+import { allCountries } from "./countryCode";
 
 const AddEmployeeForm = ({ details, handleScroll, handlePersonal, handleFinancial, handleJob, handleContact, handleEmployment, timePatterns, personalRef, contactRef, employmentRef, jobRef, financialRef, payslipRef, countries, companies, departments, positions, roles, leads, managers }) => {
     const navigate = useNavigate()
@@ -28,6 +29,7 @@ const AddEmployeeForm = ({ details, handleScroll, handlePersonal, handleFinancia
         Password: "",
         teamLead: "",
         managerId: "",
+        countryCode: "",
         phone: "",
         company: "",
         dateOfBirth: "",
@@ -292,11 +294,8 @@ const AddEmployeeForm = ({ details, handleScroll, handlePersonal, handleFinancia
 
     async function onChangeAddress(e) {
         const { name, value } = e.target;
-
         // Update the field dynamically in formik
         formik.setFieldValue(`address.${name}`, value);
-
-        // Fetch data based on the field name
         try {
             if (name === "country") {
                 const { data } = await axios.get(`${url}/api/country/${value}`, {
@@ -500,7 +499,35 @@ const AddEmployeeForm = ({ details, handleScroll, handlePersonal, handleFinancia
                             </div>
 
                             <div className="row d-flex justify-content-center">
-                                <div className="col-lg-12 my-2">
+                                <div className="col-lg-4 col-md-4 col-4">
+                                    <div className="inputLabel">
+                                        Phone
+                                    </div>
+                                    <SelectPicker
+                                        className={`selectInput ${formik.touched.phone && formik.errors.phone ? "error" : ""}`}
+                                        style={{background: "none", border: "none"}}
+                                        size="lg"
+                                        data={allCountries} 
+                                        labelKey="name"
+                                        valueKey="abbr"
+                                        value={formik.values.countryCode}
+                                        onChange={formik.handleChange}
+                                        placeholder="Choose a Country"
+                                        renderMenuItem={(label, item) => (
+                                            <div>
+                                                {item.icon} {label} ({item.abbr}) +{item.code}
+                                            </div>
+                                        )}
+                                        renderValue={(value, item) =>
+                                            item ? (
+                                                <div>
+                                                    {item.icon} {item.name} ({item.abbr})
+                                                </div>
+                                            ) : null
+                                        }
+                                    />
+                                </div>
+                                <div className="col-lg-8 my-2">
                                     <div className="inputLabel">
                                         Phone
                                     </div>
@@ -518,11 +545,6 @@ const AddEmployeeForm = ({ details, handleScroll, handlePersonal, handleFinancia
                             <div className="row d-flex justify-content-center my-3">
                                 <div className="col-lg-6">
                                     <div className="inputLabel">Country</div>
-                                    {/* <input type="text"
-                                        className={`inputField ${formik.touched.country && formik.errors.country ? "error" : ""}`}
-                                        name="country"
-                                        onChange={formik.handleChange}
-                                        value={formik.values.country} /> */}
                                     <select
                                         className={`selectInput ${formik.touched.country && formik.errors.country ? "error" : ""}`}
                                         name="country"

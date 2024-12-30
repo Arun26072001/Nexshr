@@ -1,11 +1,11 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import NoDataFound from "./NoDataFound";
 import { updateEmp } from "../ReuseableAPI";
 
-const Social = ({ empObj, error }) => {
+const Social = ({ empObj, error, changeFetching }) => {
   const [social, setSocial] = useState({});
-
+  const [isDisabled, setIsDisabled] = useState(true);
   function addSocial(e) {
     const { name, value } = e.target;
     setSocial((pre) => ({
@@ -13,6 +13,11 @@ const Social = ({ empObj, error }) => {
       [name]: value
     }))
   }
+  useEffect(() => {
+    setIsDisabled(Object.entries(social).every(
+      ([key, value]) => value === "" || value === empObj?.social?.[key]
+    ));
+  }, [social])
 
   async function updateSocialEmp() {
     try {
@@ -20,15 +25,25 @@ const Social = ({ empObj, error }) => {
         ...empObj,
         social
       }
+
       const updateEmpData = await updateEmp(updatedEmpValue);
       toast.success(updateEmpData);
-      console.log(updateEmpData);
-      
+      changeFetching();
+
     } catch (error) {
       toast.error(error);
     }
   }
-console.log(empObj);
+
+  useEffect(() => {
+    setSocial((pre) => ({
+      ...pre,
+      "facebook": empObj?.social?.facebook,
+      "twitter": empObj?.social?.twitter,
+      "instagram": empObj?.social?.instagram
+    }))
+  }, [empObj])
+
 
   return (
     error ? <NoDataFound message={error} /> :
@@ -45,7 +60,7 @@ console.log(empObj);
           </div>
           <div className="row">
             <div className="col-lg-5 col-12">
-              <input type="text" className="payrunInput" name="instagram" value={empObj?.social?.instagram || social?.instagram || ""} onChange={(e) => addSocial(e)} placeholder="Paste link here" />
+              <input type="text" className="payrunInput" name="instagram" value={social?.instagram || ""} onChange={(e) => addSocial(e)} placeholder="Paste link here" />
             </div>
           </div>
 
@@ -57,7 +72,7 @@ console.log(empObj);
 
           <div className="row">
             <div className="col-lg-5 col-12">
-              <input type="text" className="payrunInput" name="twitter" value={empObj?.social?.twitter || social?.twitter || ""} onChange={(e) => addSocial(e)} placeholder="Paste link here" />
+              <input type="text" className="payrunInput" name="twitter" value={social?.twitter || ""} onChange={(e) => addSocial(e)} placeholder="Paste link here" />
             </div>
           </div>
 
@@ -68,7 +83,7 @@ console.log(empObj);
           </div>
           <div className="row">
             <div className="col-lg-5 col-12">
-              <input type="text" className="payrunInput" name="facebook" value={empObj?.social?.facebook || social?.facebook || ""} onChange={(e) => addSocial(e)} placeholder="Paste link here" />
+              <input type="text" className="payrunInput" name="facebook" value={social?.facebook || ""} onChange={(e) => addSocial(e)} placeholder="Paste link here" />
             </div>
           </div>
 
@@ -76,7 +91,7 @@ console.log(empObj);
             <div className="col-lg-3 col-12">
               <div className="btnParent mx-auto">
                 <button className="outline-btn" style={{ background: "#e0e0e0", border: "none" }}>Cancel</button>
-                <button className="button" onClick={updateSocialEmp}>Save</button>
+                <button className="button" disabled={isDisabled} onClick={updateSocialEmp}>Save</button>
               </div>
             </div>
           </div>

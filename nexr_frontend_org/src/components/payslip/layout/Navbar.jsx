@@ -15,7 +15,7 @@ export default function Navbar({ handleSideBar }) {
     const [sec, setSec] = useState(workTimeTracker?.login?.timeHolder?.split(':')[2])
     const [min, setMin] = useState(workTimeTracker?.login?.timeHolder?.split(':')[1])
     const [hour, setHour] = useState(workTimeTracker?.login?.timeHolder?.split(':')[0])
-
+    const [isDisabled, setIsDisabled] = useState(false);
     const workRef = useRef(null);  // Use ref to store interval ID
 
     // Timer logic to increment time
@@ -82,9 +82,11 @@ export default function Navbar({ handleSideBar }) {
         const endLength = workTimeTracker?.login?.endingTime?.length || 0;
         if (workTimeTracker._id) { //timer start to allow, if is timer data in obj 
             if (startLength !== endLength) {
+                setIsDisabled(true);
                 startOnlyTimer();
             } else {
                 stopOnlyTimer();
+                isDisabled(false);
             }
         }
         return () => stopOnlyTimer(); // Cleanup on unmount
@@ -161,7 +163,7 @@ export default function Navbar({ handleSideBar }) {
                         <div className="punchBtnParent">
                             <button
                                 className='punchBtn'
-                                disabled={workTimeTracker?.login?.startingTime?.length !== workTimeTracker?.login?.endingTime?.length}
+                                disabled={!isDisabled}
                                 onClick={() => startTimer()}
                                 style={{ backgroundColor: "#CEE5D3" }}
                             >
@@ -181,7 +183,7 @@ export default function Navbar({ handleSideBar }) {
                             <button
                                 className='punchBtn'
                                 onClick={() => stopTimer()}
-                                disabled={workTimeTracker?.login?.startingTime?.length === workTimeTracker?.login?.endingTime?.length}
+                                disabled={isDisabled}
                                 style={{ backgroundColor: "#FFD6DB" }}
                             >
                                 <img src={PunchOut} width="25" height="25" alt="stoptimer_btn" />
@@ -238,4 +240,3 @@ export default function Navbar({ handleSideBar }) {
         </div>
     );
 }
-            

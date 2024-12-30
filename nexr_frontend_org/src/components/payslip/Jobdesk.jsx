@@ -17,11 +17,16 @@ const JobDesk = () => {
     const [error, setError] = useState("");
     const { data } = useContext(EssentialValues);
     const [isLoading, setIsLoading] = useState(false);
+    const [refetch, setRefetch] = useState(false);
     const [payslips, setPayslips] = useState([]);
     const jobDeskFiles = [
         'attendance', 'leave', 'payslip', 'history',
         'contact', 'social', 'address'
     ];
+
+    function changeFetching() {
+        setRefetch(!refetch)
+    }
 
     useEffect(() => {
         async function fetchPayslips() {
@@ -48,8 +53,8 @@ const JobDesk = () => {
             }
         }
         getEmp();
-    }, [])
-    
+    }, [refetch])
+
 
     return (
         <Routes >
@@ -59,7 +64,7 @@ const JobDesk = () => {
                 <Route path="history" element={<History payslips={payslips} isLoading={isLoading} />} />
                 <Route path="payslip" element={<Payslip payslips={payslips} isLoading={isLoading} />} />
                 <Route path="contact" element={<Contact empObj={empObj} error={error} />} />
-                <Route path="social" element={<Social empObj={empObj} error={error} />} />
+                <Route path="social" element={<Social empObj={empObj} changeFetching={changeFetching} error={error} />} />
                 <Route path="address" element={<Address empData={empObj} error={error} />} />
                 <Route path="*" element={<h1>404</h1>} />
             </Route>

@@ -3,9 +3,9 @@ const router = express.Router();
 const { State, StateValidation } = require('../models/StateModel');
 const { Country } = require('../models/CountryModel');
 const Joi = require('joi');
-const { verifyHR, verifyAdminHR } = require('../auth/authMiddleware');
+const { verifyAdminHR, verifyAdminHREmployee } = require('../auth/authMiddleware');
 
-router.get("/", verifyAdminHR, (req, res) => {
+router.get("/", verifyAdminHREmployee, (req, res) => {
   State.find()
     .exec(function (err, state) {
       if (err) {
@@ -15,7 +15,7 @@ router.get("/", verifyAdminHR, (req, res) => {
     });
 });
 
-  router.get("/:name", verifyAdminHR, (req, res) => {
+  router.get("/:name", verifyAdminHREmployee, (req, res) => {
     State.findOne({StateName: req.params.name})
       .populate("cities")
       .exec((err, stateData) => {

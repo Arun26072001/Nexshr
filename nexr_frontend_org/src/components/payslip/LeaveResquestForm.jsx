@@ -89,8 +89,7 @@ const LeaveRequestForm = () => {
     },
   });
 
-  console.log(formik.values);
-  
+
   useEffect(() => {
     if (formik.values.fromDate && formik.values.toDate) {
       let fromDateTime = new Date(formik.values.fromDate).getTime();
@@ -209,7 +208,7 @@ const LeaveRequestForm = () => {
             >
               <option>Select Leave type</option>
               {Object.entries(typeOfLeave).map((data) => {
-                return <option value={`${data[0]}`}>{data[0].charAt(0).toUpperCase() + data[0].slice(1)}</option>;
+                return <option value={`${data[0]}`}>{data[0].charAt(0).toUpperCase() + data[0].slice(1)} Leave</option>;
               })}
             </select>
             {formik.touched.leaveType && formik.errors.leaveType ? (
@@ -267,13 +266,15 @@ const LeaveRequestForm = () => {
           {/* Reason for Leave */}
           <div className="my-3">
             <span className="inputLabel">Reason for Leave</span>
-            <input
-              type="text"
+
+            <textarea
+              style={{ height: "auto" }}
               name="reasonForLeave"
-              className={`inputField ${formik.touched.reasonForLeave && formik.errors.reasonForLeave ? "error" : ""}`}
               onChange={formik.handleChange}
               value={formik.values.reasonForLeave}
-            />
+              className={`inputField ${formik.touched.reasonForLeave && formik.errors.reasonForLeave ? "error" : ""}`}
+              rows={10}
+              cols={40} />
             {formik.touched.reasonForLeave && formik.errors.reasonForLeave ? (
               <div className="text-center text-danger">{formik.errors.reasonForLeave}</div>
             ) : null}

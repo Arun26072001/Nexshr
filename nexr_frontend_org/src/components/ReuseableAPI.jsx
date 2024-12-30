@@ -281,10 +281,9 @@ const getDepartments = async () => {
     }
 }
 
-const updateEmp = async (data) => {
-
+const updateEmp = async (data, id) => {
     try {
-        const res = await axios.put(`${url}/api/employee/${data._id}`, data.values, {
+        const res = await axios.put(`${url}/api/employee/${id || data._id}`, data, {
             headers: {
                 authorization: token || ""
             }

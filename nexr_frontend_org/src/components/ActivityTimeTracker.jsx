@@ -155,7 +155,7 @@ const ActivityTimeTracker = () => {
                                         : (!isDisabled
                                             ? startTimer
                                             : warnPunchIn))
-                                    : null
+                                    : warnPunchIn
                             }
                             id="startActivityTimerBtn"
                         >

@@ -217,7 +217,7 @@ router.post("/", verifyAdminHR, async (req, res) => {
     if (!payslipData) {
       return res.status(400).json({ message: "Payslip data not found" });
     }
-    
+
     const payslipFields = {};
     const basicSalaryNumber = Number(basicSalary);
 
@@ -344,9 +344,11 @@ router.put("/:id", verifyAdminHREmployee, async (req, res) => {
     }
     // const {orgName} = jwt.decode(req.headers['authorization']);
     // const Employee = getEmployeeModel(orgName)
-    const updatedEmp = await Employee.findByIdAndUpdate(req.params.id, newEmployee, { new: true })
+    const updatedEmp = await Employee.findByIdAndUpdate({ _id: req.params.id }, newEmployee, { new: true })
     res.send({ message: `${updatedEmp.FirstName} data has been updated!` });
   } catch (err) {
+    console.log(err);
+
     res.status(500).send({ error: err.message })
   }
 });
