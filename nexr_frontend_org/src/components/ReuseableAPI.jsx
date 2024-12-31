@@ -83,8 +83,6 @@ function removeClockinsData() {
 
 const fetchEmpLeaveRequests = async () => {
     try {
-        console.log(token);
-
         const res = await axios.get(`${url}/api/leave-application/hr`, {
             headers: {
                 authorization: token || ""

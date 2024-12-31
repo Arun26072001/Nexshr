@@ -73,7 +73,6 @@ export default function Twotabs() {
     setValue(newValue);
   };
 
-
   useEffect(() => {
     for (let i = 0; i < dateArray.length; i++) {
       const holidayDate = new Date(dateArray[i]);
@@ -91,11 +90,13 @@ export default function Twotabs() {
     const gettingLeaveRequests = async () => {
       if (_id) {
         const leaveReqs = await fetchLeaveRequests(_id);
-        if (leaveReqs?.requests?.leaveApplication?.length > 0) {
-          setLeaveRequests(leaveReqs.requests.leaveApplication);
 
-          leaveReqs.requests.leaveApplication.forEach((req) => {
-            if (req.status === "pending" || req.status === "approved") {
+        if (leaveReqs?.leaveApplications?.length > 0) {
+          setLeaveRequests(leaveReqs.leaveApplications);
+
+          leaveReqs.leaveApplications.forEach((req) => {
+            // if (req.status === "pending" || req.status === "approved") {
+            if (req.status === "approved") {
               let toDate = new Date(req.toDate);
               let fromDate = new Date(req.fromDate);
               let timeDifference = toDate - fromDate;
@@ -148,7 +149,7 @@ export default function Twotabs() {
           </div>
 
           {
-            leaveRequests.map((req) => {
+            leaveRequests?.map((req) => {
               // debugger;
               let todayDate = today.getTime()
               let leaveDate = new Date(req.fromDate).getTime()

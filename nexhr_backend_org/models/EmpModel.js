@@ -55,7 +55,7 @@ var employeeSchema = new mongoose.Schema({
     type: String
   },
   annualLeaveYearStart: {
-    type: Date
+    type: Date, default: new Date().toISOString()
   },
   companyWorkingHourPerWeek: {
     type: String

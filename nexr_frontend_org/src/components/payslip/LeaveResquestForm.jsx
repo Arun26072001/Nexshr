@@ -132,10 +132,10 @@ const LeaveRequestForm = () => {
         }
 
         // Set types of leave
-        setTypOfLeave(leaveReqs?.requests?.typesOfLeaveCount);
+        setTypOfLeave(leaveReqs?.employee?.typesOfLeaveCount);
 
-        // Filter colleagues
-        const emps = leaveReqs.collegues.filter((emp) => emp._id !== empId);
+        // Filter colleagues 
+        const emps = leaveReqs.colleagues.filter((emp) => emp._id !== empId);
         setCollegues(emps);
       } else {
         toast.error("empId is not loaded in the app.");
@@ -186,6 +186,12 @@ const LeaveRequestForm = () => {
     }
   };
 
+  // function getVal(v){
+  //   console.log(typeof v);
+
+  // }
+  console.log(formik.values);
+
   return typeOfLeave ? (
     <form onSubmit={formik.handleSubmit}>
       <div className="leaveFormContainer">
@@ -223,7 +229,7 @@ const LeaveRequestForm = () => {
               <DatePicker
                 className={`inputField ${formik.touched.fromDate && formik.errors.fromDate ? "error" : ""}`}
                 selected={formik.values.fromDate}
-                onChange={(date) => formik.setFieldValue("fromDate", date.toISOString().split("T")[0])}
+                onChange={(date) => formik.setFieldValue("fromDate", date?.toLocaleDateString("en-CA"))}
                 minDate={new Date()}
                 excludeDates={excludedDates}
               />
@@ -236,7 +242,7 @@ const LeaveRequestForm = () => {
               <DatePicker
                 className={`inputField ${formik.touched.toDate && formik.errors.toDate ? "error" : ""}`}
                 selected={formik.values.toDate}
-                onChange={(date) => formik.setFieldValue("toDate", date.toISOString().split("T")[0])}
+                onChange={(date) => formik.setFieldValue("toDate", date?.toLocaleDateString("en-CA"))}
                 minDate={new Date()}
                 excludeDates={excludedDates}
               />
@@ -287,7 +293,7 @@ const LeaveRequestForm = () => {
               type="file"
               name="prescription"
               className="fileInput"
-              onChange={(e) => handleFileChange(e)} // Set the actual file, not just the name
+              onChange={formik.handleChange} // Set the actual file, not just the name
             />
           </div>
 

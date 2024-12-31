@@ -3,12 +3,12 @@ const path = require('path');
 const express = require("express");
 const sharp = require("sharp");
 
-const router = express.Router();
+const imgUpload = express.Router();
 
 // Configure multer for handling file uploads
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, './uploads/');
+    cb(null, '/uploads/');
   },
   filename: function (req, file, cb) {
     const timePrefix = new Date().toISOString().replace(/[-T:\.Z]/g, '');
@@ -35,7 +35,7 @@ const upload = multer({
 });
 
 // POST route for uploading and converting files
-router.post("/", upload.single("profile"), async (req, res) => {
+imgUpload.post("/", upload.single("profile"), async (req, res) => {
   try {
     if (!req.file) {
       return res.status(400).send({ message: 'No file uploaded.' });
@@ -64,4 +64,4 @@ router.post("/", upload.single("profile"), async (req, res) => {
   }
 });
 
-module.exports = router;
+module.exports = { imgUpload, upload };

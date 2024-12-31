@@ -8,7 +8,7 @@ const { Employee } = require('../models/EmpModel');
 const { verifyHR, verifyHREmployee, verifyEmployee, verifyAdmin, verifyAdminHREmployee } = require('../auth/authMiddleware');
 const { Position } = require('../models/PositionModel');
 const { Team } = require('../models/TeamModel');
-
+const { upload } = require('./imgUpload');
 const now = new Date();
 
 function getDayDifference(leave) {
@@ -18,95 +18,153 @@ function getDayDifference(leave) {
   return timeDifference === 0 ? 1 : timeDifference / (1000 * 60 * 60 * 24);
 }
 
-leaveApp.get("/emp/:empId", verifyAdminHREmployee, async (req, res) => {
-  try { //verifyHREmployee this API is use for emp and Hr to fetch their leave reqs
-    let requests = await Employee.findById(req.params.empId, "_id FirstName LastName Email phone typesOfLeaveCount typesOfLeaveRemainingDays")
-      .populate({
-        path: "leaveApplication",
-        populate: {
-          path: "employee",
-          select: "FirstName LastName"
-        }
-      })
-      .populate({
-        path: "position"
-      })
-      .exec();
+// leaveApp.get("/emp/:empId", verifyAdminHREmployee, async (req, res) => {
+//   try {
+//     // Fetch employee's annualLeaveYearStart
+//     const emp = await Employee.findById(req.params.empId, "");
+//     const annualLeaveYearStart = new Date(emp.annualLeaveYearStart);
+//     let startDate;
+//     let endDate;
+//     const now = new Date();
+//     if (annualLeaveYearStart.getFullYear() > new Date().getFullYear() - 1) {
+//       startDate = new Date(now.getFullYear(), annualLeaveYearStart.getMonth(), annualLeaveYearStart.getDate());
+//       endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0); // End of the current month
+//     } else {
+//       startDate = new Date(annualLeaveYearStart.getFullYear(), annualLeaveYearStart.getMonth(), annualLeaveYearStart.getDate());
+//       endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0); // End of the current month
+//     }
+//     const requests = await Employee.findById(req.params.empId, "annualLeaveYearStart FirstName LastName Email phone typesOfLeaveCount typesOfLeaveRemainingDays")
+//       .populate({
+//         path: "leaveApplication",
+//         match: {
+//           fromDate: {
+//             $gte: startDate, // Start of current year
+//             $lte: endDate // Current date
+//           }
+//         },
+//         populate: { path: "employee", select: "FirstName LastName" }
+//       })
+//       .populate("position")
+//       .exec();
 
-    // Convert Mongoose document to plain JavaScript object
-    requests = requests.toObject();
+//     if (!requests) {
+//       return res.status(404).send({ message: "Employee not found!" });
+//     }
 
-    // const typesOfLeaveTaken = requests.leaveApplication.reduce((acc, leave) => {
-    //   if (leave.status === "approved") {
-    //     const dayDifference = getDayDifference(leave)
+//     // Fetch colleagues in the same position
+//     const positionIds = await Position.find({ PositionName: employee.position?.PositionName }, "_id");
+//     const colleagues = await Employee.find(
+//       { position: { $in: positionIds }, _id: { $ne: req.params.empId } },
+//       "FirstName LastName Email phone"
+//     );
 
-    //     // Check if the leave type already exists in the accumulator
-    //     const existingLeave = acc.find((data) => data.leaveType === leave.leaveType);
-    //     if (existingLeave) {
-    //       // If it exists, update the takenLeaveCount
-    //       existingLeave.takenLeaveCount += dayDifference;
-    //     } else {
-    //       // If it doesn't exist, add a new entry to the accumulator
-    //       acc.push({ leaveType: leave.leaveType, takenLeaveCount: dayDifference });
-    //     }
-    //   } else {
-    //     // Handle cases where the leave is not approved
-    //     const existingLeave = acc.find((data) => data.leaveType === leave.leaveType);
-    //     if (!existingLeave) {
-    //       acc.push({ leaveType: leave.leaveType, takenLeaveCount: 0 });
-    //     }
-    //   }
+//     // Fetch people on leave today
+//     const today = new Date().toISOString().split("T")[0];
+//     const peopleOnLeave = await LeaveApplication.find(
+//       { fromDate: today, status: "approved" },
+//       "_id fromDate toDate"
+//     ).populate({ path: "employee", select: "_id FirstName LastName" });
 
-    //   return acc;
-    // }, []); // Start with an empty array
+//     // Fetch team members' leaves this month
+//     const team = await Team.findOne({ employees: req.params.empId }, "employees").exec();
+//     const peopleLeaveOnMonth = team ? await LeaveApplication.find(
+//       {
+//         employee: { $in: team.employees },
+//         fromDate: { $gte: today, $lte: endDate },
+//         toDate: { $gte: today, $lte: endDate },
+//         status: "approved"
+//       },
+//       "fromDate toDate"
+//     ) : [];
 
-    // // Add the new property to the object
-    // requests.takenLeaveCount = typesOfLeaveTaken;
-
-    const positionIds = await Position.find({ PositionName: requests?.position[0].PositionName }, "_id");
-    const collegues = await Employee.find({
-      position: { $in: positionIds },
-      _id: { $nin: [req.params.empId] }
-    }, "FirstName LastName Email phone");
-
-    const empIds = await Employee.find({ Account: 3, _id: { $nin: req.params.empId } });
-    const peopleOnLeave = await LeaveApplication.find(
-      { employee: { $in: empIds }, fromDate: new Date().toISOString().split("T")[0], status: "approved" }
-      , "_id fromDate toDate").populate({ path: "employee", select: "_id FirstName LastName" })
-
-    const teamMembers = await Team.findOne({ employees: { $in: req.params.empId } }, "employees").exec();
-    let peopleLeaveOnMonth;
-    if (teamMembers?._id) {
-      peopleLeaveOnMonth = await LeaveApplication.find(
-        {
-          employee: { $in: teamMembers.employees },
-          fromDate: {
-            $gte: new Date().toISOString().split("T")[0],
-            $lte: new Date(now.getFullYear(), now.getMonth() + 1, 0)
-          },
-          toDate: {
-            $gte: new Date().toISOString().split("T")[0],
-            $lte: new Date(now.getFullYear(), now.getMonth() + 1, 0)
-          },
-          status: "approved"
-        }
-        , "fromDate toDate");
-    } else {
-      peopleLeaveOnMonth = []
-    }
-    res.send({ requests, collegues, peopleOnLeave, peopleLeaveOnMonth });
-
-    if (!requests || !collegues || !peopleOnLeave) {
-      res.status(404).send({ message: "requests or collegues or peopleOnLeave something not found!" })
-    }
-  } catch (err) {
-    console.log(err);
-    res.status(500).send({ message: "Internal sever error", details: err.message })
-  }
-
-});
+//     res.send({ requests, colleagues, peopleOnLeave, peopleLeaveOnMonth });
+//   } catch (err) {
+//     console.error(err);
+//     res.status(500).send({ message: "Internal server error", details: err.message });
+//   }
+// });
 
 // get all leave request from emp and hr
+
+leaveApp.get("/emp/:empId", verifyAdminHREmployee, async (req, res) => {
+  try {
+    const { empId } = req.params;
+
+    // Fetch employee data
+    const emp = await Employee.findById(empId, "annualLeaveYearStart position FirstName LastName Email phone typesOfLeaveCount typesOfLeaveRemainingDays")
+      .populate("position")
+      .exec();
+
+    if (!emp) {
+      return res.status(404).send({ message: "Employee not found!" });
+    }
+
+    const annualLeaveYearStart = new Date(emp.annualLeaveYearStart);
+    const now = new Date();
+
+    // Define start and end dates for leave filter
+    const startDate =
+      annualLeaveYearStart.getFullYear() > now.getFullYear() - 1
+        ? new Date(now.getFullYear(), annualLeaveYearStart.getMonth(), annualLeaveYearStart.getDate())
+        : new Date(annualLeaveYearStart.getFullYear(), annualLeaveYearStart.getMonth(), annualLeaveYearStart.getDate());
+
+    let endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0); // End of current month
+    endDate.setHours(23, 59, 59, 999);
+    // Fetch leave requests within the defined range
+    const leaveApplications = await LeaveApplication.find({
+      employee: empId,
+      fromDate: { $gte: startDate, $lte: endDate }
+    })
+      .populate({ path: "employee", select: "FirstName LastName" })
+      .exec();
+
+    // Fetch colleagues in the same position
+    const positionName = emp.position?.PositionName;
+    let colleagues = [];
+    if (positionName) {
+      const positionIds = await Position.find({ PositionName: positionName }, "_id").exec();
+      colleagues = await Employee.find(
+        { position: { $in: positionIds }, _id: { $ne: empId } },
+        "FirstName LastName Email phone"
+      ).exec();
+    }
+
+    // Fetch people on leave today
+    const today = new Date().toISOString().split("T")[0];
+    const peopleOnLeave = await LeaveApplication.find({
+      fromDate: { $lte: today },
+      toDate: { $gte: today },
+      status: "approved"
+    })
+      .populate({ path: "employee", select: "FirstName LastName" })
+      .exec();
+
+    // Fetch team members' leaves this month
+    const team = await Team.findOne({ employees: empId }, "employees").exec();
+    let peopleLeaveOnMonth = [];
+    if (team) {
+      peopleLeaveOnMonth = await LeaveApplication.find({
+        employee: { $in: team.employees },
+        fromDate: { $lte: endDate },
+        toDate: { $gte: startDate },
+        status: "approved"
+      }).exec();
+    }
+
+    // Respond with aggregated data
+    res.send({
+      employee: emp,
+      leaveApplications,
+      colleagues,
+      peopleOnLeave,
+      peopleLeaveOnMonth
+    });
+  } catch (err) {
+    console.error("Error fetching employee data:", err);
+    res.status(500).send({ message: "Internal server error", details: err.message });
+  }
+});
+
 leaveApp.get("/hr", verifyHR, async (req, res) => {
   try {
     // Fetch employee IDs with Account: 3
@@ -133,11 +191,11 @@ leaveApp.get("/hr", verifyHR, async (req, res) => {
       });
     }
 
-
     // Send the leave requests
-    let empLeaveReqs = leaveReqs.map((req) => (
-      req.leaveApplication
-    )).flat()
+    const empLeaveReqs = leaveReqs
+      .map((req) => req.leaveApplication)
+      .flat()
+      .sort((a, b) => new Date(a.fromDate) - new Date(b.fromDate)); // Sort by fromDate
     res.send(empLeaveReqs);
   } catch (err) {
     console.error("Error fetching leave requests:", err);
@@ -251,16 +309,22 @@ leaveApp.get("/:id", verifyHREmployee, async (req, res) => {
 leaveApp.get("/date-range/hr", verifyHR, async (req, res) => {
   let startOfMonth;
   let endOfMonth;
+
   if (req?.query?.daterangeValue) {
     startOfMonth = new Date(req.query.daterangeValue[0]);
     endOfMonth = new Date(req.query.daterangeValue[1]);
+    // Include the full last day of the range
+    endOfMonth.setHours(23, 59, 59, 999);
   } else {
+    const now = new Date(); // Define "now" for current date logic
     startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
     endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+    // Include the full last day of the month
+    endOfMonth.setHours(23, 59, 59, 999);
   }
 
   try {
-    // if a person has account 2, can get date range of all emp leave data
+    // Fetch leave data for employees with Account 3
     const employeesLeaveData = await Employee.find({ Account: 3 }, "_id FirstName LastName")
       .populate({
         path: "leaveApplication",
@@ -277,19 +341,31 @@ leaveApp.get("/date-range/hr", verifyHR, async (req, res) => {
         populate: { path: "employee", select: "FirstName LastName" }
       });
 
-    const leaveData = employeesLeaveData.map(data => data.leaveApplication).flat()
+    // Flatten leaveApplication data
+    const leaveData = employeesLeaveData.map(data => data.leaveApplication).flat();
+
+    // Filter and calculate leave data
     const approvedLeave = leaveData.filter(data => data.status === "approved");
     const leaveInHours = approvedLeave.reduce((total, data) => total + getDayDifference(data) * 9, 0);
-    const pendingLeave = leaveData.filter(data => data.status === "pending");
-    const upComingLeave = leaveData.filter(data => new Date(data.date).getTime() > new Date().getTime())
-    const peoplesOnLeave = approvedLeave.filter(data => new Date(data.date).getTime() === new Date().getTime())
-    res.send({ leaveData, approvedLeave, peoplesOnLeave, pendingLeave, upComingLeave, leaveInHours });
-  } catch (err) {
-    console.log(err);
 
-    res.status(500).send({ error: err.message })
+    const pendingLeave = leaveData.filter(data => data.status === "pending");
+    const upComingLeave = leaveData.filter(data => new Date(data.date).getTime() > new Date().getTime());
+    const peoplesOnLeave = approvedLeave.filter(data => new Date(data.date).toDateString() === new Date().toDateString());
+
+    res.send({
+      leaveData,
+      approvedLeave,
+      peoplesOnLeave,
+      pendingLeave,
+      upComingLeave,
+      leaveInHours
+    });
+  } catch (err) {
+    console.error("Error fetching leave data:", err);
+    res.status(500).send({ error: err.message });
   }
-})
+});
+
 
 leaveApp.get("/date-range/admin", verifyAdmin, async (req, res) => {
 
@@ -408,10 +484,15 @@ leaveApp.get("/", verifyAdmin, async (req, res) => {
   }
 });
 
-leaveApp.post("/:empId", verifyAdminHREmployee, async (req, res) => {
+leaveApp.post("/:empId", verifyAdminHREmployee, upload.single("prescription"), async (req, res) => {
   try {
     // Handle empty `coverBy` value
     req.body.coverBy = req.body.coverBy === "" ? null : req.body.coverBy;
+
+    // If a file is uploaded, save its path
+    const prescriptionPath = req.file
+      ? path.join(__dirname, "../uploads", req.file.filename) // Adjust the base directory as needed
+      : null;
 
     // Construct the leave request object
     const leaveRequest = {
@@ -420,7 +501,7 @@ leaveApp.post("/:empId", verifyAdminHREmployee, async (req, res) => {
       toDate: req.body.toDate,
       periodOfLeave: req.body.periodOfLeave,
       reasonForLeave: req.body.reasonForLeave,
-      prescription: req.body.prescription,
+      prescription: prescriptionPath, // Save uploaded file path
       coverBy: req.body.coverBy,
       employee: req.params.empId,
     };
@@ -444,7 +525,6 @@ leaveApp.post("/:empId", verifyAdminHREmployee, async (req, res) => {
         });
       }
     }
-
 
     // Check if there are pending leaves for the same type
     const pendingLeaveData = await LeaveApplication.find({
@@ -506,39 +586,39 @@ leaveApp.post("/:empId", verifyAdminHREmployee, async (req, res) => {
     if (req.body.coverBy) {
       // Prepare and send the email
       const htmlContent = `
-     <!DOCTYPE html>
-     <html lang="en">
-     <head>
-       <meta charset="UTF-8">
-       <meta name="viewport" content="width=device-width, initial-scale=1.0">
-       <title>NexsHR</title>
-       <style>
-         body { font-family: Arial, sans-serif; background-color: #f6f9fc; color: #333; }
-         .container { max-width: 600px; margin: auto; padding: 20px; background-color: #fff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); }
-         .header { text-align: center; padding: 20px; }
-         .header img { max-width: 100px; }
-         .content { margin: 20px 0; }
-         .footer { text-align: center; font-size: 14px; margin-top: 20px; color: #777; }
-       </style>
-     </head>
-     <body>
-       <div class="container">
-         <div class="header">
-           <img src="https://imagedelivery.net/r89jzjNfZziPHJz5JXGOCw/1dd59d6a-7b64-49d7-ea24-1366e2f48300/public" alt="Logo" />
-           <h1>${empData.FirstName} has assigned a task to ${relievingOffData.FirstName}</h1>
-         </div>
-         <div class="content">
-             <p>Hi ${relievingOffData.FirstName},</p>
-             <p>${empData.FirstName} has assigned some tasks to you during their leave period. Please take note.</p>
-             <p>Thank you!</p>
-         </div>
-         <div class="footer">
-           <p>Need help? <a href="mailto:webnexs29@gmail.com">Contact our Team Head</a>.</p>
-         </div>
-       </div>
-     </body>
-     </html>
-   `;
+           <!DOCTYPE html>
+           <html lang="en">
+           <head>
+             <meta charset="UTF-8">
+             <meta name="viewport" content="width=device-width, initial-scale=1.0">
+             <title>NexsHR</title>
+             <style>
+               body { font-family: Arial, sans-serif; background-color: #f6f9fc; color: #333; }
+               .container { max-width: 600px; margin: auto; padding: 20px; background-color: #fff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); }
+               .header { text-align: center; padding: 20px; }
+               .header img { max-width: 100px; }
+               .content { margin: 20px 0; }
+               .footer { text-align: center; font-size: 14px; margin-top: 20px; color: #777; }
+             </style>
+           </head>
+           <body>
+             <div class="container">
+               <div class="header">
+                 <img src="https://imagedelivery.net/r89jzjNfZziPHJz5JXGOCw/1dd59d6a-7b64-49d7-ea24-1366e2f48300/public" alt="Logo" />
+                 <h1>${empData.FirstName} has assigned a task to ${relievingOffData.FirstName}</h1>
+               </div>
+               <div class="content">
+                   <p>Hi ${relievingOffData.FirstName},</p>
+                   <p>${empData.FirstName} has assigned some tasks to you during their leave period. Please take note.</p>
+                   <p>Thank you!</p>
+               </div>
+               <div class="footer">
+                 <p>Need help? <a href="mailto:webnexs29@gmail.com">Contact our Team Head</a>.</p>
+               </div>
+             </div>
+           </body>
+           </html>
+         `;
 
       const transporter = nodemailer.createTransport({
         service: "gmail",

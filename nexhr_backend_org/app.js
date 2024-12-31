@@ -45,7 +45,7 @@ const userPermission = require("./routes/user-permission");
 const pageAuth = require("./routes/page-auth");
 const organization = require("./routes/organization");
 const userAccount = require("./routes/user-account");
-const imgUpload = require('./routes/imgUpload');
+const {imgUpload} = require('./routes/imgUpload');
 
 // MongoDB Connection
 const mongoURI = process.env.DATABASEURL;
@@ -87,8 +87,8 @@ app.options("*", cors());
 // Express Middleware
 app.use(express.json());
 
-const uploadsDir = path.join(__dirname, 'uploads/imgs');
-app.use('/uploads/imgs', express.static(uploadsDir));
+const uploadsDir = path.join(__dirname, 'uploads');
+app.use('/uploads', express.static(uploadsDir));
 
 // API Endpoints
 app.get("/", (req, res) => {
