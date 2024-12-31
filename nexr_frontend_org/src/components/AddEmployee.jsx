@@ -226,6 +226,7 @@ const AddEmployee = () => {
         Password: empData?.Password || "",
         teamLead: empData?.teamLead?.[0] || "", // Safely access first element or set to empty string
         managerId: empData?.managerId?.[0] || "", // Safely access first element or set to empty string
+        countryCode: empData.countryCode || "",
         phone: empData?.phone || "",
         company: empData?.company?.[0] || "", // Safely access first element or set to empty string
         dateOfBirth: empData?.dateOfBirth || "",

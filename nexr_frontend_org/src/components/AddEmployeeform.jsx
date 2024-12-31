@@ -22,6 +22,7 @@ const AddEmployeeForm = ({ details, handleScroll, handlePersonal, handleFinancia
     const [cityData, setCityData] = useState([]);
     const [selectedLeaveTypes, setSelectedLeavetypes] = useState([]);
     const [splitError, setSplitError] = useState("");
+    const [selectedCountry, setSelectedCountry] = useState("");
     const [employeeObj, setEmployeeObj] = useState({
         FirstName: "",
         LastName: "",
@@ -67,6 +68,7 @@ const AddEmployeeForm = ({ details, handleScroll, handlePersonal, handleFinancia
         company: Yup.string().notOneOf(["Select Company"]).required("company is required"),
         teamLead: Yup.string().required("teamLead is required"), // assuming it's an ObjectId or string
         managerId: Yup.string().required("manager is required"),
+        countryCode: Yup.string().required("manager is required"),
         phone: Yup.string().min(10, "Phone number must be 10 degits").max(10, "Phone number must be 10 degits").required("Phone is Required"), // can add phone validation if needed
         dateOfBirth: Yup.string().required("Date of Birth is required"),
         gender: Yup.string().oneOf(['male', 'female'], 'invalid gender').required('Gender is required'),
@@ -157,6 +159,7 @@ const AddEmployeeForm = ({ details, handleScroll, handlePersonal, handleFinancia
             handleFinancial()
         }
     }
+    console.log(formik.values);
 
     useEffect(() => {
         // debugger;
@@ -313,6 +316,12 @@ const AddEmployeeForm = ({ details, handleScroll, handlePersonal, handleFinancia
             console.error(err);
             toast.error(`Error fetching ${name === "country" ? "states" : "cities"}`);
         }
+    }
+
+    function changeCountry(value, name) {
+        setSelectedCountry(value);
+        const countryFullData = allCountries.find((country) => Object.values(country).includes(value))
+        formik.setFieldValue(name, `${countryFullData.code}`)
     }
 
     return (
@@ -499,22 +508,22 @@ const AddEmployeeForm = ({ details, handleScroll, handlePersonal, handleFinancia
                             </div>
 
                             <div className="row d-flex justify-content-center">
-                                <div className="col-lg-4 col-md-4 col-4">
+                                <div className="col-lg-6 col-md-6 col-6">
                                     <div className="inputLabel">
-                                        Phone
+                                        Country Code
                                     </div>
                                     <SelectPicker
-                                        className={`selectInput ${formik.touched.phone && formik.errors.phone ? "error" : ""}`}
-                                        style={{background: "none", border: "none"}}
+                                        className={`selectInput ${formik.touched.countryCode && formik.errors.countryCode ? "error" : ""}`}
+                                        style={{ background: "none", border: "none" }}
                                         size="lg"
-                                        data={allCountries} 
+                                        data={allCountries}
                                         labelKey="name"
                                         valueKey="abbr"
-                                        value={formik.values.countryCode}
-                                        onChange={formik.handleChange}
+                                        value={selectedCountry}
+                                        onChange={(value) => changeCountry(value, "countryCode")}
                                         placeholder="Choose a Country"
                                         renderMenuItem={(label, item) => (
-                                            <div>
+                                            <div >
                                                 {item.icon} {label} ({item.abbr}) +{item.code}
                                             </div>
                                         )}
@@ -527,7 +536,7 @@ const AddEmployeeForm = ({ details, handleScroll, handlePersonal, handleFinancia
                                         }
                                     />
                                 </div>
-                                <div className="col-lg-8 my-2">
+                                <div className="col-lg-6 col-md-6 col-6 my-2">
                                     <div className="inputLabel">
                                         Phone
                                     </div>

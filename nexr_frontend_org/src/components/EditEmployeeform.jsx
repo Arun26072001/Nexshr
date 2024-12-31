@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useState } from "react";
-import { TagPicker } from "rsuite";
+import { SelectPicker, TagPicker } from "rsuite";
 import { useFormik } from "formik";
 import * as Yup from "yup";
 import axios from "axios";
@@ -11,6 +11,7 @@ import { useParams } from "react-router-dom";
 import Loading from "./Loader";
 import NoDataFound from "./payslip/NoDataFound";
 import { EssentialValues } from "../App";
+import { allCountries } from "./countryCode";
 
 const EditEmployeeform = ({ details, empData, handleScroll, handlePersonal, handleFinancial, handleJob, handleContact, handleEmployment, timePatterns, personalRef, contactRef, employmentRef, jobRef, financialRef, payslipRef, countries, companies, departments, positions, roles, leads, managers }) => {
     const { id } = useParams();
@@ -20,6 +21,7 @@ const EditEmployeeform = ({ details, empData, handleScroll, handlePersonal, hand
     const { whoIs } = useContext(EssentialValues);
     const [timeDifference, setTimeDifference] = useState(0);
     const [payslipFields, setPayslipFields] = useState([]);
+    const [selectedCountry, setSelectedCountry] = useState("");
     const token = localStorage.getItem("token");
     const url = process.env.REACT_APP_API_URL;
     const [selectedLeaveTypes, setSelectedLeavetypes] = useState([]);
@@ -177,6 +179,8 @@ const EditEmployeeform = ({ details, empData, handleScroll, handlePersonal, hand
             }
         };
 
+        const countryFullData = allCountries.find((country) => Object.values(country).includes(empData?.countryCode));
+        setSelectedCountry(countryFullData?.abbr)
         calculateTimeDifference();
     }, [formik.values.workingTimePattern]);
 
@@ -209,7 +213,6 @@ const EditEmployeeform = ({ details, empData, handleScroll, handlePersonal, hand
         getPayslipInfo();
     }, []);
 
-
     useEffect(() => {
         const gettingLeaveTypes = async () => {
             try {
@@ -227,6 +230,28 @@ const EditEmployeeform = ({ details, empData, handleScroll, handlePersonal, hand
         gettingLeaveTypes();
         setIsLoading(false);
     }, []);
+
+    useEffect(() => {
+        async function fetchCountryNdState() {
+            try {
+                const countriez = await axios.get(`${url}/api/country/${empData?.address?.country}`, {
+                    headers: { Authorization: token || "" }
+                });
+                setStateData(countriez.data.states || [])
+                const statize = await axios.get(`${url}/api/state/${empData?.address?.state}`, {
+                    headers: { Authorization: token || "" }
+                });
+                setCityData(statize.data.cities || []);
+
+            } catch (error) {
+                toast.error(error.response.data.error)
+            }
+        }
+
+        if (empData?.address?.country && empData?.address?.state) {
+            fetchCountryNdState()
+        }
+    }, [])
 
     const hourAndMin = timeDifference.toString().split(".");
     const [hour, min] = hourAndMin;
@@ -252,8 +277,13 @@ const EditEmployeeform = ({ details, empData, handleScroll, handlePersonal, hand
             toast.error(`Error fetching ${name === "country" ? "states" : "cities"}`);
         }
     }
-    
-    console.log(formik.values);
+
+    function changeCountry(value, name) {
+        setSelectedCountry(value);
+        const countryFullData = allCountries.find((country) => Object.values(country).includes(value))
+        formik.setFieldValue(name, `+${countryFullData.code}`)
+    }
+    console.log(empData.address);
     
 
     return (
@@ -423,7 +453,35 @@ const EditEmployeeform = ({ details, empData, handleScroll, handlePersonal, hand
                                 </div>
 
                                 <div className="row d-flex justify-content-center">
-                                    <div className="col-lg-12 my-2">
+                                    <div className="col-lg-6 col-md-6 col-6">
+                                        <div className="inputLabel">
+                                            Country Code
+                                        </div>
+                                        <SelectPicker
+                                            className={`selectInput ${formik.touched.countryCode && formik.errors.countryCode ? "error" : ""}`}
+                                            style={{ background: "none", border: "none" }}
+                                            size="lg"
+                                            data={allCountries}
+                                            labelKey="name"
+                                            valueKey="abbr"
+                                            value={selectedCountry}
+                                            onChange={(value) => changeCountry(value, "countryCode")}
+                                            placeholder="Choose a Country"
+                                            renderMenuItem={(label, item) => (
+                                                <div >
+                                                    {item.icon} {label} ({item.abbr}) +{item.code}
+                                                </div>
+                                            )}
+                                            renderValue={(value, item) =>
+                                                item ? (
+                                                    <div>
+                                                        {item.icon} {item.name} ({item.abbr})
+                                                    </div>
+                                                ) : null
+                                            }
+                                        />
+                                    </div>
+                                    <div className="col-lg-6 col-md-6 col-6 my-2">
                                         <div className="inputLabel">
                                             Phone
                                         </div>
@@ -442,10 +500,10 @@ const EditEmployeeform = ({ details, empData, handleScroll, handlePersonal, hand
                                     <div className="col-lg-6">
                                         <div className="inputLabel">Country</div>
                                         <select
-                                            className={`selectInput ${formik.touched.country && formik.errors.country ? "error" : ""}`}
+                                            className={`selectInput ${formik.touched?.address?.country && formik.errors?.address?.country ? "error" : ""}`}
                                             name="country"
                                             onChange={(e) => onChangeAddress(e)}
-                                            value={formik.values.country} >
+                                            value={formik.values.address.country} >
                                             <option>Select the Country</option>
                                             {
                                                 countries.map((country) => (
@@ -453,18 +511,18 @@ const EditEmployeeform = ({ details, empData, handleScroll, handlePersonal, hand
                                                 ))
                                             }
                                         </select>
-                                        {formik.touched.country && formik.errors.country ? (
-                                            <div className="text-center text-danger">{formik.errors.country}</div>
+                                        {formik.touched?.address?.country && formik.errors?.address?.country ? (
+                                            <div className="text-center text-danger">{formik.errors?.address?.country}</div>
                                         ) : null}
                                     </div>
                                     <div className="col-lg-6">
                                         <div className="inputLabel">State</div>
                                         <select
                                             disabled={!stateData.length > 0}
-                                            className={`selectInput ${formik.touched.state && formik.errors.state ? "error" : ""}`}
+                                            className={`selectInput ${formik.touched?.address?.state && formik.errors?.address?.state ? "error" : ""}`}
                                             name="state"
                                             onChange={(e) => onChangeAddress(e)}
-                                            value={formik.values.state} >
+                                            value={formik.values?.address?.state} >
                                             <option>Select the State</option>
                                             {
                                                 stateData?.map((state) => (
@@ -480,10 +538,10 @@ const EditEmployeeform = ({ details, empData, handleScroll, handlePersonal, hand
                                         <div className="inputLabel">City</div>
                                         <select
                                             disabled={!cityData.length > 0}
-                                            className={`selectInput ${formik.touched.city && formik.errors.city ? "error" : ""}`}
+                                            className={`selectInput ${formik.touched?.address?.city && formik.errors?.address?.city ? "error" : ""}`}
                                             name="city"
                                             onChange={(e) => onChangeAddress(e)}
-                                            value={formik.values.city} >
+                                            value={formik.values.address.city} >
                                             <option>Select the City</option>
                                             {
                                                 cityData?.map((city) => (
@@ -494,8 +552,7 @@ const EditEmployeeform = ({ details, empData, handleScroll, handlePersonal, hand
                                     </div>
                                     <div className="col-lg-6">
                                         <div className="inputLabel">Zip Code</div>
-                                        <input type="number" onChange={formik.handleChange} name="zipCode" className="inputField" />
-
+                                        <input type="number" onChange={formik.handleChange} value={formik.values?.address?.zipCode || empData?.address?.zipCode || ""} name="zipCode" className="inputField" />
                                     </div>
                                 </div>
                             </div>

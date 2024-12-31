@@ -184,7 +184,7 @@ export default function LandingPage() {
                                             size="lg"
                                             data={allCountries}
                                             labelKey="name"
-                                            valueKey="abbr"
+                                            valueKey="code"
                                             value={registerData.countryCode}
                                             onChange={(value) => handleInputChange(value, "countryCode")}
                                             placeholder="Choose a Country"
