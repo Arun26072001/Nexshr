@@ -58,8 +58,20 @@ const AddEmployeeForm = ({ details, handleScroll, handlePersonal, handleFinancia
         accountHolderName: "",
         IFSCcode: "",
         taxDeduction: "",
-        
+
     });
+
+    useEffect(() => {
+        const additionalFields = payslipFields.reduce((acc, field) => {
+            acc[field.fieldName] = ""; // Set default value as an empty string
+            return acc;
+        }, {});
+
+        setEmployeeObj((prev) => ({
+            ...prev,
+            ...additionalFields,
+        }));
+    }, [payslipFields]);
 
     const empFormValidation = Yup.object().shape({
         FirstName: Yup.string().required('First Name is required'),
@@ -97,7 +109,6 @@ const AddEmployeeForm = ({ details, handleScroll, handlePersonal, handleFinancia
         taxDeduction: Yup.string().min(2, "invalid value").required("Tax deduction is required"),
         
     });
-    console.log(payslipFields);
 
     const formik = useFormik({
         initialValues: employeeObj,
@@ -115,7 +126,7 @@ const AddEmployeeForm = ({ details, handleScroll, handlePersonal, handleFinancia
             } catch (err) {
                 console.log(err);
                 if (err.response && err.response.data && err.response.data.error) {
-                    toast.error(err.response.data.message)
+                    toast.error(err.response.data.error)
                 } else {
                     console.log("error occured!");
                 }
@@ -980,7 +991,7 @@ const AddEmployeeForm = ({ details, handleScroll, handlePersonal, handleFinancia
                                                     className={`inputField`}
                                                     name={data.fieldName}
                                                     onChange={formik.handleChange}
-                                                    // value={ }
+                                                    value={formik.values?.[data.fieldName]}
                                                 />
                                             </div>
                                         )
