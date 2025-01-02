@@ -18,74 +18,6 @@ function getDayDifference(leave) {
   return timeDifference === 0 ? 1 : timeDifference / (1000 * 60 * 60 * 24);
 }
 
-// leaveApp.get("/emp/:empId", verifyAdminHREmployee, async (req, res) => {
-//   try {
-//     // Fetch employee's annualLeaveYearStart
-//     const emp = await Employee.findById(req.params.empId, "");
-//     const annualLeaveYearStart = new Date(emp.annualLeaveYearStart);
-//     let startDate;
-//     let endDate;
-//     const now = new Date();
-//     if (annualLeaveYearStart.getFullYear() > new Date().getFullYear() - 1) {
-//       startDate = new Date(now.getFullYear(), annualLeaveYearStart.getMonth(), annualLeaveYearStart.getDate());
-//       endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0); // End of the current month
-//     } else {
-//       startDate = new Date(annualLeaveYearStart.getFullYear(), annualLeaveYearStart.getMonth(), annualLeaveYearStart.getDate());
-//       endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0); // End of the current month
-//     }
-//     const requests = await Employee.findById(req.params.empId, "annualLeaveYearStart FirstName LastName Email phone typesOfLeaveCount typesOfLeaveRemainingDays")
-//       .populate({
-//         path: "leaveApplication",
-//         match: {
-//           fromDate: {
-//             $gte: startDate, // Start of current year
-//             $lte: endDate // Current date
-//           }
-//         },
-//         populate: { path: "employee", select: "FirstName LastName" }
-//       })
-//       .populate("position")
-//       .exec();
-
-//     if (!requests) {
-//       return res.status(404).send({ message: "Employee not found!" });
-//     }
-
-//     // Fetch colleagues in the same position
-//     const positionIds = await Position.find({ PositionName: employee.position?.PositionName }, "_id");
-//     const colleagues = await Employee.find(
-//       { position: { $in: positionIds }, _id: { $ne: req.params.empId } },
-//       "FirstName LastName Email phone"
-//     );
-
-//     // Fetch people on leave today
-//     const today = new Date().toISOString().split("T")[0];
-//     const peopleOnLeave = await LeaveApplication.find(
-//       { fromDate: today, status: "approved" },
-//       "_id fromDate toDate"
-//     ).populate({ path: "employee", select: "_id FirstName LastName" });
-
-//     // Fetch team members' leaves this month
-//     const team = await Team.findOne({ employees: req.params.empId }, "employees").exec();
-//     const peopleLeaveOnMonth = team ? await LeaveApplication.find(
-//       {
-//         employee: { $in: team.employees },
-//         fromDate: { $gte: today, $lte: endDate },
-//         toDate: { $gte: today, $lte: endDate },
-//         status: "approved"
-//       },
-//       "fromDate toDate"
-//     ) : [];
-
-//     res.send({ requests, colleagues, peopleOnLeave, peopleLeaveOnMonth });
-//   } catch (err) {
-//     console.error(err);
-//     res.status(500).send({ message: "Internal server error", details: err.message });
-//   }
-// });
-
-// get all leave request from emp and hr
-
 leaveApp.get("/emp/:empId", verifyAdminHREmployee, async (req, res) => {
   try {
     const { empId } = req.params;
@@ -111,12 +43,14 @@ leaveApp.get("/emp/:empId", verifyAdminHREmployee, async (req, res) => {
     let endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0); // End of current month
     endDate.setHours(23, 59, 59, 999);
     // Fetch leave requests within the defined range
-    const leaveApplications = await LeaveApplication.find({
+    const leaveReqs = await LeaveApplication.find({
       employee: empId,
       fromDate: { $gte: startDate, $lte: endDate }
     })
       .populate({ path: "employee", select: "FirstName LastName" })
       .exec();
+
+    const leaveApplications = leaveReqs.sort((a, b) => new Date(a.fromDate) - new Date(b.fromDate));
 
     // Fetch colleagues in the same position
     const positionName = emp.position?.PositionName;
@@ -219,7 +153,7 @@ leaveApp.get("/lead/:id", verifyEmployee, async (req, res) => {
       return res.status(404).send({ error: "You are not lead in any team" })
     } else {
       const { employees } = team;
-      const teamLeaves = await LeaveApplication.find({
+      let teamLeaves = await LeaveApplication.find({
         employee: { $in: employees },
         fromDate: {
           $gte: startOfMonth,
@@ -234,6 +168,7 @@ leaveApp.get("/lead/:id", verifyEmployee, async (req, res) => {
           path: "employee",
           select: "FirstName LastName"
         });
+      teamLeaves = teamLeaves.sort((a, b) => new Date(a.fromDate) - new Date(b.fromDate));
       const approvedLeave = teamLeaves.filter(data => data.status === "approved");
       const pendingLeave = teamLeaves.filter(data => data.status === "pending");
       const upComingLeave = approvedLeave.filter(data => new Date(data.fromDate).getTime() > new Date().getTime())
@@ -277,6 +212,7 @@ leaveApp.get("/head/:id", verifyEmployee, async (req, res) => {
           path: "employee",
           select: "FirstName LastName"
         });
+      teamLeaves = teamLeaves.sort((a, b) => new Date(a.fromDate) - new Date(b.fromDate));
       const approvedLeave = teamLeaves.filter(data => data.status === "approved");
       const pendingLeave = teamLeaves.filter(data => data.status === "pending");
       const upComingLeave = approvedLeave.filter(data => new Date(data.fromDate).getTime() > new Date().getTime())
@@ -342,8 +278,8 @@ leaveApp.get("/date-range/hr", verifyHR, async (req, res) => {
       });
 
     // Flatten leaveApplication data
-    const leaveData = employeesLeaveData.map(data => data.leaveApplication).flat();
-
+    let leaveData = employeesLeaveData.map(data => data.leaveApplication).flat();
+    leaveData = leaveData.sort((a, b) => new Date(a.fromDate) - new Date(b.fromDate));
     // Filter and calculate leave data
     const approvedLeave = leaveData.filter(data => data.status === "approved");
     const leaveInHours = approvedLeave.reduce((total, data) => total + getDayDifference(data) * 9, 0);
@@ -397,7 +333,8 @@ leaveApp.get("/date-range/admin", verifyAdmin, async (req, res) => {
         populate: { path: "employee", select: "FirstName LastName" }
       });
 
-    const leaveData = employeesLeaveData.map(data => data.leaveApplication).flat()
+    let leaveData = employeesLeaveData.map(data => data.leaveApplication).flat();
+    leaveData = leaveData.sort((a, b) => new Date(a.fromDate) - new Date(b.fromDate));
     const approvedLeave = leaveData.filter(data => data.status === "approved");
     const leaveInHours = approvedLeave.reduce((total, data) => total + getDayDifference(data) * 9, 0);
     const pendingLeave = leaveData.filter(data => data.status === "pending");
@@ -443,7 +380,8 @@ leaveApp.get("/date-range/:empId", verifyAdminHREmployee, async (req, res) => {
       });
 
     if (employeeLeaveData?.leaveApplication.length > 0) {
-      const leaveData = employeeLeaveData.leaveApplication.map(data => data).flat()
+      let leaveData = employeeLeaveData.leaveApplication.map(data => data).flat();
+      leaveData = leaveData.sort((a, b) => new Date(a.fromDate) - new Date(b.fromDate));
       const approvedLeave = leaveData.filter(data => data.status === "approved");
       const leaveInHours = approvedLeave.reduce((total, data) => total + getDayDifference(data) * 9, 0);
       const pendingLeave = leaveData.filter(data => data.status === "pending");
@@ -468,7 +406,7 @@ leaveApp.get("/date-range/:empId", verifyAdminHREmployee, async (req, res) => {
 
 leaveApp.get("/", verifyAdmin, async (req, res) => {
   try {
-    const requests = await LeaveApplication.find().populate({
+    let requests = await LeaveApplication.find().populate({
       path: "employee",
       select: "FirstName LastName"
     });
@@ -477,6 +415,7 @@ leaveApp.get("/", verifyAdmin, async (req, res) => {
         message: "No leave requests in DB"
       })
     } else {
+      requests = requests.sort((a, b) => new Date(a.fromDate) - new Date(b.fromDate));
       res.send(requests);
     }
   } catch (err) {
