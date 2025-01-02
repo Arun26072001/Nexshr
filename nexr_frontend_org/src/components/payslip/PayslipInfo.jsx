@@ -62,9 +62,8 @@ export default function PayslipInfo() {
         }
 
         const updatedFields = payslipInfos.payslipFields.map((item) =>
-            item.fieldName === field.fieldName ? { ...item, ...field } : item
+            item.fieldName.includes(field.fieldName) ? { ...item, ...field } : item
         );
-        console.log(updatedFields);
 
         setPayslipInfos((prev) => ({
             ...prev,
@@ -76,7 +75,6 @@ export default function PayslipInfo() {
         setIsEdit(false);
         toast.success("Field updated successfully.");
     };
-console.log(payslipInfos);
 
     const deleteInfo = (fieldData) => {
         setPayslipInfos((prev) => ({
