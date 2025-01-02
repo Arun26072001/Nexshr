@@ -302,7 +302,6 @@ leaveApp.get("/date-range/hr", verifyHR, async (req, res) => {
   }
 });
 
-
 leaveApp.get("/date-range/admin", verifyAdmin, async (req, res) => {
 
   let startOfMonth;
@@ -429,9 +428,7 @@ leaveApp.post("/:empId", verifyAdminHREmployee, upload.single("prescription"), a
     req.body.coverBy = req.body.coverBy === "" ? null : req.body.coverBy;
 
     // If a file is uploaded, save its path
-    const prescriptionPath = req.file
-      ? path.join(__dirname, "../uploads", req.file.filename) // Adjust the base directory as needed
-      : null;
+    const prescriptionPath = req.file ? req.file.filename : null;
 
     // Construct the leave request object
     const leaveRequest = {
@@ -489,7 +486,20 @@ leaveApp.post("/:empId", verifyAdminHREmployee, upload.single("prescription"), a
     );
 
     // Fetch employee leave data
-    const empData = await Employee.findById(req.params.empId);
+    const empData = await Employee.findById(req.params.id, "Email phone FirstName LastName")
+      .populate({
+        path: "team",
+        populate: [
+          {
+            path: "lead",
+            select: "Email"
+          },
+          {
+            path: "head",
+            select: "Email"
+          }
+        ]
+      });
     if (!empData) {
       return res.status(400).send({ error: `No employee found for ID ${req.params.empId}` });
     }
@@ -521,6 +531,53 @@ leaveApp.post("/:empId", verifyAdminHREmployee, upload.single("prescription"), a
     const newLeaveApp = await LeaveApplication.create(leaveRequest);
     empData.leaveApplication.push(newLeaveApp._id);
     await empData.save();
+
+    const transporter = nodemailer.createTransport({
+      service: "gmail",
+      auth: {
+        user: process.env.FROM_MAIL,
+        pass: process.env.MAILPASSWORD,
+      },
+    });
+
+    const htmlContent = `
+           <!DOCTYPE html>
+           <html lang="en">
+           <head>
+             <meta charset="UTF-8">
+             <meta name="viewport" content="width=device-width, initial-scale=1.0">
+             <title>NexsHR</title>
+             <style>
+               body { font-family: Arial, sans-serif; background-color: #f6f9fc; color: #333; }
+               .container { max-width: 600px; margin: auto; padding: 20px; background-color: #fff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); }
+               .header { text-align: center; padding: 20px; }
+               .header img { max-width: 100px; }
+               .content { margin: 20px 0; }
+               .footer { text-align: center; font-size: 14px; margin-top: 20px; color: #777; }
+             </style>
+           </head>
+           <body>
+             <div class="container">
+               <div class="header">
+                 <img src="https://imagedelivery.net/r89jzjNfZziPHJz5JXGOCw/1dd59d6a-7b64-49d7-ea24-1366e2f48300/public" alt="Logo" />
+                 <h1>${empData.FirstName} ${empData.lastName} has been apply leave for ${req.body.fromDate} - ${req.params.toDate}</h1>
+               </div>
+               <div class="content">
+                   <p>Hi all,</p>
+                   <p>I have apply leave for ${req.body.fromDate} - ${req.params.toDate}, due to ${req.body.reasonForLeave}. Please response for that </p>
+                   <p>Thank you!</p>
+               </div>
+             </div>
+           </body>
+           </html>
+         `;
+
+      await transporter.sendMail({
+        from: process.env.FROM_MAIL,
+        to: relievingOffData.Email,
+        subject: "Leave Application Notification",
+        html: htmlContent,
+      });
 
     if (req.body.coverBy) {
       // Prepare and send the email
@@ -558,14 +615,6 @@ leaveApp.post("/:empId", verifyAdminHREmployee, upload.single("prescription"), a
            </body>
            </html>
          `;
-
-      const transporter = nodemailer.createTransport({
-        service: "gmail",
-        auth: {
-          user: process.env.FROM_MAIL,
-          pass: process.env.MAILPASSWORD,
-        },
-      });
 
       await transporter.sendMail({
         from: process.env.FROM_MAIL,

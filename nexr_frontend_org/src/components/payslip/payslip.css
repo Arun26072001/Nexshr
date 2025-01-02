@@ -181,7 +181,7 @@ ul {
 }
 
 /* History Design */
-.historyCard {
+.historyCard, .payslipInfoCard {
   padding: 10px 25px;
   margin: 13px 0;
   background: white;

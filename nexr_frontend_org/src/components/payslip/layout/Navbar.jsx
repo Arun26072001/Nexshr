@@ -8,15 +8,18 @@ import { TimerStates } from '../HRMDashboard';
 import { Dropdown, Popover, Whisper } from 'rsuite';
 import logo from "../../../imgs/male_avatar.webp";
 import { EssentialValues } from '../../../App';
+import axios from "axios";
+import { toast } from 'react-toastify';
 
 export default function Navbar({ handleSideBar }) {
-    const { handleLogout } = useContext(EssentialValues)
+    const { handleLogout, data } = useContext(EssentialValues)
     const { startLoginTimer, stopLoginTimer, workTimeTracker, isStartLogin, trackTimer } = useContext(TimerStates);
     const [sec, setSec] = useState(workTimeTracker?.login?.timeHolder?.split(':')[2])
     const [min, setMin] = useState(workTimeTracker?.login?.timeHolder?.split(':')[1])
     const [hour, setHour] = useState(workTimeTracker?.login?.timeHolder?.split(':')[0])
     const [isDisabled, setIsDisabled] = useState(false);
     const workRef = useRef(null);  // Use ref to store interval ID
+    const url = process.env.REACT_APP_API_URL;
 
     // Timer logic to increment time
     const incrementTime = () => {
@@ -86,7 +89,7 @@ export default function Navbar({ handleSideBar }) {
                 startOnlyTimer();
             } else {
                 stopOnlyTimer();
-                isDisabled(false);
+                setIsDisabled(false);
             }
         }
         return () => stopOnlyTimer(); // Cleanup on unmount
@@ -111,6 +114,22 @@ export default function Navbar({ handleSideBar }) {
             setSec(newSec);
         }
     }, [workTimeTracker, isStartLogin]);
+
+    useEffect(() => {
+        async function sendMailonEightHrs() {
+            try {
+                const sendMail = await axios.get(`${url}/api/clock-ins/sendmail/${data._id}/${workTimeTracker._id}`, {
+                    headers: { Authorization: data.token || "" }
+                })
+                toast.success(sendMail.data.message)
+            } catch (error) {
+                toast.error(error.response.data.error)
+            }
+        }
+        if (isDisabled && hour >= 8) {
+            sendMailonEightHrs()
+        }
+    }, [sec])
 
     const renderMenu = ({ onClose, right, top, className }, ref) => {
         const handleSelect = eventKey => {
@@ -163,7 +182,7 @@ export default function Navbar({ handleSideBar }) {
                         <div className="punchBtnParent">
                             <button
                                 className='punchBtn'
-                                disabled={!isDisabled}
+                                disabled={isDisabled}
                                 onClick={() => startTimer()}
                                 style={{ backgroundColor: "#CEE5D3" }}
                             >
@@ -183,7 +202,7 @@ export default function Navbar({ handleSideBar }) {
                             <button
                                 className='punchBtn'
                                 onClick={() => stopTimer()}
-                                disabled={isDisabled}
+                                disabled={!isDisabled}
                                 style={{ backgroundColor: "#FFD6DB" }}
                             >
                                 <img src={PunchOut} width="25" height="25" alt="stoptimer_btn" />

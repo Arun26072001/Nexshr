@@ -192,7 +192,7 @@ const AddEmployee = () => {
       if (whoIs === "hr" || whoIs === "emp") {
         setRoles(roleData.filter((role) => ["Employee", "Human Resource", "Manager"].includes(role.RoleName)))
       } else {
-        setRoles(roleData.filter((role) => !["Employee", "Human Resource", "Manager"].includes(role.RoleName)))
+        setRoles(roleData)
       }
     } catch (err) {
       console.log(err);

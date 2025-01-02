@@ -98,11 +98,9 @@ export default function Home() {
             <Box sx={{ width: '100%' }}>
                 <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
                     <Tabs value={value} onChange={handleChange} aria-label="basic tabs example">
-                        <Tab label={`${whoIs === "admin" ? "Associates Data"
-                            : [isTeamLead, isTeamHead].includes(true) ? "Team Status"
-                                : "My Summary"} `} {...a11yProps(0)} />
-                        <Tab label="Working Status" {...a11yProps(1)} />
-                        <Tab label="Who's Working" {...a11yProps(2)} />
+                        <Tab label={"My Summary"} {...a11yProps(0)} />
+                        {/* <Tab label="Working Status" {...a11yProps(1)} />
+                        <Tab label="Who's Working" {...a11yProps(2)} /> */}
                     </Tabs>
                 </Box>
 

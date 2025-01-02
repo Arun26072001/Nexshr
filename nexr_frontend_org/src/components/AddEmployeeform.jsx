@@ -57,7 +57,8 @@ const AddEmployeeForm = ({ details, handleScroll, handlePersonal, handleFinancia
         accountNo: "",
         accountHolderName: "",
         IFSCcode: "",
-        taxDeduction: ""
+        taxDeduction: "",
+        
     });
 
     const empFormValidation = Yup.object().shape({
@@ -93,8 +94,10 @@ const AddEmployeeForm = ({ details, handleScroll, handlePersonal, handleFinancia
         accountNo: Yup.string().min(10, "Account No digits must be between 10 to 14").max(14, "Account No digits must be between 10 to 14").required("Account No is required"),
         accountHolderName: Yup.string().min(2, "invalid Holder Name").max(50).required("Holder name is Required"),
         IFSCcode: Yup.string().min(11, "IFSC code must be 11 characters").max(11, "IFSC code must be 11 characters").required("IFSC code is required"),
-        taxDeduction: Yup.string().min(2, "invalid value").required("Tax deduction is required")
+        taxDeduction: Yup.string().min(2, "invalid value").required("Tax deduction is required"),
+        
     });
+    console.log(payslipFields);
 
     const formik = useFormik({
         initialValues: employeeObj,
@@ -160,6 +163,7 @@ const AddEmployeeForm = ({ details, handleScroll, handlePersonal, handleFinancia
         }
     }
     console.log(formik.values);
+    console.log(formik.errors);
 
     useEffect(() => {
         // debugger;
@@ -933,38 +937,38 @@ const AddEmployeeForm = ({ details, handleScroll, handlePersonal, handleFinancia
                                 {
                                     payslipFields.length > 0 &&
                                     payslipFields.map((data, index) => {
-                                        let calculatedValue = "";
-                                        if (data.fieldName === "basicSalary") {
-                                            return null;
-                                        }
-                                        if (data.fieldName === "incomeTax") {
-                                            const salary = Number(formik.values.basicSalary);
+                                        // let calculatedValue = "";
+                                        // if (data.fieldName === "basicSalary") {
+                                        //     return null;
+                                        // }
+                                        // if (data.fieldName === "incomeTax") {
+                                        //     const salary = Number(formik.values.basicSalary);
 
-                                            if (salary >= 84000) {
-                                                calculatedValue = (30 / 100) * salary; // 30% tax for <= 25,000
-                                            } else if (salary > 42000) {
-                                                calculatedValue = (20 / 100) * salary; // 20% tax for > 42,000
-                                            } else if (salary >= 25000) {
-                                                calculatedValue = (5 / 100) * salary;  // 5% tax for between 25,001 and 42,000
-                                            } else {
-                                                calculatedValue = 0;
-                                            }
-                                        } else if (
-                                            data.fieldName === "houseRentAllowance" ||
-                                            data.fieldName === "conveyanceAllowance" ||
-                                            data.fieldName === "othersAllowance" ||
-                                            data.fieldName === "bonusAllowance"
-                                        ) {
-                                            calculatedValue = (data.value / 100) * Number(formik.values.basicSalary);
-                                        } else if (data.fieldName === "ProvidentFund" && Number(formik.values.basicSalary) > 15000) {
-                                            calculatedValue = (12 / 100) * Number(formik.values.basicSalary);
-                                        } else if (data.fieldName === "ProfessionalTax" && Number(formik.values.basicSalary) > 21000) {
-                                            calculatedValue = 130;
-                                        } else if (data.fieldName === "ESI" && Number(formik.values.basicSalary) > 21000) {
-                                            calculatedValue = Number(formik.values.basicSalary) * .75 / 100;
-                                        } else {
-                                            calculatedValue = 0;
-                                        }
+                                        //     if (salary >= 84000) {
+                                        //         calculatedValue = (30 / 100) * salary; // 30% tax for <= 25,000
+                                        //     } else if (salary > 42000) {
+                                        //         calculatedValue = (20 / 100) * salary; // 20% tax for > 42,000
+                                        //     } else if (salary >= 25000) {
+                                        //         calculatedValue = (5 / 100) * salary;  // 5% tax for between 25,001 and 42,000
+                                        //     } else {
+                                        //         calculatedValue = 0;
+                                        //     }
+                                        // } else if (
+                                        //     data.fieldName === "houseRentAllowance" ||
+                                        //     data.fieldName === "conveyanceAllowance" ||
+                                        //     data.fieldName === "othersAllowance" ||
+                                        //     data.fieldName === "bonusAllowance"
+                                        // ) {
+                                        //     calculatedValue = (data.value / 100) * Number(formik.values.basicSalary);
+                                        // } else if (data.fieldName === "ProvidentFund" && Number(formik.values.basicSalary) > 15000) {
+                                        //     calculatedValue = (12 / 100) * Number(formik.values.basicSalary);
+                                        // } else if (data.fieldName === "ProfessionalTax" && Number(formik.values.basicSalary) > 21000) {
+                                        //     calculatedValue = 130;
+                                        // } else if (data.fieldName === "ESI" && Number(formik.values.basicSalary) > 21000) {
+                                        //     calculatedValue = Number(formik.values.basicSalary) * .75 / 100;
+                                        // } else {
+                                        //     calculatedValue = 0;
+                                        // }
 
                                         return (
                                             <div className="col-lg-6" key={index}>
@@ -976,7 +980,7 @@ const AddEmployeeForm = ({ details, handleScroll, handlePersonal, handleFinancia
                                                     className={`inputField`}
                                                     name={data.fieldName}
                                                     onChange={formik.handleChange}
-                                                    value={calculatedValue}
+                                                    // value={ }
                                                 />
                                             </div>
                                         )

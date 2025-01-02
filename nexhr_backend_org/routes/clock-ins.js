@@ -4,6 +4,12 @@ const { verifyAdminHREmployee, verifyAdminHR } = require("../auth/authMiddleware
 const { clockInsValidation, ClockIns } = require("../models/ClockInsModel");
 const { Employee } = require("../models/EmpModel");
 const { getDayDifference } = require("./leave-app");
+const nodemailer = require("nodemailer");
+
+function timeToMinutes(timeStr) {
+    const [hours, minutes, seconds] = timeStr.split(":").map(Number);
+    return Number(((hours * 60) + minutes + (seconds / 60)).toFixed(2)) || 0; // Defaults to 0 if input is invalid
+}
 
 async function checkLoginForOfficeTime(scheduledTime, actualTime) {
     // Parse scheduled and actual time into hours and minutes
@@ -148,10 +154,6 @@ router.post("/:id", verifyAdminHREmployee, async (req, res) => {
 
 router.get("/:id", verifyAdminHREmployee, async (req, res) => {
     // Helper function to convert time in HH:MM:SS format to total minutes
-    function timeToMinutes(timeStr) {
-        const [hours, minutes, seconds] = timeStr.split(":").map(Number);
-        return Number(((hours * 60) + minutes + (seconds / 60)).toFixed(2)) || 0; // Defaults to 0 if input is invalid
-    }
 
     try {
 
@@ -442,6 +444,130 @@ router.get("/employee/:empId", verifyAdminHREmployee, async (req, res) => {
         res.status(500).send({ message: "Server error", details: error.message });
     }
 });
+
+router.get("/sendmail/:id/:clockinId", verifyAdminHREmployee, async (req, res) => {
+    try {
+        // Fetch employee leave data
+
+        const emp = await Employee.findById(req.params.id).populate({
+            path: "clockIns",
+            match: { _id: req.params.clockinId }
+        }).exec()
+
+        const activities = ["login", "meeting", "morningBreak", "lunch", "eveningBreak", "event"];
+        const clockIn = emp.clockIns[0]; // Assuming the first clock-in for the day
+        const activitiesData = activities.map((activity) => {
+            const startingTime = clockIn[activity]?.startingTime[0] || "00:00";
+            const endingTime = clockIn[activity]?.endingTime[clockIn[activity]?.endingTime.length - 1] || "00:00";
+            const timeCalMins = timeToMinutes(clockIn[activity]?.timeHolder || "00:00:00");
+
+            return {
+                activity,
+                startingTime,
+                endingTime,
+                timeCalMins,
+            };
+        })
+
+        const htmlContent = `
+                   <!DOCTYPE html>
+                   <html lang="en">
+                   <head>
+                     <meta charset="UTF-8">
+                     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                     <title>NexsHR</title>
+                     <style>
+                       body {
+                         font-family: Arial, sans-serif;
+                         background-color: #f6f9fc;
+                         color: #333;
+                         margin: 0;
+                         padding: 0;
+                       }
+                       .table {
+                         width: 100%;
+                         border-collapse: collapse;
+                         margin: 20px 0;
+                         font-size: 16px;
+                         text-align: left;
+                         background-color: #fff;
+                         box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+                       }
+                       .table th, .table td {
+                         padding: 12px 15px;
+                         border: 1px solid #ddd;
+                       }
+                       .table th {
+                         background-color: #4CAF50;
+                         color: white;
+                         font-weight: bold;
+                         text-transform: uppercase;
+                       }
+                       .table tr:nth-child(even) {
+                         background-color: #f2f2f2;
+                       }
+                       .table tr:hover {
+                         background-color: #e9f4f1;
+                       }
+                       .row {
+                         display: flex;
+                         justify-content: center;
+                         margin: 20px;
+                       }
+                       .col-lg-6, .col-md-6, .col-12 {
+                         flex: 1;
+                         max-width: 80%;
+                         margin: 0 auto;
+                       }
+                     </style>
+                   </head>
+                   <body>
+                     <div class="row">
+                        <div class="col-lg-6 col-md-6 col-12">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>Activity</th>
+                                        <th>Starting Time</th>
+                                        <th>Ending Time</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${activitiesData?.map((data, index) => `
+                                          <tr key="${index}">
+                                              <td>${data.activity}</td>
+                                              <td>${data.startingTime}</td>
+                                              <td>${data.endingTime}</td>
+                                          </tr>
+                                      `).join('')
+            }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                   </body>
+                   </html>
+                 `;
+
+        const transporter = nodemailer.createTransport({
+            service: "gmail",
+            auth: {
+                user: process.env.FROM_MAIL,
+                pass: process.env.MAILPASSWORD,
+            },
+        });
+
+        await transporter.sendMail({
+            from: process.env.FROM_MAIL,
+            to: emp.Email,
+            subject: "You have completed 8 of Today working hours",
+            html: htmlContent,
+        });
+        return res.send({ message: "We have send mail for you have completed 8 working hours." })
+    } catch (error) {
+        return res.status(500).send({ error: error.message })
+    }
+})
 
 router.get("/", verifyAdminHR, async (req, res) => {
     try {
