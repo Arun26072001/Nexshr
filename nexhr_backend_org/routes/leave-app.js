@@ -54,7 +54,7 @@ leaveApp.get("/emp/:empId", verifyAdminHREmployee, async (req, res) => {
 
     // Fetch colleagues in the same position
     const positionName = emp.position[0]?.PositionName;
-    
+
     let colleagues = [];
     if (positionName) {
       const positionIds = await Position.find({ PositionName: positionName }, "_id").exec();
@@ -63,7 +63,6 @@ leaveApp.get("/emp/:empId", verifyAdminHREmployee, async (req, res) => {
         "FirstName LastName Email phone"
       ).exec();
     }
-    console.log(colleagues);
 
     // Fetch people on leave today
     const today = new Date().toISOString().split("T")[0];
@@ -430,7 +429,7 @@ leaveApp.post("/:empId", verifyAdminHREmployee, upload.single("prescription"), a
     req.body.coverBy = req.body.coverBy === "" ? null : req.body.coverBy;
 
     // If a file is uploaded, save its path
-    const prescriptionPath = req.file ? req.file.filename : null;
+    const prescriptionPath = req.file ? req.file.filename : "";
 
     // Construct the leave request object
     const leaveRequest = {
@@ -488,7 +487,7 @@ leaveApp.post("/:empId", verifyAdminHREmployee, upload.single("prescription"), a
     );
 
     // Fetch employee leave data
-    const empData = await Employee.findById(req.params.id, "Email phone FirstName LastName")
+    const empData = await Employee.findById(req.params.empId)
       .populate({
         path: "team",
         populate: [
@@ -508,6 +507,7 @@ leaveApp.post("/:empId", verifyAdminHREmployee, upload.single("prescription"), a
 
     const relievingOffData = await Employee.findById(req.body.coverBy, "Email FirstName LastName");
     const leaveTypeName = req.body.leaveType;
+
     const leaveDaysCount = empData?.typesOfLeaveRemainingDays[leaveTypeName] || 0;
 
     if (leaveDaysCount <= takenLeaveCount) {
@@ -527,7 +527,7 @@ leaveApp.post("/:empId", verifyAdminHREmployee, upload.single("prescription"), a
     const { error } = LeaveApplicationValidation.validate(leaveRequest);
     if (error) {
       console.error("Validation Error:", error);
-      return res.status(400).send({ error: "Validation Error", details: error.message });
+      return res.status(400).send({ error: error.message });
     }
 
     const newLeaveApp = await LeaveApplication.create(leaveRequest);
@@ -562,21 +562,24 @@ leaveApp.post("/:empId", verifyAdminHREmployee, upload.single("prescription"), a
              <div class="container">
                <div class="header">
                  <img src="https://imagedelivery.net/r89jzjNfZziPHJz5JXGOCw/1dd59d6a-7b64-49d7-ea24-1366e2f48300/public" alt="Logo" />
-                 <h1>${empData.FirstName} ${empData.lastName} has been apply leave for ${req.body.fromDate} - ${req.params.toDate}</h1>
+                 <h1>${empData.FirstName} ${empData.LastName} has been apply leave for ${req.body.fromDate} - ${req.body.toDate}</h1>
                </div>
                <div class="content">
                    <p>Hi all,</p>
-                   <p>I have apply leave for ${req.body.fromDate} - ${req.params.toDate}, due to ${req.body.reasonForLeave}. Please response for that </p>
+                   <p>I have apply leave for ${req.body.fromDate} - ${req.body.toDate}, due to ${req.body.reasonForLeave}. Please response for that </p>
                    <p>Thank you!</p>
                </div>
              </div>
            </body>
            </html>
          `;
-
+    const mailList = [
+      empData.team.lead.Email,
+      empData.team.head.Email
+    ]
     await transporter.sendMail({
       from: process.env.FROM_MAIL,
-      to: relievingOffData.Email,
+      to: mailList,
       subject: "Leave Application Notification",
       html: htmlContent,
     });
@@ -628,6 +631,7 @@ leaveApp.post("/:empId", verifyAdminHREmployee, upload.single("prescription"), a
 
     return res.status(201).send({ message: "Leave Request has been sent to Higher Authority." });
   } catch (err) {
+    console.log(err);
     return res.status(500).send({ error: err.message });
   }
 });

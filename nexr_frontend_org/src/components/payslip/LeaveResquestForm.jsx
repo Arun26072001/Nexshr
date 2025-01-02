@@ -109,7 +109,7 @@ const LeaveRequestForm = () => {
     try {
       if (empId) {
         const leaveReqs = await fetchLeaveRequests(empId);
-
+        
         const leaveDates = leaveReqs?.peopleLeaveOnMonth.flatMap((leave) => [
           new Date(leave.fromDate).toISOString(),
           new Date(leave.toDate).toISOString(),
@@ -137,7 +137,7 @@ const LeaveRequestForm = () => {
 
         // Filter colleagues 
         // const emps = leaveReqs.colleagues.filter((emp) => emp._id !== empId);
-        setCollegues(leaveReqs.collegues);
+        setCollegues(leaveReqs.colleagues);
       } else {
         toast.error("empId is not loaded in the app.");
       }
@@ -186,12 +186,8 @@ const LeaveRequestForm = () => {
       }
     }
   };
-
-  // function getVal(v){
-  //   console.log(typeof v);
-
-  // }
-  console.log(formik.values);
+  console.log(collegues);
+  
 
   return typeOfLeave ? (
     <form onSubmit={formik.handleSubmit}>
@@ -308,7 +304,7 @@ const LeaveRequestForm = () => {
               value={formik.values.coverBy}
             >
               <option>Select a Relief Officer</option>
-              {collegues.map((emp) => (
+              {collegues?.map((emp) => (
                 <option value={emp._id}>{emp.FirstName}</option>
               ))}
             </select>
