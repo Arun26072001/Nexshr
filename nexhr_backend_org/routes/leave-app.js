@@ -53,7 +53,8 @@ leaveApp.get("/emp/:empId", verifyAdminHREmployee, async (req, res) => {
     const leaveApplications = leaveReqs.sort((a, b) => new Date(a.fromDate) - new Date(b.fromDate));
 
     // Fetch colleagues in the same position
-    const positionName = emp.position?.PositionName;
+    const positionName = emp.position[0]?.PositionName;
+    
     let colleagues = [];
     if (positionName) {
       const positionIds = await Position.find({ PositionName: positionName }, "_id").exec();
@@ -62,6 +63,7 @@ leaveApp.get("/emp/:empId", verifyAdminHREmployee, async (req, res) => {
         "FirstName LastName Email phone"
       ).exec();
     }
+    console.log(colleagues);
 
     // Fetch people on leave today
     const today = new Date().toISOString().split("T")[0];
@@ -572,12 +574,12 @@ leaveApp.post("/:empId", verifyAdminHREmployee, upload.single("prescription"), a
            </html>
          `;
 
-      await transporter.sendMail({
-        from: process.env.FROM_MAIL,
-        to: relievingOffData.Email,
-        subject: "Leave Application Notification",
-        html: htmlContent,
-      });
+    await transporter.sendMail({
+      from: process.env.FROM_MAIL,
+      to: relievingOffData.Email,
+      subject: "Leave Application Notification",
+      html: htmlContent,
+    });
 
     if (req.body.coverBy) {
       // Prepare and send the email

@@ -133,10 +133,11 @@ const LeaveRequestForm = () => {
 
         // Set types of leave
         setTypOfLeave(leaveReqs?.employee?.typesOfLeaveCount);
+        // console.log(leave);
 
         // Filter colleagues 
-        const emps = leaveReqs.colleagues.filter((emp) => emp._id !== empId);
-        setCollegues(emps);
+        // const emps = leaveReqs.colleagues.filter((emp) => emp._id !== empId);
+        setCollegues(leaveReqs.collegues);
       } else {
         toast.error("empId is not loaded in the app.");
       }
