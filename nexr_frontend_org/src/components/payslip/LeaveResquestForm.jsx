@@ -20,6 +20,7 @@ const LeaveRequestForm = () => {
   const navigate = useNavigate();
   const [typeOfLeave, setTypOfLeave] = useState(null);
   const [excludedDates, setExcludeDates] = useState([]);
+  const [prescriptionFile, setPrescriptionFile] = useState("");
 
   let leaveObj = {
     leaveType: "",
@@ -71,10 +72,19 @@ const LeaveRequestForm = () => {
     validateOnChange: true,
     onSubmit: async (values, { resetForm }) => {
       if (error === "") {
+        const formData = new FormData();
+        formData.append("leaveType", formik.values.leaveType);
+        formData.append("fromDate", formik.values.fromDate);
+        formData.append("toDate", formik.values.toDate);
+        formData.append("periodOfLeave", formik.values.periodOfLeave);
+        formData.append("reasonForLeave", formik.values.reasonForLeave);
+        formData.append("prescription", prescriptionFile); // Assuming `file` is the file object
+        formData.append("coverBy", formik.values.coverBy);
         try {
           // Leave request submission
-          const res = await axios.post(`${url}/api/leave-application/${empId}`, values, {
+          const res = await axios.post(`${url}/api/leave-application/${empId}`, formData, {
             headers: {
+              "Content-Type": "multipart/form-data",
               authorization: token || "",
             },
           });
@@ -89,6 +99,7 @@ const LeaveRequestForm = () => {
     },
   });
 
+  console.log(prescriptionFile);
 
   useEffect(() => {
     if (formik.values.fromDate && formik.values.toDate) {
@@ -109,7 +120,7 @@ const LeaveRequestForm = () => {
     try {
       if (empId) {
         const leaveReqs = await fetchLeaveRequests(empId);
-        
+
         const leaveDates = leaveReqs?.peopleLeaveOnMonth.flatMap((leave) => [
           new Date(leave.fromDate).toISOString(),
           new Date(leave.toDate).toISOString(),
@@ -161,11 +172,15 @@ const LeaveRequestForm = () => {
     }
   }
 
+  function getFileData(e) {
+    setPrescriptionFile(e.target.files[0])
+  }
 
   const handleFileChange = async (event) => {
     const files = event.target.files;
     if (files.length > 0) {
       const file = files[0];
+      console.log(file);
 
       const formData = new FormData();
       formData.append('profile', file);
@@ -186,8 +201,6 @@ const LeaveRequestForm = () => {
       }
     }
   };
-  console.log(collegues);
-  
 
   return typeOfLeave ? (
     <form onSubmit={formik.handleSubmit}>
@@ -290,7 +303,7 @@ const LeaveRequestForm = () => {
               type="file"
               name="prescription"
               className="fileInput"
-              onChange={formik.handleChange} // Set the actual file, not just the name
+              onChange={getFileData} // Set the actual file, not just the name
             />
           </div>
 

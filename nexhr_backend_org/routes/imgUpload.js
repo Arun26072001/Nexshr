@@ -2,13 +2,20 @@ const multer = require('multer');
 const path = require('path');
 const express = require("express");
 const sharp = require("sharp");
+const fs = require('fs');
 
 const imgUpload = express.Router();
+
+// Ensure the uploads directory exists
+const uploadsDir = path.join(__dirname, "..", 'uploads');
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir, { recursive: true });
+}
 
 // Configure multer for handling file uploads
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, '/uploads/');
+    cb(null, uploadsDir); // Use the ensured uploads directory
   },
   filename: function (req, file, cb) {
     const timePrefix = new Date().toISOString().replace(/[-T:\.Z]/g, '');
@@ -42,7 +49,7 @@ imgUpload.post("/", upload.single("profile"), async (req, res) => {
     }
 
     // Define the new file path with a .webp extension
-    const newFilePath = `./uploads/${path.parse(req.file.filename).name}.webp`;
+    const newFilePath = path.join(uploadsDir, `${path.parse(req.file.filename).name}.webp`);
 
     // Use sharp to convert the uploaded file to WebP format
     await sharp(req.file.path)

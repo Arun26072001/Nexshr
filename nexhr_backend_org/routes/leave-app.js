@@ -428,9 +428,6 @@ leaveApp.post("/:empId", verifyAdminHREmployee, upload.single("prescription"), a
     // Handle empty `coverBy` value
     req.body.coverBy = req.body.coverBy === "" ? null : req.body.coverBy;
 
-    // If a file is uploaded, save its path
-    const prescriptionPath = req.file ? req.file.filename : "";
-
     // Construct the leave request object
     const leaveRequest = {
       leaveType: req.body.leaveType.toLowerCase(),
@@ -438,7 +435,7 @@ leaveApp.post("/:empId", verifyAdminHREmployee, upload.single("prescription"), a
       toDate: req.body.toDate,
       periodOfLeave: req.body.periodOfLeave,
       reasonForLeave: req.body.reasonForLeave,
-      prescription: prescriptionPath, // Save uploaded file path
+      prescription: req.file ? req.file.filename : null, // Save file name
       coverBy: req.body.coverBy,
       employee: req.params.empId,
     };
