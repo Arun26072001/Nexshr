@@ -126,7 +126,7 @@ export default function Navbar({ handleSideBar }) {
                 toast.error(error.response.data.error)
             }
         }
-        if (isDisabled && hour >= 9) {
+        if (isDisabled && hour >= 8 && min === 1 && sec === 1) {
             sendMailonEightHrs()
         }
     }, [sec])
