@@ -107,7 +107,7 @@ const AddEmployeeForm = ({ details, handleScroll, handlePersonal, handleFinancia
         accountHolderName: Yup.string().min(2, "invalid Holder Name").max(50).required("Holder name is Required"),
         IFSCcode: Yup.string().min(11, "IFSC code must be 11 characters").max(11, "IFSC code must be 11 characters").required("IFSC code is required"),
         taxDeduction: Yup.string().min(2, "invalid value").required("Tax deduction is required"),
-        
+
     });
 
     const formik = useFormik({
@@ -532,6 +532,7 @@ const AddEmployeeForm = ({ details, handleScroll, handlePersonal, handleFinancia
                                         style={{ background: "none", border: "none" }}
                                         size="lg"
                                         data={allCountries}
+                                        appearance="subtle"
                                         labelKey="name"
                                         valueKey="abbr"
                                         value={selectedCountry}

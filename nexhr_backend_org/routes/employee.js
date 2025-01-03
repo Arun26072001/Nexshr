@@ -158,9 +158,12 @@ router.get('/:id', verifyAdminHREmployee, async (req, res) => {
 
   try {
     const emp = await Employee.findById(req.params.id)
-      .populate({ path: "role" })
+      .populate("role")
       .populate("leaveApplication")
       .populate("workingTimePattern")
+      .populate("department")
+      .populate("position")
+      .populate("company")
       .exec();
 
     if (!emp) {
@@ -170,7 +173,6 @@ router.get('/:id', verifyAdminHREmployee, async (req, res) => {
     // Filter leave requests
     const pendingLeaveRequests = emp.leaveApplication.filter((leave) => leave.status === "pending");
     const takenLeaveRequests = emp.leaveApplication.filter((leave) => leave.status === "approved");
-    console.log(takenLeaveRequests);
 
     // Calculate total taken leave count
     takenLeaveRequests.forEach((leave) => totalTakenLeaveCount += getDayDifference(leave));
@@ -202,8 +204,6 @@ router.get('/:id', verifyAdminHREmployee, async (req, res) => {
 router.post("/", verifyAdminHR, async (req, res) => {
   try {
     const { Email, phone, basicSalary, FirstName, LastName, Password, teamLead, managerId, company, annualLeaveEntitlement, typesOfLeaveCount } = req.body;
-    console.log(req.body);
-
     // const {orgName, orgId} = jwt.decode(req.headers['authorization']);
     // const Employee = getEmployeeModel(orgName)
 
@@ -215,46 +215,6 @@ router.post("/", verifyAdminHR, async (req, res) => {
     if (await Employee.exists({ phone })) {
       return res.status(400).json({ message: "Phone number already exists" });
     }
-
-    // const OrgPayslipInfoModel = getPayslipInfoModel(orgName);
-    // const payslipData = await OrgPayslipInfoModel.findOne().exec();
-    // const payslipData = await PaySlipInfo.findOne().exec();
-    // if (!payslipData) {
-    //   return res.status(400).json({ message: "Payslip data not found" });
-    // }
-
-    // const payslipFields = {};
-    // const basicSalaryNumber = Number(basicSalary);
-
-    // payslipData.payslipFields.forEach((data) => {
-    //   let calculatedValue = 0;
-
-    //   switch (data.fieldName) {
-    //     case "incomeTax":
-    //       if (basicSalaryNumber >= 84000) calculatedValue = (30 / 100) * basicSalaryNumber;
-    //       else if (basicSalaryNumber > 42000) calculatedValue = (20 / 100) * basicSalaryNumber;
-    //       else if (basicSalaryNumber >= 25000) calculatedValue = (5 / 100) * basicSalaryNumber;
-    //       break;
-    //     case "houseRentAllowance":
-    //     case "conveyanceAllowance":
-    //     case "othersAllowance":
-    //     case "bonusAllowance":
-    //       calculatedValue = (data.value / 100) * basicSalaryNumber;
-    //       break;
-    //     case "ProvidentFund":
-    //       if (basicSalaryNumber > 15000) calculatedValue = (12 / 100) * basicSalaryNumber;
-    //       break;
-    //     case "Professional Tax":
-    //       if (basicSalaryNumber > 21000) calculatedValue = 130;
-    //       break;
-    //     case "ESI":
-    //       if (basicSalaryNumber > 21000) calculatedValue = (0.75 / 100) * basicSalaryNumber;
-    //       break;
-    //     default:
-    //       calculatedValue = 0;
-    //   }
-    //   payslipFields[data.fieldName] = calculatedValue;
-    // });
 
     const employeeData = {
       ...req.body,

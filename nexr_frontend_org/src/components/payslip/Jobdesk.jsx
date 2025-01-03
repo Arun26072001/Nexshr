@@ -11,6 +11,7 @@ import PayslipRouter from "../unwanted/PayslipRouter";
 import { fetchEmployeeData, fetchPayslipFromEmp } from "../ReuseableAPI";
 import { EssentialValues } from "../../App";
 import { toast } from "react-toastify";
+import MyDetails from "./MyDetails";
 
 const JobDesk = () => {
     const [empObj, setEmpObj] = useState({});
@@ -20,6 +21,7 @@ const JobDesk = () => {
     const [refetch, setRefetch] = useState(false);
     const [payslips, setPayslips] = useState([]);
     const jobDeskFiles = [
+        'my-details',
         'attendance', 'leave', 'payslip', 'history',
         'contact', 'social', 'address'
     ];
@@ -57,9 +59,11 @@ const JobDesk = () => {
 
 
     return (
-        <Routes >
+        <Routes>
             <Route path="/" element={<PayslipRouter files={jobDeskFiles} />}>
-                <Route index path="attendance" element={<Attendence />} />
+                <Route index element={<MyDetails empObj={empObj} />} /> {/* Default route */}
+                <Route path="my-details" element={<MyDetails empObj={empObj} />} />
+                <Route path="attendance" element={<Attendence />} />
                 <Route path="leave" element={<Leave />} />
                 <Route path="history" element={<History payslips={payslips} isLoading={isLoading} />} />
                 <Route path="payslip" element={<Payslip payslips={payslips} isLoading={isLoading} />} />

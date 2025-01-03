@@ -104,7 +104,7 @@ const Sidebar = ({ sideBar }) => {
 
         {renderNavLink(
           JobDesk === 'allow' || ['admin', 'hr', 'employee'].includes(whoIs),
-          `/${whoIs}/job-desk/attendance`,
+          `/${whoIs}/job-desk/my-details`,
           jobDeskIcon,
           'Job Desk',
           'jobDesk'
