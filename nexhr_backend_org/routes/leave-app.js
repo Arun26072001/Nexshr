@@ -664,7 +664,7 @@ leaveApp.put('/:id', verifyHREmployee, async (req, res) => {
       // emp.annualLeaveEntitlement -= leaveDaysTaken
 
       // Prevent negative leave balances
-      if (emp.typesOfLeaveRemainingDays[leaveTypeKey] < 0) {
+      if (emp.typesOfLeaveRemainingDays[leaveType] < 0) {
         return res.status(400).send({
           error: 'Insufficient leave balance for the requested leave type.',
         });
@@ -684,7 +684,7 @@ leaveApp.put('/:id', verifyHREmployee, async (req, res) => {
     const updatedRequest = await LeaveApplication.findOneAndUpdate(
       {
         _id: req.params.id,
-        fromDate: { $gte: startOfDay },
+        fromDate: { $gt: startOfDay },
       },
       updatedLeaveApp,
       { new: true }
