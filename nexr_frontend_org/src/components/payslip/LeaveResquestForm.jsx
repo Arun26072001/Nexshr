@@ -9,6 +9,7 @@ import Loading from "../Loader";
 import { fetchLeaveRequests } from "../ReuseableAPI";
 import "react-datepicker/dist/react-datepicker.css";
 import DatePicker from "react-datepicker";
+import TextEditor from "./TextEditor";
 
 const LeaveRequestForm = () => {
   const url = process.env.REACT_APP_API_URL;
@@ -21,6 +22,7 @@ const LeaveRequestForm = () => {
   const [typeOfLeave, setTypOfLeave] = useState(null);
   const [excludedDates, setExcludeDates] = useState([]);
   const [prescriptionFile, setPrescriptionFile] = useState("");
+  const [content, setContent] = useState("");
 
   let leaveObj = {
     leaveType: "",
@@ -99,8 +101,6 @@ const LeaveRequestForm = () => {
     },
   });
 
-  console.log(prescriptionFile);
-
   useEffect(() => {
     if (formik.values.fromDate && formik.values.toDate) {
       let fromDateTime = new Date(formik.values.fromDate).getTime();
@@ -176,31 +176,38 @@ const LeaveRequestForm = () => {
     setPrescriptionFile(e.target.files[0])
   }
 
-  const handleFileChange = async (event) => {
-    const files = event.target.files;
-    if (files.length > 0) {
-      const file = files[0];
-      console.log(file);
+  function handleChange(value) {
+    console.log(value);
+    setContent(value);
+    formik.setFieldValue("reasonForLeave", value)
+  }
+console.log(formik.values);
 
-      const formData = new FormData();
-      formData.append('profile', file);
+  // const handleFileChange = async (event) => {
+  //   const files = event.target.files;
+  //   if (files.length > 0) {
+  //     const file = files[0];
+  //     console.log(file);
 
-      try {
-        const response = await axios.post(`${process.env.REACT_APP_API_URL}/api/upload`, formData, {
-          headers: {
-            'Content-Type': 'multipart/form-data'
-          }
-        });
-        const filename = response.data.convertedFile;
-        formik.setFieldValue("prescription", filename)
+  //     const formData = new FormData();
+  //     formData.append('profile', file);
 
-      } catch (error) {
-        console.log(error);
+  //     try {
+  //       const response = await axios.post(`${process.env.REACT_APP_API_URL}/api/upload`, formData, {
+  //         headers: {
+  //           'Content-Type': 'multipart/form-data'
+  //         }
+  //       });
+  //       const filename = response.data.convertedFile;
+  //       formik.setFieldValue("prescription", filename)
 
-        // console.error("Error uploading file:", error.response.data.message);
-      }
-    }
-  };
+  //     } catch (error) {
+  //       console.log(error);
+
+  //       // console.error("Error uploading file:", error.response.data.message);
+  //     }
+  //   }
+  // };
 
   return typeOfLeave ? (
     <form onSubmit={formik.handleSubmit}>
@@ -282,15 +289,8 @@ const LeaveRequestForm = () => {
           {/* Reason for Leave */}
           <div className="my-3">
             <span className="inputLabel">Reason for Leave</span>
+            <TextEditor handleChange={handleChange} content={content} />
 
-            <textarea
-              style={{ height: "auto" }}
-              name="reasonForLeave"
-              onChange={formik.handleChange}
-              value={formik.values.reasonForLeave}
-              className={`inputField ${formik.touched.reasonForLeave && formik.errors.reasonForLeave ? "error" : ""}`}
-              rows={10}
-              cols={40} />
             {formik.touched.reasonForLeave && formik.errors.reasonForLeave ? (
               <div className="text-center text-danger">{formik.errors.reasonForLeave}</div>
             ) : null}

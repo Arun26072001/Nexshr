@@ -557,9 +557,9 @@ leaveApp.post("/:empId", verifyAdminHREmployee, upload.single("prescription"), a
       employee: req.params.empId,
     });
 
-    if (pendingLeaveData.length > 0) {
-      return res.status(400).send({ error: "Please wait for the previous leave response!" });
-    }
+    // if (pendingLeaveData.length > 0) {
+    //   return res.status(400).send({ error: "Please wait for the previous leave response!" });
+    // }
 
     // Fetch approved leave data for calculating taken leave count
     const approvedLeaveData = await LeaveApplication.find({
