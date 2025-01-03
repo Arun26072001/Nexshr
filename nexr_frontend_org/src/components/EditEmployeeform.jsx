@@ -20,7 +20,7 @@ const EditEmployeeform = ({ details, empData, handleScroll, handlePersonal, hand
     const [cityData, setCityData] = useState([]);
     const { whoIs } = useContext(EssentialValues);
     const [timeDifference, setTimeDifference] = useState(0);
-    const [payslipFields, setPayslipFields] = useState([]);
+    // const [payslipFields, setPayslipFields] = useState([]);
     const [selectedCountry, setSelectedCountry] = useState("");
     const token = localStorage.getItem("token");
     const url = process.env.REACT_APP_API_URL;
@@ -733,7 +733,9 @@ const EditEmployeeform = ({ details, empData, handleScroll, handlePersonal, hand
                                                     Choose {leaveName} count
                                                 </div>
                                                 <input type="number"
-                                                    onChange={(e) => getValueforLeave(e)}
+                                                    // onChange={(e) => getValueforLeave(e)}
+                                                    disabled={whoIs === "emp" ? true : false}
+                                                    onChange={whoIs === "emp" ? null : formik.handleChange}
                                                     name={leaveName}
                                                     className={`inputField`}
                                                     value={formik?.values?.typesOfLeaveCount[leaveName]}
