@@ -5,7 +5,7 @@ const { LeaveApplication,
 } = require('../models/LeaveAppModel');
 const nodemailer = require("nodemailer");
 const { Employee } = require('../models/EmpModel');
-const { verifyHR, verifyHREmployee, verifyEmployee, verifyAdmin, verifyAdminHREmployee } = require('../auth/authMiddleware');
+const { verifyHR, verifyHREmployee, verifyEmployee, verifyAdmin, verifyAdminHREmployee, verifyAdminHR } = require('../auth/authMiddleware');
 const { Position } = require('../models/PositionModel');
 const { Team } = require('../models/TeamModel');
 const { upload } = require('./imgUpload');
@@ -404,7 +404,7 @@ leaveApp.get("/date-range/:empId", verifyAdminHREmployee, async (req, res) => {
   }
 })
 
-leaveApp.get("/", verifyAdmin, async (req, res) => {
+leaveApp.get("/", verifyAdminHR, async (req, res) => {
   try {
     let requests = await LeaveApplication.find().populate({
       path: "employee",
