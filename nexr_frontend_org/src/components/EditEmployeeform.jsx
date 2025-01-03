@@ -184,34 +184,42 @@ const EditEmployeeform = ({ details, empData, handleScroll, handlePersonal, hand
         calculateTimeDifference();
     }, [formik.values.workingTimePattern]);
 
+    // useEffect(() => {
+    //     async function getPayslipInfo() {
+    //         try {
+    //             const payslipInfo = await fetchPayslipInfo();
+    //             if (payslipInfo && payslipInfo?.payslipFields) {
+    //                 const fields = payslipInfo.payslipFields;
+
+    //                 fields.forEach((field) => {
+    //                     // Update employee object for each field
+    //                     setEmployeeObj((preEmpdata) => ({
+    //                         ...preEmpdata,
+    //                         [field.fieldName]: ""
+    //                     }));
+    //                 });
+
+    //                 // Set the payslip fields
+    //                 setPayslipFields(fields);
+    //             } else {
+    //                 // If no fields found, set an empty array
+    //                 setPayslipFields([]);
+    //             }
+    //         } catch (err) {
+    //             console.log(err.message);
+    //         }
+    //     }
+
+    //     getPayslipInfo();
+    // }, []);
+
     useEffect(() => {
-        async function getPayslipInfo() {
-            try {
-                const payslipInfo = await fetchPayslipInfo();
-                if (payslipInfo && payslipInfo?.payslipFields) {
-                    const fields = payslipInfo.payslipFields;
+        setSelectedLeavetypes(Object.entries(empData.typesOfLeaveCount).map(([key, value]) => key))
+    }, [empData])
+    console.log(selectedLeaveTypes);
 
-                    fields.forEach((field) => {
-                        // Update employee object for each field
-                        setEmployeeObj((preEmpdata) => ({
-                            ...preEmpdata,
-                            [field.fieldName]: ""
-                        }));
-                    });
+    console.log(formik.values.typesOfLeaveCount);
 
-                    // Set the payslip fields
-                    setPayslipFields(fields);
-                } else {
-                    // If no fields found, set an empty array
-                    setPayslipFields([]);
-                }
-            } catch (err) {
-                console.log(err.message);
-            }
-        }
-
-        getPayslipInfo();
-    }, []);
 
     useEffect(() => {
         const gettingLeaveTypes = async () => {
@@ -283,8 +291,8 @@ const EditEmployeeform = ({ details, empData, handleScroll, handlePersonal, hand
         const countryFullData = allCountries.find((country) => Object.values(country).includes(value))
         formik.setFieldValue(name, `+${countryFullData.code}`)
     }
-    console.log(empData.address);
-    
+
+
 
     return (
         isLoading ? <Loading /> :
@@ -462,6 +470,7 @@ const EditEmployeeform = ({ details, empData, handleScroll, handlePersonal, hand
                                             style={{ background: "none", border: "none" }}
                                             size="lg"
                                             data={allCountries}
+                                            appearance="subtle"
                                             labelKey="name"
                                             valueKey="abbr"
                                             value={selectedCountry}
@@ -708,12 +717,16 @@ const EditEmployeeform = ({ details, empData, handleScroll, handlePersonal, hand
                                         <div className="inputLabel">
                                             Select Leave Types
                                         </div>
-                                        <TagPicker data={leaveTypes} disabled={formik.values.annualLeaveEntitlement ? false : true} title={!formik.values.annualLeaveEntitlement && "Please Enter Annual Leave"} size="lg" readOnly onChange={whoIs === "emp" ? null : handleTagSelector} value={selectedLeaveTypes} className={formik.values.annualLeaveEntitlement ? "rsuite_selector" : "rsuite_selector_disabled"} style={{ width: 300, marginTop: "5px", border: "none" }} />
+                                        <TagPicker data={leaveTypes} disabled={formik.values.annualLeaveEntitlement ? false : true}
+                                            title={!formik.values.annualLeaveEntitlement && "Please Enter Annual Leave"}
+                                            size="lg" readOnly onChange={whoIs === "emp" ? null : handleTagSelector}
+                                            value={selectedLeaveTypes}
+                                            className={formik.values.annualLeaveEntitlement ? "rsuite_selector" : "rsuite_selector_disabled"}
+                                            style={{ width: 300, marginTop: "5px", border: "none" }} />
                                     </div>
                                 </div>
                                 <div className="row d-flex justify-content-center">
                                     {
-
                                         selectedLeaveTypes?.map((leaveName, index) => {
                                             return <div key={index} className="col-lg-6 my-2">
                                                 <div className="inputLabel">
@@ -722,7 +735,10 @@ const EditEmployeeform = ({ details, empData, handleScroll, handlePersonal, hand
                                                 <input type="number"
                                                     onChange={(e) => getValueforLeave(e)}
                                                     name={leaveName}
-                                                    className={`inputField`} />
+                                                    className={`inputField`}
+                                                    value={formik?.values?.typesOfLeaveCount[leaveName]}
+                                                />
+
                                             </div>
                                         })
                                     }
@@ -739,9 +755,11 @@ const EditEmployeeform = ({ details, empData, handleScroll, handlePersonal, hand
                                 <div className="row d-flex justify-content-center my-3">
                                     <div className="col-lg-6">
                                         <div className="inputLabel">Manager</div>
-                                        <select name="managerId" onChange={formik.handleChange}
+                                        <select name="managerId"
                                             className={`inputField ${formik.touched.managerId && formik.errors.managerId ? "error" : ""}`}
                                             value={formik.values.managerId || empData?.managerId || ""}
+                                            disabled={whoIs === "emp" ? true : false}
+                                            onChange={whoIs === "emp" ? null : formik.handleChange}
                                         >
                                             <option >Select Manager</option>
                                             {
@@ -758,7 +776,8 @@ const EditEmployeeform = ({ details, empData, handleScroll, handlePersonal, hand
                                         <div className="inputLabel">Team Lead</div>
                                         <select
                                             name="teamLead"
-                                            onChange={formik.handleChange}
+                                            disabled={whoIs === "emp" ? true : false}
+                                            onChange={whoIs === "emp" ? null : formik.handleChange}
                                             className={`selectInput ${formik.touched.teamLead && formik.errors.teamLead ? "error" : ""}`}
                                             value={formik.values.teamLead || empData?.teamLead || ""}
                                         >
@@ -783,7 +802,8 @@ const EditEmployeeform = ({ details, empData, handleScroll, handlePersonal, hand
                                             Description
                                         </div>
                                         <textarea
-                                            onChange={formik.handleChange}
+                                            disabled={whoIs === "emp" ? true : false}
+                                            onChange={whoIs === "emp" ? null : formik.handleChange}
                                             name="description"
                                             className={`inputField ${formik.touched.description && formik.errors.description ? "error" : ""}`}
                                             cols={50}
@@ -809,7 +829,8 @@ const EditEmployeeform = ({ details, empData, handleScroll, handlePersonal, hand
                                         <input type="number"
                                             className={`inputField ${formik.touched.basicSalary && formik.errors.basicSalary ? "error" : ""}`}
                                             name="basicSalary"
-                                            onChange={formik.handleChange}
+                                            disabled={whoIs === "emp" ? true : false}
+                                            onChange={whoIs === "emp" ? null : formik.handleChange}
                                             value={formik.values.basicSalary} />
                                         {formik.touched.basicSalary && formik.errors.basicSalary ? (
                                             <div className="text-center text-danger">{formik.errors.basicSalary}</div>
@@ -820,7 +841,8 @@ const EditEmployeeform = ({ details, empData, handleScroll, handlePersonal, hand
                                         <input type="text"
                                             className={`inputField ${formik.touched.bankName && formik.errors.bankName ? "error" : ""}`}
                                             name="bankName"
-                                            onChange={formik.handleChange}
+                                            disabled={whoIs === "emp" ? true : false}
+                                            onChange={whoIs === "emp" ? null : formik.handleChange}
                                             value={formik.values.bankName} />
                                         {formik.touched.bankName && formik.errors.bankName ? (
                                             <div className="text-center text-danger">{formik.errors.bankName}</div>
@@ -836,7 +858,8 @@ const EditEmployeeform = ({ details, empData, handleScroll, handlePersonal, hand
                                         <input type="number"
                                             className={`inputField ${formik.touched.accountNo && formik.errors.accountNo ? "error" : ""}`}
                                             name="accountNo"
-                                            onChange={formik.handleChange}
+                                            disabled={whoIs === "emp" ? true : false}
+                                            onChange={whoIs === "emp" ? null : formik.handleChange}
                                             value={formik.values.accountNo} />
                                         {formik.touched.accountNo && formik.errors.accountNo ? (
                                             <div className="text-center text-danger">{formik.errors.accountNo}</div>
@@ -850,7 +873,8 @@ const EditEmployeeform = ({ details, empData, handleScroll, handlePersonal, hand
                                         <input type="text"
                                             className={`inputField ${formik.touched.accountHolderName && formik.errors.accountHolderName ? "error" : ""}`}
                                             name="accountHolderName"
-                                            onChange={formik.handleChange}
+                                            disabled={whoIs === "emp" ? true : false}
+                                            onChange={whoIs === "emp" ? null : formik.handleChange}
                                             value={formik.values.accountHolderName} />
                                         {formik.touched.accountHolderName && formik.errors.accountHolderName ? (
                                             <div className="text-center text-danger">{formik.errors.accountHolderName}</div>
@@ -861,7 +885,8 @@ const EditEmployeeform = ({ details, empData, handleScroll, handlePersonal, hand
                                         <input type="number"
                                             className={`inputField ${formik.touched.taxDeduction && formik.errors.taxDeduction ? "error" : ""}`}
                                             name="taxDeduction"
-                                            onChange={formik.handleChange}
+                                            disabled={whoIs === "emp" ? true : false}
+                                            onChange={whoIs === "emp" ? null : formik.handleChange}
                                             value={formik.values.taxDeduction} />
                                         {formik.touched.taxDeduction && formik.errors.taxDeduction ? (
                                             <div className="text-center text-danger">{formik.errors.taxDeduction}</div>
@@ -877,7 +902,8 @@ const EditEmployeeform = ({ details, empData, handleScroll, handlePersonal, hand
                                         <input type="text"
                                             className={`inputField ${formik.touched.IFSCcode && formik.errors.IFSCcode ? "error" : ""}`}
                                             name="IFSCcode"
-                                            onChange={formik.handleChange}
+                                            disabled={whoIs === "emp" ? true : false}
+                                            onChange={whoIs === "emp" ? null : formik.handleChange}
                                             value={formik.values.IFSCcode} />
                                         {formik.touched.IFSCcode && formik.errors.IFSCcode ? (
                                             <div className="text-center text-danger">{formik.errors.IFSCcode}</div>

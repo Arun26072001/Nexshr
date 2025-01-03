@@ -50,7 +50,16 @@ leaveApp.get("/emp/:empId", verifyAdminHREmployee, async (req, res) => {
       .populate({ path: "employee", select: "FirstName LastName" })
       .exec();
 
-    const leaveApplications = leaveReqs.sort((a, b) => new Date(a.fromDate) - new Date(b.fromDate));
+    let leaveApplications = leaveReqs.sort((a, b) => new Date(a.fromDate) - new Date(b.fromDate));
+
+    leaveApplications = leaveApplications.map((leave) => {
+      return {
+        ...leave.toObject(),
+        prescription: leave.prescription
+          ? `${process.env.REACT_APP_API_URL}/uploads/${leave.prescription}`
+          : null
+      }
+    })
 
     // Fetch colleagues in the same position
     const positionName = emp.position[0]?.PositionName;
@@ -84,8 +93,16 @@ leaveApp.get("/emp/:empId", verifyAdminHREmployee, async (req, res) => {
         toDate: { $gte: startDate },
         status: "approved"
       }).exec();
-    }
 
+      peopleLeaveOnMonth = peopleLeaveOnMonth.map((leave) => {
+        return {
+          ...leave.toObject(),
+          prescription: leave.prescription
+            ? `${process.env.REACT_APP_API_URL}/uploads/${leave.prescription}`
+            : null
+        }
+      })
+    }
     // Respond with aggregated data
     res.send({
       employee: emp,
@@ -127,10 +144,18 @@ leaveApp.get("/hr", verifyHR, async (req, res) => {
     }
 
     // Send the leave requests
-    const empLeaveReqs = leaveReqs
+    let empLeaveReqs = leaveReqs
       .map((req) => req.leaveApplication)
       .flat()
       .sort((a, b) => new Date(a.fromDate) - new Date(b.fromDate)); // Sort by fromDate
+    empLeaveReqs = empLeaveReqs.map((leave) => {
+      return {
+        ...leave.toObject(),
+        prescription: leave.prescription
+          ? `${process.env.REACT_APP_API_URL}/uploads/${leave.prescription}`
+          : null
+      }
+    })
     res.send(empLeaveReqs);
   } catch (err) {
     console.error("Error fetching leave requests:", err);
@@ -169,6 +194,14 @@ leaveApp.get("/lead/:id", verifyEmployee, async (req, res) => {
           path: "employee",
           select: "FirstName LastName"
         });
+      teamLeaves = teamLeaves.map((leave) => {
+        return {
+          ...leave.toObject(),
+          prescription: leave.prescription
+            ? `${process.env.REACT_APP_API_URL}/uploads/${leave.prescription}`
+            : null
+        }
+      })
       teamLeaves = teamLeaves.sort((a, b) => new Date(a.fromDate) - new Date(b.fromDate));
       const approvedLeave = teamLeaves.filter(data => data.status === "approved");
       const pendingLeave = teamLeaves.filter(data => data.status === "pending");
@@ -178,6 +211,8 @@ leaveApp.get("/lead/:id", verifyEmployee, async (req, res) => {
       res.send({ leaveData: teamLeaves, pendingLeave, upComingLeave, peoplesOnLeave, takenLeave });
     }
   } catch (error) {
+    console.log(error);
+
     res.status(500).send({ error: error.message })
   }
 });
@@ -198,7 +233,7 @@ leaveApp.get("/head/:id", verifyEmployee, async (req, res) => {
       return res.status(404).send({ error: "You are not head in any team" })
     } else {
       const { employees } = team;
-      const teamLeaves = await LeaveApplication.find({
+      let teamLeaves = await LeaveApplication.find({
         employee: { $in: employees },
         fromDate: {
           $gte: startOfMonth,
@@ -214,12 +249,19 @@ leaveApp.get("/head/:id", verifyEmployee, async (req, res) => {
           select: "FirstName LastName"
         });
       teamLeaves = teamLeaves.sort((a, b) => new Date(a.fromDate) - new Date(b.fromDate));
-      const approvedLeave = teamLeaves.filter(data => data.status === "approved");
-      const pendingLeave = teamLeaves.filter(data => data.status === "pending");
-      const upComingLeave = approvedLeave.filter(data => new Date(data.fromDate).getTime() > new Date().getTime())
-      const peoplesOnLeave = approvedLeave.filter(data => new Date(data.fromDate).getTime() === new Date().getTime())
-      const takenLeave = approvedLeave.filter(data => new Date(data.fromDate).getTime() < new Date().getTime())
-      res.send({ leaveData: teamLeaves, pendingLeave, upComingLeave, peoplesOnLeave, takenLeave });
+      teamLeaves = teamLeaves.map((leave) => {
+        return leave, leave.prescription
+          ? `${process.env.REACT_APP_API_URL}/uploads/${leaveReq.prescription}`
+          : null
+      })
+      res.send(teamLeaves)
+
+      // const approvedLeave = teamLeaves.filter(data => data.status === "approved");
+      // const pendingLeave = teamLeaves.filter(data => data.status === "pending");
+      // const upComingLeave = approvedLeave.filter(data => new Date(data.fromDate).getTime() > new Date().getTime())
+      // const peoplesOnLeave = approvedLeave.filter(data => new Date(data.fromDate).getTime() === new Date().getTime())
+      // const takenLeave = approvedLeave.filter(data => new Date(data.fromDate).getTime() < new Date().getTime())
+      // res.send({ leaveData: teamLeaves, pendingLeave, upComingLeave, peoplesOnLeave, takenLeave });
     }
   } catch (error) {
     res.status(500).send({ error: error.message })
@@ -231,15 +273,32 @@ leaveApp.get("/head/:id", verifyEmployee, async (req, res) => {
 leaveApp.get("/:id", verifyHREmployee, async (req, res) => {
   try {
     const leaveReq = await LeaveApplication.findById(req.params.id);
+
     if (!leaveReq) {
-      res.status(203).send("Id not found")
-    } else {
-      res.send(leaveReq);
+      return res.status(404).send({ message: "Leave application not found" }); // Changed to 404 for "not found"
     }
+
+    // Construct the prescription URL if the prescription field exists
+    const prescriptionUrl = leaveReq.prescription
+      ? `${process.env.REACT_APP_API_URL}/uploads/${leaveReq.prescription}`
+      : null;
+
+    // Create the updated response object
+    const updatedLeaveData = {
+      ...leaveReq.toObject(), // Convert Mongoose document to plain object
+      prescription: prescriptionUrl,
+    };
+
+    res.status(200).send(updatedLeaveData); // Explicitly send a 200 response
   } catch (err) {
-    res.status(500).send({ message: "Internal server error", details: err.message })
+    console.error("Error fetching leave application:", err);
+
+    res.status(500).send({
+      message: "Internal server error",
+      error: err.message, // Provide more details about the error
+    });
   }
-})
+});
 
 
 // get employee of leave data
@@ -281,10 +340,17 @@ leaveApp.get("/date-range/hr", verifyHR, async (req, res) => {
     // Flatten leaveApplication data
     let leaveData = employeesLeaveData.map(data => data.leaveApplication).flat();
     leaveData = leaveData.sort((a, b) => new Date(a.fromDate) - new Date(b.fromDate));
+    leaveData = leaveData.map((leave) => {
+      return {
+        ...leave.toObject(),
+        prescription: leave.prescription
+          ? `${process.env.REACT_APP_API_URL}/uploads/${leave.prescription}`
+          : null
+      }
+    })
     // Filter and calculate leave data
     const approvedLeave = leaveData.filter(data => data.status === "approved");
     const leaveInHours = approvedLeave.reduce((total, data) => total + getDayDifference(data) * 9, 0);
-
     const pendingLeave = leaveData.filter(data => data.status === "pending");
     const upComingLeave = leaveData.filter(data => new Date(data.date).getTime() > new Date().getTime());
     const peoplesOnLeave = approvedLeave.filter(data => new Date(data.date).toDateString() === new Date().toDateString());
@@ -335,6 +401,14 @@ leaveApp.get("/date-range/admin", verifyAdmin, async (req, res) => {
 
     let leaveData = employeesLeaveData.map(data => data.leaveApplication).flat();
     leaveData = leaveData.sort((a, b) => new Date(a.fromDate) - new Date(b.fromDate));
+    leaveData = leaveData.map((leave) => {
+      return {
+        ...leave.toObject(),
+        prescription: leave.prescription
+          ? `${process.env.REACT_APP_API_URL}/uploads/${leave.prescription}`
+          : null
+      }
+    })
     const approvedLeave = leaveData.filter(data => data.status === "approved");
     const leaveInHours = approvedLeave.reduce((total, data) => total + getDayDifference(data) * 9, 0);
     const pendingLeave = leaveData.filter(data => data.status === "pending");
@@ -382,6 +456,14 @@ leaveApp.get("/date-range/:empId", verifyAdminHREmployee, async (req, res) => {
     if (employeeLeaveData?.leaveApplication.length > 0) {
       let leaveData = employeeLeaveData.leaveApplication.map(data => data).flat();
       leaveData = leaveData.sort((a, b) => new Date(a.fromDate) - new Date(b.fromDate));
+      leaveData = leaveData.map((leave) => {
+        return {
+          ...leave.toObject(),
+          prescription: leave.prescription
+            ? `${process.env.REACT_APP_API_URL}/uploads/${leave.prescription}`
+            : null
+        }
+      })
       const approvedLeave = leaveData.filter(data => data.status === "approved");
       const leaveInHours = approvedLeave.reduce((total, data) => total + getDayDifference(data) * 9, 0);
       const pendingLeave = leaveData.filter(data => data.status === "pending");
@@ -416,6 +498,14 @@ leaveApp.get("/", verifyAdminHR, async (req, res) => {
       })
     } else {
       requests = requests.sort((a, b) => new Date(a.fromDate) - new Date(b.fromDate));
+      requests = requests.map((leave) => {
+        return {
+          ...leave.toObject(),
+          prescription: leave.prescription
+            ? `${process.env.REACT_APP_API_URL}/uploads/${leave.prescription}`
+            : null
+        }
+      })
       res.send(requests);
     }
   } catch (err) {

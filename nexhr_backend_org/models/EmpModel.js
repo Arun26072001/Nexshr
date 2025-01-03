@@ -20,7 +20,7 @@ var employeeSchema = new mongoose.Schema({
   isLogin: { type: Boolean, default: false },
   serialNo: { type: String },
   working: { type: String, default: "Yes" },
-  docType: { type: String },
+  docType: [{ type: String }],
   leaveApplication: [{ type: mongoose.Schema.Types.ObjectId, ref: "LeaveApplication" }],
   address: {
     street: { type: String },

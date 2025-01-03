@@ -239,12 +239,15 @@ const AddEmployeeForm = ({ details, handleScroll, handlePersonal, handleFinancia
     const [hour, min] = hourAndMin;
 
     async function changeImg(event) {
-        const files = event.target.files;
+        const { name, files } = event.target;
+
         if (files.length > 0) {
-            const file = files[0];
 
             const formData = new FormData();
-            formData.append('profile', file);
+            for (let i = 0; i < files.length; i++) {
+                formData.append(name, files[i]); // "files" is the key for the server
+            }
+
 
             try {
                 const response = await axios.post(`${process.env.REACT_APP_API_URL}/api/upload`, formData, {
@@ -252,8 +255,10 @@ const AddEmployeeForm = ({ details, handleScroll, handlePersonal, handleFinancia
                         'Content-Type': 'multipart/form-data'
                     }
                 });
-                const filename = response.data.file.filename;
-                formik.setFieldValue("profile", filename)
+                const files = response.data.files.map((file) => {
+                    return file.convertedFile
+                })
+                formik.setFieldValue("docType", files)
 
             } catch (error) {
                 console.error("Error uploading file:", error.response.data.message);
@@ -338,6 +343,7 @@ const AddEmployeeForm = ({ details, handleScroll, handlePersonal, handleFinancia
         const countryFullData = allCountries.find((country) => Object.values(country).includes(value))
         formik.setFieldValue(name, `${countryFullData.code}`)
     }
+    console.log(selectedLeaveTypes);
 
     return (
         isLoading ? <Loading /> :
@@ -486,8 +492,8 @@ const AddEmployeeForm = ({ details, handleScroll, handlePersonal, handleFinancia
                                     <span className="inputLabel">
                                         Attach Employee profile (recommended for JPG)
                                     </span>
-                                    <input type="file" name="profile" className="fileInput"
-                                        onChange={(e) => changeImg(e)}
+                                    <input type="file" name="documents" className="fileInput"
+                                        onChange={(e) => changeImg(e)} multiple
                                     />
 
                                 </div>
@@ -771,12 +777,17 @@ const AddEmployeeForm = ({ details, handleScroll, handlePersonal, handleFinancia
                                     <div className="inputLabel">
                                         Select Leave Types
                                     </div>
-                                    <TagPicker data={leaveTypes} disabled={formik.values.annualLeaveEntitlement ? false : true} title={!formik.values.annualLeaveEntitlement && "Please Enter Annual Leave"} size="lg" onChange={handleTagSelector} value={selectedLeaveTypes} className={formik.values.annualLeaveEntitlement ? "rsuite_selector" : "rsuite_selector_disabled"} style={{ width: 300, marginTop: "5px", border: "none" }} />
+                                    <TagPicker data={leaveTypes}
+                                        disabled={formik.values.annualLeaveEntitlement ? false : true}
+                                        title={!formik.values.annualLeaveEntitlement && "Please Enter Annual Leave"}
+                                        size="lg" onChange={handleTagSelector}
+                                        value={selectedLeaveTypes}
+                                        className={formik.values.annualLeaveEntitlement ? "rsuite_selector" : "rsuite_selector_disabled"}
+                                        style={{ width: 300, marginTop: "5px", border: "none" }} />
                                 </div>
                             </div>
                             <div className="row d-flex justify-content-center">
                                 {
-
                                     selectedLeaveTypes?.map((leaveName, index) => {
                                         return <div key={index} className="col-lg-6 my-2">
                                             <div className="inputLabel">
@@ -949,45 +960,13 @@ const AddEmployeeForm = ({ details, handleScroll, handlePersonal, handleFinancia
                                 {
                                     payslipFields.length > 0 &&
                                     payslipFields.map((data, index) => {
-                                        // let calculatedValue = "";
-                                        // if (data.fieldName === "basicSalary") {
-                                        //     return null;
-                                        // }
-                                        // if (data.fieldName === "incomeTax") {
-                                        //     const salary = Number(formik.values.basicSalary);
-
-                                        //     if (salary >= 84000) {
-                                        //         calculatedValue = (30 / 100) * salary; // 30% tax for <= 25,000
-                                        //     } else if (salary > 42000) {
-                                        //         calculatedValue = (20 / 100) * salary; // 20% tax for > 42,000
-                                        //     } else if (salary >= 25000) {
-                                        //         calculatedValue = (5 / 100) * salary;  // 5% tax for between 25,001 and 42,000
-                                        //     } else {
-                                        //         calculatedValue = 0;
-                                        //     }
-                                        // } else if (
-                                        //     data.fieldName === "houseRentAllowance" ||
-                                        //     data.fieldName === "conveyanceAllowance" ||
-                                        //     data.fieldName === "othersAllowance" ||
-                                        //     data.fieldName === "bonusAllowance"
-                                        // ) {
-                                        //     calculatedValue = (data.value / 100) * Number(formik.values.basicSalary);
-                                        // } else if (data.fieldName === "ProvidentFund" && Number(formik.values.basicSalary) > 15000) {
-                                        //     calculatedValue = (12 / 100) * Number(formik.values.basicSalary);
-                                        // } else if (data.fieldName === "ProfessionalTax" && Number(formik.values.basicSalary) > 21000) {
-                                        //     calculatedValue = 130;
-                                        // } else if (data.fieldName === "ESI" && Number(formik.values.basicSalary) > 21000) {
-                                        //     calculatedValue = Number(formik.values.basicSalary) * .75 / 100;
-                                        // } else {
-                                        //     calculatedValue = 0;
-                                        // }
-
                                         return (
                                             <div className="col-lg-6" key={index}>
                                                 <div className="inputLabel">
                                                     {data.fieldName[0].toUpperCase() + data.fieldName.slice(1)}
                                                 </div>
                                                 <input
+                                                    required
                                                     type={data.type}
                                                     className={`inputField`}
                                                     name={data.fieldName}
