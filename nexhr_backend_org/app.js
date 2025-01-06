@@ -46,6 +46,7 @@ const pageAuth = require("./routes/page-auth");
 const organization = require("./routes/organization");
 const userAccount = require("./routes/user-account");
 const {imgUpload} = require('./routes/imgUpload');
+const holidays = require("./routes/holidays");
 
 // MongoDB Connection
 const mongoURI = process.env.DATABASEURL;
@@ -130,6 +131,7 @@ app.use("/api/application-settings", applicationSettings);
 app.use("/api/leave-type", leaveType);
 app.use("/api/leave-application", leaveApp);
 app.use("/api/project", project);
+app.use("/api/holidays", holidays);
 app.use("/api/time-pattern", timePattern);
 app.use("/api/attendance", attendance);
 app.use("/api/clock-ins", clockIns);
@@ -182,7 +184,7 @@ io.on("connection", (socket) => {
 });
 
 // generate payslip each month of 5th
-const addPayslip = schedule.scheduleJob("10 10 5 * *", async function () {
+const addPayslip = schedule.scheduleJob("0 10 5 * *", async function () {
   try {
     const response = await axios.post(`${process.env.REACT_APP_API_URL}/api/payslip/`, {});
     console.log("Payslip generation response:", response.data);

@@ -550,12 +550,12 @@ leaveApp.post("/:empId", verifyAdminHREmployee, upload.single("prescription"), a
       }
     }
 
-    // Check if there are pending leaves for the same type
-    const pendingLeaveData = await LeaveApplication.find({
-      leaveType: { $regex: new RegExp("^" + req.body.leaveType, "i") },
-      status: "pending",
-      employee: req.params.empId,
-    });
+    // // Check if there are pending leaves for the same type
+    // const pendingLeaveData = await LeaveApplication.find({
+    //   leaveType: { $regex: new RegExp("^" + req.body.leaveType, "i") },
+    //   status: "pending",
+    //   employee: req.params.empId,
+    // });
 
     // if (pendingLeaveData.length > 0) {
     //   return res.status(400).send({ error: "Please wait for the previous leave response!" });
@@ -596,8 +596,9 @@ leaveApp.post("/:empId", verifyAdminHREmployee, upload.single("prescription"), a
     const leaveTypeName = req.body.leaveType;
 
     const leaveDaysCount = empData?.typesOfLeaveRemainingDays[leaveTypeName] || 0;
+    console.log(leaveDaysCount, takenLeaveCount);
 
-    if (leaveDaysCount <= takenLeaveCount) {
+    if (leaveDaysCount < takenLeaveCount) {
       return res.status(400).send({ error: `${leaveTypeName} leave limit reached.` });
     }
 

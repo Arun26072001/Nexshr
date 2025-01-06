@@ -8,6 +8,7 @@ import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import NoInternet from "./components/NoInternet.jsx";
 import { jwtDecode } from "jwt-decode";
+import "react-datepicker/dist/react-datepicker.css";
 
 export const EssentialValues = createContext(null);
 

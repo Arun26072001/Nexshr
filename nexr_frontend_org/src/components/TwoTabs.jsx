@@ -11,6 +11,10 @@ import { fetchLeaveRequests } from './ReuseableAPI';
 import CircleBar from './CircleProcess';
 import { useNavigate } from 'react-router-dom';
 import { EssentialValues } from '../App';
+import DatePicker from "react-multi-date-picker";
+import axios from 'axios';
+import { toast } from 'react-toastify';
+import HolidayPicker from './MultipleDatePicker';
 
 function CustomTabPanel(props) {
   const { children, value, index, ...other } = props;
@@ -47,43 +51,57 @@ function a11yProps(index) {
 
 export default function Twotabs() {
   const { whoIs } = useContext(EssentialValues);
+  const url = process.env.REACT_APP_API_URL;
   const navigate = useNavigate();
   const { data } = useContext(EssentialValues);
-  const { annualLeave, _id } = data;
+  const { annualLeave, _id, token } = data;
   const [value, setValue] = useState(0);
   const [takenLeave, setTakenLeave] = useState(0);
   const today = new Date();
   const [leaveRequests, setLeaveRequests] = useState([]);
   const [upComingHoliday, setupComingHoliday] = useState("");
-
-  const dateArray = [
-    `${new Date().getFullYear()}-01-01`,
-    `${new Date().getFullYear()}-01-15`,
-    `${new Date().getFullYear()}-01-26`,
-    `${new Date().getFullYear()}-03-29`,
-    `${new Date().getFullYear()}-05-01`,
-    `${new Date().getFullYear()}-08-15`,
-    `${new Date().getFullYear()}-10-02`,
-    `${new Date().getFullYear()}-10-11`,
-    `${new Date().getFullYear()}-10-31`,
-    `${new Date().getFullYear()}-12-25`
-  ];
+  const [holidays, setHolidays] = useState([]);
+  const [isViewHoliday, setIsViewHoliday] = useState()
 
   const handleChange = (event, newValue) => {
     setValue(newValue);
   };
 
   useEffect(() => {
-    for (let i = 0; i < dateArray.length; i++) {
-      const holidayDate = new Date(dateArray[i]);
-      if (holidayDate > today) {
-        const options = { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' };
-        setupComingHoliday(new Intl.DateTimeFormat('default', options).format(holidayDate).replace(",", ""))
-        break;
+    function setDateFormatForHoliday() {
+      for (let i = 0; i < holidays.length; i++) {
+        const holidayDate = new Date(holidays[i]);
+        if (holidayDate > today) {
+          const options = { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' };
+          setupComingHoliday(new Intl.DateTimeFormat('default', options).format(holidayDate).replace(",", ""))
+          break;
+        }
       }
     }
-    // return (() => { })
+
+    if (holidays.length > 0) {
+      setDateFormatForHoliday()
+    }
+
   }, []);
+
+
+  useEffect(() => {
+    async function getHoliday() {
+      try {
+        const res = await axios.get(`${url}/api/holiday/${new Date().getFullYear()}`, {
+          headers: {
+            Authorization: token || ""
+          }
+        });
+        setHolidays(res.data.holidays)
+      } catch (error) {
+        toast.warn(error?.response?.data?.error)
+      }
+    }
+    
+    getHoliday();
+  }, [])
 
   useEffect(() => {
     // debugger;
@@ -117,7 +135,6 @@ export default function Twotabs() {
       setTakenLeave(0);
     }
   }, []);
-
 
   return (
     <Box sx={{ width: '100%', border: '2px solid rgb(208 210 210)', borderRadius: '5px', height: "100%" }}>
@@ -163,11 +180,14 @@ export default function Twotabs() {
             })
           }
 
-          <div className="text-dark">
-            <p className='text-start'>Next up - Public Holiday</p>
-            <p className='text-primary text-start'><b>{upComingHoliday}</b></p>
-            <p className='mt-3 text-start'>You've also taken</p>
-          </div>
+          {
+            holidays?.length > 0 ?
+              <div className="text-dark">
+                <p className='text-start'>Next up - Public Holiday</p>
+                <p className='text-primary text-start'><b>{upComingHoliday}</b></p>
+                <p className='mt-3 text-start'>You've also taken</p>
+              </div> : <HolidayPicker />
+          }
           <div className='text-center'>
             <div className='w-100'>
               <button className='btn btn-outline-warning w-100 my-2'><WatchLaterIcon /> 0 Lateness</button>

@@ -7,7 +7,6 @@ import axios from "axios";
 import { toast } from "react-toastify";
 import Loading from "../Loader";
 import { fetchLeaveRequests } from "../ReuseableAPI";
-import "react-datepicker/dist/react-datepicker.css";
 import DatePicker from "react-datepicker";
 import TextEditor from "./TextEditor";
 
@@ -177,11 +176,9 @@ const LeaveRequestForm = () => {
   }
 
   function handleChange(value) {
-    console.log(value);
     setContent(value);
     formik.setFieldValue("reasonForLeave", value)
   }
-console.log(formik.values);
 
   // const handleFileChange = async (event) => {
   //   const files = event.target.files;
