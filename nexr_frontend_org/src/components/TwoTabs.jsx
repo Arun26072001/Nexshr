@@ -11,7 +11,6 @@ import { fetchLeaveRequests } from './ReuseableAPI';
 import CircleBar from './CircleProcess';
 import { useNavigate } from 'react-router-dom';
 import { EssentialValues } from '../App';
-import DatePicker from "react-multi-date-picker";
 import axios from 'axios';
 import { toast } from 'react-toastify';
 import HolidayPicker from './MultipleDatePicker';
@@ -61,11 +60,15 @@ export default function Twotabs() {
   const [leaveRequests, setLeaveRequests] = useState([]);
   const [upComingHoliday, setupComingHoliday] = useState("");
   const [holidays, setHolidays] = useState([]);
-  const [isViewHoliday, setIsViewHoliday] = useState()
-
+  const [isAddHolidays, setIsAddHolidays] = useState(false);
+  
   const handleChange = (event, newValue) => {
     setValue(newValue);
   };
+
+  function changeHolidayUI() {
+    setIsAddHolidays(!isAddHolidays)
+  }
 
   useEffect(() => {
     function setDateFormatForHoliday() {
@@ -83,13 +86,13 @@ export default function Twotabs() {
       setDateFormatForHoliday()
     }
 
-  }, []);
+  }, [holidays]);
 
 
   useEffect(() => {
     async function getHoliday() {
       try {
-        const res = await axios.get(`${url}/api/holiday/${new Date().getFullYear()}`, {
+        const res = await axios.get(`${url}/api/holidays/${new Date().getFullYear()}`, {
           headers: {
             Authorization: token || ""
           }
@@ -99,9 +102,9 @@ export default function Twotabs() {
         toast.warn(error?.response?.data?.error)
       }
     }
-    
+
     getHoliday();
-  }, [])
+  }, [isAddHolidays])
 
   useEffect(() => {
     // debugger;
@@ -136,6 +139,8 @@ export default function Twotabs() {
     }
   }, []);
 
+  console.log(holidays);
+  
   return (
     <Box sx={{ width: '100%', border: '2px solid rgb(208 210 210)', borderRadius: '5px', height: "100%" }}>
       <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
@@ -186,7 +191,7 @@ export default function Twotabs() {
                 <p className='text-start'>Next up - Public Holiday</p>
                 <p className='text-primary text-start'><b>{upComingHoliday}</b></p>
                 <p className='mt-3 text-start'>You've also taken</p>
-              </div> : <HolidayPicker />
+              </div> : <HolidayPicker changeHolidayUI={changeHolidayUI} />
           }
           <div className='text-center'>
             <div className='w-100'>

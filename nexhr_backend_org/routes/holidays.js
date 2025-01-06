@@ -6,10 +6,13 @@ const router = express.Router();
 router.post("/", verifyAdminHR, async (req, res) => {
     try {
         const body = {
-            ...req.body,
-            currentYear: new Date().getFullYear()
+            currentYear: new Date().getFullYear(),
+            ...req.body
         }
-        console.log(body);
+        const isExist = await Holiday.findOne({currentYear: body.currentYear});
+        if(isExist){
+            return res.status(400).send({error: "Already updated this year of holidays!"})
+        }
 
         const validation = HolidayValidation.validate(body);
         const { error } = validation;
@@ -17,7 +20,7 @@ router.post("/", verifyAdminHR, async (req, res) => {
             return res.status(400).send({ error: error.details[0].message })
         }
         const response = await Holiday.create(body);
-        return res.send(response);
+        return res.send({message: "holiday has been added.", data: response.data});
     } catch (error) {
         return res.status(500).send({ error: error.message })
     }
