@@ -193,6 +193,10 @@ const addPayslip = schedule.scheduleJob("0 10 5 * *", async function () {
   }
 });
 
+const makeKnow = schedule.scheduleJob("*/1 * * * *", async() => {
+  
+});
+
 // Start Server
 const port = process.env.PORT;
 server.listen(port, () => console.log(`Server listening on port ${port}!`));

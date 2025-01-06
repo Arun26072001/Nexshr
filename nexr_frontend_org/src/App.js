@@ -32,7 +32,7 @@ const App = () => {
   const [isLogin, setIsLogin] = useState(localStorage.getItem("isLogin") === "true");
   const navigate = useNavigate();
   const location = useLocation();
-  console.log(url);
+  // console.log(url);
 
   // Helper Functions
   const handleLogout = () => {

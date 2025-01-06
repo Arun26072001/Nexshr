@@ -6,7 +6,8 @@ import * as Yup from "yup";
 import axios from "axios";
 import { toast } from "react-toastify";
 import Loading from "../Loader";
-import { fetchLeaveRequests } from "../ReuseableAPI";
+import { fetchLeaveRequests, getHoliday } from "../ReuseableAPI";
+import "react-datepicker/dist/react-datepicker.css";
 import DatePicker from "react-datepicker";
 import TextEditor from "./TextEditor";
 
@@ -91,6 +92,7 @@ const LeaveRequestForm = () => {
           });
           toast.success(res.data.message);
           resetForm();
+          setContent("")
           navigate(-1); // Navigate back
         } catch (err) {
           toast.error(err?.response?.data?.error);
@@ -156,6 +158,7 @@ const LeaveRequestForm = () => {
       toast.error("Failed to fetch leave requests. Please try again.");
     }
   };
+
   useEffect(() => {
     gettingLeaveRequests();
   }, [empId]);
@@ -180,31 +183,18 @@ const LeaveRequestForm = () => {
     formik.setFieldValue("reasonForLeave", value)
   }
 
-  // const handleFileChange = async (event) => {
-  //   const files = event.target.files;
-  //   if (files.length > 0) {
-  //     const file = files[0];
-  //     console.log(file);
-
-  //     const formData = new FormData();
-  //     formData.append('profile', file);
-
-  //     try {
-  //       const response = await axios.post(`${process.env.REACT_APP_API_URL}/api/upload`, formData, {
-  //         headers: {
-  //           'Content-Type': 'multipart/form-data'
-  //         }
-  //       });
-  //       const filename = response.data.convertedFile;
-  //       formik.setFieldValue("prescription", filename)
-
-  //     } catch (error) {
-  //       console.log(error);
-
-  //       // console.error("Error uploading file:", error.response.data.message);
-  //     }
-  //   }
-  // };
+  useEffect(() => {
+    async function gettingHoliday() {
+      try {
+        const res = await getHoliday();
+        setExcludeDates(res.map((data)=> new Date(data)))
+      } catch (error) {
+        toast.error(error)
+      }
+    }
+    gettingHoliday();
+  }, [])
+  
 
   return typeOfLeave ? (
     <form onSubmit={formik.handleSubmit}>

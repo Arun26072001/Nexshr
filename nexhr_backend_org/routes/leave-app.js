@@ -18,6 +18,86 @@ function getDayDifference(leave) {
   return timeDifference === 0 ? 1 : timeDifference / (1000 * 60 * 60 * 24);
 }
 
+leaveApp.get("/make-know", async (req, res) => {
+  try {
+    const leaveApps = await LeaveApplication.find({ status: "pending" }, "employee")
+      .populate({
+        path: "employee",
+        select: "FirstName LastName Email",
+        // populate: { path: "team" },
+        populate: {
+          path: "team",
+          populate: [
+            {
+              path: "lead",
+              select: "Email"
+            },
+            {
+              path: "head",
+              select: "Email"
+            }
+          ]
+        },
+      })
+      .exec();
+
+    const emps = leaveApps?.map(async (empData) => {
+      const transporter = nodemailer.createTransport({
+        service: "gmail",
+        auth: {
+          user: process.env.FROM_MAIL,
+          pass: process.env.MAILPASSWORD,
+        },
+      });
+
+      const htmlContent = `
+                 <!DOCTYPE html>
+                 <html lang="en">
+                 <head>
+                   <meta charset="UTF-8">
+                   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                   <title>NexsHR</title>
+                   <style>
+                     body { font-family: Arial, sans-serif; background-color: #f6f9fc; color: #333; }
+                     .container { max-width: 600px; margin: auto; padding: 20px; background-color: #fff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); }
+                     .header { text-align: center; padding: 20px; }
+                     .header img { max-width: 100px; }
+                     .content { margin: 20px 0; }
+                     .footer { text-align: center; font-size: 14px; margin-top: 20px; color: #777; }
+                   </style>
+                 </head>
+                 <body>
+                   <div class="container">
+                     <div class="header">
+                       <img src="https://imagedelivery.net/r89jzjNfZziPHJz5JXGOCw/1dd59d6a-7b64-49d7-ea24-1366e2f48300/public" alt="Logo" />
+                       <h1>${empData.FirstName} ${empData.LastName} has been apply leave for ${req.body.fromDate} - ${req.body.toDate}</h1>
+                     </div>
+                     <div class="content">
+                         <p>Hi all,</p>
+                         <p>I have apply leave for ${req.body.fromDate} - ${req.body.toDate}, due to ${req.body.reasonForLeave}. Please response for that </p>
+                         <p>Thank you!</p>
+                     </div>
+                   </div>
+                 </body>
+                 </html>
+               `;
+      const mailList = [
+        empData.team.lead.Email,
+        empData.team.head.Email
+      ]
+      await transporter.sendMail({
+        from: process.env.FROM_MAIL,
+        to: mailList,
+        subject: "Leave Application Notification",
+        html: htmlContent,
+      });
+    })
+  } catch (error) {
+    console.log(error);
+
+  }
+})
+
 leaveApp.get("/emp/:empId", verifyAdminHREmployee, async (req, res) => {
   try {
     const { empId } = req.params;
@@ -300,7 +380,6 @@ leaveApp.get("/:id", verifyHREmployee, async (req, res) => {
   }
 });
 
-
 // get employee of leave data
 leaveApp.get("/date-range/hr", verifyHR, async (req, res) => {
   let startOfMonth;
@@ -550,17 +629,6 @@ leaveApp.post("/:empId", verifyAdminHREmployee, upload.single("prescription"), a
       }
     }
 
-    // // Check if there are pending leaves for the same type
-    // const pendingLeaveData = await LeaveApplication.find({
-    //   leaveType: { $regex: new RegExp("^" + req.body.leaveType, "i") },
-    //   status: "pending",
-    //   employee: req.params.empId,
-    // });
-
-    // if (pendingLeaveData.length > 0) {
-    //   return res.status(400).send({ error: "Please wait for the previous leave response!" });
-    // }
-
     // Fetch approved leave data for calculating taken leave count
     const approvedLeaveData = await LeaveApplication.find({
       leaveType: { $regex: new RegExp("^" + req.body.leaveType, "i") },
@@ -596,7 +664,6 @@ leaveApp.post("/:empId", verifyAdminHREmployee, upload.single("prescription"), a
     const leaveTypeName = req.body.leaveType;
 
     const leaveDaysCount = empData?.typesOfLeaveRemainingDays[leaveTypeName] || 0;
-    console.log(leaveDaysCount, takenLeaveCount);
 
     if (leaveDaysCount < takenLeaveCount) {
       return res.status(400).send({ error: `${leaveTypeName} leave limit reached.` });

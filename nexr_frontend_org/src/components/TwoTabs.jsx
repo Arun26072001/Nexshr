@@ -7,7 +7,7 @@ import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
 import CoronavirusIcon from '@mui/icons-material/Coronavirus';
 import WatchLaterIcon from '@mui/icons-material/WatchLater';
-import { fetchLeaveRequests } from './ReuseableAPI';
+import { fetchLeaveRequests, getHoliday } from './ReuseableAPI';
 import CircleBar from './CircleProcess';
 import { useNavigate } from 'react-router-dom';
 import { EssentialValues } from '../App';
@@ -61,7 +61,7 @@ export default function Twotabs() {
   const [upComingHoliday, setupComingHoliday] = useState("");
   const [holidays, setHolidays] = useState([]);
   const [isAddHolidays, setIsAddHolidays] = useState(false);
-  
+
   const handleChange = (event, newValue) => {
     setValue(newValue);
   };
@@ -90,20 +90,15 @@ export default function Twotabs() {
 
 
   useEffect(() => {
-    async function getHoliday() {
+    async function gettingHoliday() {
       try {
-        const res = await axios.get(`${url}/api/holidays/${new Date().getFullYear()}`, {
-          headers: {
-            Authorization: token || ""
-          }
-        });
-        setHolidays(res.data.holidays)
+        const res = await getHoliday();
+        setHolidays(res)
       } catch (error) {
-        toast.warn(error?.response?.data?.error)
+        toast.error(error)
       }
     }
-
-    getHoliday();
+    gettingHoliday();
   }, [isAddHolidays])
 
   useEffect(() => {
@@ -139,8 +134,6 @@ export default function Twotabs() {
     }
   }, []);
 
-  console.log(holidays);
-  
   return (
     <Box sx={{ width: '100%', border: '2px solid rgb(208 210 210)', borderRadius: '5px', height: "100%" }}>
       <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>

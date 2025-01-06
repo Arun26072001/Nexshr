@@ -317,8 +317,22 @@ const addSecondsToTime = (timeString, secondsToAdd) => {
     };
 };
 
+async function getHoliday() {
+    try {
+      const res = await axios.get(`${url}/api/holidays/${new Date().getFullYear()}`, {
+        headers: {
+          Authorization: token || ""
+        }
+      });
+      return res.data.holidays
+    } catch (error) {
+      return error?.response?.data?.error
+    }
+  }
+
 
 export {
+    getHoliday,
     addDataAPI,
     getDataAPI,
     updateEmp,
