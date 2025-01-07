@@ -1,11 +1,12 @@
 const express = require('express');
 const router = express.Router();
-const { Employee, employeeSchema } = require('../models/EmpModel');
+const { Employee } = require('../models/EmpModel');
 const { verifyHR, verifyAdminHREmployee, verifyAdminHR } = require('../auth/authMiddleware');
 const { getDayDifference } = require('./leave-app');
-const { PaySlipInfo } = require('../models/PaySlipInfoModel');
-const nodemailer = require("nodemailer");
-const { getPayslipInfoModel } = require('./payslipInfo');
+// const { PaySlipInfo } = require('../models/PaySlipInfoModel');
+// const nodemailer = require("nodemailer");
+// const { getPayslipInfoModel } = require('./payslipInfo');
+const sendMail = require("./mailSender");
 
 router.get("/", verifyAdminHR, async (req, res) => {
   try {
@@ -266,15 +267,7 @@ router.post("/", verifyAdminHR, async (req, res) => {
       </body>
       </html>`;
 
-    const transporter = nodemailer.createTransport({
-      service: "gmail",
-      auth: {
-        user: process.env.FROM_MAIL,
-        pass: process.env.MAILPASSWORD,
-      },
-    });
-
-    await transporter.sendMail({
+    sendMail({
       from: process.env.FROM_MAIL,
       to: Email,
       subject: "Welcome to NexsHR",

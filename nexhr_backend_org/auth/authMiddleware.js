@@ -1,7 +1,7 @@
 const jwt = require('jsonwebtoken');
 const jwtKey = process.env.ACCCESS_SECRET_KEY;
-const axios = require("axios");
-const cen_url = process.env.CENTRALIZATION_BASEURL;
+// const axios = require("axios");
+// const cen_url = process.env.CENTRALIZATION_BASEURL;
 
 function verifyHR(req, res, next) {
   const token = req.headers['authorization'];

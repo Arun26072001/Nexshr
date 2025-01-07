@@ -5,6 +5,8 @@ import PowerSettingsNewRoundedIcon from "@mui/icons-material/PowerSettingsNewRou
 import { TimerStates } from "./payslip/HRMDashboard";
 import { toast } from "react-toastify";
 import WavingHandRoundedIcon from '@mui/icons-material/WavingHandRounded';
+import { Modal, Button } from "rsuite";
+import AddRoundedIcon from '@mui/icons-material/AddRounded';
 
 const ActivityTimeTracker = () => {
     const {
@@ -13,10 +15,11 @@ const ActivityTimeTracker = () => {
         workTimeTracker,
         isStartActivity,
         timeOption,
-        trackTimer
+        trackTimer, changeReasonForLate
     } = useContext(TimerStates);
     const [isDisabled, setIsDisabled] = useState(false);
     const EmpName = localStorage.getItem("Name") || "Employee";
+    const [isViewTakeTime, setIsTaketime] = useState(false);
 
     const [sec, setSec] = useState(
         Number(workTimeTracker?.[timeOption]?.timeHolder?.split(':')[2] || 0)
@@ -73,12 +76,25 @@ const ActivityTimeTracker = () => {
         }
     };
 
+    function changeViewReasonForTaketime() {
+        setIsTaketime(!isViewTakeTime)
+    }
+
     // Stop the timer with activity
     const stopTimer = async () => {
         if (timerRef.current) {
             await stopActivityTimer();
             clearInterval(timerRef.current);
             timerRef.current = null;
+            if ((hour <= 1
+                && min >= 20
+                && ["morningBreak", "eveningBreak"].includes(timeOption)
+                && !workTimeTracker[timeOption].reasonForLate)
+                || (hour <= 1 && min >= 40
+                    && timeOption === "lunch"
+                    && !workTimeTracker[timeOption].reasonForLate)) {
+                changeViewReasonForTaketime()
+            }
         }
     };
 
@@ -87,6 +103,17 @@ const ActivityTimeTracker = () => {
         toast.warning("Please Punch In!")
     };
 
+    function checkIsEnterReasonforLate() {
+        console.log(workTimeTracker[timeOption].reasonForLate);
+        console.log(timeOption);
+        
+        if (["", undefined].includes(workTimeTracker[timeOption].reasonForLate)) {
+            localStorage.setItem("isAddReasonForLate", false)
+        } else {
+            localStorage.setItem("isAddReasonForLate", true)
+        }
+        changeViewReasonForTaketime();
+    }
 
     // Manage timer state based on startingTime and endingTime
     useEffect(() => {
@@ -119,8 +146,45 @@ const ActivityTimeTracker = () => {
     const formattedName = EmpName
         ? EmpName.charAt(0).toUpperCase() + EmpName.slice(1)
         : '';
+
     return (
         <>
+            {
+                isViewTakeTime && <Modal open={isViewTakeTime} size="sm" backdrop="static">
+                    <Modal.Header >
+                        <Modal.Title>
+                            Reason For Late
+                        </Modal.Title>
+                    </Modal.Header >
+
+                    <Modal.Body>
+                        <div className="modelInput">
+                            <p>{timeOption[0].toUpperCase() + timeOption.slice(1)} Reason For Late</p>
+                            <input
+                                className='form-control'
+                                type="text"
+                                name={`reasonForLate`}
+                                value={workTimeTracker[timeOption]?.reasonForLate}
+                                onChange={(e) => changeReasonForLate(e)}
+                                placeholder={`Please enter late reason`}
+                            />
+                        </div>
+                    </Modal.Body>
+
+                    <Modal.Footer>
+                        <Button onClick={checkIsEnterReasonforLate} appearance="subtle">
+                            Close
+                        </Button>
+                        <Button
+                            onClick={checkIsEnterReasonforLate}
+                            appearance="primary"
+                            disabled={workTimeTracker[timeOption].reasonForLate ? false : true}
+                        >
+                            Add
+                        </Button>
+                    </Modal.Footer>
+                </Modal >
+            }
             <div className="clockins">
                 <span className='payslipTitle'>Dashboard</span>
                 <CustomDropdown isDisabled={isDisabled} />
@@ -138,6 +202,28 @@ const ActivityTimeTracker = () => {
                     </div>
                 </div>
                 <div className="col-lg-6 col-md-4 col-12 d-flex justify-content-end gap-2 align-items-center">
+                    {
+                        (
+                            (
+                                hour <= 1 &&
+                                min >= 2 &&
+                                ["morningBreak", "eveningBreak"].includes(timeOption) &&
+                                !workTimeTracker[timeOption]?.reasonForLate
+                            ) || (
+                                hour <= 1 &&
+                                min >= 40 &&
+                                timeOption === "lunch" &&
+                                !workTimeTracker[timeOption]?.reasonForLate
+                            )
+                        ) && (
+                            <button
+                                className="btn btn-outline-dark"
+                                onClick={changeViewReasonForTaketime}
+                            >
+                                <AddRoundedIcon />
+                            </button>
+                        )
+                    }
                     <div className={`timer text-light ${isDisabled ? "bg-success" : "bg-danger"}`}>
                         <span>{hour.toString().padStart(2, '0')}</span> :
                         <span>{min.toString().padStart(2, '0')}</span> :

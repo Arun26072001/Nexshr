@@ -16,8 +16,8 @@ var leaveApplicationSchema = new mongoose.Schema({
   Hr: { type: String, default: "pending" },
   appliedOn: { type: Date, default: new Date().toISOString() },
   approvedOn: { type: Date },
-  approverId: { type: mongoose.Schema.Types.ObjectId, ref: 'Employee' }
-});
+  approverId: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Employee' }]
+}, { timestamps: true });
 
 var LeaveApplication = mongoose.model(
   "LeaveApplication",

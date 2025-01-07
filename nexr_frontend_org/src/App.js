@@ -32,14 +32,18 @@ const App = () => {
   const [isLogin, setIsLogin] = useState(localStorage.getItem("isLogin") === "true");
   const navigate = useNavigate();
   const location = useLocation();
-  // console.log(url);
 
   // Helper Functions
   const handleLogout = () => {
     if (isStartLogin || isStartActivity) {
       toast.warn("You can't logout until the timer stops.");
       return;
+    } else if (localStorage.getItem("isAddReasonForLate") === "false") {
+      toast.warn("We won't allow you to logout without a reason for being late.");
+      return;
     }
+    console.log(localStorage.getItem("isAddReasonForLate"));
+    
     localStorage.clear();
     setData({ _id: "", Account: "", Name: "", token: "", annualLeave: 0 });
     setWhoIs("");

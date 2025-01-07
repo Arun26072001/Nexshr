@@ -4,7 +4,7 @@ const { verifyAdminHREmployee, verifyAdminHR } = require("../auth/authMiddleware
 const { clockInsValidation, ClockIns } = require("../models/ClockInsModel");
 const { Employee } = require("../models/EmpModel");
 const { getDayDifference } = require("./leave-app");
-const nodemailer = require("nodemailer");
+const sendMail = require("./mailSender");
 
 function timeToMinutes(timeStr) {
     const [hours, minutes, seconds] = timeStr.split(":").map(Number);
@@ -151,14 +151,10 @@ router.post("/:id", verifyAdminHREmployee, async (req, res) => {
     }
 });
 
-
 router.get("/:id", verifyAdminHREmployee, async (req, res) => {
     // Helper function to convert time in HH:MM:SS format to total minutes
-
     try {
-
         const queryDate = new Date(String(req.query.date));
-
         // Create start and end of the day for the date comparison
         const startOfDay = new Date(queryDate.setHours(0, 0, 0, 0));
         const endOfDay = new Date(queryDate.setHours(23, 59, 59, 999));
@@ -248,7 +244,6 @@ router.get("/:id", verifyAdminHREmployee, async (req, res) => {
         return res.status(500).send({ error: err.message });
     }
 });
-
 
 router.get("/item/:id", verifyAdminHREmployee, async (req, res) => {
     const convertToMinutes = (start, end) => {
@@ -448,7 +443,6 @@ router.get("/employee/:empId", verifyAdminHREmployee, async (req, res) => {
 router.get("/sendmail/:id/:clockinId", verifyAdminHREmployee, async (req, res) => {
     try {
         // Fetch employee leave data
-
         const emp = await Employee.findById(req.params.id).populate({
             path: "clockIns",
             match: { _id: req.params.clockinId }
@@ -549,15 +543,7 @@ router.get("/sendmail/:id/:clockinId", verifyAdminHREmployee, async (req, res) =
                    </html>
                  `;
 
-        const transporter = nodemailer.createTransport({
-            service: "gmail",
-            auth: {
-                user: process.env.FROM_MAIL,
-                pass: process.env.MAILPASSWORD,
-            },
-        });
-
-        await transporter.sendMail({
+        sendMail({
             from: process.env.FROM_MAIL,
             to: emp.Email,
             subject: "You have completed 8 of Today working hours",

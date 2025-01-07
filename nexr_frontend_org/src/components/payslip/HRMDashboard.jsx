@@ -57,8 +57,15 @@ export default function HRMDashboard() {
     const [reloadRole, setReloadRole] = useState(false);
     const [syncTimer, setSyncTimer] = useState(false);
     const [isUpdatedRequest, setIsUpdatedReqests] = useState(false);
+
     // files for payroll
     const files = ['payroll', 'value', 'manage', 'payslip'];
+    const startAndEndTime1 = {
+        startingTime: [],
+        endingTime: [],
+        timeHolder: "00:00:00",
+        reasonForLate: ""
+    };
     const startAndEndTime = {
         startingTime: [],
         endingTime: [],
@@ -69,9 +76,9 @@ export default function HRMDashboard() {
         date: new Date(),
         login: { ...startAndEndTime },
         meeting: { ...startAndEndTime },
-        morningBreak: { ...startAndEndTime },
-        lunch: { ...startAndEndTime },
-        eveningBreak: { ...startAndEndTime },
+        morningBreak: { ...startAndEndTime1 },
+        lunch: { ...startAndEndTime1 },
+        eveningBreak: { ...startAndEndTime1 },
         event: { ...startAndEndTime }
     });
 
@@ -91,6 +98,19 @@ export default function HRMDashboard() {
             const filterRequests = fullLeaveRequests?.leaveData.filter((leave) => leave.employee.FirstName.toLowerCase().includes(empName));
             setLeaveRequests((pre) => ({ ...pre, leaveData: filterRequests }));
         }
+    }
+
+    // change reason for leave input field
+    function changeReasonForLate(e) {
+        const { value } = e.target;
+      
+        setWorkTimeTracker((pre) => ({
+            ...pre,
+            [timeOption]: {
+                ...pre[timeOption],
+                reasonForLate: value
+            }
+        }))
     }
 
     const startLoginTimer = async () => {
@@ -168,6 +188,7 @@ export default function HRMDashboard() {
             localStorage.setItem("isStartActivity", true);
             setIsStartActivity(true);
             setWorkTimeTracker(updatedState);
+            localStorage.setItem("timeOption", timeOption);
             toast.success(`${timeOption} timer has been started!`);
         } catch (error) {
             console.error('Error updating data:', error);
@@ -336,9 +357,10 @@ export default function HRMDashboard() {
         localStorage.setItem("isStartLogin", isStartLogin);
         localStorage.setItem("isStartActivity", isStartActivity);
     }, [isStartLogin, isStartActivity]);
+    console.log(workTimeTracker);
 
     return (
-        <TimerStates.Provider value={{ workTimeTracker, reloadRolePage, setIsEditEmp, updateWorkTracker, trackTimer, startLoginTimer, stopLoginTimer, startActivityTimer, stopActivityTimer, setWorkTimeTracker, updateClockins, timeOption, isStartLogin, isStartActivity, changeEmpEditForm, isEditEmp }}>
+        <TimerStates.Provider value={{ workTimeTracker, reloadRolePage, setIsEditEmp, updateWorkTracker, trackTimer, startLoginTimer, stopLoginTimer, changeReasonForLate, startActivityTimer, stopActivityTimer, setWorkTimeTracker, updateClockins, timeOption, isStartLogin, isStartActivity, changeEmpEditForm, isEditEmp }}>
             <Routes >
                 <Route path="/" element={<Parent />} >
                     <Route index element={<Dashboard data={data} />} />

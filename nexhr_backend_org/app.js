@@ -184,7 +184,7 @@ io.on("connection", (socket) => {
 });
 
 // generate payslip each month of 5th
-const addPayslip = schedule.scheduleJob("0 10 5 * *", async function () {
+schedule.scheduleJob("0 10 5 * *", async function () {
   try {
     const response = await axios.post(`${process.env.REACT_APP_API_URL}/api/payslip/`, {});
     console.log("Payslip generation response:", response.data);
@@ -193,14 +193,16 @@ const addPayslip = schedule.scheduleJob("0 10 5 * *", async function () {
   }
 });
 
-// const makeKnow = schedule.scheduleJob("*/1 * * * *", async () => {
-//   try {
-//     const response = await axios.get(`${process.env.REACT_APP_API_URL}/api/leave-application/make-know`);
-//     console.log(response.data);
-//   } catch (error) {
-//     console.log(error.response.data.error);
-//   }
-// });
+schedule.scheduleJob("* 10 * * *", async () => {
+  try {
+    const response = await axios.get(`${process.env.REACT_APP_API_URL}/api/leave-application/make-know`);
+    console.log(response.data);
+  } catch (error) {
+    console.log(error.response.data.error);
+  }
+});
+
+// schedule.scheduleJob
 
 // Start Server
 const port = process.env.PORT;

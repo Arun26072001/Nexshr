@@ -3,13 +3,13 @@ const leaveApp = express.Router();
 const { LeaveApplication,
   LeaveApplicationValidation
 } = require('../models/LeaveAppModel');
-const nodemailer = require("nodemailer");
 const { Employee } = require('../models/EmpModel');
 const { verifyHR, verifyHREmployee, verifyEmployee, verifyAdmin, verifyAdminHREmployee, verifyAdminHR } = require('../auth/authMiddleware');
 const { Position } = require('../models/PositionModel');
 const { Team } = require('../models/TeamModel');
 const { upload } = require('./imgUpload');
 const now = new Date();
+const sendMail = require("./mailSender");
 
 function getDayDifference(leave) {
   let toDate = new Date(leave.toDate);
@@ -20,7 +20,7 @@ function getDayDifference(leave) {
 
 leaveApp.get("/make-know", async (req, res) => {
   try {
-    const leaveApps = await LeaveApplication.find({ status: "pending" }, "employee")
+    const leaveApps = await LeaveApplication.find({ status: "pending" })
       .populate({
         path: "employee",
         select: "FirstName LastName Email",
@@ -40,21 +40,14 @@ leaveApp.get("/make-know", async (req, res) => {
       })
       .exec();
 
-    const { fromDate, toDate, reasonForLeave } = req.body; // Destructure request body
+    // const { fromDate, toDate, reasonForLeave } = req.body; // Destructure request body
 
     for (const empData of leaveApps) {
       if (!empData.employee?.team) continue; // Skip if team data is missing
-
+      console.log(empData);
+      
       const { lead, head } = empData.employee.team;
       if (!lead?.Email || !head?.Email) continue; // Skip if lead or head email is missing
-
-      const transporter = nodemailer.createTransport({
-        service: "gmail",
-        auth: {
-          user: process.env.FROM_MAIL,
-          pass: process.env.MAILPASSWORD,
-        },
-      });
 
       const htmlContent = `
         <!DOCTYPE html>
@@ -76,11 +69,11 @@ leaveApp.get("/make-know", async (req, res) => {
           <div class="container">
             <div class="header">
               <img src="https://imagedelivery.net/r89jzjNfZziPHJz5JXGOCw/1dd59d6a-7b64-49d7-ea24-1366e2f48300/public" alt="Logo" />
-              <h1>${empData.employee.FirstName} ${empData.employee.LastName} has applied for leave from ${fromDate} to ${toDate}</h1>
+              <h1>${empData.employee.FirstName} ${empData.employee.LastName} has applied for leave from ${empData.fromDate} to ${empData.toDate}</h1>
             </div>
             <div class="content">
                 <p>Hi all,</p>
-                <p>I have applied for leave from ${fromDate} to ${toDate} due to ${reasonForLeave}. Please respond to this request.</p>
+                <p>I have applied for leave from ${empData.fromDate} to ${empData.toDate} due to ${empData.reasonForLeave}. Please respond to this request.</p>
                 <p>Thank you!</p>
             </div>
           </div>
@@ -91,12 +84,12 @@ leaveApp.get("/make-know", async (req, res) => {
       const mailList = [lead.Email, head.Email];
 
       try {
-        await transporter.sendMail({
+        sendMail({
           from: process.env.FROM_MAIL,
           to: mailList,
           subject: "Leave Application Remember",
           html: htmlContent,
-        });
+        })
         console.log(`Email sent to: ${mailList.join(", ")}`);
       } catch (mailError) {
         console.error(`Failed to send email to ${mailList.join(", ")}:`, mailError);
@@ -111,8 +104,107 @@ leaveApp.get("/make-know", async (req, res) => {
 });
 
 leaveApp.put("/reject-leave", async (req, res) => {
-  const leaves = await LeaveApplication.find({status: "pending", })
-})
+  try {
+    const leaves = await LeaveApplication.aggregate([
+      {
+        $match: {
+          $expr: { $eq: [{ $dayOfMonth: "$fromDate" }, 9] }, // Match documents with the 9th day
+        },
+      },
+      {
+        $lookup: {
+          from: "employees", // Replace with your employee collection name
+          localField: "employee",
+          foreignField: "_id",
+          as: "employeeDetails",
+        },
+      },
+      {
+        $project: {
+          leaveType: 1,  // Include the leaveType field
+          fromDate: 1,  // Include the fromDate field
+          toDate: 1,  // Include the toDate field
+          periodOfLeave: 1,  // Default "full day" if periodOfLeave is null
+          reasonForLeave: 1,  // Default "fever" if reasonForLeave is null
+          prescription: 1,  // Include the prescription field
+          employee: 1,  // Include the employee reference
+          coverBy: 1,  // Include the coverBy field
+          "employeeDetails.FirstName": 1,  // Include employee's FirstName
+          "employeeDetails.LastName": 1,  // Include employee's LastName
+          "employeeDetails.Email": 1  // Include employee's Email
+        },
+      },
+    ]);
+
+    if (leaves.length > 0) {
+      leaves.map(async (leave) => {
+        const updatedLeave = {
+          leaveType: leave.leaveType,
+          fromDate: leave.fromDate,
+          toDate: leave.toDate,  // Include the toDate field
+          periodOfLeave: leave.periodOfLeave,  // Default "full day" if periodOfLeave is null
+          reasonForLeave: leave.reasonForLeave,  // Default "fever" if reasonForLeave is null
+          prescription: leave.prescription,  // Include the prescription field
+          employee: leave.employee,  // Include the employee reference
+          coverBy: leave.coverBy,
+          status: "rejected",
+          TeamLead: "rejected",
+          Hr: "rejected",
+          TeamHead: "rejected"
+        }
+        const updateLeave = await LeaveApplication.findByIdAndUpdate(leave._id, updatedLeave, { new: true });
+        // Prepare and send the email
+        const htmlContent = `
+               <!DOCTYPE html>
+               <html lang="en">
+               <head>
+                 <meta charset="UTF-8">
+                 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                 <title>NexsHR</title>
+                 <style>
+                   body { font-family: Arial, sans-serif; background-color: #f6f9fc; color: #333; }
+                   .container { max-width: 600px; margin: auto; padding: 20px; background-color: #fff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); }
+                   .header { text-align: center; padding: 20px; }
+                   .header img { max-width: 100px; }
+                   .content { margin: 20px 0; }
+                   .important {font-color:rgb(248, 73, 73), font-weight: bold;  }
+                   .footer { text-align: center; font-size: 14px; margin-top: 20px; color: #777; }
+                 </style>
+               </head>
+               <body>
+                 <div class="container">
+                   <div class="header">
+                     <img src="https://imagedelivery.net/r89jzjNfZziPHJz5JXGOCw/1dd59d6a-7b64-49d7-ea24-1366e2f48300/public" alt="Logo" />
+                     <h1>Leave application(${leave.fromDate} - ${leave.toDate}) has been rejected!</h1>
+                   </div>
+                   <div class="content">
+                       <p>Hi ${employeeDetails.FirstName},</p>
+                       <p>Your leave application has been rejected by higher authority.</p>
+                       <p class='important'>If you take leave, It will deduct your salary!</p>
+                       <p>Thank you!</p>
+                   </div>
+                   <div class="footer">
+                     <p>Need help? <a href="mailto:webnexs29@gmail.com">Contact our Team Head</a>.</p>
+                   </div>
+                 </div>
+               </body>
+               </html>
+             `;
+
+        sendMail({
+          from: process.env.FROM_MAIL,
+          to: employeeDetails.Email,
+          subject: "Leave Application Rejected",
+          html: htmlContent,
+        });
+        
+      })
+    }
+  } catch (error) {
+    console.error("Error fetching leave applications:", error);
+    res.status(500).send({ error: "An error occurred while fetching data." });
+  }
+});
 
 leaveApp.get("/emp/:empId", verifyAdminHREmployee, async (req, res) => {
   try {
@@ -706,14 +798,6 @@ leaveApp.post("/:empId", verifyAdminHREmployee, upload.single("prescription"), a
     empData.leaveApplication.push(newLeaveApp._id);
     await empData.save();
 
-    const transporter = nodemailer.createTransport({
-      service: "gmail",
-      auth: {
-        user: process.env.FROM_MAIL,
-        pass: process.env.MAILPASSWORD,
-      },
-    });
-
     const htmlContent = `
            <!DOCTYPE html>
            <html lang="en">
@@ -749,12 +833,12 @@ leaveApp.post("/:empId", verifyAdminHREmployee, upload.single("prescription"), a
       empData.team.lead.Email,
       empData.team.head.Email
     ]
-    await transporter.sendMail({
+    sendMail({
       from: process.env.FROM_MAIL,
       to: mailList,
       subject: "Leave Application Notification",
       html: htmlContent,
-    });
+    })
 
     if (req.body.coverBy) {
       // Prepare and send the email
@@ -793,7 +877,7 @@ leaveApp.post("/:empId", verifyAdminHREmployee, upload.single("prescription"), a
            </html>
          `;
 
-      await transporter.sendMail({
+      sendMail({
         from: process.env.FROM_MAIL,
         to: relievingOffData.Email,
         subject: "Task Relieving Request",

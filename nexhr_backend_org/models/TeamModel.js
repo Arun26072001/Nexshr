@@ -13,7 +13,7 @@ const TeamSchema = mongoose.Schema({
     head: {
         type: mongoose.Types.ObjectId, ref: "Employee"
     }
-})
+}, { timestamps: true })
 
 const Team = mongoose.model("Team", TeamSchema);
 

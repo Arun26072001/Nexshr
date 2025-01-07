@@ -8,6 +8,13 @@ const timeRangeSchema = new mongoose.Schema({
   timeHolder: { type: String }
 }, { _id: false })
 
+const timeRangeSchema1 = new mongoose.Schema({
+  startingTime: [{ type: String }],
+  endingTime: [{ type: String }],
+  timeHolder: { type: String },
+  reasonForLate: {type: String}
+}, { _id: false })
+
 // Define the main schema
 const clockInsSchema = new mongoose.Schema({
   date: {
@@ -20,13 +27,13 @@ const clockInsSchema = new mongoose.Schema({
     type: timeRangeSchema
   },
   morningBreak: {
-    type: timeRangeSchema
+    type: timeRangeSchema1
   },
   lunch: {
-    type: timeRangeSchema
+    type: timeRangeSchema1
   },
   eveningBreak: {
-    type: timeRangeSchema
+    type: timeRangeSchema1
   },
   event: {
     type: timeRangeSchema
