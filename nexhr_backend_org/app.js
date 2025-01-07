@@ -45,7 +45,7 @@ const userPermission = require("./routes/user-permission");
 const pageAuth = require("./routes/page-auth");
 const organization = require("./routes/organization");
 const userAccount = require("./routes/user-account");
-const {imgUpload} = require('./routes/imgUpload');
+const { imgUpload } = require('./routes/imgUpload');
 const holidays = require("./routes/holidays");
 
 // MongoDB Connection
@@ -193,9 +193,14 @@ const addPayslip = schedule.scheduleJob("0 10 5 * *", async function () {
   }
 });
 
-const makeKnow = schedule.scheduleJob("*/1 * * * *", async() => {
-  
-});
+// const makeKnow = schedule.scheduleJob("*/1 * * * *", async () => {
+//   try {
+//     const response = await axios.get(`${process.env.REACT_APP_API_URL}/api/leave-application/make-know`);
+//     console.log(response.data);
+//   } catch (error) {
+//     console.log(error.response.data.error);
+//   }
+// });
 
 // Start Server
 const port = process.env.PORT;

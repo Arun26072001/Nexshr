@@ -171,7 +171,7 @@ export default function Twotabs() {
               if (todayDate < leaveDate) {
                 return (<div className={`leaveReq ${req.status === "pending" ? "bg-warning"
                   : req.status === "rejected" ? "bg-danger" : "bg-success"}`}>
-                  {req.leaveType + " "}
+                  {req.leaveType[0].toUpperCase() + req.leaveType.slice(1) + " "}
                   {new Date(req.fromDate).toLocaleString("default", { month: "short" })} {new Date(req.fromDate).getDate()}th{" to "}{new Date(req.toDate).getDate()}th
                 </div>)
               }

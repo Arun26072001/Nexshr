@@ -24,24 +24,30 @@ leaveApp.get("/make-know", async (req, res) => {
       .populate({
         path: "employee",
         select: "FirstName LastName Email",
-        // populate: { path: "team" },
         populate: {
           path: "team",
           populate: [
             {
               path: "lead",
-              select: "Email"
+              select: "Email",
             },
             {
               path: "head",
-              select: "Email"
-            }
-          ]
+              select: "Email",
+            },
+          ],
         },
       })
       .exec();
 
-    const emps = leaveApps?.map(async (empData) => {
+    const { fromDate, toDate, reasonForLeave } = req.body; // Destructure request body
+
+    for (const empData of leaveApps) {
+      if (!empData.employee?.team) continue; // Skip if team data is missing
+
+      const { lead, head } = empData.employee.team;
+      if (!lead?.Email || !head?.Email) continue; // Skip if lead or head email is missing
+
       const transporter = nodemailer.createTransport({
         service: "gmail",
         auth: {
@@ -51,51 +57,61 @@ leaveApp.get("/make-know", async (req, res) => {
       });
 
       const htmlContent = `
-                 <!DOCTYPE html>
-                 <html lang="en">
-                 <head>
-                   <meta charset="UTF-8">
-                   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                   <title>NexsHR</title>
-                   <style>
-                     body { font-family: Arial, sans-serif; background-color: #f6f9fc; color: #333; }
-                     .container { max-width: 600px; margin: auto; padding: 20px; background-color: #fff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); }
-                     .header { text-align: center; padding: 20px; }
-                     .header img { max-width: 100px; }
-                     .content { margin: 20px 0; }
-                     .footer { text-align: center; font-size: 14px; margin-top: 20px; color: #777; }
-                   </style>
-                 </head>
-                 <body>
-                   <div class="container">
-                     <div class="header">
-                       <img src="https://imagedelivery.net/r89jzjNfZziPHJz5JXGOCw/1dd59d6a-7b64-49d7-ea24-1366e2f48300/public" alt="Logo" />
-                       <h1>${empData.FirstName} ${empData.LastName} has been apply leave for ${req.body.fromDate} - ${req.body.toDate}</h1>
-                     </div>
-                     <div class="content">
-                         <p>Hi all,</p>
-                         <p>I have apply leave for ${req.body.fromDate} - ${req.body.toDate}, due to ${req.body.reasonForLeave}. Please response for that </p>
-                         <p>Thank you!</p>
-                     </div>
-                   </div>
-                 </body>
-                 </html>
-               `;
-      const mailList = [
-        empData.team.lead.Email,
-        empData.team.head.Email
-      ]
-      await transporter.sendMail({
-        from: process.env.FROM_MAIL,
-        to: mailList,
-        subject: "Leave Application Notification",
-        html: htmlContent,
-      });
-    })
-  } catch (error) {
-    console.log(error);
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+          <meta charset="UTF-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <title>NexsHR</title>
+          <style>
+            body { font-family: Arial, sans-serif; background-color: #f6f9fc; color: #333; }
+            .container { max-width: 600px; margin: auto; padding: 20px; background-color: #fff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); }
+            .header { text-align: center; padding: 20px; }
+            .header img { max-width: 100px; }
+            .content { margin: 20px 0; }
+            .footer { text-align: center; font-size: 14px; margin-top: 20px; color: #777; }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <div class="header">
+              <img src="https://imagedelivery.net/r89jzjNfZziPHJz5JXGOCw/1dd59d6a-7b64-49d7-ea24-1366e2f48300/public" alt="Logo" />
+              <h1>${empData.employee.FirstName} ${empData.employee.LastName} has applied for leave from ${fromDate} to ${toDate}</h1>
+            </div>
+            <div class="content">
+                <p>Hi all,</p>
+                <p>I have applied for leave from ${fromDate} to ${toDate} due to ${reasonForLeave}. Please respond to this request.</p>
+                <p>Thank you!</p>
+            </div>
+          </div>
+        </body>
+        </html>
+      `;
 
+      const mailList = [lead.Email, head.Email];
+
+      try {
+        await transporter.sendMail({
+          from: process.env.FROM_MAIL,
+          to: mailList,
+          subject: "Leave Application Remember",
+          html: htmlContent,
+        });
+        console.log(`Email sent to: ${mailList.join(", ")}`);
+      } catch (mailError) {
+        console.error(`Failed to send email to ${mailList.join(", ")}:`, mailError);
+      }
+    }
+
+    res.status(200).json({ message: "Emails sent successfully!" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "An error occurred while processing leave applications." });
   }
+});
+
+leaveApp.put("/reject-leave", async (req, res) => {
+  const leaves = await LeaveApplication.find({status: "pending", })
 })
 
 leaveApp.get("/emp/:empId", verifyAdminHREmployee, async (req, res) => {
@@ -672,6 +688,7 @@ leaveApp.post("/:empId", verifyAdminHREmployee, upload.single("prescription"), a
     // Check if leave request for the same date already exists
     const existingRequest = await LeaveApplication.findOne({
       fromDate: leaveRequest.fromDate,
+      toDate: leaveRequest.toDate,
       employee: req.params.empId,
     });
     if (existingRequest) {
