@@ -120,16 +120,6 @@ const Sidebar = ({ sideBar }) => {
           'employee'
         )}
 
-        {/* {(Employee === 'allow' || whoIs === "emp" &&
-          renderSubMenu(
-            'leave',
-            [
-              { key: 'edit-employee', changeEmpEditForm(_id) , label: 'Status' }
-            ],
-            userIcon,
-            'Employee'
-          ))} */}
-
         {(Leave === 'allow' || ['admin', 'hr'].includes(whoIs)) &&
           renderSubMenu(
             'leave',

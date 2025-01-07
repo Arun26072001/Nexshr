@@ -104,9 +104,7 @@ const ActivityTimeTracker = () => {
     };
 
     function checkIsEnterReasonforLate() {
-        console.log(workTimeTracker[timeOption].reasonForLate);
-        console.log(timeOption);
-        
+
         if (["", undefined].includes(workTimeTracker[timeOption].reasonForLate)) {
             localStorage.setItem("isAddReasonForLate", false)
         } else {
@@ -153,7 +151,7 @@ const ActivityTimeTracker = () => {
                 isViewTakeTime && <Modal open={isViewTakeTime} size="sm" backdrop="static">
                     <Modal.Header >
                         <Modal.Title>
-                            Reason For Late
+                            {timeOption[0].toUpperCase() + timeOption.slice(1)} Reason For Late
                         </Modal.Title>
                     </Modal.Header >
 
@@ -172,9 +170,6 @@ const ActivityTimeTracker = () => {
                     </Modal.Body>
 
                     <Modal.Footer>
-                        <Button onClick={checkIsEnterReasonforLate} appearance="subtle">
-                            Close
-                        </Button>
                         <Button
                             onClick={checkIsEnterReasonforLate}
                             appearance="primary"
@@ -202,28 +197,7 @@ const ActivityTimeTracker = () => {
                     </div>
                 </div>
                 <div className="col-lg-6 col-md-4 col-12 d-flex justify-content-end gap-2 align-items-center">
-                    {
-                        (
-                            (
-                                hour <= 1 &&
-                                min >= 2 &&
-                                ["morningBreak", "eveningBreak"].includes(timeOption) &&
-                                !workTimeTracker[timeOption]?.reasonForLate
-                            ) || (
-                                hour <= 1 &&
-                                min >= 40 &&
-                                timeOption === "lunch" &&
-                                !workTimeTracker[timeOption]?.reasonForLate
-                            )
-                        ) && (
-                            <button
-                                className="btn btn-outline-dark"
-                                onClick={changeViewReasonForTaketime}
-                            >
-                                <AddRoundedIcon />
-                            </button>
-                        )
-                    }
+
                     <div className={`timer text-light ${isDisabled ? "bg-success" : "bg-danger"}`}>
                         <span>{hour.toString().padStart(2, '0')}</span> :
                         <span>{min.toString().padStart(2, '0')}</span> :
@@ -235,13 +209,21 @@ const ActivityTimeTracker = () => {
                             style={{ padding: "15px 15px" }}
                             title={isStartActivity ? "Stop" : "Start"}
                             onClick={
-                                workTimeTracker?._id
-                                    ? (isDisabled
-                                        ? stopTimer
-                                        : (!isDisabled
-                                            ? startTimer
-                                            : warnPunchIn))
-                                    : warnPunchIn
+                                (hour <= 1
+                                    && min >= 20
+                                    && ["morningBreak", "eveningBreak"].includes(timeOption)
+                                    && !workTimeTracker[timeOption].reasonForLate)
+                                    || (hour <= 1 && min >= 40
+                                        && timeOption === "lunch"
+                                        && !workTimeTracker[timeOption].reasonForLate)
+                                    ? changeViewReasonForTaketime :
+                                    workTimeTracker?._id
+                                        ? (isDisabled
+                                            ? stopTimer
+                                            : (!isDisabled
+                                                ? startTimer
+                                                : warnPunchIn))
+                                        : warnPunchIn
                             }
                             id="startActivityTimerBtn"
                         >
