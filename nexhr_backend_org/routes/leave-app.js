@@ -45,7 +45,7 @@ leaveApp.get("/make-know", async (req, res) => {
     for (const empData of leaveApps) {
       if (!empData.employee?.team) continue; // Skip if team data is missing
       console.log(empData);
-      
+
       const { lead, head } = empData.employee.team;
       if (!lead?.Email || !head?.Email) continue; // Skip if lead or head email is missing
 
@@ -197,7 +197,7 @@ leaveApp.put("/reject-leave", async (req, res) => {
           subject: "Leave Application Rejected",
           html: htmlContent,
         });
-        
+
       })
     }
   } catch (error) {

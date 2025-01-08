@@ -193,7 +193,7 @@ schedule.scheduleJob("0 10 5 * *", async function () {
   }
 });
 
-schedule.scheduleJob("* 10 * * *", async () => {
+schedule.scheduleJob("0 10 * * *", async () => {
   try {
     const response = await axios.get(`${process.env.REACT_APP_API_URL}/api/leave-application/make-know`);
     console.log(response.data);
@@ -202,7 +202,14 @@ schedule.scheduleJob("* 10 * * *", async () => {
   }
 });
 
-// schedule.scheduleJob
+schedule.scheduleJob("0 7 * * *", async () => {
+  try {
+    const res = await axios.put(`${process.env.REACT_APP_API_URL}/api/leave-application/reject-leave`);
+    console.log(res.data);
+  } catch (error) {
+    console.log(error);
+  }
+})
 
 // Start Server
 const port = process.env.PORT;

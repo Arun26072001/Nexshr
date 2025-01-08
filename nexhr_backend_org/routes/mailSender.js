@@ -13,8 +13,6 @@ let sendMail = (mailOptions)=>{
     if (error) {
         return console.log(error);
     }else{
-        console.log(info);
-        
         return console.log("Email has been sent successfully!");
     }
   });
