@@ -15,6 +15,8 @@ export default function LeaveRequest() {
     const { data } = useContext(EssentialValues);
     const { token } = data;
     const { isTeamHead, isTeamLead } = jwtDecode(token);
+    console.log(leaveRequests?.leaveData);
+    
 
     async function replyToLeave(leave, response) {
         try {
@@ -35,7 +37,7 @@ export default function LeaveRequest() {
                     Hr: response
                 }
             }
-            
+
             const res = await axios.put(`${url}/api/leave-application/${leave._id}`, updatedLeaveRequest, {
                 headers: {
                     Authorization: token || ""

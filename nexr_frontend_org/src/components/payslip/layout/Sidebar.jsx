@@ -7,6 +7,7 @@ import jobDeskIcon from '../../../asserts/jobDeskIcon.svg';
 import userIcon from '../../../asserts/userIcon.svg';
 import leaveIcon from '../../../asserts/leaveIcon.svg';
 import attendanceIcon from '../../../asserts/attendanceIcon.svg';
+import CalendarTodayRoundedIcon from '@mui/icons-material/CalendarTodayRounded';
 import adminIcon from '../../../asserts/adminIcon.svg';
 import homeIcon from '../../../asserts/homeIcon.svg';
 import { EssentialValues } from '../../../App';
@@ -39,6 +40,7 @@ const Sidebar = ({ sideBar }) => {
     if (path.includes("/employee/edit/")) {
       setIsEditEmp(true)
     }
+
     return (
       condition && (
         <li
@@ -48,7 +50,10 @@ const Sidebar = ({ sideBar }) => {
         >
           <NavLink className="nav-link" to={path}>
             <span>
-              <img src={icon} width={"22"} height={"22"} alt={`${text} Icon`} />
+              {
+                icon === CalendarTodayRoundedIcon ? <CalendarTodayRoundedIcon sx={{ color: "#404040" }} /> :
+                  <img src={icon} width={"22"} height={"22"} alt={`${text} Icon`} />
+              }
             </span>
             <span className="sideBarTxt">{text}</span>
           </NavLink>
@@ -95,7 +100,7 @@ const Sidebar = ({ sideBar }) => {
     <div style={{ width: '250px' }} className={`${!sideBar ? "d-none" : ""} sidebar sidebar_hrm`}>
       <ul className="sidebar-nav p-0" id="sidebar-nav">
         {renderNavLink(
-          Dashboard === 'allow' || ['admin', 'hr', 'employee'].includes(whoIs),
+          Dashboard === 'allow' || ['admin', 'hr', 'emp'].includes(whoIs),
           `/${whoIs}`,
           homeIcon,
           'Dashboard',
@@ -103,7 +108,7 @@ const Sidebar = ({ sideBar }) => {
         )}
 
         {renderNavLink(
-          JobDesk === 'allow' || ['admin', 'hr', 'employee'].includes(whoIs),
+          JobDesk === 'allow' || ['admin', 'hr', 'emp'].includes(whoIs),
           `/${whoIs}/job-desk/my-details`,
           jobDeskIcon,
           'Job Desk',
@@ -118,6 +123,16 @@ const Sidebar = ({ sideBar }) => {
           userIcon,
           'Employee',
           'employee'
+        )}
+
+        {renderNavLink(
+          (decodedData.isTeamLead && whoIs === "emp") ||
+          (decodedData.isTeamHead && whoIs === "emp") ||
+          ['admin', 'hr'].includes(whoIs),
+          `/${whoIs}/calendar`,
+          CalendarTodayRoundedIcon,
+          'Calendar',
+          'calendar'
         )}
 
         {(Leave === 'allow' || ['admin', 'hr'].includes(whoIs)) &&

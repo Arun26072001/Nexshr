@@ -1,0 +1,12 @@
+.calendar-style {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 15px;
+}
+
+.calendar-style > .dotIcon {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+}

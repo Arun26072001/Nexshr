@@ -29,6 +29,8 @@ const Leave = () => {
             setLeaveRequests(filterRequests);
         }
     }
+    console.log(daterangeValue);
+    
 
     useEffect(() => {
         const getLeaveData = async () => {
@@ -42,7 +44,6 @@ const Leave = () => {
                         authorization: token || ""
                     }
                 })
-                console.log(leaveData.data);
 
                 setLeaveRequests(leaveData.data);
                 setFullLeaveRequests(leaveData.data.leaveData);

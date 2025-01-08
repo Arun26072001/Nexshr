@@ -44,7 +44,7 @@ export default function LeaveTable({ data, Account, getCheckedValue, isTeamHead,
         { id: 'fromDate', label: 'Start Date', minWidth: 130, align: 'left', getter: (row) => row.fromDate ? row.fromDate.split("T")[0] : 'N/A' },
         { id: 'toDate', label: 'End Date', minWidth: 130, align: 'left', getter: (row) => row.toDate ? row.toDate.split("T")[0] : 'N/A' },
         { id: 'leaveType', label: 'Type', minWidth: 130, align: 'left', getter: (row) => row.leaveType },
-        { id: 'reasonForLeave', label: 'Reason', minWidth: 130, align: 'left', getter: (row) => row.reasonForLeave },
+        { id: 'reasonForLeave', label: 'Reason', minWidth: 130, align: 'left', getter: (row) => <div dangerouslySetInnerHTML={{ __html: row.reasonForLeave }} /> },
         {
             id: 'status',
             label: 'Status',
@@ -507,7 +507,8 @@ export default function LeaveTable({ data, Account, getCheckedValue, isTeamHead,
 
                                         // Render actions based on column.id and params
                                         const renderActions = () => {
-                                            if (column.id === "Action") {
+                                            if (column.id === "reasonForLeave") {
+                                            } else if (column.id === "Action") {
                                                 if (params['*'] === "leave-request") {
                                                     return (
                                                         <Dropdown placement='leftStart' title={<EditRoundedIcon style={{ cursor: "pointer" }} />} noCaret>

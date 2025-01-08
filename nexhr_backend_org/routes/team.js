@@ -95,11 +95,12 @@ router.get("/:id", verifyAdminHR, async (req, res) => {
     }
 })
 
-router.get("/lead/:id", verifyEmployee, async (req, res) => {
+router.get("/members/:id", verifyEmployee, async (req, res) => {
     try {
         // const {orgName} = jwt.decode(req.headers['authorization']);
         // const Team = getTeamModel(orgName)
-        const response = await Team.findOne({ lead: req.params.id })
+        const who = req.params.isLead ? "lead" : "head"
+        const response = await Team.findOne({ [who]: req.params.id })
             .populate({
                 path: "employees",
                 select: "_id FirstName LastName",
@@ -152,7 +153,7 @@ router.post("/", verifyAdminHR, async (req, res) => {
 
 router.put("/:id", verifyAdminHR, async (req, res) => {
     try {
-        
+
         const validatedTeam = {
             teamName: req.body.teamName,
             employees: req.body.employees,

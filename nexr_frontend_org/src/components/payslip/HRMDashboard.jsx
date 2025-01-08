@@ -34,6 +34,7 @@ import Position from '../Administration/Position';
 import { jwtDecode } from 'jwt-decode';
 import Parent from './layout/Parent';
 import PayslipUI from './PayslipUI';
+import AttendanceCalendar from '../AttendanceCalendar';
 
 export const LeaveStates = createContext(null);
 export const TimerStates = createContext(null);
@@ -103,7 +104,7 @@ export default function HRMDashboard() {
     // change reason for leave input field
     function changeReasonForLate(e) {
         const { value } = e.target;
-      
+
         setWorkTimeTracker((pre) => ({
             ...pre,
             [timeOption]: {
@@ -264,11 +265,12 @@ export default function HRMDashboard() {
             setIsLoading(false);
         }
 
-        const getLeaveDataFromTeam = async (who) => {
+        const getLeaveDataFromTeam = async () => {
             setIsLoading(true);
             try {
-                const leaveData = await axios.get(`${url}/api/leave-application/${who}/${_id}`, {
+                const leaveData = await axios.get(`${url}/api/leave-application/team/${_id}`, {
                     params: {
+                        isLead: isTeamLead ? true : false,
                         daterangeValue
                     },
                     headers: {
@@ -285,7 +287,7 @@ export default function HRMDashboard() {
         if ((whoIs) && (String(Account) === '2' || String(Account) === '1')) {
             getLeaveData();
         } else if ((whoIs && isTeamLead) || (whoIs && isTeamHead)) {
-            getLeaveDataFromTeam(isTeamHead ? "head" : "lead")
+            getLeaveDataFromTeam()
         }
     }, [daterangeValue, _id, whoIs, isUpdatedRequest]);
 
@@ -357,7 +359,6 @@ export default function HRMDashboard() {
         localStorage.setItem("isStartLogin", isStartLogin);
         localStorage.setItem("isStartActivity", isStartActivity);
     }, [isStartLogin, isStartActivity]);
-    console.log(workTimeTracker);
 
     return (
         <TimerStates.Provider value={{ workTimeTracker, reloadRolePage, setIsEditEmp, updateWorkTracker, trackTimer, startLoginTimer, stopLoginTimer, changeReasonForLate, startActivityTimer, stopActivityTimer, setWorkTimeTracker, updateClockins, timeOption, isStartLogin, isStartActivity, changeEmpEditForm, isEditEmp }}>
@@ -365,6 +366,7 @@ export default function HRMDashboard() {
                 <Route path="/" element={<Parent />} >
                     <Route index element={<Dashboard data={data} />} />
                     <Route path="job-desk/*" element={<JobDesk />} />
+                    <Route path="calendar" element={<AttendanceCalendar />} />
                     <Route path="employee" element={<Employee />} />
                     <Route path="employee/add" element={<Employees />} />
                     <Route path="employee/edit/:id" element={<AddEmployee />} />

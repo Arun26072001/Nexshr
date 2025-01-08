@@ -164,12 +164,12 @@ export default function Twotabs() {
           </div>
 
           {
-            leaveRequests?.map((req) => {
+            leaveRequests?.map((req,index) => {
               // debugger;
               let todayDate = today.getTime()
               let leaveDate = new Date(req.fromDate).getTime()
               if (todayDate < leaveDate) {
-                return (<div className={`leaveReq ${req.status === "pending" ? "bg-warning"
+                return (<div key={index} className={`leaveReq ${req.status === "pending" ? "bg-warning"
                   : req.status === "rejected" ? "bg-danger" : "bg-success"}`}>
                   {req.leaveType[0].toUpperCase() + req.leaveType.slice(1) + " "}
                   {new Date(req.fromDate).toLocaleString("default", { month: "short" })} {new Date(req.fromDate).getDate()}th{" to "}{new Date(req.toDate).getDate()}th

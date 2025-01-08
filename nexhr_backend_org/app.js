@@ -208,7 +208,7 @@ schedule.scheduleJob("0 7 * * *", async () => {
     console.log(res.data);
   } catch (error) {
     console.log(error);
-  }
+  }c
 })
 
 // Start Server
