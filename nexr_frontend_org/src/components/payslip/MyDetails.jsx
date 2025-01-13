@@ -95,7 +95,7 @@ const MyDetails = () => {
                             <p className="sub_title">Annual Leave Entitlement</p>
                             <ul className="my-3 list_style" style={{ listStyleType: "disc" }}>
                                 {Object.entries(empObj.typesOfLeaveCount).map(([key, value]) => (
-                                    <li key={key}>{key}: {value}</li>
+                                    <li key={key}>{key[0].toUpperCase()+key.slice(1)}: {value}</li>
                                 ))}
                             </ul>
                         </>
