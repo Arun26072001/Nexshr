@@ -463,7 +463,6 @@ leaveApp.get("/all/team/:id", verifyEmployee, async (req, res) => {
 });
 
 // get all leave requests from all employees
-
 leaveApp.get("/:id", verifyHREmployee, async (req, res) => {
   try {
     const leaveReq = await LeaveApplication.findById(req.params.id);

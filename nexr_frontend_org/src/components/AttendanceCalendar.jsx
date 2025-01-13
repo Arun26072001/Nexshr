@@ -8,6 +8,7 @@ import "./calendar.css";
 import { EssentialValues } from '../App';
 import Loading from './Loader';
 import { jwtDecode } from 'jwt-decode';
+import { fetchLeaveRequests } from './ReuseableAPI';
 
 const localizer = dayjsLocalizer(dayjs);
 
@@ -15,67 +16,89 @@ export default function AttendanceCalendar() {
     const { data } = useContext(EssentialValues);
     const url = process.env.REACT_APP_API_URL;
     const decodedData = jwtDecode(data.token);
-    
+
     const [leaveRequests, setLeaveRequests] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
 
-    async function getAllLeavedata() {
-        setIsLoading(true);
+    // async function getAllLeavedata() {
+    //     setIsLoading(true);
+    //     try {
+    //         const res = await axios.get(`${url}/api/leave-application/all/emp`, {
+    //             params: {
+    //                 isHr: data.Account === "2" ? true : false
+    //             },
+    //             headers: {
+    //                 authorization: data.token || ""
+    //             }
+    //         })
+
+    //         setLeaveRequests(res.data.leaveData.map((leave) => ({
+    //             title: `${leave.employee.FirstName[0].toUpperCase() + leave.employee.FirstName.slice(1)} ${leave.employee.LastName} (${leave.leaveType[0].toUpperCase() + leave.leaveType.slice(1)} - ${leave.status})`,
+    //             start: new Date(leave.fromDate),
+    //             end: new Date(leave.toDate),
+    //             status: leave.status
+    //         })));
+    //     } catch (err) {
+    //         toast.error(err?.response?.data?.message);
+    //     }
+    //     setIsLoading(false);
+    // }
+
+    
+    async function fetchDataInTeam() {
+        setIsLoading(true)
         try {
-            const res = await axios.get(`${url}/api/leave-application/all/emp`, {
+            // // Fetch leave requests
+            const leaveRes = await axios.get(`${url}/api/leave-application/all/team/${data._id}`, {
                 params: {
-                    isHr: data.Account === "2" ? true : false
+                    isLead: decodedData.isTeamLead ? true : false
                 },
                 headers: {
-                    authorization: data.token || ""
-                }
-            })
+                    authorization: data.token || "",
+                },
+            });
 
-            setLeaveRequests(res.data.leaveData.map((leave) => ({
+            setLeaveRequests(leaveRes.data.leaveData.map((leave) => ({
                 title: `${leave.employee.FirstName[0].toUpperCase() + leave.employee.FirstName.slice(1)} ${leave.employee.LastName} (${leave.leaveType[0].toUpperCase() + leave.leaveType.slice(1)} - ${leave.status})`,
                 start: new Date(leave.fromDate),
                 end: new Date(leave.toDate),
                 status: leave.status
             })));
         } catch (err) {
-            toast.error(err?.response?.data?.message);
+            if (err.response && err.response.data && err.response.data.message) {
+                toast.error(err.response.data.message);
+            }
         }
-        setIsLoading(false);
+        setIsLoading(false)
     }
-
     useEffect(() => {
-        async function fetchDataInTeam() {
-            setIsLoading(true)
+        async function getAllEmpLeaveData() {
+            setIsLoading(true);
             try {
-                // // Fetch leave requests
-                const leaveRes = await axios.get(`${url}/api/leave-application/all/team/${data._id}`, {
-                    params: {
-                        isLead: decodedData.isTeamLead ? true : false
-                    },
-                    headers: {
-                        authorization: data.token || "",
-                    },
-                });
-
-                setLeaveRequests(leaveRes.data.leaveData.map((leave) => ({
+                const res = await fetchLeaveRequests(data._id);
+                console.log(res);
+    
+                setLeaveRequests(res.leaveApplications.map((leave) => ({
                     title: `${leave.employee.FirstName[0].toUpperCase() + leave.employee.FirstName.slice(1)} ${leave.employee.LastName} (${leave.leaveType[0].toUpperCase() + leave.leaveType.slice(1)} - ${leave.status})`,
                     start: new Date(leave.fromDate),
                     end: new Date(leave.toDate),
                     status: leave.status
-                })));
-            } catch (err) {
-                if (err.response && err.response.data && err.response.data.message) {
-                    toast.error(err.response.data.message);
-                }
+                })))
+            } catch (error) {
+                console.log(error);
             }
             setIsLoading(false)
         }
-        if (decodedData.isTeamLead || decodedData.isTeamHead) {
-            console.log(decodedData.isTeamLead, decodedData.isTeamHead);
+        // if (decodedData.isTeamLead || decodedData.isTeamHead) {
+            //     console.log(decodedData.isTeamLead, decodedData.isTeamHead);
 
-            fetchDataInTeam()
-        } else if (["1", "2"].includes(data.Account)) {
-            getAllLeavedata()
+        //     fetchDataInTeam()
+        // } else
+        // if (data.Account === "2") {
+        //     getAllLeavedata()
+        // } else 
+        if (["2","3"].includes(data.Account)) {
+            getAllEmpLeaveData();
         }
     }, [])
 
