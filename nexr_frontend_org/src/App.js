@@ -8,8 +8,7 @@ import "react-toastify/dist/ReactToastify.css";
 import NoInternet from "./components/NoInternet.jsx";
 import { jwtDecode } from "jwt-decode";
 import "./App.css";
-// import "./components/payslip/layout/navbar.css";
-// import "./components/payslip/layout/sidebar.css";
+import 'rsuite/dist/rsuite.min.css';
 import "react-datepicker/dist/react-datepicker.css";
 
 export const EssentialValues = createContext(null);

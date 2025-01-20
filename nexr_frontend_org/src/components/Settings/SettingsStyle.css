@@ -9,6 +9,16 @@
   height: 25px;
 }
 
+.col-half {
+  width: 48%;
+}
+.col-full {
+  width: 100%;
+}
+.col-quat {
+  width: 25%;
+}
+
 .table td {
   padding: 0.75rem;
   vertical-align: middle;
@@ -159,6 +169,19 @@ input[type="time"]::-webkit-calendar-picker-indicator {
   display: block;
   width: 100%;
   margin: 10px 0px;
+}
+
+.modelInput > .modelLabel {
+  font-weight: 600;
+  color: #34395e;
+  font-size: 12px;
+  letter-spacing: 0.5px;
+  line-height: 25px;
+}
+
+.modelInput > .modelLabel::after {
+  content: "*";
+  color: red;
 }
 
 .inputFont {

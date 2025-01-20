@@ -257,6 +257,19 @@ const fetchRoles = async () => {
     }
 }
 
+const fetchTeams = async () => {
+    try {
+        const teams = await axios.get(`${url}/api/team`, {
+            headers: {
+                Authorization: token || ""
+            }
+        });
+        return teams.data;
+    } catch (error) {
+        toast.error(error.response.data.error);
+    }
+}
+
 const fetchPayslip = async (id) => {
     try {
         const payslip = await axios.get(`${url}/api/payslip/${id}`);
@@ -319,21 +332,22 @@ const addSecondsToTime = (timeString, secondsToAdd) => {
 
 async function getHoliday() {
     try {
-      const res = await axios.get(`${url}/api/holidays/${new Date().getFullYear()}`, {
-        headers: {
-          Authorization: token || ""
-        }
-      });
-      return res.data.holidays
+        const res = await axios.get(`${url}/api/holidays/${new Date().getFullYear()}`, {
+            headers: {
+                Authorization: token || ""
+            }
+        });
+        return res.data.holidays
     } catch (error) {
-      return error?.response?.data?.error
+        return error?.response?.data?.error
     }
-  }
+}
 
 
 export {
     getHoliday,
     addDataAPI,
+    fetchTeams,
     getDataAPI,
     updateEmp,
     getDepartments,

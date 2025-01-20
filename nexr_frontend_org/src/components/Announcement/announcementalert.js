@@ -3,7 +3,7 @@ import axios from 'axios';
 import io from 'socket.io-client';
 import { Notification, toaster, MultiCascader, VStack } from 'rsuite';
 import '../../App.css';
-import 'rsuite/dist/rsuite.min.css';
+// import 'rsuite/dist/rsuite.min.css';
 import { toast } from 'react-toastify';
 
 // Connect to the backend socket

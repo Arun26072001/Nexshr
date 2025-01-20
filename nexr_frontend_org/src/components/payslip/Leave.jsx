@@ -2,7 +2,7 @@ import React, { useContext, useEffect, useState } from "react";
 import "./dashboard.css";
 import LeaveTable from "../LeaveTable";
 import { DateRangePicker } from "rsuite";
-import 'rsuite/dist/rsuite.min.css';
+// import 'rsuite/dist/rsuite.min.css';
 import axios from "axios";
 import { toast } from "react-toastify";
 import Loading from "../Loader";

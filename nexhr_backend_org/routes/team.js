@@ -1,8 +1,7 @@
 const express = require("express");
 const router = express.Router();
-const { verifyHR, verifyAdminHR, verifyEmployee } = require("../auth/authMiddleware");
-const { TeamValidation, Team, TeamSchema } = require("../models/TeamModel");
-const mongoose = require("mongoose");
+const { verifyAdminHR, verifyEmployee } = require("../auth/authMiddleware");
+const { TeamValidation, Team } = require("../models/TeamModel");
 const { Employee } = require("../models/EmpModel");
 
 router.get("/", verifyAdminHR, async (req, res) => {

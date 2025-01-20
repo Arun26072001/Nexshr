@@ -6,7 +6,6 @@ import AssignEmp from "./AssignEmp";
 import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
 import EditTeam from "./EditTeam";
 import { Input, InputGroup } from "rsuite";
-import { useNavigate } from "react-router-dom";
 import NoDataFound from "./NoDataFound";
 import Loading from "../Loader";
 import { EssentialValues } from "../../App";

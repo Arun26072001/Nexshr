@@ -4,37 +4,20 @@ const { Project, ProjectValidation } = require('../models/ProjectModel');
 const { verifyAdmin } = require('../auth/authMiddleware');
 const Joi = require("joi");
 
-// const projectModels = {};
-
-// function getProjectModel(orgName) {
-//   // If model already exists in the object, return it; otherwise, create it
-//   if (!projectModels[orgName]) {
-//     projectModels[orgName] = mongoose.model(`${orgName}Project`, projectSchema);
-//   }
-
-//   return projectModels[orgName];
-// }
-
-router.get("/", verifyAdmin, (req, res) => {
-  // const { orgName } = jwt.decode(req.headers['authorization']);
-  // const Project = getProjectModel(orgName)
-  Project.find()
-    .populate("portals")
-    .exec(function (err, project) {
-      if (err) {
-        console.log(err);
-        res.send("err");
-      } else {
-        res.send(project);
-      }
-    });
+router.get("/", verifyAdmin, async (req, res) => {
+  try {
+    const project = await Project.find().exec();
+    return res.send(project);
+  } catch (error) {
+    return res.status(500).send({ error: error.message })
+  }
 });
 
 router.post("/", verifyAdmin, (req, res) => {
   Joi.validate(req.body, ProjectValidation, (err, result) => {
     if (err) {
       console.log(err);
-      res.status(400).send(err.details[0].message);
+      res.status(400).send({error: err.details[0].message});
     } else {
       let newProject;
       newProject = {
@@ -52,11 +35,9 @@ router.post("/", verifyAdmin, (req, res) => {
       // const Project = getProjectModel(orgName)
       Project.create(newProject, function (err, project) {
         if (err) {
-          console.log(err.message);
-          res.send("error");
+          res.status(500).send({error: err.message});
         } else {
-          res.send(project);
-          console.log("new project Saved");
+          res.send({ message: "Project is created.", project });
         }
       });
       console.log(req.body);

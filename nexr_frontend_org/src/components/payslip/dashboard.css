@@ -3,15 +3,6 @@ h6 {
   font-weight: bolder;
 }
 
-.sub_text {
-  color: rgb(103, 103, 103);
-  font-size: 11px;
-  font-weight: 400;
-  line-height: 18px;
-  /* text-align: left; */
-  margin-top: 0px;
-}
-
 thead {
   background-color: rgba(224, 224, 224, 1);
 }

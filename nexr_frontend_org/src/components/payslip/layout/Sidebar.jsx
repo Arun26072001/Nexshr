@@ -13,6 +13,8 @@ import homeIcon from '../../../asserts/homeIcon.svg';
 import { EssentialValues } from '../../../App';
 import { jwtDecode } from 'jwt-decode';
 import { TimerStates } from '../HRMDashboard';
+import FolderOpenOutlinedIcon from '@mui/icons-material/FolderOpenOutlined';
+import AssignmentTurnedInOutlinedIcon from '@mui/icons-material/AssignmentTurnedInOutlined';
 
 const Sidebar = ({ sideBar }) => {
   const { data, whoIs, handleLogout } = useContext(EssentialValues);
@@ -51,8 +53,12 @@ const Sidebar = ({ sideBar }) => {
           <NavLink className="nav-link" to={path}>
             <span>
               {
-                icon === CalendarTodayRoundedIcon ? <CalendarTodayRoundedIcon sx={{ color: "#404040" }} /> :
-                  <img src={icon} width={"22"} height={"22"} alt={`${text} Icon`} />
+                icon === CalendarTodayRoundedIcon ?
+                  <CalendarTodayRoundedIcon sx={{ color: "#404040" }} /> :
+                  icon === FolderOpenOutlinedIcon ?
+                    <FolderOpenOutlinedIcon sx={{ color: "#404040" }} /> : icon === AssignmentTurnedInOutlinedIcon ?
+                      <AssignmentTurnedInOutlinedIcon sx={{ color: "#404040" }} /> :
+                      <img src={icon} width={"22"} height={"22"} alt={`${text} Icon`} />
               }
             </span>
             <span className="sideBarTxt">{text}</span>
@@ -123,6 +129,23 @@ const Sidebar = ({ sideBar }) => {
           userIcon,
           'Employee',
           'employee'
+        )}
+
+        {renderNavLink(
+          JobDesk === 'allow' || ['admin', 'hr', 'emp'].includes(whoIs),
+          `/${whoIs}/projects`,
+          FolderOpenOutlinedIcon,
+          'Project',
+          'project'
+        )}
+
+
+        {renderNavLink(
+          JobDesk === 'allow' || ['admin', 'hr', 'emp'].includes(whoIs),
+          `/${whoIs}/tasks`,
+          AssignmentTurnedInOutlinedIcon,
+          'Tasks',
+          'tasks'
         )}
 
         {renderNavLink(
