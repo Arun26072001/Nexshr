@@ -28,6 +28,8 @@
   height: 40px;
   margin: 10px 0;
   background-color: #eef3ff;
+  border: none;
+  padding: 20px;
 }
 
 .login-form-input:focus {

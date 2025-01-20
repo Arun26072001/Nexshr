@@ -1,5 +1,4 @@
 import React, { useState, createContext, useEffect } from "react";
-import "./App.css";
 import axios from "axios";
 import Login from "./components/Login.jsx";
 import HRMDashboard from "./components/payslip/HRMDashboard.jsx";
@@ -8,6 +7,9 @@ import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import NoInternet from "./components/NoInternet.jsx";
 import { jwtDecode } from "jwt-decode";
+import "./App.css";
+// import "./components/payslip/layout/navbar.css";
+// import "./components/payslip/layout/sidebar.css";
 import "react-datepicker/dist/react-datepicker.css";
 
 export const EssentialValues = createContext(null);
@@ -42,7 +44,6 @@ const App = () => {
       toast.warn("We won't allow you to logout without a reason for being late.");
       return;
     }
-    console.log(localStorage.getItem("isAddReasonForLate"));
     
     localStorage.clear();
     setData({ _id: "", Account: "", Name: "", token: "", annualLeave: 0 });

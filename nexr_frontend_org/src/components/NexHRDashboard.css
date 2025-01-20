@@ -39,32 +39,10 @@
   font-weight: lighter;
 }
 
-.nav-link {
-  display: flex;
-  align-items: center;
-  padding: 10px;
-  color: white;
-  text-decoration: none;
-}
-
-.nav-link i {
-  margin-right: 10px;
-}
-
 .navbar-ul li {
   margin-left: 0px;
 }
 
-/* Small adjustments for icons and text on smaller screens */
-@media (max-width: 400px) {
-  .nav-link i {
-    display: none;
-  }
-
-  .nav-link p {
-    margin: 0;
-  }
-}
 
 
 input[type="number"]::-webkit-outer-spin-button,

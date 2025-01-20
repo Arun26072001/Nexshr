@@ -42,6 +42,7 @@ const Login = () => {
             />
             <input
               className="login-form-input text-light"
+              style={{ padding: "0px" }}
               type="submit"
               value="Sign in"
               id="submitBtn"

@@ -1,40 +1,51 @@
-import React, { createContext, useCallback, useContext, useEffect, useState } from 'react'
-import Dashboard from './Dashboard';
-import JobDesk from './Jobdesk';
-import Employee from './Employee';
+import React, { createContext, Suspense, useCallback, useContext, useEffect, useState } from 'react';
 import { Route, Routes, useNavigate } from 'react-router-dom';
-import Employees from './Employees';
-import Request from '../attendance/Request';
-import Dailylog from '../attendance/Dailylog';
-import Details from '../attendance/Details';
-import Summary from '../attendance/Summary';
 import { toast } from 'react-toastify';
-import { addDataAPI, getDataAPI, gettingClockinsData, removeClockinsData, updateDataAPI } from '../ReuseableAPI';
-import Status from '../leave/Status';
-import LeaveRequest from '../leave/Request';
-import LeaveSummary from '../leave/Summary';
-import axios from 'axios';
-import LeaveCalender from '../leave/Calender';
-import Settings from '../Settings/Settings';
-import UnAuthorize from './UnAuthorize';
-import LeaveRequestForm from './LeaveResquestForm';
-import EditLeaveRequestForm from '../EditLeaveRequestForm';
-import Payroll from "../Settings/Payroll";
-import PayrollManage from './PayrollManage';
-import PayslipInfo from './PayslipInfo';
-import PayrollValue from './PayrollValue';
-import PayslipRouter from '../unwanted/PayslipRouter';
-import { EssentialValues } from '../../App';
-import AddEmployee from '../AddEmployee';
-import Roles from '../Administration/Roles';
-import PageAndActionAuth from '../Settings/PageAndActionAuth';
-import Announce from '../Announcement/announce';
-import Department from '../Administration/Department';
-import Position from '../Administration/Position';
+import { 
+  addDataAPI, 
+  getDataAPI, 
+  gettingClockinsData, 
+  removeClockinsData, 
+  updateDataAPI 
+} from '../ReuseableAPI';
 import { jwtDecode } from 'jwt-decode';
-import Parent from './layout/Parent';
-import PayslipUI from './PayslipUI';
-import AttendanceCalendar from '../AttendanceCalendar';
+import axios from 'axios';
+import { EssentialValues } from '../../App';
+// import "../../App.css";
+// import "../payslip/payslip.css";
+import Loading from '../Loader';
+
+// Lazy loading components
+const Dashboard = React.lazy(() => import('./Dashboard'));
+const JobDesk = React.lazy(() => import('./Jobdesk'));
+const Employee = React.lazy(() => import('./Employee'));
+const Employees = React.lazy(() => import('./Employees'));
+const Request = React.lazy(() => import('../attendance/Request'));
+const Dailylog = React.lazy(() => import('../attendance/Dailylog'));
+const Details = React.lazy(() => import('../attendance/Details'));
+const Summary = React.lazy(() => import('../attendance/Summary'));
+const Status = React.lazy(() => import('../leave/Status'));
+const LeaveRequest = React.lazy(() => import('../leave/Request'));
+const LeaveSummary = React.lazy(() => import('../leave/Summary'));
+const LeaveCalender = React.lazy(() => import('../leave/Calender'));
+const Settings = React.lazy(() => import('../Settings/Settings'));
+const UnAuthorize = React.lazy(() => import('./UnAuthorize'));
+const LeaveRequestForm = React.lazy(() => import('./LeaveResquestForm'));
+const EditLeaveRequestForm = React.lazy(() => import('../EditLeaveRequestForm'));
+const Payroll = React.lazy(() => import('../Settings/Payroll'));
+const PayrollManage = React.lazy(() => import('./PayrollManage'));
+const PayslipInfo = React.lazy(() => import('./PayslipInfo'));
+const PayrollValue = React.lazy(() => import('./PayrollValue'));
+const PayslipRouter = React.lazy(() => import('../unwanted/PayslipRouter'));
+const AddEmployee = React.lazy(() => import('../AddEmployee'));
+const Roles = React.lazy(() => import('../Administration/Roles'));
+const PageAndActionAuth = React.lazy(() => import('../Settings/PageAndActionAuth'));
+const Announce = React.lazy(() => import('../Announcement/announce'));
+const Department = React.lazy(() => import('../Administration/Department'));
+const Position = React.lazy(() => import('../Administration/Position'));
+const Parent = React.lazy(() => import('./layout/Parent'));
+const PayslipUI = React.lazy(() => import('./PayslipUI'));
+const AttendanceCalendar = React.lazy(() => import('../AttendanceCalendar'));
 
 export const LeaveStates = createContext(null);
 export const TimerStates = createContext(null);
@@ -362,6 +373,7 @@ export default function HRMDashboard() {
 
     return (
         <TimerStates.Provider value={{ workTimeTracker, reloadRolePage, setIsEditEmp, updateWorkTracker, trackTimer, startLoginTimer, stopLoginTimer, changeReasonForLate, startActivityTimer, stopActivityTimer, setWorkTimeTracker, updateClockins, timeOption, isStartLogin, isStartActivity, changeEmpEditForm, isEditEmp }}>
+            <Suspense fallback={<Loading />}>
             <Routes >
                 <Route path="/" element={<Parent />} >
                     <Route index element={<Dashboard data={data} />} />
@@ -425,6 +437,7 @@ export default function HRMDashboard() {
                     <Route path="unauthorize" element={<UnAuthorize />} />
                 </Route>
             </Routes>
+            </Suspense>
         </TimerStates.Provider>
     )
 }

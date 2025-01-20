@@ -42,34 +42,6 @@
   cursor: not-allowed;
 }
 
-.timerText {
-  font-size: 12px;
-  font-weight: 500;
-  line-height: 18px;
-  text-align: left;
-}
-
-.timerTxt {
-  font-size: 17px;
-  font-weight: 700;
-}
-
-.punchBtn {
-  width: 39px;
-  height: 39px;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-}
-
-.punchBtnParent {
-  display: flex;
-}
-
-.punchBtnParent > * {
-  margin: 5px;
-}
-
 .dropdown-arrow {
   margin-left: auto; /* Ensures the arrow is aligned to the right */
 }
