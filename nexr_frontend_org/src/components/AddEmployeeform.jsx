@@ -6,7 +6,7 @@ import { toast } from "react-toastify";
 import "./leaveForm.css";
 import { fetchPayslipInfo } from "./ReuseableAPI";
 import { useNavigate } from "react-router-dom";
-import { Form, SelectPicker, TagPicker } from "rsuite";
+import { SelectPicker, TagPicker } from "rsuite";
 import Loading from "./Loader";
 import { allCountries } from "./countryCode";
 

@@ -1,82 +1,68 @@
 const express = require('express');
 const router = express.Router();
-const { Project, ProjectValidation } = require('../models/ProjectModel');
+const { Project, ProjectValidation, projectValidation } = require('../models/ProjectModel');
 const { verifyAdmin } = require('../auth/authMiddleware');
 const Joi = require("joi");
 
 router.get("/", verifyAdmin, async (req, res) => {
   try {
-    const project = await Project.find().exec();
+    const project = await Project.find()
+      .populate({ path: "company", select: "CompanyName" })
+      // .populate({ path: "createdBy", select: "FirstName LastName" })
+      .populate({ path: "employees", select: "FirstName LastName" })
     return res.send(project);
   } catch (error) {
+    console.log(error);
+
     return res.status(500).send({ error: error.message })
   }
 });
 
-router.post("/", verifyAdmin, (req, res) => {
-  Joi.validate(req.body, ProjectValidation, (err, result) => {
-    if (err) {
-      console.log(err);
-      res.status(400).send({error: err.details[0].message});
-    } else {
-      let newProject;
-      newProject = {
-        ProjectTitle: req.body.ProjectTitle,
-        ProjectURL: req.body.ProjectURL,
-        ProjectDesc: req.body.ProjectDesc,
-        portals: req.body.Portal_ID,
-        EstimatedTime: req.body.EstimatedTime,
-        EstimatedCost: req.body.EstimatedCost,
-        ResourceID: req.body.ResourceID,
-        Status: req.body.Status,
-        Remark: req.body.Remark
-      };
-      // const { orgName } = jwt.decode(req.headers['authorization']);
-      // const Project = getProjectModel(orgName)
-      Project.create(newProject, function (err, project) {
-        if (err) {
-          res.status(500).send({error: err.message});
-        } else {
-          res.send({ message: "Project is created.", project });
-        }
-      });
-      console.log(req.body);
+router.post("/:id", verifyAdmin, async (req, res) => {
+  try {
+    const newProject = {
+      ...req.body,
+      status: req.body.status || "Not Started",
+      createdby: req.body.createdby || req.params.id
     }
-  });
+    const { error } = projectValidation.validate(newProject);
+    if (error) {
+      return res.status(400).send({ error: error.details[0].message })
+    }
+    const project = await Project.create(newProject);
+    return res.status(201).send({ message: "Project is created Successfully", project })
+  } catch (error) {
+    res.status(500).send({ error: message })
+  }
 });
 
-router.put("/:id", verifyAdmin, (req, res) => {
-  Joi.validate(req.body, ProjectValidation, (err, result) => {
-    if (err) {
-      console.log(err);
-      res.status(400).send(err.details[0].message);
-    } else {
-      let updateProject;
-      updateProject = {
-        ProjectTitle: req.body.ProjectTitle,
-        ProjectURL: req.body.ProjectURL,
-        ProjectDesc: req.body.ProjectDesc,
-        portals: req.body.Portal_ID,
-        EstimatedTime: req.body.EstimatedTime,
-        EstimatedCost: req.body.EstimatedCost,
-        ResourceID: req.body.ResourceID,
-        Status: req.body.Status,
-        Remark: req.body.Remark
-      };
-      // const { orgName } = jwt.decode(req.headers['authorization']);
-      // const Project = getProjectModel(orgName)
-      Project.findByIdAndUpdate(req.params.id, updateProject, function (
-        err,
-        Project
-      ) {
-        if (err) {
-          res.send("error");
-        } else {
-          res.send(updateProject);
-        }
-      });
+router.put("/:id", verifyAdmin, async (req, res) => {
+  try {
+    // Validate the request body
+    const { error } = projectValidation.validate(req.body);
+    if (error) {
+      console.error(error);
+      return res.status(400).send(error.details[0].message);
     }
-  });
+
+    const updatedProject = { ...req.body };
+
+    // Update the project in the database
+    const project = await Project.findByIdAndUpdate(
+      req.params.id,
+      updatedProject,
+      { new: true } // Return the updated document
+    );
+
+    if (!project) {
+      return res.status(404).send("Project not found");
+    }
+
+    res.status(200).send({ message: "Project is updated Successfully", project });
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("An error occurred while updating the project");
+  }
 });
 
 router.delete("/:id", verifyAdmin, (req, res) => {

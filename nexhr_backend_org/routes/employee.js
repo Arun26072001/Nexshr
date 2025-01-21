@@ -204,9 +204,7 @@ router.get('/:id', verifyAdminHREmployee, async (req, res) => {
 
 router.post("/", verifyAdminHR, async (req, res) => {
   try {
-    const { Email, phone, basicSalary, FirstName, LastName, Password, teamLead, managerId, company, annualLeaveEntitlement, typesOfLeaveCount } = req.body;
-    // const {orgName, orgId} = jwt.decode(req.headers['authorization']);
-    // const Employee = getEmployeeModel(orgName)
+    const { Email, phone, FirstName, LastName, Password, teamLead, managerId, company, annualLeaveEntitlement, typesOfLeaveCount } = req.body;
 
     // Check if email already exists
     if (await Employee.exists({ Email })) {
@@ -300,13 +298,11 @@ router.put("/:id", verifyAdminHREmployee, async (req, res) => {
         ['companyWorkingHourPerWeek']: `${req.body.hour}.${req.body.mins}`
       };
     }
-    // const {orgName} = jwt.decode(req.headers['authorization']);
-    // const Employee = getEmployeeModel(orgName)
+
     const updatedEmp = await Employee.findByIdAndUpdate({ _id: req.params.id }, newEmployee, { new: true })
     res.send({ message: `${updatedEmp.FirstName} data has been updated!` });
   } catch (err) {
     console.log(err);
-
     res.status(500).send({ error: err.message })
   }
 });

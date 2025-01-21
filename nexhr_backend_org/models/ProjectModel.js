@@ -1,64 +1,55 @@
 const mongoose = require('mongoose');
-const autoIncrement = require('mongoose-auto-increment');
 const Joi = require('joi');
 
 var projectSchema = new mongoose.Schema({
-  CreatedBy: { type: String },
-  CreatedDate: { type: Date, default: Date.now },
-  Deleted: { type: Boolean },
-  EmpFullName: { type: String },
-  EstimatedCost: { type: Number },
-  EstimatedTime: { type: Number },
-  ModifiedBy: { type: String },
-  ModifiedDate: { type: Date },
-  ProjectDesc: { type: String },
-  ProjectTitle: { type: String, required: true },
-  ProjectURL: { type: String },
-  Remark: { type: String },
-  ResourceID: { type: Number },
-  Status: { type: Number, required: true },
-  /////////////****************** */
-  // PortalName: { type: String },
-  // Portals: 2
-  /////////////****************** */
-  portals: [{ type: mongoose.Schema.Types.ObjectId, ref: "Portal" }]
-});
+  name: { type: String },
+  prefix: { type: String },
+  company: {type: mongoose.Schema.Types.ObjectId, ref: "Company"},
+  employees: [{ type: mongoose.Schema.Types.ObjectId, ref: "Employee" }],
+  color: { type: String },
+  tasks: [{ type: mongoose.Schema.Types.ObjectId, ref: "task" }],
+  description: { type: String },
+  status: { type: String },
+  estCost: { type: String },
+  estTime: { type: String },
+  priority: { type: String },
+  createdby: { type: mongoose.Schema.Types.ObjectId, ref: "Employee" }
+}, {timestamps: true});
 
 var Project = mongoose.model("Project", projectSchema);
 
-const ProjectValidation = Joi.object().keys({
-  _id: Joi.optional(),
-  ID: Joi.optional(),
-  CreatedBy: Joi.optional(),
-  CreatedDate: Joi.optional(),
-  Deleted: Joi.optional(),
-  EmpFullName: Joi.string()
-    .max(200)
-    .optional(),
-  EstimatedCost: Joi.optional(),
-  EstimatedTime: Joi.optional(),
-  ModifiedBy: Joi.optional(),
-  ModifiedDate: Joi.optional(),
-  ProjectDesc: Joi.string()
-    .max(2000)
-    .optional(),
-  ProjectTitle: Joi.string()
-    .max(200)
-    .required(),
-  ProjectURL: Joi.string()
-    .max(1000)
-    .optional(),
-  Remark: Joi.string()
-    .max(2000)
-    .optional(),
-  ResourceID: Joi.optional(),
-  Status: Joi.number()
-    .max(10)
-    .required(),
-  portal: Joi.optional(),
-  Portal_ID: Joi.optional()
+const projectValidation = Joi.object({
+  name: Joi.string().required().label('Project Name'),
+  prefix: Joi.string().required().label('Project Prefix'),
+  company: Joi.string()
+    .regex(/^[0-9a-fA-F]{24}$/)
+    .required()
+    .label('Company ID'),
+  employees: Joi.array()
+    .items(Joi.string().regex(/^[0-9a-fA-F]{24}$/).label('Employee ID'))
+    .label('Employees'),
+  color: Joi.string()
+    .label('Color'), // Hex color validation
+  task: Joi.array()
+    .items(Joi.string().regex(/^[0-9a-fA-F]{24}$/).label('Task ID'))
+    .label('Tasks'),
+  description: Joi.string().allow('').label('Description'),
+  status: Joi.string()
+    .valid('Not Started', 'In Progress', 'Completed', 'On Hold')
+    .required()
+    .label('Status'),
+  estCost: Joi.string().allow('').label('Estimated Cost'), // Can be enhanced if a numeric value is expected
+  estTime: Joi.string().allow('').label('Estimated Time'), // Can also be refined for specific time formats
+  priority: Joi.string()
+    .valid('Low', 'Medium', 'High', 'Critical')
+    .required()
+    .label('Priority'),
+  createdby: Joi.string()
+    .regex(/^[0-9a-fA-F]{24}$/)
+    .required()
+    .label('Created By'),
 });
 
 module.exports = {
-  Project, ProjectValidation, projectSchema
+  Project, projectValidation, projectSchema
 };

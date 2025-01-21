@@ -1,7 +1,8 @@
 import axios from 'axios';
 import React, { useEffect, useState } from 'react';
 import "../Settings/SettingsStyle.css";
-import { Modal, Button, SelectPicker } from 'rsuite';
+import { Modal, Button, SelectPicker, TagPicker, Input } from 'rsuite';
+import TextEditor from '../payslip/TextEditor';
 
 const CommonModel = ({
     dataObj,
@@ -26,7 +27,7 @@ const CommonModel = ({
                     authorization: token || ""
                 }
             });
-            setCompanies(response.data);
+            setCompanies(response.data.map((data) => ({ label: data.CompanyName, value: data._id })));
         } catch (err) {
             console.error("Error fetching companies:", err.message || err);
         }
@@ -36,8 +37,6 @@ const CommonModel = ({
     useEffect(() => {
         fetchCompanies();
     }, []);
-    console.log(emps);
-    
 
     return (
         <Modal open={isAddData} size="sm" backdrop="static">
@@ -52,51 +51,45 @@ const CommonModel = ({
                     <div className="col-half">
                         <div className="modelInput">
                             <p className='modelLabel'>{type} Name: </p>
-                            <input
-                                className='form-control'
-                                type="text"
-                                name={`${type}Name`}
-                                value={dataObj?.[`${type}Name`] || ""}
-                                onChange={changeData}
+
+                            <Input required
+                                name={`name`}
+                                value={dataObj?.[`name`] || ""}
+                                onChange={(e) => changeData(e, "name")}
                             />
                         </div>
                     </div>
                     {type === "Project" && (
                         <div className="col-half">
                             <div className="modelInput">
-                                <p className='modelLabel'>{type} Prefix:</p>
-                                <input
-                                    className='form-control'
-                                    type="text"
-                                    name={`${type}Prefix`}
-                                    value={dataObj?.[`${type}Prefix`] || ""}
-                                    onChange={changeData}
-                                />
+                                <p className='modelLabel'>Prefix:</p>
+
+                                <Input required
+                                    name={`prefix`}
+                                    value={dataObj?.[`prefix`] || ""}
+                                    onChange={(e) => changeData(e.toUpperCase(), "prefix")} />
                             </div>
                         </div>
                     )}
+                    {
+                        type === "Task"
+                    }
                 </div>
 
-                <div className="d-flex justify-content-between">
-                    {(["Department", "Position"].includes(type)) && (
+                <div className="d-flex justify-content-between gap-2">
+                    {(["Department", "Position", "Project"].includes(type)) && (
                         <div className="col-half">
                             <div className="modelInput">
-                                <p className='modelLabel'>Company</p>
-                                <select
-                                    className='form-control'
-                                    name="company"
-                                    value={
-                                        Array.isArray(dataObj?.company) ? dataObj.company[0]?._id : dataObj?.company || ""
-                                    }
-                                    onChange={changeData}
-                                >
-                                    <option value="">Select a Company</option>
-                                    {companies.map((company) => (
-                                        <option key={company._id} value={company._id}>
-                                            {company.CompanyName}
-                                        </option>
-                                    ))}
-                                </select>
+                                <p className='modelLabel'>Company:</p>
+                                <SelectPicker
+                                    required
+                                    data={companies}
+                                    size="lg"
+                                    appearance='default'
+                                    style={{ width: "100%" }}
+                                    placeholder="Select Company"
+                                    onChange={(e) => changeData(e, "company")}
+                                />
                             </div>
                         </div>
                     )}
@@ -104,25 +97,30 @@ const CommonModel = ({
                         <>
                             <div className="col-half">
                                 <div className="modelInput">
-                                    <p className='modelLabel'>Team:</p>
+                                    <p className='modelLabel'>Priority:</p>
                                     <SelectPicker
-                                        data={teams}
+                                        required
+                                        data={["Low", "Medium", "High", "Critical"].map((data) => ({ label: data, value: data }))}
                                         size="lg"
                                         appearance='default'
                                         style={{ width: "100%" }}
-                                        placeholder="Select Team"
+                                        placeholder="Select Priority"
+                                        onChange={(e) => changeData(e, "priority")}
                                     />
                                 </div>
                             </div>
-                            <div className="col-half">
+                            <div className="col-quat">
                                 <div className="modelInput">
                                     <p className='modelLabel'>Color:</p>
-                                    <input
-                                        className="form-control form-control-color"
-                                        type="color"
-                                        name={`${type}Color`}
-                                        value={dataObj?.[`${type}Color`] || ""}
-                                        onChange={changeData}
+                                    <Input
+                                        required
+                                        size="lg"
+                                        style={{ width: "100%", height: 45, border: "none" }}
+                                        type={"color"}
+                                        name={`color`}
+                                        value={dataObj?.[`color`] || ""}
+                                        appearance='default'
+                                        onChange={(e) => changeData(e, "color")}
                                     />
                                 </div>
                             </div>
@@ -134,16 +132,28 @@ const CommonModel = ({
                     <div className="col-full">
                         <div className="modelInput">
                             <p className='modelLabel'>Employees:</p>
-                            <SelectPicker
-                                data={emps}
+                            <TagPicker data={emps}
+                                required
                                 size="lg"
                                 appearance='default'
                                 style={{ width: "100%" }}
                                 placeholder="Select Employees"
-                            />
+                                onChange={(e) => changeData(e, "employees")} />
                         </div>
                     </div>
                 </div>
+
+                {
+                    ["Project", "Task"].includes(type) &&
+                    <>
+                        <div className="col-full">
+                            <div className="modelInput">
+                                <p className='modelLabel'>Description:</p>
+                                <TextEditor handleChange={(e) => changeData(e, "description")} content={dataObj?.["description"]} />
+                            </div>
+                        </div>
+                    </>
+                }
             </Modal.Body>
 
             <Modal.Footer>
@@ -153,7 +163,8 @@ const CommonModel = ({
                 <Button
                     onClick={dataObj?._id ? editData : addData}
                     appearance="primary"
-                    disabled={!dataObj?.[`${type}Name`] || (type === "department" && !dataObj?.company)}
+
+                    disabled={type === "Project" ? false : !dataObj?.[`${type}Name`] || !dataObj?.[`name`] || ((["Department", "Position"].includes(type)) && !dataObj?.company)}
                 >
                     {dataObj?._id ? "Update" : "Save"}
                 </Button>

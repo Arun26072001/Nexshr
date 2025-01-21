@@ -86,12 +86,6 @@ function verifyHREmployee(req, res, next) {
 
 async function verifyAdminHREmployee(req, res, next) {
   const token = req.headers['authorization'];
-  // // console.log("84", token);
-  // const verifytoken = await axios.post(`${cen_url}/refresh`);
-  // if(verifytoken.data.status === "false"){
-  //   res.status(401).send({error: "token has been expired!"})
-  // }else{
-  // }
   if (typeof token !== "undefined") {
 
     jwt.verify(token, jwtKey, (err, authData) => {

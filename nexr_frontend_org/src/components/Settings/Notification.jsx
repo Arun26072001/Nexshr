@@ -31,7 +31,7 @@ const Notification = () => {
         NOTIFICATIONS </h5>
       <div className="row mt-4">
         <div className="col-lg-12">
-          <div className="box active"
+          <div className="box-content active"
             style={{ border: "none", boxShadow: "0px 5px 15px rgba(0, 0, 0, 0.20), 0px 10px 30px rgba(0, 0, 0, 0.15)" }}>
             <form action="">
               {/* Informative Paragraphs */}

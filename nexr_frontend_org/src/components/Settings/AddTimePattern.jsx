@@ -231,7 +231,7 @@ const AddTimePattern = ({ handleAddWorkingTime, dom, reload }) => {
                     </div>
 
                     <div className="col-lg-3 d-flex">
-                        <div className={`position-relative ${timePattern.PublicHoliday == "Deducated" ? 'box active' : 'box'}`} onClick={() => makeActive("Deducated")}>
+                        <div className={`position-relative ${timePattern.PublicHoliday === "Deducated" ? 'box-content active' : 'box-content'}`} onClick={() => makeActive("Deducated")}>
                             <span className="RadioPosition">
                                 <input type="radio" name="timePattern.PublicHoliday" checked={timePattern.PublicHoliday === "Deducated"} className="styleRadio" />
                             </span>
@@ -250,7 +250,7 @@ const AddTimePattern = ({ handleAddWorkingTime, dom, reload }) => {
                     </div>
 
                     <div className="col-lg-3 d-flex">
-                        <div className={`position-relative ${timePattern.PublicHoliday == "Not deducated" ? 'box active' : 'box'}`} onClick={() => makeActive("Not deducated")}>
+                        <div className={`position-relative ${timePattern.PublicHoliday === "Not deducated" ? 'box-content active' : 'box-content'}`} onClick={() => makeActive("Not deducated")}>
                             <span className="RadioPosition">
                                 <input type="radio" name="timePattern.PublicHoliday" checked={timePattern.PublicHoliday === "Not deducated"} className="styleRadio" />
                             </span>
@@ -269,7 +269,7 @@ const AddTimePattern = ({ handleAddWorkingTime, dom, reload }) => {
                     </div>
 
                     <div className="col-lg-3 d-flex">
-                        <div className={`position-relative ${timePattern.PublicHoliday == "works public holidays" ? 'box active' : 'box'}`} onClick={() => makeActive("works public holidays")}>
+                        <div className={`position-relative ${timePattern.PublicHoliday === "works public holidays" ? 'box-content active' : 'box-content'}`} onClick={() => makeActive("works public holidays")}>
                             <span className="RadioPosition">
                                 <input type="radio" name="timePattern.PublicHoliday" checked={timePattern.PublicHoliday === "works public holidays"} className="styleRadio" />
                             </span>

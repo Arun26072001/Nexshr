@@ -16,7 +16,7 @@
   width: 100%;
 }
 .col-quat {
-  width: 25%;
+  width: 15%;
 }
 
 .table td {
@@ -37,9 +37,10 @@
   border-radius: 20px;
   margin-left: 5px;
   height: 24px;
-  width: 73px;
+  width: fit-content;
   display: flex;
   align-items: center;
+  font-weight: bold;
 }
 
 .content {
@@ -73,6 +74,13 @@
   padding: 20px;
   box-shadow: rgba(60, 64, 67, 0.3) 0px 1px 2px 0px,
     rgba(60, 64, 67, 0.15) 0px 1px 3px 1px;
+    transition-duration: 1s;
+}
+
+.box-content:hover {
+  opacity: 1;
+  transform: translateY(-10px);
+  transition-duration: revert;
 }
 
 .form-check-input {
