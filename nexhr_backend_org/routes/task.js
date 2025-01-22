@@ -6,7 +6,10 @@ const router = express.Router();
 
 router.get("/:id", verifyAdminHREmployee, async (req, res) => {
     try {
-        const tasks = await Task.find({ project: { $in: req.params.id } }).exec();
+        const tasks = await Task.find({ project: { $in: req.params.id } })
+        .populate({path: "project", select: "name"})
+        .populate({path: "assignedTo", select: "FirstName LastName"})
+        .exec();
         if (tasks.length === 0) {
             return res.status(404).send({ error: "No Task found in this Project" })
         }
@@ -28,7 +31,7 @@ router.post("/:id", verifyAdminHREmployee, async (req, res) => {
         
         const newTask = {
             ...req.body,
-            createdBy: req.params.id,
+            createdby: req.params.id,
             status: req?.body?.status || "On Hold",
         }
         const {error} = taskValidation.validate(newTask);

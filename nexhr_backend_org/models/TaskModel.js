@@ -6,15 +6,15 @@ const taskSchema = new mongoose.Schema({
     priority: { type: String },
     attachments: [{ type: String }],
     description: { type: String },
-    assignedTo: [{ type: mongoose.Schema.Types.ObjectId, ref: "employee" }],
+    assignedTo: [{ type: mongoose.Schema.Types.ObjectId, ref: "Employee" }],
     from: { type: Date },
     to: { type: Date },
     status: { type: String },
-    createdBy: { type: mongoose.Schema.Types.ObjectId, ref: "employee" },
-    project: { type: mongoose.Schema.Types.ObjectId, ref: "project" }
+    createdby: { type: mongoose.Schema.Types.ObjectId, ref: "Employee" },
+    project: { type: mongoose.Schema.Types.ObjectId, ref: "Project" }
 }, { timestamps: true })
 
-const Task = mongoose.model("tasks", taskSchema);
+const Task = mongoose.model("Task", taskSchema);
 
 const taskValidation = Joi.object({
     title: Joi.string().required().label('Task Title'),
@@ -23,7 +23,7 @@ const taskValidation = Joi.object({
         .required()
         .label('Priority'),
     attachments: Joi.array()
-        .items(Joi.string().uri().label('Attachment URL'))
+        .items(Joi.string().label('Attachment URL'))
         .label('Attachments'),
     description: Joi.string().allow('').label('Description'),
     assignedTo: Joi.array()
@@ -38,7 +38,7 @@ const taskValidation = Joi.object({
         .valid('Pending', 'In Progress', 'Completed', 'On Hold')
         .required()
         .label('Status'),
-    createdBy: Joi.string()
+    createdby: Joi.string()
         .regex(/^[0-9a-fA-F]{24}$/)
         .required()
         .label('Created By'),

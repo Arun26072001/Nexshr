@@ -7,7 +7,7 @@ var projectSchema = new mongoose.Schema({
   company: {type: mongoose.Schema.Types.ObjectId, ref: "Company"},
   employees: [{ type: mongoose.Schema.Types.ObjectId, ref: "Employee" }],
   color: { type: String },
-  tasks: [{ type: mongoose.Schema.Types.ObjectId, ref: "task" }],
+  tasks: [{ type: mongoose.Schema.Types.ObjectId, ref: "Task" }],
   description: { type: String },
   status: { type: String },
   estCost: { type: String },
@@ -30,7 +30,7 @@ const projectValidation = Joi.object({
     .label('Employees'),
   color: Joi.string()
     .label('Color'), // Hex color validation
-  task: Joi.array()
+  tasks: Joi.array()
     .items(Joi.string().regex(/^[0-9a-fA-F]{24}$/).label('Task ID'))
     .label('Tasks'),
   description: Joi.string().allow('').label('Description'),
@@ -48,6 +48,8 @@ const projectValidation = Joi.object({
     .regex(/^[0-9a-fA-F]{24}$/)
     .required()
     .label('Created By'),
+    createdAt: Joi.string().allow('').label('createdAt'),
+    updatedAt: Joi.string().allow('').label('updatedAt')
 });
 
 module.exports = {
