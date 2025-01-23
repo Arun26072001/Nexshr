@@ -15,11 +15,14 @@ const CommonModel = ({
     emps,
     deleteData,
     comps,
+    removeAttachment,
     type // New prop to determine if it's for "department" or "position"
 }) => {
     const url = process.env.REACT_APP_API_URL;
     const [confirmationTxt, setConfirmationTxt] = useState("");
-    console.log(dataObj);
+
+    console.log(dataObj?.from);
+
 
     return (
         <Modal open={isAddData} size="sm" backdrop="static">
@@ -58,9 +61,6 @@ const CommonModel = ({
                                 </div>
                             </div>
                         )}
-                        {
-                            type === "Task"
-                        }
                     </div>
                 }
 
@@ -103,7 +103,7 @@ const CommonModel = ({
                                         appearance='default'
                                         style={{ width: "100%" }}
                                         placeholder="Select Start Date"
-                                        value={dataObj?.from}
+                                        value={new Date(dataObj?.from)}
                                         onChange={(e) => changeData(e, "from")}
                                     />
                                 </div>
@@ -116,7 +116,7 @@ const CommonModel = ({
                                         appearance='default'
                                         style={{ width: "100%" }}
                                         placeholder="Select Due Date"
-                                        value={dataObj?.to}
+                                        value={new Date(dataObj?.to)}
                                         onChange={(e) => changeData(e, "to")}
                                     />
                                 </div>
@@ -125,12 +125,52 @@ const CommonModel = ({
 
                         <div className="col-full">
                             <div className="modelInput">
-                                <p className='modelLabel'>Attachments: </p>
-                                <Uploader method='post' onSuccess={(e) => changeData(e.files[0].convertedFile, "attachments")} action={`${url}/api/upload`} name='documents' multiple={true} fileListVisible={true} >
-                                    <Button color='primary'>Choose +</Button>
+                                <p className="modelLabel">Attachments: </p>
+                                <Uploader
+                                    fileListVisible={false}
+                                    method="post"
+                                    onSuccess={(e) => changeData(e.files[0].convertedFile, "attachments")}
+                                    action={`${url}/api/upload`}
+                                    name="documents"
+                                    multiple={true}
+                                >
+                                    <Button color="primary">Choose +</Button>
                                 </Uploader>
                             </div>
+                            {
+                                dataObj?.attachments?.length > 0 &&
+                                dataObj.attachments.map((imgFile, index) => (
+                                    <div key={index} style={{ display: 'inline-block', margin: '10px', position: 'relative' }}>
+                                        <img
+                                            src={imgFile}
+                                            width={50}
+                                            height={50}
+                                            alt="uploaded file"
+                                            style={{ borderRadius: '4px' }}
+                                        />
+                                        {/* Close button */}
+                                        <button
+                                            onClick={() => removeAttachment(imgFile)}
+                                            style={{
+                                                position: 'absolute',
+                                                top: 0,
+                                                right: 0,
+                                                backgroundColor: 'red',
+                                                color: 'white',
+                                                border: 'none',
+                                                borderRadius: '50%',
+                                                width: '20px',
+                                                height: '20px',
+                                                cursor: 'pointer'
+                                            }}
+                                        >
+                                            &times;
+                                        </button>
+                                    </div>
+                                ))
+                            }
                         </div>
+
                     </>
                 }
 
@@ -192,23 +232,35 @@ const CommonModel = ({
                 </div>
 
                 {
-                    ["Project", "Assign", "Task"].includes(type) &&
-                    <div className="d-flex justify-content-between">
-                        <div className="col-full">
-                            <div className="modelInput">
-                                <p className='modelLabel'>{type === "Task" ? "Assign To" : "Employee"}:</p>
-                                <TagPicker data={emps}
-                                    required
-                                    size="lg"
-                                    appearance='default'
-                                    style={{ width: "100%" }}
-                                    placeholder="Select Employees"
-                                    value={type === "Task" ? dataObj?.assignedTo : dataObj.employees}
-                                    onChange={(e) => changeData(e, type === "Task" ? "assignedTo" : "employees")} />
+                    ["Project", "Assign", "Task", "Task Assign"].includes(type) && (
+                        <div className="d-flex justify-content-between">
+                            <div className="col-full">
+                                <div className="modelInput">
+                                    <p className="modelLabel">
+                                        {["Task", "Task Assign"].includes(type) ? "Assign To" : "Employee"}:
+                                    </p>
+
+                                    <TagPicker
+                                        data={emps}
+                                        required
+                                        size="lg"
+                                        appearance="default"
+                                        style={{ width: "100%" }}
+                                        placeholder="Select Employees"
+                                        value={type.includes("Task") ? dataObj.assignedTo : dataObj.employees}
+                                        onChange={(e) =>
+                                            changeData(
+                                                e,
+                                                type.includes("Task") ? "assignedTo" : "employees"
+                                            )
+                                        }
+                                    />
+                                </div>
                             </div>
                         </div>
-                    </div>
+                    )
                 }
+
 
                 {
                     ["Project", "Task"].includes(type) &&
@@ -223,18 +275,21 @@ const CommonModel = ({
                 }
 
                 {
-                    type === "Confirmation" &&
+                    ["Confirmation", "Task Confirmation"].includes(type) &&
                     <div className='text-center' style={{ color: "#FFD65A" }}>
                         <p>
                             <ErrorOutlineRoundedIcon sx={{ fontSize: "80px" }} />
                         </p>
                         <h2>Delete</h2>
-                        <div className="projectBody bg-warning text-dark text-center">
-                            <p className='my-2'><b>Are you sure you want to delete this Project</b></p>
-                            <p>By deleting this project all its task, invoice and time entries will be deleted.</p>
-                        </div>
+                        {
+                            type === "Confirmation" &&
+                            <div className="projectBody bg-warning text-dark text-center">
+                                <p className='my-2'><b>Are you sure you want to delete this Project</b></p>
+                                <p>By deleting this project all its task, invoice and time entries will be deleted.</p>
+                            </div>
+                        }
 
-                        <Input required placeholder='Please Type "Delete" to delete this Project' onChange={setConfirmationTxt} value={confirmationTxt} appearance="default" size='lg' />
+                        <Input required placeholder={`Please Type "Delete" to delete this ${type === "Confirmation" ? "Project" : "Task"}`} onChange={setConfirmationTxt} value={confirmationTxt} appearance="default" size='lg' />
                     </div>
                 }
 
@@ -242,7 +297,7 @@ const CommonModel = ({
 
             <Modal.Footer>
                 {
-                    type === "Confirmation" ?
+                    ["Confirmation", "Task Confirmation"].includes(type) ?
                         <>
                             <Button onClick={modifyData} appearance="default">No</Button>
                             <Button disabled={confirmationTxt === "Delete" ? false : true} onClick={deleteData} appearance="primary">Yes</Button>
@@ -252,9 +307,9 @@ const CommonModel = ({
                                 Close
                             </Button>
                             <Button
-                                onClick={dataObj?._id ? editData : addData}
+                                onClick={() => dataObj?._id ? editData(dataObj) : addData()}
                                 appearance="primary"
-                                disabled={["Project", "Assign", "Task"].includes(type) ? false : !dataObj?.[`${type}Name`] || !dataObj?.[`name`] || ((["Department", "Position"].includes(type)) && !dataObj?.company)}
+                                disabled={["Project", "Assign", "Task", "Task Assign"].includes(type) ? false : !dataObj?.[`${type}Name`] || !dataObj?.[`name`] || ((["Department", "Position"].includes(type)) && !dataObj?.company)}
                             >
                                 {dataObj?._id ? "Update" : "Save"}
                             </Button>

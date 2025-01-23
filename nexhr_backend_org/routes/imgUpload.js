@@ -53,13 +53,13 @@ imgUpload.post("/", upload.array("documents", 10), async (req, res) => {
 
         // Add the file details to the result array
         convertedFiles.push({
-          originalFile: file.originalname,
-          convertedFile: webpFileName,
+          originalFile: `${process.env.REACT_APP_API_URL}/uploads/${file.originalname}`,
+          convertedFile: `${process.env.REACT_APP_API_URL}/uploads/${webpFileName}`,
         });
       } catch (error) {
         console.error(`Error converting file: ${file.originalname}`, error);
         convertedFiles.push({
-          originalFile: file.originalname,
+          originalFile: `${process.env.REACT_APP_API_URL}/uploads/${file.originalname}`,
           error: error.message,
         });
       }

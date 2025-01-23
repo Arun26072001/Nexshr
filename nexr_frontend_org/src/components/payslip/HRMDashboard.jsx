@@ -16,6 +16,7 @@ import { EssentialValues } from '../../App';
 import Loading from '../Loader';
 import Projects from '../Projects';
 import Tasks from '../Tasks';
+import Reports from '../Reports';
 
 // Lazy loading components
 const Dashboard = React.lazy(() => import('./Dashboard'));
@@ -381,8 +382,10 @@ export default function HRMDashboard() {
                     <Route index element={<Dashboard data={data} />} />
                     <Route path="job-desk/*" element={<JobDesk />} />
                     <Route path="calendar" element={<AttendanceCalendar />} />
+                    {/* <Route path="" */}
                     <Route path="projects" element={<Projects />} />
                     <Route path="tasks" element={<Tasks />} />
+                    <Route path="reports" element={<Reports />} />
                     <Route path="employee" element={<Employee />} />
                     <Route path="employee/add" element={<Employees />} />
                     <Route path="employee/edit/:id" element={<AddEmployee />} />

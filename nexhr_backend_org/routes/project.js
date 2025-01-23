@@ -18,11 +18,21 @@ router.get("/:id", verifyAdmin, async (req, res) => {
 
 router.get("/", verifyAdmin, async (req, res) => {
   try {
-    const project = await Project.find()
+    let projects = await Project.find()
       .populate({ path: "company", select: "CompanyName" })
       .populate({ path: "employees", select: "FirstName LastName" })
       .populate({ path: "tasks" })
-    return res.send(project);
+
+    projects = projects.map((project) => {
+      const completedTasks = project.tasks.filter((task) => task.status === "Completed")
+      const pendingTasks = project.tasks.filter((task) => ['Pending', 'In Progress', 'On Hold'].includes(task.status))
+      return {
+        ...project.toObject(),
+        "progress": (completedTasks.length / project.tasks.length) * 100,
+        pendingTasks
+      }
+    })
+    return res.send(projects);
   } catch (error) {
     console.log(error);
 

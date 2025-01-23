@@ -17,6 +17,8 @@ const taskSchema = new mongoose.Schema({
 const Task = mongoose.model("Task", taskSchema);
 
 const taskValidation = Joi.object({
+    _id: Joi.string().allow("").label('_id'),
+    __v: Joi.string().allow(0).label('__v'),
     title: Joi.string().required().label('Task Title'),
     priority: Joi.string()
         .valid('Low', 'Medium', 'High', 'Critical')
@@ -42,7 +44,9 @@ const taskValidation = Joi.object({
         .regex(/^[0-9a-fA-F]{24}$/)
         .required()
         .label('Created By'),
-    project: Joi.string().regex(/^[0-9a-fA-F]{24}$/).label('Project ID')
+    project: Joi.string().regex(/^[0-9a-fA-F]{24}$/).label('Project ID'),
+        createdAt: Joi.string().allow('').label('createdAt'),
+        updatedAt: Joi.string().allow('').label('updatedAt')
 });
 
 module.exports = {

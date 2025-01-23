@@ -149,7 +149,7 @@ export default function Projects() {
     }, [isAddProject, isDelete.type, isEdit])
 
     function filterByName(name) {
-        
+
         setName(name);
         if (["", null].includes(name)) {
             setProjects(filterProjects)
@@ -189,11 +189,12 @@ export default function Projects() {
         fetchCompanies();
     }, [])
 
-
     const renderMenu = (project) => ({ onClose, right, top, className }, ref) => {
         const handleSelect = (eventKey) => {
             if (eventKey === 1) {
-                fetchProjectById(project._id)
+                if (project._id) {
+                    fetchProjectById(project._id)
+                }
                 handleAddProject();
             } else if (eventKey === 2) {
                 handleDelete(project); // Use project data here
@@ -306,7 +307,7 @@ export default function Projects() {
                                                     <div className="projectDetails m-0">
                                                         <span className="defaultDesign">({project.status})</span>
                                                         <span>
-                                                            <b>{project.tasks.length}</b> Pending Task(s)
+                                                            <b>{project?.pendingTasks?.length || 0}</b> Pending Task(s)
                                                         </span>
                                                     </div>
                                                     <div
@@ -317,12 +318,12 @@ export default function Projects() {
                                                     </div>
                                                     <div className="d-flex align-items-center gap-2 my-3">
                                                         {project.employees.map((emp) => (
-                                                            <div className="nameHolder" key={emp._id}>
+                                                            <div className="nameHolder" style={{ width: "35px", height: "35px" }} key={emp._id}>
                                                                 {emp.FirstName[0].toUpperCase() +
                                                                     emp.LastName[0].toUpperCase()}
                                                             </div>
                                                         ))}
-                                                        <AddCircleOutlineRoundedIcon fontSize="large" color="disabled" onClick={() => {
+                                                        <AddCircleOutlineRoundedIcon fontSize="large" sx={{ cursor: "pointer" }} color="disabled" onClick={() => {
                                                             fetchProjectById(project._id)
                                                             handleEditProject()
                                                         }} />

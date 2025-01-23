@@ -317,6 +317,51 @@ export default function LeaveTable({ data, Account, getCheckedValue, isTeamHead,
         }
     ];
 
+    const column12 = [
+        {
+            id: 'name',
+            label: 'Name',
+            minWidth: 130,
+            align: "left",
+            getter: (row) =>
+                row.employee?.FirstName
+                    ? row.employee.FirstName[0].toUpperCase() + row.employee.FirstName.slice(1) + " " + (row.employee.LastName || '')
+                    : 'Unknown',
+        },
+        {
+            id: 'fromDate',
+            label: 'Start Date',
+            minWidth: 130,
+            align: 'left',
+            getter: (row) => row.fromDate ? row.fromDate.split("T")[0] : 'N/A',
+        },
+        {
+            id: 'toDate',
+            label: 'End Date',
+            minWidth: 130,
+            align: 'left',
+            getter: (row) => row.toDate ? row.toDate.split("T")[0] : 'N/A',
+        },
+        {
+            id: 'createdBy',
+            label: 'Created By',
+            minWidth: 130,
+            align: 'left',
+            getter: (row) => row.createdBy?.FirstName
+                ? row.createdBy.FirstName[0].toUpperCase() + row.createdBy.FirstName.slice(1) + " " + (row.createdBy.LastName || '')
+                : 'Unknown',
+        },
+        {
+            id: "Action",
+            label: "Action",
+            minWidth: 100,
+            align: "left",
+            getter: (row) => row.action
+
+        },
+    ];
+
+
     const column7 = [
         {
             id: 'sNo',
