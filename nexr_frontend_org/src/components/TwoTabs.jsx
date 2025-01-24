@@ -95,6 +95,7 @@ export default function Twotabs() {
         const res = await getHoliday();
         setHolidays(res)
       } catch (error) {
+        setHolidays([])
         toast.error(error)
       }
     }

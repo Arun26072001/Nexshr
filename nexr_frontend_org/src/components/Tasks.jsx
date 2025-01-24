@@ -7,7 +7,6 @@ import CommonModel from "./Administration/CommonModel";
 import axios from "axios";
 import { EssentialValues } from "../App";
 import { toast } from "react-toastify";
-import { fetchEmployees } from "./ReuseableAPI";
 import Loading from "./Loader";
 import NoDataFound from "./payslip/NoDataFound";
 import AddCircleOutlineRoundedIcon from '@mui/icons-material/AddCircleOutlineRounded';
@@ -18,7 +17,7 @@ import KeyboardArrowRightRoundedIcon from '@mui/icons-material/KeyboardArrowRigh
 import BorderColorRoundedIcon from '@mui/icons-material/BorderColorRounded';
 import DeleteRoundedIcon from '@mui/icons-material/DeleteRounded';
 
-const Tasks = () => {
+const Tasks = ({employees}) => {
   const { data } = useContext(EssentialValues);
   const [taskObj, setTaskObj] = useState({});
   const [projects, setProjects] = useState([]);
@@ -29,7 +28,6 @@ const Tasks = () => {
   const [isEditTask, setIsEditTask] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isDelete, setIsDelete] = useState({ type: false, value: "" });
-  const [employees, setEmployees] = useState([]);
   const url = process.env.REACT_APP_API_URL;
 
   const renderMenu1 = ({ onClose, right, top, className }, ref) => {
@@ -226,15 +224,6 @@ const Tasks = () => {
     }
   }
 
-  async function gettingEmps() {
-    try {
-      const emps = await fetchEmployees();
-      setEmployees(emps.map((emp) => ({ label: emp.FirstName + " " + emp.LastName, value: emp._id })))
-    } catch (error) {
-      console.log(error);
-    }
-  }
-
   useEffect(() => {
     async function fetchProjects() {
       setIsLoading(true)
@@ -252,7 +241,6 @@ const Tasks = () => {
       setIsLoading(false)
     }
     fetchProjects();
-    gettingEmps();
   }, [])
 
   async function getValue(task) {
@@ -261,8 +249,6 @@ const Tasks = () => {
       ...taskData,
       "status": "Completed"
     }
-    console.log(updatedTask);
-
     editTask(updatedTask)
 
   }

@@ -1,22 +1,19 @@
 import React, { createContext, Suspense, useCallback, useContext, useEffect, useState } from 'react';
 import { Route, Routes, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
-import { 
-  addDataAPI, 
-  getDataAPI, 
-  gettingClockinsData, 
-  removeClockinsData, 
-  updateDataAPI 
+import {
+    addDataAPI,
+    fetchAllEmployees,
+    getDataAPI,
+    gettingClockinsData,
+    removeClockinsData,
+    updateDataAPI
 } from '../ReuseableAPI';
 import { jwtDecode } from 'jwt-decode';
 import axios from 'axios';
 import { EssentialValues } from '../../App';
-// import "../../App.css";
-// import "../payslip/payslip.css";
 import Loading from '../Loader';
-import Projects from '../Projects';
-import Tasks from '../Tasks';
-import Reports from '../Reports';
+
 
 // Lazy loading components
 const Dashboard = React.lazy(() => import('./Dashboard'));
@@ -49,6 +46,9 @@ const Position = React.lazy(() => import('../Administration/Position'));
 const Parent = React.lazy(() => import('./layout/Parent'));
 const PayslipUI = React.lazy(() => import('./PayslipUI'));
 const AttendanceCalendar = React.lazy(() => import('../AttendanceCalendar'));
+const Projects = React.lazy(() => import("../Projects"));
+const Tasks = React.lazy(() => import("../Tasks"));
+const Reports = React.lazy(() => import("../Reports"));
 
 export const LeaveStates = createContext(null);
 export const TimerStates = createContext(null);
@@ -72,6 +72,8 @@ export default function HRMDashboard() {
     const [reloadRole, setReloadRole] = useState(false);
     const [syncTimer, setSyncTimer] = useState(false);
     const [isUpdatedRequest, setIsUpdatedReqests] = useState(false);
+    const [employees, setEmployees] = useState([]);
+    const [companies, setCompanies] = useState([]);
 
     // files for payroll
     const files = ['payroll', 'value', 'manage', 'payslip'];
@@ -349,6 +351,15 @@ export default function HRMDashboard() {
         setSyncTimer(!syncTimer);
     }
 
+    async function gettingEmps() {
+        try {
+            const emps = await fetchAllEmployees();
+            setEmployees(emps.map((emp) => ({ label: emp.FirstName + " " + emp.LastName, value: emp._id })))
+        } catch (error) {
+            console.log(error);
+        }
+    }
+
     // get workTimeTracker from DB in Initially
     useEffect(() => {
         const getClockInsData = async () => {
@@ -366,6 +377,7 @@ export default function HRMDashboard() {
                 console.warn(error);
             }
         }
+        gettingEmps()
         getClockInsData()
     }, [syncTimer]);
 
@@ -377,73 +389,73 @@ export default function HRMDashboard() {
     return (
         <TimerStates.Provider value={{ workTimeTracker, reloadRolePage, setIsEditEmp, updateWorkTracker, trackTimer, startLoginTimer, stopLoginTimer, changeReasonForLate, startActivityTimer, stopActivityTimer, setWorkTimeTracker, updateClockins, timeOption, isStartLogin, isStartActivity, changeEmpEditForm, isEditEmp }}>
             <Suspense fallback={<Loading />}>
-            <Routes >
-                <Route path="/" element={<Parent />} >
-                    <Route index element={<Dashboard data={data} />} />
-                    <Route path="job-desk/*" element={<JobDesk />} />
-                    <Route path="calendar" element={<AttendanceCalendar />} />
-                    {/* <Route path="" */}
-                    <Route path="projects" element={<Projects />} />
-                    <Route path="tasks" element={<Tasks />} />
-                    <Route path="reports" element={<Reports />} />
-                    <Route path="employee" element={<Employee />} />
-                    <Route path="employee/add" element={<Employees />} />
-                    <Route path="employee/edit/:id" element={<AddEmployee />} />
-                    <Route path="leave/*" element={
-                        <LeaveStates.Provider value={{ daterangeValue, setDaterangeValue, isLoading, leaveRequests, filterLeaveRequests, empName, setEmpName, changeRequests }} >
-                            <Routes>
-                                <Route index path='status' element={<Status />} />
-                                <Route path='leave-request' element={<LeaveRequest />} />
-                                <Route path='calendar' element={<LeaveCalender />} />
-                                <Route path='leave-summary' element={<LeaveSummary />} />
-                            </Routes>
-                        </LeaveStates.Provider>
-                    } />
-                    <Route path='/leave-request' element={<LeaveRequestForm />} />
-                    <Route path="/leave-request/edit/:id" element={<EditLeaveRequestForm />} />
-                    <Route path="attendance/*" element={
-                        <Routes>
-                            <Route index path="attendance-request" element={<Request attendanceData={attendanceData} isLoading={waitForAttendance} />} />
-                            <Route path="daily-log" element={<Dailylog attendanceData={attendanceData} isLoading={waitForAttendance} />} />
-                            <Route path="details" element={<Details attendanceData={attendanceData} isLoading={waitForAttendance} />} />
-                            <Route path="attendance-summary" element={<Summary attendanceData={attendanceForSummary} isLoading={waitForAttendance} />} />
-                        </Routes>
-                    }>
-                    </Route>
-                    <Route path="administration/*" element={
-                        <Routes>
-                            <Route index path="role/*" element={
+                <Routes >
+                    <Route path="/" element={<Parent />} >
+                        <Route index element={<Dashboard data={data} />} />
+                        <Route path="job-desk/*" element={<JobDesk />} />
+                        <Route path="calendar" element={<AttendanceCalendar />} />
+                        {/* <Route path="" */}
+                        <Route path="projects" element={<Projects employees={employees} />} />
+                        <Route path="tasks" element={<Tasks employees={employees} />} />
+                        <Route path="reports" element={<Reports employees={employees} />} />
+                        <Route path="employee" element={<Employee />} />
+                        <Route path="employee/add" element={<Employees />} />
+                        <Route path="employee/edit/:id" element={<AddEmployee />} />
+                        <Route path="leave/*" element={
+                            <LeaveStates.Provider value={{ daterangeValue, setDaterangeValue, isLoading, leaveRequests, filterLeaveRequests, empName, setEmpName, changeRequests }} >
                                 <Routes>
-                                    <Route index element={<Roles />} />
-                                    <Route path="add" element={<PageAndActionAuth />} />
-                                    <Route path="edit/:id" element={<PageAndActionAuth />} />
-                                    <Route path="view/:id" element={<PageAndActionAuth />} />
+                                    <Route index path='status' element={<Status />} />
+                                    <Route path='leave-request' element={<LeaveRequest />} />
+                                    <Route path='calendar' element={<LeaveCalender />} />
+                                    <Route path='leave-summary' element={<LeaveSummary />} />
                                 </Routes>
-                            } />
-                            <Route path="/department" element={<Department />} />
-                            <Route path="/position" element={<Position />} />
-                            <Route path="/holiday" element={<h1 className='text-center'>Under Development</h1>} />
-                            <Route path="/announcement" element={<Announce />} />
-                            <Route path={"/shift"} element={<h1 className='text-center'>Under Development</h1>} />
-                        </Routes>
-                    } />
-                    <Route path="settings/*" element={
-                        <Routes>
-                            <Route path="profile" element={<Settings />} />
-                            <Route path="/" element={<PayslipRouter whoIs={whoIs} files={files} />}>
-                                <Route path="payroll" element={<Payroll whoIs={whoIs} />} />
-                                <Route path="value" element={<PayrollValue />} />
-                                <Route path="manage" element={<PayrollManage />} />
-                                <Route path="payslip" element={<PayslipInfo />} />
-                                <Route path="account" element={<h1 className='text-center'>Under Development</h1>} />
-                            </Route>
-                        </Routes>
-                    } />
-                    <Route path='payslip/:id' element={<PayslipUI />} />
-                    <Route path="*" element={<p>404</p>} />
-                    <Route path="unauthorize" element={<UnAuthorize />} />
-                </Route>
-            </Routes>
+                            </LeaveStates.Provider>
+                        } />
+                        <Route path='/leave-request' element={<LeaveRequestForm />} />
+                        <Route path="/leave-request/edit/:id" element={<EditLeaveRequestForm />} />
+                        <Route path="attendance/*" element={
+                            <Routes>
+                                <Route index path="attendance-request" element={<Request attendanceData={attendanceData} isLoading={waitForAttendance} />} />
+                                <Route path="daily-log" element={<Dailylog attendanceData={attendanceData} isLoading={waitForAttendance} />} />
+                                <Route path="details" element={<Details attendanceData={attendanceData} isLoading={waitForAttendance} />} />
+                                <Route path="attendance-summary" element={<Summary attendanceData={attendanceForSummary} isLoading={waitForAttendance} />} />
+                            </Routes>
+                        }>
+                        </Route>
+                        <Route path="administration/*" element={
+                            <Routes>
+                                <Route index path="role/*" element={
+                                    <Routes>
+                                        <Route index element={<Roles />} />
+                                        <Route path="add" element={<PageAndActionAuth />} />
+                                        <Route path="edit/:id" element={<PageAndActionAuth />} />
+                                        <Route path="view/:id" element={<PageAndActionAuth />} />
+                                    </Routes>
+                                } />
+                                <Route path="/department" element={<Department />} />
+                                <Route path="/position" element={<Position />} />
+                                <Route path="/holiday" element={<h1 className='text-center'>Under Development</h1>} />
+                                <Route path="/announcement" element={<Announce />} />
+                                <Route path={"/shift"} element={<h1 className='text-center'>Under Development</h1>} />
+                            </Routes>
+                        } />
+                        <Route path="settings/*" element={
+                            <Routes>
+                                <Route path="profile" element={<Settings />} />
+                                <Route path="/" element={<PayslipRouter whoIs={whoIs} files={files} />}>
+                                    <Route path="payroll" element={<Payroll whoIs={whoIs} />} />
+                                    <Route path="value" element={<PayrollValue />} />
+                                    <Route path="manage" element={<PayrollManage />} />
+                                    <Route path="payslip" element={<PayslipInfo />} />
+                                    <Route path="account" element={<h1 className='text-center'>Under Development</h1>} />
+                                </Route>
+                            </Routes>
+                        } />
+                        <Route path='payslip/:id' element={<PayslipUI />} />
+                        <Route path="*" element={<p>404</p>} />
+                        <Route path="unauthorize" element={<UnAuthorize />} />
+                    </Route>
+                </Routes>
             </Suspense>
         </TimerStates.Provider>
     )

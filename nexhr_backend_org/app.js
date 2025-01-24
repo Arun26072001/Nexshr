@@ -48,6 +48,7 @@ const organization = require("./routes/organization");
 const userAccount = require("./routes/user-account");
 const { imgUpload } = require('./routes/imgUpload');
 const holidays = require("./routes/holidays");
+const report = require("./routes/reports");
 
 // MongoDB Connection
 const mongoURI = process.env.DATABASEURL;
@@ -142,6 +143,7 @@ app.use("/api/teamssample", teamssample);
 app.use("/api/user-permission", userPermission);
 app.use("/api/page-auth", pageAuth);
 app.use("/api/upload", imgUpload);
+app.use("/api/report", report)
 
 
 // Create HTTP Server and Socket.IO

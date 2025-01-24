@@ -4,17 +4,18 @@ const Joi = require('joi');
 var projectSchema = new mongoose.Schema({
   name: { type: String },
   prefix: { type: String },
-  company: {type: mongoose.Schema.Types.ObjectId, ref: "Company"},
+  company: { type: mongoose.Schema.Types.ObjectId, ref: "Company" },
   employees: [{ type: mongoose.Schema.Types.ObjectId, ref: "Employee" }],
   color: { type: String },
-  tasks: [{ type: mongoose.Schema.Types.ObjectId, ref: "Task" }],
+  tasks: [{ type: mongoose.Schema.Types.ObjectId, ref: "Task", default: [] }],
+  reports: [{ type: mongoose.Schema.Types.ObjectId, ref: "Report", default: [] }],
   description: { type: String },
   status: { type: String },
   estCost: { type: String },
   estTime: { type: String },
   priority: { type: String },
   createdby: { type: mongoose.Schema.Types.ObjectId, ref: "Employee" }
-}, {timestamps: true});
+}, { timestamps: true });
 
 var Project = mongoose.model("Project", projectSchema);
 
@@ -48,8 +49,8 @@ const projectValidation = Joi.object({
     .regex(/^[0-9a-fA-F]{24}$/)
     .required()
     .label('Created By'),
-    createdAt: Joi.string().allow('').label('createdAt'),
-    updatedAt: Joi.string().allow('').label('updatedAt')
+  createdAt: Joi.string().allow('').label('createdAt'),
+  updatedAt: Joi.string().allow('').label('updatedAt')
 });
 
 module.exports = {

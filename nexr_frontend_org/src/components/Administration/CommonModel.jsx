@@ -12,7 +12,8 @@ const CommonModel = ({
     addData,
     modifyData,
     projects,
-    emps,
+    departments,
+    employees,
     deleteData,
     comps,
     removeAttachment,
@@ -20,9 +21,6 @@ const CommonModel = ({
 }) => {
     const url = process.env.REACT_APP_API_URL;
     const [confirmationTxt, setConfirmationTxt] = useState("");
-
-    console.log(dataObj?.from);
-
 
     return (
         <Modal open={isAddData} size="sm" backdrop="static">
@@ -36,19 +34,21 @@ const CommonModel = ({
 
             <Modal.Body>
                 {
-                    (["Department", "Position", "Project"].includes(type)) &&
+                    (["Department", "Position", "Project", "Report"].includes(type)) &&
                     <div className="d-flex justify-content-between">
-                        <div className="col-half">
-                            <div className="modelInput">
-                                <p className='modelLabel'>{type} Name: </p>
-
-                                <Input required
-                                    name={`name`}
-                                    value={dataObj?.[`name`] || ""}
-                                    onChange={(e) => changeData(e, "name")}
-                                />
+                        {
+                            ["Department", "Position", "Project", "Report"].includes(type) &&
+                            <div className="col-half">
+                                <div className="modelInput">
+                                    <p className='modelLabel'>{type} Name: </p>
+                                    <Input required
+                                        name={`name`}
+                                        value={dataObj?.[`name`] || ""}
+                                        onChange={(e) => changeData(e, "name")}
+                                    />
+                                </div>
                             </div>
-                        </div>
+                        }
                         {type === "Project" && (
                             <div className="col-half">
                                 <div className="modelInput">
@@ -61,68 +61,59 @@ const CommonModel = ({
                                 </div>
                             </div>
                         )}
+                        {type === "Report" &&
+                            <div className="col-half">
+                                <div className="modelInput">
+                                    <p className='modelLabel'>Depertment:</p>
+                                    <SelectPicker
+                                        required
+                                        data={departments}
+                                        size="lg"
+                                        appearance='default'
+                                        style={{ width: "100%" }}
+                                        placeholder="Select Department"
+                                        value={dataObj?.department}
+                                        onChange={(e) => changeData(e, "department")}
+                                    />
+                                </div>
+                            </div>
+                        }
                     </div>
                 }
 
-                {
-                    type === "Task" &&
-                    <>
-                        <div className="d-flex justify-content-between">
-                            <div className="col-half">
-                                <div className="modelInput">
-                                    <p className='modelLabel'>Title: </p>
-                                    <Input required
-                                        name={`title`}
-                                        value={dataObj?.[`title`] || ""}
-                                        onChange={(e) => changeData(e, "title")}
-                                    />
-                                </div>
-                            </div>
-                            <div className="col-half">
-                                <div className="modelInput">
-                                    <p className='modelLabel'>Project:</p>
-                                    <SelectPicker
-                                        required
-                                        data={projects}
-                                        size="lg"
-                                        appearance='default'
-                                        style={{ width: "100%" }}
-                                        placeholder="Select Project"
-                                        value={dataObj?.project}
-                                        onChange={(e) => changeData(e, "project")}
-                                    />
-                                </div>
-                            </div>
-                        </div>
-                        <div className="d-flex justify-content-between">
-                            <div className="col-half">
-                                <div className="modelInput">
-                                    <p className='modelLabel'>From: </p>
-                                    <DatePicker
-                                        size="lg"
-                                        appearance='default'
-                                        style={{ width: "100%" }}
-                                        placeholder="Select Start Date"
-                                        value={new Date(dataObj?.from)}
-                                        onChange={(e) => changeData(e, "from")}
-                                    />
-                                </div>
-                            </div>
-                            <div className="col-half">
-                                <div className="modelInput">
-                                    <p className='modelLabel'>To:</p>
-                                    <DatePicker
-                                        size="lg"
-                                        appearance='default'
-                                        style={{ width: "100%" }}
-                                        placeholder="Select Due Date"
-                                        value={new Date(dataObj?.to)}
-                                        onChange={(e) => changeData(e, "to")}
-                                    />
-                                </div>
-                            </div>
-                        </div>
+                <>
 
+                    <div className="d-flex justify-content-between">
+
+                        {["Task"].includes(type) && <div className="col-half">
+                            <div className="modelInput">
+                                <p className='modelLabel'>Title: </p>
+                                <Input required
+                                    name={`title`}
+                                    value={dataObj?.[`title`] || ""}
+                                    onChange={(e) => changeData(e, "title")}
+                                />
+                            </div>
+                        </div>}
+
+                        {type === "Task" && <div className="col-half">
+                            <div className="modelInput">
+                                <p className='modelLabel'>Project:</p>
+                                <SelectPicker
+                                    required
+                                    data={projects}
+                                    size="lg"
+                                    appearance='default'
+                                    style={{ width: "100%" }}
+                                    placeholder="Select Project"
+                                    value={dataObj?.project}
+                                    onChange={(e) => changeData(e, "project")}
+                                />
+                            </div>
+                        </div>}
+                    </div>
+
+                    {["Task"].includes(type) &&
                         <div className="col-full">
                             <div className="modelInput">
                                 <p className="modelLabel">Attachments: </p>
@@ -169,28 +160,84 @@ const CommonModel = ({
                                     </div>
                                 ))
                             }
-                        </div>
+                        </div>}
+                </>
 
-                    </>
-                }
 
-                <div className="d-flex justify-content-between gap-2">
-                    {(["Department", "Position", "Project"].includes(type)) && (
-                        <div className="col-half">
-                            <div className="modelInput">
-                                <p className='modelLabel'>Company:</p>
-                                <SelectPicker
-                                    required
-                                    data={comps}
-                                    size="lg"
-                                    appearance='default'
-                                    style={{ width: "100%" }}
-                                    placeholder="Select Company"
-                                    value={dataObj?.company}
-                                    onChange={(e) => changeData(e, "company")}
-                                />
+                {
+                    ["Task", "Report"].includes(type) && (
+                        <div className="d-flex justify-content-between">
+                            {/* Dynamic fields for Start Date / From */}
+                            <div className="col-half">
+                                <div className="modelInput">
+                                    <p className="modelLabel">{type === "Task" ? "From" : "Start Date"}</p>
+                                    <DatePicker
+                                        size="lg"
+                                        appearance="default"
+                                        style={{ width: "100%" }}
+                                        placeholder={`Select ${type === "Task" ? "From Date" : "Start Date"}`}
+                                        value={dataObj?.from ? new Date(dataObj?.from) : new Date(dataObj?.startDate)}
+                                        onChange={(e) => changeData(e, type === "Task" ? "from" : "startDate")}
+                                    />
+                                </div>
+                            </div>
+
+                            {/* Dynamic fields for End Date / To */}
+                            <div className="col-half">
+                                <div className="modelInput">
+                                    <p className="modelLabel">To:</p>
+                                    <DatePicker
+                                        size="lg"
+                                        appearance="default"
+                                        style={{ width: "100%" }}
+                                        placeholder="Select Due Date"
+                                        value={dataObj?.to ? new Date(dataObj?.to) : new Date(dataObj?.endDate)}
+                                        onChange={(e) => changeData(e, type === "Task" ? "to" : "endDate")}
+                                    />
+                                </div>
                             </div>
                         </div>
+                    )
+                }
+
+
+                <div className="d-flex justify-content-between gap-2">
+                    {(["Department", "Position", "Project", "Report"].includes(type)) && (
+                        <>
+                            <div className="col-half">
+                                <div className="modelInput">
+                                    <p className='modelLabel'>Company:</p>
+                                    <SelectPicker
+                                        required
+                                        data={comps}
+                                        size="lg"
+                                        appearance='default'
+                                        style={{ width: "100%" }}
+                                        placeholder="Select Company"
+                                        value={dataObj?.company}
+                                        onChange={(e) => changeData(e, "company")}
+                                    />
+                                </div>
+                            </div>
+                            {
+                                type === "Report" &&
+                                <div className="col-half">
+                                    <div className="modelInput">
+                                        <p className='modelLabel'>Project:</p>
+                                        <SelectPicker
+                                            required
+                                            data={projects}
+                                            size="lg"
+                                            appearance='default'
+                                            style={{ width: "100%" }}
+                                            placeholder="Select Project"
+                                            value={dataObj?.project}
+                                            onChange={(e) => changeData(e, "project")}
+                                        />
+                                    </div>
+                                </div>
+                            }
+                        </>
                     )}
                     <>
                         {
@@ -232,7 +279,7 @@ const CommonModel = ({
                 </div>
 
                 {
-                    ["Project", "Assign", "Task", "Task Assign"].includes(type) && (
+                    ["Project", "Assign", "Task", "Task Assign", "Report"].includes(type) && (
                         <div className="d-flex justify-content-between">
                             <div className="col-full">
                                 <div className="modelInput">
@@ -241,13 +288,13 @@ const CommonModel = ({
                                     </p>
 
                                     <TagPicker
-                                        data={emps}
+                                        data={employees}
                                         required
                                         size="lg"
                                         appearance="default"
                                         style={{ width: "100%" }}
                                         placeholder="Select Employees"
-                                        value={type.includes("Task") ? dataObj.assignedTo : dataObj.employees}
+                                        value={type.includes("Task") ? dataObj?.assignedTo : dataObj?.employees}
                                         onChange={(e) =>
                                             changeData(
                                                 e,
@@ -309,14 +356,14 @@ const CommonModel = ({
                             <Button
                                 onClick={() => dataObj?._id ? editData(dataObj) : addData()}
                                 appearance="primary"
-                                disabled={["Project", "Assign", "Task", "Task Assign"].includes(type) ? false : !dataObj?.[`${type}Name`] || !dataObj?.[`name`] || ((["Department", "Position"].includes(type)) && !dataObj?.company)}
+                                disabled={["Project", "Assign", "Task", "Task Assign", "Report"].includes(type) ? false : !dataObj?.[`${type}Name`] || !dataObj?.[`name`] || ((["Department", "Position"].includes(type)) && !dataObj?.company)}
                             >
                                 {dataObj?._id ? "Update" : "Save"}
                             </Button>
                         </>
                 }
             </Modal.Footer>
-        </Modal>
+        </Modal >
     );
 };
 

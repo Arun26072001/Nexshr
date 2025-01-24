@@ -1,6 +1,6 @@
 import React, { useContext, useEffect, useState } from 'react'
 import { Dropdown, Input, Popover, SelectPicker, Whisper } from 'rsuite'
-import { fetchEmployees, fetchTeams } from './ReuseableAPI';
+import { fetchTeams } from './ReuseableAPI';
 import "./projectndTask.css";
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import { EssentialValues } from '../App';
@@ -13,7 +13,7 @@ import NoDataFound from './payslip/NoDataFound';
 import BorderColorRoundedIcon from '@mui/icons-material/BorderColorRounded';
 import DeleteRoundedIcon from '@mui/icons-material/DeleteRounded';
 
-export default function Projects() {
+export default function Projects({ employees }) {
     const { whoIs, data } = useContext(EssentialValues);
     const [teams, setTeams] = useState([]);
     const [isDelete, setIsDelete] = useState({ type: false, value: "" });
@@ -21,7 +21,6 @@ export default function Projects() {
     const [projects, setProjects] = useState([]);
     const [name, setName] = useState("");
     const [filterProjects, setFilterProjects] = useState([]);
-    const [employees, setEmployees] = useState([]);
     const [projectObj, setProjectObj] = useState({});
     const [isAddProject, setIsAddProject] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
@@ -59,16 +58,6 @@ export default function Projects() {
             ...pre,
             [name]: value
         }))
-    }
-
-    async function gettingEmps() {
-        try {
-            const emps = await fetchEmployees();
-            setEmployees(emps.map((emp) => ({ label: emp.FirstName + " " + emp.LastName, value: emp._id })))
-        } catch (error) {
-            console.log(error);
-
-        }
     }
 
     async function fetchProjectById(id) {
@@ -144,7 +133,6 @@ export default function Projects() {
         // fetchProjects();
         if (whoIs === "admin") {
             fetchProjects();
-            gettingEmps();
         }
     }, [isAddProject, isDelete.type, isEdit])
 
