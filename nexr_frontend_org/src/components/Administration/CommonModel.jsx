@@ -21,30 +21,33 @@ const CommonModel = ({
 }) => {
     const url = process.env.REACT_APP_API_URL;
     const [confirmationTxt, setConfirmationTxt] = useState("");
+    console.log(dataObj);
+
 
     return (
         <Modal open={isAddData} size="sm" backdrop="static">
             <Modal.Header>
                 <Modal.Title>
                     {type === "Assign" ? `Edit ${type}` :
-                        type === "Confirmation" ? "" :
+                        ["Confirmation", "Report Confirmation"].includes(type) ? "" :
                             dataObj?._id ? `Edit ${type}` : `Add a ${type}`}
                 </Modal.Title>
             </Modal.Header>
 
             <Modal.Body>
                 {
-                    (["Department", "Position", "Project", "Report"].includes(type)) &&
+                    (["Department", "Position", "Project", "Report", "Report View"].includes(type)) &&
                     <div className="d-flex justify-content-between">
                         {
-                            ["Department", "Position", "Project", "Report"].includes(type) &&
+                            ["Department", "Position", "Project", "Report", "Report View"].includes(type) &&
                             <div className="col-half">
                                 <div className="modelInput">
                                     <p className='modelLabel'>{type} Name: </p>
                                     <Input required
                                         name={`name`}
                                         value={dataObj?.[`name`] || ""}
-                                        onChange={(e) => changeData(e, "name")}
+                                        disabled={type === "Report View" ? true : false}
+                                        onChange={type !== "Report View" ? (e) => changeData(e, "name") : null}
                                     />
                                 </div>
                             </div>
@@ -61,7 +64,7 @@ const CommonModel = ({
                                 </div>
                             </div>
                         )}
-                        {type === "Report" &&
+                        {["Report", "Report View"].includes(type) &&
                             <div className="col-half">
                                 <div className="modelInput">
                                     <p className='modelLabel'>Depertment:</p>
@@ -69,11 +72,12 @@ const CommonModel = ({
                                         required
                                         data={departments}
                                         size="lg"
+                                        disabled={type === "Report View" ? true : false}
                                         appearance='default'
                                         style={{ width: "100%" }}
                                         placeholder="Select Department"
                                         value={dataObj?.department}
-                                        onChange={(e) => changeData(e, "department")}
+                                        onChange={type !== "Report View" ? (e) => changeData(e, "department") : null}
                                     />
                                 </div>
                             </div>
@@ -165,7 +169,7 @@ const CommonModel = ({
 
 
                 {
-                    ["Task", "Report"].includes(type) && (
+                    ["Task", "Report", "Report View"].includes(type) && (
                         <div className="d-flex justify-content-between">
                             {/* Dynamic fields for Start Date / From */}
                             <div className="col-half">
@@ -174,6 +178,7 @@ const CommonModel = ({
                                     <DatePicker
                                         size="lg"
                                         appearance="default"
+                                        disabled={type === "Report View" ? true : false}
                                         style={{ width: "100%" }}
                                         placeholder={`Select ${type === "Task" ? "From Date" : "Start Date"}`}
                                         value={dataObj?.from ? new Date(dataObj?.from) : new Date(dataObj?.startDate)}
@@ -202,7 +207,7 @@ const CommonModel = ({
 
 
                 <div className="d-flex justify-content-between gap-2">
-                    {(["Department", "Position", "Project", "Report"].includes(type)) && (
+                    {(["Department", "Position", "Project", "Report", "Report View"].includes(type)) && (
                         <>
                             <div className="col-half">
                                 <div className="modelInput">
@@ -211,6 +216,7 @@ const CommonModel = ({
                                         required
                                         data={comps}
                                         size="lg"
+                                        disabled={type === "Report View" ? true : false}
                                         appearance='default'
                                         style={{ width: "100%" }}
                                         placeholder="Select Company"
@@ -220,7 +226,7 @@ const CommonModel = ({
                                 </div>
                             </div>
                             {
-                                type === "Report" &&
+                                ["Report", "Report View"].includes(type) &&
                                 <div className="col-half">
                                     <div className="modelInput">
                                         <p className='modelLabel'>Project:</p>
@@ -228,11 +234,12 @@ const CommonModel = ({
                                             required
                                             data={projects}
                                             size="lg"
+                                            disabled={type === "Report View" ? true : false}
                                             appearance='default'
                                             style={{ width: "100%" }}
                                             placeholder="Select Project"
                                             value={dataObj?.project}
-                                            onChange={(e) => changeData(e, "project")}
+                                            onChange={type !== "Report View" ? (e) => changeData(e, "project") : null}
                                         />
                                     </div>
                                 </div>
@@ -279,7 +286,7 @@ const CommonModel = ({
                 </div>
 
                 {
-                    ["Project", "Assign", "Task", "Task Assign", "Report"].includes(type) && (
+                    ["Project", "Assign", "Task", "Task Assign", "Report", "Report View"].includes(type) && (
                         <div className="d-flex justify-content-between">
                             <div className="col-full">
                                 <div className="modelInput">
@@ -292,14 +299,15 @@ const CommonModel = ({
                                         required
                                         size="lg"
                                         appearance="default"
+                                        disabled={type === "Report View" ? true : false}
                                         style={{ width: "100%" }}
                                         placeholder="Select Employees"
                                         value={type.includes("Task") ? dataObj?.assignedTo : dataObj?.employees}
-                                        onChange={(e) =>
+                                        onChange={type !== "Report View" ? (e) =>
                                             changeData(
                                                 e,
                                                 type.includes("Task") ? "assignedTo" : "employees"
-                                            )
+                                            ) : null
                                         }
                                     />
                                 </div>
@@ -322,7 +330,7 @@ const CommonModel = ({
                 }
 
                 {
-                    ["Confirmation", "Task Confirmation"].includes(type) &&
+                    ["Confirmation", "Task Confirmation", "Report Confirmation"].includes(type) &&
                     <div className='text-center' style={{ color: "#FFD65A" }}>
                         <p>
                             <ErrorOutlineRoundedIcon sx={{ fontSize: "80px" }} />
@@ -336,7 +344,7 @@ const CommonModel = ({
                             </div>
                         }
 
-                        <Input required placeholder={`Please Type "Delete" to delete this ${type === "Confirmation" ? "Project" : "Task"}`} onChange={setConfirmationTxt} value={confirmationTxt} appearance="default" size='lg' />
+                        <Input required placeholder={`Please Type "Delete" to delete this ${type === "Confirmation" ? "Project" : type === "Report Confirmation" ? "Report" : "Task"}`} onChange={setConfirmationTxt} value={confirmationTxt} appearance="default" size='lg' />
                     </div>
                 }
 
@@ -344,22 +352,25 @@ const CommonModel = ({
 
             <Modal.Footer>
                 {
-                    ["Confirmation", "Task Confirmation"].includes(type) ?
+                    ["Confirmation", "Task Confirmation", "Report Confirmation"].includes(type) ?
                         <>
                             <Button onClick={modifyData} appearance="default">No</Button>
                             <Button disabled={confirmationTxt === "Delete" ? false : true} onClick={deleteData} appearance="primary">Yes</Button>
                         </> :
                         <>
-                            <Button onClick={modifyData} appearance="subtle">
-                                Close
+                            <Button onClick={type === "Report View" ? () => modifyData(dataObj._id, "Cancel") : () => modifyData()} appearance="default">
+                                {type === "Report View" ? "Back" : "Cancel"}
                             </Button>
-                            <Button
-                                onClick={() => dataObj?._id ? editData(dataObj) : addData()}
-                                appearance="primary"
-                                disabled={["Project", "Assign", "Task", "Task Assign", "Report"].includes(type) ? false : !dataObj?.[`${type}Name`] || !dataObj?.[`name`] || ((["Department", "Position"].includes(type)) && !dataObj?.company)}
-                            >
-                                {dataObj?._id ? "Update" : "Save"}
-                            </Button>
+                            {
+                                type !== "Report View" &&
+                                <Button
+                                    onClick={() => dataObj?._id ? editData(dataObj) : addData()}
+                                    appearance="primary"
+                                    disabled={["Project", "Assign", "Task", "Task Assign", "Report"].includes(type) ? false : !dataObj?.[`${type}Name`] || !dataObj?.[`name`] || ((["Department", "Position"].includes(type)) && !dataObj?.company)}
+                                >
+                                    {dataObj?._id ? "Update" : "Save"}
+                                </Button>
+                            }
                         </>
                 }
             </Modal.Footer>

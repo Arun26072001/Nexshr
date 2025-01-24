@@ -25,7 +25,7 @@ router.get("/", verifyAdmin, async (req, res) => {
 
     projects = projects.map((project) => {
       const completedTasks = project.tasks.filter((task) => task.status === "Completed")
-      const pendingTasks = project.tasks.filter((task) => ['Pending', 'In Progress', 'On Hold'].includes(task.status))
+      const pendingTasks = project.tasks.filter((task) => task.status !== "Completed")
       return {
         ...project.toObject(),
         "progress": (completedTasks.length / project.tasks.length) * 100,

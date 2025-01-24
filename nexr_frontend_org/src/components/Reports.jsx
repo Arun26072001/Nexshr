@@ -19,8 +19,9 @@ export default function Reports({ employees }) {
     const [filterReports, setFilterReports] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
     const [isAddReport, setIsAddReport] = useState(false);
+    const [isViewReport, setIsViewReport] = useState(false);
     const [isEditReport, setIsEditReport] = useState(false);
-    const [isDeleteReport, setIsDeleteReport] = useState({ type: false, value: "" });
+    const [isDeleteReport, setIsDeleteReport] = useState({ type: false, value: [] });
     const [departments, setDepartments] = useState([]);
     const [companies, setCompanies] = useState([]);
     const [projects, setProjects] = useState([]);
@@ -40,6 +41,36 @@ export default function Reports({ employees }) {
 
     function handleEditReport() {
         setIsEditReport(!isEditReport)
+    }
+
+    function handleDeleteReport() {
+        setIsDeleteReport((pre) => ({
+            ...pre,
+            type: !pre.type
+        }));
+    }
+
+    function handleDelete(data) {
+        setIsDeleteReport((pre) => ({
+            ...pre,
+            value: [data._id, data.project]
+        }))
+        handleDeleteReport()
+    }
+
+    async function deleteReport() {
+        try {
+            const res = await axios.delete(`${url}/api/report/${isDeleteReport.value[0]}/${isDeleteReport.value[1]}`, {
+                headers: {
+                    Authorization: data.token || ""
+                }
+            })
+            toast.success(res.data.message);
+            handleDeleteReport();
+        } catch (error) {
+            console.log(error);
+
+        }
     }
 
     // Fetch companies data
@@ -117,18 +148,33 @@ export default function Reports({ employees }) {
         }
     }
 
-    async function fetchReportById(id) {
-        try {
-            const res = await axios.get(`${url}/api/report/${id}`, {
-                headers: {
-                    Authorization: data.token || ""
+    function handleViewReport() {
+        setIsViewReport(!isViewReport)
+    }
+
+    async function fetchReportById(id, type) {
+        if (type === "Cancel") {
+            setReportObj({});
+            handleViewReport();
+        } else {
+
+            try {
+                const res = await axios.get(`${url}/api/report/${id}`, {
+                    headers: {
+                        Authorization: data.token || ""
+                    }
+                })
+                setReportObj(res.data);
+                if (type === "Edit") {
+                    handleEditReport();
+                } else if (type === "View") {
+                    handleViewReport()
                 }
-            })
-            setReportObj(res.data);
-            handleEditReport();
-        } catch (error) {
-            console.log(error);
+            } catch (error) {
+                console.log(error);
+            }
         }
+
     }
 
     useEffect(() => {
@@ -153,37 +199,39 @@ export default function Reports({ employees }) {
         fetchDepartments();
         fetchCompanies();
         fetchProjects();
-    }, [empId, isAddReport, isEditReport])
+    }, [empId, isAddReport, isEditReport, isDeleteReport.type])
 
     return (
-        isAddReport ? <CommonModel type="Report" isAddData={isAddReport} projects={projects} comps={companies} departments={departments} modifyData={handleAddReport} changeData={changeReport} addData={addReport} dataObj={reportObj} editData={editReport} employees={employees} /> :
-            isEditReport ? <CommonModel type="Report" isAddData={isEditReport} projects={projects} comps={companies} departments={departments} modifyData={handleEditReport} changeData={changeReport} dataObj={reportObj} editData={editReport} employees={employees} /> :
-                <>
-                    <div className="projectParent ">
-                        <div className="projectTitle col-lg-6 ">Reports</div>
-                        <div className="col-lg-6 projectChild">
-                            <SelectPicker
-                                data={employees}
-                                size="lg"
-                                appearance="default"
-                                style={{ width: 300 }}
-                                placeholder="Search By Created Person"
-                                value={empId}
-                                onChange={(e) => setEmpId(e)}
-                            />
-                            <div className="button" onClick={handleAddReport}>
-                                New Report +
+        isViewReport ? <CommonModel type="Report View" isAddData={isViewReport} modifyData={fetchReportById} dataObj={reportObj} projects={projects} comps={companies} departments={departments} employees={employees} /> :
+            isDeleteReport.type ? <CommonModel type="Report Confirmation" modifyData={handleDeleteReport} deleteData={deleteReport} isAddData={isDeleteReport.type} /> :
+                isAddReport ? <CommonModel type="Report" isAddData={isAddReport} projects={projects} comps={companies} departments={departments} modifyData={handleAddReport} changeData={changeReport} addData={addReport} dataObj={reportObj} editData={editReport} employees={employees} /> :
+                    isEditReport ? <CommonModel type="Report" isAddData={isEditReport} projects={projects} comps={companies} departments={departments} modifyData={handleEditReport} changeData={changeReport} dataObj={reportObj} editData={editReport} employees={employees} /> :
+                        <>
+                            <div className="projectParent ">
+                                <div className="projectTitle col-lg-6 ">Reports</div>
+                                <div className="col-lg-6 projectChild">
+                                    <SelectPicker
+                                        data={employees}
+                                        size="lg"
+                                        appearance="default"
+                                        style={{ width: 300 }}
+                                        placeholder="Search By Created Person"
+                                        value={empId}
+                                        onChange={(e) => setEmpId(e)}
+                                    />
+                                    <div className="button" onClick={handleAddReport}>
+                                        New Report +
+                                    </div>
+                                </div>
+                            </div >
+                            <div className="projectBody">
+                                {
+                                    isLoading ? <Loading /> :
+                                        reports.length > 0 ?
+                                            <LeaveTable data={reports} handleDelete={handleDelete} fetchReportById={fetchReportById} />
+                                            : <NoDataFound message={"Reports Not Found"} />
+                                }
                             </div>
-                        </div>
-                    </div >
-                    <div className="projectBody">
-                        {
-                            isLoading ? <Loading /> :
-                                reports.length > 0 ?
-                                    <LeaveTable data={reports} fetchReportById={fetchReportById} />
-                                    : <NoDataFound message={"Reports Not Found"} />
-                        }
-                    </div>
-                </>
+                        </>
     )
 }

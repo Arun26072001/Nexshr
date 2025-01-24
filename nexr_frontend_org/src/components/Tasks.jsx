@@ -17,7 +17,7 @@ import KeyboardArrowRightRoundedIcon from '@mui/icons-material/KeyboardArrowRigh
 import BorderColorRoundedIcon from '@mui/icons-material/BorderColorRounded';
 import DeleteRoundedIcon from '@mui/icons-material/DeleteRounded';
 
-const Tasks = ({employees}) => {
+const Tasks = ({ employees }) => {
   const { data } = useContext(EssentialValues);
   const [taskObj, setTaskObj] = useState({});
   const [projects, setProjects] = useState([]);
@@ -123,12 +123,9 @@ const Tasks = ({employees}) => {
 
   useEffect(() => {
     if (projectId) {
-      console.log("called");
-
       fetchTaskByProjectId(projectId)
     }
   }, [projectId, isDelete.type, isAddTask, isEditTask])
-  console.log(projectId, isDelete.type, isAddTask, isEditTask);
 
   async function fetchTaskById(id) {
     try {
@@ -178,7 +175,7 @@ const Tasks = ({employees}) => {
     }
   }
 
-
+  // handling to delete task
   function handleDeleteTask() {
     setIsDelete((pre) => ({
       ...pre,
@@ -255,7 +252,7 @@ const Tasks = ({employees}) => {
 
   return (
 
-    isDelete.type ? <CommonModel type="Task Confirmation" modifyData={handleDeleteTask} deleteData={deleteTask} isAddData={isDelete} /> :
+    isDelete.type ? <CommonModel type="Task Confirmation" modifyData={handleDeleteTask} deleteData={deleteTask} isAddData={isDelete.type} /> :
       isEditTask ? <CommonModel type="Task Assign" isAddData={isEditTask} emps={employees} changeData={changeTask} dataObj={taskObj} editData={editTask} modifyData={handleEditTask} /> :
         isAddTask ? <CommonModel
           dataObj={taskObj}

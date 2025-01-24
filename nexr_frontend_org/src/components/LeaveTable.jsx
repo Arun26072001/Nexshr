@@ -19,7 +19,7 @@ import KeyRoundedIcon from '@mui/icons-material/KeyRounded';
 import BorderColorRoundedIcon from '@mui/icons-material/BorderColorRounded';
 import DeleteRoundedIcon from '@mui/icons-material/DeleteRounded';
 
-export default function LeaveTable({ data, Account, getCheckedValue, fetchReportById,isTeamHead, isTeamLead, getEditDepartmentId, roleObj, getCheckAll, deleteRole, deleteDepartment, deletePosition, getEditPositionId, replyToLeave }) {
+export default function LeaveTable({ data, Account, getCheckedValue, handleDelete, fetchReportById, isTeamHead, isTeamLead, getEditDepartmentId, roleObj, getCheckAll, deleteRole, deleteDepartment, deletePosition, getEditPositionId, replyToLeave }) {
     const navigate = useNavigate();
     const { changeEmpEditForm } = useContext(TimerStates)
     const [page, setPage] = useState(0);
@@ -572,17 +572,17 @@ export default function LeaveTable({ data, Account, getCheckedValue, fetchReport
                                                 } else if (params["*"] === "reports") {
                                                     return (
                                                         <Dropdown title={"Action"} noCaret>
-                                                            <Dropdown.Item style={{ minWidth: 80 }} onClick={() => navigate(`view/${row._id}`)}>
+                                                            <Dropdown.Item style={{ minWidth: 80 }} onClick={() => fetchReportById(row._id, "View")}>
                                                                 <b>
                                                                     <RemoveRedEyeRoundedIcon sx={{ color: "#80C4E9" }} /> View
                                                                 </b>
                                                             </Dropdown.Item>
-                                                            <Dropdown.Item style={{ minWidth: 80 }} onClick={()=>fetchReportById(row._id)}>
+                                                            <Dropdown.Item style={{ minWidth: 80 }} onClick={() => fetchReportById(row._id, "Edit")}>
                                                                 <b>
                                                                     <BorderColorRoundedIcon sx={{ color: "#FFD65A" }} /> Edit
                                                                 </b>
                                                             </Dropdown.Item>
-                                                            <Dropdown.Item style={{ minWidth: 80 }} onClick={() => deleteRole(row._id)}>
+                                                            <Dropdown.Item style={{ minWidth: 80 }} onClick={() => handleDelete(row)}>
                                                                 <b>
                                                                     <DeleteRoundedIcon sx={{ color: "#F93827" }} /> Delete
                                                                 </b>
