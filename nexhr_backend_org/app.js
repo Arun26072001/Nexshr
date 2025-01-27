@@ -49,6 +49,7 @@ const userAccount = require("./routes/user-account");
 const { imgUpload } = require('./routes/imgUpload');
 const holidays = require("./routes/holidays");
 const report = require("./routes/reports");
+const fileData = require("./routes/file-data");
 
 // MongoDB Connection
 const mongoURI = process.env.DATABASEURL;
@@ -144,7 +145,7 @@ app.use("/api/user-permission", userPermission);
 app.use("/api/page-auth", pageAuth);
 app.use("/api/upload", imgUpload);
 app.use("/api/report", report)
-
+app.use("/api/google-sheet/upload", fileData)
 
 // Create HTTP Server and Socket.IO
 const server = http.createServer(app);

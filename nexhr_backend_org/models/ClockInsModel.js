@@ -12,7 +12,7 @@ const timeRangeSchema1 = new mongoose.Schema({
   startingTime: [{ type: String }],
   endingTime: [{ type: String }],
   timeHolder: { type: String },
-  reasonForLate: {type: String}
+  reasonForLate: { type: String }
 }, { _id: false })
 
 // Define the main schema
@@ -40,7 +40,8 @@ const clockInsSchema = new mongoose.Schema({
   },
   behaviour: { type: String },
   punchInMsg: { type: String },
-  employee: { type: mongoose.Types.ObjectId, ref: "Employee" }
+  employee: { type: mongoose.Types.ObjectId, ref: "Employee" },
+  machineRecords: [{ type: String, default: [] }]
 });
 
 const ClockIns = mongoose.model('clockIns', clockInsSchema);
@@ -49,7 +50,8 @@ const ClockIns = mongoose.model('clockIns', clockInsSchema);
 const timeRangeValidate = Joi.object({
   startingTime: Joi.array().items(Joi.string().allow('')).allow(null).optional(),
   endingTime: Joi.array().items(Joi.string().allow('')).allow(null).optional(),
-  timeHolder: Joi.string().allow('').optional()
+  timeHolder: Joi.string().allow('').optional(),
+  reasonForLate: Joi.string().allow('').optional()
 });
 
 // Define the main validation schema
@@ -63,7 +65,8 @@ const clockInsValidation = Joi.object({
   event: timeRangeValidate.optional(),
   behaviour: Joi.string().optional(), // Behaviour is optional
   punchInMsg: Joi.string().optional(), // PunchInMsg is optional
-  employee: Joi.string().optional() // Employee ObjectId is required
+  employee: Joi.string().optional(), // Employee ObjectId is required
+  machineRecords: Joi.array().items(Joi.string()).optional()
 });
 
 

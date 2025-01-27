@@ -6,27 +6,33 @@ const fs = require("fs");
 
 const imgUpload = express.Router();
 
-// Ensure the uploads directory exists
-const uploadsDir = path.join(__dirname, "..", "uploads");
-if (!fs.existsSync(uploadsDir)) {
-  fs.mkdirSync(uploadsDir, { recursive: true });
-}
-
+const deleteFileIfExists = (filePath) => {
+  if (filePath && fs.existsSync(filePath)) {
+    fs.unlinkSync(filePath);
+  }
+};
 // Configure multer for handling file uploads
-const storage = multer.memoryStorage(); // Store files in memory instead of disk
+const storage = multer.diskStorage({
+  destination(req, file, callback) {
+    callback(null, './uploads');
+  },
+  filename(req, file, callback) {
+    callback(null, `${file.fieldname}_${Date.now()}_${file.originalname}`);
+  },
+});
 const upload = multer({
   storage,
-  fileFilter: (req, file, cb) => {
-    const allowedTypes = /jpeg|jpg|png|gif/;
-    const isValidExt = allowedTypes.test(path.extname(file.originalname).toLowerCase());
-    const isValidMime = allowedTypes.test(file.mimetype);
+  // fileFilter: (req, file, cb) => {
+  //   // const allowedTypes = null;
+  //   // const isValidExt = allowedTypes.test(path.extname(file.originalname).toLowerCase());
+  //   // const isValidMime = allowedTypes.test(file.mimetype);
 
-    if (isValidExt && isValidMime) {
-      cb(null, true);
-    } else {
-      cb(new Error("Error: File type not supported!"), false);
-    }
-  },
+  //   if (isValidExt && isValidMime) {
+  //     cb(null, true);
+  //   } else {
+  //     cb(new Error("Error: File type not supported!"), false);
+  //   }
+  // },
   limits: { fileSize: 10 * 1024 * 1024 }, // Limit file size to 10MB
 });
 
