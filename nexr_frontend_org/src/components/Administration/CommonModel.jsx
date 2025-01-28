@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import "../Settings/SettingsStyle.css";
-import { Modal, Button, SelectPicker, TagPicker, Input, DatePicker, Uploader } from 'rsuite';
+import { Modal, Button, SelectPicker, TagPicker, Input } from 'rsuite';
 import TextEditor from '../payslip/TextEditor';
 import ErrorOutlineRoundedIcon from '@mui/icons-material/ErrorOutlineRounded';
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
 
 const CommonModel = ({
     dataObj,
@@ -10,6 +12,7 @@ const CommonModel = ({
     changeData,
     isAddData,
     addData,
+    previewList,
     modifyData,
     projects,
     departments,
@@ -19,10 +22,7 @@ const CommonModel = ({
     removeAttachment,
     type // New prop to determine if it's for "department" or "position"
 }) => {
-    const url = process.env.REACT_APP_API_URL;
     const [confirmationTxt, setConfirmationTxt] = useState("");
-    console.log(dataObj);
-
 
     return (
         <Modal open={isAddData} size="sm" backdrop="static">
@@ -36,7 +36,7 @@ const CommonModel = ({
 
             <Modal.Body>
                 {
-                    (["Department", "Position", "Project", "Report", "Report View"].includes(type)) &&
+                    (["Department", "Position", "Project", "Report", "Report View", "Project View"].includes(type)) &&
                     <div className="d-flex justify-content-between">
                         {
                             ["Department", "Position", "Project", "Report", "Report View"].includes(type) &&
@@ -46,8 +46,8 @@ const CommonModel = ({
                                     <Input required
                                         name={`name`}
                                         value={dataObj?.[`name`] || ""}
-                                        disabled={type === "Report View" ? true : false}
-                                        onChange={type !== "Report View" ? (e) => changeData(e, "name") : null}
+                                        disabled={["Report View", "Project View"].includes(type) ? true : false}
+                                        onChange={!["Report View", "Project View"].includes(type) ? (e) => changeData(e, "name") : null}
                                     />
                                 </div>
                             </div>
@@ -59,8 +59,9 @@ const CommonModel = ({
 
                                     <Input required
                                         name={`prefix`}
+                                        disabled={type === "Project View" ? true : false}
                                         value={dataObj?.[`prefix`] || ""}
-                                        onChange={(e) => changeData(e.toUpperCase(), "prefix")} />
+                                        onChange={!["Project View"].includes(type) ? (e) => changeData(e.toUpperCase(), "prefix") : null} />
                                 </div>
                             </div>
                         )}
@@ -89,100 +90,102 @@ const CommonModel = ({
 
                     <div className="d-flex justify-content-between">
 
-                        {["Task"].includes(type) && <div className="col-half">
+                        {["Task", "Task View"].includes(type) && <div className="col-half">
                             <div className="modelInput">
                                 <p className='modelLabel'>Title: </p>
                                 <Input required
                                     name={`title`}
+                                    disabled={type === "Task View" ? true : false}
                                     value={dataObj?.[`title`] || ""}
-                                    onChange={(e) => changeData(e, "title")}
+                                    onChange={type !== "Task View" ? (e) => changeData(e, "title") : null}
                                 />
                             </div>
                         </div>}
 
-                        {type === "Task" && <div className="col-half">
+                        {["Task", "Task View"].includes(type) && <div className="col-half">
                             <div className="modelInput">
                                 <p className='modelLabel'>Project:</p>
                                 <SelectPicker
                                     required
                                     data={projects}
                                     size="lg"
+                                    disabled={type === "Task View" ? true : false}
                                     appearance='default'
                                     style={{ width: "100%" }}
                                     placeholder="Select Project"
                                     value={dataObj?.project}
-                                    onChange={(e) => changeData(e, "project")}
+                                    onChange={type !== "Task View" ? (e) => changeData(e, "project") : null}
                                 />
                             </div>
                         </div>}
                     </div>
 
-                    {["Task"].includes(type) &&
+                    {["Task", "Task View"].includes(type) &&
                         <div className="col-full">
                             <div className="modelInput">
                                 <p className="modelLabel">Attachments: </p>
-                                <Uploader
-                                    fileListVisible={false}
-                                    method="post"
-                                    onSuccess={(e) => changeData(e.files[0].convertedFile, "attachments")}
-                                    action={`${url}/api/upload`}
-                                    name="documents"
-                                    multiple={true}
-                                >
-                                    <Button color="primary">Choose +</Button>
-                                </Uploader>
+                                <input type="file" disabled={type === "Task View" ? true : false} className='form-control' onChange={(e) => changeData(e, "attachments")} multiple={true} />
                             </div>
                             {
-                                dataObj?.attachments?.length > 0 &&
-                                dataObj.attachments.map((imgFile, index) => (
-                                    <div key={index} style={{ display: 'inline-block', margin: '10px', position: 'relative' }}>
-                                        <img
-                                            src={imgFile}
-                                            width={50}
-                                            height={50}
-                                            alt="uploaded file"
-                                            style={{ borderRadius: '4px' }}
-                                        />
-                                        {/* Close button */}
-                                        <button
-                                            onClick={() => removeAttachment(imgFile)}
-                                            style={{
-                                                position: 'absolute',
-                                                top: 0,
-                                                right: 0,
-                                                backgroundColor: 'red',
-                                                color: 'white',
-                                                border: 'none',
-                                                borderRadius: '50%',
-                                                width: '20px',
-                                                height: '20px',
-                                                cursor: 'pointer'
-                                            }}
-                                        >
-                                            &times;
-                                        </button>
-                                    </div>
-                                ))
+                                previewList?.length > 0 ?
+                                    previewList.map((imgFile, index) => {
+                                        return <div key={index} style={{ display: 'inline-block', margin: '10px', position: 'relative' }}>
+                                            <img
+                                                src={imgFile}
+                                                width={50}
+                                                height={50}
+                                                alt="uploaded file"
+                                                style={{ borderRadius: '4px' }}
+                                            />
+                                            {/* Close button */}
+                                            <button
+                                                onClick={() => removeAttachment(imgFile)}
+                                                className='remBtn'
+                                            >
+                                                &times;
+                                            </button>
+                                        </div>
+                                    }) : dataObj?.attachments?.length > 0 &&
+                                    dataObj.attachments.map((imgFile, index) => (
+                                        <div key={index} style={{ display: 'inline-block', margin: '10px', position: 'relative' }}>
+                                            <img
+                                                src={imgFile}
+                                                width={50}
+                                                height={50}
+                                                alt="uploaded file"
+                                                style={{ borderRadius: '4px' }}
+                                            />
+                                            {/* Close button */}
+                                            {
+                                                type !== "Task View" &&
+                                                <button
+                                                    onClick={() => removeAttachment(imgFile)}
+                                                    className='remBtn'
+                                                >
+                                                    &times;
+                                                </button>
+                                            }
+                                        </div>
+                                    ))
                             }
                         </div>}
                 </>
 
-
                 {
-                    ["Task", "Report", "Report View"].includes(type) && (
+                    ["Task", "Task View", "Report", "Report View"].includes(type) && (
                         <div className="d-flex justify-content-between">
                             {/* Dynamic fields for Start Date / From */}
                             <div className="col-half">
                                 <div className="modelInput">
                                     <p className="modelLabel">{type === "Task" ? "From" : "Start Date"}</p>
                                     <DatePicker
-                                        size="lg"
-                                        appearance="default"
-                                        disabled={type === "Report View" ? true : false}
+                                        className='rsuite_input'
+                                        disabled={["Report View", "Task View"].includes(type) ? true : false}
                                         style={{ width: "100%" }}
                                         placeholder={`Select ${type === "Task" ? "From Date" : "Start Date"}`}
-                                        value={dataObj?.from ? new Date(dataObj?.from) : new Date(dataObj?.startDate)}
-                                        onChange={(e) => changeData(e, type === "Task" ? "from" : "startDate")}
+                                        selected={dataObj?.from ? new Date(dataObj?.from) : dataObj?.startDate ? new Date(dataObj?.startDate) : ""}
+                                        minDate={new Date()}
+                                        onChange={["Report View", "Task View"].includes(type) ? null : (e) => changeData(e, type === "Task" ? "from" : "startDate")}
                                     />
                                 </div>
                             </div>
@@ -192,11 +195,12 @@ const CommonModel = ({
                                 <div className="modelInput">
                                     <p className="modelLabel">To:</p>
                                     <DatePicker
-                                        size="lg"
-                                        appearance="default"
+                                        className='rsuite_input'
                                         style={{ width: "100%" }}
+                                        disabled={["Report View", "Task View"].includes(type) ? true : false}
+                                        minDate={new Date()}
                                         placeholder="Select Due Date"
-                                        value={dataObj?.to ? new Date(dataObj?.to) : new Date(dataObj?.endDate)}
+                                        selected={dataObj?.to ? new Date(dataObj?.to) : dataObj?.endDate ? new Date(dataObj?.endDate) : ""}
                                         onChange={(e) => changeData(e, type === "Task" ? "to" : "endDate")}
                                     />
                                 </div>
@@ -207,7 +211,7 @@ const CommonModel = ({
 
 
                 <div className="d-flex justify-content-between gap-2">
-                    {(["Department", "Position", "Project", "Report", "Report View"].includes(type)) && (
+                    {(["Department", "Position", "Project", "Report", "Report View", "Project View"].includes(type)) && (
                         <>
                             <div className="col-half">
                                 <div className="modelInput">
@@ -216,7 +220,7 @@ const CommonModel = ({
                                         required
                                         data={comps}
                                         size="lg"
-                                        disabled={type === "Report View" ? true : false}
+                                        disabled={["Report View", "Project View"] ? true : false}
                                         appearance='default'
                                         style={{ width: "100%" }}
                                         placeholder="Select Company"
@@ -248,7 +252,7 @@ const CommonModel = ({
                     )}
                     <>
                         {
-                            ["Project", "Task"].includes(type) &&
+                            ["Project", "Task", "Task View", "Project View"].includes(type) &&
                             <div className="col-half">
                                 <div className="modelInput">
                                     <p className='modelLabel'>Priority:</p>
@@ -256,16 +260,17 @@ const CommonModel = ({
                                         required
                                         data={["Low", "Medium", "High", "Critical"].map((data) => ({ label: data, value: data }))}
                                         size="lg"
+                                        disabled={["Task View", "Project View"].includes(type) ? true : false}
                                         appearance='default'
-                                        style={{ width: "100%" }}
+                                        style={{ width: "100%", zIndex: 1 }}
                                         placeholder="Select Priority"
                                         value={dataObj?.priority}
-                                        onChange={(e) => changeData(e, "priority")}
+                                        onChange={!["Task View", "Project View"].includes(type) ? (e) => changeData(e, "priority") : null}
                                     />
                                 </div>
                             </div>}
                         {
-                            type === "Project" &&
+                            ["Project", "Project View"].includes(type) &&
                             <div className="col-quat">
                                 <div className="modelInput">
                                     <p className='modelLabel'>Color:</p>
@@ -275,9 +280,10 @@ const CommonModel = ({
                                         style={{ width: "100%", height: 45, border: "none" }}
                                         type={"color"}
                                         name={`color`}
+                                        disabled={type === "Project View" ? true : false}
                                         value={dataObj?.[`color`] || ""}
                                         appearance='default'
-                                        onChange={(e) => changeData(e, "color")}
+                                        onChange={type !== "Project View" ? (e) => changeData(e, "color") : null}
                                     />
                                 </div>
                             </div>
@@ -286,7 +292,7 @@ const CommonModel = ({
                 </div>
 
                 {
-                    ["Project", "Assign", "Task", "Task Assign", "Report", "Report View"].includes(type) && (
+                    ["Project", "Project View", "Assign", "Task", "Task View", "Task Assign", "Report", "Report View"].includes(type) && (
                         <div className="d-flex justify-content-between">
                             <div className="col-full">
                                 <div className="modelInput">
@@ -299,15 +305,15 @@ const CommonModel = ({
                                         required
                                         size="lg"
                                         appearance="default"
-                                        disabled={type === "Report View" ? true : false}
+                                        disabled={["Report View", "Project View"].includes(type) ? true : false}
                                         style={{ width: "100%" }}
                                         placeholder="Select Employees"
                                         value={type.includes("Task") ? dataObj?.assignedTo : dataObj?.employees}
-                                        onChange={type !== "Report View" ? (e) =>
+                                        onChange={["Report View", "Task View", "Project View"].includes(type) ? null : (e) =>
                                             changeData(
                                                 e,
                                                 type.includes("Task") ? "assignedTo" : "employees"
-                                            ) : null
+                                            )
                                         }
                                     />
                                 </div>
@@ -318,12 +324,16 @@ const CommonModel = ({
 
 
                 {
-                    ["Project", "Task"].includes(type) &&
+                    ["Project", "Task", "Task View", "Project View"].includes(type) &&
                     <>
                         <div className="col-full">
                             <div className="modelInput">
                                 <p className='modelLabel'>Description:</p>
-                                <TextEditor handleChange={(e) => changeData(e, "description")} content={dataObj?.["description"]} />
+                                <TextEditor
+                                    handleChange={!["Task View", "Project View"].includes(type) ? (e) => changeData(e, "description") : null}
+                                    content={dataObj?.["description"]}
+                                    isDisabled={["Task View", "Project View"].includes(type) ? true : false}
+                                />
                             </div>
                         </div>
                     </>
@@ -359,10 +369,10 @@ const CommonModel = ({
                         </> :
                         <>
                             <Button onClick={type === "Report View" ? () => modifyData(dataObj._id, "Cancel") : () => modifyData()} appearance="default">
-                                {type === "Report View" ? "Back" : "Cancel"}
+                                {["Report View", "Task View", "Project View"].includes(type) ? "Back" : "Cancel"}
                             </Button>
                             {
-                                type !== "Report View" &&
+                                !["Report View", "Task View", "Project View"].includes(type) &&
                                 <Button
                                     onClick={() => dataObj?._id ? editData(dataObj) : addData()}
                                     appearance="primary"

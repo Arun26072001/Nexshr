@@ -12,6 +12,7 @@ import Loading from './Loader';
 import NoDataFound from './payslip/NoDataFound';
 import BorderColorRoundedIcon from '@mui/icons-material/BorderColorRounded';
 import DeleteRoundedIcon from '@mui/icons-material/DeleteRounded';
+import RemoveRedEyeRoundedIcon from '@mui/icons-material/RemoveRedEyeRounded';
 
 export default function Projects({ employees }) {
     const { whoIs, data } = useContext(EssentialValues);
@@ -23,6 +24,7 @@ export default function Projects({ employees }) {
     const [filterProjects, setFilterProjects] = useState([]);
     const [projectObj, setProjectObj] = useState({});
     const [isAddProject, setIsAddProject] = useState(false);
+    const [isViewProject, setIsViewProject] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const url = process.env.REACT_APP_API_URL;
     const [companies, setCompanies] = useState([]);
@@ -173,6 +175,15 @@ export default function Projects({ employees }) {
         setIsEdit(!isEdit)
     }
 
+    function handleViewProject() {
+        if(isViewProject){
+            setProjectObj({})
+        }
+        setIsViewProject(!isViewProject)
+    }
+    console.log(projectObj);
+    
+
     useEffect(() => {
         fetchCompanies();
     }, [])
@@ -186,6 +197,9 @@ export default function Projects({ employees }) {
                 handleAddProject();
             } else if (eventKey === 2) {
                 handleDelete(project); // Use project data here
+            } else {
+                fetchProjectById(project._id);
+                handleViewProject();
             }
             onClose();
         };
@@ -203,13 +217,20 @@ export default function Projects({ employees }) {
                             <DeleteRoundedIcon sx={{ color: "#F93827" }} /> Delete
                         </b>
                     </Dropdown.Item>
+                    <Dropdown.Item eventKey={3}>
+                        <b>
+                            <RemoveRedEyeRoundedIcon sx={{ color: "#80C4E9" }} /> View
+                        </b>
+                    </Dropdown.Item>
                 </Dropdown.Menu>
             </Popover>
         );
     };
+    
 
     return (
-        isEdit ? <CommonModel type="Assign" isAddData={isEdit} emps={employees} changeData={changeProject} dataObj={projectObj} editData={updateProject} modifyData={handleEditProject} /> :
+        isViewProject ? <CommonModel type="Project View" comps={companies} teams={teams} isAddData={isViewProject} employees={employees} dataObj={projectObj} modifyData={handleViewProject} /> :
+        isEdit ? <CommonModel type="Assign" isAddData={isEdit} employees={employees} changeData={changeProject} dataObj={projectObj} editData={updateProject} modifyData={handleEditProject} /> :
             isDelete.type ? <CommonModel type="Confirmation" modifyData={handleDeleteProject} deleteData={deleteProject} isAddData={isDelete} /> :
                 isAddProject ? <CommonModel
                     comps={companies}
@@ -220,7 +241,7 @@ export default function Projects({ employees }) {
                     addData={addProject}
                     type="Project"
                     editData={updateProject}
-                    emps={employees}
+                    employees={employees}
                     modifyData={handleAddProject} />
                     : isLoading ? < Loading /> : <>
                         <div className="projectParent">

@@ -6,6 +6,7 @@ import AddRoundedIcon from '@mui/icons-material/AddRounded';
 import CommonModel from "./Administration/CommonModel";
 import axios from "axios";
 import { EssentialValues } from "../App";
+import "./projectndTask.css";
 import { toast } from "react-toastify";
 import Loading from "./Loader";
 import NoDataFound from "./payslip/NoDataFound";
@@ -24,8 +25,10 @@ const Tasks = ({ employees }) => {
   const [projectId, setProjectId] = useState("");
   const [tasks, setTasks] = useState([]);
   const [filterTasks, setFilterTasks] = useState([]);
+  const [previewList, setPreviewList] = useState([]);
   const [isAddTask, setIsAddTask] = useState(false);
   const [isEditTask, setIsEditTask] = useState(false);
+  const [isviewTask, setIsViewtask] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isDelete, setIsDelete] = useState({ type: false, value: "" });
   const url = process.env.REACT_APP_API_URL;
@@ -80,15 +83,26 @@ const Tasks = ({ employees }) => {
     );
   };
   function changeTask(value, name) {
-    console.log(name, value);
+
+    if (name === "attachments") {
+      const files = value.target.files;
+      for (let index = 0; index < files.length; index++) {
+        const imgFile = URL.createObjectURL(files[index])
+        setPreviewList((pre) => ([
+          ...pre,
+          imgFile
+        ]))
+      }
+    }
 
     setTaskObj((prev) => ({
       ...prev,
       [name]: name === "attachments"
-        ? [...(prev[name] || []), value] // Ensure 'attachments' exists, append value
+        ? [...(prev[name] || []), ...value.target.files] // Spread the FileList into the array
         : value // Update other fields directly
     }));
   }
+
 
   function handleEditTask() {
     setIsEditTask(!isEditTask);
@@ -99,11 +113,15 @@ const Tasks = ({ employees }) => {
   }
 
   function removeAttachment(value) {
+    const updatedPrevireList = previewList.filter((imgFile) => imgFile !== value);
+    setPreviewList(updatedPrevireList);
     const updatedAttachments = taskObj.attachments.filter((data) => data !== value);
     setTaskObj({ ...taskObj, attachments: updatedAttachments })
   }
 
   async function fetchTaskByProjectId(id) {
+    console.log("called");
+
     setIsLoading(true);
     try {
       const res = await axios.get(`${url}/api/task/project/${id}`, {
@@ -127,6 +145,17 @@ const Tasks = ({ employees }) => {
     }
   }, [projectId, isDelete.type, isAddTask, isEditTask])
 
+  useEffect(() => {
+    return () => setPreviewList([])
+  }, [])
+
+  function handleViewTask() {
+    if (isviewTask) {
+      setTaskObj({})
+    }
+    setIsViewtask(!isviewTask)
+  }
+
   async function fetchTaskById(id) {
     try {
       const res = await axios.get(`${url}/api/task/${id}`, {
@@ -135,6 +164,7 @@ const Tasks = ({ employees }) => {
         }
       })
       setTaskObj(res.data);
+      setPreviewList(res.data.attachments);
       return res.data;
     } catch (error) {
       console.log(error);
@@ -207,18 +237,58 @@ const Tasks = ({ employees }) => {
   }
 
   async function addTask() {
-    try {
-      const res = await axios.post(`${url}/api/task/${data._id}`, taskObj, {
-        headers: {
-          Authorization: data.token || ""
+    if (taskObj?.attachments?.length > 0) {
+      const files = taskObj.attachments;
+      const formData = new FormData(); // Ensure FormData is created
+
+      // Append each file to the FormData
+      for (let index = 0; index < files.length; index++) {
+        console.log(files[index]);
+
+        formData.append("documents", files[index]); // Ensure correct field name for your backend
+      }
+
+      try {
+        const response = await fetch(`${url}/api/upload`, {
+          method: 'POST',
+          body: formData,
+          headers: {
+            Accept: 'application/json', // Accept JSON response
+          },
+        });
+
+        // Check if the response is successful
+        if (!response.ok) {
+          console.error('Upload failed with status:', response.status);
+          return;
         }
-      })
-      toast.success(res.data.message);
-      setTaskObj({});
-      handleAddTask();
-    } catch (error) {
-      toast.error(error.response.data.error)
+
+        const responseData = await response.json();
+        const newTask = {
+          ...taskObj,
+          ["attachments"]: responseData.files.map(((file) => file.originalFile))
+        }
+        try {
+          const res = await axios.post(`${url}/api/task/${data._id}`, newTask, {
+            headers: {
+              Authorization: data.token || ""
+            }
+          })
+          toast.success(res.data.message);
+          setTaskObj({});
+          handleAddTask();
+
+        } catch (error) {
+          toast.error(error.response.data.error)
+        }
+
+      } catch (error) {
+        console.error('An error occurred during the upload:', error);
+      }
+    } else {
+      console.log('No attachments to upload.');
     }
+
   }
 
   useEffect(() => {
@@ -247,92 +317,94 @@ const Tasks = ({ employees }) => {
       "status": "Completed"
     }
     editTask(updatedTask)
-
   }
 
   return (
-
-    isDelete.type ? <CommonModel type="Task Confirmation" modifyData={handleDeleteTask} deleteData={deleteTask} isAddData={isDelete.type} /> :
-      isEditTask ? <CommonModel type="Task Assign" isAddData={isEditTask} emps={employees} changeData={changeTask} dataObj={taskObj} editData={editTask} modifyData={handleEditTask} /> :
-        isAddTask ? <CommonModel
-          dataObj={taskObj}
-          isAddData={isAddTask}
-          editData={editTask}
-          changeData={changeTask}
-          projects={projects}
-          addData={addTask}
-          removeAttachment={removeAttachment}
-          emps={employees}
-          type="Task"
-          modifyData={handleAddTask} /> :
-          <>
-            <div className="projectParent">
-              <div className="projectTitle col-lg-6">Tasks</div>
-              <div className="col-lg-6 projectChild">
-                <SelectPicker
-                  data={projects}
-                  size="lg"
-                  appearance="default"
-                  style={{ width: 300 }}
-                  placeholder="Search By Project"
-                  value={projectId}
-                  onChange={(e) => setProjectId(e)}
-                />
-                <Whisper placement="bottomEnd" trigger="click" speaker={renderMenu1}>
-                  <div className="button">
-                    Action <ArrowDropDownRoundedIcon />
-                  </div>
-                </Whisper>
-              </div>
-
-            </div>
-            <div className="projectBody">
-              <div className="d-flex justify-content-end">
-                <div className="col-lg-3">
-                  <div className="modelInput">
-                    <Input size="lg" appearance="default" placeholder="Search" onChange={filterByName} />
-                  </div>
+    isviewTask ? <CommonModel type="Task View" isAddData={isviewTask} modifyData={handleViewTask} dataObj={taskObj} projects={projects} removeAttachment={removeAttachment} employees={employees} /> :
+      isDelete.type ? <CommonModel type="Task Confirmation" modifyData={handleDeleteTask} deleteData={deleteTask} isAddData={isDelete.type} /> :
+        isEditTask ? <CommonModel type="Task Assign" isAddData={isEditTask} employees={employees} changeData={changeTask} dataObj={taskObj} editData={editTask} modifyData={handleEditTask} /> :
+          isAddTask ? <CommonModel
+            dataObj={taskObj}
+            previewList={previewList}
+            isAddData={isAddTask}
+            editData={editTask}
+            changeData={changeTask}
+            projects={projects}
+            addData={addTask}
+            removeAttachment={removeAttachment}
+            employees={employees}
+            type="Task"
+            modifyData={handleAddTask} /> :
+            <>
+              <div className="projectParent">
+                <div className="col-lg-6 projectTitle">Tasks</div>
+                <div className="col-lg-6 projectChild">
+                  <SelectPicker
+                    data={projects}
+                    size="lg"
+                    appearance="default"
+                    style={{ width: 300 }}
+                    placeholder="Search By Project"
+                    value={projectId}
+                    onChange={(e) => setProjectId(e)}
+                  />
+                  <Whisper placement="bottomEnd" trigger="click" speaker={renderMenu1}>
+                    <div className="button">
+                      Action <ArrowDropDownRoundedIcon />
+                    </div>
+                  </Whisper>
                 </div>
               </div>
-              {
-                isLoading ? <Loading /> :
-                  tasks.length > 0 ?
-                    tasks.map((task) => (
-                      <div key={task._id} className="box-content d-flex align-items-center justify-content-between my-3">
-                        <div className="d-flex align-items-center col-half">
-                          <Checkbox onCheckboxClick={() => getValue(task)} /> <b>{task.title}</b> || <span className="defaultDesign">{task.status}</span> ||
-                          <div className="d-flex align-items-center gap-1 mx-1">
-                            {task.assignedTo.map((emp) => (
-                              <div className="nameHolder" style={{ width: "30px", height: "30px" }} key={emp._id}>
-                                {emp.FirstName[0].toUpperCase() +
-                                  emp.LastName[0].toUpperCase()}
-                              </div>
-                            ))}
-                            <AddCircleOutlineRoundedIcon sx={{ cursor: "pointer" }} fontSize="large" color="disabled" onClick={() => {
+              <div className="projectBody">
+                <div className="d-flex justify-content-end">
+                  <div className="col-lg-3">
+                    <div className="modelInput">
+                      <Input size="lg" appearance="default" placeholder="Search" onChange={filterByName} />
+                    </div>
+                  </div>
+                </div>
+                {
+                  isLoading ? <Loading /> :
+                    tasks.length > 0 ?
+                      tasks.map((task) => (
+                        <div key={task._id} className="box-content d-flex align-items-center justify-content-between my-3">
+                          <div className="d-flex align-items-center col-half">
+                            <Checkbox onCheckboxClick={() => getValue(task)} /> <b>{task.title}</b> || <span className="defaultDesign">{task.status}</span> ||
+                            <div className="d-flex align-items-center gap-1 mx-1">
+                              {task.assignedTo.map((emp) => (
+                                <div className="nameHolder" style={{ width: "30px", height: "30px" }} key={emp._id}>
+                                  {emp.FirstName[0].toUpperCase() +
+                                    emp.LastName[0].toUpperCase()}
+                                </div>
+                              ))}
+                              <AddCircleOutlineRoundedIcon sx={{ cursor: "pointer" }} fontSize="large" color="disabled" onClick={() => {
+                                fetchTaskById(task._id)
+                                handleEditTask()
+                              }} />
+                            </div>
+                          </div>
+                          <div className="cal-half d-flex gap-2">
+                            <ErrorOutlineRoundedIcon sx={{ cursor: "pointer" }} onClick={() => {
                               fetchTaskById(task._id)
-                              handleEditTask()
+                              handleViewTask()
                             }} />
+                            <span className="defaultDesign text-light" style={{ background: `${task.project.color}` }}>{task.project.name}</span>
+                            <CalendarMonthRoundedIcon sx={{ cursor: "pointer" }} />
+                            <span style={{ cursor: "pointer" }}>
+                              <Whisper placement="bottomEnd" trigger="click" speaker={renderMenu2(task)}>
+                                <MoreVertRoundedIcon sx={{ cursor: "pointer" }} />
+                              </Whisper>
+                            </span>
+                            <span className="nameHolder" style={{ width: "25px", height: "25px" }}>
+                              <KeyboardArrowRightRoundedIcon />
+                            </span>
                           </div>
                         </div>
-                        <div className="cal-half d-flex gap-2">
-                          <ErrorOutlineRoundedIcon sx={{ cursor: "pointer" }} />
-                          <span className="defaultDesign text-light" style={{ background: `${task.project.color}` }}>{task.project.name}</span>
-                          <CalendarMonthRoundedIcon sx={{ cursor: "pointer" }} />
-                          <span style={{ cursor: "pointer" }}>
-                            <Whisper placement="bottomEnd" trigger="click" speaker={renderMenu2(task)}>
-                              <MoreVertRoundedIcon sx={{ cursor: "pointer" }} />
-                            </Whisper>
-                          </span>
-                          <span className="nameHolder" style={{ width: "25px", height: "25px" }}>
-                            <KeyboardArrowRightRoundedIcon />
-                          </span>
-                        </div>
-                      </div>
 
-                    )) : <NoDataFound message={"Task Not Found"} />
-              }
-            </div >
-          </>
+                      )) : <NoDataFound message={"Task Not Found"} />
+                }
+              </div >
+            </>
   )
 };
 

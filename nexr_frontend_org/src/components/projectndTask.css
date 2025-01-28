@@ -19,6 +19,27 @@
   font-size: 24px;
   margin-top: 0;
 }
+
+.rsuite_input {
+  background-color: #fff;
+  background-image: none;
+  border: 1px solid #e5e5ea;
+  border-radius: 6px;
+  color: #343434;
+  display: block;
+  font-size: 14px;
+  line-height: 1.42857143;
+  padding: 7px 11px;
+  -webkit-transition: border-color 0.15s ease-in-out;
+  transition: border-color 0.15s ease-in-out;
+  width: 100%;
+  z-index: 10;
+}
+
+.react-datepicker-popper{
+  z-index: 100;
+}
+
 .projectBody {
   background: rgba(255, 255, 255, 1);
   padding: 15px 12px;
@@ -29,4 +50,20 @@
   justify-content: space-between;
   color: #6c757d;
   /* margin-bottom: 10px; */
+}
+
+.remBtn {
+  position: absolute;
+  top: 0px;
+  right: 0px;
+  background-color: red;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }

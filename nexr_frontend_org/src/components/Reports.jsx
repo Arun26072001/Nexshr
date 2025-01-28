@@ -1,6 +1,6 @@
 import React, { useContext, useEffect, useState } from 'react';
 import "./projectndTask.css"
-import { SelectPicker } from 'rsuite';
+import { Input, SelectPicker } from 'rsuite';
 import LeaveTable from './LeaveTable';
 import { EssentialValues } from '../App';
 import axios from 'axios';
@@ -40,6 +40,9 @@ export default function Reports({ employees }) {
     }
 
     function handleEditReport() {
+        if (isEditReport) {
+            setReportObj({})
+        }
         setIsEditReport(!isEditReport)
     }
 
@@ -225,6 +228,13 @@ export default function Reports({ employees }) {
                                 </div>
                             </div >
                             <div className="projectBody">
+                                <div className="d-flex justify-content-end">
+                                    <div className="col-lg-3">
+                                        <div className="modelInput">
+                                            <Input size="lg" appearance="default" placeholder="Search" onChange={filterByName} />
+                                        </div>
+                                    </div>
+                                </div>
                                 {
                                     isLoading ? <Loading /> :
                                         reports.length > 0 ?

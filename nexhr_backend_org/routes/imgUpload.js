@@ -6,11 +6,6 @@ const fs = require("fs");
 
 const imgUpload = express.Router();
 
-const deleteFileIfExists = (filePath) => {
-  if (filePath && fs.existsSync(filePath)) {
-    fs.unlinkSync(filePath);
-  }
-};
 // Configure multer for handling file uploads
 const storage = multer.diskStorage({
   destination(req, file, callback) {
@@ -48,24 +43,25 @@ imgUpload.post("/", upload.array("documents", 10), async (req, res) => {
     // Process each uploaded file
     for (const file of req.files) {
       try {
-        const originalName = path.parse(file.originalname).name;
-        const webpFileName = `${Date.now()}-${originalName.replace(/ /g, "-").toLowerCase()}.webp`;
-        const newFilePath = path.join(uploadsDir, webpFileName);
+        
+        // const originalName = path.parse(file.originalname).name;
+        // const webpFileName = `${Date.now()}-${originalName.replace(/ /g, "-").toLowerCase()}.webp`;
+        // const newFilePath = path.join(uploadsDir, webpFileName);
 
         // Convert the in-memory file buffer to WebP format using sharp
-        await sharp(file.buffer)
-          .toFormat("webp")
-          .toFile(newFilePath);
+        // await sharp(file.buffer)
+        //   .toFormat("webp")
+        //   .toFile(newFilePath);
 
         // Add the file details to the result array
         convertedFiles.push({
-          originalFile: `${process.env.REACT_APP_API_URL}/uploads/${file.originalname}`,
-          convertedFile: `${process.env.REACT_APP_API_URL}/uploads/${webpFileName}`,
+          originalFile: `${process.env.REACT_APP_API_URL}/uploads/${file.filename}`,
+          // convertedFile: `${process.env.REACT_APP_API_URL}/uploads/${webpFileName}`,
         });
       } catch (error) {
         console.error(`Error converting file: ${file.originalname}`, error);
         convertedFiles.push({
-          originalFile: `${process.env.REACT_APP_API_URL}/uploads/${file.originalname}`,
+          originalFile: `${process.env.REACT_APP_API_URL}/uploads/${file.filename}`,
           error: error.message,
         });
       }
