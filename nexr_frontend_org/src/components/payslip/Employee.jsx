@@ -3,14 +3,14 @@ import EmailOutlinedIcon from '@mui/icons-material/EmailOutlined';
 import { toast } from 'react-toastify';
 import "./dashboard.css";
 import LeaveTable from '../LeaveTable';
-import { fetchEmployees } from '../ReuseableAPI';
+import { fetchAllEmployees, fetchEmployees } from '../ReuseableAPI';
 import Loading from '../Loader';
 import { useNavigate } from 'react-router-dom';
 import NoDataFound from './NoDataFound';
 import { EssentialValues } from '../../App';
 
 export default function Employee() {
-    const { whoIs } = useContext(EssentialValues);
+    const { whoIs, data } = useContext(EssentialValues);
     const [employees, setEmployees] = useState([]);
     const [empName, setEmpName] = useState("");
     const [allEmployees, setAllEmployees] = useState([]);
@@ -32,15 +32,32 @@ export default function Employee() {
             setIsLoading(false);
         };
 
-        fetchEmployeeData();
-
-        // Cleanup function if needed (optional)
-        return () => {
-            setEmployees([]);  // Clear employee list on unmount, if necessary
+        const fetchAllEmployeeData = async () => {
+            setIsLoading(true);
+            try {
+                const empData = await fetchAllEmployees();
+                setEmployees(empData);
+                setAllEmployees(empData);
+            } catch (error) {
+                console.log(error);
+                
+                // setErrorData(error.response.data.message)
+                toast.error("Failed to fetch employees");
+            }
+            setIsLoading(false);
         };
+
+        if (data.Account === "1") {
+            fetchAllEmployeeData()
+        } else {
+            fetchEmployeeData();
+        }
+
+        // // Cleanup function if needed (optional)
+        // return () => {
+        //     setEmployees([]);  // Clear employee list on unmount, if necessary
+        // };
     }, []);
-
-
 
     // Filter employees when `empName` changes
     useEffect(() => {
@@ -48,7 +65,7 @@ export default function Employee() {
             if (empName === "") {
                 setEmployees(allEmployees);
             } else {
-                setEmployees(allEmployees.filter((emp) => emp.FirstName.toLowerCase().includes(empName)));
+                setEmployees(allEmployees?.filter((emp) => emp?.FirstName?.toLowerCase()?.includes(empName)));
             }
         }
         filterEmployees();

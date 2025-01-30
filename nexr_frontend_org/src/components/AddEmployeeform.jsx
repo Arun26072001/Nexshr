@@ -9,6 +9,7 @@ import { useNavigate } from "react-router-dom";
 import { SelectPicker, TagPicker } from "rsuite";
 import Loading from "./Loader";
 import { allCountries } from "./countryCode";
+import NoDataFound from "./payslip/NoDataFound";
 
 const AddEmployeeForm = ({ details, handleScroll, handlePersonal, handleFinancial, handleJob, handleContact, handleEmployment, timePatterns, personalRef, contactRef, employmentRef, jobRef, financialRef, payslipRef, countries, companies, departments, positions, roles, leads, managers }) => {
     const navigate = useNavigate()
@@ -343,7 +344,6 @@ const AddEmployeeForm = ({ details, handleScroll, handlePersonal, handleFinancia
         const countryFullData = allCountries.find((country) => Object.values(country).includes(value))
         formik.setFieldValue(name, `${countryFullData.code}`)
     }
-    console.log(selectedLeaveTypes);
 
     return (
         isLoading ? <Loading /> :
@@ -958,25 +958,24 @@ const AddEmployeeForm = ({ details, handleScroll, handlePersonal, handleFinancia
                                 </div>
 
                                 {
-                                    payslipFields.length > 0 &&
-                                    payslipFields.map((data, index) => {
-                                        return (
-                                            <div className="col-lg-6" key={index}>
-                                                <div className="inputLabel">
-                                                    {data.fieldName[0].toUpperCase() + data.fieldName.slice(1)}
+                                    payslipFields.length > 0 ?
+                                        payslipFields.map((data, index) => {
+                                            return (
+                                                <div className="col-lg-6" key={index}>
+                                                    <div className="inputLabel">
+                                                        {data.fieldName[0].toUpperCase() + data.fieldName.slice(1)}
+                                                    </div>
+                                                    <input
+                                                        required
+                                                        type={data.type}
+                                                        className={`inputField`}
+                                                        name={data.fieldName}
+                                                        onChange={formik.handleChange}
+                                                        value={formik.values?.[data.fieldName]}
+                                                    />
                                                 </div>
-                                                <input
-                                                    required
-                                                    type={data.type}
-                                                    className={`inputField`}
-                                                    name={data.fieldName}
-                                                    onChange={formik.handleChange}
-                                                    value={formik.values?.[data.fieldName]}
-                                                />
-                                            </div>
-                                        )
-                                    })
-
+                                            )
+                                        }) : <NoDataFound message={"Please add Payslip fields"} />
                                 }
 
                             </div>

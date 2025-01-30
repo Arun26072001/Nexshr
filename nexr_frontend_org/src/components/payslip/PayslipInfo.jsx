@@ -16,8 +16,10 @@ export default function PayslipInfo() {
     useEffect(() => {
         const getPayslipData = async () => {
             try {
-                const payslipInfo = await fetchPayslipInfo();
-                setPayslipInfos(payslipInfo?.payslipFields ? payslipInfo : { payslipFields: [] });
+                const res = await fetchPayslipInfo();
+                console.log(res);
+                
+                // setPayslipInfos(payslipInfo?.payslipFields ? payslipInfo : { payslipFields: [] });
             } catch (error) {
                 console.error("Error fetching payslip data:", error);
                 toast.error("Failed to load payslip data.");
@@ -33,6 +35,18 @@ export default function PayslipInfo() {
             [name]: value,
         }));
     };
+
+    async function addPayslipInfo() {
+        try {
+            const response = await axios.post(`${url}/api/payslip-info`, payslipInfos, {
+                headers: { Authorization: token || "" },
+            });
+            toast.success(response.data.message);
+        } catch (error) {
+            console.error("Error updating payslip info:", error);
+            toast.error(error.response?.data?.error || "Failed to update payslip info.");
+        }
+    }
 
     const addField = () => {
         if (!field.fieldName || !field.type) {
@@ -217,7 +231,7 @@ export default function PayslipInfo() {
 
             {payslipInfos.payslipFields.length > 0 && (
                 <div className="text-end mt-4">
-                    <button className="btn btn-primary me-2" onClick={updatePayslipInfo}>
+                    <button className="btn btn-primary me-2" onClick={payslipInfos._id ? updatePayslipInfo : addPayslipInfo}>
                         Save Changes
                     </button>
                 </div>

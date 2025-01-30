@@ -4,6 +4,7 @@ import NoDataFound from '../payslip/NoDataFound';
 import Loading from '../Loader';
 import { LeaveStates } from '../payslip/HRMDashboard';
 import axios from "axios";
+import "../payslip/payslip.css";
 import { toast } from 'react-toastify';
 import { EssentialValues } from '../../App';
 import { DateRangePicker } from 'rsuite';

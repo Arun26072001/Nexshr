@@ -68,13 +68,13 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
     ];
 
     const column2 = [
-        { id: 'FirstName', label: 'Name', minWidth: 170, align: 'center', getter: (row) => row.employee.FirstName ? `${row.employee.FirstName[0].toUpperCase() + row.employee.FirstName.slice(1)}` : 'N/A' },
-        { id: 'basicSalary', label: 'Salary', minWidth: 170, align: 'center', getter: (row) => row.employee.basicSalary ? `₹${row.employee.basicSalary}` : 'N/A' },
-        { id: 'status', label: 'Status', minWidth: 170, align: 'center', getter: (row) => row.payslip.status ? row.payslip.status : 'N/A' },
-        { id: 'period', label: 'Period', minWidth: 220, align: 'center', getter: (row) => row.payslip.period ? row.payslip.period : 'N/A' },
+        { id: 'FirstName', label: 'Name', minWidth: 170, align: 'center', getter: (row) => row?.employee?.FirstName ? `${row.employee.FirstName[0].toUpperCase() + row.employee.FirstName.slice(1)}` : 'N/A' },
+        { id: 'basicSalary', label: 'Salary', minWidth: 170, align: 'center', getter: (row) => row?.employee?.basicSalary ? `₹${row.employee.basicSalary}` : 'N/A' },
+        { id: 'status', label: 'Status', minWidth: 170, align: 'center', getter: (row) => row?.payslip?.status ? row.payslip.status : 'N/A' },
+        { id: 'period', label: 'Period', minWidth: 220, align: 'center', getter: (row) => row?.payslip?.period ? row.payslip.period : 'N/A' },
         { id: 'lossofpay', label: 'LOP', minWidth: 170, align: 'center', getter: (row) => row?.payslip?.LossOfPay },
-        { id: 'ESI', label: 'ESI', minWidth: 170, getter: (row) => row.payslip.ESI || 'N/A' },
-        { id: 'ProvidentFund', label: 'ProvidentFund', minWidth: 170, getter: (row) => row.payslip.ProvidentFund || 'N/A' },
+        { id: 'ESI', label: 'ESI', minWidth: 170, getter: (row) => row?.payslip?.ESI || 'N/A' },
+        { id: 'ProvidentFund', label: 'ProvidentFund', minWidth: 170, getter: (row) => row?.payslip?.ProvidentFund || 'N/A' },
         { id: "Action", label: "Action", minWidth: 100, align: "center" }
     ];
 
@@ -83,48 +83,48 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
             id: 'FirstName',
             label: 'Profile',
             minWidth: 100,
-            getter: (row) => row.FirstName + row.LastName || 'N/A'
+            getter: (row) => row?.FirstName + row?.LastName || 'N/A'
         },
         {
             id: 'serialNo',
             label: 'ID',
             minWidth: 100,
-            getter: (row) => row.serialNo || 'N/A'
+            getter: (row) => row?.serialNo || 'N/A'
         },
         {
             id: 'employmentType',
             label: 'Status',
             minWidth: 100,
             align: 'center',
-            getter: (row) => row.employmentType || 'N/A'
+            getter: (row) => row?.employmentType || 'N/A'
         },
         {
             id: 'DepartmentName',
             label: 'Department',
             minWidth: 100,
             align: 'center',
-            getter: (row) => row.department.map(dep => dep.DepartmentName) || 'N/A'
+            getter: (row) => row?.department?.map(dep => dep.DepartmentName) || 'N/A'
         },
         {
             id: 'StratingTime',
             label: 'Shift',
             minWidth: 100,
             align: 'center',
-            getter: (row) => row.workingTimePattern.StartingTime || 'N/A'
+            getter: (row) => row?.workingTimePattern?.StartingTime || 'N/A'
         },
         {
             id: 'dateOfJoining',
             label: 'Joining Date',
             minWidth: 100,
             align: 'center',
-            getter: (row) => row.dateOfJoining || 'N/A'
+            getter: (row) => row?.dateOfJoining || 'N/A'
         },
         {
             id: 'RoleName',
             label: 'Role',
             minWidth: 100,
             align: 'center',
-            getter: (row) => row.role.map(item => item.RoleName) || 'N/A'
+            getter: (row) => row?.role?.map(item => item.RoleName) || 'N/A'
         },
         {
             id: "Action",
@@ -478,7 +478,7 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
         data?.map((item) => {
             if (item.fromDate && params['*'] === "leave-request") {
                 return setColumns(column1);
-            } else if (item.employmentType) {
+            } else if (item.FirstName) {
                 return setColumns(column3);
             } else if (item.date && params['*'] === "attendance-summary"
                 || item.date && params['*'] === "details"

@@ -21,14 +21,10 @@ router.get("/", verifyAdminHREmployee, async (req, res) => {
 
 router.post("/", verifyAdmin, async (req, res) => {
     try {
-        const payslip = { payslipFields: req.body };
-        // const { orgName } = jwt.decode(req.headers['authorization']);
-        // const PaySlipInfo = getPayslipInfoModel(orgName)
-        const data = await PaySlipInfo.create(payslip);
+        const data = await PaySlipInfo.create(req.body);
         res.send({ message: "Payslip has been added", payslipData: data });
-        // }
     } catch (err) {
-        res.status(500).send({ message: "Internal server error", details: err.message })
+        res.status(500).send({ error: err.message })
     }
 })
 

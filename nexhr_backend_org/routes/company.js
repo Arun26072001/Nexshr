@@ -28,7 +28,7 @@ router.get("/", verifyAdminHREmployee, (req, res) => {
     });
 });
 
-router.post("/", verifyHR, (req, res) => {
+router.post("/", verifyAdminHR, (req, res) => {
   Joi.validate(req.body, CompanyValidation, (err, result) => {
     if (err) {
       console.log(err);
