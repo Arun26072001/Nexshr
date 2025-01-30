@@ -35,12 +35,10 @@
     "web-vitals": "^2.1.4",
     "yup": "^1.4.0"
   },
-  "scripts": {
-    "start": "PORT=3335 react-scripts start || set PORT=3335 && react-scripts start",
-    "start-pc": "set PORT=3335 && react-scripts start",
-    "build": "set PORT=3335 && react-scripts --max_old_space_size=4096 build",
-    "test": "set PORT=3335 && react-scripts test",
-    "eject": "set PORT=3335 && react-scripts eject"
+ "scripts": {
+    "start": "node scripts/start.js",
+    "build": "node scripts/build.js",
+    "test": "node scripts/test.js"
   },
   "eslintConfig": {
     "extends": [
