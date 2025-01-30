@@ -23,8 +23,7 @@ export default function Position() {
         setIsAddPosition(!isAddPosition);
     }
 
-    function changePosition(e) {
-        const { name, value } = e.target;
+    function changePosition(value, name) {
         setPositionObj((prev) => ({
             ...prev,
             [name]: value,

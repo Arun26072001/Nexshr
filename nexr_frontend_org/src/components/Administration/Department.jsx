@@ -24,8 +24,7 @@ export default function Department() {
         setIsAddDepartment(!isAddDepartment);
     }
 
-    function changeDepartment(e) {
-        const { name, value } = e.target;
+    function changeDepartment(value, name) {
         setDepartmentObj((prev) => ({
             ...prev,
             [name]: value
