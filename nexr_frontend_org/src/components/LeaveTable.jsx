@@ -430,6 +430,22 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
         },
     ];
 
+    const column13 = [
+        {
+            id: 'CompanyName',
+            label: 'CompanyName',
+            minWidth: 120,
+            align: 'left',
+            getter: (row) => row?.CompanyName
+        },
+        {
+            id: 'Manage',
+            label: 'Manage Company',
+            minWidth: 120,
+            align: 'center',
+        }
+    ]
+
     function toggleView() {
         setOpenModal(!openModal);
     }
@@ -506,6 +522,8 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
                 return setColumns(column11)
             } else if (item.createdby) {
                 return setColumns(column12)
+            } else if (item.CompanyName) {
+                return setColumns(column13)
             }
             else {
                 return setColumns(column2)

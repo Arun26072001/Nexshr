@@ -88,8 +88,6 @@ export default function Department({companies}) {
                     Authorization: token || ""
                 }
             });
-            console.log(department.data);
-
             setDepartmentObj(department.data);
             modifyDepartments();
         } catch (error) {

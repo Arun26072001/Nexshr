@@ -343,10 +343,25 @@ async function getHoliday() {
     }
 }
 
+async function fetchCompanies() {
+    try {
+        const res = await axios.get(`${url}/api/company`, {
+            headers: {
+                Authorization: token
+            }
+        })
+        return res.data;
+    } catch (error) {
+        console.log("error in fetch companies", error);
+        toast.error(error.response.data.error)
+    }
+}
+
 
 export {
     getHoliday,
     addDataAPI,
+    fetchCompanies,
     fetchTeams,
     getDataAPI,
     updateEmp,

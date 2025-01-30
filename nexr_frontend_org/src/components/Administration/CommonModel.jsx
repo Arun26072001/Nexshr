@@ -23,8 +23,6 @@ const CommonModel = ({
     type // New prop to determine if it's for "department" or "position"
 }) => {
     const [confirmationTxt, setConfirmationTxt] = useState("");
-    console.log(dataObj);
-
 
     return (
         <Modal open={isAddData} size="sm" backdrop="static">

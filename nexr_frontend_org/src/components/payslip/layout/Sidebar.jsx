@@ -214,6 +214,7 @@ const Sidebar = ({ sideBar }) => {
             'administration',
             [
               { key: 'role', path: `/${whoIs}/administration/role`, label: 'Role' },
+              { key: 'company', path: `/${whoIs}/administration/company`, label: 'Company' },
               { key: 'shift', path: `/${whoIs}/administration/shift`, label: 'Shift' },
               { key: 'department', path: `/${whoIs}/administration/department`, label: 'Department' },
               { key: 'position', path: `/${whoIs}/administration/position`, label: 'Position' },

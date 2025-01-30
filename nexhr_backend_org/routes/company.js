@@ -24,6 +24,9 @@ router.get("/", verifyAdminHREmployee, (req, res) => {
       }
     })
     .exec(function (err, compnay) {
+      if (err) {
+        return res.status(500).send({ error: err.message })
+      }
       res.send(compnay);
     });
 });
