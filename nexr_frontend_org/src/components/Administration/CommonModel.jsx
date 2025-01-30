@@ -220,7 +220,7 @@ const CommonModel = ({
                                         required
                                         data={comps}
                                         size="lg"
-                                        disabled={["Report View", "Project View"] ? true : false}
+                                        disabled={["Report View", "Project View"].includes(type) ? true : false}
                                         appearance='default'
                                         style={{ width: "100%" }}
                                         placeholder="Select Company"
