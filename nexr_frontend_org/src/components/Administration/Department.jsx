@@ -7,7 +7,7 @@ import axios from 'axios';
 import { getDepartments } from '../ReuseableAPI';
 import CommonModel from './CommonModel';
 
-export default function Department() {
+export default function Department({companies}) {
     const url = process.env.REACT_APP_API_URL;
     const token = localStorage.getItem("token");
     const [departmentObj, setDepartmentObj] = useState({});
@@ -123,6 +123,7 @@ export default function Department() {
                 changeData={changeDepartment}
                 isAddData={isAddDepartment}
                 addData={addDepartment}
+                comps={companies}
                 modifyData={modifyDepartments}
                 type="Department"
                 /> :

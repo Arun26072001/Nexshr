@@ -108,6 +108,18 @@ export default function HRMDashboard() {
         setTimeOption(value);
     }
 
+    async function fetchCompanies() {
+        try {
+            const res = await axios.get(`${url}/api/company`, {
+                headers: {
+                    Authorization: token || ""
+                }
+            })
+            setCompanies(res.data.map((comp) => ({ label: comp.CompanyName, value: comp._id })));
+        } catch (error) {
+            console.log("error in fetch companies", error);
+        }
+    }
     function filterLeaveRequests() {
         if (empName === "") {
             setLeaveRequests(fullLeaveRequests);
@@ -344,7 +356,7 @@ export default function HRMDashboard() {
         if (Account === "1" || Account === "2") {
             getAttendanceData()
         }
-        getClocknsData();
+        getClocknsData()
     }, [getClocknsData, Account]);
 
     function trackTimer() {
@@ -384,6 +396,7 @@ export default function HRMDashboard() {
     useEffect(() => {
         localStorage.setItem("isStartLogin", isStartLogin);
         localStorage.setItem("isStartActivity", isStartActivity);
+        fetchCompanies();
     }, [isStartLogin, isStartActivity]);
 
     return (
@@ -432,8 +445,8 @@ export default function HRMDashboard() {
                                         <Route path="view/:id" element={<PageAndActionAuth />} />
                                     </Routes>
                                 } />
-                                <Route path="/department" element={<Department />} />
-                                <Route path="/position" element={<Position />} />
+                                <Route path="/department" element={<Department companies={companies} />} />
+                                <Route path="/position" element={<Position companies={companies} />} />
                                 <Route path="/holiday" element={<h1 className='text-center'>Under Development</h1>} />
                                 <Route path="/announcement" element={<Announce />} />
                                 <Route path={"/shift"} element={<h1 className='text-center'>Under Development</h1>} />

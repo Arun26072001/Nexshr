@@ -23,6 +23,8 @@ const CommonModel = ({
     type // New prop to determine if it's for "department" or "position"
 }) => {
     const [confirmationTxt, setConfirmationTxt] = useState("");
+    console.log(dataObj);
+
 
     return (
         <Modal open={isAddData} size="sm" backdrop="static">
@@ -45,9 +47,10 @@ const CommonModel = ({
                                     <p className='modelLabel'>{type} Name: </p>
                                     <Input required
                                         name={`name`}
-                                        value={dataObj?.[`name`] || ""}
+                                        value={dataObj?.[type === "Department" ? "DepartmentName" : type === "Position" ? "PositionName" : `name`] || ""}
                                         disabled={["Report View", "Project View"].includes(type) ? true : false}
-                                        onChange={!["Report View", "Project View"].includes(type) ? (e) => changeData(e, "name") : null}
+                                        onChange={!["Report View", "Project View"].includes(type) ? (e) =>
+                                            changeData(e, type === "Department" ? "DepartmentName" : type === "Position" ? "PositionName" : "name") : null}
                                     />
                                 </div>
                             </div>
@@ -372,14 +375,20 @@ const CommonModel = ({
                                 {["Report View", "Task View", "Project View"].includes(type) ? "Back" : "Cancel"}
                             </Button>
                             {
-                                !["Report View", "Task View", "Project View"].includes(type) &&
-                                <Button
-                                    onClick={() => dataObj?._id ? editData(dataObj) : addData()}
-                                    appearance="primary"
-                                    disabled={["Project", "Assign", "Task", "Task Assign", "Report"].includes(type) ? false : !dataObj?.[`${type}Name`] || !dataObj?.[`name`] || ((["Department", "Position"].includes(type)) && !dataObj?.company)}
-                                >
-                                    {dataObj?._id ? "Update" : "Save"}
-                                </Button>
+                                !["Report View", "Task View", "Project View"].includes(type) && (
+                                    <Button
+                                        onClick={() => (dataObj?._id ? editData(dataObj) : addData())}
+                                        appearance="primary"
+                                        disabled={
+                                            ["Project", "Assign", "Task", "Task Assign", "Report"].includes(type)
+                                                ? false
+                                                // : (!dataObj?.[`${type}Name`] || !dataObj?.name) ? true
+                                                : (["Department", "Position"].includes(type) && dataObj?.company ? false : true)
+                                        }
+                                    >
+                                        {dataObj?._id ? "Update" : "Save"}
+                                    </Button>
+                                )
                             }
                         </>
                 }

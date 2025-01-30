@@ -56,8 +56,7 @@ router.post("/", verifyAdminHR, (req, res) => {
           console.log(err);
           res.send("error");
         } else {
-          res.send(newCompany);
-          console.log("new company Saved");
+          res.send({ message: "New Company is add sucessfully", company });
         }
       });
       console.log(req.body);

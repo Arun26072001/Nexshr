@@ -6,7 +6,7 @@ import axios from 'axios';
 import CommonModel from './CommonModel';
 import LeaveTable from '../LeaveTable';
 
-export default function Position() {
+export default function Position({ companies }) {
     const url = process.env.REACT_APP_API_URL;
     const token = localStorage.getItem("token");
     const [positionObj, setPositionObj] = useState({});
@@ -122,6 +122,7 @@ export default function Position() {
                     changeData={changePosition}
                     isAddData={isAddPosition}
                     addData={addPosition}
+                    comps={companies}
                     modifyData={modifyPositions}
                     type="Position"
                 />
