@@ -124,7 +124,7 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
             label: 'Role',
             minWidth: 100,
             align: 'center',
-            getter: (row) => row?.role?.map(item => item.RoleName) || 'N/A'
+            getter: (row) => row?.role?.RoleName || 'N/A'
         },
         {
             id: "Action",
@@ -494,7 +494,7 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
         data?.map((item) => {
             if (item.fromDate && params['*'] === "leave-request") {
                 return setColumns(column1);
-            } else if (item.FirstName) {
+            } else if (item.FirstName && params["*"] === "employee") {
                 return setColumns(column3);
             } else if (item.date && params['*'] === "attendance-summary"
                 || item.date && params['*'] === "details"
@@ -552,101 +552,103 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
                             </TableRow>
                         </TableHead>
                         <TableBody>
-                            {rows.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row, rowIndex) => (
-                                <TableRow hover role="checkbox" tabIndex={-1} key={row.code}>
-                                    {columns.map((column) => {
-                                        const value = column.getter ? column.getter(row, rowIndex) : row[column.id];
+                            {
 
-                                        // Apply conditional styling for employee type
-                                        const cellClass =
-                                            column.id === "employmentType" && value === "contract" ? "backgroundBtn bg-primary rounded" :
-                                                value === "part-time" ? "backgroundBtn bg-warning rounded" :
-                                                    value === "full-time" ? "backgroundBtn bg-success rounded" : "";
+                                rows.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row, rowIndex) => (
+                                    <TableRow hover role="checkbox" tabIndex={-1} key={row.code}>
+                                        {columns?.map((column) => {
+                                            const value = column.getter ? column.getter(row, rowIndex) : row[column?.id];
 
-                                        // Render actions based on column.id and params
-                                        const renderActions = () => {
-                                            if (column.id === "reasonForLeave") {
-                                            } else if (column.id === "Action") {
-                                                if (params['*'] === "leave-request") {
+                                            // Apply conditional styling for employee type
+                                            const cellClass =
+                                                column.id === "employmentType" && value === "contract" ? "backgroundBtn bg-primary rounded" :
+                                                    value === "part-time" ? "backgroundBtn bg-warning rounded" :
+                                                        value === "full-time" ? "backgroundBtn bg-success rounded" : "";
+
+                                            // Render actions based on column.id and params
+                                            const renderActions = () => {
+                                                if (column.id === "reasonForLeave") {
+                                                } else if (column.id === "Action") {
+                                                    if (params['*'] === "leave-request") {
+                                                        return (
+                                                            <Dropdown placement='leftStart' title={<EditRoundedIcon style={{ cursor: "pointer" }} />} noCaret>
+                                                                {/* <Dropdown.Item style={{ minWidth: 120 }}>Response</Dropdown.Item> */}
+                                                                <Dropdown.Item style={{ minWidth: 120 }} onClick={() => replyToLeave(row, "approved")}>Approve</Dropdown.Item>
+                                                                <Dropdown.Item style={{ minWidth: 120 }} onClick={() => replyToLeave(row, "rejected")}>Reject</Dropdown.Item>
+                                                            </Dropdown>
+                                                        );
+                                                    } else if (params['*'] === "payslip" || params['*'] === "daily-log") {
+                                                        return (
+                                                            <Dropdown title={<RemoveRedEyeRoundedIcon style={{ cursor: "pointer" }} />} noCaret onClick={() => getValueForView([row._id, params['*']])}>
+                                                            </Dropdown>
+                                                        );
+                                                    } else if (params['*'] === "employee") {
+                                                        return (
+                                                            <Dropdown title={<EditRoundedIcon style={{ cursor: "pointer" }} />} noCaret>
+                                                                <Dropdown.Item style={{ minWidth: 120 }} onClick={() => changeEmpEditForm(row._id)}>Edit</Dropdown.Item>
+                                                                <Dropdown.Item style={{ minWidth: 120 }}>Delete</Dropdown.Item>
+                                                            </Dropdown>
+                                                        );
+                                                    } else if (params["*"] === "reports") {
+                                                        return (
+                                                            <Dropdown title={"Action"} noCaret>
+                                                                <Dropdown.Item style={{ minWidth: 80 }} onClick={() => fetchReportById(row._id, "View")}>
+                                                                    <b>
+                                                                        <RemoveRedEyeRoundedIcon sx={{ color: "#80C4E9" }} /> View
+                                                                    </b>
+                                                                </Dropdown.Item>
+                                                                <Dropdown.Item style={{ minWidth: 80 }} onClick={() => fetchReportById(row._id, "Edit")}>
+                                                                    <b>
+                                                                        <BorderColorRoundedIcon sx={{ color: "#FFD65A" }} /> Edit
+                                                                    </b>
+                                                                </Dropdown.Item>
+                                                                <Dropdown.Item style={{ minWidth: 80 }} onClick={() => handleDelete(row)}>
+                                                                    <b>
+                                                                        <DeleteRoundedIcon sx={{ color: "#F93827" }} /> Delete
+                                                                    </b>
+                                                                </Dropdown.Item>
+                                                            </Dropdown>
+                                                        )
+                                                    }
+                                                } else if (column.id === "auth") {
                                                     return (
-                                                        <Dropdown placement='leftStart' title={<EditRoundedIcon style={{ cursor: "pointer" }} />} noCaret>
-                                                            {/* <Dropdown.Item style={{ minWidth: 120 }}>Response</Dropdown.Item> */}
-                                                            <Dropdown.Item style={{ minWidth: 120 }} onClick={() => replyToLeave(row, "approved")}>Approve</Dropdown.Item>
-                                                            <Dropdown.Item style={{ minWidth: 120 }} onClick={() => replyToLeave(row, "rejected")}>Reject</Dropdown.Item>
+                                                        <Dropdown title={<KeyRoundedIcon style={{ cursor: "pointer" }} />} noCaret>
+                                                            <Dropdown.Item style={{ minWidth: 120 }} onClick={() => navigate(`view/${row._id}`)}>View</Dropdown.Item>
+                                                            <Dropdown.Item style={{ minWidth: 120 }} onClick={() => navigate(`edit/${row._id}`)}>Edit</Dropdown.Item>
+                                                            <Dropdown.Item style={{ minWidth: 120 }} onClick={() => deleteData(row._id)}>Delete</Dropdown.Item>
                                                         </Dropdown>
                                                     );
-                                                } else if (params['*'] === "payslip" || params['*'] === "daily-log") {
-                                                    return (
-                                                        <Dropdown title={<RemoveRedEyeRoundedIcon style={{ cursor: "pointer" }} />} noCaret onClick={() => getValueForView([row._id, params['*']])}>
-                                                        </Dropdown>
-                                                    );
-                                                } else if (params['*'] === "employee") {
+                                                } else if (["department", "position", "company"].includes(params["*"])) {
                                                     return (
                                                         <Dropdown title={<EditRoundedIcon style={{ cursor: "pointer" }} />} noCaret>
-                                                            <Dropdown.Item style={{ minWidth: 120 }} onClick={() => changeEmpEditForm(row._id)}>Edit</Dropdown.Item>
-                                                            <Dropdown.Item style={{ minWidth: 120 }}>Delete</Dropdown.Item>
-                                                        </Dropdown>
-                                                    );
-                                                } else if (params["*"] === "reports") {
-                                                    return (
-                                                        <Dropdown title={"Action"} noCaret>
-                                                            <Dropdown.Item style={{ minWidth: 80 }} onClick={() => fetchReportById(row._id, "View")}>
-                                                                <b>
-                                                                    <RemoveRedEyeRoundedIcon sx={{ color: "#80C4E9" }} /> View
-                                                                </b>
-                                                            </Dropdown.Item>
-                                                            <Dropdown.Item style={{ minWidth: 80 }} onClick={() => fetchReportById(row._id, "Edit")}>
+                                                            <Dropdown.Item style={{ minWidth: 120 }} onClick={() => fetchData(row._id)}>
                                                                 <b>
                                                                     <BorderColorRoundedIcon sx={{ color: "#FFD65A" }} /> Edit
-                                                                </b>
-                                                            </Dropdown.Item>
-                                                            <Dropdown.Item style={{ minWidth: 80 }} onClick={() => handleDelete(row)}>
+                                                                </b>                                                        </Dropdown.Item>
+                                                            <Dropdown.Item style={{ minWidth: 120 }} onClick={() => deleteData(row._id)}>
                                                                 <b>
-                                                                    <DeleteRoundedIcon sx={{ color: "#F93827" }} /> Delete
+                                                                    <DeleteRoundedIcon sx={{ color: "#F93827" }} />
+                                                                    Delete
                                                                 </b>
                                                             </Dropdown.Item>
                                                         </Dropdown>
-                                                    )
+                                                    );
                                                 }
-                                            } else if (column.id === "auth") {
-                                                return (
-                                                    <Dropdown title={<KeyRoundedIcon style={{ cursor: "pointer" }} />} noCaret>
-                                                        <Dropdown.Item style={{ minWidth: 120 }} onClick={() => navigate(`view/${row._id}`)}>View</Dropdown.Item>
-                                                        <Dropdown.Item style={{ minWidth: 120 }} onClick={() => navigate(`edit/${row._id}`)}>Edit</Dropdown.Item>
-                                                        <Dropdown.Item style={{ minWidth: 120 }} onClick={() => deleteData(row._id)}>Delete</Dropdown.Item>
-                                                    </Dropdown>
-                                                );
-                                            } else if (["department", "position", "company"].includes(params["*"])) {
-                                                return (
-                                                    <Dropdown title={<EditRoundedIcon style={{ cursor: "pointer" }} />} noCaret>
-                                                        <Dropdown.Item style={{ minWidth: 120 }} onClick={() => fetchData(row._id)}>
-                                                            <b>
-                                                                <BorderColorRoundedIcon sx={{ color: "#FFD65A" }} /> Edit
-                                                            </b>                                                        </Dropdown.Item>
-                                                        <Dropdown.Item style={{ minWidth: 120 }} onClick={() => deleteData(row._id)}>
-                                                            <b>
-                                                                <DeleteRoundedIcon sx={{ color: "#F93827" }} />
-                                                                Delete
-                                                            </b>
-                                                        </Dropdown.Item>
-                                                    </Dropdown>
-                                                );
-                                            }
-                                            return null;
-                                        };
+                                                return null;
+                                            };
 
-                                        return (
-                                            <TableCell
-                                                key={column.id}
-                                                align={column.align}
-                                                className={cellClass}
-                                            >
-                                                {column.id === "Action" || column.id === "auth" || column.id === "Manage" ? renderActions() : value}
-                                            </TableCell>
-                                        );
-                                    })}
-                                </TableRow>
-                            ))}
+                                            return (
+                                                <TableCell
+                                                    key={column.id}
+                                                    align={column.align}
+                                                    className={cellClass}
+                                                >
+                                                    {column.id === "Action" || column.id === "auth" || column.id === "Manage" ? renderActions() : value}
+                                                </TableCell>
+                                            );
+                                        })}
+                                    </TableRow>
+                                ))}
                         </TableBody>
 
                     </Table>

@@ -78,7 +78,7 @@ export default function CompanyTab() {
       toast.success(res.data)
       setRadioOption({})
     }).catch((err) => {
-      console.log(err);
+      toast.error(err.response.data.error)
     })
   }
 
@@ -112,8 +112,23 @@ export default function CompanyTab() {
   }
 
   useEffect(() => {
-    checkAllValue()
+    async function fetchCompanySettings() {
+      try {
+        const res = await axios.get(`${url}/api/company-settings`, {
+          headers: {
+            Authorization: token || ""
+          }
+        })
+        setRadioOption(res.data)
+      } catch (error) {
+        console.log(error);
+        toast.error(error.response.data.error)
+      }
+    }
+    // checkAllValue();
+    fetchCompanySettings();
   }, [])
+  
 
   function checkAllValue() {
     return Object.values(RadioOption).every((value) => value !== "")
@@ -148,7 +163,7 @@ export default function CompanyTab() {
                   <div className="row">
                     <div className="col-lg-4">
                       <h6 className='my-2'>Company Name</h6>
-                      <input type="text" name='CompanyName' onChange={(e) => handleComName(e)} placeholder='Enter Company Name' className='form-control mb-2' />
+                      <input type="text" name='CompanyName' value={RadioOption?.CompanyName} onChange={(e) => handleComName(e)} placeholder='Enter Company Name' className='form-control mb-2' />
                     </div>
                   </div>
                 </div>

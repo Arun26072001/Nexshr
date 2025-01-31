@@ -12,19 +12,19 @@ function verifyHR(req, res, next) {
     // if(decodedData.Account)
     jwt.verify(token, jwtKey, (err, authData) => {
       if (err) {
-        res.status(401).send({ message: "Unauthorize for this operation" });
+        res.status(401).send({ error: "Unauthorize for this operation" });
       } else {
         // console.log(authData);
         if (authData.Account == 2) {
           next();
         } else {
-          res.status(401).send({ message: "Unauthorize" });
+          res.status(401).send({ error: "Unauthorize" });
         }
       }
     });
   } else {
     // Forbidden
-    res.status(401).send({ message: "Unauthorize" });
+    res.status(401).send({ error: "Unauthorize" });
   }
 }
 
@@ -46,11 +46,11 @@ function verifyEmployee(req, res, next) {
           if (authData.Account == 3) {
             next();
           } else {
-            res.status(401).send({ message: "No permission for this Account value" });
+            res.status(401).send({ error: "No permission for this Account value" });
           }
         }
         else {
-          res.status(401).send({ message: "Authorization Error", error: "Mismatch login person ID!" })
+          res.status(401).send({ error: "Authorization Error", error: "Mismatch login person ID!" })
         }
       }
     });
@@ -73,7 +73,7 @@ function verifyHREmployee(req, res, next) {
           next();
         }
         else {
-          res.status(401).send({ message: "Authorization Error", error: "You has no Authorization!" });
+          res.status(401).send({ error: "Authorization Error", error: "You has no Authorization!" });
         }
       }
     });
@@ -105,7 +105,7 @@ async function verifyAdminHREmployee(req, res, next) {
         //   // }
         // }
         else {
-          res.status(401).send({ message: "Authorization Error", error: "You has no Authorization!" });
+          res.status(401).send({ error: "You has no Authorization!" });
         }
       }
     });
@@ -141,7 +141,7 @@ function verifyAdminHR(req, res, next) {
       console.error("Invalid token payload: Account property missing");
       return res.status(403).json({ error: "Access denied" });
     }
-    
+
     // Check if the user has admin or HR access
     if (authData.Account === 1 || authData.Account === 2) {
       // User is authorized
@@ -167,13 +167,13 @@ function verifyAdmin(req, res, next) {
         if (authData.Account == 1) {
           next();
         } else {
-          res.status(401).send({ message: "unAuthorize: Admin can only do this action!" });
+          res.status(401).send({ error: "unAuthorize: Admin can only do this action!" });
         }
       }
     });
   } else {
     // Forbidden
-    res.status(401).send({ messsage: "Can't access Auth token!" });
+    res.status(401).send({ error: "Can't access Auth token!" });
   }
 }
 
@@ -190,13 +190,13 @@ function verifyAdmin(req, res, next) {
         if (authData.Account == 1) {
           next();
         } else {
-          res.status(401).send({ message: "unAuthorize: Admin can only do this action!" });
+          res.status(401).send({ error: "unAuthorize: Admin can only do this action!" });
         }
       }
     });
   } else {
     // Forbidden
-    res.status(401).send({ messsage: "Can't access Auth token!" });
+    res.status(401).send({ error: "Can't access Auth token!" });
   }
 }
 
@@ -213,13 +213,13 @@ function verifySuperAdmin(req, res, next) {
         if (authData.Account == 0) {
           next();
         } else {
-          res.status(401).send({ message: "unAuthorize: Super Admin can only do this action!" });
+          res.status(401).send({ error: "unAuthorize: Super Admin can only do this action!" });
         }
       }
     });
   } else {
     // Forbidden
-    res.status(401).send({ messsage: "Can't access Auth token!" });
+    res.status(401).send({ error: "Can't access Auth token!" });
   }
 }
 

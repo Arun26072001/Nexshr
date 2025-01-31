@@ -23,8 +23,6 @@ const CommonModel = ({
     type // New prop to determine if it's for "department" or "position"
 }) => {
     const [confirmationTxt, setConfirmationTxt] = useState("");
-    console.log(dataObj);
-    console.log(comps);
 
 
     return (
@@ -349,11 +347,11 @@ const CommonModel = ({
                         <div className="d-flex justify-content-between gap-2">
                             <div className="col-half">
                                 <div className="modelInput">
-                                    <p className='modelLabel'>CompanyName:</p>
+                                    <p className='modelLabel'>Company Name:</p>
                                     <Input
                                         required
                                         size="lg"
-                                        style={{ width: "100%", height: 45, border: "none" }}
+                                        style={{ width: "100%", height: 45 }}
                                         type={"text"}
                                         name={`name`}
                                         // disabled={ ? true : false}
@@ -369,7 +367,7 @@ const CommonModel = ({
                                     <Input
                                         required
                                         size="lg"
-                                        style={{ width: "100%", height: 45, border: "none" }}
+                                        style={{ width: "100%", height: 45 }}
                                         type={"number"}
                                         name={`PostalCode`}
                                         // disabled={ ? true : false}
@@ -387,7 +385,7 @@ const CommonModel = ({
                                 <Input
                                     required
                                     size="lg"
-                                    style={{ width: "100%", height: 45, border: "none" }}
+                                    style={{ width: "100%", height: 45 }}
                                     type={"text"}
                                     name={`Address`}
                                     // disabled={ ? true : false}
@@ -398,134 +396,142 @@ const CommonModel = ({
                             </div>
                         </div>
 
-                        <div className="col-half">
-                            <div className="modelInput">
-                                <p className='modelLabel'>Email:</p>
-                                <Input
-                                    required
-                                    size="lg"
-                                    style={{ width: "100%", height: 45, border: "none" }}
-                                    type={"email"}
-                                    name={`Email`}
-                                    // disabled={ ? true : false}
-                                    value={dataObj?.[`Email`] || ""}
-                                    appearance='default'
-                                    onChange={(e) => changeData(e, "Email")}
-                                />
+                        <div className="d-flex justify-content-between gap-2">
+                            <div className="col-half">
+                                <div className="modelInput">
+                                    <p className='modelLabel'>Email:</p>
+                                    <Input
+                                        required
+                                        size="lg"
+                                        style={{ width: "100%", height: 45 }}
+                                        type={"email"}
+                                        name={`Email`}
+                                        // disabled={ ? true : false}
+                                        value={dataObj?.[`Email`] || ""}
+                                        appearance='default'
+                                        onChange={(e) => changeData(e, "Email")}
+                                    />
+                                </div>
                             </div>
-                        </div>
-                        <div className="col-half">
-                            <div className="modelInput">
-                                <p className='modelLabel'>Contact Person:</p>
-                                <Input
-                                    required
-                                    size="lg"
-                                    style={{ width: "100%", height: 45, border: "none" }}
-                                    type={"text"}
-                                    name={`ContactPerson`}
-                                    // disabled={ ? true : false}
-                                    value={dataObj?.[`ContactPerson`] || ""}
-                                    appearance='default'
-                                    onChange={(e) => changeData(e, "ContactPerson")}
-                                />
-                            </div>
-                        </div>
-
-                        <div className="col-half">
-                            <div className="modelInput">
-                                <p className='modelLabel'>Conatct No:</p>
-                                <Input
-                                    required
-                                    size="lg"
-                                    style={{ width: "100%", height: 45, border: "none" }}
-                                    type={"number"}
-                                    name={`ContactNo`}
-                                    // disabled={ ? true : false}
-                                    value={dataObj?.[`ContactNo`] || ""}
-                                    appearance='default'
-                                    onChange={(e) => changeData(e, "ContactNo")}
-                                />
-                            </div>
-                        </div>
-                        <div className="col-half">
-                            <div className="modelInput">
-                                <p className='modelLabel'>Website:</p>
-                                <Input
-                                    required
-                                    size="lg"
-                                    style={{ width: "100%", height: 45, border: "none" }}
-                                    type={"text"}
-                                    name={`Website`}
-                                    // disabled={ ? true : false}
-                                    value={dataObj?.[`Website`] || ""}
-                                    appearance='default'
-                                    onChange={(e) => changeData(e, "Website")}
-                                />
+                            <div className="col-half">
+                                <div className="modelInput">
+                                    <p className='modelLabel'>Contact Person:</p>
+                                    <Input
+                                        required
+                                        size="lg"
+                                        style={{ width: "100%", height: 45 }}
+                                        type={"text"}
+                                        name={`ContactPerson`}
+                                        // disabled={ ? true : false}
+                                        value={dataObj?.[`ContactPerson`] || ""}
+                                        appearance='default'
+                                        onChange={(e) => changeData(e, "ContactPerson")}
+                                    />
+                                </div>
                             </div>
                         </div>
 
-                        <div className="col-half">
-                            <div className="modelInput">
-                                <p className='modelLabel'>Fax No:</p>
-                                <Input
-                                    required
-                                    size="lg"
-                                    style={{ width: "100%", height: 45, border: "none" }}
-                                    type={"text"}
-                                    name={`FaxNo`}
-                                    // disabled={ ? true : false}
-                                    value={dataObj?.[`FaxNo`] || ""}
-                                    appearance='default'
-                                    onChange={(e) => changeData(e, "FaxNo")}
-                                />
+                        <div className="d-flex justify-content-between gap-2">
+                            <div className="col-half">
+                                <div className="modelInput">
+                                    <p className='modelLabel'>Contact No:</p>
+                                    <Input
+                                        required
+                                        size="lg"
+                                        style={{ width: "100%", height: 45 }}
+                                        type={"text"}
+                                        name={`ContactNo`}
+                                        // disabled={ ? true : false}
+                                        value={dataObj?.[`ContactNo`] || ""}
+                                        appearance='default'
+                                        onChange={(e) => changeData(e, "ContactNo")}
+                                    />
+                                </div>
                             </div>
-                        </div>
-                        <div className="col-half">
-                            <div className="modelInput">
-                                <p className='modelLabel'>Pan No:</p>
-                                <Input
-                                    required
-                                    size="lg"
-                                    style={{ width: "100%", height: 45, border: "none" }}
-                                    type={"text"}
-                                    name={`PanNo`}
-                                    value={dataObj?.[`PanNo`] || ""}
-                                    appearance='default'
-                                    onChange={(e) => changeData(e, "PanNo")}
-                                />
+                            <div className="col-half">
+                                <div className="modelInput">
+                                    <p className='modelLabel'>Website:</p>
+                                    <Input
+                                        required
+                                        size="lg"
+                                        style={{ width: "100%", height: 45 }}
+                                        type={"text"}
+                                        name={`Website`}
+                                        // disabled={ ? true : false}
+                                        value={dataObj?.[`Website`] || ""}
+                                        appearance='default'
+                                        onChange={(e) => changeData(e, "Website")}
+                                    />
+                                </div>
                             </div>
                         </div>
 
-                        <div className="col-half">
-                            <div className="modelInput">
-                                <p className='modelLabel'>GST No:</p>
-                                <Input
-                                    required
-                                    size="lg"
-                                    style={{ width: "100%", height: 45, border: "none" }}
-                                    type={"text"}
-                                    name={`GSTNo`}
-                                    // disabled={ ? true : false}
-                                    value={dataObj?.[`GSTNo`] || ""}
-                                    appearance='default'
-                                    onChange={(e) => changeData(e, "GSTNo")}
-                                />
+                        <div className="d-flex justify-content-between gap-2">
+                            <div className="col-half">
+                                <div className="modelInput">
+                                    <p className='modelLabel'>Fax No:</p>
+                                    <Input
+                                        required
+                                        size="lg"
+                                        style={{ width: "100%", height: 45 }}
+                                        type={"text"}
+                                        name={`FaxNo`}
+                                        // disabled={ ? true : false}
+                                        value={dataObj?.[`FaxNo`] || ""}
+                                        appearance='default'
+                                        onChange={(e) => changeData(e, "FaxNo")}
+                                    />
+                                </div>
+                            </div>
+                            <div className="col-half">
+                                <div className="modelInput">
+                                    <p className='modelLabel'>Pan No:</p>
+                                    <Input
+                                        required
+                                        size="lg"
+                                        style={{ width: "100%", height: 45 }}
+                                        type={"text"}
+                                        name={`PanNo`}
+                                        value={dataObj?.[`PanNo`] || ""}
+                                        appearance='default'
+                                        onChange={(e) => changeData(e, "PanNo")}
+                                    />
+                                </div>
                             </div>
                         </div>
-                        <div className="col-half">
-                            <div className="modelInput">
-                                <p className='modelLabel'>CIN No:</p>
-                                <Input
-                                    required
-                                    size="lg"
-                                    style={{ width: "100%", height: 45, border: "none" }}
-                                    type={"text"}
-                                    name={`CINNo`}
-                                    // disabled={ ? true : false}
-                                    value={dataObj?.[`CINNo`] || ""}
-                                    appearance='default'
-                                    onChange={(e) => changeData(e, "CINNo")}
-                                />
+
+                        <div className="d-flex justify-content-between gap-2">
+                            <div className="col-half">
+                                <div className="modelInput">
+                                    <p className='modelLabel'>GST No:</p>
+                                    <Input
+                                        required
+                                        size="lg"
+                                        style={{ width: "100%", height: 45 }}
+                                        type={"text"}
+                                        name={`GSTNo`}
+                                        // disabled={ ? true : false}
+                                        value={dataObj?.[`GSTNo`] || ""}
+                                        appearance='default'
+                                        onChange={(e) => changeData(e, "GSTNo")}
+                                    />
+                                </div>
+                            </div>
+                            <div className="col-half">
+                                <div className="modelInput">
+                                    <p className='modelLabel'>CIN No:</p>
+                                    <Input
+                                        required
+                                        size="lg"
+                                        style={{ width: "100%", height: 45 }}
+                                        type={"text"}
+                                        name={`CINNo`}
+                                        // disabled={ ? true : false}
+                                        value={dataObj?.[`CINNo`] || ""}
+                                        appearance='default'
+                                        onChange={(e) => changeData(e, "CINNo")}
+                                    />
+                                </div>
                             </div>
                         </div>
                     </>
@@ -560,16 +566,30 @@ const CommonModel = ({
                             <Button disabled={confirmationTxt === "Delete" ? false : true} onClick={deleteData} appearance="primary">Yes</Button>
                         </> :
                         <>
-                            <Button onClick={type === "Report View" ? () => modifyData(dataObj._id, "Cancel") : () => modifyData()} appearance="default">
+                            <Button
+                                onClick={() => {
+                                    console.log(type);
+                                    
+                                    if (type === "Company") {
+                                        modifyData(dataObj._id ? "Edit" : "Add");
+                                    } else if (type === "Report View") {
+                                        modifyData(dataObj._id, "Cancel");
+                                    } else {
+                                        modifyData();
+                                    }
+                                }}
+                                appearance="default"
+                            >
                                 {["Report View", "Task View", "Project View"].includes(type) ? "Back" : "Cancel"}
                             </Button>
+
                             {
                                 !["Report View", "Task View", "Project View"].includes(type) && (
                                     <Button
                                         onClick={() => (dataObj?._id ? editData(dataObj) : addData())}
                                         appearance="primary"
                                         disabled={
-                                            ["Project", "Assign", "Task", "Task Assign", "Report"].includes(type)
+                                            ["Project", "Assign", "Task", "Task Assign", "Report", "Company"].includes(type)
                                                 ? false
                                                 // : (!dataObj?.[`${type}Name`] || !dataObj?.name) ? true
                                                 : (["Department", "Position"].includes(type) && dataObj?.company ? false : true)

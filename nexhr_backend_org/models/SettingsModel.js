@@ -18,11 +18,11 @@ let CompanySettingsSchema = mongoose.Schema({
 })
 
 var CompanySettings = mongoose.model("CompanySettings", CompanySettingsSchema);
-autoIncrement.initialize(mongoose.connection);
-CompanySettingsSchema.plugin(autoIncrement.plugin, {
-  model: "CompanySettings",
-  field: "CompanyID"
-});
+// autoIncrement.initialize(mongoose.connection);
+// CompanySettingsSchema.plugin(autoIncrement.plugin, {
+//   model: "CompanySettings",
+//   field: "CompanyID"
+// });
 
 const CompanySettingsValidation = Joi.object().keys({
   _id: Joi.optional(),

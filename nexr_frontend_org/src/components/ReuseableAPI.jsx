@@ -339,7 +339,7 @@ async function getHoliday() {
         });
         return res.data.holidays
     } catch (error) {
-        return error?.response?.data?.error
+        console.log(error?.response?.data?.error);
     }
 }
 

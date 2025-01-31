@@ -1,28 +1,23 @@
 const mongoose = require('mongoose');
-const autoIncrement = require('mongoose-auto-increment');
 const Joi = require('joi');
 
 var companySchema = new mongoose.Schema({
-  CompanyName: { type: String, required: true },
-  Address: { type: String, required: true },
-  PostalCode: { type: Number, required: true },
-  Website: { type: String, required: true },
-  Email: { type: String, required: true },
-  ContactPerson: { type: String, required: true },
-  ContactNo: { type: String, required: true },
-  FaxNo: { type: String, required: true },
-  PanNo: { type: String, required: true },
-  GSTNo: { type: String, required: true },
-  CINNo: { type: String, required: true },
+  CompanyName: { type: String, },
+  Address: { type: String, },
+  PostalCode: { type: Number, },
+  Website: { type: String, },
+  Email: { type: String, },
+  ContactPerson: { type: String, },
+  ContactNo: { type: String, },
+  FaxNo: { type: String, },
+  PanNo: { type: String, },
+  GSTNo: { type: String, },
+  CINNo: { type: String, },
   // city: [{ type: mongoose.Schema.Types.ObjectId, ref: "City" }]
 }, { timestamps: true });
 
 var Company = mongoose.model("Company", companySchema);
-autoIncrement.initialize(mongoose.connection);
-companySchema.plugin(autoIncrement.plugin, {
-  model: "Company",
-  field: "CompanyID"
-});
+
 const CompanyValidation = Joi.object().keys({
   CompanyName: Joi.string()
     .max(200)

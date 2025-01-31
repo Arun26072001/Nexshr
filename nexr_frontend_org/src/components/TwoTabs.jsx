@@ -50,10 +50,9 @@ function a11yProps(index) {
 
 export default function Twotabs() {
   const { whoIs } = useContext(EssentialValues);
-  const url = process.env.REACT_APP_API_URL;
   const navigate = useNavigate();
   const { data } = useContext(EssentialValues);
-  const { annualLeave, _id, token } = data;
+  const { annualLeave, _id } = data;
   const [value, setValue] = useState(0);
   const [takenLeave, setTakenLeave] = useState(0);
   const today = new Date();
@@ -61,6 +60,7 @@ export default function Twotabs() {
   const [upComingHoliday, setupComingHoliday] = useState("");
   const [holidays, setHolidays] = useState([]);
   const [isAddHolidays, setIsAddHolidays] = useState(false);
+  console.log(holidays);
 
   const handleChange = (event, newValue) => {
     setValue(newValue);
@@ -72,7 +72,7 @@ export default function Twotabs() {
 
   useEffect(() => {
     function setDateFormatForHoliday() {
-      for (let i = 0; i < holidays.length; i++) {
+      for (let i = 0; i < holidays?.length; i++) {
         const holidayDate = new Date(holidays[i]);
         if (holidayDate > today) {
           const options = { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' };
@@ -82,7 +82,7 @@ export default function Twotabs() {
       }
     }
 
-    if (holidays.length > 0) {
+    if (holidays?.length > 0) {
       setDateFormatForHoliday()
     }
 
@@ -93,6 +93,8 @@ export default function Twotabs() {
     async function gettingHoliday() {
       try {
         const res = await getHoliday();
+        console.log(res);
+        
         setHolidays(res)
       } catch (error) {
         setHolidays([])
@@ -165,7 +167,7 @@ export default function Twotabs() {
           </div>
 
           {
-            leaveRequests?.map((req,index) => {
+            leaveRequests?.map((req, index) => {
               // debugger;
               let todayDate = today.getTime()
               let leaveDate = new Date(req.fromDate).getTime()

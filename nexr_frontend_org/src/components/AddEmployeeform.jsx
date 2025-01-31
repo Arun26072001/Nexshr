@@ -81,7 +81,7 @@ const AddEmployeeForm = ({ details, handleScroll, handlePersonal, handleFinancia
         Password: Yup.string().min(6, 'Password must be at least 6 characters').required('Password is required'),
         company: Yup.string().notOneOf(["Select Company"]).required("company is required"),
         teamLead: Yup.string().required("teamLead is required"), // assuming it's an ObjectId or string
-        managerId: Yup.string().required("manager is required"),
+        managerId: Yup.string().optional(),
         countryCode: Yup.string().required("manager is required"),
         phone: Yup.string().min(10, "Phone number must be 10 degits").max(10, "Phone number must be 10 degits").required("Phone is Required"), // can add phone validation if needed
         dateOfBirth: Yup.string().required("Date of Birth is required"),
@@ -100,7 +100,7 @@ const AddEmployeeForm = ({ details, handleScroll, handlePersonal, handleFinancia
         employmentType: Yup.string().oneOf(['full-time', 'part-time', 'contract'], 'Invalid employment type').required("Employment type is Required"),
         workingTimePattern: Yup.string().notOneOf(["Select Work Time Pattern"]).required("Time pattern is Required"),
         annualLeaveYearStart: Yup.date().optional().nullable(),
-        publicHoliday: Yup.string().required("public holiday field is required"),
+        publicHoliday: Yup.string().optional(),
         annualLeaveEntitlement: Yup.number().required("leave Entitlemenet is Required"),
         basicSalary: Yup.string().min(4, "invalid Salary").max(10).required("Salary is required"),
         bankName: Yup.string().min(2, "invalid Bank name").max(200).required("Bank name is required"),

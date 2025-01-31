@@ -168,7 +168,7 @@ router.get('/:id', verifyAdminHREmployee, async (req, res) => {
       .exec();
 
     if (!emp) {
-      return res.status(404).send({ message: "Employee not found!" });
+      return res.status(404).send({ error: "Employee not found!" });
     }
 
     // Filter leave requests
@@ -182,7 +182,7 @@ router.get('/:id', verifyAdminHREmployee, async (req, res) => {
     const collegues = await Employee.find({}, "FirstName LastName")
       .populate({
         path: "role",
-        match: { RoleName: emp.role[0].RoleName }, // Accessing the first role in the array
+        match: { RoleName: emp.role.RoleName }, // Accessing the first role in the array
         select: "RoleName"
       }).exec();
 
@@ -198,13 +198,15 @@ router.get('/:id', verifyAdminHREmployee, async (req, res) => {
     });
 
   } catch (err) {
+    console.log(err);
+    
     res.status(500).send({ details: err.message });
   }
 });
 
 router.post("/", verifyAdminHR, async (req, res) => {
   try {
-    const { Email, phone, FirstName, LastName, Password, teamLead, managerId, company, annualLeaveEntitlement, typesOfLeaveCount } = req.body;
+    const { Email, phone, FirstName, LastName, Password, teamLead, managerId, company, annualLeaveEntitlement, typesOfLeaveCount, employementType } = req.body;
 
     // Check if email already exists
     if (await Employee.exists({ Email })) {
@@ -221,7 +223,7 @@ router.post("/", verifyAdminHR, async (req, res) => {
       managerId: managerId || ["6651e4a810994f1d24cf3a19"],
       company: company || ["6651a5eb6115df44c0cc7151"],
       annualLeaveEntitlement: annualLeaveEntitlement || 14,
-      // payslipFields,
+      employementType: employementType || "Full-time",
       typesOfLeaveRemainingDays: typesOfLeaveCount
     };
 

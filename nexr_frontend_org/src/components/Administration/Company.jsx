@@ -11,6 +11,7 @@ export default function Company() {
     const url = process.env.REACT_APP_API_URL;
     const [companies, setCompanies] = useState([]);
     const [companyObj, setCompanyObj] = useState({});
+    const [isCompanychange, setIsCompanyChange] = useState(false);
     const token = localStorage.getItem("token");
     const [isLoading, setIsLoading] = useState(false);
     const [modifyCompany, setModifyCompany] = useState({
@@ -19,7 +20,13 @@ export default function Company() {
         isDelete: false
     })
 
+    function handleCompanyChange() {
+        setIsCompanyChange(!isCompanychange);
+    }
+
     function changeCompanyOperation(type) {
+        console.log("call", type);
+
         if (type === "Edit") {
             setModifyCompany((pre) => ({
                 ...pre,
@@ -30,13 +37,14 @@ export default function Company() {
                 ...pre,
                 isDelete: !pre.isDelete
             }))
-        } else {
+        } else if (type === "Add") {
             setModifyCompany((pre) => ({
                 ...pre,
                 isAdd: !pre.isAdd
             }))
         }
     }
+    console.log(modifyCompany);
 
     async function deleteCompany(id) {
         try {
@@ -46,10 +54,10 @@ export default function Company() {
                 }
             });
             toast.success(deleteCom?.data?.message);
+            handleCompanyChange();
             changeCompanyOperation("Delete");
         } catch (error) {
-            console.log(error);
-            toast.error(error?.response?.data?.message)
+            toast.error(error?.response?.data?.error)
         }
     }
 
@@ -61,9 +69,11 @@ export default function Company() {
                 }
             });
             toast.success(msg?.data?.message);
+            setCompanyObj({});
+            handleCompanyChange();
             changeCompanyOperation("Add");
         } catch (error) {
-            return toast.error(error?.response?.data?.message)
+            return toast.error(error?.response?.data?.error)
         }
     }
 
@@ -75,12 +85,20 @@ export default function Company() {
                 }
             });
             setCompanyObj(company.data);
-            changeCompanyOperation("Edit")
+            changeCompanyOperation("Edit");
         } catch (error) {
             console.log(error);
             toast.error(error);
         }
     }
+
+    function changeCompany(value, name) {
+        setCompanyObj((pre) => ({
+            ...pre,
+            [name]: value
+        }))
+    }
+
 
     async function editCompany() {
         try {
@@ -91,13 +109,12 @@ export default function Company() {
                 }
             });
 
-            // Assuming the API response contains a success message
             toast.success(response?.data?.message);
+            setCompanyObj({})
+            handleCompanyChange()
             changeCompanyOperation("Edit");
         } catch (error) {
-            // Show an error toast with the message from the API (or a generic error message if not available)
-            const errorMessage = error?.response?.data?.message || error.message || "Something went wrong";
-            toast.error(errorMessage);
+            toast.error(error?.response?.data?.error);
         }
     }
 
@@ -114,11 +131,12 @@ export default function Company() {
             setIsLoading(false)
         }
         gettingCompanies();
-    }, [])
+    }, [isCompanychange])
+
     return (
         isLoading ? <Loading /> :
-            modifyCompany.isAdd ? <CommonModel type="Company" modifyData={changeCompanyOperation} addData={addCompany} dataObj={companyObj} isAddData={modifyCompany.isAdd} /> :
-                modifyCompany.isEdit ? <CommonModel type="Company" modifyData={changeCompanyOperation} addData={addCompany} dataObj={companyObj} isAddData={modifyCompany.isEdit} /> :
+            modifyCompany.isAdd ? <CommonModel type="Company" modifyData={changeCompanyOperation} addData={addCompany} changeData={changeCompany} dataObj={companyObj} isAddData={modifyCompany.isAdd} /> :
+                modifyCompany.isEdit ? <CommonModel type="Company" modifyData={changeCompanyOperation} addData={addCompany} changeData={changeCompany} dataObj={companyObj} isAddData={modifyCompany.isEdit} editData={editCompany} /> :
                     <div className='dashboard-parent pt-4'>
                         <div className="row">
                             <div className='col-lg-6 col-6'>

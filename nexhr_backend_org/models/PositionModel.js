@@ -1,14 +1,9 @@
 const mongoose = require('mongoose');
-const autoIncrement = require('mongoose-auto-increment');
 const Joi = require('joi');
 
 var positionSchema = new mongoose.Schema({
   PositionName: { type: String, required: true },
   company: { type: mongoose.Schema.Types.ObjectId, ref: "Company" }
-});
-positionSchema.plugin(autoIncrement.plugin, {
-  model: "Position",
-  field: "PositionID"
 });
 
 const PositionValidation = Joi.object().keys({
@@ -19,5 +14,30 @@ const PositionValidation = Joi.object().keys({
 });
 
 var Position = mongoose.model("Position", positionSchema);
+
+const staticPositions = [
+  {
+    "company": {},
+    "PositionName": "Lead"
+  },
+  {
+    "company": {},
+    "PositionName": "Assosiate"
+  },
+  {
+    "company": {},
+    "PositionName": "Executive"
+  }
+]
+
+Position.countDocuments().then(count => {
+  if (count === 0) {
+    Position.insertMany(staticPositions)
+      .then(() => console.log("Static Positions inserted!"))
+      .catch(err => console.error("Error inserting Positions:", err));
+  } else {
+    console.log("Positions already exist. Skipping static data insertion.");
+  }
+});
 
 module.exports = { Position, PositionValidation , positionSchema};
