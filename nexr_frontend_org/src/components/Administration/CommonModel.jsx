@@ -23,6 +23,9 @@ const CommonModel = ({
     type // New prop to determine if it's for "department" or "position"
 }) => {
     const [confirmationTxt, setConfirmationTxt] = useState("");
+    console.log(dataObj);
+    console.log(comps);
+
 
     return (
         <Modal open={isAddData} size="sm" backdrop="static">
@@ -334,6 +337,194 @@ const CommonModel = ({
                                     handleChange={!["Task View", "Project View"].includes(type) ? (e) => changeData(e, "description") : null}
                                     content={dataObj?.["description"]}
                                     isDisabled={["Task View", "Project View"].includes(type) ? true : false}
+                                />
+                            </div>
+                        </div>
+                    </>
+                }
+
+                {
+                    ["Company"].includes(type) &&
+                    <>
+                        <div className="d-flex justify-content-between gap-2">
+                            <div className="col-half">
+                                <div className="modelInput">
+                                    <p className='modelLabel'>CompanyName:</p>
+                                    <Input
+                                        required
+                                        size="lg"
+                                        style={{ width: "100%", height: 45, border: "none" }}
+                                        type={"text"}
+                                        name={`name`}
+                                        // disabled={ ? true : false}
+                                        value={dataObj?.[`CompanyName`] || ""}
+                                        appearance='default'
+                                        onChange={(e) => changeData(e, "CompanyName")}
+                                    />
+                                </div>
+                            </div>
+                            <div className="col-half">
+                                <div className="modelInput">
+                                    <p className='modelLabel'>Postal Code:</p>
+                                    <Input
+                                        required
+                                        size="lg"
+                                        style={{ width: "100%", height: 45, border: "none" }}
+                                        type={"number"}
+                                        name={`PostalCode`}
+                                        // disabled={ ? true : false}
+                                        value={dataObj?.[`PostalCode`] || ""}
+                                        appearance='default'
+                                        onChange={(e) => changeData(e, "PostalCode")}
+                                    />
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="col-full">
+                            <div className="modelInput">
+                                <p className='modelLabel'>Address:</p>
+                                <Input
+                                    required
+                                    size="lg"
+                                    style={{ width: "100%", height: 45, border: "none" }}
+                                    type={"text"}
+                                    name={`Address`}
+                                    // disabled={ ? true : false}
+                                    value={dataObj?.[`Address`] || ""}
+                                    appearance='default'
+                                    onChange={(e) => changeData(e, "Address")}
+                                />
+                            </div>
+                        </div>
+
+                        <div className="col-half">
+                            <div className="modelInput">
+                                <p className='modelLabel'>Email:</p>
+                                <Input
+                                    required
+                                    size="lg"
+                                    style={{ width: "100%", height: 45, border: "none" }}
+                                    type={"email"}
+                                    name={`Email`}
+                                    // disabled={ ? true : false}
+                                    value={dataObj?.[`Email`] || ""}
+                                    appearance='default'
+                                    onChange={(e) => changeData(e, "Email")}
+                                />
+                            </div>
+                        </div>
+                        <div className="col-half">
+                            <div className="modelInput">
+                                <p className='modelLabel'>Contact Person:</p>
+                                <Input
+                                    required
+                                    size="lg"
+                                    style={{ width: "100%", height: 45, border: "none" }}
+                                    type={"text"}
+                                    name={`ContactPerson`}
+                                    // disabled={ ? true : false}
+                                    value={dataObj?.[`ContactPerson`] || ""}
+                                    appearance='default'
+                                    onChange={(e) => changeData(e, "ContactPerson")}
+                                />
+                            </div>
+                        </div>
+
+                        <div className="col-half">
+                            <div className="modelInput">
+                                <p className='modelLabel'>Conatct No:</p>
+                                <Input
+                                    required
+                                    size="lg"
+                                    style={{ width: "100%", height: 45, border: "none" }}
+                                    type={"number"}
+                                    name={`ContactNo`}
+                                    // disabled={ ? true : false}
+                                    value={dataObj?.[`ContactNo`] || ""}
+                                    appearance='default'
+                                    onChange={(e) => changeData(e, "ContactNo")}
+                                />
+                            </div>
+                        </div>
+                        <div className="col-half">
+                            <div className="modelInput">
+                                <p className='modelLabel'>Website:</p>
+                                <Input
+                                    required
+                                    size="lg"
+                                    style={{ width: "100%", height: 45, border: "none" }}
+                                    type={"text"}
+                                    name={`Website`}
+                                    // disabled={ ? true : false}
+                                    value={dataObj?.[`Website`] || ""}
+                                    appearance='default'
+                                    onChange={(e) => changeData(e, "Website")}
+                                />
+                            </div>
+                        </div>
+
+                        <div className="col-half">
+                            <div className="modelInput">
+                                <p className='modelLabel'>Fax No:</p>
+                                <Input
+                                    required
+                                    size="lg"
+                                    style={{ width: "100%", height: 45, border: "none" }}
+                                    type={"text"}
+                                    name={`FaxNo`}
+                                    // disabled={ ? true : false}
+                                    value={dataObj?.[`FaxNo`] || ""}
+                                    appearance='default'
+                                    onChange={(e) => changeData(e, "FaxNo")}
+                                />
+                            </div>
+                        </div>
+                        <div className="col-half">
+                            <div className="modelInput">
+                                <p className='modelLabel'>Pan No:</p>
+                                <Input
+                                    required
+                                    size="lg"
+                                    style={{ width: "100%", height: 45, border: "none" }}
+                                    type={"text"}
+                                    name={`PanNo`}
+                                    value={dataObj?.[`PanNo`] || ""}
+                                    appearance='default'
+                                    onChange={(e) => changeData(e, "PanNo")}
+                                />
+                            </div>
+                        </div>
+
+                        <div className="col-half">
+                            <div className="modelInput">
+                                <p className='modelLabel'>GST No:</p>
+                                <Input
+                                    required
+                                    size="lg"
+                                    style={{ width: "100%", height: 45, border: "none" }}
+                                    type={"text"}
+                                    name={`GSTNo`}
+                                    // disabled={ ? true : false}
+                                    value={dataObj?.[`GSTNo`] || ""}
+                                    appearance='default'
+                                    onChange={(e) => changeData(e, "GSTNo")}
+                                />
+                            </div>
+                        </div>
+                        <div className="col-half">
+                            <div className="modelInput">
+                                <p className='modelLabel'>CIN No:</p>
+                                <Input
+                                    required
+                                    size="lg"
+                                    style={{ width: "100%", height: 45, border: "none" }}
+                                    type={"text"}
+                                    name={`CINNo`}
+                                    // disabled={ ? true : false}
+                                    value={dataObj?.[`CINNo`] || ""}
+                                    appearance='default'
+                                    onChange={(e) => changeData(e, "CINNo")}
                                 />
                             </div>
                         </div>

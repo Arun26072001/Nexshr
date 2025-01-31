@@ -117,8 +117,8 @@ export default function Company() {
     }, [])
     return (
         isLoading ? <Loading /> :
-            modifyCompany.isAdd ? <CommonModel type="Company" modifyData={changeCompanyOperation} addData={addCompany} /> :
-                modifyCompany.isEdit ? <CommonModel type="Company" modifyData={changeCompanyOperation} addData={addCompany} /> :
+            modifyCompany.isAdd ? <CommonModel type="Company" modifyData={changeCompanyOperation} addData={addCompany} dataObj={companyObj} isAddData={modifyCompany.isAdd} /> :
+                modifyCompany.isEdit ? <CommonModel type="Company" modifyData={changeCompanyOperation} addData={addCompany} dataObj={companyObj} isAddData={modifyCompany.isEdit} /> :
                     <div className='dashboard-parent pt-4'>
                         <div className="row">
                             <div className='col-lg-6 col-6'>
@@ -129,9 +129,9 @@ export default function Company() {
                             </div>
                         </div>
                         {
-                            companies.length > 0 ?
-                                <LeaveTable data={companies} deleteDepartment={deleteCompany} getEditDepartmentId={fetchCompanyById} />
-                                : <NoDataFound message={"Departments data not found"} />
+                            companies?.length > 0 ?
+                                <LeaveTable data={companies} deleteData={deleteCompany} fetchData={fetchCompanyById} />
+                                : <NoDataFound message={"Companies data not found"} />
                         }
                     </div>
     )

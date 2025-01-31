@@ -7,7 +7,7 @@ import axios from 'axios';
 import { getDepartments } from '../ReuseableAPI';
 import CommonModel from './CommonModel';
 
-export default function Department({companies}) {
+export default function Department({ companies }) {
     const url = process.env.REACT_APP_API_URL;
     const token = localStorage.getItem("token");
     const [departmentObj, setDepartmentObj] = useState({});
@@ -21,6 +21,9 @@ export default function Department({companies}) {
     }
 
     function modifyDepartments() {
+        if (isAddDepartment) {
+            setDepartmentObj({})
+        }
         setIsAddDepartment(!isAddDepartment);
     }
 
@@ -38,10 +41,11 @@ export default function Department({companies}) {
                 }
             });
             toast.success(msg?.data?.message);
+            setDepartmentObj({});
             modifyDepartments();
             reloadDepartmentPage();
         } catch (error) {
-            return toast.error(error?.response?.data?.message)
+            return toast.error(error?.response?.data?.error)
         }
     }
 
@@ -72,6 +76,7 @@ export default function Department({companies}) {
             // Assuming the API response contains a success message
             toast.success(response?.data?.message);
             modifyDepartments();
+            setDepartmentObj({});
             // Reload the department page (or trigger any necessary updates)
             reloadDepartmentPage();
         } catch (error) {
@@ -82,6 +87,7 @@ export default function Department({companies}) {
     }
 
     async function getEditDepartmentId(id) {
+
         try {
             const department = await axios.get(`${url}/api/department/${id}`, {
                 headers: {
@@ -124,7 +130,7 @@ export default function Department({companies}) {
                 comps={companies}
                 modifyData={modifyDepartments}
                 type="Department"
-                /> :
+            /> :
                 <div className='dashboard-parent pt-4'>
                     <div className="row">
                         <div className='col-lg-6 col-6'>
@@ -136,7 +142,7 @@ export default function Department({companies}) {
                     </div>
                     {
                         departments.length > 0 ?
-                            <LeaveTable data={departments} deleteDepartment={deleteDepartment} getEditDepartmentId={getEditDepartmentId} />
+                            <LeaveTable data={departments} deleteData={deleteDepartment} fetchData={getEditDepartmentId} />
                             : <NoDataFound message={"Departments data not found"} />
                     }
                 </div>

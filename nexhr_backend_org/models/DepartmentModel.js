@@ -3,7 +3,7 @@ const Joi = require('joi');
 
 var departmentSchema = new mongoose.Schema({
     DepartmentName: { type: String, required: true },
-    company: [{ type: mongoose.Schema.Types.ObjectId, ref: "Company" }]
+    company: { type: mongoose.Schema.Types.ObjectId, ref: "Company" }
   });
   
 var Department = mongoose.model("Department", departmentSchema);

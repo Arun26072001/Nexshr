@@ -19,7 +19,7 @@ import KeyRoundedIcon from '@mui/icons-material/KeyRounded';
 import BorderColorRoundedIcon from '@mui/icons-material/BorderColorRounded';
 import DeleteRoundedIcon from '@mui/icons-material/DeleteRounded';
 
-export default function LeaveTable({ data, Account, getCheckedValue, handleDelete, fetchReportById, isTeamHead, isTeamLead, getEditDepartmentId, roleObj, getCheckAll, deleteRole, deleteDepartment, deletePosition, getEditPositionId, replyToLeave }) {
+export default function LeaveTable({ data, Account, getCheckedValue, handleDelete, fetchReportById, isTeamHead, isTeamLead, fetchData, roleObj, getCheckAll, deleteData, replyToLeave }) {
     const navigate = useNavigate();
     const { changeEmpEditForm } = useContext(TimerStates)
     const [page, setPage] = useState(0);
@@ -613,14 +613,22 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
                                                     <Dropdown title={<KeyRoundedIcon style={{ cursor: "pointer" }} />} noCaret>
                                                         <Dropdown.Item style={{ minWidth: 120 }} onClick={() => navigate(`view/${row._id}`)}>View</Dropdown.Item>
                                                         <Dropdown.Item style={{ minWidth: 120 }} onClick={() => navigate(`edit/${row._id}`)}>Edit</Dropdown.Item>
-                                                        <Dropdown.Item style={{ minWidth: 120 }} onClick={() => deleteRole(row._id)}>Delete</Dropdown.Item>
+                                                        <Dropdown.Item style={{ minWidth: 120 }} onClick={() => deleteData(row._id)}>Delete</Dropdown.Item>
                                                     </Dropdown>
                                                 );
-                                            } else if (params["*"] === "department" || params["*"] === "position") {
+                                            } else if (["department", "position", "company"].includes(params["*"])) {
                                                 return (
                                                     <Dropdown title={<EditRoundedIcon style={{ cursor: "pointer" }} />} noCaret>
-                                                        <Dropdown.Item style={{ minWidth: 120 }} onClick={() => params["*"] === "department" ? getEditDepartmentId(row._id) : params["*"] === "position" ? getEditPositionId(row._id) : changeEmpEditForm(row._id)}>Edit</Dropdown.Item>
-                                                        <Dropdown.Item style={{ minWidth: 120 }} onClick={() => params["*"] === "department" ? deleteDepartment(row._id) : params["*"] === "position" ? deletePosition(row._id) : null}>Delete</Dropdown.Item>
+                                                        <Dropdown.Item style={{ minWidth: 120 }} onClick={() => fetchData(row._id)}>
+                                                            <b>
+                                                                <BorderColorRoundedIcon sx={{ color: "#FFD65A" }} /> Edit
+                                                            </b>                                                        </Dropdown.Item>
+                                                        <Dropdown.Item style={{ minWidth: 120 }} onClick={() => deleteData(row._id)}>
+                                                            <b>
+                                                                <DeleteRoundedIcon sx={{ color: "#F93827" }} />
+                                                                Delete
+                                                            </b>
+                                                        </Dropdown.Item>
                                                     </Dropdown>
                                                 );
                                             }

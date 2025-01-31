@@ -34,7 +34,7 @@ router.get("/:id", verifyAdminHR, (req, res) => {
   // const { orgName } = jwt.decode(req.headers['authorization']);
   // const Position = getPositionModel(orgName)
   Position.findById({ _id: req.params.id })
-    .populate("company")
+    // .populate("company")
     .exec(function (err, position) {
       if (err) {
         res.status(500).send({ Error: err })
@@ -44,13 +44,14 @@ router.get("/:id", verifyAdminHR, (req, res) => {
 });
 
 router.post("/", verifyAdminHR, (req, res) => {
-  Joi.validate(req.body, PositionValidation, (err, result) => {
+  Joi.validate(req.body, PositionValidation, async (err, result) => {
     if (err) {
       console.log(err);
       res.status(400).send({ message: err.details[0].message });
     } else {
-      // const { orgName } = jwt.decode(req.headers['authorization']);
-      // const Position = getPositionModel(orgName)
+      if (await Position.exists({ PositionName: req.body.PositionName })) {
+        return res.status(400).send({ error: `${req.body.PositionName} Position is already exists` })
+      }
       Position.create(req.body, function (err, position) {
         if (err) {
           res.status(500).send({ message: err.message });

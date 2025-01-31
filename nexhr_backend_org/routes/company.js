@@ -12,17 +12,17 @@ router.get("/", verifyAdminHREmployee, (req, res) => {
   // {path: 'projects', populate: {path: 'portals'}}
   Company.find()
     // .populate({ path: "city", populate: { path: "state" } ,populate: { populate: { path: "country" } } })
-    .populate({
-      path: "city",
-      populate: {
-        path: "state",
-        model: "State",
-        populate: {
-          path: "country",
-          model: "Country"
-        }
-      }
-    })
+    // .populate({
+    //   path: "city",
+    //   populate: {
+    //     path: "state",
+    //     model: "State",
+    //     populate: {
+    //       path: "country",
+    //       model: "Country"
+    //     }
+    //   }
+    // })
     .exec(function (err, compnay) {
       if (err) {
         return res.status(500).send({ error: err.message })

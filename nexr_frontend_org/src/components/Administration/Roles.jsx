@@ -61,7 +61,7 @@ const Roles = () => {
                 </div>
                 {
                     roles.length > 0 ?
-                        <LeaveTable data={roles} deleteRole={deleteRoleAndPermission} />
+                        <LeaveTable data={roles} deleteData={deleteRoleAndPermission} />
                         : <NoDataFound message={"Roles data not found"} />
                 }
             </div>

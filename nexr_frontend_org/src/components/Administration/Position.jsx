@@ -20,6 +20,9 @@ export default function Position({ companies }) {
     }
 
     function modifyPositions() {
+        if (isAddPosition) {
+            setPositionObj({});
+        }
         setIsAddPosition(!isAddPosition);
     }
 
@@ -69,6 +72,7 @@ export default function Position({ companies }) {
                 }
             });
             toast.success(response?.data?.message);
+            setPositionObj({});
             modifyPositions();
             reloadPositionPage();
         } catch (error) {
@@ -138,7 +142,7 @@ export default function Position({ companies }) {
                     </div>
                     {
                         positions.length > 0 ?
-                            <LeaveTable data={positions} deletePosition={deletePosition} getEditPositionId={getEditPositionId} />
+                            <LeaveTable data={positions} deleteData={deletePosition} fetchData={getEditPositionId} />
                             : <NoDataFound message={"Position data not found"} />
                     }
                 </div>
