@@ -60,15 +60,11 @@ export default function Twotabs() {
   const [upComingHoliday, setupComingHoliday] = useState("");
   const [holidays, setHolidays] = useState([]);
   const [isAddHolidays, setIsAddHolidays] = useState(false);
-  console.log(holidays);
 
   const handleChange = (event, newValue) => {
     setValue(newValue);
   };
 
-  function changeHolidayUI() {
-    setIsAddHolidays(!isAddHolidays)
-  }
 
   useEffect(() => {
     function setDateFormatForHoliday() {
@@ -182,12 +178,12 @@ export default function Twotabs() {
           }
 
           {
-            holidays?.length > 0 ?
+            holidays?.length > 0 &&
               <div className="text-dark">
                 <p className='text-start'>Next up - Public Holiday</p>
                 <p className='text-primary text-start'><b>{upComingHoliday}</b></p>
                 <p className='mt-3 text-start'>You've also taken</p>
-              </div> : <HolidayPicker changeHolidayUI={changeHolidayUI} />
+              </div> 
           }
           <div className='text-center'>
             <div className='w-100'>

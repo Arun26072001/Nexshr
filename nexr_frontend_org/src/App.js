@@ -43,7 +43,7 @@ const App = () => {
       toast.warn("We won't allow you to logout without a reason for being late.");
       return;
     }
-    
+
     localStorage.clear();
     setData({ _id: "", Account: "", Name: "", token: "", annualLeave: 0 });
     setWhoIs("");

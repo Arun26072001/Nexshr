@@ -160,8 +160,6 @@ const Sidebar = ({ sideBar }) => {
         )}
 
         {renderNavLink(
-          // (decodedData.isTeamLead && whoIs === "emp") ||
-          // (decodedData.isTeamHead && whoIs === "emp") ||
           ['hr', "emp"].includes(whoIs),
           `/${whoIs}/calendar`,
           CalendarTodayRoundedIcon,

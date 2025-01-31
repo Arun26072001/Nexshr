@@ -4,7 +4,7 @@ const Joi = require("joi");
 const HolidaySchema = new mongoose.Schema({
     currentYear: { type: Number },
     holidays: [{
-        type: String
+        type: mongoose.Schema.Types.Mixed, default: {}
     }]
 })
 

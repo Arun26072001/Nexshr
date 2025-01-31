@@ -14,6 +14,7 @@ import axios from 'axios';
 import { EssentialValues } from '../../App';
 import Loading from '../Loader';
 import Company from '../Administration/Company';
+import Holiday from '../Administration/Holiday';
 
 
 // Lazy loading components
@@ -449,7 +450,7 @@ export default function HRMDashboard() {
                                 <Route path="/company" element={<Company companies={companies} />} />
                                 <Route path="/department" element={<Department companies={companies} />} />
                                 <Route path="/position" element={<Position companies={companies} />} />
-                                <Route path="/holiday" element={<h1 className='text-center'>Under Development</h1>} />
+                                <Route path="/holiday" element={<Holiday />} />
                                 <Route path="/announcement" element={<Announce />} />
                                 <Route path="/shift" element={<h1 className='text-center'>Under Development</h1>} />
                             </Routes>
