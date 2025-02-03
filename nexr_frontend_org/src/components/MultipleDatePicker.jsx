@@ -3,81 +3,148 @@ import React, { useEffect, useState } from "react";
 import DatePicker from "react-multi-date-picker";
 import { toast } from "react-toastify";
 import DatePanel from "react-multi-date-picker/plugins/date_panel";
-import { Calendar, dayjsLocalizer } from 'react-big-calendar';
-import dayjs from 'dayjs';
+import { Calendar, dayjsLocalizer } from "react-big-calendar";
+import { Input } from "rsuite";
+import dayjs from "dayjs";
 import "react-big-calendar/lib/css/react-big-calendar.css";
 import "./calendar.css";
 import { getHoliday } from "./ReuseableAPI";
+import Loading from "./Loader";
+
 const localizer = dayjsLocalizer(dayjs);
 
-function HolidayPicker({ changeHolidayUI }) {
-    const [holidays, setHolidays] = useState([]);
+function HolidayPicker({ changeHolidayUI, isAddHolidays }) {
+    const [holidays, setHolidays] = useState([]); // Stores selected holidays
+    const [titles, setTitles] = useState([]);
+    const [fetchedHolidays, setFetchedHolidays] = useState([]); // Stores holiday titles
     const url = process.env.REACT_APP_API_URL;
     const token = localStorage.getItem("token");
+    const [isLoading, setIsLoading] = useState(false);
 
+    // Function to send holidays to backend
     async function addHolidays() {
         try {
-            const res = await axios.post(`${url}/api/holidays`, { holidays }, {
-                headers: {
-                    Authorization: token || ""
-                }
-            });
-            toast.success(res.data.message);
-            changeHolidayUI();
+            const isAllAdded = holidays.some((value) => !["", undefined].includes(titles[value]));
+            if (isAllAdded) {
+                const newHolidays = holidays.map((item) => ({
+                    date: item,
+                    title: titles[item]
+                }))
+                const res = await axios.post(
+                    `${url}/api/holidays`,
+                    { holidays: newHolidays },
+                    {
+                        headers: {
+                            Authorization: token || "",
+                        },
+                    }
+                );
+                toast.success(res.data.message);
+                changeHolidayUI();
+                setHolidays([])
+                setTitles([]);
+            } else {
+                console.log("please fill all date of title");
+            }
         } catch (error) {
-            toast.error(error.response.data.error)
+            toast.error(error.response?.data?.error || "Error adding holidays");
         }
     }
 
-    useEffect(() => {
-        async function gettingHoliday() {
-            try {
-                const res = await getHoliday();
-                console.log(res);
+    const eventPropGetter = (event) => {
+        let backgroundColor = "";
 
-                setHolidays(res.map((item) => ({
-                    title: item,
-                    start: new Date(item),
-                    end: new Date(item)
-                })))
-            } catch (error) {
-                setHolidays([])
-                toast.error(error)
+        if (event.title) {
+            backgroundColor = "#5D8736"
+        }
+        return {
+            style: {
+                backgroundColor,
+                color: "#fff",
+                padding: "5px",
             }
         }
-        gettingHoliday();
-    }, [])
+    }
 
-    function getdata(e) {
-        console.log(e);
+    // Fetch holidays on component mount
+    useEffect(() => {
+        async function gettingHoliday() {
+            setIsLoading(true);
+            try {
+                const res = await getHoliday();
+                console.log("Fetched Holidays:", res); // ✅ Debugging
+
+                setFetchedHolidays(
+                    res.map((item) => ({
+                        title: item.title || "Untitled Holiday", // ✅ Ensure title is not empty
+                        start: new Date(item.date),
+                        end: new Date(item.date),
+                    }))
+                );
+            } catch (error) {
+                console.log(error);
+                setFetchedHolidays([]);
+            }
+            setIsLoading(false);
+        }
+        gettingHoliday();
+    }, [isAddHolidays]);
+
+    // Handle title input change
+    function handleHolidaysTitle(value, name) {
+        setTitles((prev) => ({
+            ...prev,
+            [name]: value,
+        }));
     }
 
     return (
-        holidays.length > 0 ?
-            <Calendar
-                localizer={localizer}
-                events={holidays}
-                startAccessor="start"
-                endAccessor="end"
-                onSelectEvent={getdata}
-                style={{ height: 500 }}
-            // eventPropGetter={eventPropGetter}
-            /> :
-            <div className="d-flex gap-2 justify-content-end my-2" >
-                <DatePicker
-                    value={holidays} // Pass the selected dates to the DatePicker
-                    onChange={(dates) => {
-                        setHolidays(dates.map((date) => date.format("YYYY-MM-DD"))); // Store in readable format
-                    }}
-                    multiple // Enable multiple date selection
-                    style={{ height: "40px" }}
-                    plugins={[
-                        <DatePanel />
-                    ]}
-                    placeholder="Select Year of holidays"
-                />
-                <button className="button" onClick={addHolidays} disabled={holidays.length > 0 ? false : true}>+ Add Holidays</button>
-            </div>
+        isLoading ? <Loading /> :
+            fetchedHolidays.length > 0 ?
+                <Calendar
+                    localizer={localizer}
+                    events={fetchedHolidays}
+                    startAccessor="start"
+                    endAccessor="end"
+                    // onSelectEvent={getdata}
+                    eventPropGetter={eventPropGetter}
+                    style={{ height: 500 }}
+                /> :
+                <div className="d-flex gap-2 justify-content-end my-2">
+                    <DatePicker
+                        value={holidays}
+                        onChange={(dates) => {
+                            setHolidays(dates.map((date) => date.format("YYYY-MM-DD"))); // Properly updating state
+                        }}
+                        multiple
+                        style={{ height: "40px" }}
+                        plugins={[<DatePanel key="date-panel" />]}
+                        placeholder="Select Year of Holidays"
+                    />
+
+                    {holidays.length > 0 && (
+                        <div className="inputs">
+                            {holidays.map((day) => (
+                                <Input
+                                    key={day}
+                                    size="sm"
+                                    name={day}
+                                    value={titles[day] || ""}
+                                    onChange={(value) => handleHolidaysTitle(value, day)}
+                                    placeholder={`Title for ${day}`}
+                                />
+                            ))}
+                        </div>
+                    )}
+
+                    <button
+                        className="button"
+                        onClick={addHolidays}
+                        disabled={holidays.length === Object.keys(titles).length ? false : true}
+                    >
+                        + Add Holidays
+                    </button>
+                </div>
     );
 }
 

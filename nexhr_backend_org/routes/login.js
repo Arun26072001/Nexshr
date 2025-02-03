@@ -60,7 +60,7 @@ router.post("/", async (req, res) => {
                     FirstName: emp.FirstName,
                     LastName: emp.LastName,
                     annualLeaveEntitlement: emp.annualLeaveEntitlement,
-                    roleData: emp?.role[0],
+                    roleData: emp?.role,
                     isLogin: updateIsEmailVerify.isLogin,
                     isTeamLead,
                     isTeamHead
@@ -70,7 +70,7 @@ router.post("/", async (req, res) => {
             }
         }
     } catch (err) {
-        console.log(err.message);
+        console.log(err);
         res.status(500).send({ message: "Internal server Error", details: err.message });
     }
 });

@@ -103,7 +103,7 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
             label: 'Department',
             minWidth: 100,
             align: 'center',
-            getter: (row) => row?.department?.map(dep => dep.DepartmentName) || 'N/A'
+            getter: (row) => row?.department?.DepartmentName || 'N/A'
         },
         {
             id: 'StratingTime',

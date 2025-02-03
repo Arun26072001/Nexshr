@@ -7,8 +7,9 @@ router.post("/", verifyAdminHR, async (req, res) => {
     try {
         const body = {
             currentYear: new Date().getFullYear(),
-            ...req.body
+            holidays: req.body.holidays
         }
+        
         const isExist = await Holiday.findOne({ currentYear: body.currentYear });
         if (isExist) {
             return res.status(400).send({ error: "Already updated this year of holidays!" })
@@ -17,11 +18,15 @@ router.post("/", verifyAdminHR, async (req, res) => {
         const validation = HolidayValidation.validate(body);
         const { error } = validation;
         if (error) {
+            console.log(error);
+            
             return res.status(400).send({ error: error.details[0].message })
         }
         const response = await Holiday.create(body);
         return res.send({ message: "holiday has been added.", data: response.data });
     } catch (error) {
+        console.log(error);
+        
         return res.status(500).send({ error: error.message })
     }
 })
@@ -32,7 +37,7 @@ router.get("/:year", verifyAdminHREmployee, async (req, res) => {
         if (!response) {
             return res.status(404).send({ error: `Please add ${req.params.year} year of holidays!` })
         } else {
-            return res.send(response);
+            return res.send(response.holidays);
         }
     } catch (error) {
         return res.status(500).send({ error: error.message })

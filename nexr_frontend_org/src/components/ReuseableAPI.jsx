@@ -337,7 +337,7 @@ async function getHoliday() {
                 Authorization: token || ""
             }
         });
-        return res.data.holidays
+        return res.data
     } catch (error) {
         console.log(error?.response?.data?.error);
     }

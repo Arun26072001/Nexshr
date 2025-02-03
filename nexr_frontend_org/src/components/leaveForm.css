@@ -82,12 +82,11 @@
 }
 
 .selectInput > * {
-  width: 100%;
+  width: 250px !important;
   appearance: none;
   background-color: #f4f4f4 !important;
-  /* background: url("../asserts/downArrow.svg") #f4f4f4 97% center no-repeat !important; */
   border: none;
-  border-radius: 15px;
+  border-radius: 15px !important;
   height: 50px;
   border: none;
   margin-top: 10px;
@@ -114,6 +113,10 @@ input[type="file"]::file-selector-button {
   padding: 5px;
   height: 100%;
   cursor: pointer;
+}
+
+.rs-picker-toggle.rs-btn {
+  width: 100% !important;
 }
 
 .inputLabel {

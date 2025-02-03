@@ -250,7 +250,7 @@ leaveApp.get("/emp/:empId", verifyAdminHREmployee, async (req, res) => {
     })
 
     // Fetch colleagues in the same position
-    const positionName = emp.position[0]?.PositionName;
+    const positionName = emp.position?.PositionName;
 
     let colleagues = [];
     if (positionName) {
