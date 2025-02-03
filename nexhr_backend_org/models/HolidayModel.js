@@ -12,7 +12,7 @@ const Holiday = mongoose.model("holidays", HolidaySchema);
 
 const HolidayValidation = Joi.object().keys({
     currentYear: Joi.number().required().label("currentYear"),
-    holidays: Joi.array().items(Joi.string()).min(2).required("Holidays")
+    holidays: Joi.array().items(Joi.object()).min(2).required("Holidays")
 })
 
 module.exports = { Holiday, HolidayValidation }

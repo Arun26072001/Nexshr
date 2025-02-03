@@ -165,7 +165,7 @@ const AddEmployee = () => {
     try {
       const employees = await fetchAllEmployees()
 
-      let filterTL = employees.filter(emp => emp.position.some((pos) => pos.PositionName === "TL")).map(emp => emp);
+      let filterTL = employees.filter(emp => emp.position.PositionName === "TL").map(emp => emp);
 
       setLeads(filterTL);
 
@@ -178,7 +178,7 @@ const AddEmployee = () => {
     try {
       const employees = await fetchAllEmployees();
 
-      let filterManager = employees.filter(emp => emp.position.some((pos) => pos.PositionName === "Manager")).map(emp => emp);;
+      let filterManager = employees.filter(emp => emp.position.PositionName === "Manager").map(emp => emp);
 
       setManagers(filterManager);
     } catch (err) {
@@ -224,11 +224,11 @@ const AddEmployee = () => {
         LastName: empData?.LastName || "",
         Email: empData?.Email || "",
         Password: empData?.Password || "",
-        teamLead: empData?.teamLead?.[0] || "", // Safely access first element or set to empty string
-        managerId: empData?.managerId?.[0] || "", // Safely access first element or set to empty string
+        teamLead: empData?.teamLead || "", // Safely access first element or set to empty string
+        managerId: empData?.managerId || "", // Safely access first element or set to empty string
         countryCode: empData.countryCode || "",
         phone: empData?.phone || "",
-        company: empData?.company?.[0] || "", // Safely access first element or set to empty string
+        company: empData?.company || "", // Safely access first element or set to empty string
         dateOfBirth: empData?.dateOfBirth || "",
         gender: empData?.gender || "",
         address: {
@@ -237,9 +237,9 @@ const AddEmployee = () => {
           country: empData?.address?.country || "",
           zipCode: empData?.address?.zipCode || ""
         },
-        position: empData?.position?.[0] || "", // Safely access first element's _id or set to empty string
-        department: empData?.department[0] || "",
-        role: empData?.role[0]?._id || "",
+        position: empData?.position._id || "", // Safely access first element's _id or set to empty string
+        department: empData?.department._id || "",
+        role: empData?.role._id || "",
         description: empData?.description || "",
         dateOfJoining: empData?.dateOfJoining || "",
         employmentType: empData?.employmentType || "",

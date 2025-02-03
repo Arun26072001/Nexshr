@@ -5,7 +5,7 @@ import * as Yup from "yup";
 import axios from "axios";
 import { toast } from "react-toastify";
 import "./leaveForm.css";
-import { fetchPayslipInfo, updateEmp } from "./ReuseableAPI";
+import { updateEmp } from "./ReuseableAPI";
 import { TimerStates } from "./payslip/HRMDashboard";
 import { useParams } from "react-router-dom";
 import Loading from "./Loader";
@@ -17,10 +17,10 @@ const EditEmployeeform = ({ details, empData, handleScroll, handlePersonal, hand
     const { id } = useParams();
     const { changeEmpEditForm } = useContext(TimerStates);
     const [stateData, setStateData] = useState([]);
-    const [cityData, setCityData] = useState([]);
+    // const [cityData, setCityData] = useState([]);
     const { whoIs } = useContext(EssentialValues);
     const [timeDifference, setTimeDifference] = useState(0);
-    // const [payslipFields, setPayslipFields] = useState([]);
+    const [selectedCountryCode, setselectedCountryCode] = useState("");
     const [selectedCountry, setSelectedCountry] = useState("");
     const token = localStorage.getItem("token");
     const url = process.env.REACT_APP_API_URL;
@@ -135,20 +135,26 @@ const EditEmployeeform = ({ details, empData, handleScroll, handlePersonal, hand
     function getValueforLeave(e) {
         const { name, value } = e.target;
 
-        const totalOfSplited = Object.values(formik.values.typesOfLeaveCount || {})
+        // Create a new object with the updated value for the specific leave type
+        const updatedTypesOfLeaveCount = {
+            ...formik.values.typesOfLeaveCount,
+            [name]: Number(value),
+        };
+
+        // Calculate the total using the updated `typesOfLeaveCount`
+        const totalOfSplited = Object.values(updatedTypesOfLeaveCount)
             .map(Number)
             .reduce((acc, curr) => acc + curr, 0);
 
         const annualLeaveEntitlement = Number(formik.values.annualLeaveEntitlement);
 
-        if (totalOfSplited + Number(value) > annualLeaveEntitlement) {
+        // Check against the annual leave entitlement
+        if (totalOfSplited > annualLeaveEntitlement) {
             setSplitError("Getting more than Annual leave value!");
         } else {
+            // Update the Formik state with the new `typesOfLeaveCount`
+            formik.setFieldValue("typesOfLeaveCount", updatedTypesOfLeaveCount);
             setSplitError("");
-            formik.setFieldValue("typesOfLeaveCount", {
-                ...formik.values.typesOfLeaveCount,
-                [name]: Number(value),
-            });
         }
     }
 
@@ -184,42 +190,9 @@ const EditEmployeeform = ({ details, empData, handleScroll, handlePersonal, hand
         calculateTimeDifference();
     }, [formik.values.workingTimePattern]);
 
-    // useEffect(() => {
-    //     async function getPayslipInfo() {
-    //         try {
-    //             const payslipInfo = await fetchPayslipInfo();
-    //             if (payslipInfo && payslipInfo?.payslipFields) {
-    //                 const fields = payslipInfo.payslipFields;
-
-    //                 fields.forEach((field) => {
-    //                     // Update employee object for each field
-    //                     setEmployeeObj((preEmpdata) => ({
-    //                         ...preEmpdata,
-    //                         [field.fieldName]: ""
-    //                     }));
-    //                 });
-
-    //                 // Set the payslip fields
-    //                 setPayslipFields(fields);
-    //             } else {
-    //                 // If no fields found, set an empty array
-    //                 setPayslipFields([]);
-    //             }
-    //         } catch (err) {
-    //             console.log(err.message);
-    //         }
-    //     }
-
-    //     getPayslipInfo();
-    // }, []);
-
     useEffect(() => {
         setSelectedLeavetypes(Object.entries(empData.typesOfLeaveCount).map(([key, value]) => key))
     }, [empData])
-    console.log(selectedLeaveTypes);
-
-    console.log(formik.values.typesOfLeaveCount);
-
 
     useEffect(() => {
         const gettingLeaveTypes = async () => {
@@ -239,60 +212,49 @@ const EditEmployeeform = ({ details, empData, handleScroll, handlePersonal, hand
         setIsLoading(false);
     }, []);
 
-    useEffect(() => {
-        async function fetchCountryNdState() {
-            try {
-                const countriez = await axios.get(`${url}/api/country/${empData?.address?.country}`, {
-                    headers: { Authorization: token || "" }
-                });
-                setStateData(countriez.data.states || [])
-                const statize = await axios.get(`${url}/api/state/${empData?.address?.state}`, {
-                    headers: { Authorization: token || "" }
-                });
-                setCityData(statize.data.cities || []);
+    // useEffect(() => {
+    //     async function fetchCountryNdState() {
+    //         try {
+    //             const countriez = await axios.get(`${url}/api/country/${empData?.address?.country}`, {
+    //                 headers: { Authorization: token || "" }
+    //             });
+    //             setStateData(countriez.data.states || [])
+    //             const statize = await axios.get(`${url}/api/state/${empData?.address?.state}`, {
+    //                 headers: { Authorization: token || "" }
+    //             });
+    //             setCityData(statize.data.cities || []);
 
-            } catch (error) {
-                toast.error(error.response.data.error)
-            }
-        }
+    //         } catch (error) {
+    //             toast.error(error.response.data.error)
+    //         }
+    //     }
 
-        if (empData?.address?.country && empData?.address?.state) {
-            fetchCountryNdState()
-        }
-    }, [])
+    //     if (empData?.address?.country && empData?.address?.state) {
+    //         fetchCountryNdState()
+    //     }
+    // }, [])
 
     const hourAndMin = timeDifference.toString().split(".");
     const [hour, min] = hourAndMin;
-    async function onChangeAddress(e) {
-        const { name, value } = e.target;
-        // Update the field dynamically in formik
-        formik.setFieldValue(`address.${name}`, value);
-        try {
-            if (name === "country") {
-                const { data } = await axios.get(`${url}/api/country/${value}`, {
-                    headers: { Authorization: token || "" }
-                });
-
-                setStateData(data.states || []);
-            } else if (name === "state") {
-                const { data } = await axios.get(`${url}/api/state/${value}`, {
-                    headers: { Authorization: token || "" }
-                });
-                setCityData(data.cities || []);
-            }
-        } catch (err) {
-            console.error(err);
-            toast.error(`Error fetching ${name === "country" ? "states" : "cities"}`);
-        }
-    }
 
     function changeCountry(value, name) {
-        setSelectedCountry(value);
-        const countryFullData = allCountries.find((country) => Object.values(country).includes(value))
-        formik.setFieldValue(name, `+${countryFullData.code}`)
+        const countryFullData = allCountries.find(country => Object.values(country).includes(value));
+
+        if (name === "country") {
+            setSelectedCountry(value || "");
+            formik.setFieldValue(`address.${name}`, value || "");
+            const states = allCountries.find(country => country.name === value)?.states || [];
+            setStateData(states);
+        } else if (["state", "city", "zipCode"].includes(name)) {
+            formik.setFieldValue(`address.${name}`, value || "");
+        } else if (name === "publicHoliday") {
+            formik.setFieldValue(name, value)
+        }
+        else {
+            setselectedCountryCode(value);
+            formik.setFieldValue(name, countryFullData?.code || "");
+        }
     }
-
-
 
     return (
         isLoading ? <Loading /> :
@@ -466,14 +428,14 @@ const EditEmployeeform = ({ details, empData, handleScroll, handlePersonal, hand
                                             Country Code
                                         </div>
                                         <SelectPicker
-                                            className={`selectInput ${formik.touched.countryCode && formik.errors.countryCode ? "error" : ""}`}
+                                            className={`selectInput p-0 ${formik.touched.countryCode && formik.errors.countryCode ? "error" : ""}`}
                                             style={{ background: "none", border: "none" }}
                                             size="lg"
                                             data={allCountries}
                                             appearance="subtle"
                                             labelKey="name"
                                             valueKey="abbr"
-                                            value={selectedCountry}
+                                            value={selectedCountryCode}
                                             onChange={(value) => changeCountry(value, "countryCode")}
                                             placeholder="Choose a Country"
                                             renderMenuItem={(label, item) => (
@@ -508,60 +470,56 @@ const EditEmployeeform = ({ details, empData, handleScroll, handlePersonal, hand
                                 <div className="row d-flex justify-content-center my-3">
                                     <div className="col-lg-6">
                                         <div className="inputLabel">Country</div>
-                                        <select
-                                            className={`selectInput ${formik.touched?.address?.country && formik.errors?.address?.country ? "error" : ""}`}
-                                            name="country"
-                                            onChange={(e) => onChangeAddress(e)}
-                                            value={formik.values.address.country} >
-                                            <option>Select the Country</option>
-                                            {
-                                                countries.map((country) => (
-                                                    <option key={country._id} value={country.CountryName}>{country.CountryName}</option>
-                                                ))
+                                        <SelectPicker
+                                            className={`selectInput p-0 ${formik.touched.country && formik.errors.country ? "error" : ""}`}
+                                            style={{ background: "none", border: "none" }}
+                                            size="lg"
+                                            appearance="subtle"
+                                            data={allCountries}
+                                            labelKey="name"
+                                            valueKey="name"
+                                            value={selectedCountry}
+                                            onChange={(value) => changeCountry(value, "country")}
+                                            placeholder="Choose a Country"
+                                            renderMenuItem={(label, item) => (
+                                                <div >
+                                                    {label}
+                                                </div>
+                                            )}
+                                            renderValue={(value, item) =>
+                                                item ? (
+                                                    <div>
+                                                        {item.name}
+                                                    </div>
+                                                ) : null
                                             }
-                                        </select>
+                                        />
                                         {formik.touched?.address?.country && formik.errors?.address?.country ? (
                                             <div className="text-center text-danger">{formik.errors?.address?.country}</div>
                                         ) : null}
                                     </div>
                                     <div className="col-lg-6">
                                         <div className="inputLabel">State</div>
-                                        <select
-                                            disabled={!stateData.length > 0}
-                                            className={`selectInput ${formik.touched?.address?.state && formik.errors?.address?.state ? "error" : ""}`}
-                                            name="state"
-                                            onChange={(e) => onChangeAddress(e)}
-                                            value={formik.values?.address?.state} >
-                                            <option>Select the State</option>
-                                            {
-                                                stateData?.map((state) => (
-                                                    <option key={state._id} value={state.StateName}>{state.StateName}</option>
-                                                ))
-                                            }
-                                        </select>
+                                        <SelectPicker
+                                            className="selectInput p-0"
+                                            style={{ background: "none", border: "none" }}
+                                            size="lg"
+                                            appearance="subtle"
+                                            value={formik.values.address.state}
+                                            onChange={(e) => changeCountry(e, "state")}
+                                            data={stateData?.map((item) => ({ label: item, value: item }))}
+                                        />
                                     </div>
                                 </div>
 
                                 <div className="row d-flex justify-content-center my-3">
                                     <div className="col-lg-6">
                                         <div className="inputLabel">City</div>
-                                        <select
-                                            disabled={!cityData.length > 0}
-                                            className={`selectInput ${formik.touched?.address?.city && formik.errors?.address?.city ? "error" : ""}`}
-                                            name="city"
-                                            onChange={(e) => onChangeAddress(e)}
-                                            value={formik.values.address.city} >
-                                            <option>Select the City</option>
-                                            {
-                                                cityData?.map((city) => (
-                                                    <option key={city._id} value={city.StateName}>{city.CityName}</option>
-                                                ))
-                                            }
-                                        </select>
+                                        <input type="text" value={formik.values.address.city} onChange={(e) => changeCountry(e.target.value, "city")} name="city" className="inputField" />
                                     </div>
                                     <div className="col-lg-6">
                                         <div className="inputLabel">Zip Code</div>
-                                        <input type="number" onChange={formik.handleChange} value={formik.values?.address?.zipCode || empData?.address?.zipCode || ""} name="zipCode" className="inputField" />
+                                        <input type="number" onChange={(e) => changeCountry(e.target.value, "zipCode")} value={formik.values?.address?.zipCode || empData?.address?.zipCode || ""} name="zipCode" className="inputField" />
                                     </div>
                                 </div>
                             </div>
@@ -585,7 +543,7 @@ const EditEmployeeform = ({ details, empData, handleScroll, handlePersonal, hand
                                                 <option key={pattern._id} value={pattern._id}
                                                     selected={pattern._id === formik.values.workingTimePattern._id}
                                                 >
-                                                    {pattern.PatternName}
+                                                    {pattern.PatternName} ({pattern.StartingTime} - {pattern.FinishingTime})
                                                 </option>
                                             ))}
                                         </select>
@@ -675,19 +633,17 @@ const EditEmployeeform = ({ details, empData, handleScroll, handlePersonal, hand
                                 <div className="row d-flex justify-content-center my-3">
                                     <div className="col-lg-12">
                                         <div className="inputLabel">Public Holidays by</div>
-                                        <select
-                                            className={`selectInput ${formik.touched.publicHoliday && formik.errors.publicHoliday ? "error" : ""}`}
+                                        <SelectPicker
+                                            className="selectInput p-0"
+                                            style={{ background: "none", border: "none", width: "100% !important" }}
+                                            size="lg"
+                                            block
+                                            appearance="subtle"
                                             name="publicHoliday"
-                                            disabled={whoIs === "emp" ? true : false}
-                                            onChange={whoIs === "emp" ? null : formik.handleChange}
-                                            value={formik.values.publicHoliday} >
-                                            <option>Select Public holiday</option>
-                                            {
-                                                countries.map((country) => (
-                                                    <option key={country._id} value={country.CountryName}>{country.CountryName}</option>
-                                                ))
-                                            }
-                                        </select>
+                                            value={formik.values.publicHoliday}
+                                            onChange={(e) => changeCountry(e, "publicHoliday")}
+                                            data={allCountries?.map((item) => ({ label: item.name, value: item.name }))}
+                                        />
                                         {formik.touched.publicHoliday && formik.errors.publicHoliday ? (
                                             <div className="text-center text-danger">{formik.errors.publicHoliday}</div>
                                         ) : null}
@@ -719,10 +675,10 @@ const EditEmployeeform = ({ details, empData, handleScroll, handlePersonal, hand
                                         </div>
                                         <TagPicker data={leaveTypes} disabled={formik.values.annualLeaveEntitlement ? false : true}
                                             title={!formik.values.annualLeaveEntitlement && "Please Enter Annual Leave"}
-                                            size="lg" readOnly onChange={whoIs === "emp" ? null : handleTagSelector}
+                                            size="lg" readOnly={whoIs === "emp" ? true : false} onChange={whoIs === "emp" ? null : handleTagSelector}
                                             value={selectedLeaveTypes}
                                             className={formik.values.annualLeaveEntitlement ? "rsuite_selector" : "rsuite_selector_disabled"}
-                                            style={{ width: 300, marginTop: "5px", border: "none" }} />
+                                            style={{ width: 300, border: "none" }} />
                                     </div>
                                 </div>
                                 <div className="row d-flex justify-content-center">
@@ -735,7 +691,7 @@ const EditEmployeeform = ({ details, empData, handleScroll, handlePersonal, hand
                                                 <input type="number"
                                                     // onChange={(e) => getValueforLeave(e)}
                                                     disabled={whoIs === "emp" ? true : false}
-                                                    onChange={whoIs === "emp" ? null : formik.handleChange}
+                                                    onChange={whoIs === "emp" ? null : (e) => getValueforLeave(e)}
                                                     name={leaveName}
                                                     className={`inputField`}
                                                     value={formik?.values?.typesOfLeaveCount[leaveName]}
