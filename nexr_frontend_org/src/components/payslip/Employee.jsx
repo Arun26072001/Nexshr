@@ -1,5 +1,4 @@
 import React, { useContext, useEffect, useState } from 'react';
-import EmailOutlinedIcon from '@mui/icons-material/EmailOutlined';
 import { toast } from 'react-toastify';
 import "./dashboard.css";
 import LeaveTable from '../LeaveTable';
@@ -8,8 +7,11 @@ import Loading from '../Loader';
 import { useNavigate } from 'react-router-dom';
 import NoDataFound from './NoDataFound';
 import { EssentialValues } from '../../App';
+import AddRoundedIcon from '@mui/icons-material/AddRounded';
+import axios from "axios";
 
 export default function Employee() {
+    const url = process.env.REACT_APP_API_URL;
     const { whoIs, data } = useContext(EssentialValues);
     const [employees, setEmployees] = useState([]);
     const [empName, setEmpName] = useState("");
@@ -17,6 +19,25 @@ export default function Employee() {
     const [isLoading, setIsLoading] = useState(false);
     const navigate = useNavigate();
     const [errorData, setErrorData] = useState("");
+
+    // Handle file upload
+    const handleUpload = async (file) => {
+        const formData = new FormData();
+        formData.append('documents', file);
+
+        try {
+            const response = await axios.post(`${url}/api/google-sheet/upload/employees`, formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                    Authorization: data.token || ""
+                },
+            });
+            toast.success(response.data.message)
+        } catch (error) {
+            console.error('File upload failed:', error);
+            toast.error(error.response.data.error);
+        }
+    };
 
     useEffect(() => {
         const fetchEmployeeData = async () => {
@@ -40,7 +61,7 @@ export default function Employee() {
                 setAllEmployees(empData);
             } catch (error) {
                 console.log(error);
-                
+
                 // setErrorData(error.response.data.message)
                 toast.error("Failed to fetch employees");
             }
@@ -52,11 +73,6 @@ export default function Employee() {
         } else {
             fetchEmployeeData();
         }
-
-        // // Cleanup function if needed (optional)
-        // return () => {
-        //     setEmployees([]);  // Clear employee list on unmount, if necessary
-        // };
     }, []);
 
     // Filter employees when `empName` changes
@@ -81,11 +97,17 @@ export default function Employee() {
 
                 <div className='d-flex' style={{ gap: "10px" }}>
                     <div className="button" onClick={() => navigate(`/${whoIs}/employee/add`)}>
-                        + Add Employee
+                        <AddRoundedIcon /> Add Employee
                     </div>
-                    <div className="button bg-light text-dark">
-                        <EmailOutlinedIcon /> Invite
+                    <div className="button bg-light text-dark" onClick={() => document.getElementById("fileUploader").click()} >
+                        <AddRoundedIcon />Import
                     </div>
+                    <input
+                        type="file"
+                        id="fileUploader"
+                        style={{ display: 'none' }}
+                        onChange={(e) => handleUpload(e.target.files[0])}
+                    />
                 </div>
             </div>
             <div className='employee d-block'>

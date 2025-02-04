@@ -16,73 +16,132 @@ const timeToMinutes = (timeStr) => {
 };
 
 // Upload and process attendance file
-router.post("/", upload.single("documents"), verifyAdminHR, async (req, res) => {
-    if (!req.file) {
-        return res.status(400).json({ status: false, message: "No file uploaded." });
-    }
-
-    const filePath = req.file.path;
-    try {
-        const workbook = XLSX.readFile(filePath);
-        const sheet = workbook.Sheets[workbook.SheetNames[0]];
-        const excelData = XLSX.utils.sheet_to_json(sheet, { header: 1 });
-
-        let records = [];
-        for (let i = 1; i < excelData.length; i++) {
-            const row = excelData[i];
-            if (!row || !row[6]) continue;
-
-            const punchInRecords = row[6].split(",");
-            if (punchInRecords.length > 1) {
-                let totalHours = 0;
-                for (let j = 0; j < punchInRecords.length - 1; j++) {
-                    const inMinutes = timeToMinutes(punchInRecords[j]);
-                    const outMinutes = timeToMinutes(punchInRecords[j + 1]);
-                    if (outMinutes > inMinutes) totalHours += (outMinutes - inMinutes) / 60;
-                }
-
-                records.push({
-                    empCode: row[0],
-                    empName: row[1],
-                    PunchIn: punchInRecords[0],
-                    totalHours: totalHours.toFixed(2),
-                    punchInRecords,
-                    PunchOut: punchInRecords[punchInRecords.length - 1],
-                });
-            }
+router.post("/attendance", upload.single("documents"), verifyAdminHR,
+    async (req, res) => {
+        if (!req.file) {
+            return res.status(400).json({ status: false, message: "No file uploaded." });
         }
 
-        fs.unlinkSync(filePath); // Delete file after processing
+        const filePath = req.file.path;
+        try {
+            const workbook = XLSX.readFile(filePath);
+            const sheet = workbook.Sheets[workbook.SheetNames[0]];
+            const excelData = XLSX.utils.sheet_to_json(sheet, { header: 1 });
 
-        const today = new Date();
-        const startOfDay = new Date(today.setHours(0, 0, 0, 0));
-        const endOfDay = new Date(today.setHours(23, 59, 59, 999));
+            let records = [];
+            for (let i = 1; i < excelData.length; i++) {
+                const row = excelData[i];
+                if (!row || !row[6]) continue;
 
-        for (const record of records) {
-            const emp = await Employee.findOne({ code: record.empCode }, "Email workingTimePattern clockIns leaveApplication")
-                .populate({ path: "clockIns", match: { date: { $gte: startOfDay, $lte: endOfDay } } })
-                .populate({ path: "leaveApplication", match: { fromDate: { $gte: startOfDay, $lte: endOfDay }, status: "approved" } })
-                .exec();
+                const punchInRecords = row[6].split(",");
+                if (punchInRecords.length > 1) {
+                    let totalHours = 0;
+                    for (let j = 0; j < punchInRecords.length - 1; j++) {
+                        const inMinutes = timeToMinutes(punchInRecords[j]);
+                        const outMinutes = timeToMinutes(punchInRecords[j + 1]);
+                        if (outMinutes > inMinutes) totalHours += (outMinutes - inMinutes) / 60;
+                    }
 
-            if (!emp) continue;
+                    records.push({
+                        empCode: row[0],
+                        empName: row[1],
+                        PunchIn: punchInRecords[0],
+                        totalHours: totalHours.toFixed(2),
+                        punchInRecords,
+                        PunchOut: punchInRecords[punchInRecords.length - 1],
+                    });
+                }
+            }
 
-            const companyPunchInTime = timeToMinutes(emp.workingTimePattern?.StartingTime);
-            const empPunchInTime = timeToMinutes(record.PunchIn);
+            fs.unlinkSync(filePath); // Delete file after processing
 
-            if (companyPunchInTime < empPunchInTime) {
-                const permission = emp.leaveApplication[0];
-                if (permission) {
-                    const fromHour = timeToMinutes(permission.fromDate.split(" ")[1]);
-                    const toHour = timeToMinutes(permission.toDate.split(" ")[1]);
-                    const totalPermissionHour = toHour - fromHour;
+            const today = new Date();
+            const startOfDay = new Date(today.setHours(0, 0, 0, 0));
+            const endOfDay = new Date(today.setHours(23, 59, 59, 999));
 
-                    if ((companyPunchInTime + totalPermissionHour) < empPunchInTime) {
+            for (const record of records) {
+                const emp = await Employee.findOne({ code: record.empCode }, "Email workingTimePattern clockIns leaveApplication")
+                    .populate({ path: "clockIns", match: { date: { $gte: startOfDay, $lte: endOfDay } } })
+                    .populate({ path: "leaveApplication", match: { fromDate: { $gte: startOfDay, $lte: endOfDay }, status: "approved" } })
+                    .exec();
+
+                if (!emp) continue;
+
+                const companyPunchInTime = timeToMinutes(emp.workingTimePattern?.StartingTime);
+                const empPunchInTime = timeToMinutes(record.PunchIn);
+
+                if (companyPunchInTime < empPunchInTime) {
+                    const permission = emp.leaveApplication[0];
+                    if (permission) {
+                        const fromHour = timeToMinutes(permission.fromDate.split(" ")[1]);
+                        const toHour = timeToMinutes(permission.toDate.split(" ")[1]);
+                        const totalPermissionHour = toHour - fromHour;
+
+                        if ((companyPunchInTime + totalPermissionHour) < empPunchInTime) {
+                            const halfDayLeaveApp = {
+                                leaveType: "Unpaid Leave (LWP)",
+                                fromDate: today,
+                                toDate: today,
+                                periodOfLeave: "half day",
+                                reasonForLeave: "Came too late",
+                                prescription: "",
+                                employee: emp._id,
+                                coverBy: "",
+                                status: "rejected",
+                                TeamLead: "rejected",
+                                TeamHead: "rejected",
+                                Hr: "rejected",
+                                approvedOn: null,
+                                approverId: []
+                            };
+                            const addLeave = await LeaveApplication.create(halfDayLeaveApp);
+                            emp.leaveApplication.push(addLeave._id);
+                            await emp.save();
+
+                            // send mail to employee
+                            const htmlContent = `
+                            <html>
+                                <head>
+                                    <style>
+                                        body {font - family: Arial, sans-serif; background-color: #f6f9fc; color: #333; }
+                                        .container { max-width: 600px; margin: auto; padding: 20px; background-color: #fff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); }
+                                        .content {margin: 20px 0; }
+                                        .footer {text - align: center; font-size: 14px; margin-top: 20px; color: #777; }
+                                    </style>
+                                </head>
+                                <body>
+                                    <div class="container">
+                                        <div class="content">
+                                            <h2 class="center_text">You came much later than your permitted time.</h2>
+                                            <p>
+                                                So, we are marking you as taking a half-day leave.
+                                                Hereafter, please come early or by (${emp.workingTimePattern.StartingTime}).
+                                                Please follow the company instructions.
+                                                Thank you!
+                                            </p>
+                                        </div>
+
+                                        <div class="footer">
+                                            <p>Have questions? Need help? <a href="mailto:webnexs29@gmail.com">Contact our support team</a>.</p>
+                                        </div>
+                                    </div>
+                                </body>
+                            </html>`
+                            sendMail({
+                                from: process.env.FROM_MAIL,
+                                to: emp.Email,
+                                subject: `Half-day Leave Applied(Unpaid Leave (LWP))`,
+                                html: htmlContent,
+                            })
+                            continue;
+                        }
+                    } else {
                         const halfDayLeaveApp = {
                             leaveType: "Unpaid Leave (LWP)",
                             fromDate: today,
                             toDate: today,
                             periodOfLeave: "half day",
-                            reasonForLeave: "Came too late",
+                            reasonForLeave: "Came to late",
                             prescription: "",
                             employee: emp._id,
                             coverBy: "",
@@ -94,24 +153,60 @@ router.post("/", upload.single("documents"), verifyAdminHR, async (req, res) => 
                             approverId: []
                         };
                         await LeaveApplication.create(halfDayLeaveApp);
+                        emp.leaveApplication.push(addLeave._id);
+                        await emp.save();
+
+                        const htmlContent = `
+                        <html>
+                            <head>
+                                <style>
+                                    body {font - family: Arial, sans-serif; background-color: #f6f9fc; color: #333; }
+                                    .container { max-width: 600px; margin: auto; padding: 20px; background-color: #fff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); }
+                                    .content {margin: 20px 0; }
+                                    .footer {text - align: center; font-size: 14px; margin-top: 20px; color: #777; }
+                                </style>
+                            </head>
+                            <body>
+                                <div class="container">
+                                    <div class="content">
+                                        <h2 class="center_text">You came much later than your permitted time.</h2>
+                                        <p>
+                                            So, we are marking you as taking a half-day leave.
+                                            Hereafter, please come early or by (${emp.workingTimePattern.StartingTime}).
+                                            Please follow the company instructions.
+                                            Thank you!
+                                        </p>
+                                    </div>
+
+                                    <div class="footer">
+                                        <p>Have questions? Need help? <a href="mailto:${process.env.FROM_MAIL}">Contact our support team</a>.</p>
+                                    </div>
+                                </div>
+                            </body>
+                        </html>`
+                        sendMail({
+                            from: process.env.FROM_MAIL,
+                            to: emp.Email,
+                            subject: `Half-day Leave Applied(Unpaid Leave (LWP))`,
+                            html: htmlContent,
+                        })
                         continue;
                     }
                 }
-            }
 
-            if (Number(record.totalHours) < 8) {
-                const clockIn = emp.clockIns[0];
-                if (clockIn) {
-                    const activities = ["login", "meeting", "morningBreak", "lunch", "eveningBreak", "event"];
-                    const activitiesData = activities.map((activity) => ({
-                        activity,
-                        startingTime: clockIn?.[activity]?.startingTime?.[0] || "00:00",
-                        endingTime: clockIn?.[activity]?.endingTime?.slice(-1)[0] || "00:00",
-                    }));
+                if (Number(record.totalHours) < 8) {
+                    const clockIn = emp.clockIns[0];
+                    if (clockIn) {
+                        const activities = ["login", "meeting", "morningBreak", "lunch", "eveningBreak", "event"];
+                        const activitiesData = activities.map((activity) => ({
+                            activity,
+                            startingTime: clockIn?.[activity]?.startingTime?.[0] || "00:00",
+                            endingTime: clockIn?.[activity]?.endingTime?.slice(-1)[0] || "00:00",
+                        }));
 
-                    await ClockIns.findByIdAndUpdate(clockIn._id, { ...clockIn, machineRecords: record.punchInRecords });
+                        await ClockIns.findByIdAndUpdate(clockIn._id, { ...clockIn, machineRecords: record.punchInRecords });
 
-                    const emailHtml = `
+                        const emailHtml = `
                         <html>
                         <head>
                           <style>
@@ -150,24 +245,122 @@ router.post("/", upload.single("documents"), verifyAdminHR, async (req, res) => 
                         </html>
                     `;
 
-                    sendMail({
-                        from: process.env.FROM_MAIL,
-                        to: emp.Email,
-                        subject: "Incomplete Working Hours Alert",
-                        html: emailHtml,
-                    });
+                        sendMail({
+                            from: process.env.FROM_MAIL,
+                            to: emp.Email,
+                            subject: "Incomplete Working Hours Alert",
+                            html: emailHtml,
+                        });
+                    }
                 }
+            }
+
+            res.status(200).json({ status: true, message: "File processed successfully!", data: records });
+        } catch (error) {
+            console.error(error);
+            res.status(500).json({ status: false, error: error.message || "An error occurred during the bulk import process." });
+        } finally {
+            if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+        }
+    });
+
+router.post("/employees", upload.single("documents"), verifyAdminHR, async (req, res) => {
+    if (!req.file) {
+        return res.status(400).json({ status: false, message: "No file uploaded." });
+    }
+
+    const filePath = req.file.path;
+    try {
+        const workbook = XLSX.readFile(filePath);
+        const sheet = workbook.Sheets[workbook.SheetNames[0]];
+        const excelData = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+
+        let employees = [];
+        for (let i = 1; i < excelData.length; i++) {
+            const row = excelData[i];
+            employees.push(row);
+            const newEmp = {
+                FirstName: row[0],
+                LastName: row[1],
+                Email: row[2],
+                Password: row[3],
+                countryCode: row[4],
+                phone: row[5],
+                panNumber: row[6],
+                dateOfBirth: row[7],
+                gender: row[8],
+                code: row[9],
+                working: row[10],
+                dateOfJoining: row[11],
+                employeementType: row[12],
+                decription: row[13],
+                bloodGroup: row[14],
+                emergencyContacts: [{
+                    name: row[15].split("")[0],
+                    phone: row[15].split("")[1]
+                }]
+            }
+            try {
+                const addEmp = await Employee.create(newEmp);
+                const htmlContent = `
+                <!DOCTYPE html>
+                <html lang="en">
+                <head>
+                  <meta charset="UTF-8">
+                  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                  <title>NexsHR</title>
+                  <style>
+                    body { font-family: Arial, sans-serif; background-color: #f6f9fc; color: #333; }
+                    .container { max-width: 600px; margin: auto; padding: 20px; background-color: #fff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); }
+                    .header { text-align: center; padding: 20px; }
+                    .header img { max-width: 100px; }
+                    .content { margin: 20px 0; }
+                    .footer { text-align: center; font-size: 14px; margin-top: 20px; color: #777; }
+                    .button { display: inline-block; padding: 10px 20px; background-color: #28a745; color: #fff !important; text-decoration: none; border-radius: 5px; margin-top: 10px; }
+                  </style>
+                </head>
+                <body>
+                  <div class="container">
+                    <div class="header">
+                      <img src="https://imagedelivery.net/r89jzjNfZziPHJz5JXGOCw/1dd59d6a-7b64-49d7-ea24-1366e2f48300/public" alt="Logo" />
+                      <h1>Welcome to NexsHR</h1>
+                    </div>
+                    <div class="content">
+                      <p>Hey ${addEmp.FirstName} ${addEmp.LastName} 👋,</p>
+                      <p><b>Your credentials</b></p><br />
+                      <p><b>Email</b>: ${addEmp.Email}</p><br />
+                      <p><b>Password</b>: ${addEmp.Password}</p><br />
+                      <p>Your details has been register! Please confirm your email by clicking the button below.</p>
+                      <a href="${process.env.FRONTEND_URL}" class="button">Confirm Email</a>
+                    </div>
+                    <div class="footer">
+                      <p>Have questions? Need help? <a href="mailto:webnexs29@gmail.com">Contact our support team</a>.</p>
+                    </div>
+                  </div>
+                </body>
+                </html>`;
+
+                sendMail({
+                    from: process.env.FROM_MAIL,
+                    to: addEmp.Email,
+                    subject: "Welcome to NexsHR",
+                    html: htmlContent,
+                });
+            } catch (error) {
+                return res.status(500).send({error: error.message})
             }
         }
 
-        res.status(200).json({ status: true, message: "File processed successfully!", data: records });
+        fs.unlinkSync(filePath); // Delete file after processing
+
+        res.status(200).json({ status: true, message: "File processed successfully!", data: employees });
     } catch (error) {
         console.error(error);
         res.status(500).json({ status: false, error: error.message || "An error occurred during the bulk import process." });
     } finally {
         if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
     }
-});
+})
 
 
 module.exports = router

@@ -1,15 +1,16 @@
 const nodemailer = require("nodemailer");
+const postmark = require("postmark");
 
-let transporter = nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-        user: process.env.FROM_MAIL,
-        pass: process.env.MAILPASSWORD
-    }
-});
-
+const client = new postmark.ServerClient("5403b130-ff09-4e7f-bc85-999c75a4413b")
+// let transporter = nodemailer.createTransport({
+//     service: 'gmail',
+//     auth: {
+//         user: process.env.FROM_MAIL,
+//         pass: process.env.MAILPASSWORD
+//     }
+// });
 let sendMail = (mailOptions)=>{
-  transporter.sendMail(mailOptions, (error, info) => {
+  client.sendMail(mailOptions, (error, info) => {
     if (error) {
         return console.log(error);
     }else{

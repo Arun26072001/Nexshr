@@ -36,7 +36,8 @@ var employeeSchema = new mongoose.Schema({
   company: { type: mongoose.Schema.Types.ObjectId, ref: "Company" },
   description: { type: String },
   dateOfJoining: { type: String },
-  employmentType: { type: String }, // e.g., full-time, part-time, contract
+  employmentType: { type: String }, 
+  
   // salary: [{ type: mongoose.Schema.Types.ObjectId, ref: "Salary" }],
   benefits: [{ type: String }],
   managerId: { type: mongoose.Schema.Types.ObjectId, ref: "Employee" }, // Reference to another employee
