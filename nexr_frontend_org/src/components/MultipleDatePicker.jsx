@@ -75,7 +75,7 @@ function HolidayPicker({ changeHolidayUI, isAddHolidays }) {
                 console.log("Fetched Holidays:", res); // ✅ Debugging
 
                 setFetchedHolidays(
-                    res.map((item) => ({
+                    res.holidays.map((item) => ({
                         title: item.title || "Untitled Holiday", // ✅ Ensure title is not empty
                         start: new Date(item.date),
                         end: new Date(item.date),

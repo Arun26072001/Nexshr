@@ -1,4 +1,5 @@
-const allCountries = [
+{
+  "countries": [
     { "icon": "🇦🇫", "name": "Afghanistan", "abbr": "AF", "code": "93" },
     { "icon": "🇦🇽", "name": "Alland Islands", "abbr": "AX", "code": "358" },
     { "icon": "🇦🇱", "name": "Albania", "abbr": "AL", "code": "355" },
@@ -31,10 +32,10 @@ const allCountries = [
     { "icon": "🇧🇻", "name": "Bouvet Island", "abbr": "BV", "code": "47" },
     { "icon": "🇧🇷", "name": "Brazil", "abbr": "BR", "code": "55" },
     {
-        "icon": "🇮🇴",
-        "name": "British Indian Ocean Territory",
-        "abbr": "IO",
-        "code": "246"
+      "icon": "🇮🇴",
+      "name": "British Indian Ocean Territory",
+      "abbr": "IO",
+      "code": "246"
     },
     { "icon": "🇻🇬", "name": "British Virgin Islands", "abbr": "VG", "code": "1-284" },
     { "icon": "🇧🇳", "name": "Brunei Darussalam", "abbr": "BN", "code": "673" },
@@ -55,16 +56,16 @@ const allCountries = [
     { "icon": "🇨🇴", "name": "Colombia", "abbr": "CO", "code": "57" },
     { "icon": "🇰🇲", "name": "Comoros", "abbr": "KM", "code": "269" },
     {
-        "icon": "🇨🇩",
-        "name": "Congo, Democratic Republic of the",
-        "abbr": "CG",
-        "code": "243"
+      "icon": "🇨🇩",
+      "name": "Congo, Democratic Republic of the",
+      "abbr": "CG",
+      "code": "243"
     },
     {
-        "icon": "🇨🇬",
-        "name": "Congo, Republic of the",
-        "abbr": "CD",
-        "code": "242"
+      "icon": "🇨🇬",
+      "name": "Congo, Republic of the",
+      "abbr": "CD",
+      "code": "242"
     },
     { "icon": "🇨🇰", "name": "Cook Islands", "abbr": "CK", "code": "682" },
     { "icon": "🇨🇷", "name": "Costa Rica", "abbr": "CR", "code": "506" },
@@ -111,60 +112,60 @@ const allCountries = [
     { "icon": "🇬🇾", "name": "Guyana", "abbr": "GY", "code": "592" },
     { "icon": "🇭🇹", "name": "Haiti", "abbr": "HT", "code": "509" },
     {
-        "icon": "🇭🇲",
-        "name": "Heard Island and McDonald Islands",
-        "abbr": "HM",
-        "code": "672"
+      "icon": "🇭🇲",
+      "name": "Heard Island and McDonald Islands",
+      "abbr": "HM",
+      "code": "672"
     },
     {
-        "icon": "🇻🇦",
-        "name": "Holy See (Vatican City State)",
-        "abbr": "VA",
-        "code": "379"
+      "icon": "🇻🇦",
+      "name": "Holy See (Vatican City State)",
+      "abbr": "VA",
+      "code": "379"
     },
     { "icon": "🇭🇳", "name": "Honduras", "abbr": "HN", "code": "504" },
     { "icon": "🇭🇰", "name": "Hong Kong", "abbr": "HK", "code": "852" },
     { "icon": "🇭🇺", "name": "Hungary", "abbr": "HU", "code": "36" },
     { "icon": "🇮🇸", "name": "Iceland", "abbr": "IS", "code": "354" },
     {
-        "icon": "🇮🇳", "name": "India", "abbr": "IN", "code": "91", "states": [
-            "Andhra Pradesh",
-            "Arunachal Pradesh",
-            "Assam",
-            "Bihar",
-            "Chhattisgarh",
-            "Goa",
-            "Gujarat",
-            "Haryana",
-            "Himachal Pradesh",
-            "Jammu and Kashmir",
-            "Jharkhand",
-            "Karnataka",
-            "Kerala",
-            "Madhya Pradesh",
-            "Maharashtra",
-            "Manipur",
-            "Meghalaya",
-            "Mizoram",
-            "Nagaland",
-            "Odisha",
-            "Punjab",
-            "Rajasthan",
-            "Sikkim",
-            "Tamil Nadu",
-            "Telangana",
-            "Tripura",
-            "Uttarakhand",
-            "Uttar Pradesh",
-            "West Bengal",
-            "Andaman and Nicobar Islands",
-            "Chandigarh",
-            "Dadra and Nagar Haveli",
-            "Daman and Diu",
-            "Delhi",
-            "Lakshadweep",
-            "Puducherry"
-        ]
+      "icon": "🇮🇳", "name": "India", "abbr": "IN", "code": "91", "states": [
+        "Andhra Pradesh",
+        "Arunachal Pradesh",
+        "Assam",
+        "Bihar",
+        "Chhattisgarh",
+        "Goa",
+        "Gujarat",
+        "Haryana",
+        "Himachal Pradesh",
+        "Jammu and Kashmir",
+        "Jharkhand",
+        "Karnataka",
+        "Kerala",
+        "Madhya Pradesh",
+        "Maharashtra",
+        "Manipur",
+        "Meghalaya",
+        "Mizoram",
+        "Nagaland",
+        "Odisha",
+        "Punjab",
+        "Rajasthan",
+        "Sikkim",
+        "Tamil Nadu",
+        "Telangana",
+        "Tripura",
+        "Uttarakhand",
+        "Uttar Pradesh",
+        "West Bengal",
+        "Andaman and Nicobar Islands",
+        "Chandigarh",
+        "Dadra and Nagar Haveli",
+        "Daman and Diu",
+        "Delhi",
+        "Lakshadweep",
+        "Puducherry"
+      ]
     },
     { "icon": "🇮🇩", "name": "Indonesia", "abbr": "ID", "code": "62" },
     { "icon": "🇮🇷", "name": "Iran, Islamic Republic of", "abbr": "IR", "code": "98" },
@@ -181,20 +182,20 @@ const allCountries = [
     { "icon": "🇰🇪", "name": "Kenya", "abbr": "KE", "code": "254" },
     { "icon": "🇰🇮", "name": "Kiribati", "abbr": "KI", "code": "686" },
     {
-        "icon": "🇰🇵",
-        "name": "Korea, Democratic People's Republic of",
-        "abbr": "KP",
-        "code": "850"
+      "icon": "🇰🇵",
+      "name": "Korea, Democratic People's Republic of",
+      "abbr": "KP",
+      "code": "850"
     },
     { "icon": "🇰🇷", "name": "Korea, Republic of", "abbr": "KR", "code": "82" },
     { "icon": "🇽🇰", "name": "Kosovo", "abbr": "XK", "code": "383" },
     { "icon": "🇰🇼", "name": "Kuwait", "abbr": "KW", "code": "965" },
     { "icon": "🇰🇬", "name": "Kyrgyzstan", "abbr": "KG", "code": "996" },
     {
-        "icon": "🇱🇦",
-        "name": "Lao People's Democratic Republic",
-        "abbr": "LA",
-        "code": "856"
+      "icon": "🇱🇦",
+      "name": "Lao People's Democratic Republic",
+      "abbr": "LA",
+      "code": "856"
     },
     { "icon": "🇱🇻", "name": "Latvia", "abbr": "LV", "code": "371" },
     { "icon": "🇱🇧", "name": "Lebanon", "abbr": "LB", "code": "961" },
@@ -206,10 +207,10 @@ const allCountries = [
     { "icon": "🇱🇺", "name": "Luxembourg", "abbr": "LU", "code": "352" },
     { "icon": "🇲🇴", "name": "Macao", "abbr": "MO", "code": "853" },
     {
-        "icon": "🇲🇰",
-        "name": "Macedonia, the Former Yugoslav Republic of",
-        "abbr": "MK",
-        "code": "389"
+      "icon": "🇲🇰",
+      "name": "Macedonia, the Former Yugoslav Republic of",
+      "abbr": "MK",
+      "code": "389"
     },
     { "icon": "🇲🇬", "name": "Madagascar", "abbr": "MG", "code": "261" },
     { "icon": "🇲🇼", "name": "Malawi", "abbr": "MW", "code": "265" },
@@ -224,10 +225,10 @@ const allCountries = [
     { "icon": "🇾🇹", "name": "Mayotte", "abbr": "YT", "code": "262" },
     { "icon": "🇲🇽", "name": "Mexico", "abbr": "MX", "code": "52" },
     {
-        "icon": "🇫🇲",
-        "name": "Micronesia, Federated States of",
-        "abbr": "FM",
-        "code": "691"
+      "icon": "🇫🇲",
+      "name": "Micronesia, Federated States of",
+      "abbr": "FM",
+      "code": "691"
     },
     { "icon": "🇲🇩", "name": "Moldova, Republic of", "abbr": "MD", "code": "373" },
     { "icon": "🇲🇨", "name": "Monaco", "abbr": "MC", "code": "377" },
@@ -275,10 +276,10 @@ const allCountries = [
     { "icon": "🇲🇫", "name": "Saint Martin (French part)", "abbr": "MF", "code": "590" },
     { "icon": "🇵🇲", "name": "Saint Pierre and Miquelon", "abbr": "PM", "code": "508" },
     {
-        "icon": "🇻🇨",
-        "name": "Saint Vincent and the Grenadines",
-        "abbr": "VC",
-        "code": "1-784"
+      "icon": "🇻🇨",
+      "name": "Saint Vincent and the Grenadines",
+      "abbr": "VC",
+      "code": "1-784"
     },
     { "icon": "🇼🇸", "name": "Samoa", "abbr": "WS", "code": "685" },
     { "icon": "🇸🇲", "name": "San Marino", "abbr": "SM", "code": "378" },
@@ -296,10 +297,10 @@ const allCountries = [
     { "icon": "🇸🇴", "name": "Somalia", "abbr": "SO", "code": "252" },
     { "icon": "🇿🇦", "name": "South Africa", "abbr": "ZA", "code": "27" },
     {
-        "icon": "🇬🇸",
-        "name": "South Georgia and the South Sandwich Islands",
-        "abbr": "GS",
-        "code": "500"
+      "icon": "🇬🇸",
+      "name": "South Georgia and the South Sandwich Islands",
+      "abbr": "GS",
+      "code": "500"
     },
     { "icon": "🇸🇸", "name": "South Sudan", "abbr": "SS", "code": "211" },
     { "icon": "🇪🇸", "name": "Spain", "abbr": "ES", "code": "34" },
@@ -341,6 +342,5 @@ const allCountries = [
     { "icon": "🇾🇪", "name": "Yemen", "abbr": "YE", "code": "967" },
     { "icon": "🇿🇲", "name": "Zambia", "abbr": "ZM", "code": "260" },
     { "icon": "🇿🇼", "name": "Zimbabwe", "abbr": "ZW", "code": "263" }
-]
-
-module.exports = {allCountries}
+  ]
+}
