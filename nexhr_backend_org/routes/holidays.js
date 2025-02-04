@@ -37,7 +37,7 @@ router.get("/:year", verifyAdminHREmployee, async (req, res) => {
         if (!response) {
             return res.status(404).send({ error: `Please add ${req.params.year} year of holidays!` })
         } else {
-            return res.send(response.holidays);
+            return res.send(response);
         }
     } catch (error) {
         return res.status(500).send({ error: error.message })
