@@ -194,7 +194,7 @@ const LeaveRequestForm = () => {
     }
     gettingHoliday();
   }, [])
-
+  console.log(formik.values);
 
   return typeOfLeave ? (
     <form onSubmit={formik.handleSubmit}>
@@ -230,13 +230,14 @@ const LeaveRequestForm = () => {
           <div className="row my-3">
             <div className="col-12 col-lg-6 col-md-6">
               <span className="inputLabel">Start Date</span>
-              <DatePicker
+              <DatePicker format="MM/dd/yyyy hh:mm aa"
+                showMeridiem
                 className={`inputField ${formik.touched.fromDate && formik.errors.fromDate ? "error" : ""} w-100`}
                 selected={formik.values.fromDate}
                 onChange={(date) => formik.setFieldValue("fromDate", date?.toLocaleDateString("en-CA"))}
                 minDate={new Date()}
-                excludeDates={excludedDates}
-              />
+                excludeDates={excludedDates} />
+
               {formik.touched.fromDate && formik.errors.fromDate ? (
                 <div className="text-center text-danger">{formik.errors.fromDate}</div>
               ) : null}
@@ -244,6 +245,8 @@ const LeaveRequestForm = () => {
             <div className="col-12 col-lg-6 col-md-6">
               <span className="inputLabel">End Date</span>
               <DatePicker
+                format="MM/dd/yyyy hh:mm aa"
+                showMeridiem
                 className={`inputField ${formik.touched.toDate && formik.errors.toDate ? "error" : ""}`}
                 selected={formik.values.toDate}
                 onChange={(date) => formik.setFieldValue("toDate", date?.toLocaleDateString("en-CA"))}

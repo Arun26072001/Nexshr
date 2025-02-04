@@ -206,6 +206,7 @@ leaveApp.put("/reject-leave", async (req, res) => {
   }
 });
 
+// get employee of all leave application from annualLeaveYearStart date
 leaveApp.get("/emp/:empId", verifyAdminHREmployee, async (req, res) => {
   try {
     const { empId } = req.params;
@@ -462,7 +463,7 @@ leaveApp.get("/all/team/:id", verifyEmployee, async (req, res) => {
   }
 });
 
-// get all leave requests from all employees
+// get leave application by id
 leaveApp.get("/:id", verifyHREmployee, async (req, res) => {
   try {
     const leaveReq = await LeaveApplication.findById(req.params.id);
@@ -561,6 +562,7 @@ leaveApp.get("/date-range/hr", verifyHR, async (req, res) => {
   }
 });
 
+//get all employees of leave application in month
 leaveApp.get("/date-range/admin", verifyAdmin, async (req, res) => {
 
   let startOfMonth;
@@ -704,6 +706,21 @@ leaveApp.get("/", verifyAdminHR, async (req, res) => {
     res.status(500).send({ message: "Internal Server Error", details: err.message })
   }
 });
+
+leaveApp.get("/today/:empId", async (req, res) => {
+  try {
+    const today = new Date();
+    const startDate = new Date(today.setHours(0, 0, 0, 0));
+    let endDate = new Date(today.setHours(23, 59, 59, 999)); 
+    const leaveData = await Employee.findById({ _id: req.params.empId }, "leaveApplication")
+      .populate({
+        path: "leaveApplication", match:
+          { $gte: startDate, $lte: endDate }
+      })
+  } catch (error) {
+
+  }
+})
 
 leaveApp.post("/:empId", verifyAdminHREmployee, upload.single("prescription"), async (req, res) => {
   try {
