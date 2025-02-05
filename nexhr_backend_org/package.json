@@ -4,7 +4,7 @@
   "description": "",
   "main": "app.js",
   "scripts": {
-    "start": "PORT=3336 nodemon app.js || set PORT=3336 && nodemon app.js",
+    "start": "nodemon app.js",
     "start-pc": "set PORT=3336 && node app.js",
     "build": "set PORT=3336 && react-scripts build",
     "test": "set PORT=3336 && react-scripts test",
