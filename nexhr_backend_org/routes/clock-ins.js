@@ -544,10 +544,10 @@ router.get("/sendmail/:id/:clockinId", verifyAdminHREmployee, async (req, res) =
                  `;
 
         sendMail({
-            from: process.env.FROM_MAIL,
-            to: emp.Email,
-            subject: "You have completed 8 of Today working hours",
-            html: htmlContent,
+            From: process.env.FROM_MAIL,
+            To: emp.Email,
+            Subject: "You have completed 8 of Today working hours",
+            HtmlContent: htmlContent,
         });
         return res.send({ message: "We have send mail for you have completed 8 working hours." })
     } catch (error) {

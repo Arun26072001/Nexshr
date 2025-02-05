@@ -24,7 +24,7 @@ const salary = require("./routes/salary");
 const education = require("./routes/education");
 const { leaveApp } = require("./routes/leave-app");
 const state = require("./routes/state");
-const {readData} = require("./routes/country");
+const country = require("./routes/country");
 const project = require("./routes/project");
 const task = require("./routes/task");
 const personalInfo = require("./routes/personal-info");
@@ -50,9 +50,6 @@ const { imgUpload } = require('./routes/imgUpload');
 const holidays = require("./routes/holidays");
 const report = require("./routes/reports");
 const fileData = require("./routes/file-data");
-
-const countries = readData();
-console.log(countries);
 
 // MongoDB Connection
 const mongoURI = process.env.DATABASEURL;
@@ -116,7 +113,7 @@ app.use("/api/role", role);
 app.use("/api/team", team);
 app.use("/api/city", city);
 app.use("/api/state", state);
-// app.use("/api/country", country);
+app.use("/api/country", country);
 app.use("/api/employee", employee);
 app.use("/api/family-info", familyInfo);
 app.use("/api/personal-info", personalInfo);

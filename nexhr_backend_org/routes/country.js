@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const fs = require('fs');
 const path = require('path');
-const { verifyAdminHREmployee } = require('../auth/authMiddleware');
+const { verifyAdminHREmployee, verifyAdmin } = require('../auth/authMiddleware');
 const configPath = path.join(__dirname, '../countriesData/countryCode.json');
 
 // Read JSON file
@@ -11,10 +11,10 @@ const readData = () => {
     return JSON.parse(rawData);
 };
 
-// // Write to JSON file
-// const writeData = (data) => {
-//     fs.writeFileSync(configPath, JSON.stringify(data, null, 2));
-// };
+// Write to JSON file
+const writeData = (data) => {
+    fs.writeFileSync(configPath, JSON.stringify(data, null, 2));
+};
 
 // // Get all users
 // exports.getAllUsers = (req, res) => {
@@ -38,14 +38,43 @@ const readData = () => {
 //     }
 // };
 
-// Create a Country or state
+//get all country data
 router.get("/", verifyAdminHREmployee, async (req, res) => {
     try {
+        const rawData = readData();
+        return res.send(rawData);
+    } catch (error) {
+        res.status(500).send({ error: error.message })
+    }
+})
+
+// get state data
+router.get("/:name", verifyAdminHREmployee, async (req, res) => {
+    try {
+        const rawData = readData();
+        const states = rawData.filter((item) => item.name === item[req.params.name]).states;
+        if (states.length > 0) {
+            return res.send(states)
+        } else {
+            return res.status(404).send({ error: `States data not found in ${req.params.name}` })
+        }
+    } catch (error) {
+        return res.status(500).send({ error: error.message })
+    }
+})
+
+// Create a Country or state
+router.post("/", verifyAdmin, async (req, res) => {
+    try {
         const data = readData();
-        const isExists = 
-        data.countries.push(req.body);
-        writeData(data);
-        res.status(201).json(newUser);
+        const isExists = data.some((item) => item.code === req.body.code);
+        if (isExists) {
+            return res.status(400).send({ error: "Country already Exists" })
+        } else {
+            data.countries.push(req.body);
+            writeData(data);
+            res.status(201).json(newUser);
+        }
     } catch (error) {
         res.status(500).json({ message: "Error creating user", error });
     }
@@ -65,6 +94,7 @@ router.get("/", verifyAdminHREmployee, async (req, res) => {
 //         res.status(500).json({ message: "Error updating user", error });
 //     }
 // };
+
 
 // // Delete user
 // exports.deleteUser = (req, res) => {
@@ -213,4 +243,4 @@ router.get("/", verifyAdminHREmployee, async (req, res) => {
 //   });
 // });
 
-module.exports = {readData};
+module.exports = router;

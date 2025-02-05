@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { Employee } = require('../models/EmpModel');
-const { verifyHR, verifyAdminHREmployee, verifyAdminHR } = require('../auth/authMiddleware');
+const { verifyHR, verifyAdminHREmployee, verifyAdminHR, verifyAdmin } = require('../auth/authMiddleware');
 const { getDayDifference } = require('./leave-app');
 // const { PaySlipInfo } = require('../models/PaySlipInfoModel');
 // const nodemailer = require("nodemailer");
@@ -164,7 +164,7 @@ router.get('/:id', verifyAdminHREmployee, async (req, res) => {
       .populate("workingTimePattern")
       .populate("department")
       .populate("position")
-      .populate("company")
+      // .populate("company")
       .exec();
 
     if (!emp) {
@@ -242,8 +242,8 @@ router.post("/", verifyAdminHR, async (req, res) => {
           .header { text-align: center; padding: 20px; }
           .header img { max-width: 100px; }
           .content { margin: 20px 0; }
-          .button { display: inline-block; padding: 10px 20px; background-color: #28a745; color: #fff !important; text-decoration: none; border-radius: 5px; margin-top: 10px; }
           .footer { text-align: center; font-size: 14px; margin-top: 20px; color: #777; }
+          .button { display: inline-block; padding: 10px 20px; background-color: #28a745; color: #fff !important; text-decoration: none; border-radius: 5px; margin-top: 10px; }
         </style>
       </head>
       <body>
@@ -268,10 +268,10 @@ router.post("/", verifyAdminHR, async (req, res) => {
       </html>`;
 
     sendMail({
-      from: process.env.FROM_MAIL,
-      to: Email,
-      subject: "Welcome to NexsHR",
-      html: htmlContent,
+      From: process.env.FROM_MAIL,
+      To: Email,
+      Subject: "Welcome to NexsHR",
+      HtmlContent: htmlContent,
     });
 
     res.status(201).json({ message: "Employee details saved successfully!", employee });

@@ -19,13 +19,14 @@ const Dashboard = () => {
 
     const gettingEmpdata = async () => {
         try {
+            let workingHour = 0;
             if (!empId) return; // Exit early if empId is not provided
 
             setIsLoading(true);
 
             // Fetch employee data
             const data = await fetchEmployeeData(empId);
-            
+
             if (!data) {
                 toast.error("Error in fetching workingTimePattern data!");
                 setLeaveData({});
@@ -33,7 +34,9 @@ const Dashboard = () => {
             }
 
             // Calculate working hours for the day
-            const workingHour = await getTotalWorkingHourPerDay(data.workingTimePattern.StartingTime, data.workingTimePattern.FinishingTime);
+            if (data?.workingTimePattern?.StartingTime && data?.workingTimePattern?.FinishingTime) {
+                workingHour = await getTotalWorkingHourPerDay(data?.workingTimePattern?.StartingTime, data?.workingTimePattern?.FinishingTime);
+            }
 
             // Fetch clock-ins data
             const getEmpMonthPunchIns = await gettingClockinsData(empId);
@@ -51,8 +54,6 @@ const Dashboard = () => {
 
             // Fetch daily clock-in data
             const clockinsData = await getDataAPI(empId);
-            console.log(clockinsData);
-
             setDailyLoginData(clockinsData);
 
             // Set leave data with working hours

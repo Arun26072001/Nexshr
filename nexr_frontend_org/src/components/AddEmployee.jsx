@@ -228,7 +228,7 @@ const AddEmployee = () => {
         managerId: empData?.managerId || "", // Safely access first element or set to empty string
         countryCode: empData.countryCode || "",
         phone: empData?.phone || "",
-        company: empData?.company || "", // Safely access first element or set to empty string
+        company: empData?.company[0] || empData?.company || "", // Safely access first element or set to empty string
         dateOfBirth: empData?.dateOfBirth || "",
         gender: empData?.gender || "",
         address: {

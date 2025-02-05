@@ -5,7 +5,6 @@ import { useFormik } from "formik";
 import * as Yup from "yup";
 import axios from "axios";
 import { toast } from "react-toastify";
-import Loading from "../Loader";
 import { fetchLeaveRequests, getHoliday } from "../ReuseableAPI";
 import "react-datepicker/dist/react-datepicker.css";
 import DatePicker from "react-datepicker";
@@ -19,7 +18,7 @@ const LeaveRequestForm = () => {
   const [error, setError] = useState("");
   const [isShowPeriodOfLeave, setIsShowPeriodOfLeave] = useState(false);
   const navigate = useNavigate();
-  const [typeOfLeave, setTypOfLeave] = useState(null);
+  const [typeOfLeave, setTypOfLeave] = useState({});
   const [excludedDates, setExcludeDates] = useState([]);
   const [prescriptionFile, setPrescriptionFile] = useState("");
   const [content, setContent] = useState("");
@@ -144,8 +143,7 @@ const LeaveRequestForm = () => {
         }
 
         // Set types of leave
-        setTypOfLeave(leaveReqs?.employee?.typesOfLeaveCount);
-        // console.log(leave);
+        setTypOfLeave(leaveReqs?.employee?.typesOfLeaveCount || {});
 
         // Filter colleagues 
         // const emps = leaveReqs.colleagues.filter((emp) => emp._id !== empId);
@@ -194,145 +192,146 @@ const LeaveRequestForm = () => {
     }
     gettingHoliday();
   }, [])
+  console.log(formik.values);
 
+  return <form onSubmit={formik.handleSubmit}>
+    <div className="leaveFormContainer">
+      <div className="leaveFormParent" style={{ width: "600px" }}>
+        <div className="heading">
+          <h5 className="my-3">
+            <LibraryBooksIcon /> Leave Request Form
+          </h5>
+          <p className="text-dark">Fill the required fields below to apply for annual leave</p>
+        </div>
 
-  return typeOfLeave ? (
-    <form onSubmit={formik.handleSubmit}>
-      <div className="leaveFormContainer">
-        <div className="leaveFormParent" style={{ width: "600px" }}>
-          <div className="heading">
-            <h5 className="my-3">
-              <LibraryBooksIcon /> Leave Request Form
-            </h5>
-            <p className="text-dark">Fill the required fields below to apply for annual leave</p>
-          </div>
+        {/* Leave Type */}
+        <div className="my-3">
+          <span className="inputLabel">Leave Type</span>
+          <select
+            name="leaveType"
+            className={`selectInput ${formik.touched.leaveType && formik.errors.leaveType ? "error" : ""}`}
+            onChange={(e) => handleLeaveType(e)}
+            value={formik.values.leaveType}
+          >
+            <option>Select Leave type</option>
+            {Object.entries(typeOfLeave)?.length > 0 &&
+              Object.entries(typeOfLeave)?.map((data) => {
+                return <option value={`${data[0]}`}>{data[0]?.charAt(0)?.toUpperCase() + data[0]?.slice(1)} Leave</option>;
+              })
+            }
+          </select>
+          {formik.touched.leaveType && formik.errors.leaveType ? (
+            <div className="text-center text-danger">{formik.errors.leaveType}</div>
+          ) : null}
+        </div>
 
-          {/* Leave Type */}
-          <div className="my-3">
-            <span className="inputLabel">Leave Type</span>
-            <select
-              name="leaveType"
-              className={`selectInput ${formik.touched.leaveType && formik.errors.leaveType ? "error" : ""}`}
-              onChange={(e) => handleLeaveType(e)}
-              value={formik.values.leaveType}
-            >
-              <option>Select Leave type</option>
-              {Object.entries(typeOfLeave).map((data) => {
-                return <option value={`${data[0]}`}>{data[0].charAt(0).toUpperCase() + data[0].slice(1)} Leave</option>;
-              })}
-            </select>
-            {formik.touched.leaveType && formik.errors.leaveType ? (
-              <div className="text-center text-danger">{formik.errors.leaveType}</div>
+        {/* Date Picker */}
+        <div className="row my-3">
+          <div className="col-12 col-lg-6 col-md-6">
+            <span className="inputLabel">Start Date</span>
+            <DatePicker showTimeSelect
+              dateFormat="Pp"
+              className={`inputField ${formik.touched.fromDate && formik.errors.fromDate ? "error" : ""} w-100`}
+              selected={formik.values.fromDate}
+              onChange={(date) => formik.setFieldValue("fromDate", date)}
+              minDate={new Date()}
+              excludeDates={excludedDates} />
+
+            {formik.touched.fromDate && formik.errors.fromDate ? (
+              <div className="text-center text-danger">{formik.errors.fromDate}</div>
             ) : null}
           </div>
-
-          {/* Date Picker */}
-          <div className="row my-3">
-            <div className="col-12 col-lg-6 col-md-6">
-              <span className="inputLabel">Start Date</span>
-              <DatePicker
-                className={`inputField ${formik.touched.fromDate && formik.errors.fromDate ? "error" : ""} w-100`}
-                selected={formik.values.fromDate}
-                onChange={(date) => formik.setFieldValue("fromDate", date?.toLocaleDateString("en-CA"))}
-                minDate={new Date()}
-                excludeDates={excludedDates}
-              />
-              {formik.touched.fromDate && formik.errors.fromDate ? (
-                <div className="text-center text-danger">{formik.errors.fromDate}</div>
-              ) : null}
-            </div>
-            <div className="col-12 col-lg-6 col-md-6">
-              <span className="inputLabel">End Date</span>
-              <DatePicker
-                className={`inputField ${formik.touched.toDate && formik.errors.toDate ? "error" : ""}`}
-                selected={formik.values.toDate}
-                onChange={(date) => formik.setFieldValue("toDate", date?.toLocaleDateString("en-CA"))}
-                minDate={new Date()}
-                excludeDates={excludedDates}
-              />
-              {formik.errors.toDate && formik.touched.toDate ? (
-                <div className="text-center text-danger">{formik.errors.toDate}</div>
-              ) : error && <div className="text-center text-danger">{error}</div>}
-            </div>
-          </div>
-
-          {/* Period of Leave */}
-          {isShowPeriodOfLeave && (
-            <div className="my-3">
-              <span className="inputLabel">Period Of Leave</span>
-              <select
-                name="periodOfLeave"
-                className="selectInput"
-                onChange={formik.handleChange}
-                value={formik.values.periodOfLeave}
-              >
-                <option>Select Leave Period</option>
-                <option value="full day">Full Day</option>
-                <option value="half day">Half Day</option>
-              </select>
-            </div>
-          )}
-
-          {/* Reason for Leave */}
-          <div className="my-3">
-            <span className="inputLabel">Reason for Leave</span>
-            <TextEditor handleChange={handleChange} content={content} />
-
-            {formik.touched.reasonForLeave && formik.errors.reasonForLeave ? (
-              <div className="text-center text-danger">{formik.errors.reasonForLeave}</div>
-            ) : null}
-          </div>
-
-          {/* Attach file */}
-          <div className="my-3">
-            <span className="inputLabel">Attach handover document (pdf, jpg, docx or any other format)</span>
-            <input
-              type="file"
-              name="prescription"
-              className="fileInput"
-              onChange={getFileData} // Set the actual file, not just the name
+          <div className="col-12 col-lg-6 col-md-6">
+            <span className="inputLabel">End Date</span>
+            <DatePicker
+              showTimeSelect
+              dateFormat="Pp"
+              className={`inputField ${formik.touched.toDate && formik.errors.toDate ? "error" : ""}`}
+              selected={formik.values.toDate}
+              onChange={(date) => formik.setFieldValue("toDate", date)}
+              minDate={new Date()}
+              excludeDates={excludedDates}
             />
+            {formik.errors.toDate && formik.touched.toDate ? (
+              <div className="text-center text-danger">{formik.errors.toDate}</div>
+            ) : error && <div className="text-center text-danger">{error}</div>}
           </div>
+        </div>
 
-          {/* Select Relief Officer */}
+        {/* Period of Leave */}
+        {isShowPeriodOfLeave && (
           <div className="my-3">
-            <span className="inputLabel">Choose Relief Officer</span>
+            <span className="inputLabel">Period Of Leave</span>
             <select
-              name="coverBy"
+              name="periodOfLeave"
               className="selectInput"
               onChange={formik.handleChange}
-              value={formik.values.coverBy}
+              value={formik.values.periodOfLeave}
             >
-              <option>Select a Relief Officer</option>
-              {collegues?.map((emp) => (
-                <option value={emp._id}>{emp.FirstName}</option>
-              ))}
+              <option>Select Leave Period</option>
+              <option value="full day">Full Day</option>
+              <option value="half day">Half Day</option>
             </select>
           </div>
+        )}
 
-          {/* Action buttons */}
-          <div className="row gap-2 d-flex align-items-center justify-content-center my-4">
-            <div className="col-12 col-lg-5 col-md-5">
-              <button
-                type="button"
-                className="btn btn-outline-dark w-100"
-                onClick={() => navigate(-1)}
-              >
-                Cancel
-              </button>
-            </div>
-            <div className="col-12 col-lg-5 my-2 col-md-5">
-              <button type="submit" className="btn btn-dark w-100">
-                Submit
-              </button>
-            </div>
+        {/* Reason for Leave */}
+        <div className="my-3">
+          <span className="inputLabel">Reason for Leave</span>
+          <TextEditor handleChange={handleChange} content={content} />
+
+          {formik.touched.reasonForLeave && formik.errors.reasonForLeave ? (
+            <div className="text-center text-danger">{formik.errors.reasonForLeave}</div>
+          ) : null}
+        </div>
+
+        {/* Attach file */}
+        <div className="my-3">
+          <span className="inputLabel">Attach handover document (pdf, jpg, docx or any other format)</span>
+          <input
+            type="file"
+            name="prescription"
+            className="fileInput"
+            onChange={getFileData} // Set the actual file, not just the name
+          />
+        </div>
+
+        {/* Select Relief Officer */}
+        <div className="my-3">
+          <span className="inputLabel">Choose Relief Officer</span>
+          <select
+            name="coverBy"
+            className="selectInput"
+            onChange={formik.handleChange}
+            value={formik.values.coverBy}
+          >
+            <option>Select a Relief Officer</option>
+            {collegues?.map((emp) => (
+              <option value={emp._id}>{emp.FirstName}</option>
+            ))}
+          </select>
+        </div>
+
+        {/* Action buttons */}
+        <div className="row gap-2 d-flex align-items-center justify-content-center my-4">
+          <div className="col-12 col-lg-5 col-md-5">
+            <button
+              type="button"
+              className="btn btn-outline-dark w-100"
+              onClick={() => navigate(-1)}
+            >
+              Cancel
+            </button>
+          </div>
+          <div className="col-12 col-lg-5 my-2 col-md-5">
+            <button type="submit" className="btn btn-dark w-100">
+              Submit
+            </button>
           </div>
         </div>
       </div>
-    </form>
-  ) : (
-    <Loading />
-  );
+    </div>
+  </form>
 };
 
 export default LeaveRequestForm;

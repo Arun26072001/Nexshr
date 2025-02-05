@@ -9,7 +9,7 @@ var leaveApplicationSchema = new mongoose.Schema({
   reasonForLeave: { type: String, default: "fever" },
   prescription: { type: String },
   employee: { type: mongoose.Schema.Types.ObjectId, ref: 'Employee' },
-  coverBy: { type: mongoose.Schema.Types.ObjectId, ref: "Employee", default: null },
+  coverBy: { type: mongoose.Schema.Types.ObjectId, ref: "Employee" },
   status: { type: String, default: "pending" },
   TeamLead: { type: String, default: "pending" },
   TeamHead: { type: String, default: "pending" },
@@ -31,10 +31,13 @@ const LeaveApplicationValidation = Joi.object({
   toDate: Joi.date().required().label('toDate'),
   reasonForLeave: Joi.string().required().label('reasonForLeave'),
   periodOfLeave: Joi.string().label('periodOfLeave'),
-  prescription: Joi.string().label('prescription').allow(""),
+  prescription: Joi.string().label('prescription').allow("", null),
   coverBy: Joi.string().label('coverBy').allow("", null),
   status: Joi.string().label('status'),
-  appliedOn: Joi.date().label('appliedOn')
+  appliedOn: Joi.date().label('appliedOn'),
+  TeamLead: Joi.string().allow("", null),
+  TeamHead: Joi.string().allow("", null),
+  Hr: Joi.string().allow("", null)
 });
 
 const LeaveApplicationHRValidation = Joi.object().keys({
