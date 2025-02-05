@@ -88,7 +88,7 @@ leaveApp.get("/make-know", async (req, res) => {
           From: process.env.FROM_MAIL,
           To: mailList,
           Subject: "Leave Application Remember",
-          HtmlContent: htmlContent,
+          HtmlBody: htmlContent,
         })
         console.log(`Email sent To: ${mailList.join(", ")}`);
       } catch (mailError) {
@@ -195,7 +195,7 @@ leaveApp.put("/reject-leave", async (req, res) => {
           From: process.env.FROM_MAIL,
           To: employeeDetails.Email,
           Subject: "Leave Application Rejected",
-          HtmlContent: htmlContent,
+          HtmlBody: htmlContent,
         });
 
       })
@@ -769,7 +769,7 @@ leaveApp.post("/:empId", verifyAdminHREmployee, upload.single("prescription"), a
     }
 
     // Handle permission leave restrictions
-    if (leaveTypeLower.includes("Permission")) {
+    if (leaveTypeLower.includes("permission")) {
       const now = new Date();
       const startDate = new Date(now.getFullYear(), now.getMonth(), 1);
       const endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0);
@@ -777,7 +777,7 @@ leaveApp.post("/:empId", verifyAdminHREmployee, upload.single("prescription"), a
       const permissions = await Employee.findById(empId, "_id")
         .populate({
           path: "leaveApplication",
-          match: { leaveType: "permission", fromDate: { $gte: startDate, $lte: endDate } },
+          match: { leaveType: "Permission", fromDate: { $gte: startDate, $lte: endDate } },
         });
 
       const permissionTime = (new Date(toDate) - new Date(fromDate)) / 60000;

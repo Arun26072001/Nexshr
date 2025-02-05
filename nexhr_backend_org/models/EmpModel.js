@@ -16,6 +16,7 @@ var employeeSchema = new mongoose.Schema({
   dateOfBirth: { type: String },
   clockIns: [{ type: mongoose.Schema.Types.ObjectId, ref: "clockIns" }],
   gender: { type: String },
+  monthlyPermissions: {type: Number, default: 2},
   code: { type: String },
   isLogin: { type: Boolean, default: false },
   serialNo: { type: String },
