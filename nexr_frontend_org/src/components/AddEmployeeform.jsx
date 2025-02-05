@@ -87,7 +87,7 @@ const AddEmployeeForm = ({ details, handleScroll, handlePersonal, handleFinancia
         countryCode: Yup.string().required("manager is required"),
         phone: Yup.string().min(10, "Phone number must be 10 degits").max(10, "Phone number must be 10 degits").required("Phone is Required"), // can add phone validation if needed
         dateOfBirth: Yup.string().required("Date of Birth is required"),
-        gender: Yup.string().oneOf(['male', 'female'], 'invalid gender').required('Gender is required'),
+        gender: Yup.string().oneOf(['Male', 'Female'], 'invalid gender').required('Gender is required'),
         address: Yup.object().shape({
             city: Yup.string().optional(),
             state: Yup.string().optional(),
@@ -176,9 +176,6 @@ const AddEmployeeForm = ({ details, handleScroll, handlePersonal, handleFinancia
             handleFinancial()
         }
     }
-
-    console.log(formik.values);
-
 
     useEffect(() => {
         // debugger;
@@ -391,8 +388,8 @@ const AddEmployeeForm = ({ details, handleScroll, handlePersonal, handleFinancia
                                         onChange={formik.handleChange}
                                         value={formik.values.gender}>
                                         <option >Select gender</option>
-                                        <option value="male">Male</option>
-                                        <option value="female">Female</option>
+                                        <option value="Male">Male</option>
+                                        <option value="Female">Female</option>
                                     </select>
                                     {formik.touched.gender && formik.errors.gender ? (
                                         <div className="text-center text-danger">{formik.errors.gender}</div>

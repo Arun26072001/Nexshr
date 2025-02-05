@@ -39,11 +39,11 @@ const EditEmployeeform = ({ details, empData, handleScroll, handlePersonal, hand
         Email: Yup.string().email('Invalid email format').required('Email is required'),
         Password: Yup.string().min(6, 'Password must be at least 6 characters').required('Password is required'),
         company: Yup.string().notOneOf(["Select Company"]).required("company is required"),
-        teamLead: Yup.string().required("teamLead is required"), // assuming it's an ObjectId or string
-        managerId: Yup.string().required("manager is required"),
+        teamLead: Yup.string().optional(), // assuming it's an ObjectId or string
+        managerId: Yup.string().optional(),
         phone: Yup.string().min(10, "Phone number must be 10 degits").max(10, "Phone number must be 10 degits").required("Phone is Required"), // can add phone validation if needed
         dateOfBirth: Yup.date().optional().nullable(),
-        gender: Yup.string().oneOf(['male', 'female'], 'invalid gender').required('Gender is required'),
+        gender: Yup.string().oneOf(['Male', 'Female'], 'invalid gender').required('Gender is required'),
         address: Yup.object().shape({
             city: Yup.string().optional(),
             state: Yup.string().optional(),
@@ -255,6 +255,8 @@ const EditEmployeeform = ({ details, empData, handleScroll, handlePersonal, hand
             formik.setFieldValue(name, countryFullData?.code || "");
         }
     }
+    console.log(formik.values);
+
 
     return (
         isLoading ? <Loading /> :
@@ -309,8 +311,8 @@ const EditEmployeeform = ({ details, empData, handleScroll, handlePersonal, hand
                                             onChange={formik.handleChange}
                                             value={formik.values.gender}>
                                             <option >Select gender</option>
-                                            <option value="male">Male</option>
-                                            <option value="female">Female</option>
+                                            <option value="Male">Male</option>
+                                            <option value="Female">Female</option>
                                         </select>
                                         {formik.touched.gender && formik.errors.gender ? (
                                             <div className="text-center text-danger">{formik.errors.gender}</div>
@@ -460,7 +462,7 @@ const EditEmployeeform = ({ details, empData, handleScroll, handlePersonal, hand
                                             className={`inputField ${formik.touched.phone && formik.errors.phone ? "error" : ""}`}
                                             name="phone"
                                             onChange={formik.handleChange}
-                                            value={formik.values.phone} />
+                                            value={Number(formik.values.phone)} />
                                         {formik.touched.phone && formik.errors.phone ? (
                                             <div className="text-center text-danger">{formik.errors.phone}</div>
                                         ) : null}
@@ -879,7 +881,12 @@ const EditEmployeeform = ({ details, empData, handleScroll, handlePersonal, hand
                                 </button>
                             </div>
                             <div className="w-50">
-                                <button type="submit" className="button" style={{ padding: "12px" }} onClick={navToError}>
+                                <button type="submit"
+                                    className="button"
+                                    style={{ padding: "12px" }}
+                                    onClick={navToError}
+                                    disabled={splitError ? true : false}
+                                >
                                     Update
                                 </button>
                             </div>

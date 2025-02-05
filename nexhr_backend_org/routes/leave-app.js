@@ -69,11 +69,11 @@ leaveApp.get("/make-know", async (req, res) => {
           <div class="container">
             <div class="header">
               <img src="https://imagedelivery.net/r89jzjNfZziPHJz5JXGOCw/1dd59d6a-7b64-49d7-ea24-1366e2f48300/public" alt="Logo" />
-              <h1>${empData.employee.FirstName} ${empData.employee.LastName} has applied for leave from ${empData.fromDate} to ${empData.toDate}</h1>
+              <h1>${empData.employee.FirstName} ${empData.employee.LastName} has applied for leave From ${empData.fromDate} To ${empData.toDate}</h1>
             </div>
             <div class="content">
                 <p>Hi all,</p>
-                <p>I have applied for leave from ${empData.fromDate} to ${empData.toDate} due to ${empData.reasonForLeave}. Please respond to this request.</p>
+                <p>I have applied for leave From ${empData.fromDate} To ${empData.toDate} due To ${empData.reasonForLeave}. Please respond To this request.</p>
                 <p>Thank you!</p>
             </div>
           </div>
@@ -85,14 +85,14 @@ leaveApp.get("/make-know", async (req, res) => {
 
       try {
         sendMail({
-          from: process.env.FROM_MAIL,
-          to: mailList,
-          subject: "Leave Application Remember",
-          html: htmlContent,
+          From: process.env.FROM_MAIL,
+          To: mailList,
+          Subject: "Leave Application Remember",
+          HtmlContent: htmlContent,
         })
-        console.log(`Email sent to: ${mailList.join(", ")}`);
+        console.log(`Email sent To: ${mailList.join(", ")}`);
       } catch (mailError) {
-        console.error(`Failed to send email to ${mailList.join(", ")}:`, mailError);
+        console.error(`Failed To send email To ${mailList.join(", ")}:`, mailError);
       }
     }
 
@@ -113,7 +113,7 @@ leaveApp.put("/reject-leave", async (req, res) => {
       },
       {
         $lookup: {
-          from: "employees", // Replace with your employee collection name
+          From: "employees", // Replace with your employee collection name
           localField: "employee",
           foreignField: "_id",
           as: "employeeDetails",
@@ -192,10 +192,10 @@ leaveApp.put("/reject-leave", async (req, res) => {
              `;
 
         sendMail({
-          from: process.env.FROM_MAIL,
-          to: employeeDetails.Email,
-          subject: "Leave Application Rejected",
-          html: htmlContent,
+          From: process.env.FROM_MAIL,
+          To: employeeDetails.Email,
+          Subject: "Leave Application Rejected",
+          HtmlContent: htmlContent,
         });
 
       })
@@ -206,7 +206,7 @@ leaveApp.put("/reject-leave", async (req, res) => {
   }
 });
 
-// get employee of all leave application from annualLeaveYearStart date
+// get employee of all leave application From annualLeaveYearStart date
 leaveApp.get("/emp/:empId", verifyAdminHREmployee, async (req, res) => {
   try {
     const { empId } = req.params;
@@ -469,7 +469,7 @@ leaveApp.get("/:id", verifyHREmployee, async (req, res) => {
     const leaveReq = await LeaveApplication.findById(req.params.id);
 
     if (!leaveReq) {
-      return res.status(404).send({ message: "Leave application not found" }); // Changed to 404 for "not found"
+      return res.status(404).send({ message: "Leave application not found" }); // Changed To 404 for "not found"
     }
 
     // Construct the prescription URL if the prescription field exists
@@ -479,7 +479,7 @@ leaveApp.get("/:id", verifyHREmployee, async (req, res) => {
 
     // Create the updated response object
     const updatedLeaveData = {
-      ...leaveReq.toObject(), // Convert Mongoose document to plain object
+      ...leaveReq.toObject(), // Convert Mongoose document To plain object
       prescription: prescriptionUrl,
     };
 
@@ -614,7 +614,7 @@ leaveApp.get("/date-range/admin", verifyAdmin, async (req, res) => {
   }
 })
 
-// to get leave range date of data
+// To get leave range date of data
 leaveApp.get("/date-range/:empId", verifyAdminHREmployee, async (req, res) => {
   const now = new Date();
   let startOfMonth;
@@ -711,7 +711,7 @@ leaveApp.get("/today/:empId", async (req, res) => {
   try {
     const today = new Date();
     const startDate = new Date(today.setHours(0, 0, 0, 0));
-    let endDate = new Date(today.setHours(23, 59, 59, 999)); 
+    let endDate = new Date(today.setHours(23, 59, 59, 999));
     const leaveData = await Employee.findById({ _id: req.params.empId }, "leaveApplication")
       .populate({
         path: "leaveApplication", match:
@@ -724,195 +724,205 @@ leaveApp.get("/today/:empId", async (req, res) => {
 
 leaveApp.post("/:empId", verifyAdminHREmployee, upload.single("prescription"), async (req, res) => {
   try {
-    // Handle empty `coverBy` value
-    req.body.coverBy = req.body.coverBy === "" ? null : req.body.coverBy;
+    const { empId } = req.params;
+    const {
+      leaveType,
+      fromDate,
+      toDate,
+      periodOfLeave,
+      reasonForLeave,
+      coverBy,
+    } = req.body;
 
-    // Construct the leave request object
+    const leaveTypeLower = leaveType.toLowerCase();
+    const prescription = req.file ? req.file.filename : null;
+
+    // Ensure `coverBy` is either null or a valid value
+    const coverByValue = coverBy === "" ? null : coverBy;
+
+    // Construct leave request object
     const leaveRequest = {
-      leaveType: req.body.leaveType.toLowerCase(),
-      fromDate: req.body.fromDate,
-      toDate: req.body.toDate,
-      periodOfLeave: req.body.periodOfLeave,
-      reasonForLeave: req.body.reasonForLeave,
-      prescription: req.file ? req.file.filename : null, // Save file name
-      coverBy: req.body.coverBy,
-      employee: req.params.empId,
+      leaveType: leaveTypeLower,
+      fromDate,
+      toDate,
+      periodOfLeave,
+      reasonForLeave,
+      prescription,
+      coverBy: coverByValue,
+      employee: empId,
     };
 
-    if (leaveRequest.leaveType.includes("sick") || leaveRequest.leaveType.includes("medical")) {
-      const today = new Date();
-      const yesterday = new Date();
-      yesterday.setDate(today.getDate() - 1);
+    const today = new Date();
+    const yesterday = new Date();
+    yesterday.setDate(today.getDate() - 1);
+    const fromDateObj = new Date(fromDate);
 
-      // Convert fromDate to a Date object
-      const fromDate = new Date(leaveRequest.fromDate);
-
-      // Remove time from dates for comparison
+    // Handle sick leave restriction
+    if (leaveTypeLower.includes("sick") || leaveTypeLower.includes("medical")) {
       const isTodayOrYesterday =
-        fromDate.toDateString() === today.toDateString() ||
-        fromDate.toDateString() === yesterday.toDateString();
+        fromDateObj.toDateString() === today.toDateString() ||
+        fromDateObj.toDateString() === yesterday.toDateString();
 
       if (!isTodayOrYesterday) {
-        return res.status(400).send({
-          error: "Sick leave is only applicable for today or yesterday.",
-        });
+        return res.status(400).json({ error: "Sick leave is only applicable for today or yesterday." });
       }
     }
 
-    // Fetch approved leave data for calculating taken leave count
-    const approvedLeaveData = await LeaveApplication.find({
-      leaveType: { $regex: new RegExp("^" + req.body.leaveType, "i") },
-      status: "approved",
-      employee: req.params.empId,
-    });
+    // Handle permission leave restrictions
+    if (leaveTypeLower.includes("Permission")) {
+      const now = new Date();
+      const startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+      const endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0);
 
-    const takenLeaveCount = approvedLeaveData.reduce(
-      (acc, leave) => acc + getDayDifference(leave),
-      0
-    );
+      const permissions = await Employee.findById(empId, "_id")
+        .populate({
+          path: "leaveApplication",
+          match: { leaveType: "permission", fromDate: { $gte: startDate, $lte: endDate } },
+        });
 
-    // Fetch employee leave data
-    const empData = await Employee.findById(req.params.empId)
-      .populate({
-        path: "team",
-        populate: [
-          {
-            path: "lead",
-            select: "Email"
-          },
-          {
-            path: "head",
-            select: "Email"
-          }
-        ]
-      });
-    if (!empData) {
-      return res.status(400).send({ error: `No employee found for ID ${req.params.empId}` });
-    }
+      const permissionTime = (new Date(toDate) - new Date(fromDate)) / 60000;
 
-    const relievingOffData = await Employee.findById(req.body.coverBy, "Email FirstName LastName");
-    const leaveTypeName = req.body.leaveType;
-
-    const leaveDaysCount = empData?.typesOfLeaveRemainingDays[leaveTypeName] || 0;
-
-    if (leaveDaysCount < takenLeaveCount) {
-      return res.status(400).send({ error: `${leaveTypeName} leave limit reached.` });
+      if (permissionTime > 120) {
+        return res.status(400).json({ error: "Permission is only approved for up to 2 hours." });
+      }
+      if (permissions.leaveApplication.length >= 2) {
+        return res.status(400).json({ error: "You have already used 2 permissions this month." });
+      }
     }
 
     // Check if leave request for the same date already exists
     const existingRequest = await LeaveApplication.findOne({
-      fromDate: leaveRequest.fromDate,
-      toDate: leaveRequest.toDate,
-      employee: req.params.empId,
+      fromDate,
+      toDate,
+      employee: empId,
     });
+
     if (existingRequest) {
-      return res.status(400).send({ error: "Already sent a request on this date." });
+      return res.status(400).json({ error: "Leave request already submitted for this date." });
     }
 
-    // Validate the leave request
+    // Fetch approved leave count for the requested leave type
+    const approvedLeaveData = await LeaveApplication.find({
+      leaveType: new RegExp("^" + leaveType, "i"),
+      status: "approved",
+      employee: empId,
+    });
+
+    const takenLeaveCount = approvedLeaveData.reduce((acc, leave) => acc + getDayDifference(leave), 0);
+
+    // Fetch employee data including team leads and heads
+    const empData = await Employee.findById(empId)
+      .populate({
+        path: "team",
+        populate: [{ path: "lead", select: "Email" }, { path: "head", select: "Email" }],
+      });
+
+    if (!empData) {
+      return res.status(400).json({ error: `No employee found for ID ${empId}` });
+    }
+
+    const leaveDaysCount = empData?.typesOfLeaveRemainingDays?.[leaveType] || 0;
+    if (leaveDaysCount < takenLeaveCount) {
+      return res.status(400).json({ error: `${leaveType} leave limit reached.` });
+    }
+
+    // Validate leave request schema
     const { error } = LeaveApplicationValidation.validate(leaveRequest);
     if (error) {
       console.error("Validation Error:", error);
-      return res.status(400).send({ error: error.message });
+      return res.status(400).json({ error: error.message });
     }
 
+    // Save leave request and update employee leave list
     const newLeaveApp = await LeaveApplication.create(leaveRequest);
     empData.leaveApplication.push(newLeaveApp._id);
     await empData.save();
 
-    const htmlContent = `
-           <!DOCTYPE html>
-           <html lang="en">
-           <head>
-             <meta charset="UTF-8">
-             <meta name="viewport" content="width=device-width, initial-scale=1.0">
-             <title>NexsHR</title>
-             <style>
-               body { font-family: Arial, sans-serif; background-color: #f6f9fc; color: #333; }
-               .container { max-width: 600px; margin: auto; padding: 20px; background-color: #fff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); }
-               .header { text-align: center; padding: 20px; }
-               .header img { max-width: 100px; }
-               .content { margin: 20px 0; }
-               .footer { text-align: center; font-size: 14px; margin-top: 20px; color: #777; }
-             </style>
-           </head>
-           <body>
-             <div class="container">
-               <div class="header">
-                 <img src="https://imagedelivery.net/r89jzjNfZziPHJz5JXGOCw/1dd59d6a-7b64-49d7-ea24-1366e2f48300/public" alt="Logo" />
-                 <h1>${empData.FirstName} ${empData.LastName} has been apply leave for ${req.body.fromDate} - ${req.body.toDate}</h1>
-               </div>
-               <div class="content">
-                   <p>Hi all,</p>
-                   <p>I have apply leave for ${req.body.fromDate} - ${req.body.toDate}, due to ${req.body.reasonForLeave}. Please response for that </p>
-                   <p>Thank you!</p>
-               </div>
-             </div>
-           </body>
-           </html>
-         `;
+    // Send notification emails
     const mailList = [
-      empData.team.lead.Email,
-      empData.team.head.Email
-    ]
+      empData?.team?.lead?.Email,
+      empData?.team?.head?.Email,
+    ].filter(Boolean);
+
     sendMail({
-      from: process.env.FROM_MAIL,
-      to: mailList,
-      subject: "Leave Application Notification",
-      html: htmlContent,
-    })
+      From: process.env.FROM_MAIL,
+      To: mailList,
+      Subject: "Leave Application Notification",
+      HtmlBody: generateLeaveEmail(empData, fromDate, toDate, reasonForLeave),
+    });
 
-    if (req.body.coverBy) {
-      // Prepare and send the email
-      const htmlContent = `
-           <!DOCTYPE html>
-           <html lang="en">
-           <head>
-             <meta charset="UTF-8">
-             <meta name="viewport" content="width=device-width, initial-scale=1.0">
-             <title>NexsHR</title>
-             <style>
-               body { font-family: Arial, sans-serif; background-color: #f6f9fc; color: #333; }
-               .container { max-width: 600px; margin: auto; padding: 20px; background-color: #fff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); }
-               .header { text-align: center; padding: 20px; }
-               .header img { max-width: 100px; }
-               .content { margin: 20px 0; }
-               .footer { text-align: center; font-size: 14px; margin-top: 20px; color: #777; }
-             </style>
-           </head>
-           <body>
-             <div class="container">
-               <div class="header">
-                 <img src="https://imagedelivery.net/r89jzjNfZziPHJz5JXGOCw/1dd59d6a-7b64-49d7-ea24-1366e2f48300/public" alt="Logo" />
-                 <h1>${empData.FirstName} has assigned a task to ${relievingOffData.FirstName}</h1>
-               </div>
-               <div class="content">
-                   <p>Hi ${relievingOffData.FirstName},</p>
-                   <p>${empData.FirstName} has assigned some tasks to you during their leave period. Please take note.</p>
-                   <p>Thank you!</p>
-               </div>
-               <div class="footer">
-                 <p>Need help? <a href="mailto:webnexs29@gmail.com">Contact our Team Head</a>.</p>
-               </div>
-             </div>
-           </body>
-           </html>
-         `;
-
-      sendMail({
-        from: process.env.FROM_MAIL,
-        to: relievingOffData.Email,
-        subject: "Task Relieving Request",
-        html: htmlContent,
-      });
+    // If coverBy is assigned, notify the relieving officer
+    if (coverByValue) {
+      const relievingOffData = await Employee.findById(coverByValue, "Email FirstName LastName");
+      if (relievingOffData) {
+        sendMail({
+          From: process.env.FROM_MAIL,
+          To: relievingOffData.Email,
+          Subject: "Task Relieving Request",
+          HtmlBody: generateCoverByEmail(empData, relievingOffData),
+        });
+      }
     }
 
-    return res.status(201).send({ message: "Leave Request has been sent to Higher Authority." });
+    return res.status(201).json({ message: "Leave request has been sent to higher authority." });
+
   } catch (err) {
-    console.log(err);
-    return res.status(500).send({ error: err.message });
+    console.error(err);
+    return res.status(500).json({ error: err.message });
   }
 });
+
+// Helper function to generate leave request email content
+function generateLeaveEmail(empData, fromDate, toDate, reasonForLeave) {
+  return `
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>NexsHR</title>
+      <style>
+        body { font-family: Arial, sans-serif; background-color: #f6f9fc; color: #333; }
+        .container { max-width: 600px; margin: auto; padding: 20px; background-color: #fff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); }
+      </style>
+    </head>
+    <body>
+      <div class="container">
+        <h1>${empData.FirstName} ${empData.LastName} has applied for leave (${fromDate} - ${toDate})</h1>
+        <p>Reason: ${reasonForLeave}</p>
+        <p>Please respond accordingly.</p>
+      </div>
+    </body>
+    </html>
+  `;
+}
+
+// Helper function to generate coverBy email content
+function generateCoverByEmail(empData, relievingOffData) {
+  return `
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>NexsHR</title>
+      <style>
+        body { font-family: Arial, sans-serif; background-color: #f6f9fc; color: #333; }
+        .container { max-width: 600px; margin: auto; padding: 20px; background-color: #fff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); }
+      </style>
+    </head>
+    <body>
+      <div class="container">
+        <h1>${empData.FirstName} has assigned tasks to ${relievingOffData.FirstName}</h1>
+        <p>Hi ${relievingOffData.FirstName},</p>
+        <p>${empData.FirstName} has assigned some tasks to you during their leave period.</p>
+        <p>Thank you!</p>
+      </div>
+    </body>
+    </html>
+  `;
+}
+
 
 leaveApp.put('/:id', verifyHREmployee, async (req, res) => {
   try {
@@ -933,7 +943,7 @@ leaveApp.put('/:id', verifyHREmployee, async (req, res) => {
         return res.status(404).send({ error: 'Employee not found.' });
       }
 
-      // Calculate leave days to deduct
+      // Calculate leave days To deduct
       const leaveDaysTaken = Math.max(getDayDifference(req.body), 1);
       // const leaveTypeKey = leaveType.split(' ')[0];
 
@@ -976,7 +986,7 @@ leaveApp.put('/:id', verifyHREmployee, async (req, res) => {
     }
 
     return res.send({
-      message: 'You have replied to the leave application.',
+      message: 'You have replied To the leave application.',
       data: updatedRequest,
     });
   } catch (err) {

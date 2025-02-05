@@ -7,7 +7,7 @@ const fs = require("fs");
 const sendMail = require("./mailSender");
 const { Employee } = require("../models/EmpModel");
 const { ClockIns } = require("../models/ClockInsModel");
-const { LeaveApplication } = require("../models/LeaveAppModel");
+const { LeaveApplication, LeaveApplicationValidation } = require("../models/LeaveAppModel");
 
 const timeToMinutes = (timeStr) => {
     if (!timeStr) return 0;
@@ -60,7 +60,7 @@ router.post("/attendance", upload.single("documents"), verifyAdminHR,
             const endOfDay = new Date(today.setHours(23, 59, 59, 999));
 
             for (const record of records) {
-                const emp = await Employee.findOne({ code: record.empCode }, "Email workingTimePattern clockIns leaveApplication")
+                const emp = await Employee.findOne({ code: record.empCode })
                     .populate({ path: "clockIns", match: { date: { $gte: startOfDay, $lte: endOfDay } } })
                     .populate({ path: "leaveApplication", match: { fromDate: { $gte: startOfDay, $lte: endOfDay }, status: "approved" } })
                     .exec();
@@ -98,7 +98,7 @@ router.post("/attendance", upload.single("documents"), verifyAdminHR,
                             emp.leaveApplication.push(addLeave._id);
                             await emp.save();
 
-                            // send mail to employee
+                            // send mail To employee
                             const htmlContent = `
                             <html>
                                 <head>
@@ -128,69 +128,77 @@ router.post("/attendance", upload.single("documents"), verifyAdminHR,
                                 </body>
                             </html>`
                             sendMail({
-                                from: process.env.FROM_MAIL,
-                                to: emp.Email,
-                                subject: `Half-day Leave Applied(Unpaid Leave (LWP))`,
-                                html: htmlContent,
+                                From: process.env.FROM_MAIL,
+                                To: emp.Email,
+                                Subject: `Half-day Leave Applied(Unpaid Leave (LWP))`,
+                                HtmlContent: htmlContent,
                             })
                             continue;
                         }
                     } else {
-                        const halfDayLeaveApp = {
-                            leaveType: "Unpaid Leave (LWP)",
-                            fromDate: today,
-                            toDate: today,
-                            periodOfLeave: "half day",
-                            reasonForLeave: "Came to late",
-                            prescription: "",
-                            employee: emp._id,
-                            coverBy: "",
-                            status: "rejected",
-                            TeamLead: "rejected",
-                            TeamHead: "rejected",
-                            Hr: "rejected",
-                            approvedOn: null,
-                            approverId: []
-                        };
-                        await LeaveApplication.create(halfDayLeaveApp);
-                        emp.leaveApplication.push(addLeave._id);
-                        await emp.save();
+                        try {
+                            console.log(emp);
 
-                        const htmlContent = `
-                        <html>
-                            <head>
-                                <style>
-                                    body {font - family: Arial, sans-serif; background-color: #f6f9fc; color: #333; }
-                                    .container { max-width: 600px; margin: auto; padding: 20px; background-color: #fff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); }
-                                    .content {margin: 20px 0; }
-                                    .footer {text - align: center; font-size: 14px; margin-top: 20px; color: #777; }
-                                </style>
-                            </head>
-                            <body>
-                                <div class="container">
-                                    <div class="content">
-                                        <h2 class="center_text">You came much later than your permitted time.</h2>
-                                        <p>
-                                            So, we are marking you as taking a half-day leave.
-                                            Hereafter, please come early or by (${emp.workingTimePattern.StartingTime}).
-                                            Please follow the company instructions.
-                                            Thank you!
-                                        </p>
-                                    </div>
+                            const halfDayLeaveApp = {
+                                leaveType: "Unpaid Leave (LWP)",
+                                fromDate: today,
+                                toDate: today,
+                                periodOfLeave: "half day",
+                                reasonForLeave: "Came To late",
+                                prescription: "",
+                                employee: emp._id.toString(),
+                                coverBy: null,
+                                status: "rejected",
+                                TeamLead: "rejected",
+                                TeamHead: "rejected",
+                                Hr: "rejected",
+                            };
+                            const { error } = LeaveApplicationValidation.validate(halfDayLeaveApp);
+                            if (error) {
+                                return res.status(400).send({ error: error.details[0].message })
+                            }
+                            await LeaveApplication.create(halfDayLeaveApp);
+                            emp.leaveApplication.push(addLeave._id);
+                            await emp.save();
 
-                                    <div class="footer">
-                                        <p>Have questions? Need help? <a href="mailto:${process.env.FROM_MAIL}">Contact our support team</a>.</p>
+                            const htmlContent = `
+                            <html>
+                                <head>
+                                    <style>
+                                        body {font - family: Arial, sans-serif; background-color: #f6f9fc; color: #333; }
+                                        .container { max-width: 600px; margin: auto; padding: 20px; background-color: #fff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); }
+                                        .content {margin: 20px 0; }
+                                        .footer {text - align: center; font-size: 14px; margin-top: 20px; color: #777; }
+                                    </style>
+                                </head>
+                                <body>
+                                    <div class="container">
+                                        <div class="content">
+                                            <h2 class="center_text">You came much later than your permitted time.</h2>
+                                            <p>
+                                                So, we are marking you as taking a half-day leave.
+                                                Hereafter, please come early or by (${emp.workingTimePattern.StartingTime}).
+                                                Please follow the company instructions.
+                                                Thank you!
+                                            </p>
+                                        </div>
+    
+                                        <div class="footer">
+                                            <p>Have questions? Need help? <a href="mailto:${process.env.FROM_MAIL}">Contact our support team</a>.</p>
+                                        </div>
                                     </div>
-                                </div>
-                            </body>
-                        </html>`
-                        sendMail({
-                            from: process.env.FROM_MAIL,
-                            to: emp.Email,
-                            subject: `Half-day Leave Applied(Unpaid Leave (LWP))`,
-                            html: htmlContent,
-                        })
-                        continue;
+                                </body>
+                            </html>`
+                            sendMail({
+                                From: process.env.FROM_MAIL,
+                                To: emp.Email,
+                                Subject: `Half-day Leave Applied(Unpaid Leave (LWP))`,
+                                HtmlContent: htmlContent,
+                            })
+                            continue;
+                        } catch (error) {
+                            console.log(error);
+                        }
                     }
                 }
 
@@ -246,10 +254,10 @@ router.post("/attendance", upload.single("documents"), verifyAdminHR,
                     `;
 
                         sendMail({
-                            from: process.env.FROM_MAIL,
-                            to: emp.Email,
-                            subject: "Incomplete Working Hours Alert",
-                            html: emailHtml,
+                            From: process.env.FROM_MAIL,
+                            To: emp.Email,
+                            Subject: "Incomplete Working Hours Alert",
+                            HtmlContent: emailHtml,
                         });
                     }
                 }
@@ -323,7 +331,7 @@ router.post("/employees", upload.single("documents"), verifyAdminHR, async (req,
                   <div class="container">
                     <div class="header">
                       <img src="https://imagedelivery.net/r89jzjNfZziPHJz5JXGOCw/1dd59d6a-7b64-49d7-ea24-1366e2f48300/public" alt="Logo" />
-                      <h1>Welcome to NexsHR</h1>
+                      <h1>Welcome To NexsHR</h1>
                     </div>
                     <div class="content">
                       <p>Hey ${addEmp.FirstName} ${addEmp.LastName} 👋,</p>
@@ -341,13 +349,13 @@ router.post("/employees", upload.single("documents"), verifyAdminHR, async (req,
                 </html>`;
 
                 sendMail({
-                    from: process.env.FROM_MAIL,
-                    to: addEmp.Email,
-                    subject: "Welcome to NexsHR",
-                    html: htmlContent,
+                    From: process.env.FROM_MAIL,
+                    To: addEmp.Email,
+                    Subject: "Welcome To NexsHR",
+                    HtmlContent: htmlContent,
                 });
             } catch (error) {
-                return res.status(500).send({error: error.message})
+                return res.status(500).send({ error: error.message })
             }
         }
 

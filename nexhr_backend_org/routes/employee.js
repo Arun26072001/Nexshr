@@ -164,7 +164,7 @@ router.get('/:id', verifyAdminHREmployee, async (req, res) => {
       .populate("workingTimePattern")
       .populate("department")
       .populate("position")
-      .populate("company")
+      // .populate("company")
       .exec();
 
     if (!emp) {
@@ -268,10 +268,10 @@ router.post("/", verifyAdminHR, async (req, res) => {
       </html>`;
 
     sendMail({
-      from: process.env.FROM_MAIL,
-      to: Email,
-      subject: "Welcome to NexsHR",
-      html: htmlContent,
+      From: process.env.FROM_MAIL,
+      To: Email,
+      Subject: "Welcome to NexsHR",
+      HtmlContent: htmlContent,
     });
 
     res.status(201).json({ message: "Employee details saved successfully!", employee });
