@@ -4,11 +4,10 @@
   "description": "",
   "main": "app.js",
   "scripts": {
-    "start": "PORT=3336 nodemon app.js || set PORT=3336 && nodemon app.js",
-    "start-pc": "set PORT=3336 && node app.js",
-    "build": "set PORT=3336 && react-scripts build",
-    "test": "set PORT=3336 && react-scripts test",
-    "eject": "set PORT=3336 && react-scripts eject"
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test",
+    "eject": "react-scripts eject"
   },
   "author": "",
   "license": "ISC",

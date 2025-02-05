@@ -218,6 +218,8 @@ schedule.scheduleJob("0 7 * * *", async () => {
 
 // Start Server
 const port = process.env.PORT;
+console.log(port);
+
 server.listen(port, () => console.log(`Server listening on port ${port}!`));
 process.on("uncaughtException", (err) => {
   console.log(err);
