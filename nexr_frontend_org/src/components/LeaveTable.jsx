@@ -492,40 +492,42 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
     useEffect(() => {
         setRows(data || []);
         data?.map((item) => {
-            if (item.fromDate && params['*'] === "leave-request") {
+            if (item?.fromDate && params['*'] === "leave-request") {
                 return setColumns(column1);
-            } else if (item.FirstName && params["*"] === "employee") {
+            } else if (item?.FirstName && params["*"] === "employee") {
                 return setColumns(column3);
-            } else if (item.date && params['*'] === "attendance-summary"
-                || item.date && params['*'] === "details"
-                || item.date && params['*'] === "attendance-request"
-                || item.date && params['*'] === "attendance"
+            } else if (item?.date && params['*'] === "attendance-summary"
+                || item?.date && params['*'] === "details"
+                || item?.date && params['*'] === "attendance-request"
+                || item?.date && params['*'] === "attendance"
             ) {
                 return setColumns(column5);
-            } else if (item.date) {
+            } else if (item?.date) {
                 return setColumns(column4);
-            } else if (item.action) {
+            } else if (item?.action) {
                 return setColumns(column6);
-            } else if (item.RoleName) {
+            } else if (item?.RoleName) {
                 return setColumns(column7);
             }
-            else if (item.fromDate && params['*'] === "status"
-                || item.fromDate && params['*'] === "leave-summary"
-                || item.fromDate && params['*'] === "leave"
-                || item.fromDate && params['*'] === "calendar") {
+            else if (item?.fromDate && params['*'] === "status"
+                || item?.fromDate && params['*'] === "leave-summary"
+                || item?.fromDate && params['*'] === "leave"
+                || item?.fromDate && params['*'] === "calendar") {
                 return setColumns(column8);
-            } else if (item.DepartmentName) {
+            } else if (item?.DepartmentName) {
                 return setColumns(column9)
-            } else if (item.PositionName) {
+            } else if (item?.PositionName) {
                 return setColumns(column10)
-            } else if (item.title) {
+            } else if (item?.title) {
                 return setColumns(column11)
-            } else if (item.createdby) {
+            } else if (item?.createdby) {
                 return setColumns(column12)
-            } else if (item.CompanyName) {
+            } else if (item?.CompanyName) {
                 return setColumns(column13)
             }
             else {
+                console.log(item);
+
                 return setColumns(column2)
             }
         })

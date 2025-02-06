@@ -165,7 +165,8 @@ const AddEmployee = () => {
     try {
       const employees = await fetchAllEmployees()
 
-      let filterTL = employees.filter(emp => emp.position.PositionName === "TL").map(emp => emp);
+      let filterTL = employees.filter(emp => emp?.position?.PositionName === "TL").map(emp => emp);
+      console.log(filterTL);
 
       setLeads(filterTL);
 
@@ -178,7 +179,8 @@ const AddEmployee = () => {
     try {
       const employees = await fetchAllEmployees();
 
-      let filterManager = employees.filter(emp => emp.position.PositionName === "Manager").map(emp => emp);
+      let filterManager = employees.filter(emp => emp?.position?.PositionName === "Manager").map(emp => emp);
+      console.log(filterManager);
 
       setManagers(filterManager);
     } catch (err) {
@@ -228,7 +230,7 @@ const AddEmployee = () => {
         managerId: empData?.managerId || "", // Safely access first element or set to empty string
         countryCode: empData.countryCode || "",
         phone: empData?.phone || "",
-        company: empData?.company[0] || empData?.company || "", // Safely access first element or set to empty string
+        company: empData?.company || empData?.company[0] || "", // Safely access first element or set to empty string
         dateOfBirth: empData?.dateOfBirth || "",
         gender: empData?.gender || "",
         address: {
@@ -247,8 +249,7 @@ const AddEmployee = () => {
         annualLeaveYearStart: empData?.annualLeaveYearStart || "",
         companyWorkingHourPerWeek: empData?.companyWorkingHourPerWeek || "",
         publicHoliday: empData?.publicHoliday || "",
-        // entitlement: empData?.entitlement || "",
-        // fullTimeAnnualLeave: empData?.fullTimeAnnualLeave || "",
+        monthlyPermissions: empData?.monthlyPermissions || 2,
         typesOfLeaveCount: empData?.typesOfLeaveCount || {},
         annualLeaveEntitlement: empData?.annualLeaveEntitlement || "",
         basicSalary: empData?.basicSalary || "",

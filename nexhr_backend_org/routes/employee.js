@@ -206,7 +206,7 @@ router.get('/:id', verifyAdminHREmployee, async (req, res) => {
 
 router.post("/", verifyAdminHR, async (req, res) => {
   try {
-    const { Email, phone, FirstName, LastName, Password, teamLead, managerId, company, annualLeaveEntitlement, typesOfLeaveCount, employementType } = req.body;
+    const { Email, phone, FirstName, LastName, Password, teamLead, managerId, company,annualLeaveEntitlement, typesOfLeaveCount, employementType } = req.body;
 
     // Check if email already exists
     if (await Employee.exists({ Email })) {
@@ -224,6 +224,7 @@ router.post("/", verifyAdminHR, async (req, res) => {
       company: company || ["6651a5eb6115df44c0cc7151"],
       annualLeaveEntitlement: annualLeaveEntitlement || 14,
       employementType: employementType || "Full-time",
+      typesOfLeaveCount: {...typesOfLeaveCount, Permission: 2},
       typesOfLeaveRemainingDays: typesOfLeaveCount
     };
 

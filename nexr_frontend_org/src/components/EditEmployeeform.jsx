@@ -59,6 +59,7 @@ const EditEmployeeform = ({ details, empData, handleScroll, handlePersonal, hand
         workingTimePattern: Yup.string().notOneOf(["Select Work Time Pattern"]).required("Time pattern is Required"),
         annualLeaveYearStart: Yup.date().optional().nullable(),
         publicHoliday: Yup.string().required("public holiday field is required"),
+        monthlyPermissions: Yup.number().required("Monthly permissions is required"),
         annualLeaveEntitlement: Yup.number().required("leave Entitlemenet is Required"),
         basicSalary: Yup.string().min(4, "invalid Salary").max(10).required("Salary is required"),
         bankName: Yup.string().min(2, "invalid Bank name").max(200).required("Bank name is required"),
@@ -131,6 +132,7 @@ const EditEmployeeform = ({ details, empData, handleScroll, handlePersonal, hand
             handleFinancial()
         }
     }
+    
 
     function getValueforLeave(e) {
         const { name, value } = e.target;
@@ -255,7 +257,6 @@ const EditEmployeeform = ({ details, empData, handleScroll, handlePersonal, hand
             formik.setFieldValue(name, countryFullData?.code || "");
         }
     }
-    console.log(formik.values);
 
 
     return (
@@ -633,11 +634,11 @@ const EditEmployeeform = ({ details, empData, handleScroll, handlePersonal, hand
                                 </div>
 
                                 <div className="row d-flex justify-content-center my-3">
-                                    <div className="col-lg-12">
+                                    <div className="col-lg-6">
                                         <div className="inputLabel">Public Holidays by</div>
                                         <SelectPicker
                                             className="selectInput p-0"
-                                            style={{ background: "none", border: "none", width: "100% !important" }}
+                                            style={{ width: 300, border: "none", marginTop: "0px" }}
                                             size="lg"
                                             block
                                             appearance="subtle"
@@ -648,6 +649,19 @@ const EditEmployeeform = ({ details, empData, handleScroll, handlePersonal, hand
                                         />
                                         {formik.touched.publicHoliday && formik.errors.publicHoliday ? (
                                             <div className="text-center text-danger">{formik.errors.publicHoliday}</div>
+                                        ) : null}
+                                    </div>
+                                    <div className="col-lg-6">
+                                        <div className="inputLabel">Monthly Permissions</div>
+                                        <input type="number"
+                                            min={0}
+                                            max={10}
+                                            value={formik.values.monthlyPermissions}
+                                            onChange={formik.handleChange}
+                                            name="monthlyPermissions"
+                                            className={`inputField ${formik.touched.monthlyPermissions && formik.errors.monthlyPermissions ? "error" : ""}`} />
+                                        {formik.touched.monthlyPermissions && formik.errors.monthlyPermissions ? (
+                                            <div className="text-center text-danger">{formik.errors.monthlyPermissions}</div>
                                         ) : null}
                                     </div>
                                 </div>

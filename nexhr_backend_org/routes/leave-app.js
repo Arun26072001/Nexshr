@@ -44,7 +44,6 @@ leaveApp.get("/make-know", async (req, res) => {
 
     for (const empData of leaveApps) {
       if (!empData.employee?.team) continue; // Skip if team data is missing
-      console.log(empData);
 
       const { lead, head } = empData.employee.team;
       if (!lead?.Email || !head?.Email) continue; // Skip if lead or head email is missing
@@ -81,7 +80,7 @@ leaveApp.get("/make-know", async (req, res) => {
         </html>
       `;
 
-      const mailList = [lead.Email, head.Email];
+      const mailList = [lead?.Email, head?.Email];
 
       try {
         sendMail({
@@ -774,10 +773,10 @@ leaveApp.post("/:empId", verifyAdminHREmployee, upload.single("prescription"), a
       const startDate = new Date(now.getFullYear(), now.getMonth(), 1);
       const endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0);
 
-      const permissions = await Employee.findById(empId, "_id")
+      const emp = await Employee.findById(empId, "_id monthlyPermissions")
         .populate({
           path: "leaveApplication",
-          match: { leaveType: "Permission", fromDate: { $gte: startDate, $lte: endDate } },
+          match: { leaveType: "permission", fromDate: { $gte: startDate, $lte: endDate } },
         });
 
       const permissionTime = (new Date(toDate) - new Date(fromDate)) / 60000;
@@ -785,7 +784,7 @@ leaveApp.post("/:empId", verifyAdminHREmployee, upload.single("prescription"), a
       if (permissionTime > 120) {
         return res.status(400).json({ error: "Permission is only approved for up to 2 hours." });
       }
-      if (permissions.leaveApplication.length >= 2) {
+      if (emp.leaveApplication.length >= emp?.monthlyPermissions) {
         return res.status(400).json({ error: "You have already used 2 permissions this month." });
       }
     }
