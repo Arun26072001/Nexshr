@@ -15,6 +15,7 @@ import { EssentialValues } from '../../App';
 import Loading from '../Loader';
 import Company from '../Administration/Company';
 import Holiday from '../Administration/Holiday';
+import Country from '../Administration/Country';
 
 
 // Lazy loading components
@@ -452,6 +453,7 @@ export default function HRMDashboard() {
                                 <Route path="/position" element={<Position companies={companies} />} />
                                 <Route path="/holiday" element={<Holiday />} />
                                 <Route path="/announcement" element={<Announce />} />
+                                <Route path="/country" element={<Country />} />
                                 {/* <Route path="/shift" element={<h1 className='text-center'>Under Development</h1>} /> */}
                             </Routes>
                         } />

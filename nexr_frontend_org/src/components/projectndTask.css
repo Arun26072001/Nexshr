@@ -36,7 +36,7 @@
   z-index: 10;
 }
 
-.react-datepicker-popper{
+.react-datepicker-popper {
   z-index: 100;
 }
 
@@ -66,4 +66,29 @@
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+.inputContent {
+  display: flex;
+  gap: 2px;
+  margin-top: 5px;
+  /* justify-content: center; */
+  align-items: center;
+}
+
+.inputContent > span {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #3498ff;
+  color: white;
+  padding: 5px;
+  gap: 3px;
+  border-radius: 5px;
+}
+
+.addBtn {
+  position: absolute;
+  top: 28px;
+  right: 3px;
 }

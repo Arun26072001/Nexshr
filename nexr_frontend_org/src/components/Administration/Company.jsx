@@ -44,7 +44,6 @@ export default function Company() {
             }))
         }
     }
-    console.log(modifyCompany);
 
     async function deleteCompany(id) {
         try {

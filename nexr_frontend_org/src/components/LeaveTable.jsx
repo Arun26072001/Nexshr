@@ -446,6 +446,20 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
         }
     ]
 
+    const column14 = [
+        { id: 'icon', label: 'Icon', minWidth: 50, align: "left", getter: (row) => row.icon },
+        { id: 'name', label: 'Name', minWidth: 100, align: "left", getter: (row) => row.name },
+        { id: 'abbreviation', label: 'Abbreviation', minWidth: 100, align: "left", getter: (row) => row.abbr },
+        { id: 'code', label: 'Code', minWidth: 100, align: "left", getter: (row) => row.code },
+        { id: 'state', label: 'State', minWidth: 130, align: "left", getter: (row) => row.state.length ? row.state.join(", ") : "N/A" },
+        {
+            id: "Action",
+            label: "Action",
+            minWidth: 100,
+            align: "center"
+        }
+    ];
+
     function toggleView() {
         setOpenModal(!openModal);
     }
@@ -524,9 +538,11 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
                 return setColumns(column12)
             } else if (item?.CompanyName) {
                 return setColumns(column13)
+            } else if (item?.icon) {
+                return setColumns(column14)
             }
             else {
-                console.log(item);
+                // console.log(item);
 
                 return setColumns(column2)
             }
@@ -611,6 +627,15 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
                                                                 </Dropdown.Item>
                                                             </Dropdown>
                                                         )
+                                                    } else if (params["*"] === "country") {
+                                                        return (<Dropdown title={"Action"} noCaret placement="leftStart">
+                                                            <Dropdown.Item style={{ minWidth: 80 }} onClick={() => fetchData(row.code, "Edit")}>
+                                                                <b>
+                                                                    <BorderColorRoundedIcon sx={{ color: "#80C4E9" }} /> Add State
+                                                                </b>
+                                                            </Dropdown.Item>
+                                                        </Dropdown>)
+
                                                     }
                                                 } else if (column.id === "auth") {
                                                     return (

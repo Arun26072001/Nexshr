@@ -5,6 +5,8 @@ import TextEditor from '../payslip/TextEditor';
 import ErrorOutlineRoundedIcon from '@mui/icons-material/ErrorOutlineRounded';
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
+import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
+import "../projectndTask.css";
 
 const CommonModel = ({
     dataObj,
@@ -18,12 +20,15 @@ const CommonModel = ({
     departments,
     employees,
     deleteData,
+    removeState,
     comps,
+    changeState,
     removeAttachment,
     type // New prop to determine if it's for "department" or "position"
 }) => {
     const [confirmationTxt, setConfirmationTxt] = useState("");
 
+    console.log(dataObj);
 
     return (
         <Modal open={isAddData} size="sm" backdrop="static">
@@ -37,10 +42,10 @@ const CommonModel = ({
 
             <Modal.Body>
                 {
-                    (["Department", "Position", "Project", "Report", "Report View", "Project View"].includes(type)) &&
+                    (["Department", "Position", "Project", "Report", "Report View", "Country", "Edit Country", "Project View"].includes(type)) &&
                     <div className="d-flex justify-content-between">
                         {
-                            ["Department", "Position", "Project", "Report", "Report View"].includes(type) &&
+                            ["Department", "Position", "Project", "Report", "Report View", "Country", "Edit Country"].includes(type) &&
                             <div className="col-half">
                                 <div className="modelInput">
                                     <p className='modelLabel'>{type} Name: </p>
@@ -54,11 +59,23 @@ const CommonModel = ({
                                 </div>
                             </div>
                         }
-                        {type === "Project" && (
+                        {
+                            ["Country", "Edit Country"].includes(type) &&
                             <div className="col-half">
                                 <div className="modelInput">
-                                    <p className='modelLabel'>Prefix:</p>
-
+                                    <p className='modelLabel'>Icon:</p>
+                                    <Input required
+                                        name={`icon`}
+                                        // disabled={type === "Project View" ? true : false}
+                                        value={dataObj?.[`icon`] || ""}
+                                        onChange={(e) => changeData(e.toUpperCase(), "icon")} />
+                                </div>
+                            </div>
+                        }
+                        {["Project"].includes(type) && (
+                            <div className="col-half">
+                                <div className="modelInput">
+                                    <p className='modelLabel'>{type === "Project" ? "Prefix" : "Icon"}:</p>
                                     <Input required
                                         name={`prefix`}
                                         disabled={type === "Project View" ? true : false}
@@ -536,6 +553,79 @@ const CommonModel = ({
                         </div>
                     </>
                 }
+                {
+                    ["Country", "Edit Country"].includes(type) &&
+                    <>
+                        <div className="d-flex justify-content-between gap-2">
+                            <div className="col-half">
+                                <div className="modelInput">
+                                    <p className='modelLabel'>Abbriviation:</p>
+                                    <Input
+                                        required
+                                        size="lg"
+                                        style={{ width: "100%", height: 45 }}
+                                        type={"text"}
+                                        name={`abbr`}
+                                        // disabled={ ? true : false}
+                                        value={dataObj?.[`abbr`] || ""}
+                                        appearance='default'
+                                        onChange={(e) => changeData(e, "abbr")}
+                                    />
+                                </div>
+                            </div>
+                            <div className="col-half">
+                                <div className="modelInput">
+                                    <p className='modelLabel'>Code:</p>
+                                    <Input
+                                        required
+                                        size="lg"
+                                        style={{ width: "100%", height: 45 }}
+                                        type={"text"}
+                                        max={3}
+                                        value={dataObj?.[`code`] || ""}
+                                        appearance='default'
+                                        onChange={(e) => changeData(e, "code")}
+                                    />
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="col-full">
+                            <div className="modelInput position-relative">
+                                <p className="modelLabel">
+                                    State:
+                                </p>
+
+                                <Input
+                                    required
+                                    size="lg"
+                                    style={{ width: "100%", height: 45 }}
+                                    type={"text"}
+                                    id="stateInput"
+                                    name={`state`}
+                                    // value={type === "Edit Country" ? "" : (dataObj?.[`state`] || "")}
+                                    appearance='default'
+                                // onChange={(e) => changeData(e, "state")}
+                                />
+                                <button className='btn btn-primary addBtn' onClick={() => {
+                                    changeState('state', document.getElementById("stateInput").value)
+                                    document.getElementById("stateInput").value = ""
+                                }}>Add</button>
+                                <div className="inputContent">
+                                    {
+                                        dataObj?.state?.length > 0 &&
+                                        dataObj?.state?.map((item) => {
+                                            return <span key={item} onClick={() => removeState(item)}>
+                                                {item} <CloseRoundedIcon />
+                                            </span>
+                                        })
+
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </>
+                }
 
                 {
                     ["Confirmation", "Task Confirmation", "Report Confirmation"].includes(type) &&
@@ -568,10 +658,9 @@ const CommonModel = ({
                         <>
                             <Button
                                 onClick={() => {
-                                    console.log(type);
-                                    
-                                    if (type === "Company") {
-                                        modifyData(dataObj._id ? "Edit" : "Add");
+
+                                    if (["Company", "Country", "Edit Country"].includes(type)) {
+                                        modifyData(dataObj._id || type === "Edit Country" ? "Edit" : "Add");
                                     } else if (type === "Report View") {
                                         modifyData(dataObj._id, "Cancel");
                                     } else {
@@ -586,16 +675,16 @@ const CommonModel = ({
                             {
                                 !["Report View", "Task View", "Project View"].includes(type) && (
                                     <Button
-                                        onClick={() => (dataObj?._id ? editData(dataObj) : addData())}
+                                        onClick={() => (dataObj?._id || type === "Edit Country" ? editData(dataObj) : addData())}
                                         appearance="primary"
                                         disabled={
-                                            ["Project", "Assign", "Task", "Task Assign", "Report", "Company"].includes(type)
+                                            ["Project", "Assign", "Task", "Task Assign", "Report", "Company", "Country", "Edit Country"].includes(type)
                                                 ? false
                                                 // : (!dataObj?.[`${type}Name`] || !dataObj?.name) ? true
                                                 : (["Department", "Position"].includes(type) && dataObj?.company ? false : true)
                                         }
                                     >
-                                        {dataObj?._id ? "Update" : "Save"}
+                                        {dataObj?._id || type === "Edit Country" ? "Update" : "Save"}
                                     </Button>
                                 )
                             }
