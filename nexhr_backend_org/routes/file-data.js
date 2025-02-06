@@ -288,7 +288,7 @@ router.post("/employees", upload.single("documents"), verifyAdminHR, async (req,
             const row = excelData[i];
             employees.push(row);
             console.log(row);
-            
+
             const newEmp = {
                 FirstName: row[0],
                 LastName: row[1],
@@ -302,9 +302,20 @@ router.post("/employees", upload.single("documents"), verifyAdminHR, async (req,
                 code: row[9],
                 working: row[10],
                 dateOfJoining: row[11],
-                employeementType: row[12],
+                employmentType: row[12],
                 decription: row[13],
                 bloodGroup: row[14],
+                annualLeaveEntitlement: 14,
+                typesOfLeaveCount: {
+                    "Annual Leave": "7",
+                    "Sick Leave": "7",
+                    "permission": "2"
+                },
+                typesOfLeaveRemainingDays: {
+                    "Annual Leave": "7",
+                    "Sick Leave": "7"
+                },
+                workingTimePattern: "679ca37c9ac5c938538f18ba",
                 emergencyContacts: [{
                     name: row[15]?.split("")[0],
                     phone: row[15]?.split("")[1]

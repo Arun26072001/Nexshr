@@ -922,7 +922,6 @@ function generateCoverByEmail(empData, relievingOffData) {
   `;
 }
 
-
 leaveApp.put('/:id', verifyHREmployee, async (req, res) => {
   try {
     const today = new Date();
@@ -993,7 +992,6 @@ leaveApp.put('/:id', verifyHREmployee, async (req, res) => {
     return res.status(500).send({ error: 'An error occurred while processing the request.' });
   }
 });
-
 
 leaveApp.delete("/:empId/:leaveId", verifyEmployee, async (req, res) => {
   try {
