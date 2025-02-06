@@ -265,7 +265,7 @@ router.post("/:orgId", verifyAdminHR, async (req, res) => {
       From: process.env.FROM_MAIL,
       To: Email,
       Subject: "Welcome to NexsHR",
-      HtmlContent: htmlContent,
+      HtmlBody: htmlContent,
     });
 
     res.status(201).json({ message: "Employee details saved successfully!", employee });

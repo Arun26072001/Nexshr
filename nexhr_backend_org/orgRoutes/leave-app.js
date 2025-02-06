@@ -458,7 +458,7 @@ leaveApp.post("/:orgId/:empId", verifyAdminHREmployee, async (req, res) => {
                 From: process.env.FROM_MAIL,
                 To: Email,
                 Subject: "Welcome to NexsHR",
-                HtmlContent: htmlContent,
+                HtmlBody: htmlContent,
               });
 
               return res.status(201).send({ message: "Leave Request has been sent to Higher Authority." });

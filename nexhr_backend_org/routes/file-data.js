@@ -63,6 +63,7 @@ router.post("/attendance", upload.single("documents"), verifyAdminHR,
                 const emp = await Employee.findOne({ code: record.empCode })
                     .populate({ path: "clockIns", match: { date: { $gte: startOfDay, $lte: endOfDay } } })
                     .populate({ path: "leaveApplication", match: { fromDate: { $gte: startOfDay, $lte: endOfDay }, status: "approved" } })
+                    .populate({ path: "workingTimePattern" })
                     .exec();
 
                 if (!emp) continue;
@@ -131,14 +132,12 @@ router.post("/attendance", upload.single("documents"), verifyAdminHR,
                                 From: process.env.FROM_MAIL,
                                 To: emp.Email,
                                 Subject: `Half-day Leave Applied(Unpaid Leave (LWP))`,
-                                HtmlContent: htmlContent,
+                                HtmlBody: htmlContent,
                             })
                             continue;
                         }
                     } else {
                         try {
-                            console.log(emp);
-
                             const halfDayLeaveApp = {
                                 leaveType: "Unpaid Leave (LWP)",
                                 fromDate: today,
@@ -157,7 +156,7 @@ router.post("/attendance", upload.single("documents"), verifyAdminHR,
                             if (error) {
                                 return res.status(400).send({ error: error.details[0].message })
                             }
-                            await LeaveApplication.create(halfDayLeaveApp);
+                            const addLeave = await LeaveApplication.create(halfDayLeaveApp);
                             emp.leaveApplication.push(addLeave._id);
                             await emp.save();
 
@@ -193,7 +192,7 @@ router.post("/attendance", upload.single("documents"), verifyAdminHR,
                                 From: process.env.FROM_MAIL,
                                 To: emp.Email,
                                 Subject: `Half-day Leave Applied(Unpaid Leave (LWP))`,
-                                HtmlContent: htmlContent,
+                                HtmlBody: htmlContent,
                             })
                             continue;
                         } catch (error) {
@@ -257,7 +256,8 @@ router.post("/attendance", upload.single("documents"), verifyAdminHR,
                             From: process.env.FROM_MAIL,
                             To: emp.Email,
                             Subject: "Incomplete Working Hours Alert",
-                            HtmlContent: emailHtml,
+                            HtmlBody: emailHtml,
+                            TextBody: "Your working hours are incomplete. Please review your schedule."
                         });
                     }
                 }
@@ -287,6 +287,8 @@ router.post("/employees", upload.single("documents"), verifyAdminHR, async (req,
         for (let i = 1; i < excelData.length; i++) {
             const row = excelData[i];
             employees.push(row);
+            console.log(row);
+
             const newEmp = {
                 FirstName: row[0],
                 LastName: row[1],
@@ -300,12 +302,23 @@ router.post("/employees", upload.single("documents"), verifyAdminHR, async (req,
                 code: row[9],
                 working: row[10],
                 dateOfJoining: row[11],
-                employeementType: row[12],
+                employmentType: row[12],
                 decription: row[13],
                 bloodGroup: row[14],
+                annualLeaveEntitlement: 14,
+                typesOfLeaveCount: {
+                    "Annual Leave": "7",
+                    "Sick Leave": "7",
+                    "permission": "2"
+                },
+                typesOfLeaveRemainingDays: {
+                    "Annual Leave": "7",
+                    "Sick Leave": "7"
+                },
+                workingTimePattern: "679ca37c9ac5c938538f18ba",
                 emergencyContacts: [{
-                    name: row[15].split("")[0],
-                    phone: row[15].split("")[1]
+                    name: row[15]?.split("")[0],
+                    phone: row[15]?.split("")[1]
                 }]
             }
             try {
@@ -352,9 +365,10 @@ router.post("/employees", upload.single("documents"), verifyAdminHR, async (req,
                     From: process.env.FROM_MAIL,
                     To: addEmp.Email,
                     Subject: "Welcome To NexsHR",
-                    HtmlContent: htmlContent,
+                    HtmlBody: htmlContent,
                 });
             } catch (error) {
+                console.log(error);
                 return res.status(500).send({ error: error.message })
             }
         }

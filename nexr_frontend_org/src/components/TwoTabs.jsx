@@ -14,6 +14,7 @@ import { EssentialValues } from '../App';
 import axios from 'axios';
 import { toast } from 'react-toastify';
 import HolidayPicker from './MultipleDatePicker';
+import Loading from './Loader';
 
 function CustomTabPanel(props) {
   const { children, value, index, ...other } = props;
@@ -60,6 +61,7 @@ export default function Twotabs() {
   const [upComingHoliday, setupComingHoliday] = useState("");
   const [holidays, setHolidays] = useState([]);
   const [isAddHolidays, setIsAddHolidays] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleChange = (event, newValue) => {
     setValue(newValue);
@@ -90,7 +92,7 @@ export default function Twotabs() {
       try {
         const res = await getHoliday();
         console.log(res);
-        
+
         setHolidays(res)
       } catch (error) {
         setHolidays([])
@@ -103,6 +105,7 @@ export default function Twotabs() {
   useEffect(() => {
     // debugger;
     const gettingLeaveRequests = async () => {
+      setIsLoading(true)
       if (_id) {
         const leaveReqs = await fetchLeaveRequests(_id);
 
@@ -124,6 +127,7 @@ export default function Twotabs() {
           setTakenLeave(0);
         }
       }
+      setIsLoading(false);
     }
 
     gettingLeaveRequests();
@@ -163,27 +167,28 @@ export default function Twotabs() {
           </div>
 
           {
-            leaveRequests?.map((req, index) => {
-              // debugger;
-              let todayDate = today.getTime()
-              let leaveDate = new Date(req.fromDate).getTime()
-              if (todayDate < leaveDate) {
-                return (<div key={index} className={`leaveReq ${req.status === "pending" ? "bg-warning"
-                  : req.status === "rejected" ? "bg-danger" : "bg-success"}`}>
-                  {req.leaveType[0].toUpperCase() + req.leaveType.slice(1) + " "}
-                  {new Date(req.fromDate).toLocaleString("default", { month: "short" })} {new Date(req.fromDate).getDate()}th{" to "}{new Date(req.toDate).getDate()}th
-                </div>)
-              }
-            })
+            isLoading ? <Loading /> :
+              leaveRequests?.map((req, index) => {
+                // debugger;
+                let todayDate = today.getTime()
+                let leaveDate = new Date(req.fromDate).getTime()
+                if (todayDate < leaveDate) {
+                  return (<div key={index} className={`leaveReq ${req.status === "pending" ? "bg-warning"
+                    : req.status === "rejected" ? "bg-danger" : "bg-success"}`}>
+                    {req.leaveType[0].toUpperCase() + req.leaveType.slice(1) + " "}
+                    {new Date(req.fromDate).toLocaleString("default", { month: "short" })} {new Date(req.fromDate).getDate()}th{" to "}{new Date(req.toDate).getDate()}th
+                  </div>)
+                }
+              })
           }
 
           {
             holidays?.length > 0 &&
-              <div className="text-dark">
-                <p className='text-start'>Next up - Public Holiday</p>
-                <p className='text-primary text-start'><b>{upComingHoliday}</b></p>
-                <p className='mt-3 text-start'>You've also taken</p>
-              </div> 
+            <div className="text-dark">
+              <p className='text-start'>Next up - Public Holiday</p>
+              <p className='text-primary text-start'><b>{upComingHoliday}</b></p>
+              <p className='mt-3 text-start'>You've also taken</p>
+            </div>
           }
           <div className='text-center'>
             <div className='w-100'>
