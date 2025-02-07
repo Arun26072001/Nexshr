@@ -219,9 +219,10 @@ router.post("/", verifyAdminHR, async (req, res) => {
 
     const employeeData = {
       ...req.body,
-      teamLead: teamLead || ["665601de20a3c61c646a135f"],
-      managerId: managerId || ["6651e4a810994f1d24cf3a19"],
-      company: company || ["6651a5eb6115df44c0cc7151"],
+      role: req.body.role || "6718e3b9e67fca36a0a8357b",
+      // teamLead: teamLead || "665601de20a3c61c646a135f",
+      // managerId: managerId || "6651e4a810994f1d24cf3a19",
+      company: company || "6651a5eb6115df44c0cc7151",
       annualLeaveEntitlement: annualLeaveEntitlement || 14,
       employementType: employementType || "Full-time",
       typesOfLeaveCount: {...typesOfLeaveCount, Permission: 2},

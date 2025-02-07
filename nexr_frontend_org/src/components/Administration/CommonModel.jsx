@@ -292,6 +292,24 @@ const CommonModel = ({
                                 </div>
                             </div>}
                         {
+                            ["Task"].includes(type) &&
+                            <div className="col-half">
+                                <div className="modelInput">
+                                    <p className='modelLabel'>Status:</p>
+                                    <SelectPicker
+                                        required
+                                        data={['Pending', 'In Progress', 'Completed', 'On Hold'].map((data) => ({ label: data, value: data }))}
+                                        size="lg"
+                                        appearance='default'
+                                        style={{ width: "100%", zIndex: 1 }}
+                                        placeholder="Select Status"
+                                        value={dataObj?.status}
+                                        onChange={(e) => changeData(e, "status")}
+                                    />
+                                </div>
+                            </div>
+                        }
+                        {
                             ["Project", "Project View"].includes(type) &&
                             <div className="col-quat">
                                 <div className="modelInput">

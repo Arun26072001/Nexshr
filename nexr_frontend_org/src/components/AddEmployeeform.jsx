@@ -82,11 +82,11 @@ const AddEmployeeForm = ({ details, handleScroll, handlePersonal, handleFinancia
         Email: Yup.string().email('Invalid email format').required('Email is required'),
         Password: Yup.string().min(6, 'Password must be at least 6 characters').required('Password is required'),
         company: Yup.string().notOneOf(["Select Company"]).required("company is required"),
-        teamLead: Yup.string().required("teamLead is required"), // assuming it's an ObjectId or string
+        teamLead: Yup.string().optional(), // assuming it's an ObjectId or string
         managerId: Yup.string().optional(),
         countryCode: Yup.string().required("manager is required"),
         phone: Yup.string().min(10, "Phone number must be 10 degits").max(10, "Phone number must be 10 degits").required("Phone is Required"), // can add phone validation if needed
-        dateOfBirth: Yup.string().required("Date of Birth is required"),
+        dateOfBirth: Yup.string().optional(),
         gender: Yup.string().oneOf(['Male', 'Female'], 'invalid gender').required('Gender is required'),
         address: Yup.object().shape({
             city: Yup.string().optional(),
@@ -94,12 +94,12 @@ const AddEmployeeForm = ({ details, handleScroll, handlePersonal, handleFinancia
             country: Yup.string().optional(),
             zipCode: Yup.string().optional(),
         }).optional(),
-        position: Yup.string().required("Position is Required"),
+        position: Yup.string().optional(),
         department: Yup.string().required("Department is Required"),
-        role: Yup.string().required("Role is required"),
+        role: Yup.string().optional(),
         description: Yup.string().min(10, "mininum 10 characters must be in description").required("Description is required"),
         dateOfJoining: Yup.string().required("Joining date is Required"),
-        employmentType: Yup.string().oneOf(['full-time', 'part-time', 'contract'], 'Invalid employment type').required("Employment type is Required"),
+        employmentType: Yup.string().optional(),
         workingTimePattern: Yup.string().notOneOf(["Select Work Time Pattern"]).required("Time pattern is Required"),
         annualLeaveYearStart: Yup.date().optional().nullable(),
         publicHoliday: Yup.string().optional(),
