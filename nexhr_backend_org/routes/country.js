@@ -65,21 +65,9 @@ router.put("/:code", verifyAdmin, async (req, res) => {
     try {
         const countries = readData();
         const index = countries.findIndex(country => country.code === req.params.code);
-
         if (index === -1) return res.status(404).json({ message: "Country not found" });
-
         const country = countries[index];
-        // // Ensure state array exists
-        // if (!country.state) country.state = [];
-
-        // Check if state already exists
-        // const isExistState = country.state.some(item => item === req.body.state);
-        // if (isExistState) {
-        //     return res.status(400).send({ error: `${req.body.state} state already exists` });
-        // }
-
         country.state.push(req.body.state)
-
         countries[index] = { ...country, ...req.body };
         // Save changes
         writeData(countries);

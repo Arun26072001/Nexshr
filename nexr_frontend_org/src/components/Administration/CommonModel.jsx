@@ -27,8 +27,7 @@ const CommonModel = ({
     type // New prop to determine if it's for "department" or "position"
 }) => {
     const [confirmationTxt, setConfirmationTxt] = useState("");
-
-    console.log(dataObj);
+    const [isDisabled, setIsDisabled] = useState(true);
 
     return (
         <Modal open={isAddData} size="sm" backdrop="static">
@@ -198,6 +197,8 @@ const CommonModel = ({
                                 <div className="modelInput">
                                     <p className="modelLabel">{type === "Task" ? "From" : "Start Date"}</p>
                                     <DatePicker
+                                        showTimeSelect
+                                        dateFormat="Pp"
                                         className='rsuite_input'
                                         disabled={["Report View", "Task View"].includes(type) ? true : false}
                                         style={{ width: "100%" }}
@@ -214,12 +215,14 @@ const CommonModel = ({
                                 <div className="modelInput">
                                     <p className="modelLabel">To:</p>
                                     <DatePicker
+                                        showTimeSelect
+                                        dateFormat="Pp"
                                         className='rsuite_input'
                                         style={{ width: "100%" }}
                                         disabled={["Report View", "Task View"].includes(type) ? true : false}
                                         minDate={new Date()}
                                         placeholder="Select Due Date"
-                                        selected={dataObj?.to ? new Date(dataObj?.to) : dataObj?.endDate ? new Date(dataObj?.endDate) : ""}
+                                        selected={dataObj?.to ? dataObj?.to : dataObj?.endDate ? dataObj?.endDate : ""}
                                         onChange={(e) => changeData(e, type === "Task" ? "to" : "endDate")}
                                     />
                                 </div>
@@ -603,13 +606,13 @@ const CommonModel = ({
                                     type={"text"}
                                     id="stateInput"
                                     name={`state`}
-                                    // value={type === "Edit Country" ? "" : (dataObj?.[`state`] || "")}
                                     appearance='default'
-                                // onChange={(e) => changeData(e, "state")}
+                                    onChange={(e) => e !== "" ? setIsDisabled(false) : setIsDisabled(true)}
                                 />
-                                <button className='btn btn-primary addBtn' onClick={() => {
+                                <button className='btn btn-primary addBtn' disabled={isDisabled} onClick={() => {
                                     changeState('state', document.getElementById("stateInput").value)
                                     document.getElementById("stateInput").value = ""
+                                    setIsDisabled(true)
                                 }}>Add</button>
                                 <div className="inputContent">
                                     {

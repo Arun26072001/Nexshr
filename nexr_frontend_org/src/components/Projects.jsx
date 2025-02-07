@@ -103,7 +103,7 @@ export default function Projects({ employees }) {
             setIsAddProject(false)
             setProjectObj({})
         } catch (error) {
-            toast.error(error.response.data.error)
+            toast.error(error?.response?.data?.error)
         }
     }
 
