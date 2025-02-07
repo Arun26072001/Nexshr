@@ -31,8 +31,8 @@ var employeeSchema = new mongoose.Schema({
     zipCode: { type: String }
   },
   social: { type: mongoose.Schema.Types.Mixed, default: {} },
-  position: { type: mongoose.Schema.Types.ObjectId, ref: "Position" },
-  department: { type: mongoose.Schema.Types.ObjectId, ref: "Department" },
+  position: { type: mongoose.Schema.Types.ObjectId, ref: "Position",default:null },
+  department: { type: mongoose.Schema.Types.ObjectId, ref: "Department", default:null },
   role: { type: mongoose.Schema.Types.ObjectId, ref: "RoleAndPermission" },
   company: { type: mongoose.Schema.Types.ObjectId, ref: "Company" },
   description: { type: String },

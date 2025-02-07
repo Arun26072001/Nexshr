@@ -199,33 +199,36 @@ router.get('/:id', verifyAdminHREmployee, async (req, res) => {
 
   } catch (err) {
     console.log(err);
-    
+
     res.status(500).send({ details: err.message });
   }
 });
 
 router.post("/", verifyAdminHR, async (req, res) => {
   try {
-    const { Email, phone, FirstName, LastName, Password, teamLead, managerId, company,annualLeaveEntitlement, typesOfLeaveCount, employementType } = req.body;
+    const { Email, phone, FirstName, LastName, Password, teamLead, managerId, company, annualLeaveEntitlement, typesOfLeaveCount, employementType } = req.body;
 
     // Check if email already exists
     if (await Employee.exists({ Email })) {
-      return res.status(400).json({ message: "Email already exists" });
+      return res.status(400).json({ error: "Email already exists" });
     }
 
     if (await Employee.exists({ phone })) {
-      return res.status(400).json({ message: "Phone number already exists" });
+      return res.status(400).json({ error: "Phone number already exists" });
     }
 
     const employeeData = {
       ...req.body,
       role: req.body.role || "6718e3b9e67fca36a0a8357b",
-      // teamLead: teamLead || "665601de20a3c61c646a135f",
-      // managerId: managerId || "6651e4a810994f1d24cf3a19",
+      teamLead: teamLead || "665601de20a3c61c646a135f",
+      managerId: managerId || "6651e4a810994f1d24cf3a19",
+      workingTimePattern: req.body.workingTimePattern || "667a7413c8d506a974e3dabd",
       company: company || "6651a5eb6115df44c0cc7151",
+      position: null,
+      department: null,
       annualLeaveEntitlement: annualLeaveEntitlement || 14,
       employementType: employementType || "Full-time",
-      typesOfLeaveCount: {...typesOfLeaveCount, Permission: 2},
+      typesOfLeaveCount: { ...typesOfLeaveCount, Permission: 2 },
       typesOfLeaveRemainingDays: typesOfLeaveCount
     };
 
