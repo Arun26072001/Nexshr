@@ -11,9 +11,8 @@ import { useParams } from "react-router-dom";
 import Loading from "./Loader";
 import NoDataFound from "./payslip/NoDataFound";
 import { EssentialValues } from "../App";
-import { allCountries } from "./countryCode";
 
-const EditEmployeeform = ({ details, empData, handleScroll, handlePersonal, handleFinancial, handleJob, handleContact, handleEmployment, timePatterns, personalRef, contactRef, employmentRef, jobRef, financialRef, payslipRef, countries, companies, departments, positions, roles, leads, managers }) => {
+const EditEmployeeform = ({ details, empData, handleScroll, handlePersonal, handleFinancial, handleJob, handleContact, handleEmployment, timePatterns, personalRef, contactRef, employmentRef, jobRef, financialRef, countries, companies, departments, positions, roles, leads, managers }) => {
     const { id } = useParams();
     const { changeEmpEditForm } = useContext(TimerStates);
     const [stateData, setStateData] = useState([]);
@@ -187,7 +186,7 @@ const EditEmployeeform = ({ details, empData, handleScroll, handlePersonal, hand
             }
         };
 
-        const countryFullData = allCountries.find((country) => Object.values(country).includes(empData?.countryCode));
+        const countryFullData = countries.find((country) => Object.values(country).includes(empData?.countryCode));
         setSelectedCountry(countryFullData?.abbr)
         calculateTimeDifference();
     }, [formik.values.workingTimePattern]);
@@ -240,12 +239,12 @@ const EditEmployeeform = ({ details, empData, handleScroll, handlePersonal, hand
     const [hour, min] = hourAndMin;
 
     function changeCountry(value, name) {
-        const countryFullData = allCountries.find(country => Object.values(country).includes(value));
+        const countryFullData = countries.find(country => Object.values(country).includes(value));
 
         if (name === "country") {
             setSelectedCountry(value || "");
             formik.setFieldValue(`address.${name}`, value || "");
-            const states = allCountries.find(country => country.name === value)?.states || [];
+            const states = countries.find(country => country.name === value)?.states || [];
             setStateData(states);
         } else if (["state", "city", "zipCode"].includes(name)) {
             formik.setFieldValue(`address.${name}`, value || "");
@@ -434,7 +433,7 @@ const EditEmployeeform = ({ details, empData, handleScroll, handlePersonal, hand
                                             className={`selectInput p-0 ${formik.touched.countryCode && formik.errors.countryCode ? "error" : ""}`}
                                             style={{ background: "none", border: "none" }}
                                             size="lg"
-                                            data={allCountries}
+                                            data={countries}
                                             appearance="subtle"
                                             labelKey="name"
                                             valueKey="abbr"
@@ -478,7 +477,7 @@ const EditEmployeeform = ({ details, empData, handleScroll, handlePersonal, hand
                                             style={{ background: "none", border: "none" }}
                                             size="lg"
                                             appearance="subtle"
-                                            data={allCountries}
+                                            data={countries}
                                             labelKey="name"
                                             valueKey="name"
                                             value={selectedCountry}
@@ -645,7 +644,7 @@ const EditEmployeeform = ({ details, empData, handleScroll, handlePersonal, hand
                                             name="publicHoliday"
                                             value={formik.values.publicHoliday}
                                             onChange={(e) => changeCountry(e, "publicHoliday")}
-                                            data={allCountries?.map((item) => ({ label: item.name, value: item.name }))}
+                                            data={countries?.map((item) => ({ label: item.name, value: item.name }))}
                                         />
                                         {formik.touched.publicHoliday && formik.errors.publicHoliday ? (
                                             <div className="text-center text-danger">{formik.errors.publicHoliday}</div>

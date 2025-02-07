@@ -34,6 +34,9 @@ const projectValidation = Joi.object({
   tasks: Joi.array()
     .items(Joi.string().regex(/^[0-9a-fA-F]{24}$/).label('Task ID'))
     .label('Tasks'),
+  reports: Joi.array()
+    .items(Joi.string().regex(/^[0-9a-fA-F]{24}$/).label('Report ID').optional())
+    .label('Tasks'),
   description: Joi.string().allow('').label('Description'),
   status: Joi.string()
     .valid('Not Started', 'In Progress', 'Completed', 'On Hold')

@@ -1,7 +1,6 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Logo from "../imgs/webnexs_logo.webp";
 import "./landinPage.css";
-import { allCountries } from "./countryCode";
 import { Input, SelectPicker, Form, InputGroup } from "rsuite";
 import axios from "axios";
 import { toast, ToastContainer } from "react-toastify";
@@ -17,6 +16,7 @@ export default function LandingPage() {
         countryCode: "",
         phone: "",
     });
+    const [countries, setCountries] = useState([]);
     const [errorData, setErrorData] = useState({});
     const [visible, setVisible] = useState(false);
     const url = process.env.REACT_APP_API_URL;
@@ -68,7 +68,7 @@ export default function LandingPage() {
                 registerData,
                 {
                     headers: {
-                      Authorization: `${token}` || ""
+                        Authorization: `${token}` || ""
                     },
                 }
             );
@@ -87,6 +87,22 @@ export default function LandingPage() {
             }));
         }
     };
+
+    useEffect(() => {
+        async function fetchCountries() {
+            try {
+                const res = await axios.get(`${url}/api/country`, {
+                    headers: {
+                        authorization: token || ""
+                    }
+                })
+                setCountries(res.data)
+            } catch (err) {
+                toast.error(err.message)
+            }
+        }
+        fetchCountries()
+    })
 
     return (
         <div className="body">
@@ -182,7 +198,7 @@ export default function LandingPage() {
                                             className="mt-1"
                                             style={{ width: "fit-content" }}
                                             size="lg"
-                                            data={allCountries}
+                                            data={countries}
                                             labelKey="name"
                                             valueKey="code"
                                             value={registerData.countryCode}

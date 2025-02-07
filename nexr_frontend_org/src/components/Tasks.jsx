@@ -105,10 +105,17 @@ const Tasks = ({ employees }) => {
 
 
   function handleEditTask() {
+    if (isEditTask) {
+      setTaskObj({});
+    }
     setIsEditTask(!isEditTask);
   }
 
   function handleAddTask() {
+    if (isAddTask) {
+      setTaskObj({});
+      setPreviewList([]);
+    }
     setIsAddTask(!isAddTask)
   }
 
@@ -120,8 +127,6 @@ const Tasks = ({ employees }) => {
   }
 
   async function fetchTaskByProjectId(id) {
-    console.log("called");
-
     setIsLoading(true);
     try {
       const res = await axios.get(`${url}/api/task/project/${id}`, {
