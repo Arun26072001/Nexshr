@@ -9,6 +9,7 @@ const reportSchema = new mongoose.Schema({
     company: { type: mongoose.Schema.Types.ObjectId, ref: "Company" },
     project: { type: mongoose.Schema.Types.ObjectId, ref: "Project" },
     employees: [{ type: mongoose.Schema.Types.ObjectId, ref: "Employee" }],
+    task: { type: mongoose.Schema.Types.ObjectId, ref: "Task" },
     createdby: { type: mongoose.Schema.Types.ObjectId, ref: "Employee" }
 }, { timestamps: true })
 

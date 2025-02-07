@@ -8,7 +8,6 @@ import { fetchPayslipInfo } from "./ReuseableAPI";
 import { useNavigate } from "react-router-dom";
 import { SelectPicker, TagPicker } from "rsuite";
 import Loading from "./Loader";
-import { allCountries } from "./countryCode";
 import NoDataFound from "./payslip/NoDataFound";
 import { EssentialValues } from "../App";
 
@@ -317,15 +316,14 @@ const AddEmployeeForm = ({ details, handleScroll, handlePersonal, handleFinancia
         gettingLeaveTypes();
         setIsLoading(false);
     }, []);
-    console.log(formik.values);
 
     function changeCountry(value, name) {
-        const countryFullData = allCountries.find(country => Object.values(country).includes(value));
+        const countryFullData = countries.find(country => Object.values(country).includes(value));
 
         if (name === "country") {
             setSelectedCountry(value || "");
             formik.setFieldValue(`address.${name}`, value || "");
-            const states = allCountries.find(country => country.name === value)?.states || [];
+            const states = countries.find(country => country.name === value)?.states || [];
             setStateData(states);
         } else if (["state", "city", "zipCode"].includes(name)) {
             formik.setFieldValue(`address.${name}`, value || "");
@@ -530,7 +528,7 @@ const AddEmployeeForm = ({ details, handleScroll, handlePersonal, handleFinancia
                                         className={`p-0 selectInput ${formik.touched.countryCode && formik.errors.countryCode ? "error" : ""}`}
                                         style={{ background: "none", border: "none", marginTop: "0px" }}
                                         size="lg"
-                                        data={allCountries}
+                                        data={countries}
                                         appearance="subtle"
                                         labelKey="name"
                                         valueKey="name"
@@ -574,7 +572,7 @@ const AddEmployeeForm = ({ details, handleScroll, handlePersonal, handleFinancia
                                         style={{ background: "none", border: "none" }}
                                         size="lg"
                                         appearance="subtle"
-                                        data={allCountries}
+                                        data={countries}
                                         labelKey="name"
                                         valueKey="name"
                                         value={selectedCountry}
@@ -735,7 +733,7 @@ const AddEmployeeForm = ({ details, handleScroll, handlePersonal, handleFinancia
                                         name="publicHoliday"
                                         value={formik.values.publicHoliday}
                                         onChange={(e) => changeCountry(e, "publicHoliday")}
-                                        data={allCountries?.map((item) => ({ label: item.name, value: item.name }))}
+                                        data={countries?.map((item) => ({ label: item.name, value: item.name }))}
                                     />
                                     {formik.touched.publicHoliday && formik.errors.publicHoliday ? (
                                         <div className="text-center text-danger">{formik.errors.publicHoliday}</div>
