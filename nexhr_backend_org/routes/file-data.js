@@ -291,8 +291,7 @@ router.post("/employees", upload.single("documents"), verifyAdminHR, async (req,
             console.log(row);
 
 
-            if (!Employee.exists({ code: row[9] })) {
-
+            if (!Employee.exists({ code: row[9] }) && row[0] !== "") {
                 const newEmp = {
                     FirstName: row[0],
                     LastName: row[1],
