@@ -282,12 +282,16 @@ router.post("/employees", upload.single("documents"), verifyAdminHR, async (req,
         const workbook = XLSX.readFile(filePath);
         const sheet = workbook.Sheets[workbook.SheetNames[0]];
         const excelData = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+        console.log(excelData.length);
+
 
         let employees = [];
         for (let i = 1; i < excelData.length; i++) {
             const row = excelData[i];
+            console.log(row);
+
+
             if (!Employee.exists({ code: row[9] })) {
-                employees.push(row);
 
                 const newEmp = {
                     FirstName: row[0],
@@ -317,10 +321,11 @@ router.post("/employees", upload.single("documents"), verifyAdminHR, async (req,
                     },
                     workingTimePattern: "679ca37c9ac5c938538f18ba",
                     emergencyContacts: [{
-                        name: row[15]?.split("")[0],
-                        phone: row[15]?.split("")[1]
+                        name: row[15]?.split(" ")[0],
+                        phone: row[15]?.split(" ")[1]
                     }]
                 }
+                employees.push(newEmp)
                 try {
                     const addEmp = await Employee.create(newEmp);
                     const htmlContent = `
@@ -378,7 +383,7 @@ router.post("/employees", upload.single("documents"), verifyAdminHR, async (req,
 
         fs.unlinkSync(filePath); // Delete file after processing
 
-        res.status(200).json({ status: true, message: "File processed successfully!", data: employees });
+        res.status(200).json({ status: true, message: `File processed successfully and ${employees.length} affected!`, data: employees });
     } catch (error) {
         console.error(error);
         res.status(500).json({ status: false, error: error.message || "An error occurred during the bulk import process." });
