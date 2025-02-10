@@ -9,6 +9,7 @@ import NoDataFound from './NoDataFound';
 import { EssentialValues } from '../../App';
 import AddRoundedIcon from '@mui/icons-material/AddRounded';
 import axios from "axios";
+import employeesData from "../../files/Employees data.xlsx";
 
 export default function Employee() {
     const url = process.env.REACT_APP_API_URL;
@@ -110,6 +111,11 @@ export default function Employee() {
                     />
                 </div>
             </div>
+            <p className='text-end px-2 my-2'>
+                <a href={employeesData} download={employeesData}>
+                    Download Employee data model file
+                </a>
+            </p>
             <div className='employee d-block'>
                 {/* content */}
                 <div className='px-3'>
