@@ -98,3 +98,9 @@ thead {
 .total {
   border-right: 1px solid rgba(224, 224, 224, 1);
 }
+.processing {
+  width: 243px;
+  height: 77px;
+  padding: 10px;
+  text-align: center;
+}

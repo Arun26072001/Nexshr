@@ -7,7 +7,8 @@ import jobDeskIcon from '../../../asserts/jobDeskIcon.svg';
 import userIcon from '../../../asserts/userIcon.svg';
 import leaveIcon from '../../../asserts/leaveIcon.svg';
 import attendanceIcon from '../../../asserts/attendanceIcon.svg';
-import CalendarTodayRoundedIcon from '@mui/icons-material/CalendarTodayRounded';
+// import CalendarTodayRoundedIcon from '@mui/icons-material/CalendarTodayRounded';
+import calendarIcon from "../../../asserts/calendar.svg";
 import adminIcon from '../../../asserts/adminIcon.svg';
 import homeIcon from '../../../asserts/homeIcon.svg';
 import fileIcon from "../../../asserts/file.svg";
@@ -155,7 +156,7 @@ const Sidebar = ({ sideBar }) => {
         {renderNavLink(
           ['hr', "emp"].includes(whoIs),
           `/${whoIs}/calendar`,
-          CalendarTodayRoundedIcon,
+          calendarIcon,
           'Calendar',
           'calendar'
         )}

@@ -283,11 +283,11 @@ router.post("/employees", upload.single("documents"), verifyAdminHR, async (req,
         const sheet = workbook.Sheets[workbook.SheetNames[0]];
         const excelData = XLSX.utils.sheet_to_json(sheet, { header: 1 });
         console.log(excelData.length);
+        // const default
 
         let employees = [];
         for (let i = 1; i < excelData.length; i++) {
             const row = excelData[i];
-            console.log(row);
 
             const employeeExists = await Employee.exists({ code: row[9] });
             if (!employeeExists && row[0]?.trim()) {
@@ -313,10 +313,12 @@ router.post("/employees", upload.single("documents"), verifyAdminHR, async (req,
                         "Sick Leave": "7",
                         "permission": "2"
                     },
+
                     typesOfLeaveRemainingDays: {
                         "Annual Leave": "7",
                         "Sick Leave": "7"
                     },
+                    role: "6718e3b9e67fca36a0a8357b",
                     workingTimePattern: "679ca37c9ac5c938538f18ba",
                     emergencyContacts: row[15] ? [{
                         name: row[15]?.split(" ")[0] || "",
