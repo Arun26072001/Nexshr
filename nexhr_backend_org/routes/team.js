@@ -1,10 +1,10 @@
 const express = require("express");
 const router = express.Router();
-const { verifyAdminHR, verifyEmployee } = require("../auth/authMiddleware");
+const { verifyAdminHR, verifyEmployee, verifyAdminHREmployee } = require("../auth/authMiddleware");
 const { TeamValidation, Team } = require("../models/TeamModel");
 const { Employee } = require("../models/EmpModel");
 
-router.get("/", verifyAdminHR, async (req, res) => {
+router.get("/", verifyAdminHREmployee, async (req, res) => {
     try {
         // const { orgName } = jwt.decode(req.headers['authorization']);
         // const Team = getTeamModel(orgName)

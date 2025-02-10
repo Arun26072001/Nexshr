@@ -248,8 +248,6 @@ const Tasks = ({ employees }) => {
 
       // Append each file to the FormData
       for (let index = 0; index < files.length; index++) {
-        console.log(files[index]);
-
         formData.append("documents", files[index]); // Ensure correct field name for your backend
       }
 
@@ -296,6 +294,22 @@ const Tasks = ({ employees }) => {
 
   }
 
+  async function fetchEmpsProjects() {
+    setIsLoading(true)
+    try {
+        const res = await axios.get(`${url}/api/project/emp/${data._id}`, {
+            headers: {
+                Authorization: data.token || ""
+            }
+        })
+        setProjects(res.data);
+    } catch (error) {
+        toast.error(error.response.data.error)
+    }
+    setIsLoading(false)
+}
+
+
   useEffect(() => {
     async function fetchProjects() {
       setIsLoading(true)
@@ -312,7 +326,11 @@ const Tasks = ({ employees }) => {
       }
       setIsLoading(false)
     }
-    fetchProjects();
+      fetchProjects();
+    // if (whoIs === "admin" || isTeamLead || isTeamHead) {
+    // } else {
+    //   fetchEmpsProjects()
+    // }
   }, [])
 
   async function getValue(task) {

@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { Project, ProjectValidation, projectValidation } = require('../models/ProjectModel');
-const { verifyAdmin } = require('../auth/authMiddleware');
+const { verifyAdmin, verifyAdminHREmployee } = require('../auth/authMiddleware');
 const Joi = require("joi");
 const { Task } = require('../models/TaskModel');
 const sendMail = require('./mailSender');
@@ -19,7 +19,7 @@ router.get("/:id", verifyAdmin, async (req, res) => {
   }
 });
 
-router.get("/", verifyAdmin, async (req, res) => {
+router.get("/", verifyAdminHREmployee, async (req, res) => {
   try {
     let projects = await Project.find()
       .populate({ path: "company", select: "CompanyName" })
@@ -43,6 +43,15 @@ router.get("/", verifyAdmin, async (req, res) => {
   }
 });
 
+router.get("/emp/:id", verifyAdminHREmployee, async (req, res) => {
+  try {
+    const projects = await Project.find({ employees: { $in: req.params.id } }).exec();
+    return res.send(projects);
+  } catch (error) {
+    return res.status(500).send({ error: error.message })
+  }
+})
+
 router.post("/:id", verifyAdmin, async (req, res) => {
   try {
     const assignees = await Employee.find({ _id: req.body.employees }, "FirstName LastName Email");
@@ -63,7 +72,7 @@ router.post("/:id", verifyAdmin, async (req, res) => {
 
     // send mail for assignees
     assignees.map((emp) => {
-      const empName = emp.FirstName[0].toUpperCase()+emp.FirstName.slice(1)+" "+emp.LastName
+      const empName = emp.FirstName[0].toUpperCase() + emp.FirstName.slice(1) + " " + emp.LastName
       return sendMail({
         From: Email,
         To: emp.Email,
@@ -108,13 +117,13 @@ router.post("/:id", verifyAdmin, async (req, res) => {
         </div>
         <div class="content">
             <p>Hey ${empName} 👋,</p>
-            <p><b>${FirstName[0].toUpperCase()+FirstName.slice(1)} has created a project named "${req.body.name}".</b></p>
+            <p><b>${FirstName[0].toUpperCase() + FirstName.slice(1)} has created a project named "${req.body.name}".</b></p>
             <p>As a result, you have been assigned as a member of this project.</p>
             <p>Please follow the instructions.</p><br />
             <p>Thank you!</p>
         </div>
         <div class="footer">
-            <p>Have questions? Need help? <a href="mailto:${Email}">Contact ${FirstName[0].toUpperCase()+FirstName.slice(1)}</a>.</p>
+            <p>Have questions? Need help? <a href="mailto:${Email}">Contact ${FirstName[0].toUpperCase() + FirstName.slice(1)}</a>.</p>
         </div>
     </div>
 </body>

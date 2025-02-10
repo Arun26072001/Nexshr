@@ -13,9 +13,11 @@ import NoDataFound from './payslip/NoDataFound';
 import BorderColorRoundedIcon from '@mui/icons-material/BorderColorRounded';
 import DeleteRoundedIcon from '@mui/icons-material/DeleteRounded';
 import RemoveRedEyeRoundedIcon from '@mui/icons-material/RemoveRedEyeRounded';
+import { jwtDecode } from 'jwt-decode';
 
 export default function Projects({ employees }) {
     const { whoIs, data } = useContext(EssentialValues);
+    const { isTeamLead, isTeamHead } = jwtDecode(data.token)
     const [teams, setTeams] = useState([]);
     const [isDelete, setIsDelete] = useState({ type: false, value: "" });
     const [isEdit, setIsEdit] = useState(false);
@@ -91,6 +93,21 @@ export default function Projects({ employees }) {
         setIsLoading(false)
     }
 
+    async function fetchEmpsProjects() {
+        setIsLoading(true)
+        try {
+            const res = await axios.get(`${url}/api/project/emp/${data._id}`, {
+                headers: {
+                    Authorization: data.token || ""
+                }
+            })
+            setProjects(res.data);
+        } catch (error) {
+            toast.error(error.response.data.error)
+        }
+        setIsLoading(false)
+    }
+
     async function updateProject() {
         try {
             const res = await axios.put(`${url}/api/project/${projectObj?._id}`, projectObj, {
@@ -132,9 +149,10 @@ export default function Projects({ employees }) {
             }
         }
         gettingsTeams();
-        // fetchProjects();
-        if (whoIs === "admin") {
+        if (whoIs === "admin" || isTeamLead || isTeamHead) {
             fetchProjects();
+        } else {
+            fetchEmpsProjects()
         }
     }, [isAddProject, isDelete.type, isEdit])
 
@@ -176,13 +194,13 @@ export default function Projects({ employees }) {
     }
 
     function handleViewProject() {
-        if(isViewProject){
+        if (isViewProject) {
             setProjectObj({})
         }
         setIsViewProject(!isViewProject)
     }
     console.log(projectObj);
-    
+
 
     useEffect(() => {
         fetchCompanies();
@@ -226,127 +244,127 @@ export default function Projects({ employees }) {
             </Popover>
         );
     };
-    
+
 
     return (
         isViewProject ? <CommonModel type="Project View" comps={companies} teams={teams} isAddData={isViewProject} employees={employees} dataObj={projectObj} modifyData={handleViewProject} /> :
-        isEdit ? <CommonModel type="Assign" isAddData={isEdit} employees={employees} changeData={changeProject} dataObj={projectObj} editData={updateProject} modifyData={handleEditProject} /> :
-            isDelete.type ? <CommonModel type="Confirmation" modifyData={handleDeleteProject} deleteData={deleteProject} isAddData={isDelete} /> :
-                isAddProject ? <CommonModel
-                    comps={companies}
-                    dataObj={projectObj}
-                    isAddData={isAddProject}
-                    changeData={changeProject}
-                    teams={teams}
-                    addData={addProject}
-                    type="Project"
-                    editData={updateProject}
-                    employees={employees}
-                    modifyData={handleAddProject} />
-                    : isLoading ? < Loading /> : <>
-                        <div className="projectParent">
-                            <div className="projectTitle col-lg-6">Projects</div>
-                            <div className="col-lg-6 projectChild">
-                                <SelectPicker
-                                    data={companies}
-                                    size="lg"
-                                    appearance="default"
-                                    style={{ width: 300 }}
-                                    placeholder="Search By Company"
-                                    onChange={filterByName}
-                                    value={name}
-                                />
-                                <div className="button" onClick={handleAddProject}>
-                                    + Add Project
+            isEdit ? <CommonModel type="Assign" isAddData={isEdit} employees={employees} changeData={changeProject} dataObj={projectObj} editData={updateProject} modifyData={handleEditProject} /> :
+                isDelete.type ? <CommonModel type="Confirmation" modifyData={handleDeleteProject} deleteData={deleteProject} isAddData={isDelete} /> :
+                    isAddProject ? <CommonModel
+                        comps={companies}
+                        dataObj={projectObj}
+                        isAddData={isAddProject}
+                        changeData={changeProject}
+                        teams={teams}
+                        addData={addProject}
+                        type="Project"
+                        editData={updateProject}
+                        employees={employees}
+                        modifyData={handleAddProject} />
+                        : isLoading ? < Loading /> : <>
+                            <div className="projectParent">
+                                <div className="projectTitle col-lg-6">Projects</div>
+                                <div className="col-lg-6 projectChild">
+                                    <SelectPicker
+                                        data={companies}
+                                        size="lg"
+                                        appearance="default"
+                                        style={{ width: 300 }}
+                                        placeholder="Search By Company"
+                                        onChange={filterByName}
+                                        value={name}
+                                    />
+                                    <div className="button" onClick={handleAddProject}>
+                                        + Add Project
+                                    </div>
                                 </div>
                             </div>
-                        </div>
 
-                        <div className="projectBody" style={{ justifyContent: "end" }}>
-                            <div className="row d-flex justify-content-end mb-2">
-                                <div className="col-lg-3">
-                                    <div className="modelInput">
-                                        <SelectPicker
-                                            required
-                                            data={['Not Started', 'In Progress', 'Completed', 'On Hold'].map((status) => ({
-                                                label: status,
-                                                value: status,
-                                            }))}
-                                            size="lg"
-                                            appearance="default"
-                                            style={{ width: "100%" }}
-                                            onChange={filterByName}
-                                            value={name}
-                                            placeholder="Search by Status"
-                                        />
+                            <div className="projectBody" style={{ justifyContent: "end" }}>
+                                <div className="row d-flex justify-content-end mb-2">
+                                    <div className="col-lg-3">
+                                        <div className="modelInput">
+                                            <SelectPicker
+                                                required
+                                                data={['Not Started', 'In Progress', 'Completed', 'On Hold'].map((status) => ({
+                                                    label: status,
+                                                    value: status,
+                                                }))}
+                                                size="lg"
+                                                appearance="default"
+                                                style={{ width: "100%" }}
+                                                onChange={filterByName}
+                                                value={name}
+                                                placeholder="Search by Status"
+                                            />
+                                        </div>
+                                    </div>
+                                    <div className="col-lg-3">
+                                        <div className="modelInput">
+                                            <Input size="lg" appearance="default" placeholder="Search" onChange={filterByName} />
+                                        </div>
                                     </div>
                                 </div>
-                                <div className="col-lg-3">
-                                    <div className="modelInput">
-                                        <Input size="lg" appearance="default" placeholder="Search" onChange={filterByName} />
-                                    </div>
-                                </div>
-                            </div>
-                            <div className="container">
-                                <div className="row mx-2">
-                                    {projects.length > 0 ? (
-                                        projects.map((project) => (
-                                            <div key={project._id} className="col-lg-4 col-md-6 mb-4">
-                                                <div className="box-content">
-                                                    <div className="progress my-2">
+                                <div className="container">
+                                    <div className="row mx-2">
+                                        {projects.length > 0 ? (
+                                            projects.map((project) => (
+                                                <div key={project._id} className="col-lg-4 col-md-6 mb-4">
+                                                    <div className="box-content">
+                                                        <div className="progress my-2">
+                                                            <div
+                                                                className="progress-bar progress-bar-striped"
+                                                                role="progressbar"
+                                                                style={{ width: `${project.progress || 0}%` }}
+                                                                aria-valuenow={project.progress || 0}
+                                                                aria-valuemin="0"
+                                                                aria-valuemax="100"
+                                                            ></div>
+                                                        </div>
+                                                        <div className="projectDetails my-3">
+                                                            <h5>
+                                                                ({project.prefix}) - {project.name}
+                                                            </h5>
+                                                            <span style={{ cursor: "pointer" }}>
+                                                                <Whisper placement="bottomEnd" trigger="click" speaker={renderMenu(project)}>
+                                                                    <MoreVertIcon />
+                                                                </Whisper>
+                                                            </span>
+                                                        </div>
+                                                        <div className="projectDetails m-0">
+                                                            <span className="defaultDesign">({project.status})</span>
+                                                            <span>
+                                                                <b>{project?.pendingTasks?.length || 0}</b> Pending Task(s)
+                                                            </span>
+                                                        </div>
                                                         <div
-                                                            className="progress-bar progress-bar-striped"
-                                                            role="progressbar"
-                                                            style={{ width: `${project.progress || 0}%` }}
-                                                            aria-valuenow={project.progress || 0}
-                                                            aria-valuemin="0"
-                                                            aria-valuemax="100"
-                                                        ></div>
-                                                    </div>
-                                                    <div className="projectDetails my-3">
-                                                        <h5>
-                                                            ({project.prefix}) - {project.name}
-                                                        </h5>
-                                                        <span style={{ cursor: "pointer" }}>
-                                                            <Whisper placement="bottomEnd" trigger="click" speaker={renderMenu(project)}>
-                                                                <MoreVertIcon />
-                                                            </Whisper>
-                                                        </span>
-                                                    </div>
-                                                    <div className="projectDetails m-0">
-                                                        <span className="defaultDesign">({project.status})</span>
-                                                        <span>
-                                                            <b>{project?.pendingTasks?.length || 0}</b> Pending Task(s)
-                                                        </span>
-                                                    </div>
-                                                    <div
-                                                        className="d-flex justify-content-end"
-                                                        style={{ color: "#6c757d" }}
-                                                    >
-                                                        Client: {project?.company?.CompanyName}
-                                                    </div>
-                                                    <div className="d-flex align-items-center gap-2 my-3">
-                                                        {project.employees.map((emp) => (
-                                                            <div className="nameHolder" style={{ width: "35px", height: "35px" }} key={emp._id}>
-                                                                {emp.FirstName[0].toUpperCase() +
-                                                                    emp.LastName[0].toUpperCase()}
-                                                            </div>
-                                                        ))}
-                                                        <AddCircleOutlineRoundedIcon fontSize="large" sx={{ cursor: "pointer" }} color="disabled" onClick={() => {
-                                                            fetchProjectById(project._id)
-                                                            handleEditProject()
-                                                        }} />
+                                                            className="d-flex justify-content-end"
+                                                            style={{ color: "#6c757d" }}
+                                                        >
+                                                            Client: {project?.company?.CompanyName}
+                                                        </div>
+                                                        <div className="d-flex align-items-center gap-2 my-3">
+                                                            {project.employees.map((emp) => (
+                                                                <div className="nameHolder" style={{ width: "35px", height: "35px" }} key={emp._id}>
+                                                                    {emp.FirstName[0].toUpperCase() +
+                                                                        emp.LastName[0].toUpperCase()}
+                                                                </div>
+                                                            ))}
+                                                            <AddCircleOutlineRoundedIcon fontSize="large" sx={{ cursor: "pointer" }} color="disabled" onClick={() => {
+                                                                fetchProjectById(project._id)
+                                                                handleEditProject()
+                                                            }} />
+                                                        </div>
                                                     </div>
                                                 </div>
-                                            </div>
-                                        ))
-                                    ) : (
-                                        <NoDataFound message={"Project Not Found"} />
-                                    )}
+                                            ))
+                                        ) : (
+                                            <NoDataFound message={"Project Not Found"} />
+                                        )}
+                                    </div>
                                 </div>
-                            </div>
 
-                        </div>
-                    </>
+                            </div>
+                        </>
     )
 }
