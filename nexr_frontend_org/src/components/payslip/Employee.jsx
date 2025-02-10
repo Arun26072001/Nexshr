@@ -10,6 +10,7 @@ import { EssentialValues } from '../../App';
 import AddRoundedIcon from '@mui/icons-material/AddRounded';
 import axios from "axios";
 import employeesData from "../../files/Employees data.xlsx";
+import { Progress } from 'rsuite';
 
 export default function Employee() {
     const url = process.env.REACT_APP_API_URL;
@@ -17,23 +18,33 @@ export default function Employee() {
     const [employees, setEmployees] = useState([]);
     const [empName, setEmpName] = useState("");
     const [allEmployees, setAllEmployees] = useState([]);
+    const [isModifyEmps, setIsModifyEmps] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
+    const [processing, setProessing] = useState(0);
     const navigate = useNavigate();
     const [errorData, setErrorData] = useState("");
 
+    function handleModifyEmps() {
+        setIsModifyEmps(!isModifyEmps)
+    }
     // Handle file upload
     const handleUpload = async (file) => {
         const formData = new FormData();
         formData.append('documents', file);
-
         try {
             const response = await axios.post(`${url}/api/google-sheet/upload/employees`, formData, {
                 headers: {
                     'Content-Type': 'multipart/form-data',
                     Authorization: data.token || ""
                 },
+                onUploadProgress: (progressEvent) => {
+                    const { loaded, total } = progressEvent;
+                    let percentage = Math.floor((loaded * 100) / total);
+                    setProessing(percentage);
+                }
             });
-            toast.success(response.data.message)
+            toast.success(response.data.message);
+            handleModifyEmps();
         } catch (error) {
             console.error('File upload failed:', error);
             toast.error(error.response.data.error);
@@ -74,7 +85,7 @@ export default function Employee() {
         } else {
             fetchEmployeeData();
         }
-    }, []);
+    }, [isModifyEmps]);
 
     // Filter employees when `empName` changes
     useEffect(() => {
@@ -90,6 +101,17 @@ export default function Employee() {
 
     return (
         <>
+            {processing > 0 && (
+                <div className='processing box-content'>
+                    File upload Processing...
+                    <Progress.Line
+                        percent={processing}
+                        strokeColor={'#3385ff'}
+                        status={processing === 100 ? 'success' : 'active'}
+                    />
+                </div>
+            )}
+
             {/* head */}
             <div className='d-flex justify-content-between px-2'>
                 <p className="payslipTitle">
