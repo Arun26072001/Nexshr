@@ -284,14 +284,13 @@ router.post("/employees", upload.single("documents"), verifyAdminHR, async (req,
         const excelData = XLSX.utils.sheet_to_json(sheet, { header: 1 });
         console.log(excelData.length);
 
-
         let employees = [];
         for (let i = 1; i < excelData.length; i++) {
             const row = excelData[i];
             console.log(row);
 
-
-            if (!Employee.exists({ code: row[9] }) && row[0] !== "") {
+            const employeeExists = await Employee.exists({ code: row[9] });
+            if (!employeeExists && row[0]?.trim()) {
                 const newEmp = {
                     FirstName: row[0],
                     LastName: row[1],
@@ -306,7 +305,7 @@ router.post("/employees", upload.single("documents"), verifyAdminHR, async (req,
                     working: row[10],
                     dateOfJoining: row[11],
                     employmentType: row[12],
-                    decription: row[13],
+                    description: row[13],
                     bloodGroup: row[14],
                     annualLeaveEntitlement: 14,
                     typesOfLeaveCount: {
@@ -319,69 +318,67 @@ router.post("/employees", upload.single("documents"), verifyAdminHR, async (req,
                         "Sick Leave": "7"
                     },
                     workingTimePattern: "679ca37c9ac5c938538f18ba",
-                    emergencyContacts: [{
-                        name: row[15]?.split(" ")[0],
-                        phone: row[15]?.split(" ")[1]
-                    }]
-                }
-                employees.push(newEmp)
+                    emergencyContacts: row[15] ? [{
+                        name: row[15]?.split(" ")[0] || "",
+                        phone: row[15]?.split(" ")[1] || ""
+                    }] : []
+                };
+
+                employees.push(newEmp);
                 try {
                     const addEmp = await Employee.create(newEmp);
                     const htmlContent = `
-                    <!DOCTYPE html>
-                    <html lang="en">
-                    <head>
-                      <meta charset="UTF-8">
-                      <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                      <title>NexsHR</title>
-                      <style>
-                        body { font-family: Arial, sans-serif; background-color: #f6f9fc; color: #333; }
-                        .container { max-width: 600px; margin: auto; padding: 20px; background-color: #fff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); }
-                        .header { text-align: center; padding: 20px; }
-                        .header img { max-width: 100px; }
-                        .content { margin: 20px 0; }
-                        .footer { text-align: center; font-size: 14px; margin-top: 20px; color: #777; }
-                        .button { display: inline-block; padding: 10px 20px; background-color: #28a745; color: #fff !important; text-decoration: none; border-radius: 5px; margin-top: 10px; }
-                      </style>
-                    </head>
-                    <body>
-                      <div class="container">
-                        <div class="header">
-                          <img src="https://imagedelivery.net/r89jzjNfZziPHJz5JXGOCw/1dd59d6a-7b64-49d7-ea24-1366e2f48300/public" alt="Logo" />
-                          <h1>Welcome To NexsHR</h1>
-                        </div>
-                        <div class="content">
-                          <p>Hey ${addEmp.FirstName} ${addEmp.LastName} 👋,</p>
-                          <p><b>Your credentials</b></p><br />
-                          <p><b>Email</b>: ${addEmp.Email}</p><br />
-                          <p><b>Password</b>: ${addEmp.Password}</p><br />
-                          <p>Your details has been register! Please confirm your email by clicking the button below.</p>
-                          <a href="${process.env.FRONTEND_URL}" class="button">Confirm Email</a>
-                        </div>
-                        <div class="footer">
-                          <p>Have questions? Need help? <a href="mailto:webnexs29@gmail.com">Contact our support team</a>.</p>
-                        </div>
-                      </div>
-                    </body>
-                    </html>`;
+                        <!DOCTYPE html>
+                        <html lang="en">
+                        <head>
+                          <meta charset="UTF-8">
+                          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                          <title>NexsHR</title>
+                          <style>
+                            body { font-family: Arial, sans-serif; background-color: #f6f9fc; color: #333; }
+                            .container { max-width: 600px; margin: auto; padding: 20px; background-color: #fff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); }
+                            .header { text-align: center; padding: 20px; }
+                            .header img { max-width: 100px; }
+                            .content { margin: 20px 0; }
+                            .footer { text-align: center; font-size: 14px; margin-top: 20px; color: #777; }
+                            .button { display: inline-block; padding: 10px 20px; background-color: #28a745; color: #fff !important; text-decoration: none; border-radius: 5px; margin-top: 10px; }
+                          </style>
+                        </head>
+                        <body>
+                          <div class="container">
+                            <div class="header">
+                              <img src="https://imagedelivery.net/r89jzjNfZziPHJz5JXGOCw/1dd59d6a-7b64-49d7-ea24-1366e2f48300/public" alt="Logo" />
+                              <h1>Welcome To NexsHR</h1>
+                            </div>
+                            <div class="content">
+                              <p>Hey ${addEmp.FirstName} ${addEmp.LastName} 👋,</p>
+                              <p><b>Your credentials</b></p><br />
+                              <p><b>Email</b>: ${addEmp.Email}</p><br />
+                              <p><b>Password</b>: ${addEmp.Password}</p><br />
+                              <p>Your details have been registered! Please confirm your email by clicking the button below.</p>
+                              <a href="${process.env.FRONTEND_URL}" class="button">Confirm Email</a>
+                            </div>
+                            <div class="footer">
+                              <p>Have questions? Need help? <a href="mailto:webnexs29@gmail.com">Contact our support team</a>.</p>
+                            </div>
+                          </div>
+                        </body>
+                        </html>`;
 
-                    sendMail({
+                    await sendMail({
                         From: process.env.FROM_MAIL,
                         To: addEmp.Email,
                         Subject: "Welcome To NexsHR",
                         HtmlBody: htmlContent,
                     });
-                    return res.send({ message: `File uploaded successfully. With ${employees.length} of data Affected!` })
-
                 } catch (error) {
-                    console.log(error);
-                    return res.status(500).send({ error: error.message })
+                    console.error(error);
+                    return res.status(500).json({ error: error.message });
                 }
             }
         }
 
-        fs.unlinkSync(filePath); // Delete file after processing
-
+        fs.unlinkSync(filePath);
         res.status(200).json({ status: true, message: `File processed successfully and ${employees.length} affected!`, data: employees });
     } catch (error) {
         console.error(error);
@@ -389,7 +386,8 @@ router.post("/employees", upload.single("documents"), verifyAdminHR, async (req,
     } finally {
         if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
     }
-})
+});
+
 
 
 module.exports = router
