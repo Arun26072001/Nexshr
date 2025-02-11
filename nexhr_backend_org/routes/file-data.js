@@ -369,7 +369,7 @@ router.post("/employees", upload.single("documents"), verifyAdminHR, async (req,
                         </body>
                         </html>`;
 
-                    await sendMail({
+                    sendMail({
                         From: process.env.FROM_MAIL,
                         To: addEmp.Email,
                         Subject: "Welcome To NexsHR",

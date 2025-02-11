@@ -99,7 +99,7 @@ export default function Employee() {
         <>
             {processing && (
                 <div className="d-flex justify-content-center my-2">
-                    <div className='processing box-content text-align-center p-2 bg-warning'>
+                    <div className='box-content text-align-center p-2 bg-warning'>
                         File upload Processing...
                     </div>
                 </div>
