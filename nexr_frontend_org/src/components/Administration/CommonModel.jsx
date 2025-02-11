@@ -7,10 +7,12 @@ import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
 import "../projectndTask.css";
+import { MultiCascader, VStack } from 'rsuite';
 
 const CommonModel = ({
     dataObj,
     editData,
+    team_member,
     changeData,
     isAddData,
     addData,
@@ -108,7 +110,7 @@ const CommonModel = ({
 
                     <div className="d-flex justify-content-between">
 
-                        {["Task", "Task View"].includes(type) && <div className="col-half">
+                        {["Task", "Task View", "Announcement"].includes(type) && <div className={type === "Announcement" ? "col-full" : "col-half"}>
                             <div className="modelInput">
                                 <p className='modelLabel'>Title: </p>
                                 <Input required
@@ -189,48 +191,65 @@ const CommonModel = ({
                         </div>}
                 </>
 
-                {
-                    ["Task", "Task View", "Report", "Report View"].includes(type) && (
-                        <div className="d-flex justify-content-between">
-                            {/* Dynamic fields for Start Date / From */}
-                            <div className="col-half">
-                                <div className="modelInput">
-                                    <p className="modelLabel">{type === "Task" ? "From" : "Start Date"}</p>
-                                    <DatePicker
-                                        showTimeSelect
-                                        dateFormat="Pp"
-                                        className='rsuite_input'
-                                        disabled={["Report View", "Task View"].includes(type) ? true : false}
-                                        style={{ width: "100%" }}
-                                        placeholder={`Select ${type === "Task" ? "From Date" : "Start Date"}`}
-                                        selected={dataObj?.from ? new Date(dataObj?.from) : dataObj?.startDate ? new Date(dataObj?.startDate) : ""}
-                                        minDate={new Date()}
-                                        onChange={["Report View", "Task View"].includes(type) ? null : (e) => changeData(e, type === "Task" ? "from" : "startDate")}
-                                    />
-                                </div>
-                            </div>
-
-                            {/* Dynamic fields for End Date / To */}
-                            <div className="col-half">
-                                <div className="modelInput">
-                                    <p className="modelLabel">To:</p>
-                                    <DatePicker
-                                        showTimeSelect
-                                        dateFormat="Pp"
-                                        className='rsuite_input'
-                                        style={{ width: "100%" }}
-                                        disabled={["Report View", "Task View"].includes(type) ? true : false}
-                                        minDate={new Date()}
-                                        placeholder="Select Due Date"
-                                        selected={dataObj?.to ? dataObj?.to : dataObj?.endDate ? dataObj?.endDate : ""}
-                                        onChange={(e) => changeData(e, type === "Task" ? "to" : "endDate")}
-                                    />
-                                </div>
+                {["Task", "Task View", "Report", "Report View", "Announcement"].includes(type) && (
+                    <div className="d-flex justify-content-between">
+                        {/* Dynamic fields for Start Date / From */}
+                        <div className="col-half">
+                            <div className="modelInput">
+                                <p className="modelLabel">{type === "Task" ? "From" : "Start Date"}</p>
+                                <DatePicker
+                                    showTimeSelect={type === "Announcement"}
+                                    dateFormat={type === "Announcement" ? "Pp" : "yyyy-MM-dd"} // Added valid default format
+                                    className="rsuite_input"
+                                    disabled={["Report View", "Task View"].includes(type)}
+                                    style={{ width: "100%" }}
+                                    placeholder={`Select ${type === "Task" ? "From Date" : "Start Date"}`}
+                                    selected={
+                                        dataObj?.from
+                                            ? new Date(dataObj.from)
+                                            : dataObj?.startDate
+                                                ? new Date(dataObj.startDate)
+                                                : null
+                                    }
+                                    minDate={new Date()}
+                                    onChange={
+                                        ["Report View", "Task View"].includes(type)
+                                            ? null
+                                            : (e) => changeData(e, type === "Task" ? "from" : "startDate")
+                                    }
+                                />
                             </div>
                         </div>
-                    )
-                }
 
+                        {/* Dynamic fields for End Date / To */}
+                        <div className="col-half">
+                            <div className="modelInput">
+                                <p className="modelLabel">To:</p>
+                                <DatePicker
+                                    showTimeSelect
+                                    dateFormat="Pp"
+                                    className="rsuite_input"
+                                    style={{ width: "100%" }}
+                                    disabled={["Report View", "Task View"].includes(type)}
+                                    minDate={new Date()}
+                                    placeholder="Select Due Date"
+                                    selected={
+                                        dataObj?.to
+                                            ? new Date(dataObj.to)
+                                            : dataObj?.endDate
+                                                ? new Date(dataObj.endDate)
+                                                : null
+                                    }
+                                    onChange={
+                                        ["Report View", "Task View"].includes(type)
+                                            ? null
+                                            : (e) => changeData(e, type === "Task" ? "to" : "endDate")
+                                    }
+                                />
+                            </div>
+                        </div>
+                    </div>
+                )}
 
                 <div className="d-flex justify-content-between gap-2">
                     {(["Department", "Position", "Project", "Report", "Report View", "Project View"].includes(type)) && (
@@ -361,7 +380,46 @@ const CommonModel = ({
                         </div>
                     )
                 }
+                {
+                    type === "Announcement" &&
+                    <>
+                        <div className="d-flex justify-content-between">
+                            <div className="col-full">
+                                <div className="modelInput">
+                                    <p className="modelLabel">
+                                        Team Employes
+                                    </p>
 
+                                    <VStack>
+                                        <MultiCascader
+                                            className="pt-2"
+                                            data={team_member}
+                                            onChange={(value) => changeData(value, "selectTeamMembers")}
+                                            style={{ width: '100%' }}
+                                            placeholder="Select team members"
+                                            searchable
+                                            checkAll
+                                        />
+                                    </VStack>
+                                </div>
+                            </div>
+                        </div>
+                        <div className="d-flex justify-content-between">
+                            <div className="col-full">
+                                <div className="modelInput">
+                                    <p className="modelLabel">
+                                        Message
+                                    </p>
+
+                                    <TextEditor
+                                        handleChange={(e) => changeData(e, "message")}
+                                        content={dataObj?.["message"]}
+                                    />
+                                </div>
+                            </div>
+                        </div>
+                    </>
+                }
 
                 {
                     ["Project", "Task", "Task View", "Project View"].includes(type) &&
@@ -699,7 +757,7 @@ const CommonModel = ({
                                         onClick={() => (dataObj?._id || type === "Edit Country" ? editData(dataObj) : addData())}
                                         appearance="primary"
                                         disabled={
-                                            ["Project", "Assign", "Task", "Task Assign", "Report", "Company", "Country", "Edit Country"].includes(type)
+                                            ["Project", "Assign", "Task", "Task Assign", "Report", "Company", "Country", "Edit Country", "Announcement"].includes(type)
                                                 ? false
                                                 // : (!dataObj?.[`${type}Name`] || !dataObj?.name) ? true
                                                 : (["Department", "Position"].includes(type) && dataObj?.company ? false : true)

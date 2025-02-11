@@ -58,6 +58,8 @@ const Announce = () => {
 
         fetchAnnouncements();
     }, [changeAnnouncement]);
+    console.log(announcements);
+    
     return (
         <div className='dashboard-parent py-4'>
             <div className="d-flex  justify-content-between align-items-center">

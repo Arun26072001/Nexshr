@@ -1,10 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import axios from 'axios';
 import io from 'socket.io-client';
-import { Notification, toaster, MultiCascader, VStack } from 'rsuite';
+import { Notification, toaster } from 'rsuite';
 import '../../App.css';
-// import 'rsuite/dist/rsuite.min.css';
 import { toast } from 'react-toastify';
+import CommonModel from '../Administration/CommonModel';
+import { EssentialValues } from '../../App';
 
 // Connect to the backend socket
 const socket = io(`${process.env.REACT_APP_API_URL}`, {
@@ -16,20 +17,15 @@ const socket = io(`${process.env.REACT_APP_API_URL}`, {
 });
 
 const AnnouncementComponent = ({ handleChangeAnnouncement }) => {
+    const { data } = useContext(EssentialValues);
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const [selectedUsers, setSelectedUsers] = useState([]);
-    const [title, setTitle] = useState('');
-    const [startDate, setStartDate] = useState('');
-    const [endDate, setEndDate] = useState('');
-    const [message, setMessage] = useState('');
     const [team_member, setTeam_member] = useState([]);
-    const token = localStorage.getItem('token');
-    const Account = localStorage.getItem('Account');
+    const [announcementObj, setAnnouncementObj] = useState({})
     const url = process.env.REACT_APP_API_URL;
 
     const headers = {
         'Content-Type': 'application/json',
-        Authorization: `${token}`,
+        Authorization: `${data.token}`,
         Accept: 'application/json',
         'Access-Control-Allow-Origin': '*',
     };
@@ -42,10 +38,12 @@ const AnnouncementComponent = ({ handleChangeAnnouncement }) => {
                 const response = await axios.get(`${url}/api/employee/user`,
                     {
                         headers: {
-                            authorization: `${token}`
+                            authorization: `${data.token}`
                         }
                     },
                 );
+                console.log(response.data);
+
                 setTeam_member(response?.data?.Team || []);
             } catch (error) {
                 console.error('Error fetching team members:', error);
@@ -60,32 +58,29 @@ const AnnouncementComponent = ({ handleChangeAnnouncement }) => {
 
     const closeModal = () => {
         setIsModalOpen(false);
-        setTitle('');
-        setStartDate('');
-        setEndDate('');
-        setMessage('');
-        setSelectedUsers([]);
+        setAnnouncementObj({})
+        // setSelectedUsers([]);
     };
+
+    function changeAnnouncementData(value, name) {
+        setAnnouncementObj((pre) => ({
+            ...pre,
+            [name]: name === "selectTeamMembers" ?
+                [pre[name], value] : value
+        }))
+    }
+    console.log(announcementObj);
 
 
     const handleSubmit = async () => {
 
-        const formData = {
-            title,
-            startDate: new Date(startDate),
-            endDate: new Date(endDate),
-            message,
-            selectTeamMembers: selectedUsers,
-            role: Account
-        };
-        console.log(formData);
-
         try {
-            const addAnnounce = await axios.post(`${url}/api/announcements`, formData,
+            const addAnnounce = await axios.post(`${url}/api/announcements/${data._id}`, announcementObj,
                 { headers }
             );
             handleChangeAnnouncement();
             closeModal();
+            toast.success(addAnnounce.data.message);
         } catch (error) {
             toast.error(error.response.data.error)
             console.error('Error creating the announcement or sending notification:', error);
@@ -197,89 +192,7 @@ const AnnouncementComponent = ({ handleChangeAnnouncement }) => {
             </button>
 
             {isModalOpen && (
-                <div className="modal show d-block" tabIndex="-1" role="dialog">
-                    <div className="modal-dialog modal-content modal-lg" role="document">
-                        <div className="modal-lg">
-                            <div className="modal-header" style={{ padding: '0px 0px 10px 0px' }}>
-                                <h5 className="title">Add announcement</h5>
-                                <button type="button" className="close" onClick={closeModal}>
-                                    <span>&times;</span>
-                                </button>
-                            </div>
-                            <div>
-                                <div className="form-group mt-3">
-                                    <label htmlFor="name">Title</label>
-                                    <input
-                                        type="text"
-                                        className="form-control"
-                                        id="name"
-                                        placeholder="Enter title"
-                                        value={title}
-                                        onChange={(e) => setTitle(e.target.value)}
-                                        required
-                                    />
-                                </div>
-
-                                <div className="mb-2">
-                                    <label htmlFor="startDate" className="form-label">Start Date</label>
-                                    <input
-                                        type="date"
-                                        className="form-control"
-                                        id="startDate"
-                                        min={new Date().toISOString().split("T")[0]}
-                                        value={startDate}
-                                        onChange={(e) => setStartDate(e.target.value)}
-                                        required
-                                    />
-                                </div>
-
-                                <div className="mb-2">
-                                    <label htmlFor="endDate" className="form-label">End Date</label>
-                                    <input
-                                        type="date"
-                                        className="form-control"
-                                        id="endDate"
-                                        min={new Date().toISOString().split("T")[0]}
-                                        value={endDate}
-                                        onChange={(e) => setEndDate(e.target.value)}
-                                    />
-                                </div>
-
-                                <div className="form-group">
-                                    <label htmlFor="members">Select Team Members</label>
-                                    <VStack>
-                                        <MultiCascader
-                                            className="pt-2"
-                                            data={team_member}
-                                            onChange={(value) => setSelectedUsers(value)}
-                                            style={{ width: '100%' }}
-                                            placeholder="Select team members"
-                                            searchable
-                                            checkAll
-                                        />
-                                    </VStack>
-                                </div>
-
-                                <div className="form-group">
-                                    <label htmlFor="message">Message</label>
-                                    <textarea
-                                        className="form-control message-textarea"
-                                        id="message"
-                                        placeholder="Enter message"
-                                        value={message}
-                                        onChange={(e) => setMessage(e.target.value)}
-                                        required
-                                    ></textarea>
-                                </div>
-
-                                <div className="modal-actions">
-                                    <button type="button" className="btn btn-secondary" onClick={closeModal}>Cancel</button>
-                                    <button type="button" className="btn btn-primary" onClick={handleSubmit}>Save</button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                <CommonModel type="Announcement" isAddData={isModalOpen} changeData={changeAnnouncementData} addData={handleSubmit} team_member={team_member} dataObj={announcementObj} />
             )}
         </div>
     );
