@@ -378,7 +378,7 @@ router.post("/employees", upload.single("documents"), verifyAdminHR, async (req,
                     console.error(error);
                     return res.status(500).json({ error: error.message });
                 }
-            } else {
+            } else if (employeeExists) {
                 existsEmps.push(row);
             }
         }
