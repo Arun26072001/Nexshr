@@ -10,6 +10,7 @@ var projectSchema = new mongoose.Schema({
   tasks: [{ type: mongoose.Schema.Types.ObjectId, ref: "Task", default: [] }],
   reports: [{ type: mongoose.Schema.Types.ObjectId, ref: "Report", default: [] }],
   description: { type: String },
+  trash: { type: Boolean, default: false },
   status: { type: String },
   estCost: { type: String },
   estTime: { type: String },

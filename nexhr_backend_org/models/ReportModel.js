@@ -10,6 +10,7 @@ const reportSchema = new mongoose.Schema({
     project: { type: mongoose.Schema.Types.ObjectId, ref: "Project" },
     employees: [{ type: mongoose.Schema.Types.ObjectId, ref: "Employee" }],
     task: { type: mongoose.Schema.Types.ObjectId, ref: "Task" },
+    trash: { type: Boolean, default: false },
     createdby: { type: mongoose.Schema.Types.ObjectId, ref: "Employee" }
 }, { timestamps: true })
 

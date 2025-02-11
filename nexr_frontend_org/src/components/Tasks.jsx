@@ -17,9 +17,12 @@ import MoreVertRoundedIcon from '@mui/icons-material/MoreVertRounded';
 import KeyboardArrowRightRoundedIcon from '@mui/icons-material/KeyboardArrowRightRounded';
 import BorderColorRoundedIcon from '@mui/icons-material/BorderColorRounded';
 import DeleteRoundedIcon from '@mui/icons-material/DeleteRounded';
+import { jwtDecode } from "jwt-decode";
 
 const Tasks = ({ employees }) => {
-  const { data } = useContext(EssentialValues);
+  const url = process.env.REACT_APP_API_URL;
+  const { data, whoIs } = useContext(EssentialValues);
+  const { isTeamLead, isTeamHead } = jwtDecode(data.token)
   const [taskObj, setTaskObj] = useState({});
   const [projects, setProjects] = useState([]);
   const [projectId, setProjectId] = useState("");
@@ -31,7 +34,6 @@ const Tasks = ({ employees }) => {
   const [isviewTask, setIsViewtask] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isDelete, setIsDelete] = useState({ type: false, value: "" });
-  const url = process.env.REACT_APP_API_URL;
 
   const renderMenu1 = ({ onClose, right, top, className }, ref) => {
     const handleSelect = eventKey => {
@@ -297,17 +299,18 @@ const Tasks = ({ employees }) => {
   async function fetchEmpsProjects() {
     setIsLoading(true)
     try {
-        const res = await axios.get(`${url}/api/project/emp/${data._id}`, {
-            headers: {
-                Authorization: data.token || ""
-            }
-        })
-        setProjects(res.data);
+      const res = await axios.get(`${url}/api/project/emp/${data._id}`, {
+        headers: {
+          Authorization: data.token || ""
+        }
+      })
+      
+      setProjects(res.data.map((project) => ({ label: project.name, value: project._id })));
     } catch (error) {
-        toast.error(error.response.data.error)
+      toast.error(error.response.data.error)
     }
     setIsLoading(false)
-}
+  }
 
 
   useEffect(() => {
@@ -319,6 +322,7 @@ const Tasks = ({ employees }) => {
             Authorization: data.token || ""
           }
         })
+        
         setProjects(res.data.map((project) => ({ label: project.name, value: project._id })));
         // setFilterProjects(res.data.map((project) => ({ label: project.name, value: project._id })))
       } catch (error) {
@@ -326,11 +330,11 @@ const Tasks = ({ employees }) => {
       }
       setIsLoading(false)
     }
+    if (whoIs === "admin" || isTeamLead || isTeamHead) {
       fetchProjects();
-    // if (whoIs === "admin" || isTeamLead || isTeamHead) {
-    // } else {
-    //   fetchEmpsProjects()
-    // }
+    } else {
+      fetchEmpsProjects()
+    }
   }, [])
 
   async function getValue(task) {

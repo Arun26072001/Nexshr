@@ -10,6 +10,7 @@ const taskSchema = new mongoose.Schema({
     from: { type: Date },
     to: { type: Date },
     status: { type: String },
+    trash: { type: Boolean, default: false },
     createdby: { type: mongoose.Schema.Types.ObjectId, ref: "Employee" },
     project: { type: mongoose.Schema.Types.ObjectId, ref: "Project" }
 }, { timestamps: true })

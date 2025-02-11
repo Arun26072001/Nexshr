@@ -210,7 +210,7 @@ export default function Reports({ employees }) {
                 isAddReport ? <CommonModel type="Report" isAddData={isAddReport} projects={projects} comps={companies} departments={departments} modifyData={handleAddReport} changeData={changeReport} addData={addReport} dataObj={reportObj} editData={editReport} employees={employees} /> :
                     isEditReport ? <CommonModel type="Report" isAddData={isEditReport} projects={projects} comps={companies} departments={departments} modifyData={handleEditReport} changeData={changeReport} dataObj={reportObj} editData={editReport} employees={employees} /> :
                         <>
-                            <div className="projectParent ">
+                            <div className="projectParent">
                                 <div className="projectTitle col-lg-6 ">Reports</div>
                                 <div className="col-lg-6 projectChild">
                                     <SelectPicker

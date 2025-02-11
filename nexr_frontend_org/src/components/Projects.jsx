@@ -102,6 +102,7 @@ export default function Projects({ employees }) {
                 }
             })
             setProjects(res.data);
+            setFilterProjects(res.data);
         } catch (error) {
             toast.error(error.response.data.error)
         }
@@ -149,22 +150,20 @@ export default function Projects({ employees }) {
             }
         }
         gettingsTeams();
-        if (whoIs === "admin" || isTeamLead || isTeamHead) {
-            fetchProjects();
-        } else {
-            fetchEmpsProjects()
-        }
-    }, [isAddProject, isDelete.type, isEdit])
+    }, [])
 
     function filterByName(name) {
+        console.log(name);
 
         setName(name);
         if (["", null].includes(name)) {
             setProjects(filterProjects)
         } else {
-            setProjects(filterProjects.filter((project) => project.name.toLowerCase().includes(name?.toLowerCase()) || project.status.includes(name) || project.company._id.includes(name)))
+            setProjects(filterProjects.filter((project) => project.name.toLowerCase().includes(name?.toLowerCase()) || project.status.includes(name) || project?.company?._id?.includes(name)))
         }
     }
+    console.log(projects);
+
 
     async function deleteProject() {
         try {
@@ -199,8 +198,6 @@ export default function Projects({ employees }) {
         }
         setIsViewProject(!isViewProject)
     }
-    console.log(projectObj);
-
 
     useEffect(() => {
         fetchCompanies();
@@ -232,7 +229,7 @@ export default function Projects({ employees }) {
                     </Dropdown.Item>
                     <Dropdown.Item eventKey={2}>
                         <b>
-                            <DeleteRoundedIcon sx={{ color: "#F93827" }} /> Delete
+                            <DeleteRoundedIcon sx={{ color: "#F93827" }} /> Put in the trash
                         </b>
                     </Dropdown.Item>
                     <Dropdown.Item eventKey={3}>
@@ -245,6 +242,13 @@ export default function Projects({ employees }) {
         );
     };
 
+    useEffect(() => {
+        if (whoIs === "admin" || isTeamLead || isTeamHead) {
+            fetchProjects();
+        } else {
+            fetchEmpsProjects()
+        }
+    }, [isAddProject, isDelete.type, isEdit])
 
     return (
         isViewProject ? <CommonModel type="Project View" comps={companies} teams={teams} isAddData={isViewProject} employees={employees} dataObj={projectObj} modifyData={handleViewProject} /> :
@@ -307,8 +311,8 @@ export default function Projects({ employees }) {
                                 </div>
                                 <div className="container">
                                     <div className="row mx-2">
-                                        {projects.length > 0 ? (
-                                            projects.map((project) => (
+                                        {projects?.length > 0 ? (
+                                            projects?.map((project) => (
                                                 <div key={project._id} className="col-lg-4 col-md-6 mb-4">
                                                     <div className="box-content">
                                                         <div className="progress my-2">
@@ -344,10 +348,10 @@ export default function Projects({ employees }) {
                                                             Client: {project?.company?.CompanyName}
                                                         </div>
                                                         <div className="d-flex align-items-center gap-2 my-3">
-                                                            {project.employees.map((emp) => (
-                                                                <div className="nameHolder" style={{ width: "35px", height: "35px" }} key={emp._id}>
-                                                                    {emp.FirstName[0].toUpperCase() +
-                                                                        emp.LastName[0].toUpperCase()}
+                                                            {project?.employees?.map((emp) => (
+                                                                <div className="nameHolder" style={{ width: "35px", height: "35px" }} key={emp?._id}>
+                                                                    {emp?.FirstName[0]?.toUpperCase() +
+                                                                        emp?.LastName[0]?.toUpperCase()}
                                                                 </div>
                                                             ))}
                                                             <AddCircleOutlineRoundedIcon fontSize="large" sx={{ cursor: "pointer" }} color="disabled" onClick={() => {
