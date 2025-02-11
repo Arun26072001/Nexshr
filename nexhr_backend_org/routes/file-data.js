@@ -282,14 +282,14 @@ router.post("/employees", upload.single("documents"), verifyAdminHR, async (req,
         const workbook = XLSX.readFile(filePath);
         const sheet = workbook.Sheets[workbook.SheetNames[0]];
         const excelData = XLSX.utils.sheet_to_json(sheet, { header: 1 });
-        console.log(excelData.length);
-        // const default
 
         let employees = [];
         for (let i = 1; i < excelData.length; i++) {
             const row = excelData[i];
 
             const employeeExists = await Employee.exists({ code: row[9] });
+            console.log(row[11]);
+            
             if (!employeeExists && row[0]?.trim()) {
                 const newEmp = {
                     FirstName: row[0],
