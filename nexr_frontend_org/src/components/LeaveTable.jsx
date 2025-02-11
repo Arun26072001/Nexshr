@@ -86,10 +86,10 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
             getter: (row) => row?.FirstName + row?.LastName || 'N/A'
         },
         {
-            id: 'serialNo',
-            label: 'ID',
+            id: 'code',
+            label: 'EmpCode',
             minWidth: 100,
-            getter: (row) => row?.serialNo || 'N/A'
+            getter: (row) => row?.code || 'N/A'
         },
         {
             id: 'employmentType',
@@ -542,8 +542,6 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
                 return setColumns(column14)
             }
             else {
-                // console.log(item);
-
                 return setColumns(column2)
             }
         })
@@ -580,8 +578,8 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
                                             // Apply conditional styling for employee type
                                             const cellClass =
                                                 column.id === "employmentType" && value === "contract" ? "backgroundBtn bg-primary rounded" :
-                                                    value === "part-time" ? "backgroundBtn bg-warning rounded" :
-                                                        value === "full-time" ? "backgroundBtn bg-success rounded" : "";
+                                                    value?.toLowerCase() === "part-time" ? "backgroundBtn bg-warning rounded" :
+                                                        value?.toLowerCase() === "full-time" ? "backgroundBtn bg-success rounded" : "";
 
                                             // Render actions based on column.id and params
                                             const renderActions = () => {
@@ -609,7 +607,7 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
                                                         );
                                                     } else if (params["*"] === "reports") {
                                                         return (
-                                                            <Dropdown title={"Action"} noCaret>
+                                                            <Dropdown title={"Action"} noCaret placement="leftStart">
                                                                 <Dropdown.Item style={{ minWidth: 80 }} onClick={() => fetchReportById(row._id, "View")}>
                                                                     <b>
                                                                         <RemoveRedEyeRoundedIcon sx={{ color: "#80C4E9" }} /> View
@@ -622,7 +620,7 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
                                                                 </Dropdown.Item>
                                                                 <Dropdown.Item style={{ minWidth: 80 }} onClick={() => handleDelete(row)}>
                                                                     <b>
-                                                                        <DeleteRoundedIcon sx={{ color: "#F93827" }} /> Delete
+                                                                        <DeleteRoundedIcon sx={{ color: "#F93827" }} /> Put in the trash
                                                                     </b>
                                                                 </Dropdown.Item>
                                                             </Dropdown>

@@ -220,6 +220,7 @@ const AddEmployee = () => {
   async function fetchEmployee() {
     try {
       const empData = await fetchEmployeeData(id);
+      console.log(empData);
 
       setEmployeeObj({
         FirstName: empData?.FirstName || "",
@@ -230,7 +231,7 @@ const AddEmployee = () => {
         managerId: empData?.managerId || "", // Safely access first element or set to empty string
         countryCode: empData.countryCode || "",
         phone: empData?.phone || "",
-        company: empData?.company || empData?.company[0] || "", // Safely access first element or set to empty string
+        company: Array.isArray(empData?.company) ? empData.company[0] : empData?.company || "",
         dateOfBirth: empData?.dateOfBirth || "",
         gender: empData?.gender || "",
         address: {
@@ -239,8 +240,8 @@ const AddEmployee = () => {
           country: empData?.address?.country || "",
           zipCode: empData?.address?.zipCode || ""
         },
-        position: empData?.position._id || "", // Safely access first element's _id or set to empty string
-        department: empData?.department._id || "",
+        position: empData?.position?._id || "", // Safely access first element's _id or set to empty string
+        department: empData?.department?._id || "",
         role: empData?.role._id || "",
         description: empData?.description || "",
         dateOfJoining: empData?.dateOfJoining || "",
@@ -261,6 +262,8 @@ const AddEmployee = () => {
       });
 
     } catch (error) {
+      console.log(error);
+
       toast.error(error.message);
     }
   }

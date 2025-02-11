@@ -1,14 +1,15 @@
 const express = require('express');
 const router = express.Router();
 const { Project, ProjectValidation, projectValidation } = require('../models/ProjectModel');
-const { verifyAdmin } = require('../auth/authMiddleware');
+const { verifyAdmin, verifyAdminHREmployee } = require('../auth/authMiddleware');
 const Joi = require("joi");
 const { Task } = require('../models/TaskModel');
 const sendMail = require('./mailSender');
 const { Employee } = require('../models/EmpModel');
 const { error } = require('joi/lib/types/lazy');
+const { Report } = require('../models/ReportModel');
 
-router.get("/:id", verifyAdmin, async (req, res) => {
+router.get("/:id", verifyAdminHREmployee, async (req, res) => {
   try {
     const project = await Project.findById(req.params.id)
     // .populate({ path: "company", select: "CompanyName" })
@@ -19,12 +20,13 @@ router.get("/:id", verifyAdmin, async (req, res) => {
   }
 });
 
-router.get("/", verifyAdmin, async (req, res) => {
+router.get("/", verifyAdminHREmployee, async (req, res) => {
   try {
-    let projects = await Project.find()
+    let projects = await Project.find({ trash: false })
       .populate({ path: "company", select: "CompanyName" })
       .populate({ path: "employees", select: "FirstName LastName Email" })
       .populate({ path: "tasks" })
+    console.log(projects);
 
     projects = projects.map((project) => {
       const completedTasks = project.tasks.filter((task) => task.status === "Completed")
@@ -43,7 +45,20 @@ router.get("/", verifyAdmin, async (req, res) => {
   }
 });
 
-router.post("/:id", verifyAdmin, async (req, res) => {
+router.get("/emp/:id", verifyAdminHREmployee, async (req, res) => {
+  try {
+    const projects = await Project.find({ employees: { $in: req.params.id }, trash: false })
+      .populate({ path: "company", select: "CompanyName" })
+      .populate({ path: "employees", select: "FirstName LastName Email" })
+      .populate({ path: "tasks" })
+      .exec();
+    return res.send(projects);
+  } catch (error) {
+    return res.status(500).send({ error: error.message })
+  }
+})
+
+router.post("/:id", verifyAdminHREmployee, async (req, res) => {
   try {
     const assignees = await Employee.find({ _id: req.body.employees }, "FirstName LastName Email");
     const { Email, FirstName, company } = await Employee.findById(req.params.id, "FirstName LastName Email").populate({ path: "company" })
@@ -63,7 +78,7 @@ router.post("/:id", verifyAdmin, async (req, res) => {
 
     // send mail for assignees
     assignees.map((emp) => {
-      const empName = emp.FirstName[0].toUpperCase()+emp.FirstName.slice(1)+" "+emp.LastName
+      const empName = emp.FirstName[0].toUpperCase() + emp.FirstName.slice(1) + " " + emp.LastName
       return sendMail({
         From: Email,
         To: emp.Email,
@@ -108,13 +123,13 @@ router.post("/:id", verifyAdmin, async (req, res) => {
         </div>
         <div class="content">
             <p>Hey ${empName} 👋,</p>
-            <p><b>${FirstName[0].toUpperCase()+FirstName.slice(1)} has created a project named "${req.body.name}".</b></p>
+            <p><b>${FirstName[0].toUpperCase() + FirstName.slice(1)} has created a project named "${req.body.name}".</b></p>
             <p>As a result, you have been assigned as a member of this project.</p>
             <p>Please follow the instructions.</p><br />
             <p>Thank you!</p>
         </div>
         <div class="footer">
-            <p>Have questions? Need help? <a href="mailto:${Email}">Contact ${FirstName[0].toUpperCase()+FirstName.slice(1)}</a>.</p>
+            <p>Have questions? Need help? <a href="mailto:${Email}">Contact ${FirstName[0].toUpperCase() + FirstName.slice(1)}</a>.</p>
         </div>
     </div>
 </body>
@@ -128,7 +143,7 @@ router.post("/:id", verifyAdmin, async (req, res) => {
   }
 });
 
-router.put("/:id", verifyAdmin, async (req, res) => {
+router.put("/:id", verifyAdminHREmployee, async (req, res) => {
   try {
     delete req.body['_id'];
     delete req.body["__v"]
@@ -225,14 +240,37 @@ router.put("/:id", verifyAdmin, async (req, res) => {
   }
 });
 
-router.delete("/:id", verifyAdmin, async (req, res) => {
+router.delete("/:id", verifyAdminHREmployee, async (req, res) => {
   try {
-    const deleteProject = await Project.findByIdAndDelete(req.params.id);
-    const deleteTasks = await Task.deleteMany({ project: req.params.id });
-    return res.send({ message: "Project and Tasks were delete successfully" })
+    const project = await Project.findById(req.params.id);
+    if (!project) {
+      return res.status(404).send({ error: "Project not found" });
+    }
+
+    project.trash = true;
+    await project.save();
+
+    const tasks = await Task.find({ project: req.params.id });
+    const reports = await Report.find({ project: req.params.id })
+
+    await Promise.all(
+      tasks.map(async (task) => {
+        task.trash = true;
+        return task.save();
+      })
+    );
+    await Promise.all(
+      reports.map(async (report) => {
+        report.trash = true;
+        await report.save();
+      })
+    );
+
+    return res.send({ message: "Project and Tasks were put in trash" });
   } catch (error) {
-    return res.status(500).send({ error: error.message })
+    return res.status(500).send({ error: error.message });
   }
 });
+
 
 module.exports = router;

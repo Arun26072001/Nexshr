@@ -13,6 +13,9 @@ import NoDataFound from "./payslip/NoDataFound";
 import { EssentialValues } from "../App";
 
 const EditEmployeeform = ({ details, empData, handleScroll, handlePersonal, handleFinancial, handleJob, handleContact, handleEmployment, timePatterns, personalRef, contactRef, employmentRef, jobRef, financialRef, countries, companies, departments, positions, roles, leads, managers }) => {
+    console.log(empData);
+    console.log(timePatterns);
+    
     const { id } = useParams();
     const { changeEmpEditForm } = useContext(TimerStates);
     const [stateData, setStateData] = useState([]);
@@ -181,7 +184,6 @@ const EditEmployeeform = ({ details, empData, handleScroll, handlePersonal, hand
                     const minutesDiff = Math.floor((timeDiff % (1000 * 60 * 60)) / (1000 * 60));
 
                     setTimeDifference((((hoursDiff * 60) + minutesDiff) / 60) * selectedPattern.WeeklyDays);
-                    // console.log((((hoursDiff * 60) + minutesDiff) / 60) * selectedPattern.WeeklyDays);
                 }
             }
         };
@@ -212,28 +214,6 @@ const EditEmployeeform = ({ details, empData, handleScroll, handlePersonal, hand
         gettingLeaveTypes();
         setIsLoading(false);
     }, []);
-
-    // useEffect(() => {
-    //     async function fetchCountryNdState() {
-    //         try {
-    //             const countriez = await axios.get(`${url}/api/country/${empData?.address?.country}`, {
-    //                 headers: { Authorization: token || "" }
-    //             });
-    //             setStateData(countriez.data.states || [])
-    //             const statize = await axios.get(`${url}/api/state/${empData?.address?.state}`, {
-    //                 headers: { Authorization: token || "" }
-    //             });
-    //             setCityData(statize.data.cities || []);
-
-    //         } catch (error) {
-    //             toast.error(error.response.data.error)
-    //         }
-    //     }
-
-    //     if (empData?.address?.country && empData?.address?.state) {
-    //         fetchCountryNdState()
-    //     }
-    // }, [])
 
     const hourAndMin = timeDifference.toString().split(".");
     const [hour, min] = hourAndMin;
@@ -382,7 +362,7 @@ const EditEmployeeform = ({ details, empData, handleScroll, handlePersonal, hand
                                         <select name="employmentType" className={`selectInput ${formik.touched.employmentType && formik.errors.employmentType ? "error" : ""}`}
                                             disabled={whoIs === "emp" ? true : false}
                                             onChange={whoIs === "emp" ? null : formik.handleChange}
-                                            value={formik.values.employmentType}>
+                                            value={formik.values.employmentType.toLowerCase()}>
                                             <option >Employment Type</option>
                                             <option value="full-time">Full Time</option>
                                             <option value="part-time">Part Time</option>
@@ -454,7 +434,7 @@ const EditEmployeeform = ({ details, empData, handleScroll, handlePersonal, hand
                                             }
                                         />
                                     </div>
-                                    <div className="col-lg-6 col-md-6 col-6 my-2">
+                                    <div className="col-lg-6 col-md-6 col-6">
                                         <div className="inputLabel">
                                             Phone
                                         </div>

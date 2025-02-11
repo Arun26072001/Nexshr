@@ -3,8 +3,10 @@ import Announcementalert from './announcementalert';
 import Announcementable from './announcementable';
 import axios from 'axios';
 import { toast } from 'react-toastify';
+import LeaveTable from '../LeaveTable';
 
 const Announce = () => {
+    const url = process.env.REACT_APP_API_URLl
     const [announcements, setAnnouncements] = useState([]);
     const [changeAnnouncement, setChangeAnnouncement] = useState(false);
     const [anchorEl, setAnchorEl] = useState(null);  // For managing the menu anchor element
@@ -18,7 +20,7 @@ const Announce = () => {
     const handleDelete = async (announcementId) => {
         if (announcementId) {
             try {
-                const response = await axios.delete(`${process.env.REACT_APP_API_URL}/api/announcements/${announcementId}`, {
+                const response = await axios.delete(`${url}/api/announcements/${announcementId}`, {
                     headers: {
                         Authorization: `${token}`
                     }
@@ -44,7 +46,7 @@ const Announce = () => {
     useEffect(() => {
         const fetchAnnouncements = async () => {
             try {
-                const response = await axios.get(`${process.env.REACT_APP_API_URL}/api/announcements`, {
+                const response = await axios.get(`${url}/api/announcements`, {
                     headers: { authorization: `${token}` }
                 });
                 const data = response.data;
@@ -68,7 +70,8 @@ const Announce = () => {
             </div>
             <div className='tabline mt-3 p-4'>
                 <div className='profiles mt-3'>
-                    <Announcementable handleDelete={handleDelete} announcements={announcements} />
+                    {/* <Announcementable handleDelete={handleDelete} announcements={announcements} /> */}
+                    <LeaveTable handleDelete={handleDelete} data={announcements} />
                 </div>
             </div>
         </div>

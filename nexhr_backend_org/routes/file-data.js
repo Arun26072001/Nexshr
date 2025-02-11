@@ -281,13 +281,15 @@ router.post("/employees", upload.single("documents"), verifyAdminHR, async (req,
     try {
         const workbook = XLSX.readFile(filePath);
         const sheet = workbook.Sheets[workbook.SheetNames[0]];
-        const excelData = XLSX.utils.sheet_to_json(sheet, { header: 1 });
-        console.log(excelData.length);
-        // const default
+        // Convert to JSON while trimming empty rows
+        const excelData = XLSX.utils.sheet_to_json(sheet, { header: 1 }).filter(row => row.some(cell => cell !== null && cell !== ""));
+
 
         let employees = [];
+        let existsEmps = [];
         for (let i = 1; i < excelData.length; i++) {
             const row = excelData[i];
+            console.log(row);
 
             const employeeExists = await Employee.exists({ code: row[9] });
             if (!employeeExists && row[0]?.trim()) {
@@ -318,7 +320,7 @@ router.post("/employees", upload.single("documents"), verifyAdminHR, async (req,
                         "Annual Leave": "7",
                         "Sick Leave": "7"
                     },
-                    role: "6718e3b9e67fca36a0a8357b",
+                    role: "679b31dba453436edb1b27a3",
                     workingTimePattern: "679ca37c9ac5c938538f18ba",
                     emergencyContacts: row[15] ? [{
                         name: row[15]?.split(" ")[0] || "",
@@ -367,7 +369,7 @@ router.post("/employees", upload.single("documents"), verifyAdminHR, async (req,
                         </body>
                         </html>`;
 
-                    await sendMail({
+                    sendMail({
                         From: process.env.FROM_MAIL,
                         To: addEmp.Email,
                         Subject: "Welcome To NexsHR",
@@ -377,11 +379,13 @@ router.post("/employees", upload.single("documents"), verifyAdminHR, async (req,
                     console.error(error);
                     return res.status(500).json({ error: error.message });
                 }
+            } else if (employeeExists) {
+                existsEmps.push(row);
             }
         }
 
         fs.unlinkSync(filePath);
-        res.status(200).json({ status: true, message: `File processed successfully and ${employees.length} affected!`, data: employees });
+        res.status(200).json({ status: true, message: `File processed successfully and ${employees.length} added, ${existsEmps.length} Exists!`, data: employees });
     } catch (error) {
         console.error(error);
         res.status(500).json({ status: false, error: error.message || "An error occurred during the bulk import process." });

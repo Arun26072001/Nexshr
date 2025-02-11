@@ -144,7 +144,6 @@ const AddEmployeeForm = ({ details, handleScroll, handlePersonal, handleFinancia
             }
         }
     })
-    console.log(formik.errors);
 
     function navToError() {
         if (formik.errors.FirstName
