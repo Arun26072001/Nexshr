@@ -144,6 +144,8 @@ const fetchEmployeeData = async (id) => {
         return response.data;
 
     } catch (error) {
+        console.log(error);
+        
         if (error.response && error.response.data && error.response.data.message) {
             toast.error(error?.response?.data?.details)
             return error;
