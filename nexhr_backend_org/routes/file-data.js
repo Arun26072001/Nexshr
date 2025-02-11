@@ -284,12 +284,13 @@ router.post("/employees", upload.single("documents"), verifyAdminHR, async (req,
         const excelData = XLSX.utils.sheet_to_json(sheet, { header: 1 });
 
         let employees = [];
+        let existsEmps = [];
         for (let i = 1; i < excelData.length; i++) {
             const row = excelData[i];
 
             const employeeExists = await Employee.exists({ code: row[9] });
             console.log(row[11]);
-            
+
             if (!employeeExists && row[0]?.trim()) {
                 const newEmp = {
                     FirstName: row[0],
@@ -377,11 +378,13 @@ router.post("/employees", upload.single("documents"), verifyAdminHR, async (req,
                     console.error(error);
                     return res.status(500).json({ error: error.message });
                 }
+            } else {
+                existsEmps.push(row);
             }
         }
 
         fs.unlinkSync(filePath);
-        res.status(200).json({ status: true, message: `File processed successfully and ${employees.length} affected!`, data: employees });
+        res.status(200).json({ status: true, message: `File processed successfully and ${employees.length} added, ${existsEmps.length} Exists!`, data: employees });
     } catch (error) {
         console.error(error);
         res.status(500).json({ status: false, error: error.message || "An error occurred during the bulk import process." });
