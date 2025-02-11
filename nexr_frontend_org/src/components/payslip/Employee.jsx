@@ -10,7 +10,6 @@ import { EssentialValues } from '../../App';
 import AddRoundedIcon from '@mui/icons-material/AddRounded';
 import axios from "axios";
 import employeesData from "../../files/Employees data.xlsx";
-import { Progress } from 'rsuite';
 
 export default function Employee() {
     const url = process.env.REACT_APP_API_URL;
@@ -99,8 +98,8 @@ export default function Employee() {
     return (
         <>
             {processing && (
-                <div className="d-flex">
-                    <div className='processing box-content'>
+                <div className="d-flex justify-content-center my-2">
+                    <div className='processing box-content text-align-center p-2 bg-warning'>
                         File upload Processing...
                     </div>
                 </div>
