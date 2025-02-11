@@ -54,19 +54,17 @@ router.get("/user", verifyAdminHR, async (req, res) => {
 
     const departmentMap = {};
 
-    employees.forEach((employee) => {
-      employee.department.forEach((dept) => {
-        const departmentName = dept.DepartmentName;
+    employees?.forEach((employee) => {
+      const departmentName = employee?.department?.DepartmentName;
 
-        if (!departmentMap[departmentName]) {
-          departmentMap[departmentName] = [];
-        }
+      if (!departmentMap[departmentName]) {
+        departmentMap[departmentName] = [];
+      }
 
-        departmentMap[departmentName].push({
-          label: `${employee.FirstName} ${employee.LastName}`,
-          value: employee.FirstName.toLowerCase(),
-          id: employee._id.toString(),
-        });
+      departmentMap[departmentName].push({
+        label: `${employee.FirstName} ${employee.LastName}`,
+        value: employee.FirstName.toLowerCase(),
+        id: employee._id.toString(),
       });
     });
 
@@ -85,6 +83,8 @@ router.get("/user", verifyAdminHR, async (req, res) => {
 
 
     const formattedTeams = [selectAllOption];
+    console.log(formattedTeams);
+
 
     res.status(200).json({
       status: true,

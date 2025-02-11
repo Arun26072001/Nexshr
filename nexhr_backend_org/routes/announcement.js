@@ -3,23 +3,27 @@ const express = require('express');
 const { Announcement, announcementValidation } = require('../models/AnnouncementModel');
 const router = express.Router();
 
-router.post('/', async (req, res) => {
+router.post('/:id', async (req, res) => {
   try {
-    const { error } = announcementValidation.validate(req.body);
+    const newAnnouncement = {
+      ...req.body,
+      createdBy: req.params.id
+    }
+    const { error } = announcementValidation.validate(newAnnouncement);
     if (error) {
       return res.status(400).send({ error: error.details[0].message });
     }
 
-    const newAnnouncement = new Announcement({ ...req.body });
-    const savedAnnouncement = await newAnnouncement.save();
-
+    const announcement = await Announcement.create(newAnnouncement);
+    console.log(announcement);
+    
     res.status(201).json({
       message: 'Announcement created successfully!',
-      data: savedAnnouncement
+      data: announcement
     });
   } catch (error) {
-    console.error('Error creating announcement:', error);
-    res.status(500).json({ error: 'Error creating announcement', details: error.message });
+    console.error("20", error);
+    res.status(500).json({ error: error.message });
   }
 });
 
@@ -27,6 +31,8 @@ router.post('/', async (req, res) => {
 router.get('/', async (req, res) => {
   try {
     const announcements = await Announcement.find();
+    console.log(announcements);
+
     res.status(200).json({
       status: true,
       status_code: 200,

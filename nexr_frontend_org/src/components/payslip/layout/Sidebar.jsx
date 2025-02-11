@@ -124,7 +124,7 @@ const Sidebar = ({ sideBar }) => {
             ? `/${whoIs}/employee/edit/${_id}`
             : `/${whoIs}/employee`),
           userIcon,
-          'Employee',
+          'Associate',
           'employee'
         )}
 
