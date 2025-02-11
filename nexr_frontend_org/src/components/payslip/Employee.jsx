@@ -20,7 +20,7 @@ export default function Employee() {
     const [allEmployees, setAllEmployees] = useState([]);
     const [isModifyEmps, setIsModifyEmps] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
-    const [processing, setProessing] = useState(0);
+    const [processing, setProcessing] = useState(false);
     const navigate = useNavigate();
     const [errorData, setErrorData] = useState("");
 
@@ -31,16 +31,12 @@ export default function Employee() {
     const handleUpload = async (file) => {
         const formData = new FormData();
         formData.append('documents', file);
+        setProcessing(true);
         try {
             const response = await axios.post(`${url}/api/google-sheet/upload/employees`, formData, {
                 headers: {
                     'Content-Type': 'multipart/form-data',
                     Authorization: data.token || ""
-                },
-                onUploadProgress: (progressEvent) => {
-                    const { loaded, total } = progressEvent;
-                    let percentage = Math.floor((loaded * 100) / total);
-                    setProessing(percentage);
                 }
             });
             toast.success(response.data.message);
@@ -49,6 +45,7 @@ export default function Employee() {
             console.error('File upload failed:', error);
             toast.error(error.response.data.error);
         }
+        setProcessing(false);
     };
 
     useEffect(() => {
@@ -101,14 +98,11 @@ export default function Employee() {
 
     return (
         <>
-            {processing > 0 && (
-                <div className='processing box-content'>
-                    File upload Processing...
-                    <Progress.Line
-                        percent={processing}
-                        strokeColor={'#3385ff'}
-                        status={processing === 100 ? 'success' : 'active'}
-                    />
+            {processing && (
+                <div className="d-flex">
+                    <div className='processing box-content'>
+                        File upload Processing...
+                    </div>
                 </div>
             )}
 

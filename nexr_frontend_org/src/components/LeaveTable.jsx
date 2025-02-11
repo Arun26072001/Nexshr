@@ -86,10 +86,10 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
             getter: (row) => row?.FirstName + row?.LastName || 'N/A'
         },
         {
-            id: 'serialNo',
-            label: 'ID',
+            id: 'code',
+            label: 'EmpCode',
             minWidth: 100,
-            getter: (row) => row?.serialNo || 'N/A'
+            getter: (row) => row?.code || 'N/A'
         },
         {
             id: 'employmentType',
