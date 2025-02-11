@@ -318,7 +318,7 @@ router.post("/employees", upload.single("documents"), verifyAdminHR, async (req,
                         "Annual Leave": "7",
                         "Sick Leave": "7"
                     },
-                    role: "6718e3b9e67fca36a0a8357b",
+                    role: "679b31dba453436edb1b27a3",
                     workingTimePattern: "679ca37c9ac5c938538f18ba",
                     emergencyContacts: row[15] ? [{
                         name: row[15]?.split(" ")[0] || "",
