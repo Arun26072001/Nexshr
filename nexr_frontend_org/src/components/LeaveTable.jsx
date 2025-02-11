@@ -578,8 +578,8 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
                                             // Apply conditional styling for employee type
                                             const cellClass =
                                                 column.id === "employmentType" && value === "contract" ? "backgroundBtn bg-primary rounded" :
-                                                    value === "part-time" ? "backgroundBtn bg-warning rounded" :
-                                                        value === "full-time" ? "backgroundBtn bg-success rounded" : "";
+                                                    value?.toLowerCase() === "part-time" ? "backgroundBtn bg-warning rounded" :
+                                                        value?.toLowerCase() === "full-time" ? "backgroundBtn bg-success rounded" : "";
 
                                             // Render actions based on column.id and params
                                             const renderActions = () => {
