@@ -159,6 +159,8 @@ export default function HRMDashboard() {
             if (!updatedState?._id) {
                 // Add new clock-ins data
                 const clockinsData = await addDataAPI(updatedState);
+                console.log(typeof clockinsData);
+                
                 if (clockinsData) {
                     setWorkTimeTracker(clockinsData);
                     setIsStartLogin(true);

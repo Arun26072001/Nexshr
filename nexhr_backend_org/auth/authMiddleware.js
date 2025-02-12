@@ -111,7 +111,7 @@ async function verifyAdminHREmployee(req, res, next) {
     });
   } else {
     // Forbidden
-    res.sendStatus(401);
+    res.send(401).send({error: "token not not found"});
   }
 }
 
