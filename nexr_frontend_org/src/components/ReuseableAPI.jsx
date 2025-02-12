@@ -69,6 +69,8 @@ const addDataAPI = async (body) => {
         toast.success(response.data.message);
         return response?.data?.clockIns;
     } catch (error) {
+        console.log(error);
+        
         return error?.response?.data?.error;
     }
 };

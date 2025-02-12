@@ -87,9 +87,7 @@ const CircleProgressBar = ({ isTeamLead, token, account, id, isTeamHead }) => {
         setEmps(empRes.data.employees);
 
       } catch (err) {
-        if (err.response && err.response.data && err.response.data.message) {
-          toast.error(err.response.data.message);
-        }
+        console.log(err);
       }
     }
 

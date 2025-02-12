@@ -595,19 +595,19 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
                                                         );
                                                     } else if (params['*'] === "payslip" || params['*'] === "daily-log") {
                                                         return (
-                                                            <Dropdown title={<RemoveRedEyeRoundedIcon style={{ cursor: "pointer" }} />} noCaret onClick={() => getValueForView([row._id, params['*']])}>
+                                                            <Dropdown  title={<RemoveRedEyeRoundedIcon style={{ cursor: "pointer" }} />} noCaret onClick={() => getValueForView([row._id, params['*']])}>
                                                             </Dropdown>
                                                         );
                                                     } else if (params['*'] === "employee") {
                                                         return (
-                                                            <Dropdown title={<EditRoundedIcon style={{ cursor: "pointer" }} />} noCaret>
+                                                            <Dropdown title={<EditRoundedIcon style={{ cursor: "pointer" }} />} placement='leftStart' noCaret>
                                                                 <Dropdown.Item style={{ minWidth: 120 }} onClick={() => changeEmpEditForm(row._id)}>Edit</Dropdown.Item>
                                                                 <Dropdown.Item style={{ minWidth: 120 }}>Delete</Dropdown.Item>
                                                             </Dropdown>
                                                         );
                                                     } else if (params["*"] === "reports") {
                                                         return (
-                                                            <Dropdown title={"Action"} noCaret placement="leftStart">
+                                                            <Dropdown title={"Action"} placement='leftStart' noCaret>
                                                                 <Dropdown.Item style={{ minWidth: 80 }} onClick={() => fetchReportById(row._id, "View")}>
                                                                     <b>
                                                                         <RemoveRedEyeRoundedIcon sx={{ color: "#80C4E9" }} /> View
@@ -645,7 +645,7 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
                                                     }
                                                 } else if (column.id === "auth") {
                                                     return (
-                                                        <Dropdown title={<KeyRoundedIcon style={{ cursor: "pointer" }} />} noCaret>
+                                                        <Dropdown title={<KeyRoundedIcon style={{ cursor: "pointer" }} />} placement='leftStart' noCaret>
                                                             <Dropdown.Item style={{ minWidth: 120 }} onClick={() => navigate(`view/${row._id}`)}>View</Dropdown.Item>
                                                             <Dropdown.Item style={{ minWidth: 120 }} onClick={() => navigate(`edit/${row._id}`)}>Edit</Dropdown.Item>
                                                             <Dropdown.Item style={{ minWidth: 120 }} onClick={() => deleteData(row._id)}>Delete</Dropdown.Item>
@@ -653,7 +653,7 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
                                                     );
                                                 } else if (["department", "position", "company"].includes(params["*"])) {
                                                     return (
-                                                        <Dropdown title={<EditRoundedIcon style={{ cursor: "pointer" }} />} noCaret>
+                                                        <Dropdown title={<EditRoundedIcon style={{ cursor: "pointer" }} />} placement='leftStart' noCaret>
                                                             <Dropdown.Item style={{ minWidth: 120 }} onClick={() => fetchData(row._id)}>
                                                                 <b>
                                                                     <BorderColorRoundedIcon sx={{ color: "#FFD65A" }} /> Edit

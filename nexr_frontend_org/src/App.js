@@ -36,6 +36,8 @@ const App = () => {
 
   // Helper Functions
   const handleLogout = () => {
+    console.log(isStartLogin, isStartActivity);
+
     if (isStartLogin || isStartActivity) {
       toast.warn("You can't logout until the timer stops.");
       return;

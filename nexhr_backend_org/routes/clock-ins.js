@@ -85,21 +85,25 @@ router.post("/:id", verifyAdminHREmployee, async (req, res) => {
 
     // Function to check login times and update status counts
     async function checkLogin(scheduledTime, actualTime) {
-        const [scheduledHours, scheduledMinutes] = scheduledTime.split(':').map(Number);
-        const [actualHours, actualMinutes] = actualTime.split(':').map(Number);
+        console.log(scheduledTime, actualTime);
+        
+        if (scheduledTime, actualTime) {
+            const [scheduledHours, scheduledMinutes] = scheduledTime.split(':').map(Number);
+            const [actualHours, actualMinutes] = actualTime.split(':').map(Number);
 
-        const scheduledDate = new Date(2000, 0, 1, scheduledHours, scheduledMinutes);
-        const actualDate = new Date(2000, 0, 1, actualHours, actualMinutes);
+            const scheduledDate = new Date(2000, 0, 1, scheduledHours, scheduledMinutes);
+            const actualDate = new Date(2000, 0, 1, actualHours, actualMinutes);
 
-        if (actualDate > scheduledDate) {
-            late += 1;
-            return "Late";
-        } else if (actualDate < scheduledDate) {
-            early += 1;
-            return "Early";
-        } else {
-            regular += 1;
-            return "On Time";
+            if (actualDate > scheduledDate) {
+                late += 1;
+                return "Late";
+            } else if (actualDate < scheduledDate) {
+                early += 1;
+                return "Early";
+            } else {
+                regular += 1;
+                return "On Time";
+            }
         }
     }
 
@@ -108,9 +112,10 @@ router.post("/:id", verifyAdminHREmployee, async (req, res) => {
         const startOfDay = new Date(today.setHours(0, 0, 0, 0)); // Set time to 00:00:00.000
         const endOfDay = new Date(today.setHours(23, 59, 59, 999));
 
-        const emp = await Employee.findById(req.params.id).populate({ path: "workingTimePattern" })
+        const emp = await Employee.findById(req.params.id)
+            .populate({ path: "workingTimePattern" })
             .populate({ path: "clockIns", match: { date: { $gte: startOfDay, $lte: endOfDay } } });
-        console.log(emp);
+        // console.log(emp);
 
         if (emp?.clockIns?.length > 0) {
             return res.status(409).send({ message: "You have already PunchIn!" });
@@ -126,6 +131,8 @@ router.post("/:id", verifyAdminHREmployee, async (req, res) => {
         const result = req.body;
         if (result?.login?.startingTime[0]) {
             const officeLoginTime = emp?.workingTimePattern?.StartingTime;
+            console.log(officeLoginTime);
+
             const splitTime = result?.login?.startingTime[0]?.split(":");
             const loginTime = `${splitTime[0]}:${splitTime[1]}`
             const behaviour = await checkLogin(officeLoginTime, loginTime);
@@ -136,6 +143,8 @@ router.post("/:id", verifyAdminHREmployee, async (req, res) => {
                 punchInMsg,
                 employee: req.params.id
             };
+            console.log(newClockIns);
+
 
             const clockIns = await ClockIns.create(newClockIns);
 
@@ -156,14 +165,16 @@ router.post("/:id", verifyAdminHREmployee, async (req, res) => {
 router.get("/:id", verifyAdminHREmployee, async (req, res) => {
     // Helper function to convert time in HH:MM:SS format to total minutes
     try {
-        const queryDate = new Date(String(req.query.date));
+        console.log(req.query.date);
+
+        const queryDate = new Date(req.query.date);
 
         // Create start and end of the day for the date comparison
         const startOfDay = new Date(queryDate.setHours(0, 0, 0, 0));
         const endOfDay = new Date(queryDate.setHours(23, 59, 59, 999));
 
         // Fetch employee's clock-ins for the given date
-        const timeData = await Employee.findById(req.params.id, "clockIns")
+        const timeData = await Employee.findById(req.params.id)
             .populate({
                 path: "clockIns",
                 match: {
@@ -174,7 +185,6 @@ router.get("/:id", verifyAdminHREmployee, async (req, res) => {
                 },
                 populate: { path: "employee", select: "_id FirstName LastName" },
             });
-        console.log(timeData);
 
         if (!timeData || timeData.clockIns.length === 0) {
             return res.status(404).send({ message: "No clock-ins found for the given date." });
