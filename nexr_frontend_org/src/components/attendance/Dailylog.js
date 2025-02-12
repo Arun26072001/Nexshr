@@ -74,6 +74,8 @@ const Dailylog = ({ attendanceData, isLoading }) => {
             </Popover>
         );
     };
+    console.log(attendanceData);
+
 
     return (
         isLoading ? <Loading /> :

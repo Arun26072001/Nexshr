@@ -165,6 +165,7 @@ export default function HRMDashboard() {
                     localStorage.setItem("isStartLogin", true);
                     updateClockins();
                 }
+                toast.success("Working timer started!")
             } else {
                 // Update existing clock-ins data
                 trackTimer();
@@ -172,6 +173,7 @@ export default function HRMDashboard() {
                 setWorkTimeTracker(updatedData);
                 setIsStartLogin(true);
                 localStorage.setItem("isStartLogin", true);
+                toast.success("Working timer started!")
             }
         } catch (error) {
             setIsStartLogin(false);
