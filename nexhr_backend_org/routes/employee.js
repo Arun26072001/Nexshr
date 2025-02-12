@@ -137,7 +137,7 @@ router.get("/all", verifyAdminHREmployee, async (req, res) => {
 router.get("/lead", verifyAdminHR, async (req, res) => {
   try {
     const teamLeads = await Employee.find({}, "FirstName LastName").populate("position").exec();
-    const filterTeamLeads = teamLeads.filter((lead) => lead.position.PositionName === "TL");
+    const filterTeamLeads = teamLeads.filter((lead) => lead?.position?.PositionName === "TL");
     res.send(filterTeamLeads);
   } catch (err) {
     res.status(500).send({ error: err.message })
@@ -147,7 +147,7 @@ router.get("/lead", verifyAdminHR, async (req, res) => {
 router.get("/head", verifyAdminHR, async (req, res) => {
   try {
     const positions = await Employee.find({}, "FirstName LastName").populate("position").exec();
-    const filterTeamHeads = positions.filter((head) => head.position.PositionName === "Team Head");
+    const filterTeamHeads = positions.filter((head) => head?.position?.PositionName === "Team Head");
     res.send(filterTeamHeads);
   } catch (err) {
     res.status(500).send({ error: err.message })
