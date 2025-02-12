@@ -108,8 +108,9 @@ router.post("/:id", verifyAdminHREmployee, async (req, res) => {
         const startOfDay = new Date(today.setHours(0, 0, 0, 0)); // Set time to 00:00:00.000
         const endOfDay = new Date(today.setHours(23, 59, 59, 999));
 
-        const emp = await Employee.findById(req.params.id)
+        const emp = await Employee.findById(req.params.id).populate({ path: "workingTimePattern" })
             .populate({ path: "clockIns", match: { date: { $gte: startOfDay, $lte: endOfDay } } });
+        console.log(emp);
 
         if (emp?.clockIns?.length > 0) {
             return res.status(409).send({ message: "You have already PunchIn!" });
@@ -124,10 +125,11 @@ router.post("/:id", verifyAdminHREmployee, async (req, res) => {
         // Proceed with login checks
         const result = req.body;
         if (result?.login?.startingTime[0]) {
+            const officeLoginTime = emp?.workingTimePattern?.StartingTime;
             const splitTime = result?.login?.startingTime[0]?.split(":");
             const loginTime = `${splitTime[0]}:${splitTime[1]}`
-            const behaviour = await checkLogin("09:30", loginTime);
-            const punchInMsg = await checkLoginForOfficeTime("09:30", loginTime)
+            const behaviour = await checkLogin(officeLoginTime, loginTime);
+            const punchInMsg = await checkLoginForOfficeTime(officeLoginTime, loginTime)
             let newClockIns = {
                 ...req.body,
                 behaviour,

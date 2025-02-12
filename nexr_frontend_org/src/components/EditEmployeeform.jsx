@@ -17,7 +17,6 @@ const EditEmployeeform = ({ details, empData, handleScroll, handlePersonal, hand
     const { id } = useParams();
     const { changeEmpEditForm } = useContext(TimerStates);
     const [stateData, setStateData] = useState([]);
-    // const [cityData, setCityData] = useState([]);
     const { whoIs } = useContext(EssentialValues);
     const [timeDifference, setTimeDifference] = useState(0);
     const [selectedCountryCode, setselectedCountryCode] = useState("");
