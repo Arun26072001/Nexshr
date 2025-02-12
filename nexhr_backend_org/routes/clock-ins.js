@@ -158,7 +158,7 @@ router.get("/:id", verifyAdminHREmployee, async (req, res) => {
     try {
         const queryDate = new Date(String(req.query.date));
         console.log(queryDate);
-        
+
         // Create start and end of the day for the date comparison
         const startOfDay = new Date(queryDate.setHours(0, 0, 0, 0));
         const endOfDay = new Date(queryDate.setHours(23, 59, 59, 999));
@@ -235,6 +235,11 @@ router.get("/:id", verifyAdminHREmployee, async (req, res) => {
         // Convert total minutes to hours and minutes
         const hours = Math.floor(totalEmpWorkingMinutes / 60);
         const minutes = totalEmpWorkingMinutes % 60;
+        console.log({
+            timeData,
+            activitiesData,
+            empTotalWorkingHours: (hours + minutes / 60).toFixed(2),
+        });
 
         // Respond with calculated data
         return res.send({
