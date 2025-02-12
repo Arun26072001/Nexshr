@@ -11,7 +11,7 @@ function timeToMinutes(timeStr) {
     return Number(((hours * 60) + minutes + (seconds / 60)).toFixed(2)) || 0; // Defaults to 0 if input is invalid
 }
 
-async function checkLoginForOfficeTime(scheduledTime, actualTime) {
+function checkLoginForOfficeTime(scheduledTime, actualTime) {
     // Parse scheduled and actual time into hours and minutes
     const [scheduledHours, scheduledMinutes] = scheduledTime.split(':').map(Number);
     const [actualHours, actualMinutes] = actualTime.split(':').map(Number);
@@ -133,9 +133,12 @@ router.post("/:id", verifyAdminHREmployee, async (req, res) => {
         const officeLoginTime = emp?.workingTimePattern?.StartingTime;
         const [hour, minute] = loginTimeRaw.split(":");
         const loginTime = `${hour}:${minute}`;
+        console.log(officeLoginTime);
 
-        const behaviour = checkLogin(officeLoginTime, loginTime);
-        const punchInMsg = checkLogin(officeLoginTime, loginTime); // Assuming same function usage
+        const [behaviour, punchInMsg] = await Promise.all([
+            checkLogin(officeLoginTime, loginTime),
+            checkLoginForOfficeTime(officeLoginTime, loginTime)
+        ]);
 
         // Create clock-in entry
         const newClockIns = await ClockIns.create({
