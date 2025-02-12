@@ -11,7 +11,7 @@ function timeToMinutes(timeStr) {
     return Number(((hours * 60) + minutes + (seconds / 60)).toFixed(2)) || 0; // Defaults to 0 if input is invalid
 }
 
-function checkLoginForOfficeTime(scheduledTime, actualTime) {
+async function checkLoginForOfficeTime(scheduledTime, actualTime) {
     // Parse scheduled and actual time into hours and minutes
     const [scheduledHours, scheduledMinutes] = scheduledTime.split(':').map(Number);
     const [actualHours, actualMinutes] = actualTime.split(':').map(Number);
@@ -77,7 +77,6 @@ function formatTimeFromMinutes(minutes) {
     return `${formattedHours}:${formattedMinutes}:${formattedSeconds}`;
 }
 
-
 router.post("/:id", verifyAdminHREmployee, async (req, res) => {
     try {
         let regular = 0, late = 0, early = 0;
@@ -89,13 +88,14 @@ router.post("/:id", verifyAdminHREmployee, async (req, res) => {
         const emp = await Employee.findById(req.params.id)
             .populate("workingTimePattern")
             .populate({ path: "clockIns", match: { date: { $gte: startOfDay, $lte: endOfDay } } });
-
+        console.log(emp);
+        
         if (!emp) {
             return res.status(404).send({ error: "Employee not found!" });
         }
 
         if (emp?.clockIns?.length > 0) {
-            return res.status(409).send({ message: "You have already PunchIn!" });
+            return res.status(409).send({ message: "You have already Punch-In!" });
         }
 
         // Validate input data
@@ -131,20 +131,27 @@ router.post("/:id", verifyAdminHREmployee, async (req, res) => {
 
         // Determine login behavior
         const officeLoginTime = emp?.workingTimePattern?.StartingTime;
+        console.log(officeLoginTime);
+        
         const [hour, minute] = loginTimeRaw.split(":");
         const loginTime = `${hour}:${minute}`;
-        console.log(officeLoginTime);
+        console.log("Office Login Time:", officeLoginTime);
 
-        const [behaviour, punchInMsg] = await Promise.all([
-            checkLogin(officeLoginTime, loginTime),
-            checkLoginForOfficeTime(officeLoginTime, loginTime)
-        ]);
+        // Synchronous check for behaviour
+        const behaviour = checkLogin(officeLoginTime, loginTime);
+
+        // Async check for punch-in message
+        const punchInMsg = await checkLoginForOfficeTime(officeLoginTime, loginTime);
+
+        // Ensure values are properly assigned
+        console.log("Behaviour:", behaviour);
+        console.log("Punch-In Message:", punchInMsg);
 
         // Create clock-in entry
         const newClockIns = await ClockIns.create({
             ...req.body,
-            behaviour,
-            punchInMsg,
+            behaviour: behaviour,  // Ensure it's explicitly assigned
+            punchInMsg: punchInMsg,  // Ensure it's explicitly assigned
             employee: req.params.id
         });
 
@@ -158,7 +165,6 @@ router.post("/:id", verifyAdminHREmployee, async (req, res) => {
         return res.status(500).send({ error: error.message });
     }
 });
-
 
 router.get("/:id", verifyAdminHREmployee, async (req, res) => {
     // Helper function to convert time in HH:MM:SS format to total minutes
