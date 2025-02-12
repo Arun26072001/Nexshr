@@ -169,8 +169,6 @@ router.post("/:id", verifyAdminHREmployee, async (req, res) => {
 router.get("/:id", verifyAdminHREmployee, async (req, res) => {
     // Helper function to convert time in HH:MM:SS format to total minutes
     try {
-        console.log(req.query.date);
-
         const queryDate = new Date(req.query.date);
 
         // Create start and end of the day for the date comparison
