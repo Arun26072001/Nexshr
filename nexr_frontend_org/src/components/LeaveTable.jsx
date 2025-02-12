@@ -41,16 +41,16 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
     };
 
     const column1 = [
-        { id: 'FirstName', label: 'Name', minWidth: 130, align: "left", getter: (row) => row.employee.FirstName[0].toUpperCase() + row.employee.FirstName.slice(1) + row.employee.LastName || 'Unknown' },
-        { id: 'periodOfLeave', label: 'Period Of Leave', align: "left", minWidth: 150, getter: (row) => row.periodOfLeave },
-        { id: 'fromDate', label: 'Start Date', minWidth: 130, align: 'left', getter: (row) => row.fromDate ? row.fromDate.split("T")[0] : 'N/A' },
-        { id: 'toDate', label: 'End Date', minWidth: 130, align: 'left', getter: (row) => row.toDate ? row.toDate.split("T")[0] : 'N/A' },
-        { id: 'leaveType', label: 'Type', minWidth: 130, align: 'left', getter: (row) => row.leaveType },
-        { id: 'reasonForLeave', label: 'Reason', minWidth: 130, align: 'left', getter: (row) => <div dangerouslySetInnerHTML={{ __html: row.reasonForLeave }} /> },
+        { id: 'FirstName', label: 'Name', minWidth: 100, align: "left", getter: (row) => row.employee.FirstName[0].toUpperCase() + row.employee.FirstName.slice(1) + row.employee.LastName || 'Unknown' },
+        { id: 'periodOfLeave', label: 'Period Of Leave', align: "left", minWidth: 100, getter: (row) => row.periodOfLeave },
+        { id: 'fromDate', label: 'Start Date', minWidth: 100, align: 'left', getter: (row) => row.fromDate ? row.fromDate.split("T")[0] : 'N/A' },
+        { id: 'toDate', label: 'End Date', minWidth: 100, align: 'left', getter: (row) => row.toDate ? row.toDate.split("T")[0] : 'N/A' },
+        { id: 'leaveType', label: 'Type', minWidth: 100, align: 'left', getter: (row) => row.leaveType },
+        { id: 'reasonForLeave', label: 'Reason', minWidth: 100, align: 'left', getter: (row) => <div dangerouslySetInnerHTML={{ __html: row.reasonForLeave }} /> },
         {
             id: 'status',
             label: 'Status',
-            minWidth: 130,
+            minWidth: 100,
             align: 'left',
             getter: (row) => {
                 if (isTeamHead) {
@@ -506,7 +506,7 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
     useEffect(() => {
         setRows(data || []);
         data?.map((item) => {
-            if (item?.fromDate && params['*'] === "leave-request") {
+            if (item?.fromDate && (params['*'] === "leave-request" || params['*'] === "leave")) {
                 return setColumns(column1);
             } else if (item?.FirstName && params["*"] === "employee") {
                 return setColumns(column3);
@@ -525,7 +525,7 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
             }
             else if (item?.fromDate && params['*'] === "status"
                 || item?.fromDate && params['*'] === "leave-summary"
-                || item?.fromDate && params['*'] === "leave"
+                // || item?.fromDate && params['*'] === "leave"
                 || item?.fromDate && params['*'] === "calendar") {
                 return setColumns(column8);
             } else if (item?.DepartmentName) {
@@ -578,8 +578,8 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
                                             // Apply conditional styling for employee type
                                             const cellClass =
                                                 column.id === "employmentType" && value === "contract" ? "backgroundBtn bg-primary rounded" :
-                                                    value?.toLowerCase() === "part-time" ? "backgroundBtn bg-warning rounded" :
-                                                        value?.toLowerCase() === "full-time" ? "backgroundBtn bg-success rounded" : "";
+                                                    value === "Part-time" ? "backgroundBtn bg-warning rounded" :
+                                                        value === "Full-time" ? "backgroundBtn bg-success rounded" : "";
 
                                             // Render actions based on column.id and params
                                             const renderActions = () => {
@@ -634,6 +634,14 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
                                                             </Dropdown.Item>
                                                         </Dropdown>)
 
+                                                    } else if (params["*"] === "leave") {
+                                                        return (<Dropdown title={"Action"} noCaret placement="leftStart">
+                                                            <Dropdown.Item style={{ minWidth: 80 }} onClick={() => fetchData(row.code, "Edit")}>
+                                                                <b>
+                                                                    <DeleteRoundedIcon sx={{ color: "#F93827" }} /> Delete
+                                                                </b>
+                                                            </Dropdown.Item>
+                                                        </Dropdown>)
                                                     }
                                                 } else if (column.id === "auth") {
                                                     return (
