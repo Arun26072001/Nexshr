@@ -66,11 +66,10 @@ const addDataAPI = async (body) => {
         const response = await axios.post(`${url}/api/clock-ins/${empId}`, body, {
             headers: { authorization: token || '' },
         });
-        // localStorage.setItem('clockinsId', response.data._id);
-        console.log('Added successfully:', response.data);
-        return response?.data;
+        toast.success(response.data.message);
+        return response?.data?.clockIns;
     } catch (error) {
-        return error?.response?.data?.message;
+        return error?.response?.data?.error;
     }
 };
 

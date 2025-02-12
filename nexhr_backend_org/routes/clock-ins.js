@@ -143,7 +143,7 @@ router.post("/:id", verifyAdminHREmployee, async (req, res) => {
             emp.clockIns.push(clockIns._id);
             await emp.save(); // Fixed save function usage
 
-            res.status(201).send(clockIns);
+            res.status(201).send({ message: "Working timer started", clockIns });
         } else {
             res.status(400).send({ error: "You must start Punchin Timer" })
         }
@@ -157,7 +157,6 @@ router.get("/:id", verifyAdminHREmployee, async (req, res) => {
     // Helper function to convert time in HH:MM:SS format to total minutes
     try {
         const queryDate = new Date(String(req.query.date));
-        console.log(queryDate);
 
         // Create start and end of the day for the date comparison
         const startOfDay = new Date(queryDate.setHours(0, 0, 0, 0));
@@ -175,6 +174,7 @@ router.get("/:id", verifyAdminHREmployee, async (req, res) => {
                 },
                 populate: { path: "employee", select: "_id FirstName LastName" },
             });
+        console.log(timeData);
 
         if (!timeData || timeData.clockIns.length === 0) {
             return res.status(404).send({ message: "No clock-ins found for the given date." });
@@ -235,12 +235,6 @@ router.get("/:id", verifyAdminHREmployee, async (req, res) => {
         // Convert total minutes to hours and minutes
         const hours = Math.floor(totalEmpWorkingMinutes / 60);
         const minutes = totalEmpWorkingMinutes % 60;
-        console.log({
-            timeData,
-            activitiesData,
-            empTotalWorkingHours: (hours + minutes / 60).toFixed(2),
-        });
-
         // Respond with calculated data
         return res.send({
             timeData,
