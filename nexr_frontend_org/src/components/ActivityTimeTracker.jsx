@@ -6,7 +6,6 @@ import { TimerStates } from "./payslip/HRMDashboard";
 import { toast } from "react-toastify";
 import WavingHandRoundedIcon from '@mui/icons-material/WavingHandRounded';
 import { Modal, Button } from "rsuite";
-import AddRoundedIcon from '@mui/icons-material/AddRounded';
 
 const ActivityTimeTracker = () => {
     const {

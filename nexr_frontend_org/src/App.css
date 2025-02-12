@@ -62,7 +62,8 @@ h1 {
 .allowance,
 .employee,
 .leaveContainer,
-.attendanceFile {
+.attendanceFile,
+.messageCount {
   display: flex;
   align-items: center;
   justify-content: center;

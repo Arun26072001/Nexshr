@@ -1,6 +1,7 @@
 import React, { useContext, useEffect, useState } from 'react';
 import Popup from './Popup';
 import { Doughnut } from 'react-chartjs-2';
+import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js';
 import { fetchEmployees, gettingClockinsData } from '../ReuseableAPI';
 import { toast } from 'react-toastify';
 import LeaveTable from '../LeaveTable';
@@ -9,9 +10,13 @@ import Loading from '../Loader';
 import "./Summary.css";
 import { EssentialValues } from '../../App';
 
+// Register required Chart.js components
+ChartJS.register(ArcElement, Tooltip, Legend);
+
 const Summary = () => {
     const { data } = useContext(EssentialValues);
-    const { _id, Name } = data;
+    const { _id, Name } = data || {}; // Ensure safe access to `_id` & `Name`
+    
     const [employees, setEmployees] = useState([]);
     const [clockinsData, setClockinsData] = useState({});
     const [isLoading, setIsLoading] = useState(false);
@@ -20,9 +25,10 @@ const Summary = () => {
         datasets: [{
             label: 'Time Spent',
             backgroundColor: ['#FF4560', '#008FFB', '#775DD0'],
-            data: [],
+            data: [0, 0, 0], // Initialize with default values
         }],
     });
+
     const options = {
         maintainAspectRatio: false,
         plugins: {
@@ -36,58 +42,77 @@ const Summary = () => {
     };
 
     // Fetch clockins data
-    async function selectEmpClockins(id) {
-        setIsLoading(true)
-        if (id) {
-            const data = await gettingClockinsData(id);
-
-            if (data) {
-                setClockinsData(data);
-                updateChartData(data);
+    const selectEmpClockins = async (id) => {
+        setIsLoading(true);
+        try {
+            if (id) {
+                const data = await gettingClockinsData(id);
+                if (data) {
+                    setClockinsData(data);
+                    updateChartData(data);
+                } else {
+                    toast.error("Error in getting clockins data!");
+                }
             } else {
-                toast.error("Error in getting clockins data!");
+                setClockinsData({});
+                resetChartData();
             }
-        } else {
-            setClockinsData(null); // Reset data if no employee is selected
-            setChartData({
-                ...chartData,
-                datasets: [{
-                    ...chartData.datasets[0],
-                    data: [0, 0, 0], // Reset chart data
-                }],
-            });
+        } catch (error) {
+            toast.error("An error occurred while fetching clockins data.");
+        } finally {
+            setIsLoading(false);
         }
-        setIsLoading(false);
-    }
-
-    const getEmpData = async () => {
-        const emps = await fetchEmployees();
-        setEmployees(emps);
     };
 
+    // Fetch employee data
+    const getEmpData = async () => {
+        try {
+            const emps = await fetchEmployees();
+            if (emps) setEmployees(emps);
+        } catch (error) {
+            toast.error("Error fetching employees.");
+        }
+    };
+
+    // Update chart data safely
     const updateChartData = (data) => {
-        setChartData({
-            ...chartData,
+        setChartData((prevChartData) => ({
+            ...prevChartData,
             datasets: [{
-                ...chartData.datasets[0],
+                ...prevChartData.datasets[0],
                 data: [
                     data?.totalEarlyLogins || 0,
                     data?.totalLateLogins || 0,
                     data?.totalRegularLogins || 0
                 ],
             }],
-        });
+        }));
+    };
+
+    // Reset chart data
+    const resetChartData = () => {
+        setChartData((prevChartData) => ({
+            ...prevChartData,
+            datasets: [{
+                ...prevChartData.datasets[0],
+                data: [0, 0, 0],
+            }],
+        }));
     };
 
     useEffect(() => {
         const getClockinsData = async () => {
             if (_id) {
-                const data = await gettingClockinsData(_id);
-                if (data) {
-                    setClockinsData(data);
-                    updateChartData(data);
-                } else {
-                    toast.error("Error in getting clockins data!");
+                try {
+                    const data = await gettingClockinsData(_id);
+                    if (data) {
+                        setClockinsData(data);
+                        updateChartData(data);
+                    } else {
+                        toast.error("Error in getting clockins data!");
+                    }
+                } catch (error) {
+                    toast.error("An error occurred while fetching data.");
                 }
             }
         };
@@ -95,8 +120,8 @@ const Summary = () => {
         getEmpData();
     }, [_id]);
 
-    if(isLoading){
-        return <Loading />
+    if (isLoading) {
+        return <Loading />;
     }
 
     return (
@@ -113,54 +138,44 @@ const Summary = () => {
                 </div>
             </div>
 
-            <>
-                <div className='row container-fluid attendanceFile m-0'>
-                    <div className="row d-flex justify-content-end">
-                        <div className="col-12 col-md-4">
-                            <select className="form-select mt-2" onChange={(e) => selectEmpClockins(e.target.value)}>
-                                <option value={_id}>{Name}</option>
-                                {employees?.map((employee) => (
-                                    <option key={employee._id} value={employee._id}>
-                                        {`${employee.FirstName} ${employee.LastName}`}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
+            <div className='row container-fluid attendanceFile m-0'>
+                <div className="row d-flex justify-content-end">
+                    <div className="col-12 col-md-4">
+                        <select className="form-select mt-2" onChange={(e) => selectEmpClockins(e.target.value)}>
+                            <option value={_id}>{Name || "Select Employee"}</option>
+                            {employees?.map((employee) => (
+                                <option key={employee._id} value={employee._id}>
+                                    {`${employee.FirstName} ${employee.LastName}`}
+                                </option>
+                            ))}
+                        </select>
                     </div>
-                    <div className='col-lg-6 d-flex align-items-center justify-content-center'>
-                        <div className="d-flex justify-content-center" style={{ width: '300px', height: '200px' }}>
-                            <Doughnut data={chartData} options={options} />
-                        </div>
+                </div>
+                <div className='col-lg-6 d-flex align-items-center justify-content-center'>
+                    <div className="d-flex justify-content-center" style={{ width: '300px', height: '200px' }}>
+                        <Doughnut data={chartData} options={options} />
                     </div>
-                    <div className='col-lg-6'>
-                        <div className='row summary-card'>
-                            <div className='col-lg-5'>
-                                <p className='numvalue'>{clockinsData?.companyTotalWorkingHour}</p>
-                                <p>Total schedule hour</p>
-                            </div>
-                            <div className='col-lg-2'><div className="summary-divider"></div></div>
-                            <div className='col-lg-5'>
-                                <p className='numvalue'>{Number(clockinsData?.totalLeaveDays) * 9} hr</p>
-                                <p>Leave hour</p>
-                            </div>
+                </div>
+                <div className='col-lg-6'>
+                    <div className='row summary-card'>
+                        <div className='col-lg-5'>
+                            <p className='numvalue'>{clockinsData?.companyTotalWorkingHour || 0}</p>
+                            <p>Total schedule hour</p>
                         </div>
-                        <div className='row summary-card mt-2'>
-                            <div className='col-lg-5'>
-                                <p className='numvalue'>{clockinsData?.totalEmpWorkingHours} hr</p>
-                                <p>Total work</p>
-                            </div>
-                            <div className='col-lg-2'><div className="summary-divider"></div></div>
-                            <div className='col-lg-5'>
-                                <p className='numvalue'>{(Number(clockinsData?.totalEmpWorkingHours) / 9).toFixed(2)} days</p>
-                                <p>Total active</p>
-                            </div>
+                        <div className='col-lg-2'><div className="summary-divider"></div></div>
+                        <div className='col-lg-5'>
+                            <p className='numvalue'>{(Number(clockinsData?.totalLeaveDays || 0) * 9)} hr</p>
+                            <p>Leave hour</p>
                         </div>
                     </div>
                 </div>
-                {clockinsData?.clockIns?.length > 0 ?
-                    <LeaveTable data={clockinsData.clockIns} /> : <NoDataFound message={"No Attendance data for this month!"} />}
-            </>
+            </div>
 
+            {clockinsData?.clockIns?.length > 0 ? (
+                <LeaveTable data={clockinsData.clockIns} />
+            ) : (
+                <NoDataFound message={"No Attendance data for this month!"} />
+            )}
         </div>
     );
 };

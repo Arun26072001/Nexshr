@@ -21,3 +21,17 @@
 .organization_logo {
   object-fit: cover;
 }
+
+.bell > .messageCount {
+  position: absolute;
+  top: -5px;
+  left: 6px;
+  height: 15px;
+  width: 15px;
+  border-radius: 50%;
+  background-color: red;
+  color: white;
+  padding: 2px;
+  box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
+  cursor: pointer;
+}

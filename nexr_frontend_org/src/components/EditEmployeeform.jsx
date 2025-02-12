@@ -13,11 +13,9 @@ import NoDataFound from "./payslip/NoDataFound";
 import { EssentialValues } from "../App";
 
 const EditEmployeeform = ({ details, empData, handleScroll, handlePersonal, handleFinancial, handleJob, handleContact, handleEmployment, timePatterns, personalRef, contactRef, employmentRef, jobRef, financialRef, countries, companies, departments, positions, roles, leads, managers }) => {
-    const navigate = useNavigate();
     const { id } = useParams();
     const { changeEmpEditForm } = useContext(TimerStates);
     const [stateData, setStateData] = useState([]);
-    // const [cityData, setCityData] = useState([]);
     const { whoIs } = useContext(EssentialValues);
     const [timeDifference, setTimeDifference] = useState(0);
     const [selectedCountryCode, setselectedCountryCode] = useState("");
@@ -195,8 +193,7 @@ const EditEmployeeform = ({ details, empData, handleScroll, handlePersonal, hand
             }
         };
 
-        const countryFullData = countries.find((country) => Object.values(country).includes(empData?.countryCode));
-        setSelectedCountry(countryFullData?.abbr)
+
         calculateTimeDifference();
     }, [formik.values.workingTimePattern]);
 
@@ -220,6 +217,11 @@ const EditEmployeeform = ({ details, empData, handleScroll, handlePersonal, hand
         setIsLoading(true);
         gettingLeaveTypes();
         setIsLoading(false);
+        const countryFullData = countries.find((country) => Object.values(country).includes(empData?.countryCode));
+        console.log(countryFullData);
+        setselectedCountryCode(countryFullData?.abbr);
+        setSelectedCountry(countryFullData?.name);
+        setStateData(countryFullData?.states);
     }, []);
 
     const hourAndMin = timeDifference.toString().split(".");
@@ -243,6 +245,7 @@ const EditEmployeeform = ({ details, empData, handleScroll, handlePersonal, hand
             formik.setFieldValue(name, countryFullData?.code || "");
         }
     }
+    console.log(stateData);
 
 
     return (
@@ -426,7 +429,7 @@ const EditEmployeeform = ({ details, empData, handleScroll, handlePersonal, hand
                                             appearance="subtle"
                                             labelKey="name"
                                             valueKey="abbr"
-                                            value={selectedCountryCode}
+                                            value={selectedCountryCode || formik.values.countryCode}
                                             onChange={(value) => changeCountry(value, "countryCode")}
                                             placeholder="Choose a Country"
                                             renderMenuItem={(label, item) => (
@@ -879,7 +882,6 @@ const EditEmployeeform = ({ details, empData, handleScroll, handlePersonal, hand
                         <div className="fixedPositionBtns">
                             <div className="w-50">
                                 <button className="outline-btn mx-2" onClick={() => {
-                                    navigate(`/${whoIs}/employee`)
                                     changeEmpEditForm()
                                 }}>
                                     Cancel

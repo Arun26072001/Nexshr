@@ -5,11 +5,13 @@ import TableRowsRoundedIcon from '@mui/icons-material/TableRowsRounded';
 import PunchIn from "../../../asserts/PunchIn.svg";
 import PunchOut from "../../../asserts/punchOut.svg";
 import { TimerStates } from '../HRMDashboard';
-import { Dropdown, Popover, Whisper } from 'rsuite';
+import { Accordion, Dropdown, Popover, Whisper } from 'rsuite';
 import logo from "../../../imgs/male_avatar.webp";
 import { EssentialValues } from '../../../App';
 import axios from "axios";
 import { toast } from 'react-toastify';
+import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
+import KeyboardArrowDownRoundedIcon from '@mui/icons-material/KeyboardArrowDownRounded';
 
 export default function Navbar({ handleSideBar }) {
     const { handleLogout, data } = useContext(EssentialValues)
@@ -151,6 +153,7 @@ export default function Navbar({ handleSideBar }) {
         );
     };
 
+
     return (
         <div className="webnxs">
             <div className="row mx-auto">
@@ -237,7 +240,7 @@ export default function Navbar({ handleSideBar }) {
                             <path d="M0.118608 11V0.818182H6.50213V2.14062H1.65483V5.2429H6.16903V6.56037H1.65483V9.67756H6.56179V11H0.118608ZM16.6882 0.818182V11H15.2763L10.1008 3.53267H10.0064V11H8.47016V0.818182H9.89203L15.0724 8.29545H15.1669V0.818182H16.6882Z" fill="#212143" />
                         </svg>
                     </span>
-                    <span className="bell ms-3">
+                    <span className="bell mx-2 position-relative" data-bs-toggle="offcanvas" data-bs-target="#offcanvasRight" aria-controls="offcanvasRight">
                         <svg width="16" height="17" viewBox="0 0 16 17" fill="none" xmlns="http://www.w3.org/2000/svg">
                             <g clipPath="url(#clip0_2046_6896)">
                                 <path d="M4.11584 4.25758C4.28455 2.64323 5.73825 1.5 7.47569 1.5H8.52431C10.2618 1.5 11.7155 2.64323 11.8842 4.25758L12.2348 7.80303C12.3619 9.01954 12.9113 10.2534 13.7994 11.1515C14.2434 11.6005 13.9022 12.5303 13.2477 12.5303H2.75233C2.09777 12.5303 1.75663 11.6005 2.20061 11.1515C3.08866 10.2534 3.63806 9.01954 3.76519 7.80303L4.11584 4.25758Z" stroke="#212143" strokeWidth="1.20741" strokeLinejoin="round" />
@@ -249,13 +252,37 @@ export default function Navbar({ handleSideBar }) {
                                 </clipPath>
                             </defs>
                         </svg>
+
+                        <span className='messageCount'>
+                            1
+                        </span>
                     </span>
                     {/* Profile Section */}
                     <Whisper placement="bottomEnd" trigger="click" speaker={renderMenu}>
                         <img src={logo} width={40} height={40} alt='emp_img' />
                     </Whisper>
+                    {/* Messages Section */}
+                    <div className="offcanvas offcanvas-end" tabindex="-1" id="offcanvasRight" aria-labelledby="offcanvasRightLabel">
+                        <div className="offcanvas-header">
+                            <h5 id="offcanvasRightLabel">Notifications</h5>
+                            <button type="button" className="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+                        </div>
+                        <div className="offcanvas-body">
+                            <div className="box-content d-flex justify-content-between">
+                                <Accordion defaultActiveKey={1}>
+                                    <Accordion.Panel header="Accordion Panel 1" eventKey={1} caretAs={KeyboardArrowDownRoundedIcon}>
+                                        <p>wqjhdlwqd sadmdoiud9uwqd wqdwq0ud wqdwq ud9wqdwq9pd</p>
+                                    </Accordion.Panel>
+                                </Accordion>
+                                <CloseRoundedIcon />
+                            </div>
+                            <div>
+                                <button className='button my-2 w-100'>Clear all</button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
-        </div>
+        </div >
     );
 }

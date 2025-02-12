@@ -77,11 +77,11 @@
     transition-duration: 1s;
 }
 
-.box-content:hover {
+/* .box-content:hover {
   opacity: 1;
   transform: translateY(-10px);
   transition-duration: revert;
-}
+} */
 
 .form-check-input {
   position: relative;

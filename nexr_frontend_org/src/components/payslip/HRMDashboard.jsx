@@ -259,7 +259,7 @@ export default function HRMDashboard() {
 
     function changeEmpEditForm(id) {
         if (isEditEmp) {
-            navigate(-1);
+            navigate(`/${whoIs}`);
             setIsEditEmp(false);
         } else {
             navigate(`employee/edit/${id}`);
