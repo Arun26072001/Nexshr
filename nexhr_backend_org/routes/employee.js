@@ -3,19 +3,11 @@ const router = express.Router();
 const { Employee } = require('../models/EmpModel');
 const { verifyHR, verifyAdminHREmployee, verifyAdminHR, verifyAdmin } = require('../auth/authMiddleware');
 const { getDayDifference } = require('./leave-app');
-// const { PaySlipInfo } = require('../models/PaySlipInfoModel');
-// const nodemailer = require("nodemailer");
-// const { getPayslipInfoModel } = require('./payslipInfo');
 const sendMail = require("./mailSender");
 
 router.get("/", verifyAdminHR, async (req, res) => {
   try {
-    // const {orgName} = jwt.decode(req.headers['authorization']);
-    // const Employee = getEmployeeModel(orgName)
     const employees = await Employee.find({ Account: 3 }, "_id FirstName LastName employmentType dateOfJoining gender working code docType serialNo")
-      // .populate({
-      //   path: "orgId"
-      // })
       .populate({
         path: "position"
       })
@@ -137,7 +129,7 @@ router.get("/all", verifyAdminHREmployee, async (req, res) => {
 router.get("/lead", verifyAdminHR, async (req, res) => {
   try {
     const teamLeads = await Employee.find({}, "FirstName LastName").populate("position").exec();
-    const filterTeamLeads = teamLeads.filter((lead) => lead?.position?.PositionName === "TL");
+    const filterTeamLeads = teamLeads.filter((lead) => lead?.position?.PositionName === "Team Lead");
     res.send(filterTeamLeads);
   } catch (err) {
     res.status(500).send({ error: err.message })

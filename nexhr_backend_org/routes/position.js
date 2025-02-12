@@ -1,20 +1,9 @@
 const express = require('express');
 const router = express.Router();
-const { Position, PositionValidation, positionSchema } = require('../models/PositionModel');
+const { Position, PositionValidation } = require('../models/PositionModel');
 const { Employee } = require('../models/EmpModel');
 const Joi = require('joi');
 const { verifyAdminHR, verifyAdminHREmployee } = require('../auth/authMiddleware');
-const mongoose = require("mongoose");
-
-// const positionModel = {};
-// function getPositionModel(orgName) {
-//   // If model already exists in the object, return it; otherwise, create it
-//   if (!positionModel[orgName]) {
-//     positionModel[orgName] = mongoose.model(`${orgName}Position`, positionSchema);
-//   }
-
-//   return positionModel[orgName];
-// }
 
 // router.get("/", verifyAdminHR, (req, res) => {
 router.get("/", verifyAdminHREmployee, (req, res) => {
@@ -31,8 +20,6 @@ router.get("/", verifyAdminHREmployee, (req, res) => {
 });
 
 router.get("/:id", verifyAdminHR, (req, res) => {
-  // const { orgName } = jwt.decode(req.headers['authorization']);
-  // const Position = getPositionModel(orgName)
   Position.findById({ _id: req.params.id })
     // .populate("company")
     .exec(function (err, position) {

@@ -1,6 +1,6 @@
 [
   {
-    "state": [
+    "states": [
       "iue",
       "kjlA"
     ],
@@ -10,7 +10,7 @@
     "code": "358"
   },
   {
-    "state": [
+    "states": [
       "klasjdlss"
     ],
     "icon": "🇦🇱",
@@ -19,7 +19,7 @@
     "code": "355"
   },
   {
-    "state": [
+    "states": [
       "aaaa"
     ],
     "icon": "🇩🇿",
@@ -28,7 +28,7 @@
     "code": "213"
   },
   {
-    "state": [
+    "states": [
       "kjsdks"
     ],
     "icon": "🇦🇸",
@@ -37,7 +37,7 @@
     "code": "1-684"
   },
   {
-    "state": [
+    "states": [
       "eeeewq"
     ],
     "icon": "🇦🇩",
@@ -46,7 +46,7 @@
     "code": "376"
   },
   {
-    "state": [
+    "states": [
       "adasda"
     ],
     "icon": "🇦🇴",
@@ -55,7 +55,7 @@
     "code": "244"
   },
   {
-    "state": [
+    "states": [
       "asdsdwq"
     ],
     "icon": "🇦🇮",
@@ -64,7 +64,7 @@
     "code": "1-264"
   },
   {
-    "state": [
+    "states": [
       "askdjlkas"
     ],
     "icon": "🇦🇶",
@@ -73,35 +73,35 @@
     "code": "672"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇦🇬",
     "name": "Antigua and Barbuda",
     "abbr": "AG",
     "code": "1-268"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇦🇷",
     "name": "Argentina",
     "abbr": "AR",
     "code": "54"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇦🇲",
     "name": "Armenia",
     "abbr": "AM",
     "code": "374"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇦🇼",
     "name": "Aruba",
     "abbr": "AW",
     "code": "297"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇦🇺",
     "name": "Australia",
     "abbr": "AU",
@@ -109,182 +109,182 @@
     "suggested": true
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇦🇹",
     "name": "Austria",
     "abbr": "AT",
     "code": "43"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇦🇿",
     "name": "Azerbaijan",
     "abbr": "AZ",
     "code": "994"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇧🇸",
     "name": "Bahamas",
     "abbr": "BS",
     "code": "1-242"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇧🇭",
     "name": "Bahrain",
     "abbr": "BH",
     "code": "973"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇧🇩",
     "name": "Bangladesh",
     "abbr": "BD",
     "code": "880"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇧🇧",
     "name": "Barbados",
     "abbr": "BB",
     "code": "1-246"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇧🇾",
     "name": "Belarus",
     "abbr": "BY",
     "code": "375"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇧🇪",
     "name": "Belgium",
     "abbr": "BE",
     "code": "32"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇧🇿",
     "name": "Belize",
     "abbr": "BZ",
     "code": "501"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇧🇯",
     "name": "Benin",
     "abbr": "BJ",
     "code": "229"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇧🇲",
     "name": "Bermuda",
     "abbr": "BM",
     "code": "1-441"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇧🇹",
     "name": "Bhutan",
     "abbr": "BT",
     "code": "975"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇧🇴",
     "name": "Bolivia",
     "abbr": "BO",
     "code": "591"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇧🇦",
     "name": "Bosnia and Herzegovina",
     "abbr": "BA",
     "code": "387"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇧🇼",
     "name": "Botswana",
     "abbr": "BW",
     "code": "267"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇧🇻",
     "name": "Bouvet Island",
     "abbr": "BV",
     "code": "47"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇧🇷",
     "name": "Brazil",
     "abbr": "BR",
     "code": "55"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇮🇴",
     "name": "British Indian Ocean Territory",
     "abbr": "IO",
     "code": "246"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇻🇬",
     "name": "British Virgin Islands",
     "abbr": "VG",
     "code": "1-284"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇧🇳",
     "name": "Brunei Darussalam",
     "abbr": "BN",
     "code": "673"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇧🇬",
     "name": "Bulgaria",
     "abbr": "BG",
     "code": "359"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇧🇫",
     "name": "Burkina Faso",
     "abbr": "BF",
     "code": "226"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇧🇮",
     "name": "Burundi",
     "abbr": "BI",
     "code": "257"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇰🇭",
     "name": "Cambodia",
     "abbr": "KH",
     "code": "855"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇨🇲",
     "name": "Cameroon",
     "abbr": "CM",
     "code": "237"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇨🇦",
     "name": "Canada",
     "abbr": "CA",
@@ -292,252 +292,252 @@
     "suggested": true
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇨🇻",
     "name": "Cape Verde",
     "abbr": "CV",
     "code": "238"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇰🇾",
     "name": "Cayman Islands",
     "abbr": "KY",
     "code": "1-345"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇨🇫",
     "name": "Central African Republic",
     "abbr": "CF",
     "code": "236"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇹🇩",
     "name": "Chad",
     "abbr": "TD",
     "code": "235"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇨🇱",
     "name": "Chile",
     "abbr": "CL",
     "code": "56"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇨🇳",
     "name": "China",
     "abbr": "CN",
     "code": "86"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇨🇽",
     "name": "Christmas Island",
     "abbr": "CX",
     "code": "61"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇨🇨",
     "name": "Cocos (Keeling) Islands",
     "abbr": "CC",
     "code": "61"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇨🇴",
     "name": "Colombia",
     "abbr": "CO",
     "code": "57"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇰🇲",
     "name": "Comoros",
     "abbr": "KM",
     "code": "269"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇨🇩",
     "name": "Congo, Democratic Republic of the",
     "abbr": "CG",
     "code": "243"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇨🇬",
     "name": "Congo, Republic of the",
     "abbr": "CD",
     "code": "242"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇨🇰",
     "name": "Cook Islands",
     "abbr": "CK",
     "code": "682"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇨🇷",
     "name": "Costa Rica",
     "abbr": "CR",
     "code": "506"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇨🇮",
     "name": "Cote d'Ivoire",
     "abbr": "CI",
     "code": "225"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇭🇷",
     "name": "Croatia",
     "abbr": "HR",
     "code": "385"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇨🇺",
     "name": "Cuba",
     "abbr": "CU",
     "code": "53"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇨🇼",
     "name": "Curacao",
     "abbr": "CW",
     "code": "599"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇨🇾",
     "name": "Cyprus",
     "abbr": "CY",
     "code": "357"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇨🇿",
     "name": "Czech Republic",
     "abbr": "CZ",
     "code": "420"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇩🇰",
     "name": "Denmark",
     "abbr": "DK",
     "code": "45"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇩🇯",
     "name": "Djibouti",
     "abbr": "DJ",
     "code": "253"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇩🇲",
     "name": "Dominica",
     "abbr": "DM",
     "code": "1-767"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇩🇴",
     "name": "Dominican Republic",
     "abbr": "DO",
     "code": "1-809"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇪🇨",
     "name": "Ecuador",
     "abbr": "EC",
     "code": "593"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇪🇬",
     "name": "Egypt",
     "abbr": "EG",
     "code": "20"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇸🇻",
     "name": "El Salvador",
     "abbr": "SV",
     "code": "503"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇬🇶",
     "name": "Equatorial Guinea",
     "abbr": "GQ",
     "code": "240"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇪🇷",
     "name": "Eritrea",
     "abbr": "ER",
     "code": "291"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇪🇪",
     "name": "Estonia",
     "abbr": "EE",
     "code": "372"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇪🇹",
     "name": "Ethiopia",
     "abbr": "ET",
     "code": "251"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇫🇰",
     "name": "Falkland Islands (Malvinas)",
     "abbr": "FK",
     "code": "500"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇫🇴",
     "name": "Faroe Islands",
     "abbr": "FO",
     "code": "298"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇫🇯",
     "name": "Fiji",
     "abbr": "FJ",
     "code": "679"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇫🇮",
     "name": "Finland",
     "abbr": "FI",
     "code": "358"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇫🇷",
     "name": "France",
     "abbr": "FR",
@@ -545,49 +545,49 @@
     "suggested": true
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇬🇫",
     "name": "French Guiana",
     "abbr": "GF",
     "code": "594"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇵🇫",
     "name": "French Polynesia",
     "abbr": "PF",
     "code": "689"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇹🇫",
     "name": "French Southern Territories",
     "abbr": "TF",
     "code": "262"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇬🇦",
     "name": "Gabon",
     "abbr": "GA",
     "code": "241"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇬🇲",
     "name": "Gambia",
     "abbr": "GM",
     "code": "220"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇬🇪",
     "name": "Georgia",
     "abbr": "GE",
     "code": "995"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇩🇪",
     "name": "Germany",
     "abbr": "DE",
@@ -595,133 +595,133 @@
     "suggested": true
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇬🇭",
     "name": "Ghana",
     "abbr": "GH",
     "code": "233"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇬🇮",
     "name": "Gibraltar",
     "abbr": "GI",
     "code": "350"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇬🇷",
     "name": "Greece",
     "abbr": "GR",
     "code": "30"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇬🇱",
     "name": "Greenland",
     "abbr": "GL",
     "code": "299"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇬🇩",
     "name": "Grenada",
     "abbr": "GD",
     "code": "1-473"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇬🇵",
     "name": "Guadeloupe",
     "abbr": "GP",
     "code": "590"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇬🇺",
     "name": "Guam",
     "abbr": "GU",
     "code": "1-671"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇬🇹",
     "name": "Guatemala",
     "abbr": "GT",
     "code": "502"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇬🇬",
     "name": "Guernsey",
     "abbr": "GG",
     "code": "44"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇬🇼",
     "name": "Guinea-Bissau",
     "abbr": "GW",
     "code": "245"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇬🇳",
     "name": "Guinea",
     "abbr": "GN",
     "code": "224"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇬🇾",
     "name": "Guyana",
     "abbr": "GY",
     "code": "592"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇭🇹",
     "name": "Haiti",
     "abbr": "HT",
     "code": "509"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇭🇲",
     "name": "Heard Island and McDonald Islands",
     "abbr": "HM",
     "code": "672"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇻🇦",
-    "name": "Holy See (Vatican City State)",
+    "name": "Holy See (Vatican City states)",
     "abbr": "VA",
     "code": "379"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇭🇳",
     "name": "Honduras",
     "abbr": "HN",
     "code": "504"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇭🇰",
     "name": "Hong Kong",
     "abbr": "HK",
     "code": "852"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇭🇺",
     "name": "Hungary",
     "abbr": "HU",
     "code": "36"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇮🇸",
     "name": "Iceland",
     "abbr": "IS",
@@ -772,63 +772,63 @@
     ]
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇮🇩",
     "name": "Indonesia",
     "abbr": "ID",
     "code": "62"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇮🇷",
     "name": "Iran, Islamic Republic of",
     "abbr": "IR",
     "code": "98"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇮🇶",
     "name": "Iraq",
     "abbr": "IQ",
     "code": "964"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇮🇪",
     "name": "Ireland",
     "abbr": "IE",
     "code": "353"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇮🇲",
     "name": "Isle of Man",
     "abbr": "IM",
     "code": "44"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇮🇱",
     "name": "Israel",
     "abbr": "IL",
     "code": "972"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇮🇹",
     "name": "Italy",
     "abbr": "IT",
     "code": "39"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇯🇲",
     "name": "Jamaica",
     "abbr": "JM",
     "code": "1-876"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇯🇵",
     "name": "Japan",
     "abbr": "JP",
@@ -836,953 +836,953 @@
     "suggested": true
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇯🇪",
     "name": "Jersey",
     "abbr": "JE",
     "code": "44"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇯🇴",
     "name": "Jordan",
     "abbr": "JO",
     "code": "962"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇰🇿",
     "name": "Kazakhstan",
     "abbr": "KZ",
     "code": "7"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇰🇪",
     "name": "Kenya",
     "abbr": "KE",
     "code": "254"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇰🇮",
     "name": "Kiribati",
     "abbr": "KI",
     "code": "686"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇰🇵",
     "name": "Korea, Democratic People's Republic of",
     "abbr": "KP",
     "code": "850"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇰🇷",
     "name": "Korea, Republic of",
     "abbr": "KR",
     "code": "82"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇽🇰",
     "name": "Kosovo",
     "abbr": "XK",
     "code": "383"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇰🇼",
     "name": "Kuwait",
     "abbr": "KW",
     "code": "965"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇰🇬",
     "name": "Kyrgyzstan",
     "abbr": "KG",
     "code": "996"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇱🇦",
     "name": "Lao People's Democratic Republic",
     "abbr": "LA",
     "code": "856"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇱🇻",
     "name": "Latvia",
     "abbr": "LV",
     "code": "371"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇱🇧",
     "name": "Lebanon",
     "abbr": "LB",
     "code": "961"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇱🇸",
     "name": "Lesotho",
     "abbr": "LS",
     "code": "266"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇱🇷",
     "name": "Liberia",
     "abbr": "LR",
     "code": "231"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇱🇾",
     "name": "Libya",
     "abbr": "LY",
     "code": "218"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇱🇮",
     "name": "Liechtenstein",
     "abbr": "LI",
     "code": "423"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇱🇹",
     "name": "Lithuania",
     "abbr": "LT",
     "code": "370"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇱🇺",
     "name": "Luxembourg",
     "abbr": "LU",
     "code": "352"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇲🇴",
     "name": "Macao",
     "abbr": "MO",
     "code": "853"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇲🇰",
     "name": "Macedonia, the Former Yugoslav Republic of",
     "abbr": "MK",
     "code": "389"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇲🇬",
     "name": "Madagascar",
     "abbr": "MG",
     "code": "261"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇲🇼",
     "name": "Malawi",
     "abbr": "MW",
     "code": "265"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇲🇾",
     "name": "Malaysia",
     "abbr": "MY",
     "code": "60"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇲🇻",
     "name": "Maldives",
     "abbr": "MV",
     "code": "960"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇲🇱",
     "name": "Mali",
     "abbr": "ML",
     "code": "223"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇲🇹",
     "name": "Malta",
     "abbr": "MT",
     "code": "356"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇲🇭",
     "name": "Marshall Islands",
     "abbr": "MH",
     "code": "692"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇲🇶",
     "name": "Martinique",
     "abbr": "MQ",
     "code": "596"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇲🇷",
     "name": "Mauritania",
     "abbr": "MR",
     "code": "222"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇲🇺",
     "name": "Mauritius",
     "abbr": "MU",
     "code": "230"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇾🇹",
     "name": "Mayotte",
     "abbr": "YT",
     "code": "262"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇲🇽",
     "name": "Mexico",
     "abbr": "MX",
     "code": "52"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇫🇲",
-    "name": "Micronesia, Federated States of",
+    "name": "Micronesia, Federated states of",
     "abbr": "FM",
     "code": "691"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇲🇩",
     "name": "Moldova, Republic of",
     "abbr": "MD",
     "code": "373"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇲🇨",
     "name": "Monaco",
     "abbr": "MC",
     "code": "377"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇲🇳",
     "name": "Mongolia",
     "abbr": "MN",
     "code": "976"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇲🇪",
     "name": "Montenegro",
     "abbr": "ME",
     "code": "382"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇲🇸",
     "name": "Montserrat",
     "abbr": "MS",
     "code": "1-664"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇲🇦",
     "name": "Morocco",
     "abbr": "MA",
     "code": "212"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇲🇿",
     "name": "Mozambique",
     "abbr": "MZ",
     "code": "258"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇲🇲",
     "name": "Myanmar",
     "abbr": "MM",
     "code": "95"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇳🇦",
     "name": "Namibia",
     "abbr": "NA",
     "code": "264"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇳🇷",
     "name": "Nauru",
     "abbr": "NR",
     "code": "674"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇳🇵",
     "name": "Nepal",
     "abbr": "NP",
     "code": "977"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇳🇱",
     "name": "Netherlands",
     "abbr": "NL",
     "code": "31"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇳🇨",
     "name": "New Caledonia",
     "abbr": "NC",
     "code": "687"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇳🇿",
     "name": "New Zealand",
     "abbr": "NZ",
     "code": "64"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇳🇮",
     "name": "Nicaragua",
     "abbr": "NI",
     "code": "505"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇳🇪",
     "name": "Niger",
     "abbr": "NE",
     "code": "227"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇳🇬",
     "name": "Nigeria",
     "abbr": "NG",
     "code": "234"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇳🇺",
     "name": "Niue",
     "abbr": "NU",
     "code": "683"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇳🇫",
     "name": "Norfolk Island",
     "abbr": "NF",
     "code": "672"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇲🇵",
     "name": "Northern Mariana Islands",
     "abbr": "MP",
     "code": "1-670"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇳🇴",
     "name": "Norway",
     "abbr": "NO",
     "code": "47"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇴🇲",
     "name": "Oman",
     "abbr": "OM",
     "code": "968"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇵🇰",
     "name": "Pakistan",
     "abbr": "PK",
     "code": "92"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇵🇼",
     "name": "Palau",
     "abbr": "PW",
     "code": "680"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇵🇸",
-    "name": "Palestine, State of",
+    "name": "Palestine, states of",
     "abbr": "PS",
     "code": "970"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇵🇦",
     "name": "Panama",
     "abbr": "PA",
     "code": "507"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇵🇬",
     "name": "Papua New Guinea",
     "abbr": "PG",
     "code": "675"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇵🇾",
     "name": "Paraguay",
     "abbr": "PY",
     "code": "595"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇵🇪",
     "name": "Peru",
     "abbr": "PE",
     "code": "51"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇵🇭",
     "name": "Philippines",
     "abbr": "PH",
     "code": "63"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇵🇳",
     "name": "Pitcairn",
     "abbr": "PN",
     "code": "870"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇵🇱",
     "name": "Poland",
     "abbr": "PL",
     "code": "48"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇵🇹",
     "name": "Portugal",
     "abbr": "PT",
     "code": "351"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇵🇷",
     "name": "Puerto Rico",
     "abbr": "PR",
     "code": "1"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇶🇦",
     "name": "Qatar",
     "abbr": "QA",
     "code": "974"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇷🇪",
     "name": "Reunion",
     "abbr": "RE",
     "code": "262"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇷🇴",
     "name": "Romania",
     "abbr": "RO",
     "code": "40"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇷🇺",
     "name": "Russian Federation",
     "abbr": "RU",
     "code": "7"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇷🇼",
     "name": "Rwanda",
     "abbr": "RW",
     "code": "250"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇧🇱",
     "name": "Saint Barthelemy",
     "abbr": "BL",
     "code": "590"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇸🇭",
     "name": "Saint Helena",
     "abbr": "SH",
     "code": "290"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇰🇳",
     "name": "Saint Kitts and Nevis",
     "abbr": "KN",
     "code": "1-869"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇱🇨",
     "name": "Saint Lucia",
     "abbr": "LC",
     "code": "1-758"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇲🇫",
     "name": "Saint Martin (French part)",
     "abbr": "MF",
     "code": "590"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇵🇲",
     "name": "Saint Pierre and Miquelon",
     "abbr": "PM",
     "code": "508"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇻🇨",
     "name": "Saint Vincent and the Grenadines",
     "abbr": "VC",
     "code": "1-784"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇼🇸",
     "name": "Samoa",
     "abbr": "WS",
     "code": "685"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇸🇲",
     "name": "San Marino",
     "abbr": "SM",
     "code": "378"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇸🇹",
     "name": "Sao Tome and Principe",
     "abbr": "ST",
     "code": "239"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇸🇦",
     "name": "Saudi Arabia",
     "abbr": "SA",
     "code": "966"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇸🇳",
     "name": "Senegal",
     "abbr": "SN",
     "code": "221"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇷🇸",
     "name": "Serbia",
     "abbr": "RS",
     "code": "381"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇸🇨",
     "name": "Seychelles",
     "abbr": "SC",
     "code": "248"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇸🇱",
     "name": "Sierra Leone",
     "abbr": "SL",
     "code": "232"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇸🇬",
     "name": "Singapore",
     "abbr": "SG",
     "code": "65"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇸🇽",
     "name": "Sint Maarten (Dutch part)",
     "abbr": "SX",
     "code": "1-721"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇸🇰",
     "name": "Slovakia",
     "abbr": "SK",
     "code": "421"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇸🇮",
     "name": "Slovenia",
     "abbr": "SI",
     "code": "386"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇸🇧",
     "name": "Solomon Islands",
     "abbr": "SB",
     "code": "677"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇸🇴",
     "name": "Somalia",
     "abbr": "SO",
     "code": "252"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇿🇦",
     "name": "South Africa",
     "abbr": "ZA",
     "code": "27"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇬🇸",
     "name": "South Georgia and the South Sandwich Islands",
     "abbr": "GS",
     "code": "500"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇸🇸",
     "name": "South Sudan",
     "abbr": "SS",
     "code": "211"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇪🇸",
     "name": "Spain",
     "abbr": "ES",
     "code": "34"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇱🇰",
     "name": "Sri Lanka",
     "abbr": "LK",
     "code": "94"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇸🇩",
     "name": "Sudan",
     "abbr": "SD",
     "code": "249"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇸🇷",
     "name": "Suri name",
     "abbr": "SR",
     "code": "597"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇸🇯",
     "name": "Svalbard and Jan Mayen",
     "abbr": "SJ",
     "code": "47"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇸🇿",
     "name": "Swaziland",
     "abbr": "SZ",
     "code": "268"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇸🇪",
     "name": "Sweden",
     "abbr": "SE",
     "code": "46"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇨🇭",
     "name": "Switzerland",
     "abbr": "CH",
     "code": "41"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇸🇾",
     "name": "Syrian Arab Republic",
     "abbr": "SY",
     "code": "963"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇹🇼",
     "name": "Taiwan, Province of China",
     "abbr": "TW",
     "code": "886"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇹🇯",
     "name": "Tajikistan",
     "abbr": "TJ",
     "code": "992"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇹🇭",
     "name": "Thailand",
     "abbr": "TH",
     "code": "66"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇹🇱",
     "name": "Timor-Leste",
     "abbr": "TL",
     "code": "670"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇹🇬",
     "name": "Togo",
     "abbr": "TG",
     "code": "228"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇹🇰",
     "name": "Tokelau",
     "abbr": "TK",
     "code": "690"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇹🇴",
     "name": "Tonga",
     "abbr": "TO",
     "code": "676"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇹🇹",
     "name": "Trinidad and Tobago",
     "abbr": "TT",
     "code": "1-868"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇹🇳",
     "name": "Tunisia",
     "abbr": "TN",
     "code": "216"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇹🇷",
     "name": "Turkey",
     "abbr": "TR",
     "code": "90"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇹🇲",
     "name": "Turkmenistan",
     "abbr": "TM",
     "code": "993"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇹🇨",
     "name": "Turks and Caicos Islands",
     "abbr": "TC",
     "code": "1-649"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇹🇻",
     "name": "Tuvalu",
     "abbr": "TV",
     "code": "688"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇺🇬",
     "name": "Uganda",
     "abbr": "UG",
     "code": "256"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇺🇦",
     "name": "Ukraine",
     "abbr": "UA",
     "code": "380"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇦🇪",
     "name": "United Arab Emirates",
     "abbr": "AE",
     "code": "971"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇬🇧",
     "name": "United Kingdom",
     "abbr": "GB",
     "code": "44"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇹🇿",
     "name": "United Republic of Tanzania",
     "abbr": "TZ",
     "code": "255"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇺🇲",
-    "name": "United States",
+    "name": "United states",
     "abbr": "US",
     "code": "1",
     "suggested": true
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇺🇾",
     "name": "Uruguay",
     "abbr": "UY",
     "code": "598"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇻🇮",
     "name": "US Virgin Islands",
     "abbr": "VI",
     "code": "1-340"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇺🇿",
     "name": "Uzbekistan",
     "abbr": "UZ",
     "code": "998"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇻🇺",
     "name": "Vanuatu",
     "abbr": "VU",
     "code": "678"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇻🇪",
     "name": "Venezuela",
     "abbr": "VE",
     "code": "58"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇻🇳",
     "name": "Vietnam",
     "abbr": "VN",
     "code": "84"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇼🇫",
     "name": "Wallis and Futuna",
     "abbr": "WF",
     "code": "681"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇪🇭",
     "name": "Western Sahara",
     "abbr": "EH",
     "code": "212"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇾🇪",
     "name": "Yemen",
     "abbr": "YE",
     "code": "967"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇿🇲",
     "name": "Zambia",
     "abbr": "ZM",
     "code": "260"
   },
   {
-    "state": [],
+    "states": [],
     "icon": "🇿🇼",
     "name": "Zimbabwe",
     "abbr": "ZW",
@@ -1790,7 +1790,7 @@
   },
   {
     "name": "Afganishtan",
-    "state": "Kabul",
+    "states": "Kabul",
     "icon": "AF",
     "abbr": "af",
     "code": "93"
