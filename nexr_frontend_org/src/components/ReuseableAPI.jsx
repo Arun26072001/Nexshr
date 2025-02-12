@@ -62,6 +62,7 @@ const getclockinsDataById = async (id) => {
 };
 
 const addDataAPI = async (body) => {
+    console.log(token);
     try {
         const response = await axios.post(`${url}/api/clock-ins/${empId}`, body, {
             headers: { authorization: token || '' },
@@ -70,7 +71,7 @@ const addDataAPI = async (body) => {
         return response?.data?.clockIns;
     } catch (error) {
         console.log(error);
-        
+
         return error?.response?.data?.error;
     }
 };
@@ -146,7 +147,7 @@ const fetchEmployeeData = async (id) => {
 
     } catch (error) {
         console.log(error);
-        
+
         if (error.response && error.response.data && error.response.data.message) {
             toast.error(error?.response?.data?.details)
             return error;
