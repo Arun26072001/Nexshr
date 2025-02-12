@@ -193,6 +193,8 @@ const ManageTeam = () => {
             })
             setLeads(teamLeads.data);
         } catch (error) {
+            console.log(error);
+            
             toast.error(error.repsonse.data.error)
         }
     }

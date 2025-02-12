@@ -6,8 +6,6 @@ const { Employee } = require("../models/EmpModel");
 
 router.get("/", verifyAdminHREmployee, async (req, res) => {
     try {
-        // const { orgName } = jwt.decode(req.headers['authorization']);
-        // const Team = getTeamModel(orgName)
         const teams = await Team.find()
             .populate({
                 path: "employees",
