@@ -10,6 +10,7 @@ import { jwtDecode } from "jwt-decode";
 import "./App.css";
 import 'rsuite/dist/rsuite.min.css';
 import "react-datepicker/dist/react-datepicker.css";
+import { Notification, toaster } from "rsuite";
 
 export const EssentialValues = createContext(null);
 
@@ -109,6 +110,51 @@ const App = () => {
     }
   };
 
+  function sendNotification(emps, companyLogo, title, message) {
+    console.log("getting notification");
+    
+    if (emps?.includes(data._id)) {
+      const companyName = "Webnexs";
+      toast.success("success");
+      // toaster.push(
+      //   <Notification
+      //     header={
+      //       <div style={{ display: 'flex', alignItems: 'center' }}>
+
+      //         <img src={companyLogo} alt="Company Logo" style={{ width: 50, height: 50, marginRight: 10 }} />
+
+      //         <span style={{ fontWeight: 'bold', fontSize: '16px' }}>{companyName}</span>
+      //       </div>
+      //     }
+      //     closable
+      //   >
+      //     <strong>{title}</strong>
+      //     <br />
+      //     {message}
+      //   </Notification>,
+      //   { placement: 'bottomEnd' }
+      // );
+    }
+  }
+  // useEffect(() => {
+  //   socket.connect(); // Correct way to initiate connection
+
+  //   // socket.on("connect", () => {
+  //   //   console.log("Connected to server");
+  //   //   socket.emit("get-data", "hi");
+  //   // });
+
+  //   // Listen for a response from the server
+  //   socket.on("data-response", (data) => {
+  //     console.log("Received from server:", data);
+  //   });
+
+  //   // Cleanup function to prevent memory leaks
+  //   return () => {
+  //     socket.disconnect();
+  //   };
+  // }, []);
+
   const handleSubmit = (event) => {
     event.preventDefault();
     setPass(true);
@@ -190,6 +236,7 @@ const App = () => {
         isStartActivity,
         whoIs,
         setIsStartActivity,
+        sendNotification
       }}
     >
       <ToastContainer />

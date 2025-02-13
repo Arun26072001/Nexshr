@@ -7,7 +7,8 @@ const announcementSchema = new mongoose.Schema({
     endDate: { type: Date, required: true },
     selectTeamMembers: [{ type: mongoose.Schema.Types.ObjectId, ref: "Employee", default: [] }],
     message: { type: String, required: true, trim: true },
-    createdBy: { type: mongoose.Schema.Types.ObjectId, ref: "Employee" }
+    createdBy: { type: mongoose.Schema.Types.ObjectId, ref: "Employee" },
+    howViewed: {type: mongoose.Schema.Types.Mixed}
 });
 
 const Announcement = mongoose.model('Announcement', announcementSchema);
@@ -17,7 +18,8 @@ const announcementValidation = Joi.object({
     endDate: Joi.date().required().label('endDate').min(Joi.ref('startDate')),
     message: Joi.string().required().label('message'),
     selectTeamMembers: Joi.array().items(Joi.string()).label("Selected members"),
-    createdBy: Joi.string().required()
+    howViewed: Joi.object().required(),
+    createdBy: Joi.string().required(),
 });
 
 module.exports = { Announcement, announcementValidation }

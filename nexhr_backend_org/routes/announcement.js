@@ -2,27 +2,29 @@
 const express = require('express');
 const { Announcement, announcementValidation } = require('../models/AnnouncementModel');
 const { verifyAdminHREmployee } = require('../auth/authMiddleware');
+const { Employee } = require('../models/EmpModel');
 const router = express.Router();
 
 router.post('/:id', async (req, res) => {
   try {
-    console.log(req.body);
-    
+    const howViewed = req.body.selectTeamMembers.reduce((acc, emp) => {
+      acc[emp] = "not viewed";
+      return acc;
+    }, {});
+
     const newAnnouncement = {
       ...req.body,
+      howViewed,
       createdBy: req.params.id
     }
-    console.log(newAnnouncement);
-    
+
     const { error } = announcementValidation.validate(newAnnouncement);
-    console.log(error);
 
     if (error) {
       return res.status(400).send({ error: error.details[0].message });
     }
 
     const announcement = await Announcement.create(newAnnouncement);
-    console.log(announcement);
 
     res.status(201).json({
       message: 'Announcement created successfully!',
@@ -38,7 +40,6 @@ router.post('/:id', async (req, res) => {
 router.get('/', verifyAdminHREmployee, async (req, res) => {
   try {
     const announcements = await Announcement.find();
-    console.log("34", announcements);
 
     res.status(200).json({
       status: true,
