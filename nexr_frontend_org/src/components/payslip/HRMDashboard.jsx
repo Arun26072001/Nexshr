@@ -161,7 +161,7 @@ export default function HRMDashboard() {
                 const clockinsData = await addDataAPI(updatedState);
                 console.log(typeof clockinsData);
                 
-                if (clockinsData) {
+                if (clockinsData !== "undefined") {
                     setWorkTimeTracker(clockinsData);
                     setIsStartLogin(true);
                     localStorage.setItem("isStartLogin", true);

@@ -68,6 +68,7 @@ const addDataAPI = async (body) => {
             headers: { authorization: token || '' },
         });
         toast.success(response.data.message);
+        console.log(response?.data?.clockIns);
         return response?.data?.clockIns;
     } catch (error) {
         console.log(error);
