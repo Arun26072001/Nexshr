@@ -89,7 +89,7 @@ router.post("/:id", verifyAdminHREmployee, async (req, res) => {
             .populate("workingTimePattern")
             .populate({ path: "clockIns", match: { date: { $gte: startOfDay, $lte: endOfDay } } });
         console.log(emp);
-        
+
         if (!emp) {
             return res.status(404).send({ error: "Employee not found!" });
         }
@@ -130,12 +130,12 @@ router.post("/:id", verifyAdminHREmployee, async (req, res) => {
         };
 
         // Determine login behavior
-        const officeLoginTime = emp?.workingTimePattern?.StartingTime;
-        console.log(officeLoginTime);
-        
+        const officeLoginTime = emp?.workingTimePattern?.StartingTime || "9:00";
+        // console.log(officeLoginTime);
+
         const [hour, minute] = loginTimeRaw.split(":");
         const loginTime = `${hour}:${minute}`;
-        console.log("Office Login Time:", officeLoginTime);
+        // console.log("Office Login Time:", officeLoginTime);
 
         // Synchronous check for behaviour
         const behaviour = checkLogin(officeLoginTime, loginTime);
@@ -143,9 +143,9 @@ router.post("/:id", verifyAdminHREmployee, async (req, res) => {
         // Async check for punch-in message
         const punchInMsg = await checkLoginForOfficeTime(officeLoginTime, loginTime);
 
-        // Ensure values are properly assigned
-        console.log("Behaviour:", behaviour);
-        console.log("Punch-In Message:", punchInMsg);
+        // // Ensure values are properly assigned
+        // console.log("Behaviour:", behaviour);
+        // console.log("Punch-In Message:", punchInMsg);
 
         // Create clock-in entry
         const newClockIns = await ClockIns.create({
@@ -173,7 +173,7 @@ router.get("/:id", verifyAdminHREmployee, async (req, res) => {
 
         // Create start and end of the day for the date comparison
         const startOfDay = new Date(queryDate.setHours(0, 0, 0, 0));
-        const endOfDay = new Date(queryDate.setHours(23, 59, 59, 999));
+        const endOfDay = new Date(queryDate.setHours(19, 59, 59, 999));
 
         // Fetch employee's clock-ins for the given date
         const timeData = await Employee.findById(req.params.id)
@@ -191,6 +191,8 @@ router.get("/:id", verifyAdminHREmployee, async (req, res) => {
         if (!timeData || timeData.clockIns.length === 0) {
             return res.status(404).send({ message: "No clock-ins found for the given date." });
         }
+        console.log(timeData);
+
 
         // Define activities and calculate times
         const activities = ["login", "meeting", "morningBreak", "lunch", "eveningBreak", "event"];

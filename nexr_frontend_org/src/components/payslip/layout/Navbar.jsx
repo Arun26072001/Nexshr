@@ -268,13 +268,15 @@ export default function Navbar({ handleSideBar }) {
                             <button type="button" className="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
                         </div>
                         <div className="offcanvas-body">
-                            <div className="box-content d-flex justify-content-between">
+                            <div className="box-content">
+                                <div className='d-flex justify-content-end '>
+                                    <CloseRoundedIcon />
+                                </div>
                                 <Accordion defaultActiveKey={1}>
                                     <Accordion.Panel header="Accordion Panel 1" eventKey={1} caretAs={KeyboardArrowDownRoundedIcon}>
-                                        <p>wqjhdlwqd sadmdoiud9uwqd wqdwq0ud wqdwq ud9wqdwq9pd</p>
+                                        <p>wqjhdlwqd sadmdoiud9uwqd wqdwq0ud wqdwq</p>
                                     </Accordion.Panel>
                                 </Accordion>
-                                <CloseRoundedIcon />
                             </div>
                             <div>
                                 <button className='button my-2 w-100'>Clear all</button>
