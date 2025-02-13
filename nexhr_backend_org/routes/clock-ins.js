@@ -81,6 +81,8 @@ router.post("/:id", verifyAdminHREmployee, async (req, res) => {
     try {
         let regular = 0, late = 0, early = 0;
         const today = new Date();
+        console.log(today);
+        
         const startOfDay = new Date(today.setHours(0, 0, 0, 0));
         const endOfDay = new Date(today.setHours(23, 59, 59, 999));
 
