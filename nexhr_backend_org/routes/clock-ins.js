@@ -81,10 +81,19 @@ router.post("/:id", verifyAdminHREmployee, async (req, res) => {
     try {
         let regular = 0, late = 0, early = 0;
         const today = new Date();
-        console.log(today);
-        
-        const startOfDay = new Date(today.setHours(0, 0, 0, 0));
-        const endOfDay = new Date(today.setHours(23, 59, 59, 999));
+        const startOfDay = new Date(Date.UTC(
+            today.getUTCFullYear(),
+            today.getUTCMonth(),
+            today.getUTCDate(),
+            0, 0, 0, 0
+        ));
+
+        const endOfDay = new Date(Date.UTC(
+            today.getUTCFullYear(),
+            today.getUTCMonth(),
+            today.getUTCDate(),
+            23, 59, 59, 999
+        ));
 
         // Fetch employee details
         const emp = await Employee.findById(req.params.id)
