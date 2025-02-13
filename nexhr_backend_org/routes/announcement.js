@@ -1,6 +1,7 @@
 
 const express = require('express');
 const { Announcement, announcementValidation } = require('../models/AnnouncementModel');
+const { verifyAdminHREmployee } = require('../auth/authMiddleware');
 const router = express.Router();
 
 router.post('/:id', async (req, res) => {
@@ -16,7 +17,7 @@ router.post('/:id', async (req, res) => {
 
     const announcement = await Announcement.create(newAnnouncement);
     console.log(announcement);
-    
+
     res.status(201).json({
       message: 'Announcement created successfully!',
       data: announcement
@@ -28,10 +29,10 @@ router.post('/:id', async (req, res) => {
 });
 
 
-router.get('/', async (req, res) => {
+router.get('/', verifyAdminHREmployee, async (req, res) => {
   try {
     const announcements = await Announcement.find();
-    console.log(announcements);
+    console.log("34", announcements);
 
     res.status(200).json({
       status: true,

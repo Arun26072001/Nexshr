@@ -336,8 +336,8 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
             getter: (row) => row?.RoleName
         },
         {
-            id: 'auth',
-            label: 'Manage Authorization',
+            id: '',
+            label: 'Manage orization',
             minWidth: 120,
             align: 'center',
         }
@@ -525,7 +525,6 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
             }
             else if (item?.fromDate && params['*'] === "status"
                 || item?.fromDate && params['*'] === "leave-summary"
-                // || item?.fromDate && params['*'] === "leave"
                 || item?.fromDate && params['*'] === "calendar") {
                 return setColumns(column8);
             } else if (item?.DepartmentName) {
@@ -646,9 +645,9 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
                                                 } else if (column.id === "auth") {
                                                     return (
                                                         <Dropdown title={<KeyRoundedIcon style={{ cursor: "pointer" }} />} placement='leftStart' noCaret>
-                                                            <Dropdown.Item style={{ minWidth: 120 }} onClick={() => navigate(`view/${row._id}`)}>View</Dropdown.Item>
-                                                            <Dropdown.Item style={{ minWidth: 120 }} onClick={() => navigate(`edit/${row._id}`)}>Edit</Dropdown.Item>
-                                                            <Dropdown.Item style={{ minWidth: 120 }} onClick={() => deleteData(row._id)}>Delete</Dropdown.Item>
+                                                            <Dropdown.Item style={{ minWidth: 120 }} onClick={() => navigate(`view/${row._id}`)}><RemoveRedEyeRoundedIcon sx={{ color: "#80C4E9" }} /> View</Dropdown.Item>
+                                                            <Dropdown.Item style={{ minWidth: 120 }} onClick={() => navigate(`edit/${row._id}`)}><BorderColorRoundedIcon sx={{ color: "#FFD65A" }} /> Edit</Dropdown.Item>
+                                                            <Dropdown.Item style={{ minWidth: 120 }} onClick={() => deleteData(row._id)}><DeleteRoundedIcon sx={{ color: "#F93827" }} /> Delete</Dropdown.Item>
                                                         </Dropdown>
                                                     );
                                                 } else if (["department", "position", "company"].includes(params["*"])) {

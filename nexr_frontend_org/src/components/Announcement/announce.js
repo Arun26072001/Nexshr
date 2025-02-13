@@ -6,7 +6,7 @@ import { toast } from 'react-toastify';
 import LeaveTable from '../LeaveTable';
 
 const Announce = () => {
-    const url = process.env.REACT_APP_API_URLl
+    const url = process.env.REACT_APP_API_URL;
     const [announcements, setAnnouncements] = useState([]);
     const [changeAnnouncement, setChangeAnnouncement] = useState(false);
     const [anchorEl, setAnchorEl] = useState(null);  // For managing the menu anchor element
@@ -47,7 +47,9 @@ const Announce = () => {
         const fetchAnnouncements = async () => {
             try {
                 const response = await axios.get(`${url}/api/announcements`, {
-                    headers: { authorization: `${token}` }
+                    headers: {
+                        Authorization: token || ""
+                    }
                 });
                 const data = response.data;
                 setAnnouncements(data.Team || data); // Adjust based on your API response structure
@@ -59,7 +61,7 @@ const Announce = () => {
         fetchAnnouncements();
     }, [changeAnnouncement]);
     console.log(announcements);
-    
+
     return (
         <div className='dashboard-parent py-4'>
             <div className="d-flex  justify-content-between align-items-center">

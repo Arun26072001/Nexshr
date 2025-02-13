@@ -52,15 +52,12 @@ const AnnouncementComponent = ({ handleChangeAnnouncement }) => {
         fetchData();
     }, []);
 
-    const openModal = () => {
-        setIsModalOpen(true);
-    };
-
-    const closeModal = () => {
-        setIsModalOpen(false);
-        setAnnouncementObj({})
-        // setSelectedUsers([]);
-    };
+    function handleModel() {
+        if (isModalOpen) {
+            setAnnouncementObj({})
+        }
+        setIsModalOpen(!isModalOpen)
+    }
 
     function changeAnnouncementData(value, name) {
         setAnnouncementObj((pre) => ({
@@ -79,7 +76,7 @@ const AnnouncementComponent = ({ handleChangeAnnouncement }) => {
                 { headers }
             );
             handleChangeAnnouncement();
-            closeModal();
+            handleModel()
             toast.success(addAnnounce.data.message);
         } catch (error) {
             toast.error(error.response.data.error)
@@ -187,12 +184,12 @@ const AnnouncementComponent = ({ handleChangeAnnouncement }) => {
 
     return (
         <div>
-            <button onClick={openModal} className="btn attend btn-dark w-100" type="button">
+            <button onClick={handleModel} className="btn attend btn-dark w-100" type="button">
                 Add Announcement
             </button>
 
             {isModalOpen && (
-                <CommonModel type="Announcement" isAddData={isModalOpen} changeData={changeAnnouncementData} addData={handleSubmit} team_member={team_member} dataObj={announcementObj} />
+                <CommonModel type="Announcement" isAddData={isModalOpen} modifyData={handleModel} changeData={changeAnnouncementData} addData={handleSubmit} team_member={team_member} dataObj={announcementObj} />
             )}
         </div>
     );
