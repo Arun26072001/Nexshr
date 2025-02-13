@@ -336,8 +336,8 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
             getter: (row) => row?.RoleName
         },
         {
-            id: '',
-            label: 'Manage orization',
+            id: 'auth',
+            label: 'Manage Authorization',
             minWidth: 120,
             align: 'center',
         }

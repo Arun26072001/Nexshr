@@ -273,7 +273,7 @@ export default function Navbar({ handleSideBar }) {
                                     <CloseRoundedIcon />
                                 </div>
                                 <Accordion defaultActiveKey={1}>
-                                    <Accordion.Panel header="Accordion Panel 1" eventKey={1} caretAs={KeyboardArrowDownRoundedIcon}>
+                                    <Accordion.Panel header="Under development" eventKey={1} caretAs={KeyboardArrowDownRoundedIcon}>
                                         <p>wqjhdlwqd sadmdoiud9uwqd wqdwq0ud wqdwq</p>
                                     </Accordion.Panel>
                                 </Accordion>
