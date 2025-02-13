@@ -1,7 +1,6 @@
 const mongoose = require('mongoose');
 const Joi = require('joi');
 
-
 const announcementSchema = new mongoose.Schema({
     title: { type: String, required: true, trim: true },
     startDate: { type: Date, required: true },
@@ -17,7 +16,7 @@ const announcementValidation = Joi.object({
     startDate: Joi.date().required().label('startDate'),
     endDate: Joi.date().required().label('endDate').min(Joi.ref('startDate')),
     message: Joi.string().required().label('message'),
-    selectTeamMembers: Joi.array().items(Joi.string()),
+    selectTeamMembers: Joi.array().items(Joi.string()).label("Selected members"),
     createdBy: Joi.string().required()
 });
 

@@ -55,8 +55,8 @@ router.get("/user", verifyAdminHR, async (req, res) => {
 
       departmentMap[departmentName].push({
         label: `${employee.FirstName} ${employee.LastName}`,
-        value: employee.FirstName.toLowerCase(),
-        id: employee._id.toString(),
+        name: employee.FirstName.toLowerCase(),
+        value: employee._id,
       });
     });
 
@@ -75,8 +75,6 @@ router.get("/user", verifyAdminHR, async (req, res) => {
 
 
     const formattedTeams = [selectAllOption];
-    console.log(formattedTeams);
-
 
     res.status(200).json({
       status: true,

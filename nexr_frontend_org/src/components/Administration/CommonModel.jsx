@@ -394,7 +394,7 @@ const CommonModel = ({
                                         <MultiCascader
                                             className="pt-2"
                                             data={team_member}
-                                            onChange={(value) => changeData(value, "selectTeamMembers")}
+                                            onChange={(id) => changeData(id, "selectTeamMembers")}
                                             style={{ width: '100%' }}
                                             placeholder="Select team members"
                                             searchable

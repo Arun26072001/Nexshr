@@ -6,11 +6,17 @@ const router = express.Router();
 
 router.post('/:id', async (req, res) => {
   try {
+    console.log(req.body);
+    
     const newAnnouncement = {
       ...req.body,
       createdBy: req.params.id
     }
+    console.log(newAnnouncement);
+    
     const { error } = announcementValidation.validate(newAnnouncement);
+    console.log(error);
+
     if (error) {
       return res.status(400).send({ error: error.details[0].message });
     }

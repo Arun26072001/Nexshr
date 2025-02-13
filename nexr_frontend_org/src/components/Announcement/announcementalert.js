@@ -6,6 +6,7 @@ import '../../App.css';
 import { toast } from 'react-toastify';
 import CommonModel from '../Administration/CommonModel';
 import { EssentialValues } from '../../App';
+import AddRoundedIcon from '@mui/icons-material/AddRounded';
 
 // Connect to the backend socket
 const socket = io(`${process.env.REACT_APP_API_URL}`, {
@@ -60,10 +61,11 @@ const AnnouncementComponent = ({ handleChangeAnnouncement }) => {
     }
 
     function changeAnnouncementData(value, name) {
+        console.log(value);
+
         setAnnouncementObj((pre) => ({
             ...pre,
-            [name]: name === "selectTeamMembers" ?
-                [pre[name], value] : value
+            [name]: value
         }))
     }
     console.log(announcementObj);
@@ -184,8 +186,8 @@ const AnnouncementComponent = ({ handleChangeAnnouncement }) => {
 
     return (
         <div>
-            <button onClick={handleModel} className="btn attend btn-dark w-100" type="button">
-                Add Announcement
+            <button onClick={handleModel} className='button'>
+                <AddRoundedIcon /> Announcement
             </button>
 
             {isModalOpen && (
