@@ -170,12 +170,21 @@ router.get("/:id", verifyAdminHREmployee, async (req, res) => {
     // Helper function to convert time in HH:MM:SS format to total minutes
     try {
         const queryDate = new Date(req.query.date);
-        console.log(queryDate);
-        
 
-        // Create start and end of the day for the date comparison
-        const startOfDay = new Date(queryDate.setHours(0, 0, 0, 0));
-        const endOfDay = new Date(queryDate.setHours(23, 59, 59, 999));
+        // Create start and end of the day in UTC
+        const startOfDay = new Date(Date.UTC(
+            queryDate.getUTCFullYear(),
+            queryDate.getUTCMonth(),
+            queryDate.getUTCDate(),
+            0, 0, 0, 0
+        ));
+
+        const endOfDay = new Date(Date.UTC(
+            queryDate.getUTCFullYear(),
+            queryDate.getUTCMonth(),
+            queryDate.getUTCDate(),
+            23, 59, 59, 999
+        ));
 
         // Fetch employee's clock-ins for the given date
         const timeData = await Employee.findById(req.params.id)
@@ -194,7 +203,7 @@ router.get("/:id", verifyAdminHREmployee, async (req, res) => {
             return res.status(404).send({ message: "No clock-ins found for the given date." });
         }
         console.log(timeData);
-        
+
 
         // Define activities and calculate times
         const activities = ["login", "meeting", "morningBreak", "lunch", "eveningBreak", "event"];
