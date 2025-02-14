@@ -9,7 +9,7 @@ require("dotenv").config();
 const cors = require("cors");
 const http = require("http");
 const path = require("path");
-const socketIo = require("socket.io");
+const { Server } = require("socket.io");
 
 const login = require("./routes/login");
 const company = require("./routes/company");
@@ -149,11 +149,10 @@ app.use("/api/google-sheet/upload", fileData)
 
 // Create HTTP Server and Socket.IO
 const server = http.createServer(app);
-const io = socketIo(server, {
+const io = new Server(server, {
   cors: {
     origin: "*",
-    methods: ["GET", "POST"],
-    credentials: true,
+    methods: ["GET", "POST"]
   },
 });
 
@@ -165,6 +164,10 @@ io.on("connection", (socket) => {
   socket.on("add-announcement", (announcementData, users) => {
     console.log("from client", announcementData, users);
     io.emit("send-notification", users, announcementData.title, announcementData.message)
+
+    socket.on("disconnect", () => {
+      console.log("A user disconnected:", socket.id);
+    });
   });
 })
 

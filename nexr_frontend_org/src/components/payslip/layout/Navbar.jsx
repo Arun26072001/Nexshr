@@ -171,8 +171,8 @@ export default function Navbar({ handleSideBar }) {
 
                 setAnnouncements(res.data);
             } catch (error) {
-                console.log(error.response.data.error);
                 setAnnouncements([]);
+                console.log(error.response.data.error);
             }
         }
         fetchAnnouncements()
@@ -346,10 +346,10 @@ export default function Navbar({ handleSideBar }) {
                         <div className="offcanvas-body">
                             {
                                 announcements.map((item) => {
-                                    return <div key={item._id} className="box-content my-2" id="box">
+                                    return <div key={item._id} className="box-content my-2">
                                         <div className='d-flex justify-content-end'>
                                             <CloseRoundedIcon onClick={() => {
-                                                document.getElementById("box").classList.add = "remove"
+                                                // document.getElementById("box").classList.add = "remove"
                                                 removeMessage(item)
                                             }} />
                                         </div>
