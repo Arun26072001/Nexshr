@@ -635,7 +635,9 @@ const EditEmployeeform = ({ details, empData, handleScroll, handlePersonal, hand
                                             appearance="subtle"
                                             name="publicHoliday"
                                             value={formik.values.publicHoliday}
-                                            onChange={(e) => changeCountry(e, "publicHoliday")}
+                                            disabled={whoIs === "emp" ? true : false}
+                                            // onChange={whoIs === "emp" ? null : formik.handleChange}
+                                            onChange={whoIs === "emp" ? null : (e) => changeCountry(e, "publicHoliday")}
                                             data={countries?.map((item) => ({ label: item.name, value: item.name }))}
                                         />
                                         {formik.touched.publicHoliday && formik.errors.publicHoliday ? (
@@ -648,7 +650,8 @@ const EditEmployeeform = ({ details, empData, handleScroll, handlePersonal, hand
                                             min={0}
                                             max={10}
                                             value={formik.values.monthlyPermissions}
-                                            onChange={formik.handleChange}
+                                            disabled={whoIs === "emp" ? true : false}
+                                            onChange={whoIs === "emp" ? null : formik.handleChange}
                                             name="monthlyPermissions"
                                             className={`inputField ${formik.touched.monthlyPermissions && formik.errors.monthlyPermissions ? "error" : ""}`} />
                                         {formik.touched.monthlyPermissions && formik.errors.monthlyPermissions ? (
