@@ -54,7 +54,7 @@ const Announce = () => {
                     }
                 });
                 const data = response.data;
-                
+
                 setAnnouncements(data.Team || data); // Adjust based on your API response structure
             } catch (error) {
                 console.error('Error fetching announcements:', error);
@@ -65,6 +65,10 @@ const Announce = () => {
         fetchAnnouncements();
     }, [changeAnnouncement]);
 
+    function triggernotifications() {
+        toast.success("hai")
+    }
+
     return (
         isLoading ? <Loading /> :
             <div className='dashboard-parent py-4'>
@@ -72,6 +76,7 @@ const Announce = () => {
                     <div>
                         <h5 className='text-daily'>Announcement</h5>
                     </div>
+                    <button className="button" onClick={triggernotifications}>Trigger</button>
                     <div className='d-flex'>
                         <Announcementalert handleChangeAnnouncement={handleChangeAnnouncement} />
                     </div>
