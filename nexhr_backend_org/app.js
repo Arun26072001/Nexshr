@@ -8,8 +8,8 @@ const app = express();
 require("dotenv").config();
 const cors = require("cors");
 const http = require("http");
-const socketIo = require("socket.io");
 const path = require("path");
+const socketIo = require("socket.io");
 
 const login = require("./routes/login");
 const company = require("./routes/company");
@@ -157,36 +157,42 @@ const io = socketIo(server, {
   },
 });
 
-let users = {};
+// let users = {};
 
 // Socket.IO Connection
 io.on("connection", (socket) => {
-  // console.log(`A user connected: ${socket.id}`);
-
-  socket.on("registerUser", (userId) => {
-    console.log(`User registered: ${userId} with socket ID: ${socket.id}`);
-    users[userId] = socket.id;
+  console.log(`A user connected: ${socket.id}`);
+  socket.on("add-announcement", (announcementData, users) => {
+    console.log("from client", announcementData, users);
+    io.emit("send-notification", users, announcementData.title, announcementData.message)
   });
+})
 
-  socket.on("sendNotification", (userId, title, message) => {
-    if (users[userId]) {
-      io.to(users[userId]).emit("receiveNotification", { title, message });
-      console.log(`Notification sent to user ${userId}`);
-    } else {
-      console.log(`User ${userId} not found`);
-    }
-  });
+//   socket.on("registerUser", (userId) => {
+//     console.log(`User registered: ${userId} with socket ID: ${socket.id}`);
+//     users[userId] = socket.id;
+//   });
+//   console.log("170", users);
 
-  socket.on("disconnect", () => {
-    for (let userId in users) {
-      if (users[userId] === socket.id) {
-        delete users[userId];
-        break;
-      }
-    }
-    console.log(`User disconnected: ${socket.id}`);
-  });
-});
+//   socket.on("sendNotification", (userId, title, message) => {
+//     if (users[userId]) {
+//       io.to(users[userId]).emit("receiveNotification", { title, message });
+//       console.log(`Notification sent to user ${userId}`);
+//     } else {
+//       console.log(`User ${userId} not found`);
+//     }
+//   });
+
+//   socket.on("disconnect", () => {
+//     for (let userId in users) {
+//       if (users[userId] === socket.id) {
+//         delete users[userId];
+//         break;
+//       }
+//     }
+//     console.log(`User disconnected: ${socket.id}`);
+//   });
+// });
 
 // generate payslip each month of 5th
 schedule.scheduleJob("0 10 5 * *", async function () {
@@ -213,7 +219,7 @@ schedule.scheduleJob("0 7 * * *", async () => {
     console.log(res.data);
   } catch (error) {
     console.log(error);
-  }c
+  }
 })
 
 // Start Server

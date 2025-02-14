@@ -23,7 +23,7 @@ router.get("/name", verifyAdmin, async (req, res) => {
     // const { orgName } = jwt.decode(req.headers['authorization']);
     // const RoleAndPermission = getRoleAndPermissionModel(orgName)
 
-    const roleData = await RoleAndPermission.findOne({ RoleName: "Employee" })
+    const roleData = await RoleAndPermission.findOne({ RoleName: "Assosiate" })
       .populate("userPermissions")
       .populate("pageAuth")
       .exec();

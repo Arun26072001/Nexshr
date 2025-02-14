@@ -1,22 +1,31 @@
 
 const express = require('express');
 const { Announcement, announcementValidation } = require('../models/AnnouncementModel');
+const { verifyAdminHREmployee } = require('../auth/authMiddleware');
+const { Employee } = require('../models/EmpModel');
 const router = express.Router();
 
 router.post('/:id', async (req, res) => {
   try {
+    const howViewed = req.body.selectTeamMembers.reduce((acc, emp) => {
+      acc[emp] = "not viewed";
+      return acc;
+    }, {});
+
     const newAnnouncement = {
       ...req.body,
+      howViewed,
       createdBy: req.params.id
     }
+
     const { error } = announcementValidation.validate(newAnnouncement);
+
     if (error) {
       return res.status(400).send({ error: error.details[0].message });
     }
 
     const announcement = await Announcement.create(newAnnouncement);
-    console.log(announcement);
-    
+
     res.status(201).json({
       message: 'Announcement created successfully!',
       data: announcement
@@ -28,10 +37,9 @@ router.post('/:id', async (req, res) => {
 });
 
 
-router.get('/', async (req, res) => {
+router.get('/', verifyAdminHREmployee, async (req, res) => {
   try {
     const announcements = await Announcement.find();
-    console.log(announcements);
 
     res.status(200).json({
       status: true,
@@ -47,6 +55,33 @@ router.get('/', async (req, res) => {
   }
 });
 
+// fetch employee of notifications
+router.get("/emp/:id", verifyAdminHREmployee, async (req, res) => {
+  try {
+    const notifications = await Announcement.find({ selectTeamMembers: req.params.id }).exec();
+    const notViewAnnouncements = notifications.filter((item) => item?.howViewed[req.params.id] === "not viewed")
+    console.log(notViewAnnouncements);
+
+    if (notViewAnnouncements.length === 0) {
+      return res.status(404).send({ error: "Notifications not found" })
+    } else {
+      return res.send(notViewAnnouncements);
+    }
+  } catch (error) {
+    console.log(error);
+
+    return res.status(500).send({ error: error.message })
+  }
+})
+
+router.put("/:id", verifyAdminHREmployee, async (req, res) => {
+  try {
+    const announcement = await Announcement.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    return res.send({ message: "message updated" })
+  } catch (error) {
+    return res.status(500).send({ error: error.message })
+  }
+})
 
 router.delete('/:announcementId', async (req, res) => {
   const { announcementId } = req.params;

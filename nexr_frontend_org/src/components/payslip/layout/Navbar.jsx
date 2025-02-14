@@ -22,6 +22,8 @@ export default function Navbar({ handleSideBar }) {
     const [isDisabled, setIsDisabled] = useState(false);
     const workRef = useRef(null);  // Use ref to store interval ID
     const url = process.env.REACT_APP_API_URL;
+    const [announcements, setAnnouncements] = useState([]);
+    const [isChangeAnnouncements, setIschangeAnnouncements] = useState(false);
 
     // Timer logic to increment time
     const incrementTime = () => {
@@ -153,6 +155,78 @@ export default function Navbar({ handleSideBar }) {
         );
     };
 
+    function handleUpdateAnnouncements() {
+        setIschangeAnnouncements(!isChangeAnnouncements)
+    }
+
+    useEffect(() => {
+        async function fetchAnnouncements() {
+            try {
+                const res = await axios.get(`${url}/api/announcements/emp/${data._id}`, {
+                    headers: {
+                        Authorization: data.token || ""
+                    }
+                })
+                console.log(res.data);
+
+                setAnnouncements(res.data);
+            } catch (error) {
+                console.log(error.response.data.error);
+                setAnnouncements([]);
+            }
+        }
+        fetchAnnouncements()
+    }, [isChangeAnnouncements])
+
+    async function updateNotification(value) {
+        try {
+            const res = await axios.put(`${url}/api/announcements/${value._id}`, value, {
+                headers: {
+                    Authorization: data.token || ""
+                }
+            })
+            console.log(res.data.message);
+        } catch (error) {
+            console.log(error);
+        }
+    }
+
+    async function clearMsgs() {
+        try {
+            // Use Promise.all to handle multiple async operations
+            await Promise.all(
+                announcements.map(async (item) => {
+                    const updatedMsg = {
+                        ...item,
+                        howViewed: {
+                            ...item.howViewed,
+                            [data._id]: "viewed"
+                        }
+                    };
+                    return updateNotification(updatedMsg); // Ensure async call is returned
+                })
+            );
+
+            // Call handleUpdateAnnouncements only after all updates are complete
+            handleUpdateAnnouncements();
+        } catch (error) {
+            console.log("Error clearing messages:", error);
+        }
+    }
+
+
+
+    async function removeMessage(value) {
+        const updatedMsg = {
+            ...value,
+            howViewed: {
+                ...value.howViewed,
+                [data._id]: "viewed"
+            }
+        }
+        updateNotification(updatedMsg);
+        handleUpdateAnnouncements();
+    }
 
     return (
         <div className="webnxs">
@@ -252,10 +326,12 @@ export default function Navbar({ handleSideBar }) {
                                 </clipPath>
                             </defs>
                         </svg>
-
-                        <span className='messageCount'>
-                            1
-                        </span>
+                        {
+                            announcements.length > 0 &&
+                            <span className='messageCount'>
+                                {announcements?.length}
+                            </span>
+                        }
                     </span>
                     {/* Profile Section */}
                     <Whisper placement="bottomEnd" trigger="click" speaker={renderMenu}>
@@ -268,19 +344,26 @@ export default function Navbar({ handleSideBar }) {
                             <button type="button" className="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
                         </div>
                         <div className="offcanvas-body">
-                            <div className="box-content">
-                                <div className='d-flex justify-content-end '>
-                                    <CloseRoundedIcon />
-                                </div>
-                                <Accordion defaultActiveKey={1}>
-                                    <Accordion.Panel header="Accordion Panel 1" eventKey={1} caretAs={KeyboardArrowDownRoundedIcon}>
-                                        <p>wqjhdlwqd sadmdoiud9uwqd wqdwq0ud wqdwq</p>
-                                    </Accordion.Panel>
-                                </Accordion>
-                            </div>
-                            <div>
-                                <button className='button my-2 w-100'>Clear all</button>
-                            </div>
+                            {
+                                announcements.map((item) => {
+                                    return <div key={item._id} className="box-content my-2" id="box">
+                                        <div className='d-flex justify-content-end'>
+                                            <CloseRoundedIcon onClick={() => {
+                                                document.getElementById("box").classList.add = "remove"
+                                                removeMessage(item)
+                                            }} />
+                                        </div>
+                                        <Accordion>
+                                            <Accordion.Panel header={item.title} eventKey={1} caretAs={KeyboardArrowDownRoundedIcon}>
+                                                <p>{item.message.replace(/<[^>]*>/g, "")}</p>
+                                            </Accordion.Panel>
+                                        </Accordion>
+                                    </div>
+                                })
+                            }
+                        </div>
+                        <div className='text-align-center m-2' >
+                            <button className='button w-100' onClick={clearMsgs}>Clear all</button>
                         </div>
                     </div>
                 </div>

@@ -16,8 +16,6 @@ export default function LeaveRequest() {
     const { data } = useContext(EssentialValues);
     const { token } = data;
     const { isTeamHead, isTeamLead } = jwtDecode(token);
-    console.log(leaveRequests?.leaveData);
-    
 
     async function replyToLeave(leave, response) {
         try {

@@ -38,8 +38,6 @@ var employeeSchema = new mongoose.Schema({
   description: { type: String },
   dateOfJoining: { type: String },
   employmentType: { type: String }, 
-  
-  // salary: [{ type: mongoose.Schema.Types.ObjectId, ref: "Salary" }],
   benefits: [{ type: String }],
   managerId: { type: mongoose.Schema.Types.ObjectId, ref: "Employee" }, // Reference to another employee
   emergencyContacts: [
@@ -56,6 +54,7 @@ var employeeSchema = new mongoose.Schema({
   publicHoliday: {
     type: String
   },
+  announcements: [{type: mongoose.Schema.Types.ObjectId, ref: "Announcement", default: []}],
   annualLeaveYearStart: {
     type: Date, default: new Date().toISOString()
   },
