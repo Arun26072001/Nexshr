@@ -24,6 +24,7 @@ export default function Navbar({ handleSideBar }) {
     const url = process.env.REACT_APP_API_URL;
     const [announcements, setAnnouncements] = useState([]);
     const [isChangeAnnouncements, setIschangeAnnouncements] = useState(false);
+    const [isRemove, setIsRemove] = useState([]);
 
     // Timer logic to increment time
     const incrementTime = () => {
@@ -168,6 +169,13 @@ export default function Navbar({ handleSideBar }) {
                     }
                 })
                 console.log(res.data);
+                res.data.forEach((item, index) => {
+                    setIsRemove((pre) => {
+                        const updated = [...pre];
+                        updated[index] = false;
+                        return updated;
+                    })
+                });
 
                 setAnnouncements(res.data);
             } catch (error) {
@@ -177,6 +185,8 @@ export default function Navbar({ handleSideBar }) {
         }
         fetchAnnouncements()
     }, [isChangeAnnouncements])
+    console.log(isRemove);
+
 
     async function updateNotification(value) {
         try {
@@ -193,6 +203,13 @@ export default function Navbar({ handleSideBar }) {
 
     async function clearMsgs() {
         try {
+            announcements.forEach((item, index) => {
+                setIsRemove((pre) => {
+                    const updated = [...pre];
+                    updated[index] = true;
+                    return updated;
+                })
+            })
             // Use Promise.all to handle multiple async operations
             await Promise.all(
                 announcements.map(async (item) => {
@@ -216,7 +233,13 @@ export default function Navbar({ handleSideBar }) {
 
 
 
-    async function removeMessage(value) {
+    async function removeMessage(value, index) {
+        setIsRemove((prev) => {
+            const updated = [...prev]; // Create a copy of the previous state
+            updated[index] = true; // Update the specific index
+            console.log(updated);
+            return updated; // Return the new state
+        });
         const updatedMsg = {
             ...value,
             howViewed: {
@@ -224,8 +247,10 @@ export default function Navbar({ handleSideBar }) {
                 [data._id]: "viewed"
             }
         }
-        updateNotification(updatedMsg);
-        handleUpdateAnnouncements();
+        setTimeout(() => {
+            updateNotification(updatedMsg);
+            handleUpdateAnnouncements();
+        }, 300)
     }
 
     return (
@@ -345,12 +370,11 @@ export default function Navbar({ handleSideBar }) {
                         </div>
                         <div className="offcanvas-body">
                             {
-                                announcements.map((item) => {
-                                    return <div key={item._id} className="box-content my-2">
+                                announcements.map((item, index) => {
+                                    return <div key={item._id} className={`box-content my-2 ${isRemove[index] ? "remove" : ""}`}>
                                         <div className='d-flex justify-content-end'>
                                             <CloseRoundedIcon onClick={() => {
-                                                // document.getElementById("box").classList.add = "remove"
-                                                removeMessage(item)
+                                                removeMessage(item, index)
                                             }} />
                                         </div>
                                         <Accordion>
