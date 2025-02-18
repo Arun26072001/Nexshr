@@ -618,4 +618,155 @@ router.put("/:id", verifyAdminHREmployeeManagerNetwork, (req, res) => {
     })
 })
 
+router.post("/ontime/:type", async (req, res) => {
+    try {
+        const date = new Date();
+        const hour = date.getHours();
+        const min = date.getMinutes();
+
+        const emps = await Employee.find({}, "FirstName LastName Email")
+            .populate("company")
+            .populate({ path: "workingTimePattern" });
+
+        const activeEmps = emps.filter((emp) => {
+            if (type === "login") {
+                return emp?.workingTimePattern?.StartingTime == `${hour}:${min}`
+            } else {
+                return emp?.workingTimePattern?.FinishingTime == `${hour}:${min}`
+            }
+        })
+
+        activeEmps.map((emp) => {
+            sendMail({
+                From: process.env.FROM_MAIL,
+                To: emp.Email,
+                Subject: res.params.type === "login" ? "Login Remainder" : "Logout Remainder",
+                HtmlBody: `
+        <html lang="en">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>${emp.company.CompanyName}</title>
+            <style>
+                body {
+                    font-family: Arial, sans-serif;
+                    background-color: #f6f9fc;
+                    color: #333;
+                    margin: 0;
+                    padding: 0;
+                }
+                .container {
+                    max-width: 600px;
+                    margin: auto;
+                    padding: 20px;
+                    background-color: #fff;
+                    border-radius: 8px;
+                    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+                }
+                .content {
+                    margin: 20px 0;
+                }
+                .footer {
+                    text-align: center;
+                    font-size: 14px;
+                    margin-top: 20px;
+                    color: #777;
+                }
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <div class="content">
+                    <p>Dear ${emp.FirstName} ${emp.LastName},</p>
+                    ${req.params.type === "login" ?
+                        `
+                                <p>Please ensure that you log in on time at ${emp.workingTimePattern.StartingTime}.</p>
+                                <p>If you are delayed due to traffic or any unforeseen circumstances, please inform HR as soon as possible.</p>
+                                ` :
+                        `<p>Please ensure that you log out on time at ${emp.workingTimePattern.FinishingTime}.</p>`
+                    }
+                    <p>Kindly follow the necessary guidelines.</p><br />
+                    <p>Thank you!</p>
+                </div>
+                <div class="footer">
+                    <p>Have questions or need assistance? <a href="mailto:${process.env.FROM_MAIL}">Contact ${process.env.FROM_MAIL}</a>.</p>
+                </div>
+            </div>
+        </body>
+        </html>
+        `
+            })
+        })
+        return res.send({ message: "Email sent successfully for all employees." })
+
+    } catch (error) {
+        console.log(error);
+        return res.status(500).send({ error: error.message })
+    }
+})
+
+router.post("/remainder/:id/:timeOption", async (req, res) => {
+    try {
+        const emp = await Employee.findById(res.params.id).populate("company");
+        sendMail({
+            From: process.env.FROM_MAIL,
+            To: emp.Email,
+            Subject: `Your ${req.params.timeOption} time has ended`,
+            HtmlBody: `
+            <html lang="en">
+            <head>
+                <meta charset="UTF-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <title>${emp.company.CompanyName}</title>
+                <style>
+                    body {
+                        font-family: Arial, sans-serif;
+                        background-color: #f6f9fc;
+                        color: #333;
+                        margin: 0;
+                        padding: 0;
+                    }
+                    .container {
+                        max-width: 600px;
+                        margin: auto;
+                        padding: 20px;
+                        background-color: #fff;
+                        border-radius: 8px;
+                        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+                    }
+                    .content {
+                        margin: 20px 0;
+                    }
+                    .footer {
+                        text-align: center;
+                        font-size: 14px;
+                        margin-top: 20px;
+                        color: #777;
+                    }
+                </style>
+            </head>
+            <body>
+                <div class="container">
+                    <div class="content">
+                        <p>Dear ${emp.FirstName} ${emp.LastName},</p>
+                        <p>Your ${req.params.timeOption} time has ended. Please resume your work.</p>
+                        <p>If you encounter any issues, please contact HR.</p>
+                        <p>Kindly adhere to the necessary guidelines.</p><br />
+                        <p>Thank you!</p>
+                    </div>
+                    <div class="footer">
+                        <p>Have questions or need assistance? <a href="mailto:${process.env.FROM_MAIL}">Contact us</a>.</p>
+                    </div>
+                </div>
+            </body>
+            </html>
+            `
+        });
+        res.send({ message: "Sent mail to employee successfully." })
+    } catch (error) {
+        console.log(error);
+        return res.status(500).send({ error: error.message })
+    }
+})
+
 module.exports = router;

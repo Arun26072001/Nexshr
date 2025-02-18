@@ -5,8 +5,9 @@ import PowerSettingsNewRoundedIcon from "@mui/icons-material/PowerSettingsNewRou
 import { TimerStates } from "./payslip/HRMDashboard";
 import { toast } from "react-toastify";
 import WavingHandRoundedIcon from '@mui/icons-material/WavingHandRounded';
-import { Modal, Button, toaster, Notification } from "rsuite";
-import companyLogo from "../imgs/webnexs_logo.webp";
+import { Modal, Button } from "rsuite";
+import { EssentialValues } from "../App";
+import axios from "axios";
 
 const ActivityTimeTracker = () => {
     const {
@@ -17,9 +18,12 @@ const ActivityTimeTracker = () => {
         timeOption,
         trackTimer, changeReasonForLate
     } = useContext(TimerStates);
+    const { data } = useContext(EssentialValues);
+
     const [isDisabled, setIsDisabled] = useState(false);
     const EmpName = localStorage.getItem("Name") || "Employee";
-    const [isViewTakeTime, setIsTaketime] = useState(false);
+    const [isViewTakeTime, setIsTaketime] = useState(localStorage.getItem("isViewTakeTime") ? true : false);
+    const url = process.env.REACT_APP_API_URL;
 
     const [sec, setSec] = useState(
         Number(workTimeTracker?.[timeOption]?.timeHolder?.split(':')[2] || 0)
@@ -77,6 +81,9 @@ const ActivityTimeTracker = () => {
     };
 
     function changeViewReasonForTaketime() {
+        if (!isViewTakeTime) {
+            localStorage.setItem("isViewTakeTime", true)
+        }
         setIsTaketime(!isViewTakeTime)
     }
 
@@ -86,15 +93,6 @@ const ActivityTimeTracker = () => {
             await stopActivityTimer();
             clearInterval(timerRef.current);
             timerRef.current = null;
-            if ((hour <= 1
-                && min >= 20
-                && ["morningBreak", "eveningBreak"].includes(timeOption)
-                && !workTimeTracker[timeOption].reasonForLate)
-                || (min >= 40
-                    && timeOption === "lunch"
-                    && !workTimeTracker[timeOption].reasonForLate)) {
-                changeViewReasonForTaketime()
-            }
         }
     };
 
@@ -104,12 +102,18 @@ const ActivityTimeTracker = () => {
     };
 
     function checkIsEnterReasonforLate() {
-        if (["", undefined].includes(workTimeTracker[timeOption].reasonForLate)) {
-            localStorage.setItem("isAddReasonForLate", false)
-        } else {
-            localStorage.setItem("isAddReasonForLate", true)
-        }
         changeViewReasonForTaketime();
+        localStorage.removeItem("isViewTakeTime");
+        stopTimer();
+    }
+
+    async function sendRemainderMail() {
+        try {
+            const res = await axios.post(`${url}/api/clock-ins/remainder/${data._id}/${timeOption}`)
+            console.log(res.data.message);
+        } catch (error) {
+            console.log(error);
+        }
     }
 
     // Manage timer state based on startingTime and endingTime
@@ -141,30 +145,15 @@ const ActivityTimeTracker = () => {
     }, [timeOption, workTimeTracker]);
 
     setInterval(() => {
-        async function sendNotificationForMoreTimeInBreak() {
-            toaster.push(
-                <Notification
-                    header={
-                        <div style={{ display: 'flex', alignItems: 'center' }}>
-
-                            <img src={companyLogo} alt="Company Logo" style={{ width: 50, height: 50, marginRight: 10 }} />
-
-                            <span style={{ fontWeight: 'bold', fontSize: '16px' }}>Webnexs</span>
-                        </div>
-                    }
-                    closable
-                >
-                    <strong>Time Of For {timeOption[0].toUpperCase() + timeOption.slice(1)}</strong>
-                    <br />
-                    Break Time is Finished, Please stop and continue work!
-                </Notification>,
-                { placement: 'bottomEnd' }
-            );
+        if ((["morningBreak", "eveningBreak"].includes(timeOption) && min === 0 && sec === 10 && !workTimeTracker?.[timeOption]?.reasonForLate) || (timeOption === "lunch" && min === 30 && sec === 1 && !workTimeTracker?.[timeOption]?.reasonForLate)) {
+            // sendRemainderMail();
+            changeViewReasonForTaketime();
         }
-        if ((["morningBreak", "eveningBreak"].includes(timeOption) && min === 15 && sec === 1) || (timeOption === "lunch" && min === 30 && sec === 1)) {
-            sendNotificationForMoreTimeInBreak();
-        }
-    }, 1000)
+    }, 1000);
+
+    window.addEventListener("beforeunload", () => {
+        stopTimer();
+    })
 
     const formattedName = EmpName
         ? EmpName.charAt(0).toUpperCase() + EmpName.slice(1)
@@ -234,20 +223,20 @@ const ActivityTimeTracker = () => {
                             style={{ padding: "15px 15px" }}
                             title={isStartActivity ? "Stop" : "Start"}
                             onClick={
-                                (min >= 20
-                                    && ["morningBreak", "eveningBreak"].includes(timeOption)
-                                    && !workTimeTracker[timeOption].reasonForLate)
-                                    || (hour <= 1 && min >= 40
-                                        && timeOption === "lunch"
-                                        && !workTimeTracker[timeOption].reasonForLate)
-                                    ? changeViewReasonForTaketime :
-                                    workTimeTracker?._id
-                                        ? (isDisabled
-                                            ? stopTimer
-                                            : (!isDisabled
-                                                ? startTimer
-                                                : warnPunchIn))
-                                        : warnPunchIn
+                                // (min >= 20
+                                // && ["morningBreak", "eveningBreak"].includes(timeOption)
+                                // && !workTimeTracker[timeOption].reasonForLate)
+                                // || (min >= 40
+                                //     && timeOption === "lunch"
+                                //     && !workTimeTracker[timeOption].reasonForLate)
+                                // ? changeViewReasonForTaketime :
+                                workTimeTracker?._id
+                                    ? (isDisabled
+                                        ? stopTimer
+                                        : (!isDisabled
+                                            ? startTimer
+                                            : warnPunchIn))
+                                    : warnPunchIn
                             }
                             id="startActivityTimerBtn"
                         >

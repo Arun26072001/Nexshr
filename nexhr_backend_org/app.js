@@ -50,6 +50,7 @@ const { imgUpload } = require('./routes/imgUpload');
 const holidays = require("./routes/holidays");
 const report = require("./routes/reports");
 const fileData = require("./routes/file-data");
+const { TimePattern } = require("./models/TimePatternModel");
 
 // MongoDB Connection
 const mongoURI = process.env.DATABASEURL;
@@ -206,6 +207,43 @@ schedule.scheduleJob("0 10 5 * *", async function () {
     console.error("Error while generating payslips:", err);
   }
 });
+
+async function fetchTimePatterns() {
+  try {
+    const timePatterns = await TimePattern.find();
+
+    timePatterns.forEach((pattern) => {
+      const [startingHour, startingMin] = pattern.StartingTime.split(":").map(Number);
+      const [finishingHour, finishingMin] = pattern.FinishingTime.split(":").map(Number);
+
+      // Schedule job for login
+      schedule.scheduleJob(`0 ${startingMin} ${startingHour} * * *`, async function () {
+        try {
+          const response = await axios.post(`${process.env.API_URL}/api/clock-ins/ontime/login`);
+          console.log("Login Triggered:", response.data.message);
+        } catch (error) {
+          console.error("Login Error:", error.message);
+        }
+      });
+
+      // Schedule job for logout
+      schedule.scheduleJob(`0 ${finishingMin} ${finishingHour} * * *`, async function () {
+        try {
+          const response = await axios.post(`${process.env.API_URL}/api/clock-ins/ontime/logout`);
+          console.log("Logout Triggered:", response.data.message);
+        } catch (error) {
+          console.error("Logout Error:", error.message);
+        }
+      });
+    });
+  } catch (error) {
+    console.error("Error fetching time patterns:", error);
+  }
+}
+
+// Call function to schedule jobs
+fetchTimePatterns();
+
 
 schedule.scheduleJob("0 10 * * *", async () => {
   try {

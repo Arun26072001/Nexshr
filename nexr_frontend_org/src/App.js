@@ -19,8 +19,8 @@ const App = () => {
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [showOfflineAlert, setShowOfflineAlert] = useState(false);
   const [whoIs, setWhoIs] = useState("");
-  const [isStartLogin, setIsStartLogin] = useState(localStorage.getItem("isStartLogin") === "true");
-  const [isStartActivity, setIsStartActivity] = useState(localStorage.getItem("isStartActivity") === "true");
+  const [isStartLogin, setIsStartLogin] = useState(localStorage.getItem("isStartLogin") ? true : false);
+  const [isStartActivity, setIsStartActivity] = useState(localStorage.getItem("isStartActivity") ? true : false);
   const [data, setData] = useState({
     _id: null,
     Account: null,

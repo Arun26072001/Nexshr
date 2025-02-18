@@ -198,7 +198,7 @@ export default function HRMDashboard() {
         try {
             const updatedData = await updateDataAPI(updatedState);
             setWorkTimeTracker(updatedData);
-            localStorage.setItem('isStartLogin', false);
+            localStorage.removeItem('isStartLogin');
             setIsStartLogin(false);
             updateClockins();
         } catch (err) {
@@ -251,7 +251,7 @@ export default function HRMDashboard() {
             // Call the API with the updated state
             const updatedData = await updateDataAPI(updatedState(workTimeTracker));
             setWorkTimeTracker(updatedData);
-            localStorage.setItem("isStartActivity", false);
+            localStorage.removeItem("isStartActivity");
             setIsStartActivity(false);
             updateClockins();
         } catch (error) {

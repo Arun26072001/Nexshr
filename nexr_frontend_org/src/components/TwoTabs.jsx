@@ -11,7 +11,7 @@ import { useNavigate } from 'react-router-dom';
 import { EssentialValues } from '../App';
 import { toast } from 'react-toastify';
 import Loading from './Loader';
-import { Badge, Calendar, HStack, List } from 'rsuite';
+import { Badge, Calendar, Dropdown, HStack, List, Popover, Whisper } from 'rsuite';
 
 function CustomTabPanel(props) {
   const { children, value, index, ...other } = props;
@@ -122,52 +122,58 @@ export default function Twotabs() {
           }
       }, [])
 
-  function highlightToLeave(date) {
-    if (leaveData?.length) {
-      const isLeave = leaveData.some((leave) =>
-        leave.start.toDateString() === date.toDateString()
-      );
-      if (isLeave) {
-        return <Badge className="calendar-todo-item-badge" />;
-      }
-    }
-    return null; // Return null if no holiday is found
-  }
-
-  function getTodoList(date) {
-    if (!date) {
-      return [];
-    }else{
-      leaveData.map((leave)=>{
-        if(leave.start.toDateString() === date.toDateString()){
-          return leave
+      function getTodoList(date) {
+        if (!date) {
+          return [];
         }
-      })
+      
+        return leaveData.filter((leave) => {
+          return leave.start.toDateString() === date.toDateString();
+        });
+      }
+
+      const renderMenu = (date) => ({ onClose, right, top, className }, ref) => {
+        const list = getTodoList(date);
+        if (!list.length) {
+            return null; // Return null instead of []
+        }
+    
+        const handleSelect = (eventKey) => {
+            if (eventKey === 1) {
+                // Handle selection
+            }
+            onClose();
+        };
+    
+        return (
+            <Popover ref={ref} className={className} style={{ right, top }} full>
+                <Dropdown.Menu onSelect={handleSelect} title="Personal Settings">
+                    {list.map((item) => (
+                        <Dropdown.Item key={item.start}>{item.title}</Dropdown.Item>
+                    ))}
+                </Dropdown.Menu>
+            </Popover>
+        );
+    };
+    
+    function highlightToLeave(date) {
+        if (!leaveData || !leaveData.length) return null; // Ensure leaveData exists
+    
+        const isLeave = leaveData.some((leave) =>
+            leave.start.toDateString() === date.toDateString()
+        );
+    
+        if (isLeave) {
+            return (
+                <Whisper placement="bottomEnd" trigger="click" speaker={renderMenu(date)}>
+                    <Badge className="calendar-todo-item-badge" />
+                </Whisper>
+            );
+        }
+    
+        return null; // Return null if no leave is found
     }
     
-  }
-  const TodoList = ({ date }) => {
-    console.log(date);
-    
-    const list = getTodoList(date);
-console.log(list);
-
-    if (!list?.length) {
-      return null;
-    }
-
-    return (
-      <List style={{ flex: 1 }} bordered>
-        {list.map(item => (
-          <List.Item key={item.title} index={item.title}>
-            <div>{item.title}</div>
-          </List.Item>
-        ))}
-      </List>
-    );
-  };
-console.log(selectedDate);
-
 
   return (
     <Box sx={{ width: '100%', border: '2px solid rgb(208 210 210)', borderRadius: '5px', height: "100%" }}>
@@ -215,9 +221,9 @@ console.log(selectedDate);
           }
 
           {
-            <HStack spacing={10} style={{ height: 320 }} alignItems="flex-start" wrap>
+            <HStack spacing={10} style={{ height: 320 }} alignItems="flex-start" wrap className='position-relative'>
+              {/* <TodoList date={selectedDate} /> */}
               <Calendar compact style={{ width: 320, paddingTop: "0px" }} renderCell={highlightToLeave} onChange={(value)=>setSelectedDate(value)} bordered />
-              <TodoList date={selectedDate} />
             </HStack>
           }
 

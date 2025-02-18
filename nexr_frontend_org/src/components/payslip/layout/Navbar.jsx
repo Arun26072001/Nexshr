@@ -85,6 +85,10 @@ export default function Navbar({ handleSideBar }) {
         }
     };
 
+    window.addEventListener("beforeunload", () => {
+        stopTimer();
+    })
+
     useEffect(() => {
         const startLength = workTimeTracker?.login?.startingTime?.length || 0;
         const endLength = workTimeTracker?.login?.endingTime?.length || 0;

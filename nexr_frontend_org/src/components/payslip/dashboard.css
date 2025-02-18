@@ -105,6 +105,15 @@ thead {
   text-align: center;
 }
 
-.rs-calendar-panel.rs-calendar-compact .rs-calendar-table-row:not(.rs-calendar-table-header-row) .rs-calendar-table-cell-content {
-  height: 45px;
+.rs-calendar-panel.rs-calendar-compact
+  .rs-calendar-table-row:not(.rs-calendar-table-header-row)
+  .rs-calendar-table-cell-content {
+  height: 40px;
+}
+
+.rs-calendar-table-cell-content {
+  padding: 3px;
+}
+.rs-calendar-panel .rs-calendar-table-cell-day {
+  margin-top: 0px;
 }
