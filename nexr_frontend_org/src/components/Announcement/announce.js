@@ -76,7 +76,6 @@ const Announce = () => {
                     <div>
                         <h5 className='text-daily'>Announcement</h5>
                     </div>
-                    <button className="button" onClick={triggernotifications}>Trigger</button>
                     <div className='d-flex'>
                         <Announcementalert handleChangeAnnouncement={handleChangeAnnouncement} />
                     </div>

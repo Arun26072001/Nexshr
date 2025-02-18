@@ -1,20 +1,14 @@
 const jwt = require('jsonwebtoken');
 const jwtKey = process.env.ACCCESS_SECRET_KEY;
-// const axios = require("axios");
-// const cen_url = process.env.CENTRALIZATION_BASEURL;
 
 function verifyHR(req, res, next) {
   const token = req.headers['authorization'];
-  // console.log(token);
 
   if (typeof token !== "undefined") {
-    // decodedData = jwt.decode(req.headers['authorization']);
-    // if(decodedData.Account)
     jwt.verify(token, jwtKey, (err, authData) => {
       if (err) {
         res.status(401).send({ error: "Unauthorize for this operation" });
       } else {
-        // console.log(authData);
         if (authData.Account == 2) {
           next();
         } else {
@@ -84,7 +78,7 @@ function verifyHREmployee(req, res, next) {
   // next()
 }
 
-async function verifyAdminHREmployee(req, res, next) {
+async function verifyAdminHREmployeeManagerNetwork(req, res, next) {
   const token = req.headers['authorization'];
   if (typeof token !== "undefined") {
 
@@ -93,7 +87,7 @@ async function verifyAdminHREmployee(req, res, next) {
         console.log("error in verify");
         res.sendStatus(401);
       } else {
-        if (authData.Account == 3 || authData.Account == 2 || authData.Account == 1) {
+        if ([1, 2, 3, 4, 5].includes(authData.Account)) {
           next();
         }
         //  else if (authData.Account == 3) {
@@ -111,7 +105,7 @@ async function verifyAdminHREmployee(req, res, next) {
     });
   } else {
     // Forbidden
-    res.send(401).send({error: "token not not found"});
+    res.send(401).send({ error: "token not not found" });
   }
 }
 
@@ -177,20 +171,60 @@ function verifyAdmin(req, res, next) {
   }
 }
 
-function verifyAdmin(req, res, next) {
+function verifyAdminHrNetworkAdmin(req, res, next) {
   const token = req.headers['authorization'];
 
   if (typeof token !== "undefined") {
-    // decodedData = jwt.decode(req.headers['authorization']);
-    // if(decodedData.Account)
     jwt.verify(token, jwtKey, (err, authData) => {
       if (err) {
         res.status(401).send({ error: err.message });
       } else {
-        if (authData.Account == 1) {
+        if ([1, 2, 5].includes(authData.Account)) {
           next();
         } else {
           res.status(401).send({ error: "unAuthorize: Admin can only do this action!" });
+        }
+      }
+    });
+  } else {
+    // Forbidden
+    res.status(401).send({ error: "Can't access Auth token!" });
+  }
+}
+
+function verifyManager(req, res, next) {
+  const token = req.headers['authorization'];
+
+  if (typeof token !== "undefined") {
+    jwt.verify(token, jwtKey, (err, authData) => {
+      if (err) {
+        res.status(401).send({ error: err.message });
+      } else {
+        if (authData.Account == 4) {
+          next();
+        } else {
+          res.status(401).send({ error: "unAuthorize: Manager can only do this action!" });
+        }
+      }
+    });
+  } else {
+    // Forbidden
+    res.status(401).send({ error: "Can't access Auth token!" });
+  }
+}
+
+function verifyNetworkAdmin(req, res, next) {
+  const token = req.headers['authorization'];
+
+  if (typeof token !== "undefined") {
+    jwt.verify(token, jwtKey, (err, authData) => {
+      if (err) {
+        res.status(401).send({ error: err.message });
+      } else {
+        if (authData.Account == 5) {
+          next();
+        } else {
+          res.status(401).send({ error: "unAuthorize: NetworkAdmin can only do this action!" });
         }
       }
     });
@@ -245,7 +279,10 @@ module.exports = {
   verifyEmployee,
   verifyHREmployee,
   verifyAdminHR,
+  verifyAdminHrNetworkAdmin,
   verifyAdmin,
-  verifyAdminHREmployee,
-  verifySuperAdmin
+  verifyAdminHREmployeeManagerNetwork,
+  verifySuperAdmin,
+  verifyManager,
+  verifyNetworkAdmin
 }

@@ -120,7 +120,7 @@ export default function Navbar({ handleSideBar }) {
         }
     }, [workTimeTracker, isStartLogin]);
 
-    useEffect(() => {
+    setInterval(() => {
         async function sendMailonEightHrs() {
             try {
                 const sendMail = await axios.get(`${url}/api/clock-ins/sendmail/${data._id}/${workTimeTracker._id}`, {
@@ -131,10 +131,10 @@ export default function Navbar({ handleSideBar }) {
                 toast.error(error.response.data.error)
             }
         }
-        if (isDisabled && hour >= 8 && min === 1 && sec === 1) {
-            sendMailonEightHrs()
+        if (isDisabled && hour === 9 && min === 1 && sec === 1) {
+            sendMailonEightHrs();
         }
-    }, [sec])
+    }, 1000)
 
     const renderMenu = ({ onClose, right, top, className }, ref) => {
         const handleSelect = eventKey => {
@@ -185,8 +185,6 @@ export default function Navbar({ handleSideBar }) {
         }
         fetchAnnouncements()
     }, [isChangeAnnouncements])
-    console.log(isRemove);
-
 
     async function updateNotification(value) {
         try {

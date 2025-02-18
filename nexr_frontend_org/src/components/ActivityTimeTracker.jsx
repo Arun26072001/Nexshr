@@ -5,7 +5,8 @@ import PowerSettingsNewRoundedIcon from "@mui/icons-material/PowerSettingsNewRou
 import { TimerStates } from "./payslip/HRMDashboard";
 import { toast } from "react-toastify";
 import WavingHandRoundedIcon from '@mui/icons-material/WavingHandRounded';
-import { Modal, Button } from "rsuite";
+import { Modal, Button, toaster, Notification } from "rsuite";
+import companyLogo from "../imgs/webnexs_logo.webp";
 
 const ActivityTimeTracker = () => {
     const {
@@ -89,7 +90,7 @@ const ActivityTimeTracker = () => {
                 && min >= 20
                 && ["morningBreak", "eveningBreak"].includes(timeOption)
                 && !workTimeTracker[timeOption].reasonForLate)
-                || (hour <= 1 && min >= 40
+                || (min >= 40
                     && timeOption === "lunch"
                     && !workTimeTracker[timeOption].reasonForLate)) {
                 changeViewReasonForTaketime()
@@ -103,7 +104,6 @@ const ActivityTimeTracker = () => {
     };
 
     function checkIsEnterReasonforLate() {
-
         if (["", undefined].includes(workTimeTracker[timeOption].reasonForLate)) {
             localStorage.setItem("isAddReasonForLate", false)
         } else {
@@ -139,6 +139,32 @@ const ActivityTimeTracker = () => {
             setSec(newSec);
         }
     }, [timeOption, workTimeTracker]);
+
+    setInterval(() => {
+        async function sendNotificationForMoreTimeInBreak() {
+            toaster.push(
+                <Notification
+                    header={
+                        <div style={{ display: 'flex', alignItems: 'center' }}>
+
+                            <img src={companyLogo} alt="Company Logo" style={{ width: 50, height: 50, marginRight: 10 }} />
+
+                            <span style={{ fontWeight: 'bold', fontSize: '16px' }}>Webnexs</span>
+                        </div>
+                    }
+                    closable
+                >
+                    <strong>Time Of For {timeOption[0].toUpperCase() + timeOption.slice(1)}</strong>
+                    <br />
+                    Break Time is Finished, Please stop and continue work!
+                </Notification>,
+                { placement: 'bottomEnd' }
+            );
+        }
+        if ((["morningBreak", "eveningBreak"].includes(timeOption) && min === 15 && sec === 1) || (timeOption === "lunch" && min === 30 && sec === 1)) {
+            sendNotificationForMoreTimeInBreak();
+        }
+    }, 1000)
 
     const formattedName = EmpName
         ? EmpName.charAt(0).toUpperCase() + EmpName.slice(1)
@@ -208,8 +234,7 @@ const ActivityTimeTracker = () => {
                             style={{ padding: "15px 15px" }}
                             title={isStartActivity ? "Stop" : "Start"}
                             onClick={
-                                (hour <= 1
-                                    && min >= 20
+                                (min >= 20
                                     && ["morningBreak", "eveningBreak"].includes(timeOption)
                                     && !workTimeTracker[timeOption].reasonForLate)
                                     || (hour <= 1 && min >= 40

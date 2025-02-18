@@ -160,7 +160,7 @@ export default function HRMDashboard() {
                 // Add new clock-ins data
                 const clockinsData = await addDataAPI(updatedState);
                 console.log(typeof clockinsData);
-                
+
                 if (clockinsData !== "undefined") {
                     setWorkTimeTracker(clockinsData);
                     setIsStartLogin(true);
@@ -303,7 +303,7 @@ export default function HRMDashboard() {
             try {
                 const leaveData = await axios.get(`${url}/api/leave-application/team/${_id}`, {
                     params: {
-                        isLead: isTeamLead ? true : false,
+                        who: isTeamLead ? "lead" : isTeamHead ? "head" : "manager",
                         daterangeValue
                     },
                     headers: {
@@ -358,7 +358,7 @@ export default function HRMDashboard() {
 
     // to view attendance data for admin and hr
     useEffect(() => {
-        if (Account === "1" || Account === "2") {
+        if (["1", "2", "5"].includes(Account)) {
             getAttendanceData()
         }
         getClocknsData()

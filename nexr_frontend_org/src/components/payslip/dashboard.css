@@ -104,3 +104,7 @@ thead {
   padding: 10px;
   text-align: center;
 }
+
+.rs-calendar-panel.rs-calendar-compact .rs-calendar-table-row:not(.rs-calendar-table-header-row) .rs-calendar-table-cell-content {
+  height: 45px;
+}

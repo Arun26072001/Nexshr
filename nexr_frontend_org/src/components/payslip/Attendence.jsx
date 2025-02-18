@@ -7,6 +7,7 @@ import Loading from "../Loader";
 import { formatTime } from "../ReuseableAPI";
 import NoDataFound from "./NoDataFound";
 import { toast } from "react-toastify";
+import FilterListRoundedIcon from '@mui/icons-material/FilterListRounded';
 
 const Attendence = (props) => {
   const url = process.env.REACT_APP_API_URL;
@@ -212,7 +213,9 @@ const Attendence = (props) => {
               </div>
             </div>
           </div>
-
+          <div className="d-flex justify-content-end align-items-center">
+            <button className="button my-2"><FilterListRoundedIcon /> Filter by time option</button>
+          </div>
           <LeaveTable data={tableData} />
         </> : <NoDataFound message={"Attendance data not found!"} />
       }

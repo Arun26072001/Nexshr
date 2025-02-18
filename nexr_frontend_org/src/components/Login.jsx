@@ -9,8 +9,6 @@ const Login = () => {
   const { handleSubmit, loading, pass, whoIs } = useContext(EssentialValues);
   const isLogin = localStorage.getItem("isLogin");
   const navigate = useNavigate();
-  console.log(isLogin);
-  
 
   useEffect(() => {
     if (isLogin === "true") return navigate(`/${whoIs}`)

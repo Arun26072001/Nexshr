@@ -1,10 +1,10 @@
 const express = require("express");
 const router = express.Router();
-const { verifyAdminHR, verifyEmployee, verifyAdminHREmployee } = require("../auth/authMiddleware");
+const { verifyAdminHR, verifyEmployee, verifyAdminHREmployeeManagerNetwork } = require("../auth/authMiddleware");
 const { TeamValidation, Team } = require("../models/TeamModel");
 const { Employee } = require("../models/EmpModel");
 
-router.get("/", verifyAdminHREmployee, async (req, res) => {
+router.get("/", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
     try {
         const teams = await Team.find()
             .populate({

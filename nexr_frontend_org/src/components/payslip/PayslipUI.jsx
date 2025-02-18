@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useContext, useEffect, useRef, useState } from 'react';
 import "./payslipui.css";
 import logo from "../../imgs/webnexs_logo.webp";
 import { fetchPayslip, fetchPayslipInfo } from '../ReuseableAPI';
@@ -6,9 +6,11 @@ import { toast } from 'react-toastify';
 import { jsPDF } from "jspdf";
 import html2canvas from 'html2canvas';
 import { useNavigate, useParams } from 'react-router-dom';
+import { EssentialValues } from '../../App';
 
 export default function PayslipUI() {
     const { id } = useParams();
+    const { whoIs } = useContext(EssentialValues);
     const navigate = useNavigate();
     const payslipRef = useRef(null);
     const [payslips, setPayslips] = useState(null); // Updated to null for initial state
@@ -111,18 +113,18 @@ export default function PayslipUI() {
                 const slips = await fetchPayslip(id);
                 setPayslips(slips);
                 console.log(slips);
-                
+
             } catch (err) {
                 toast.error(err?.response?.data?.error);
             }
         }
         fetchPayslips();
     }, [id]);
-    
+
     return (
         <div className="modal-overlay">
             <div className="modal-content m-auto" style={{ width: "fit-content" }}>
-                <div className="container" ref={payslipRef} style={{ width: "600px" }}>
+                <div className="container" ref={payslipRef} style={{ width: "600px", padding: "25px" }}>
                     {/* Header section */}
                     <div className='d-flex payslipHeader'>
                         <div>
@@ -138,10 +140,10 @@ export default function PayslipUI() {
                             </p>
                         </div>
                         <div className='text-center' >
-                            <p className='headingFont'>{payslips?.employee?.company[0]?.CompanyName || "Company Name"} Private LTD</p>
-                            <p className='m-0 payslipTxt'>{payslips?.employee?.company[0]?.Address || "Address"}</p>
+                            <p className='headingFont'>{payslips?.employee?.company?.CompanyName || "Company Name"} Private LTD</p>
+                            <p className='m-0 payslipTxt'>{payslips?.employee?.company?.Address || "Address"}</p>
                             <p className='m-0 payslipTxt'>
-                                TamilNadu - {payslips?.employee?.company[0]?.PostalCode || "Postal Code"} India
+                                TamilNadu - {payslips?.employee?.company?.PostalCode || "Postal Code"} India
                             </p>
                         </div>
                         <div className='text-center'>
@@ -261,7 +263,7 @@ export default function PayslipUI() {
                             Amount in words: <b>Indian Rupee {numberToWords(earnings - deductions) || "N/A"} Only</b>
                         </p>
                         <p className='payslipTxt'>
-                            Through this document, we also confirm that the company name "<b>{payslips?.employee?.company[0]?.CompanyName}</b>" is a legal part of <b>Bright Livingstone Consultancy PVT. LTD.</b> and is located in Chennai.
+                            Through this document, we also confirm that the company name "<b>{payslips?.employee?.company?.CompanyName}</b>" is a legal part of <b>Bright Livingstone Consultancy PVT. LTD.</b> and is located in Chennai.
                         </p>
                     </div>
                     <p className='py-2 payslipTxt text-center'>
@@ -269,7 +271,7 @@ export default function PayslipUI() {
                     </p>
                 </div>
                 <div className='d-flex justify-content-center py-2 gap-2'>
-                    <button className='button bg-secondary m-0' onClick={() => navigate(-1)}>Close</button>
+                    <button className='button bg-secondary m-0' onClick={() => navigate(`/${whoIs}/job-desk/history`)}>Close</button>
                     <button className='button m-0' onClick={handleDownloadPdf}>Download</button>
                 </div>
             </div>

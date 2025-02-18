@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const { verifyAdminHREmployee, verifyAdminHR } = require("../auth/authMiddleware");
+const { verifyAdminHREmployeeManagerNetwork, verifyAdminHR, verifyAdminHrNetworkAdmin } = require("../auth/authMiddleware");
 const { clockInsValidation, ClockIns } = require("../models/ClockInsModel");
 const { Employee } = require("../models/EmpModel");
 const { getDayDifference } = require("./leave-app");
@@ -77,7 +77,7 @@ function formatTimeFromMinutes(minutes) {
     return `${formattedHours}:${formattedMinutes}:${formattedSeconds}`;
 }
 
-router.post("/:id", verifyAdminHREmployee, async (req, res) => {
+router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
     try {
         let regular = 0, late = 0, early = 0;
         const today = new Date();
@@ -177,7 +177,7 @@ router.post("/:id", verifyAdminHREmployee, async (req, res) => {
     }
 });
 
-router.get("/:id", verifyAdminHREmployee, async (req, res) => {
+router.get("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
     // Helper function to convert time in HH:MM:SS format to total minutes
     try {
         const queryDate = new Date(req.query.date);
@@ -284,7 +284,7 @@ router.get("/:id", verifyAdminHREmployee, async (req, res) => {
     }
 });
 
-router.get("/item/:id", verifyAdminHREmployee, async (req, res) => {
+router.get("/item/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
     const convertToMinutes = (start, end) => {
         const [endHour, endMin] = end.split(":").map(Number);
         const [startHour, startMin] = start.split(":").map(Number);
@@ -338,7 +338,7 @@ router.get("/item/:id", verifyAdminHREmployee, async (req, res) => {
 });
 
 // get login and logout data from employee
-router.get("/employee/:empId", verifyAdminHREmployee, async (req, res) => {
+router.get("/employee/:empId", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
     const emp = await Employee.findById({ _id: req.params.empId }).exec();
 
     let totalEmpWorkingHours = 0; // Track total working hours for the employee
@@ -479,7 +479,7 @@ router.get("/employee/:empId", verifyAdminHREmployee, async (req, res) => {
     }
 });
 
-router.get("/sendmail/:id/:clockinId", verifyAdminHREmployee, async (req, res) => {
+router.get("/sendmail/:id/:clockinId", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
     try {
         // Fetch employee leave data
         const emp = await Employee.findById(req.params.id).populate({
@@ -594,7 +594,7 @@ router.get("/sendmail/:id/:clockinId", verifyAdminHREmployee, async (req, res) =
     }
 })
 
-router.get("/", verifyAdminHR, async (req, res) => {
+router.get("/", verifyAdminHrNetworkAdmin, async (req, res) => {
     try {
         const attendanceData = await ClockIns.find({}).populate({ path: "employee", select: "FirstName LastName" });
         res.send(attendanceData);
@@ -603,7 +603,7 @@ router.get("/", verifyAdminHR, async (req, res) => {
     }
 })
 
-router.put("/:id", verifyAdminHREmployee, (req, res) => {
+router.put("/:id", verifyAdminHREmployeeManagerNetwork, (req, res) => {
     let body = req.body;
 
     ClockIns.findByIdAndUpdate(req.params.id, body, {

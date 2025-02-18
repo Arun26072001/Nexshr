@@ -120,7 +120,7 @@ const Sidebar = ({ sideBar }) => {
 
         {renderNavLink(
           (Employee === 'allow' || ['admin', 'hr', 'emp'].includes(whoIs)),
-          (whoIs === "emp"
+          (["emp", "sys-admin"].includes(whoIs)
             ? `/${whoIs}/employee/edit/${_id}`
             : `/${whoIs}/employee`),
           userIcon,
@@ -129,7 +129,7 @@ const Sidebar = ({ sideBar }) => {
         )}
 
         {renderNavLink(
-          JobDesk === 'allow' || ['admin', 'hr', 'emp'].includes(whoIs),
+          ['admin', 'hr', 'emp'].includes(whoIs),
           `/${whoIs}/projects`,
           folderIcon,
           'Project',
@@ -138,7 +138,7 @@ const Sidebar = ({ sideBar }) => {
 
 
         {renderNavLink(
-          JobDesk === 'allow' || ['admin', 'hr', 'emp'].includes(whoIs),
+          ['admin', 'hr', 'emp'].includes(whoIs),
           `/${whoIs}/tasks`,
           taskIcon,
           'Tasks',
@@ -146,7 +146,7 @@ const Sidebar = ({ sideBar }) => {
         )}
 
         {renderNavLink(
-          JobDesk === 'allow' || ['admin', 'hr', 'emp'].includes(whoIs),
+          ['admin', 'hr', 'emp'].includes(whoIs),
           `/${whoIs}/reports`,
           fileIcon,
           'Reports',
@@ -200,6 +200,16 @@ const Sidebar = ({ sideBar }) => {
             attendanceIcon,
             'Attendance'
           )}
+
+        {(Attendance === 'allow' || data.Account === "5" &&
+          renderSubMenu(
+            'attendance',
+            [
+              { key: 'daily-log', path: `/${whoIs}/attendance/daily-log`, label: 'Daily Log' }
+            ],
+            attendanceIcon,
+            'Attendance'
+          ))}
 
         {(Administration === 'allow' || whoIs === 'admin') &&
           renderSubMenu(

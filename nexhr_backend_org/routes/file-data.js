@@ -1,5 +1,5 @@
 const express = require("express");
-const { verifyAdminHR } = require("../auth/authMiddleware");
+const { verifyAdminHR, verifyAdminHrNetworkAdmin } = require("../auth/authMiddleware");
 const router = express.Router();
 const XLSX = require("xlsx");
 const { upload } = require("./imgUpload");
@@ -16,7 +16,7 @@ const timeToMinutes = (timeStr) => {
 };
 
 // Upload and process attendance file
-router.post("/attendance", upload.single("documents"), verifyAdminHR,
+router.post("/attendance", upload.single("documents"), verifyAdminHrNetworkAdmin,
     async (req, res) => {
         if (!req.file) {
             return res.status(400).json({ status: false, message: "No file uploaded." });

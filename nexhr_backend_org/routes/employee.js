@@ -1,9 +1,10 @@
 const express = require('express');
 const router = express.Router();
 const { Employee } = require('../models/EmpModel');
-const { verifyHR, verifyAdminHREmployee, verifyAdminHR, verifyAdmin } = require('../auth/authMiddleware');
+const { verifyHR, verifyAdminHREmployeeManagerNetwork, verifyAdminHR, verifyAdmin } = require('../auth/authMiddleware');
 const { getDayDifference } = require('./leave-app');
 const sendMail = require("./mailSender");
+const { RoleAndPermission } = require('../models/RoleModel');
 
 router.get("/", verifyAdminHR, async (req, res) => {
   try {
@@ -88,7 +89,7 @@ router.get("/user", verifyAdminHR, async (req, res) => {
 });
 
 
-router.get("/all", verifyAdminHREmployee, async (req, res) => {
+router.get("/all", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
   try {
     // const {orgName} = jwt.decode(req.headers['authorization']);
     // const Employee = getEmployeeModel(orgName)
@@ -144,7 +145,7 @@ router.get("/head", verifyAdminHR, async (req, res) => {
   }
 })
 
-router.get('/:id', verifyAdminHREmployee, async (req, res) => {
+router.get('/:id', verifyAdminHREmployeeManagerNetwork, async (req, res) => {
   let totalTakenLeaveCount = 0;
 
   try {
@@ -285,9 +286,17 @@ router.post("/", verifyAdminHR, async (req, res) => {
   }
 });
 
-router.put("/:id", verifyAdminHREmployee, async (req, res) => {
+router.put("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
   try {
-    let newEmployee = req.body;
+    let roleName;
+    if (req?.body?.role) {
+      const roleData = await RoleAndPermission.findById(req.body.role, "RoleName")
+      roleName = roleData.RoleName;
+    }
+    let newEmployee = {
+      ...req.body,
+      Account: roleName?.toLowerCase() === "manager" ? 4 : roleName.toLowerCase() === "network admin" ? 5 : 3
+    };
 
     if (req.body.hour && req.body.mins) {
       newEmployee = {
@@ -305,8 +314,6 @@ router.put("/:id", verifyAdminHREmployee, async (req, res) => {
 });
 
 router.delete("/:id", verifyHR, (req, res) => {
-  // const {orgName} = jwt.decode(req.headers['authorization']);
-  // const Employee = getEmployeeModel(orgName)
   Employee.findByIdAndRemove({ _id: req.params.id }, function (err, employee) {
     if (err) {
       console.log(err);

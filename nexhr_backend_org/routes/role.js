@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { Employee } = require('../models/EmpModel');
-const { verifyAdminHR, verifyAdmin, verifyAdminHREmployee } = require('../auth/authMiddleware');
+const { verifyAdminHR, verifyAdmin, verifyAdminHREmployeeManagerNetwork } = require('../auth/authMiddleware');
 const { RoleAndPermission, RoleAndPermissionValidation, RoleAndPermissionSchema } = require('../models/RoleModel');
 const { userPermissionsValidation, UserPermission } = require('../models/UserPermissionModel');
 const { PageAuth, pageAuthValidation } = require('../models/PageAuth');
@@ -28,7 +28,7 @@ router.get("/name", verifyAdmin, async (req, res) => {
       .populate("pageAuth")
       .exec();
     if (!roleData) {
-      res.status(404).send({ error: "Data not found in given Employee" })
+      res.status(404).send({ error: "Data not found in given role" })
     } else {
       let role = {
         RoleName: roleData?.RoleName,
@@ -83,7 +83,7 @@ router.get("/:id", verifyAdmin, async (req, res) => {
 
 // Get all roles
 // router.get('/', verifyAdminHR, (req, res) => {
-router.get('/', verifyAdminHREmployee, (req, res) => {
+router.get('/', verifyAdminHREmployeeManagerNetwork, (req, res) => {
   // const { orgName } = jwt.decode(req.headers['authorization']);
   // const RoleAndPermission = getRoleAndPermissionModel(orgName)
 

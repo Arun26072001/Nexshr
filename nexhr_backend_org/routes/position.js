@@ -3,10 +3,10 @@ const router = express.Router();
 const { Position, PositionValidation } = require('../models/PositionModel');
 const { Employee } = require('../models/EmpModel');
 const Joi = require('joi');
-const { verifyAdminHR, verifyAdminHREmployee } = require('../auth/authMiddleware');
+const { verifyAdminHR, verifyAdminHREmployeeManagerNetwork } = require('../auth/authMiddleware');
 
 // router.get("/", verifyAdminHR, (req, res) => {
-router.get("/", verifyAdminHREmployee, (req, res) => {
+router.get("/", verifyAdminHREmployeeManagerNetwork, (req, res) => {
   // const { orgName } = jwt.decode(req.headers['authorization']);
   // const Position = getPositionModel(orgName)
   Position.find()

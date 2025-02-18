@@ -1,5 +1,5 @@
 const express = require("express");
-const { verifyAdminHR, verifyAdminHREmployee } = require("../auth/authMiddleware");
+const { verifyAdminHR, verifyAdminHREmployeeManagerNetwork } = require("../auth/authMiddleware");
 const { Holiday, HolidayValidation } = require("../models/HolidayModel");
 const router = express.Router();
 
@@ -31,7 +31,7 @@ router.post("/", verifyAdminHR, async (req, res) => {
     }
 })
 
-router.get("/:year", verifyAdminHREmployee, async (req, res) => {
+router.get("/:year", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
     try {
         const response = await Holiday.findOne({ currentYear: req.params.year }).exec();
         if (!response) {

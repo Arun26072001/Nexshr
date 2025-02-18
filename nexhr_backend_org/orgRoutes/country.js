@@ -1,10 +1,10 @@
 const express = require('express');
 const router = express.Router();
 const Joi = require('joi');
-const { verifyHR, verifyAdminHR, verifyAdminHREmployee } = require('../auth/authMiddleware');
+const { verifyHR, verifyAdminHR, verifyAdminHREmployeeManagerNetwork } = require('../auth/authMiddleware');
 const { Country } = require('../OrgModels/CountryModel');
 
-router.get("/", verifyAdminHREmployee, (req, res) => {
+router.get("/", verifyAdminHREmployeeManagerNetwork, (req, res) => {
     Country.find()
       .exec(function (err, country) {
         if(err){

@@ -30,6 +30,7 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
     const [openModal, setOpenModal] = useState(false);
     const [modelData, setModelData] = useState({});
     const params = useParams();
+    const [timeOption, setTimeOption] = useState("login");
 
     const handleChangePage = (event, newPage) => {
         setPage(newPage);
@@ -180,7 +181,7 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
     ];
 
     const column5 = [
-        { id: 'Name', label: 'Name', minWidth: 170, align: 'left', getter: (row) => row?.employee?.FirstName ? `${row.employee.FirstName[0].toUpperCase() + row.employee.FirstName.slice(1)}` : 'N/A' },
+        { id: 'Name', label: 'Name', minWidth: 130, align: 'left', getter: (row) => row?.employee?.FirstName ? `${row.employee.FirstName[0].toUpperCase() + row.employee.FirstName.slice(1)}` : 'N/A' },
         {
             id: 'date',
             label: 'Date',
@@ -188,26 +189,32 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
             align: 'left',
             getter: (row) => row?.date ? row.date.split("T")[0] : "no date"
         },
+        // {
+        //     id: 'type',
+        //     label: 'Type',
+        //     minWidth: 130,
+        //     align: 'left',
+        // },
         {
             id: 'punchIn',
             label: 'Punch In',
             minWidth: 130,
             align: 'left',
-            getter: (row) => row?.login?.startingTime ? row?.login?.startingTime[0] : "N/A"
+            getter: (row) => row?.[timeOption]?.startingTime ? row?.[timeOption]?.startingTime[0] : "N/A"
         },
         {
             id: 'punchOut',
             label: 'Punch Out',
             minWidth: 130,
             align: 'left',
-            getter: (row) => row?.login?.endingTime ? row.login.endingTime[row?.login?.endingTime.length - 1] : "N/A"
+            getter: (row) => row?.[timeOption]?.endingTime ? row?.[timeOption]?.endingTime[row?.[timeOption]?.endingTime.length - 1] : "00:00:00"
         },
         {
             id: 'totalHour',
             label: 'Total Hour',
             minWidth: 130,
             align: 'left',
-            getter: (row) => row?.login?.timeHolder || 0
+            getter: (row) => row?.[timeOption]?.timeHolder || 0
         },
         {
             id: 'behaviour',
@@ -544,7 +551,7 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
                 return setColumns(column2)
             }
         })
-    }, [data]);
+    }, [data, timeOption]);
 
 
     return (
@@ -594,7 +601,7 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
                                                         );
                                                     } else if (params['*'] === "payslip" || params['*'] === "daily-log") {
                                                         return (
-                                                            <Dropdown  title={<RemoveRedEyeRoundedIcon style={{ cursor: "pointer" }} />} noCaret onClick={() => getValueForView([row._id, params['*']])}>
+                                                            <Dropdown title={<RemoveRedEyeRoundedIcon style={{ cursor: "pointer" }} />} noCaret onClick={() => getValueForView([row._id, params['*']])}>
                                                             </Dropdown>
                                                         );
                                                     } else if (params['*'] === "employee") {
@@ -666,6 +673,20 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
                                                         </Dropdown>
                                                     );
                                                 }
+                                                //  else if (column.id === "type" && params["*"] === "attendance") {
+                                                //     console.log("aaaaaa");
+
+                                                //     return (
+                                                //         <select className='form-control' value={timeOption} onChange={(e) => setTimeOption(e.target.value)}>
+                                                //             <option value="login">Login</option>
+                                                //             <option value="meeting">Meeting</option>
+                                                //             <option value="morningBreak">Morning Break</option>
+                                                //             <option value="lunch">Lunch</option>
+                                                //             <option value="eveningBreak">Evening Break</option>
+                                                //             <option value="event">Event</option>
+                                                //         </select>
+                                                //     )
+                                                // }
                                                 return null;
                                             };
 
@@ -675,7 +696,7 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
                                                     align={column.align}
                                                     className={cellClass}
                                                 >
-                                                    {column.id === "Action" || column.id === "auth" || column.id === "Manage" ? renderActions() : value}
+                                                    {["Action", "auth", "Manage"].includes(column.id) ? renderActions() : value}
                                                 </TableCell>
                                             );
                                         })}

@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const fs = require('fs');
 const path = require('path');
-const { verifyAdminHREmployee, verifyAdmin } = require('../auth/authMiddleware');
+const { verifyAdminHREmployeeManagerNetwork, verifyAdmin } = require('../auth/authMiddleware');
 const configPath = path.join(__dirname, '../countriesData/countryCode.json');
 
 // Read JSON file
@@ -16,7 +16,7 @@ const writeData = (data) => {
     fs.writeFileSync(configPath, JSON.stringify(data, null, 2));
 };
 
-router.get("/", verifyAdminHREmployee, async (req, res) => {
+router.get("/", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
     try {
         const rawData = readData();
         return res.send(rawData);
@@ -26,7 +26,7 @@ router.get("/", verifyAdminHREmployee, async (req, res) => {
 })
 
 // get state data
-router.get("/:name", verifyAdminHREmployee, async (req, res) => {
+router.get("/:name", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
     try {
         const rawData = readData();
         const states = rawData.filter((item) => item.name === item[req.params.name]).states;

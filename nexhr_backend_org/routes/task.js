@@ -1,12 +1,12 @@
 const express = require("express");
-const { verifyAdminHREmployee } = require("../auth/authMiddleware");
+const { verifyAdminHREmployeeManagerNetwork } = require("../auth/authMiddleware");
 const { Task, taskValidation } = require("../models/TaskModel");
 const { Project } = require("../models/ProjectModel");
 const { Employee } = require("../models/EmpModel");
 const sendMail = require("./mailSender");
 const router = express.Router();
 
-router.get("/project/:id", verifyAdminHREmployee, async (req, res) => {
+router.get("/project/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
     try {
         let tasks = await Task.find({ project: { $in: req.params.id }, status: { $in: ['Pending', 'In Progress', 'On Hold'] } })
             .populate({ path: "project", select: "name color" })
@@ -21,7 +21,7 @@ router.get("/project/:id", verifyAdminHREmployee, async (req, res) => {
     }
 })
 
-router.get("/:id", verifyAdminHREmployee, async (req, res) => {
+router.get("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
     try {
         let task = await Task.findById(req.params.id)
             // .populate({path: "project", select: "name"})
@@ -38,7 +38,7 @@ router.get("/:id", verifyAdminHREmployee, async (req, res) => {
     }
 })
 
-router.post("/:id", verifyAdminHREmployee, async (req, res) => {
+router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
     try {
         const project = await Project.findById(req.body.project);
         if (!project) {
@@ -132,7 +132,7 @@ router.post("/:id", verifyAdminHREmployee, async (req, res) => {
     }
 })
 
-router.put("/:id", verifyAdminHREmployee, async (req, res) => {
+router.put("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
     try {
         const updatedTask = {
             ...req.body
@@ -282,7 +282,7 @@ router.put("/:id", verifyAdminHREmployee, async (req, res) => {
     }
 })
 
-router.delete("/:id", verifyAdminHREmployee, async (req, res) => {
+router.delete("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
     try {
         const project = await Project.findOne({ tasks: { $in: req.params.id } })
         const task = await Task.findByIdAndDelete(req.params.id);

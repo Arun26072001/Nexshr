@@ -4,7 +4,7 @@ const { LeaveApplication,
   LeaveApplicationValidation
 } = require('../models/LeaveAppModel');
 const { Employee } = require('../models/EmpModel');
-const { verifyHR, verifyHREmployee, verifyEmployee, verifyAdmin, verifyAdminHREmployee, verifyAdminHR } = require('../auth/authMiddleware');
+const { verifyHR, verifyHREmployee, verifyEmployee, verifyAdmin, verifyAdminHREmployeeManagerNetwork, verifyAdminHR } = require('../auth/authMiddleware');
 const { Position } = require('../models/PositionModel');
 const { Team } = require('../models/TeamModel');
 const { upload } = require('./imgUpload');
@@ -206,7 +206,7 @@ leaveApp.put("/reject-leave", async (req, res) => {
 });
 
 // get employee of all leave application From annualLeaveYearStart date
-leaveApp.get("/emp/:empId", verifyAdminHREmployee, async (req, res) => {
+leaveApp.get("/emp/:empId", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
   try {
     const { empId } = req.params;
 
@@ -363,7 +363,7 @@ leaveApp.get("/team/:id", verifyEmployee, async (req, res) => {
       startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
       endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
     }
-    const who = req?.query?.isLead ? "lead" : "head";
+    const who = req?.query?.who;
     const team = await Team.findOne({ [who]: req.params.id }).exec();
     if (!team) {
       return res.status(404).send({ error: "You are not lead in any team" })
@@ -614,7 +614,7 @@ leaveApp.get("/date-range/admin", verifyAdmin, async (req, res) => {
 })
 
 // To get leave range date of data
-leaveApp.get("/date-range/:empId", verifyAdminHREmployee, async (req, res) => {
+leaveApp.get("/date-range/:empId", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
   const now = new Date();
   let startOfMonth;
   let endOfMonth;
@@ -721,7 +721,7 @@ leaveApp.get("/today/:empId", async (req, res) => {
   }
 })
 
-leaveApp.post("/:empId", verifyAdminHREmployee, upload.single("prescription"), async (req, res) => {
+leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("prescription"), async (req, res) => {
   try {
     const { empId } = req.params;
     const {

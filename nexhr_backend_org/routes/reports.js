@@ -1,10 +1,10 @@
 const express = require("express");
-const { verifyAdminHREmployee } = require("../auth/authMiddleware");
+const { verifyAdminHREmployeeManagerNetwork } = require("../auth/authMiddleware");
 const { Report, ReportValidation } = require("../models/ReportModel");
 const { Project } = require("../models/ProjectModel");
 const router = express.Router();
 
-router.post("/:id", verifyAdminHREmployee, async (req, res) => {
+router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
     try {
         const newReport = {
             ...req.body,
@@ -27,7 +27,7 @@ router.post("/:id", verifyAdminHREmployee, async (req, res) => {
     }
 })
 
-router.get("/createdby/:id", verifyAdminHREmployee, async (req, res) => {
+router.get("/createdby/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
     try {
         const reports = await Report.find({ createdby: req.params.id })
             .populate({ path: "createdby", select: "FirstName LastName" })
@@ -46,7 +46,7 @@ router.get("/createdby/:id", verifyAdminHREmployee, async (req, res) => {
     }
 })
 
-router.get("/:id", verifyAdminHREmployee, async (req, res) => {
+router.get("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
     try {
         const report = await Report.findById({ _id: req.params.id })
             // .populate({ path: "createdby", select: "FirstName LastName" })
@@ -63,7 +63,7 @@ router.get("/:id", verifyAdminHREmployee, async (req, res) => {
     }
 })
 
-router.put("/:id", verifyAdminHREmployee, async (req, res) => {
+router.put("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
     try {
         const updatedReport = {
             ...req.body
@@ -79,7 +79,7 @@ router.put("/:id", verifyAdminHREmployee, async (req, res) => {
     }
 })
 
-router.delete("/:id/:projectId", verifyAdminHREmployee, async (req, res) => {
+router.delete("/:id/:projectId", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
     try {
         const project = await Project.findById({ _id: req.params.projectId }).exec();
         const deleteReport = await Report.findByIdAndDelete({ _id: req.params.id });
