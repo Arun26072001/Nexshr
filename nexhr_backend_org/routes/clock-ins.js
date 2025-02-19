@@ -99,7 +99,6 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
         const emp = await Employee.findById(req.params.id)
             .populate("workingTimePattern")
             .populate({ path: "clockIns", match: { date: { $gte: startOfDay, $lte: endOfDay } } });
-        console.log(emp);
 
         if (!emp) {
             return res.status(404).send({ error: "Employee not found!" });
@@ -142,21 +141,15 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
 
         // Determine login behavior
         const officeLoginTime = emp?.workingTimePattern?.StartingTime || "9:00";
-        // console.log(officeLoginTime);
 
         const [hour, minute] = loginTimeRaw.split(":");
         const loginTime = `${hour}:${minute}`;
-        // console.log("Office Login Time:", officeLoginTime);
 
         // Synchronous check for behaviour
         const behaviour = checkLogin(officeLoginTime, loginTime);
 
         // Async check for punch-in message
         const punchInMsg = await checkLoginForOfficeTime(officeLoginTime, loginTime);
-
-        // // Ensure values are properly assigned
-        // console.log("Behaviour:", behaviour);
-        // console.log("Punch-In Message:", punchInMsg);
 
         // Create clock-in entry
         const newClockIns = await ClockIns.create({
@@ -213,7 +206,6 @@ router.get("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
         if (!timeData || timeData.clockIns.length === 0) {
             return res.status(404).send({ message: "No clock-ins found for the given date." });
         }
-        console.log(timeData);
 
 
         // Define activities and calculate times

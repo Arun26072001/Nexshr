@@ -27,8 +27,6 @@ function verifyEmployee(req, res, next) {
   const token = req.headers['authorization'];
 
   if (typeof token !== "undefined") {
-    // decodedData = jwt.decode(req.headers['authorization']);
-    // if(decodedData.Account)
     jwt.verify(token, jwtKey, (err, authData) => {
 
       if (err) {
@@ -90,14 +88,6 @@ async function verifyAdminHREmployeeManagerNetwork(req, res, next) {
         if ([1, 2, 3, 4, 5].includes(authData.Account)) {
           next();
         }
-        //  else if (authData.Account == 3) {
-        //   // if (authData._id === req.params.id) {
-        //     next();
-        //   // }
-        //   // else {
-        //   //   res.status(401).send({message: "Authorization Error", error: "Mismatch login person ID!"});
-        //   // }
-        // }
         else {
           res.status(401).send({ error: "You has no Authorization!" });
         }

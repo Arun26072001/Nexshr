@@ -89,9 +89,6 @@ const Attendence = (props) => {
         <div className="payslipTitle">
           Attendance
         </div>
-        <div>
-          <DateRangePicker value={daterangeValue} placeholder="Select Date" onChange={setDaterangeValue} />
-        </div>
       </div>
 
       {/* <div className="container"> */}
@@ -214,6 +211,9 @@ const Attendence = (props) => {
             </div>
           </div>
           <div className="d-flex justify-content-end align-items-center">
+            <div>
+              <DateRangePicker value={daterangeValue} placeholder="Select Date" onChange={setDaterangeValue} />
+            </div>
             <button className="button my-2"><FilterListRoundedIcon /> Filter by time option</button>
           </div>
           <LeaveTable data={tableData} />

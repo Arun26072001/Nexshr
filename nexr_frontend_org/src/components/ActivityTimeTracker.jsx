@@ -145,7 +145,7 @@ const ActivityTimeTracker = () => {
     }, [timeOption, workTimeTracker]);
 
     setInterval(() => {
-        if ((["morningBreak", "eveningBreak"].includes(timeOption) && min === 0 && sec === 10 && !workTimeTracker?.[timeOption]?.reasonForLate) || (timeOption === "lunch" && min === 30 && sec === 1 && !workTimeTracker?.[timeOption]?.reasonForLate)) {
+        if ((["morningBreak", "eveningBreak"].includes(timeOption) && min === 10 && sec === 1 && !workTimeTracker?.[timeOption]?.reasonForLate) || (timeOption === "lunch" && min === 30 && sec === 1 && !workTimeTracker?.[timeOption]?.reasonForLate)) {
             // sendRemainderMail();
             changeViewReasonForTaketime();
         }

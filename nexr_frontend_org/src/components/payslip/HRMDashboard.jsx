@@ -145,6 +145,8 @@ export default function HRMDashboard() {
         }))
     }
 
+    console.log(workTimeTracker);
+    
     const startLoginTimer = async () => {
         const currentTime = new Date().toTimeString().split(' ')[0];
         const updatedState = {
@@ -182,7 +184,6 @@ export default function HRMDashboard() {
         }
     };
 
-
     const stopLoginTimer = async () => {
         trackTimer();
         const currentTime = new Date().toTimeString().split(' ')[0];
@@ -196,9 +197,11 @@ export default function HRMDashboard() {
         };
 
         try {
+            console.log(updatedState);
+
             const updatedData = await updateDataAPI(updatedState);
             setWorkTimeTracker(updatedData);
-            localStorage.removeItem('isStartLogin');
+            localStorage.setItem('isStartLogin',false);
             setIsStartLogin(false);
             updateClockins();
         } catch (err) {
@@ -251,7 +254,7 @@ export default function HRMDashboard() {
             // Call the API with the updated state
             const updatedData = await updateDataAPI(updatedState(workTimeTracker));
             setWorkTimeTracker(updatedData);
-            localStorage.removeItem("isStartActivity");
+            localStorage.removeItem("isStartActivity", false);
             setIsStartActivity(false);
             updateClockins();
         } catch (error) {

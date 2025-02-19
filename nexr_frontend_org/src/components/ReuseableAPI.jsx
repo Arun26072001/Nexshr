@@ -6,6 +6,7 @@ const token = localStorage.getItem('token');
 
 const updateDataAPI = async (body) => {
     try {
+        console.log(body._id);
         if (body._id) {
             const response = await axios.put(`${url}/api/clock-ins/${body._id}`, body, {
                 headers: { authorization: token || '' },
