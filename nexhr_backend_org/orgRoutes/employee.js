@@ -1,12 +1,11 @@
 const express = require('express');
 const router = express.Router();
-const { verifyHR, verifyAdminHREmployee, verifyAdminHR } = require('../auth/authMiddleware');
-const { getDayDifference } = require('./leave-app');
-const nodemailer = require("nodemailer");
+const { verifyHR, verifyAdminHREmployeeManagerNetwork, verifyAdminHR } = require('../auth/authMiddleware');
 const { getPayslipInfoModel } = require('./payslipInfo');
 const jwt = require("jsonwebtoken");
 const { getEmployeeModel } = require('../OrgModels/OrgEmpModel');
 const { Org } = require('../OrgModels/OrganizationModel');
+const sendMail = require('../routes/mailSender');
 
 router.get("/:orgId", verifyAdminHR, async (req, res) => {
   try {
@@ -80,58 +79,7 @@ router.get("/:orgId/all", verifyAdminHR, async (req, res) => {
 
 });
 
-// router.get('/:orgId/:id', verifyAdminHREmployee, async (req, res) => {
-//   let totalTakenLeaveCount = 0;
-
-//   try {
-//     // const { orgName } = jwt.decode(req.headers['authorization']);
-//     const { orgName } = await Org.findById({ _id: req.params.orgId });
-//     const OrgEmployeeModel = getEmployeeModel(orgName);
-
-//     const emp = await OrgEmployeeModel.findOne({ Email: req.params.id })
-//       .populate({ path: "role" })
-//       .populate("leaveApplication")
-//       .populate("workingTimePattern")
-//       .exec();
-
-//     if (!emp) {
-//       return res.status(404).send({ message: "Employee not found!" });
-//     }
-
-//     // Filter leave requests
-//     const pendingLeaveRequests = emp.leaveApplication.filter((leave) => leave.status === "pending");
-//     const takenLeaveRequests = emp.leaveApplication.filter((leave) => leave.status === "approved");
-
-//     // Calculate total taken leave count
-//     takenLeaveRequests.forEach((leave) => totalTakenLeaveCount += getDayDifference(leave));
-
-//     // Find colleagues with the same role
-//     const collegues = await Employee.find({}, "FirstName LastName")
-//       .populate({
-//         path: "role",
-//         match: { RoleName: emp.role[0].RoleName }, // Accessing the first role in the array
-//         select: "RoleName"
-//       }).exec();
-
-//     if (!collegues || collegues.length === 0) {
-//       return res.status(404).send({ message: "No colleagues found with the same role!" });
-//     }
-
-//     // Send response with employee details, pending leave requests, taken leave count, and colleagues
-//     res.send({
-//       ...emp.toObject(), // Ensure that you return a plain object, not a Mongoose document
-//       pendingLeaveRequests: pendingLeaveRequests?.length,
-//       totalTakenLeaveCount,
-//       collegues
-//     });
-
-//   } catch (err) {
-//     res.status(500).send({ details: err.message });
-//   }
-// });
-
-router.get('/:orgId/:id', verifyAdminHREmployee, async (req, res) => {
-
+router.get('/:orgId/:id', verifyAdminHREmployeeManagerNetwork, async (req, res) => {
   try {
     // const { orgName } = jwt.decode(req.headers['authorization']);
     const { orgName } = await Org.findById({ _id: req.params.orgId });
@@ -253,15 +201,7 @@ router.post("/:orgId", verifyAdminHR, async (req, res) => {
       </body>
       </html>`;
 
-    const transporter = nodemailer.createTransport({
-      service: "gmail",
-      auth: {
-        user: process.env.FROM_MAIL,
-        pass: process.env.MAILPASSWORD,
-      },
-    });
-
-    await transporter.sendMail({
+    sendMail({
       From: process.env.FROM_MAIL,
       To: Email,
       Subject: "Welcome to NexsHR",

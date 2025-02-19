@@ -10,7 +10,6 @@ import { jwtDecode } from "jwt-decode";
 import "./App.css";
 import 'rsuite/dist/rsuite.min.css';
 import "react-datepicker/dist/react-datepicker.css";
-import { Notification, toaster } from "rsuite";
 
 export const EssentialValues = createContext(null);
 
@@ -20,8 +19,8 @@ const App = () => {
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [showOfflineAlert, setShowOfflineAlert] = useState(false);
   const [whoIs, setWhoIs] = useState("");
-  const [isStartLogin, setIsStartLogin] = useState(localStorage.getItem("isStartLogin") === "true");
-  const [isStartActivity, setIsStartActivity] = useState(localStorage.getItem("isStartActivity") === "true");
+  const [isStartLogin, setIsStartLogin] = useState(localStorage.getItem("isStartLogin") === "true" ? true : false);
+  const [isStartActivity, setIsStartActivity] = useState(localStorage.getItem("isStartActivity") === "true" ? true : false);
   const [data, setData] = useState({
     _id: null,
     Account: null,
@@ -70,7 +69,7 @@ const App = () => {
       const response = await axios.post(`${url}/api/login`, { Email: email, Password: password });
       const decodedData = jwtDecode(response.data);
 
-      if (!decodedData.Account || !["1", "2", "3"].includes(String(decodedData.Account))) {
+      if (!decodedData.Account || !["1", "2", "3", "4", "5"].includes(String(decodedData.Account))) {
         throw new Error("Invalid account type.");
       }
 
@@ -96,7 +95,7 @@ const App = () => {
       setIsLogin(true);
       // send emp id for extension
       sendEmpIdtoExtension(decodedData._id, response.data);
-      const roles = { "1": "admin", "2": "hr", "3": "emp" };
+      const roles = { "1": "admin", "2": "hr", "3": "emp", "4": "manager", "5": "sys-admin" };
       setWhoIs(roles[String(localStorage.getItem("Account"))] || "");
       navigate(`/${roles[String(localStorage.getItem("Account"))]}`);
     } catch (error) {
@@ -112,7 +111,7 @@ const App = () => {
 
   function sendNotification(emps, companyLogo, title, message) {
     console.log("getting notification");
-    
+
     if (emps?.includes(data._id)) {
       const companyName = "Webnexs";
       toast.success("success");
@@ -177,7 +176,7 @@ const App = () => {
       token: localStorage.getItem("token") || "",
       annualLeave: localStorage.getItem("annualLeaveEntitment") || 0,
     }))
-    const roles = { "1": "admin", "2": "hr", "3": "emp" };
+    const roles = { "1": "admin", "2": "hr", "3": "emp", "4": "manager", "5": "sys-admin" };
     setWhoIs(roles[String(localStorage.getItem("Account"))] || "");
 
     if (window.location.pathname !== "/login" || window.location.pathname !== `/${whoIs}`) {
@@ -186,6 +185,8 @@ const App = () => {
       }
     }
   }, []);
+  console.log(whoIs);
+
 
   useEffect(() => {
     const handleOnline = () => {
@@ -220,7 +221,6 @@ const App = () => {
     }
   }, [isLogin, showOfflineAlert])
 
-
   // Component Rendering
   return (
     <EssentialValues.Provider
@@ -244,19 +244,22 @@ const App = () => {
         <Route path="login" element={<Login />} />
         <Route path="/" element={whoIs ? <Navigate to={`/${whoIs}`} /> : <Navigate to="/login" />} />
         <Route
-          path="admin/*"
-          element={isLogin && whoIs === "admin" && data.token ? <HRMDashboard /> : <Navigate to="/login" />}
+          path={`${whoIs}/*`}
+          element={isLogin && whoIs && data.token ? <HRMDashboard /> : <Navigate to="/login" />}
         />
-        <Route
+        {/* <Route
           path="hr/*"
           element={isLogin && whoIs === "hr" && data.token ? <HRMDashboard /> : <Navigate to="/login" />}
         />
         <Route
           path="emp/*"
-          element={isLogin && whoIs === "emp" && data.token ? <HRMDashboard /> : <Navigate to="/login" />}
-        />
+          element={isLogin && whoIs && data.token ? <HRMDashboard /> : <Navigate to="/login" />}
+        /> */}
         <Route path="no-internet-connection" element={<NoInternet />} />
-        <Route path="*" element={<h1>404</h1>} />
+        <Route path="*" element=
+          {<div className='d-flex align-items-center justify-content-center' style={{ height: "100vh" }}>
+            <h1 >404</h1>
+          </div>} />
       </Routes>
     </EssentialValues.Provider>
   );

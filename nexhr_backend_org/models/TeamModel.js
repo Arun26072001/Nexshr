@@ -12,6 +12,9 @@ const TeamSchema = mongoose.Schema({
     },
     head: {
         type: mongoose.Types.ObjectId, ref: "Employee"
+    },
+    manager: {
+        type: mongoose.Types.ObjectId, ref: "Employee"
     }
 }, { timestamps: true })
 

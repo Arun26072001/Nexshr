@@ -4,28 +4,14 @@ const { Company, CompanyValidation } = require('../models/CompanyModel');
 const jwt = require('jsonwebtoken');
 const Joi = require('joi');
 const dotenv = require('dotenv');
-const { verifyAdminHR, verifyHR, verifyAdminHREmployee } = require('../auth/authMiddleware');
+const { verifyAdminHR,  verifyAdminHREmployeeManagerNetwork } = require('../auth/authMiddleware');
 const { Employee } = require('../models/EmpModel');
 const { Department } = require('../models/DepartmentModel');
 const { Position } = require('../models/PositionModel');
 dotenv.config()
 
-router.get("/", verifyAdminHREmployee, (req, res) => {
-  // var employee = {};
-  // {path: 'projects', populate: {path: 'portals'}}
+router.get("/", verifyAdminHREmployeeManagerNetwork, (req, res) => {
   Company.find()
-    // .populate({ path: "city", populate: { path: "state" } ,populate: { populate: { path: "country" } } })
-    // .populate({
-    //   path: "city",
-    //   populate: {
-    //     path: "state",
-    //     model: "State",
-    //     populate: {
-    //       path: "country",
-    //       model: "Country"
-    //     }
-    //   }
-    // })
     .exec(function (err, compnay) {
       if (err) {
         return res.status(500).send({ error: err.message })

@@ -52,6 +52,12 @@ router.post("/", async (req, res) => {
                 if (teamhead) {
                     isTeamHead = true;
                 }
+                // check to emp is team manager
+                let isTeamManager = false;
+                const teamManager = await Team.findOne({ manager: emp._id });
+                if (teamManager) {
+                    isTeamManager = true;
+                }
                 const updateIsEmailVerify = await Employee.findByIdAndUpdate(emp._id, empDataWithEmailVerified, { new: true });
                 const empData = {
                     _id: emp._id,
@@ -63,7 +69,8 @@ router.post("/", async (req, res) => {
                     roleData: emp?.role,
                     isLogin: updateIsEmailVerify.isLogin,
                     isTeamLead,
-                    isTeamHead
+                    isTeamHead,
+                    isTeamManager
                 };
                 const token = jwt.sign(empData, jwtKey);
                 return res.send(token);

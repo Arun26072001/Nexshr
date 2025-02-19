@@ -16,7 +16,7 @@ ChartJS.register(ArcElement, Tooltip, Legend);
 const Summary = () => {
     const { data } = useContext(EssentialValues);
     const { _id, Name } = data || {}; // Ensure safe access to `_id` & `Name`
-    
+
     const [employees, setEmployees] = useState([]);
     const [clockinsData, setClockinsData] = useState({});
     const [isLoading, setIsLoading] = useState(false);
@@ -69,7 +69,7 @@ const Summary = () => {
         try {
             const emps = await fetchEmployees();
             console.log(emps);
-            
+
             if (emps) setEmployees(emps);
         } catch (error) {
             toast.error("Error fetching employees.");
@@ -145,11 +145,13 @@ const Summary = () => {
                     <div className="col-12 col-md-4">
                         <select className="form-select mt-2" onChange={(e) => selectEmpClockins(e.target.value)}>
                             <option value={_id}>{Name || "Select Employee"}</option>
-                            {employees?.map((employee) => (
-                                <option key={employee._id} value={employee._id}>
-                                    {`${employee.FirstName} ${employee.LastName}`}
-                                </option>
-                            ))}
+
+                            {employees.length &&
+                                employees?.map((employee) => (
+                                    <option key={employee._id} value={employee._id}>
+                                        {`${employee.FirstName} ${employee.LastName}`}
+                                    </option>
+                                ))} 
                         </select>
                     </div>
                 </div>

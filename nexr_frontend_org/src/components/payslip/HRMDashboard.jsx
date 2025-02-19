@@ -17,7 +17,6 @@ import Company from '../Administration/Company';
 import Holiday from '../Administration/Holiday';
 import Country from '../Administration/Country';
 
-
 // Lazy loading components
 const Dashboard = React.lazy(() => import('./Dashboard'));
 const JobDesk = React.lazy(() => import('./Jobdesk'));
@@ -57,6 +56,7 @@ export const LeaveStates = createContext(null);
 export const TimerStates = createContext(null);
 
 export default function HRMDashboard() {
+    const navigator = useNavigate();
     const { data, isStartLogin, isStartActivity, setIsStartLogin, setIsStartActivity, whoIs } = useContext(EssentialValues);
     const { token, Account, _id } = data;
     const { isTeamLead, isTeamHead } = jwtDecode(token);
@@ -160,7 +160,7 @@ export default function HRMDashboard() {
                 // Add new clock-ins data
                 const clockinsData = await addDataAPI(updatedState);
                 console.log(typeof clockinsData);
-                
+
                 if (clockinsData !== "undefined") {
                     setWorkTimeTracker(clockinsData);
                     setIsStartLogin(true);
@@ -182,7 +182,6 @@ export default function HRMDashboard() {
         }
     };
 
-
     const stopLoginTimer = async () => {
         trackTimer();
         const currentTime = new Date().toTimeString().split(' ')[0];
@@ -196,6 +195,8 @@ export default function HRMDashboard() {
         };
 
         try {
+            console.log(updatedState);
+
             const updatedData = await updateDataAPI(updatedState);
             setWorkTimeTracker(updatedData);
             localStorage.setItem('isStartLogin', false);
@@ -251,7 +252,7 @@ export default function HRMDashboard() {
             // Call the API with the updated state
             const updatedData = await updateDataAPI(updatedState(workTimeTracker));
             setWorkTimeTracker(updatedData);
-            localStorage.setItem("isStartActivity", false);
+            localStorage.removeItem("isStartActivity", false);
             setIsStartActivity(false);
             updateClockins();
         } catch (error) {
@@ -303,7 +304,7 @@ export default function HRMDashboard() {
             try {
                 const leaveData = await axios.get(`${url}/api/leave-application/team/${_id}`, {
                     params: {
-                        isLead: isTeamLead ? true : false,
+                        who: isTeamLead ? "lead" : isTeamHead ? "head" : "manager",
                         daterangeValue
                     },
                     headers: {
@@ -358,7 +359,7 @@ export default function HRMDashboard() {
 
     // to view attendance data for admin and hr
     useEffect(() => {
-        if (Account === "1" || Account === "2") {
+        if (["1", "2", "5"].includes(Account)) {
             getAttendanceData()
         }
         getClocknsData()

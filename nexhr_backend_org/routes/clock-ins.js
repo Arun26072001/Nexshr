@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const { verifyAdminHREmployee, verifyAdminHR } = require("../auth/authMiddleware");
+const { verifyAdminHREmployeeManagerNetwork, verifyAdminHR, verifyAdminHrNetworkAdmin } = require("../auth/authMiddleware");
 const { clockInsValidation, ClockIns } = require("../models/ClockInsModel");
 const { Employee } = require("../models/EmpModel");
 const { getDayDifference } = require("./leave-app");
@@ -77,7 +77,7 @@ function formatTimeFromMinutes(minutes) {
     return `${formattedHours}:${formattedMinutes}:${formattedSeconds}`;
 }
 
-router.post("/:id", verifyAdminHREmployee, async (req, res) => {
+router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
     try {
         let regular = 0, late = 0, early = 0;
         const today = new Date();
@@ -99,7 +99,6 @@ router.post("/:id", verifyAdminHREmployee, async (req, res) => {
         const emp = await Employee.findById(req.params.id)
             .populate("workingTimePattern")
             .populate({ path: "clockIns", match: { date: { $gte: startOfDay, $lte: endOfDay } } });
-        console.log(emp);
 
         if (!emp) {
             return res.status(404).send({ error: "Employee not found!" });
@@ -142,21 +141,15 @@ router.post("/:id", verifyAdminHREmployee, async (req, res) => {
 
         // Determine login behavior
         const officeLoginTime = emp?.workingTimePattern?.StartingTime || "9:00";
-        // console.log(officeLoginTime);
 
         const [hour, minute] = loginTimeRaw.split(":");
         const loginTime = `${hour}:${minute}`;
-        // console.log("Office Login Time:", officeLoginTime);
 
         // Synchronous check for behaviour
         const behaviour = checkLogin(officeLoginTime, loginTime);
 
         // Async check for punch-in message
         const punchInMsg = await checkLoginForOfficeTime(officeLoginTime, loginTime);
-
-        // // Ensure values are properly assigned
-        // console.log("Behaviour:", behaviour);
-        // console.log("Punch-In Message:", punchInMsg);
 
         // Create clock-in entry
         const newClockIns = await ClockIns.create({
@@ -177,7 +170,7 @@ router.post("/:id", verifyAdminHREmployee, async (req, res) => {
     }
 });
 
-router.get("/:id", verifyAdminHREmployee, async (req, res) => {
+router.get("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
     // Helper function to convert time in HH:MM:SS format to total minutes
     try {
         const queryDate = new Date(req.query.date);
@@ -213,7 +206,6 @@ router.get("/:id", verifyAdminHREmployee, async (req, res) => {
         if (!timeData || timeData.clockIns.length === 0) {
             return res.status(404).send({ message: "No clock-ins found for the given date." });
         }
-        console.log(timeData);
 
 
         // Define activities and calculate times
@@ -284,7 +276,7 @@ router.get("/:id", verifyAdminHREmployee, async (req, res) => {
     }
 });
 
-router.get("/item/:id", verifyAdminHREmployee, async (req, res) => {
+router.get("/item/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
     const convertToMinutes = (start, end) => {
         const [endHour, endMin] = end.split(":").map(Number);
         const [startHour, startMin] = start.split(":").map(Number);
@@ -338,7 +330,7 @@ router.get("/item/:id", verifyAdminHREmployee, async (req, res) => {
 });
 
 // get login and logout data from employee
-router.get("/employee/:empId", verifyAdminHREmployee, async (req, res) => {
+router.get("/employee/:empId", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
     const emp = await Employee.findById({ _id: req.params.empId }).exec();
 
     let totalEmpWorkingHours = 0; // Track total working hours for the employee
@@ -479,7 +471,7 @@ router.get("/employee/:empId", verifyAdminHREmployee, async (req, res) => {
     }
 });
 
-router.get("/sendmail/:id/:clockinId", verifyAdminHREmployee, async (req, res) => {
+router.get("/sendmail/:id/:clockinId", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
     try {
         // Fetch employee leave data
         const emp = await Employee.findById(req.params.id).populate({
@@ -594,7 +586,7 @@ router.get("/sendmail/:id/:clockinId", verifyAdminHREmployee, async (req, res) =
     }
 })
 
-router.get("/", verifyAdminHR, async (req, res) => {
+router.get("/", verifyAdminHrNetworkAdmin, async (req, res) => {
     try {
         const attendanceData = await ClockIns.find({}).populate({ path: "employee", select: "FirstName LastName" });
         res.send(attendanceData);
@@ -603,7 +595,7 @@ router.get("/", verifyAdminHR, async (req, res) => {
     }
 })
 
-router.put("/:id", verifyAdminHREmployee, (req, res) => {
+router.put("/:id", verifyAdminHREmployeeManagerNetwork, (req, res) => {
     let body = req.body;
 
     ClockIns.findByIdAndUpdate(req.params.id, body, {
@@ -616,6 +608,160 @@ router.put("/:id", verifyAdminHREmployee, (req, res) => {
             res.send(data);
         }
     })
+})
+
+router.post("/ontime/:type", async (req, res) => {
+    try {
+        const date = new Date();
+        const hour = date.getHours();
+        const min = date.getMinutes();
+
+        const emps = await Employee.find({}, "FirstName LastName Email")
+            .populate("company")
+            .populate({ path: "workingTimePattern" });
+
+        const activeEmps = emps.filter((emp) => {
+            if (type === "login") {
+                return emp?.workingTimePattern?.StartingTime == `${hour}:${min}`
+            } else {
+                return emp?.workingTimePattern?.FinishingTime == `${hour}:${min}`
+            }
+        })
+
+        activeEmps.map((emp) => {
+            sendMail({
+                From: process.env.FROM_MAIL,
+                To: emp.Email,
+                Subject: res.params.type === "login" ? "Login Remainder" : "Logout Remainder",
+                HtmlBody: `
+        <html lang="en">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>${emp.company.CompanyName}</title>
+            <style>
+                body {
+                    font-family: Arial, sans-serif;
+                    background-color: #f6f9fc;
+                    color: #333;
+                    margin: 0;
+                    padding: 0;
+                }
+                .container {
+                    max-width: 600px;
+                    margin: auto;
+                    padding: 20px;
+                    background-color: #fff;
+                    border-radius: 8px;
+                    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+                }
+                .content {
+                    margin: 20px 0;
+                }
+                .footer {
+                    text-align: center;
+                    font-size: 14px;
+                    margin-top: 20px;
+                    color: #777;
+                }
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <div class="content">
+                    <p>Dear ${emp.FirstName} ${emp.LastName},</p>
+                    ${req.params.type === "login" ?
+                        `
+                                <p>Please ensure that you log in on time at ${emp.workingTimePattern.StartingTime}.</p>
+                                <p>If you are delayed due to traffic or any unforeseen circumstances, please inform HR as soon as possible.</p>
+                                ` :
+                        `<p>Please ensure that you log out on time at ${emp.workingTimePattern.FinishingTime}.</p>`
+                    }
+                    <p>Kindly follow the necessary guidelines.</p><br />
+                    <p>Thank you!</p>
+                </div>
+                <div class="footer">
+                    <p>Have questions or need assistance? <a href="mailto:${process.env.FROM_MAIL}">Contact ${process.env.FROM_MAIL}</a>.</p>
+                </div>
+            </div>
+        </body>
+        </html>
+        `
+            })
+        })
+        return res.send({ message: "Email sent successfully for all employees." })
+
+    } catch (error) {
+        console.log(error);
+        return res.status(500).send({ error: error.message })
+    }
+})
+
+router.post("/remainder/:id/:timeOption", async (req, res) => {
+    try {
+        const { id, timeOption } = req.params;
+        console.log(id, timeOption);
+
+        const emp = await Employee.findById({ _id: id }).populate("company");
+        sendMail({
+            From: process.env.FROM_MAIL,
+            To: emp.Email,
+            Subject: `Your ${timeOption[0].toUpperCase() + timeOption.slice(1)} time has ended`,
+            HtmlBody: `
+            <html lang="en">
+            <head>
+                <meta charset="UTF-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <title>${emp.company.CompanyName}</title>
+                <style>
+                    body {
+                        font-family: Arial, sans-serif;
+                        background-color: #f6f9fc;
+                        color: #333;
+                        margin: 0;
+                        padding: 0;
+                    }
+                    .container {
+                        max-width: 600px;
+                        margin: auto;
+                        padding: 20px;
+                        background-color: #fff;
+                        border-radius: 8px;
+                        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+                    }
+                    .content {
+                        margin: 20px 0;
+                    }
+                    .footer {
+                        text-align: center;
+                        font-size: 14px;
+                        margin-top: 20px;
+                        color: #777;
+                    }
+                </style>
+            </head>
+            <body>
+                <div class="container">
+                    <div class="content">
+                        <p>Dear ${emp.FirstName} ${emp.LastName},</p>
+                        <p>Your ${timeOption[0].toUpperCase() + timeOption.slice(1)} time has ended. Please resume your work.</p>
+                        <p>If you encounter any issues, please contact HR.</p>
+                        <p>Kindly adhere to the necessary guidelines.</p><br />
+                        <p>Thank you!</p>
+                    </div>
+                    <div class="footer">
+                        <p>Have questions or need assistance? <a href="mailto:${process.env.FROM_MAIL}">Contact us</a>.</p>
+                    </div>
+                </div>
+            </body>
+            </html>
+            `
+        });
+        res.send({ message: "Sent mail to employee successfully." })
+    } catch (error) {
+        console.log(error);
+        return res.status(500).send({ error: error.message })
+    }
 })
 
 module.exports = router;

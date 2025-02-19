@@ -1,6 +1,6 @@
 const express = require('express');
 const leaveApp = express.Router();
-const { verifyHR, verifyHREmployee, verifyEmployee, verifyAdmin, verifyAdminHREmployee } = require('../auth/authMiddleware');
+const { verifyHR, verifyHREmployee, verifyEmployee, verifyAdmin, verifyAdminHREmployeeManagerNetwork } = require('../auth/authMiddleware');
 const { getEmployeeModel } = require('../OrgModels/OrgEmpModel');
 const { getRoleAndPermissionModel } = require('../OrgModels/OrgRoleAndPermissionModel');
 const { getLeaveApplicationModel, LeaveApplicationValidation } = require('../OrgModels/OrgLeaveApplicationModel');
@@ -14,7 +14,7 @@ function getDayDifference(leave) {
   return timeDifference / (1000 * 60 * 60 * 24);
 }
 
-leaveApp.get("/emp/:orgId/:empId", verifyAdminHREmployee, async (req, res) => {
+leaveApp.get("/emp/:orgId/:empId", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
   try { //verifyHREmployee this API is use for emp and Hr to fetch their leave reqs
     const { orgName } = await Org.findById({ _id: req.params.orgId });
     const OrgEmployee = getEmployeeModel(orgName)
@@ -231,7 +231,7 @@ leaveApp.get("/date-range/:orgId/admin", verifyAdmin, async (req, res) => {
 })
 
 // to get leave range date of data
-leaveApp.get("/date-range/:orgId/:empId", verifyAdminHREmployee, async (req, res) => {
+leaveApp.get("/date-range/:orgId/:empId", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
   const now = new Date();
   let startOfMonth;
   let endOfMonth;
@@ -309,7 +309,7 @@ leaveApp.get("/:orgId", verifyAdmin, async (req, res) => {
   }
 });
 
-leaveApp.post("/:orgId/:empId", verifyAdminHREmployee, async (req, res) => {
+leaveApp.post("/:orgId/:empId", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
   try {
     // Handle empty `coverBy` value
     if (req.body.coverBy === "") {

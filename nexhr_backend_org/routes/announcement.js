@@ -1,8 +1,6 @@
-
 const express = require('express');
 const { Announcement, announcementValidation } = require('../models/AnnouncementModel');
-const { verifyAdminHREmployee } = require('../auth/authMiddleware');
-const { Employee } = require('../models/EmpModel');
+const { verifyAdminHREmployeeManagerNetwork } = require('../auth/authMiddleware');
 const router = express.Router();
 
 router.post('/:id', async (req, res) => {
@@ -37,7 +35,7 @@ router.post('/:id', async (req, res) => {
 });
 
 
-router.get('/', verifyAdminHREmployee, async (req, res) => {
+router.get('/', verifyAdminHREmployeeManagerNetwork, async (req, res) => {
   try {
     const announcements = await Announcement.find();
 
@@ -56,7 +54,7 @@ router.get('/', verifyAdminHREmployee, async (req, res) => {
 });
 
 // fetch employee of notifications
-router.get("/emp/:id", verifyAdminHREmployee, async (req, res) => {
+router.get("/emp/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
   try {
     const notifications = await Announcement.find({ selectTeamMembers: req.params.id }).exec();
     const notViewAnnouncements = notifications.filter((item) => item?.howViewed[req.params.id] === "not viewed")
@@ -74,7 +72,7 @@ router.get("/emp/:id", verifyAdminHREmployee, async (req, res) => {
   }
 })
 
-router.put("/:id", verifyAdminHREmployee, async (req, res) => {
+router.put("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
   try {
     const announcement = await Announcement.findByIdAndUpdate(req.params.id, req.body, { new: true });
     return res.send({ message: "message updated" })

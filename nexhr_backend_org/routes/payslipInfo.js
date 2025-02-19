@@ -1,9 +1,9 @@
 const express = require("express");
-const { verifyAdminHREmployee, verifyAdmin } = require("../auth/authMiddleware");
+const { verifyAdminHREmployeeManagerNetwork, verifyAdmin } = require("../auth/authMiddleware");
 const { PaySlip, PaySlipInfo, PayslipInfoSchema } = require("../models/PaySlipInfoModel");
 const router = express.Router();
 
-router.get("/", verifyAdminHREmployee, async (req, res) => {
+router.get("/", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
     try {
         // const { orgName } = jwt.decode(req.headers['authorization']);
         // const PaySlipInfo = getPayslipInfoModel(orgName)

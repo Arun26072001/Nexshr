@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const Joi = require('joi');
 const { LeaveType, LeaveTypeValidation } = require('../models/LeaveTypeModel');
-const { verifyAdminHREmployee, verifyAdminHR } = require('../auth/authMiddleware');
+const { verifyAdminHREmployeeManagerNetwork, verifyAdminHR } = require('../auth/authMiddleware');
 
 router.post("/", verifyAdminHR, async (req, res) => {
     try {
@@ -19,7 +19,7 @@ router.post("/", verifyAdminHR, async (req, res) => {
     }
 });
 
-router.get("/", verifyAdminHREmployee, async (req, res) => {
+router.get("/", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
     try {
         const leaveTypes = await LeaveType.find().exec();
         res.send(leaveTypes)

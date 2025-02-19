@@ -7,7 +7,6 @@ export default function NavModelRouter({ files }) {
     const [selectedFile, setSelectedFile] = useState(params['*'] || files[0]);
     const [parentPath, setParentPath] = useState("");
     const { whoIs } = useContext(EssentialValues);
-    console.log(selectedFile);
 
     useEffect(() => {
         setParentPath(window.location.pathname.split("/")[2])

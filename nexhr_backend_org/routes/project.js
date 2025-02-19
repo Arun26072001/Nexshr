@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { Project, ProjectValidation, projectValidation } = require('../models/ProjectModel');
-const { verifyAdmin, verifyAdminHREmployee } = require('../auth/authMiddleware');
+const { verifyAdmin, verifyAdminHREmployeeManagerNetwork } = require('../auth/authMiddleware');
 const Joi = require("joi");
 const { Task } = require('../models/TaskModel');
 const sendMail = require('./mailSender');
@@ -9,7 +9,7 @@ const { Employee } = require('../models/EmpModel');
 const { error } = require('joi/lib/types/lazy');
 const { Report } = require('../models/ReportModel');
 
-router.get("/:id", verifyAdminHREmployee, async (req, res) => {
+router.get("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
   try {
     const project = await Project.findById(req.params.id)
     // .populate({ path: "company", select: "CompanyName" })
@@ -20,7 +20,7 @@ router.get("/:id", verifyAdminHREmployee, async (req, res) => {
   }
 });
 
-router.get("/", verifyAdminHREmployee, async (req, res) => {
+router.get("/", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
   try {
     let projects = await Project.find({ trash: false })
       .populate({ path: "company", select: "CompanyName" })
@@ -45,26 +45,29 @@ router.get("/", verifyAdminHREmployee, async (req, res) => {
   }
 });
 
-router.get("/emp/:id", verifyAdminHREmployee, async (req, res) => {
+router.get("/emp/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
   try {
-    const projects = await Project.find({ employees: { $in: req.params.id }, trash: false })
+    const projects = await Project.find({ employees: { $in: req.params.id }, createdby: req.params.id, trash: false })
       .populate({ path: "company", select: "CompanyName" })
       .populate({ path: "employees", select: "FirstName LastName Email" })
       .populate({ path: "tasks" })
       .exec();
+    console.log(projects);
+
     return res.send(projects);
   } catch (error) {
     return res.status(500).send({ error: error.message })
   }
 })
 
-router.post("/:id", verifyAdminHREmployee, async (req, res) => {
+router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
   try {
     const assignees = await Employee.find({ _id: req.body.employees }, "FirstName LastName Email");
     const { Email, FirstName, company } = await Employee.findById(req.params.id, "FirstName LastName Email").populate({ path: "company" })
     const newProject = {
       ...req.body,
       status: req.body.status || "Not Started",
+      employees: [...req.body.employees, req.params.id] || [],
       createdby: req.body.createdby || req.params.id
     }
     if (await Project.exists({ name: req.body.name })) {
@@ -80,7 +83,7 @@ router.post("/:id", verifyAdminHREmployee, async (req, res) => {
     assignees.map((emp) => {
       const empName = emp.FirstName[0].toUpperCase() + emp.FirstName.slice(1) + " " + emp.LastName
       return sendMail({
-        From: Email,
+        From: process.env.FROM_MAIL,
         To: emp.Email,
         Subject: `Welcome to ${req.body.name} project by ${FirstName}`,
         HtmlBody: `
@@ -143,7 +146,7 @@ router.post("/:id", verifyAdminHREmployee, async (req, res) => {
   }
 });
 
-router.put("/:id", verifyAdminHREmployee, async (req, res) => {
+router.put("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
   try {
     delete req.body['_id'];
     delete req.body["__v"]
@@ -240,7 +243,7 @@ router.put("/:id", verifyAdminHREmployee, async (req, res) => {
   }
 });
 
-router.delete("/:id", verifyAdminHREmployee, async (req, res) => {
+router.delete("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
   try {
     const project = await Project.findById(req.params.id);
     if (!project) {

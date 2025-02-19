@@ -5,16 +5,13 @@ import Tabs from '@mui/material/Tabs';
 import Tab from '@mui/material/Tab';
 import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
-import CoronavirusIcon from '@mui/icons-material/Coronavirus';
-import WatchLaterIcon from '@mui/icons-material/WatchLater';
 import { fetchLeaveRequests, getHoliday } from './ReuseableAPI';
 import CircleBar from './CircleProcess';
 import { useNavigate } from 'react-router-dom';
 import { EssentialValues } from '../App';
-import axios from 'axios';
 import { toast } from 'react-toastify';
-import HolidayPicker from './MultipleDatePicker';
 import Loading from './Loader';
+import { Badge, Calendar, Dropdown, HStack, List, Popover, Whisper } from 'rsuite';
 
 function CustomTabPanel(props) {
   const { children, value, index, ...other } = props;
@@ -59,49 +56,16 @@ export default function Twotabs() {
   const today = new Date();
   const [leaveRequests, setLeaveRequests] = useState([]);
   const [upComingHoliday, setupComingHoliday] = useState("");
-  const [holidays, setHolidays] = useState([]);
   const [isAddHolidays, setIsAddHolidays] = useState(false);
+  const [holidays, setHolidays] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [selectedDate, setSelectedDate] = useState("");
+  const [leaveData, setLeaveData] = useState([]);
 
   const handleChange = (event, newValue) => {
     setValue(newValue);
   };
-
-
-  useEffect(() => {
-    function setDateFormatForHoliday() {
-      for (let i = 0; i < holidays?.length; i++) {
-        const holidayDate = new Date(holidays[i]);
-        if (holidayDate > today) {
-          const options = { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' };
-          setupComingHoliday(new Intl.DateTimeFormat('default', options).format(holidayDate).replace(",", ""))
-          break;
-        }
-      }
-    }
-
-    if (holidays?.length > 0) {
-      setDateFormatForHoliday()
-    }
-
-  }, [holidays]);
-
-
-  useEffect(() => {
-    async function gettingHoliday() {
-      try {
-        const res = await getHoliday();
-        console.log(res);
-
-        setHolidays(res)
-      } catch (error) {
-        setHolidays([])
-        toast.error(error)
-      }
-    }
-    gettingHoliday();
-  }, [isAddHolidays])
-
+  
   useEffect(() => {
     // debugger;
     const gettingLeaveRequests = async () => {
@@ -137,6 +101,80 @@ export default function Twotabs() {
     }
   }, []);
 
+  useEffect(() => {
+          async function getAllEmpLeaveData() {
+              setIsLoading(true);
+              try {
+                  const res = await fetchLeaveRequests(data._id);
+                  setLeaveData(res.leaveApplications.map((leave) => ({
+                      title: `${leave.employee.FirstName[0].toUpperCase() + leave.employee.FirstName.slice(1)} ${leave.employee.LastName} (${leave.leaveType[0].toUpperCase() + leave.leaveType.slice(1)} - ${leave.status})`,
+                      start: new Date(leave.fromDate),
+                      end: new Date(leave.toDate),
+                      status: leave.status
+                  })))
+              } catch (error) {
+                  console.log(error);
+              }
+              setIsLoading(false)
+          }
+          if (["2", "3"].includes(data.Account)) {
+              getAllEmpLeaveData();
+          }
+      }, [])
+
+      function getTodoList(date) {
+        if (!date) {
+          return [];
+        }
+      
+        return leaveData.filter((leave) => {
+          return leave.start.toDateString() === date.toDateString();
+        });
+      }
+
+      const renderMenu = (date) => ({ onClose, right, top, className }, ref) => {
+        const list = getTodoList(date);
+        if (!list.length) {
+            return null; // Return null instead of []
+        }
+    
+        const handleSelect = (eventKey) => {
+            if (eventKey === 1) {
+                // Handle selection
+            }
+            onClose();
+        };
+    
+        return (
+            <Popover ref={ref} className={className} style={{ right, top }} full>
+                <Dropdown.Menu onSelect={handleSelect} title="Personal Settings">
+                    {list.map((item) => (
+                        <Dropdown.Item key={item.start}>{item.title}</Dropdown.Item>
+                    ))}
+                </Dropdown.Menu>
+            </Popover>
+        );
+    };
+    
+    function highlightToLeave(date) {
+        if (!leaveData || !leaveData.length) return null; // Ensure leaveData exists
+    
+        const isLeave = leaveData.some((leave) =>
+            leave.start.toDateString() === date.toDateString()
+        );
+    
+        if (isLeave) {
+            return (
+                <Whisper placement="bottomEnd" trigger="click" speaker={renderMenu(date)}>
+                    <Badge className="calendar-todo-item-badge" />
+                </Whisper>
+            );
+        }
+    
+        return null; // Return null if no leave is found
+    }
+    
+
   return (
     <Box sx={{ width: '100%', border: '2px solid rgb(208 210 210)', borderRadius: '5px', height: "100%" }}>
       <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
@@ -149,10 +187,10 @@ export default function Twotabs() {
         <div className='empActivies'>
           <div className="d-flex justify-content-between w-100" style={{ fontSize: "12px", fontWeight: 600 }}>
             <div className=''>
-              <button className='button' onClick={() => navigate(`/${whoIs}/leave-request`)}>Request time off</button>
+              <button className='button' onClick={() => navigate(`/${whoIs}/leave-request`)}>Apply Leave</button>
             </div>
             <div className=''>
-              <button className="outline-btn">Absence history</button>
+              <button className="outline-btn p-2">Absence history</button>
             </div>
           </div>
           <div className="row" >
@@ -183,21 +221,12 @@ export default function Twotabs() {
           }
 
           {
-            holidays?.length > 0 &&
-            <div className="text-dark">
-              <p className='text-start'>Next up - Public Holiday</p>
-              <p className='text-primary text-start'><b>{upComingHoliday}</b></p>
-              <p className='mt-3 text-start'>You've also taken</p>
-            </div>
+            <HStack spacing={10} style={{ height: 320 }} alignItems="flex-start" wrap className='position-relative'>
+              {/* <TodoList date={selectedDate} /> */}
+              <Calendar compact style={{ width: 320, paddingTop: "0px" }} renderCell={highlightToLeave} onChange={(value)=>setSelectedDate(value)} bordered />
+            </HStack>
           }
-          <div className='text-center'>
-            <div className='w-100'>
-              <button className='btn btn-outline-warning w-100 my-2'><WatchLaterIcon /> 0 Lateness</button>
-            </div>
-            <div className='w-100'>
-              <button className='btn btn-outline-danger w-100'><CoronavirusIcon />0 Sickness</button>
-            </div>
-          </div>
+
         </div>
       </CustomTabPanel>
 
@@ -208,3 +237,55 @@ export default function Twotabs() {
   );
 }
 
+
+    // useEffect(() => {
+    //   function setDateFormatForHoliday() {
+    //     for (let i = 0; i < holidays?.length; i++) {
+    //       const holidayDate = new Date(holidays[i]);
+    //       if (holidayDate > today) {
+    //         const options = { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' };
+    //         setupComingHoliday(new Intl.DateTimeFormat('default', options).format(holidayDate).replace(",", ""))
+    //         break;
+    //       }
+    //     }
+    //   }
+  
+    //   if (holidays?.length > 0) {
+    //     setDateFormatForHoliday()
+    //   }
+    // }, [holidays]);
+  
+    // useEffect(() => {
+    //     async function getAllEmpLeaveData() {
+    //         setIsLoading(true);
+    //         try {
+    //             const res = await fetchLeaveRequests(data._id);
+    //             setLeaveRequests(res.leaveApplications.map((leave) => ({
+    //                 title: `${leave.employee.FirstName[0].toUpperCase() + leave.employee.FirstName.slice(1)} ${leave.employee.LastName} (${leave.leaveType[0].toUpperCase() + leave.leaveType.slice(1)} - ${leave.status})`,
+    //                 start: new Date(leave.fromDate),
+    //                 end: new Date(leave.toDate),
+    //                 status: leave.status
+    //             })))
+    //         } catch (error) {
+    //             console.log(error);
+    //         }
+    //         setIsLoading(false)
+    //     }
+    //     if (["2", "3"].includes(data.Account)) {
+    //         getAllEmpLeaveData();
+    //     }
+    // }, [])
+  
+  
+    // useEffect(() => {
+    //   async function gettingHoliday() {
+    //     try {
+    //       const res = await getHoliday();
+    //       setHolidays(res.holidays)
+    //     } catch (error) {
+    //       setHolidays([])
+    //       toast.error(error)
+    //     }
+    //   }
+    //   gettingHoliday();
+    // }, [isAddHolidays])

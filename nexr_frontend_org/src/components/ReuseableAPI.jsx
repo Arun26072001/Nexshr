@@ -6,6 +6,7 @@ const token = localStorage.getItem('token');
 
 const updateDataAPI = async (body) => {
     try {
+        console.log(body._id);
         if (body._id) {
             const response = await axios.put(`${url}/api/clock-ins/${body._id}`, body, {
                 headers: { authorization: token || '' },
@@ -62,7 +63,6 @@ const getclockinsDataById = async (id) => {
 };
 
 const addDataAPI = async (body) => {
-    console.log(token);
     try {
         const response = await axios.post(`${url}/api/clock-ins/${empId}`, body, {
             headers: { authorization: token || '' },
@@ -115,7 +115,6 @@ const fetchLeaveRequests = async (empId) => {
         }
     }
 };
-
 
 async function deleteLeave(id) {
     try {
