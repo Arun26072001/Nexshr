@@ -89,6 +89,8 @@ const ActivityTimeTracker = () => {
 
     // Stop the timer with activity
     const stopTimer = async () => {
+        console.log("stoping.........");
+        
         if (timerRef.current) {
             await stopActivityTimer();
             clearInterval(timerRef.current);
@@ -145,14 +147,17 @@ const ActivityTimeTracker = () => {
     }, [timeOption, workTimeTracker]);
 
     setInterval(() => {
-        if ((["morningBreak", "eveningBreak"].includes(timeOption) && min === 10 && sec === 1 && !workTimeTracker?.[timeOption]?.reasonForLate) || (timeOption === "lunch" && min === 30 && sec === 1 && !workTimeTracker?.[timeOption]?.reasonForLate)) {
-            // sendRemainderMail();
+        if ((["morningBreak", "eveningBreak"].includes(timeOption) && min === 0 && sec === 10 && !workTimeTracker?.[timeOption]?.reasonForLate) || (timeOption === "lunch" && min === 30 && sec === 1 && !workTimeTracker?.[timeOption]?.reasonForLate)) {
+            sendRemainderMail();
             changeViewReasonForTaketime();
         }
     }, 1000);
 
-    window.addEventListener("beforeunload", () => {
-        stopTimer();
+    window.addEventListener("unload", () => {
+        console.log("call in page change");
+        // if (isStartActivity) {
+            stopTimer();
+        // }
     })
 
     const formattedName = EmpName

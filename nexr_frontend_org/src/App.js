@@ -256,7 +256,10 @@ const App = () => {
           element={isLogin && whoIs && data.token ? <HRMDashboard /> : <Navigate to="/login" />}
         /> */}
         <Route path="no-internet-connection" element={<NoInternet />} />
-        <Route path="*" element={<h1>404</h1>} />
+        <Route path="*" element=
+          {<div className='d-flex align-items-center justify-content-center' style={{ height: "100vh" }}>
+            <h1 >404</h1>
+          </div>} />
       </Routes>
     </EssentialValues.Provider>
   );

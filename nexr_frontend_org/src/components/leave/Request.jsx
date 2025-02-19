@@ -7,8 +7,11 @@ import axios from "axios";
 import "../payslip/payslip.css";
 import { toast } from 'react-toastify';
 import { EssentialValues } from '../../App';
-import { DateRangePicker } from 'rsuite';
+import { DateRangePicker, Dropdown, Popover, Whisper } from 'rsuite';
 import { jwtDecode } from 'jwt-decode';
+import ArrowDropDownRoundedIcon from '@mui/icons-material/ArrowDropDownRounded';
+import FileUploadRoundedIcon from '@mui/icons-material/FileUploadRounded';
+import FileDownloadRoundedIcon from '@mui/icons-material/FileDownloadRounded';
 
 export default function LeaveRequest() {
     const url = process.env.REACT_APP_API_URL;
@@ -54,14 +57,53 @@ export default function LeaveRequest() {
         filterLeaveRequests();
     }, [empName, daterangeValue]);
 
+    const renderMenu = ({ onClose, right, top, className }, ref) => {
+        const handleSelect = (eventKey) => {
+            if (eventKey === 1) {
+                // Trigger the Uploader
+                document.getElementById('fileUploader').click();
+            } else if (eventKey === 2) {
+                // Handle download logic
+                alert('Download clicked');
+            } else if (eventKey === 3) {
+                // Handle add logic
+                alert('Add clicked');
+            }
+            onClose();
+        };
+
+        return (
+            <Popover ref={ref} className={className} style={{ right, top }}>
+                <Dropdown.Menu onSelect={handleSelect}>
+                    <Dropdown.Item eventKey={1}>
+                        <b>
+                            <FileUploadRoundedIcon /> Import
+                        </b>
+                    </Dropdown.Item>
+                    <Dropdown.Item eventKey={2}>
+                        <b>
+                            <FileDownloadRoundedIcon /> Download
+                        </b>
+                    </Dropdown.Item>
+                </Dropdown.Menu>
+            </Popover>
+        );
+    };
     return (
         isLoading ? (
             <Loading />
         ) : (
-            <div>
-                <p className="payslipTitle">
-                    Leave Request
-                </p>
+            <>
+                <div className='d-flex justify-content-between px-2'>
+                    <p className="payslipTitle">
+                        Leave Request
+                    </p> <button className='button' style={{ cursor: 'pointer' }}>
+                        <Whisper placement="bottomEnd" trigger="click" speaker={renderMenu}>
+                            Action <ArrowDropDownRoundedIcon />
+                        </Whisper>
+                    </button>
+
+                </div>
 
                 <div className="leaveContainer d-block">
                     <div className="d-flex align-items-center justify-content-between">
@@ -131,7 +173,7 @@ export default function LeaveRequest() {
 
                     }
                 </div>
-            </div>
+            </>
         )
     );
 }

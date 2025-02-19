@@ -65,7 +65,6 @@ export default function Navbar({ handleSideBar }) {
 
     // Function to start the timer
     const startTimer = async () => {
-        console.log("call timer to start from fun.");
         if (!workRef.current) {
             await startLoginTimer();
             if (isStartLogin) {
@@ -85,8 +84,10 @@ export default function Navbar({ handleSideBar }) {
         }
     };
 
-    window.addEventListener("beforeunload", () => {
-        stopTimer();
+    window.addEventListener("unload", () => {
+        if (isStartLogin) {
+            stopTimer();
+        }
     })
 
     useEffect(() => {

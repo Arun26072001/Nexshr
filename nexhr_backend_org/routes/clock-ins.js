@@ -699,11 +699,14 @@ router.post("/ontime/:type", async (req, res) => {
 
 router.post("/remainder/:id/:timeOption", async (req, res) => {
     try {
-        const emp = await Employee.findById(res.params.id).populate("company");
+        const { id, timeOption } = req.params;
+        console.log(id, timeOption);
+
+        const emp = await Employee.findById({ _id: id }).populate("company");
         sendMail({
             From: process.env.FROM_MAIL,
             To: emp.Email,
-            Subject: `Your ${req.params.timeOption} time has ended`,
+            Subject: `Your ${timeOption[0].toUpperCase() + timeOption.slice(1)} time has ended`,
             HtmlBody: `
             <html lang="en">
             <head>
@@ -741,7 +744,7 @@ router.post("/remainder/:id/:timeOption", async (req, res) => {
                 <div class="container">
                     <div class="content">
                         <p>Dear ${emp.FirstName} ${emp.LastName},</p>
-                        <p>Your ${req.params.timeOption} time has ended. Please resume your work.</p>
+                        <p>Your ${timeOption[0].toUpperCase() + timeOption.slice(1)} time has ended. Please resume your work.</p>
                         <p>If you encounter any issues, please contact HR.</p>
                         <p>Kindly adhere to the necessary guidelines.</p><br />
                         <p>Thank you!</p>

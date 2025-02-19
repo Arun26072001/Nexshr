@@ -63,7 +63,6 @@ const getclockinsDataById = async (id) => {
 };
 
 const addDataAPI = async (body) => {
-    console.log(token);
     try {
         const response = await axios.post(`${url}/api/clock-ins/${empId}`, body, {
             headers: { authorization: token || '' },
@@ -116,7 +115,6 @@ const fetchLeaveRequests = async (empId) => {
         }
     }
 };
-
 
 async function deleteLeave(id) {
     try {

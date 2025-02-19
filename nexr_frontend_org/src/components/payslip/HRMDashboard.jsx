@@ -17,7 +17,6 @@ import Company from '../Administration/Company';
 import Holiday from '../Administration/Holiday';
 import Country from '../Administration/Country';
 
-
 // Lazy loading components
 const Dashboard = React.lazy(() => import('./Dashboard'));
 const JobDesk = React.lazy(() => import('./Jobdesk'));
@@ -57,6 +56,7 @@ export const LeaveStates = createContext(null);
 export const TimerStates = createContext(null);
 
 export default function HRMDashboard() {
+    const navigator = useNavigate();
     const { data, isStartLogin, isStartActivity, setIsStartLogin, setIsStartActivity, whoIs } = useContext(EssentialValues);
     const { token, Account, _id } = data;
     const { isTeamLead, isTeamHead } = jwtDecode(token);
@@ -145,8 +145,6 @@ export default function HRMDashboard() {
         }))
     }
 
-    console.log(workTimeTracker);
-    
     const startLoginTimer = async () => {
         const currentTime = new Date().toTimeString().split(' ')[0];
         const updatedState = {
@@ -201,7 +199,7 @@ export default function HRMDashboard() {
 
             const updatedData = await updateDataAPI(updatedState);
             setWorkTimeTracker(updatedData);
-            localStorage.setItem('isStartLogin',false);
+            localStorage.setItem('isStartLogin', false);
             setIsStartLogin(false);
             updateClockins();
         } catch (err) {

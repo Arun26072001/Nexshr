@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import './Attendence.css';
 import Popup from './Popup';
 import LeaveTable from '../LeaveTable';

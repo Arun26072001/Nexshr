@@ -21,8 +21,8 @@ const CustomDropdown = ({isDisabled}) => {
   ];
 
   const handleOptionClick = (option) => {
-    setSelectedOption(option.value);
-    updateWorkTracker(option.value);
+    setSelectedOption(option?.value);
+    updateWorkTracker(option?.value);
     setIsOpen(false);
   };
 
