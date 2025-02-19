@@ -649,6 +649,8 @@ leaveApp.get("/date-range/:empId", verifyAdminHREmployeeManagerNetwork, async (r
     if (employeeLeaveData?.leaveApplication.length > 0) {
       let leaveData = employeeLeaveData.leaveApplication.map(data => data).flat();
       leaveData = leaveData.sort((a, b) => new Date(a.fromDate) - new Date(b.fromDate));
+      
+
       leaveData = leaveData.map((leave) => {
         return {
           ...leave.toObject(),

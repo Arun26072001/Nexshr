@@ -219,20 +219,29 @@ async function fetchTimePatterns() {
       // Schedule job for login
       schedule.scheduleJob(`0 ${startingMin} ${startingHour} * * *`, async function () {
         try {
-          const response = await axios.post(`${process.env.API_URL}/api/clock-ins/ontime/login`);
+          const response = await axios.post(`${process.env.REACT_APP_API_URL}/api/clock-ins/ontime/login`);
           console.log("Login Triggered:", response.data.message);
         } catch (error) {
           console.error("Login Error:", error.message);
         }
       });
 
+      // apply permission for late late emps
+      // schedule.scheduleJob(`0 ${startingMin+5} ${startingHour} * * *`, async function (){
+      //   try {
+      //     const response = await axios.post(`${process.env.REACT_APP_API_URL}/api/clock-ins/auto-permission`)
+      //   } catch (error) {
+          
+      //   }
+      // })
+
       // Schedule job for logout
       schedule.scheduleJob(`0 ${finishingMin} ${finishingHour} * * *`, async function () {
         try {
-          const response = await axios.post(`${process.env.API_URL}/api/clock-ins/ontime/logout`);
+          const response = await axios.post(`${process.env.REACT_APP_API_URL}/api/clock-ins/ontime/logout`);
           console.log("Logout Triggered:", response.data.message);
         } catch (error) {
-          console.error("Logout Error:", error.message);
+          console.error("Logout Error:", error);
         }
       });
     });
@@ -265,7 +274,6 @@ schedule.scheduleJob("0 7 * * *", async () => {
 
 // Start Server
 const port = process.env.PORT;
-console.log(port);
 
 server.listen(port, () => console.log(`Server listening on port ${port}!`));
 process.on("uncaughtException", (err) => {

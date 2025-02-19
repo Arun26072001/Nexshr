@@ -86,11 +86,11 @@ const ActivityTimeTracker = () => {
         }
         setIsTaketime(!isViewTakeTime)
     }
-
+    console.log(isViewTakeTime)
     // Stop the timer with activity
     const stopTimer = async () => {
         console.log("stoping.........");
-        
+
         if (timerRef.current) {
             await stopActivityTimer();
             clearInterval(timerRef.current);
@@ -146,17 +146,17 @@ const ActivityTimeTracker = () => {
         }
     }, [timeOption, workTimeTracker]);
 
-    setInterval(() => {
-        if ((["morningBreak", "eveningBreak"].includes(timeOption) && min === 0 && sec === 10 && !workTimeTracker?.[timeOption]?.reasonForLate) || (timeOption === "lunch" && min === 30 && sec === 1 && !workTimeTracker?.[timeOption]?.reasonForLate)) {
+    useEffect(() => {
+        if ((["morningBreak", "eveningBreak"].includes(timeOption) && min === 15 && sec === 1) || (timeOption === "lunch" && min === 30 && sec === 1)) {
             sendRemainderMail();
             changeViewReasonForTaketime();
         }
-    }, 1000);
+    }, [sec])
 
     window.addEventListener("unload", () => {
         console.log("call in page change");
         // if (isStartActivity) {
-            stopTimer();
+        stopTimer();
         // }
     })
 

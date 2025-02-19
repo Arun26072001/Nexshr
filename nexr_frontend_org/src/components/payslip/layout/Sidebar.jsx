@@ -76,7 +76,7 @@ const Sidebar = ({ sideBar }) => {
             <img src={icon} width={"22"} height={"22"} alt={`${label} Icon`} />
           </span>
           <span className="sideBarTxt">{label}</span>
-          <span className="KeyboardArrowDownSharpIcon">
+          <span className={`KeyboardArrowDownSharpIcon ${activeNavLink === menuKey ? "rotate" : ""}`}>
             <KeyboardArrowDownSharpIcon />
           </span>
         </NavLink>

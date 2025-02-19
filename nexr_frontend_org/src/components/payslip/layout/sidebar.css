@@ -89,6 +89,7 @@
 .KeyboardArrowDownSharpIcon {
   position: absolute;
   right: 10px;
+  transition-duration: .5s;
 }
 
 li {

@@ -291,6 +291,8 @@ export default function HRMDashboard() {
                     }
                 })
 
+                console.log(leaveData.data);
+
                 setLeaveRequests(leaveData.data);
                 setFullLeaveRequests(leaveData.data);
             } catch (err) {

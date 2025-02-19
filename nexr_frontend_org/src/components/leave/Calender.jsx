@@ -5,6 +5,7 @@ import Loading from '../Loader';
 import { LeaveStates } from '../payslip/HRMDashboard';
 import { DateRangePicker } from 'rsuite';
 import PersonRoundedIcon from '@mui/icons-material/PersonRounded';
+import "../payslip/payslip.css";
 
 export default function LeaveCalender() {
     const { empName, setEmpName, filterLeaveRequests, leaveRequests, daterangeValue, isLoading, setDaterangeValue } = useContext(LeaveStates);
