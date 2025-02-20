@@ -55,12 +55,10 @@ export default function Twotabs() {
   const [takenLeave, setTakenLeave] = useState(0);
   const today = new Date();
   const [leaveRequests, setLeaveRequests] = useState([]);
-  const [upComingHoliday, setupComingHoliday] = useState("");
-  const [isAddHolidays, setIsAddHolidays] = useState(false);
-  const [holidays, setHolidays] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [selectedDate, setSelectedDate] = useState("");
   const [leaveData, setLeaveData] = useState([]);
+console.log(takenLeave);
 
   const handleChange = (event, newValue) => {
     setValue(newValue);
@@ -78,13 +76,13 @@ export default function Twotabs() {
 
           leaveReqs.leaveApplications.forEach((req) => {
             // if (req.status === "pending" || req.status === "approved") {
-            if (req.status === "approved") {
+            if (req.status === "approved" && req.leaveType !== "permission leave") {
               let toDate = new Date(req.toDate);
               let fromDate = new Date(req.fromDate);
               let timeDifference = toDate - fromDate;
               const dayDifference = timeDifference === 0 ? 1 : timeDifference / (1000 * 60 * 60 * 24);
 
-              setTakenLeave(prev => prev + dayDifference);  // Set this to the correct unit (e.g., days)
+              setTakenLeave(prev => prev + Number(dayDifference.toFixed(2)));  // Set this to the correct unit (e.g., days)
             }
           });
         } else {

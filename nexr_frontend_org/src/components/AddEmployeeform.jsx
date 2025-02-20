@@ -533,7 +533,7 @@ const AddEmployeeForm = ({ details, handleScroll, handlePersonal, handleFinancia
                                     </div>
                                     <SelectPicker
                                         className={`p-0 selectInput ${formik.touched.countryCode && formik.errors.countryCode ? "error" : ""}`}
-                                        style={{ background: "none", border: "none", marginTop: "0px" }}
+                                        style={{ background: "none", border: "none", marginTop: "0px", position: "relative", zIndex: 0 }}
                                         size="lg"
                                         data={countries}
                                         appearance="subtle"
@@ -576,7 +576,7 @@ const AddEmployeeForm = ({ details, handleScroll, handlePersonal, handleFinancia
                                     <div className="inputLabel">Country</div>
                                     <SelectPicker
                                         className={`selectInput p-0 ${formik.touched.country && formik.errors.country ? "error" : ""}`}
-                                        style={{ background: "none", border: "none" }}
+                                        style={{ background: "none", border: "none", position: "relative", zIndex: 0 }}
                                         size="lg"
                                         appearance="subtle"
                                         data={countries}
@@ -606,7 +606,7 @@ const AddEmployeeForm = ({ details, handleScroll, handlePersonal, handleFinancia
                                     <div className="inputLabel">State</div>
                                     <SelectPicker
                                         className="selectInput p-0"
-                                        style={{ background: "none", border: "none" }}
+                                        style={{ background: "none", border: "none", position: "relative", zIndex: 0 }}
                                         size="lg"
                                         appearance="subtle"
                                         onChange={(e) => changeCountry(e, "state")}
@@ -733,7 +733,7 @@ const AddEmployeeForm = ({ details, handleScroll, handlePersonal, handleFinancia
                                     <div className="inputLabel">Public Holidays by</div>
                                     <SelectPicker
                                         className="selectInput p-0"
-                                        style={{ width: 300, border: "none", marginTop: "0px" }}
+                                        style={{ width: 300, border: "none", marginTop: "0px", position: "relative", zIndex: 0 }}
                                         size="lg"
                                         block
                                         appearance="subtle"
@@ -992,7 +992,7 @@ const AddEmployeeForm = ({ details, handleScroll, handlePersonal, handleFinancia
                 <div className="btnBackground">
                     <div className="fixedPositionBtns">
                         <div className="w-50">
-                            <button type="button" className="outline-btn mx-2" onClick={() => navigate(`/${whoIs}/employee`)} >
+                            <button type="button" className="outline-btn mx-2" onClick={() => ["manager", "admin", "hr"].includes(whoIs) ? navigate(`/${whoIs}/employee`) : navigate(`/${whoIs}`)} >
                                 Cancel
                             </button>
                         </div>

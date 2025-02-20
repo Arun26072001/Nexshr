@@ -5,20 +5,20 @@ const { clockInsValidation, ClockIns } = require("../models/ClockInsModel");
 const { Employee } = require("../models/EmpModel");
 const { getDayDifference } = require("./leave-app");
 const sendMail = require("./mailSender");
-const { LeaveApplication } = require("../models/LeaveAppModel");
+const { LeaveApplication, LeaveApplicationValidation } = require("../models/LeaveAppModel");
 
 function timeToMinutes(timeStr) {
     const [hours, minutes, seconds] = timeStr.split(":").map(Number);
     return Number(((hours * 60) + minutes + (seconds / 60)).toFixed(2)) || 0; // Defaults to 0 if input is invalid
 }
 
-async function checkLoginForOfficeTime(scheduledTime, actualTime) {
+async function checkLoginForOfficeTime(scheduledTime, actualTime, permissionTime) {
     // Parse scheduled and actual time into hours and minutes
     const [scheduledHours, scheduledMinutes] = scheduledTime.split(':').map(Number);
     const [actualHours, actualMinutes] = actualTime.split(':').map(Number);
 
     // Create Date objects for both scheduled and actual times
-    const scheduledDate = new Date(2000, 0, 1, scheduledHours, scheduledMinutes);
+    const scheduledDate = new Date(2000, 0, 1, scheduledHours + (permissionTime || 0), scheduledMinutes);
     const actualDate = new Date(2000, 0, 1, actualHours, actualMinutes);
 
     // Calculate the difference in milliseconds
@@ -78,293 +78,256 @@ function formatTimeFromMinutes(minutes) {
     return `${formattedHours}:${formattedMinutes}:${formattedSeconds}`;
 }
 
-router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
+router.post("/auto-permission", async (req, res) => {
     try {
+        const now = new Date();
+        const startOfDay = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 0, 0, 0, 0));
+        const endOfDay = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 23, 59, 59, 999));
 
-        //send mail, If employee come to late apply half day leave or apply permission automatically.
-//         const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-//         const endOfMonth = new Date();
-//         const empData = await Employee.findById(req.params.id, "leaveApplication")
-//             .populate({
-//                 path: "leaveApplication", match: {
-//                     date: {
-//                         $gte: startOfMonth,
-//                         $lte: endOfMonth
-//                     }
-//                 }
-//             })
-//             .populate("workingTimePattern");
-//         const permissions = empData.leaveApplication.filter((leave) => leave?.leaveType?.toLowerCase() === "permission")
-//         const companyPunchInTime = timeToMinutes(emp.workingTimePattern?.StartingTime);
-//         const empPunchInTime = timeToMinutes(req.body?.login?.startingTime?.[0]);
-//         if (companyPunchInTime < empPunchInTime) {
-//             if (permissions === 2) {
-//                 try {
-//                     const halfDayLeaveApp = {
-//                         leaveType: "Unpaid Leave (LWP)",
-//                         fromDate: today,
-//                         toDate: today,
-//                         periodOfLeave: "half day",
-//                         reasonForLeave: "Came To late",
-//                         prescription: "",
-//                         employee: emp._id.toString(),
-//                         coverBy: null,
-//                         status: "rejected",
-//                         TeamLead: "rejected",
-//                         TeamHead: "rejected",
-//                         Hr: "rejected",
-//                     };
-//                     const { error } = LeaveApplicationValidation.validate(halfDayLeaveApp);
-//                     if (error) {
-//                         return res.status(400).send({ error: error.details[0].message })
-//                     }
-//                     const addLeave = await LeaveApplication.create(halfDayLeaveApp);
-//                     emp.leaveApplication.push(addLeave._id);
-//                     await emp.save();
+        // Fetch employees who haven't logged in
+        let notLoginEmps = await Employee.find()
+            .populate({
+                path: "clockIns",
+                match: { date: { $gte: startOfDay, $lt: endOfDay } }
+            })
+            .populate("workingTimePattern");
 
-//                     const htmlContent = `
-//                 <html>
-//                     <head>
-//                         <style>
-//                             body {font - family: Arial, sans-serif; background-color: #f6f9fc; color: #333; }
-//                             .container { max-width: 600px; margin: auto; padding: 20px; background-color: #fff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); }
-//                             .content {margin: 20px 0; }
-//                             .footer {text - align: center; font-size: 14px; margin-top: 20px; color: #777; }
-//                         </style>
-//                     </head>
-//                     <body>
-//                         <div class="container">
-//                             <div class="content">
-//                                 <h2 class="center_text">You came much later than your permitted time.</h2>
-//                                 <p>
-//                                     We are marking you as taking a half-day leave due to late arrival.
-// Going forward, please ensure that you arrive early or by ${emp.workingTimePattern.StartingTime} to avoid further issues.
-//  Your permission limit (2) has been reached.
-// Please adhere to the company’s policies and guidelines.
-//                                     Thank you!
-//                                 </p>
-//                             </div>
+        notLoginEmps = notLoginEmps.filter((emp) => emp?.clockIns?.length === 0);
 
-//                             <div class="footer">
-//                                 <p>Have questions? Need help? <a href="mailto:${process.env.FROM_MAIL}">Contact our support team</a>.</p>
-//                             </div>
-//                         </div>
-//                     </body>
-//                 </html>`
-//                     sendMail({
-//                         From: process.env.FROM_MAIL,
-//                         To: emp.Email,
-//                         Subject: `Half-day Leave Applied(Unpaid Leave (LWP))`,
-//                         HtmlBody: htmlContent,
-//                     })
-//                 } catch (error) {
-//                     console.log(error);
-//                 }
-//             } else {
+        // Process each employee sequentially
+        for (const emp of notLoginEmps) {
+            const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+            const endOfMonth = new Date();
+            const empPermissions = await LeaveApplication.find({
+                employee: emp._id,
+                fromDate: { $gte: startOfMonth, $lt: endOfMonth },
+                leaveType: "permission leave",
+                status: "approved"
+            });
 
-//             }
-//             if (permission) {
-//                 const fromHour = timeToMinutes(permission.fromDate.split(" ")[1]);
-//                 const toHour = timeToMinutes(permission.toDate.split(" ")[1]);
-//                 const totalPermissionHour = toHour - fromHour;
+            let halfDayLeaveApp;
+            let subject, htmlContent;
 
-//                 if ((companyPunchInTime + totalPermissionHour) < empPunchInTime) {
-//                     const halfDayLeaveApp = {
-//                         leaveType: "Unpaid Leave (LWP)",
-//                         fromDate: today,
-//                         toDate: today,
-//                         periodOfLeave: "half day",
-//                         reasonForLeave: "Came too late",
-//                         prescription: "",
-//                         employee: emp._id,
-//                         coverBy: "",
-//                         status: "rejected",
-//                         TeamLead: "rejected",
-//                         TeamHead: "rejected",
-//                         Hr: "rejected",
-//                         approvedOn: null,
-//                         approverId: []
-//                     };
-//                     const addLeave = await LeaveApplication.create(halfDayLeaveApp);
-//                     emp.leaveApplication.push(addLeave._id);
-//                     await emp.save();
+            if (empPermissions.length === 2) {
+                // Apply Half-day Leave
+                halfDayLeaveApp = {
+                    leaveType: "Unpaid Leave (LWP)",
+                    fromDate: now,
+                    toDate: now,
+                    periodOfLeave: "half day",
+                    reasonForLeave: "Came too late",
+                    employee: emp._id.toString(),
+                    status: "rejected",
+                    TeamLead: "rejected",
+                    TeamHead: "rejected",
+                    Hr: "rejected",
+                };
 
-//                     // send mail To employee
-//                     const htmlContent = `
-//                 <html>
-//                     <head>
-//                         <style>
-//                             body {font - family: Arial, sans-serif; background-color: #f6f9fc; color: #333; }
-//                             .container { max-width: 600px; margin: auto; padding: 20px; background-color: #fff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); }
-//                             .content {margin: 20px 0; }
-//                             .footer {text - align: center; font-size: 14px; margin-top: 20px; color: #777; }
-//                         </style>
-//                     </head>
-//                     <body>
-//                         <div class="container">
-//                             <div class="content">
-//                                 <h2 class="center_text">You came much later than your permitted time.</h2>
-//                                 <p>
-//                                     So, we are marking you as taking a half-day leave.
-//                                     Hereafter, please come early or by (${emp.workingTimePattern.StartingTime}).
-//                                     Please follow the company instructions.
-//                                     Thank you!
-//                                 </p>
-//                             </div>
+                subject = "Half-day Leave Applied (Unpaid Leave)";
+                htmlContent = `
+                    <html>
+                        <body>
+                            <h2>You have exceeded your permission limit.</h2>
+                            <p>We are marking you on a half-day leave due to late arrival. Please adhere to the company's policies.</p>
+                        </body>
+                    </html>`;
+            } else {
+                // Apply Permission Leave
+                const toDateTime = new Date(now.getTime() + 2 * 60 * 60 * 1000); // +2 hours
+                halfDayLeaveApp = {
+                    leaveType: "Permission Leave",
+                    fromDate: now,
+                    toDate: toDateTime,
+                    periodOfLeave: "half day",
+                    reasonForLeave: "Came too late",
+                    employee: emp._id.toString(),
+                    status: "approved",
+                    TeamLead: "approved",
+                    TeamHead: "approved",
+                    Hr: "approved",
+                    Manager: "approved"
+                };
 
-//                             <div class="footer">
-//                                 <p>Have questions? Need help? <a href="mailto:webnexs29@gmail.com">Contact our support team</a>.</p>
-//                             </div>
-//                         </div>
-//                     </body>
-//                 </html>`
-//                     sendMail({
-//                         From: process.env.FROM_MAIL,
-//                         To: emp.Email,
-//                         Subject: `Half-day Leave Applied(Unpaid Leave (LWP))`,
-//                         HtmlBody: htmlContent,
-//                     })
-//                 }
-//             } else {
-//                 try {
-//                     const halfDayLeaveApp = {
-//                         leaveType: "Unpaid Leave (LWP)",
-//                         fromDate: today,
-//                         toDate: today,
-//                         periodOfLeave: "half day",
-//                         reasonForLeave: "Came To late",
-//                         prescription: "",
-//                         employee: emp._id.toString(),
-//                         coverBy: null,
-//                         status: "rejected",
-//                         TeamLead: "rejected",
-//                         TeamHead: "rejected",
-//                         Hr: "rejected",
-//                     };
-//                     const { error } = LeaveApplicationValidation.validate(halfDayLeaveApp);
-//                     if (error) {
-//                         return res.status(400).send({ error: error.details[0].message })
-//                     }
-//                     const addLeave = await LeaveApplication.create(halfDayLeaveApp);
-//                     emp.leaveApplication.push(addLeave._id);
-//                     await emp.save();
+                subject = empPermissions.length === 1 ? "2nd Permission Applied" : "1st Permission Applied";
+                htmlContent = `
+                    <html>
+                        <body>
+                            <h2>${empPermissions.length === 1 ? "Second" : "First"} permission applied.</h2>
+                            <p>You have arrived late and have been granted a 2-hour permission. Ensure timely arrival.</p>
+                        </body>
+                    </html>`;
+            }
 
-//                     const htmlContent = `
-//                 <html>
-//                     <head>
-//                         <style>
-//                             body {font - family: Arial, sans-serif; background-color: #f6f9fc; color: #333; }
-//                             .container { max-width: 600px; margin: auto; padding: 20px; background-color: #fff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); }
-//                             .content {margin: 20px 0; }
-//                             .footer {text - align: center; font-size: 14px; margin-top: 20px; color: #777; }
-//                         </style>
-//                     </head>
-//                     <body>
-//                         <div class="container">
-//                             <div class="content">
-//                                 <h2 class="center_text">You came much later than your permitted time.</h2>
-//                                 <p>
-//                                     So, we are marking you as taking a half-day leave.
-//                                     Hereafter, please come early or by (${emp.workingTimePattern.StartingTime}).
-//                                     Please follow the company instructions.
-//                                     Thank you!
-//                                 </p>
-//                             </div>
+            const { error } = LeaveApplicationValidation.validate(halfDayLeaveApp);
+            if (error) {
+                return res.status(400).send({ error: error.details[0].message });
+            }
 
-//                             <div class="footer">
-//                                 <p>Have questions? Need help? <a href="mailto:${process.env.FROM_MAIL}">Contact our support team</a>.</p>
-//                             </div>
-//                         </div>
-//                     </body>
-//                 </html>`
-//                     sendMail({
-//                         From: process.env.FROM_MAIL,
-//                         To: emp.Email,
-//                         Subject: `Half-day Leave Applied(Unpaid Leave (LWP))`,
-//                         HtmlBody: htmlContent,
-//                     })
-//                 } catch (error) {
-//                     console.log(error);
-//                 }
-//             }
-//         }
-        let regular = 0, late = 0, early = 0;
-        const today = new Date();
-        const startOfDay = new Date(Date.UTC(
-            today.getUTCFullYear(),
-            today.getUTCMonth(),
-            today.getUTCDate(),
-            0, 0, 0, 0
-        ));
+            // Save Leave Application
+            const addLeave = await LeaveApplication.create(halfDayLeaveApp);
+            emp.leaveApplication.push(addLeave._id);
+            await emp.save();
 
-        const endOfDay = new Date(Date.UTC(
-            today.getUTCFullYear(),
-            today.getUTCMonth(),
-            today.getUTCDate(),
-            23, 59, 59, 999
-        ));
-
-        // Fetch employee details
-        const emp = await Employee.findById(req.params.id)
-            .populate("workingTimePattern")
-            .populate({ path: "clockIns", match: { date: { $gte: startOfDay, $lte: endOfDay } } });
-
-        if (!emp) {
-            return res.status(404).send({ error: "Employee not found!" });
+            // Send Email Notification
+            sendMail({
+                From: process.env.FROM_MAIL,
+                To: emp.Email,
+                Subject: subject,
+                HtmlBody: htmlContent,
+            });
         }
 
-        if (emp?.clockIns?.length > 0) {
-            return res.status(409).send({ message: "You have already Punch-In!" });
+        // Send response only once
+        return res.send({ message: "Permission applied for late employees" });
+
+    } catch (error) {
+        console.error(error);
+        return res.status(500).send({ error: error.message });
+    }
+});
+
+router.post("/not-login/apply-leave", async (req, res) => {
+    try {
+        
+    } catch (error) {
+        
+    }
+})
+
+router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
+    try {
+        let regular = 0, late = 0, early = 0;
+        const today = new Date();
+        const startOfDay = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate(), 0, 0, 0));
+        const endOfDay = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate(), 23, 59, 59));
+
+        // Fetch employee details with required fields
+        const emp = await Employee.findById(req.params.id)
+            .populate("workingTimePattern")
+            .populate({
+                path: "leaveApplication",
+                match: { fromDate: { $gte: startOfDay, $lte: endOfDay }, status: "approved", leaveType: "Permission Leave" }
+            })
+            .populate({ path: "clockIns", match: { date: { $gte: startOfDay, $lte: endOfDay } } });
+
+        if (!emp) return res.status(404).send({ error: "Employee not found!" });
+        if (emp?.clockIns?.length > 0) return res.status(409).send({ message: "You have already Punch-In!" });
+
+        // Office login time & employee login time
+        const officeLoginTime = emp?.workingTimePattern?.StartingTime || "9:00";
+        const loginTimeRaw = req.body?.login?.startingTime?.[0];
+        if (!loginTimeRaw) return res.status(400).send({ error: "You must start Punch-in Timer" });
+
+        // Function to convert time to minutes
+        const timeToMinutes = (time) => {
+            const [hours, minutes] = time.split(':').map(Number);
+            return hours * 60 + minutes;
+        };
+
+        // Handle permission leave & apply half-day leave if exceeded
+        if (emp?.leaveApplication.length > 0) {
+            const leave = emp.leaveApplication[0];
+            const totalPermissionMinutes = (new Date(leave.toDate).getTime() - new Date(leave.fromDate).getTime()) / 60000;
+            const companyLoginMinutes = timeToMinutes(officeLoginTime);
+            const empLoginMinutes = timeToMinutes(loginTimeRaw);
+
+            if (companyLoginMinutes + totalPermissionMinutes < empLoginMinutes) {
+                const halfDayLeaveApp = {
+                    leaveType: "Unpaid Leave (LWP)",
+                    fromDate: today,
+                    toDate: today,
+                    periodOfLeave: "half day",
+                    reasonForLeave: "Came too late",
+                    prescription: "",
+                    employee: emp._id,
+                    coverBy: "",
+                    status: "rejected",
+                    TeamLead: "rejected",
+                    TeamHead: "rejected",
+                    Hr: "rejected",
+                    approvedOn: null,
+                    approverId: []
+                };
+
+                const addLeave = await LeaveApplication.create(halfDayLeaveApp);
+                emp.leaveApplication.push(addLeave._id);
+                await emp.save();
+
+                // Send email notification
+                const htmlContent = `
+                <html>
+                    <head>
+                        <style>
+                            body { font-family: Arial, sans-serif; background-color: #f6f9fc; color: #333; }
+                            .container { max-width: 600px; margin: auto; padding: 20px; background-color: #fff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); }
+                            .content { margin: 20px 0; }
+                            .footer { text-align: center; font-size: 14px; margin-top: 20px; color: #777; }
+                        </style>
+                    </head>
+                    <body>
+                        <div class="container">
+                            <div class="content">
+                                <h2 class="center_text">You arrived much later than your permitted time.</h2>
+                                <p>
+                                    As a result, a half-day leave has been applied.  
+                                    Moving forward, please ensure you arrive on time by **${emp.workingTimePattern.StartingTime}**.  
+                                    Kindly adhere to company policies.  
+                                    **Thank you!**
+                                </p>
+                            </div>
+                            <div class="footer">
+                                <p>Need help? <a href="mailto:webnexs29@gmail.com">Contact our support team</a>.</p>
+                            </div>
+                        </div>
+                    </body>
+                </html>`;
+
+                sendMail({
+                    From: process.env.FROM_MAIL,
+                    To: emp.Email,
+                    Subject: `Half-day Leave Applied (Unpaid Leave - LWP)`,
+                    HtmlBody: htmlContent,
+                });
+            }
         }
 
         // Validate input data
         const { error } = clockInsValidation.validate(req.body);
         if (error) return res.status(400).send({ message: error.message });
 
-        // Extract and validate login time
-        const loginTimeRaw = req.body?.login?.startingTime?.[0];
-        if (!loginTimeRaw) {
-            return res.status(400).send({ error: "You must start Punch-in Timer" });
-        }
-
         // Function to check login status
-        const checkLogin = (scheduledTime, actualTime) => {
+        const checkLoginStatus = (scheduledTime, actualTime, permissionTime = 0) => {
             if (!scheduledTime || !actualTime) return null;
 
-            const [schH, schM] = scheduledTime.split(':').map(Number);
-            const [actH, actM] = actualTime.split(':').map(Number);
-            const scheduledDate = new Date(2000, 0, 1, schH, schM);
-            const actualDate = new Date(2000, 0, 1, actH, actM);
+            const scheduledMinutes = timeToMinutes(scheduledTime);
+            const actualMinutes = timeToMinutes(actualTime);
 
-            if (actualDate > scheduledDate) {
-                late++;
-                return "Late";
-            } else if (actualDate < scheduledDate) {
-                early++;
-                return "Early";
-            } else {
+            if (scheduledMinutes + permissionTime > actualMinutes) {
                 regular++;
                 return "On Time";
+            } else if (actualMinutes > scheduledMinutes) {
+                late++;
+                return "Late";
+            } else {
+                early++;
+                return "Early";
             }
         };
 
-        // Determine login behavior
-        const officeLoginTime = emp?.workingTimePattern?.StartingTime || "9:00";
+        // Determine employee behavior (Late, Early, On Time)
+        const loginTime = loginTimeRaw;
+        const permissionMinutes = emp?.leaveApplication?.length
+            ? (new Date(emp.leaveApplication[0].toDate).getTime() - new Date(emp.leaveApplication[0].fromDate).getTime()) / 60000
+            : 0;
 
-        const [hour, minute] = loginTimeRaw.split(":");
-        const loginTime = `${hour}:${minute}`;
-
-        // Synchronous check for behaviour
-        const behaviour = checkLogin(officeLoginTime, loginTime);
-
-        // Async check for punch-in message
-        const punchInMsg = await checkLoginForOfficeTime(officeLoginTime, loginTime);
+        const behaviour = checkLoginStatus(officeLoginTime, loginTime, permissionMinutes);
+        const punchInMsg = await checkLoginForOfficeTime(officeLoginTime, loginTime, permissionMinutes);
 
         // Create clock-in entry
         const newClockIns = await ClockIns.create({
             ...req.body,
-            behaviour: behaviour,  // Ensure it's explicitly assigned
-            punchInMsg: punchInMsg,  // Ensure it's explicitly assigned
+            behaviour,
+            punchInMsg,
             employee: req.params.id
         });
 
@@ -413,7 +376,7 @@ router.get("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
             });
 
         if (!timeData || timeData.clockIns.length === 0) {
-            return res.status(404).send({ message: "No clock-ins found for the given date." });
+            return res.status(200).send({ status: false, message: "No clock-ins found for the given date." });
         }
 
 
@@ -553,7 +516,7 @@ router.get("/employee/:empId", verifyAdminHREmployeeManagerNetwork, async (req, 
         endOfMonth = new Date(req.query.daterangeValue[1]);
     } else {
         startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-        const joiningDate = new Date(emp.dateOfJoining);
+        const joiningDate = new Date(emp?.dateOfJoining);
         if (startOfMonth.getTime() < joiningDate.getTime()) {
             startOfMonth = joiningDate;
         }
@@ -980,12 +943,5 @@ router.post("/remainder/:id/:timeOption", async (req, res) => {
     }
 })
 
-router.post("/auto-permission", async (req, res) => {
-    // try {
-        
-    // } catch (error) {
-
-    // }
-})
 
 module.exports = router;

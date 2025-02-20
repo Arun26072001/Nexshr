@@ -7,7 +7,7 @@ import { toast } from "react-toastify";
 import "./leaveForm.css";
 import { updateEmp } from "./ReuseableAPI";
 import { TimerStates } from "./payslip/HRMDashboard";
-import { useNavigate, useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import Loading from "./Loader";
 import NoDataFound from "./payslip/NoDataFound";
 import { EssentialValues } from "../App";
@@ -81,17 +81,20 @@ const EditEmployeeform = ({ details, empData, handleScroll, handlePersonal, hand
         validationSchema: empFormValidation,
         onSubmit: async (values, { resetForm }) => {
             try {
-                const res = await updateEmp(values, id)
-                toast.success(res);
-                changeEmpEditForm();
-                resetForm();
-            } catch (err) {
-                console.log(err);
-                if (err.response && err.response.data && err.response.data.error) {
-                    toast.error(err.response.data.error)
-                } else {
-                    console.log("error occured!");
+                const res = await updateEmp(values, id);
+                console.log(res);
+                if(res !== undefined){
+                    toast.success(res);
+                    changeEmpEditForm();
+                    resetForm();
                 }
+            } catch (err) {
+                // console.log(err);
+                // if (err.response && err.response.data && err.response.data.error) {
+                //     toast.error(err.response.data.error)
+                // } else {
+                console.log("error occured in edit employee!");
+                // }
             }
         }
     })
@@ -423,7 +426,7 @@ const EditEmployeeform = ({ details, empData, handleScroll, handlePersonal, hand
                                         </div>
                                         <SelectPicker
                                             className={`selectInput p-0 ${formik.touched.countryCode && formik.errors.countryCode ? "error" : ""}`}
-                                            style={{ background: "none", border: "none" }}
+                                            style={{ background: "none", border: "none", position: "relative", zIndex: 0 }}
                                             size="lg"
                                             data={countries}
                                             appearance="subtle"
@@ -466,7 +469,7 @@ const EditEmployeeform = ({ details, empData, handleScroll, handlePersonal, hand
                                         <div className="inputLabel">Country</div>
                                         <SelectPicker
                                             className={`selectInput p-0 ${formik.touched.country && formik.errors.country ? "error" : ""}`}
-                                            style={{ background: "none", border: "none" }}
+                                            style={{ background: "none", border: "none", position: "relative", zIndex: 0 }}
                                             size="lg"
                                             appearance="subtle"
                                             data={countries}
@@ -496,7 +499,7 @@ const EditEmployeeform = ({ details, empData, handleScroll, handlePersonal, hand
                                         <div className="inputLabel">State</div>
                                         <SelectPicker
                                             className="selectInput p-0"
-                                            style={{ background: "none", border: "none" }}
+                                            style={{ background: "none", border: "none", position: "relative", zIndex: 0 }}
                                             size="lg"
                                             appearance="subtle"
                                             value={formik.values.address.state}
@@ -629,7 +632,7 @@ const EditEmployeeform = ({ details, empData, handleScroll, handlePersonal, hand
                                         <div className="inputLabel">Public Holidays by</div>
                                         <SelectPicker
                                             className="selectInput p-0"
-                                            style={{ width: 300, border: "none", marginTop: "0px" }}
+                                            style={{ width: 300, border: "none", marginTop: "0px", position: "relative", zIndex: 0 }}
                                             size="lg"
                                             block
                                             appearance="subtle"

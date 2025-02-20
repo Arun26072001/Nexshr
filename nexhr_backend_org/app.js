@@ -217,7 +217,7 @@ async function fetchTimePatterns() {
       const [finishingHour, finishingMin] = pattern.FinishingTime.split(":").map(Number);
 
       // Schedule job for login
-      schedule.scheduleJob(`0 ${startingMin} ${startingHour} * * *`, async function () {
+      schedule.scheduleJob(`0 ${startingMin} ${startingHour} * * 1-5`, async function () {
         try {
           const response = await axios.post(`${process.env.REACT_APP_API_URL}/api/clock-ins/ontime/login`);
           console.log("Login Triggered:", response.data.message);
@@ -227,16 +227,27 @@ async function fetchTimePatterns() {
       });
 
       // apply permission for late late emps
-      // schedule.scheduleJob(`0 ${startingMin+5} ${startingHour} * * *`, async function (){
-      //   try {
-      //     const response = await axios.post(`${process.env.REACT_APP_API_URL}/api/clock-ins/auto-permission`)
-      //   } catch (error) {
-          
-      //   }
-      // })
+      schedule.scheduleJob(`0 ${startingMin + 5} ${startingHour} * * 1-5`, async function () {
+        try {
+          const response = await axios.post(`${process.env.REACT_APP_API_URL}/api/clock-ins/auto-permission`)
+          console.log(response.data.message);
+        } catch (error) {
+          console.log(error);
+        }
+      })
+
+      // send mail and apply fulday leave
+      schedule.scheduleJob(`0 ${finishingMin - 5} ${finishingHour} * * 1-5`, async function () {
+        try {
+          const response = await axios.post(`${process.env.REACT_APP_API_URL}/api/clock-ins/not-login/apply-leave`);
+          console.log("Apply Leave for Not-login Triggered:", response.data.message);
+        } catch (error) {
+          console.error("Logout Error:", error);
+        }
+      })
 
       // Schedule job for logout
-      schedule.scheduleJob(`0 ${finishingMin} ${finishingHour} * * *`, async function () {
+      schedule.scheduleJob(`0 ${finishingMin} ${finishingHour} * * 1-5`, async function () {
         try {
           const response = await axios.post(`${process.env.REACT_APP_API_URL}/api/clock-ins/ontime/logout`);
           console.log("Logout Triggered:", response.data.message);
