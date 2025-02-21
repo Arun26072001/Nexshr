@@ -86,7 +86,7 @@ const ActivityTimeTracker = () => {
         }
         setIsTaketime(!isViewTakeTime)
     }
-    console.log(isViewTakeTime)
+
     // Stop the timer with activity
     const stopTimer = async () => {
         console.log("stoping.........");
@@ -153,12 +153,12 @@ const ActivityTimeTracker = () => {
         }
     }, [sec])
 
-    window.addEventListener("unload", () => {
-        console.log("call in page change");
-        // if (isStartActivity) {
-        stopTimer();
-        // }
-    })
+    // window.addEventListener("unload", () => {
+    //     console.log("call in page change");
+    //     // if (isStartActivity) {
+    //     stopTimer();
+    //     // }
+    // })
 
     const formattedName = EmpName
         ? EmpName.charAt(0).toUpperCase() + EmpName.slice(1)

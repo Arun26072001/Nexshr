@@ -13,6 +13,7 @@ function timeToMinutes(timeStr) {
 }
 
 async function checkLoginForOfficeTime(scheduledTime, actualTime, permissionTime) {
+
     // Parse scheduled and actual time into hours and minutes
     const [scheduledHours, scheduledMinutes] = scheduledTime.split(':').map(Number);
     const [actualHours, actualMinutes] = actualTime.split(':').map(Number);
@@ -101,7 +102,7 @@ router.post("/auto-permission", async (req, res) => {
             const empPermissions = await LeaveApplication.find({
                 employee: emp._id,
                 fromDate: { $gte: startOfMonth, $lt: endOfMonth },
-                leaveType: "permission leave",
+                leaveType: "Permission Leave",
                 status: "approved"
             });
 
@@ -117,10 +118,11 @@ router.post("/auto-permission", async (req, res) => {
                     periodOfLeave: "half day",
                     reasonForLeave: "Came too late",
                     employee: emp._id.toString(),
-                    status: "rejected",
-                    TeamLead: "rejected",
-                    TeamHead: "rejected",
-                    Hr: "rejected",
+                    status: "approved",
+                    TeamLead: "approved",
+                    TeamHead: "approved",
+                    Hr: "approved",
+                    Manager: "approved"
                 };
 
                 subject = "Half-day Leave Applied (Unpaid Leave)";
@@ -188,9 +190,62 @@ router.post("/auto-permission", async (req, res) => {
 
 router.post("/not-login/apply-leave", async (req, res) => {
     try {
-        
+        const now = new Date();
+        const startOfDay = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 0, 0, 0, 0));
+        const endOfDay = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 23, 59, 59, 999));
+
+        // Fetch employees who haven't logged in
+        let notLoginEmps = await Employee.find()
+            .populate({
+                path: "clockIns",
+                match: { date: { $gte: startOfDay, $lt: endOfDay } }
+            })
+            .populate("workingTimePattern");
+
+        notLoginEmps = notLoginEmps.filter((emp) => emp?.clockIns?.length === 0);
+
+        for (const emp of notLoginEmps) {
+            fullDayLeaveApp = {
+                leaveType: "Unpaid Leave (LWP)",
+                fromDate: now,
+                toDate: now,
+                periodOfLeave: "full day",
+                reasonForLeave: "Didn't punchIn until EOD",
+                employee: emp._id.toString(),
+                status: "approved",
+                TeamLead: "approved",
+                TeamHead: "approved",
+                Hr: "approved",
+                Manager: "approved"
+            };
+
+            const subject = "Full-day Leave Applied (Unpaid Leave)";
+            const htmlContent = `
+                <html>
+                    <body>
+                        <h2>You didn't punch in on HRM until the end of the day.</h2>
+                        <p>As a result, we are marking you as on full-day leave, which will be deducted from your salary. Please adhere to the company's policies.</p>
+                    </body>
+                </html>`;
+
+            // Save Leave Application
+            const addLeave = await LeaveApplication.create(fullDayLeaveApp);
+            emp.leaveApplication.push(addLeave._id);
+            await emp.save();
+
+            // Send Email Notification
+            sendMail({
+                From: process.env.FROM_MAIL,
+                To: emp.Email,
+                Subject: subject,
+                HtmlBody: htmlContent,
+            });
+        }
+        res.send({ message: "Email sent notPunchin emps with applied Fullday leave" })
+
     } catch (error) {
-        
+        console.log(error);
+        return res.status(500).send({ error: error.message })
     }
 })
 
@@ -302,7 +357,7 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
             const scheduledMinutes = timeToMinutes(scheduledTime);
             const actualMinutes = timeToMinutes(actualTime);
 
-            if (scheduledMinutes + permissionTime > actualMinutes) {
+            if ((scheduledMinutes + permissionTime) > actualMinutes) {
                 regular++;
                 return "On Time";
             } else if (actualMinutes > scheduledMinutes) {
@@ -317,7 +372,7 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
         // Determine employee behavior (Late, Early, On Time)
         const loginTime = loginTimeRaw;
         const permissionMinutes = emp?.leaveApplication?.length
-            ? (new Date(emp.leaveApplication[0].toDate).getTime() - new Date(emp.leaveApplication[0].fromDate).getTime()) / 60000
+            ? ((new Date(emp.leaveApplication[0].toDate).getTime() - new Date(emp.leaveApplication[0].fromDate).getTime()) / 60000) / 60
             : 0;
 
         const behaviour = checkLoginStatus(officeLoginTime, loginTime, permissionMinutes);

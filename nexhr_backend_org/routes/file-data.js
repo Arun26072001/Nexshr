@@ -394,6 +394,74 @@ router.post("/employees", upload.single("documents"), verifyAdminHR, async (req,
     }
 });
 
+router.post("/leave", upload.single("documents"), verifyAdminHR, async (req, res) => {
+    if (!req.file) {
+        return res.status(400).json({ status: false, message: "No file uploaded." });
+    }
+
+    const months = [
+        "january", "february", "march", "april", "may", "june",
+        "july", "august", "september", "october", "november", "december"
+    ];
+
+    const filePath = req.file.path;
+    try {
+        const workbook = XLSX.readFile(filePath);
+        const sheetName = workbook.SheetNames[1]; // Get second sheet
+        const sheet = workbook.Sheets[sheetName];
+
+        if (!sheetName) {
+            throw new Error("Sheet not found!");
+        }
+
+        const monthNumber = months.findIndex(m => m === sheetName.toLowerCase());
+        if (monthNumber === -1) {
+            throw new Error("Invalid month detected in sheet name!");
+        }
+
+        // Convert to JSON while trimming empty rows
+        const excelData = XLSX.utils.sheet_to_json(sheet, { header: 0 });
+
+        let emps = [];
+
+        for (let i = 1; i < excelData.length; i++) {
+            const row = excelData[i];
+            let leaveAppDates = [];
+
+            const today = new Date();
+            today.setMonth(monthNumber);
+
+            Object.entries(row).forEach(([key, value]) => {
+                if (!isNaN(Number(key))) { // Check if key is a number (date column)
+                    const name = row["__EMPTY_1"]; // Assuming employee name is in this column
+
+                    const newLeaveData = {
+                        name,
+                        date: new Date(today.setDate(Number(key))), // Set correct date
+                        status: value
+                    };
+
+                    leaveAppDates.push(newLeaveData);
+                }
+            });
+
+            emps.push(...leaveAppDates);
+        }
+        console.log(emps);
+
+        res.status(200).json({ status: true, message: `${emps.length} employees' leave data added.` });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({
+            status: false,
+            error: error.message || "An error occurred during the bulk import process."
+        });
+    } finally {
+        if (fs.existsSync(filePath)) {
+            fs.unlinkSync(filePath); // Ensure the uploaded file is deleted
+        }
+    }
+});
 
 
 module.exports = router

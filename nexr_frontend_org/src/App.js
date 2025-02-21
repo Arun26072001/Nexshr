@@ -187,7 +187,6 @@ const App = () => {
     }
   }, []);
 
-// getUserLocation("13.0895", "80.2739")
 
   useEffect(() => {
     const handleOnline = () => {

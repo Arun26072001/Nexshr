@@ -57,6 +57,27 @@ export default function LeaveRequest() {
         filterLeaveRequests();
     }, [empName, daterangeValue]);
 
+     // Handle file upload
+     const handleUpload = async (file) => {
+        console.log(file);
+        const formData = new FormData();
+
+        formData.append('documents', file);
+
+        try {
+            const response = await axios.post(`${url}/api/google-sheet/upload/leave`, formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                    Authorization: token || ""
+                },
+            });
+            toast.success(response.data.message)
+        } catch (error) {
+            console.error('File upload failed:', error);
+            toast.error(error.response.data.error);
+        }
+    };
+
     const renderMenu = ({ onClose, right, top, className }, ref) => {
         const handleSelect = (eventKey) => {
             if (eventKey === 1) {
@@ -94,6 +115,12 @@ export default function LeaveRequest() {
             <Loading />
         ) : (
             <>
+                <input
+                    type="file"
+                    id="fileUploader"
+                    style={{ display: 'none' }}
+                    onChange={(e) => handleUpload(e.target.files[0])}
+                />
                 <div className='d-flex justify-content-between px-2'>
                     <p className="payslipTitle">
                         Leave Request

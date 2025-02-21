@@ -56,7 +56,7 @@ export const LeaveStates = createContext(null);
 export const TimerStates = createContext(null);
 
 export default function HRMDashboard() {
-    const navigator = useNavigate();
+    // const navigator = useNavigate();
     const { data, isStartLogin, isStartActivity, setIsStartLogin, setIsStartActivity, whoIs } = useContext(EssentialValues);
     const { token, Account, _id } = data;
     const { isTeamLead, isTeamHead } = jwtDecode(token);
@@ -358,6 +358,36 @@ export default function HRMDashboard() {
             console.error(error);
         }
     }
+
+    // when use close the tab or browser timer will stop.
+    window.addEventListener("unload", () => {
+        const currentTime = new Date().toTimeString().split(" ")[0];
+        const updatedState = {
+            ...workTimeTracker,
+            login: {
+                ...workTimeTracker?.login,
+                endingTime: [...(workTimeTracker?.login?.endingTime || []), currentTime],
+                timeHolder: workTimeTracker?.login?.timeHolder,
+            },
+        };
+        localStorage.setItem("timerState", JSON.stringify(updatedState));
+    });
+
+    // Restore timer when the page loads
+    useEffect(() => {
+        async function stopTimerForClosed() {
+            const savedState = localStorage.getItem("timerState");
+            if (savedState && isStartLogin) {
+                const timerData = JSON.parse(savedState);
+                const updatedData = await updateDataAPI(timerData);
+                setWorkTimeTracker(updatedData);
+                setIsStartLogin(false);
+                localStorage.setItem("isStartLogin", false);
+            }
+        }
+        stopTimerForClosed();
+    }, [])
+
 
     // to view attendance data for admin and hr
     useEffect(() => {

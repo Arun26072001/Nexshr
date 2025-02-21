@@ -191,7 +191,7 @@ const LeaveRequestForm = () => {
 
   function handleLeaveType(e) {
     const { name, value } = e.target;
-    if (['sick leave', 'medical leave', "permission leave"].includes(value.toLowerCase())) {
+    if (['sick leave', 'medical leave', "Permission Leave"].includes(value.toLowerCase())) {
       setExcludeDates([]);
       formik.setFieldValue(`${name}`, value);
     } else {

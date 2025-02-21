@@ -151,8 +151,8 @@ router.get('/:id', verifyAdminHREmployeeManagerNetwork, async (req, res) => {
     const emp = await Employee.findById(req.params.id)
       .populate("role")
       .populate({
-        path: "leaveApplication",  
-        match: { leaveType: { $ne: "permission leave" } }, // Fixed issue
+        path: "leaveApplication",
+        match: { leaveType: { $ne: "Permission Leave" } }, // Fixed issue
       })
       .populate("workingTimePattern")
       .populate("department")
@@ -197,6 +197,28 @@ router.get('/:id', verifyAdminHREmployeeManagerNetwork, async (req, res) => {
     res.status(500).send({ error: err.message });
   }
 });
+
+// router.post("/add/company", async (req, res) => {
+//   try {
+//     const emps = await Employee.find().exec();
+//     for (const emp of emps) {
+//       const empData = {
+//         ...emp,
+//         company: "679b5ee55eb2dc34115be175"
+//       }
+//       console.log(empData);
+
+//       await Employee.findByIdAndUpdate(emp._id,
+//         { $set: { company: "679b5ee55eb2dc34115be175" } }, // Only update the `company` field
+//         { new: true } // Returns updated document)
+//       )
+//     }
+//     res.status(200).send({ message: "All employes has been udpated" })
+
+//   } catch (error) {
+//     console.log(error);
+//   }
+// })
 
 router.post("/", verifyAdminHR, async (req, res) => {
   try {

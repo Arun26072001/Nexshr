@@ -76,7 +76,7 @@ console.log(takenLeave);
 
           leaveReqs.leaveApplications.forEach((req) => {
             // if (req.status === "pending" || req.status === "approved") {
-            if (req.status === "approved" && req.leaveType !== "permission leave") {
+            if (req.status === "approved" && req.leaveType !== "Permission Leave") {
               let toDate = new Date(req.toDate);
               let fromDate = new Date(req.fromDate);
               let timeDifference = toDate - fromDate;
@@ -188,7 +188,7 @@ console.log(takenLeave);
               <button className='button' onClick={() => navigate(`/${whoIs}/leave-request`)}>Apply Leave</button>
             </div>
             <div className=''>
-              <button className="outline-btn p-2">Absence history</button>
+              <button className="outline-btn p-2" onClick={()=>navigate(`/${whoIs}/job-desk/leave`)}>Absence history</button>
             </div>
           </div>
           <div className="row" >

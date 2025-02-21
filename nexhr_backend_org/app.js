@@ -64,7 +64,7 @@ mongoose
   .connect(mongoURI, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
-
+    serverSelectionTimeoutMS: 30000 
   })
   .then(() => console.log("db connection successful"))
   .catch(err => console.log(err));
@@ -263,7 +263,6 @@ async function fetchTimePatterns() {
 
 // Call function to schedule jobs
 fetchTimePatterns();
-
 
 schedule.scheduleJob("0 10 * * *", async () => {
   try {

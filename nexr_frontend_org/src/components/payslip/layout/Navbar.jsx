@@ -14,6 +14,8 @@ import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
 import KeyboardArrowDownRoundedIcon from '@mui/icons-material/KeyboardArrowDownRounded';
 
 export default function Navbar({ handleSideBar }) {
+    const [lat, setLat] = useState("")
+    const [long, setLong] = useState("");
     const { handleLogout, data } = useContext(EssentialValues)
     const { startLoginTimer, stopLoginTimer, workTimeTracker, isStartLogin, trackTimer } = useContext(TimerStates);
     const [sec, setSec] = useState(workTimeTracker?.login?.timeHolder?.split(':')[2])
@@ -83,12 +85,6 @@ export default function Navbar({ handleSideBar }) {
             workRef.current = null;
         }
     };
-
-    window.addEventListener("unload", () => {
-        if (isStartLogin) {
-            stopTimer();
-        }
-    })
 
     useEffect(() => {
         const startLength = workTimeTracker?.login?.startingTime?.length || 0;
@@ -173,7 +169,6 @@ export default function Navbar({ handleSideBar }) {
                         Authorization: data.token || ""
                     }
                 })
-                console.log(res.data);
                 res.data.forEach((item, index) => {
                     setIsRemove((pre) => {
                         const updated = [...pre];
@@ -256,9 +251,34 @@ export default function Navbar({ handleSideBar }) {
         }, 300)
     }
 
+    // const getAddressFromCoordinates = async (latitude, longitude) => {
+    //     const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`;
+
+    //     try {
+    //         const response = await fetch(url);
+    //         const data = await response.json();
+    //         console.log(data.display_name);
+    //     } catch (error) {
+    //         console.error("Error fetching address:", error);
+    //         return "Address not found";
+    //     }
+    // };
+    // useEffect(() => {
+    //     navigator.geolocation.getCurrentPosition((position) => {
+    //         console.log(position.coords.longitude, position.coords.latitude);
+
+    //         setLat(position.coords.latitude);
+    //         setLong(position.coords.longitude);
+    //     })
+    // }, [])
+
+    // if (lat && long) {
+    //     getAddressFromCoordinates(12.894208, 80.1439744)
+    // }
+
     return (
         <div className="webnxs">
-            <div className="row mx-auto">
+            <div className="row mx-auto justify-content-between">
                 <div className="col-lg-3 col-md-3 col-6 d-flex align-items-center">
                     <div className={`sidebarIcon`} onClick={handleSideBar}>
                         <TableRowsRoundedIcon />
@@ -273,7 +293,7 @@ export default function Navbar({ handleSideBar }) {
                     <span style={{ fontSize: "16px", fontWeight: "700" }}>NexHR</span>
                 </div>
 
-                <div className='col-lg-3 col-md-3  col-6 d-flex align-items-center justify-content-center'>
+                <div className='col-lg-1 col-md-3  col-6 d-flex align-items-center justify-content-center'>
                     <div className='d-flex align-items-center gap-1 timerTxt' >
                         <span>{hour.toString().padStart(2, '0')}</span> :
                         <span>{min.toString().padStart(2, '0')}</span> :
@@ -324,7 +344,11 @@ export default function Navbar({ handleSideBar }) {
                     </div>
                 </div>
 
-                <div className='gap-2 col-lg-3 col-md-3 d-flex align-items-center justify-content-end'>
+                <div className='gap-2 col-lg-4 col-md-3 d-flex align-items-center justify-content-end'>
+                    <Dropdown title={"Choose your work place"} >
+                        <Dropdown.Item>Work From Home</Dropdown.Item>
+                        <Dropdown.Item>Work From Office</Dropdown.Item>
+                    </Dropdown>
                     <span className="lg ms-5">
                         <svg width="16" height="17" viewBox="0 0 16 17" fill="none" xmlns="http://www.w3.org/2000/svg">
                             <g clipPath="url(#clip0_2046_6893)">
