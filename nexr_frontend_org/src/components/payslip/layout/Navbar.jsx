@@ -349,10 +349,10 @@ export default function Navbar({ handleSideBar }) {
                 </div>
 
                 <div className='gap-2 col-lg-4 col-md-3 d-flex align-items-center justify-content-end'>
-                    <Dropdown title={"Choose your work place"} >
+                    {/* <Dropdown title={"Choose your work place"} >
                         <Dropdown.Item>Work From Home</Dropdown.Item>
                         <Dropdown.Item>Work From Office</Dropdown.Item>
-                    </Dropdown>
+                    </Dropdown> */}
                     <span className="lg ms-5">
                         <svg width="16" height="17" viewBox="0 0 16 17" fill="none" xmlns="http://www.w3.org/2000/svg">
                             <g clipPath="url(#clip0_2046_6893)">
