@@ -8,6 +8,7 @@ const sendMail = require("./mailSender");
 const { Employee } = require("../models/EmpModel");
 const { ClockIns } = require("../models/ClockInsModel");
 const { LeaveApplication, LeaveApplicationValidation } = require("../models/LeaveAppModel");
+const { devNull } = require("os");
 
 const timeToMinutes = (timeStr) => {
     if (!timeStr) return 0;
@@ -405,51 +406,113 @@ router.post("/leave", upload.single("documents"), verifyAdminHR, async (req, res
     ];
 
     const filePath = req.file.path;
+
     try {
         const workbook = XLSX.readFile(filePath);
-        const sheetName = workbook.SheetNames[1]; // Get second sheet
-        const sheet = workbook.Sheets[sheetName];
 
+        // Ensure there is at least one sheet
+        if (workbook.SheetNames.length < 2) {
+            throw new Error("The second sheet is missing!");
+        }
+
+        const sheetName = workbook.SheetNames[1]; // Get the second sheet name
         if (!sheetName) {
             throw new Error("Sheet not found!");
         }
 
         const monthNumber = months.findIndex(m => m === sheetName.toLowerCase());
         if (monthNumber === -1) {
-            throw new Error("Invalid month detected in sheet name!");
+            throw new Error(`Invalid month detected in sheet name: ${sheetName}`);
         }
 
-        // Convert to JSON while trimming empty rows
+        const sheet = workbook.Sheets[sheetName];
         const excelData = XLSX.utils.sheet_to_json(sheet, { header: 0 });
 
-        let emps = [];
+        let leaveApps = [];
+        let existsApps = [];
+        const today = new Date();
+        today.setMonth(monthNumber);
 
         for (let i = 1; i < excelData.length; i++) {
             const row = excelData[i];
-            let leaveAppDates = [];
-
-            const today = new Date();
-            today.setMonth(monthNumber);
+            const name = row["__EMPTY_1"]?.trim(); // Ensure name is trimmed
 
             Object.entries(row).forEach(([key, value]) => {
-                if (!isNaN(Number(key))) { // Check if key is a number (date column)
-                    const name = row["__EMPTY_1"]; // Assuming employee name is in this column
+                if (!isNaN(Number(key))) { // Check if key is a date
+                    const leaveDate = new Date(today);
+                    leaveDate.setDate(Number(key));
 
-                    const newLeaveData = {
-                        name,
-                        date: new Date(today.setDate(Number(key))), // Set correct date
-                        status: value
-                    };
-
-                    leaveAppDates.push(newLeaveData);
+                    if (["CL / SL", "CL", "SL", "HD", "LOP"].includes(value)) {
+                        leaveApps.push({
+                            name,
+                            date: leaveDate,
+                            status: value
+                        });
+                    }
                 }
             });
-
-            emps.push(...leaveAppDates);
         }
-        console.log(emps);
 
-        res.status(200).json({ status: true, message: `${emps.length} employees' leave data added.` });
+        if (leaveApps.length === 0) {
+            throw new Error("No valid leave entries found in the sheet.");
+        }
+
+        // Fetch employee data in bulk
+        const employeeMap = {};
+        const employeeNames = leaveApps.map(leave => leave.name.split(" ")[0]);
+        const employees = await Employee.find({
+            FirstName: { $regex: new RegExp(`^(${employeeNames.join("|")})`, "i") }
+        });
+
+        employees.forEach(emp => {
+            employeeMap[emp.FirstName.toLowerCase()] = emp;
+        });
+
+        // Create leave applications in bulk
+        const leaveApplications = await Promise.all(leaveApps.map(async leave => {
+            const emp = employeeMap[leave.name.split(" ")[0].toLowerCase()];
+            if (!emp) return null; // Skip if employee is not found
+            if (await LeaveApplication.exists({ employee: emp._id, date: leave.date })) {
+                existsApps.push(leave);
+                return null;
+            } else {
+                return {
+                    leaveType: leave.status === "CL" ? "Annual Leave"
+                        : leave.status === "SL" ? "Sick Leave"
+                            : leave.status === "LOP" ? "Unpaid Leave(LOP)"
+                                : "Annual Leave",
+                    fromDate: leave.date,
+                    toDate: leave.date,
+                    periodOfLeave: leave.status === "HD" ? "half day" : "full day",
+                    reasonForLeave: "Employee's person reason",
+                    prescription: "",
+                    employee: emp._id.toString(),
+                    coverBy: null,
+                    status: "approved",
+                    TeamLead: "approved",
+                    TeamHead: "approved",
+                    Hr: "approved",
+                    approvedOn: new Date(),
+                    approverId: []
+                };
+            }
+        }));
+
+        const onlyLeaveApps = leaveApplications?.filter(leave => leave !== null);
+        const createdLeaves = await LeaveApplication.insertMany(onlyLeaveApps);
+
+        // Update employee leave applications
+        await Promise.all(createdLeaves.map(async (leave) => {
+            const emp = await Employee.findById(leave.employee)
+
+            if (emp) {
+                emp.leaveApplication.push(leave._id);
+                await emp.save();
+            }
+        }));
+
+        res.status(200).json({ status: true, message: `${createdLeaves.length} leave applications added and ${existsApps.length} leave app exists.` });
+
     } catch (error) {
         console.error(error);
         res.status(500).json({
@@ -458,10 +521,9 @@ router.post("/leave", upload.single("documents"), verifyAdminHR, async (req, res
         });
     } finally {
         if (fs.existsSync(filePath)) {
-            fs.unlinkSync(filePath); // Ensure the uploaded file is deleted
+            fs.unlinkSync(filePath); // Delete uploaded file
         }
     }
 });
-
 
 module.exports = router

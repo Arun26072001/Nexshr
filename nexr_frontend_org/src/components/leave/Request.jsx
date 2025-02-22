@@ -57,8 +57,8 @@ export default function LeaveRequest() {
         filterLeaveRequests();
     }, [empName, daterangeValue]);
 
-     // Handle file upload
-     const handleUpload = async (file) => {
+    // Handle file upload
+    const handleUpload = async (file) => {
         console.log(file);
         const formData = new FormData();
 
@@ -71,7 +71,8 @@ export default function LeaveRequest() {
                     Authorization: token || ""
                 },
             });
-            toast.success(response.data.message)
+            toast.success(response.data.message);
+            changeRequests();
         } catch (error) {
             console.error('File upload failed:', error);
             toast.error(error.response.data.error);
