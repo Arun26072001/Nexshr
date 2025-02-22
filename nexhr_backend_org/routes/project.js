@@ -151,7 +151,6 @@ router.put("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
     delete req.body['_id'];
     delete req.body["__v"]
     const updatedProject = { ...req.body };
-    console.log(updatedProject);
 
     // Validate the request body
     const { error } = projectValidation.validate(updatedProject);
@@ -183,7 +182,7 @@ router.put("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>${assignedPerson.company.CompanyName}</title>
+  <title>${assignedPerson?.company?.CompanyName}</title>
   <style>
       body {
           font-family: Arial, sans-serif;

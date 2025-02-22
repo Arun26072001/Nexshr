@@ -6,8 +6,8 @@ var employeeSchema = new mongoose.Schema({
   LastName: { type: String },
   Email: { type: String },
   Password: { type: String },
-  teamLead: { type: mongoose.Types.ObjectId, ref: "Employee" },
-  team: { type: mongoose.Types.ObjectId, ref: "Team" },
+  teamLead: { type: mongoose.Types.ObjectId, ref: "Employee", default: null },
+  team: { type: mongoose.Types.ObjectId, ref: "Team" , default: null},
   countryCode: { type: String },
   phone: { type: String },
   panNumber: { type: String },
@@ -16,7 +16,7 @@ var employeeSchema = new mongoose.Schema({
   dateOfBirth: { type: String },
   clockIns: [{ type: mongoose.Schema.Types.ObjectId, ref: "clockIns" }],
   gender: { type: String },
-  monthlyPermissions: {type: Number, default: 2},
+  monthlyPermissions: { type: Number, default: 2 },
   code: { type: String },
   isLogin: { type: Boolean, default: false },
   serialNo: { type: String },
@@ -31,13 +31,13 @@ var employeeSchema = new mongoose.Schema({
     zipCode: { type: String }
   },
   social: { type: mongoose.Schema.Types.Mixed, default: {} },
-  position: { type: mongoose.Schema.Types.ObjectId, ref: "Position",default:null },
-  department: { type: mongoose.Schema.Types.ObjectId, ref: "Department", default:null },
-  role: { type: mongoose.Schema.Types.ObjectId, ref: "RoleAndPermission" },
-  company: { type: mongoose.Schema.Types.ObjectId, ref: "Company" },
+  position: { type: mongoose.Schema.Types.ObjectId, ref: "Position", default: null },
+  department: { type: mongoose.Schema.Types.ObjectId, ref: "Department", default: null },
+  role: { type: mongoose.Schema.Types.ObjectId, ref: "RoleAndPermission", default: null },
+  company: { type: mongoose.Schema.Types.ObjectId, ref: "Company", default: null },
   description: { type: String },
   dateOfJoining: { type: String },
-  employmentType: { type: String }, 
+  employmentType: { type: String },
   benefits: [{ type: String }],
   managerId: { type: mongoose.Schema.Types.ObjectId, ref: "Employee" }, // Reference to another employee
   emergencyContacts: [
@@ -54,7 +54,7 @@ var employeeSchema = new mongoose.Schema({
   publicHoliday: {
     type: String
   },
-  announcements: [{type: mongoose.Schema.Types.ObjectId, ref: "Announcement", default: []}],
+  announcements: [{ type: mongoose.Schema.Types.ObjectId, ref: "Announcement", default: [] }],
   annualLeaveYearStart: {
     type: Date, default: new Date().toISOString()
   },

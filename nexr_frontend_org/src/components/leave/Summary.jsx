@@ -4,6 +4,7 @@ import LeaveTable from '../LeaveTable';
 import NoDataFound from '../payslip/NoDataFound';
 import Loading from '../Loader';
 import { LeaveStates } from '../payslip/HRMDashboard';
+import "../payslip/payslip.css";
 
 export default function LeaveSummary() {
     const { empName, setEmpName, filterLeaveRequests, leaveRequests, daterangeValue, isLoading, setDaterangeValue } = useContext(LeaveStates);

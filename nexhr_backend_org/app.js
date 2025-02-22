@@ -64,7 +64,7 @@ mongoose
   .connect(mongoURI, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
-
+    serverSelectionTimeoutMS: 30000 
   })
   .then(() => console.log("db connection successful"))
   .catch(err => console.log(err));
@@ -217,22 +217,42 @@ async function fetchTimePatterns() {
       const [finishingHour, finishingMin] = pattern.FinishingTime.split(":").map(Number);
 
       // Schedule job for login
-      schedule.scheduleJob(`0 ${startingMin} ${startingHour} * * *`, async function () {
+      schedule.scheduleJob(`0 ${startingMin} ${startingHour} * * 1-5`, async function () {
         try {
-          const response = await axios.post(`${process.env.API_URL}/api/clock-ins/ontime/login`);
+          const response = await axios.post(`${process.env.REACT_APP_API_URL}/api/clock-ins/ontime/login`);
           console.log("Login Triggered:", response.data.message);
         } catch (error) {
           console.error("Login Error:", error.message);
         }
       });
 
-      // Schedule job for logout
-      schedule.scheduleJob(`0 ${finishingMin} ${finishingHour} * * *`, async function () {
+      // apply permission for late late emps
+      schedule.scheduleJob(`0 ${startingMin + 5} ${startingHour} * * 1-5`, async function () {
         try {
-          const response = await axios.post(`${process.env.API_URL}/api/clock-ins/ontime/logout`);
+          const response = await axios.post(`${process.env.REACT_APP_API_URL}/api/clock-ins/auto-permission`)
+          console.log(response.data.message);
+        } catch (error) {
+          console.log(error);
+        }
+      })
+
+      // send mail and apply fulday leave
+      schedule.scheduleJob(`0 ${finishingMin - 5} ${finishingHour} * * 1-5`, async function () {
+        try {
+          const response = await axios.post(`${process.env.REACT_APP_API_URL}/api/clock-ins/not-login/apply-leave`);
+          console.log("Apply Leave for Not-login Triggered:", response.data.message);
+        } catch (error) {
+          console.error("Logout Error:", error);
+        }
+      })
+
+      // Schedule job for logout
+      schedule.scheduleJob(`0 ${finishingMin} ${finishingHour} * * 1-5`, async function () {
+        try {
+          const response = await axios.post(`${process.env.REACT_APP_API_URL}/api/clock-ins/ontime/logout`);
           console.log("Logout Triggered:", response.data.message);
         } catch (error) {
-          console.error("Logout Error:", error.message);
+          console.error("Logout Error:", error);
         }
       });
     });
@@ -243,7 +263,6 @@ async function fetchTimePatterns() {
 
 // Call function to schedule jobs
 fetchTimePatterns();
-
 
 schedule.scheduleJob("0 10 * * *", async () => {
   try {
@@ -265,7 +284,6 @@ schedule.scheduleJob("0 7 * * *", async () => {
 
 // Start Server
 const port = process.env.PORT;
-console.log(port);
 
 server.listen(port, () => console.log(`Server listening on port ${port}!`));
 process.on("uncaughtException", (err) => {

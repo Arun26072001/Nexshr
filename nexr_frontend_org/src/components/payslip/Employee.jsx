@@ -55,7 +55,9 @@ export default function Employee() {
                 setEmployees(empData);
                 setAllEmployees(empData);
             } catch (error) {
-                setErrorData(error.response.data.message)
+                console.log("error: ", error);
+
+                setErrorData(error.response.data.error)
                 toast.error("Failed to fetch employees");
             }
             setIsLoading(false);
@@ -68,7 +70,7 @@ export default function Employee() {
                 setEmployees(empData);
                 setAllEmployees(empData);
             } catch (error) {
-                console.log(error);
+                console.log("error: ", error);
 
                 // setErrorData(error.response.data.message)
                 toast.error("Failed to fetch employees");
@@ -78,6 +80,8 @@ export default function Employee() {
 
         if (data.Account === "1") {
             fetchAllEmployeeData()
+        } else if (data.Account === "3") {
+            navigate(`/${whoIs}/unauthorize`)
         } else {
             fetchEmployeeData();
         }
@@ -147,7 +151,7 @@ export default function Employee() {
                     ) : errorData ? (
                         <NoDataFound message={errorData} />
                     ) : (
-                        // employees.length > 0 &&
+                        employees.length > 0 &&
                         <LeaveTable data={employees} />
                     )
                 }

@@ -210,7 +210,7 @@ const Attendence = (props) => {
               </div>
             </div>
           </div>
-          <div className="d-flex justify-content-end align-items-center">
+          <div className="d-flex justify-content-between align-items-center px-2">
             <div>
               <DateRangePicker value={daterangeValue} placeholder="Select Date" onChange={setDaterangeValue} />
             </div>

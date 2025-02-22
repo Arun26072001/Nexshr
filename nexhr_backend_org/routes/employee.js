@@ -31,9 +31,8 @@ router.get("/", verifyAdminHR, async (req, res) => {
     res.send(employees)
   } catch (err) {
     console.log(err);
-    res.status(500).send({ message: err.message })
+    res.status(500).send({ error: err.message })
   }
-
 });
 
 router.get("/user", verifyAdminHR, async (req, res) => {
@@ -84,7 +83,7 @@ router.get("/user", verifyAdminHR, async (req, res) => {
     });
   } catch (err) {
     console.error(err);
-    res.status(500).send({ message: "Internal server error", details: err.message });
+    res.status(500).send({ error: err.message });
   }
 });
 
@@ -151,12 +150,16 @@ router.get('/:id', verifyAdminHREmployeeManagerNetwork, async (req, res) => {
   try {
     const emp = await Employee.findById(req.params.id)
       .populate("role")
-      .populate("leaveApplication")
+      .populate({
+        path: "leaveApplication",
+        match: { leaveType: { $ne: "Permission Leave" } }, // Fixed issue
+      })
       .populate("workingTimePattern")
       .populate("department")
       .populate("position")
-      // .populate("company")
       .exec();
+    console.log(emp);
+
 
     if (!emp) {
       return res.status(404).send({ error: "Employee not found!" });
@@ -184,16 +187,38 @@ router.get('/:id', verifyAdminHREmployeeManagerNetwork, async (req, res) => {
     res.send({
       ...emp.toObject(), // Ensure that you return a plain object, not a Mongoose document
       pendingLeaveRequests: pendingLeaveRequests?.length,
-      totalTakenLeaveCount,
+      totalTakenLeaveCount: Number(totalTakenLeaveCount?.toFixed(2)),
       collegues
     });
 
   } catch (err) {
     console.log(err);
 
-    res.status(500).send({ details: err.message });
+    res.status(500).send({ error: err.message });
   }
 });
+
+// router.post("/add/company", async (req, res) => {
+//   try {
+//     const emps = await Employee.find().exec();
+//     for (const emp of emps) {
+//       const empData = {
+//         ...emp,
+//         company: "679b5ee55eb2dc34115be175"
+//       }
+//       console.log(empData);
+
+//       await Employee.findByIdAndUpdate(emp._id,
+//         { $set: { company: "679b5ee55eb2dc34115be175" } }, // Only update the `company` field
+//         { new: true } // Returns updated document)
+//       )
+//     }
+//     res.status(200).send({ message: "All employes has been udpated" })
+
+//   } catch (error) {
+//     console.log(error);
+//   }
+// })
 
 router.post("/", verifyAdminHR, async (req, res) => {
   try {
@@ -214,7 +239,7 @@ router.post("/", verifyAdminHR, async (req, res) => {
       teamLead: teamLead || "665601de20a3c61c646a135f",
       managerId: managerId || "6651e4a810994f1d24cf3a19",
       workingTimePattern: req.body.workingTimePattern || "667a7413c8d506a974e3dabd",
-      company: company || "6651a5eb6115df44c0cc7151",
+      company: company || "679b5ee55eb2dc34115be175",
       position: null,
       department: null,
       annualLeaveEntitlement: annualLeaveEntitlement || 14,
@@ -257,7 +282,7 @@ router.post("/", verifyAdminHR, async (req, res) => {
             <a href="${process.env.FRONTEND_URL}" class="button">Confirm Email</a>
           </div>
           <div class="footer">
-            <p>Have questions? Need help? <a href="mailto:webnexs29@gmail.com">Contact our support team</a>.</p>
+            <p>Have questions? Need help? <a href="mailto:${process.env.FRONTEND_URL}">Contact our support team</a>.</p>
           </div>
         </div>
       </body>
@@ -295,6 +320,11 @@ router.put("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
     }
     let newEmployee = {
       ...req.body,
+      company: req?.body?.company || null,
+      position: req?.body?.position || null,
+      department: req?.body?.department || null,
+      teamLead: req?.body?.teamLead || "665601de20a3c61c646a135f",
+      managerId: req?.body?.managerId || "6651e4a810994f1d24cf3a19",
       Account: roleName?.toLowerCase() === "manager" ? 4 : roleName.toLowerCase() === "network admin" ? 5 : 3
     };
 
@@ -304,7 +334,56 @@ router.put("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
         ['companyWorkingHourPerWeek']: `${req.body.hour}.${req.body.mins}`
       };
     }
+    const { Email, Password } = await Employee.findById(req.params.id, "Email Password").exec();
+    if (Email !== req.body.Email || Password !== req.body.Password) {
+      // send mail for update their credentials
 
+      const htmlContent = `
+      <!DOCTYPE html>
+      <html lang="en">
+      <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>NexsHR</title>
+        <style>
+          body { font-family: Arial, sans-serif; background-color: #f6f9fc; color: #333; }
+          .container { max-width: 600px; margin: auto; padding: 20px; background-color: #fff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); }
+          .header { text-align: center; padding: 20px; }
+          .header img { max-width: 100px; }
+          .content { margin: 20px 0; }
+          .footer { text-align: center; font-size: 14px; margin-top: 20px; color: #777; }
+          .button { display: inline-block; padding: 10px 20px; background-color: #28a745; color: #fff !important; text-decoration: none; border-radius: 5px; margin-top: 10px; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <img src="https://imagedelivery.net/r89jzjNfZziPHJz5JXGOCw/1dd59d6a-7b64-49d7-ea24-1366e2f48300/public" alt="Logo" />
+            <h1>Welcome to NexsHR</h1>
+          </div>
+          <div class="content">
+            <p>Hey ${FirstName} ${LastName} 👋,</p>
+            <p><b>Your Updated credentials</b></p><br />
+            <p><b>Email</b>: ${req.body.Email}</p>
+            <p><b>Password</b>: ${req.body.Password}</p><br />
+            <p>Your details has been Updated, Hereafter please use these credentials for login.</p>
+            <p>Thank you.</p>
+          </div>
+          <div class="footer">
+            <p>Have questions? Need help? <a href="mailto:${process.env.FROM_MAIL}">Contact our support team</a>.</p>
+          </div>
+        </div>
+      </body>
+      </html>`;
+
+      sendMail({
+        From: process.env.FROM_MAIL,
+        To: Email,
+        Subject: "Your Credentials are updated",
+        HtmlBody: htmlContent,
+      });
+
+    }
     const updatedEmp = await Employee.findByIdAndUpdate({ _id: req.params.id }, newEmployee, { new: true })
     res.send({ message: `${updatedEmp.FirstName} data has been updated!` });
   } catch (err) {

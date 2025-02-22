@@ -14,6 +14,7 @@ var leaveApplicationSchema = new mongoose.Schema({
   TeamLead: { type: String, default: "pending" },
   TeamHead: { type: String, default: "pending" },
   Hr: { type: String, default: "pending" },
+  Manager: { type: String, default: "pending" },
   appliedOn: { type: Date, default: new Date().toISOString() },
   approvedOn: { type: Date },
   approverId: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Employee' }]
@@ -37,7 +38,8 @@ const LeaveApplicationValidation = Joi.object({
   appliedOn: Joi.date().label('appliedOn'),
   TeamLead: Joi.string().allow("", null),
   TeamHead: Joi.string().allow("", null),
-  Hr: Joi.string().allow("", null)
+  Hr: Joi.string().allow("", null),
+  Manager: Joi.string().allow("", null)
 });
 
 const LeaveApplicationHRValidation = Joi.object().keys({

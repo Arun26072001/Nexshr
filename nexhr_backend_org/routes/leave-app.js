@@ -649,6 +649,8 @@ leaveApp.get("/date-range/:empId", verifyAdminHREmployeeManagerNetwork, async (r
     if (employeeLeaveData?.leaveApplication.length > 0) {
       let leaveData = employeeLeaveData.leaveApplication.map(data => data).flat();
       leaveData = leaveData.sort((a, b) => new Date(a.fromDate) - new Date(b.fromDate));
+      
+
       leaveData = leaveData.map((leave) => {
         return {
           ...leave.toObject(),
@@ -733,7 +735,7 @@ leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("pre
       coverBy,
     } = req.body;
 
-    const leaveTypeLower = leaveType.toLowerCase();
+    // const leaveTypeLower = leaveType.toLowerCase();
     const prescription = req.file ? req.file.filename : null;
 
     // Ensure `coverBy` is either null or a valid value
@@ -741,7 +743,7 @@ leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("pre
 
     // Construct leave request object
     const leaveRequest = {
-      leaveType: leaveTypeLower,
+      leaveType,
       fromDate,
       toDate,
       periodOfLeave,

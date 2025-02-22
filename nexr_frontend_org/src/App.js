@@ -10,6 +10,7 @@ import { jwtDecode } from "jwt-decode";
 import "./App.css";
 import 'rsuite/dist/rsuite.min.css';
 import "react-datepicker/dist/react-datepicker.css";
+import { getUserLocation } from "./components/ReuseableAPI.jsx";
 
 export const EssentialValues = createContext(null);
 
@@ -185,7 +186,6 @@ const App = () => {
       }
     }
   }, []);
-  console.log(whoIs);
 
 
   useEffect(() => {

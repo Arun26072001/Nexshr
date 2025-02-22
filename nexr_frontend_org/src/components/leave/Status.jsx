@@ -4,6 +4,7 @@ import LeaveTable from '../LeaveTable';
 import NoDataFound from '../payslip/NoDataFound';
 import { DateRangePicker } from 'rsuite';
 import { LeaveStates } from '../payslip/HRMDashboard';
+import "../payslip/payslip.css";
 
 export default function Status() {
     const { empName, setEmpName, filterLeaveRequests, leaveRequests, isLoading, daterangeValue, setDaterangeValue } = useContext(LeaveStates);

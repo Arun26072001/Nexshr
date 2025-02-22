@@ -40,7 +40,19 @@ const LeaveRequestForm = () => {
   let leaveObjValidation = Yup.object().shape({
     leaveType: Yup.string().required("Leave type is required!"),
     fromDate: Yup.date()
-      .min(new Date(), "You can select a date from tomorrow")
+      .test(
+        "min-date",
+        "You can select a date from tomorrow",
+        function (value) {
+          const { leaveType } = this.parent;
+          console.log(leaveType);
+          // Accessing another field
+          if (leaveType !== "Permission Leave" && value) {
+            return value >= new Date(); // Ensure the date is in the future
+          }
+          return true;
+        }
+      )
       .required("From Date is required")
       .test(
         "weekend check",
@@ -53,7 +65,18 @@ const LeaveRequestForm = () => {
           return true;
         }
       ),
-    toDate: Yup.date().min(new Date(), "You can select date from Tomorrow")
+    toDate: Yup.date()
+      .test(
+        "min-date",
+        "To Date must be after From Date",
+        function (value) {
+          const { fromDate } = this.parent; // Accessing another field
+          if (value && fromDate) {
+            return value >= fromDate; // Ensure `toDate` is not before `fromDate`
+          }
+          return true;
+        }
+      )
       .test("check weekend",
         "Weekend is not allowed",
         (date) => {
@@ -70,7 +93,6 @@ const LeaveRequestForm = () => {
     prescription: Yup.string().notRequired(),
     coverBy: Yup.string().notRequired()
   });
-
   const formik = useFormik({
     initialValues: leaveObj,
     validationSchema: leaveObjValidation,
@@ -169,7 +191,7 @@ const LeaveRequestForm = () => {
 
   function handleLeaveType(e) {
     const { name, value } = e.target;
-    if (value === "medical leave" || value === "sick leave") {
+    if (['sick leave', 'medical leave', "Permission Leave"].includes(value.toLowerCase())) {
       setExcludeDates([]);
       formik.setFieldValue(`${name}`, value);
     } else {

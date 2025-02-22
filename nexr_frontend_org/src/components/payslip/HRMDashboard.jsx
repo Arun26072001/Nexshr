@@ -56,7 +56,7 @@ export const LeaveStates = createContext(null);
 export const TimerStates = createContext(null);
 
 export default function HRMDashboard() {
-    const navigator = useNavigate();
+    // const navigator = useNavigate();
     const { data, isStartLogin, isStartActivity, setIsStartLogin, setIsStartActivity, whoIs } = useContext(EssentialValues);
     const { token, Account, _id } = data;
     const { isTeamLead, isTeamHead } = jwtDecode(token);
@@ -262,7 +262,7 @@ export default function HRMDashboard() {
 
     function changeEmpEditForm(id) {
         if (isEditEmp) {
-            navigate(`/${whoIs}`);
+            navigate(["manager", "admin", "hr"].includes(whoIs) ? `/${whoIs}/employee` : `/${whoIs}`);
             setIsEditEmp(false);
         } else {
             navigate(`employee/edit/${id}`);
@@ -290,6 +290,8 @@ export default function HRMDashboard() {
                         authorization: token || ""
                     }
                 })
+
+                console.log(leaveData.data);
 
                 setLeaveRequests(leaveData.data);
                 setFullLeaveRequests(leaveData.data);
@@ -357,6 +359,36 @@ export default function HRMDashboard() {
         }
     }
 
+    // when use close the tab or browser timer will stop.
+    window.addEventListener("unload", () => {
+        const currentTime = new Date().toTimeString().split(" ")[0];
+        const updatedState = {
+            ...workTimeTracker,
+            login: {
+                ...workTimeTracker?.login,
+                endingTime: [...(workTimeTracker?.login?.endingTime || []), currentTime],
+                timeHolder: workTimeTracker?.login?.timeHolder,
+            },
+        };
+        localStorage.setItem("timerState", JSON.stringify(updatedState));
+    });
+
+    // Restore timer when the page loads
+    useEffect(() => {
+        async function stopTimerForClosed() {
+            const savedState = localStorage.getItem("timerState");
+            if (savedState && isStartLogin) {
+                const timerData = JSON.parse(savedState);
+                const updatedData = await updateDataAPI(timerData);
+                setWorkTimeTracker(updatedData);
+                setIsStartLogin(false);
+                localStorage.setItem("isStartLogin", false);
+            }
+        }
+        stopTimerForClosed();
+    }, [])
+
+
     // to view attendance data for admin and hr
     useEffect(() => {
         if (["1", "2", "5"].includes(Account)) {
@@ -404,6 +436,7 @@ export default function HRMDashboard() {
         localStorage.setItem("isStartActivity", isStartActivity);
         fetchCompanies();
     }, [isStartLogin, isStartActivity]);
+    console.log(leaveRequests);
 
     return (
         <TimerStates.Provider value={{ workTimeTracker, reloadRolePage, setIsEditEmp, updateWorkTracker, trackTimer, startLoginTimer, stopLoginTimer, changeReasonForLate, startActivityTimer, stopActivityTimer, setWorkTimeTracker, updateClockins, timeOption, isStartLogin, isStartActivity, changeEmpEditForm, isEditEmp }}>

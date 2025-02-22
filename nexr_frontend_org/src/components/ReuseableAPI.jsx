@@ -6,7 +6,6 @@ const token = localStorage.getItem('token');
 
 const updateDataAPI = async (body) => {
     try {
-        console.log(body._id);
         if (body._id) {
             const response = await axios.put(`${url}/api/clock-ins/${body._id}`, body, {
                 headers: { authorization: token || '' },
@@ -164,12 +163,7 @@ const fetchEmployees = async () => {
         });
         return res.data;
     } catch (err) {
-        console.log(err);
-        if (err.response && err.response.data && err.response.data.message) {
-            return err.response.data.message;
-        } else {
-            return err;
-        }
+        return err
     }
 }
 
@@ -305,9 +299,30 @@ const updateEmp = async (data, id) => {
         })
         return res.data.message;
     } catch (error) {
-        return error.response.data.error;
+        toast.error(error.response.data.error);
     }
 }
+
+async function getUserLocation(lat, lng) {
+    const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`;
+
+    try {
+        const response = await fetch(url);
+        const data = await response.json();
+
+        if (data && data.display_name) {
+            console.log("User Location:", data.display_name);
+            return data.display_name;
+        } else {
+            console.error("Geocoding failed:", data);
+            return null;
+        }
+    } catch (error) {
+        console.error("Error fetching location:", error);
+        return null;
+    }
+}
+
 
 const addSecondsToTime = (timeString, secondsToAdd) => {
     // Validate and normalize the timeString format
@@ -373,6 +388,7 @@ export {
     updateDataAPI,
     fetchPayslipFromEmp,
     fetchPayslipInfo,
+    getUserLocation,
     fetchPayslip,
     removeClockinsData,
     fetchLeaveRequests,
