@@ -821,10 +821,11 @@ leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("pre
     if (!empData) {
       return res.status(400).json({ error: `No employee found for ID ${empId}` });
     }
-
-    const leaveDaysCount = empData?.typesOfLeaveRemainingDays?.[leaveType] || 0;
-    if (leaveDaysCount < takenLeaveCount) {
-      return res.status(400).json({ error: `${leaveType} leave limit reached.` });
+    if (leaveType !== "Permission Leave") {
+      const leaveDaysCount = empData?.typesOfLeaveRemainingDays?.[leaveType] || 0;
+      if (leaveDaysCount < takenLeaveCount) {
+        return res.status(400).json({ error: `${leaveType} limit reached.` });
+      }
     }
 
     // Validate leave request schema
