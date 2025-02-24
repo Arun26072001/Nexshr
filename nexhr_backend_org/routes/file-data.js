@@ -511,7 +511,7 @@ router.post("/leave", upload.single("documents"), verifyAdminHR, async (req, res
             }
         }));
 
-        res.status(200).json({ status: true, message: `${createdLeaves.length} leave applications added and ${existsApps.length} leave app exists.` });
+        res.status(200).json({ status: true, message: `${createdLeaves.length} leave applications added and ${existsApps.length} leave application exists.` });
 
     } catch (error) {
         console.error(error);

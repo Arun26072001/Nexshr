@@ -360,7 +360,9 @@ export default function HRMDashboard() {
     }
 
     // when use close the tab or browser timer will stop.
-    window.addEventListener("unload", () => {
+    window.addEventListener("beforeunload", (e) => {
+        e.preventDefault();
+        e.returnValue = "";
         const currentTime = new Date().toTimeString().split(" ")[0];
         const updatedState = {
             ...workTimeTracker,
@@ -387,6 +389,7 @@ export default function HRMDashboard() {
         }
         stopTimerForClosed();
     }, [])
+
 
     // to view attendance data for admin and hr
     useEffect(() => {

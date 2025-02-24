@@ -4,7 +4,7 @@ const { LeaveApplication,
   LeaveApplicationValidation
 } = require('../models/LeaveAppModel');
 const { Employee } = require('../models/EmpModel');
-const { verifyHR, verifyHREmployee, verifyEmployee, verifyAdmin, verifyAdminHREmployeeManagerNetwork, verifyAdminHR } = require('../auth/authMiddleware');
+const { verifyHR, verifyHREmployee, verifyEmployee, verifyAdmin, verifyAdminHREmployeeManagerNetwork, verifyAdminHR, verifyAdminHREmployee } = require('../auth/authMiddleware');
 const { Position } = require('../models/PositionModel');
 const { Team } = require('../models/TeamModel');
 const { upload } = require('./imgUpload');
@@ -649,7 +649,7 @@ leaveApp.get("/date-range/:empId", verifyAdminHREmployeeManagerNetwork, async (r
     if (employeeLeaveData?.leaveApplication.length > 0) {
       let leaveData = employeeLeaveData.leaveApplication.map(data => data).flat();
       leaveData = leaveData.sort((a, b) => new Date(a.fromDate) - new Date(b.fromDate));
-      
+
 
       leaveData = leaveData.map((leave) => {
         return {
@@ -821,10 +821,11 @@ leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("pre
     if (!empData) {
       return res.status(400).json({ error: `No employee found for ID ${empId}` });
     }
-
-    const leaveDaysCount = empData?.typesOfLeaveRemainingDays?.[leaveType] || 0;
-    if (leaveDaysCount < takenLeaveCount) {
-      return res.status(400).json({ error: `${leaveType} leave limit reached.` });
+    if (leaveType !== "Permission Leave") {
+      const leaveDaysCount = empData?.typesOfLeaveRemainingDays?.[leaveType] || 0;
+      if (leaveDaysCount < takenLeaveCount) {
+        return res.status(400).json({ error: `${leaveType} limit reached.` });
+      }
     }
 
     // Validate leave request schema
@@ -924,10 +925,13 @@ function generateCoverByEmail(empData, relievingOffData) {
   `;
 }
 
-leaveApp.put('/:id', verifyHREmployee, async (req, res) => {
+leaveApp.put('/:id', verifyAdminHREmployee, async (req, res) => {
   try {
     const today = new Date();
-    const startOfDay = new Date(today.setHours(0, 0, 0, 0));
+    const leaveAppStartedHour = new Date(req.body.fromDate).getHours()
+    console.log(leaveAppStartedHour);
+
+    const startOfDay = new Date(today.setHours((leaveAppStartedHour || 0) - 2, 0, 0, 0));
 
     const { Hr, TeamLead, TeamHead, employee, leaveType, ...restBody } = req.body;
     const approvers = [Hr, TeamLead, TeamHead];

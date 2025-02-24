@@ -65,10 +65,6 @@ const Announce = () => {
         fetchAnnouncements();
     }, [changeAnnouncement]);
 
-    function triggernotifications() {
-        toast.success("hai")
-    }
-
     return (
         isLoading ? <Loading /> :
             <div className='dashboard-parent py-4'>

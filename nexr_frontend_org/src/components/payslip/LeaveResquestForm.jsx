@@ -87,6 +87,25 @@ const LeaveRequestForm = () => {
           return true;
         }
       )
+      .test(
+        "max-2-hours",
+        "Leave cannot be more than 2 hours",
+        function (value) {
+          const { fromDate, leaveType } = this.parent;
+          if (value && fromDate && leaveType === "Permission Leave") {
+            console.log(value, fromDate, leaveType);
+
+            const fromTime = new Date(fromDate).getTime(); // Ensure timestamp conversion
+            const toTime = new Date(value).getTime(); // Ensure timestamp conversion
+
+            const twoHours = 2 * 60 * 60 * 1000; // ✅ Convert 2 hours to milliseconds
+            console.log(toTime - fromTime <= twoHours);
+
+            return toTime - fromTime <= twoHours; // ✅ Now properly checks for 2 hours
+          }
+          return true; // Allow validation to pass for other leave types
+        }
+      )
       .required("ToDate is required"),
     reasonForLeave: Yup.string().required("Reason for Leave is required"),
     periodOfLeave: Yup.string().notRequired(),
@@ -246,7 +265,7 @@ const LeaveRequestForm = () => {
                 <option>Select Leave type</option>
                 {Object.entries(typeOfLeave)?.length > 0 &&
                   Object.entries(typeOfLeave)?.map((data) => {
-                    return <option value={`${data[0]}`}>{data[0]?.charAt(0)?.toUpperCase() + data[0]?.slice(1)} Leave</option>;
+                    return <option value={`${data[0]}`}>{data[0]?.charAt(0)?.toUpperCase() + data[0]?.slice(1)}</option>;
                   })
                 }
               </select>
@@ -348,7 +367,7 @@ const LeaveRequestForm = () => {
                 <button
                   type="button"
                   className="btn btn-outline-dark w-100"
-                  onClick={() => navigate(-1)}
+                  onClick={() => navigate(`/${whoIs}`)}
                 >
                   Cancel
                 </button>
