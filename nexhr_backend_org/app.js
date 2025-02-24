@@ -157,17 +157,19 @@ const io = new Server(server, {
   },
 });
 
-// let users = {};
-
 // Socket.IO Connection
 io.on("connection", (socket) => {
   console.log("A user connected:", socket.id);
 
+  socket.on("join_room", (employeeId) => {
+    socket.join(employeeId);
+    console.log(`Employee ${employeeId} joined room`);
+  });
   // Listen for HR's announcement
   socket.on("send_announcement", (data) => {
     console.log("send announcement: ", data);
     // Emit announcement to the selected employee(s)
-    io.to(data.employeeId).emit("receive_announcement", data);
+    data.selectTeamMembers.map((emp) => io.to(emp).emit("receive_announcement", data))
   });
 
   socket.on("disconnect", () => {
@@ -175,33 +177,6 @@ io.on("connection", (socket) => {
   });
 });
 
-//   socket.on("registerUser", (userId) => {
-//     console.log(`User registered: ${userId} with socket ID: ${socket.id}`);
-//     users[userId] = socket.id;
-//   });
-//   console.log("170", users);
-
-//   socket.on("sendNotification", (userId, title, message) => {
-//     if (users[userId]) {
-//       io.to(users[userId]).emit("receiveNotification", { title, message });
-//       console.log(`Notification sent to user ${userId}`);
-//     } else {
-//       console.log(`User ${userId} not found`);
-//     }
-//   });
-
-//   socket.on("disconnect", () => {
-//     for (let userId in users) {
-//       if (users[userId] === socket.id) {
-//         delete users[userId];
-//         break;
-//       }
-//     }
-//     console.log(`User disconnected: ${socket.id}`);
-//   });
-// });
-
-// generate payslip each month of 5th
 schedule.scheduleJob("0 10 5 * *", async function () {
   try {
     const response = await axios.post(`${process.env.REACT_APP_API_URL}/api/payslip/`, {});
