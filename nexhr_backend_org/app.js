@@ -64,7 +64,7 @@ mongoose
   .connect(mongoURI, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
-    serverSelectionTimeoutMS: 30000 
+    serverSelectionTimeoutMS: 30000
   })
   .then(() => console.log("db connection successful"))
   .catch(err => console.log(err));
@@ -161,16 +161,19 @@ const io = new Server(server, {
 
 // Socket.IO Connection
 io.on("connection", (socket) => {
-  console.log(`A user connected: ${socket.id}`);
-  socket.on("add-announcement", (announcementData, users) => {
-    console.log("from client", announcementData, users);
-    io.emit("send-notification", users, announcementData.title, announcementData.message)
+  console.log("A user connected:", socket.id);
 
-    socket.on("disconnect", () => {
-      console.log("A user disconnected:", socket.id);
-    });
+  // Listen for HR's announcement
+  socket.on("send_announcement", (data) => {
+    console.log("send announcement: ", data);
+    // Emit announcement to the selected employee(s)
+    io.to(data.employeeId).emit("receive_announcement", data);
   });
-})
+
+  socket.on("disconnect", () => {
+    console.log("User disconnected:", socket.id);
+  });
+});
 
 //   socket.on("registerUser", (userId) => {
 //     console.log(`User registered: ${userId} with socket ID: ${socket.id}`);
@@ -207,7 +210,6 @@ schedule.scheduleJob("0 10 5 * *", async function () {
     console.error("Error while generating payslips:", err);
   }
 });
-
 async function fetchTimePatterns() {
   try {
     const timePatterns = await TimePattern.find();

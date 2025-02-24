@@ -9,15 +9,13 @@ import AddRoundedIcon from '@mui/icons-material/AddRounded';
 import companyLogo from "../../imgs/webnexs_logo.webp";
 
 const AnnouncementComponent = ({ handleChangeAnnouncement }) => {
-    const { data, sendNotification } = useContext(EssentialValues);
+    const { data } = useContext(EssentialValues);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [team_member, setTeam_member] = useState([]);
     const [announcementObj, setAnnouncementObj] = useState({})
     const url = process.env.REACT_APP_API_URL;
     // Connect to the backend socket
-    const socket = io(`${url}`, {
-        autoConnect: false
-    });
+    const socket = io(`${url}`);
 
     const headers = {
         Authorization: data.token || ""
@@ -50,8 +48,6 @@ const AnnouncementComponent = ({ handleChangeAnnouncement }) => {
     }
 
     function changeAnnouncementData(value, name) {
-        console.log(value);
-
         setAnnouncementObj((pre) => ({
             ...pre,
             [name]: value
@@ -67,30 +63,28 @@ const AnnouncementComponent = ({ handleChangeAnnouncement }) => {
             handleChangeAnnouncement();
             handleModel();
             toast.success(addAnnounce.data.message);
-            socket.connect();
-            socket.on("connect", () => {
-                socket.emit('add-announcement', announcementObj, announcementObj?.selectTeamMembers);
+            console.log("Socket connected:", socket.connected); // Debugging line
+            socket.emit("send_announcement", {
+                employeeId: announcementObj?.selectTeamMembers,
+                message: announcementObj?.message,
             });
         } catch (error) {
             toast.error(error.response.data.error)
             console.error('Error creating the announcement or sending notification:', error);
         }
     };
-
     useEffect(() => {
         socket.connect();
-            socket.on("connect", () => {
-                console.log("connected");
-            });
-        socket.on("send-notification", (emps, title, message) => {
-            console.log("Received Notification:", emps, title, message);
-            sendNotification(emps, companyLogo, title, message);
+        // Listen for announcements
+        socket.on("receive_announcement", (data) => {
+            console.log(data);
+            toast.success(data)
         });
 
         return () => {
-            socket.off("send-notification");
+            socket.off("receive_announcement");
         };
-    },[]);
+    }, []);
 
 
     return (
