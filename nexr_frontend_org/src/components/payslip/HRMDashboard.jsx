@@ -388,7 +388,6 @@ export default function HRMDashboard() {
         stopTimerForClosed();
     }, [])
 
-
     // to view attendance data for admin and hr
     useEffect(() => {
         if (["1", "2", "5"].includes(Account)) {

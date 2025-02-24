@@ -458,7 +458,7 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
         { id: 'name', label: 'Name', minWidth: 100, align: "left", getter: (row) => row.name },
         { id: 'abbreviation', label: 'Abbreviation', minWidth: 100, align: "left", getter: (row) => row.abbr },
         { id: 'code', label: 'Code', minWidth: 100, align: "left", getter: (row) => row.code },
-        { id: 'state', label: 'State', minWidth: 130, align: "left", getter: (row) => row.state.length ? row.state.join(", ") : "N/A" },
+        { id: 'state', label: 'State', minWidth: 130, align: "left", getter: (row) => row?.state?.length ? row.state.join(", ") : "N/A" },
         {
             id: "Action",
             label: "Action",

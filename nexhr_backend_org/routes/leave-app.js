@@ -735,7 +735,7 @@ leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("pre
       coverBy,
     } = req.body;
 
-    // const leaveTypeLower = leaveType.toLowerCase();
+    // const leaveType = leaveType.toLowerCase();
     const prescription = req.file ? req.file.filename : null;
 
     // Ensure `coverBy` is either null or a valid value
@@ -759,7 +759,7 @@ leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("pre
     const fromDateObj = new Date(fromDate);
 
     // Handle sick leave restriction
-    if (leaveTypeLower.includes("sick") || leaveTypeLower.includes("medical")) {
+    if (leaveType.includes("Sick Leave") || leaveType.includes("Medical Leave")) {
       const isTodayOrYesterday =
         fromDateObj.toDateString() === today.toDateString() ||
         fromDateObj.toDateString() === yesterday.toDateString();
@@ -770,7 +770,7 @@ leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("pre
     }
 
     // Handle permission leave restrictions
-    if (leaveTypeLower.includes("permission")) {
+    if (leaveType.includes("Permission Leave")) {
       const now = new Date();
       const startDate = new Date(now.getFullYear(), now.getMonth(), 1);
       const endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0);
@@ -778,7 +778,7 @@ leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("pre
       const emp = await Employee.findById(empId, "_id monthlyPermissions")
         .populate({
           path: "leaveApplication",
-          match: { leaveType: "permission", fromDate: { $gte: startDate, $lte: endDate } },
+          match: { leaveType: "Permission Leave", fromDate: { $gte: startDate, $lte: endDate } },
         });
 
       const permissionTime = (new Date(toDate) - new Date(fromDate)) / 60000;
