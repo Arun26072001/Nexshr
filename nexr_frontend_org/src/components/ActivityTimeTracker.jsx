@@ -16,9 +16,10 @@ const ActivityTimeTracker = () => {
         workTimeTracker,
         isStartActivity,
         timeOption,
-        trackTimer, changeReasonForLate
+        trackTimer,
+        changeReasonForLate
     } = useContext(TimerStates);
-    const { data } = useContext(EssentialValues);
+    const { data, socket } = useContext(EssentialValues);
 
     const [isDisabled, setIsDisabled] = useState(false);
     const EmpName = localStorage.getItem("Name") || "Employee";
@@ -77,6 +78,14 @@ const ActivityTimeTracker = () => {
             await startActivityTimer();
             trackTimer()
             timerRef.current = setInterval(incrementTime, 1000);
+            if (["morningBreak", "eveningBreak", "lunch"].includes(timeOption)) {
+
+                socket.emit("send_notification", {
+                    employee: data._id,
+                    timeOption,
+                    time: timeOption === "lunch" ? 30 : 15
+                })
+            }
         }
     };
 
@@ -89,7 +98,6 @@ const ActivityTimeTracker = () => {
 
     // Stop the timer with activity
     const stopTimer = async () => {
-        console.log("stoping.........");
 
         if (timerRef.current) {
             await stopActivityTimer();
@@ -117,6 +125,11 @@ const ActivityTimeTracker = () => {
             console.log(error);
         }
     }
+    useEffect(() => {
+        socket.on("Ask_reason_for_late", () => {
+            changeViewReasonForTaketime()
+        })
+    }, [socket])
 
     // Manage timer state based on startingTime and endingTime
     useEffect(() => {

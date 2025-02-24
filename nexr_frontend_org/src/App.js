@@ -144,7 +144,7 @@ const App = () => {
         >
           <strong>{announcement.title}</strong>
           <br />
-          {announcement.message}
+          <div dangerouslySetInnerHTML={{ __html: announcement.message }} />
         </Notification>,
         { placement: 'bottomEnd' }
       );
@@ -255,7 +255,8 @@ const App = () => {
         setIsStartLogin,
         isStartActivity,
         whoIs,
-        setIsStartActivity
+        setIsStartActivity,
+        socket
       }}
     >
       <ToastContainer />
