@@ -138,6 +138,45 @@ function verifyAdminHR(req, res, next) {
   });
 }
 
+function verifyAdminHREmployee(req, res, next) {
+  // Retrieve the token from the Authorization header
+  const authHeader = req.headers['authorization'];
+
+  if (!authHeader) {
+    // If no Authorization header is present
+    console.log("Missing authorization token");
+    return res.status(401).json({ error: "Authorization token is required" });
+  }
+
+  // Extract the token (e.g., "Bearer <token>")
+  const token = authHeader.startsWith("Bearer ") ? authHeader.split(" ")[1] : authHeader;
+
+  // Verify the token
+  jwt.verify(token, jwtKey, (err, authData) => {
+    if (err) {
+      // Handle token verification errors
+      console.error("Token verification error:", err.message);
+      return res.status(401).json({ error: "Invalid or expired token" });
+    }
+
+    // Ensure authData is valid and contains the Account field
+    if (!authData || typeof authData.Account === 'undefined') {
+      console.error("Invalid token payload: Account property missing");
+      return res.status(403).json({ error: "Access denied" });
+    }
+
+    // Check if the user has admin or HR access
+    if ([1, 2, 3].includes(authData.Account)) {
+      // User is authorized
+      next();
+    } else {
+      // User is not authorized
+      console.warn("Unauthorized access attempt");
+      return res.status(403).json({ error: "Access denied" });
+    }
+  });
+}
+
 function verifyAdmin(req, res, next) {
   const token = req.headers['authorization'];
 
@@ -270,6 +309,7 @@ module.exports = {
   verifyHREmployee,
   verifyAdminHR,
   verifyAdminHrNetworkAdmin,
+  verifyAdminHREmployee,
   verifyAdmin,
   verifyAdminHREmployeeManagerNetwork,
   verifySuperAdmin,
