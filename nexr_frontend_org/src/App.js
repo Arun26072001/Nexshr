@@ -10,13 +10,16 @@ import { jwtDecode } from "jwt-decode";
 import "./App.css";
 import 'rsuite/dist/rsuite.min.css';
 import "react-datepicker/dist/react-datepicker.css";
-import { getUserLocation } from "./components/ReuseableAPI.jsx";
+import io from "socket.io-client";
+import { Notification, toaster } from "rsuite";
+import companyLogo from "./imgs/webnexs_logo.webp";
 
 export const EssentialValues = createContext(null);
 
 const App = () => {
   const url = process.env.REACT_APP_API_URL;
   // State Variables
+  const socket = io(`${url}`);
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [showOfflineAlert, setShowOfflineAlert] = useState(false);
   const [whoIs, setWhoIs] = useState("");
@@ -110,50 +113,6 @@ const App = () => {
     }
   };
 
-  function sendNotification(emps, companyLogo, title, message) {
-    console.log("getting notification");
-
-    if (emps?.includes(data._id)) {
-      const companyName = "Webnexs";
-      toast.success("success");
-      // toaster.push(
-      //   <Notification
-      //     header={
-      //       <div style={{ display: 'flex', alignItems: 'center' }}>
-
-      //         <img src={companyLogo} alt="Company Logo" style={{ width: 50, height: 50, marginRight: 10 }} />
-
-      //         <span style={{ fontWeight: 'bold', fontSize: '16px' }}>{companyName}</span>
-      //       </div>
-      //     }
-      //     closable
-      //   >
-      //     <strong>{title}</strong>
-      //     <br />
-      //     {message}
-      //   </Notification>,
-      //   { placement: 'bottomEnd' }
-      // );
-    }
-  }
-  // useEffect(() => {
-  //   socket.connect(); // Correct way to initiate connection
-
-  //   // socket.on("connect", () => {
-  //   //   console.log("Connected to server");
-  //   //   socket.emit("get-data", "hi");
-  //   // });
-
-  //   // Listen for a response from the server
-  //   socket.on("data-response", (data) => {
-  //     console.log("Received from server:", data);
-  //   });
-
-  //   // Cleanup function to prevent memory leaks
-  //   return () => {
-  //     socket.disconnect();
-  //   };
-  // }, []);
 
   const handleSubmit = (event) => {
     event.preventDefault();
@@ -161,6 +120,67 @@ const App = () => {
     login(event.target[0].value, event.target[1].value);
     event.target.reset();
   };
+
+  useEffect(() => {
+    if (!socket.connected) {
+      socket.connect();
+    }
+
+    socket.emit("join_room", data._id); // ✅ Make sure the employee joins their room
+
+    socket.on("receive_announcement", (announcement) => {
+      
+      toaster.push(
+        <Notification
+          header={
+            <div style={{ display: 'flex', alignItems: 'center' }}>
+
+              <img src={companyLogo} alt="Company Logo" style={{ width: 50, height: 50, marginRight: 10 }} />
+
+              <span style={{ fontWeight: 'bold', fontSize: '16px' }}>Webnexs</span>
+            </div>
+          }
+          closable
+        >
+          <strong>{announcement.title}</strong>
+          <br />
+          {announcement.message}
+        </Notification>,
+        { placement: 'bottomEnd' }
+      );
+    });
+
+    return () => {
+      socket.off("receive_announcement");
+    };
+  }, [data._id]);
+
+  // const announcement = {
+  //   title: "System Maintenance Alert",
+  //   message: "Our system will be under maintenance from 2 AM to 4 AM.",
+  // };
+  
+  // // Show notification
+  // toaster.push(
+  //   <Notification
+  //     header={
+  //       <div style={{ display: 'flex', alignItems: 'center' }}>
+  //         <img
+  //           src={companyLogo}
+  //           alt="Company Logo"
+  //           style={{ width: 50, height: 50, marginRight: 10 }}
+  //         />
+  //         <span style={{ fontWeight: 'bold', fontSize: '16px' }}>Webnexs</span>
+  //       </div>
+  //     }
+  //     closable
+  //   >
+  //     <strong>{announcement.title}</strong>
+  //     <br />
+  //     {announcement.message}
+  //   </Notification>,
+  //   { placement: 'bottomEnd' }
+  // );
 
   // Effects
   useEffect(() => {
@@ -235,8 +255,7 @@ const App = () => {
         setIsStartLogin,
         isStartActivity,
         whoIs,
-        setIsStartActivity,
-        sendNotification
+        setIsStartActivity
       }}
     >
       <ToastContainer />

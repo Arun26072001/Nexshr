@@ -6,7 +6,6 @@ import { toast } from 'react-toastify';
 import CommonModel from '../Administration/CommonModel';
 import { EssentialValues } from '../../App';
 import AddRoundedIcon from '@mui/icons-material/AddRounded';
-import companyLogo from "../../imgs/webnexs_logo.webp";
 
 const AnnouncementComponent = ({ handleChangeAnnouncement }) => {
     const { data } = useContext(EssentialValues);
@@ -64,27 +63,12 @@ const AnnouncementComponent = ({ handleChangeAnnouncement }) => {
             handleModel();
             toast.success(addAnnounce.data.message);
             console.log("Socket connected:", socket.connected); // Debugging line
-            socket.emit("send_announcement", {
-                employeeId: announcementObj?.selectTeamMembers,
-                message: announcementObj?.message,
-            });
+            socket.emit("send_announcement", addAnnounce.data.data);
         } catch (error) {
             toast.error(error.response.data.error)
             console.error('Error creating the announcement or sending notification:', error);
         }
     };
-    useEffect(() => {
-        socket.connect();
-        // Listen for announcements
-        socket.on("receive_announcement", (data) => {
-            console.log(data);
-            toast.success(data)
-        });
-
-        return () => {
-            socket.off("receive_announcement");
-        };
-    }, []);
 
 
     return (
