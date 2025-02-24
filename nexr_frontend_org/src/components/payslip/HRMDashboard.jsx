@@ -359,18 +359,37 @@ export default function HRMDashboard() {
         }
     }
 
-    // when use close the tab or browser timer will stop.
+    // Set a flag before page reload
+    window.addEventListener("beforeunload", () => {
+        console.log("isPageReloading");
+        sessionStorage.setItem("isPageReloading", "true");
+    });
+
+    // Handle unload event
     window.addEventListener("unload", () => {
-        const currentTime = new Date().toTimeString().split(" ")[0];
-        const updatedState = {
-            ...workTimeTracker,
-            login: {
-                ...workTimeTracker?.login,
-                endingTime: [...(workTimeTracker?.login?.endingTime || []), currentTime],
-                timeHolder: workTimeTracker?.login?.timeHolder,
-            },
-        };
-        localStorage.setItem("timerState", JSON.stringify(updatedState));
+        const isPageReloading = sessionStorage.getItem("isPageReloading");
+        // If the page is being reloaded, do not execute the unload logic
+        if (isPageReloading === "true") {
+            console.log("returning..");
+
+            // sessionStorage.removeItem("isPageReloading");
+            return;
+        } else {
+            console.log("stoping///////");
+            
+            // Proceed with your existing unload logic for tab/browser close
+            const currentTime = new Date().toTimeString().split(" ")[0];
+            const updatedState = {
+                ...workTimeTracker,
+                login: {
+                    ...workTimeTracker?.login,
+                    endingTime: [...(workTimeTracker?.login?.endingTime || []), currentTime],
+                    timeHolder: workTimeTracker?.login?.timeHolder,
+                },
+            };
+            localStorage.setItem("timerState", JSON.stringify(updatedState));
+        }
+
     });
 
     // Restore timer when the page loads
@@ -435,8 +454,6 @@ export default function HRMDashboard() {
         localStorage.setItem("isStartActivity", isStartActivity);
         fetchCompanies();
     }, [isStartLogin, isStartActivity]);
-    console.log(leaveRequests);
-
     return (
         <TimerStates.Provider value={{ workTimeTracker, reloadRolePage, setIsEditEmp, updateWorkTracker, trackTimer, startLoginTimer, stopLoginTimer, changeReasonForLate, startActivityTimer, stopActivityTimer, setWorkTimeTracker, updateClockins, timeOption, isStartLogin, isStartActivity, changeEmpEditForm, isEditEmp }}>
             <Suspense fallback={<Loading />}>
