@@ -174,7 +174,7 @@ io.on("connection", (socket) => {
 
   socket.on("send_notification", (data) => {
     // Ensure time is a number and is valid
-    const delay = Number(data.time) * 1000;
+    const delay = Number(data.time) * 60000;
     if (isNaN(delay) || delay <= 0) {
       console.error("Invalid delay time:", data.time);
       return;
@@ -182,9 +182,11 @@ io.on("connection", (socket) => {
     console.log(delay);
 
     setTimeout(async () => {
+      console.log("send mail.............");
+      
       try {
         const res = await axios.post(
-          `${process.env.FRONTEND_URL}/api/clock-ins/remainder/${data.employee}/${data.timeOption}`
+          `${process.env.REACT_APP_API_URL}/api/clock-ins/remainder/${data.employee}/${data.timeOption}`
         );
         console.log("API Response:", res.data);
 

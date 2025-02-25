@@ -158,8 +158,6 @@ router.get('/:id', verifyAdminHREmployeeManagerNetwork, async (req, res) => {
       .populate("department")
       .populate("position")
       .exec();
-    console.log(emp);
-
 
     if (!emp) {
       return res.status(404).send({ error: "Employee not found!" });
@@ -197,28 +195,6 @@ router.get('/:id', verifyAdminHREmployeeManagerNetwork, async (req, res) => {
     res.status(500).send({ error: err.message });
   }
 });
-
-// router.post("/add/company", async (req, res) => {
-//   try {
-//     const emps = await Employee.find().exec();
-//     for (const emp of emps) {
-//       const empData = {
-//         ...emp,
-//         company: "679b5ee55eb2dc34115be175"
-//       }
-//       console.log(empData);
-
-//       await Employee.findByIdAndUpdate(emp._id,
-//         { $set: { company: "679b5ee55eb2dc34115be175" } }, // Only update the `company` field
-//         { new: true } // Returns updated document)
-//       )
-//     }
-//     res.status(200).send({ message: "All employes has been udpated" })
-
-//   } catch (error) {
-//     console.log(error);
-//   }
-// })
 
 router.post("/", verifyAdminHR, async (req, res) => {
   try {

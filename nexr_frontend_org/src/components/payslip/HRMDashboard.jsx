@@ -439,6 +439,8 @@ export default function HRMDashboard() {
         fetchCompanies();
     }, [isStartLogin, isStartActivity]);
 
+    console.log(workTimeTracker);
+    
     return (
         <TimerStates.Provider value={{ workTimeTracker, reloadRolePage, setIsEditEmp, updateWorkTracker, trackTimer, startLoginTimer, stopLoginTimer, changeReasonForLate, startActivityTimer, stopActivityTimer, setWorkTimeTracker, updateClockins, timeOption, isStartLogin, isStartActivity, changeEmpEditForm, isEditEmp }}>
             <Suspense fallback={<Loading />}>

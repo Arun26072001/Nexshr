@@ -129,7 +129,7 @@ const App = () => {
     if (!socket.connected) {
       socket.connect();
     }
-
+    
     socket.emit("join_room", data._id); // ✅ Make sure the employee joins their room
 
     socket.on("receive_announcement", (announcement) => {

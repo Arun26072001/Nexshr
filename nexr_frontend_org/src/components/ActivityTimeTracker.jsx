@@ -127,6 +127,8 @@ const ActivityTimeTracker = () => {
 
     useEffect(() => {
         socket.on("Ask_reason_for_late", () => {
+            console.log("askjhdkjashdsa");
+            
             changeViewReasonForTaketime()
         })
     }, [socket])

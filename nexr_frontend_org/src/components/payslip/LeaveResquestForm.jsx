@@ -25,7 +25,9 @@ const LeaveRequestForm = () => {
   const [excludedDates, setExcludeDates] = useState([]);
   const [prescriptionFile, setPrescriptionFile] = useState("");
   const [content, setContent] = useState("");
-  const [isLoading, setIsLoading] = useState(false)
+  const [isLoading, setIsLoading] = useState(false);
+  const minDate = new Date();
+  minDate.setDate(new Date().getDate() + 1);
 
   let leaveObj = {
     leaveType: "",
@@ -93,7 +95,6 @@ const LeaveRequestForm = () => {
         function (value) {
           const { fromDate, leaveType } = this.parent;
           if (value && fromDate && leaveType === "Permission Leave") {
-            console.log(value, fromDate, leaveType);
 
             const fromTime = new Date(fromDate).getTime(); // Ensure timestamp conversion
             const toTime = new Date(value).getTime(); // Ensure timestamp conversion
@@ -239,7 +240,7 @@ const LeaveRequestForm = () => {
     }
     gettingHoliday();
   }, [])
-  console.log(formik.values);
+  console.log(minDate);
 
   return (
     isLoading ? <Loading /> :
@@ -283,7 +284,7 @@ const LeaveRequestForm = () => {
                   className={`inputField ${formik.touched.fromDate && formik.errors.fromDate ? "error" : ""} w-100`}
                   selected={formik.values.fromDate}
                   onChange={(date) => formik.setFieldValue("fromDate", date)}
-                  minDate={new Date()}
+                  minDate={minDate}
                   excludeDates={excludedDates} />
 
                 {formik.touched.fromDate && formik.errors.fromDate ? (
@@ -298,7 +299,7 @@ const LeaveRequestForm = () => {
                   className={`inputField ${formik.touched.toDate && formik.errors.toDate ? "error" : ""}`}
                   selected={formik.values.toDate}
                   onChange={(date) => formik.setFieldValue("toDate", date)}
-                  minDate={new Date()}
+                  minDate={minDate}
                   excludeDates={excludedDates}
                 />
                 {formik.errors.toDate && formik.touched.toDate ? (
