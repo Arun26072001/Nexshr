@@ -934,7 +934,6 @@ router.post("/ontime/:type", async (req, res) => {
 router.post("/remainder/:id/:timeOption", async (req, res) => {
     try {
         const { id, timeOption } = req.params;
-        console.log(id, timeOption);
 
         const emp = await Employee.findById({ _id: id }).populate("company");
         sendMail({

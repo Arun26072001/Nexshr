@@ -47,7 +47,7 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
         { id: 'fromDate', label: 'Start Date', minWidth: 100, align: 'left', getter: (row) => row.fromDate ? row.fromDate.split("T")[0] : 'N/A' },
         { id: 'toDate', label: 'End Date', minWidth: 100, align: 'left', getter: (row) => row.toDate ? row.toDate.split("T")[0] : 'N/A' },
         { id: 'leaveType', label: 'Type', minWidth: 100, align: 'left', getter: (row) => row.leaveType },
-        { id: 'reasonForLeave', label: 'Reason', minWidth: 100, align: 'left', getter: (row) => <div dangerouslySetInnerHTML={{ __html: row.reasonForLeave }} /> },
+        { id: '', label: 'Reason', minWidth: 100, align: 'left', getter: (row) => <div dangerouslySetInnerHTML={{ __html: row.reasonForLeave }} /> },
         {
             id: 'status',
             label: 'Status',

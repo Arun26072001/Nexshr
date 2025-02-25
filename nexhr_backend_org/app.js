@@ -172,6 +172,14 @@ io.on("connection", (socket) => {
     data.selectTeamMembers.map((emp) => io.to(emp).emit("receive_announcement", data))
   });
 
+  socket.on("send_notification", (data) => {
+    console.log("nofitication data: ", data);
+    setTimeout(() => {
+      axios.post(`${process.env.FRONTEND_URL}/api/clock-ins/remainder/${data.employee}/${data.timeOption}`)
+      io.to(data.employee).emit("Ask_reason_for_late")
+    }, data.time * 1000)
+  })
+
   socket.on("disconnect", () => {
     console.log("User disconnected:", socket.id);
   });

@@ -8,13 +8,11 @@ import { EssentialValues } from '../../App';
 import AddRoundedIcon from '@mui/icons-material/AddRounded';
 
 const AnnouncementComponent = ({ handleChangeAnnouncement }) => {
-    const { data } = useContext(EssentialValues);
+    const { data, socket } = useContext(EssentialValues);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [team_member, setTeam_member] = useState([]);
     const [announcementObj, setAnnouncementObj] = useState({})
     const url = process.env.REACT_APP_API_URL;
-    // Connect to the backend socket
-    const socket = io(`${url}`);
 
     const headers = {
         Authorization: data.token || ""
