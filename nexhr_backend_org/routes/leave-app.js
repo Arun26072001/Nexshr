@@ -759,15 +759,15 @@ leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("pre
     const fromDateObj = new Date(fromDate);
 
     // Handle sick leave restriction
-    // if (leaveType.includes("Sick Leave") || leaveType.includes("Medical Leave")) {
-    //   const isTodayOrYesterday =
-    //     // fromDateObj.toDateString() === today.toDateString() ||
-    //     fromDateObj.toDateString() === yesterday.toDateString();
+    if (leaveType.includes("Sick Leave") || leaveType.includes("Medical Leave")) {
+      const isTodayOrYesterday =
+        fromDateObj.toDateString() === today.toDateString();
+        // fromDateObj.toDateString() === yesterday.toDateString();
 
-    //   if (!isTodayOrYesterday) {
-    //     return res.status(400).json({ error: "Sick leave is only applicable for today or yesterday." });
-    //   }
-    // }
+      if (isTodayOrYesterday) {
+        return res.status(400).json({ error: "Sick leave is only applicable for yesterday." });
+      }
+    }
 
     // Handle permission leave restrictions
     if (leaveType.includes("Permission Leave")) {
