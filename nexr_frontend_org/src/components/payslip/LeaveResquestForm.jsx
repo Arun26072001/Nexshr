@@ -26,8 +26,6 @@ const LeaveRequestForm = () => {
   const [prescriptionFile, setPrescriptionFile] = useState("");
   const [content, setContent] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const minDate = new Date();
-  minDate.setDate(new Date().getDate() + 1);
 
   let leaveObj = {
     leaveType: "",
@@ -49,7 +47,7 @@ const LeaveRequestForm = () => {
           const { leaveType } = this.parent;
           console.log(leaveType);
           // Accessing another field
-          if (leaveType !== "Permission Leave" && value) {
+          if (!["Permission Leave","Sick Leave", "Medical Leave"].includes(leaveType) && value) {
             return value >= new Date(); // Ensure the date is in the future
           }
           return true;
@@ -240,7 +238,6 @@ const LeaveRequestForm = () => {
     }
     gettingHoliday();
   }, [])
-  console.log(minDate);
 
   return (
     isLoading ? <Loading /> :
@@ -284,7 +281,7 @@ const LeaveRequestForm = () => {
                   className={`inputField ${formik.touched.fromDate && formik.errors.fromDate ? "error" : ""} w-100`}
                   selected={formik.values.fromDate}
                   onChange={(date) => formik.setFieldValue("fromDate", date)}
-                  minDate={minDate}
+                  minDate={new Date()}
                   excludeDates={excludedDates} />
 
                 {formik.touched.fromDate && formik.errors.fromDate ? (
@@ -299,7 +296,7 @@ const LeaveRequestForm = () => {
                   className={`inputField ${formik.touched.toDate && formik.errors.toDate ? "error" : ""}`}
                   selected={formik.values.toDate}
                   onChange={(date) => formik.setFieldValue("toDate", date)}
-                  minDate={minDate}
+                  minDate={new Date()}
                   excludeDates={excludedDates}
                 />
                 {formik.errors.toDate && formik.touched.toDate ? (

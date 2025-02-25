@@ -360,9 +360,9 @@ export default function HRMDashboard() {
     }
 
     // when use close the tab or browser timer will stop.
-    window.addEventListener("beforeunload", (e) => {
-        e.preventDefault();
-        e.returnValue = "";
+    window.addEventListener("unload", (e) => {
+        // e.preventDefault();
+        // e.returnValue = "";
         const currentTime = new Date().toTimeString().split(" ")[0];
         const updatedState = {
             ...workTimeTracker,
