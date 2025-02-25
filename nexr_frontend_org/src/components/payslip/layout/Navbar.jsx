@@ -14,9 +14,9 @@ import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
 import KeyboardArrowDownRoundedIcon from '@mui/icons-material/KeyboardArrowDownRounded';
 
 export default function Navbar({ handleSideBar }) {
-    const [lat, setLat] = useState("")
-    const [long, setLong] = useState("");
-    const { handleLogout, data } = useContext(EssentialValues)
+    // const [lat, setLat] = useState("")
+    // const [long, setLong] = useState("");
+    const { handleLogout, data, handleUpdateAnnouncements, isChangeAnnouncements } = useContext(EssentialValues)
     const { startLoginTimer, stopLoginTimer, workTimeTracker, isStartLogin, trackTimer } = useContext(TimerStates);
     const [sec, setSec] = useState(workTimeTracker?.login?.timeHolder?.split(':')[2])
     const [min, setMin] = useState(workTimeTracker?.login?.timeHolder?.split(':')[1])
@@ -25,7 +25,6 @@ export default function Navbar({ handleSideBar }) {
     const workRef = useRef(null);  // Use ref to store interval ID
     const url = process.env.REACT_APP_API_URL;
     const [announcements, setAnnouncements] = useState([]);
-    const [isChangeAnnouncements, setIschangeAnnouncements] = useState(false);
     const [isRemove, setIsRemove] = useState([]);
 
     // Timer logic to increment time
@@ -157,10 +156,6 @@ export default function Navbar({ handleSideBar }) {
         );
     };
 
-    function handleUpdateAnnouncements() {
-        setIschangeAnnouncements(!isChangeAnnouncements)
-    }
-
     async function fetchAnnouncements() {
         try {
             const res = await axios.get(`${url}/api/announcements/emp/${data._id}`, {
@@ -186,9 +181,9 @@ export default function Navbar({ handleSideBar }) {
         fetchAnnouncements();
     }, [isChangeAnnouncements])
 
-    setTimeout(() => {
-        fetchAnnouncements()
-    }, 30000)
+    // setTimeout(() => {
+    //     fetchAnnouncements()
+    // }, 30000)
 
     async function updateNotification(value) {
         try {
@@ -232,8 +227,6 @@ export default function Navbar({ handleSideBar }) {
             console.log("Error clearing messages:", error);
         }
     }
-
-
 
     async function removeMessage(value, index) {
         setIsRemove((prev) => {

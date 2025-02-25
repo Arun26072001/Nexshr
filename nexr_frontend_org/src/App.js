@@ -37,7 +37,11 @@ const App = () => {
   const [isLogin, setIsLogin] = useState(localStorage.getItem("isLogin") === "true");
   const navigate = useNavigate();
   const location = useLocation();
+  const [isChangeAnnouncements, setIschangeAnnouncements] = useState(false);
 
+  function handleUpdateAnnouncements() {
+    setIschangeAnnouncements(!isChangeAnnouncements)
+  }
   // Helper Functions
   const handleLogout = () => {
     console.log(isStartLogin, isStartActivity);
@@ -129,7 +133,7 @@ const App = () => {
     socket.emit("join_room", data._id); // ✅ Make sure the employee joins their room
 
     socket.on("receive_announcement", (announcement) => {
-      
+      handleUpdateAnnouncements()
       toaster.push(
         <Notification
           header={
@@ -155,35 +159,7 @@ const App = () => {
     };
   }, [data._id]);
 
-  // const announcement = {
-  //   title: "System Maintenance Alert",
-  //   message: "Our system will be under maintenance from 2 AM to 4 AM.",
-  // };
-  
-  // // Show notification
-  // toaster.push(
-  //   <Notification
-  //     header={
-  //       <div style={{ display: 'flex', alignItems: 'center' }}>
-  //         <img
-  //           src={companyLogo}
-  //           alt="Company Logo"
-  //           style={{ width: 50, height: 50, marginRight: 10 }}
-  //         />
-  //         <span style={{ fontWeight: 'bold', fontSize: '16px' }}>Webnexs</span>
-  //       </div>
-  //     }
-  //     closable
-  //   >
-  //     <strong>{announcement.title}</strong>
-  //     <br />
-  //     {announcement.message}
-  //   </Notification>,
-  //   { placement: 'bottomEnd' }
-  // );
-
-  // Effects
-  useEffect(() => {
+   useEffect(() => {
     localStorage.setItem("isStartLogin", isStartLogin);
     localStorage.setItem("isStartActivity", isStartActivity);
   }, [isStartLogin, isStartActivity]);
@@ -256,7 +232,9 @@ const App = () => {
         isStartActivity,
         whoIs,
         setIsStartActivity,
-        socket
+        socket,
+        handleUpdateAnnouncements,
+        isChangeAnnouncements
       }}
     >
       <ToastContainer />
@@ -267,14 +245,6 @@ const App = () => {
           path={`${whoIs}/*`}
           element={isLogin && whoIs && data.token ? <HRMDashboard /> : <Navigate to="/login" />}
         />
-        {/* <Route
-          path="hr/*"
-          element={isLogin && whoIs === "hr" && data.token ? <HRMDashboard /> : <Navigate to="/login" />}
-        />
-        <Route
-          path="emp/*"
-          element={isLogin && whoIs && data.token ? <HRMDashboard /> : <Navigate to="/login" />}
-        /> */}
         <Route path="no-internet-connection" element={<NoInternet />} />
         <Route path="*" element=
           {<div className='d-flex align-items-center justify-content-center' style={{ height: "100vh" }}>

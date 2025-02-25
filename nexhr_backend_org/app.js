@@ -173,12 +173,29 @@ io.on("connection", (socket) => {
   });
 
   socket.on("send_notification", (data) => {
-    console.log("nofitication data: ", data);
-    setTimeout(() => {
-      axios.post(`${process.env.FRONTEND_URL}/api/clock-ins/remainder/${data.employee}/${data.timeOption}`)
-      io.to(data.employee).emit("Ask_reason_for_late")
-    }, data.time * 1000)
-  })
+    // Ensure time is a number and is valid
+    const delay = Number(data.time) * 1000;
+    if (isNaN(delay) || delay <= 0) {
+      console.error("Invalid delay time:", data.time);
+      return;
+    }
+    console.log(delay);
+
+    setTimeout(async () => {
+      try {
+        const res = await axios.post(
+          `${process.env.FRONTEND_URL}/api/clock-ins/remainder/${data.employee}/${data.timeOption}`
+        );
+        console.log("API Response:", res.data);
+
+        // Emit event only if API call is successful
+        io.to(data.employee).emit("Ask_reason_for_late");
+      } catch (error) {
+        console.error("Error sending remainder request:", error.message);
+      }
+    }, delay);
+  });
+
 
   socket.on("disconnect", () => {
     console.log("User disconnected:", socket.id);
