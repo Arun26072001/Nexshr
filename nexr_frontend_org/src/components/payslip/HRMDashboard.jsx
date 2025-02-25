@@ -16,6 +16,7 @@ import Loading from '../Loader';
 import Company from '../Administration/Company';
 import Holiday from '../Administration/Holiday';
 import Country from '../Administration/Country';
+import ManageTeam from './ManageTeam';
 
 // Lazy loading components
 const Dashboard = React.lazy(() => import('./Dashboard'));
@@ -57,7 +58,7 @@ export const TimerStates = createContext(null);
 
 export default function HRMDashboard() {
     // const navigator = useNavigate();
-    const { data, isStartLogin, isStartActivity, setIsStartLogin, setIsStartActivity, whoIs } = useContext(EssentialValues);
+    const { data, isStartLogin, isStartActivity, setIsStartLogin, setIsStartActivity, whoIs, socket } = useContext(EssentialValues);
     const { token, Account, _id } = data;
     const { isTeamLead, isTeamHead } = jwtDecode(token);
     const [attendanceData, setAttendanceData] = useState([]);
@@ -159,9 +160,15 @@ export default function HRMDashboard() {
             if (!updatedState?._id) {
                 // Add new clock-ins data
                 const clockinsData = await addDataAPI(updatedState);
-                console.log(typeof clockinsData);
 
                 if (clockinsData !== "undefined") {
+                    if (!workTimeTracker.login.startingTime.length) {
+                        socket.emit("remainder_notification", {
+                            employee: data._id,
+                            time: 1,
+                            clockinsId: clockinsData?._id
+                        })
+                    }
                     setWorkTimeTracker(clockinsData);
                     setIsStartLogin(true);
                     localStorage.setItem("isStartLogin", true);
@@ -390,7 +397,6 @@ export default function HRMDashboard() {
         stopTimerForClosed();
     }, [])
 
-
     // to view attendance data for admin and hr
     useEffect(() => {
         if (["1", "2", "5"].includes(Account)) {
@@ -439,8 +445,6 @@ export default function HRMDashboard() {
         fetchCompanies();
     }, [isStartLogin, isStartActivity]);
 
-    console.log(workTimeTracker);
-    
     return (
         <TimerStates.Provider value={{ workTimeTracker, reloadRolePage, setIsEditEmp, updateWorkTracker, trackTimer, startLoginTimer, stopLoginTimer, changeReasonForLate, startActivityTimer, stopActivityTimer, setWorkTimeTracker, updateClockins, timeOption, isStartLogin, isStartActivity, changeEmpEditForm, isEditEmp }}>
             <Suspense fallback={<Loading />}>
@@ -493,7 +497,7 @@ export default function HRMDashboard() {
                                 <Route path="/holiday" element={<Holiday />} />
                                 <Route path="/announcement" element={<Announce />} />
                                 <Route path="/country" element={<Country />} />
-                                {/* <Route path="/shift" element={<h1 className='text-center'>Under Development</h1>} /> */}
+                                <Route path="/team" element={<ManageTeam />} />
                             </Routes>
                         } />
                         <Route path="settings/*" element={

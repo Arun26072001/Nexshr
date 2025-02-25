@@ -56,15 +56,12 @@ export default function Employees() {
         <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
           <Tabs value={value} onChange={handleChange} aria-label="basic tabs example">
             <Tab label="Employees" {...a11yProps(0)} />
-            <Tab label="Manage teams" {...a11yProps(1)} />
-            <Tab label="Vaccinated Employees" {...a11yProps(2)} />
+            {/* <Tab label="Manage teams" {...a11yProps(1)} /> */}
+            <Tab label="Vaccinated Employees" {...a11yProps(1)} />
           </Tabs>
         </Box>
         <CustomTabPanel value={value} index={0}>
           <AddEmployee />
-        </CustomTabPanel>
-        <CustomTabPanel value={value} index={1}>
-          <ManageTeam />
         </CustomTabPanel>
         <CustomTabPanel value={value} index={2}>
           Vaccinated Employees

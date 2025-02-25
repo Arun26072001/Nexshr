@@ -79,7 +79,6 @@ const ActivityTimeTracker = () => {
             trackTimer()
             timerRef.current = setInterval(incrementTime, 1000);
             if (["morningBreak", "eveningBreak", "lunch"].includes(timeOption)) {
-
                 socket.emit("send_notification", {
                     employee: data._id,
                     timeOption,
@@ -116,19 +115,10 @@ const ActivityTimeTracker = () => {
         stopTimer();
     }
 
-    // async function sendRemainderMail() {
-    //     try {
-    //         const res = await axios.post(`${url}/api/clock-ins/remainder/${data._id}/${timeOption}`)
-    //         console.log(res.data.message);
-    //     } catch (error) {
-    //         console.log(error);
-    //     }
-    // }
-
     useEffect(() => {
-        socket.on("Ask_reason_for_late", () => {
-            console.log("askjhdkjashdsa");
-            
+        socket.connect();
+        socket.on("Ask_reason_for_late", (data) => {
+            console.log(data);
             changeViewReasonForTaketime()
         })
     }, [socket])

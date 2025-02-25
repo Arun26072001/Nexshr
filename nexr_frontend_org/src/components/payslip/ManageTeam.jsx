@@ -4,18 +4,14 @@ import axios from "axios";
 import { toast } from "react-toastify";
 import AssignEmp from "./AssignEmp";
 import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
-import EditTeam from "./EditTeam";
 import { Input, InputGroup } from "rsuite";
 import NoDataFound from "./NoDataFound";
 import Loading from "../Loader";
 import { EssentialValues } from "../../App";
+import CommonModel from "../Administration/CommonModel";
 
 const ManageTeam = () => {
-    const [teamObj, setTeamObj] = useState({
-        teamName: "",
-        employees: [],
-        lead: ""
-    });
+    const [teamObj, setTeamObj] = useState({});
     const [isLoading, setIsLoading] = useState(false);
     const [searchTeam, setSearchTeam] = useState('');
     const [dom, reload] = useState(false);
@@ -26,6 +22,7 @@ const ManageTeam = () => {
     const [filteredTeams, setFilteredTeams] = useState([]);
     const [leads, setLeads] = useState([]);
     const [heads, setHeads] = useState([]);
+    const [managers, setManagers] = useState([]);
     const url = process.env.REACT_APP_API_URL;
     const { data } = useContext(EssentialValues);
     const { token } = data;
@@ -54,45 +51,54 @@ const ManageTeam = () => {
         setAssignEmp(!assignEmp);
     };
 
-    const changeTeamObj = (e) => {
-        const { name, value } = e.target;
-        if (editTeamObj) {
-            setEditTeamObj((prev) => ({
-                ...prev,
-                [name]: value
-            }));
-        } else {
-            setTeamObj((prev) => ({
-                ...prev,
-                [name]: value
-            }));
-        }
+    const changeTeamObj = (value, name) => {
+        console.log(value, name);
+
+        setTeamObj((prev) => ({
+            ...prev,
+            [name]: value
+        }));
+        // if (editTeamObj) {
+        //     setEditTeamObj((prev) => ({
+        //         ...prev,
+        //         [name]: value
+        //     }));
+        // } else {
+
+        // }
     };
+    
 
     const updateTeamObj = (emp) => {
-        if (editTeamObj) {
-            setEditTeamObj((prev) => {
-                const updatedEmployees = prev.employees.includes(emp)
-                    ? prev.employees.filter(e => e._id !== emp._id)
-                    : [...prev.employees, emp];
+        // if (editTeamObj) {
+        //     setEditTeamObj((prev) => {
+        //         const updatedEmployees = prev.employees.includes(emp)
+        //             ? prev.employees.filter(e => e._id !== emp._id)
+        //             : [...prev.employees, emp];
 
-                return {
-                    ...prev,
-                    employees: updatedEmployees
-                };
-            });
-        } else {
+        //         return {
+        //             ...prev,
+        //             employees: updatedEmployees
+        //         };
+        //     });
+        // } else {
             setTeamObj((prev) => {
-                const updatedEmployees = prev.employees.includes(emp._id)
-                    ? prev.employees.filter(e => e._id !== emp._id)
-                    : [...prev.employees, emp];
+
+                let updatedEmployees;
+                if(prev?.employees?.length){
+                    updatedEmployees = prev?.employees?.includes(emp._id)
+                        ? prev.employees.filter(e => e._id !== emp._id)
+                        : [...prev?.employees, emp];
+                }else{
+                   updatedEmployees = [emp]
+                }
 
                 return {
                     ...prev,
-                    employees: updatedEmployees
+                    ["employees"]: updatedEmployees
                 };
             });
-        }
+        // }
     };
 
 
@@ -124,7 +130,9 @@ const ManageTeam = () => {
                     }
                 }
             );
-            setEditTeamObj(res.data);
+            console.log(res.data);
+            
+            setTeamObj(res.data);
             toggleAddTeam();
         } catch (err) {
             toast.error(err?.response?.data?.message);
@@ -146,11 +154,7 @@ const ManageTeam = () => {
 
             toggleAssignEmp();
             toggleAddTeam();
-            setTeamObj({
-                teamName: "",
-                employees: [],
-                lead: ""
-            })
+            setTeamObj({})
             reloadUI();
             toast.success(response.data.message);
         } catch (err) {
@@ -186,44 +190,65 @@ const ManageTeam = () => {
 
     async function fetchLeads() {
         try {
-            const teamLeads = await axios.get(`${url}/api/employee/lead`, {
+            const res = await axios.get(`${url}/api/employee/team/lead`, {
                 headers: {
                     Authorization: token || ""
                 }
             })
-            setLeads(teamLeads.data);
+            setLeads(res.data.map((emp) => ({
+                label: emp.FirstName + " " + emp.LastName,
+                value: emp._id
+            })));
         } catch (error) {
             console.log(error);
-            
+
             toast.error(error.repsonse.data.error)
         }
     }
 
     async function fetchHeads() {
         try {
-            const teamHeads = await axios.get(`${url}/api/employee/head`, {
+            const res = await axios.get(`${url}/api/employee/team/head`, {
                 headers: {
                     Authorization: token || ""
                 }
             })
-            console.log(teamHeads);
 
-            setHeads(teamHeads.data);
+            setHeads(res.data.map((emp) => ({
+                label: emp.FirstName + " " + emp.LastName,
+                value: emp._id
+            })));
         } catch (error) {
             toast.error(error.repsonse.data.error)
         }
     }
 
+    async function fetchManagers() {
+        try {
+            const res = await axios.get(`${url}/api/employee/team/manager`, {
+                headers: {
+                    Authorization: token || ""
+                }
+            })
+            setManagers(res.data.map((emp) => ({
+                label: emp.FirstName + " " + emp.LastName,
+                value: emp._id
+            })));
+        } catch (error) {
+            toast.error(error.repsonse.data.error)
+        }
+    }
+
+
     useEffect(() => {
         const fetchTeams = async () => {
+            setIsLoading(true);
             try {
                 const res = await axios.get(`${url}/api/team`, {
                     headers: {
                         Authorization: `${token}` || ""
                     }
                 });
-                console.log(res.data);
-
                 setTeams(res.data);
                 setFilteredTeams(res.data);
             } catch (err) {
@@ -231,45 +256,47 @@ const ManageTeam = () => {
 
                 toast.error(err.response.data.error);
             }
+            setIsLoading(false);
         };
 
-        setIsLoading(true);
         fetchTeams();
         fetchHeads();
         fetchLeads();
-        setIsLoading(false);
+        fetchManagers();
     }, [dom]);
 
     return (
         isLoading ? <Loading /> :
             <div className="my-2">
-                <button className="button my-2" onClick={toggleAddTeam}>
-                    {addTeam ? "Cancel" : "Add a new team"}
-                </button>
-
-                <InputGroup inside style={{ width: "300px" }}>
-                    <Input placeholder="Team Name" className="m-0" value={searchTeam} onChange={filterTeam} />
-                    <InputGroup.Button className="m-auto">
-                        <SearchRoundedIcon />
-                    </InputGroup.Button>
-                </InputGroup>
+                <div className="d-flex gap-2">
+                    <InputGroup inside style={{ width: "300px" }}>
+                        <Input placeholder="Team Name" className="m-0" value={searchTeam} onChange={filterTeam} />
+                        <InputGroup.Button className="m-auto">
+                            <SearchRoundedIcon />
+                        </InputGroup.Button>
+                    </InputGroup>
+                    <button className="button" onClick={toggleAddTeam}>
+                        {addTeam ? "Cancel" : "Add a new team"}
+                    </button>
+                </div>
 
                 {addTeam && (
-                    <EditTeam
-                        leads={leads}
-                        heads={heads}
-                        team={editTeamObj ? editTeamObj : teamObj}
-                        setTeamName={changeTeamObj} // to update teamName
-                        toggleAddTeam={toggleAddTeam}
+                    <CommonModel type="Team" leads={leads}
+                        isAddData={addTeam}
+                        changeData={changeTeamObj}
                         toggleAssignEmp={toggleAssignEmp}
-                    />
+                        heads={heads}
+                        dataObj={teamObj}
+                        managers={managers}
+                        modifyData={toggleAddTeam}
+                        />
                 )}
 
                 {assignEmp && (
                     <AssignEmp
                         teams={teams}
                         handleSubmit={editTeamObj ? handleSubmitEdit : handleSubmit}
-                        teamObj={editTeamObj ? editTeamObj : teamObj}
+                        teamObj={teamObj}
                         setTeamLead={changeTeamObj}
                         updateTeamObj={updateTeamObj}
                         toggleAssignEmp={toggleAssignEmp}

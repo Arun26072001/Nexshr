@@ -16,6 +16,9 @@ const CommonModel = ({
     changeData,
     isAddData,
     addData,
+    leads,
+    heads,
+    managers,
     previewList,
     modifyData,
     projects,
@@ -25,6 +28,7 @@ const CommonModel = ({
     removeState,
     comps,
     changeState,
+    toggleAssignEmp,
     removeAttachment,
     type // New prop to determine if it's for "department" or "position"
 }) => {
@@ -43,19 +47,19 @@ const CommonModel = ({
 
             <Modal.Body>
                 {
-                    (["Department", "Position", "Project", "Report", "Report View", "Country", "Edit Country", "Project View"].includes(type)) &&
+                    (["Department", "Position", "Project", "Report", "Report View", "Country", "Edit Country", "Project View", "Team"].includes(type)) &&
                     <div className="d-flex justify-content-between">
                         {
-                            ["Department", "Position", "Project", "Report", "Report View", "Country", "Edit Country"].includes(type) &&
-                            <div className="col-half">
+                            ["Department", "Position", "Project", "Report", "Report View", "Country", "Edit Country", "Team"].includes(type) &&
+                            <div className={`${type === "Team" ? "col-full" : "col-half"}`}>
                                 <div className="modelInput">
                                     <p className='modelLabel'>{type} Name: </p>
                                     <Input required
                                         name={`name`}
-                                        value={dataObj?.[type === "Department" ? "DepartmentName" : type === "Position" ? "PositionName" : `name`] || ""}
+                                        value={dataObj?.[type === "Department" ? "DepartmentName" : type === "Position" ? "PositionName" : type === "Team" ? "teamName" : `name`] || ""}
                                         disabled={["Report View", "Project View"].includes(type) ? true : false}
                                         onChange={!["Report View", "Project View"].includes(type) ? (e) =>
-                                            changeData(e, type === "Department" ? "DepartmentName" : type === "Position" ? "PositionName" : "name") : null}
+                                            changeData(e, type === "Department" ? "DepartmentName" : type === "Position" ? "PositionName" : type === "Team" ? "teamName" : "name") : null}
                                     />
                                 </div>
                             </div>
@@ -705,6 +709,27 @@ const CommonModel = ({
                         </div>
                     </>
                 }
+                {
+                    type === "Team" &&
+                    ["Manager", "Lead", "Head"].map((emp) => {
+                        return <div className="modelInput" key={emp}>
+                            <p className="modelLabel">
+                                {emp}
+                            </p>
+
+                            <TagPicker
+                                data={emp === "Manager" ? managers : emp === "Lead" ? leads : heads}
+                                required
+                                size="lg"
+                                appearance="default"
+                                style={{ width: "100%" }}
+                                placeholder={`Select ${emp}`}
+                                value={dataObj?.[emp]?.toLowerCase()}
+                                onChange={(e) => changeData(e, emp?.toLowerCase())}
+                            />
+                        </div>
+                    })
+                }
 
                 {
                     ["Confirmation", "Task Confirmation", "Report Confirmation"].includes(type) &&
@@ -754,10 +779,10 @@ const CommonModel = ({
                             {
                                 !["Report View", "Task View", "Project View"].includes(type) && (
                                     <Button
-                                        onClick={() => (dataObj?._id || type === "Edit Country" ? editData(dataObj) : addData())}
+                                        onClick={() => (dataObj?._id || type === "Edit Country" ? editData(dataObj) : type === "Team" ? toggleAssignEmp() : addData())}
                                         appearance="primary"
                                         disabled={
-                                            ["Project", "Assign", "Task", "Task Assign", "Report", "Company", "Country", "Edit Country", "Announcement"].includes(type)
+                                            ["Project", "Assign", "Task", "Task Assign", "Report", "Company", "Country", "Edit Country", "Announcement","Team"].includes(type)
                                                 ? false
                                                 // : (!dataObj?.[`${type}Name`] || !dataObj?.name) ? true
                                                 : (["Department", "Position"].includes(type) && dataObj?.company ? false : true)

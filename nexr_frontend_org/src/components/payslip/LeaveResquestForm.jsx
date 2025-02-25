@@ -47,7 +47,7 @@ const LeaveRequestForm = () => {
           const { leaveType } = this.parent;
           console.log(leaveType);
           // Accessing another field
-          if (!["Permission Leave","Sick Leave", "Medical Leave"].includes(leaveType) && value) {
+          if (!["Permission Leave", "Sick Leave", "Medical Leave"].includes(leaveType) && value) {
             return value >= new Date(); // Ensure the date is in the future
           }
           return true;
@@ -144,6 +144,8 @@ const LeaveRequestForm = () => {
       }
     },
   });
+  console.log(formik.values);
+
 
   useEffect(() => {
     if (formik.values.fromDate && formik.values.toDate) {
@@ -219,6 +221,8 @@ const LeaveRequestForm = () => {
   }
 
   function getFileData(e) {
+    console.log(e.target.files);
+    
     setPrescriptionFile(e.target.files[0])
   }
 

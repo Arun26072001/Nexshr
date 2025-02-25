@@ -19,7 +19,7 @@ export const EssentialValues = createContext(null);
 const App = () => {
   const url = process.env.REACT_APP_API_URL;
   // State Variables
-  const socket = io(`${url}`);
+  const socket = io(`${url}`, { autoConnect: false });
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [showOfflineAlert, setShowOfflineAlert] = useState(false);
   const [whoIs, setWhoIs] = useState("");
@@ -128,8 +128,8 @@ const App = () => {
   useEffect(() => {
     if (!socket.connected) {
       socket.connect();
-    }
-    
+    } console.log(socket.connected);
+
     socket.emit("join_room", data._id); // ✅ Make sure the employee joins their room
 
     socket.on("receive_announcement", (announcement) => {
@@ -157,9 +157,9 @@ const App = () => {
     return () => {
       socket.off("receive_announcement");
     };
-  }, [data._id]);
+  }, [socket]);
 
-   useEffect(() => {
+  useEffect(() => {
     localStorage.setItem("isStartLogin", isStartLogin);
     localStorage.setItem("isStartActivity", isStartActivity);
   }, [isStartLogin, isStartActivity]);

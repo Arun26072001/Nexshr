@@ -124,21 +124,29 @@ router.get("/all", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
 
 });
 
-router.get("/lead", verifyAdminHR, async (req, res) => {
-  try {
-    const teamLeads = await Employee.find({}, "FirstName LastName").populate("position").exec();
-    const filterTeamLeads = teamLeads.filter((lead) => lead?.position?.PositionName === "Team Lead");
-    res.send(filterTeamLeads);
-  } catch (err) {
-    res.status(500).send({ error: err.message })
-  }
-})
+// router.get("/lead", verifyAdminHR, async (req, res) => {
+//   try {
+//     const teamLeads = await Employee.find({}, "FirstName LastName").populate("position").exec();
+//     const filterTeamLeads = teamLeads.filter((lead) => lead?.position?.PositionName === "Team Lead");
+//     res.send(filterTeamLeads);
+//   } catch (err) {
+//     res.status(500).send({ error: err.message })
+//   }
+// })
 
-router.get("/head", verifyAdminHR, async (req, res) => {
+router.get("/team/:higher", verifyAdminHR, async (req, res) => {
   try {
     const positions = await Employee.find({}, "FirstName LastName").populate("position").exec();
-    const filterTeamHeads = positions.filter((head) => head?.position?.PositionName === "Team Head");
-    res.send(filterTeamHeads);
+    const higherAuth = positions.filter((emp) => {
+      const positionName = emp?.position?.PositionName;
+      return positionName ===
+        (req.params.higher === "lead" ? "Team Lead" :
+          req.params.higher === "head" ? "Team Head" :
+            "Manager");
+    });
+    console.log(higherAuth);
+    
+    res.send(higherAuth);
   } catch (err) {
     res.status(500).send({ error: err.message })
   }

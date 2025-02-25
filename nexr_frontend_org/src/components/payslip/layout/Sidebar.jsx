@@ -23,6 +23,7 @@ const Sidebar = ({ sideBar }) => {
   const { setIsEditEmp } = useContext(TimerStates);
   const { token, _id } = data;
   const decodedData = jwtDecode(token);
+  const { isTeamLead, isTeamHead, isTeamManager } = decodedData;
   const { Dashboard, JobDesk, Employee, Leave,
     Attendance, Administration, Settings
   } = decodedData?.roleData?.pageAuth;
@@ -118,15 +119,27 @@ const Sidebar = ({ sideBar }) => {
           'jobDesk'
         )}
 
-        {renderNavLink(
-          (Employee === 'allow' || ['admin', 'hr', 'emp'].includes(whoIs)),
-          (["emp", "sys-admin"].includes(whoIs)
-            ? `/${whoIs}/employee/edit/${_id}`
-            : `/${whoIs}/employee`),
-          userIcon,
-          'Associate',
-          'employee'
-        )}
+        {(Employee === 'allow' && [isTeamHead, isTeamHead, isTeamManager].includes(true)) &&
+          renderSubMenu(
+            [
+              { key: 'my-details', path: `/${whoIs}/leave/status`, label: 'Status' },
+              { key: 'leave-request', path: `/${whoIs}/leave/leave-request`, label: 'Leave Request' }
+            ],
+            userIcon,
+            'Associate'
+          )}
+
+
+        {[isTeamHead, isTeamHead, isTeamManager].includes(false) &&
+          renderNavLink(
+            (Employee === 'allow' || ['admin', 'hr', 'emp'].includes(whoIs)),
+            (["emp", "sys-admin"].includes(whoIs)
+              ? `/${whoIs}/employee/edit/${_id}`
+              : `/${whoIs}/employee`),
+            userIcon,
+            'Associate',
+            'employee'
+          )}
 
         {renderNavLink(
           ['admin', 'hr', 'emp'].includes(whoIs),
@@ -221,7 +234,8 @@ const Sidebar = ({ sideBar }) => {
               { key: 'department', path: `/${whoIs}/administration/department`, label: 'Department' },
               { key: 'position', path: `/${whoIs}/administration/position`, label: 'Position' },
               { key: 'holiday', path: `/${whoIs}/administration/holiday`, label: 'Holiday' },
-              { key: 'announcement', path: `/${whoIs}/administration/announcement`, label: 'Announcement' }
+              { key: 'announcement', path: `/${whoIs}/administration/announcement`, label: 'Announcement' },
+              { key: 'team', path: `/${whoIs}/administration/team`, label: 'Team' },
             ],
             adminIcon,
             'Administration'

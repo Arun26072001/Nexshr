@@ -699,7 +699,7 @@ router.get("/employee/:empId", verifyAdminHREmployeeManagerNetwork, async (req, 
     }
 });
 
-router.get("/sendmail/:id/:clockinId", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
+router.get("/sendmail/:id/:clockinId", async (req, res) => {
     try {
         // Fetch employee leave data
         const emp = await Employee.findById(req.params.id).populate({

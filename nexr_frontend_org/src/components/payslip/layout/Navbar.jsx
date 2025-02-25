@@ -9,14 +9,13 @@ import { Accordion, Dropdown, Popover, Whisper } from 'rsuite';
 import logo from "../../../imgs/male_avatar.webp";
 import { EssentialValues } from '../../../App';
 import axios from "axios";
-import { toast } from 'react-toastify';
 import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
 import KeyboardArrowDownRoundedIcon from '@mui/icons-material/KeyboardArrowDownRounded';
 
 export default function Navbar({ handleSideBar }) {
     // const [lat, setLat] = useState("")
     // const [long, setLong] = useState("");
-    const { handleLogout, data, handleUpdateAnnouncements, isChangeAnnouncements } = useContext(EssentialValues)
+    const { handleLogout, data, handleUpdateAnnouncements, isChangeAnnouncements,socket } = useContext(EssentialValues)
     const { startLoginTimer, stopLoginTimer, workTimeTracker, isStartLogin, trackTimer } = useContext(TimerStates);
     const [sec, setSec] = useState(workTimeTracker?.login?.timeHolder?.split(':')[2])
     const [min, setMin] = useState(workTimeTracker?.login?.timeHolder?.split(':')[1])
@@ -71,13 +70,12 @@ export default function Navbar({ handleSideBar }) {
             if (isStartLogin) {
                 workRef.current = setInterval(incrementTime, 1000);
             }
+
         }
     };
 
     // Function to stop the timer
     const stopTimer = async () => {
-        console.log("call timer to stop from fun.");
-
         if (workRef.current) {
             await stopLoginTimer();
             clearInterval(workRef.current);
@@ -120,21 +118,21 @@ export default function Navbar({ handleSideBar }) {
         }
     }, [workTimeTracker, isStartLogin]);
 
-    setInterval(() => {
-        async function sendMailonEightHrs() {
-            try {
-                const sendMail = await axios.get(`${url}/api/clock-ins/sendmail/${data._id}/${workTimeTracker._id}`, {
-                    headers: { Authorization: data.token || "" }
-                })
-                toast.success(sendMail.data.message)
-            } catch (error) {
-                toast.error(error.response.data.error)
-            }
-        }
-        if (isDisabled && hour === 9 && min === 1 && sec === 1) {
-            sendMailonEightHrs();
-        }
-    }, 1000)
+    // setInterval(() => {
+    //     async function sendMailonEightHrs() {
+    //         try {
+    //             const sendMail = await axios.get(`${url}/api/clock-ins/sendmail/${data._id}/${workTimeTracker._id}`, {
+    //                 headers: { Authorization: data.token || "" }
+    //             })
+    //             toast.success(sendMail.data.message)
+    //         } catch (error) {
+    //             toast.error(error.response.data.error)
+    //         }
+    //     }
+    //     if (isDisabled && hour === 9 && min === 1 && sec === 1) {
+    //         sendMailonEightHrs();
+    //     }
+    // }, 1000)
 
     const renderMenu = ({ onClose, right, top, className }, ref) => {
         const handleSelect = eventKey => {
@@ -181,9 +179,6 @@ export default function Navbar({ handleSideBar }) {
         fetchAnnouncements();
     }, [isChangeAnnouncements])
 
-    // setTimeout(() => {
-    //     fetchAnnouncements()
-    // }, 30000)
 
     async function updateNotification(value) {
         try {

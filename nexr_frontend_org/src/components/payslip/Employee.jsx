@@ -10,6 +10,7 @@ import { EssentialValues } from '../../App';
 import AddRoundedIcon from '@mui/icons-material/AddRounded';
 import axios from "axios";
 import employeesData from "../../files/Employees data.xlsx";
+import Groups2RoundedIcon from '@mui/icons-material/Groups2Rounded';
 
 export default function Employee() {
     const url = process.env.REACT_APP_API_URL;
@@ -116,12 +117,15 @@ export default function Employee() {
                 </p>
 
                 <div className='d-flex' style={{ gap: "10px" }}>
-                    <div className="button" onClick={() => navigate(`/${whoIs}/employee/add`)}>
+                    <button className="button" onClick={() => navigate(`/${whoIs}/administration/team`)}>
+                        <Groups2RoundedIcon /> Manage Team
+                    </button>
+                    <button className="button" onClick={() => navigate(`/${whoIs}/employee/add`)}>
                         <AddRoundedIcon /> Add Employee
-                    </div>
-                    <div className="button bg-light text-dark" onClick={() => document.getElementById("fileUploader").click()} >
+                    </button>
+                    <button className="button bg-light text-dark" onClick={() => document.getElementById("fileUploader").click()} >
                         <AddRoundedIcon />Import
-                    </div>
+                    </button>
                     <input
                         type="file"
                         id="fileUploader"
