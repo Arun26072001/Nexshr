@@ -438,7 +438,6 @@ export default function HRMDashboard() {
         localStorage.setItem("isStartActivity", isStartActivity);
         fetchCompanies();
     }, [isStartLogin, isStartActivity]);
-    console.log(leaveRequests);
 
     return (
         <TimerStates.Provider value={{ workTimeTracker, reloadRolePage, setIsEditEmp, updateWorkTracker, trackTimer, startLoginTimer, stopLoginTimer, changeReasonForLate, startActivityTimer, stopActivityTimer, setWorkTimeTracker, updateClockins, timeOption, isStartLogin, isStartActivity, changeEmpEditForm, isEditEmp }}>

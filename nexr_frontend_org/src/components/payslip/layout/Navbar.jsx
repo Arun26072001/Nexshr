@@ -179,16 +179,16 @@ export default function Navbar({ handleSideBar }) {
             setAnnouncements(res.data);
         } catch (error) {
             setAnnouncements([]);
-            console.log(error.response.data.error);
+            // console.log(error.response.data.error);
         }
     }
     useEffect(() => {
         fetchAnnouncements();
     }, [isChangeAnnouncements])
-    
+
     setTimeout(() => {
         fetchAnnouncements()
-    }, 10000)
+    }, 30000)
 
     async function updateNotification(value) {
         try {

@@ -290,7 +290,6 @@ router.post("/employees", upload.single("documents"), verifyAdminHR, async (req,
         let existsEmps = [];
         for (let i = 1; i < excelData.length; i++) {
             const row = excelData[i];
-            console.log(row);
 
             const employeeExists = await Employee.exists({ code: row[9] });
             if (!employeeExists && row[0]?.trim()) {

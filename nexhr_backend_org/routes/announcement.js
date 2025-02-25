@@ -59,7 +59,7 @@ router.get("/emp/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => 
     const notifications = await Announcement.find({ selectTeamMembers: req.params.id }).exec();
     const notViewAnnouncements = notifications.filter((item) => item?.howViewed[req.params.id] === "not viewed")
     if (notViewAnnouncements.length === 0) {
-      return res.status(404).send({ error: "Notifications not found" })
+      return res.status(200).send([])
     } else {
       return res.send(notViewAnnouncements);
     }
