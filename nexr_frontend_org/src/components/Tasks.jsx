@@ -198,7 +198,7 @@ const Tasks = ({ employees }) => {
     }
 
     try {
-      const res = await axios.put(`${url}/api/task/${taskToUpdate._id}`, taskToUpdate, {
+      const res = await axios.put(`${url}/api/task/${data._id}/${taskToUpdate._id}`, taskToUpdate, {
         headers: {
           Authorization: data.token || ""
         }

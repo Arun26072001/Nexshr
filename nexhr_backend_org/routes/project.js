@@ -27,7 +27,6 @@ router.get("/", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
       .populate({ path: "company", select: "CompanyName" })
       .populate({ path: "employees", select: "FirstName LastName Email" })
       .populate({ path: "tasks" })
-    console.log(projects);
 
     projects = projects.map((project) => {
       const completedTasks = project.tasks.filter((task) => task.status === "Completed")
@@ -53,7 +52,6 @@ router.get("/emp/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => 
       .populate({ path: "employees", select: "FirstName LastName Email" })
       .populate({ path: "tasks" })
       .exec();
-    console.log(projects);
 
     return res.send(projects);
   } catch (error) {
@@ -158,7 +156,7 @@ router.put("/:empId/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) 
       if (Array.isArray(value)) {
         return value.map((v) => (mongoose.isValidObjectId(v) ? v.toString() : v));
       }
-      return mongoose.isValidObjectId(value) ? value.toString() : value;
+      return mongoose.isValidObjectId(value) ? value?.toString() : value;
     };
 
     delete req.body['_id'];
@@ -171,112 +169,108 @@ router.put("/:empId/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) 
     }
 
     const { FirstName, LastName } = employee;
-
     const projectChanges = Object.entries(projectData.toObject()).flatMap(([name, value]) => {
       const oldValue = convertToString(value);
-      if (req.body[name] !== undefined && oldValue != req.body[name] && !["createdAt", "createdby", "tracker", "updatedAt"].includes(name)) {
-        console.log(`From: ${name} `, value);
-        console.log(`To: ${name}`, req.body[name]);
+      const newValue = convertToString(req.body[name]);
+      const valueOfType = typeof oldValue;
+      if (req.body[name] !== undefined && (valueOfType === "object" ? oldValue.length !== newValue.length : oldValue !== newValue) && !["createdAt", "createdby", "tracker", "updatedAt"].includes(name)) {
 
         return {
           date: new Date(),
-          message: `Project field "${name}" updated from ${value} to ${req.body[name]} by ${FirstName} ${LastName}`,
+          message: `Project field "${req.body[name]}" updated by ${FirstName} ${LastName}`,
           who: req.params.empId
         };
       }
       return [];
     });
+    
+    const updatedProject = {
+      ...req.body,
+      tracker: [...req.body.tracker, projectChanges].flatMap()
+    };
 
-    // console.log(projectChanges);
+    // Validate the request body
+    const { error } = projectValidation.validate(updatedProject);
+    if (error) {
+      console.error(error);
+      return res.status(400).send({ error: error.details[0].message });
+    }
+    const { employees } = await Project.findById(req.params.id, "employees");
+    const newAssiness = req?.body?.employees?.filter((emp) => !employees?.includes(emp));
+    const assignedPerson = await Employee.findById({ _id: req.body.createdby }, "FirstName LastName Email").populate({ path: "company", select: "CompanyName" });
 
-
-    //     const updatedProject = {
-    //       ...req.body,
-    //       tracker: [...req.body.tracker,]
-    //     };
-
-    //     // Validate the request body
-    //     const { error } = projectValidation.validate(updatedProject);
-    //     if (error) {
-    //       console.error(error);
-    //       return res.status(400).send({ error: error.details[0].message });
-    //     }
-    //     const { employees } = await Project.findById(req.params.id, "employees");
-    //     const newAssiness = req?.body?.employees?.filter((emp) => !employees?.includes(emp));
-    //     const assignedPerson = await Employee.findById({ _id: req.body.createdby }, "FirstName LastName Email").populate({ path: "company", select: "CompanyName" });
-
-    //     const emps = await Employee.find({ _id: newAssiness }, "FirstName LastName Email")
-    //     // Update the project in the database
-    //     const project = await Project.findByIdAndUpdate(
-    //       req.params.id,
-    //       updatedProject,
-    //       { new: true } // Return the updated document
-    //     );
-    //     // send mail for assignees
-    //     emps.map((emp) => {
-    //       const empName = emp.FirstName[0].toUpperCase() + emp.FirstName.slice(1) + " " + emp.LastName;
-    //       const assignedPersonName = assignedPerson.FirstName[0].toUpperCase() + assignedPerson.FirstName.slice(1) + " " + assignedPerson.LastName;
-    //       return sendMail({
-    //         From: assignedPerson.Email,
-    //         To: emp.Email,
-    //         Subject: `Welcome to ${req.body.name} project by ${assignedPersonName}`,
-    //         HtmlBody: `
-    // <html lang="en">
-    // <head>
-    //   <meta charset="UTF-8">
-    //   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    //   <title>${assignedPerson?.company?.CompanyName}</title>
-    //   <style>
-    //       body {
-    //           font-family: Arial, sans-serif;
-    //           background-color: #f6f9fc;
-    //           color: #333;
-    //           margin: 0;
-    //           padding: 0;
-    //       }
-    //       .container {
-    //           max-width: 600px;
-    //           margin: auto;
-    //           padding: 20px;
-    //           background-color: #fff;
-    //           border-radius: 8px;
-    //           box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    //       }
-    //       .content {
-    //           margin: 20px 0;
-    //       }
-    //       .footer {
-    //           text-align: center;
-    //           font-size: 14px;
-    //           margin-top: 20px;
-    //           color: #777;
-    //       }
-    //   </style>
-    // </head>
-    // <body>
-    //   <div class="container">
-    //       <div class="header">
-    //           <h1>Welcome to ${req.body.name[0].toUpperCase() + req.body.name.slice(1)}</h1>
-    //       </div>
-    //       <div class="content">
-    //           <p>Hey ${empName} 👋,</p>
-    //           <p><b>${assignedPersonName} has created a project named ${req.body.name}.</b></p>
-    //           <p>As a result, you have been assigned as a member of this project.</p>
-    //           <p>Please follow the instructions.</p><br />
-    //           <p>Thank you!</p>
-    //       </div>
-    //       <div class="footer">
-    //           <p>Have questions? Need help? <a href="mailto:${assignedPerson.Email}">Contact ${assignedPersonName}</a>.</p>
-    //       </div>
-    //   </div>
-    // </body>
-    // </html>
-    // `
-    //       })
-    //     })
-    //     if (!project) {
-    //       return res.status(404).send("Project not found");
-    //     }
+    const emps = await Employee.find({ _id: newAssiness }, "FirstName LastName Email")
+    // Update the project in the database
+    const project = await Project.findByIdAndUpdate(
+      req.params.id,
+      updatedProject,
+      { new: true } // Return the updated document
+    );
+    // send mail for assignees
+    emps.map((emp) => {
+      const empName = emp.FirstName[0].toUpperCase() + emp.FirstName.slice(1) + " " + emp.LastName;
+      const assignedPersonName = assignedPerson.FirstName[0].toUpperCase() + assignedPerson.FirstName.slice(1) + " " + assignedPerson.LastName;
+      return sendMail({
+        From: assignedPerson.Email,
+        To: emp.Email,
+        Subject: `Welcome to ${req.body.name} project by ${assignedPersonName}`,
+        HtmlBody: `
+    <html lang="en">
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>${assignedPerson?.company?.CompanyName}</title>
+      <style>
+          body {
+              font-family: Arial, sans-serif;
+              background-color: #f6f9fc;
+              color: #333;
+              margin: 0;
+              padding: 0;
+          }
+          .container {
+              max-width: 600px;
+              margin: auto;
+              padding: 20px;
+              background-color: #fff;
+              border-radius: 8px;
+              box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+          }
+          .content {
+              margin: 20px 0;
+          }
+          .footer {
+              text-align: center;
+              font-size: 14px;
+              margin-top: 20px;
+              color: #777;
+          }
+      </style>
+    </head>
+    <body>
+      <div class="container">
+          <div class="header">
+              <h1>Welcome to ${req.body.name[0].toUpperCase() + req.body.name.slice(1)}</h1>
+          </div>
+          <div class="content">
+              <p>Hey ${empName} 👋,</p>
+              <p><b>${assignedPersonName} has created a project named ${req.body.name}.</b></p>
+              <p>As a result, you have been assigned as a member of this project.</p>
+              <p>Please follow the instructions.</p><br />
+              <p>Thank you!</p>
+          </div>
+          <div class="footer">
+              <p>Have questions? Need help? <a href="mailto:${assignedPerson.Email}">Contact ${assignedPersonName}</a>.</p>
+          </div>
+      </div>
+    </body>
+    </html>
+    `
+      })
+    })
+    if (!project) {
+      return res.status(404).send("Project not found");
+    }
 
     res.status(200).send({ message: "Project is updated Successfully", project });
   } catch (err) {
