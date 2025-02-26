@@ -296,7 +296,7 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
                     reasonForLeave: "Came too late",
                     prescription: "",
                     employee: emp._id,
-                    coverBy: "",
+                    coverBy: null,
                     status: "rejected",
                     TeamLead: "rejected",
                     TeamHead: "rejected",
