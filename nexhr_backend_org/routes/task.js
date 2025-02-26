@@ -13,7 +13,7 @@ router.get("/project/:id", verifyAdminHREmployeeManagerNetwork, async (req, res)
             .populate({ path: "assignedTo", select: "FirstName LastName" })
             .exec();
         if (tasks.length === 0) {
-            return res.status(404).send({ error: "No Task found in this Project" })
+            return res.status(200).send({ tasks: [] })
         }
         return res.send({ tasks });
     } catch (error) {

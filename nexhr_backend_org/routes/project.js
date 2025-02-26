@@ -1,19 +1,20 @@
 const express = require('express');
 const router = express.Router();
-const { Project, ProjectValidation, projectValidation } = require('../models/ProjectModel');
-const { verifyAdmin, verifyAdminHREmployeeManagerNetwork } = require('../auth/authMiddleware');
-const Joi = require("joi");
+const { Project, projectValidation } = require('../models/ProjectModel');
+const { verifyAdminHREmployeeManagerNetwork } = require('../auth/authMiddleware');
 const { Task } = require('../models/TaskModel');
 const sendMail = require('./mailSender');
 const { Employee } = require('../models/EmpModel');
 const { error } = require('joi/lib/types/lazy');
 const { Report } = require('../models/ReportModel');
+const mongoose = require("mongoose");
 
 router.get("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
   try {
     const project = await Project.findById(req.params.id)
-    // .populate({ path: "company", select: "CompanyName" })
-    // .populate({ path: "employees", select: "FirstName LastName" })
+    // if(!project){
+    //   return res.status(200).send({message: "Project"})
+    // }
     return res.send(project);
   } catch (error) {
     return res.status(500).send({ error: error.message })
@@ -68,7 +69,12 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
       ...req.body,
       status: req.body.status || "Not Started",
       employees: [...req.body.employees, req.params.id] || [],
-      createdby: req.body.createdby || req.params.id
+      createdby: req.body.createdby || req.params.id,
+      tracker: [{
+        date: new Date(),
+        message: `${req.body.name} Project is created by ${FirstName}`,
+        who: req.params.id
+      }]
     }
     if (await Project.exists({ name: req.body.name })) {
       return res.status(400).send({ error: `${req.body.name} project is already exists` })
@@ -146,94 +152,131 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
   }
 });
 
-router.put("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
+router.put("/:empId/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
   try {
+    const convertToString = (value) => {
+      if (Array.isArray(value)) {
+        return value.map((v) => (mongoose.isValidObjectId(v) ? v.toString() : v));
+      }
+      return mongoose.isValidObjectId(value) ? value.toString() : value;
+    };
+
     delete req.body['_id'];
-    delete req.body["__v"]
-    const updatedProject = { ...req.body };
+    delete req.body["__v"];
+    const projectData = await Project.findById(req.params.id);
+    const employee = await Employee.findById(req.params.empId);
 
-    // Validate the request body
-    const { error } = projectValidation.validate(updatedProject);
-    if (error) {
-      console.error(error);
-      return res.status(400).send({ error: error.details[0].message });
+    if (!projectData || !employee) {
+      return res.status(404).json({ message: "Project or Employee not found" });
     }
-    const { employees } = await Project.findById(req.params.id, "employees");
-    const newAssiness = req?.body?.employees?.filter((emp) => !employees?.includes(emp));
-    const assignedPerson = await Employee.findById({ _id: req.body.createdby }, "FirstName LastName Email").populate({ path: "company", select: "CompanyName" });
 
-    const emps = await Employee.find({ _id: newAssiness }, "FirstName LastName Email")
-    // Update the project in the database
-    const project = await Project.findByIdAndUpdate(
-      req.params.id,
-      updatedProject,
-      { new: true } // Return the updated document
-    );
-    // send mail for assignees
-    emps.map((emp) => {
-      const empName = emp.FirstName[0].toUpperCase() + emp.FirstName.slice(1) + " " + emp.LastName;
-      const assignedPersonName = assignedPerson.FirstName[0].toUpperCase() + assignedPerson.FirstName.slice(1) + " " + assignedPerson.LastName;
-      return sendMail({
-        From: assignedPerson.Email,
-        To: emp.Email,
-        Subject: `Welcome to ${req.body.name} project by ${assignedPersonName}`,
-        HtmlBody: `
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>${assignedPerson?.company?.CompanyName}</title>
-  <style>
-      body {
-          font-family: Arial, sans-serif;
-          background-color: #f6f9fc;
-          color: #333;
-          margin: 0;
-          padding: 0;
+    const { FirstName, LastName } = employee;
+
+    const projectChanges = Object.entries(projectData.toObject()).flatMap(([name, value]) => {
+      const oldValue = convertToString(value);
+      if (req.body[name] !== undefined && oldValue != req.body[name] && !["createdAt", "createdby", "tracker", "updatedAt"].includes(name)) {
+        console.log(`From: ${name} `, value);
+        console.log(`To: ${name}`, req.body[name]);
+
+        return {
+          date: new Date(),
+          message: `Project field "${name}" updated from ${value} to ${req.body[name]} by ${FirstName} ${LastName}`,
+          who: req.params.empId
+        };
       }
-      .container {
-          max-width: 600px;
-          margin: auto;
-          padding: 20px;
-          background-color: #fff;
-          border-radius: 8px;
-          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-      }
-      .content {
-          margin: 20px 0;
-      }
-      .footer {
-          text-align: center;
-          font-size: 14px;
-          margin-top: 20px;
-          color: #777;
-      }
-  </style>
-</head>
-<body>
-  <div class="container">
-      <div class="header">
-          <h1>Welcome to ${req.body.name[0].toUpperCase() + req.body.name.slice(1)}</h1>
-      </div>
-      <div class="content">
-          <p>Hey ${empName} 👋,</p>
-          <p><b>${assignedPersonName} has created a project named ${req.body.name}.</b></p>
-          <p>As a result, you have been assigned as a member of this project.</p>
-          <p>Please follow the instructions.</p><br />
-          <p>Thank you!</p>
-      </div>
-      <div class="footer">
-          <p>Have questions? Need help? <a href="mailto:${assignedPerson.Email}">Contact ${assignedPersonName}</a>.</p>
-      </div>
-  </div>
-</body>
-</html>
-`
-      })
-    })
-    if (!project) {
-      return res.status(404).send("Project not found");
-    }
+      return [];
+    });
+
+    // console.log(projectChanges);
+
+
+    //     const updatedProject = {
+    //       ...req.body,
+    //       tracker: [...req.body.tracker,]
+    //     };
+
+    //     // Validate the request body
+    //     const { error } = projectValidation.validate(updatedProject);
+    //     if (error) {
+    //       console.error(error);
+    //       return res.status(400).send({ error: error.details[0].message });
+    //     }
+    //     const { employees } = await Project.findById(req.params.id, "employees");
+    //     const newAssiness = req?.body?.employees?.filter((emp) => !employees?.includes(emp));
+    //     const assignedPerson = await Employee.findById({ _id: req.body.createdby }, "FirstName LastName Email").populate({ path: "company", select: "CompanyName" });
+
+    //     const emps = await Employee.find({ _id: newAssiness }, "FirstName LastName Email")
+    //     // Update the project in the database
+    //     const project = await Project.findByIdAndUpdate(
+    //       req.params.id,
+    //       updatedProject,
+    //       { new: true } // Return the updated document
+    //     );
+    //     // send mail for assignees
+    //     emps.map((emp) => {
+    //       const empName = emp.FirstName[0].toUpperCase() + emp.FirstName.slice(1) + " " + emp.LastName;
+    //       const assignedPersonName = assignedPerson.FirstName[0].toUpperCase() + assignedPerson.FirstName.slice(1) + " " + assignedPerson.LastName;
+    //       return sendMail({
+    //         From: assignedPerson.Email,
+    //         To: emp.Email,
+    //         Subject: `Welcome to ${req.body.name} project by ${assignedPersonName}`,
+    //         HtmlBody: `
+    // <html lang="en">
+    // <head>
+    //   <meta charset="UTF-8">
+    //   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    //   <title>${assignedPerson?.company?.CompanyName}</title>
+    //   <style>
+    //       body {
+    //           font-family: Arial, sans-serif;
+    //           background-color: #f6f9fc;
+    //           color: #333;
+    //           margin: 0;
+    //           padding: 0;
+    //       }
+    //       .container {
+    //           max-width: 600px;
+    //           margin: auto;
+    //           padding: 20px;
+    //           background-color: #fff;
+    //           border-radius: 8px;
+    //           box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    //       }
+    //       .content {
+    //           margin: 20px 0;
+    //       }
+    //       .footer {
+    //           text-align: center;
+    //           font-size: 14px;
+    //           margin-top: 20px;
+    //           color: #777;
+    //       }
+    //   </style>
+    // </head>
+    // <body>
+    //   <div class="container">
+    //       <div class="header">
+    //           <h1>Welcome to ${req.body.name[0].toUpperCase() + req.body.name.slice(1)}</h1>
+    //       </div>
+    //       <div class="content">
+    //           <p>Hey ${empName} 👋,</p>
+    //           <p><b>${assignedPersonName} has created a project named ${req.body.name}.</b></p>
+    //           <p>As a result, you have been assigned as a member of this project.</p>
+    //           <p>Please follow the instructions.</p><br />
+    //           <p>Thank you!</p>
+    //       </div>
+    //       <div class="footer">
+    //           <p>Have questions? Need help? <a href="mailto:${assignedPerson.Email}">Contact ${assignedPersonName}</a>.</p>
+    //       </div>
+    //   </div>
+    // </body>
+    // </html>
+    // `
+    //       })
+    //     })
+    //     if (!project) {
+    //       return res.status(404).send("Project not found");
+    //     }
 
     res.status(200).send({ message: "Project is updated Successfully", project });
   } catch (err) {

@@ -231,7 +231,6 @@ const CommonModel = ({
                                 <p className="modelLabel">To:</p>
                                 <DatePicker
                                     showTimeSelect
-                                    dateFormat="Pp"
                                     className="rsuite_input"
                                     style={{ width: "100%" }}
                                     disabled={["Report View", "Task View"].includes(type)}

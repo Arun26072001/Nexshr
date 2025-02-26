@@ -15,6 +15,7 @@ var projectSchema = new mongoose.Schema({
   estCost: { type: String },
   estTime: { type: String },
   priority: { type: String },
+  tracker: [{ type: mongoose.Schema.Types.Mixed, default: {} }],
   createdby: { type: mongoose.Schema.Types.ObjectId, ref: "Employee" }
 }, { timestamps: true });
 
@@ -53,6 +54,7 @@ const projectValidation = Joi.object({
     .regex(/^[0-9a-fA-F]{24}$/)
     .required()
     .label('Created By'),
+  tracker: Joi.object().allow({}).label("Tracker"),
   trash: Joi.boolean().allow("", null).label("Trash"),
   createdAt: Joi.string().allow('').label('createdAt'),
   updatedAt: Joi.string().allow('').label('updatedAt')

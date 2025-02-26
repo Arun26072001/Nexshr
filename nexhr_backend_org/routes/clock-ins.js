@@ -6,6 +6,7 @@ const { Employee } = require("../models/EmpModel");
 const { getDayDifference } = require("./leave-app");
 const sendMail = require("./mailSender");
 const { LeaveApplication, LeaveApplicationValidation } = require("../models/LeaveAppModel");
+const { TimePattern } = require("../models/TimePatternModel");
 
 function timeToMinutes(timeStr) {
     const [hours, minutes, seconds] = timeStr.split(":").map(Number);
@@ -79,14 +80,14 @@ function formatTimeFromMinutes(minutes) {
     return `${formattedHours}:${formattedMinutes}:${formattedSeconds}`;
 }
 
-router.post("/auto-permission", async (req, res) => {
+router.post("/auto-permission/:patternId", async (req, res) => {
     try {
         const now = new Date();
         const startOfDay = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 0, 0, 0, 0));
         const endOfDay = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 23, 59, 59, 999));
 
         // Fetch employees who haven't logged in
-        let notLoginEmps = await Employee.find()
+        let notLoginEmps = await Employee.find({ workingTimePattern: req.params.patternId })
             .populate({
                 path: "clockIns",
                 match: { date: { $gte: startOfDay, $lt: endOfDay } }

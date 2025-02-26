@@ -78,6 +78,9 @@ export default function HRMDashboard() {
     const [isUpdatedRequest, setIsUpdatedReqests] = useState(false);
     const [employees, setEmployees] = useState([]);
     const [companies, setCompanies] = useState([]);
+    // for handle task modal
+    const [isAddTask, setIsAddTask] = useState(false);
+    const [selectedProject, setSelectedProject] = useState("");
 
     // files for payroll
     const files = ['payroll', 'value', 'manage', 'payslip'];
@@ -285,55 +288,6 @@ export default function HRMDashboard() {
         setIsUpdatedReqests(!isUpdatedRequest);
     }
 
-    useEffect(() => {
-        const getLeaveData = async () => {
-            setIsLoading(true);
-            try {
-                const leaveData = await axios.get(`${url}/api/leave-application/date-range/${whoIs}`, {
-                    params: {
-                        daterangeValue
-                    },
-                    headers: {
-                        authorization: token || ""
-                    }
-                })
-
-                console.log(leaveData.data);
-
-                setLeaveRequests(leaveData.data);
-                setFullLeaveRequests(leaveData.data);
-            } catch (err) {
-                toast.error(err?.response?.data?.message);
-            }
-            setIsLoading(false);
-        }
-
-        const getLeaveDataFromTeam = async () => {
-            setIsLoading(true);
-            try {
-                const leaveData = await axios.get(`${url}/api/leave-application/team/${_id}`, {
-                    params: {
-                        who: isTeamLead ? "lead" : isTeamHead ? "head" : "manager",
-                        daterangeValue
-                    },
-                    headers: {
-                        authorization: token || ""
-                    }
-                })
-                setLeaveRequests(leaveData.data);
-                setFullLeaveRequests(leaveData.data);
-            } catch (err) {
-                toast.error(err?.response?.data?.message);
-            }
-            setIsLoading(false);
-        }
-        if ((whoIs) && (String(Account) === '2' || String(Account) === '1')) {
-            getLeaveData();
-        } else if ((whoIs && isTeamLead) || (whoIs && isTeamHead)) {
-            getLeaveDataFromTeam()
-        }
-    }, [daterangeValue, _id, whoIs, isUpdatedRequest]);
-
     // get attendance summary page table of data
     const getClocknsData = useCallback(async () => {
         if (!_id) return;
@@ -382,6 +336,66 @@ export default function HRMDashboard() {
         localStorage.setItem("timerState", JSON.stringify(updatedState));
     });
 
+    function trackTimer() {
+        setSyncTimer(!syncTimer);
+    }
+
+    async function gettingEmps() {
+        try {
+            const emps = await fetchAllEmployees();
+            setEmployees(emps.map((emp) => ({ label: emp.FirstName + " " + emp.LastName, value: emp._id })))
+        } catch (error) {
+            console.log(error);
+        }
+    }
+
+    useEffect(() => {
+        const getLeaveData = async () => {
+            setIsLoading(true);
+            try {
+                const leaveData = await axios.get(`${url}/api/leave-application/date-range/${whoIs}`, {
+                    params: {
+                        daterangeValue
+                    },
+                    headers: {
+                        authorization: token || ""
+                    }
+                })
+
+                setLeaveRequests(leaveData.data);
+                setFullLeaveRequests(leaveData.data);
+            } catch (err) {
+                toast.error(err?.response?.data?.message);
+            }
+            setIsLoading(false);
+        }
+
+        const getLeaveDataFromTeam = async () => {
+            setIsLoading(true);
+            try {
+                const leaveData = await axios.get(`${url}/api/leave-application/team/${_id}`, {
+                    params: {
+                        who: isTeamLead ? "lead" : isTeamHead ? "head" : "manager",
+                        daterangeValue
+                    },
+                    headers: {
+                        authorization: token || ""
+                    }
+                })
+                setLeaveRequests(leaveData.data);
+                setFullLeaveRequests(leaveData.data);
+            } catch (err) {
+                toast.error(err?.response?.data?.message);
+            }
+            setIsLoading(false);
+        }
+        if ((whoIs) && (String(Account) === '2' || String(Account) === '1')) {
+            getLeaveData();
+        } else if ((whoIs && isTeamLead) || (whoIs && isTeamHead)) {
+            getLeaveDataFromTeam()
+        }
+    }, [daterangeValue, _id, whoIs, isUpdatedRequest]);
+
     // Restore timer when the page loads
     useEffect(() => {
         async function stopTimerForClosed() {
@@ -404,19 +418,6 @@ export default function HRMDashboard() {
         }
         getClocknsData()
     }, [getClocknsData, Account]);
-
-    function trackTimer() {
-        setSyncTimer(!syncTimer);
-    }
-
-    async function gettingEmps() {
-        try {
-            const emps = await fetchAllEmployees();
-            setEmployees(emps.map((emp) => ({ label: emp.FirstName + " " + emp.LastName, value: emp._id })))
-        } catch (error) {
-            console.log(error);
-        }
-    }
 
     // get workTimeTracker from DB in Initially
     useEffect(() => {
@@ -445,8 +446,15 @@ export default function HRMDashboard() {
         fetchCompanies();
     }, [isStartLogin, isStartActivity]);
 
+    function handleAddTask(projectId) {
+        if (projectId) {
+            setSelectedProject(projectId)
+        }
+        setIsAddTask(!isAddTask);
+    }
+
     return (
-        <TimerStates.Provider value={{ workTimeTracker, reloadRolePage, setIsEditEmp, updateWorkTracker, trackTimer, startLoginTimer, stopLoginTimer, changeReasonForLate, startActivityTimer, stopActivityTimer, setWorkTimeTracker, updateClockins, timeOption, isStartLogin, isStartActivity, changeEmpEditForm, isEditEmp }}>
+        <TimerStates.Provider value={{ workTimeTracker, reloadRolePage, setIsEditEmp, updateWorkTracker, trackTimer, startLoginTimer, stopLoginTimer, changeReasonForLate, startActivityTimer, stopActivityTimer, setWorkTimeTracker, updateClockins, timeOption, isStartLogin, isStartActivity, handleAddTask, changeEmpEditForm, isEditEmp, isAddTask, setIsAddTask, handleAddTask, selectedProject }}>
             <Suspense fallback={<Loading />}>
                 <Routes >
                     <Route path="/" element={<Parent />} >
