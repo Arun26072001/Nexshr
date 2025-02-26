@@ -124,21 +124,29 @@ router.get("/all", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
 
 });
 
-router.get("/lead", verifyAdminHR, async (req, res) => {
-  try {
-    const teamLeads = await Employee.find({}, "FirstName LastName").populate("position").exec();
-    const filterTeamLeads = teamLeads.filter((lead) => lead?.position?.PositionName === "Team Lead");
-    res.send(filterTeamLeads);
-  } catch (err) {
-    res.status(500).send({ error: err.message })
-  }
-})
+// router.get("/lead", verifyAdminHR, async (req, res) => {
+//   try {
+//     const teamLeads = await Employee.find({}, "FirstName LastName").populate("position").exec();
+//     const filterTeamLeads = teamLeads.filter((lead) => lead?.position?.PositionName === "Team Lead");
+//     res.send(filterTeamLeads);
+//   } catch (err) {
+//     res.status(500).send({ error: err.message })
+//   }
+// })
 
-router.get("/head", verifyAdminHR, async (req, res) => {
+router.get("/team/:higher", verifyAdminHR, async (req, res) => {
   try {
     const positions = await Employee.find({}, "FirstName LastName").populate("position").exec();
-    const filterTeamHeads = positions.filter((head) => head?.position?.PositionName === "Team Head");
-    res.send(filterTeamHeads);
+    const higherAuth = positions.filter((emp) => {
+      const positionName = emp?.position?.PositionName;
+      return positionName ===
+        (req.params.higher === "lead" ? "Team Lead" :
+          req.params.higher === "head" ? "Team Head" :
+            "Manager");
+    });
+    console.log(higherAuth);
+    
+    res.send(higherAuth);
   } catch (err) {
     res.status(500).send({ error: err.message })
   }
@@ -158,8 +166,6 @@ router.get('/:id', verifyAdminHREmployeeManagerNetwork, async (req, res) => {
       .populate("department")
       .populate("position")
       .exec();
-    console.log(emp);
-
 
     if (!emp) {
       return res.status(404).send({ error: "Employee not found!" });
@@ -197,28 +203,6 @@ router.get('/:id', verifyAdminHREmployeeManagerNetwork, async (req, res) => {
     res.status(500).send({ error: err.message });
   }
 });
-
-// router.post("/add/company", async (req, res) => {
-//   try {
-//     const emps = await Employee.find().exec();
-//     for (const emp of emps) {
-//       const empData = {
-//         ...emp,
-//         company: "679b5ee55eb2dc34115be175"
-//       }
-//       console.log(empData);
-
-//       await Employee.findByIdAndUpdate(emp._id,
-//         { $set: { company: "679b5ee55eb2dc34115be175" } }, // Only update the `company` field
-//         { new: true } // Returns updated document)
-//       )
-//     }
-//     res.status(200).send({ message: "All employes has been udpated" })
-
-//   } catch (error) {
-//     console.log(error);
-//   }
-// })
 
 router.post("/", verifyAdminHR, async (req, res) => {
   try {

@@ -13,7 +13,7 @@ router.get("/project/:id", verifyAdminHREmployeeManagerNetwork, async (req, res)
             .populate({ path: "assignedTo", select: "FirstName LastName" })
             .exec();
         if (tasks.length === 0) {
-            return res.status(404).send({ error: "No Task found in this Project" })
+            return res.status(200).send({ tasks: [] })
         }
         return res.send({ tasks });
     } catch (error) {
@@ -57,8 +57,15 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
         if (error) {
             return res.status(400).send({ error: error.details[0].message })
         } else {
+            const empData = await Employee.findById(req.params.id)
+            const newTracker = {
+                date: new Date(),
+                message: `New Task(${req.body.title}) created by ${empData.FirstName} ${empData.LastName}`,
+                who: req.params.id
+            }
             const task = await Task.create(newTask);
             project.tasks.push(task._id);
+            project.tracker.push(newTracker);
             await project.save();
 
             // send mail for assigned peoples
@@ -132,7 +139,7 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
     }
 })
 
-router.put("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
+router.put("/:empId/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
     try {
         const updatedTask = {
             ...req.body
@@ -146,6 +153,15 @@ router.put("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
             return res.status(400).send({ error: error.details[0].message })
         } else {
             const task = await Task.findByIdAndUpdate(req.params.id, updatedTask, { new: true });
+            const projectData = await Project.findById(req.body.project);
+            const empData = await Employee.findById(req.params.empId);
+            const newTracker = {
+                date: new Date(),
+                message: `Task is updated by ${empData.FirstName} ${empData.LastName}`,
+                who: empData._id
+            }
+            projectData.tracker.push(newTracker);
+            await projectData.save();
             const assignedPersonName = assignedPerson.FirstName[0].toUpperCase() + assignedPerson.FirstName.slice(1) + " " + assignedPerson.LastName;
             if (req.body.status === "Completed") {
                 // send mail for assignees
@@ -155,72 +171,7 @@ router.put("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
                         From: emp.Email,
                         To: assignedPerson.Email,
                         Subject: `You assigned(${req.body.title}) task is Completed`,
-                        HtmlBody: `<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>${assignedPerson.company.CompanyName}</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f6f9fc;
-            color: #333;
-            margin: 0;
-            padding: 0;
-        }
-        .container {
-            max-width: 600px;
-            margin: auto;
-            padding: 20px;
-            background-color: #fff;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        }
-        .header {
-            text-align: center;
-            padding: 20px;
-        }
-        .content {
-            margin: 20px 0;
-        }
-        .footer {
-            text-align: center;
-            font-size: 14px;
-            margin-top: 20px;
-            color: #777;
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <div class="header">
-            <h1>Your Assigned Task Has Been Completed</h1>
-        </div>
-        <div class="content">
-            <p>Hey ${assignedPersonName} 👋,</p>
-            <p><b>${assignedPersonName} has successfully completed the task named "${req.body.title}".</b></p>
-            <p>Please review the completed task and take any necessary actions.</p><br />
-            <p>Thank you!</p>
-        </div>
-        <div class="footer">
-            <p>Have questions? Need help? <a href="mailto:${emp.Email}">Contact ${empName}</a>.</p>
-        </div>
-    </div>
-</body>
-</html>
-`
-                    })
-                })
-            }
-            // send mail for assignees
-            emps.map((emp) => {
-                const empName = emp.FirstName[0].toUpperCase() + emp.FirstName.slice(1) + " " + emp.LastName;
-                return sendMail({
-                    From: assignedPerson.Email,
-                    To: emp.Email,
-                    Subject: `${assignedPersonName} has Assigned a Task to You`,
-                    HtmlBody: `
+                        HtmlBody: `< !DOCTYPE html>
                         <html lang="en">
                             <head>
                                 <meta charset="UTF-8">
@@ -233,7 +184,7 @@ router.put("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
                                             color: #333;
                                             margin: 0;
                                             padding: 0;
-                            }
+        }
                                             .container {
                                                 max - width: 600px;
                                             margin: auto;
@@ -241,36 +192,101 @@ router.put("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
                                             background-color: #fff;
                                             border-radius: 8px;
                                             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-                            }
+        }
+                                            .header {
+                                                text - align: center;
+                                            padding: 20px;
+        }
                                             .content {
                                                 margin: 20px 0;
-                            }
+        }
                                             .footer {
                                                 text - align: center;
                                             font-size: 14px;
                                             margin-top: 20px;
                                             color: #777;
-                            }
+        }
                                         </style>
                                     </head>
                                     <body>
                                         <div class="container">
                                             <div class="header">
-                                                <h1>${assignedPersonName} has Assigned a Task to You!</h1>
+                                                <h1>Your Assigned Task Has Been Completed</h1>
                                             </div>
                                             <div class="content">
-                                                <p>Hey ${empName} 👋,</p>
-                                                <p><b>${assignedPersonName} has created a task named "${req.body.title}".</b></p>
-                                                <p>You have been assigned to this task as a responsible member.</p>
-                                                <p>Please follow the provided instructions and complete the task accordingly.</p><br />
+                                                <p>Hey ${assignedPersonName} 👋,</p>
+                                                <p><b>${assignedPersonName} has successfully completed the task named "${req.body.title}".</b></p>
+                                                <p>Please review the completed task and take any necessary actions.</p><br />
                                                 <p>Thank you!</p>
                                             </div>
                                             <div class="footer">
-                                                <p>Have questions? Need help? <a href="mailto:${assignedPerson.Email}">Contact ${assignedPersonName}</a>.</p>
+                                                <p>Have questions? Need help? <a href="mailto:${emp.Email}">Contact ${empName}</a>.</p>
                                             </div>
                                         </div>
                                     </body>
-                                </html>`
+                                </html>
+                                `
+                    })
+                })
+            }
+            // send mail for assignees
+            emps.map((emp) => {
+                const empName = emp.FirstName[0].toUpperCase() + emp.FirstName.slice(1) + " " + emp.LastName;
+                return sendMail({
+                    From: assignedPerson.Email,
+                    To: emp.Email,
+                    Subject: `${assignedPersonName} has Assigned a Task to You`,
+                    HtmlBody: `
+                                <html lang="en">
+                                    <head>
+                                        <meta charset="UTF-8">
+                                            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                                                <title>${assignedPerson.company.CompanyName}</title>
+                                                <style>
+                                                    body {
+                                                        font - family: Arial, sans-serif;
+                                                    background-color: #f6f9fc;
+                                                    color: #333;
+                                                    margin: 0;
+                                                    padding: 0;
+                            }
+                                                    .container {
+                                                        max - width: 600px;
+                                                    margin: auto;
+                                                    padding: 20px;
+                                                    background-color: #fff;
+                                                    border-radius: 8px;
+                                                    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+                            }
+                                                    .content {
+                                                        margin: 20px 0;
+                            }
+                                                    .footer {
+                                                        text - align: center;
+                                                    font-size: 14px;
+                                                    margin-top: 20px;
+                                                    color: #777;
+                            }
+                                                </style>
+                                            </head>
+                                            <body>
+                                                <div class="container">
+                                                    <div class="header">
+                                                        <h1>${assignedPersonName} has Assigned a Task to You!</h1>
+                                                    </div>
+                                                    <div class="content">
+                                                        <p>Hey ${empName} 👋,</p>
+                                                        <p><b>${assignedPersonName} has created a task named "${req.body.title}".</b></p>
+                                                        <p>You have been assigned to this task as a responsible member.</p>
+                                                        <p>Please follow the provided instructions and complete the task accordingly.</p><br />
+                                                        <p>Thank you!</p>
+                                                    </div>
+                                                    <div class="footer">
+                                                        <p>Have questions? Need help? <a href="mailto:${assignedPerson.Email}">Contact ${assignedPersonName}</a>.</p>
+                                                    </div>
+                                                </div>
+                                            </body>
+                                        </html>`
 
                 })
             })

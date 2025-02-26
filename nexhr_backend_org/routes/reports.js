@@ -18,8 +18,14 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
         if (error) {
             return res.status(400).send({ error: error.details[0].message })
         }
+        const newTracker = {
+            date: new Date(),
+            message: `New Report(${req.body.name}) is created by ${empData.FirstName} ${empData.LastName}`,
+            who: req.params.id
+        }
         const result = await Report.create(newReport);
         project.reports.push(result._id);
+        project.tracker.push(newTracker);
         await project.save();
         return res.send({ message: "Report is created successfully", result })
     } catch (error) {
@@ -32,8 +38,7 @@ router.get("/createdby/:id", verifyAdminHREmployeeManagerNetwork, async (req, re
         const reports = await Report.find({ createdby: req.params.id })
             .populate({ path: "createdby", select: "FirstName LastName" })
             .exec();
-            console.log(reports);
-            
+
         if (reports.length === 0) {
             return res.status(404).send({ error: "Reports not found" })
         } else {
@@ -63,7 +68,7 @@ router.get("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
     }
 })
 
-router.put("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
+router.put("/:empId/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
     try {
         const updatedReport = {
             ...req.body
@@ -72,7 +77,16 @@ router.put("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
         if (error) {
             return res.status(400).send({ error: error.details[0].message })
         }
-        const report = await Report.findByIdAndUpdate({ _id: req.params.id }, updatedReport, { new: true })
+        const report = await Report.findByIdAndUpdate({ _id: req.params.id }, updatedReport, { new: true });
+        const projectData = await Project.findById(req.body.project);
+        const empData = await Employee.findById(req.params.empId);
+        const newTracker = {
+            date: new Date(),
+            message: `Report is updated by ${empData.FirstName} ${empData.LastName}`,
+            who: empData._id
+        }
+        projectData.tracker.push(newTracker);
+        await projectData.save();
         return res.send({ message: "Report is updated Successfully", report })
     } catch (error) {
         return res.status(500).send({ error: error.message })

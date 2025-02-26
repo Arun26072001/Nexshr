@@ -111,7 +111,7 @@ const Dashboard = () => {
                             <div className='col-lg-3 col-md-3 col-6 my-1 text-center'>
                                 <p className='leaveIndicatorTxt'>Leave request pending</p>
                                 <p className='text-primary number'>{leaveData?.pendingLeaveRequests || 0}</p>
-                            </div>
+                            </div>  
                         </div>
                         <div className='time flex-wrap'>
                             <h6 className='col-lg-12 col-12'>Time Log</h6>
@@ -120,7 +120,7 @@ const Dashboard = () => {
                                 <div className='row gap-3 text-center d-flex justify-content-center'>
                                     <div className='col-lg-3 col-md-3 col-4 timeLogBox'>
                                         <p>{formatTime(leaveData?.workingHour || 0)}</p>
-                                        <p className='sub_text'>Scheduled</p>
+                                        <p className='sub_text'>Total Hours</p>
                                     </div>
                                     <div className='col-lg-3 col-md-3 col-4 timeLogBox'>
                                         <p>{dailyLogindata?.empTotalWorkingHours ? dailyLogindata?.empTotalWorkingHours : "00:00"}</p>

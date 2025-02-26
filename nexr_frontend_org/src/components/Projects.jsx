@@ -14,10 +14,14 @@ import BorderColorRoundedIcon from '@mui/icons-material/BorderColorRounded';
 import DeleteRoundedIcon from '@mui/icons-material/DeleteRounded';
 import RemoveRedEyeRoundedIcon from '@mui/icons-material/RemoveRedEyeRounded';
 import { jwtDecode } from 'jwt-decode';
+import { TimerStates } from './payslip/HRMDashboard';
+import { useNavigate } from 'react-router-dom';
 
 export default function Projects({ employees }) {
+    const navigator = useNavigate();
     const { whoIs, data } = useContext(EssentialValues);
-    const { isTeamLead, isTeamHead } = jwtDecode(data.token)
+    const { isTeamLead, isTeamHead } = jwtDecode(data.token);
+    const { handleAddTask } = useContext(TimerStates);
     const [teams, setTeams] = useState([]);
     const [isDelete, setIsDelete] = useState({ type: false, value: "" });
     const [isEdit, setIsEdit] = useState(false);
@@ -111,7 +115,7 @@ export default function Projects({ employees }) {
 
     async function updateProject() {
         try {
-            const res = await axios.put(`${url}/api/project/${projectObj?._id}`, projectObj, {
+            const res = await axios.put(`${url}/api/project/${data._id}/${projectObj?._id}`, projectObj, {
                 headers: {
                     Authorization: data.token || ""
                 }
@@ -162,7 +166,6 @@ export default function Projects({ employees }) {
             setProjects(filterProjects.filter((project) => project.name.toLowerCase().includes(name?.toLowerCase()) || project.status.includes(name) || project?.company?._id?.includes(name)))
         }
     }
-    console.log(projects);
 
 
     async function deleteProject() {
@@ -359,6 +362,13 @@ export default function Projects({ employees }) {
                                                                 handleEditProject()
                                                             }} />
                                                         </div>
+
+                                                        <div className='w-100' onClick={() => {
+                                                            navigator(`/${whoIs}/tasks`)
+                                                            handleAddTask(project._id)
+                                                        }} >
+                                                            <button className='button' style={{ background: "#4b70f5", width: "100%", padding: "6px" }}>Add Task</button>
+                                                        </div>
                                                     </div>
                                                 </div>
                                             ))
@@ -368,7 +378,7 @@ export default function Projects({ employees }) {
                                     </div>
                                 </div>
 
-                            </div>
+                            </div >
                         </>
     )
 }

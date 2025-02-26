@@ -16,6 +16,7 @@ import Loading from '../Loader';
 import Company from '../Administration/Company';
 import Holiday from '../Administration/Holiday';
 import Country from '../Administration/Country';
+import ManageTeam from './ManageTeam';
 
 // Lazy loading components
 const Dashboard = React.lazy(() => import('./Dashboard'));
@@ -57,7 +58,7 @@ export const TimerStates = createContext(null);
 
 export default function HRMDashboard() {
     // const navigator = useNavigate();
-    const { data, isStartLogin, isStartActivity, setIsStartLogin, setIsStartActivity, whoIs } = useContext(EssentialValues);
+    const { data, isStartLogin, isStartActivity, setIsStartLogin, setIsStartActivity, whoIs, socket } = useContext(EssentialValues);
     const { token, Account, _id } = data;
     const { isTeamLead, isTeamHead } = jwtDecode(token);
     const [attendanceData, setAttendanceData] = useState([]);
@@ -77,6 +78,9 @@ export default function HRMDashboard() {
     const [isUpdatedRequest, setIsUpdatedReqests] = useState(false);
     const [employees, setEmployees] = useState([]);
     const [companies, setCompanies] = useState([]);
+    // for handle task modal
+    const [isAddTask, setIsAddTask] = useState(false);
+    const [selectedProject, setSelectedProject] = useState("");
 
     // files for payroll
     const files = ['payroll', 'value', 'manage', 'payslip'];
@@ -159,9 +163,15 @@ export default function HRMDashboard() {
             if (!updatedState?._id) {
                 // Add new clock-ins data
                 const clockinsData = await addDataAPI(updatedState);
-                console.log(typeof clockinsData);
 
                 if (clockinsData !== "undefined") {
+                    if (!workTimeTracker.login.startingTime.length) {
+                        socket.emit("remainder_notification", {
+                            employee: data._id,
+                            time: 1,
+                            clockinsId: clockinsData?._id
+                        })
+                    }
                     setWorkTimeTracker(clockinsData);
                     setIsStartLogin(true);
                     localStorage.setItem("isStartLogin", true);
@@ -278,6 +288,67 @@ export default function HRMDashboard() {
         setIsUpdatedReqests(!isUpdatedRequest);
     }
 
+    // get attendance summary page table of data
+    const getClocknsData = useCallback(async () => {
+        if (!_id) return;
+        setWaitForAttendance(true);
+        try {
+            const data = await gettingClockinsData(_id);
+            if (data) {
+                setAttendanceForSummary(data);
+            } else {
+                toast.error("Error in fetch attendance Data");
+            }
+        } catch (err) {
+            console.error(err);
+            toast.error(err?.response?.data?.message);
+        } finally {
+            setWaitForAttendance(false);
+        }
+    }, [_id]);
+
+    const getAttendanceData = async () => {
+        try {
+            const empOfAttendances = await axios.get(`${url}/api/clock-ins/`, {
+                headers: {
+                    Authorization: token || ""
+                }
+            });
+            setAttendanceData(empOfAttendances.data);
+        } catch (error) {
+            console.error(error);
+        }
+    }
+
+    // when use close the tab or browser timer will stop.
+    window.addEventListener("unload", (e) => {
+        // e.preventDefault();
+        // e.returnValue = "";
+        const currentTime = new Date().toTimeString().split(" ")[0];
+        const updatedState = {
+            ...workTimeTracker,
+            login: {
+                ...workTimeTracker?.login,
+                endingTime: [...(workTimeTracker?.login?.endingTime || []), currentTime],
+                timeHolder: workTimeTracker?.login?.timeHolder,
+            },
+        };
+        localStorage.setItem("timerState", JSON.stringify(updatedState));
+    });
+
+    function trackTimer() {
+        setSyncTimer(!syncTimer);
+    }
+
+    async function gettingEmps() {
+        try {
+            const emps = await fetchAllEmployees();
+            setEmployees(emps.map((emp) => ({ label: emp.FirstName + " " + emp.LastName, value: emp._id })))
+        } catch (error) {
+            console.log(error);
+        }
+    }
+
     useEffect(() => {
         const getLeaveData = async () => {
             setIsLoading(true);
@@ -290,8 +361,6 @@ export default function HRMDashboard() {
                         authorization: token || ""
                     }
                 })
-
-                console.log(leaveData.data);
 
                 setLeaveRequests(leaveData.data);
                 setFullLeaveRequests(leaveData.data);
@@ -327,54 +396,6 @@ export default function HRMDashboard() {
         }
     }, [daterangeValue, _id, whoIs, isUpdatedRequest]);
 
-    // get attendance summary page table of data
-    const getClocknsData = useCallback(async () => {
-        if (!_id) return;
-        setWaitForAttendance(true);
-        try {
-            const data = await gettingClockinsData(_id);
-            if (data) {
-                setAttendanceForSummary(data);
-            } else {
-                toast.error("Error in fetch attendance Data");
-            }
-        } catch (err) {
-            console.error(err);
-            toast.error(err?.response?.data?.message);
-        } finally {
-            setWaitForAttendance(false);
-        }
-    }, [_id]);
-
-    const getAttendanceData = async () => {
-        try {
-            const empOfAttendances = await axios.get(`${url}/api/clock-ins/`, {
-                headers: {
-                    Authorization: token || ""
-                }
-            });
-            setAttendanceData(empOfAttendances.data);
-        } catch (error) {
-            console.error(error);
-        }
-    }
-
-    // when use close the tab or browser timer will stop.
-    window.addEventListener("beforeunload", (e) => {
-        e.preventDefault();
-        e.returnValue = "";
-        const currentTime = new Date().toTimeString().split(" ")[0];
-        const updatedState = {
-            ...workTimeTracker,
-            login: {
-                ...workTimeTracker?.login,
-                endingTime: [...(workTimeTracker?.login?.endingTime || []), currentTime],
-                timeHolder: workTimeTracker?.login?.timeHolder,
-            },
-        };
-        localStorage.setItem("timerState", JSON.stringify(updatedState));
-    });
-
     // Restore timer when the page loads
     useEffect(() => {
         async function stopTimerForClosed() {
@@ -390,7 +411,6 @@ export default function HRMDashboard() {
         stopTimerForClosed();
     }, [])
 
-
     // to view attendance data for admin and hr
     useEffect(() => {
         if (["1", "2", "5"].includes(Account)) {
@@ -398,19 +418,6 @@ export default function HRMDashboard() {
         }
         getClocknsData()
     }, [getClocknsData, Account]);
-
-    function trackTimer() {
-        setSyncTimer(!syncTimer);
-    }
-
-    async function gettingEmps() {
-        try {
-            const emps = await fetchAllEmployees();
-            setEmployees(emps.map((emp) => ({ label: emp.FirstName + " " + emp.LastName, value: emp._id })))
-        } catch (error) {
-            console.log(error);
-        }
-    }
 
     // get workTimeTracker from DB in Initially
     useEffect(() => {
@@ -439,8 +446,15 @@ export default function HRMDashboard() {
         fetchCompanies();
     }, [isStartLogin, isStartActivity]);
 
+    function handleAddTask(projectId) {
+        if (projectId) {
+            setSelectedProject(projectId)
+        }
+        setIsAddTask(!isAddTask);
+    }
+
     return (
-        <TimerStates.Provider value={{ workTimeTracker, reloadRolePage, setIsEditEmp, updateWorkTracker, trackTimer, startLoginTimer, stopLoginTimer, changeReasonForLate, startActivityTimer, stopActivityTimer, setWorkTimeTracker, updateClockins, timeOption, isStartLogin, isStartActivity, changeEmpEditForm, isEditEmp }}>
+        <TimerStates.Provider value={{ workTimeTracker, reloadRolePage, setIsEditEmp, updateWorkTracker, trackTimer, startLoginTimer, stopLoginTimer, changeReasonForLate, startActivityTimer, stopActivityTimer, setWorkTimeTracker, updateClockins, timeOption, isStartLogin, isStartActivity, handleAddTask, changeEmpEditForm, isEditEmp, isAddTask, setIsAddTask, handleAddTask, selectedProject }}>
             <Suspense fallback={<Loading />}>
                 <Routes >
                     <Route path="/" element={<Parent />} >
@@ -491,7 +505,7 @@ export default function HRMDashboard() {
                                 <Route path="/holiday" element={<Holiday />} />
                                 <Route path="/announcement" element={<Announce />} />
                                 <Route path="/country" element={<Country />} />
-                                {/* <Route path="/shift" element={<h1 className='text-center'>Under Development</h1>} /> */}
+                                <Route path="/team" element={<ManageTeam />} />
                             </Routes>
                         } />
                         <Route path="settings/*" element={

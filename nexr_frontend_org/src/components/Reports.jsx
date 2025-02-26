@@ -128,7 +128,7 @@ export default function Reports({ employees }) {
 
     async function editReport(updatedReport) {
         try {
-            const res = await axios.put(`${url}/api/report/${updatedReport._id}`, updatedReport, {
+            const res = await axios.put(`${url}/api/report/${data._id}/${updatedReport._id}`, updatedReport, {
                 headers: {
                     Authorization: data.token || ""
                 }

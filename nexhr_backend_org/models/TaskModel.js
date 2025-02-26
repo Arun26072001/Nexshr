@@ -45,6 +45,7 @@ const taskValidation = Joi.object({
         .regex(/^[0-9a-fA-F]{24}$/)
         .required()
         .label('Created By'),
+    trash: Joi.boolean().allow("", null).label("Trash"),
     project: Joi.string().regex(/^[0-9a-fA-F]{24}$/).label('Project ID'),
     createdAt: Joi.string().allow('').label('createdAt'),
     updatedAt: Joi.string().allow('').label('updatedAt')

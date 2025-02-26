@@ -157,31 +157,101 @@ const io = new Server(server, {
   },
 });
 
+let onlineUsers = {}; // Store online users { employeeId: socketId }
+
 // Socket.IO Connection
 io.on("connection", (socket) => {
-  console.log("A user connected:", socket.id);
-
+  // Employee joins a room
   socket.on("join_room", (employeeId) => {
-    socket.join(employeeId);
-    console.log(`Employee ${employeeId} joined room`);
+    onlineUsers[employeeId] = socket.id; // ✅ Map employee ID to socket ID
   });
-  // Listen for HR's announcement
+
+  // HR sends an announcement
   socket.on("send_announcement", (data) => {
-    console.log("send announcement: ", data);
-    // Emit announcement to the selected employee(s)
-    data.selectTeamMembers.map((emp) => io.to(emp).emit("receive_announcement", data))
+
+    data.selectTeamMembers.forEach((employeeId) => {
+      const employeeSocketID = onlineUsers[employeeId]; // Get employee's socket ID
+
+      if (employeeSocketID) {
+        io.to(employeeSocketID).emit("receive_announcement", data);
+      } else {
+        console.log(`Employee ${employeeId} is offline, skipping.`);
+      }
+    });
   });
 
+  // Sending a delayed notification
   socket.on("send_notification", (data) => {
-    console.log("nofitication data: ", data);
-    setTimeout(() => {
-      axios.post(`${process.env.FRONTEND_URL}/api/clock-ins/remainder/${data.employee}/${data.timeOption}`)
-      io.to(data.employee).emit("Ask_reason_for_late")
-    }, data.time * 1000)
-  })
 
+    // Ensure `time` is valid
+    const delay = Number(data.time) * 60000;
+    if (isNaN(delay) || delay <= 0) {
+      console.error("Invalid delay time:", data.time);
+      return;
+    }
+
+    setTimeout(async () => {
+
+      try {
+        const res = await axios.post(
+          `${process.env.REACT_APP_API_URL}/api/clock-ins/remainder/${data.employee}/${data.timeOption}`
+        );
+        // console.log("API Response:", res.data);
+
+        const employeeSocketID = onlineUsers[data.employee]; // ✅ Get correct socket ID
+        if (employeeSocketID) {
+          io.to(employeeSocketID).emit("Ask_reason_for_late", {
+            message: "Why were you late?"
+          });
+          // console.log(`Sent Ask_reason_for_late to Employee ${data.employee}`);
+        } else {
+          console.log(`User ${data.employee} is offline, skipping emit.`);
+        }
+      } catch (error) {
+        console.error("Error sending remainder request:", error.message);
+      }
+    }, delay);
+  });
+
+  // Sending a delayed remainder
+  socket.on("remainder_notification", (data) => {
+
+    // Ensure `time` is valid
+    const delay = Number(data.time) * 60000;
+    if (isNaN(delay) || delay <= 0) {
+      console.error("Invalid delay time:", data.time);
+      return;
+    }
+
+    setTimeout(async () => {
+
+      try {
+        const res = await axios.get(
+          `${process.env.REACT_APP_API_URL}/api/clock-ins/sendmail/${data.employee}/${data.clockinsId}`
+        );
+
+      } catch (error) {
+        console.log(error);
+        console.error("Error sending remainder request:", error.message);
+      }
+    }, delay);
+  });
+
+  // Handle user disconnection
   socket.on("disconnect", () => {
-    console.log("User disconnected:", socket.id);
+    let disconnectedEmployee = null;
+
+    for (const [employeeID, socketID] of Object.entries(onlineUsers)) {
+      if (socketID === socket.id) {
+        disconnectedEmployee = employeeID;
+        delete onlineUsers[employeeID]; // ✅ Remove user from online list
+        break;
+      }
+    }
+
+    if (disconnectedEmployee) {
+      console.log(`Employee ${disconnectedEmployee} disconnected.`);
+    }
   });
 });
 
@@ -214,7 +284,7 @@ async function fetchTimePatterns() {
       // apply permission for late late emps
       schedule.scheduleJob(`0 ${startingMin + 5} ${startingHour} * * 1-5`, async function () {
         try {
-          const response = await axios.post(`${process.env.REACT_APP_API_URL}/api/clock-ins/auto-permission`)
+          const response = await axios.post(`${process.env.REACT_APP_API_URL}/api/clock-ins/auto-permission/${pattern._id}`)
           console.log(response.data.message);
         } catch (error) {
           console.log(error);

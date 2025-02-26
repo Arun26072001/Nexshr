@@ -65,13 +65,15 @@ const AssignEmp = ({ handleSubmit, teamObj, updateTeamObj, toggleAssignEmp, team
         };
         fetchEmployees();
     }, [url, token]); // Add url and token as dependencies
+    console.log(teamObj);
 
 
     return (
+        // <p>sadsadas</p>
         <Modal open={true} onClose={toggleAssignEmp} size="sm" backdrop="static">
             <Modal.Header>
                 <Modal.Title>
-                    Assign employees to {teamObj.teamName}
+                    Assign employees to {teamObj?.teamName}
                 </Modal.Title>
             </Modal.Header>
             <Modal.Body>
@@ -94,10 +96,10 @@ const AssignEmp = ({ handleSubmit, teamObj, updateTeamObj, toggleAssignEmp, team
                 </div>
 
                 {/* Selected Employees */}
-                {teamObj.employees.length > 0 && (
+                {teamObj?.employees?.length > 0 && (
                     <div>
-                        <h5  onClick={() => handleRotate('selected')}>
-                            Selected ({teamObj.employees.length})
+                        <h5 onClick={() => handleRotate('selected')}>
+                            Selected ({teamObj?.employees?.length})
                             <KeyboardArrowDownOutlinedIcon
                                 fontSize="large"
                                 color="primary"
@@ -105,8 +107,8 @@ const AssignEmp = ({ handleSubmit, teamObj, updateTeamObj, toggleAssignEmp, team
                             />
                         </h5>
                         {rotateState['selected'] &&
-                            teamObj.employees.map((emp) => {
-                                const active = teamObj.employees.some((e) => e._id === emp._id);
+                            teamObj?.employees?.map((emp) => {
+                                const active = teamObj?.employees?.some((e) => e._id === emp._id);
                                 return (
                                     <div key={emp._id} className={`empSelect ${active ? "enable" : ""}`} onClick={() => updateTeamObj(emp)}>
                                         {emp.FirstName} {emp.LastName}
@@ -130,7 +132,7 @@ const AssignEmp = ({ handleSubmit, teamObj, updateTeamObj, toggleAssignEmp, team
                         </h5>
                         {rotateState["employees"] &&
                             filteredEmps.map((emp) => {
-                                const active = teamObj.employees.some((e) => e._id === emp._id);
+                                const active = teamObj?.employees?.some((e) => e._id === emp._id);
                                 return (
                                     <div key={emp._id} className={`empSelect ${active ? "enable" : ""}`} onClick={() => updateTeamObj(emp)}>
                                         {emp.FirstName} {emp.LastName}
@@ -146,11 +148,11 @@ const AssignEmp = ({ handleSubmit, teamObj, updateTeamObj, toggleAssignEmp, team
                 )}
 
                 {/* Teams List */}
-                {selectBy === "teamName" && filteredItems.length > 0 && (
+                {selectBy === "teamName" && filteredItems?.length > 0 && (
                     filteredItems.map((team) => (
-                        <div key={team.teamName}>
-                            <h5 className="px-2" onClick={() => handleRotate(team.teamName)}>
-                                {team.teamName} ({team.employees.length})
+                        <div key={team?.teamName}>
+                            <h5 className="px-2" onClick={() => handleRotate(team?.teamName)}>
+                                {team?.teamName} ({team?.employees?.length})
                                 <KeyboardArrowDownOutlinedIcon
                                     fontSize="large"
                                     color="primary"
@@ -158,8 +160,8 @@ const AssignEmp = ({ handleSubmit, teamObj, updateTeamObj, toggleAssignEmp, team
                                 />
                             </h5>
                             {rotateState[team.teamName] &&
-                                team.employees.map((emp) => {
-                                    const active = teamObj.employees.some((e) => e._id === emp._id);
+                                team?.employees?.map((emp) => {
+                                    const active = teamObj?.employees?.some((e) => e._id === emp._id);
                                     return (
                                         <div key={emp._id} className={`empSelect ${active ? "enable" : ""}`} onClick={() => updateTeamObj(emp)}>
                                             {emp.FirstName} {emp.LastName}
@@ -174,13 +176,14 @@ const AssignEmp = ({ handleSubmit, teamObj, updateTeamObj, toggleAssignEmp, team
                 {selectBy === "teamName" && filteredItems.length === 0 && (
                     <Message showIcon type="warning" description="No teams found" />
                 )}
+
             </Modal.Body>
             <Modal.Footer>
                 <Button onClick={toggleAssignEmp} appearance="subtle">
                     Close
                 </Button>
                 <Button onClick={handleSubmit} appearance="primary">
-                    {teamObj._id ? "Update" : "Save"} ({teamObj.employees.length})
+                    {teamObj._id ? "Update" : "Save"} ({teamObj?.employees?.length})
                 </Button>
             </Modal.Footer>
         </Modal>

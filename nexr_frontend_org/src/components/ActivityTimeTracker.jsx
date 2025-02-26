@@ -79,11 +79,10 @@ const ActivityTimeTracker = () => {
             trackTimer()
             timerRef.current = setInterval(incrementTime, 1000);
             if (["morningBreak", "eveningBreak", "lunch"].includes(timeOption)) {
-
                 socket.emit("send_notification", {
                     employee: data._id,
                     timeOption,
-                    time: timeOption === "lunch" ? 30 : 15
+                    time: 1
                 })
             }
         }
@@ -98,7 +97,6 @@ const ActivityTimeTracker = () => {
 
     // Stop the timer with activity
     const stopTimer = async () => {
-
         if (timerRef.current) {
             await stopActivityTimer();
             clearInterval(timerRef.current);
@@ -117,16 +115,10 @@ const ActivityTimeTracker = () => {
         stopTimer();
     }
 
-    async function sendRemainderMail() {
-        try {
-            const res = await axios.post(`${url}/api/clock-ins/remainder/${data._id}/${timeOption}`)
-            console.log(res.data.message);
-        } catch (error) {
-            console.log(error);
-        }
-    }
     useEffect(() => {
-        socket.on("Ask_reason_for_late", () => {
+        socket.connect();
+        socket.on("Ask_reason_for_late", (data) => {
+            console.log(data);
             changeViewReasonForTaketime()
         })
     }, [socket])
@@ -159,12 +151,12 @@ const ActivityTimeTracker = () => {
         }
     }, [timeOption, workTimeTracker]);
 
-    useEffect(() => {
-        if ((["morningBreak", "eveningBreak"].includes(timeOption) && min === 15 && sec === 1) || (timeOption === "lunch" && min === 30 && sec === 1)) {
-            sendRemainderMail();
-            changeViewReasonForTaketime();
-        }
-    }, [sec])
+    // useEffect(() => {
+    //     if ((["morningBreak", "eveningBreak"].includes(timeOption) && min === 15 && sec === 1) || (timeOption === "lunch" && min === 30 && sec === 1)) {
+    //         sendRemainderMail();
+    //         changeViewReasonForTaketime();
+    //     }
+    // }, [sec])
 
     // window.addEventListener("unload", () => {
     //     console.log("call in page change");

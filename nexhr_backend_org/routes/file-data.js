@@ -88,7 +88,7 @@ router.post("/attendance", upload.single("documents"), verifyAdminHrNetworkAdmin
                                 reasonForLeave: "Came too late",
                                 prescription: "",
                                 employee: emp._id,
-                                coverBy: "",
+                                coverBy: null,
                                 status: "rejected",
                                 TeamLead: "rejected",
                                 TeamHead: "rejected",

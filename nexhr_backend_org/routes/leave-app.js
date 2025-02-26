@@ -759,13 +759,18 @@ leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("pre
     const fromDateObj = new Date(fromDate);
 
     // Handle sick leave restriction
-    if (leaveType.includes("Sick Leave") || leaveType.includes("Medical Leave")) {
+    if (["Sick Leave", "Medical Leave"].includes(leaveType)) {
       const isTodayOrYesterday =
         fromDateObj.toDateString() === today.toDateString() ||
         fromDateObj.toDateString() === yesterday.toDateString();
 
-      if (!isTodayOrYesterday) {
-        return res.status(400).json({ error: "Sick leave is only applicable for today or yesterday." });
+      if (isTodayOrYesterday) {
+        return res.status(400).json({ error: "Sick leave is only applicable for today and yesterday." });
+      }
+    } else if (["Annual Leave", "Casual Leave"].includes(leaveType)) {
+      const isToday = fromDateObj.toDateString() === today.toDateString();
+      if(isToday){
+        return res.status(400).send({error: `${leaveType} is not applicable for same day`})
       }
     }
 

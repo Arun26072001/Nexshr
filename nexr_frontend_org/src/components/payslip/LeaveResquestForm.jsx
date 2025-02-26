@@ -25,7 +25,7 @@ const LeaveRequestForm = () => {
   const [excludedDates, setExcludeDates] = useState([]);
   const [prescriptionFile, setPrescriptionFile] = useState("");
   const [content, setContent] = useState("");
-  const [isLoading, setIsLoading] = useState(false)
+  const [isLoading, setIsLoading] = useState(false);
 
   let leaveObj = {
     leaveType: "",
@@ -47,7 +47,7 @@ const LeaveRequestForm = () => {
           const { leaveType } = this.parent;
           console.log(leaveType);
           // Accessing another field
-          if (leaveType !== "Permission Leave" && value) {
+          if (!["Permission Leave", "Sick Leave", "Medical Leave"].includes(leaveType) && value) {
             return value >= new Date(); // Ensure the date is in the future
           }
           return true;
@@ -93,7 +93,6 @@ const LeaveRequestForm = () => {
         function (value) {
           const { fromDate, leaveType } = this.parent;
           if (value && fromDate && leaveType === "Permission Leave") {
-            console.log(value, fromDate, leaveType);
 
             const fromTime = new Date(fromDate).getTime(); // Ensure timestamp conversion
             const toTime = new Date(value).getTime(); // Ensure timestamp conversion
@@ -145,6 +144,8 @@ const LeaveRequestForm = () => {
       }
     },
   });
+  console.log(formik.values);
+
 
   useEffect(() => {
     if (formik.values.fromDate && formik.values.toDate) {
@@ -220,6 +221,8 @@ const LeaveRequestForm = () => {
   }
 
   function getFileData(e) {
+    console.log(e.target.files);
+    
     setPrescriptionFile(e.target.files[0])
   }
 
@@ -239,7 +242,6 @@ const LeaveRequestForm = () => {
     }
     gettingHoliday();
   }, [])
-  console.log(formik.values);
 
   return (
     isLoading ? <Loading /> :

@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useContext } from 'react';
 import axios from 'axios';
-import io from 'socket.io-client';
 import '../../App.css';
 import { toast } from 'react-toastify';
 import CommonModel from '../Administration/CommonModel';
@@ -60,7 +59,7 @@ const AnnouncementComponent = ({ handleChangeAnnouncement }) => {
             handleChangeAnnouncement();
             handleModel();
             toast.success(addAnnounce.data.message);
-            console.log("Socket connected:", socket.connected); // Debugging line
+            socket.connect() // Debugging line
             socket.emit("send_announcement", addAnnounce.data.data);
         } catch (error) {
             toast.error(error.response.data.error)

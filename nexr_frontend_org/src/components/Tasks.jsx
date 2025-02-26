@@ -18,10 +18,12 @@ import KeyboardArrowRightRoundedIcon from '@mui/icons-material/KeyboardArrowRigh
 import BorderColorRoundedIcon from '@mui/icons-material/BorderColorRounded';
 import DeleteRoundedIcon from '@mui/icons-material/DeleteRounded';
 import { jwtDecode } from "jwt-decode";
+import { TimerStates } from "./payslip/HRMDashboard";
 
 const Tasks = ({ employees }) => {
   const url = process.env.REACT_APP_API_URL;
   const { data, whoIs } = useContext(EssentialValues);
+  const { isAddTask, setIsAddTask, handleAddTask, selectedProject } = useContext(TimerStates);
   const { isTeamLead, isTeamHead } = jwtDecode(data.token)
   const [taskObj, setTaskObj] = useState({});
   const [projects, setProjects] = useState([]);
@@ -29,7 +31,7 @@ const Tasks = ({ employees }) => {
   const [tasks, setTasks] = useState([]);
   const [filterTasks, setFilterTasks] = useState([]);
   const [previewList, setPreviewList] = useState([]);
-  const [isAddTask, setIsAddTask] = useState(false);
+  // const [isAddTask, setIsAddTask] = useState(false);
   const [isEditTask, setIsEditTask] = useState(false);
   const [isviewTask, setIsViewtask] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -38,7 +40,7 @@ const Tasks = ({ employees }) => {
   const renderMenu1 = ({ onClose, right, top, className }, ref) => {
     const handleSelect = eventKey => {
       if (eventKey === 1) {
-        handleAddTask();
+        triggerHandleAddTask();
       } else if (eventKey === 2) {
         // handleLogout();
       }
@@ -61,7 +63,7 @@ const Tasks = ({ employees }) => {
         if (task._id) {
           fetchTaskById(task._id)
         }
-        handleAddTask();
+        triggerHandleAddTask();
       } else if (eventKey === 2) {
         handleDelete(task);
       }
@@ -113,12 +115,12 @@ const Tasks = ({ employees }) => {
     setIsEditTask(!isEditTask);
   }
 
-  function handleAddTask() {
+  function triggerHandleAddTask() {
     if (isAddTask) {
       setTaskObj({});
       setPreviewList([]);
     }
-    setIsAddTask(!isAddTask)
+    handleAddTask()
   }
 
   function removeAttachment(value) {
@@ -196,7 +198,7 @@ const Tasks = ({ employees }) => {
     }
 
     try {
-      const res = await axios.put(`${url}/api/task/${taskToUpdate._id}`, taskToUpdate, {
+      const res = await axios.put(`${url}/api/task/${data._id}/${taskToUpdate._id}`, taskToUpdate, {
         headers: {
           Authorization: data.token || ""
         }
@@ -205,6 +207,7 @@ const Tasks = ({ employees }) => {
       setTaskObj({});
       setIsAddTask(false);
       setIsEditTask(false);
+      fetchTaskByProjectId(projectId)
     } catch (error) {
       console.error("Error updating task:", error);
       const errorMessage = error?.response?.data?.error || "An error occurred while updating the task.";
@@ -281,7 +284,7 @@ const Tasks = ({ employees }) => {
           })
           toast.success(res.data.message);
           setTaskObj({});
-          handleAddTask();
+          triggerHandleAddTask();
 
         } catch (error) {
           toast.error(error.response.data.error)
@@ -293,8 +296,22 @@ const Tasks = ({ employees }) => {
     } else {
       console.log('No attachments to upload.');
     }
-
   }
+
+  useEffect(() => {
+    function changeUIForSelectedProject() {
+      setProjectId(selectedProject);
+      setTaskObj((pre) => ({
+        ...pre,
+        ["project"]: selectedProject
+      }))
+    }
+
+    if (selectedProject) {
+      changeUIForSelectedProject()
+    }
+  }, [selectedProject])
+
 
   async function fetchEmpsProjects() {
     setIsLoading(true)
@@ -304,7 +321,7 @@ const Tasks = ({ employees }) => {
           Authorization: data.token || ""
         }
       })
-      
+
       setProjects(res.data.map((project) => ({ label: project.name, value: project._id })));
     } catch (error) {
       toast.error(error.response.data.error)
@@ -322,7 +339,7 @@ const Tasks = ({ employees }) => {
             Authorization: data.token || ""
           }
         })
-        
+
         setProjects(res.data.map((project) => ({ label: project.name, value: project._id })));
         // setFilterProjects(res.data.map((project) => ({ label: project.name, value: project._id })))
       } catch (error) {
@@ -361,7 +378,7 @@ const Tasks = ({ employees }) => {
             removeAttachment={removeAttachment}
             employees={employees}
             type="Task"
-            modifyData={handleAddTask} /> :
+            modifyData={triggerHandleAddTask} /> :
             <>
               <div className="projectParent">
                 <div className="col-lg-6 projectTitle">Tasks</div>
