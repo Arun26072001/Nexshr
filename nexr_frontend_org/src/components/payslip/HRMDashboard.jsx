@@ -320,21 +320,21 @@ export default function HRMDashboard() {
         }
     }
 
-    // when use close the tab or browser timer will stop.
-    window.addEventListener("unload", (e) => {
-        // e.preventDefault();
-        // e.returnValue = "";
-        const currentTime = new Date().toTimeString().split(" ")[0];
-        const updatedState = {
-            ...workTimeTracker,
-            login: {
-                ...workTimeTracker?.login,
-                endingTime: [...(workTimeTracker?.login?.endingTime || []), currentTime],
-                timeHolder: workTimeTracker?.login?.timeHolder,
-            },
-        };
-        localStorage.setItem("timerState", JSON.stringify(updatedState));
-    });
+    // // when use close the tab or browser timer will stop.
+    // window.addEventListener("beforeunload", (e) => {
+    //     // e.preventDefault();
+    //     // e.returnValue = "";
+    //     const currentTime = new Date().toTimeString().split(" ")[0];
+    //     const updatedState = {
+    //         ...workTimeTracker,
+    //         login: {
+    //             ...workTimeTracker?.login,
+    //             endingTime: [...(workTimeTracker?.login?.endingTime || []), currentTime],
+    //             timeHolder: workTimeTracker?.login?.timeHolder,
+    //         },
+    //     };
+    //     localStorage.setItem("timerState", JSON.stringify(updatedState));
+    // });
 
     function trackTimer() {
         setSyncTimer(!syncTimer);
@@ -396,21 +396,6 @@ export default function HRMDashboard() {
         }
     }, [daterangeValue, _id, whoIs, isUpdatedRequest]);
 
-    // Restore timer when the page loads
-    useEffect(() => {
-        async function stopTimerForClosed() {
-            const savedState = localStorage.getItem("timerState");
-            if (savedState && isStartLogin) {
-                const timerData = JSON.parse(savedState);
-                const updatedData = await updateDataAPI(timerData);
-                setWorkTimeTracker(updatedData);
-                setIsStartLogin(false);
-                localStorage.setItem("isStartLogin", false);
-            }
-        }
-        stopTimerForClosed();
-    }, [])
-
     // to view attendance data for admin and hr
     useEffect(() => {
         if (["1", "2", "5"].includes(Account)) {
@@ -440,11 +425,11 @@ export default function HRMDashboard() {
         getClockInsData()
     }, [syncTimer]);
 
-    useEffect(() => {
-        localStorage.setItem("isStartLogin", isStartLogin);
-        localStorage.setItem("isStartActivity", isStartActivity);
-        fetchCompanies();
-    }, [isStartLogin, isStartActivity]);
+    // useEffect(() => {
+    //     localStorage.setItem("isStartLogin", isStartLogin);
+    //     localStorage.setItem("isStartActivity", isStartActivity);
+    //     fetchCompanies();
+    // }, [isStartLogin, isStartActivity]);
 
     function handleAddTask(projectId) {
         if (projectId) {
