@@ -29,30 +29,42 @@ const Leave = () => {
             setLeaveRequests(filterRequests);
         }
     }
-    console.log(daterangeValue);
-    
 
-    useEffect(() => {
-        const getLeaveData = async () => {
-            try {
-                setIsLoading(true);
-                const leaveData = await axios.get(`${url}/api/leave-application/date-range/${_id}`, {
-                    params: {
-                        daterangeValue
-                    },
-                    headers: {
-                        authorization: token || ""
-                    }
-                })
-
-                setLeaveRequests(leaveData.data);
-                setFullLeaveRequests(leaveData.data.leaveData);
-                setIsLoading(false);
-            } catch (err) {
-                toast.error(err?.response?.data?.message)
-            }
+    async function deleteLeave(leaveId) {
+        try {
+            const res = await axios.delete(`${url}/api/leave-application/${_id}/${leaveId}`, {
+                headers: {
+                    Authorization: token || ""
+                }
+            })
+            toast.success(res.data.message);
+            getLeaveData();
+        } catch (error) {
+            toast.error(error.response.data.error)
         }
-        // 
+    }
+
+
+    const getLeaveData = async () => {
+        try {
+            setIsLoading(true);
+            const leaveData = await axios.get(`${url}/api/leave-application/date-range/${_id}`, {
+                params: {
+                    daterangeValue
+                },
+                headers: {
+                    authorization: token || ""
+                }
+            })
+
+            setLeaveRequests(leaveData.data);
+            setFullLeaveRequests(leaveData.data.leaveData);
+            setIsLoading(false);
+        } catch (err) {
+            toast.error(err?.response?.data?.message)
+        }
+    }
+    useEffect(() => {
         getLeaveData();
     }, [daterangeValue, _id])
 
@@ -121,7 +133,7 @@ const Leave = () => {
                 {
                     isLoading ? <Loading /> :
                         leaveRequests?.leaveData?.length > 0 ?
-                            <LeaveTable data={leaveRequests.leaveData} />
+                            <LeaveTable data={leaveRequests.leaveData} fetchData={deleteLeave} />
                             : <NoDataFound message={"Leave data not for this month!"} />
                 }
             </div>

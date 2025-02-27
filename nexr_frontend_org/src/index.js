@@ -8,8 +8,9 @@ import AttendanceCalendar from './components/AttendanceCalendar';
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   <BrowserRouter>
-      {/* <LandingPage /> */}
-       <App />
+    {/* <LeaveMail /> */}
+    {/* <LandingPage /> */}
+    <App />
   </BrowserRouter>
 );
 

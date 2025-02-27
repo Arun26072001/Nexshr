@@ -256,56 +256,55 @@ export default function Navbar({ handleSideBar }) {
     // if (lat && long) {
     //     getAddressFromCoordinates(lat, long)
     // }
+
     // Restore timer when the page loads
+    window.addEventListener("beforeunload", function (event) {
+        sessionStorage.setItem("isReload", "true");
+    });
+    setTimeout(() => {
+        if (!sessionStorage.getItem("isReload") && isStartLogin) {
+            const currentTime = new Date().toTimeString().split(" ")[0];
+            const updatedState = {
+                ...workTimeTracker,
+                login: {
+                    ...workTimeTracker?.login,
+                    endingTime: [...(workTimeTracker?.login?.endingTime || []), currentTime],
+                    timeHolder: workTimeTracker?.login?.timeHolder,
+                },
+            };
+            localStorage.setItem("timerState", JSON.stringify(updatedState));
+        }
 
-    // window.addEventListener("beforeunload", function (event) {
-    //     sessionStorage.setItem("isReload", "true");
-    // });
-    // setTimeout(() => {
-    //     if (!sessionStorage.getItem("isReload")) {
-    //         const currentTime = new Date().toTimeString().split(" ")[0];
-    //         const updatedState = {
-    //             ...workTimeTracker,
-    //             login: {
-    //                 ...workTimeTracker?.login,
-    //                 endingTime: [...(workTimeTracker?.login?.endingTime || []), currentTime],
-    //                 timeHolder: workTimeTracker?.login?.timeHolder,
-    //             },
-    //         };
-    //         localStorage.setItem("timerState", JSON.stringify(updatedState));
-    //     }
-
-    // }, 1000);
+    }, 1000);
     
 
-    // useEffect(() => {
-    //     const savedState = localStorage.getItem("timerState");
-    //     const timerData = JSON.parse(savedState);
-    //     const handleUpdate = async () => {
-    //         try {
-    //             const updatedData = await updateDataAPI(timerData); // Wait for API call to complete
-    //             setWorkTimeTracker(updatedData);
-    //             setIsStartLogin(false);
-    //             if (workRef.current) {
-    //                 // await stopLoginTimer();
-    //                 clearInterval(workRef.current);
-    //                 workRef.current = null;
-    //             }// Store as string
-    //             localStorage.setItem("isStartLogin", false)
-    //             localStorage.removeItem("timerState");
-    //         } catch (error) {
-    //             console.error("Error updating data:", error);
-    //         }
-    //     };
+    useEffect(() => {
+        const savedState = localStorage.getItem("timerState");
+        const timerData = JSON.parse(savedState);
+        const handleUpdate = async () => {
+            try {
+                const updatedData = await updateDataAPI(timerData); // Wait for API call to complete
+                setWorkTimeTracker(updatedData);
+                setIsStartLogin(false);
+                if (workRef.current) {
+                    // await stopLoginTimer();
+                    clearInterval(workRef.current);
+                    workRef.current = null;
+                }// Store as string
+                localStorage.setItem("isStartLogin", false)
+                localStorage.removeItem("timerState");
+            } catch (error) {
+                console.error("Error updating data:", error);
+            }
+        };
 
-    //     console.log(savedState, isStartLogin);
-    //     if (savedState && isStartLogin && timerData._id) {
-    //         console.log("calling");
-    //         // Call the function
-    //         handleUpdate();
+        if (savedState && isStartLogin && timerData._id) {
+            console.log("calling");
+            // Call the function
+            handleUpdate();
 
-    //     }
-    // }, [isStartLogin, localStorage.getItem("timerState")])
+        }
+    }, [])
 
     return (
         <div className="webnxs">

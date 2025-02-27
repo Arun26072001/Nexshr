@@ -44,7 +44,7 @@ const Attendence = (props) => {
 
   function calculateWorkAvailablity(empWorkHour, companyWorkHour) {
     if (empWorkHour !== 0) {
-      return ((empWorkHour / companyWorkHour) * 100).toFixed(2)
+      return ((empWorkHour / companyWorkHour) * 100).toFixed(1)
     } else {
       return 0;
     }
@@ -100,11 +100,11 @@ const Attendence = (props) => {
                 {
                   clockInsData.totalRegularLogins == 0 ?
                     <div className="d-flex justify-content-center emtChart">
-                      <p className="payslipTitle" style={{ color: "#146ADC" }}>{clockInsData.totalRegularLogins} Days</p>
+                      <p className="payslipTitle" style={{ color: "#146ADC" }}>{clockInsData.totalRegularLogins.toFixed(1)} Days</p>
                       <p className="leaveDays text-center" style={{ color: "#146ADC" }}>(Regular)</p>
                     </div>
                     : <div className="d-flex justify-content-center">
-                      <p className="payslipTitle" style={{ color: "#146ADC" }}>{clockInsData.totalRegularLogins} Days</p>
+                      <p className="payslipTitle" style={{ color: "#146ADC" }}>{clockInsData.totalRegularLogins.toFixed(1)} Days</p>
                       <p className="leaveDays text-center" style={{ color: "#146ADC" }}>(Regular)</p>
                     </div>
                 }
@@ -113,10 +113,10 @@ const Attendence = (props) => {
                 {
                   clockInsData.totalEarlyLogins == 0 ?
                     <div className="d-flex justify-content-center emtChart">
-                      <p className="payslipTitle" style={{ color: "#146ADC" }}>{clockInsData.totalEarlyLogins} Days</p>
+                      <p className="payslipTitle" style={{ color: "#146ADC" }}>{clockInsData.totalEarlyLogins.toFixed(1)} Days</p>
                       <p className="leaveDays text-center" style={{ color: "#146ADC" }}>(Early)</p>
                     </div> : <div className="d-flex justify-content-center">
-                      <p className="payslipTitle" style={{ color: "#146ADC" }}>{clockInsData.totalEarlyLogins} Days</p>
+                      <p className="payslipTitle" style={{ color: "#146ADC" }}>{clockInsData.totalEarlyLogins.toFixed(1)} Days</p>
                       <p className="leaveDays text-center" style={{ color: "#146ADC" }}>(Early)</p>
                     </div>
                 }
@@ -125,10 +125,10 @@ const Attendence = (props) => {
                 {
                   clockInsData.totalLateLogins == 0 ?
                     <div className="d-flex justify-content-center emtChart">
-                      <p className="payslipTitle" style={{ color: "#146ADC" }}>{clockInsData.totalLateLogins} Days</p>
+                      <p className="payslipTitle" style={{ color: "#146ADC" }}>{clockInsData.totalLateLogins.toFixed(1)} Days</p>
                       <p className="leaveDays text-center" style={{ color: "#146ADC" }}>(Late)</p>
                     </div> : <div className="d-flex justify-content-center">
-                      <p className="payslipTitle" style={{ color: "#146ADC" }}>{clockInsData.totalLateLogins} Days</p>
+                      <p className="payslipTitle" style={{ color: "#146ADC" }}>{clockInsData.totalLateLogins.toFixed(1)} Days</p>
                       <p className="leaveDays text-center" style={{ color: "#146ADC" }}>(Late)</p>
                     </div>
                 }
@@ -137,10 +137,10 @@ const Attendence = (props) => {
                 {
                   clockInsData.totalLeaveDays == 0 ?
                     <div className="d-flex justify-content-center emtChart">
-                      <p className="payslipTitle" style={{ color: "#146ADC" }}>{clockInsData.totalLeaveDays} Days</p>
+                      <p className="payslipTitle" style={{ color: "#146ADC" }}>{clockInsData.totalLeaveDays.toFixed(1)} Days</p>
                       <p className="leaveDays text-center" style={{ color: "#146ADC" }}>(Leave)</p>
                     </div> : <div className="d-flex justify-content-center">
-                      <p className="payslipTitle" style={{ color: "#146ADC" }}>{clockInsData.totalLeaveDays} Days</p>
+                      <p className="payslipTitle" style={{ color: "#146ADC" }}>{clockInsData.totalLeaveDays.toFixed(1)} Days</p>
                       <p className="leaveDays text-center" style={{ color: "#146ADC" }}>(Leave)</p>
                     </div>
                 }

@@ -160,8 +160,6 @@ const App = () => {
   }, [socket]);
 
   useEffect(() => {
-    // console.log("slkdjfdd", localStorage.getItem("isStartLogin"));
-
     localStorage.setItem("isStartLogin", isStartLogin);
     localStorage.setItem("isStartActivity", isStartActivity);
   }, []);
