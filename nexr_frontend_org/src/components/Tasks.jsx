@@ -20,6 +20,10 @@ import DeleteRoundedIcon from '@mui/icons-material/DeleteRounded';
 import { jwtDecode } from "jwt-decode";
 import { TimerStates } from "./payslip/HRMDashboard";
 
+import PauseCircleFilledRoundedIcon from '@mui/icons-material/PauseCircleFilledRounded';
+import HourglassTopRoundedIcon from '@mui/icons-material/HourglassTopRounded';
+import CheckCircleRoundedIcon from '@mui/icons-material/CheckCircleRounded';
+
 const Tasks = ({ employees }) => {
   const url = process.env.REACT_APP_API_URL;
   const { data, whoIs } = useContext(EssentialValues);
@@ -404,12 +408,15 @@ const Tasks = ({ employees }) => {
                   {
                     ["Pending", "On Progress", "Completed"].map((item) => {
                       return <div className="box-content messageCount">
-                        <span className="nameHolder">
-                          2
-                        </span>
-                        <b>
-                          {item} Task
-                        </b>
+                        {item === "Pending" ? <PauseCircleFilledRoundedIcon sx={{ fontSize: "65px" }} />
+                          : item === "On Progress" ? <HourglassTopRoundedIcon sx={{ fontSize: "65px" }} />
+                            : <CheckCircleRoundedIcon sx={{ fontSize: "65px" }} />}
+                        <p>
+                          <b>
+                            {item} Task
+                          </b> <br />
+                          <button className="button">View All</button>
+                        </p>
                       </div>
                     })
                   }
