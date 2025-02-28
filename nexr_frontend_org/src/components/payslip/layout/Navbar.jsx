@@ -228,83 +228,80 @@ export default function Navbar({ handleSideBar }) {
         }, 300)
     }
 
-    // const getAddressFromCoordinates = async (latitude, longitude) => {
-    //     const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=18`;
-
-    //     try {
-    //         const response = await fetch(url);
-    //         const data = await response.json();
-    //         console.log(data.display_name);
-    //     } catch (error) {
-    //         console.error("Error fetching address:", error);
-    //         return "Address not found";
+    // window.addEventListener("beforeunload", function (event) {
+    //     sessionStorage.setItem("isReload", "true");
+    // });
+    // setTimeout(() => {
+    //     if (!sessionStorage.getItem("isReload") && isStartLogin) {
+    //         const currentTime = new Date().toTimeString().split(" ")[0];
+    //         const updatedState = {
+    //             ...workTimeTracker,
+    //             login: {
+    //                 ...workTimeTracker?.login,
+    //                 endingTime: [...(workTimeTracker?.login?.endingTime || []), currentTime],
+    //                 timeHolder: workTimeTracker?.login?.timeHolder,
+    //             },
+    //         };
+    //         localStorage.setItem("timerState", JSON.stringify(updatedState));
     //     }
-    // };
+
+    // }, 1000);
+
     // useEffect(() => {
-    //     navigator.geolocation.getCurrentPosition((position) => {
-    //         if (position.coords.accuracy > 50) {
-    //             console.log("accuracy too low!");
+    //     const savedState = localStorage.getItem("timerState");
+    //     if (!savedState) return; // Exit if no saved state
+
+    //     let timerData;
+    //     try {
+    //         timerData = JSON.parse(savedState);
+    //     } catch (error) {
+    //         console.error("Error parsing timerState:", error);
+    //         return;
+    //     }
+
+    //     if (!isStartLogin || !timerData || !timerData._id) {
+    //         console.log(isStartLogin, timerData, timerData?._id);
+    //         return; // Ensure valid data
+    //     }
+
+    //     const handleUpdate = async () => {
+    //         try {
+    //             localStorage.removeItem("timerState");
+    //             const updatedData = await updateDataAPI(timerData); // Wait for API call to complete
+    //             setWorkTimeTracker(updatedData);
+    //             setIsStartLogin(false);
+    //             localStorage.setItem("isStartLogin", "false");
+
+    //             if (workRef.current) {
+    //                 clearInterval(workRef.current);
+    //                 workRef.current = null;
+    //             }
+    //         } catch (error) {
+    //             console.error("Error updating data:", error);
     //         }
-    //         console.log(position.coords.longitude, position.coords.latitude, position.coords.accuracy);
+    //     };
 
-    //         setLat(position.coords.latitude);
-    //         setLong(position.coords.longitude);
-    //     }, (error) => console.error("Error getting location:", error),
-    //         { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 })
-    // }, [])
+    //     // Function to handle tab visibility change
+    //     const handleVisibilityChange = () => {
+    //         if (document.visibilityState === "visible") {
+    //             console.log("Tab is now visible, calling handleUpdate()");
+    //             handleUpdate();
+    //         }
+    //     };
 
-    // if (lat && long) {
-    //     getAddressFromCoordinates(lat, long)
-    // }
+    //     // Add event listener
+    //     document.addEventListener("visibilitychange", handleVisibilityChange);
 
-    // Restore timer when the page loads
-    window.addEventListener("beforeunload", function (event) {
-        sessionStorage.setItem("isReload", "true");
-    });
-    setTimeout(() => {
-        if (!sessionStorage.getItem("isReload") && isStartLogin) {
-            const currentTime = new Date().toTimeString().split(" ")[0];
-            const updatedState = {
-                ...workTimeTracker,
-                login: {
-                    ...workTimeTracker?.login,
-                    endingTime: [...(workTimeTracker?.login?.endingTime || []), currentTime],
-                    timeHolder: workTimeTracker?.login?.timeHolder,
-                },
-            };
-            localStorage.setItem("timerState", JSON.stringify(updatedState));
-        }
+    //     // Also call handleUpdate() immediately when component mounts
+    //     handleUpdate();
 
-    }, 1000);
-    
+    //     // Cleanup event listener when component unmounts
+    //     return () => {
+    //         document.removeEventListener("visibilitychange", handleVisibilityChange);
+    //     };
 
-    useEffect(() => {
-        const savedState = localStorage.getItem("timerState");
-        const timerData = JSON.parse(savedState);
-        const handleUpdate = async () => {
-            try {
-                const updatedData = await updateDataAPI(timerData); // Wait for API call to complete
-                setWorkTimeTracker(updatedData);
-                setIsStartLogin(false);
-                if (workRef.current) {
-                    // await stopLoginTimer();
-                    clearInterval(workRef.current);
-                    workRef.current = null;
-                }// Store as string
-                localStorage.setItem("isStartLogin", false)
-                localStorage.removeItem("timerState");
-            } catch (error) {
-                console.error("Error updating data:", error);
-            }
-        };
+    // }, [isStartLogin, setWorkTimeTracker, setIsStartLogin, workRef]);
 
-        if (savedState && isStartLogin && timerData._id) {
-            console.log("calling");
-            // Call the function
-            handleUpdate();
-
-        }
-    }, [])
 
     return (
         <div className="webnxs">

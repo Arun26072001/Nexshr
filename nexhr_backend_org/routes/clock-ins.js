@@ -884,7 +884,7 @@ router.get("/sendmail/:id/:clockinId", async (req, res) => {
         sendMail({
             From: process.env.FROM_MAIL,
             To: emp.Email,
-            Subject: "You have completed 8 of Today working hours",
+            Subject: `You have punched in for the ${clockIn?.date?.split("T")[0]}`,
             HtmlBody: htmlContent,
         });
         return res.send({ message: "We have send mail for you have completed 8 working hours." })
