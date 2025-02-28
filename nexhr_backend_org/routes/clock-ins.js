@@ -367,7 +367,7 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
                     approverId: []
                 };
                 const deletePermission = await LeaveApplication.findByIdAndDelete(leave._id);
-                const removedPermissionLeaves = emp.leaveApplication.filter((leave)=> leave !== leave._id)
+                const removedPermissionLeaves = emp.leaveApplication.filter((leave) => leave !== leave._id)
                 emp.leaveApplication = removedPermissionLeaves;
                 await emp.save();
                 const addLeave = await LeaveApplication.create(halfDayLeaveApp);
@@ -857,21 +857,20 @@ router.get("/sendmail/:id/:clockinId", async (req, res) => {
                   </tr>
                 </thead>
                 <tbody>
-                  ${
-                    activitiesData && activitiesData.length > 0
-                      ? activitiesData
-                          .map(
-                            (data) => `
+                  ${activitiesData && activitiesData.length > 0
+                ? activitiesData
+                    .map(
+                        (data) => `
                               <tr>
                                 <td>${data.activity}</td>
                                 <td>${data.startingTime}</td>
                                 <td>${data.endingTime}</td>
                               </tr>
                             `
-                          )
-                          .join("")
-                      : `<tr><td colspan="3" style="text-align: center;">No activity data available</td></tr>`
-                  }
+                    )
+                    .join("")
+                : `<tr><td colspan="3" style="text-align: center;">No activity data available</td></tr>`
+            }
                 </tbody>
               </table>
               <p>Happy working!</p>
@@ -879,12 +878,12 @@ router.get("/sendmail/:id/:clockinId", async (req, res) => {
           </div>
         </body>
         </html>
-      `;      
+      `;
 
         sendMail({
             From: process.env.FROM_MAIL,
             To: emp.Email,
-            Subject: `You have punched in for the ${clockIn?.date?.split("T")[0]}`,
+            Subject: `You have punched in for the Today`,
             HtmlBody: htmlContent,
         });
         return res.send({ message: "We have send mail for you have completed 8 working hours." })

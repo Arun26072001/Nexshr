@@ -165,6 +165,28 @@ const App = () => {
   }, []);
 
   useEffect(() => {
+    if (!isStartLogin) {
+      toaster.push(
+        <Notification
+          header={
+            <div style={{ display: 'flex', alignItems: 'center' }}>
+
+              <img src={companyLogo} alt="Company Logo" style={{ width: 50, height: 50, marginRight: 10 }} />
+
+              <span style={{ fontWeight: 'bold', fontSize: '16px' }}>Webnexs</span>
+            </div>
+          }
+          closable
+        >
+          <strong className="text-danger">Important notice</strong>
+          <p className="my-2"> The timer will stop when you close the tab or browser.</p>
+        </Notification>,
+        { placement: 'topCenter' }
+      );
+    }
+  }, [])
+
+  useEffect(() => {
     setData((prev) => ({
       ...prev,
       _id: localStorage.getItem("_id") || "",

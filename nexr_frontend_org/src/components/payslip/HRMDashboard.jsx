@@ -136,6 +136,30 @@ export default function HRMDashboard() {
         }
     }
 
+    // window.addEventListener("beforeunload", function (event) {
+    //     sessionStorage.setItem("isReload", "true");
+    // });
+
+    // useEffect(() => {
+    //     setTimeout(() => {
+    //         if (!sessionStorage.getItem("isReload") && isStartLogin) {
+    //             const currentTime = new Date().toTimeString().split(" ")[0];
+    //             const updatedState = {
+    //                 ...workTimeTracker,
+    //                 login: {
+    //                     ...workTimeTracker?.login,
+    //                     endingTime: [...(workTimeTracker?.login?.endingTime || []), currentTime],
+    //                     timeHolder: workTimeTracker?.login?.timeHolder,
+    //                 },
+    //             };
+    //             console.log("call to add in local");
+
+    //             localStorage.setItem("timerState", JSON.stringify(updatedState));
+    //         }
+
+    //     }, 1000);
+    // }, [isStartLogin])
+
     // change reason for leave input field
     function changeReasonForLate(e) {
         const { value } = e.target;
@@ -168,7 +192,7 @@ export default function HRMDashboard() {
                     if (!workTimeTracker.login.startingTime.length) {
                         socket.emit("remainder_notification", {
                             employee: data._id,
-                            time: 1,
+                            time: 540,
                             clockinsId: clockinsData?._id
                         })
                     }
@@ -424,12 +448,6 @@ export default function HRMDashboard() {
         gettingEmps()
         getClockInsData()
     }, [syncTimer]);
-
-    // useEffect(() => {
-    //     localStorage.setItem("isStartLogin", isStartLogin);
-    //     localStorage.setItem("isStartActivity", isStartActivity);
-    //     fetchCompanies();
-    // }, [isStartLogin, isStartActivity]);
 
     function handleAddTask(projectId) {
         if (projectId) {
