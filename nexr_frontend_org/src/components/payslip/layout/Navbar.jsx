@@ -12,6 +12,7 @@ import axios from "axios";
 import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
 import KeyboardArrowDownRoundedIcon from '@mui/icons-material/KeyboardArrowDownRounded';
 import { updateDataAPI } from '../../ReuseableAPI';
+import useHandleTabClose from '../../../handleCloseTab';
 
 export default function Navbar({ handleSideBar }) {
     // const [lat, setLat] = useState("")
@@ -227,50 +228,34 @@ export default function Navbar({ handleSideBar }) {
             handleUpdateAnnouncements();
         }, 300)
     }
-
-    // window.addEventListener("beforeunload", function (event) {
-    //     sessionStorage.setItem("isReload", "true");
-    // });
-    // setTimeout(() => {
-    //     if (!sessionStorage.getItem("isReload") && isStartLogin) {
-    //         const currentTime = new Date().toTimeString().split(" ")[0];
-    //         const updatedState = {
-    //             ...workTimeTracker,
-    //             login: {
-    //                 ...workTimeTracker?.login,
-    //                 endingTime: [...(workTimeTracker?.login?.endingTime || []), currentTime],
-    //                 timeHolder: workTimeTracker?.login?.timeHolder,
-    //             },
-    //         };
-    //         localStorage.setItem("timerState", JSON.stringify(updatedState));
-    //     }
-
-    // }, 1000);
-
+    useHandleTabClose(isStartLogin, workTimeTracker, data.token);
     // useEffect(() => {
-    //     const savedState = localStorage.getItem("timerState");
-    //     if (!savedState) return; // Exit if no saved state
-
-    //     let timerData;
-    //     try {
-    //         timerData = JSON.parse(savedState);
-    //     } catch (error) {
-    //         console.error("Error parsing timerState:", error);
-    //         return;
-    //     }
-
-    //     if (!isStartLogin || !timerData || !timerData._id) {
-    //         console.log(isStartLogin, timerData, timerData?._id);
-    //         return; // Ensure valid data
-    //     }
 
     //     const handleUpdate = async () => {
+
+    //         const savedState = localStorage.getItem("timerState");
+    //         if (!savedState) return; // Exit if no saved state
+
+    //         let timerData;
     //         try {
-    //             localStorage.removeItem("timerState");
+    //             timerData = JSON.parse(savedState);
+    //         } catch (error) {
+    //             console.error("Error parsing timerState:", error);
+    //             return;
+    //         }
+
+    //         if (!isStartLogin || !timerData || !timerData._id) {
+    //             console.log(isStartLogin || !timerData || !timerData._id);
+
+    //             return; // Ensure valid data  
+    //         }
+
+    //         try {
     //             const updatedData = await updateDataAPI(timerData); // Wait for API call to complete
     //             setWorkTimeTracker(updatedData);
     //             setIsStartLogin(false);
     //             localStorage.setItem("isStartLogin", "false");
+    //             localStorage.removeItem("timerState"); // Remove timerState
 
     //             if (workRef.current) {
     //                 clearInterval(workRef.current);
@@ -279,29 +264,15 @@ export default function Navbar({ handleSideBar }) {
     //         } catch (error) {
     //             console.error("Error updating data:", error);
     //         }
+
     //     };
 
-    //     // Function to handle tab visibility change
-    //     const handleVisibilityChange = () => {
-    //         if (document.visibilityState === "visible") {
-    //             console.log("Tab is now visible, calling handleUpdate()");
-    //             handleUpdate();
-    //         }
-    //     };
+    //     // handleUpdate();
 
-    //     // Add event listener
-    //     document.addEventListener("visibilitychange", handleVisibilityChange);
-
-    //     // Also call handleUpdate() immediately when component mounts
-    //     handleUpdate();
-
-    //     // Cleanup event listener when component unmounts
-    //     return () => {
-    //         document.removeEventListener("visibilitychange", handleVisibilityChange);
-    //     };
+    //     document.addEventListener("visibilitychange", handleUpdate);
+    //     return () => document.removeEventListener("visibilitychange", handleUpdate);
 
     // }, [isStartLogin, setWorkTimeTracker, setIsStartLogin, workRef]);
-
 
     return (
         <div className="webnxs">

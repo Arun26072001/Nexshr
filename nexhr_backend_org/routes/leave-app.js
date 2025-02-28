@@ -269,17 +269,25 @@ leaveApp.get("/emp/:empId", verifyAdminHREmployeeManagerNetwork, async (req, res
     if (!emp) {
       return res.status(404).send({ message: "Employee not found!" });
     }
+    let startDate, endDate;
+
+    if (req?.query?.daterangeValue) {
+      startDate = new Date(req.query.daterangeValue[0]);
+      endOfMonth = new Date(req.query.daterangeValue[1]);
+      // Include the full last day of the range
+      endDate.setHours(23, 59, 59, 999);
+    }
 
     const annualLeaveYearStart = new Date(emp.annualLeaveYearStart);
     const now = new Date();
 
     // Define start and end dates for leave filter
-    const startDate =
+    startDate =
       annualLeaveYearStart.getFullYear() > now.getFullYear() - 1
         ? new Date(now.getFullYear(), annualLeaveYearStart.getMonth(), annualLeaveYearStart.getDate())
         : new Date(annualLeaveYearStart.getFullYear(), annualLeaveYearStart.getMonth(), annualLeaveYearStart.getDate());
 
-    let endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0); // End of current month
+    endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0); // End of current month
     endDate.setHours(23, 59, 59, 999);
     // Fetch leave requests within the defined range
     const leaveReqs = await LeaveApplication.find({

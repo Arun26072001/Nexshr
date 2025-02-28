@@ -400,6 +400,20 @@ const Tasks = ({ employees }) => {
                 </div>
               </div>
               <div className="projectBody">
+                <div className="d-flex justify-content-between align-items-center">
+                  {
+                    ["Pending", "On Progress", "Completed"].map((item) => {
+                      return <div className="box-content messageCount">
+                        <span className="nameHolder">
+                          2
+                        </span>
+                        <b>
+                          {item} Task
+                        </b>
+                      </div>
+                    })
+                  }
+                </div>
                 <div className="d-flex justify-content-end">
                   <div className="col-lg-3">
                     <div className="modelInput">

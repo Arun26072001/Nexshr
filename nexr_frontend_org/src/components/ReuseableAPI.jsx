@@ -5,7 +5,6 @@ const empId = localStorage.getItem('_id');
 const token = localStorage.getItem('token');
 
 const updateDataAPI = async (body) => {
-    console.log("updatedData: ", body);
 
     try {
         if (body._id) {

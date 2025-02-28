@@ -51,6 +51,7 @@ const holidays = require("./routes/holidays");
 const report = require("./routes/reports");
 const fileData = require("./routes/file-data");
 const { TimePattern } = require("./models/TimePatternModel");
+const { ClockIns } = require("./models/ClockInsModel");
 
 // MongoDB Connection
 const mongoURI = process.env.DATABASEURL;
@@ -236,6 +237,27 @@ io.on("connection", (socket) => {
       }
     }, delay);
   });
+
+  // // stop timer, when emp close the tab or browser
+  // socket.on("stop_timer_immediately", async (data) => {
+  //   let body = data;
+  //   console.log(body);
+    
+  //   // if (body.login.startingTime.length !== body.login.endingTime.length) {
+  //   //   ClockIns.findByIdAndUpdate(body._id, body, {
+  //   //     new: true
+  //   //   }, (err, data) => {
+  //   //     if (err) {
+  //   //       res.status(500).send({ message: "Internal server Error", details: err.details })
+  //   //     } else {
+  //   //       console.log("timer stoped successfully: ", body);
+
+  //   //       // delete data._id;
+  //   //       // res.send(data);
+  //   //     }
+  //   //   })
+  //   // }
+  // })
 
   // Handle user disconnection
   socket.on("disconnect", () => {
