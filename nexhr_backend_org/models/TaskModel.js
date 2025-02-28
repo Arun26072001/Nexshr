@@ -9,6 +9,7 @@ const taskSchema = new mongoose.Schema({
     assignedTo: [{ type: mongoose.Schema.Types.ObjectId, ref: "Employee" }],
     from: { type: Date },
     to: { type: Date },
+    spend: { type: String },
     status: { type: String },
     trash: { type: Boolean, default: false },
     createdby: { type: mongoose.Schema.Types.ObjectId, ref: "Employee" },
@@ -28,6 +29,7 @@ const taskValidation = Joi.object({
     attachments: Joi.array()
         .items(Joi.string().label('Attachment URL'))
         .label('Attachments'),
+    spend: Joi.string().allow("").label("Spend"),
     description: Joi.string().allow('').label('Description'),
     assignedTo: Joi.array()
         .items(Joi.string().regex(/^[0-9a-fA-F]{24}$/).label('Employee ID'))

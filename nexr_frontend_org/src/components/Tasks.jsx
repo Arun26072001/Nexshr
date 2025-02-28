@@ -19,10 +19,12 @@ import BorderColorRoundedIcon from '@mui/icons-material/BorderColorRounded';
 import DeleteRoundedIcon from '@mui/icons-material/DeleteRounded';
 import { jwtDecode } from "jwt-decode";
 import { TimerStates } from "./payslip/HRMDashboard";
-
-import PauseCircleFilledRoundedIcon from '@mui/icons-material/PauseCircleFilledRounded';
+import "./org_list.css";
+import PauseCircleOutlineRoundedIcon from '@mui/icons-material/PauseCircleOutlineRounded';
 import HourglassTopRoundedIcon from '@mui/icons-material/HourglassTopRounded';
-import CheckCircleRoundedIcon from '@mui/icons-material/CheckCircleRounded';
+import CheckCircleOutlineRoundedIcon from '@mui/icons-material/CheckCircleOutlineRounded';
+import PauseRoundedIcon from '@mui/icons-material/PauseRounded';
+import PlayArrowRoundedIcon from '@mui/icons-material/PlayArrowRounded';
 
 const Tasks = ({ employees }) => {
   const url = process.env.REACT_APP_API_URL;
@@ -32,6 +34,7 @@ const Tasks = ({ employees }) => {
   const [taskObj, setTaskObj] = useState({});
   const [projects, setProjects] = useState([]);
   const [projectId, setProjectId] = useState("");
+  const [allTasks, setAllTask] = useState([]);
   const [tasks, setTasks] = useState([]);
   const [filterTasks, setFilterTasks] = useState([]);
   const [previewList, setPreviewList] = useState([]);
@@ -40,6 +43,7 @@ const Tasks = ({ employees }) => {
   const [isviewTask, setIsViewtask] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isDelete, setIsDelete] = useState({ type: false, value: "" });
+  const [status, setStatus] = useState("Pending");
 
   const renderMenu1 = ({ onClose, right, top, className }, ref) => {
     const handleSelect = eventKey => {
@@ -142,11 +146,11 @@ const Tasks = ({ employees }) => {
           Authorization: data.token || ""
         }
       })
-      setTasks(res.data.tasks)
-      setFilterTasks(res.data.tasks)
+      setAllTask(res.data.tasks)
+      // setFilterTasks(res.data.tasks)
     } catch (error) {
-      setTasks([])
-      setFilterTasks([])
+      setAllTask([])
+      // setFilterTasks([])
       console.log(error);
     }
     setIsLoading(false)
@@ -191,6 +195,16 @@ const Tasks = ({ employees }) => {
       setTasks(filterTasks.filter((task) => task?.title?.includes(value)))
     }
   }
+
+  useEffect(() => {
+    function getSelectStatusTasks() {
+      const filteredTasks = allTasks.filter((task) => task.status === status);
+      setTasks(filteredTasks);
+      setFilterTasks(filteredTasks);
+    }
+
+    getSelectStatusTasks()
+  }, [status])
 
   async function editTask(updatedTask) {
     const taskToUpdate = updatedTask
@@ -404,19 +418,22 @@ const Tasks = ({ employees }) => {
                 </div>
               </div>
               <div className="projectBody">
-                <div className="d-flex justify-content-between align-items-center">
+                <div className="card-parent">
                   {
-                    [{name:"Pending", color: }, "On Progress", "Completed"].map((item) => {
-                      return <div className="box-content messageCount">
-                        {item === "Pending" ? <PauseCircleFilledRoundedIcon sx={{ fontSize: "65px" }} />
-                          : item === "On Progress" ? <HourglassTopRoundedIcon sx={{ fontSize: "65px" }} />
-                            : <CheckCircleRoundedIcon sx={{ fontSize: "65px" }} />}
-                        <p>
-                          <b>
-                            {item} Task
-                          </b> <br />
-                          <button className="button">View All</button>
-                        </p>
+                    [{ name: "Pending", color: "white", icon: PauseCircleOutlineRoundedIcon }, { name: "In Progress", icon: HourglassTopRoundedIcon, color: "white", }, { name: "Completed", color: "white", icon: CheckCircleOutlineRoundedIcon }].map((item) => {
+                      return <div className="box-content messageCount cardContent" style={{ background: item.color }} onClick={() => setStatus(item.name)}>
+                        {<item.icon sx={{ fontSize: "65px" }} />}
+                        <div className="d-block text-center">
+                          <p className="org_name">
+                            {item.name === status ? tasks.length : 0}
+                          </p>
+                          <p className="m-0">
+                            <b>
+                              {item.name} Task
+                            </b>
+                            {/* <button className="button" style={{ color: item.color }}>View All</button> */}
+                          </p>
+                        </div>
                       </div>
                     })
                   }
@@ -447,8 +464,20 @@ const Tasks = ({ employees }) => {
                                 handleEditTask()
                               }} />
                             </div>
+
+
                           </div>
-                          <div className="cal-half d-flex gap-2">
+                          <div className="cal-half d-flex align-items-center justify-content-center gap-2">
+
+                            <div className='d-flex align-items-center gap-1 timerTxt box-content position-relative' style={{ padding: "10px" }} >
+                              <span>{"12".toString().padStart(2, '0')}</span> :
+                              <span>{"10".toString().padStart(2, '0')}</span> :
+                              <span>{"00".toString().padStart(2, '0')}</span>
+                              <span className="timeController">
+                                <PlayArrowRoundedIcon />
+                              </span>
+                            </div>
+
                             <ErrorOutlineRoundedIcon sx={{ cursor: "pointer" }} onClick={() => {
                               fetchTaskById(task._id)
                               handleViewTask()
