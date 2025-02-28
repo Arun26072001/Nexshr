@@ -11,12 +11,13 @@ import { EssentialValues } from '../../../App';
 import axios from "axios";
 import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
 import KeyboardArrowDownRoundedIcon from '@mui/icons-material/KeyboardArrowDownRounded';
+import { updateDataAPI } from '../../ReuseableAPI';
 
 export default function Navbar({ handleSideBar }) {
     // const [lat, setLat] = useState("")
     // const [long, setLong] = useState("");
-    const { handleLogout, data, handleUpdateAnnouncements, isChangeAnnouncements,socket } = useContext(EssentialValues)
-    const { startLoginTimer, stopLoginTimer, workTimeTracker, isStartLogin, trackTimer } = useContext(TimerStates);
+    const { handleLogout, data, handleUpdateAnnouncements, isChangeAnnouncements, setIsStartLogin } = useContext(EssentialValues)
+    const { startLoginTimer, stopLoginTimer, workTimeTracker, isStartLogin, trackTimer, setWorkTimeTracker } = useContext(TimerStates);
     const [sec, setSec] = useState(workTimeTracker?.login?.timeHolder?.split(':')[2])
     const [min, setMin] = useState(workTimeTracker?.login?.timeHolder?.split(':')[1])
     const [hour, setHour] = useState(workTimeTracker?.login?.timeHolder?.split(':')[0])
@@ -86,7 +87,7 @@ export default function Navbar({ handleSideBar }) {
     useEffect(() => {
         const startLength = workTimeTracker?.login?.startingTime?.length || 0;
         const endLength = workTimeTracker?.login?.endingTime?.length || 0;
-        if (workTimeTracker._id) { //timer start to allow, if is timer data in obj 
+        if (workTimeTracker?._id) { //timer start to allow, if is timer data in obj 
             if (startLength !== endLength) {
                 setIsDisabled(true);
                 startOnlyTimer();
@@ -117,22 +118,6 @@ export default function Navbar({ handleSideBar }) {
             setSec(newSec);
         }
     }, [workTimeTracker, isStartLogin]);
-
-    // setInterval(() => {
-    //     async function sendMailonEightHrs() {
-    //         try {
-    //             const sendMail = await axios.get(`${url}/api/clock-ins/sendmail/${data._id}/${workTimeTracker._id}`, {
-    //                 headers: { Authorization: data.token || "" }
-    //             })
-    //             toast.success(sendMail.data.message)
-    //         } catch (error) {
-    //             toast.error(error.response.data.error)
-    //         }
-    //     }
-    //     if (isDisabled && hour === 9 && min === 1 && sec === 1) {
-    //         sendMailonEightHrs();
-    //     }
-    // }, 1000)
 
     const renderMenu = ({ onClose, right, top, className }, ref) => {
         const handleSelect = eventKey => {
@@ -243,34 +228,80 @@ export default function Navbar({ handleSideBar }) {
         }, 300)
     }
 
-    // const getAddressFromCoordinates = async (latitude, longitude) => {
-    //     const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=18`;
-
-    //     try {
-    //         const response = await fetch(url);
-    //         const data = await response.json();
-    //         console.log(data.display_name);
-    //     } catch (error) {
-    //         console.error("Error fetching address:", error);
-    //         return "Address not found";
+    // window.addEventListener("beforeunload", function (event) {
+    //     sessionStorage.setItem("isReload", "true");
+    // });
+    // setTimeout(() => {
+    //     if (!sessionStorage.getItem("isReload") && isStartLogin) {
+    //         const currentTime = new Date().toTimeString().split(" ")[0];
+    //         const updatedState = {
+    //             ...workTimeTracker,
+    //             login: {
+    //                 ...workTimeTracker?.login,
+    //                 endingTime: [...(workTimeTracker?.login?.endingTime || []), currentTime],
+    //                 timeHolder: workTimeTracker?.login?.timeHolder,
+    //             },
+    //         };
+    //         localStorage.setItem("timerState", JSON.stringify(updatedState));
     //     }
-    // };
+
+    // }, 1000);
+
     // useEffect(() => {
-    //     navigator.geolocation.getCurrentPosition((position) => {
-    //         if (position.coords.accuracy > 50) {
-    //             console.log("accuracy too low!");
+    //     const savedState = localStorage.getItem("timerState");
+    //     if (!savedState) return; // Exit if no saved state
+
+    //     let timerData;
+    //     try {
+    //         timerData = JSON.parse(savedState);
+    //     } catch (error) {
+    //         console.error("Error parsing timerState:", error);
+    //         return;
+    //     }
+
+    //     if (!isStartLogin || !timerData || !timerData._id) {
+    //         console.log(isStartLogin, timerData, timerData?._id);
+    //         return; // Ensure valid data
+    //     }
+
+    //     const handleUpdate = async () => {
+    //         try {
+    //             localStorage.removeItem("timerState");
+    //             const updatedData = await updateDataAPI(timerData); // Wait for API call to complete
+    //             setWorkTimeTracker(updatedData);
+    //             setIsStartLogin(false);
+    //             localStorage.setItem("isStartLogin", "false");
+
+    //             if (workRef.current) {
+    //                 clearInterval(workRef.current);
+    //                 workRef.current = null;
+    //             }
+    //         } catch (error) {
+    //             console.error("Error updating data:", error);
     //         }
-    //         console.log(position.coords.longitude, position.coords.latitude, position.coords.accuracy);
+    //     };
 
-    //         setLat(position.coords.latitude);
-    //         setLong(position.coords.longitude);
-    //     }, (error) => console.error("Error getting location:", error),
-    //         { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 })
-    // }, [])
+    //     // Function to handle tab visibility change
+    //     const handleVisibilityChange = () => {
+    //         if (document.visibilityState === "visible") {
+    //             console.log("Tab is now visible, calling handleUpdate()");
+    //             handleUpdate();
+    //         }
+    //     };
 
-    // if (lat && long) {
-    //     getAddressFromCoordinates(lat, long)
-    // }
+    //     // Add event listener
+    //     document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    //     // Also call handleUpdate() immediately when component mounts
+    //     handleUpdate();
+
+    //     // Cleanup event listener when component unmounts
+    //     return () => {
+    //         document.removeEventListener("visibilitychange", handleVisibilityChange);
+    //     };
+
+    // }, [isStartLogin, setWorkTimeTracker, setIsStartLogin, workRef]);
+
 
     return (
         <div className="webnxs">

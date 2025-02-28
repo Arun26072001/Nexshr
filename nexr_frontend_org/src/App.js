@@ -23,8 +23,8 @@ const App = () => {
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [showOfflineAlert, setShowOfflineAlert] = useState(false);
   const [whoIs, setWhoIs] = useState("");
-  const [isStartLogin, setIsStartLogin] = useState(localStorage.getItem("isStartLogin") === "true" ? true : false);
-  const [isStartActivity, setIsStartActivity] = useState(localStorage.getItem("isStartActivity") === "true" ? true : false);
+  const [isStartLogin, setIsStartLogin] = useState([null, "false"].includes(localStorage.getItem("isStartLogin")) ? false : true);
+  const [isStartActivity, setIsStartActivity] = useState([null, "false"].includes(localStorage.getItem("isStartActivity")) ? false : true);
   const [data, setData] = useState({
     _id: null,
     Account: null,
@@ -128,7 +128,7 @@ const App = () => {
   useEffect(() => {
     if (!socket.connected) {
       socket.connect();
-    } console.log(socket.connected);
+    }
 
     socket.emit("join_room", data._id); // ✅ Make sure the employee joins their room
 
@@ -162,7 +162,7 @@ const App = () => {
   useEffect(() => {
     localStorage.setItem("isStartLogin", isStartLogin);
     localStorage.setItem("isStartActivity", isStartActivity);
-  }, [isStartLogin, isStartActivity]);
+  }, []);
 
   useEffect(() => {
     setData((prev) => ({

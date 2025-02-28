@@ -82,7 +82,7 @@ const ActivityTimeTracker = () => {
                 socket.emit("send_notification", {
                     employee: data._id,
                     timeOption,
-                    time: 1
+                    time: timeOption === "lunch" ? 30 : 15
                 })
             }
         }

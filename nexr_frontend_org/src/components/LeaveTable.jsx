@@ -642,7 +642,7 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
 
                                                     } else if (params["*"] === "leave") {
                                                         return (<Dropdown title={"Action"} noCaret placement="leftStart">
-                                                            <Dropdown.Item style={{ minWidth: 80 }} onClick={() => fetchData(row.code, "Edit")}>
+                                                            <Dropdown.Item style={{ minWidth: 80 }} onClick={() => fetchData(row._id, "delete")}>
                                                                 <b>
                                                                     <DeleteRoundedIcon sx={{ color: "#F93827" }} /> Delete
                                                                 </b>

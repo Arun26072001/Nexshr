@@ -13,6 +13,7 @@ const updateDataAPI = async (body) => {
                 headers: { authorization: token || '' },
             });
             console.log('Updated successfully:', response.data);
+            
             return response.data;
         } else {
             toast.error("You did't Login properly!")

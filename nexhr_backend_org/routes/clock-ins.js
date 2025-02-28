@@ -115,7 +115,7 @@ router.post("/auto-permission/:patternId", async (req, res) => {
                 halfDayLeaveApp = {
                     leaveType: "Unpaid Leave (LWP)",
                     fromDate: now,
-                    toDate: now,
+                    toDate: new Date(now.getTime() + 4 * 60 * 60 * 1000),
                     periodOfLeave: "half day",
                     reasonForLeave: "Came too late",
                     employee: emp._id.toString(),
@@ -195,23 +195,66 @@ router.post("/not-login/apply-leave", async (req, res) => {
         const startOfDay = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 0, 0, 0, 0));
         const endOfDay = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 23, 59, 59, 999));
 
-        // Fetch employees who haven't logged in
-        let notLoginEmps = await Employee.find()
-            .populate({
-                path: "clockIns",
-                match: { date: { $gte: startOfDay, $lt: endOfDay } }
-            })
-            .populate("workingTimePattern");
+        // Fetch employees who haven't logged in using aggregation for better performance
+        let notLoginEmps = await Employee.aggregate([
+            {
+                $lookup: {
+                    from: "clockins",
+                    localField: "_id",
+                    foreignField: "employee",
+                    as: "clockIns",
+                    pipeline: [{ $match: { date: { $gte: startOfDay, $lt: endOfDay } } }]
+                }
+            },
+            { $match: { "clockIns.0": { $exists: false } } }, // Employees with no clock-ins
+            {
+                $lookup: {
+                    from: "workingtimepatterns",
+                    localField: "workingTimePattern",
+                    foreignField: "_id",
+                    as: "workingTimePattern"
+                }
+            },
+            { $unwind: { path: "$workingTimePattern", preserveNullAndEmptyArrays: true } }, // Preserve employees without a working pattern
+            {
+                $lookup: {
+                    from: "leaveapplications",
+                    localField: "leaveApplication",
+                    foreignField: "_id",
+                    as: "leaveApplications"
+                }
+            }
+        ]);
 
-        notLoginEmps = notLoginEmps.filter((emp) => emp?.clockIns?.length === 0);
+        if (notLoginEmps.length === 0) {
+            return res.send({ message: "No employees found without punch-in today." });
+        }
+
+        const leaveApplications = [];
+        const employeeUpdates = [];
+        const emailPromises = [];
 
         for (const emp of notLoginEmps) {
-            fullDayLeaveApp = {
+            if (!emp.workingTimePattern) continue; // Skip employees without a working pattern
+
+            // Remove any existing leave applications for the employee
+            if (emp.leaveApplications.length > 0) {
+                await LeaveApplication.deleteMany({ _id: { $in: emp.leaveApplications.map(leave => leave._id) } });
+            }
+
+            const workingHours = getTotalWorkingHourPerDay(
+                emp.workingTimePattern.StartingTime,
+                emp.workingTimePattern.FinishingTime
+            );
+            const fromDate = new Date(now.getTime() - workingHours);
+
+            // Create new full-day leave application
+            const leaveApplication = {
                 leaveType: "Unpaid Leave (LWP)",
-                fromDate: now,
+                fromDate,
                 toDate: now,
                 periodOfLeave: "full day",
-                reasonForLeave: "Didn't punchIn until EOD",
+                reasonForLeave: "Didn't punch in until EOD",
                 employee: emp._id.toString(),
                 status: "approved",
                 TeamLead: "approved",
@@ -220,6 +263,9 @@ router.post("/not-login/apply-leave", async (req, res) => {
                 Manager: "approved"
             };
 
+            leaveApplications.push(leaveApplication);
+
+            // Email notification
             const subject = "Full-day Leave Applied (Unpaid Leave)";
             const htmlContent = `
                 <html>
@@ -229,26 +275,42 @@ router.post("/not-login/apply-leave", async (req, res) => {
                     </body>
                 </html>`;
 
-            // Save Leave Application
-            const addLeave = await LeaveApplication.create(fullDayLeaveApp);
-            emp.leaveApplication.push(addLeave._id);
-            await emp.save();
-
-            // Send Email Notification
-            sendMail({
+            emailPromises.push(sendMail({
                 From: process.env.FROM_MAIL,
                 To: emp.Email,
                 Subject: subject,
                 HtmlBody: htmlContent,
-            });
+            }));
         }
-        res.send({ message: "Email sent notPunchin emps with applied Fullday leave" })
+
+        // Insert new leave applications in bulk
+        const insertedLeaves = await LeaveApplication.insertMany(leaveApplications);
+
+        // Prepare employee updates for bulk write
+        notLoginEmps.forEach((emp, index) => {
+            employeeUpdates.push({
+                updateOne: {
+                    filter: { _id: emp._id },
+                    update: { $set: { leaveApplication: [insertedLeaves[index]._id] } }
+                }
+            });
+        });
+
+        // Perform bulk update on employees
+        if (employeeUpdates.length > 0) {
+            await Employee.bulkWrite(employeeUpdates);
+        }
+
+        // Send all emails in parallel
+        await Promise.all(emailPromises);
+
+        res.send({ message: "Full-day leave applied and emails sent for employees who didn't punch in." });
 
     } catch (error) {
-        console.log(error);
-        return res.status(500).send({ error: error.message })
+        console.error("Error:", error);
+        res.status(500).send({ error: error.message });
     }
-})
+});
 
 router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
     try {
@@ -297,14 +359,17 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
                     prescription: "",
                     employee: emp._id,
                     coverBy: null,
-                    status: "rejected",
-                    TeamLead: "rejected",
-                    TeamHead: "rejected",
-                    Hr: "rejected",
+                    status: "approved",
+                    TeamLead: "approved",
+                    TeamHead: "approved",
+                    Hr: "approved",
                     approvedOn: null,
                     approverId: []
                 };
-
+                const deletePermission = await LeaveApplication.findByIdAndDelete(leave._id);
+                const removedPermissionLeaves = emp.leaveApplication.filter((leave)=> leave !== leave._id)
+                emp.leaveApplication = removedPermissionLeaves;
+                await emp.save();
                 const addLeave = await LeaveApplication.create(halfDayLeaveApp);
                 emp.leaveApplication.push(addLeave._id);
                 await emp.save();
@@ -724,89 +789,102 @@ router.get("/sendmail/:id/:clockinId", async (req, res) => {
         })
 
         const htmlContent = `
-                   <!DOCTYPE html>
-                   <html lang="en">
-                   <head>
-                     <meta charset="UTF-8">
-                     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                     <title>NexsHR</title>
-                     <style>
-                       body {
-                         font-family: Arial, sans-serif;
-                         background-color: #f6f9fc;
-                         color: #333;
-                         margin: 0;
-                         padding: 0;
-                       }
-                       .table {
-                         width: 100%;
-                         border-collapse: collapse;
-                         margin: 20px 0;
-                         font-size: 16px;
-                         text-align: left;
-                         background-color: #fff;
-                         box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-                       }
-                       .table th, .table td {
-                         padding: 12px 15px;
-                         border: 1px solid #ddd;
-                       }
-                       .table th {
-                         background-color: #4CAF50;
-                         color: white;
-                         font-weight: bold;
-                         text-transform: uppercase;
-                       }
-                       .table tr:nth-child(even) {
-                         background-color: #f2f2f2;
-                       }
-                       .table tr:hover {
-                         background-color: #e9f4f1;
-                       }
-                       .row {
-                         display: flex;
-                         justify-content: center;
-                         margin: 20px;
-                       }
-                       .col-lg-6, .col-md-6, .col-12 {
-                         flex: 1;
-                         max-width: 80%;
-                         margin: 0 auto;
-                       }
-                     </style>
-                   </head>
-                   <body>
-                     <div class="row">
-                        <div class="col-lg-6 col-md-6 col-12">
-                            <table class="table">
-                                <thead>
-                                    <tr>
-                                        <th>Activity</th>
-                                        <th>Starting Time</th>
-                                        <th>Ending Time</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    ${activitiesData?.map((data, index) => `
-                                          <tr key="${index}">
-                                              <td>${data.activity}</td>
-                                              <td>${data.startingTime}</td>
-                                              <td>${data.endingTime}</td>
-                                          </tr>
-                                      `).join('')
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+          <meta charset="UTF-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <title>NexsHR</title>
+          <style>
+            body {
+              font-family: Arial, sans-serif;
+              background-color: #f6f9fc;
+              color: #333;
+              margin: 0;
+              padding: 20px;
             }
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                   </body>
-                   </html>
-                 `;
+            .table {
+              width: 100%;
+              border-collapse: collapse;
+              margin: 20px 0;
+              font-size: 16px;
+              text-align: left;
+              background-color: #fff;
+              box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            }
+            .table th, .table td {
+              padding: 12px 15px;
+              border: 1px solid #ddd;
+            }
+            .table th {
+              background-color: #4CAF50;
+              color: white;
+              font-weight: bold;
+              text-transform: uppercase;
+            }
+            .table tr:nth-child(even) {
+              background-color: #f2f2f2;
+            }
+            .table tr:hover {
+              background-color: #e9f4f1;
+            }
+            .row {
+              display: flex;
+              justify-content: center;
+              margin: 20px;
+            }
+            .col-lg-6, .col-md-6, .col-12 {
+              flex: 1;
+              max-width: 80%;
+              margin: 0 auto;
+            }
+            p {
+              font-size: 18px;
+            }
+          </style>
+        </head>
+        <body>
+          <div class="row">
+            <div class="col-lg-6 col-md-6 col-12">
+              <p>Hi ${emp.FirstName},</p>
+              <p>Your timing details for today are here:</p>
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th>Activity</th>
+                    <th>Starting Time</th>
+                    <th>Ending Time</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${
+                    activitiesData && activitiesData.length > 0
+                      ? activitiesData
+                          .map(
+                            (data) => `
+                              <tr>
+                                <td>${data.activity}</td>
+                                <td>${data.startingTime}</td>
+                                <td>${data.endingTime}</td>
+                              </tr>
+                            `
+                          )
+                          .join("")
+                      : `<tr><td colspan="3" style="text-align: center;">No activity data available</td></tr>`
+                  }
+                </tbody>
+              </table>
+              <p>Happy working!</p>
+            </div>
+          </div>
+        </body>
+        </html>
+      `;      
 
         sendMail({
             From: process.env.FROM_MAIL,
             To: emp.Email,
-            Subject: "You have completed 8 of Today working hours",
+            Subject: `You have punched in for the ${clockIn?.date?.split("T")[0]}`,
             HtmlBody: htmlContent,
         });
         return res.send({ message: "We have send mail for you have completed 8 working hours." })
