@@ -406,7 +406,7 @@ const Tasks = ({ employees }) => {
               <div className="projectBody">
                 <div className="d-flex justify-content-between align-items-center">
                   {
-                    ["Pending", "On Progress", "Completed"].map((item) => {
+                    [{name:"Pending", color: }, "On Progress", "Completed"].map((item) => {
                       return <div className="box-content messageCount">
                         {item === "Pending" ? <PauseCircleFilledRoundedIcon sx={{ fontSize: "65px" }} />
                           : item === "On Progress" ? <HourglassTopRoundedIcon sx={{ fontSize: "65px" }} />
