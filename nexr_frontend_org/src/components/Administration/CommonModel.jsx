@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import "../Settings/SettingsStyle.css";
-import { Modal, Button, SelectPicker, TagPicker, Input } from 'rsuite';
+import { Modal, Button, SelectPicker, TagPicker, Input, DateRangePicker } from 'rsuite';
 import TextEditor from '../payslip/TextEditor';
 import ErrorOutlineRoundedIcon from '@mui/icons-material/ErrorOutlineRounded';
 import DatePicker from "react-datepicker";
@@ -8,6 +8,7 @@ import "react-datepicker/dist/react-datepicker.css";
 import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
 import "../projectndTask.css";
 import { MultiCascader, VStack } from 'rsuite';
+// import { TimePicker } from 'rsuite';
 
 const CommonModel = ({
     dataObj,
@@ -327,6 +328,19 @@ const CommonModel = ({
                                         placeholder="Select Status"
                                         value={dataObj?.status}
                                         onChange={(e) => changeData(e, "status")}
+                                    />
+                                </div>
+                            </div>
+                        }
+                        {
+                            ["Task"].includes(type) &&
+                            <div className="col-half">
+                                <div className="modelInput">
+                                    <p className='modelLabel'>Est Time:</p>
+                                    <DateRangePicker format="HH:mm"
+                                        size='lg'
+                                        placeholder="Select Time Range"
+                                        onChange={(e)=>changeData(e, "estTime")}
                                     />
                                 </div>
                             </div>
@@ -744,7 +758,6 @@ const CommonModel = ({
                                 <p>By deleting this project all its task, invoice and time entries will be deleted.</p>
                             </div>
                         }
-
                         <Input required placeholder={`Please Type "Delete" to delete this ${type === "Confirmation" ? "Project" : type === "Report Confirmation" ? "Report" : "Task"}`} onChange={setConfirmationTxt} value={confirmationTxt} appearance="default" size='lg' />
                     </div>
                 }
@@ -781,7 +794,7 @@ const CommonModel = ({
                                         onClick={() => (dataObj?._id || type === "Edit Country" ? editData(dataObj) : type === "Team" ? toggleAssignEmp() : addData())}
                                         appearance="primary"
                                         disabled={
-                                            ["Project", "Assign", "Task", "Task Assign", "Report", "Company", "Country", "Edit Country", "Announcement","Team"].includes(type)
+                                            ["Project", "Assign", "Task", "Task Assign", "Report", "Company", "Country", "Edit Country", "Announcement", "Team"].includes(type)
                                                 ? false
                                                 // : (!dataObj?.[`${type}Name`] || !dataObj?.name) ? true
                                                 : (["Department", "Position"].includes(type) && dataObj?.company ? false : true)

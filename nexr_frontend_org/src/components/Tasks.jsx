@@ -23,10 +23,11 @@ import "./org_list.css";
 import PauseCircleOutlineRoundedIcon from '@mui/icons-material/PauseCircleOutlineRounded';
 import HourglassTopRoundedIcon from '@mui/icons-material/HourglassTopRounded';
 import CheckCircleOutlineRoundedIcon from '@mui/icons-material/CheckCircleOutlineRounded';
-import PauseRoundedIcon from '@mui/icons-material/PauseRounded';
-import PlayArrowRoundedIcon from '@mui/icons-material/PlayArrowRounded';
+import { useNavigate } from "react-router-dom";
+import MyTimer from "./MyTimer";
 
 const Tasks = ({ employees }) => {
+  const navigate = useNavigate();
   const url = process.env.REACT_APP_API_URL;
   const { data, whoIs } = useContext(EssentialValues);
   const { isAddTask, setIsAddTask, handleAddTask, selectedProject } = useContext(TimerStates);
@@ -38,7 +39,6 @@ const Tasks = ({ employees }) => {
   const [tasks, setTasks] = useState([]);
   const [filterTasks, setFilterTasks] = useState([]);
   const [previewList, setPreviewList] = useState([]);
-  // const [isAddTask, setIsAddTask] = useState(false);
   const [isEditTask, setIsEditTask] = useState(false);
   const [isviewTask, setIsViewtask] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -146,25 +146,14 @@ const Tasks = ({ employees }) => {
           Authorization: data.token || ""
         }
       })
-      setAllTask(res.data.tasks)
-      // setFilterTasks(res.data.tasks)
+      setAllTask(res.data.tasks);
+      // getSelectStatusTasks();
     } catch (error) {
       setAllTask([])
-      // setFilterTasks([])
       console.log(error);
     }
     setIsLoading(false)
   }
-
-  useEffect(() => {
-    if (projectId) {
-      fetchTaskByProjectId(projectId)
-    }
-  }, [projectId, isDelete.type, isAddTask, isEditTask])
-
-  useEffect(() => {
-    return () => setPreviewList([])
-  }, [])
 
   function handleViewTask() {
     if (isviewTask) {
@@ -196,15 +185,16 @@ const Tasks = ({ employees }) => {
     }
   }
 
-  useEffect(() => {
-    function getSelectStatusTasks() {
-      const filteredTasks = allTasks.filter((task) => task.status === status);
-      setTasks(filteredTasks);
-      setFilterTasks(filteredTasks);
-    }
+  function getSelectStatusTasks() {
+    const filteredTasks = allTasks.filter((task) => task.status === status);
+    console.log(status, filteredTasks);
 
+    setTasks(filteredTasks);
+    setFilterTasks(filteredTasks);
+  }
+  useEffect(() => {
     getSelectStatusTasks()
-  }, [status])
+  }, [status, allTasks]);
 
   async function editTask(updatedTask) {
     const taskToUpdate = updatedTask
@@ -225,7 +215,7 @@ const Tasks = ({ employees }) => {
       setTaskObj({});
       setIsAddTask(false);
       setIsEditTask(false);
-      fetchTaskByProjectId(projectId)
+      fetchTaskByProjectId(projectId);
     } catch (error) {
       console.error("Error updating task:", error);
       const errorMessage = error?.response?.data?.error || "An error occurred while updating the task.";
@@ -247,7 +237,6 @@ const Tasks = ({ employees }) => {
       value: data._id
     }))
     handleDeleteTask()
-
   }
 
   async function deleteTask() {
@@ -259,6 +248,7 @@ const Tasks = ({ employees }) => {
       })
       toast.success(res.data.message);
       handleDeleteTask();
+      fetchTaskByProjectId(projectId);
     } catch (error) {
       toast.error(error.response.data.error)
     }
@@ -316,21 +306,6 @@ const Tasks = ({ employees }) => {
     }
   }
 
-  useEffect(() => {
-    function changeUIForSelectedProject() {
-      setProjectId(selectedProject);
-      setTaskObj((pre) => ({
-        ...pre,
-        ["project"]: selectedProject
-      }))
-    }
-
-    if (selectedProject) {
-      changeUIForSelectedProject()
-    }
-  }, [selectedProject])
-
-
   async function fetchEmpsProjects() {
     setIsLoading(true)
     try {
@@ -347,6 +322,31 @@ const Tasks = ({ employees }) => {
     setIsLoading(false)
   }
 
+  useEffect(() => {
+    if (projectId) {
+      fetchTaskByProjectId(projectId)
+    } else {
+      setAllTask([]);
+    }
+  }, [projectId, isDelete.type, isAddTask, isEditTask])
+
+  useEffect(() => {
+    return () => setPreviewList([])
+  }, [])
+
+  useEffect(() => {
+    function changeUIForSelectedProject() {
+      setProjectId(selectedProject);
+      setTaskObj((pre) => ({
+        ...pre,
+        ["project"]: selectedProject
+      }))
+    }
+
+    if (selectedProject) {
+      changeUIForSelectedProject()
+    }
+  }, [selectedProject])
 
   useEffect(() => {
     async function fetchProjects() {
@@ -380,6 +380,8 @@ const Tasks = ({ employees }) => {
     }
     editTask(updatedTask)
   }
+  console.log(taskObj);
+
 
   return (
     isviewTask ? <CommonModel type="Task View" isAddData={isviewTask} modifyData={handleViewTask} dataObj={taskObj} projects={projects} removeAttachment={removeAttachment} employees={employees} /> :
@@ -421,7 +423,7 @@ const Tasks = ({ employees }) => {
                 <div className="card-parent">
                   {
                     [{ name: "Pending", color: "white", icon: PauseCircleOutlineRoundedIcon }, { name: "In Progress", icon: HourglassTopRoundedIcon, color: "white", }, { name: "Completed", color: "white", icon: CheckCircleOutlineRoundedIcon }].map((item) => {
-                      return <div className="box-content messageCount cardContent" style={{ background: item.color }} onClick={() => setStatus(item.name)}>
+                      return <div className={`box-content messageCount cardContent ${status === item.name && "activeCard"}`} style={{ background: item.color }} onClick={() => setStatus(item.name)}>
                         {<item.icon sx={{ fontSize: "65px" }} />}
                         <div className="d-block text-center">
                           <p className="org_name">
@@ -450,8 +452,8 @@ const Tasks = ({ employees }) => {
                     tasks.length > 0 ?
                       tasks.map((task) => (
                         <div key={task._id} className="box-content d-flex align-items-center justify-content-between my-3">
-                          <div className="d-flex align-items-center col-half">
-                            <Checkbox onCheckboxClick={() => getValue(task)} /> <b>{task.title}</b> || <span className="defaultDesign">{task.status}</span> ||
+                          <div className="d-flex align-items-center col-half gap-1">
+                            <Checkbox onCheckboxClick={() => getValue(task)} checked={status === "Completed" ? true : false} /> <b>{task.title}</b> || <span className={`defaultDesign text-light ${task.status === "Pending" ? "bg-danger" : task.status === "Completed" ? "bg-success" : "bg-warning"}`}>{task.status}</span> ||
                             <div className="d-flex align-items-center gap-1 mx-1">
                               {task.assignedTo.map((emp) => (
                                 <div className="nameHolder" style={{ width: "30px", height: "30px" }} key={emp._id}>
@@ -464,32 +466,26 @@ const Tasks = ({ employees }) => {
                                 handleEditTask()
                               }} />
                             </div>
-
-
                           </div>
                           <div className="cal-half d-flex align-items-center justify-content-center gap-2">
-
-                            <div className='d-flex align-items-center gap-1 timerTxt box-content position-relative' style={{ padding: "10px" }} >
-                              <span>{"12".toString().padStart(2, '0')}</span> :
-                              <span>{"10".toString().padStart(2, '0')}</span> :
-                              <span>{"00".toString().padStart(2, '0')}</span>
-                              <span className="timeController">
-                                <PlayArrowRoundedIcon />
-                              </span>
-                            </div>
+                            <MyTimer
+                              startingHour={Math.floor(task.estTime)}
+                              startingMinute={Math.floor((task.estTime * 60) % 60)}
+                              startingSecond={Math.floor((task.estTime * 3600) % 60)}
+                            />
 
                             <ErrorOutlineRoundedIcon sx={{ cursor: "pointer" }} onClick={() => {
                               fetchTaskById(task._id)
                               handleViewTask()
                             }} />
-                            <span className="defaultDesign text-light" style={{ background: `${task.project.color}` }}>{task.project.name}</span>
+                            <span className="defaultDesign text-light" title="Project Name" style={{ background: `${task.project.color}` }}>{task.project.name}</span>
                             <CalendarMonthRoundedIcon sx={{ cursor: "pointer" }} />
                             <span style={{ cursor: "pointer" }}>
                               <Whisper placement="bottomEnd" trigger="click" speaker={renderMenu2(task)}>
                                 <MoreVertRoundedIcon sx={{ cursor: "pointer" }} />
                               </Whisper>
                             </span>
-                            <span className="nameHolder" style={{ width: "25px", height: "25px" }}>
+                            <span className="nameHolder" style={{ width: "25px", height: "25px" }} onClick={() => navigate(`/${whoIs}/tasks/time-log/${task._id}`)}>
                               <KeyboardArrowRightRoundedIcon />
                             </span>
                           </div>

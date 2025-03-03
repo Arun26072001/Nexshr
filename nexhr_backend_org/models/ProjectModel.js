@@ -1,6 +1,12 @@
 const mongoose = require('mongoose');
 const Joi = require('joi');
 
+const TrackerSchema = new mongoose.Schema({
+  date: { type: Date },
+  message: { type: String },
+  who: { type: mongoose.Schema.Types.ObjectId, ref: "Employee", default: null }
+}, { _id: false })
+
 var projectSchema = new mongoose.Schema({
   name: { type: String },
   prefix: { type: String },
@@ -15,7 +21,7 @@ var projectSchema = new mongoose.Schema({
   estCost: { type: String },
   estTime: { type: String },
   priority: { type: String },
-  tracker: [{ type: mongoose.Schema.Types.Mixed, default: {} }],
+  tracker: [TrackerSchema],
   createdby: { type: mongoose.Schema.Types.ObjectId, ref: "Employee" }
 }, { timestamps: true });
 

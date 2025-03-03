@@ -8,6 +8,7 @@ const { Employee } = require('../models/EmpModel');
 const { error } = require('joi/lib/types/lazy');
 const { Report } = require('../models/ReportModel');
 const mongoose = require("mongoose");
+const { convertToString } = require('../Reuseable_functions/reusableFunction');
 
 router.get("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
   try {
@@ -152,12 +153,6 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
 
 router.put("/:empId/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
   try {
-    const convertToString = (value) => {
-      if (Array.isArray(value)) {
-        return value.map((v) => (mongoose.isValidObjectId(v) ? v.toString() : v));
-      }
-      return mongoose.isValidObjectId(value) ? value?.toString() : value;
-    };
 
     delete req.body['_id'];
     delete req.body["__v"];
@@ -186,7 +181,7 @@ router.put("/:empId/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) 
     
     const updatedProject = {
       ...req.body,
-      tracker: [...req.body.tracker, projectChanges].flatMap()
+      tracker: [...req.body.tracker, ...projectChanges]
     };
 
     // Validate the request body

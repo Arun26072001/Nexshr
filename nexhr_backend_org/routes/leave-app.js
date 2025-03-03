@@ -10,13 +10,7 @@ const { Team } = require('../models/TeamModel');
 const { upload } = require('./imgUpload');
 const now = new Date();
 const sendMail = require("./mailSender");
-
-function getDayDifference(leave) {
-  let toDate = new Date(leave.toDate);
-  let fromDate = new Date(leave.fromDate);
-  let timeDifference = toDate - fromDate;
-  return timeDifference === 0 ? 1 : timeDifference / (1000 * 60 * 60 * 24);
-}
+const { getDayDifference } = require('../Reuseable_functions/reusableFunction');
 
 // Helper function to generate leave request email content
 function generateLeaveEmail(empData, fromDate, toDate, reasonForLeave) {
