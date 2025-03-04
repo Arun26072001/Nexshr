@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import "../Settings/SettingsStyle.css";
-import { Modal, Button, SelectPicker, TagPicker, Input, DateRangePicker } from 'rsuite';
+import { Modal, Button, SelectPicker, TagPicker, Input, DateRangePicker, InputNumber } from 'rsuite';
 import TextEditor from '../payslip/TextEditor';
 import ErrorOutlineRoundedIcon from '@mui/icons-material/ErrorOutlineRounded';
 import DatePicker from "react-datepicker";
@@ -35,6 +35,7 @@ const CommonModel = ({
 }) => {
     const [confirmationTxt, setConfirmationTxt] = useState("");
     const [isDisabled, setIsDisabled] = useState(true);
+    console.log(dataObj);
 
     return (
         <Modal open={isAddData} size="sm" backdrop="static">
@@ -333,14 +334,15 @@ const CommonModel = ({
                             </div>
                         }
                         {
-                            ["Task"].includes(type) &&
+                            ["Task"].includes(type) && !dataObj._id &&
                             <div className="col-half">
                                 <div className="modelInput">
                                     <p className='modelLabel'>Est Time:</p>
                                     <DateRangePicker format="HH:mm"
                                         size='lg'
                                         placeholder="Select Time Range"
-                                        onChange={(e)=>changeData(e, "estTime")}
+                                        renderValue={dataObj?.estTime}
+                                        onChange={(e) => changeData(e, "estTime")}
                                     />
                                 </div>
                             </div>
@@ -366,6 +368,31 @@ const CommonModel = ({
                         }
                     </>
                 </div>
+
+                {
+                    ["Task"].includes(type) && dataObj._id &&
+                    <div className='d-flex justify-content-between gap-2'>
+                        <div className="col-half">
+                            <div className="modelInput">
+                                <p className='modelLabel'>Est Time:</p>
+                                <InputNumber
+                                    size='lg'
+                                    placeholder="Select Time"
+                                    style={{ width: "100%" }}
+                                    value={dataObj?.estTime}
+                                    onChange={(e) => changeData(e, "estTime")}
+                                    step={0.01}
+                                />
+                            </div>
+                        </div>
+                        <div className="col-half">
+                            <div className="modelInput">
+                                <p className='modelLabel'>Spend time:</p>
+                                <InputNumber size='lg' defaultValue={0.00} style={{ width: "100%" }} step={0.01} value={dataObj?.spendTime} onChange={(e) => changeData(e, "spendTime")} />
+                            </div>
+                        </div>
+                    </div>
+                }
 
                 {
                     ["Project", "Project View", "Assign", "Task", "Task View", "Task Assign", "Report", "Report View"].includes(type) && (

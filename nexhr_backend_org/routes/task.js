@@ -29,13 +29,11 @@ router.get("/project/:id", verifyAdminHREmployeeManagerNetwork, async (req, res)
         if (tasks.length === 0) {
             return res.status(200).send({ tasks: [] })
         }
-        const updatedTasks = tasks.map((task) => ({
-            ...task.toObject(),
-            estTime: getTotalHours(task?.estTime[0], task?.estTime[1])
-        }))
 
-        return res.send({ tasks: updatedTasks });
+        return res.send({ tasks });
     } catch (error) {
+        console.log(error);
+
         res.status(500).send({ error: error.message })
     }
 })
@@ -84,7 +82,8 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
             ...req.body,
             createdby: req.params.id,
             status: req.body.status || "On Hold",
-            tracker: []
+            tracker: [],
+            spendTime: 0
         };
 
         // Validate Task Data
@@ -199,7 +198,7 @@ router.put("/:empId/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) 
             const oldValue = convertToString(value);
             if (
                 newValue !== undefined &&
-                !["createdAt", "createdby", "tracker", "updatedAt", "_id", "tracker", "__v"]?.includes(key) &&
+                !["createdAt", "createdby", "tracker", "updatedAt", "_id", "tracker", "__v", "spend"]?.includes(key) &&
                 (Array.isArray(oldValue) ? oldValue.length !== newValue.length : oldValue !== newValue)
             ) {
                 return {

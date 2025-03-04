@@ -15,11 +15,11 @@ const taskSchema = new mongoose.Schema({
     assignedTo: [{ type: mongoose.Schema.Types.ObjectId, ref: "Employee" }],
     from: { type: Date },
     to: { type: Date },
-    spend: { type: String },
+    spend: { type: Number },
     status: { type: String },
     trash: { type: Boolean, default: false },
     tracker: [TrackerSchema],
-    estTime: [{ type: String }],
+    estTime: { type: Number },
     createdby: { type: mongoose.Schema.Types.ObjectId, ref: "Employee" },
     project: { type: mongoose.Schema.Types.ObjectId, ref: "Project" }
 }, { timestamps: true })
@@ -37,7 +37,6 @@ const taskValidation = Joi.object({
     attachments: Joi.array()
         .items(Joi.string().label('Attachment URL'))
         .label('Attachments'),
-    spend: Joi.string().allow("").label("Spend"),
     description: Joi.string().allow('').label('Description'),
     assignedTo: Joi.array()
         .items(Joi.string().regex(/^[0-9a-fA-F]{24}$/).label('Employee ID'))
@@ -57,6 +56,7 @@ const taskValidation = Joi.object({
         .label('Created By'),
     tracker: Joi.any().label("Tracker"),
     estTime: Joi.any().label("EstTime"),
+    spend: Joi.any().label("Spend"),
     trash: Joi.boolean().allow("", null).label("Trash"),
     project: Joi.string().regex(/^[0-9a-fA-F]{24}$/).label('Project ID'),
     createdAt: Joi.string().allow('').label('createdAt'),

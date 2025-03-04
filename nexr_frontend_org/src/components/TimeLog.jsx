@@ -67,7 +67,16 @@ export default function TimeLog() {
                         </div>
                         <div className="col-lg-8">
                             {
-                                taskObj?.tracker?.length % 2 === 0 ?
+                                taskObj?.tracker?.length === 1 ?
+                                    taskObj?.tracker?.map((change) => {
+                                        return <div className='position-relative' key={change} >
+                                            <span className='dot'></span>
+                                            <div class="timeline-item">
+                                                <span class="timeline-time dateTimeTxt">{getMonthFullNameNdDate(change.date)}, {`${new Date(change.date).getFullYear()}`} at {`${new Date(change.date).getHours()}:${String(new Date(change.date).getMinutes()).padStart(2, "0")}`}</span>
+                                                <p style={{ fontWeight: 600 }}>{change.message}</p>
+                                            </div>
+                                        </div>
+                                    }) :
                                     taskObj?.tracker?.map((change, index) => {
                                         if (index === (taskObj?.tracker?.length - 1)) {
                                             return <div className='position-relative' >
@@ -82,15 +91,6 @@ export default function TimeLog() {
                                             <span className='dot'></span>
                                             <div class="timeline-item">
                                                 <span class="timeline-time dateTimeTxt">{getMonthFullNameNdDate(change.date)}, {`${new Date(change.date).getFullYear()}`} at {`${new Date(change.date).getHours()}:${String(new Date(change.date).getMinutes()).padStart(2, "0")}`}</span>
-                                                <p style={{ fontWeight: 600 }}>{change.message}</p>
-                                            </div>
-                                        </div>
-                                    }) :
-                                    taskObj?.tracker?.map((change) => {
-                                        return <div className='position-relative' >
-                                            <span className='dot'></span>
-                                            <div class="timeline-item">
-                                                <span class="timeline-time dateTimeTxt">{getMonthFullNameNdDate(change.date)}, {`${new Date(change.date).getFullYear()}`} at {`${new Date(change.date).getHours()}:${new Date(change.date).getMinutes().padStart(2, "0")}`}</span>
                                                 <p style={{ fontWeight: 600 }}>{change.message}</p>
                                             </div>
                                         </div>

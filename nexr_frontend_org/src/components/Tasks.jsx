@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useState } from "react"
-import { Checkbox, Dropdown, Input, Popover, SelectPicker, Whisper } from "rsuite";
+import { Dropdown, Input, Popover, SelectPicker, Whisper } from "rsuite";
 import ArrowDropDownRoundedIcon from '@mui/icons-material/ArrowDropDownRounded';
 import WatchLaterOutlinedIcon from '@mui/icons-material/WatchLaterOutlined';
 import AddRoundedIcon from '@mui/icons-material/AddRounded';
@@ -10,11 +10,7 @@ import "./projectndTask.css";
 import { toast } from "react-toastify";
 import Loading from "./Loader";
 import NoDataFound from "./payslip/NoDataFound";
-import AddCircleOutlineRoundedIcon from '@mui/icons-material/AddCircleOutlineRounded';
-import ErrorOutlineRoundedIcon from '@mui/icons-material/ErrorOutlineRounded';
-import CalendarMonthRoundedIcon from '@mui/icons-material/CalendarMonthRounded';
-import MoreVertRoundedIcon from '@mui/icons-material/MoreVertRounded';
-import KeyboardArrowRightRoundedIcon from '@mui/icons-material/KeyboardArrowRightRounded';
+
 import BorderColorRoundedIcon from '@mui/icons-material/BorderColorRounded';
 import DeleteRoundedIcon from '@mui/icons-material/DeleteRounded';
 import { jwtDecode } from "jwt-decode";
@@ -23,11 +19,9 @@ import "./org_list.css";
 import PauseCircleOutlineRoundedIcon from '@mui/icons-material/PauseCircleOutlineRounded';
 import HourglassTopRoundedIcon from '@mui/icons-material/HourglassTopRounded';
 import CheckCircleOutlineRoundedIcon from '@mui/icons-material/CheckCircleOutlineRounded';
-import { useNavigate } from "react-router-dom";
-import MyTimer from "./MyTimer";
+import TaskItem from "./TaskItem";
 
 const Tasks = ({ employees }) => {
-  const navigate = useNavigate();
   const url = process.env.REACT_APP_API_URL;
   const { data, whoIs } = useContext(EssentialValues);
   const { isAddTask, setIsAddTask, handleAddTask, selectedProject } = useContext(TimerStates);
@@ -36,7 +30,9 @@ const Tasks = ({ employees }) => {
   const [projects, setProjects] = useState([]);
   const [projectId, setProjectId] = useState("");
   const [allTasks, setAllTask] = useState([]);
-  const [tasks, setTasks] = useState([]);
+  const [pendingTasks, setPendingTasks] = useState([]);
+  const [progressTasks, setProgressTasks] = useState([]);
+  const [completedTasks, setCompletedTask] = useState([]);
   const [filterTasks, setFilterTasks] = useState([]);
   const [previewList, setPreviewList] = useState([]);
   const [isEditTask, setIsEditTask] = useState(false);
@@ -44,6 +40,7 @@ const Tasks = ({ employees }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [isDelete, setIsDelete] = useState({ type: false, value: "" });
   const [status, setStatus] = useState("Pending");
+  const [timeData, setTimeData] = useState({ hour: 0, min: 0, sec: 0 });
 
   const renderMenu1 = ({ onClose, right, top, className }, ref) => {
     const handleSelect = eventKey => {
@@ -59,7 +56,6 @@ const Tasks = ({ employees }) => {
         <Dropdown.Menu onSelect={handleSelect} title="Personal Settings">
           <Dropdown.Item eventKey={1}><b><AddRoundedIcon />  New Task</b></Dropdown.Item>
           <Dropdown.Item eventKey={2}><b><WatchLaterOutlinedIcon /> New Time Entry</b></Dropdown.Item>
-          {/* <Dropdown.Item eventKey={3}><b>Copy Today Activity</b></Dropdown.Item> */}
         </Dropdown.Menu>
       </Popover>
     );
@@ -178,20 +174,27 @@ const Tasks = ({ employees }) => {
   }
 
   function filterByName(value) {
-    if (["", null].includes(value)) {
-      setTasks(filterTasks)
-    } else {
-      setTasks(filterTasks.filter((task) => task?.title?.includes(value)))
-    }
+    // if (["", null].includes(value)) {
+    //   setTasks(filterTasks)
+    // } else {
+    //   setTasks(filterTasks.filter((task) => task?.title?.includes(value)))
+    // }
   }
 
   function getSelectStatusTasks() {
-    const filteredTasks = allTasks.filter((task) => task.status === status);
-    console.log(status, filteredTasks);
-
-    setTasks(filteredTasks);
-    setFilterTasks(filteredTasks);
+    const statusTypes = ["Pending", "Completed", "In Progress"]
+    statusTypes.map((type) => {
+      const filterValue = allTasks.filter((task) => task.status === type);
+      if (type === "Pending") {
+        setPendingTasks(filterValue)
+      } else if (type === "Completed") {
+        setCompletedTask(filterValue)
+      } else {
+        setProgressTasks(filterValue)
+      }
+    })
   }
+
   useEffect(() => {
     getSelectStatusTasks()
   }, [status, allTasks]);
@@ -380,7 +383,42 @@ const Tasks = ({ employees }) => {
     }
     editTask(updatedTask)
   }
-  console.log(taskObj);
+
+  async function updatedTimerInTask(id, timerData) {
+    const taskData = await fetchTaskById(id);
+    const updatedTask = {
+      ...taskData,
+      spend: timerData
+    }
+    editTask(updatedTask)
+  }
+
+  function convertDecimalToTime(decimalHours) {
+    const timeValues = {
+      hour: Math.floor(decimalHours),
+      min: Math.floor((decimalHours * 60) % 60),
+      sec: Math.floor((decimalHours * 3600) % 60)
+    };
+
+    setTimeData(timeValues); // Assuming setTimeData updates state
+  }
+
+
+  useEffect(() => {
+    if (status === "Pending") {
+      pendingTasks.map((task) => {
+        convertDecimalToTime(Number(task.spend));
+      })
+    } else if (status === "Completed") {
+      completedTasks.map((task) => {
+        convertDecimalToTime(Number(task.spend));
+      })
+    } else {
+      progressTasks.map((task) => {
+        convertDecimalToTime(Number(task.spend));
+      })
+    }
+  }, [status])
 
 
   return (
@@ -422,12 +460,12 @@ const Tasks = ({ employees }) => {
               <div className="projectBody">
                 <div className="card-parent">
                   {
-                    [{ name: "Pending", color: "white", icon: PauseCircleOutlineRoundedIcon }, { name: "In Progress", icon: HourglassTopRoundedIcon, color: "white", }, { name: "Completed", color: "white", icon: CheckCircleOutlineRoundedIcon }].map((item) => {
+                    [{ name: "Pending", color: "white", icon: PauseCircleOutlineRoundedIcon, taskData: pendingTasks }, { name: "In Progress", icon: HourglassTopRoundedIcon, color: "white", taskData: progressTasks }, { name: "Completed", color: "white", icon: CheckCircleOutlineRoundedIcon, taskData: completedTasks }].map((item) => {
                       return <div className={`box-content messageCount cardContent ${status === item.name && "activeCard"}`} style={{ background: item.color }} onClick={() => setStatus(item.name)}>
                         {<item.icon sx={{ fontSize: "65px" }} />}
                         <div className="d-block text-center">
                           <p className="org_name">
-                            {item.name === status ? tasks.length : 0}
+                            {item?.taskData?.length || 0}
                           </p>
                           <p className="m-0">
                             <b>
@@ -448,51 +486,27 @@ const Tasks = ({ employees }) => {
                   </div>
                 </div>
                 {
-                  isLoading ? <Loading /> :
-                    tasks.length > 0 ?
-                      tasks.map((task) => (
-                        <div key={task._id} className="box-content d-flex align-items-center justify-content-between my-3">
-                          <div className="d-flex align-items-center col-half gap-1">
-                            <Checkbox onCheckboxClick={() => getValue(task)} checked={status === "Completed" ? true : false} /> <b>{task.title}</b> || <span className={`defaultDesign text-light ${task.status === "Pending" ? "bg-danger" : task.status === "Completed" ? "bg-success" : "bg-warning"}`}>{task.status}</span> ||
-                            <div className="d-flex align-items-center gap-1 mx-1">
-                              {task.assignedTo.map((emp) => (
-                                <div className="nameHolder" style={{ width: "30px", height: "30px" }} key={emp._id}>
-                                  {emp.FirstName[0].toUpperCase() +
-                                    emp.LastName[0].toUpperCase()}
-                                </div>
-                              ))}
-                              <AddCircleOutlineRoundedIcon sx={{ cursor: "pointer" }} fontSize="large" color="disabled" onClick={() => {
-                                fetchTaskById(task._id)
-                                handleEditTask()
-                              }} />
-                            </div>
-                          </div>
-                          <div className="cal-half d-flex align-items-center justify-content-center gap-2">
-                            <MyTimer
-                              startingHour={Math.floor(task.estTime)}
-                              startingMinute={Math.floor((task.estTime * 60) % 60)}
-                              startingSecond={Math.floor((task.estTime * 3600) % 60)}
-                            />
-
-                            <ErrorOutlineRoundedIcon sx={{ cursor: "pointer" }} onClick={() => {
-                              fetchTaskById(task._id)
-                              handleViewTask()
-                            }} />
-                            <span className="defaultDesign text-light" title="Project Name" style={{ background: `${task.project.color}` }}>{task.project.name}</span>
-                            <CalendarMonthRoundedIcon sx={{ cursor: "pointer" }} />
-                            <span style={{ cursor: "pointer" }}>
-                              <Whisper placement="bottomEnd" trigger="click" speaker={renderMenu2(task)}>
-                                <MoreVertRoundedIcon sx={{ cursor: "pointer" }} />
-                              </Whisper>
-                            </span>
-                            <span className="nameHolder" style={{ width: "25px", height: "25px" }} onClick={() => navigate(`/${whoIs}/tasks/time-log/${task._id}`)}>
-                              <KeyboardArrowRightRoundedIcon />
-                            </span>
-                          </div>
-                        </div>
-
-                      )) : <NoDataFound message={"Task Not Found"} />
+                  isLoading ? (
+                    <Loading />
+                  ) : status === "Pending" ? (
+                    Array.isArray(pendingTasks) ? (
+                      pendingTasks.map((task) => <TaskItem key={task._id} task={task} status={status} getValue={getValue} timeData={timeData} handleEditTask={handleEditTask} fetchTaskById={fetchTaskById} updatedTimerInTask={updatedTimerInTask} renderMenu2={renderMenu2} handleViewTask={handleViewTask} whoIs={whoIs} updateTask={updatedTimerInTask} />)
+                    ) : (
+                      <NoDataFound message="Task Not Found" />
+                    )
+                  ) : status === "Completed" ? (
+                    Array.isArray(completedTasks) ? (
+                      completedTasks.map((task) => <TaskItem key={task._id} task={task} status={status} getValue={getValue} timeData={timeData} handleEditTask={handleEditTask} fetchTaskById={fetchTaskById} updatedTimerInTask={updatedTimerInTask} renderMenu2={renderMenu2} handleViewTask={handleViewTask} whoIs={whoIs} updateTask={updatedTimerInTask} />)
+                    ) : (
+                      <NoDataFound message="Task Not Found" />
+                    )
+                  ) : progressTasks.length > 0 ? (
+                    progressTasks.map((task) => <TaskItem key={task._id} task={task} status={status} getValue={getValue} timeData={timeData} handleEditTask={handleEditTask} fetchTaskById={fetchTaskById} updatedTimerInTask={updatedTimerInTask} renderMenu2={renderMenu2} handleViewTask={handleViewTask} whoIs={whoIs} updateTask={updatedTimerInTask} />)
+                  ) : (
+                    <NoDataFound message="Task Not Found" />
+                  )
                 }
+
               </div >
             </>
   )

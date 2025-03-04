@@ -423,6 +423,7 @@ leaveApp.get("/team/:id", verifyEmployee, async (req, res) => {
       return res.status(404).send({ error: "You are not lead in any team" })
     } else {
       const { employees } = team;
+      const colleagues = await Employee.find({_id: employees}, "FirstName LastName Email phone");
       let teamLeaves = await LeaveApplication.find({
         employee: { $in: employees },
         fromDate: {
@@ -452,7 +453,7 @@ leaveApp.get("/team/:id", verifyEmployee, async (req, res) => {
       const upComingLeave = approvedLeave.filter(data => new Date(data.fromDate).getTime() > new Date().getTime())
       const peoplesOnLeave = approvedLeave.filter(data => new Date(data.fromDate).getTime() === new Date().getTime())
       const takenLeave = approvedLeave.filter(data => new Date(data.fromDate).getTime() < new Date().getTime())
-      res.send({ leaveData: teamLeaves, pendingLeave, upComingLeave, peoplesOnLeave, takenLeave });
+      res.send({ leaveData: teamLeaves, pendingLeave, upComingLeave, peoplesOnLeave, takenLeave, colleagues });
     }
   } catch (error) {
     console.log(error);
