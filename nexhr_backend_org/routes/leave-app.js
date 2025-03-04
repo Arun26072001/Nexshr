@@ -10,13 +10,7 @@ const { Team } = require('../models/TeamModel');
 const { upload } = require('./imgUpload');
 const now = new Date();
 const sendMail = require("./mailSender");
-
-function getDayDifference(leave) {
-  let toDate = new Date(leave.toDate);
-  let fromDate = new Date(leave.fromDate);
-  let timeDifference = toDate - fromDate;
-  return timeDifference === 0 ? 1 : timeDifference / (1000 * 60 * 60 * 24);
-}
+const { getDayDifference } = require('../Reuseable_functions/reusableFunction');
 
 // Helper function to generate leave request email content
 function generateLeaveEmail(empData, fromDate, toDate, reasonForLeave) {
@@ -429,6 +423,7 @@ leaveApp.get("/team/:id", verifyEmployee, async (req, res) => {
       return res.status(404).send({ error: "You are not lead in any team" })
     } else {
       const { employees } = team;
+      const colleagues = await Employee.find({_id: employees}, "FirstName LastName Email phone");
       let teamLeaves = await LeaveApplication.find({
         employee: { $in: employees },
         fromDate: {
@@ -458,7 +453,7 @@ leaveApp.get("/team/:id", verifyEmployee, async (req, res) => {
       const upComingLeave = approvedLeave.filter(data => new Date(data.fromDate).getTime() > new Date().getTime())
       const peoplesOnLeave = approvedLeave.filter(data => new Date(data.fromDate).getTime() === new Date().getTime())
       const takenLeave = approvedLeave.filter(data => new Date(data.fromDate).getTime() < new Date().getTime())
-      res.send({ leaveData: teamLeaves, pendingLeave, upComingLeave, peoplesOnLeave, takenLeave });
+      res.send({ leaveData: teamLeaves, pendingLeave, upComingLeave, peoplesOnLeave, takenLeave, colleagues });
     }
   } catch (error) {
     console.log(error);

@@ -7,13 +7,14 @@ import { toast } from "react-toastify";
 import "./leaveForm.css";
 import { updateEmp } from "./ReuseableAPI";
 import { TimerStates } from "./payslip/HRMDashboard";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import Loading from "./Loader";
 import NoDataFound from "./payslip/NoDataFound";
 import { EssentialValues } from "../App";
 
 const EditEmployeeform = ({ details, empData, handleScroll, handlePersonal, handleFinancial, handleJob, handleContact, handleEmployment, timePatterns, personalRef, contactRef, employmentRef, jobRef, financialRef, countries, companies, departments, positions, roles, leads, managers }) => {
     const { id } = useParams();
+    const navigate = useNavigate()
     const { changeEmpEditForm } = useContext(TimerStates);
     const [stateData, setStateData] = useState([]);
     const { whoIs } = useContext(EssentialValues);
@@ -83,7 +84,7 @@ const EditEmployeeform = ({ details, empData, handleScroll, handlePersonal, hand
             try {
                 const res = await updateEmp(values, id);
                 console.log(res);
-                if(res !== undefined){
+                if (res !== undefined) {
                     toast.success(res);
                     changeEmpEditForm();
                     resetForm();
@@ -887,9 +888,7 @@ const EditEmployeeform = ({ details, empData, handleScroll, handlePersonal, hand
                     <div className="btnBackground">
                         <div className="fixedPositionBtns">
                             <div className="w-50">
-                                <button className="outline-btn mx-2" onClick={() => {
-                                    changeEmpEditForm()
-                                }}>
+                                <button className="outline-btn mx-2" onClick={() => whoIs === "emp" ? navigate(`/${whoIs}`) : navigate(`/${whoIs}/employee`)}>
                                     Cancel
                                 </button>
                             </div>

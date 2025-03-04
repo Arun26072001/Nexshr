@@ -215,6 +215,8 @@ const AddEmployeeForm = ({ details, handleScroll, handlePersonal, handleFinancia
         calculateTimeDifference();
     }, [formik.values.workingTimePattern]);
 
+    console.log(formik.values);
+
     useEffect(() => {
         async function getPayslipInfo() {
             try {
@@ -992,7 +994,7 @@ const AddEmployeeForm = ({ details, handleScroll, handlePersonal, handleFinancia
                 <div className="btnBackground">
                     <div className="fixedPositionBtns">
                         <div className="w-50">
-                            <button type="button" className="outline-btn mx-2" onClick={() => ["manager", "admin", "hr"].includes(whoIs) ? navigate(`/${whoIs}/employee`) : navigate(`/${whoIs}`)} >
+                            <button type="button" className="outline-btn mx-2" onClick={() => whoIs === "emp" ? navigate(`/${whoIs}`) : navigate(`/${whoIs}/employee`)} >
                                 Cancel
                             </button>
                         </div>

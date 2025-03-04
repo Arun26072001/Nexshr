@@ -17,6 +17,7 @@ import Company from '../Administration/Company';
 import Holiday from '../Administration/Holiday';
 import Country from '../Administration/Country';
 import ManageTeam from './ManageTeam';
+import TimeLog from '../TimeLog';
 
 // Lazy loading components
 const Dashboard = React.lazy(() => import('./Dashboard'));
@@ -466,7 +467,13 @@ export default function HRMDashboard() {
                         <Route path="calendar" element={<AttendanceCalendar />} />
                         {/* <Route path="" */}
                         <Route path="projects" element={<Projects employees={employees} />} />
-                        <Route path="tasks" element={<Tasks employees={employees} />} />
+                        <Route path="tasks/*" element={
+                            <Routes>
+                                <Route index element={<Tasks employees={employees} />} />
+                                <Route path="time-log/:id" element={<TimeLog />} />
+                            </Routes>
+                        } />
+
                         <Route path="reports" element={<Reports employees={employees} />} />
                         <Route path="employee" element={<Employee />} />
                         <Route path="employee/add" element={<Employees />} />

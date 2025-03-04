@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import "../Settings/SettingsStyle.css";
-import { Modal, Button, SelectPicker, TagPicker, Input } from 'rsuite';
+import { Modal, Button, SelectPicker, TagPicker, Input, DateRangePicker, InputNumber } from 'rsuite';
 import TextEditor from '../payslip/TextEditor';
 import ErrorOutlineRoundedIcon from '@mui/icons-material/ErrorOutlineRounded';
 import DatePicker from "react-datepicker";
@@ -8,6 +8,7 @@ import "react-datepicker/dist/react-datepicker.css";
 import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
 import "../projectndTask.css";
 import { MultiCascader, VStack } from 'rsuite';
+// import { TimePicker } from 'rsuite';
 
 const CommonModel = ({
     dataObj,
@@ -34,6 +35,7 @@ const CommonModel = ({
 }) => {
     const [confirmationTxt, setConfirmationTxt] = useState("");
     const [isDisabled, setIsDisabled] = useState(true);
+    console.log(dataObj);
 
     return (
         <Modal open={isAddData} size="sm" backdrop="static">
@@ -332,6 +334,20 @@ const CommonModel = ({
                             </div>
                         }
                         {
+                            ["Task"].includes(type) && !dataObj._id &&
+                            <div className="col-half">
+                                <div className="modelInput">
+                                    <p className='modelLabel'>Est Time:</p>
+                                    <DateRangePicker format="HH:mm"
+                                        size='lg'
+                                        placeholder="Select Time Range"
+                                        renderValue={dataObj?.estTime}
+                                        onChange={(e) => changeData(e, "estTime")}
+                                    />
+                                </div>
+                            </div>
+                        }
+                        {
                             ["Project", "Project View"].includes(type) &&
                             <div className="col-quat">
                                 <div className="modelInput">
@@ -352,6 +368,31 @@ const CommonModel = ({
                         }
                     </>
                 </div>
+
+                {
+                    ["Task"].includes(type) && dataObj._id &&
+                    <div className='d-flex justify-content-between gap-2'>
+                        <div className="col-half">
+                            <div className="modelInput">
+                                <p className='modelLabel'>Est Time:</p>
+                                <InputNumber
+                                    size='lg'
+                                    placeholder="Select Time"
+                                    style={{ width: "100%" }}
+                                    value={dataObj?.estTime}
+                                    onChange={(e) => changeData(e, "estTime")}
+                                    step={0.01}
+                                />
+                            </div>
+                        </div>
+                        <div className="col-half">
+                            <div className="modelInput">
+                                <p className='modelLabel'>Spend time:</p>
+                                <InputNumber size='lg' defaultValue={0.00} style={{ width: "100%" }} step={0.01} value={dataObj?.spendTime} onChange={(e) => changeData(e, "spendTime")} />
+                            </div>
+                        </div>
+                    </div>
+                }
 
                 {
                     ["Project", "Project View", "Assign", "Task", "Task View", "Task Assign", "Report", "Report View"].includes(type) && (
@@ -744,7 +785,6 @@ const CommonModel = ({
                                 <p>By deleting this project all its task, invoice and time entries will be deleted.</p>
                             </div>
                         }
-
                         <Input required placeholder={`Please Type "Delete" to delete this ${type === "Confirmation" ? "Project" : type === "Report Confirmation" ? "Report" : "Task"}`} onChange={setConfirmationTxt} value={confirmationTxt} appearance="default" size='lg' />
                     </div>
                 }
@@ -781,7 +821,7 @@ const CommonModel = ({
                                         onClick={() => (dataObj?._id || type === "Edit Country" ? editData(dataObj) : type === "Team" ? toggleAssignEmp() : addData())}
                                         appearance="primary"
                                         disabled={
-                                            ["Project", "Assign", "Task", "Task Assign", "Report", "Company", "Country", "Edit Country", "Announcement","Team"].includes(type)
+                                            ["Project", "Assign", "Task", "Task Assign", "Report", "Company", "Country", "Edit Country", "Announcement", "Team"].includes(type)
                                                 ? false
                                                 // : (!dataObj?.[`${type}Name`] || !dataObj?.name) ? true
                                                 : (["Department", "Position"].includes(type) && dataObj?.company ? false : true)

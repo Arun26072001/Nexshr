@@ -3,17 +3,8 @@ const { Employee } = require("../models/EmpModel");
 // const { LeaveApplication } = require("../models/LeaveAppModel");
 // const { PaySlipInfo } = require("../models/PaySlipInfoModel");
 const { Payslip } = require("../models/PaySlipModel");
+const { getDayDifference } = require("../Reuseable_functions/reusableFunction");
 const router = express.Router();
-
-function getDayDifference(leave) {
-  if(leave.leaveType === "half day"){
-    return 0.5;
-  }
-  let toDate = new Date(leave.toDate);
-  let fromDate = new Date(leave.fromDate);
-  let timeDifference = toDate - fromDate;
-  return timeDifference / (1000 * 60 * 60 * 24);
-}
 
 router.get("/:id", async (req, res) => {
   try {
@@ -56,7 +47,6 @@ router.post("/", async (req, res) => {
         leaveType: "Unpaid Leave (LWP)"
       }
     }).exec();
-    console.log(employees[2]);
     
 
     if (!employees || employees.length === 0) {
@@ -97,15 +87,15 @@ router.post("/", async (req, res) => {
         payslip
       };
 
-      // const payslipData = await Payslip.create(body); // Generate payslip and return the promise
+      const payslipData = await Payslip.create(body); // Generate payslip and return the promise
 
-      // emp.payslip.push(payslipData._id);
-      // await emp.save();
+      emp.payslip.push(payslipData._id);
+      await emp.save();
     });
 
     // Wait for all payslip creations to complete
-    // const generatedPayslips = await Promise.all(payslipPromises);
-    // res.send({ message: "payslip has been generated", generatedPayslips })
+    const generatedPayslips = await Promise.all(payslipPromises);
+    res.send({ message: "payslip has been generated", generatedPayslips })
 
   } catch (err) {
     console.error("Error:", err);
