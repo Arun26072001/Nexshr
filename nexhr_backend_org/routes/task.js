@@ -83,7 +83,7 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
             createdby: req.params.id,
             status: req.body.status || "On Hold",
             tracker: [],
-            spendTime: 0
+            spend: 0
         };
 
         // Validate Task Data
@@ -107,7 +107,7 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
         if (assignedEmps.length > 0) {
             trackers.push({
                 date: new Date(),
-                message: `${assignedEmps.map(emp => emp.FirstName + " " + emp.LastName).join(", ")} Assigned this task by ${empData.FirstName} ${empData.LastName}`,
+                message: `${assignedEmps.map(emp => emp.FirstName + " " + emp.LastName).join(", ")} Assigned in this task by ${empData.FirstName} ${empData.LastName}`,
                 who: req.params.id
             });
         }

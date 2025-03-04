@@ -1,8 +1,5 @@
 import React, { useContext, useEffect, useState } from "react"
 import { Dropdown, Input, Popover, SelectPicker, Whisper } from "rsuite";
-import ArrowDropDownRoundedIcon from '@mui/icons-material/ArrowDropDownRounded';
-import WatchLaterOutlinedIcon from '@mui/icons-material/WatchLaterOutlined';
-import AddRoundedIcon from '@mui/icons-material/AddRounded';
 import CommonModel from "./Administration/CommonModel";
 import axios from "axios";
 import { EssentialValues } from "../App";
@@ -10,16 +7,20 @@ import "./projectndTask.css";
 import { toast } from "react-toastify";
 import Loading from "./Loader";
 import NoDataFound from "./payslip/NoDataFound";
-
-import BorderColorRoundedIcon from '@mui/icons-material/BorderColorRounded';
-import DeleteRoundedIcon from '@mui/icons-material/DeleteRounded';
 import { jwtDecode } from "jwt-decode";
 import { TimerStates } from "./payslip/HRMDashboard";
 import "./org_list.css";
+import TaskItem from "./TaskItem";
+
+// Icons
+import ArrowDropDownRoundedIcon from '@mui/icons-material/ArrowDropDownRounded';
+import WatchLaterOutlinedIcon from '@mui/icons-material/WatchLaterOutlined';
+import AddRoundedIcon from '@mui/icons-material/AddRounded';
+import BorderColorRoundedIcon from '@mui/icons-material/BorderColorRounded';
+import DeleteRoundedIcon from '@mui/icons-material/DeleteRounded';
 import PauseCircleOutlineRoundedIcon from '@mui/icons-material/PauseCircleOutlineRounded';
 import HourglassTopRoundedIcon from '@mui/icons-material/HourglassTopRounded';
 import CheckCircleOutlineRoundedIcon from '@mui/icons-material/CheckCircleOutlineRounded';
-import TaskItem from "./TaskItem";
 
 const Tasks = ({ employees }) => {
   const url = process.env.REACT_APP_API_URL;
@@ -28,19 +29,21 @@ const Tasks = ({ employees }) => {
   const { isTeamLead, isTeamHead } = jwtDecode(data.token)
   const [taskObj, setTaskObj] = useState({});
   const [projects, setProjects] = useState([]);
-  const [projectId, setProjectId] = useState("");
+  const [projectId, setProjectId] = useState(localStorage.getItem("selectedProject") || "");
   const [allTasks, setAllTask] = useState([]);
   const [pendingTasks, setPendingTasks] = useState([]);
   const [progressTasks, setProgressTasks] = useState([]);
   const [completedTasks, setCompletedTask] = useState([]);
-  const [filterTasks, setFilterTasks] = useState([]);
+  const [pendingFilterTasks, setPendingFilterTasks] = useState([]);
+  const [completedFilterTasks, setCompletedFilterTasks] = useState([]);
+  const [processFilterTasks, setProgressFilterTasks] = useState([]);
   const [previewList, setPreviewList] = useState([]);
   const [isEditTask, setIsEditTask] = useState(false);
   const [isviewTask, setIsViewtask] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isDelete, setIsDelete] = useState({ type: false, value: "" });
   const [status, setStatus] = useState("Pending");
-  const [timeData, setTimeData] = useState({ hour: 0, min: 0, sec: 0 });
+
 
   const renderMenu1 = ({ onClose, right, top, className }, ref) => {
     const handleSelect = eventKey => {
@@ -174,11 +177,19 @@ const Tasks = ({ employees }) => {
   }
 
   function filterByName(value) {
-    // if (["", null].includes(value)) {
-    //   setTasks(filterTasks)
-    // } else {
-    //   setTasks(filterTasks.filter((task) => task?.title?.includes(value)))
-    // }
+    if (["", null].includes(value)) {
+      if (status === "Pending") return setPendingTasks(pendingFilterTasks);
+      else if (status === "Completed") return setCompletedTask(completedFilterTasks);
+      else setProgressTasks(processFilterTasks)
+    } else {
+      if (status === "Pending") {
+        setPendingTasks(pendingFilterTasks.filter((task) => task?.title?.includes(value)))
+      } else if (status === "Completed") {
+        setCompletedTask(completedFilterTasks.filter((task) => task?.title?.includes(value)))
+      } else {
+        setProgressTasks(processFilterTasks.filter((task) => task?.title?.includes(value)))
+      }
+    }
   }
 
   function getSelectStatusTasks() {
@@ -186,11 +197,14 @@ const Tasks = ({ employees }) => {
     statusTypes.map((type) => {
       const filterValue = allTasks.filter((task) => task.status === type);
       if (type === "Pending") {
-        setPendingTasks(filterValue)
+        setPendingTasks(filterValue);
+        setPendingFilterTasks(filterValue);
       } else if (type === "Completed") {
-        setCompletedTask(filterValue)
+        setCompletedTask(filterValue);
+        setCompletedFilterTasks(filterValue);
       } else {
-        setProgressTasks(filterValue)
+        setProgressTasks(filterValue);
+        setProgressFilterTasks(filterValue);
       }
     })
   }
@@ -393,32 +407,32 @@ const Tasks = ({ employees }) => {
     editTask(updatedTask)
   }
 
-  function convertDecimalToTime(decimalHours) {
-    const timeValues = {
-      hour: Math.floor(decimalHours),
-      min: Math.floor((decimalHours * 60) % 60),
-      sec: Math.floor((decimalHours * 3600) % 60)
-    };
+  // function convertDecimalToTime(decimalHours) {
+  //   const timeValues = {
+  //     hour: Math.floor(decimalHours) || 0,
+  //     min: Math.floor((decimalHours * 60) % 60) || 0,
+  //     sec: Math.floor((decimalHours * 3600) % 60) || 0
+  //   };
 
-    setTimeData(timeValues); // Assuming setTimeData updates state
-  }
+  //   setTimeData(timeValues); // Assuming setTimeData updates state
+  // }
 
 
-  useEffect(() => {
-    if (status === "Pending") {
-      pendingTasks.map((task) => {
-        convertDecimalToTime(Number(task.spend));
-      })
-    } else if (status === "Completed") {
-      completedTasks.map((task) => {
-        convertDecimalToTime(Number(task.spend));
-      })
-    } else {
-      progressTasks.map((task) => {
-        convertDecimalToTime(Number(task.spend));
-      })
-    }
-  }, [status])
+  // useEffect(() => {
+  //   if (status === "Pending") {
+  //     pendingTasks.map((task) => {
+  //       convertDecimalToTime(Number(task.spend));
+  //     })
+  //   } else if (status === "Completed") {
+  //     completedTasks.map((task) => {
+  //       convertDecimalToTime(Number(task.spend));
+  //     })
+  //   } else {
+  //     progressTasks.map((task) => {
+  //       convertDecimalToTime(Number(task.spend));
+  //     })
+  //   }
+  // }, [status])
 
 
   return (
@@ -448,7 +462,10 @@ const Tasks = ({ employees }) => {
                     style={{ width: 300 }}
                     placeholder="Search By Project"
                     value={projectId}
-                    onChange={(e) => setProjectId(e)}
+                    onChange={(e) => {
+                      setProjectId(e)
+                      localStorage.setItem("selectedProject", e)
+                    }}
                   />
                   <Whisper placement="bottomEnd" trigger="click" speaker={renderMenu1}>
                     <div className="button">
@@ -471,7 +488,6 @@ const Tasks = ({ employees }) => {
                             <b>
                               {item.name} Task
                             </b>
-                            {/* <button className="button" style={{ color: item.color }}>View All</button> */}
                           </p>
                         </div>
                       </div>
@@ -489,19 +505,19 @@ const Tasks = ({ employees }) => {
                   isLoading ? (
                     <Loading />
                   ) : status === "Pending" ? (
-                    Array.isArray(pendingTasks) ? (
-                      pendingTasks.map((task) => <TaskItem key={task._id} task={task} status={status} getValue={getValue} timeData={timeData} handleEditTask={handleEditTask} fetchTaskById={fetchTaskById} updatedTimerInTask={updatedTimerInTask} renderMenu2={renderMenu2} handleViewTask={handleViewTask} whoIs={whoIs} updateTask={updatedTimerInTask} />)
+                    Array.isArray(pendingTasks) && pendingTasks?.length > 0 ? (
+                      pendingTasks.map((task) => <TaskItem key={task._id} task={task} status={status} getValue={getValue} handleEditTask={handleEditTask} fetchTaskById={fetchTaskById} updatedTimerInTask={updatedTimerInTask} renderMenu2={renderMenu2} handleViewTask={handleViewTask} whoIs={whoIs} updateTask={updatedTimerInTask} />)
                     ) : (
                       <NoDataFound message="Task Not Found" />
                     )
                   ) : status === "Completed" ? (
-                    Array.isArray(completedTasks) ? (
-                      completedTasks.map((task) => <TaskItem key={task._id} task={task} status={status} getValue={getValue} timeData={timeData} handleEditTask={handleEditTask} fetchTaskById={fetchTaskById} updatedTimerInTask={updatedTimerInTask} renderMenu2={renderMenu2} handleViewTask={handleViewTask} whoIs={whoIs} updateTask={updatedTimerInTask} />)
+                    Array.isArray(completedTasks) && completedTasks?.length > 0 ? (
+                      completedTasks.map((task) => <TaskItem key={task._id} task={task} status={status} getValue={getValue} handleEditTask={handleEditTask} fetchTaskById={fetchTaskById} updatedTimerInTask={updatedTimerInTask} renderMenu2={renderMenu2} handleViewTask={handleViewTask} whoIs={whoIs} updateTask={updatedTimerInTask} />)
                     ) : (
                       <NoDataFound message="Task Not Found" />
                     )
                   ) : progressTasks.length > 0 ? (
-                    progressTasks.map((task) => <TaskItem key={task._id} task={task} status={status} getValue={getValue} timeData={timeData} handleEditTask={handleEditTask} fetchTaskById={fetchTaskById} updatedTimerInTask={updatedTimerInTask} renderMenu2={renderMenu2} handleViewTask={handleViewTask} whoIs={whoIs} updateTask={updatedTimerInTask} />)
+                    progressTasks.map((task) => <TaskItem key={task._id} task={task} status={status} getValue={getValue} handleEditTask={handleEditTask} fetchTaskById={fetchTaskById} updatedTimerInTask={updatedTimerInTask} renderMenu2={renderMenu2} handleViewTask={handleViewTask} whoIs={whoIs} updateTask={updatedTimerInTask} />)
                   ) : (
                     <NoDataFound message="Task Not Found" />
                   )
