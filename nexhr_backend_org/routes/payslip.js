@@ -3,7 +3,7 @@ const { Employee } = require("../models/EmpModel");
 // const { LeaveApplication } = require("../models/LeaveAppModel");
 // const { PaySlipInfo } = require("../models/PaySlipInfoModel");
 const { Payslip } = require("../models/PaySlipModel");
-const { getDayDifference } = require("../Reuseable_functions/reusableFunction");
+const { getDayDifference, getWeekdaysOfCurrentMonth } = require("../Reuseable_functions/reusableFunction");
 const router = express.Router();
 
 router.get("/:id", async (req, res) => {
@@ -52,7 +52,7 @@ router.post("/", async (req, res) => {
     const payslipPromises = employees.map(async (emp) => {
       if (!emp.leaveApplication || emp.leaveApplication.length === 0) return;
 
-      const perDayOfSalary = emp.basicSalary ? Number(emp.basicSalary) / 22 : 0;
+      const perDayOfSalary = emp.basicSalary ? Number(emp.basicSalary) / getWeekdaysOfCurrentMonth(startOfMonth.getFullYear(), startOfMonth.getMonth()) : 0;
       const leaveDays = emp.leaveApplication.reduce((total, leave) => total + getDayDifference(leave), 0);
 
       const payslip = {
