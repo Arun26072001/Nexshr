@@ -120,12 +120,17 @@ export default function Employee() {
                     <button className="button" onClick={() => navigate(`/${whoIs}/administration/team`)}>
                         <Groups2RoundedIcon /> Manage Team
                     </button>
-                    <button className="button" onClick={() => navigate(`/${whoIs}/employee/add`)}>
-                        <AddRoundedIcon /> Add Employee
-                    </button>
-                    <button className="button bg-light text-dark" onClick={() => document.getElementById("fileUploader").click()} >
-                        <AddRoundedIcon />Import
-                    </button>
+                    {
+                        ["admin", "hr"].includes(whoIs) &&
+                        <>
+                            <button className="button" onClick={() => navigate(`/${whoIs}/employee/add`)}>
+                                <AddRoundedIcon /> Add Employee
+                            </button>
+                            <button className="button bg-light text-dark" onClick={() => document.getElementById("fileUploader").click()} >
+                                <AddRoundedIcon />Import
+                            </button>
+                        </>
+                    }
                     <input
                         type="file"
                         id="fileUploader"

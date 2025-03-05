@@ -222,12 +222,13 @@ const EditEmployeeform = ({ details, empData, handleScroll, handlePersonal, hand
         gettingLeaveTypes();
         setIsLoading(false);
         const countryFullData = countries.find((country) => Object.values(country).includes(empData?.countryCode));
-        console.log(countryFullData);
         setselectedCountryCode(countryFullData?.abbr);
         setSelectedCountry(countryFullData?.name);
         setStateData(countryFullData?.states);
     }, []);
 
+    console.log(formik.values);
+    
     const hourAndMin = timeDifference.toString().split(".");
     const [hour, min] = hourAndMin;
 

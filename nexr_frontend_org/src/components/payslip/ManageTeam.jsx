@@ -17,7 +17,7 @@ const ManageTeam = () => {
     const [dom, reload] = useState(false);
     const [assignEmp, setAssignEmp] = useState(false);
     const [addTeam, setAddTeam] = useState(false);
-    const [editTeamObj, setEditTeamObj] = useState(null); // Null indicates no team is being edited
+    const [employees, setEmployees] = useState([]); // Null indicates no team is being edited
     const [teams, setTeams] = useState([]);
     const [filteredTeams, setFilteredTeams] = useState([]);
     const [leads, setLeads] = useState([]);
@@ -43,7 +43,7 @@ const ManageTeam = () => {
     const toggleAddTeam = () => {
         setAddTeam(!addTeam);
         if (addTeam) {
-            setEditTeamObj(null);  // Reset editTeamObj when toggling out of add/edit mode
+            setTeamObj({});  // Reset editTeamObj when toggling out of add/edit mode
         }
     };
 
@@ -58,49 +58,28 @@ const ManageTeam = () => {
             ...prev,
             [name]: value
         }));
-        // if (editTeamObj) {
-        //     setEditTeamObj((prev) => ({
-        //         ...prev,
-        //         [name]: value
-        //     }));
-        // } else {
-
-        // }
-    };
-    
-
-    const updateTeamObj = (emp) => {
-        // if (editTeamObj) {
-        //     setEditTeamObj((prev) => {
-        //         const updatedEmployees = prev.employees.includes(emp)
-        //             ? prev.employees.filter(e => e._id !== emp._id)
-        //             : [...prev.employees, emp];
-
-        //         return {
-        //             ...prev,
-        //             employees: updatedEmployees
-        //         };
-        //     });
-        // } else {
-            setTeamObj((prev) => {
-
-                let updatedEmployees;
-                if(prev?.employees?.length){
-                    updatedEmployees = prev?.employees?.includes(emp._id)
-                        ? prev.employees.filter(e => e._id !== emp._id)
-                        : [...prev?.employees, emp];
-                }else{
-                   updatedEmployees = [emp]
-                }
-
-                return {
-                    ...prev,
-                    ["employees"]: updatedEmployees
-                };
-            });
-        // }
     };
 
+
+    useEffect(() => {
+        const fetchEmployees = async () => {
+            try {
+                const res = await axios.get(`${url}/api/employee`, {
+                    headers: {
+                        Authorization: `${token}`
+                    }
+                });
+                setEmployees(res.data.map((emp) => ({
+                    label: emp.FirstName[0] + emp.FirstName.slice(1) + " " + emp.LastName,
+                    value: emp._id
+                })));
+
+            } catch (err) {
+                console.log(err);
+            }
+        };
+        fetchEmployees();
+    }, []);
 
     const reloadUI = () => {
         reload(!dom);
@@ -120,6 +99,7 @@ const ManageTeam = () => {
             toast.error(err.message);
         }
     };
+    console.log(teamObj);
 
     const editTeam = async (team) => {
         try {
@@ -131,7 +111,7 @@ const ManageTeam = () => {
                 }
             );
             console.log(res.data);
-            
+
             setTeamObj(res.data);
             toggleAddTeam();
         } catch (err) {
@@ -141,12 +121,8 @@ const ManageTeam = () => {
 
     const handleSubmit = async () => {
         try {
-            const newTeamObj = {
-                ...teamObj,
-                employees: teamObj.employees.map((emp) => emp._id)
-            };
 
-            const response = await axios.post(`${url}/api/team`, newTeamObj, {
+            const response = await axios.post(`${url}/api/team`, teamObj, {
                 headers: {
                     Authorization: `${token}` || ""
                 }
@@ -164,13 +140,8 @@ const ManageTeam = () => {
 
     const handleSubmitEdit = async () => {
         try {
-            const { _id, __v, ...object } = editTeamObj;
-            const updatedTeamObj = {
-                ...object,
-                employees: editTeamObj.employees.map((emp) => emp._id)
-            };
 
-            const res = await axios.put(`${url}/api/team/${editTeamObj._id}`, updatedTeamObj, {
+            const res = await axios.put(`${url}/api/team/${teamObj._id}`, teamObj, {
                 headers: {
                     Authorization: `${token}` || ""
                 }
@@ -285,23 +256,26 @@ const ManageTeam = () => {
                         isAddData={addTeam}
                         changeData={changeTeamObj}
                         toggleAssignEmp={toggleAssignEmp}
+                        editData={handleSubmitEdit}
                         heads={heads}
+                        addData={handleSubmit}
                         dataObj={teamObj}
                         managers={managers}
                         modifyData={toggleAddTeam}
-                        />
+                        employees={employees}
+                    />
                 )}
 
-                {assignEmp && (
+                {/* {assignEmp && (
                     <AssignEmp
                         teams={teams}
-                        handleSubmit={editTeamObj ? handleSubmitEdit : handleSubmit}
+                        handleSubmit={teamObj ? handleSubmitEdit : handleSubmit}
                         teamObj={teamObj}
                         setTeamLead={changeTeamObj}
                         updateTeamObj={updateTeamObj}
                         toggleAssignEmp={toggleAssignEmp}
                     />
-                )}
+                )} */}
 
                 {filteredTeams.length > 0 ? (
                     <div className="row d-flex justify-content-start">

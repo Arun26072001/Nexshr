@@ -70,17 +70,17 @@ router.get("/:id", verifyAdminHR, async (req, res) => {
         // const {orgName} = jwt.decode(req.headers['authorization']);
         // const Team = getTeamModel(orgName)
         const response = await Team.findById(req.params.id)
-            .populate({
-                path: "employees",
-                select: "_id FirstName LastName",
-                populate: {
-                    path: 'teamLead',
-                    select: "_id FirstName LastName",
-                    populate: {
-                        path: "department"
-                    }
-                }
-            })
+            // .populate({
+            //     path: "employees",
+            //     select: "_id FirstName LastName",
+            //     populate: {
+            //         path: 'teamLead',
+            //         select: "_id FirstName LastName",
+            //         populate: {
+            //             path: "department"
+            //         }
+            //     }
+            // })
         if (!response) {
             res.status(404).send({ message: "team not found" })
         } else {
@@ -126,16 +126,20 @@ router.post("/", verifyAdminHR, async (req, res) => {
         const { error } = validation;
         const isTeamName = await Team.find({ teamName: req.body.teamName }).exec();
         if (isTeamName.length > 0) {
-            return req.status(400).send({ error: `${isTeamName.teamName} Already exist!` })
+            return res.status(400).send({ error: `${isTeamName.teamName} Already exist!` })
         }
-        const isTeamLead = await Team.find({ lead: req.body.lead }).populate("lead");
-        if (isTeamLead.length > 0) {
-            return req.status(400).send({ error: `${isTeamLead.lead.FirstName} already lead in ${isTeamLead.teamName}` })
-        }
+        // const isTeamLead = await Team.find({ lead: req.body.lead }).populate("lead","FirstName LastName");
+        // if (isTeamLead.length > 0) {
+        //     return res.status(400).send({ error: `${isTeamLead.lead.FirstName} already lead in ${isTeamLead.teamName}` })
+        // }
         if (error) {
             return res.status(400).send({ error: error.details[0].message })
         } else {
-            const newTeam = await Team.create(req.body);
+            const newTeamData = {
+                ...req.body,
+                employees: [...req.body.employees,...req.body.lead, ...req.body.head, ...req.body.manager]
+            }
+            const newTeam = await Team.create(newTeamData);
             const emps = await Employee.find({ _id: req.body.employees });
             emps.map(async (emp) => {
                 emp.teamLead[0] = req.body.lead
@@ -144,22 +148,21 @@ router.post("/", verifyAdminHR, async (req, res) => {
             res.send({ message: `new ${newTeam.teamName} team has been added!`, newTeam })
         }
     } catch (error) {
+        console.log(error);
+        
         res.status(500).send({ error: error.message })
     }
 })
 
 router.put("/:id", verifyAdminHR, async (req, res) => {
     try {
-
-        const validatedTeam = {
-            teamName: req.body.teamName,
-            employees: req.body.employees,
-            lead: req.params.lead,
-            head: req.params.head
+        const { error } = TeamValidation.validate(req.body);
+        if (error) {
+            return res.status(400).send({ error: error.details[0].message })
         }
-        const response = await Team.findByIdAndUpdate(req.params.id, validatedTeam)
+        const response = await Team.findByIdAndUpdate(req.params.id, req.body)
         if (!response) {
-            res.status(404).send({ message: "Team not found!" })
+            res.status(404).send({ error: "Team not found!" })
         }
         res.send({ message: "Team has been Updated!" })
     } catch (err) {
