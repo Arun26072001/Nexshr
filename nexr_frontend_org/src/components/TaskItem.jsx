@@ -1,6 +1,7 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import { Checkbox, Whisper } from 'rsuite';
 import MyTimer from './MyTimer';
+import { useNavigate } from 'react-router-dom';
 
 // icons
 import AddCircleOutlineRoundedIcon from '@mui/icons-material/AddCircleOutlineRounded';
@@ -8,10 +9,25 @@ import ErrorOutlineRoundedIcon from '@mui/icons-material/ErrorOutlineRounded';
 import CalendarMonthRoundedIcon from '@mui/icons-material/CalendarMonthRounded';
 import MoreVertRoundedIcon from '@mui/icons-material/MoreVertRounded';
 import KeyboardArrowRightRoundedIcon from '@mui/icons-material/KeyboardArrowRightRounded';
-import { useNavigate } from 'react-router-dom';
 
-export default function TaskItem({ task, status, getValue, timeData, handleEditTask, fetchTaskById, updatedTimerInTask, renderMenu2, handleViewTask, whoIs }) {
+export default function TaskItem({ task, status, getValue, handleEditTask, fetchTaskById, updatedTimerInTask, renderMenu2, handleViewTask, whoIs }) {
     const navigate = useNavigate();
+    const [timeData, setTimeData] = useState({ hour: 0, min: 0, sec: 0 });
+
+    function convertDecimalToTime(decimalHours) {
+        const timeValues = {
+            hour: Math.floor(decimalHours) || 0,
+            min: Math.floor((decimalHours * 60) % 60) || 0,
+            sec: Math.floor((decimalHours * 3600) % 60) || 0
+        };
+
+        setTimeData(timeValues); // Assuming setTimeData updates state
+    }
+
+    useEffect(() => {
+        convertDecimalToTime(Number(task.spend));
+    }, [task]);
+
     return (
         <div key={task._id} className="box-content d-flex align-items-center justify-content-between my-3">
 
@@ -57,7 +73,7 @@ export default function TaskItem({ task, status, getValue, timeData, handleEditT
                     startingHour={timeData?.hour}
                     startingMin={timeData?.min}
                     startingSec={timeData?.sec}
-                    taskId={task._id}
+                    task={task}
                     updateTask={updatedTimerInTask}
                 />
 

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import "../Settings/SettingsStyle.css";
 import { Modal, Button, SelectPicker, TagPicker, Input, DateRangePicker, InputNumber } from 'rsuite';
 import TextEditor from '../payslip/TextEditor';
@@ -35,7 +35,7 @@ const CommonModel = ({
 }) => {
     const [confirmationTxt, setConfirmationTxt] = useState("");
     const [isDisabled, setIsDisabled] = useState(true);
-    console.log(dataObj);
+   
 
     return (
         <Modal open={isAddData} size="sm" backdrop="static">
@@ -338,11 +338,13 @@ const CommonModel = ({
                             <div className="col-half">
                                 <div className="modelInput">
                                     <p className='modelLabel'>Est Time:</p>
-                                    <DateRangePicker format="HH:mm"
+                                    <InputNumber
                                         size='lg'
-                                        placeholder="Select Time Range"
-                                        renderValue={dataObj?.estTime}
+                                        placeholder="Select Time"
+                                        style={{ width: "100%" }}
+                                        value={dataObj?.estTime}
                                         onChange={(e) => changeData(e, "estTime")}
+                                        step={0.01}
                                     />
                                 </div>
                             </div>
