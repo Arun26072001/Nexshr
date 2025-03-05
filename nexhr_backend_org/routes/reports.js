@@ -40,7 +40,7 @@ router.get("/createdby/:id", verifyAdminHREmployeeManagerNetwork, async (req, re
             .exec();
 
         if (reports.length === 0) {
-            return res.status(404).send({ error: "Reports not found" })
+            return res.status(200).send({ reports: [] })
         } else {
             return res.send({ reports })
         }

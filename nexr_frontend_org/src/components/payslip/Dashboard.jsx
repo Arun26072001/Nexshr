@@ -106,7 +106,7 @@ const Dashboard = () => {
                             </div>
                             <div className='col-lg-3 col-md-3 col-6 my-1 text-center'>
                                 <p className='leaveIndicatorTxt'>Total leave available</p>
-                                <p className='text-primary number'>{(Number(leaveData?.annualLeaveEntitlement) - Number(leaveData.totalTakenLeaveCount)) || 0}</p>
+                                <p className='text-primary number'>{(Number(leaveData?.annualLeaveEntitlement) - (Number(leaveData.totalTakenLeaveCount)) < 0 ? 0 : Number(leaveData?.annualLeaveEntitlement) - Number(leaveData.totalTakenLeaveCount)) || 0}</p>
                             </div>
                             <div className='col-lg-3 col-md-3 col-6 my-1 text-center'>
                                 <p className='leaveIndicatorTxt'>Leave request pending</p>

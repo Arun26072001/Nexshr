@@ -193,9 +193,9 @@ const Tasks = ({ employees }) => {
   }
 
   function getSelectStatusTasks() {
-    const statusTypes = ["Pending", "Completed", "In Progress"]
+    const statusTypes = ["Pending", "Completed", "In Progress"];
     statusTypes.map((type) => {
-      const filterValue = allTasks.filter((task) => task.status === type);
+      const filterValue = allTasks.filter((task) => task?.status === type);
       if (type === "Pending") {
         setPendingTasks(filterValue);
         setPendingFilterTasks(filterValue);
@@ -398,42 +398,17 @@ const Tasks = ({ employees }) => {
     editTask(updatedTask)
   }
 
-  async function updatedTimerInTask(id, timerData) {
+  async function updatedTimerInTask(id, timerData, stopRunningAt) {
+    console.log(stopRunningAt);
+
     const taskData = await fetchTaskById(id);
     const updatedTask = {
       ...taskData,
-      spend: timerData
+      spend: timerData,
+      stopRunningAt: stopRunningAt
     }
     editTask(updatedTask)
   }
-
-  // function convertDecimalToTime(decimalHours) {
-  //   const timeValues = {
-  //     hour: Math.floor(decimalHours) || 0,
-  //     min: Math.floor((decimalHours * 60) % 60) || 0,
-  //     sec: Math.floor((decimalHours * 3600) % 60) || 0
-  //   };
-
-  //   setTimeData(timeValues); // Assuming setTimeData updates state
-  // }
-
-
-  // useEffect(() => {
-  //   if (status === "Pending") {
-  //     pendingTasks.map((task) => {
-  //       convertDecimalToTime(Number(task.spend));
-  //     })
-  //   } else if (status === "Completed") {
-  //     completedTasks.map((task) => {
-  //       convertDecimalToTime(Number(task.spend));
-  //     })
-  //   } else {
-  //     progressTasks.map((task) => {
-  //       convertDecimalToTime(Number(task.spend));
-  //     })
-  //   }
-  // }, [status])
-
 
   return (
     isviewTask ? <CommonModel type="Task View" isAddData={isviewTask} modifyData={handleViewTask} dataObj={taskObj} projects={projects} removeAttachment={removeAttachment} employees={employees} /> :

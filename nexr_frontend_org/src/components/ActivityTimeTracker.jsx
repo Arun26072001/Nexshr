@@ -88,13 +88,7 @@ const ActivityTimeTracker = () => {
         }
     };
 
-    function changeViewReasonForTaketime() {
-        if (!isViewTakeTime) {
-            localStorage.setItem("isViewTakeTime", true)
-        }
-        setIsTaketime(!isViewTakeTime)
-    }
-
+    
     // Stop the timer with activity
     const stopTimer = async () => {
         if (timerRef.current) {
@@ -103,7 +97,13 @@ const ActivityTimeTracker = () => {
             timerRef.current = null;
         }
     };
-
+    
+    function changeViewReasonForTaketime() {
+        if (!isViewTakeTime) {
+            localStorage.setItem("isViewTakeTime", true)
+        }
+        setIsTaketime(!isViewTakeTime)
+    }
     // Display warning if no punch-in
     const warnPunchIn = () => {
         toast.warning("Please Punch In!")
@@ -150,20 +150,6 @@ const ActivityTimeTracker = () => {
             setSec(newSec);
         }
     }, [timeOption, workTimeTracker]);
-
-    // useEffect(() => {
-    //     if ((["morningBreak", "eveningBreak"].includes(timeOption) && min === 15 && sec === 1) || (timeOption === "lunch" && min === 30 && sec === 1)) {
-    //         sendRemainderMail();
-    //         changeViewReasonForTaketime();
-    //     }
-    // }, [sec])
-
-    // window.addEventListener("unload", () => {
-    //     console.log("call in page change");
-    //     // if (isStartActivity) {
-    //     stopTimer();
-    //     // }
-    // })
 
     const formattedName = EmpName
         ? EmpName.charAt(0).toUpperCase() + EmpName.slice(1)

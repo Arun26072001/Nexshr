@@ -119,18 +119,19 @@ const Sidebar = ({ sideBar }) => {
           'jobDesk'
         )}
 
-        {(Employee === 'allow' && [isTeamHead, isTeamHead, isTeamManager].includes(true)) &&
+        {(Employee === 'allow' && [isTeamHead, isTeamLead, isTeamManager].includes(true)) &&
           renderSubMenu(
+            "employee",
             [
-              { key: 'my-details', path: `/${whoIs}/leave/status`, label: 'Status' },
-              { key: 'leave-request', path: `/${whoIs}/leave/leave-request`, label: 'Leave Request' }
+              { key: `/${whoIs}/employee/edit/${_id}`, path: `/${whoIs}/leave/status`, label: 'My Details' },
+              { key: 'my-team', path: `/${whoIs}/leave/leave-request`, label: 'My Teams' }
             ],
             userIcon,
             'Associate'
           )}
 
 
-        {[isTeamHead, isTeamHead, isTeamManager].includes(false) &&
+        {![isTeamHead, isTeamLead, isTeamManager].includes(true) &&
           renderNavLink(
             (Employee === 'allow' || ['admin', 'hr', 'emp'].includes(whoIs)),
             (["emp", "sys-admin"].includes(whoIs)
@@ -189,7 +190,8 @@ const Sidebar = ({ sideBar }) => {
 
         {(
           (decodedData.isTeamLead && whoIs === "emp") ||
-          (decodedData.isTeamHead && whoIs === "emp")
+          (decodedData.isTeamHead && whoIs === "emp") ||
+          (decodedData.isTeamManager && whoIs === "manager")
         ) &&
           renderSubMenu(
             'leave',
@@ -214,7 +216,11 @@ const Sidebar = ({ sideBar }) => {
             'Attendance'
           )}
 
-        {(Attendance === 'allow' || data.Account === "5" &&
+        {(Attendance === 'allow' || data.Account === "5" ||
+          (decodedData.isTeamLead && whoIs === "emp") ||
+          (decodedData.isTeamHead && whoIs === "emp") ||
+          (decodedData.isTeamManager && whoIs === "manager")
+          &&
           renderSubMenu(
             'attendance',
             [
