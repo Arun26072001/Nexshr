@@ -7,6 +7,13 @@ const TrackerSchema = new mongoose.Schema({
     who: { type: mongoose.Schema.Types.ObjectId, ref: "Employee", default: null }
 }, { _id: false })
 
+const spendTimeSchema = new mongoose.Schema({
+  startingTime: [{ type: String }],
+  endingTime: [{ type: String }],
+  timeHolder: { type: Number },
+  reasonForLate: { type: String }
+}, { _id: false })
+
 const taskSchema = new mongoose.Schema({
     title: { type: String },
     priority: { type: String },
@@ -15,7 +22,8 @@ const taskSchema = new mongoose.Schema({
     assignedTo: [{ type: mongoose.Schema.Types.ObjectId, ref: "Employee" }],
     from: { type: Date },
     to: { type: Date },
-    spend: { type: Number },
+    spend: spendTimeSchema,
+    stopRunningAt: { type: Date, default: null },
     status: { type: String },
     trash: { type: Boolean, default: false },
     tracker: [TrackerSchema],
@@ -56,6 +64,7 @@ const taskValidation = Joi.object({
         .label('Created By'),
     tracker: Joi.any().label("Tracker"),
     estTime: Joi.any().label("EstTime"),
+    stopRunningAt: Joi.any().label("stopRunningAt"),
     spend: Joi.any().label("Spend"),
     trash: Joi.boolean().allow("", null).label("Trash"),
     project: Joi.string().regex(/^[0-9a-fA-F]{24}$/).label('Project ID'),

@@ -30,7 +30,21 @@ router.get("/project/:id", verifyAdminHREmployeeManagerNetwork, async (req, res)
             return res.status(200).send({ tasks: [] })
         }
 
-        return res.send({ tasks });
+        const timeUpdatedTasks = tasks.map((task) => {
+            if (task.stopRunningAt) {
+                console.log(task?.stopRunningAt);
+                return ({
+                    ...task.toObject(),
+                    spend: task.spend + (new Date().getTime() - new Date(task?.stopRunningAt).getTime()) / 3600
+                })
+            } else {
+                return ({
+                    ...task.toObject()
+                })
+            }
+        })
+
+        return res.send({ tasks: timeUpdatedTasks });
     } catch (error) {
         console.log(error);
 

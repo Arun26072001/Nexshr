@@ -15,7 +15,8 @@ import FileDownloadRoundedIcon from '@mui/icons-material/FileDownloadRounded';
 
 export default function LeaveRequest() {
     const url = process.env.REACT_APP_API_URL;
-    const { empName, setEmpName, filterLeaveRequests, isLoading, leaveRequests, changeRequests, daterangeValue, setDaterangeValue } = useContext(LeaveStates);
+    const { empName, setEmpName, filterLeaveRequests, isLoading, leaveRequests, changeRequests, } = useContext(LeaveStates);
+    const { daterangeValue, setDaterangeValue } = useContext(EssentialValues)
     const { data } = useContext(EssentialValues);
     const { token } = data;
     const { isTeamHead, isTeamLead } = jwtDecode(token);

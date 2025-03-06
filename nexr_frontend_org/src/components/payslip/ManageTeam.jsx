@@ -2,13 +2,13 @@ import React, { useContext, useEffect, useState } from "react";
 import EmpCard from "./EmpCard";
 import axios from "axios";
 import { toast } from "react-toastify";
-import AssignEmp from "./AssignEmp";
 import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
 import { Input, InputGroup } from "rsuite";
 import NoDataFound from "./NoDataFound";
 import Loading from "../Loader";
 import { EssentialValues } from "../../App";
 import CommonModel from "../Administration/CommonModel";
+import { jwtDecode } from "jwt-decode";
 
 const ManageTeam = () => {
     const [teamObj, setTeamObj] = useState({});
@@ -17,15 +17,16 @@ const ManageTeam = () => {
     const [dom, reload] = useState(false);
     const [assignEmp, setAssignEmp] = useState(false);
     const [addTeam, setAddTeam] = useState(false);
-    const [editTeamObj, setEditTeamObj] = useState(null); // Null indicates no team is being edited
+    const [employees, setEmployees] = useState([]); // Null indicates no team is being edited
     const [teams, setTeams] = useState([]);
     const [filteredTeams, setFilteredTeams] = useState([]);
     const [leads, setLeads] = useState([]);
     const [heads, setHeads] = useState([]);
     const [managers, setManagers] = useState([]);
     const url = process.env.REACT_APP_API_URL;
-    const { data } = useContext(EssentialValues);
-    const { token } = data;
+    const { data, whoIs } = useContext(EssentialValues);
+    const { token, _id } = data;
+    const { isTeamHead, isTeamLead, isTeamManager } = jwtDecode(token);
 
     const filterTeam = (e) => {
         setSearchTeam(e);
@@ -43,7 +44,7 @@ const ManageTeam = () => {
     const toggleAddTeam = () => {
         setAddTeam(!addTeam);
         if (addTeam) {
-            setEditTeamObj(null);  // Reset editTeamObj when toggling out of add/edit mode
+            setTeamObj({});  // Reset editTeamObj when toggling out of add/edit mode
         }
     };
 
@@ -58,49 +59,28 @@ const ManageTeam = () => {
             ...prev,
             [name]: value
         }));
-        // if (editTeamObj) {
-        //     setEditTeamObj((prev) => ({
-        //         ...prev,
-        //         [name]: value
-        //     }));
-        // } else {
-
-        // }
-    };
-    
-
-    const updateTeamObj = (emp) => {
-        // if (editTeamObj) {
-        //     setEditTeamObj((prev) => {
-        //         const updatedEmployees = prev.employees.includes(emp)
-        //             ? prev.employees.filter(e => e._id !== emp._id)
-        //             : [...prev.employees, emp];
-
-        //         return {
-        //             ...prev,
-        //             employees: updatedEmployees
-        //         };
-        //     });
-        // } else {
-            setTeamObj((prev) => {
-
-                let updatedEmployees;
-                if(prev?.employees?.length){
-                    updatedEmployees = prev?.employees?.includes(emp._id)
-                        ? prev.employees.filter(e => e._id !== emp._id)
-                        : [...prev?.employees, emp];
-                }else{
-                   updatedEmployees = [emp]
-                }
-
-                return {
-                    ...prev,
-                    ["employees"]: updatedEmployees
-                };
-            });
-        // }
     };
 
+
+    useEffect(() => {
+        const fetchEmployees = async () => {
+            try {
+                const res = await axios.get(`${url}/api/employee`, {
+                    headers: {
+                        Authorization: `${token}`
+                    }
+                });
+                setEmployees(res.data.map((emp) => ({
+                    label: emp.FirstName[0] + emp.FirstName.slice(1) + " " + emp.LastName,
+                    value: emp._id
+                })));
+
+            } catch (err) {
+                console.log(err);
+            }
+        };
+        fetchEmployees();
+    }, []);
 
     const reloadUI = () => {
         reload(!dom);
@@ -130,23 +110,18 @@ const ManageTeam = () => {
                     }
                 }
             );
-            console.log(res.data);
-            
+
             setTeamObj(res.data);
             toggleAddTeam();
         } catch (err) {
-            toast.error(err?.response?.data?.message);
+            toast.error(err?.response?.data?.error);
         }
     };
 
     const handleSubmit = async () => {
         try {
-            const newTeamObj = {
-                ...teamObj,
-                employees: teamObj.employees.map((emp) => emp._id)
-            };
 
-            const response = await axios.post(`${url}/api/team`, newTeamObj, {
+            const response = await axios.post(`${url}/api/team`, teamObj, {
                 headers: {
                     Authorization: `${token}` || ""
                 }
@@ -164,13 +139,8 @@ const ManageTeam = () => {
 
     const handleSubmitEdit = async () => {
         try {
-            const { _id, __v, ...object } = editTeamObj;
-            const updatedTeamObj = {
-                ...object,
-                employees: editTeamObj.employees.map((emp) => emp._id)
-            };
 
-            const res = await axios.put(`${url}/api/team/${editTeamObj._id}`, updatedTeamObj, {
+            const res = await axios.put(`${url}/api/team/${teamObj._id}`, teamObj, {
                 headers: {
                     Authorization: `${token}` || ""
                 }
@@ -239,6 +209,24 @@ const ManageTeam = () => {
         }
     }
 
+    async function fetchEmpHasTeams() {
+        setIsLoading(true);
+        try {
+            const who = isTeamHead ? "head" : isTeamLead ? "lead" : "manager";
+            const res = await axios.get(`${url}/api/team/${who}/${_id}`, {
+                headers: {
+                    Authorization: `${token}` || ""
+                }
+            });
+            setTeams(res.data);
+            setFilteredTeams(res.data);
+        } catch (err) {
+            console.log(err);
+
+            toast.error(err.response.data.error);
+        }
+        setIsLoading(false);
+    }
 
     useEffect(() => {
         const fetchTeams = async () => {
@@ -258,12 +246,18 @@ const ManageTeam = () => {
             }
             setIsLoading(false);
         };
+        if (["admin", "hr"].includes(whoIs)) {
+            fetchTeams();
+        } else if ([isTeamLead, isTeamHead, isTeamManager].includes(true)) {
+            fetchEmpHasTeams()
+        }
 
-        fetchTeams();
+    }, [dom]);
+    useEffect(() => {
         fetchHeads();
         fetchLeads();
         fetchManagers();
-    }, [dom]);
+    }, [])
 
     return (
         isLoading ? <Loading /> :
@@ -285,21 +279,13 @@ const ManageTeam = () => {
                         isAddData={addTeam}
                         changeData={changeTeamObj}
                         toggleAssignEmp={toggleAssignEmp}
+                        editData={handleSubmitEdit}
                         heads={heads}
+                        addData={handleSubmit}
                         dataObj={teamObj}
                         managers={managers}
                         modifyData={toggleAddTeam}
-                        />
-                )}
-
-                {assignEmp && (
-                    <AssignEmp
-                        teams={teams}
-                        handleSubmit={editTeamObj ? handleSubmitEdit : handleSubmit}
-                        teamObj={teamObj}
-                        setTeamLead={changeTeamObj}
-                        updateTeamObj={updateTeamObj}
-                        toggleAssignEmp={toggleAssignEmp}
+                        employees={employees}
                     />
                 )}
 
@@ -313,6 +299,7 @@ const ManageTeam = () => {
                     <NoDataFound message={"No teams found"} />
                 )}
             </div>
+
     );
 };
 

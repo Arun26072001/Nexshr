@@ -81,6 +81,8 @@ const EditEmployeeform = ({ details, empData, handleScroll, handlePersonal, hand
         initialValues: employeeObj,
         validationSchema: empFormValidation,
         onSubmit: async (values, { resetForm }) => {
+            console.log("reset");
+
             try {
                 const res = await updateEmp(values, id);
                 console.log(res);
@@ -222,11 +224,11 @@ const EditEmployeeform = ({ details, empData, handleScroll, handlePersonal, hand
         gettingLeaveTypes();
         setIsLoading(false);
         const countryFullData = countries.find((country) => Object.values(country).includes(empData?.countryCode));
-        console.log(countryFullData);
         setselectedCountryCode(countryFullData?.abbr);
         setSelectedCountry(countryFullData?.name);
         setStateData(countryFullData?.states);
     }, []);
+
 
     const hourAndMin = timeDifference.toString().split(".");
     const [hour, min] = hourAndMin;
@@ -249,7 +251,6 @@ const EditEmployeeform = ({ details, empData, handleScroll, handlePersonal, hand
             formik.setFieldValue(name, countryFullData?.code || "");
         }
     }
-    console.log(stateData);
 
 
     return (

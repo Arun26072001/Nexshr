@@ -165,8 +165,7 @@ const AddEmployee = () => {
     try {
       const employees = await fetchAllEmployees()
 
-      let filterTL = employees.filter(emp => emp?.position?.PositionName === "TL").map(emp => emp);
-      console.log(filterTL);
+      let filterTL = employees.filter(emp => emp?.position?.PositionName === "Team Lead").map(emp => emp);
 
       setLeads(filterTL);
 
@@ -191,7 +190,7 @@ const AddEmployee = () => {
   async function gettingRoleData() {
     try {
       const roleData = await fetchRoles();
-      if (whoIs === "hr" || whoIs === "emp") {
+      if (["emp","hr", "manager"].includes(whoIs)) {
         setRoles(roleData.filter((role) => ["Assosiate", "Human Resource", "Manager"].includes(role.RoleName)))
       } else {
         setRoles(roleData)

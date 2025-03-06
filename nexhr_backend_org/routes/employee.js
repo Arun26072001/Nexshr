@@ -1,12 +1,13 @@
 const express = require('express');
 const router = express.Router();
 const { Employee } = require('../models/EmpModel');
-const { verifyHR, verifyAdminHREmployeeManagerNetwork, verifyAdminHR, verifyAdmin } = require('../auth/authMiddleware');
+const { verifyHR, verifyAdminHREmployeeManagerNetwork, verifyAdminHR, verifyAdmin, verifyTeamHigherAuthority, verifyAdminHRTeamHigherAuth, verifyAdminHREmployee } = require('../auth/authMiddleware');
 const { getDayDifference } = require('./leave-app');
 const sendMail = require("./mailSender");
 const { RoleAndPermission } = require('../models/RoleModel');
+const { Team } = require('../models/TeamModel');
 
-router.get("/", verifyAdminHR, async (req, res) => {
+router.get("/", verifyAdminHRTeamHigherAuth, async (req, res) => {
   try {
     const employees = await Employee.find({ Account: 3 }, "_id FirstName LastName employmentType dateOfJoining gender working code docType serialNo")
       .populate({
@@ -90,8 +91,6 @@ router.get("/user", verifyAdminHR, async (req, res) => {
 
 router.get("/all", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
   try {
-    // const {orgName} = jwt.decode(req.headers['authorization']);
-    // const Employee = getEmployeeModel(orgName)
     const employees = await Employee.find({}, "_id FirstName LastName employmentType dateOfJoining gender working code docType serialNo")
       .populate({
         path: "company",
@@ -124,17 +123,7 @@ router.get("/all", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
 
 });
 
-// router.get("/lead", verifyAdminHR, async (req, res) => {
-//   try {
-//     const teamLeads = await Employee.find({}, "FirstName LastName").populate("position").exec();
-//     const filterTeamLeads = teamLeads.filter((lead) => lead?.position?.PositionName === "Team Lead");
-//     res.send(filterTeamLeads);
-//   } catch (err) {
-//     res.status(500).send({ error: err.message })
-//   }
-// })
-
-router.get("/team/:higher", verifyAdminHR, async (req, res) => {
+router.get("/team/:higher", verifyAdminHRTeamHigherAuth, async (req, res) => {
   try {
     const positions = await Employee.find({}, "FirstName LastName").populate("position").exec();
     const higherAuth = positions.filter((emp) => {
@@ -145,12 +134,65 @@ router.get("/team/:higher", verifyAdminHR, async (req, res) => {
             "Manager");
     });
     console.log(higherAuth);
-    
+
     res.send(higherAuth);
   } catch (err) {
     res.status(500).send({ error: err.message })
   }
 })
+
+router.get("/team/members/:id", verifyTeamHigherAuthority, async (req, res) => {
+  try {
+    const who = req?.query?.who;
+    const team = await Team.findOne({ [who]: req.params.id }).exec();
+    if (!team) {
+      return res.status(404).send({ error: "You are not a Team higher authority." })
+    }
+    const members = await Employee.find({ _id: { $in: team.employees } })
+      .populate({
+        path: "company",
+        select: "_id CompanyName Town"
+      })
+      .populate({
+        path: "position"
+      })
+      .populate({
+        path: "department"
+      })
+      .populate({
+        path: "workingTimePattern",
+      })
+      .populate({
+        path: "role"
+      })
+      .populate({
+        path: 'teamLead',
+        select: "_id FirstName LastName",
+        populate: {
+          path: "department"
+        }
+      })
+
+    return res.send(members);
+  } catch (error) {
+    return res.status(500).send({ error: error.message })
+  }
+})
+
+// router.post("/add-admin", async (req, res) => {
+//   try {
+//     const emps = await Employee.find();
+//     emps.map(async (emp) => {
+//       emp.admin = "6651e4a810994f1d24cf3a19"
+//       await emp.save();
+//     })
+//     console.log("all emps of admin field updated.");
+
+//   } catch (error) {
+//     console.log(error);
+
+//   }
+// })
 
 router.get('/:id', verifyAdminHREmployeeManagerNetwork, async (req, res) => {
   let totalTakenLeaveCount = 0;

@@ -61,7 +61,7 @@ export default function HRMDashboard() {
     // const navigator = useNavigate();
     const { data, isStartLogin, isStartActivity, setIsStartLogin, setIsStartActivity, whoIs, socket } = useContext(EssentialValues);
     const { token, Account, _id } = data;
-    const { isTeamLead, isTeamHead } = jwtDecode(token);
+    const { isTeamLead, isTeamHead, isTeamManager } = jwtDecode(token);
     const [attendanceData, setAttendanceData] = useState([]);
     const [attendanceForSummary, setAttendanceForSummary] = useState({});
     const [leaveRequests, setLeaveRequests] = useState([]);
@@ -264,7 +264,7 @@ export default function HRMDashboard() {
             console.error('Error updating data:', error);
             toast.error('Please PunchIn');
         }
-    };
+    }
 
 
     const stopActivityTimer = async () => {
@@ -296,6 +296,8 @@ export default function HRMDashboard() {
     }
 
     function changeEmpEditForm(id) {
+        console.log(isEditEmp);
+        
         if (isEditEmp) {
             navigate(["manager", "admin", "hr"].includes(whoIs) ? `/${whoIs}/employee` : `/${whoIs}`);
             setIsEditEmp(false);
@@ -339,27 +341,32 @@ export default function HRMDashboard() {
                     Authorization: token || ""
                 }
             });
+            console.log(empOfAttendances.data);
+
             setAttendanceData(empOfAttendances.data);
         } catch (error) {
             console.error(error);
         }
     }
 
-    // // when use close the tab or browser timer will stop.
-    // window.addEventListener("beforeunload", (e) => {
-    //     // e.preventDefault();
-    //     // e.returnValue = "";
-    //     const currentTime = new Date().toTimeString().split(" ")[0];
-    //     const updatedState = {
-    //         ...workTimeTracker,
-    //         login: {
-    //             ...workTimeTracker?.login,
-    //             endingTime: [...(workTimeTracker?.login?.endingTime || []), currentTime],
-    //             timeHolder: workTimeTracker?.login?.timeHolder,
-    //         },
-    //     };
-    //     localStorage.setItem("timerState", JSON.stringify(updatedState));
-    // });
+    async function getTeamAttendance() {
+        try {
+            const res = await axios.get(`${url}/api/clock-ins/team/${_id}`, {
+                params: {
+                    who: isTeamHead ? "head" : isTeamLead ? "lead" : "manager",
+                    daterangeValue
+                },
+                headers: {
+                    Authorization: token || ""
+                }
+            });
+            console.log(res.data);
+
+            setAttendanceData(res.data);
+        } catch (error) {
+            console.error(error);
+        }
+    }
 
     function trackTimer() {
         setSyncTimer(!syncTimer);
@@ -372,6 +379,13 @@ export default function HRMDashboard() {
         } catch (error) {
             console.log(error);
         }
+    }
+
+    function handleAddTask(projectId) {
+        if (projectId) {
+            setSelectedProject(projectId)
+        }
+        setIsAddTask(!isAddTask);
     }
 
     useEffect(() => {
@@ -416,7 +430,7 @@ export default function HRMDashboard() {
         }
         if ((whoIs) && (String(Account) === '2' || String(Account) === '1')) {
             getLeaveData();
-        } else if ((whoIs && isTeamLead) || (whoIs && isTeamHead)) {
+        } else if (whoIs && [isTeamHead, isTeamHead, isTeamManager].includes(true)) {
             getLeaveDataFromTeam()
         }
     }, [daterangeValue, _id, whoIs, isUpdatedRequest]);
@@ -425,9 +439,12 @@ export default function HRMDashboard() {
     useEffect(() => {
         if (["1", "2", "5"].includes(Account)) {
             getAttendanceData()
+        } else if ([isTeamHead, isTeamHead, isTeamManager].includes(true)) {
+            getTeamAttendance();
         }
-        getClocknsData()
-    }, [getClocknsData, Account]);
+        getClocknsData();
+        fetchCompanies();
+    }, [getClocknsData, Account, daterangeValue]);
 
     // get workTimeTracker from DB in Initially
     useEffect(() => {
@@ -450,15 +467,9 @@ export default function HRMDashboard() {
         getClockInsData()
     }, [syncTimer]);
 
-    function handleAddTask(projectId) {
-        if (projectId) {
-            setSelectedProject(projectId)
-        }
-        setIsAddTask(!isAddTask);
-    }
 
     return (
-        <TimerStates.Provider value={{ workTimeTracker, reloadRolePage, setIsEditEmp, updateWorkTracker, trackTimer, startLoginTimer, stopLoginTimer, changeReasonForLate, startActivityTimer, stopActivityTimer, setWorkTimeTracker, updateClockins, timeOption, isStartLogin, isStartActivity, handleAddTask, changeEmpEditForm, isEditEmp, isAddTask, setIsAddTask, handleAddTask, selectedProject }}>
+        <TimerStates.Provider value={{ workTimeTracker, reloadRolePage, setIsEditEmp, updateWorkTracker, trackTimer, startLoginTimer, stopLoginTimer, changeReasonForLate, startActivityTimer, stopActivityTimer, setWorkTimeTracker, updateClockins, timeOption, isStartLogin, isStartActivity, handleAddTask, changeEmpEditForm, isEditEmp, isAddTask, setIsAddTask, handleAddTask, selectedProject, daterangeValue, setDaterangeValue }}>
             <Suspense fallback={<Loading />}>
                 <Routes >
                     <Route path="/" element={<Parent />} >
@@ -479,7 +490,7 @@ export default function HRMDashboard() {
                         <Route path="employee/add" element={<Employees />} />
                         <Route path="employee/edit/:id" element={<AddEmployee />} />
                         <Route path="leave/*" element={
-                            <LeaveStates.Provider value={{ daterangeValue, setDaterangeValue, isLoading, leaveRequests, filterLeaveRequests, empName, setEmpName, changeRequests }} >
+                            <LeaveStates.Provider value={{ isLoading, leaveRequests, filterLeaveRequests, empName, setEmpName, changeRequests }} >
                                 <Routes>
                                     <Route index path='status' element={<Status />} />
                                     <Route path='leave-request' element={<LeaveRequest />} />

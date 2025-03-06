@@ -1,26 +1,26 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import './Attendence.css';
 import Popup from './Popup';
 import LeaveTable from '../LeaveTable';
 import NoDataFound from '../payslip/NoDataFound';
 import Loading from '../Loader';
-import { Dropdown, Popover, Whisper } from 'rsuite';
+import { DateRangePicker, Dropdown, Popover, Whisper } from 'rsuite';
 import ArrowDropDownRoundedIcon from '@mui/icons-material/ArrowDropDownRounded';
 import FileUploadRoundedIcon from '@mui/icons-material/FileUploadRounded';
 import FileDownloadRoundedIcon from '@mui/icons-material/FileDownloadRounded';
 import AddRoundedIcon from '@mui/icons-material/AddRounded';
 import axios from 'axios';
 import { toast } from 'react-toastify';
+import { EssentialValues } from '../../App';
 
 const Dailylog = ({ attendanceData, isLoading }) => {
+    const { daterangeValue, setDaterangeValue } = useContext(EssentialValues)
     const url = process.env.REACT_APP_API_URL;
     const token = localStorage.getItem("token");
 
     // Handle file upload
     const handleUpload = async (file) => {
-        console.log(file);
         const formData = new FormData();
-
         formData.append('documents', file);
 
         try {
@@ -82,10 +82,19 @@ const Dailylog = ({ attendanceData, isLoading }) => {
                     <div>
                         <h5 className='text-daily'>Daily Log</h5>
                     </div>
-                    <div className='d-flex'>
+
+                    <div className='d-flex gap-3'>
                         <div className='text-center'>
                             <Popup />
                         </div>
+                        <DateRangePicker
+                            size="md"
+                            showOneCalendar
+                            placement="bottomEnd"
+                            value={daterangeValue}
+                            placeholder="Select Date Range"
+                            onChange={setDaterangeValue}
+                        />
                         <button className='button' style={{ cursor: 'pointer' }}>
                             <Whisper placement="bottomEnd" trigger="click" speaker={renderMenu}>
                                 Action <ArrowDropDownRoundedIcon />

@@ -1,4 +1,3 @@
-// const nodemailer = require("nodemailer");
 const postmark = require("postmark");
 
 const client = new postmark.ServerClient("5403b130-ff09-4e7f-bc85-999c75a4413b")

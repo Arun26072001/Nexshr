@@ -11,10 +11,13 @@ import AddRoundedIcon from '@mui/icons-material/AddRounded';
 import axios from "axios";
 import employeesData from "../../files/Employees data.xlsx";
 import Groups2RoundedIcon from '@mui/icons-material/Groups2Rounded';
+import { jwtDecode } from 'jwt-decode';
 
 export default function Employee() {
     const url = process.env.REACT_APP_API_URL;
     const { whoIs, data } = useContext(EssentialValues);
+    const decodedData = jwtDecode(data.token);
+    const { isTeamHead, isTeamLead, isTeamManager } = decodedData;
     const [employees, setEmployees] = useState([]);
     const [empName, setEmpName] = useState("");
     const [allEmployees, setAllEmployees] = useState([]);
@@ -79,11 +82,33 @@ export default function Employee() {
             setIsLoading(false);
         };
 
+        async function fetchTeamEmps() {
+            setIsLoading(true);
+            try {
+                const res = await axios.get(`${url}/api/employee/team/members/${data._id}`, {
+                    who: isTeamLead ? "lead" : isTeamHead ? "head" : "manager",
+                    headers: {
+                        Authorization: data.token || ""
+                    }
+                })
+                setEmployees(res.data)
+
+            } catch (error) {
+                console.log(error);
+
+            }
+            setIsLoading(false)
+        }
+
         if (data.Account === "1") {
             fetchAllEmployeeData()
-        } else if (data.Account === "3") {
-            navigate(`/${whoIs}/unauthorize`)
-        } else {
+        } else if ([isTeamLead, isTeamHead, isTeamManager].includes(true)) {
+            fetchTeamEmps();
+        }
+        // else if (data.Account === "3") {
+        //     navigate(`/${whoIs}/unauthorize`)
+        // } 
+        else {
             fetchEmployeeData();
         }
     }, [isModifyEmps]);
@@ -120,12 +145,17 @@ export default function Employee() {
                     <button className="button" onClick={() => navigate(`/${whoIs}/administration/team`)}>
                         <Groups2RoundedIcon /> Manage Team
                     </button>
-                    <button className="button" onClick={() => navigate(`/${whoIs}/employee/add`)}>
-                        <AddRoundedIcon /> Add Employee
-                    </button>
-                    <button className="button bg-light text-dark" onClick={() => document.getElementById("fileUploader").click()} >
-                        <AddRoundedIcon />Import
-                    </button>
+                    {
+                        ["admin", "hr"].includes(whoIs) &&
+                        <>
+                            <button className="button" onClick={() => navigate(`/${whoIs}/employee/add`)}>
+                                <AddRoundedIcon /> Add Employee
+                            </button>
+                            <button className="button bg-light text-dark" onClick={() => document.getElementById("fileUploader").click()} >
+                                <AddRoundedIcon />Import
+                            </button>
+                        </>
+                    }
                     <input
                         type="file"
                         id="fileUploader"

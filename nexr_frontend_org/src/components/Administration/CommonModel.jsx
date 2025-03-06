@@ -35,7 +35,7 @@ const CommonModel = ({
 }) => {
     const [confirmationTxt, setConfirmationTxt] = useState("");
     const [isDisabled, setIsDisabled] = useState(true);
-   
+
 
     return (
         <Modal open={isAddData} size="sm" backdrop="static">
@@ -397,12 +397,12 @@ const CommonModel = ({
                 }
 
                 {
-                    ["Project", "Project View", "Assign", "Task", "Task View", "Task Assign", "Report", "Report View"].includes(type) && (
+                    ["Project", "Project View", "Assign", "Task", "Task View", "Task Assign", "Report", "Report View", "Team"].includes(type) && (
                         <div className="d-flex justify-content-between">
                             <div className="col-full">
                                 <div className="modelInput">
                                     <p className="modelLabel">
-                                        {["Task", "Task Assign"].includes(type) ? "Assign To" : "Employee"}:
+                                        {["Task", "Task Assign"].includes(type) ? "Assign To" : type === "Team" ? "Team Members" : "Employee"}:
                                     </p>
 
                                     <TagPicker
@@ -766,7 +766,7 @@ const CommonModel = ({
                                 appearance="default"
                                 style={{ width: "100%" }}
                                 placeholder={`Select ${emp}`}
-                                value={dataObj?.[emp]?.toLowerCase()}
+                                value={dataObj?.[emp?.toLowerCase()]}
                                 onChange={(e) => changeData(e, emp?.toLowerCase())}
                             />
                         </div>
@@ -820,7 +820,7 @@ const CommonModel = ({
                             {
                                 !["Report View", "Task View", "Project View"].includes(type) && (
                                     <Button
-                                        onClick={() => (dataObj?._id || type === "Edit Country" ? editData(dataObj) : type === "Team" ? toggleAssignEmp() : addData())}
+                                        onClick={() => (dataObj?._id || type === "Edit Country" ? editData(dataObj) : addData())}
                                         appearance="primary"
                                         disabled={
                                             ["Project", "Assign", "Task", "Task Assign", "Report", "Company", "Country", "Edit Country", "Announcement", "Team"].includes(type)

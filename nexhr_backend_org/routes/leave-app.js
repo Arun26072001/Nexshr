@@ -4,37 +4,52 @@ const { LeaveApplication,
   LeaveApplicationValidation
 } = require('../models/LeaveAppModel');
 const { Employee } = require('../models/EmpModel');
-const { verifyHR, verifyHREmployee, verifyEmployee, verifyAdmin, verifyAdminHREmployeeManagerNetwork, verifyAdminHR, verifyAdminHREmployee } = require('../auth/authMiddleware');
+const { verifyHR, verifyHREmployee, verifyEmployee, verifyAdmin, verifyAdminHREmployeeManagerNetwork, verifyAdminHR, verifyAdminHREmployee, verifyTeamHigherAuthority } = require('../auth/authMiddleware');
 const { Position } = require('../models/PositionModel');
 const { Team } = require('../models/TeamModel');
 const { upload } = require('./imgUpload');
 const now = new Date();
 const sendMail = require("./mailSender");
-const { getDayDifference } = require('../Reuseable_functions/reusableFunction');
+const { getDayDifference, mailContent } = require('../Reuseable_functions/reusableFunction');
 
 // Helper function to generate leave request email content
 function generateLeaveEmail(empData, fromDate, toDate, reasonForLeave) {
   return `
-    <!DOCTYPE html>
-    <html lang="en">
-    <head>
-      <meta charset="UTF-8">
-      <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <title>NexsHR</title>
-      <style>
-        body { font-family: Arial, sans-serif; background-color: #f6f9fc; color: #333; }
-        .container { max-width: 600px; margin: auto; padding: 20px; background-color: #fff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); }
-      </style>
-    </head>
-    <body>
-      <div class="container">
-        <h1>${empData.FirstName} ${empData.LastName} has applied for leave (${fromDate} - ${toDate})</h1>
-        <p>Reason: ${reasonForLeave}</p>
-        <p>Please respond accordingly.</p>
+  <!DOCTYPE html>
+  <html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NexsHR - Leave Application</title>
+    <style>
+      body { font-family: Arial, sans-serif; background-color: #f6f9fc; color: #333; }
+                   .container { max-width: 600px; margin: auto; padding: 20px; background-color: #fff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); }
+                   .header { text-align: center; padding: 20px; }
+                   .header img { max-width: 100px; }
+                   .content { margin: 20px 0; }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <img src="https://imagedelivery.net/r89jzjNfZziPHJz5JXGOCw/1dd59d6a-7b64-49d7-ea24-1366e2f48300/public" alt="Company Logo" />
+        <h1>Leave Application (${new Date(fromDate).toDateString()} - ${new Date(toDate).toDateString()})</h1>
+        <h2>Submitted by: ${empData.FirstName} ${empData.LastName}</h2>
       </div>
-    </body>
-    </html>
-  `;
+
+      <div class="content">
+        <p><span class="important">Reason for Leave:</span> ${reasonForLeave}</p>
+        <p>Kindly review and respond accordingly.</p>
+        <p>Thank you!</p>
+      </div>
+
+      <div class="footer">
+        <p>&copy; ${new Date().getFullYear()} NexsHR. All rights reserved.</p>
+      </div>
+    </div>
+  </body>
+  </html>
+`;
 }
 
 // Helper function to generate coverBy email content
@@ -45,18 +60,61 @@ function generateCoverByEmail(empData, relievingOffData) {
     <head>
       <meta charset="UTF-8">
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <title>NexsHR</title>
+      <title>NexsHR - Task Assignment</title>
       <style>
-        body { font-family: Arial, sans-serif; background-color: #f6f9fc; color: #333; }
-        .container { max-width: 600px; margin: auto; padding: 20px; background-color: #fff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); }
+        body {
+          font-family: Arial, sans-serif;
+          background-color: #f6f9fc;
+          color: #333;
+          margin: 0;
+          padding: 0;
+        }
+        .container {
+          max-width: 600px;
+          margin: 20px auto;
+          padding: 20px;
+          background-color: #fff;
+          border-radius: 8px;
+          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        .header {
+          text-align: center;
+          padding: 20px;
+        }
+        .header img {
+          max-width: 100px;
+        }
+        .content {
+          margin: 20px 0;
+          font-size: 16px;
+          line-height: 1.5;
+        }
+        .footer {
+          text-align: center;
+          font-size: 14px;
+          margin-top: 20px;
+          color: #777;
+        }
       </style>
     </head>
     <body>
       <div class="container">
-        <h1>${empData.FirstName} has assigned tasks to ${relievingOffData.FirstName}</h1>
-        <p>Hi ${relievingOffData.FirstName},</p>
-        <p>${empData.FirstName} has assigned some tasks to you during their leave period.</p>
-        <p>Thank you!</p>
+        <div class="header">
+          <img src="https://imagedelivery.net/r89jzjNfZziPHJz5JXGOCw/1dd59d6a-7b64-49d7-ea24-1366e2f48300/public" alt="Company Logo" />
+          <h1>Task Assignment Notification</h1>
+        </div>
+
+        <div class="content">
+          <p>Hi <strong>${relievingOffData.FirstName}</strong>,</p>
+          <p><strong>${empData.FirstName}</strong> has assigned some tasks to you during their leave.</p>
+          <p>Please ensure the assigned tasks are completed as required.</p>
+          <p>Let us know if you need any assistance.</p>
+          <p>Thank you!</p>
+        </div>
+
+        <div class="footer">
+          <p>&copy; ${new Date().getFullYear()} NexsHR. All rights reserved.</p>
+        </div>
       </div>
     </body>
     </html>
@@ -130,7 +188,7 @@ leaveApp.get("/make-know", async (req, res) => {
       try {
         sendMail({
           From: process.env.FROM_MAIL,
-          To: mailList,
+          To: mailList.join(","),
           Subject: "Leave Application Remember",
           HtmlBody: htmlContent,
         })
@@ -405,7 +463,7 @@ leaveApp.get("/hr", verifyHR, async (req, res) => {
   }
 });
 
-leaveApp.get("/team/:id", verifyEmployee, async (req, res) => {
+leaveApp.get("/team/:id", verifyTeamHigherAuthority, async (req, res) => {
   try {
     let startOfMonth;
     let endOfMonth;
@@ -423,7 +481,7 @@ leaveApp.get("/team/:id", verifyEmployee, async (req, res) => {
       return res.status(404).send({ error: "You are not lead in any team" })
     } else {
       const { employees } = team;
-      const colleagues = await Employee.find({_id: employees}, "FirstName LastName Email phone");
+      const colleagues = await Employee.find({ _id: employees }, "FirstName LastName Email phone");
       let teamLeaves = await LeaveApplication.find({
         employee: { $in: employees },
         fromDate: {
@@ -453,7 +511,7 @@ leaveApp.get("/team/:id", verifyEmployee, async (req, res) => {
       const upComingLeave = approvedLeave.filter(data => new Date(data.fromDate).getTime() > new Date().getTime())
       const peoplesOnLeave = approvedLeave.filter(data => new Date(data.fromDate).getTime() === new Date().getTime())
       const takenLeave = approvedLeave.filter(data => new Date(data.fromDate).getTime() < new Date().getTime())
-      res.send({ leaveData: teamLeaves, pendingLeave, upComingLeave, peoplesOnLeave, takenLeave, colleagues });
+      res.send({ leaveData: teamLeaves, pendingLeave, upComingLeave, approvedLeave, peoplesOnLeave, takenLeave, colleagues });
     }
   } catch (error) {
     console.log(error);
@@ -835,15 +893,20 @@ leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("pre
     const startDate = new Date(now.getFullYear(), now.getMonth(), 1);
     const endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0);
 
-    const emp = await Employee.findById(empId, "_id monthlyPermissions permissionHour")
+    const emp = await Employee.findById(empId, "_id FirstName LastName monthlyPermissions permissionHour")
+      .populate({
+        path: "admin",
+        select: "FirstName LastName Email"
+      })
       .populate({
         path: "leaveApplication",
         match: { leaveType: "Permission Leave", fromDate: { $gte: startDate, $lte: endDate } },
       })
       .populate({
         path: "team",
-        populate: [{ path: "lead", select: "Email" }, { path: "head", select: "Email" }],
+        populate: [{ path: "lead", select: "Email" }, { path: "head", select: "Email" }, { path: "manager", select: "Email" }],
       }).exec();
+
     if (!emp) {
       return res.status(400).json({ error: `No employee found for ID ${empId}` });
     }
@@ -879,13 +942,6 @@ leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("pre
 
     const takenLeaveCount = approvedLeaveData.reduce((acc, leave) => acc + getDayDifference(leave), 0);
 
-    // Fetch employee data including team leads and heads
-    // const empData = await Employee.findById(empId)
-    //   .populate({
-    //     path: "team",
-    //     populate: [{ path: "lead", select: "Email" }, { path: "head", select: "Email" }],
-    //   });
-
 
     if (leaveType !== "Permission Leave") {
       const leaveDaysCount = emp?.typesOfLeaveRemainingDays?.[leaveType] || 0;
@@ -910,11 +966,12 @@ leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("pre
     const mailList = [
       emp?.team?.lead?.Email,
       emp?.team?.head?.Email,
+      emp?.team?.manager?.Email
     ].filter(Boolean);
 
     sendMail({
       From: process.env.FROM_MAIL,
-      To: mailList,
+      To: mailList.join(","),
       Subject: "Leave Application Notification",
       HtmlBody: generateLeaveEmail(emp, fromDate, toDate, reasonForLeave),
     });
@@ -933,7 +990,6 @@ leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("pre
     }
 
     return res.status(201).json({ message: "Leave request has been sent to higher authority.", newLeaveApp });
-
   } catch (err) {
     console.error(err);
     return res.status(500).json({ error: err.message });
@@ -999,122 +1055,37 @@ leaveApp.put('/:id', verifyAdminHREmployee, async (req, res) => {
       { new: true }
     );
 
-    function mailContent(type, fromDateValue, toDateValue) {
-      const isRejected = type === "rejected";
-      const actionBy = Hr === "rejected" ? "HR" : TeamHead === "rejected" ? "TeamHead" : TeamLead === "rejected" ? "TeamLead" : "Manager";
-      const subject = isRejected
-        ? `${emp.FirstName}'s Leave Application has been rejected by ${actionBy}`
-        : `${emp.FirstName}'s Leave Application has been approved by ${actionBy}`;
-
-      return `
-        <!DOCTYPE html>
-        <html lang="en">
-          <head>
-            <meta charset="UTF-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" as="style" />
-            <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" />
-            <title>Leave Application ${isRejected ? "Rejection" : "Approval"} Email</title>
-            <style>
-              * {
-                font-family: "Inter", sans-serif;
-                font-display: swap;
-              }
-              .parent {
-                width: 100%;
-                height: 100vh;
-                display: flex;
-                justify-content: center ;
-                align-items: center;
-              }
-              .content {
-                border: 1px solid gray;
-                border-radius: 10px;
-                padding: 50px;
-                width: fit-content;
-                height: fit-content;
-                text-align: left;
-                background-color: #fff;
-              }
-              .underline {
-                border-bottom: 3px solid ${isRejected ? "red" : "green"};
-                width: 30px;
-              }
-              .mailButton {
-                font-weight: bold;
-                padding: 15px 30px;
-                border-radius: 30px;
-                background-color: ${isRejected ? "red" : "green"};
-                color: white !important;
-                margin: 15px 0px;
-                border: none;
-                cursor: pointer;
-                text-decoration: none;
-                display: inline-block;
-              }
-              p {
-                color: #686D76 !important;
-                margin: 10px 0px;
-              }
-              .container {
-                text-align: center;
-              }
-              img {
-                width: 100px;
-                height: 100px;
-                object-fit: cover;
-              }
-            </style>
-          </head>
-          <body>
-            <div style="text-align: center;">
-              <img src="logo.png" alt="logo">
-              <div class="parent">
-                <div class="content">
-                  <p style="margin: 15px 0px; font-size: 23px; font-weight: 500; color: black;">Hi ${emp.FirstName} ${emp.LastName},</p>
-                  <div class="underline"></div>
-                  <p style="margin: 25px 0px; font-size: 15px; font-weight: 500;">
-                    ${subject}
-                  </p>
-                  <h3 style="margin: 15px 0px; color: #686D76;">Details,</h3>
-                  <p>
-                    ${req.body.leaveType} from 
-                    ${fromDateValue.toLocaleString("default", { month: "long" })} ${fromDateValue.getDate()}, ${fromDateValue.getFullYear()} 
-                    to 
-                    ${toDateValue.toLocaleString("default", { month: "long" })} ${toDateValue.getDate()}, ${toDateValue.getFullYear()}
-                  </p>
-                  <a href="${process.env.FRONTEND_URL}" class="mailButton">
-                    View factorial
-                  </a>
-                  <p style="font-weight: 500; font-size: 15px; color: #B4B4B8">
-                    Why did you receive this mail?
-                  </p>
-                  <p style="font-weight: 500; color: #B4B4B8;">
-                    Because you are the applied person for this leave.
-                  </p>
-                </div>
-              </div>
-            </div>
-          </body>
-        </html>
-      `;
-    }
-
     const fromDateValue = new Date(req.body.fromDate);
     const toDateValue = new Date(req.body.toDate);
     if (updatedRequest.status === "approved") {
+      // send mail for applied person
       sendMail({
         From: process.env.FROM_MAIL,
         To: emp.Email,
         Subject: "Leave Application Reponse",
-        HtmlBody: mailContent("approved", fromDateValue, toDateValue),
+        HtmlBody: mailContent("approved", fromDateValue, toDateValue, emp, req.body.leaveType, Hr, TeamLead, TeamHead, TeamManager),
+      });
+      // send mail for admin
+      sendMail({
+        From: process.env.FROM_MAIL,
+        To: emp.Email,
+        Subject: "Leave Application Reponse",
+        HtmlBody: mailContent("approved", fromDateValue, toDateValue, emp, req.body.leaveType, Hr, TeamLead, TeamHead, TeamManager),
       });
     } else if (anyRejected) {
+      // send mail for applied person
       sendMail({
         From: process.env.FROM_MAIL,
         To: emp.Email,
         Subject: "Leave Application Reponse",
-        HtmlBody: mailContent("rejected", fromDateValue, toDateValue),
+        HtmlBody: mailContent("rejected", fromDateValue, toDateValue, emp, req.body.leave, Hr, TeamLead, TeamHead, TeamManager),
+      });
+      // send mail for admin
+      sendMail({
+        From: process.env.FROM_MAIL,
+        To: emp.Email,
+        Subject: "Leave Application Reponse",
+        HtmlBody: mailContent("approved", fromDateValue, toDateValue, emp, req.body.leaveType, Hr, TeamLead, TeamHead, TeamManager),
       });
     }
 
