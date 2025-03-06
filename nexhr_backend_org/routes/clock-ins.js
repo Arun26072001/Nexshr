@@ -292,6 +292,7 @@ router.post("/not-login/apply-leave", async (req, res) => {
 
         // Insert new leave applications in bulk
         const insertedLeaves = await LeaveApplication.insertMany(leaveApplications);
+        console.log(insertedLeaves);
 
         // Prepare employee updates for bulk write
         notLoginEmps.forEach((emp, index) => {

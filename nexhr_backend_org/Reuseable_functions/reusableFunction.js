@@ -35,7 +35,7 @@ function getWeekdaysOfCurrentMonth(year, month) {// 0-based index (0 = January)
   return weekdays.length;
 }
 
-function mailContent(type, fromDateValue, toDateValue, emp, leaveType, actionBy) {
+function mailContent(type, fromDateValue, toDateValue, emp, leaveType, actionBy, member) {
   const isRejected = type === "rejected";
   const subject = isRejected
     ? `${emp.FirstName}'s Leave Application has been rejected by ${actionBy}`
@@ -43,87 +43,37 @@ function mailContent(type, fromDateValue, toDateValue, emp, leaveType, actionBy)
 
   return `
     <!DOCTYPE html>
-    <html lang="en">
-      <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" as="style" />
-        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" />
-        <title>Leave Application ${isRejected ? "Rejection" : "Approval"} Email</title>
-        <style>
-          * {
-            font-family: "Inter", sans-serif;
-            font-display: swap;
-          }
-          .parent {
-            width: 100%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 20px;
-          }
-          .content {
-            border: 1px solid gray;
-            border-radius: 10px;
-            padding: 30px;
-            max-width: 500px;
-            text-align: left;
-            background-color: #fff;
-          }
-          .underline {
-            border-bottom: 3px solid ${isRejected ? "red" : "green"};
-            width: 30px;
-            margin-bottom: 10px;
-          }
-          .mailButton {
-            font-weight: bold;
-            padding: 12px 24px;
-            border-radius: 30px;
-            background-color: ${isRejected ? "red" : "green"};
-            color: white !important;
-            border: none;
-            cursor: pointer;
-            text-decoration: none;
-            display: inline-block;
-          }
-          p {
-            color: #686D76 !important;
-            margin: 10px 0px;
-          }
-          .container {
-            text-align: center;
-          }
-          img {
-            width: 100px;
-            height: 100px;
-            object-fit: cover;
-          }
-        </style>
-      </head>
-      <body>
-        <div style="text-align: center;">
-          <img src="logo.png" alt="Company Logo">
-          <div class="parent">
-            <div class="content">
-              <p style="font-size: 20px; font-weight: 500; color: black;">Hi ${emp.FirstName} ${emp.LastName},</p>
-              <div class="underline"></div>
-              <p style="font-size: 15px; font-weight: 500;">${subject}</p>
-              <h3 style="color: #686D76;">Details</h3>
-              <p>${leaveType} from 
-                ${new Date(fromDateValue).toLocaleString("default", { month: "long" })} ${new Date(fromDateValue).getDate()}, ${new Date(fromDateValue).getFullYear()} 
-                to 
-                ${new Date(toDateValue).toLocaleString("default", { month: "long" })} ${new Date(toDateValue).getDate()}, ${new Date(toDateValue).getFullYear()}
-              </p>
-              <a href="${process.env.FRONTEND_URL}" class="mailButton">
-                View Leave Details
-              </a>
-              <p style="font-size: 14px; color: #B4B4B8;">Why did you receive this mail?</p>
-              <p style="font-size: 14px; color: #B4B4B8;">Because you applied for this leave.</p>
-            </div>
-          </div>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Leave Application ${isRejected ? "Rejection" : "Approval"} Email</title>
+  </head>
+  <body style="font-family: Arial, sans-serif; background-color: #f6f9fc; color: #333; margin: 0; padding: 0; text-align: center;">
+    <div style="text-align: center;">
+      <img src="logo.png" alt="Company Logo" style="width: 100px; height: 100px; object-fit: cover; margin-top: 20px;" />
+      <div style="width: 100%; display: flex; justify-content: center; align-items: center; padding: 20px;">
+        <div style="border: 1px solid gray; border-radius: 10px; padding: 30px; max-width: 500px; text-align: left; background-color: #fff;">
+          <p style="font-size: 20px; font-weight: 500; color: black; margin: 10px 0;">Hi ${member.name},</p>
+          <div style="border-bottom: 3px solid ${isRejected ? "red" : "green"}; width: 30px; margin-bottom: 10px;"></div>
+          <p style="font-size: 15px; font-weight: 500; margin: 10px 0;">${subject}</p>
+          <h3 style="color: #686D76; margin: 10px 0;">Details</h3>
+          <p style="font-size: 14px; color: #686D76; margin: 10px 0;">
+            ${leaveType} from 
+            ${new Date(fromDateValue).toLocaleString("default", { month: "long" })} ${new Date(fromDateValue).getDate()}, ${new Date(fromDateValue).getFullYear()} 
+            to 
+            ${new Date(toDateValue).toLocaleString("default", { month: "long" })} ${new Date(toDateValue).getDate()}, ${new Date(toDateValue).getFullYear()}
+          </p>
+          <a href="${process.env.FRONTEND_URL}" style="font-weight: bold; padding: 12px 24px; border-radius: 30px; background-color: ${isRejected ? "red" : "green"}; color: white; text-decoration: none; display: inline-block; margin: 15px 0; border: none;">View Leave Details</a>
+          <p style="font-size: 14px; color: #B4B4B8; margin: 10px 0;">Why did you receive this mail?</p>
+          <p style="font-size: 14px; color: #B4B4B8; margin: 10px 0;">
+            ${["admin", "lead", "head", "manager"].includes(member.type) ? `Because you are the ${member.type} for this employee` : "Because you applied for this leave."}
+          </p>
         </div>
-      </body>
-    </html>
+      </div>
+    </div>
+  </body>
+</html>
   `;
 }
 

@@ -144,45 +144,58 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
                 From: empData.Email,
                 To: emp.Email,
                 Subject: `${createdPersonName} has Assigned a Task to You`,
-                HtmlBody: `
+                HtmlBody:`
                     <html lang="en">
-                    <head>
-                        <meta charset="UTF-8">
-                        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                        <title>${empData.company.CompanyName}</title>
-                        <style>
-                            body { font-family: Arial, sans-serif; background-color: #f6f9fc; color: #333; margin: 0; padding: 0; }
-                            .container { max-width: 600px; margin: auto; padding: 20px; background-color: #fff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); }
-                            .content { margin: 20px 0; }
-                            .footer { text-align: center; font-size: 14px; margin-top: 20px; color: #777; }
-                        </style>
-                    </head>
-                    <body>
-                        <div class="container">
-                            <div class="header">
-                                <h1>${createdPersonName} has Assigned a Task to You!</h1>
-                            </div>
-                            <div class="content">
-                                <p>Hey ${empName} 👋,</p>
-                                <p><b>${createdPersonName} has created a task named "${req.body.title}".</b></p>
-                                <p>You have been assigned to this task as a responsible member.</p>
-                                <p>Please follow the provided instructions and complete the task accordingly.</p><br />
-                                <p>Thank you!</p>
-                            </div>
-                            <div class="footer">
-                                <p>Have questions? Need help? <a href="mailto:${empData.Email}">Contact ${empData.FirstName}</a>.</p>
-                            </div>
-                        </div>
-                    </body>
-                    </html>
-                `
+                        <head>
+                            <meta charset="UTF-8">
+                                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                                    <title>${empData.company.CompanyName}</title>
+                                </head>
+                                <body style="font-family: Arial, sans-serif; background-color: #f6f9fc; color: #333; margin: 0; padding: 0;">
+                                    <div style="max-width: 600px; margin: auto; padding: 20px; background-color: #fff; border-radius: 8px;
+                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);">
+                                        <!-- Header -->
+                                        <div style="text-align: center; padding-bottom: 15px;">
+                                            <h1 style="font-size: 20px; color: #333; margin: 0;">${createdPersonName} has Assigned a Task to You!</h1>
+                                        </div>
+
+                                        <!-- Content -->
+                                        <div style="margin: 20px 0; padding: 10px;">
+                                            <p style="font-size: 14px; color: #333; margin: 10px 0;">Hey ${empName} 👋,</p>
+                                            <p style="font-size: 14px; color: #333; margin: 10px 0;">
+                                                <b>${createdPersonName} has created a task named "${req.body.title}".</b>
+                                            </p>
+                                            <p style="font-size: 14px; color: #333; margin: 10px 0;">
+                                                You have been assigned to this task as a responsible member.
+                                            </p>
+                                            <p style="font-size: 14px; color: #333; margin: 10px 0;">
+                                                Please follow the provided instructions and complete the task accordingly.
+                                            </p>
+                                            <br />
+                                            <p style="font-size: 14px; color: #333; margin: 10px 0;">Thank you!</p>
+                                        </div>
+
+                                        <!-- Footer -->
+                                        <div style="text-align: center; font-size: 14px; margin-top: 20px; color: #777;">
+                                            <p style="margin: 10px 0;">
+                                                Have questions? Need help?
+                                                <a href="mailto:${empData.Email}" style="color: #007BFF; text-decoration: none;">
+                                                    Contact ${empData.FirstName}
+                                                </a>.
+                                            </p>
+                                        </div>
+                                    </div>
+                                </body>
+                            </html>
+
+                            `
             });
         });
 
-        return res.send({ message: "Task is created successfully.", task });
+                            return res.send({message: "Task is created successfully.", task });
 
     } catch (error) {
-        res.status(500).send({ error: error.message });
+                                res.status(500).send({ error: error.message });
     }
 });
 
@@ -190,68 +203,68 @@ router.put("/:empId/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) 
     try {
         // Fetch Task Data
         const taskData = await Task.findById(req.params.id);
-        if (!taskData) return res.status(404).send({ error: "Task not found" });
+                            if (!taskData) return res.status(404).send({error: "Task not found" });
 
         // Identify Newly Assigned Employees
         const newAssignees = req.body.assignedTo?.filter(emp => !taskData?.employees?.includes(emp)) || [];
 
-        // Fetch Assigned Person & Employee Data
-        const assignedPerson = await Employee.findById(req.body.createdby)
-            .populate({ path: "company", select: "CompanyName" });
+                            // Fetch Assigned Person & Employee Data
+                            const assignedPerson = await Employee.findById(req.body.createdby)
+                            .populate({path: "company", select: "CompanyName" });
 
-        if (!assignedPerson) return res.status(404).send({ error: "Assigned person not found" });
+                            if (!assignedPerson) return res.status(404).send({error: "Assigned person not found" });
 
-        const empData = await Employee.findById(req.params.empId);
-        if (!empData) return res.status(404).send({ error: "Employee not found" });
+                            const empData = await Employee.findById(req.params.empId);
+                            if (!empData) return res.status(404).send({error: "Employee not found" });
 
-        const emps = await Employee.find({ _id: { $in: newAssignees } }, "FirstName LastName Email");
+                            const emps = await Employee.find({_id: {$in: newAssignees } }, "FirstName LastName Email");
 
         // Generate Task Change Logs
         const taskChanges = Object.entries(taskData.toObject()).flatMap(([key, value]) => {
             const newValue = convertToString(req.body[key]);
-            const oldValue = convertToString(value);
-            if (
-                newValue !== undefined &&
-                !["createdAt", "createdby", "tracker", "updatedAt", "_id", "tracker", "__v", "spend"]?.includes(key) &&
-                (Array.isArray(oldValue) ? oldValue.length !== newValue.length : oldValue !== newValue)
-            ) {
+                            const oldValue = convertToString(value);
+                            if (
+                            newValue !== undefined &&
+                            !["createdAt", "createdby", "tracker", "updatedAt", "_id", "tracker", "__v", "spend"]?.includes(key) &&
+                            (Array.isArray(oldValue) ? oldValue.length !== newValue.length : oldValue !== newValue)
+                            ) {
                 return {
-                    date: new Date(),
-                    message: `Task field "${key}" updated by ${empData.FirstName} ${empData.LastName}`,
-                    who: req.params.empId
+                                date: new Date(),
+                            message: `Task field "${key}" updated by ${empData.FirstName} ${empData.LastName}`,
+                            who: req.params.empId
                 };
             }
-            return [];
+                            return [];
         });
 
-        // Prepare Updated Task Data
-        const updatedTask = {
-            ...req.body,
-            tracker: [...taskData.tracker, ...taskChanges],
-            createdby: req.body.createdby._id || req.body.createdby
+                            // Prepare Updated Task Data
+                            const updatedTask = {
+                                ...req.body,
+                                tracker: [...taskData.tracker, ...taskChanges],
+                            createdby: req.body.createdby._id || req.body.createdby
         };
 
-        // Validate Task Data
-        const { error } = taskValidation.validate(updatedTask);
-        if (error) {
-            return res.status(400).send({ error: error.details[0].message });
+                            // Validate Task Data
+                            const {error} = taskValidation.validate(updatedTask);
+                            if (error) {
+            return res.status(400).send({error: error.details[0].message });
         }
 
-        // Update Task in Database
-        const task = await Task.findByIdAndUpdate(req.params.id, updatedTask, { new: true });
+                            // Update Task in Database
+                            const task = await Task.findByIdAndUpdate(req.params.id, updatedTask, {new: true });
 
-        // Prepare Assigned Person's Name
-        const assignedPersonName = `${assignedPerson.FirstName.charAt(0).toUpperCase()}${assignedPerson.FirstName.slice(1)} ${assignedPerson.LastName}`;
+                            // Prepare Assigned Person's Name
+                            const assignedPersonName = `${assignedPerson.FirstName.charAt(0).toUpperCase()}${assignedPerson.FirstName.slice(1)} ${assignedPerson.LastName}`;
 
-        // Send Emails for Task Completion
-        if (req.body.status === "Completed") {
-            emps.forEach(emp => {
-                const empName = `${emp.FirstName.charAt(0).toUpperCase()}${emp.FirstName.slice(1)} ${emp.LastName}`;
-                sendMail({
-                    From: emp.Email,
-                    To: assignedPerson.Email,
-                    Subject: `Your assigned task (${req.body.title}) is completed`,
-                    HtmlBody: `
+                            // Send Emails for Task Completion
+                            if (req.body.status === "Completed") {
+                                emps.forEach(emp => {
+                                    const empName = `${emp.FirstName.charAt(0).toUpperCase()}${emp.FirstName.slice(1)} ${emp.LastName}`;
+                                    sendMail({
+                                        From: emp.Email,
+                                        To: assignedPerson.Email,
+                                        Subject: `Your assigned task (${req.body.title}) is completed`,
+                                        HtmlBody: `
                     <html lang="en">
                     <head>
                         <meta charset="UTF-8">
@@ -283,75 +296,75 @@ router.put("/:empId/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) 
                     </body>
                     </html>
                     `
-                });
-            });
+                                    });
+                                });
         }
 
         // Send Emails for Newly Assigned Employees
         emps.forEach(emp => {
             const empName = `${emp.FirstName.charAt(0).toUpperCase()}${emp.FirstName.slice(1)} ${emp.LastName}`;
-            sendMail({
-                From: assignedPerson.Email,
-                To: emp.Email,
-                Subject: `${assignedPersonName} has assigned a task to you`,
-                HtmlBody: `
-                <html lang="en">
-                <head>
-                    <meta charset="UTF-8">
-                    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                    <title>${assignedPerson.company.CompanyName}</title>
-                    <style>
-                        body { font-family: Arial, sans-serif; background-color: #f6f9fc; color: #333; margin: 0; padding: 0; }
-                        .container { max-width: 600px; margin: auto; padding: 20px; background-color: #fff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); }
-                        .header { text-align: center; padding: 20px; }
-                        .content { margin: 20px 0; }
-                        .footer { text-align: center; font-size: 14px; margin-top: 20px; color: #777; }
-                    </style>
-                </head>
-                <body>
-                    <div class="container">
-                        <div class="header">
-                            <h1>${assignedPersonName} has Assigned a Task to You!</h1>
-                        </div>
-                        <div class="content">
-                            <p>Hey ${empName} 👋,</p>
-                            <p><b>${assignedPersonName} has created a task named "${req.body.title}".</b></p>
-                            <p>You have been assigned to this task as a responsible member.</p>
-                            <p>Please follow the provided instructions and complete the task accordingly.</p><br />
-                            <p>Thank you!</p>
-                        </div>
-                        <div class="footer">
-                            <p>Have questions? Need help? <a href="mailto:${assignedPerson.Email}">Contact ${assignedPersonName}</a>.</p>
-                        </div>
-                    </div>
-                </body>
-                </html>
-                `
+                            sendMail({
+                                From: assignedPerson.Email,
+                            To: emp.Email,
+                            Subject: `${assignedPersonName} has assigned a task to you`,
+                            HtmlBody: `
+                            <html lang="en">
+                                <head>
+                                    <meta charset="UTF-8">
+                                        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                                            <title>${assignedPerson.company.CompanyName}</title>
+                                            <style>
+                                                body {font - family: Arial, sans-serif; background-color: #f6f9fc; color: #333; margin: 0; padding: 0; }
+                                                .container {max - width: 600px; margin: auto; padding: 20px; background-color: #fff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); }
+                                                .header {text - align: center; padding: 20px; }
+                                                .content {margin: 20px 0; }
+                                                .footer {text - align: center; font-size: 14px; margin-top: 20px; color: #777; }
+                                            </style>
+                                        </head>
+                                        <body>
+                                            <div class="container">
+                                                <div class="header">
+                                                    <h1>${assignedPersonName} has Assigned a Task to You!</h1>
+                                                </div>
+                                                <div class="content">
+                                                    <p>Hey ${empName} 👋,</p>
+                                                    <p><b>${assignedPersonName} has created a task named "${req.body.title}".</b></p>
+                                                    <p>You have been assigned to this task as a responsible member.</p>
+                                                    <p>Please follow the provided instructions and complete the task accordingly.</p><br />
+                                                    <p>Thank you!</p>
+                                                </div>
+                                                <div class="footer">
+                                                    <p>Have questions? Need help? <a href="mailto:${assignedPerson.Email}">Contact ${assignedPersonName}</a>.</p>
+                                                </div>
+                                            </div>
+                                        </body>
+                                    </html>
+                                    `
             });
         });
 
-        return res.status(200).send({ message: "Task updated successfully", task });
+                                    return res.status(200).send({message: "Task updated successfully", task });
 
     } catch (error) {
-        console.error(error);
-        return res.status(500).send({ error: error.message });
+                                        console.error(error);
+                                    return res.status(500).send({error: error.message });
     }
 });
 
 
 router.delete("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
     try {
-        const project = await Project.findOne({ tasks: { $in: req.params.id } })
-        const task = await Task.findByIdAndDelete(req.params.id);
-        if (!task) {
-            return res.status(404).send({ error: "Task not found" });
+        const project = await Project.findOne({tasks: {$in: req.params.id } })
+                                    const task = await Task.findByIdAndDelete(req.params.id);
+                                    if (!task) {
+            return res.status(404).send({error: "Task not found" });
         }
-        project.tasks.pop(req.params.id);
-        await project.save();
-        return res.send({ message: "Task was delete successfully" })
+                                    project.tasks.pop(req.params.id);
+                                    await project.save();
+                                    return res.send({message: "Task was delete successfully" })
     } catch (error) {
-        return res.status(500).send({ error: error.message })
+        return res.status(500).send({error: error.message })
     }
 })
 
-module.exports = router;
+                                    module.exports = router;
