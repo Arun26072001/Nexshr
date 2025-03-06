@@ -1,12 +1,12 @@
 const express = require("express");
 const router = express.Router();
-const { verifyAdminHREmployeeManagerNetwork, verifyAdminHR, verifyAdminHrNetworkAdmin } = require("../auth/authMiddleware");
+const { verifyAdminHREmployeeManagerNetwork, verifyAdminHrNetworkAdmin, verifyTeamHigherAuthority } = require("../auth/authMiddleware");
 const { clockInsValidation, ClockIns } = require("../models/ClockInsModel");
 const { Employee } = require("../models/EmpModel");
 const { getDayDifference } = require("./leave-app");
 const sendMail = require("./mailSender");
 const { LeaveApplication, LeaveApplicationValidation } = require("../models/LeaveAppModel");
-const { TimePattern } = require("../models/TimePatternModel");
+const { Team } = require("../models/TeamModel");
 
 function timeToMinutes(timeStr) {
     const [hours, minutes, seconds] = timeStr.split(":").map(Number);
@@ -92,9 +92,16 @@ router.post("/auto-permission/:patternId", async (req, res) => {
                 path: "clockIns",
                 match: { date: { $gte: startOfDay, $lt: endOfDay } }
             })
+            .populate({
+                path: "leaveApplication",
+                match: {
+                    fromDate: { $gte: startOfDay, $lt: endOfDay },
+                    status: "approved"
+                }
+            })
             .populate("workingTimePattern");
 
-        notLoginEmps = notLoginEmps.filter((emp) => emp?.clockIns?.length === 0);
+        notLoginEmps = notLoginEmps.filter((emp) => emp?.clockIns?.length === 0 && emp?.leaveApplication.length === 0);
 
         // Process each employee sequentially
         for (const emp of notLoginEmps) {
@@ -568,6 +575,39 @@ router.get("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
         return res.status(500).send({ error: err.message });
     }
 });
+
+router.get("/team/:id", verifyTeamHigherAuthority, async (req, res) => {
+    try {
+        let startOfMonth;
+        let endOfMonth;
+        const now = new Date();
+
+        if (req?.query?.daterangeValue) {
+            startOfMonth = new Date(req.query.daterangeValue[0]);
+            endOfMonth = new Date(req.query.daterangeValue[1]);
+        } else {
+            startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+            endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+        }
+        const who = req?.query?.who;
+        const team = await Team.findOne({ [who]: req.params.id }).exec();
+
+        if (!team) {
+            return res.status(404).send({ error: "You are not a Team higher authority." })
+        }
+        const teamClockins = await ClockIns.find({
+            employee: { $in: team.employees },
+            date: {
+                $gte: startOfMonth,
+                $lte: endOfMonth
+            }
+        })
+        console.log(teamClockins);
+        return res.send(teamClockins);
+    } catch (error) {
+        return res.status(500).send({ error: error.message })
+    }
+})
 
 router.get("/item/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
     const convertToMinutes = (start, end) => {

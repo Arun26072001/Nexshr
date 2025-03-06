@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const { verifyAdminHR, verifyEmployee, verifyAdminHREmployeeManagerNetwork } = require("../auth/authMiddleware");
+const { verifyAdminHR, verifyEmployee, verifyAdminHREmployeeManagerNetwork, verifyAdminHREmployee, verifyAdminHRTeamHigherAuth, verifyTeamHigherAuthority } = require("../auth/authMiddleware");
 const { TeamValidation, Team } = require("../models/TeamModel");
 const { Employee } = require("../models/EmpModel");
 
@@ -22,10 +22,27 @@ router.get("/", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
     }
 });
 
+router.get("/:who/:id", verifyTeamHigherAuthority, async (req, res) => {
+    try {
+        const teams = await Team.find({ [req.params.who]: req.params.id })
+            .populate({
+                path: "employees",
+                select: "_id FirstName LastName"
+            })
+            .populate({
+                path: "lead",
+                select: "_id FirstName LastName"
+            });
+
+        res.send(teams);
+    } catch (err) {
+        console.error(err)
+        res.status(500).send({ error: err.message });
+    }
+})
+
 router.get("/user", verifyAdminHR, async (req, res) => {
     try {
-        // const { orgName } = jwt.decode(req.headers['authorization']);
-        // const Team = getTeamModel(orgName)
         const teams = await Team.find()
             .populate({
                 path: "employees", // Populate employees field
@@ -65,22 +82,10 @@ router.get("/user", verifyAdminHR, async (req, res) => {
     }
 });
 
-router.get("/:id", verifyAdminHR, async (req, res) => {
+router.get("/:id", verifyAdminHRTeamHigherAuth, async (req, res) => {
     try {
-        // const {orgName} = jwt.decode(req.headers['authorization']);
-        // const Team = getTeamModel(orgName)
         const response = await Team.findById(req.params.id)
-            // .populate({
-            //     path: "employees",
-            //     select: "_id FirstName LastName",
-            //     populate: {
-            //         path: 'teamLead',
-            //         select: "_id FirstName LastName",
-            //         populate: {
-            //             path: "department"
-            //         }
-            //     }
-            // })
+
         if (!response) {
             res.status(404).send({ message: "team not found" })
         } else {
@@ -88,7 +93,7 @@ router.get("/:id", verifyAdminHR, async (req, res) => {
         }
     } catch (err) {
         console.log(err);
-        res.status(500).send({ message: "Error in get a team of Employee", details: err })
+        res.status(500).send({ error: "Error in get a team of Employee", details: err })
     }
 })
 
@@ -137,7 +142,7 @@ router.post("/", verifyAdminHR, async (req, res) => {
         } else {
             const newTeamData = {
                 ...req.body,
-                employees: [...req.body.employees,...req.body.lead, ...req.body.head, ...req.body.manager]
+                employees: [...req.body.employees, ...req.body.lead, ...req.body.head, ...req.body.manager]
             }
             const newTeam = await Team.create(newTeamData);
             const emps = await Employee.find({ _id: req.body.employees });
@@ -149,12 +154,12 @@ router.post("/", verifyAdminHR, async (req, res) => {
         }
     } catch (error) {
         console.log(error);
-        
+
         res.status(500).send({ error: error.message })
     }
 })
 
-router.put("/:id", verifyAdminHR, async (req, res) => {
+router.put("/:id", verifyAdminHRTeamHigherAuth, async (req, res) => {
     try {
         const { error } = TeamValidation.validate(req.body);
         if (error) {

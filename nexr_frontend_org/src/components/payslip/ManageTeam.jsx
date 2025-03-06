@@ -2,13 +2,13 @@ import React, { useContext, useEffect, useState } from "react";
 import EmpCard from "./EmpCard";
 import axios from "axios";
 import { toast } from "react-toastify";
-import AssignEmp from "./AssignEmp";
 import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
 import { Input, InputGroup } from "rsuite";
 import NoDataFound from "./NoDataFound";
 import Loading from "../Loader";
 import { EssentialValues } from "../../App";
 import CommonModel from "../Administration/CommonModel";
+import { jwtDecode } from "jwt-decode";
 
 const ManageTeam = () => {
     const [teamObj, setTeamObj] = useState({});
@@ -24,8 +24,9 @@ const ManageTeam = () => {
     const [heads, setHeads] = useState([]);
     const [managers, setManagers] = useState([]);
     const url = process.env.REACT_APP_API_URL;
-    const { data } = useContext(EssentialValues);
-    const { token } = data;
+    const { data, whoIs } = useContext(EssentialValues);
+    const { token, _id } = data;
+    const { isTeamHead, isTeamLead, isTeamManager } = jwtDecode(token);
 
     const filterTeam = (e) => {
         setSearchTeam(e);
@@ -99,7 +100,6 @@ const ManageTeam = () => {
             toast.error(err.message);
         }
     };
-    console.log(teamObj);
 
     const editTeam = async (team) => {
         try {
@@ -110,12 +110,11 @@ const ManageTeam = () => {
                     }
                 }
             );
-            console.log(res.data);
 
             setTeamObj(res.data);
             toggleAddTeam();
         } catch (err) {
-            toast.error(err?.response?.data?.message);
+            toast.error(err?.response?.data?.error);
         }
     };
 
@@ -210,6 +209,24 @@ const ManageTeam = () => {
         }
     }
 
+    async function fetchEmpHasTeams() {
+        setIsLoading(true);
+        try {
+            const who = isTeamHead ? "head" : isTeamLead ? "lead" : "manager";
+            const res = await axios.get(`${url}/api/team/${who}/${_id}`, {
+                headers: {
+                    Authorization: `${token}` || ""
+                }
+            });
+            setTeams(res.data);
+            setFilteredTeams(res.data);
+        } catch (err) {
+            console.log(err);
+
+            toast.error(err.response.data.error);
+        }
+        setIsLoading(false);
+    }
 
     useEffect(() => {
         const fetchTeams = async () => {
@@ -229,12 +246,18 @@ const ManageTeam = () => {
             }
             setIsLoading(false);
         };
+        if (["admin", "hr"].includes(whoIs)) {
+            fetchTeams();
+        } else if ([isTeamLead, isTeamHead, isTeamManager].includes(true)) {
+            fetchEmpHasTeams()
+        }
 
-        fetchTeams();
+    }, [dom]);
+    useEffect(() => {
         fetchHeads();
         fetchLeads();
         fetchManagers();
-    }, [dom]);
+    }, [])
 
     return (
         isLoading ? <Loading /> :
@@ -266,17 +289,6 @@ const ManageTeam = () => {
                     />
                 )}
 
-                {/* {assignEmp && (
-                    <AssignEmp
-                        teams={teams}
-                        handleSubmit={teamObj ? handleSubmitEdit : handleSubmit}
-                        teamObj={teamObj}
-                        setTeamLead={changeTeamObj}
-                        updateTeamObj={updateTeamObj}
-                        toggleAssignEmp={toggleAssignEmp}
-                    />
-                )} */}
-
                 {filteredTeams.length > 0 ? (
                     <div className="row d-flex justify-content-start">
                         {filteredTeams.map((team) => (
@@ -287,6 +299,7 @@ const ManageTeam = () => {
                     <NoDataFound message={"No teams found"} />
                 )}
             </div>
+
     );
 };
 

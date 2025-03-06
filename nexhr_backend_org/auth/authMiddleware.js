@@ -53,6 +53,30 @@ function verifyEmployee(req, res, next) {
   // next()
 }
 
+function verifyTeamHigherAuthority(req, res, next) {
+  const token = req.headers['authorization'];
+
+  if (typeof token !== "undefined") {
+    jwt.verify(token, jwtKey, (err, authData) => {
+      const { isTeamLead, isTeamHead, isTeamManager } = authData;
+      if (err) {
+        console.log(err);
+        res.sendStatus(401);
+      } else {
+        if ([isTeamLead, isTeamHead, isTeamManager].includes(true)) {
+          next();
+        } else {
+          res.status(401).send({ error: "No permission for this Action" });
+        }
+      }
+    });
+  } else {
+    // Forbidden
+    res.sendStatus(401);
+  }
+  // next()
+}
+
 function verifyHREmployee(req, res, next) {
   const token = req.headers['authorization'];
   if (typeof token !== "undefined") {
@@ -137,6 +161,31 @@ function verifyAdminHR(req, res, next) {
     }
   });
 }
+
+async function verifyAdminHRTeamHigherAuth(req, res, next) {
+  const token = req.headers['authorization'];
+  if (typeof token !== "undefined") {
+
+    jwt.verify(token, jwtKey, (err, authData) => {
+      const { isTeamLead, isTeamHead, isTeamManager } = authData;
+      if (err) {
+        console.log("error in verify");
+        res.sendStatus(401);
+      } else {
+        if ([1, 2].includes(authData.Account) || [isTeamLead, isTeamHead, isTeamManager].includes(true)) {
+          next();
+        }
+        else {
+          res.status(401).send({ error: "You has no Authorization!" });
+        }
+      }
+    });
+  } else {
+    // Forbidden
+    res.send(401).send({ error: "token not not found" });
+  }
+}
+
 
 function verifyAdminHREmployee(req, res, next) {
   // Retrieve the token from the Authorization header
@@ -314,5 +363,7 @@ module.exports = {
   verifyAdminHREmployeeManagerNetwork,
   verifySuperAdmin,
   verifyManager,
-  verifyNetworkAdmin
+  verifyNetworkAdmin,
+  verifyTeamHigherAuthority,
+  verifyAdminHRTeamHigherAuth
 }

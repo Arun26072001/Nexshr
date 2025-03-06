@@ -81,6 +81,8 @@ const EditEmployeeform = ({ details, empData, handleScroll, handlePersonal, hand
         initialValues: employeeObj,
         validationSchema: empFormValidation,
         onSubmit: async (values, { resetForm }) => {
+            console.log("reset");
+
             try {
                 const res = await updateEmp(values, id);
                 console.log(res);
@@ -227,8 +229,7 @@ const EditEmployeeform = ({ details, empData, handleScroll, handlePersonal, hand
         setStateData(countryFullData?.states);
     }, []);
 
-    console.log(formik.values);
-    
+
     const hourAndMin = timeDifference.toString().split(".");
     const [hour, min] = hourAndMin;
 
@@ -250,7 +251,6 @@ const EditEmployeeform = ({ details, empData, handleScroll, handlePersonal, hand
             formik.setFieldValue(name, countryFullData?.code || "");
         }
     }
-    console.log(stateData);
 
 
     return (

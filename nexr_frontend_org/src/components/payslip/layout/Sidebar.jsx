@@ -20,7 +20,7 @@ import { TimerStates } from '../HRMDashboard';
 
 const Sidebar = ({ sideBar }) => {
   const { data, whoIs, handleLogout } = useContext(EssentialValues);
-  const { setIsEditEmp } = useContext(TimerStates);
+  const { setIsEditEmp, isEditEmp } = useContext(TimerStates);
   const { token, _id } = data;
   const decodedData = jwtDecode(token);
   const { isTeamLead, isTeamHead, isTeamManager } = decodedData;
@@ -67,6 +67,7 @@ const Sidebar = ({ sideBar }) => {
   };
 
   const renderSubMenu = (menuKey, submenuItems, icon, label) => {
+
     return (
       <li className="nav-item">
         <NavLink
@@ -83,17 +84,22 @@ const Sidebar = ({ sideBar }) => {
         </NavLink>
         {activeNavLink === menuKey && (
           <ul className="nav-content p-2">
-            {submenuItems.map((item) => (
-              <li
-                key={item.key}
-                className={`submenu_navlist ${activeSubmenu === item.key ? 'active' : ''}`}
-                onClick={() => setActiveSubmenu(item.key)}
-              >
-                <NavLink to={item.path} className="nav-lists">
-                  {item.label}
-                </NavLink>
-              </li>
-            ))}
+            {submenuItems.map((item) => {
+              if (item.path.includes("/employee/edit/")) {
+                setIsEditEmp(true)
+              }
+              return (
+                <li
+                  key={item.key}
+                  className={`submenu_navlist ${activeSubmenu === item.key ? 'active' : ''}`}
+                  onClick={() => setActiveSubmenu(item.key)}
+                >
+                  <NavLink to={item.path} className="nav-lists">
+                    {item.label}
+                  </NavLink>
+                </li>
+              )
+            })}
           </ul>
         )}
       </li>
@@ -123,8 +129,8 @@ const Sidebar = ({ sideBar }) => {
           renderSubMenu(
             "employee",
             [
-              { key: `/${whoIs}/employee/edit/${_id}`, path: `/${whoIs}/leave/status`, label: 'My Details' },
-              { key: 'my-team', path: `/${whoIs}/leave/leave-request`, label: 'My Teams' }
+              { key: `my-details`, path: `/${whoIs}/employee/edit/${_id}`, label: 'My Details' },
+              { key: 'my-team', path: `/${whoIs}/employee`, label: 'My Teams' }
             ],
             userIcon,
             'Associate'
@@ -143,7 +149,7 @@ const Sidebar = ({ sideBar }) => {
           )}
 
         {renderNavLink(
-          ['admin', 'hr', 'emp'].includes(whoIs),
+          ['admin', 'hr', 'emp',].includes(whoIs),
           `/${whoIs}/projects`,
           folderIcon,
           'Project',
@@ -152,7 +158,7 @@ const Sidebar = ({ sideBar }) => {
 
 
         {renderNavLink(
-          ['admin', 'hr', 'emp'].includes(whoIs),
+          ['admin', 'hr', 'emp', "manager"].includes(whoIs),
           `/${whoIs}/tasks`,
           taskIcon,
           'Tasks',
@@ -160,7 +166,7 @@ const Sidebar = ({ sideBar }) => {
         )}
 
         {renderNavLink(
-          ['admin', 'hr', 'emp'].includes(whoIs),
+          ['admin', 'hr', 'emp', "manager"].includes(whoIs),
           `/${whoIs}/reports`,
           fileIcon,
           'Reports',
@@ -175,7 +181,7 @@ const Sidebar = ({ sideBar }) => {
           'calendar'
         )}
 
-        {(Leave === 'allow' || ['admin', 'hr'].includes(whoIs)) &&
+        {(Leave === 'allow' && ['admin', 'hr'].includes(whoIs)) &&
           renderSubMenu(
             'leave',
             [
@@ -202,8 +208,21 @@ const Sidebar = ({ sideBar }) => {
             'Leave'
           )}
 
+        {((Attendance === 'allow' &&
+          (decodedData.isTeamLead && whoIs === "emp") ||
+          (decodedData.isTeamHead && whoIs === "emp") ||
+          (decodedData.isTeamManager && whoIs === "manager"))
+          &&
+          renderSubMenu(
+            'attendance',
+            [
+              { key: 'daily-log', path: `/${whoIs}/attendance/daily-log`, label: 'Daily Log' }
+            ],
+            attendanceIcon,
+            'Attendance'
+          ))}
 
-        {(Attendance === 'allow' || ['admin', 'hr'].includes(whoIs)) &&
+        {(Attendance === 'allow' && ['admin', 'hr'].includes(whoIs)) &&
           renderSubMenu(
             'attendance',
             [
@@ -215,20 +234,6 @@ const Sidebar = ({ sideBar }) => {
             attendanceIcon,
             'Attendance'
           )}
-
-        {(Attendance === 'allow' || data.Account === "5" ||
-          (decodedData.isTeamLead && whoIs === "emp") ||
-          (decodedData.isTeamHead && whoIs === "emp") ||
-          (decodedData.isTeamManager && whoIs === "manager")
-          &&
-          renderSubMenu(
-            'attendance',
-            [
-              { key: 'daily-log', path: `/${whoIs}/attendance/daily-log`, label: 'Daily Log' }
-            ],
-            attendanceIcon,
-            'Attendance'
-          ))}
 
         {(Administration === 'allow' || whoIs === 'admin') &&
           renderSubMenu(

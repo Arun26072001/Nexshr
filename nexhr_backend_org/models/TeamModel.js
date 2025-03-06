@@ -27,7 +27,9 @@ const TeamValidation = Joi.object({
     lead: Joi.array().items(Joi.string()).required().label("Lead"),
     head: Joi.array().items(Joi.string()).required().label("Head"),
     manager: Joi.array().items(Joi.string()).required().label("Manager"),
-    __v: Joi.number().optional()
+    __v: Joi.number().optional(),
+    createdAt: Joi.string().allow('').label('createdAt'),
+    updatedAt: Joi.string().allow('').label('updatedAt')
 })
 
 module.exports = {
