@@ -53,7 +53,6 @@ router.get("/project/:id", verifyAdminHREmployeeManagerNetwork, async (req, res)
             };
         }).filter(Boolean);
 
-        console.log(timeUpdatedTasks);
 
         return res.send({ tasks: timeUpdatedTasks });
     } catch (error) {
@@ -404,16 +403,3 @@ router.delete("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
 })
 
 module.exports = router;
-
-
-// if (task.stopRunningAt) {
-//     console.log(task?.stopRunningAt);
-//     return ({
-//         ...task.toObject(),
-//         spend: task.spend + (new Date().getTime() - new Date(task?.stopRunningAt).getTime()) / 3600
-//     })
-// } else {
-//     return ({
-//         ...task.toObject()
-//     })
-// }

@@ -149,7 +149,7 @@ const Sidebar = ({ sideBar }) => {
           )}
 
         {renderNavLink(
-          ['admin', 'hr', 'emp',].includes(whoIs),
+          ['admin', 'hr', 'emp',"manager"].includes(whoIs),
           `/${whoIs}/projects`,
           folderIcon,
           'Project',
