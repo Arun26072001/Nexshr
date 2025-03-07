@@ -398,13 +398,30 @@ const Tasks = ({ employees }) => {
     editTask(updatedTask)
   }
 
-  async function updatedTimerInTask(id, timerData, stopRunningAt) {
+  async function updatedTimerInTask(id, timerType, timeHolderData) {
     const taskData = await fetchTaskById(id);
-    const updatedTask = {
-      ...taskData,
-      spend: timerData,
-      stopRunningAt: stopRunningAt
+    let updatedTask;
+    const currentTime = new Date().toTimeString().split(' ')[0];
+    if (timerType === "startTime") {
+      updatedTask = {
+        ...taskData,
+        spend: {
+          ...taskData?.spend,
+          startingTime: [...(taskData?.spend?.startingTime || []), currentTime]
+        }
+      }
+    } else {
+      updatedTask = {
+        ...taskData,
+        spend: {
+          ...taskData?.spend,
+          endingTime: [...(taskData?.spend?.endingTime || []), currentTime],
+          timeHolder: timeHolderData
+        }
+      }
     }
+    console.log(updatedTask);
+
     editTask(updatedTask)
   }
 

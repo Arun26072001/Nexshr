@@ -4,7 +4,7 @@ const { Task, taskValidation } = require("../models/TaskModel");
 const { Project } = require("../models/ProjectModel");
 const { Employee } = require("../models/EmpModel");
 const sendMail = require("./mailSender");
-const { convertToString } = require("../Reuseable_functions/reusableFunction");
+const { convertToString, getCurrentTimeInMinutes, timeToMinutes, formatTimeFromMinutes } = require("../Reuseable_functions/reusableFunction");
 const router = express.Router();
 
 function getTotalHours(from, to) {
@@ -31,18 +31,30 @@ router.get("/project/:id", verifyAdminHREmployeeManagerNetwork, async (req, res)
         }
 
         const timeUpdatedTasks = tasks.map((task) => {
-            if (task.stopRunningAt) {
-                console.log(task?.stopRunningAt);
-                return ({
-                    ...task.toObject(),
-                    spend: task.spend + (new Date().getTime() - new Date(task?.stopRunningAt).getTime()) / 3600
-                })
-            } else {
-                return ({
-                    ...task.toObject()
-                })
+            let startingTimes = task?.spend?.startingTime;
+            let endingTimes = task?.spend?.endingTime;
+
+            const values = startingTimes?.map((startTime, index) => {
+                if (!startTime) return 0; // No start time means no value
+
+                let endTimeInMin = 0;
+                if (endingTimes[index]) {
+                    // Calculate time difference with an ending time
+                    endTimeInMin = timeToMinutes(endingTimes[index]);
+                } else {
+                    // Calculate time difference with the current time
+                    endTimeInMin = getCurrentTimeInMinutes();
+                }
+                const startTimeInMin = timeToMinutes(startTime);
+                return Math.abs(endTimeInMin - startTimeInMin);
+            });
+            const totalValue = values?.reduce((acc, value) => acc + value, 0)
+            const timeHolder = formatTimeFromMinutes(totalValue);
+            if (task?.spend?.timeHolder) {
+                task.spend.timeHolder = timeHolder;
             }
-        })
+            return task
+        }).filter(Boolean);
 
         return res.send({ tasks: timeUpdatedTasks });
     } catch (error) {
@@ -64,6 +76,31 @@ router.get("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
         if (!task) {
             return res.status(404).send({ error: "No Task found" })
         }
+
+        let startingTimes = task?.spend?.startingTime;
+        let endingTimes = task?.spend?.endingTime;
+
+        const values = startingTimes?.map((startTime, index) => {
+            if (!startTime) return 0; // No start time means no value
+
+            let endTimeInMin = 0;
+            if (endingTimes[index]) {
+                // Calculate time difference with an ending time
+                endTimeInMin = timeToMinutes(endingTimes[index]);
+            } else {
+                // Calculate time difference with the current time
+                endTimeInMin = getCurrentTimeInMinutes();
+            }
+            const startTimeInMin = timeToMinutes(startTime);
+            return Math.abs(endTimeInMin - startTimeInMin);
+        });
+
+        const totalValue = values?.reduce((acc, value) => acc + value, 0)
+        const timeHolder = formatTimeFromMinutes(totalValue);
+        if (task?.spend?.timeHolder) {
+            task.spend.timeHolder = timeHolder;
+        }
+
         return res.send(task);
     } catch (error) {
         console.log(error);
@@ -144,7 +181,7 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
                 From: empData.Email,
                 To: emp.Email,
                 Subject: `${createdPersonName} has Assigned a Task to You`,
-                HtmlBody:`
+                HtmlBody: `
                     <html lang="en">
                         <head>
                             <meta charset="UTF-8">
@@ -192,10 +229,10 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
             });
         });
 
-                            return res.send({message: "Task is created successfully.", task });
+        return res.send({ message: "Task is created successfully.", task });
 
     } catch (error) {
-                                res.status(500).send({ error: error.message });
+        res.status(500).send({ error: error.message });
     }
 });
 
@@ -203,68 +240,68 @@ router.put("/:empId/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) 
     try {
         // Fetch Task Data
         const taskData = await Task.findById(req.params.id);
-                            if (!taskData) return res.status(404).send({error: "Task not found" });
+        if (!taskData) return res.status(404).send({ error: "Task not found" });
 
         // Identify Newly Assigned Employees
-        const newAssignees = req.body.assignedTo?.filter(emp => !taskData?.employees?.includes(emp)) || [];
+        const newAssignees = req.body.assignedTo?.filter(emp => !taskData?.assignedTo?.includes(emp)) || [];
 
-                            // Fetch Assigned Person & Employee Data
-                            const assignedPerson = await Employee.findById(req.body.createdby)
-                            .populate({path: "company", select: "CompanyName" });
+        // Fetch Assigned Person & Employee Data
+        const assignedPerson = await Employee.findById(req.body.createdby)
+            .populate({ path: "company", select: "CompanyName" });
 
-                            if (!assignedPerson) return res.status(404).send({error: "Assigned person not found" });
+        if (!assignedPerson) return res.status(404).send({ error: "Assigned person not found" });
 
-                            const empData = await Employee.findById(req.params.empId);
-                            if (!empData) return res.status(404).send({error: "Employee not found" });
+        const empData = await Employee.findById(req.params.empId);
+        if (!empData) return res.status(404).send({ error: "Employee not found" });
 
-                            const emps = await Employee.find({_id: {$in: newAssignees } }, "FirstName LastName Email");
+        const emps = await Employee.find({ _id: { $in: newAssignees } }, "FirstName LastName Email");
 
         // Generate Task Change Logs
         const taskChanges = Object.entries(taskData.toObject()).flatMap(([key, value]) => {
             const newValue = convertToString(req.body[key]);
-                            const oldValue = convertToString(value);
-                            if (
-                            newValue !== undefined &&
-                            !["createdAt", "createdby", "tracker", "updatedAt", "_id", "tracker", "__v", "spend"]?.includes(key) &&
-                            (Array.isArray(oldValue) ? oldValue.length !== newValue.length : oldValue !== newValue)
-                            ) {
+            const oldValue = convertToString(value);
+            if (
+                newValue !== undefined &&
+                !["createdAt", "createdby", "tracker", "updatedAt", "_id", "tracker", "__v", "spend"]?.includes(key) &&
+                (Array.isArray(oldValue) ? oldValue.length !== newValue.length : oldValue !== newValue)
+            ) {
                 return {
-                                date: new Date(),
-                            message: `Task field "${key}" updated by ${empData.FirstName} ${empData.LastName}`,
-                            who: req.params.empId
+                    date: new Date(),
+                    message: `Task field "${key}" updated by ${empData.FirstName} ${empData.LastName}`,
+                    who: req.params.empId
                 };
             }
-                            return [];
+            return [];
         });
 
-                            // Prepare Updated Task Data
-                            const updatedTask = {
-                                ...req.body,
-                                tracker: [...taskData.tracker, ...taskChanges],
-                            createdby: req.body.createdby._id || req.body.createdby
+        // Prepare Updated Task Data
+        const updatedTask = {
+            ...req.body,
+            tracker: [...taskData.tracker, ...taskChanges],
+            createdby: req.body.createdby._id || req.body.createdby
         };
 
-                            // Validate Task Data
-                            const {error} = taskValidation.validate(updatedTask);
-                            if (error) {
-            return res.status(400).send({error: error.details[0].message });
-        }
+        // // Validate Task Data
+        // const { error } = taskValidation.validate(updatedTask);
+        // if (error) {
+        //     return res.status(400).send({ error: error.details[0].message });
+        // }
 
-                            // Update Task in Database
-                            const task = await Task.findByIdAndUpdate(req.params.id, updatedTask, {new: true });
+        // Update Task in Database
+        const task = await Task.findByIdAndUpdate(req.params.id, updatedTask, { new: true });
 
-                            // Prepare Assigned Person's Name
-                            const assignedPersonName = `${assignedPerson.FirstName.charAt(0).toUpperCase()}${assignedPerson.FirstName.slice(1)} ${assignedPerson.LastName}`;
+        // Prepare Assigned Person's Name
+        const assignedPersonName = `${assignedPerson.FirstName.charAt(0).toUpperCase()}${assignedPerson.FirstName.slice(1)} ${assignedPerson.LastName}`;
 
-                            // Send Emails for Task Completion
-                            if (req.body.status === "Completed") {
-                                emps.forEach(emp => {
-                                    const empName = `${emp.FirstName.charAt(0).toUpperCase()}${emp.FirstName.slice(1)} ${emp.LastName}`;
-                                    sendMail({
-                                        From: emp.Email,
-                                        To: assignedPerson.Email,
-                                        Subject: `Your assigned task (${req.body.title}) is completed`,
-                                        HtmlBody: `
+        // Send Emails for Task Completion
+        if (req.body.status === "Completed") {
+            emps.forEach(emp => {
+                const empName = `${emp.FirstName.charAt(0).toUpperCase()}${emp.FirstName.slice(1)} ${emp.LastName}`;
+                sendMail({
+                    From: emp.Email,
+                    To: assignedPerson.Email,
+                    Subject: `Your assigned task (${req.body.title}) is completed`,
+                    HtmlBody: `
                     <html lang="en">
                     <head>
                         <meta charset="UTF-8">
@@ -296,18 +333,18 @@ router.put("/:empId/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) 
                     </body>
                     </html>
                     `
-                                    });
-                                });
+                });
+            });
         }
 
         // Send Emails for Newly Assigned Employees
         emps.forEach(emp => {
             const empName = `${emp.FirstName.charAt(0).toUpperCase()}${emp.FirstName.slice(1)} ${emp.LastName}`;
-                            sendMail({
-                                From: assignedPerson.Email,
-                            To: emp.Email,
-                            Subject: `${assignedPersonName} has assigned a task to you`,
-                            HtmlBody: `
+            sendMail({
+                From: assignedPerson.Email,
+                To: emp.Email,
+                Subject: `${assignedPersonName} has assigned a task to you`,
+                HtmlBody: `
                             <html lang="en">
                                 <head>
                                     <meta charset="UTF-8">
@@ -343,28 +380,28 @@ router.put("/:empId/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) 
             });
         });
 
-                                    return res.status(200).send({message: "Task updated successfully", task });
+        return res.status(200).send({ message: "Task updated successfully", task });
 
     } catch (error) {
-                                        console.error(error);
-                                    return res.status(500).send({error: error.message });
+        console.error(error);
+        return res.status(500).send({ error: error.message });
     }
 });
 
 
 router.delete("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
     try {
-        const project = await Project.findOne({tasks: {$in: req.params.id } })
-                                    const task = await Task.findByIdAndDelete(req.params.id);
-                                    if (!task) {
-            return res.status(404).send({error: "Task not found" });
+        const project = await Project.findOne({ tasks: { $in: req.params.id } })
+        const task = await Task.findByIdAndDelete(req.params.id);
+        if (!task) {
+            return res.status(404).send({ error: "Task not found" });
         }
-                                    project.tasks.pop(req.params.id);
-                                    await project.save();
-                                    return res.send({message: "Task was delete successfully" })
+        project.tasks.pop(req.params.id);
+        await project.save();
+        return res.send({ message: "Task was delete successfully" })
     } catch (error) {
-        return res.status(500).send({error: error.message })
+        return res.status(500).send({ error: error.message })
     }
 })
 
-                                    module.exports = router;
+module.exports = router;

@@ -7,11 +7,7 @@ const { getDayDifference } = require("./leave-app");
 const sendMail = require("./mailSender");
 const { LeaveApplication, LeaveApplicationValidation } = require("../models/LeaveAppModel");
 const { Team } = require("../models/TeamModel");
-
-function timeToMinutes(timeStr) {
-    const [hours, minutes, seconds] = timeStr.split(":").map(Number);
-    return Number(((hours * 60) + minutes + (seconds / 60)).toFixed(2)) || 0; // Defaults to 0 if input is invalid
-}
+const { getCurrentTimeInMinutes, formatTimeFromMinutes } = require("../Reuseable_functions/reusableFunction");
 
 async function checkLoginForOfficeTime(scheduledTime, actualTime, permissionTime) {
 
@@ -64,20 +60,6 @@ function getTotalWorkingHourPerDay(startingTime, endingTime) {
     } else {
         return 0;
     }
-}
-
-function formatTimeFromMinutes(minutes) {
-    const hours = Math.floor(minutes / 60); // Get the number of hours
-    const mins = Math.floor(minutes % 60); // Get the remaining whole minutes
-    const fractionalPart = minutes % 1; // Get the fractional part of the minutes
-    const secs = Math.round(fractionalPart * 60); // Convert the fractional part to seconds
-
-    // Format each part to ensure two digits (e.g., "04" instead of "4")
-    const formattedHours = String(hours).padStart(2, '0');
-    const formattedMinutes = String(mins).padStart(2, '0');
-    const formattedSeconds = String(secs).padStart(2, '0');
-
-    return `${formattedHours}:${formattedMinutes}:${formattedSeconds}`;
 }
 
 router.post("/auto-permission/:patternId", async (req, res) => {
@@ -516,14 +498,6 @@ router.get("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
         activities.map((activity) => {
             let startingTimes = clockIn[activity]?.startingTime;
             let endingTimes = clockIn[activity]?.endingTime;
-
-            const getCurrentTimeInMinutes = () => {
-                const now = new Date().toLocaleTimeString('en-US', { timeZone: process.env.TIMEZONE, hourCycle: 'h23' });
-                const timeWithoutSuffix = now.replace(/ AM| PM/, ""); // Remove AM/PM
-                const [hour, min, sec] = timeWithoutSuffix.split(":").map(Number);
-                return timeToMinutes(`${hour}:${min}:${sec}`);
-            };
-
 
             const values = startingTimes?.map((startTime, index) => {
                 if (!startTime) return 0; // No start time means no value
