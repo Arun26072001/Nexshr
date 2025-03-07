@@ -77,7 +77,7 @@ export default function TaskItem({ task, status, getValue, handleEditTask, fetch
                     task={task}
                     updateTask={updatedTimerInTask}
                 /> */}
-                <Mytimer2 tas={task} startTaskTimer={startTaskTimer} stopTaskTimer={stopTaskTimer} />
+                {/* <Mytimer2 tas={task} startTaskTimer={startTaskTimer} stopTaskTimer={stopTaskTimer} /> */}
                 <ErrorOutlineRoundedIcon
                     sx={{ cursor: "pointer" }}
                     onClick={() => {

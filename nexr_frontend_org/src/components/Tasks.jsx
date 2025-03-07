@@ -399,8 +399,6 @@ const Tasks = ({ employees }) => {
   }
 
   async function updatedTimerInTask(id, timerData, stopRunningAt) {
-    console.log(stopRunningAt);
-
     const taskData = await fetchTaskById(id);
     const updatedTask = {
       ...taskData,
