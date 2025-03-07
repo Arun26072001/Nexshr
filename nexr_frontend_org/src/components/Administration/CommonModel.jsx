@@ -36,6 +36,7 @@ const CommonModel = ({
     const [confirmationTxt, setConfirmationTxt] = useState("");
     const [isDisabled, setIsDisabled] = useState(true);
 
+    console.log();
 
     return (
         <Modal open={isAddData} size="sm" backdrop="static">
@@ -390,7 +391,7 @@ const CommonModel = ({
                         <div className="col-half">
                             <div className="modelInput">
                                 <p className='modelLabel'>Spend time:</p>
-                                <InputNumber size='lg' defaultValue={0.00} style={{ width: "100%" }} step={0.01} value={dataObj?.spendTime} onChange={(e) => changeData(e, "spendTime")} />
+                                <InputNumber size='lg' defaultValue={0.00} style={{ width: "100%" }} step={0.01} value={dataObj?.spend?.timeHolder} onChange={(e) => changeData(e, "spend.timeHolder")} />
                             </div>
                         </div>
                     </div>

@@ -8,7 +8,6 @@ export default function Mytimer2({ task, updatedTimerInTask }) {
     const [hour, setHour] = useState(0);
     const [min, setMin] = useState(0);
     const [sec, setSec] = useState(0);
-    console.log(task);
 
     useEffect(() => {
         if (task?.spend?.timeHolder) {

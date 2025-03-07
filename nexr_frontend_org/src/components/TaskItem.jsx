@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react'
 import { Checkbox, Whisper } from 'rsuite';
-import MyTimer from './MyTimer';
 import { useNavigate } from 'react-router-dom';
 
 // icons
@@ -70,13 +69,7 @@ export default function TaskItem({ task, status, getValue, handleEditTask, fetch
 
             {/* Right Section - Timer & Actions */}
             <div className="cal-half d-flex align-items-center justify-content-center gap-2">
-                {/* <MyTimer
-                    startingHour={timeData?.hour}
-                    startingMin={timeData?.min}
-                    startingSec={timeData?.sec}
-                    task={task}
-                    updateTask={updatedTimerInTask}
-                /> */}
+      
                 <Mytimer2 task={task} updatedTimerInTask={updatedTimerInTask} />
                 <ErrorOutlineRoundedIcon
                     sx={{ cursor: "pointer" }}

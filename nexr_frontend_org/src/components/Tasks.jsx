@@ -44,6 +44,25 @@ const Tasks = ({ employees }) => {
   const [isDelete, setIsDelete] = useState({ type: false, value: "" });
   const [status, setStatus] = useState("Pending");
 
+  function getTimeToHour(timeStr) {
+    if (timeStr) {
+      const [hours, minutes, seconds] = timeStr.split(":").map(Number);
+      console.log((((hours * 60) + minutes + (seconds / 60)) / 60)?.toFixed());
+      return (((hours * 60) + minutes + (seconds / 60)) / 60)?.toFixed(2);
+    } else {
+      return 0;
+    }
+  }
+
+  function formatTimeFromHour(hour) {
+    const hours = Math.floor(hour);
+    const minutes = Math.floor(hour % 60);
+    const seconds = Math.floor((hour * 60) % 60); // Convert remaining fraction to seconds
+    console.log(`${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`);
+
+    return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+  }
+
 
   const renderMenu1 = ({ onClose, right, top, className }, ref) => {
     const handleSelect = eventKey => {
@@ -94,6 +113,7 @@ const Tasks = ({ employees }) => {
     );
   };
   function changeTask(value, name) {
+    console.log(value, name);
 
     if (name === "attachments") {
       const files = value.target.files;
@@ -106,14 +126,27 @@ const Tasks = ({ employees }) => {
       }
     }
 
-    setTaskObj((prev) => ({
-      ...prev,
-      [name]: name === "attachments"
-        ? [...(prev[name] || []), ...value.target.files] // Spread the FileList into the array
-        : value // Update other fields directly
-    }));
+    setTaskObj((prev) => {
+      if (name.includes("spend")) {
+        const spendChild = name.split(".")[1];
+        return ({
+          ...prev,
+          spend: {
+            ...prev.spend,
+            [spendChild]: value
+          }
+        })
+      } else {
+        return ({
+          ...prev,
+          [name]: name === "attachments"
+            ? [...(prev[name] || []), ...value.target.files] // Spread the FileList into the array
+            : value // Update other fields directly
+        })
+      }
+    }
+    )
   }
-
 
   function handleEditTask() {
     if (isEditTask) {
@@ -168,7 +201,13 @@ const Tasks = ({ employees }) => {
           Authorization: data.token || ""
         }
       })
-      setTaskObj(res.data);
+      setTaskObj({
+        ...res.data,
+        spend: {
+          ...res?.data?.spend,
+          timeHolder: getTimeToHour(res?.data?.spend?.timeHolder || 0)
+        }
+      });
       setPreviewList(res.data.attachments);
       return res.data;
     } catch (error) {
@@ -214,7 +253,18 @@ const Tasks = ({ employees }) => {
   }, [status, allTasks]);
 
   async function editTask(updatedTask) {
-    const taskToUpdate = updatedTask
+    let taskToUpdate;
+    if (updatedTask.spend.timeHolder.split(":").length > 2) {
+      taskToUpdate = updatedTask
+    } else {
+      taskToUpdate = {
+        ...updatedTask,
+        spend: {
+          ...updatedTask.spend,
+          timeHolder: formatTimeFromHour(updatedTask.spend.timeHolder)
+        }
+      }
+    }
 
     if (!taskToUpdate?._id) {
       console.error("No task ID found to update");
@@ -420,10 +470,10 @@ const Tasks = ({ employees }) => {
         }
       }
     }
-    console.log(updatedTask);
-
     editTask(updatedTask)
   }
+  console.log(allTasks);
+
 
   return (
     isviewTask ? <CommonModel type="Task View" isAddData={isviewTask} modifyData={handleViewTask} dataObj={taskObj} projects={projects} removeAttachment={removeAttachment} employees={employees} /> :
