@@ -144,11 +144,71 @@ router.post("/", verifyAdminHR, async (req, res) => {
                 ...req.body,
                 employees: [...req.body.employees, ...req.body.lead, ...req.body.head, ...req.body.manager]
             }
-            const newTeam = await Team.create(newTeamData);
-            const emps = await Employee.find({ _id: req.body.employees });
+            const newTeam = await Team.create(newTeamData, { new: true });
+            const emps = await Employee.find({ _id: req.body.employees }).populate({ path: "company" });
             emps.map(async (emp) => {
-                emp.teamLead[0] = req.body.lead
+                emp.teamLead = req.body.lead
+                emp.team = newTeam._id
                 await emp.save();
+                sendMail({
+                    From: process.env.FROM_MAIL,
+                    To: emp.Email,
+                    Subject: `Welcome to ${newTeam.teamName} Team`,
+                    HtmlBody: `<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>${emp.company.CompanyName} - Team Invitation</title>
+  </head>
+  <body style="font-family: Arial, sans-serif; background-color: #f6f9fc; color: #333; margin: 0; padding: 0;">
+    <div style="max-width: 600px; margin: auto; padding: 20px; background-color: #fff; border-radius: 8px;
+                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); text-align: center;">
+      
+      <!-- Header -->
+      <div style="padding-bottom: 15px;">
+        <h1 style="font-size: 22px; color: #333; margin: 0;">Welcome to the ${newTeam.teamName} Team!</h1>
+      </div>
+
+      <!-- Content -->
+      <div style="margin: 20px 0; padding: 10px; text-align: left;">
+        <p style="font-size: 14px; color: #333; margin: 10px 0;">Hello ${emp.FirstName} 👋,</p>
+        <p style="font-size: 14px; color: #333; margin: 10px 0;">
+          You have been invited to join the <b>${newTeam.teamName}</b> team at <b>${emp.company.CompanyName}</b>.
+        </p>
+        <p style="font-size: 14px; color: #333; margin: 10px 0;">
+          As a part of this team, you will collaborate with colleagues, participate in projects, and contribute to the company's success.
+        </p>
+        <p style="font-size: 14px; color: #333; margin: 10px 0;">
+          Please click the button below to accept the invitation and get started.
+        </p>
+        
+        <div style="text-align: center; margin: 20px 0;">
+          <a href="${process.env.FRONTEND_URL}" style="background-color: #007BFF; color: white; padding: 12px 24px; border-radius: 5px; 
+              text-decoration: none; font-size: 16px; display: inline-block;">
+            Accept Invitation
+          </a>
+        </div>
+        
+        <p style="font-size: 14px; color: #333; margin: 10px 0;">We’re excited to have you on board!</p>
+        <p style="font-size: 14px; color: #333; margin: 10px 0;">Best regards,</p>
+        <p style="font-size: 14px; color: #333; margin: 10px 0;"><b>${createdPersonName}</b></p>
+      </div>
+
+      <!-- Footer -->
+      <div style="font-size: 14px; margin-top: 20px; color: #777; text-align: center;">
+        <p style="margin: 10px 0;">
+          Have questions? Need help?
+          <a href="mailto:${process.env.FROM_MAIL}" style="color: #007BFF; text-decoration: none;">
+            Contact ${emp.company.CompanyName}
+          </a>.
+        </p>
+      </div>
+    </div>
+  </body>
+</html>
+ `,
+                })
             })
             res.send({ message: `new ${newTeam.teamName} team has been added!`, newTeam })
         }

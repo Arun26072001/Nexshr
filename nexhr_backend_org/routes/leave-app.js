@@ -13,42 +13,42 @@ const sendMail = require("./mailSender");
 const { getDayDifference, mailContent } = require('../Reuseable_functions/reusableFunction');
 
 // Helper function to generate leave request email content
-function generateLeaveEmail(empData, fromDate, toDate, reasonForLeave) {
+function generateLeaveEmail(empData, fromDateValue, toDateValue, reasonForLeave, leaveType) {
   return `
   <!DOCTYPE html>
-  <html lang="en">
-  <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NexsHR - Leave Application</title>
-    <style>
-      body { font-family: Arial, sans-serif; background-color: #f6f9fc; color: #333; }
-                   .container { max-width: 600px; margin: auto; padding: 20px; background-color: #fff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); }
-                   .header { text-align: center; padding: 20px; }
-                   .header img { max-width: 100px; }
-                   .content { margin: 20px 0; }
-    </style>
-  </head>
-  <body>
-    <div class="container">
-      <div class="header">
-        <img src="https://imagedelivery.net/r89jzjNfZziPHJz5JXGOCw/1dd59d6a-7b64-49d7-ea24-1366e2f48300/public" alt="Company Logo" />
-        <h1>Leave Application (${new Date(fromDate).toDateString()} - ${new Date(toDate).toDateString()})</h1>
-        <h2>Submitted by: ${empData.FirstName} ${empData.LastName}</h2>
-      </div>
-
-      <div class="content">
-        <p><span class="important">Reason for Leave:</span> ${reasonForLeave}</p>
-        <p>Kindly review and respond accordingly.</p>
-        <p>Thank you!</p>
-      </div>
-
-      <div class="footer">
-        <p>&copy; ${new Date().getFullYear()} NexsHR. All rights reserved.</p>
-      </div>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NexsHR - Leave Application</title>
+</head>
+<body style="font-family: Arial, sans-serif; background-color: #f6f9fc; color: #333; margin: 0; padding: 0;">
+  <div style="max-width: 500px; margin: auto; padding: 20px; background-color: #fff; border-radius: 8px;
+              box-shadow: rgba(0, 0, 0, 0.02) 0px 1px 3px 0px, rgba(27, 31, 35, 0.15) 0px 0px 0px 1px;">
+    
+    <!-- Header -->
+    <div style="text-align: center; padding: 20px;">
+      <img src="https://imagedelivery.net/r89jzjNfZziPHJz5JXGOCw/1dd59d6a-7b64-49d7-ea24-1366e2f48300/public"
+           alt="Company Logo" style="max-width: 100px;" />
+      <h1 style="font-size: 20px; margin: 10px 0;">Leave Application (${leaveType} from ${new Date(fromDateValue).toLocaleString("default", { month: "long" })} ${new Date(fromDateValue).getDate()}, ${new Date(fromDateValue).getFullYear()} 
+      to ${new Date(toDateValue).toLocaleString("default", { month: "long" })} ${new Date(toDateValue).getDate()}, ${new Date(toDateValue).getFullYear()})</h1>
+      <h2 style="font-size: 16px; margin: 5px 0; color: #555;">Submitted by: ${empData.FirstName} ${empData.LastName}</h2>
     </div>
-  </body>
-  </html>
+
+    <!-- Content -->
+    <div style="margin: 20px 0; padding: 10px;">
+      <p style="font-size: 14px; margin: 10px 0;"><strong>Reason for Leave:</strong> ${reasonForLeave}</p>
+      <p style="font-size: 14px; margin: 10px 0;">Kindly review and respond accordingly.</p>
+      <p style="font-size: 14px; margin: 10px 0;">Thank you!</p>
+    </div>
+
+    <!-- Footer -->
+    <div style="text-align: center; padding-top: 15px; border-top: 1px solid #ddd; margin-top: 20px;">
+      <p style="font-size: 12px; color: #777;">&copy; ${new Date().getFullYear()} NexsHR. All rights reserved.</p>
+    </div>
+  </div>
+</body>
+</html>
 `;
 }
 
@@ -56,68 +56,33 @@ function generateLeaveEmail(empData, fromDate, toDate, reasonForLeave) {
 function generateCoverByEmail(empData, relievingOffData) {
   return `
     <!DOCTYPE html>
-    <html lang="en">
-    <head>
-      <meta charset="UTF-8">
-      <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <title>NexsHR - Task Assignment</title>
-      <style>
-        body {
-          font-family: Arial, sans-serif;
-          background-color: #f6f9fc;
-          color: #333;
-          margin: 0;
-          padding: 0;
-        }
-        .container {
-          max-width: 600px;
-          margin: 20px auto;
-          padding: 20px;
-          background-color: #fff;
-          border-radius: 8px;
-          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        }
-        .header {
-          text-align: center;
-          padding: 20px;
-        }
-        .header img {
-          max-width: 100px;
-        }
-        .content {
-          margin: 20px 0;
-          font-size: 16px;
-          line-height: 1.5;
-        }
-        .footer {
-          text-align: center;
-          font-size: 14px;
-          margin-top: 20px;
-          color: #777;
-        }
-      </style>
-    </head>
-    <body>
-      <div class="container">
-        <div class="header">
-          <img src="https://imagedelivery.net/r89jzjNfZziPHJz5JXGOCw/1dd59d6a-7b64-49d7-ea24-1366e2f48300/public" alt="Company Logo" />
-          <h1>Task Assignment Notification</h1>
-        </div>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NexsHR - Task Assignment</title>
+</head>
+<body style="font-family: Arial, sans-serif; background-color: #f6f9fc; color: #333; margin: 0; padding: 0;">
+  <div style="max-width: 600px; margin: 20px auto; padding: 20px; background-color: #fff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);">
+    <div style="text-align: center; padding: 20px;">
+      <img src="https://imagedelivery.net/r89jzjNfZziPHJz5JXGOCw/1dd59d6a-7b64-49d7-ea24-1366e2f48300/public" alt="Company Logo" style="max-width: 100px;" />
+      <h1 style="margin: 0;">Task Assignment Notification</h1>
+    </div>
 
-        <div class="content">
-          <p>Hi <strong>${relievingOffData.FirstName}</strong>,</p>
-          <p><strong>${empData.FirstName}</strong> has assigned some tasks to you during their leave.</p>
-          <p>Please ensure the assigned tasks are completed as required.</p>
-          <p>Let us know if you need any assistance.</p>
-          <p>Thank you!</p>
-        </div>
+    <div style="margin: 20px 0; font-size: 16px; line-height: 1.5;">
+      <p>Hi <strong>${relievingOffData.FirstName}</strong>,</p>
+      <p><strong>${empData.FirstName}</strong> has assigned some tasks to you during their leave.</p>
+      <p>Please ensure the assigned tasks are completed as required.</p>
+      <p>Let us know if you need any assistance.</p>
+      <p>Thank you!</p>
+    </div>
 
-        <div class="footer">
-          <p>&copy; ${new Date().getFullYear()} NexsHR. All rights reserved.</p>
-        </div>
-      </div>
-    </body>
-    </html>
+    <div style="text-align: center; font-size: 14px; margin-top: 20px; color: #777;">
+      <p>&copy; ${new Date().getFullYear()} NexsHR. All rights reserved.</p>
+    </div>
+  </div>
+</body>
+</html>
   `;
 }
 
@@ -879,7 +844,7 @@ leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("pre
         fromDateObj.toDateString() === today.toDateString() ||
         fromDateObj.toDateString() === yesterday.toDateString();
 
-      if (isTodayOrYesterday) {
+      if (!isTodayOrYesterday) {
         return res.status(400).json({ error: "Sick leave is only applicable for today and yesterday." });
       }
     } else if (["Annual Leave", "Casual Leave"].includes(leaveType)) {
@@ -914,8 +879,8 @@ leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("pre
     if (leaveType.includes("Permission Leave")) {
       const permissionTime = (new Date(toDate) - new Date(fromDate)) / 60000;
 
-      if (permissionTime > emp?.permissionHour || 120) {
-        return res.status(400).json({ error: `Permission is only approved for up to ${emp?.permissionHour || "2"} hours.` });
+      if (permissionTime > (emp?.permissionHour || 120)) {
+        return res.status(400).json({ error: `Permission is only approved for less than ${emp?.permissionHour || "2"} hours.` });
       }
       if (emp.leaveApplication.length >= emp?.monthlyPermissions) {
         return res.status(400).json({ error: "You have already used 2 permissions this month." });
@@ -942,7 +907,6 @@ leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("pre
 
     const takenLeaveCount = approvedLeaveData.reduce((acc, leave) => acc + getDayDifference(leave), 0);
 
-
     if (leaveType !== "Permission Leave") {
       const leaveDaysCount = emp?.typesOfLeaveRemainingDays?.[leaveType] || 0;
       if (leaveDaysCount < takenLeaveCount) {
@@ -966,14 +930,16 @@ leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("pre
     const mailList = [
       emp?.team?.lead?.Email,
       emp?.team?.head?.Email,
-      emp?.team?.manager?.Email
+      emp?.team?.manager?.Email,
+      emp?.admin?.Email
     ].filter(Boolean);
+    console.log(mailList);
 
     sendMail({
       From: process.env.FROM_MAIL,
       To: mailList.join(","),
       Subject: "Leave Application Notification",
-      HtmlBody: generateLeaveEmail(emp, fromDate, toDate, reasonForLeave),
+      HtmlBody: generateLeaveEmail(emp, fromDate, toDate, reasonForLeave, leaveType),
     });
 
     // If coverBy is assigned, notify the relieving officer
@@ -999,104 +965,90 @@ leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("pre
 leaveApp.put('/:id', verifyAdminHREmployee, async (req, res) => {
   try {
     const today = new Date();
-    const leaveAppStartedHour = new Date(req.body.fromDate).getHours()
-
+    const leaveAppStartedHour = new Date(req.body.fromDate).getHours();
     const startOfDay = new Date(today.setHours((leaveAppStartedHour || 0) - 2, 0, 0, 0));
 
     const { Hr, TeamLead, TeamHead, employee, leaveType, ...restBody } = req.body;
     const approvers = [Hr, TeamLead, TeamHead];
 
-    // Determine application status
     const allApproved = approvers.every(status => status === 'approved');
     const anyRejected = approvers.some(status => status === 'rejected');
 
-    const emp = await Employee.findById(employee);
-    if (!emp) {
-      return res.status(404).send({ error: 'Employee not found.' });
-    }
-    // Update leave balance if fully approved
-    if (allApproved) {
+    const emp = await Employee.findById(employee).populate({
+      path: "team",
+      populate: [
+        { path: "lead", select: "FirstName LastName Email" },
+        { path: "head", select: "FirstName LastName Email" },
+        { path: "manager", select: "FirstName LastName Email" }
+      ]
+    })
+      .populate({ path: "admin", select: "FirstName LastName Email" });
 
-      // Calculate leave days To deduct
+    if (!emp) return res.status(404).send({ error: 'Employee not found.' });
+
+    const fromDateValue = new Date(req.body.fromDate);
+    const toDateValue = new Date(req.body.toDate);
+
+    if (allApproved) {
       const leaveDaysTaken = Math.max(getDayDifference(req.body), 1);
-      // const leaveTypeKey = leaveType.split(' ')[0];
 
       if (!emp.typesOfLeaveRemainingDays[leaveType]) {
         return res.status(400).send({ error: 'Invalid leave type.' });
       }
 
-      emp.typesOfLeaveRemainingDays[leaveType] -= leaveDaysTaken;
-      // emp.annualLeaveEntitlement -= leaveDaysTaken
-
-      // Prevent negative leave balances
-      if (emp.typesOfLeaveRemainingDays[leaveType] < 0) {
-        return res.status(400).send({
-          error: 'Insufficient leave balance for the requested leave type.',
-        });
+      if (emp.typesOfLeaveRemainingDays[leaveType] < leaveDaysTaken) {
+        return res.status(400).send({ error: 'Insufficient leave balance for the requested leave type.' });
       }
 
+      emp.typesOfLeaveRemainingDays[leaveType] -= leaveDaysTaken;
       await emp.save();
     }
 
-    // Prepare updated leave application data
+    const members = [
+      { type: "emp", Email: emp.Email, name: `${emp.FirstName} ${emp.LastName}` },
+      emp.team.lead && { type: "lead", Email: emp.team.lead.Email, name: `${emp.team.lead.FirstName} ${emp.team.lead.LastName}` },
+      emp.team.head && { type: "head", Email: emp.team.head.Email, name: `${emp.team.head.FirstName} ${emp.team.head.LastName}` },
+      emp.team.manager && { type: "manager", Email: emp.team.manager.Email, name: `${emp.team.manager.FirstName} ${emp.team.manager.LastName}` },
+      emp.admin && { type: "admin", Email: emp.admin.Email, name: `${emp.admin.FirstName} ${emp.admin.LastName}` }
+    ].filter(Boolean);
+
     const updatedLeaveApp = {
       ...restBody,
-      Hr, TeamHead, TeamLead,
-      status: allApproved ? "approved" : anyRejected ? "rejected" : restBody.status,
+      Hr,
+      TeamHead,
+      TeamLead,
+      status: allApproved ? "approved" : anyRejected ? "rejected" : restBody.status
     };
 
-    // Update leave application and ensure it's not expired
     const updatedRequest = await LeaveApplication.findOneAndUpdate(
-      {
-        _id: req.params.id,
-        fromDate: { $gt: startOfDay },
-      },
+      { _id: req.params.id, fromDate: { $gt: startOfDay } },
       updatedLeaveApp,
       { new: true }
     );
-
-    const fromDateValue = new Date(req.body.fromDate);
-    const toDateValue = new Date(req.body.toDate);
-    if (updatedRequest.status === "approved") {
-      // send mail for applied person
-      sendMail({
-        From: process.env.FROM_MAIL,
-        To: emp.Email,
-        Subject: "Leave Application Reponse",
-        HtmlBody: mailContent("approved", fromDateValue, toDateValue, emp, req.body.leaveType, Hr, TeamLead, TeamHead, TeamManager),
-      });
-      // send mail for admin
-      sendMail({
-        From: process.env.FROM_MAIL,
-        To: emp.Email,
-        Subject: "Leave Application Reponse",
-        HtmlBody: mailContent("approved", fromDateValue, toDateValue, emp, req.body.leaveType, Hr, TeamLead, TeamHead, TeamManager),
-      });
-    } else if (anyRejected) {
-      // send mail for applied person
-      sendMail({
-        From: process.env.FROM_MAIL,
-        To: emp.Email,
-        Subject: "Leave Application Reponse",
-        HtmlBody: mailContent("rejected", fromDateValue, toDateValue, emp, req.body.leave, Hr, TeamLead, TeamHead, TeamManager),
-      });
-      // send mail for admin
-      sendMail({
-        From: process.env.FROM_MAIL,
-        To: emp.Email,
-        Subject: "Leave Application Reponse",
-        HtmlBody: mailContent("approved", fromDateValue, toDateValue, emp, req.body.leaveType, Hr, TeamLead, TeamHead, TeamManager),
-      });
-    }
 
     if (!updatedRequest) {
       return res.status(400).send({ error: 'Leave request has expired.' });
     }
 
-    return res.send({
-      message: 'You have replied To the leave application.',
-      data: updatedRequest,
+    const actionBy = Hr === "approved" ? "HR" :
+      TeamHead === "approved" ? "TeamHead" :
+        TeamLead === "approved" ? "TeamLead" : "Manager";
+
+    const emailType = allApproved ? "approved" : "rejected";
+    members.forEach(member => {
+      sendMail({
+        From: process.env.FROM_MAIL,
+        To: member.Email,
+        Subject: "Leave Application Response",
+        HtmlBody: mailContent(emailType, fromDateValue, toDateValue, emp, leaveType, actionBy, member)
+      });
     });
+
+    return res.send({
+      message: 'You have responded to the leave application.',
+      data: updatedRequest
+    });
+
   } catch (err) {
     console.error(err);
     return res.status(500).send({ error: 'An error occurred while processing the request.' });
