@@ -13,7 +13,7 @@ const sendMail = require("./mailSender");
 const { getDayDifference, mailContent } = require('../Reuseable_functions/reusableFunction');
 
 // Helper function to generate leave request email content
-function generateLeaveEmail(empData, fromDate, toDate, reasonForLeave) {
+function generateLeaveEmail(empData, fromDateValue, toDateValue, reasonForLeave, leaveType) {
   return `
   <!DOCTYPE html>
 <html lang="en">
@@ -31,7 +31,7 @@ function generateLeaveEmail(empData, fromDate, toDate, reasonForLeave) {
       <img src="https://imagedelivery.net/r89jzjNfZziPHJz5JXGOCw/1dd59d6a-7b64-49d7-ea24-1366e2f48300/public"
            alt="Company Logo" style="max-width: 100px;" />
       <h1 style="font-size: 20px; margin: 10px 0;">Leave Application (${leaveType} from ${new Date(fromDateValue).toLocaleString("default", { month: "long" })} ${new Date(fromDateValue).getDate()}, ${new Date(fromDateValue).getFullYear()} 
-      to ${new Date(toDateValue).toLocaleString("default", { month: "long" })} ${new Date(toDateValue).getDate()}, ${new Date(toDateValue).getFullYear()})(${req.body.leaveType})</h1>
+      to ${new Date(toDateValue).toLocaleString("default", { month: "long" })} ${new Date(toDateValue).getDate()}, ${new Date(toDateValue).getFullYear()})</h1>
       <h2 style="font-size: 16px; margin: 5px 0; color: #555;">Submitted by: ${empData.FirstName} ${empData.LastName}</h2>
     </div>
 
@@ -56,68 +56,33 @@ function generateLeaveEmail(empData, fromDate, toDate, reasonForLeave) {
 function generateCoverByEmail(empData, relievingOffData) {
   return `
     <!DOCTYPE html>
-    <html lang="en">
-    <head>
-      <meta charset="UTF-8">
-      <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <title>NexsHR - Task Assignment</title>
-      <style>
-        body {
-          font-family: Arial, sans-serif;
-          background-color: #f6f9fc;
-          color: #333;
-          margin: 0;
-          padding: 0;
-        }
-        .container {
-          max-width: 600px;
-          margin: 20px auto;
-          padding: 20px;
-          background-color: #fff;
-          border-radius: 8px;
-          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        }
-        .header {
-          text-align: center;
-          padding: 20px;
-        }
-        .header img {
-          max-width: 100px;
-        }
-        .content {
-          margin: 20px 0;
-          font-size: 16px;
-          line-height: 1.5;
-        }
-        .footer {
-          text-align: center;
-          font-size: 14px;
-          margin-top: 20px;
-          color: #777;
-        }
-      </style>
-    </head>
-    <body>
-      <div class="container">
-        <div class="header">
-          <img src="https://imagedelivery.net/r89jzjNfZziPHJz5JXGOCw/1dd59d6a-7b64-49d7-ea24-1366e2f48300/public" alt="Company Logo" />
-          <h1>Task Assignment Notification</h1>
-        </div>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NexsHR - Task Assignment</title>
+</head>
+<body style="font-family: Arial, sans-serif; background-color: #f6f9fc; color: #333; margin: 0; padding: 0;">
+  <div style="max-width: 600px; margin: 20px auto; padding: 20px; background-color: #fff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);">
+    <div style="text-align: center; padding: 20px;">
+      <img src="https://imagedelivery.net/r89jzjNfZziPHJz5JXGOCw/1dd59d6a-7b64-49d7-ea24-1366e2f48300/public" alt="Company Logo" style="max-width: 100px;" />
+      <h1 style="margin: 0;">Task Assignment Notification</h1>
+    </div>
 
-        <div class="content">
-          <p>Hi <strong>${relievingOffData.FirstName}</strong>,</p>
-          <p><strong>${empData.FirstName}</strong> has assigned some tasks to you during their leave.</p>
-          <p>Please ensure the assigned tasks are completed as required.</p>
-          <p>Let us know if you need any assistance.</p>
-          <p>Thank you!</p>
-        </div>
+    <div style="margin: 20px 0; font-size: 16px; line-height: 1.5;">
+      <p>Hi <strong>${relievingOffData.FirstName}</strong>,</p>
+      <p><strong>${empData.FirstName}</strong> has assigned some tasks to you during their leave.</p>
+      <p>Please ensure the assigned tasks are completed as required.</p>
+      <p>Let us know if you need any assistance.</p>
+      <p>Thank you!</p>
+    </div>
 
-        <div class="footer">
-          <p>&copy; ${new Date().getFullYear()} NexsHR. All rights reserved.</p>
-        </div>
-      </div>
-    </body>
-    </html>
+    <div style="text-align: center; font-size: 14px; margin-top: 20px; color: #777;">
+      <p>&copy; ${new Date().getFullYear()} NexsHR. All rights reserved.</p>
+    </div>
+  </div>
+</body>
+</html>
   `;
 }
 
@@ -879,7 +844,7 @@ leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("pre
         fromDateObj.toDateString() === today.toDateString() ||
         fromDateObj.toDateString() === yesterday.toDateString();
 
-      if (isTodayOrYesterday) {
+      if (!isTodayOrYesterday) {
         return res.status(400).json({ error: "Sick leave is only applicable for today and yesterday." });
       }
     } else if (["Annual Leave", "Casual Leave"].includes(leaveType)) {
@@ -974,7 +939,7 @@ leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("pre
       From: process.env.FROM_MAIL,
       To: mailList.join(","),
       Subject: "Leave Application Notification",
-      HtmlBody: generateLeaveEmail(emp, fromDate, toDate, reasonForLeave),
+      HtmlBody: generateLeaveEmail(emp, fromDate, toDate, reasonForLeave, leaveType),
     });
 
     // If coverBy is assigned, notify the relieving officer
