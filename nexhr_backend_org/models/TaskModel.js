@@ -22,7 +22,7 @@ const taskSchema = new mongoose.Schema({
     assignedTo: [{ type: mongoose.Schema.Types.ObjectId, ref: "Employee" }],
     from: { type: Date },
     to: { type: Date },
-    spend: spendTimeSchema,
+    spend: { type: spendTimeSchema, default: () => ({}) },
     status: { type: String },
     trash: { type: Boolean, default: false },
     tracker: [TrackerSchema],

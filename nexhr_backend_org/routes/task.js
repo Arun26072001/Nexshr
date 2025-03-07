@@ -7,19 +7,6 @@ const sendMail = require("./mailSender");
 const { convertToString, getCurrentTimeInMinutes, timeToMinutes, formatTimeFromMinutes } = require("../Reuseable_functions/reusableFunction");
 const router = express.Router();
 
-function getTotalHours(from, to) {
-    if (from && to) {
-        const fromValue = new Date(from).getTime();
-        const toValue = new Date(to).getTime();
-        const difference = (toValue - fromValue) / (1000 * 60 * 60);
-        console.log(difference);
-
-        return difference;
-    } else {
-        return 0;
-    }
-}
-
 router.get("/project/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
     try {
         let tasks = await Task.find({ project: { $in: req.params.id } })
@@ -31,30 +18,42 @@ router.get("/project/:id", verifyAdminHREmployeeManagerNetwork, async (req, res)
         }
 
         const timeUpdatedTasks = tasks.map((task) => {
-            let startingTimes = task?.spend?.startingTime;
-            let endingTimes = task?.spend?.endingTime;
+            if (!task?.spend) return task; // Ensure spend exists
 
-            const values = startingTimes?.map((startTime, index) => {
+            let { startingTime: startingTimes, endingTime: endingTimes } = task.spend;
+
+            if (!Array.isArray(startingTimes) || startingTimes.length === 0) {
+                return {
+                    ...task.toObject(),
+                    spend: {
+                        ...task.spend.toObject(),
+                        timeHolder: task.spend.timeHolder || "00:00:00"
+                    }
+                };
+            }
+
+            const values = startingTimes.map((startTime, index) => {
                 if (!startTime) return 0; // No start time means no value
 
-                let endTimeInMin = 0;
-                if (endingTimes[index]) {
-                    // Calculate time difference with an ending time
-                    endTimeInMin = timeToMinutes(endingTimes[index]);
-                } else {
-                    // Calculate time difference with the current time
-                    endTimeInMin = getCurrentTimeInMinutes();
-                }
                 const startTimeInMin = timeToMinutes(startTime);
+                const endTimeInMin = (endingTimes?.[index]) ? timeToMinutes(endingTimes[index]) : getCurrentTimeInMinutes();
+
                 return Math.abs(endTimeInMin - startTimeInMin);
             });
-            const totalValue = values?.reduce((acc, value) => acc + value, 0)
-            const timeHolder = formatTimeFromMinutes(totalValue);
-            if (task?.spend?.timeHolder) {
-                task.spend.timeHolder = timeHolder;
-            }
-            return task
+
+            const totalMinutes = values.reduce((acc, value) => acc + value, 0);
+            const timeHolder = formatTimeFromMinutes(totalMinutes);
+
+            return {
+                ...task.toObject(),
+                spend: {
+                    ...task.spend.toObject(),
+                    timeHolder
+                }
+            };
         }).filter(Boolean);
+
+        console.log(timeUpdatedTasks);
 
         return res.send({ tasks: timeUpdatedTasks });
     } catch (error) {
@@ -134,7 +133,7 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
             createdby: req.params.id,
             status: req.body.status || "On Hold",
             tracker: [],
-            spend: 0
+            spend: req.body.spend || {}
         };
 
         // Validate Task Data
@@ -405,3 +404,16 @@ router.delete("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
 })
 
 module.exports = router;
+
+
+// if (task.stopRunningAt) {
+//     console.log(task?.stopRunningAt);
+//     return ({
+//         ...task.toObject(),
+//         spend: task.spend + (new Date().getTime() - new Date(task?.stopRunningAt).getTime()) / 3600
+//     })
+// } else {
+//     return ({
+//         ...task.toObject()
+//     })
+// }
