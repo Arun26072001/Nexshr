@@ -57,7 +57,6 @@ export default function MyTimer({ task, updateTask, startingHour = 0, startingMi
         };
     }, []);
 
-
     return (
         <div className='d-flex align-items-center gap-1 timerTxt box-content position-relative' style={{ padding: "10px" }} >
             <span>{`${alterHour}`.toString().padStart(2, '0')}</span> :

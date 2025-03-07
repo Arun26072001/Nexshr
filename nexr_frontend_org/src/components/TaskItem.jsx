@@ -9,6 +9,7 @@ import ErrorOutlineRoundedIcon from '@mui/icons-material/ErrorOutlineRounded';
 import CalendarMonthRoundedIcon from '@mui/icons-material/CalendarMonthRounded';
 import MoreVertRoundedIcon from '@mui/icons-material/MoreVertRounded';
 import KeyboardArrowRightRoundedIcon from '@mui/icons-material/KeyboardArrowRightRounded';
+import Mytimer2 from './Mytimer2';
 
 export default function TaskItem({ task, status, getValue, handleEditTask, fetchTaskById, updatedTimerInTask, renderMenu2, handleViewTask, whoIs }) {
     const navigate = useNavigate();
@@ -69,14 +70,14 @@ export default function TaskItem({ task, status, getValue, handleEditTask, fetch
 
             {/* Right Section - Timer & Actions */}
             <div className="cal-half d-flex align-items-center justify-content-center gap-2">
-                <MyTimer
+                {/* <MyTimer
                     startingHour={timeData?.hour}
                     startingMin={timeData?.min}
                     startingSec={timeData?.sec}
                     task={task}
                     updateTask={updatedTimerInTask}
-                />
-
+                /> */}
+                <Mytimer2 tas={task} startTaskTimer={startTaskTimer} stopTaskTimer={stopTaskTimer} />
                 <ErrorOutlineRoundedIcon
                     sx={{ cursor: "pointer" }}
                     onClick={() => {

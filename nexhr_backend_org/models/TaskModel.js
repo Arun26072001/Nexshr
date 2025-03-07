@@ -8,10 +8,10 @@ const TrackerSchema = new mongoose.Schema({
 }, { _id: false })
 
 const spendTimeSchema = new mongoose.Schema({
-  startingTime: [{ type: String }],
-  endingTime: [{ type: String }],
-  timeHolder: { type: Number },
-  reasonForLate: { type: String }
+    startingTime: [{ type: String }],
+    endingTime: [{ type: String }],
+    timeHolder: { type: Number },
+    reasonForLate: { type: String }
 }, { _id: false })
 
 const taskSchema = new mongoose.Schema({
