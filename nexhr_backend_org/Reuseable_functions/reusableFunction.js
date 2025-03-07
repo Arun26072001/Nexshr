@@ -77,4 +77,30 @@ function mailContent(type, fromDateValue, toDateValue, emp, leaveType, actionBy,
   `;
 }
 
-module.exports = { convertToString, getDayDifference, getWeekdaysOfCurrentMonth, mailContent };
+function timeToMinutes(timeStr) {
+  const [hours, minutes, seconds] = timeStr.split(":").map(Number);
+  return Number(((hours * 60) + minutes + (seconds / 60)).toFixed(2)) || 0; // Defaults to 0 if input is invalid
+}
+
+const getCurrentTimeInMinutes = () => {
+  const now = new Date().toLocaleTimeString('en-US', { timeZone: process.env.TIMEZONE, hourCycle: 'h23' });
+  const timeWithoutSuffix = now.replace(/ AM| PM/, ""); // Remove AM/PM
+  const [hour, min, sec] = timeWithoutSuffix.split(":").map(Number);
+  return timeToMinutes(`${hour}:${min}:${sec}`);
+};
+
+function formatTimeFromMinutes(minutes) {
+  const hours = Math.floor(minutes / 60); // Get the number of hours
+  const mins = Math.floor(minutes % 60); // Get the remaining whole minutes
+  const fractionalPart = minutes % 1; // Get the fractional part of the minutes
+  const secs = Math.round(fractionalPart * 60); // Convert the fractional part to seconds
+
+  // Format each part to ensure two digits (e.g., "04" instead of "4")
+  const formattedHours = String(hours).padStart(2, '0');
+  const formattedMinutes = String(mins).padStart(2, '0');
+  const formattedSeconds = String(secs).padStart(2, '0');
+
+  return `${formattedHours}:${formattedMinutes}:${formattedSeconds}`;
+}
+
+module.exports = { convertToString, getDayDifference, getWeekdaysOfCurrentMonth, mailContent, getCurrentTimeInMinutes, timeToMinutes, formatTimeFromMinutes };

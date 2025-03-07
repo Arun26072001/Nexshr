@@ -8,7 +8,6 @@ const sendMail = require("./mailSender");
 const { Employee } = require("../models/EmpModel");
 const { ClockIns } = require("../models/ClockInsModel");
 const { LeaveApplication, LeaveApplicationValidation } = require("../models/LeaveAppModel");
-const { devNull } = require("os");
 
 const timeToMinutes = (timeStr) => {
     if (!timeStr) return 0;

@@ -6,6 +6,7 @@ const { getDayDifference } = require("./leave-app");
 const { getClockinModel, clockInsValidation } = require("../OrgModels/OrgClockinsModel");
 const { getEmployeeModel } = require("../OrgModels/OrgEmpModel");
 const { Org } = require("../OrgModels/OrganizationModel");
+const { timeToMinutes } = require("../Reuseable_functions/reusableFunction");
 
 async function checkLoginForOfficeTime(scheduledTime, actualTime) {
     // Parse scheduled and actual time into hours and minutes
@@ -132,13 +133,7 @@ router.post("/:orgId/:id", verifyAdminHREmployeeManagerNetwork, async (req, res)
 
 router.get("/:orgId/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
     const { orgName } = await Org.findById({ _id: req.params.orgId });
-    function timeToMinutes(timeStr) {
-        // Split the time string into hours, minutes, and seconds
-        const [hours, minutes, seconds] = timeStr?.split(':').map(Number);
-        // Calculate total minutes
-        const totalMinutes = (hours * 60) + minutes;
-        return totalMinutes || 0;
-    }
+  
 
     try {
         const queryDate = new Date(req.query.date); // Parse the query date
