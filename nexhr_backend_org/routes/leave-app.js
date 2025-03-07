@@ -604,7 +604,8 @@ leaveApp.get("/date-range/hr", verifyHR, async (req, res) => {
             $lte: endOfMonth
           }
         },
-        populate: { path: "employee", select: "FirstName LastName" }
+        populate: [{ path: "employee", select: "FirstName LastName Email" },
+          { path: "coverBy", select: "FirstName LastName Email" }]
       });
 
     // Flatten leaveApplication data
@@ -667,7 +668,8 @@ leaveApp.get("/date-range/admin", verifyAdmin, async (req, res) => {
             $lte: endOfMonth
           }
         },
-        populate: { path: "employee", select: "FirstName LastName" }
+        populate: [{ path: "employee", select: "FirstName LastName Email" },
+          { path: "coverBy", select: "FirstName LastName Email" }]
       });
 
     let leaveData = employeesLeaveData.map(data => data.leaveApplication).flat();
@@ -719,15 +721,15 @@ leaveApp.get("/date-range/:empId", verifyAdminHREmployeeManagerNetwork, async (r
           toDate: {
             $gte: startOfMonth,
             $lte: endOfMonth
-          }
+          },
         },
-        populate: { path: "employee", select: "FirstName LastName" } // need name in table
+        populate: [{ path: "employee", select: "FirstName LastName Email" },
+        { path: "coverBy", select: "FirstName LastName Email" }] // need name in table
       });
 
     if (employeeLeaveData?.leaveApplication.length > 0) {
       let leaveData = employeeLeaveData.leaveApplication.map(data => data).flat();
       leaveData = leaveData.sort((a, b) => new Date(a.fromDate) - new Date(b.fromDate));
-
 
       leaveData = leaveData.map((leave) => {
         return {
