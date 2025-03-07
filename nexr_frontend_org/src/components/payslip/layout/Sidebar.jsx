@@ -20,7 +20,7 @@ import { TimerStates } from '../HRMDashboard';
 
 const Sidebar = ({ sideBar }) => {
   const { data, whoIs, handleLogout } = useContext(EssentialValues);
-  const { setIsEditEmp, isEditEmp } = useContext(TimerStates);
+  const { setIsEditEmp } = useContext(TimerStates);
   const { token, _id } = data;
   const decodedData = jwtDecode(token);
   const { isTeamLead, isTeamHead, isTeamManager } = decodedData;
@@ -208,8 +208,7 @@ const Sidebar = ({ sideBar }) => {
             'Leave'
           )}
 
-        {((Attendance === 'allow' &&
-          (decodedData.isTeamLead && whoIs === "emp") ||
+        {(((decodedData.isTeamLead && whoIs === "emp") ||
           (decodedData.isTeamHead && whoIs === "emp") ||
           (decodedData.isTeamManager && whoIs === "manager"))
           &&

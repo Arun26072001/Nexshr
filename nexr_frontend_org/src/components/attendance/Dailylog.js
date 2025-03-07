@@ -14,9 +14,8 @@ import { toast } from 'react-toastify';
 import { EssentialValues } from '../../App';
 
 const Dailylog = ({ attendanceData, isLoading }) => {
-    const { daterangeValue, setDaterangeValue } = useContext(EssentialValues)
+    const { daterangeValue, setDaterangeValue, data, whoIs } = useContext(EssentialValues)
     const url = process.env.REACT_APP_API_URL;
-    const token = localStorage.getItem("token");
 
     // Handle file upload
     const handleUpload = async (file) => {
@@ -27,7 +26,7 @@ const Dailylog = ({ attendanceData, isLoading }) => {
             const response = await axios.post(`${url}/api/google-sheet/upload/attendance`, formData, {
                 headers: {
                     'Content-Type': 'multipart/form-data',
-                    Authorization: token || ""
+                    Authorization: data.token || ""
                 },
             });
             toast.success(response.data.message)
@@ -95,11 +94,14 @@ const Dailylog = ({ attendanceData, isLoading }) => {
                             placeholder="Select Date Range"
                             onChange={setDaterangeValue}
                         />
-                        <button className='button' style={{ cursor: 'pointer' }}>
-                            <Whisper placement="bottomEnd" trigger="click" speaker={renderMenu}>
-                                Action <ArrowDropDownRoundedIcon />
-                            </Whisper>
-                        </button>
+                        {
+                            ["admin", "hr"].includes(whoIs) &&
+                            <button className='button' style={{ cursor: 'pointer' }}>
+                                <Whisper placement="bottomEnd" trigger="click" speaker={renderMenu}>
+                                    Action <ArrowDropDownRoundedIcon />
+                                </Whisper>
+                            </button>
+                        }
                     </div>
                 </div>
 

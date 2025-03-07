@@ -60,7 +60,6 @@ export default function LeaveRequest() {
 
     // Handle file upload
     const handleUpload = async (file) => {
-        console.log(file);
         const formData = new FormData();
 
         formData.append('documents', file);

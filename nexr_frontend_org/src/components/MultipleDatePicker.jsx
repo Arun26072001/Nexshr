@@ -72,7 +72,6 @@ function HolidayPicker({ changeHolidayUI, isAddHolidays }) {
             setIsLoading(true);
             try {
                 const res = await getHoliday();
-                console.log("Fetched Holidays:", res); // ✅ Debugging
 
                 setFetchedHolidays(
                     res.holidays.map((item) => ({

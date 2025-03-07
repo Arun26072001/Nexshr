@@ -214,6 +214,7 @@ router.post("/not-login/apply-leave", async (req, res) => {
                 }
             }
         ]);
+        // console.log(notLoginEmps);
 
         if (notLoginEmps.length === 0) {
             return res.send({ message: "No employees found without punch-in today." });
@@ -251,6 +252,7 @@ router.post("/not-login/apply-leave", async (req, res) => {
                 Hr: "approved",
                 Manager: "approved"
             };
+            // console.log(leaveApplication);
 
             leaveApplications.push(leaveApplication);
 
@@ -271,10 +273,12 @@ router.post("/not-login/apply-leave", async (req, res) => {
                 HtmlBody: htmlContent,
             }));
         }
+        // console.log(leaveApplications);
 
         // Insert new leave applications in bulk
+
         const insertedLeaves = await LeaveApplication.insertMany(leaveApplications);
-        console.log(insertedLeaves);
+        // console.log(insertedLeaves);
 
         // Prepare employee updates for bulk write
         notLoginEmps.forEach((emp, index) => {
@@ -577,7 +581,6 @@ router.get("/team/:id", verifyTeamHigherAuthority, async (req, res) => {
                 $lte: endOfMonth
             }
         })
-        console.log(teamClockins);
         return res.send(teamClockins);
     } catch (error) {
         return res.status(500).send({ error: error.message })

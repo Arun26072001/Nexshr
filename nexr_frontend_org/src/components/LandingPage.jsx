@@ -28,8 +28,6 @@ export default function LandingPage() {
 
     // Handle Input Change
     const handleInputChange = (value, name) => {
-        console.log(value, name);
-
         setRegisterData((prev) => ({
             ...prev,
             [name]: value,

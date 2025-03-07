@@ -11,7 +11,6 @@ const updateDataAPI = async (body) => {
             const response = await axios.put(`${url}/api/clock-ins/${body._id}`, body, {
                 headers: { authorization: token || '' },
             });
-            console.log('Updated successfully:', response.data);
             
             return response.data;
         } else {
@@ -69,7 +68,6 @@ const addDataAPI = async (body) => {
             headers: { authorization: token || '' },
         });
         toast.success(response.data.message);
-        console.log(response?.data?.clockIns);
         return response?.data?.clockIns;
     } catch (error) {
         console.log(error);
@@ -143,7 +141,6 @@ const fetchEmployeeData = async (id) => {
                 authorization: token || ""
             }
         });
-        // console.log(response.data)
         return response.data;
 
     } catch (error) {
@@ -313,7 +310,6 @@ async function getUserLocation(lat, lng) {
         const data = await response.json();
 
         if (data && data.display_name) {
-            console.log("User Location:", data.display_name);
             return data.display_name;
         } else {
             console.error("Geocoding failed:", data);

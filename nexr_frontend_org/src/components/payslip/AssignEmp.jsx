@@ -65,8 +65,6 @@ const AssignEmp = ({ handleSubmit, teamObj, updateTeamObj, toggleAssignEmp, team
         };
         fetchEmployees();
     }, [url, token]); // Add url and token as dependencies
-    console.log(teamObj);
-
 
     return (
         // <p>sadsadas</p>

@@ -81,11 +81,9 @@ const EditEmployeeform = ({ details, empData, handleScroll, handlePersonal, hand
         initialValues: employeeObj,
         validationSchema: empFormValidation,
         onSubmit: async (values, { resetForm }) => {
-            console.log("reset");
 
             try {
                 const res = await updateEmp(values, id);
-                console.log(res);
                 if (res !== undefined) {
                     toast.success(res);
                     changeEmpEditForm();

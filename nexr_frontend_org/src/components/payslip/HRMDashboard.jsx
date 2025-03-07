@@ -358,11 +358,14 @@ export default function HRMDashboard() {
                     Authorization: token || ""
                 }
             });
+            console.log(res.data);
+            
             setAttendanceData(res.data);
         } catch (error) {
             console.error(error);
         }
     }
+    console.log(isTeamLead);
 
     function trackTimer() {
         setSyncTimer(!syncTimer);
@@ -426,7 +429,7 @@ export default function HRMDashboard() {
         }
         if ((whoIs) && (String(Account) === '2' || String(Account) === '1')) {
             getLeaveData();
-        } else if (whoIs && [isTeamHead, isTeamHead, isTeamManager].includes(true)) {
+        } else if (whoIs && [isTeamHead, isTeamLead, isTeamManager].includes(true)) {
             getLeaveDataFromTeam()
         }
     }, [daterangeValue, _id, whoIs, isUpdatedRequest]);
@@ -435,7 +438,7 @@ export default function HRMDashboard() {
     useEffect(() => {
         if (["1", "2", "5"].includes(Account)) {
             getAttendanceData()
-        } else if ([isTeamHead, isTeamHead, isTeamManager].includes(true)) {
+        } else if ([isTeamHead, isTeamLead, isTeamManager].includes(true)) {
             getTeamAttendance();
         }
         getClocknsData();
