@@ -264,11 +264,10 @@ const Tasks = ({ employees }) => {
     }
 
     if (!taskToUpdate?._id) {
-      console.error("No task ID found to update");
       toast.error("Invalid task. Please try again.");
       return;
     }
-
+    setIsLoading(true);
     try {
       const res = await axios.put(`${url}/api/task/${data._id}/${taskToUpdate._id}`, taskToUpdate, {
         headers: {
@@ -285,6 +284,7 @@ const Tasks = ({ employees }) => {
       const errorMessage = error?.response?.data?.error || "An error occurred while updating the task.";
       toast.error(errorMessage);
     }
+    setIsLoading(false);
   }
 
   // handling to delete task
@@ -328,6 +328,7 @@ const Tasks = ({ employees }) => {
         formData.append("documents", files[index]); // Ensure correct field name for your backend
       }
 
+      setIsLoading(true);
       try {
         const response = await fetch(`${url}/api/upload`, {
           method: 'POST',
@@ -365,6 +366,7 @@ const Tasks = ({ employees }) => {
       } catch (error) {
         console.error('An error occurred during the upload:', error);
       }
+      setIsLoading(false);
     } else {
       console.log('No attachments to upload.');
     }

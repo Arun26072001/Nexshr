@@ -660,12 +660,23 @@ router.get("/employee/:empId", verifyAdminHREmployeeManagerNetwork, async (req, 
         startOfMonth = new Date(req.query.daterangeValue[0]);
         endOfMonth = new Date(req.query.daterangeValue[1]);
     } else {
-        startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-        const joiningDate = new Date(emp?.dateOfJoining);
-        if (startOfMonth.getTime() < joiningDate.getTime()) {
-            startOfMonth = joiningDate;
-        }
-        endOfMonth = new Date();
+        startOfMonth = new Date(Date.UTC(
+            now.getUTCFullYear(),
+            now.getUTCMonth(),
+            now.getUTCDate(),
+            0, 0, 0, 0
+        ))
+        // startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+        // const joiningDate = new Date(emp?.dateOfJoining);
+        // if (startOfMonth.getTime() < joiningDate.getTime()) {
+        //     startOfMonth = joiningDate;
+        // }
+        endOfMonth = new Date(Date.UTC(
+            now.getUTCFullYear(),
+            now.getUTCMonth(),
+            now.getUTCDate(),
+            23, 59, 59, 999
+        ));
     }
 
     let regular = 0;

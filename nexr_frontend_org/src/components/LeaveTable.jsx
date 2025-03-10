@@ -181,42 +181,42 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
     ];
 
     const column5 = [
-        { id: 'Name', label: 'Name', minWidth: 130, align: 'left', getter: (row) => row?.employee?.FirstName ? `${row.employee.FirstName[0].toUpperCase() + row.employee.FirstName.slice(1)}` : 'N/A' },
+        { id: 'Name', label: 'Name', minWidth: 130, align: 'left', getter: (row) => row?.Name ? row.Name : 'N/A' },
         {
             id: 'date',
             label: 'Date',
             minWidth: 130,
             align: 'left',
-            getter: (row) => row?.date ? row.date.split("T")[0] : "no date"
+            getter: (row) => row?.date ? row.date : "no date"
         },
-        // {
-        //     id: 'type',
-        //     label: 'Type',
-        //     minWidth: 130,
-        //     align: 'left',
-        // },
+        {
+            id: 'type',
+            label: 'Type',
+            minWidth: 130,
+            align: 'left',
+        },
         {
             id: 'punchIn',
             label: 'Punch In',
             minWidth: 130,
             align: 'left',
-            getter: (row) => row?.[timeOption]?.startingTime ? row?.[timeOption]?.startingTime[0] : "N/A"
+            getter: (row) => row?.punchIn ? row.punchIn : "N/A"
         },
         {
             id: 'punchOut',
             label: 'Punch Out',
             minWidth: 130,
             align: 'left',
-            getter: (row) => row?.[timeOption]?.endingTime ? row?.[timeOption]?.endingTime[row?.[timeOption]?.endingTime.length - 1] : "00:00:00"
+            getter: (row) => row?.punchOut ? row.punchOut : "00:00:00"
         },
         {
             id: 'totalHour',
             label: 'Total Hour',
             minWidth: 130,
             align: 'left',
-            getter: (row) => row?.[timeOption]?.timeHolder || 0
+            getter: (row) => row?.timeHolder || 0
         },
-        {
+        {   
             id: 'behaviour',
             label: 'Behaviour',
             minWidth: 130,

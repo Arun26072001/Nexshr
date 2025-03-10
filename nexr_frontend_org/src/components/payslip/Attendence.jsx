@@ -2,12 +2,11 @@ import React, { useEffect, useState } from "react";
 import "./payslip.css";
 import axios from "axios";
 import LeaveTable from "../LeaveTable";
-import { DateRangePicker } from "rsuite";
+import { DateRangePicker, TagPicker } from "rsuite";
 import Loading from "../Loader";
 import { formatTime } from "../ReuseableAPI";
 import NoDataFound from "./NoDataFound";
 import { toast } from "react-toastify";
-import FilterListRoundedIcon from '@mui/icons-material/FilterListRounded';
 
 const Attendence = (props) => {
   const url = process.env.REACT_APP_API_URL;
@@ -20,6 +19,41 @@ const Attendence = (props) => {
   const [tableData, setTableData] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [daterangeValue, setDaterangeValue] = useState("");
+  const timeOptions = [
+    "login",
+    "morningBreak",
+    "eveningBreak",
+    "lunch",
+    "meeting",
+    "event"
+  ].map(
+    item => ({ label: item, value: item })
+  );
+  const [selectedTimeOption, setSelectedTimeOption] = useState(["login", "morningBreak","eveningBreak", "lunch"]);
+  const [filteredTabledata, setFilteredTableData] = useState([]);
+
+  useEffect(() => {
+    if (selectedTimeOption.length > 0) {
+      const updateTableData = filteredTabledata.flatMap((item) =>
+        selectedTimeOption.map((option) => {
+          const timeOptionKey = option; // Get the corresponding key
+          const timeData = item[timeOptionKey] || {}; // Safely access time data
+
+          return {
+            Name: `${item.employee.FirstName} ${item.employee.LastName}`,
+            date: item.date.split("T")[0],
+            type: timeOptionKey,
+            punchIn: timeData.startingTime?.[0] || "N/A", // Avoid errors if empty
+            punchOut: timeData.endingTime?.[timeData.endingTime.length - 1] || "N/A",
+            totalHour: timeData.timeHolder || "N/A",
+            behaviour: timeOptionKey === "login" ? item.behaviour : timeData.reasonForLate || "N/A"
+          };
+        })
+      );
+
+      setTableData(updateTableData); // Set table data once after processing all items
+    }
+  }, [selectedTimeOption, filteredTabledata]);
 
   function calculateOverallBehavior(regularCount, lateCount, earlyCount) {
     const totalCount = regularCount + lateCount + earlyCount;
@@ -64,6 +98,7 @@ const Attendence = (props) => {
         });
         setclockInsData(dashboard.data);
         setTableData(dashboard.data.clockIns);
+        setFilteredTableData(dashboard.data.clockIns)
         const { totalEarlyLogins, totalLateLogins, totalRegularLogins } = dashboard.data;
         const totalLogins = totalEarlyLogins + totalLateLogins + totalRegularLogins
 
@@ -210,11 +245,22 @@ const Attendence = (props) => {
               </div>
             </div>
           </div>
-          <div className="d-flex justify-content-between align-items-center px-2">
-            <div>
-              <DateRangePicker value={daterangeValue} placeholder="Select Date" onChange={setDaterangeValue} />
+          <div className="d-flex justify-content-between align-items-center p-2">
+            <div style={{ width: "30%" }}>
+              <DateRangePicker value={daterangeValue} size="lg" placeholder="Select Date" onChange={setDaterangeValue} />
             </div>
-            <button className="button my-2"><FilterListRoundedIcon /> Filter by time option</button>
+            <div style={{ width: "60%" }}>
+              <TagPicker
+                data={timeOptions}
+                required
+                size="lg"
+                appearance="default"
+                style={{ width: "100%" }}
+                placeholder="Select time options"
+                value={selectedTimeOption}
+                onChange={(e) => setSelectedTimeOption(e)}
+              />
+            </div>
           </div>
           <LeaveTable data={tableData} />
         </> : <NoDataFound message={"Attendance data not found!"} />
