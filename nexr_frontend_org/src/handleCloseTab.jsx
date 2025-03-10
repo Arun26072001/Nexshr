@@ -26,8 +26,6 @@ const useHandleTabClose = (isStartLogin, workTimeTracker, token) => {
                 },
             };
             if (updatedState.login.startingTime.length === updatedState.login.endingTime.length) {
-                console.log("sadsadsadsad");
-                
                 // Call API to update backend
                 try {
                     await axios.put(`${process.env.REACT_APP_API_URL}/api/clock-ins/${workTimeTracker._id}`, updatedState, {

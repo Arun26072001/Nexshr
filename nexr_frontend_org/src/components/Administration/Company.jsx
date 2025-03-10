@@ -25,7 +25,6 @@ export default function Company() {
     }
 
     function changeCompanyOperation(type) {
-        console.log("call", type);
 
         if (type === "Edit") {
             setModifyCompany((pre) => ({

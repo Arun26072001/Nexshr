@@ -61,7 +61,6 @@ export default function Projects({ employees }) {
     }
 
     function changeProject(value, name) {
-        console.log(value, name);
         setProjectObj((pre) => ({
             ...pre,
             [name]: value
@@ -157,8 +156,6 @@ export default function Projects({ employees }) {
     }, [])
 
     function filterByName(name) {
-        console.log(name);
-
         setName(name);
         if (["", null].includes(name)) {
             setProjects(filterProjects)

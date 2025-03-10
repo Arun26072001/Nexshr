@@ -62,6 +62,10 @@ router.get("/emp/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => 
 
 router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
   try {
+    const { error } = projectValidation.validate(req.body);
+    if (error) {
+      return res.status(400).send({ error: error.details[0].message })
+    }
     const assignees = await Employee.find({ _id: req.body.employees }, "FirstName LastName Email");
     const { Email, FirstName, company } = await Employee.findById(req.params.id, "FirstName LastName Email").populate({ path: "company" })
     const newProject = {
@@ -78,10 +82,7 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
     if (await Project.exists({ name: req.body.name })) {
       return res.status(400).send({ error: `${req.body.name} project is already exists` })
     }
-    const { error } = projectValidation.validate(newProject);
-    if (error) {
-      return res.status(400).send({ error: error.details[0].message })
-    }
+
     const project = await Project.create(newProject);
 
     // send mail for assignees
@@ -178,7 +179,7 @@ router.put("/:empId/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) 
       }
       return [];
     });
-    
+
     const updatedProject = {
       ...req.body,
       tracker: [...req.body.tracker, ...projectChanges]

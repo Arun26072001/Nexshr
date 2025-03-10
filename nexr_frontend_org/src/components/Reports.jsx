@@ -95,7 +95,6 @@ export default function Reports({ employees }) {
     }
 
     function changeReport(value, name) {
-        console.log(value, name);
         setReportObj((pre) => ({
             ...pre,
             [name]: value

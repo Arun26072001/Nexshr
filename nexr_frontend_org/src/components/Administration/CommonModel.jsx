@@ -36,8 +36,6 @@ const CommonModel = ({
     const [confirmationTxt, setConfirmationTxt] = useState("");
     const [isDisabled, setIsDisabled] = useState(true);
 
-    console.log();
-
     return (
         <Modal open={isAddData} size="sm" backdrop="static">
             <Modal.Header>
@@ -56,7 +54,7 @@ const CommonModel = ({
                             ["Department", "Position", "Project", "Report", "Report View", "Country", "Edit Country", "Team"].includes(type) &&
                             <div className={`${type === "Team" ? "col-full" : "col-half"}`}>
                                 <div className="modelInput">
-                                    <p className='modelLabel'>{type} Name: </p>
+                                    <p className='modelLabel important'>{type} Name: </p>
                                     <Input required
                                         name={`name`}
                                         value={dataObj?.[type === "Department" ? "DepartmentName" : type === "Position" ? "PositionName" : type === "Team" ? "teamName" : `name`] || ""}
@@ -95,7 +93,7 @@ const CommonModel = ({
                         {["Report", "Report View"].includes(type) &&
                             <div className="col-half">
                                 <div className="modelInput">
-                                    <p className='modelLabel'>Depertment:</p>
+                                    <p className='modelLabel important'>Depertment:</p>
                                     <SelectPicker
                                         required
                                         data={departments}
@@ -119,7 +117,7 @@ const CommonModel = ({
 
                         {["Task", "Task View", "Announcement"].includes(type) && <div className={type === "Announcement" ? "col-full" : "col-half"}>
                             <div className="modelInput">
-                                <p className='modelLabel'>Title: </p>
+                                <p className='modelLabel important'>Title: </p>
                                 <Input required
                                     name={`title`}
                                     disabled={type === "Task View" ? true : false}
@@ -131,7 +129,7 @@ const CommonModel = ({
 
                         {["Task", "Task View"].includes(type) && <div className="col-half">
                             <div className="modelInput">
-                                <p className='modelLabel'>Project:</p>
+                                <p className='modelLabel important'>Project:</p>
                                 <SelectPicker
                                     required
                                     data={projects}
@@ -203,7 +201,7 @@ const CommonModel = ({
                         {/* Dynamic fields for Start Date / From */}
                         <div className="col-half">
                             <div className="modelInput">
-                                <p className="modelLabel">{type === "Task" ? "From" : "Start Date"}</p>
+                                <p className="modelLabel important">{type === "Task" ? "From" : "Start Date"}</p>
                                 <DatePicker
                                     showTimeSelect={type === "Announcement"}
                                     dateFormat={type === "Announcement" ? "Pp" : "yyyy-MM-dd"} // Added valid default format
@@ -231,7 +229,7 @@ const CommonModel = ({
                         {/* Dynamic fields for End Date / To */}
                         <div className="col-half">
                             <div className="modelInput">
-                                <p className="modelLabel">To:</p>
+                                <p className="modelLabel important">To:</p>
                                 <DatePicker
                                     showTimeSelect
                                     className="rsuite_input"
@@ -262,7 +260,7 @@ const CommonModel = ({
                         <>
                             <div className="col-half">
                                 <div className="modelInput">
-                                    <p className='modelLabel'>Company:</p>
+                                    <p className='modelLabel important'>Company:</p>
                                     <SelectPicker
                                         required
                                         data={comps}
@@ -280,7 +278,7 @@ const CommonModel = ({
                                 ["Report", "Report View"].includes(type) &&
                                 <div className="col-half">
                                     <div className="modelInput">
-                                        <p className='modelLabel'>Project:</p>
+                                        <p className='modelLabel important'>Project:</p>
                                         <SelectPicker
                                             required
                                             data={projects}
@@ -302,7 +300,7 @@ const CommonModel = ({
                             ["Project", "Task", "Task View", "Project View"].includes(type) &&
                             <div className="col-half">
                                 <div className="modelInput">
-                                    <p className='modelLabel'>Priority:</p>
+                                    <p className='modelLabel important'>Priority:</p>
                                     <SelectPicker
                                         required
                                         data={["Low", "Medium", "High", "Critical"].map((data) => ({ label: data, value: data }))}
@@ -320,7 +318,7 @@ const CommonModel = ({
                             ["Task"].includes(type) &&
                             <div className="col-half">
                                 <div className="modelInput">
-                                    <p className='modelLabel'>Status:</p>
+                                    <p className='modelLabel important'>Status:</p>
                                     <SelectPicker
                                         required
                                         data={['Pending', 'In Progress', 'Completed', 'On Hold'].map((data) => ({ label: data, value: data }))}
@@ -338,7 +336,7 @@ const CommonModel = ({
                             ["Task"].includes(type) && !dataObj._id &&
                             <div className="col-half">
                                 <div className="modelInput">
-                                    <p className='modelLabel'>Est Time:</p>
+                                    <p className='modelLabel important'>Est Time:</p>
                                     <InputNumber
                                         size='lg'
                                         placeholder="Select Time"
@@ -354,7 +352,7 @@ const CommonModel = ({
                             ["Project", "Project View"].includes(type) &&
                             <div className="col-quat">
                                 <div className="modelInput">
-                                    <p className='modelLabel'>Color:</p>
+                                    <p className='modelLabel important'>Color:</p>
                                     <Input
                                         required
                                         size="lg"
@@ -377,7 +375,7 @@ const CommonModel = ({
                     <div className='d-flex justify-content-between gap-2'>
                         <div className="col-half">
                             <div className="modelInput">
-                                <p className='modelLabel'>Est Time:</p>
+                                <p className='modelLabel important'>Est Time:</p>
                                 <InputNumber
                                     size='lg'
                                     placeholder="Select Time"
@@ -402,7 +400,7 @@ const CommonModel = ({
                         <div className="d-flex justify-content-between">
                             <div className="col-full">
                                 <div className="modelInput">
-                                    <p className="modelLabel">
+                                    <p className="modelLabel important">
                                         {["Task", "Task Assign"].includes(type) ? "Assign To" : type === "Team" ? "Team Members" : "Employee"}:
                                     </p>
 
@@ -433,7 +431,7 @@ const CommonModel = ({
                         <div className="d-flex justify-content-between">
                             <div className="col-full">
                                 <div className="modelInput">
-                                    <p className="modelLabel">
+                                    <p className="modelLabel important">
                                         Team Employes
                                     </p>
 
@@ -489,7 +487,7 @@ const CommonModel = ({
                     <>
                         <div className="d-flex justify-content-between gap-2">
                             <div className="col-half">
-                                <div className="modelInput">
+                                <div className="modelInput important">
                                     <p className='modelLabel'>Company Name:</p>
                                     <Input
                                         required
@@ -542,7 +540,7 @@ const CommonModel = ({
                         <div className="d-flex justify-content-between gap-2">
                             <div className="col-half">
                                 <div className="modelInput">
-                                    <p className='modelLabel'>Email:</p>
+                                    <p className='modelLabel important'>Email:</p>
                                     <Input
                                         required
                                         size="lg"
@@ -558,7 +556,7 @@ const CommonModel = ({
                             </div>
                             <div className="col-half">
                                 <div className="modelInput">
-                                    <p className='modelLabel'>Contact Person:</p>
+                                    <p className='modelLabel '>Contact Person:</p>
                                     <Input
                                         required
                                         size="lg"

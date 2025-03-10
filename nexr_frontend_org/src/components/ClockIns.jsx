@@ -64,13 +64,10 @@ const ClockIns = () => {
     // Start timer when the activity starts
     useEffect(() => {
         if (isStartActivity) {
-            console.log("starting activity timer");
-
             startIt();
         }
         // Cleanup interval on component unmount
         return () => {
-            console.log("call to unmount")
             stopIt()
         };
     }, [isStartActivity]);

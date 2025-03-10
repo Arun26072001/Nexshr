@@ -179,8 +179,6 @@ const AddEmployee = () => {
       const employees = await fetchAllEmployees();
 
       let filterManager = employees.filter(emp => emp?.position?.PositionName === "Manager").map(emp => emp);
-      console.log(filterManager);
-
       setManagers(filterManager);
     } catch (err) {
       console.error(err);
@@ -190,7 +188,7 @@ const AddEmployee = () => {
   async function gettingRoleData() {
     try {
       const roleData = await fetchRoles();
-      if (["emp","hr", "manager"].includes(whoIs)) {
+      if (["emp", "hr", "manager"].includes(whoIs)) {
         setRoles(roleData.filter((role) => ["Assosiate", "Human Resource", "Manager"].includes(role.RoleName)))
       } else {
         setRoles(roleData)
@@ -217,9 +215,9 @@ const AddEmployee = () => {
   }
 
   async function fetchEmployee() {
+    setIsLoading(true);
     try {
       const empData = await fetchEmployeeData(id);
-      console.log(empData);
 
       setEmployeeObj({
         FirstName: empData?.FirstName || "",
@@ -265,6 +263,7 @@ const AddEmployee = () => {
 
       toast.error(error.message);
     }
+    setIsLoading(false);
   }
 
   useEffect(() => {
@@ -284,7 +283,6 @@ const AddEmployee = () => {
   }, [scrolledHeight])
 
   useEffect(() => {
-    setIsLoading(true);
     async function fetchDepartments() {
       try {
         const departments = await getDepartments()
@@ -307,7 +305,6 @@ const AddEmployee = () => {
     fetchtimePatterns();
     fetchTeamLead();
     fetchManagers();
-    setIsLoading(false);
   }, []);
 
 

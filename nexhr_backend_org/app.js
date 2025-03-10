@@ -197,8 +197,6 @@ io.on("connection", (socket) => {
         const res = await axios.post(
           `${process.env.REACT_APP_API_URL}/api/clock-ins/remainder/${data.employee}/${data.timeOption}`
         );
-        // console.log("API Response:", res.data);
-
         const employeeSocketID = onlineUsers[data.employee]; // ✅ Get correct socket ID
         if (employeeSocketID) {
           io.to(employeeSocketID).emit("Ask_reason_for_late", {
@@ -238,27 +236,6 @@ io.on("connection", (socket) => {
     }, delay);
   });
 
-  // // stop timer, when emp close the tab or browser
-  // socket.on("stop_timer_immediately", async (data) => {
-  //   let body = data;
-  //   console.log(body);
-    
-  //   // if (body.login.startingTime.length !== body.login.endingTime.length) {
-  //   //   ClockIns.findByIdAndUpdate(body._id, body, {
-  //   //     new: true
-  //   //   }, (err, data) => {
-  //   //     if (err) {
-  //   //       res.status(500).send({ message: "Internal server Error", details: err.details })
-  //   //     } else {
-  //   //       console.log("timer stoped successfully: ", body);
-
-  //   //       // delete data._id;
-  //   //       // res.send(data);
-  //   //     }
-  //   //   })
-  //   // }
-  // })
-
   // Handle user disconnection
   socket.on("disconnect", () => {
     let disconnectedEmployee = null;
@@ -277,7 +254,7 @@ io.on("connection", (socket) => {
   });
 });
 
-schedule.scheduleJob("0 26 10 5 * *", async function () {
+schedule.scheduleJob("0 0 10 5 * *", async function () {
   try {
     const response = await axios.post(`${process.env.REACT_APP_API_URL}/api/payslip/`, {});
     console.log("Payslip generation response:", response.data);
@@ -313,8 +290,8 @@ async function fetchTimePatterns() {
         }
       })
 
-      // send mail and apply fulday leave
-      schedule.scheduleJob(`0 ${finishingMin - 5} ${finishingHour} * * 1-5`, async function () {
+      // send mail and apply fullday leave
+      schedule.scheduleJob(`0 ${finishingMin} ${finishingHour} * * 1-5`, async function () {
         try {
           const response = await axios.post(`${process.env.REACT_APP_API_URL}/api/clock-ins/not-login/apply-leave`);
           console.log("Apply Leave for Not-login Triggered:", response.data.message);
@@ -324,14 +301,14 @@ async function fetchTimePatterns() {
       })
 
       // Schedule job for logout
-      schedule.scheduleJob(`0 ${finishingMin} ${finishingHour} * * 1-5`, async function () {
-        try {
-          const response = await axios.post(`${process.env.REACT_APP_API_URL}/api/clock-ins/ontime/logout`);
-          console.log("Logout Triggered:", response.data.message);
-        } catch (error) {
-          console.error("Logout Error:", error);
-        }
-      });
+      // schedule.scheduleJob(`0 ${finishingMin} ${finishingHour} * * 1-5`, async function () {
+      //   try {
+      //     const response = await axios.post(`${process.env.REACT_APP_API_URL}/api/clock-ins/ontime/logout`);
+      //     console.log("Logout Triggered:", response.data.message);
+      //   } catch (error) {
+      //     console.error("Logout Error:", error);
+      //   }
+      // });
     });
   } catch (error) {
     console.error("Error fetching time patterns:", error);

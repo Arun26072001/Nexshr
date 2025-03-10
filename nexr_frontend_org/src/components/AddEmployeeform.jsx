@@ -215,7 +215,6 @@ const AddEmployeeForm = ({ details, handleScroll, handlePersonal, handleFinancia
         calculateTimeDifference();
     }, [formik.values.workingTimePattern]);
 
-    console.log(formik.values);
 
     useEffect(() => {
         async function getPayslipInfo() {

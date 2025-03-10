@@ -27,7 +27,6 @@ export default function Country() {
     }
 
     function changeState(name, value) {
-        console.log(name, value);
 
         if (countryObj?.state) {
             const isExists = countryObj?.state?.filter((item) => item === value);
@@ -136,8 +135,6 @@ export default function Country() {
         fetchCountries()
     }, [modifyCountry.isAdd, data.token, modifyCountry.isEdit])
 
-    console.log(countries);
-    
     return (
         modifyCountry.isAdd ? <CommonModel type="Country" addData={addCountry} removeState={removeState} dataObj={countryObj} isAddData={modifyCountry.isAdd} changeState={changeState} modifyData={changeCountryOperation} changeData={changeCountry} /> :
             modifyCountry.isEdit ? <CommonModel type="Edit Country" removeState={removeState} editData={updateCountry} changeState={changeState} dataObj={countryObj} isAddData={modifyCountry.isEdit} modifyData={changeCountryOperation} changeData={changeCountry} /> :

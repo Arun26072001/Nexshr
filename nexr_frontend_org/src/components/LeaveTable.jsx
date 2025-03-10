@@ -478,7 +478,6 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
             async function fetchAttendanceData() {
                 try {
                     const data = await getclockinsDataById(id);
-                    console.log(data);
 
                     setModelData({
                         ...data.timeData,

@@ -7,7 +7,7 @@ const { getDayDifference } = require("./leave-app");
 const sendMail = require("./mailSender");
 const { LeaveApplication, LeaveApplicationValidation } = require("../models/LeaveAppModel");
 const { Team } = require("../models/TeamModel");
-const { getCurrentTimeInMinutes, formatTimeFromMinutes } = require("../Reuseable_functions/reusableFunction");
+const { getCurrentTimeInMinutes, formatTimeFromMinutes, timeToMinutes } = require("../Reuseable_functions/reusableFunction");
 
 async function checkLoginForOfficeTime(scheduledTime, actualTime, permissionTime) {
 
@@ -198,7 +198,7 @@ router.post("/not-login/apply-leave", async (req, res) => {
             { $match: { "clockIns.0": { $exists: false } } }, // Employees with no clock-ins
             {
                 $lookup: {
-                    from: "workingtimepatterns",
+                    from: "timepatterns",
                     localField: "workingTimePattern",
                     foreignField: "_id",
                     as: "workingTimePattern"
@@ -210,10 +210,19 @@ router.post("/not-login/apply-leave", async (req, res) => {
                     from: "leaveapplications",
                     localField: "leaveApplication",
                     foreignField: "_id",
-                    as: "leaveApplications"
+                    as: "leaveApplications",
+                    pipeline: [
+                        {
+                            $match: {
+                                date: { $gte: startOfDay, $lt: endOfDay },
+                                status: "approved"
+                            }
+                        }
+                    ]
                 }
             }
         ]);
+        console.log(notLoginEmps[0]);
 
         if (notLoginEmps.length === 0) {
             return res.send({ message: "No employees found without punch-in today." });
@@ -224,7 +233,7 @@ router.post("/not-login/apply-leave", async (req, res) => {
         const emailPromises = [];
 
         for (const emp of notLoginEmps) {
-            if (!emp.workingTimePattern) continue; // Skip employees without a working pattern
+            if (!emp.workingTimePattern) continue;// Skip employees without a working pattern
 
             // Remove any existing leave applications for the employee
             if (emp.leaveApplications.length > 0) {
@@ -235,7 +244,8 @@ router.post("/not-login/apply-leave", async (req, res) => {
                 emp.workingTimePattern.StartingTime,
                 emp.workingTimePattern.FinishingTime
             );
-            const fromDate = new Date(now.getTime() - workingHours);
+            const fromDate = new Date(now.getTime() - (workingHours || 1000 * 60 * 60 * 9.30));
+            console.log(fromDate);
 
             // Create new full-day leave application
             const leaveApplication = {
@@ -273,18 +283,18 @@ router.post("/not-login/apply-leave", async (req, res) => {
         }
 
         // Insert new leave applications in bulk
+
         const insertedLeaves = await LeaveApplication.insertMany(leaveApplications);
-        console.log(insertedLeaves);
 
         // Prepare employee updates for bulk write
-        notLoginEmps.forEach((emp, index) => {
-            employeeUpdates.push({
-                updateOne: {
-                    filter: { _id: emp._id },
-                    update: { $set: { leaveApplication: [insertedLeaves[index]._id] } }
-                }
-            });
-        });
+        // notLoginEmps.forEach((emp, index) => {
+        //     employeeUpdates.push({
+        //         updateOne: {
+        //             filter: { _id: emp._id },
+        //             update: { $set: { leaveApplication: [insertedLeaves[index]._id] } }
+        //         }
+        //     });
+        // });
 
         // Perform bulk update on employees
         if (employeeUpdates.length > 0) {
@@ -576,8 +586,7 @@ router.get("/team/:id", verifyTeamHigherAuthority, async (req, res) => {
                 $gte: startOfMonth,
                 $lte: endOfMonth
             }
-        })
-        console.log(teamClockins);
+        }).populate("employee", "FirstName LastName")
         return res.send(teamClockins);
     } catch (error) {
         return res.status(500).send({ error: error.message })
@@ -711,7 +720,7 @@ router.get("/employee/:empId", verifyAdminHREmployeeManagerNetwork, async (req, 
                 },
                 populate: {
                     path: "employee", // Ensure this matches the defined model name
-                    select: "_id FirstName LastName"
+                    select: "FirstName LastName"
                 }
             })
             .populate({

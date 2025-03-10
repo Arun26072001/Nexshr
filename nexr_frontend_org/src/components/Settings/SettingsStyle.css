@@ -191,7 +191,7 @@ input[type="time"]::-webkit-calendar-picker-indicator {
   line-height: 25px;
 }
 
-.modelInput > .modelLabel::after {
+.modelInput > .important::after {
   content: "*";
   color: red;
 }

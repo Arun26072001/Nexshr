@@ -68,7 +68,6 @@ const Summary = () => {
     const getEmpData = async () => {
         try {
             const emps = await fetchEmployees();
-            console.log(emps);
 
             if (emps) setEmployees(emps);
         } catch (error) {
