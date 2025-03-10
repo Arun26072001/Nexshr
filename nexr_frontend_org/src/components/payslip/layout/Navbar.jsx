@@ -11,14 +11,11 @@ import { EssentialValues } from '../../../App';
 import axios from "axios";
 import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
 import KeyboardArrowDownRoundedIcon from '@mui/icons-material/KeyboardArrowDownRounded';
-import { updateDataAPI } from '../../ReuseableAPI';
 import useHandleTabClose from '../../../handleCloseTab';
 
 export default function Navbar({ handleSideBar }) {
-    // const [lat, setLat] = useState("")
-    // const [long, setLong] = useState("");
-    const { handleLogout, data, handleUpdateAnnouncements, isChangeAnnouncements, setIsStartLogin } = useContext(EssentialValues)
-    const { startLoginTimer, stopLoginTimer, workTimeTracker, isStartLogin, trackTimer, setWorkTimeTracker } = useContext(TimerStates);
+    const { handleLogout, data, handleUpdateAnnouncements, isChangeAnnouncements } = useContext(EssentialValues)
+    const { startLoginTimer, stopLoginTimer, workTimeTracker, isStartLogin, trackTimer } = useContext(TimerStates);
     const [sec, setSec] = useState(workTimeTracker?.login?.timeHolder?.split(':')[2])
     const [min, setMin] = useState(workTimeTracker?.login?.timeHolder?.split(':')[1])
     const [hour, setHour] = useState(workTimeTracker?.login?.timeHolder?.split(':')[0])
@@ -79,7 +76,7 @@ export default function Navbar({ handleSideBar }) {
     // Function to stop the timer
     const stopTimer = async () => {
         if (workRef.current) {
-            await stopLoginTimer();
+            await stopLoginTimer(`${String(hour).padStart(2, '0')}:${String(min).padStart(2, '0')}:${String(sec).padStart(2, '0')}`);
             clearInterval(workRef.current);
             workRef.current = null;
         }
@@ -229,51 +226,7 @@ export default function Navbar({ handleSideBar }) {
         }, 300)
     }
     useHandleTabClose(isStartLogin, workTimeTracker, data.token);
-    // useEffect(() => {
-
-    //     const handleUpdate = async () => {
-
-    //         const savedState = localStorage.getItem("timerState");
-    //         if (!savedState) return; // Exit if no saved state
-
-    //         let timerData;
-    //         try {
-    //             timerData = JSON.parse(savedState);
-    //         } catch (error) {
-    //             console.error("Error parsing timerState:", error);
-    //             return;
-    //         }
-
-    //         if (!isStartLogin || !timerData || !timerData._id) {
-    //             console.log(isStartLogin || !timerData || !timerData._id);
-
-    //             return; // Ensure valid data  
-    //         }
-
-    //         try {
-    //             const updatedData = await updateDataAPI(timerData); // Wait for API call to complete
-    //             setWorkTimeTracker(updatedData);
-    //             setIsStartLogin(false);
-    //             localStorage.setItem("isStartLogin", "false");
-    //             localStorage.removeItem("timerState"); // Remove timerState
-
-    //             if (workRef.current) {
-    //                 clearInterval(workRef.current);
-    //                 workRef.current = null;
-    //             }
-    //         } catch (error) {
-    //             console.error("Error updating data:", error);
-    //         }
-
-    //     };
-
-    //     // handleUpdate();
-
-    //     document.addEventListener("visibilitychange", handleUpdate);
-    //     return () => document.removeEventListener("visibilitychange", handleUpdate);
-
-    // }, [isStartLogin, setWorkTimeTracker, setIsStartLogin, workRef]);
-
+   
     return (
         <div className="webnxs">
             <div className="row mx-auto justify-content-between">

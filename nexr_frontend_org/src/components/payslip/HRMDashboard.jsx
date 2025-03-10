@@ -217,7 +217,7 @@ export default function HRMDashboard() {
         }
     };
 
-    const stopLoginTimer = async () => {
+    const stopLoginTimer = async (timeHolderData) => {
         trackTimer();
         const currentTime = new Date().toTimeString().split(' ')[0];
         const updatedState = {
@@ -225,13 +225,11 @@ export default function HRMDashboard() {
             login: {
                 ...workTimeTracker?.login,
                 endingTime: [...(workTimeTracker?.login?.endingTime || []), currentTime],
-                timeHolder: workTimeTracker?.login?.timeHolder,
+                timeHolder: timeHolderData,
             },
         };
 
         try {
-            console.log(updatedState);
-
             const updatedData = await updateDataAPI(updatedState);
             setWorkTimeTracker(updatedData);
             localStorage.setItem('isStartLogin', false);
@@ -297,7 +295,7 @@ export default function HRMDashboard() {
 
     function changeEmpEditForm(id) {
         console.log(isEditEmp);
-        
+
         if (isEditEmp) {
             navigate(["manager", "admin", "hr"].includes(whoIs) ? `/${whoIs}/employee` : `/${whoIs}`);
             setIsEditEmp(false);
@@ -359,13 +357,12 @@ export default function HRMDashboard() {
                 }
             });
             console.log(res.data);
-            
+
             setAttendanceData(res.data);
         } catch (error) {
             console.error(error);
         }
     }
-    console.log(isTeamLead);
 
     function trackTimer() {
         setSyncTimer(!syncTimer);

@@ -17,6 +17,8 @@ const Dailylog = ({ attendanceData, isLoading }) => {
     const { daterangeValue, setDaterangeValue, data, whoIs } = useContext(EssentialValues)
     const url = process.env.REACT_APP_API_URL;
 
+    console.log(attendanceData);
+
     // Handle file upload
     const handleUpload = async (file) => {
         const formData = new FormData();
