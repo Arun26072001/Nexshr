@@ -8,7 +8,7 @@ import { formatTime } from "../ReuseableAPI";
 import NoDataFound from "./NoDataFound";
 import { toast } from "react-toastify";
 
-const Attendence = (props) => {
+const Attendence = () => {
   const url = process.env.REACT_APP_API_URL;
   const empId = localStorage.getItem("_id")
   const token = localStorage.getItem("token");
@@ -29,7 +29,7 @@ const Attendence = (props) => {
   ].map(
     item => ({ label: item, value: item })
   );
-  const [selectedTimeOption, setSelectedTimeOption] = useState(["login", "morningBreak","eveningBreak", "lunch"]);
+  const [selectedTimeOption, setSelectedTimeOption] = useState(["login", "morningBreak", "eveningBreak", "lunch"]);
   const [filteredTabledata, setFilteredTableData] = useState([]);
 
   useEffect(() => {
@@ -121,130 +121,65 @@ const Attendence = (props) => {
   return (
     <div>
       <div className="leaveDateParent">
-        <div className="payslipTitle">
-          Attendance
-        </div>
+        <div className="payslipTitle">Attendance</div>
       </div>
 
-      {/* <div className="container"> */}
-      {isLoading ? <Loading />
-        : Object.keys(clockInsData).length > 0 ? <>
+      {isLoading ? (
+        <Loading />
+      ) : Object.keys(clockInsData).length > 0 ? (
+        <>
+          {/* Attendance Chart */}
           <div className="row w-100 mx-auto">
             <div className="chartParent">
-              <div className="col-lg-3 regular" style={{ height: `${regularHeight}%` }}>
-                {
-                  clockInsData.totalRegularLogins == 0 ?
-                    <div className="d-flex justify-content-center emtChart">
-                      <p className="payslipTitle" style={{ color: "#146ADC" }}>{clockInsData.totalRegularLogins.toFixed(1)} Days</p>
-                      <p className="leaveDays text-center" style={{ color: "#146ADC" }}>(Regular)</p>
-                    </div>
-                    : <div className="d-flex justify-content-center">
-                      <p className="payslipTitle" style={{ color: "#146ADC" }}>{clockInsData.totalRegularLogins.toFixed(1)} Days</p>
-                      <p className="leaveDays text-center" style={{ color: "#146ADC" }}>(Regular)</p>
-                    </div>
-                }
-              </div>
-              <div className="col-lg-3 early" style={{ height: `${earlyHeight}%` }}>
-                {
-                  clockInsData.totalEarlyLogins == 0 ?
-                    <div className="d-flex justify-content-center emtChart">
-                      <p className="payslipTitle" style={{ color: "#146ADC" }}>{clockInsData.totalEarlyLogins.toFixed(1)} Days</p>
-                      <p className="leaveDays text-center" style={{ color: "#146ADC" }}>(Early)</p>
-                    </div> : <div className="d-flex justify-content-center">
-                      <p className="payslipTitle" style={{ color: "#146ADC" }}>{clockInsData.totalEarlyLogins.toFixed(1)} Days</p>
-                      <p className="leaveDays text-center" style={{ color: "#146ADC" }}>(Early)</p>
-                    </div>
-                }
-              </div>
-              <div className="col-lg-3 late" style={{ height: `${lateHeight}%` }}>
-                {
-                  clockInsData.totalLateLogins == 0 ?
-                    <div className="d-flex justify-content-center emtChart">
-                      <p className="payslipTitle" style={{ color: "#146ADC" }}>{clockInsData.totalLateLogins.toFixed(1)} Days</p>
-                      <p className="leaveDays text-center" style={{ color: "#146ADC" }}>(Late)</p>
-                    </div> : <div className="d-flex justify-content-center">
-                      <p className="payslipTitle" style={{ color: "#146ADC" }}>{clockInsData.totalLateLogins.toFixed(1)} Days</p>
-                      <p className="leaveDays text-center" style={{ color: "#146ADC" }}>(Late)</p>
-                    </div>
-                }
-              </div>
-              <div className="col-lg-3 leave" style={{ height: `${clockInsData.totalLeaveDays * 10}%` }}>
-                {
-                  clockInsData.totalLeaveDays == 0 ?
-                    <div className="d-flex justify-content-center emtChart">
-                      <p className="payslipTitle" style={{ color: "#146ADC" }}>{clockInsData.totalLeaveDays.toFixed(1)} Days</p>
-                      <p className="leaveDays text-center" style={{ color: "#146ADC" }}>(Leave)</p>
-                    </div> : <div className="d-flex justify-content-center">
-                      <p className="payslipTitle" style={{ color: "#146ADC" }}>{clockInsData.totalLeaveDays.toFixed(1)} Days</p>
-                      <p className="leaveDays text-center" style={{ color: "#146ADC" }}>(Leave)</p>
-                    </div>
-                }
-              </div>
+              {[
+                { key: "totalRegularLogins", label: "Regular", height: regularHeight },
+                { key: "totalEarlyLogins", label: "Early", height: earlyHeight },
+                { key: "totalLateLogins", label: "Late", height: lateHeight },
+                { key: "totalLeaveDays", label: "Leave", height: clockInsData.totalLeaveDays * 10 },
+              ].map(({ key, label, height }) => (
+                <div key={key} className={`col-lg-3 ${label.toLowerCase()}`} style={{ height: `${height}%` }}>
+                  <div className={`d-flex justify-content-center ${clockInsData[key] === 0 ? "emtChart" : ""}`}>
+                    <p className="payslipTitle" style={{ color: "#146ADC" }}>
+                      {clockInsData[key].toFixed(1)} Days
+                    </p>
+                    <p className="leaveDays text-center" style={{ color: "#146ADC" }}>({label})</p>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
 
+          {/* Attendance Summary Board */}
           <div className="leaveBoard">
-            <div className="leaveData">
-              <div className="d-flex flex-column">
-                <div className="leaveDays">
-                  {formatTime(clockInsData.companyTotalWorkingHour)}
-                </div>
-                <div className="leaveDaysDesc">
-                  Total schedule hour
-                </div>
-              </div>
-            </div>
-            <div className="leaveData">
-              <div className="d-flex flex-column">
-                <div className="leaveDays">
-                  {formatTime(clockInsData.totalLeaveDays * 9)}
-                </div>
-                <div className="leaveDaysDesc">
-                  Leave hour
-                </div>
-              </div>
-            </div>
-            <div className="leaveData">
-              <div className="d-flex flex-column">
-                <div className="leaveDays" style={{ color: "#146ADC" }}>
-                  %{calculateWorkAvailablity(Number(clockInsData.totalEmpWorkingHours), clockInsData.companyTotalWorkingHour)}
-                </div>
-                <div className="leaveDaysDesc" >
-                  Total work availability
+            {[
+              { value: formatTime(clockInsData.companyTotalWorkingHour), label: "Total schedule hour" },
+              { value: formatTime(clockInsData.totalLeaveDays * 9), label: "Leave hour" },
+              {
+                value: `%${calculateWorkAvailablity(Number(clockInsData.totalEmpWorkingHours), clockInsData.companyTotalWorkingHour)}`,
+                label: "Total work availability",
+                className: "text-primary",
+              },
+              { value: formatTime(clockInsData.totalEmpWorkingHours), label: "Total active hour", className: "text-success" },
+              {
+                value: `${(clockInsData.companyTotalWorkingHour - Number(clockInsData.totalEmpWorkingHours)).toFixed(0)} hour`,
+                label: "Balance",
+                className: "text-danger",
+              },
+              {
+                value: calculateOverallBehavior(clockInsData.totalRegularLogins, clockInsData.totalLateLogins, clockInsData.totalEarlyLogins),
+                label: "Average Behaviour",
+              },
+            ].map(({ value, label, className }, index) => (
+              <div key={index} className="leaveData" style={index === 5 ? { width: "30%", margin: "10px" } : {}}>
+                <div className="d-flex flex-column">
+                  <div className={`leaveDays ${className || ""}`}>{value}</div>
+                  <div className="leaveDaysDesc">{label}</div>
                 </div>
               </div>
-            </div>
-            <div className="leaveData">
-              <div className="d-flex flex-column">
-                <div className="leaveDays text-success">
-                  {formatTime(clockInsData.totalEmpWorkingHours)}
-                </div>
-                <div className="leaveDaysDesc">
-                  Total active hour
-                </div>
-              </div>
-            </div>
-            <div className="leaveData">
-              <div className="d-flex flex-column">
-                <div className="leaveDays text-danger">
-                  {(clockInsData.companyTotalWorkingHour - Number(clockInsData.totalEmpWorkingHours)).toFixed(0)} hour
-                </div>
-                <div className="leaveDaysDesc">
-                  Balance
-                </div>
-              </div>
-            </div>
-            <div style={{ width: "30%", margin: "10px" }} >
-              <div className="d-flex flex-column">
-                <div className="leaveDays">
-                  {calculateOverallBehavior(clockInsData.totalRegularLogins, clockInsData.totalLateLogins, clockInsData.totalEarlyLogins)}
-                </div>
-                <div className="leaveDaysDesc">
-                  Average Behaviour
-                </div>
-              </div>
-            </div>
+            ))}
           </div>
+
+          {/* Filters: Date Picker & Time Selector */}
           <div className="d-flex justify-content-between align-items-center p-2">
             <div style={{ width: "30%" }}>
               <DateRangePicker value={daterangeValue} size="lg" placeholder="Select Date" onChange={setDaterangeValue} />
@@ -262,10 +197,11 @@ const Attendence = (props) => {
               />
             </div>
           </div>
-          <LeaveTable data={tableData} />
-        </> : <NoDataFound message={"Attendance data not found!"} />
-      }
 
+          {/* Table or No Data Message */}
+          {tableData.length > 0 ? <LeaveTable data={tableData} /> : <NoDataFound message="Attendance data not found!" />}
+        </>
+      ) : null}
     </div>
   )
 };

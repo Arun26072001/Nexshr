@@ -5,7 +5,7 @@ import { useFormik } from "formik";
 import * as Yup from "yup";
 import axios from "axios";
 import { toast } from "react-toastify";
-import { fetchLeaveRequests, getHoliday } from "../ReuseableAPI";
+import { fetchAllEmployees, fetchLeaveRequests, getHoliday } from "../ReuseableAPI";
 import "react-datepicker/dist/react-datepicker.css";
 import DatePicker from "react-datepicker";
 import TextEditor from "./TextEditor";
@@ -26,6 +26,7 @@ const LeaveRequestForm = () => {
   const [prescriptionFile, setPrescriptionFile] = useState("");
   const [content, setContent] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [employees, setEmployees] = useState([]);
 
   let leaveObj = {
     leaveType: "",
@@ -109,7 +110,8 @@ const LeaveRequestForm = () => {
     reasonForLeave: Yup.string().required("Reason for Leave is required"),
     periodOfLeave: Yup.string().notRequired(),
     prescription: Yup.string().notRequired(),
-    coverBy: Yup.string().notRequired()
+    coverBy: Yup.string().notRequired(),
+    applyFor: Yup.string().notRequired()
   });
   const formik = useFormik({
     initialValues: leaveObj,
@@ -125,6 +127,8 @@ const LeaveRequestForm = () => {
         formData.append("reasonForLeave", formik.values.reasonForLeave);
         formData.append("prescription", prescriptionFile); // Assuming `file` is the file object
         formData.append("coverBy", formik.values.coverBy);
+        // ["admin"]whoIs
+        formData.append("applyFor", formik.values.applyFor);
         try {
           // Leave request submission
           const res = await axios.post(`${url}/api/leave-application/${empId}`, formData, {
@@ -145,7 +149,6 @@ const LeaveRequestForm = () => {
     },
   });
   console.log(formik.values);
-
 
   useEffect(() => {
     if (formik.values.fromDate && formik.values.toDate) {
@@ -222,13 +225,23 @@ const LeaveRequestForm = () => {
 
   function getFileData(e) {
     console.log(e.target.files);
-    
+
     setPrescriptionFile(e.target.files[0])
   }
 
   function handleChange(value) {
     setContent(value);
     formik.setFieldValue("reasonForLeave", value)
+  }
+
+  async function gettingEmps() {
+    try {
+      const emps = await fetchAllEmployees();
+      const filterEmps = emps.filter((emp) => emp._id !== empId)
+      setEmployees(filterEmps.map((emp) => ({ label: emp.FirstName + " " + emp.LastName, value: emp._id })))
+    } catch (error) {
+      console.log(error);
+    }
   }
 
   useEffect(() => {
@@ -241,6 +254,7 @@ const LeaveRequestForm = () => {
       }
     }
     gettingHoliday();
+    gettingEmps();
   }, [])
 
   return (
@@ -255,6 +269,27 @@ const LeaveRequestForm = () => {
               <p className="text-dark">Fill the required fields below to apply for annual leave</p>
             </div>
 
+            {/* Apply leave for employees*/}
+            {
+              ["hr", "admin"].includes(whoIs) &&
+              <div className="my-3">
+                <span className="inputLabel">Apply Leave for Employee</span>
+                <select
+                  name="applyFor"
+                  className={`selectInput ${formik.touched.applyFor && formik.errors.applyFor ? "error" : ""}`}
+                  onChange={formik.handleChange}
+                  value={formik.values.applyFor}
+                >
+                  <option>Select Employee</option>
+                  {employees.map((emp) => {
+                    return (<option value={emp.value}>{emp.label}</option>)
+                  })}
+                </select>
+                {formik.touched.applyFor && formik.errors.applyFor ? (
+                  <div className="text-center text-danger">{formik.errors.applyFor}</div>
+                ) : null}
+              </div>
+            }
             {/* Leave Type */}
             <div className="my-3">
               <span className="inputLabel">Leave Type</span>

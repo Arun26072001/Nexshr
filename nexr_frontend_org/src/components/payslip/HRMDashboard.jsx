@@ -356,8 +356,6 @@ export default function HRMDashboard() {
                     Authorization: token || ""
                 }
             });
-            console.log(res.data);
-
             setAttendanceData(res.data);
         } catch (error) {
             console.error(error);
