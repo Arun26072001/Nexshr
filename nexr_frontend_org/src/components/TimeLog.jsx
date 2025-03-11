@@ -97,20 +97,6 @@ export default function TimeLog() {
                                     })
                             }
                         </div>
-                        <div className="btnBackground">
-                            <div className="fixedPositionBtns">
-                                <div className="w-50">
-                                    <button type="button" className="outline-btn mx-2" onClick={() => navigate(-1)} >
-                                        Cancel
-                                    </button>
-                                </div>
-                                <div className="w-50">
-                                    <button type="submit" className="button" style={{ padding: "12px" }} >
-                                        Save
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
                     </div>
             }
         </>

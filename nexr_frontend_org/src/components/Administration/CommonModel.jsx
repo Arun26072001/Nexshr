@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import "../Settings/SettingsStyle.css";
-import { Modal, Button, SelectPicker, TagPicker, Input, DateRangePicker, InputNumber } from 'rsuite';
+import { Modal, Button, SelectPicker, TagPicker, Input, InputNumber } from 'rsuite';
 import TextEditor from '../payslip/TextEditor';
 import ErrorOutlineRoundedIcon from '@mui/icons-material/ErrorOutlineRounded';
 import DatePicker from "react-datepicker";
@@ -8,7 +8,6 @@ import "react-datepicker/dist/react-datepicker.css";
 import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
 import "../projectndTask.css";
 import { MultiCascader, VStack } from 'rsuite';
-// import { TimePicker } from 'rsuite';
 
 const CommonModel = ({
     dataObj,
@@ -29,12 +28,12 @@ const CommonModel = ({
     removeState,
     comps,
     changeState,
-    toggleAssignEmp,
     removeAttachment,
     type // New prop to determine if it's for "department" or "position"
 }) => {
     const [confirmationTxt, setConfirmationTxt] = useState("");
     const [isDisabled, setIsDisabled] = useState(true);
+    console.log(dataObj);
 
     return (
         <Modal open={isAddData} size="sm" backdrop="static">
@@ -42,7 +41,8 @@ const CommonModel = ({
                 <Modal.Title>
                     {type === "Assign" ? `Edit ${type}` :
                         ["Confirmation", "Report Confirmation"].includes(type) ? "" :
-                            dataObj?._id ? `Edit ${type}` : `Add a ${type}`}
+                            type === "Add Comments" ? "Add Comments" :
+                                dataObj?._id ? `Edit ${type}` : `Add a ${type}`}
                 </Modal.Title>
             </Modal.Header>
 
@@ -115,17 +115,28 @@ const CommonModel = ({
 
                     <div className="d-flex justify-content-between">
 
-                        {["Task", "Task View", "Announcement"].includes(type) && <div className={type === "Announcement" ? "col-full" : "col-half"}>
+                        {["Task", "Task View", "Announcement", "Add Comments"].includes(type) && <div className={type === "Announcement" ? "col-full" : "col-half"}>
                             <div className="modelInput">
                                 <p className='modelLabel important'>Title: </p>
                                 <Input required
                                     name={`title`}
-                                    disabled={type === "Task View" ? true : false}
+                                    size="lg"
+                                    disabled={["Task View", "Add Comments"].includes(type) ? true : false}
                                     value={dataObj?.[`title`] || ""}
                                     onChange={type !== "Task View" ? (e) => changeData(e, "title") : null}
                                 />
                             </div>
                         </div>}
+
+                        {
+                            type === "Add Comments" &&
+                            <div className="col-half">
+                                <div className="modelInput">
+                                    <p className='modelLabel'>Spend time:</p>
+                                    <InputNumber size='lg' defaultValue={0.00} style={{ width: "100%" }} step={0.01} value={dataObj?.comments[0]?.["spend"]} onChange={(e) => changeData(e, "comments.spend")} />
+                                </div>
+                            </div>
+                        }
 
                         {["Task", "Task View"].includes(type) && <div className="col-half">
                             <div className="modelInput">
@@ -145,55 +156,64 @@ const CommonModel = ({
                         </div>}
                     </div>
 
-                    {["Task", "Task View"].includes(type) &&
+                    {["Task", "Task View", "Add Comments"].includes(type) && (
                         <div className="col-full">
                             <div className="modelInput">
                                 <p className="modelLabel">Attachments: </p>
-                                <input type="file" disabled={type === "Task View" ? true : false} className='form-control' onChange={(e) => changeData(e, "attachments")} multiple={true} />
+                                <input
+                                    type="file"
+                                    disabled={type === "Task View"}
+                                    className="form-control"
+                                    onChange={(e) => changeData(e, type === "Add Comments" ? `comments.attachments` : "attachments")}
+                                    multiple
+                                />
                             </div>
-                            {
-                                previewList?.length > 0 ?
-                                    previewList.map((imgFile, index) => {
-                                        return <div key={index} style={{ display: 'inline-block', margin: '10px', position: 'relative' }}>
-                                            <img
-                                                src={imgFile}
-                                                width={50}
-                                                height={50}
-                                                alt="uploaded file"
-                                                style={{ borderRadius: '4px' }}
-                                            />
-                                            {/* Close button */}
-                                            <button
-                                                onClick={() => removeAttachment(imgFile)}
-                                                className='remBtn'
-                                            >
-                                                &times;
-                                            </button>
-                                        </div>
-                                    }) : dataObj?.attachments?.length > 0 &&
-                                    dataObj.attachments.map((imgFile, index) => (
-                                        <div key={index} style={{ display: 'inline-block', margin: '10px', position: 'relative' }}>
-                                            <img
-                                                src={imgFile}
-                                                width={50}
-                                                height={50}
-                                                alt="uploaded file"
-                                                style={{ borderRadius: '4px' }}
-                                            />
-                                            {/* Close button */}
-                                            {
-                                                type !== "Task View" &&
-                                                <button
-                                                    onClick={() => removeAttachment(imgFile)}
-                                                    className='remBtn'
-                                                >
-                                                    &times;
-                                                </button>
-                                            }
-                                        </div>
-                                    ))
-                            }
-                        </div>}
+
+                            {/* Display preview images */}
+                            {previewList?.length > 0 ? (
+                                previewList?.map((imgFile, index) => (
+                                    <div key={index} style={{ display: "inline-block", margin: "10px", position: "relative" }}>
+                                        <img
+                                            src={imgFile}
+                                            width={50}
+                                            height={50}
+                                            alt="uploaded file"
+                                            style={{ borderRadius: "4px" }}
+                                        />
+                                        {/* Close button */}
+                                        <button onClick={() => removeAttachment(imgFile)} className="remBtn">
+                                            &times;
+                                        </button>
+                                    </div>
+                                ))
+                            ) : (
+                                <>
+                                    {/* Attachments from dataObj */}
+                                    {type === "Add Comments"
+                                        ? dataObj?.comments?.[0]?.attachments?.length > 0
+                                        : dataObj?.attachments?.length > 0
+                                            ? (dataObj?.comments?.[0]?.attachments ?? dataObj?.attachments)?.map((imgFile, index) => (
+                                                <div key={index} style={{ display: "inline-block", margin: "10px", position: "relative" }}>
+                                                    <img
+                                                        src={imgFile}
+                                                        width={50}
+                                                        height={50}
+                                                        alt="uploaded file"
+                                                        style={{ borderRadius: "4px" }}
+                                                    />
+                                                    {/* Close button */}
+                                                    {type !== "Task View" && (
+                                                        <button onClick={() => removeAttachment(imgFile)} className="remBtn">
+                                                            &times;
+                                                        </button>
+                                                    )}
+                                                </div>
+                                            ))
+                                            : null}
+                                </>
+                            )}
+                        </div>
+                    )}
                 </>
 
                 {["Task", "Task View", "Report", "Report View", "Announcement"].includes(type) && (
@@ -206,8 +226,8 @@ const CommonModel = ({
                                     showTimeSelect={type === "Announcement"}
                                     dateFormat={type === "Announcement" ? "Pp" : "yyyy-MM-dd"} // Added valid default format
                                     className="rsuite_input"
-                                    disabled={["Report View", "Task View"].includes(type)}
                                     style={{ width: "100%" }}
+                                    disabled={["Report View", "Task View"].includes(type)}
                                     placeholder={`Select ${type === "Task" ? "From Date" : "Start Date"}`}
                                     selected={
                                         dataObj?.from
@@ -426,39 +446,42 @@ const CommonModel = ({
                     )
                 }
                 {
-                    type === "Announcement" &&
+                    ["Announcement", "Add Comments"].includes(type) &&
                     <>
-                        <div className="d-flex justify-content-between">
-                            <div className="col-full">
-                                <div className="modelInput">
-                                    <p className="modelLabel important">
-                                        Team Employes
-                                    </p>
+                        {
+                            type === "Announcement" &&
+                            <div className="d-flex justify-content-between">
+                                <div className="col-full">
+                                    <div className="modelInput">
+                                        <p className="modelLabel important">
+                                            Team Employes
+                                        </p>
 
-                                    <VStack>
-                                        <MultiCascader
-                                            className="pt-2"
-                                            data={team_member}
-                                            onChange={(id) => changeData(id, "selectTeamMembers")}
-                                            style={{ width: '100%' }}
-                                            placeholder="Select team members"
-                                            searchable
-                                            checkAll
-                                        />
-                                    </VStack>
+                                        <VStack>
+                                            <MultiCascader
+                                                className="pt-2"
+                                                data={team_member}
+                                                onChange={(id) => changeData(id, "selectTeamMembers")}
+                                                style={{ width: '100%' }}
+                                                placeholder="Select team members"
+                                                searchable
+                                                checkAll
+                                            />
+                                        </VStack>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
+                        }
                         <div className="d-flex justify-content-between">
                             <div className="col-full">
                                 <div className="modelInput">
                                     <p className="modelLabel">
-                                        Message
+                                        {type === "Announcement" ? "Message" : "Comments"}
                                     </p>
 
                                     <TextEditor
-                                        handleChange={(e) => changeData(e, "message")}
-                                        content={dataObj?.["message"]}
+                                        handleChange={(e) => changeData(e, type === "Announcement" ? "message" : "comments.comment")}
+                                        content={type === "Add Comments" ? dataObj?.comments[0]?.["comment"] : dataObj?.["message"]}
                                     />
                                 </div>
                             </div>
@@ -822,13 +845,11 @@ const CommonModel = ({
                                         onClick={() => (dataObj?._id || type === "Edit Country" ? editData(dataObj) : addData())}
                                         appearance="primary"
                                         disabled={
-                                            ["Project", "Assign", "Task", "Task Assign", "Report", "Company", "Country", "Edit Country", "Announcement", "Team"].includes(type)
-                                                ? false
-                                                // : (!dataObj?.[`${type}Name`] || !dataObj?.name) ? true
-                                                : (["Department", "Position"].includes(type) && dataObj?.company ? false : true)
+                                            ["Project", "Assign", "Task", "Task Assign", "Report", "Company", "Country", "Edit Country", "Announcement", "Team", "Add Comments"].includes(type)
+                                                ? false : (["Department", "Position"].includes(type) && dataObj?.company ? false : true)
                                         }
                                     >
-                                        {dataObj?._id || type === "Edit Country" ? "Update" : "Save"}
+                                        {type === "Add Comments" ? "Add" : dataObj?._id || type === "Edit Country" ? "Update" : "Save"}
                                     </Button>
                                 )
                             }

@@ -14,6 +14,13 @@ const spendTimeSchema = new mongoose.Schema({
     reasonForLate: { type: String }
 }, { _id: false })
 
+const commentSchema = new mongoose.Schema({
+    comment: { type: String },
+    attachments: [{ type: String }],
+    spend: { type: String },
+    date: { type: Date }
+})
+
 const taskSchema = new mongoose.Schema({
     title: { type: String },
     priority: { type: String },
@@ -25,7 +32,8 @@ const taskSchema = new mongoose.Schema({
     spend: { type: spendTimeSchema, default: () => ({}) },
     status: { type: String },
     trash: { type: Boolean, default: false },
-    tracker: [TrackerSchema],
+    tracker: [{ type: TrackerSchema }],
+    comments: [{ type: commentSchema, default: null }],
     estTime: { type: Number },
     createdby: { type: mongoose.Schema.Types.ObjectId, ref: "Employee" },
     project: { type: mongoose.Schema.Types.ObjectId, ref: "Project" }
@@ -64,6 +72,7 @@ const taskValidation = Joi.object({
     tracker: Joi.any().label("Tracker"),
     estTime: Joi.any().label("EstTime"),
     spend: Joi.any().label("Spend"),
+    comments: Joi.any().label("Comments"),
     trash: Joi.boolean().allow("", null).label("Trash"),
     project: Joi.string().regex(/^[0-9a-fA-F]{24}$/).label('Project ID'),
     createdAt: Joi.string().allow('').label('createdAt'),

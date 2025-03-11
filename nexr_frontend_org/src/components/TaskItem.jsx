@@ -9,10 +9,13 @@ import CalendarMonthRoundedIcon from '@mui/icons-material/CalendarMonthRounded';
 import MoreVertRoundedIcon from '@mui/icons-material/MoreVertRounded';
 import KeyboardArrowRightRoundedIcon from '@mui/icons-material/KeyboardArrowRightRounded';
 import Mytimer2 from './Mytimer2';
+import { ScaleLoader } from 'react-spinners';
+import { getTimeToHour } from './ReuseableAPI';
 
-export default function TaskItem({ task, status, getValue, handleEditTask, fetchTaskById, updatedTimerInTask, renderMenu2, handleViewTask, whoIs }) {
+export default function TaskItem({ task, status, getValue, handleEditTask, handleAddComment, fetchTaskById, updatedTimerInTask, renderMenu2, handleViewTask, whoIs, isLoading, }) {
     const navigate = useNavigate();
-    const [timeData, setTimeData] = useState({ hour: 0, min: 0, sec: 0 });
+    // const [timeData, setTimeData] = useState({ hour: 0, min: 0, sec: 0 });
+    const [remainingTime, setRemainingTime] = useState({ hour: 0, min: 0, sec: 0 });
 
     function convertDecimalToTime(decimalHours) {
         const timeValues = {
@@ -20,15 +23,16 @@ export default function TaskItem({ task, status, getValue, handleEditTask, fetch
             min: Math.floor((decimalHours * 60) % 60) || 0,
             sec: Math.floor((decimalHours * 3600) % 60) || 0
         };
-
-        setTimeData(timeValues); // Assuming setTimeData updates state
+        return timeValues;
     }
 
     useEffect(() => {
-        convertDecimalToTime(Number(task.spend));
+        const calculatedValue = Number(task.estTime) - getTimeToHour(task.spend.timeHolder)
+        setRemainingTime(convertDecimalToTime(calculatedValue));
     }, [task]);
 
     return (
+
         <div key={task._id} className="box-content d-flex align-items-center justify-content-between my-3">
 
             {/* Left Section - Task Details */}
@@ -69,8 +73,20 @@ export default function TaskItem({ task, status, getValue, handleEditTask, fetch
 
             {/* Right Section - Timer & Actions */}
             <div className="cal-half d-flex align-items-center justify-content-center gap-2">
-      
-                <Mytimer2 task={task} updatedTimerInTask={updatedTimerInTask} />
+                {
+                    JSON.parse(localStorage.getItem(`isRunning_${task._id}`)) === false &&
+                    <div className='d-flex align-items-center gap-1 timerTxt box-content position-relative' title='Remaining Hours' style={{ padding: "10px" }}>
+                        <span>{String(remainingTime.hour).padStart(2, "0")}</span> :
+                        <span>{String(remainingTime.min).padStart(2, "0")}</span> :
+                        <span>{String(remainingTime.sec).padStart(2, "0")}</span>
+                    </div>
+                }
+                {
+                    isLoading ?
+                        <ScaleLoader size={100} color="#123abc" />
+                        :
+                        <Mytimer2 task={task} updatedTimerInTask={updatedTimerInTask} />
+                }
                 <ErrorOutlineRoundedIcon
                     sx={{ cursor: "pointer" }}
                     onClick={() => {
@@ -87,7 +103,7 @@ export default function TaskItem({ task, status, getValue, handleEditTask, fetch
                     {task.project.name}
                 </span>
 
-                <CalendarMonthRoundedIcon sx={{ cursor: "pointer" }} />
+                <CalendarMonthRoundedIcon sx={{ cursor: "pointer" }} onClick={() => handleAddComment(task._id)} />
 
                 <span style={{ cursor: "pointer" }}>
                     <Whisper placement="bottomEnd" trigger="click" speaker={renderMenu2(task)}>

@@ -605,7 +605,7 @@ leaveApp.get("/date-range/hr", verifyHR, async (req, res) => {
           }
         },
         populate: [{ path: "employee", select: "FirstName LastName Email" },
-          { path: "coverBy", select: "FirstName LastName Email" }]
+        { path: "coverBy", select: "FirstName LastName Email" }]
       });
 
     // Flatten leaveApplication data
@@ -669,7 +669,7 @@ leaveApp.get("/date-range/admin", verifyAdmin, async (req, res) => {
           }
         },
         populate: [{ path: "employee", select: "FirstName LastName Email" },
-          { path: "coverBy", select: "FirstName LastName Email" }]
+        { path: "coverBy", select: "FirstName LastName Email" }]
       });
 
     let leaveData = employeesLeaveData.map(data => data.leaveApplication).flat();
@@ -832,7 +832,8 @@ leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("pre
       reasonForLeave,
       prescription,
       coverBy: coverByValue,
-      employee: empId,
+      employee: req.body.applyFor || empId,
+      appliedBy: empId
     };
 
     const today = new Date();
@@ -860,7 +861,7 @@ leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("pre
     const startDate = new Date(now.getFullYear(), now.getMonth(), 1);
     const endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0);
 
-    const emp = await Employee.findById(empId, "_id FirstName LastName monthlyPermissions permissionHour")
+    const emp = await Employee.findById(req.body.applyFor || empId, "_id FirstName LastName monthlyPermissions permissionHour")
       .populate({
         path: "admin",
         select: "FirstName LastName Email"

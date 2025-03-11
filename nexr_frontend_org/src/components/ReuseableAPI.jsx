@@ -11,7 +11,7 @@ const updateDataAPI = async (body) => {
             const response = await axios.put(`${url}/api/clock-ins/${body._id}`, body, {
                 headers: { authorization: token || '' },
             });
-            
+
             return response.data;
         } else {
             toast.error("You did't Login properly!")
@@ -321,6 +321,13 @@ async function getUserLocation(lat, lng) {
     }
 }
 
+function formatTimeFromHour(hour) {
+    const hours = Math.floor(hour);
+    const minutes = Math.floor(hour % 60);
+    const seconds = Math.floor((hour * 60) % 60); // Convert remaining fraction to seconds
+
+    return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+}
 
 const addSecondsToTime = (timeString, secondsToAdd) => {
     // Validate and normalize the timeString format
@@ -374,8 +381,18 @@ async function fetchCompanies() {
     }
 }
 
+function getTimeToHour(timeStr) {
+    if (timeStr) {
+        const [hours, minutes, seconds] = timeStr.split(":").map(Number);
+        return (((hours * 60) + minutes + (seconds / 60)) / 60)?.toFixed(2);
+    } else {
+        return 0;
+    }
+}
+
 
 export {
+    getTimeToHour,
     getHoliday,
     addDataAPI,
     fetchCompanies,
@@ -401,5 +418,6 @@ export {
     fetchAllEmployees,
     formatTime,
     fetchWorkplace,
-    fetchRoles
+    fetchRoles,
+    formatTimeFromHour
 };

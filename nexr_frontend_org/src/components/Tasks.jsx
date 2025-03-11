@@ -21,6 +21,7 @@ import DeleteRoundedIcon from '@mui/icons-material/DeleteRounded';
 import PauseCircleOutlineRoundedIcon from '@mui/icons-material/PauseCircleOutlineRounded';
 import HourglassTopRoundedIcon from '@mui/icons-material/HourglassTopRounded';
 import CheckCircleOutlineRoundedIcon from '@mui/icons-material/CheckCircleOutlineRounded';
+import { formatTimeFromHour, getTimeToHour } from "./ReuseableAPI";
 
 const Tasks = ({ employees }) => {
   const url = process.env.REACT_APP_API_URL;
@@ -38,29 +39,14 @@ const Tasks = ({ employees }) => {
   const [completedFilterTasks, setCompletedFilterTasks] = useState([]);
   const [processFilterTasks, setProgressFilterTasks] = useState([]);
   const [previewList, setPreviewList] = useState([]);
+  // const []
   const [isEditTask, setIsEditTask] = useState(false);
   const [isviewTask, setIsViewtask] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [isUpdateTime, setIsUpdateTime] = useState(false);
   const [isDelete, setIsDelete] = useState({ type: false, value: "" });
   const [status, setStatus] = useState("Pending");
-
-  function getTimeToHour(timeStr) {
-    if (timeStr) {
-      const [hours, minutes, seconds] = timeStr.split(":").map(Number);
-      return (((hours * 60) + minutes + (seconds / 60)) / 60)?.toFixed(2);
-    } else {
-      return 0;
-    }
-  }
-
-  function formatTimeFromHour(hour) {
-    const hours = Math.floor(hour);
-    const minutes = Math.floor(hour % 60);
-    const seconds = Math.floor((hour * 60) % 60); // Convert remaining fraction to seconds
-
-    return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
-  }
-
+  const [isAddComment, setIsAddComment] = useState(false);
 
   const renderMenu1 = ({ onClose, right, top, className }, ref) => {
     const handleSelect = eventKey => {
@@ -110,39 +96,61 @@ const Tasks = ({ employees }) => {
       </Popover>
     );
   };
-  function changeTask(value, name) {
 
-    if (name === "attachments") {
+  function changeTask(value, name) {
+    console.log(name);
+
+    if (name === "attachments" || name.includes("attachments")) {
       const files = value.target.files;
+      const imgUrls = [];
+
       for (let index = 0; index < files.length; index++) {
-        const imgFile = URL.createObjectURL(files[index])
-        setPreviewList((pre) => ([
-          ...pre,
-          imgFile
-        ]))
+        imgUrls.push(URL.createObjectURL(files[index]));
       }
+      console.log(imgUrls);
+
+      // Update state once with all images
+      setPreviewList((prev = []) => [...prev, ...imgUrls]);
     }
 
     setTaskObj((prev) => {
       if (name.includes("spend")) {
         const spendChild = name.split(".")[1];
-        return ({
+        return {
           ...prev,
           spend: {
             ...prev.spend,
-            [spendChild]: value
-          }
-        })
-      } else {
-        return ({
+            [spendChild]: value,
+          },
+        };
+      } else if (name.includes("comments")) {
+        const commentChild = name.split(".")[1];
+
+        return {
           ...prev,
-          [name]: name === "attachments"
-            ? [...(prev[name] || []), ...value.target.files] // Spread the FileList into the array
-            : value // Update other fields directly
-        })
+          comments: prev.comments.length > 0
+            ? [
+              ...prev.comments.slice(0, -1), // Keep all except the last one
+              {
+                ...prev.comments[prev.comments.length - 1], // Modify last comment
+                [commentChild]:
+                  name.includes("attachments") ?
+                    [...(prev?.comments?.[commentChild] || []), ...value.target.files]
+                    : value,
+              },
+            ]
+            : [{ [commentChild]: value }], // Handle empty comments array case
+        };
+      } else {
+        return {
+          ...prev,
+          [name]:
+            name === "attachments"
+              ? [...(prev[name] || []), ...value.target.files] // Spread the FileList into the array
+              : value, // Update other fields directly
+        };
       }
-    }
-    )
+    });
   }
 
   function handleEditTask() {
@@ -159,7 +167,6 @@ const Tasks = ({ employees }) => {
     }
     handleAddTask()
   }
-
   function removeAttachment(value) {
     const updatedPrevireList = previewList.filter((imgFile) => imgFile !== value);
     setPreviewList(updatedPrevireList);
@@ -191,7 +198,17 @@ const Tasks = ({ employees }) => {
     setIsViewtask(!isviewTask)
   }
 
-  async function fetchTaskById(id) {
+  function handleAddComment(id) {
+    if (!isAddComment) {
+      fetchTaskById(id, "Add Comments")
+    } else if (isAddComment) {
+      setTaskObj({});
+      setPreviewList([]);
+    }
+    setIsAddComment(!isAddComment);
+  }
+
+  async function fetchTaskById(id, storeCommentImgs) {
     try {
       const res = await axios.get(`${url}/api/task/${id}`, {
         headers: {
@@ -205,7 +222,11 @@ const Tasks = ({ employees }) => {
           timeHolder: getTimeToHour(res?.data?.spend?.timeHolder || 0)
         }
       });
-      setPreviewList(res.data.attachments);
+      if (storeCommentImgs) {
+        setPreviewList(res.data?.comments[res.data.comments.length - 1]?.attachments);
+      } else {
+        setPreviewList(res.data.attachments);
+      }
       return res.data;
     } catch (error) {
       console.log(error);
@@ -250,42 +271,75 @@ const Tasks = ({ employees }) => {
   }, [status, allTasks]);
 
   async function editTask(updatedTask) {
-    let taskToUpdate;
-    if (updatedTask.spend.timeHolder.split(":").length > 2) {
-      taskToUpdate = updatedTask
-    } else {
-      taskToUpdate = {
-        ...updatedTask,
-        spend: {
-          ...updatedTask.spend,
-          timeHolder: formatTimeFromHour(updatedTask.spend.timeHolder)
-        }
-      }
-    }
-
-    if (!taskToUpdate?._id) {
+    if (!updatedTask?._id) {
       toast.error("Invalid task. Please try again.");
       return;
     }
-    setIsLoading(true);
+
+    let taskToUpdate = { ...updatedTask };
+
+    // Ensure `spend.timeHolder` is correctly formatted
+    if (updatedTask?.spend?.timeHolder?.split(":")?.length <= 2) {
+      taskToUpdate.spend = {
+        ...updatedTask.spend,
+        timeHolder: formatTimeFromHour(updatedTask.spend.timeHolder) || "00:00:00",
+      };
+    }
+    setIsUpdateTime(true);
+
     try {
-      const res = await axios.put(`${url}/api/task/${data._id}/${taskToUpdate._id}`, taskToUpdate, {
+      // Ensure attachments exist before filtering
+      const files = taskToUpdate?.attachments?.filter((file) => file.type === "image/png") || [];
+      const formData = new FormData(); // Ensure FormData is created
+
+      // Append each file to the FormData
+      for (let index = 0; index < files.length; index++) {
+        formData.append("documents", files[index]); // Ensure correct field name for your backend
+      }
+      const response = await axios.post(`${url}/api/upload`, formData, {
         headers: {
-          Authorization: data.token || ""
+          Accept: 'application/json', // Accept JSON response
         }
       });
+
+      // Check if the response is successful
+      if (!response.data) {
+        console.error('Upload failed with status:', response.status);
+        return;
+      }
+
+      const uploadedImgPath = taskToUpdate.attachments.filter((file) => file.type !== "image/png")
+      const updatedTaskData = {
+        ...taskToUpdate,
+        ["attachments"]: [...uploadedImgPath, ...response.data.files.map(((file) => file.originalFile))]
+      }
+
+      // Send updated task
+      const res = await axios.put(
+        `${url}/api/task/${data._id}/${taskToUpdate._id}`, // Ensure correct projectId
+        updatedTaskData,
+        {
+          headers: {
+            Authorization: data.token || "",
+          },
+        }
+      );
+
       toast.success(res.data.message);
       setTaskObj({});
       setIsAddTask(false);
       setIsEditTask(false);
-      fetchTaskByProjectId(projectId);
+      fetchTaskByProjectId(projectId); // Refresh tasks
     } catch (error) {
       console.error("Error updating task:", error);
       const errorMessage = error?.response?.data?.error || "An error occurred while updating the task.";
       toast.error(errorMessage);
+    } finally {
+      setIsUpdateTime(false);
+      setIsAddComment(false);
     }
-    setIsLoading(false);
   }
+
 
   // handling to delete task
   function handleDeleteTask() {
@@ -472,8 +526,8 @@ const Tasks = ({ employees }) => {
     editTask(updatedTask)
   }
 
-
   return (
+
     isviewTask ? <CommonModel type="Task View" isAddData={isviewTask} modifyData={handleViewTask} dataObj={taskObj} projects={projects} removeAttachment={removeAttachment} employees={employees} /> :
       isDelete.type ? <CommonModel type="Task Confirmation" modifyData={handleDeleteTask} deleteData={deleteTask} isAddData={isDelete.type} /> :
         isEditTask ? <CommonModel type="Task Assign" isAddData={isEditTask} employees={employees} changeData={changeTask} dataObj={taskObj} editData={editTask} modifyData={handleEditTask} /> :
@@ -489,80 +543,90 @@ const Tasks = ({ employees }) => {
             employees={employees}
             type="Task"
             modifyData={triggerHandleAddTask} /> :
-            <>
-              <div className="projectParent">
-                <div className="col-lg-6 projectTitle">Tasks</div>
-                <div className="col-lg-6 projectChild">
-                  <SelectPicker
-                    data={projects}
-                    size="lg"
-                    appearance="default"
-                    style={{ width: 300 }}
-                    placeholder="Search By Project"
-                    value={projectId}
-                    onChange={(e) => {
-                      setProjectId(e)
-                      localStorage.setItem("selectedProject", e)
-                    }}
-                  />
-                  <Whisper placement="bottomEnd" trigger="click" speaker={renderMenu1}>
-                    <div className="button">
-                      Action <ArrowDropDownRoundedIcon />
-                    </div>
-                  </Whisper>
+            isAddComment && taskObj?._id ? (
+              <CommonModel
+                type="Add Comments"
+                removeAttachment={removeAttachment}
+                isAddData={isAddComment}
+                modifyData={handleAddComment}
+                changeData={changeTask}
+                editData={editTask}
+                dataObj={taskObj}
+                previewList={previewList}
+              />
+            ) :
+              <>
+                <div className="projectParent">
+                  <div className="col-lg-6 projectTitle">Tasks</div>
+                  <div className="col-lg-6 projectChild">
+                    <SelectPicker
+                      data={projects}
+                      size="lg"
+                      appearance="default"
+                      style={{ width: 300 }}
+                      placeholder="Search By Project"
+                      value={projectId}
+                      onChange={(e) => {
+                        setProjectId(e)
+                        localStorage.setItem("selectedProject", e)
+                      }}
+                    />
+                    <Whisper placement="bottomEnd" trigger="click" speaker={renderMenu1}>
+                      <div className="button">
+                        Action <ArrowDropDownRoundedIcon />
+                      </div>
+                    </Whisper>
+                  </div>
                 </div>
-              </div>
-              <div className="projectBody">
-                <div className="card-parent">
-                  {
-                    [{ name: "Pending", color: "white", icon: PauseCircleOutlineRoundedIcon, taskData: pendingTasks }, { name: "In Progress", icon: HourglassTopRoundedIcon, color: "white", taskData: progressTasks }, { name: "Completed", color: "white", icon: CheckCircleOutlineRoundedIcon, taskData: completedTasks }].map((item) => {
-                      return <div className={`box-content messageCount cardContent ${status === item.name && "activeCard"}`} style={{ background: item.color }} onClick={() => setStatus(item.name)}>
-                        {<item.icon sx={{ fontSize: "65px" }} />}
-                        <div className="d-block text-center">
-                          <p className="org_name">
-                            {item?.taskData?.length || 0}
-                          </p>
+                <div className="projectBody">
+                  <div className="card-parent">
+                    {
+                      [{ name: "Pending", color: "white", icon: PauseCircleOutlineRoundedIcon, taskData: pendingTasks }, { name: "In Progress", icon: HourglassTopRoundedIcon, color: "white", taskData: progressTasks }, { name: "Completed", color: "white", icon: CheckCircleOutlineRoundedIcon, taskData: completedTasks }].map((item) => {
+                        return <div className={`box-content messageCount cardContent ${status === item.name && "activeCard"}`} style={{ background: item.color, boxShadow: "rgba(0, 0, 0, 0.02) 0px 1px 3px 0px, rgba(27, 31, 35, 0.15) 0px 0px 0px 1px" }} onClick={() => setStatus(item.name)}>
+                          {<item.icon sx={{ fontSize: "65px" }} />}
                           <p className="m-0">
                             <b>
                               {item.name} Task
                             </b>
                           </p>
+                          <p className="org_name" style={{ margin: "0px" }}>
+                            {item?.taskData?.length || 0}
+                          </p>
                         </div>
+                      })
+                    }
+                  </div>
+                  <div className="d-flex justify-content-end">
+                    <div className="col-lg-3">
+                      <div className="modelInput">
+                        <Input size="lg" appearance="default" placeholder="Search" onChange={filterByName} />
                       </div>
-                    })
-                  }
-                </div>
-                <div className="d-flex justify-content-end">
-                  <div className="col-lg-3">
-                    <div className="modelInput">
-                      <Input size="lg" appearance="default" placeholder="Search" onChange={filterByName} />
                     </div>
                   </div>
-                </div>
-                {
-                  isLoading ? (
-                    <Loading />
-                  ) : status === "Pending" ? (
-                    Array.isArray(pendingTasks) && pendingTasks?.length > 0 ? (
-                      pendingTasks.map((task) => <TaskItem key={task._id} task={task} status={status} getValue={getValue} handleEditTask={handleEditTask} fetchTaskById={fetchTaskById} updatedTimerInTask={updatedTimerInTask} renderMenu2={renderMenu2} handleViewTask={handleViewTask} whoIs={whoIs} updateTask={updatedTimerInTask} />)
+                  {
+                    isLoading ? (
+                      <Loading />
+                    ) : status === "Pending" ? (
+                      Array.isArray(pendingTasks) && pendingTasks?.length > 0 ? (
+                        pendingTasks.map((task) => <TaskItem key={task._id} task={task} handleAddComment={handleAddComment} status={status} isLoading={isUpdateTime} getValue={getValue} handleEditTask={handleEditTask} fetchTaskById={fetchTaskById} updatedTimerInTask={updatedTimerInTask} renderMenu2={renderMenu2} handleViewTask={handleViewTask} whoIs={whoIs} updateTask={updatedTimerInTask} />)
+                      ) : (
+                        <NoDataFound message="Task Not Found" />
+                      )
+                    ) : status === "Completed" ? (
+                      Array.isArray(completedTasks) && completedTasks?.length > 0 ? (
+                        completedTasks.map((task) => <TaskItem key={task._id} task={task} status={status} getValue={getValue} handleEditTask={handleEditTask} fetchTaskById={fetchTaskById} updatedTimerInTask={updatedTimerInTask} renderMenu2={renderMenu2} handleViewTask={handleViewTask} whoIs={whoIs} updateTask={updatedTimerInTask} />)
+                      ) : (
+                        <NoDataFound message="Task Not Found" />
+                      )
+                    ) : progressTasks.length > 0 ? (
+                      progressTasks.map((task) => <TaskItem key={task._id} task={task} handleAddComment={handleAddComment} status={status} isLoading={isUpdateTime} getValue={getValue} handleEditTask={handleEditTask} fetchTaskById={fetchTaskById} updatedTimerInTask={updatedTimerInTask} renderMenu2={renderMenu2} handleViewTask={handleViewTask} whoIs={whoIs} updateTask={updatedTimerInTask} />)
                     ) : (
                       <NoDataFound message="Task Not Found" />
                     )
-                  ) : status === "Completed" ? (
-                    Array.isArray(completedTasks) && completedTasks?.length > 0 ? (
-                      completedTasks.map((task) => <TaskItem key={task._id} task={task} status={status} getValue={getValue} handleEditTask={handleEditTask} fetchTaskById={fetchTaskById} updatedTimerInTask={updatedTimerInTask} renderMenu2={renderMenu2} handleViewTask={handleViewTask} whoIs={whoIs} updateTask={updatedTimerInTask} />)
-                    ) : (
-                      <NoDataFound message="Task Not Found" />
-                    )
-                  ) : progressTasks.length > 0 ? (
-                    progressTasks.map((task) => <TaskItem key={task._id} task={task} status={status} getValue={getValue} handleEditTask={handleEditTask} fetchTaskById={fetchTaskById} updatedTimerInTask={updatedTimerInTask} renderMenu2={renderMenu2} handleViewTask={handleViewTask} whoIs={whoIs} updateTask={updatedTimerInTask} />)
-                  ) : (
-                    <NoDataFound message="Task Not Found" />
-                  )
-                }
+                  }
 
-              </div >
-            </>
+                </div >
+              </>
   )
 };
 
