@@ -12,9 +12,7 @@ import Mytimer2 from './Mytimer2';
 import { ScaleLoader } from 'react-spinners';
 import { getTimeToHour } from './ReuseableAPI';
 
-export default function TaskItem({ task, status, getValue, handleEditTask, handleAddComment, fetchTaskById, updatedTimerInTask, renderMenu2, handleViewTask, whoIs, isLoading, }) {
-    const navigate = useNavigate();
-    // const [timeData, setTimeData] = useState({ hour: 0, min: 0, sec: 0 });
+export default function TaskItem({ task, status, getValue, handleEditTask, handleAddComment, fetchTaskById, renderMenu3, updatedTimerInTask, renderMenu2, handleViewTask, whoIs, isLoading, }) {
     const [remainingTime, setRemainingTime] = useState({ hour: 0, min: 0, sec: 0 });
 
     function convertDecimalToTime(decimalHours) {
@@ -114,9 +112,10 @@ export default function TaskItem({ task, status, getValue, handleEditTask, handl
                 <span
                     className="nameHolder"
                     style={{ width: "25px", height: "25px" }}
-                    onClick={() => navigate(`/${whoIs}/tasks/time-log/${task._id}`)}
                 >
-                    <KeyboardArrowRightRoundedIcon />
+                    <Whisper placement="bottomEnd" trigger="click" speaker={renderMenu3(task)}>
+                        <KeyboardArrowRightRoundedIcon sx={{ cursor: "pointer" }} />
+                    </Whisper>
                 </span>
             </div>
 

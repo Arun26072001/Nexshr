@@ -62,15 +62,19 @@ const getclockinsDataById = async (id) => {
     }
 };
 
-const addDataAPI = async (body) => {
+const addDataAPI = async (body, worklocation, placeId) => {
     try {
         const response = await axios.post(`${url}/api/clock-ins/${empId}`, body, {
+            params: {
+                worklocation,
+                placeId
+            },
             headers: { authorization: token || '' },
         });
         toast.success(response.data.message);
         return response?.data?.clockIns;
     } catch (error) {
-        console.log(error);
+        toast.error(error?.response?.data?.error)
 
         return error?.response?.data?.error;
     }

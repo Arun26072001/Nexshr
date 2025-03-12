@@ -63,7 +63,8 @@ h1 {
 .employee,
 .leaveContainer,
 .attendanceFile,
-.messageCount {
+.messageCount,
+.circleEditIcon {
   display: flex;
   align-items: center;
   justify-content: center;

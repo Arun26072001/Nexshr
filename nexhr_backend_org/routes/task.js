@@ -63,6 +63,7 @@ router.get("/project/:id", verifyAdminHREmployeeManagerNetwork, async (req, res)
 })
 
 router.get("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
+    const { withComments } = req.query;
     try {
         let task = await Task.findById(req.params.id).populate({
             path: "tracker.who", // Populate 'who' inside tracker
@@ -70,7 +71,7 @@ router.get("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
         }).populate({
             path: "createdby", // Populate 'who' inside tracker
             select: "FirstName LastName Email profile"
-        })
+        }).populate("assignedTo", "FirstName LastName profile")
         if (!task) {
             return res.status(404).send({ error: "No Task found" })
         }
@@ -98,6 +99,12 @@ router.get("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
         if (task?.spend?.timeHolder) {
             task.spend.timeHolder = timeHolder;
         }
+        if (!withComments) {
+            task = {
+                ...task.toObject(),
+                comments: []
+            }
+        }
 
         return res.send(task);
     } catch (error) {
@@ -106,6 +113,7 @@ router.get("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
         res.status(500).send({ error: error.message })
     }
 })
+
 
 router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
     try {

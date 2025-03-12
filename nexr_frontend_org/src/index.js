@@ -4,12 +4,14 @@ import App from './App';
 import { BrowserRouter } from 'react-router-dom';
 import LandingPage from './components/LandingPage';
 import AttendanceCalendar from './components/AttendanceCalendar';
+import GoogleMapComponent from './components/MapComponent';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   <BrowserRouter>
     {/* <LeaveMail /> */}
     {/* <LandingPage /> */}
+    {/* <GoogleMapComponent /> */}
     <App />
   </BrowserRouter>
 );

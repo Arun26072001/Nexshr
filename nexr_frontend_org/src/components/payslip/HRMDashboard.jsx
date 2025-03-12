@@ -18,6 +18,7 @@ import Holiday from '../Administration/Holiday';
 import Country from '../Administration/Country';
 import ManageTeam from './ManageTeam';
 import TimeLog from '../TimeLog';
+import Comments from '../Comments';
 
 // Lazy loading components
 const Dashboard = React.lazy(() => import('./Dashboard'));
@@ -58,7 +59,6 @@ export const LeaveStates = createContext(null);
 export const TimerStates = createContext(null);
 
 export default function HRMDashboard() {
-    // const navigator = useNavigate();
     const { data, isStartLogin, isStartActivity, setIsStartLogin, setIsStartActivity, whoIs, socket } = useContext(EssentialValues);
     const { token, Account, _id } = data;
     const { isTeamLead, isTeamHead, isTeamManager } = jwtDecode(token);
@@ -137,30 +137,6 @@ export default function HRMDashboard() {
         }
     }
 
-    // window.addEventListener("beforeunload", function (event) {
-    //     sessionStorage.setItem("isReload", "true");
-    // });
-
-    // useEffect(() => {
-    //     setTimeout(() => {
-    //         if (!sessionStorage.getItem("isReload") && isStartLogin) {
-    //             const currentTime = new Date().toTimeString().split(" ")[0];
-    //             const updatedState = {
-    //                 ...workTimeTracker,
-    //                 login: {
-    //                     ...workTimeTracker?.login,
-    //                     endingTime: [...(workTimeTracker?.login?.endingTime || []), currentTime],
-    //                     timeHolder: workTimeTracker?.login?.timeHolder,
-    //                 },
-    //             };
-    //             console.log("call to add in local");
-
-    //             localStorage.setItem("timerState", JSON.stringify(updatedState));
-    //         }
-
-    //     }, 1000);
-    // }, [isStartLogin])
-
     // change reason for leave input field
     function changeReasonForLate(e) {
         const { value } = e.target;
@@ -174,7 +150,7 @@ export default function HRMDashboard() {
         }))
     }
 
-    const startLoginTimer = async () => {
+    const startLoginTimer = async (worklocation, placeId) => {
         const currentTime = new Date().toTimeString().split(' ')[0];
         const updatedState = {
             ...workTimeTracker,
@@ -187,7 +163,7 @@ export default function HRMDashboard() {
         try {
             if (!updatedState?._id) {
                 // Add new clock-ins data
-                const clockinsData = await addDataAPI(updatedState);
+                const clockinsData = await addDataAPI(updatedState, worklocation, placeId);
 
                 if (clockinsData !== "undefined") {
                     if (!workTimeTracker.login.startingTime.length) {
@@ -213,7 +189,7 @@ export default function HRMDashboard() {
         } catch (error) {
             setIsStartLogin(false);
             localStorage.setItem("isStartLogin", false);
-            toast.error('Error handling data:', error);
+            toast.error(error);
         }
     };
 
@@ -470,12 +446,13 @@ export default function HRMDashboard() {
                         <Route index element={<Dashboard data={data} />} />
                         <Route path="job-desk/*" element={<JobDesk />} />
                         <Route path="calendar" element={<AttendanceCalendar />} />
-                        {/* <Route path="" */}
+                    
                         <Route path="projects" element={<Projects employees={employees} />} />
                         <Route path="tasks/*" element={
                             <Routes>
                                 <Route index element={<Tasks employees={employees} />} />
                                 <Route path="time-log/:id" element={<TimeLog />} />
+                                <Route path="comments/:id" element={<Comments />} />
                             </Routes>
                         } />
 
