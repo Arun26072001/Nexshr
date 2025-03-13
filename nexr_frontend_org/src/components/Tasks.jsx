@@ -305,12 +305,10 @@ const Tasks = ({ employees }) => {
       };
     }
     setIsUpdateTime(true);
-    console.log(taskToUpdate.comments[0]);
     let files;
     try {
       // Ensure attachments exist before filtering
       if (taskToUpdate?.comments[0]?.attachments?.length) {
-        console.log("check");
 
         files = taskToUpdate?.comments[0]?.attachments.filter((file) => file.type === "image/png")
       } else {
@@ -318,41 +316,45 @@ const Tasks = ({ employees }) => {
       }
 
       const formData = new FormData(); // Ensure FormData is created
-
-      // Append each file to the FormData
-      for (let index = 0; index < files.length; index++) {
-        formData.append("documents", files[index]); // Ensure correct field name for your backend
-      }
-      const response = await axios.post(`${url}/api/upload`, formData, {
-        headers: {
-          Accept: 'application/json', // Accept JSON response
-        }
-      });
-
-      // Check if the response is successful
-      if (!response.data) {
-        console.error('Upload failed with status:', response.status);
-        return;
-      }
       let updatedTaskData;
-      if (taskToUpdate?.comments[taskToUpdate?.comments?.length - 1]?.attachments?.length > 0) {
-        updatedTaskData = {
-          ...taskToUpdate,
-          comments: [
-            {
-              ...taskToUpdate.comments,
-              ["attachments"]: [...response.data.files.map(((file) => file.originalFile))]
-            }
-          ]
+      if (files.length > 0) {
+
+        // Append each file to the FormData
+        for (let index = 0; index < files.length; index++) {
+          formData.append("documents", files[index]); // Ensure correct field name for your backend
+        }
+        const response = await axios.post(`${url}/api/upload`, formData, {
+          headers: {
+            Accept: 'application/json', // Accept JSON response
+          }
+        });
+        // Check if the response is successful
+        if (!response.data) {
+          console.error('Upload failed with status:', response.status);
+          return;
+        }
+        if (taskToUpdate?.comments[taskToUpdate?.comments?.length - 1]?.attachments?.length > 0) {
+          updatedTaskData = {
+            ...taskToUpdate,
+            comments: [
+              {
+                ...taskToUpdate.comments,
+                ["attachments"]: [...response.data.files.map(((file) => file.originalFile))]
+              }
+            ]
+          }
+        } else {
+          const uploadedImgPath = taskToUpdate.attachments.filter((file) => file.type !== "image/png")
+          updatedTaskData = {
+            ...taskToUpdate,
+            ["attachments"]: [...uploadedImgPath, ...response.data.files.map(((file) => file.originalFile))]
+          }
         }
       } else {
-        const uploadedImgPath = taskToUpdate.attachments.filter((file) => file.type !== "image/png")
         updatedTaskData = {
-          ...taskToUpdate,
-          ["attachments"]: [...uploadedImgPath, ...response.data.files.map(((file) => file.originalFile))]
+          ...taskToUpdate
         }
       }
-
       // Send updated task
       const res = await axios.put(
         `${url}/api/task/${data._id}/${taskToUpdate._id}`, // Ensure correct projectId
@@ -378,7 +380,6 @@ const Tasks = ({ employees }) => {
       setIsAddComment(false);
     }
   }
-
 
   // handling to delete task
   function handleDeleteTask() {

@@ -65,13 +65,24 @@ router.get("/project/:id", verifyAdminHREmployeeManagerNetwork, async (req, res)
 router.get("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
     const { withComments } = req.query;
     try {
-        let task = await Task.findById(req.params.id).populate({
-            path: "tracker.who", // Populate 'who' inside tracker
-            select: "FirstName LastName Email profile" // Fetch only required fields
-        }).populate({
-            path: "createdby", // Populate 'who' inside tracker
-            select: "FirstName LastName Email profile"
-        }).populate("assignedTo", "FirstName LastName profile")
+        let query = Task.findById(req.params.id)
+            .populate({
+                path: "tracker.who", // Populate 'who' inside tracker
+                select: "FirstName LastName Email profile" // Fetch only required fields
+            })
+            .populate("comments.createdBy", "FirstName LastName profile")
+            .populate({
+                path: "createdby", // Populate 'createdby'
+                select: "FirstName LastName Email profile"
+            });
+
+        if (withComments) {
+            query = query
+                .populate("assignedTo", "FirstName LastName profile")
+        }
+
+        let task = await query;
+
         if (!task) {
             return res.status(404).send({ error: "No Task found" })
         }
@@ -104,6 +115,12 @@ router.get("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
                 ...task.toObject(),
                 comments: []
             }
+        } else {
+            const notDeletedComments = task?.comments?.filter((comment) => comment.isDeleted === false)
+            task = {
+                ...task.toObject(),
+                comments: notDeletedComments
+            }
         }
 
         return res.send(task);
@@ -113,7 +130,6 @@ router.get("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
         res.status(500).send({ error: error.message })
     }
 })
-
 
 router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
     try {
@@ -280,11 +296,16 @@ router.put("/:empId/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) 
             return [];
         });
 
+        const updatedComment = {
+            ...req.body.comments[0],
+            createdBy: req.params.empId
+        }
         // Prepare Updated Task Data
         const updatedTask = {
             ...req.body,
             tracker: [...taskData.tracker, ...taskChanges],
-            createdby: req.body.createdby._id || req.body.createdby
+            createdby: req.body.createdby._id || req.body.createdby,
+            comments: req.body.comments.length === taskData.comments.length ? [updatedComment] : [...req.body.comments]
         };
 
         // // Validate Task Data

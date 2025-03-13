@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react'
 import { Checkbox, Whisper } from 'rsuite';
-import { useNavigate } from 'react-router-dom';
 
 // icons
 import AddCircleOutlineRoundedIcon from '@mui/icons-material/AddCircleOutlineRounded';
@@ -12,7 +11,7 @@ import Mytimer2 from './Mytimer2';
 import { ScaleLoader } from 'react-spinners';
 import { getTimeToHour } from './ReuseableAPI';
 
-export default function TaskItem({ task, status, getValue, handleEditTask, handleAddComment, fetchTaskById, renderMenu3, updatedTimerInTask, renderMenu2, handleViewTask, whoIs, isLoading, }) {
+export default function TaskItem({ task, status, getValue, handleEditTask, handleAddComment, fetchTaskById, renderMenu3, updatedTimerInTask, renderMenu2, handleViewTask, isLoading }) {
     const [remainingTime, setRemainingTime] = useState({ hour: 0, min: 0, sec: 0 });
 
     function convertDecimalToTime(decimalHours) {
