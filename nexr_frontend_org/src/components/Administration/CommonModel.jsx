@@ -33,8 +33,6 @@ const CommonModel = ({
 }) => {
     const [confirmationTxt, setConfirmationTxt] = useState("");
     const [isDisabled, setIsDisabled] = useState(true);
-    console.log(dataObj);
-
 
     return (
         <Modal open={isAddData} size="sm" backdrop="static">
@@ -42,7 +40,7 @@ const CommonModel = ({
                 <Modal.Title>
                     {type === "Assign" ? `Edit ${type}` :
                         ["Confirmation", "Report Confirmation"].includes(type) ? "" :
-                            type === "Add Comments" ? "Add Comments" : "Edit Comments" ? "Edit Comments" :
+                            type === "Add Comments" ? "Add Comments" : type === "Edit Comments" ? "Edit Comments" :
                                 dataObj?._id ? `Edit ${type}` : `Add a ${type}`}
                 </Modal.Title>
             </Modal.Header>
@@ -835,7 +833,6 @@ const CommonModel = ({
                         <>
                             <Button
                                 onClick={() => {
-
                                     if (["Company", "Country", "Edit Country"].includes(type)) {
                                         modifyData(dataObj._id || type === "Edit Country" ? "Edit" : "Add");
                                     } else if (type === "Report View") {
@@ -852,7 +849,7 @@ const CommonModel = ({
                             {
                                 !["Report View", "Task View", "Project View"].includes(type) && (
                                     <Button
-                                        onClick={() => (dataObj?._id || type === "Edit Country" ? editData(dataObj) : type === "Edit Comments" ? editData() : addData())}
+                                        onClick={() => ((type === "Add Comments" && dataObj._id) ? editData(dataObj, true) : dataObj?._id || type === "Edit Country" ? editData(dataObj) : type === "Edit Comments" ? editData() : addData())}
                                         appearance="primary"
                                         disabled={
                                             ["Project", "Assign", "Task", "Task Assign", "Report", "Company", "Country", "Edit Country", "Announcement", "Team", "Add Comments", "Edit Comments"].includes(type)

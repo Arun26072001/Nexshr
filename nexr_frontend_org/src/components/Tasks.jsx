@@ -171,7 +171,6 @@ const Tasks = ({ employees }) => {
     });
   }
 
-
   function handleEditTask() {
     if (isEditTask) {
       setTaskObj({});
@@ -242,7 +241,7 @@ const Tasks = ({ employees }) => {
         }
       });
       if (storeCommentImgs) {
-        setPreviewList(res.data?.comments[res.data.comments.length - 1]?.attachments);
+        setPreviewList(res.data?.comments[0]?.attachments);
       } else {
         setPreviewList(res.data.attachments);
       }
@@ -251,6 +250,7 @@ const Tasks = ({ employees }) => {
       console.log(error);
     }
   }
+  console.log(allTasks);
 
   function filterByName(value) {
     if (["", null].includes(value)) {
@@ -289,7 +289,8 @@ const Tasks = ({ employees }) => {
     getSelectStatusTasks()
   }, [status, allTasks]);
 
-  async function editTask(updatedTask) {
+  async function editTask(updatedTask, changeComments) {
+
     if (!updatedTask?._id) {
       toast.error("Invalid task. Please try again.");
       return;
@@ -298,7 +299,7 @@ const Tasks = ({ employees }) => {
     let taskToUpdate = { ...updatedTask };
 
     // Ensure `spend.timeHolder` is correctly formatted
-    if (updatedTask?.spend?.timeHolder?.split(":")?.length <= 2) {
+    if (typeof updatedTask?.spend?.timeHolder === "string" && updatedTask.spend.timeHolder.split(":").length <= 2) {
       taskToUpdate.spend = {
         ...updatedTask.spend,
         timeHolder: formatTimeFromHour(updatedTask.spend.timeHolder) || "00:00:00",
@@ -333,12 +334,12 @@ const Tasks = ({ employees }) => {
           console.error('Upload failed with status:', response.status);
           return;
         }
-        if (taskToUpdate?.comments[taskToUpdate?.comments?.length - 1]?.attachments?.length > 0) {
+        if (taskToUpdate?.comments[0]?.attachments?.length > 0) {
           updatedTaskData = {
             ...taskToUpdate,
             comments: [
               {
-                ...taskToUpdate.comments,
+                ...taskToUpdate.comments[0],
                 ["attachments"]: [...response.data.files.map(((file) => file.originalFile))]
               }
             ]
@@ -355,11 +356,15 @@ const Tasks = ({ employees }) => {
           ...taskToUpdate
         }
       }
+
       // Send updated task
       const res = await axios.put(
         `${url}/api/task/${data._id}/${taskToUpdate._id}`, // Ensure correct projectId
         updatedTaskData,
         {
+          params: {
+            changeComments
+          },
           headers: {
             Authorization: data.token || "",
           },
@@ -536,7 +541,7 @@ const Tasks = ({ employees }) => {
     const taskData = await fetchTaskById(task._id);
     const updatedTask = {
       ...taskData,
-      "status": "Completed"
+      "status": task.status === "Completed" ? "Pending" : "Completed"
     }
     editTask(updatedTask)
   }
@@ -654,7 +659,7 @@ const Tasks = ({ employees }) => {
                       )
                     ) : status === "Completed" ? (
                       Array.isArray(completedTasks) && completedTasks?.length > 0 ? (
-                        completedTasks.map((task) => <TaskItem key={task._id} task={task} status={status} renderMenu3={renderMenu3} getValue={getValue} handleEditTask={handleEditTask} fetchTaskById={fetchTaskById} updatedTimerInTask={updatedTimerInTask} renderMenu2={renderMenu2} handleViewTask={handleViewTask} whoIs={whoIs} updateTask={updatedTimerInTask} />)
+                        completedTasks.map((task) => <TaskItem key={task._id} task={task} status={status} renderMenu3={renderMenu3} getValue={getValue} handleAddComment={handleAddComment} handleEditTask={handleEditTask} fetchTaskById={fetchTaskById} updatedTimerInTask={updatedTimerInTask} renderMenu2={renderMenu2} handleViewTask={handleViewTask} whoIs={whoIs} updateTask={updatedTimerInTask} />)
                       ) : (
                         <NoDataFound message="Task Not Found" />
                       )

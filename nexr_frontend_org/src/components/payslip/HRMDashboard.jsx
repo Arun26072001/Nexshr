@@ -59,6 +59,7 @@ export const LeaveStates = createContext(null);
 export const TimerStates = createContext(null);
 
 export default function HRMDashboard() {
+    const url = process.env.REACT_APP_API_URL;
     const { data, isStartLogin, isStartActivity, setIsStartLogin, setIsStartActivity, whoIs, socket } = useContext(EssentialValues);
     const { token, Account, _id } = data;
     const { isTeamLead, isTeamHead, isTeamManager } = jwtDecode(token);
@@ -69,7 +70,6 @@ export default function HRMDashboard() {
     const [empName, setEmpName] = useState("");
     const [isLoading, setIsLoading] = useState(false);
     const [waitForAttendance, setWaitForAttendance] = useState(false);
-    const url = process.env.REACT_APP_API_URL;
     const [daterangeValue, setDaterangeValue] = useState("");
     const [isEditEmp, setIsEditEmp] = useState(false);
     const [timeOption, setTimeOption] = useState(localStorage.getItem("timeOption") || "meeting");
@@ -270,8 +270,6 @@ export default function HRMDashboard() {
     }
 
     function changeEmpEditForm(id) {
-        console.log(isEditEmp);
-
         if (isEditEmp) {
             navigate(["manager", "admin", "hr"].includes(whoIs) ? `/${whoIs}/employee` : `/${whoIs}`);
             setIsEditEmp(false);
@@ -437,7 +435,6 @@ export default function HRMDashboard() {
         getClockInsData()
     }, [syncTimer]);
 
-
     return (
         <TimerStates.Provider value={{ workTimeTracker, reloadRolePage, setIsEditEmp, updateWorkTracker, trackTimer, startLoginTimer, stopLoginTimer, changeReasonForLate, startActivityTimer, stopActivityTimer, setWorkTimeTracker, updateClockins, timeOption, isStartLogin, isStartActivity, handleAddTask, changeEmpEditForm, isEditEmp, isAddTask, setIsAddTask, handleAddTask, selectedProject, daterangeValue, setDaterangeValue }}>
             <Suspense fallback={<Loading />}>
@@ -446,13 +443,13 @@ export default function HRMDashboard() {
                         <Route index element={<Dashboard data={data} />} />
                         <Route path="job-desk/*" element={<JobDesk />} />
                         <Route path="calendar" element={<AttendanceCalendar />} />
-                    
+
                         <Route path="projects" element={<Projects employees={employees} />} />
                         <Route path="tasks/*" element={
                             <Routes>
                                 <Route index element={<Tasks employees={employees} />} />
                                 <Route path="time-log/:id" element={<TimeLog />} />
-                                <Route path="comments/:id" element={<Comments />} />
+                                <Route path="comments/:id" element={<Comments employees={employees} />} />
                             </Routes>
                         } />
 

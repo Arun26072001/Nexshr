@@ -101,7 +101,7 @@ export default function Navbar({ handleSideBar }) {
         return lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180;
     }
 
-    function adjustCoordinates(lat, lng, meters = 2) {
+    function adjustCoordinates(lat, lng, meters = 0) {
         let newLat = lat + (meters / 111320); // Adjust latitude
         let newLng = lng + (meters / (111320 * Math.cos(lat * (Math.PI / 180)))); // Adjust longitude
         return { newLat, newLng };
@@ -119,6 +119,7 @@ export default function Navbar({ handleSideBar }) {
                 } else {
                     console.log("Invalid coordinates!");
                 }
+                // getAddress(lat, lng);
             });
         } else {
             console.log("Geolocation is not supported by this browser.");

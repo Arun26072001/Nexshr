@@ -18,10 +18,10 @@ const commentSchema = new mongoose.Schema({
     comment: { type: String },
     attachments: [{ type: String }],
     spend: { type: String, default: 0 },
-    date: { type: Date, default: new Date().toISOString() },
+    date: { type: Date },
     createdBy: { type: mongoose.Schema.Types.ObjectId, ref: "Employee" },
     isDeleted: { type: Boolean, default: false }
-}, { _id: false, timestamps: true })
+}, { timestamps: true })
 
 const taskSchema = new mongoose.Schema({
     title: { type: String },

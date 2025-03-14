@@ -1,7 +1,7 @@
 import React, { useContext, useEffect, useState } from 'react';
 import "./Comments.css";
 import axios from 'axios';
-import { useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { EssentialValues } from '../App';
 import { toast } from 'react-toastify';
 import Loading from './Loader';
@@ -15,17 +15,21 @@ import BorderColorRoundedIcon from '@mui/icons-material/BorderColorRounded';
 import DeleteRoundedIcon from '@mui/icons-material/DeleteRounded';
 import CommonModel from './Administration/CommonModel';
 
-export default function Comments() {
+export default function Comments({ employees }) {
+    const navigate = useNavigate();
     const [isLoading, setIsLoading] = useState(false);
     const [taskObj, setTaskObj] = useState({});
     const [commentObj, setCommentObj] = useState({});
     const { id } = useParams();
-    const { data } = useContext(EssentialValues);
+    const { data, whoIs } = useContext(EssentialValues);
     const url = process.env.REACT_APP_API_URL;
     const [previewList, setPreviewList] = useState([]);
+    const [projects, setProjects] = useState([]);
     const [isEditCommit, setIsEditCommit] = useState(false);
     const [editCommentIndex, setEditCommentIndex] = useState(null);
     const [ischecked, setIschecked] = useState(false);
+    const [isEditTask, setIsEditTask] = useState(false);
+    const [isDeleteTask, setDeleteTask] = useState(false);
 
     function handleCommitToEdit(commitData) {
         setPreviewList(commitData.attachments);
@@ -51,67 +55,163 @@ export default function Comments() {
         setCommentObj((pre) => ({
             ...pre,
             [name]: name === "attachments" ?
-                [...(pre.attachments || []), files] : value
+                [...(pre.attachments || []), ...files] : value
         }))
     }
 
-    async function editTask() {
-        console.log("called");
-        
-        try {
-            const files = commentObj?.attachments?.filter((file) => file.type === "image/png") || [];
-            if (files.length > 0) {
-                const formData = new FormData(); // Ensure FormData is created
+    function handleEdiTask() {
+        if (!isEditTask) {
+            setTaskObj((pre) => ({
+                ...pre,
+                assignedTo: pre.assignedTo.map((emp) => emp._id)
+            }))
+            setPreviewList(taskObj.attachments);
+        } else if (isEditTask) {
+            fetchTaskOfComments();
+        }
+        setIsEditTask(!isEditTask)
+    }
 
-                // Append each file to the FormData
-                for (let index = 0; index < files.length; index++) {
-                    formData.append("documents", files[index]); // Ensure correct field name for your backend
-                }
-                const response = await axios.post(`${url}/api/upload`, formData, {
-                    headers: {
-                        Accept: 'application/json', // Accept JSON response
-                    }
+    function handleDeleteTask() {
+        setDeleteTask(!isDeleteTask)
+    }
+
+    async function editTask(taskData) {
+        try {
+            const files = taskData?.attachments?.filter((file) => file.type === "image/png") || [];
+            let updatedTaskData;
+            if (files.length > 0) {
+                const formData = new FormData();
+
+                // Append each file to FormData
+                files.forEach((file) => {
+                    formData.append("documents", file); // Ensure correct field name
                 });
 
-                // Check if the response is successful
-                if (!response.data) {
-                    console.error('Upload failed with status:', response.status);
+                // Upload the files
+                const response = await axios.post(`${url}/api/upload`, formData, {
+                    headers: {
+                        Accept: "application/json",
+                    },
+                });
+
+                // Check if upload was successful
+                if (!response.data || !response.data.files) {
+                    console.error("Upload failed:", response);
                     return;
                 }
-                const uploadedImgPath = commentObj.attachments.filter((file) => file.type !== "image/png")
-                const updatedCommentObj = {
-                    ...commentObj,
+
+                // Get previously uploaded attachments (excluding PNGs)
+                const uploadedImgPath = taskData.attachments.filter((file) => file.type !== "image/png")
+                updatedTaskData = {
+                    ...taskData,
                     ["attachments"]: [...uploadedImgPath, ...response.data.files.map(((file) => file.originalFile))]
                 }
-                // updated comment object add in specify index of comment
-                taskObj.comments[editCommentIndex] = updatedCommentObj;
+
             } else {
-                // updated comment object add in specify index of comment
-                taskObj.comments[editCommentIndex] = commentObj;
+                updatedTaskData = {
+                    ...taskData
+                }
             }
 
+            // Send PUT request to update task
             const res = await axios.put(
-                `${url}/api/task/${data._id}/${taskObj._id}`, // Ensure correct projectId
-                taskObj,
+                `${url}/api/task/${data._id}/${taskObj._id}`,
+                updatedTaskData,
                 {
                     headers: {
                         Authorization: data.token || "",
                     },
                 }
             );
-            console.log(res.data);
+
+            // Show success message
+            toast.success(res.data.message);
+
+            // Reset states
             setIsEditCommit(false);
-            fetchTaskOfComments()
-            toast.success("Commit has been updated")
+            fetchTaskOfComments();
+            setIsEditTask(false);
+            setEditCommentIndex(null);
         } catch (error) {
-            console.log(error);
+            console.error("Error updating task:", error);
+            toast.error("Failed to update task.");
+        }
+    }
+
+    async function editCommitTask() {
+        try {
+            let updatedCommentObj = { ...commentObj };
+
+            // Filter out PNG files for upload
+            const files = commentObj?.attachments?.filter((file) => file.type === "image/png") || [];
+
+            if (files.length > 0) {
+                const formData = new FormData();
+
+                // Append each file to FormData
+                files.forEach((file) => {
+                    formData.append("documents", file); // Ensure correct field name
+                });
+
+                // Upload the files
+                const response = await axios.post(`${url}/api/upload`, formData, {
+                    headers: {
+                        Accept: "application/json",
+                    },
+                });
+
+                // Check if upload was successful
+                if (!response.data || !response.data.files) {
+                    console.error("Upload failed:", response);
+                    return;
+                }
+
+                // Get previously uploaded attachments (excluding PNGs)
+                const nonPngAttachments = commentObj.attachments.filter((file) => file.type !== "image/png");
+
+                // Merge old attachments with new uploaded files
+                updatedCommentObj = {
+                    ...commentObj,
+                    attachments: [...nonPngAttachments, ...response.data.files.map((file) => file.originalFile)],
+                };
+
+            }
+
+            // Update the comment in the task object if taskData is not provided
+            taskObj.comments[editCommentIndex] = updatedCommentObj;
+
+            // Send PUT request to update task
+            const res = await axios.put(
+                `${url}/api/task/${data._id}/${taskObj._id}`,
+                taskObj,
+                {
+                    params: {
+                        changeComments: true
+                    },
+                    headers: {
+                        Authorization: data.token || "",
+                    },
+                }
+            );
+
+            // Show success message
+            toast.success(res.data.message);
+
+            // Reset states
+            setIsEditCommit(false);
+            fetchTaskOfComments();
+            setIsEditTask(false);
+            setEditCommentIndex(null);
+        } catch (error) {
+            console.error("Error updating task:", error);
+            toast.error("Failed to update task.");
         }
     }
 
     async function deleteCommit(comment, index) {
-        console.log(comment, index);
 
-        if (!comment || !index) {
+        if (!comment) {
             toast.error("error in delete commit")
         } else {
             const updatedCommit = {
@@ -141,11 +241,9 @@ export default function Comments() {
     const renderMenu1 = ({ onClose, right, top, className }, ref) => {
         const handleSelect = eventKey => {
             if (eventKey === 1) {
-                // setEditCommentIndex()
-                // handleCommitToEdit(commit)
-                handleEditCommit();
+                handleEdiTask()
             } else if (eventKey === 2) {
-                deleteCommit();
+                handleDeleteTask()
             }
             onClose();
         };
@@ -199,8 +297,13 @@ export default function Comments() {
     function removeAttachment(value) {
         const updatedPrevireList = previewList.filter((imgFile) => imgFile !== value);
         setPreviewList(updatedPrevireList);
-        const updatedAttachments = commentObj.attachments.filter((data) => data !== value);
-        setCommentObj({ ...commentObj, attachments: updatedAttachments })
+        if (commentObj) {
+            const updatedAttachments = commentObj.attachments.filter((data) => data !== value);
+            setCommentObj({ ...commentObj, attachments: updatedAttachments })
+        } else {
+            const updatedAttachments = taskObj.attachments.filter((data) => data !== value);
+            setCommentObj({ ...taskObj, attachments: updatedAttachments })
+        }
     }
 
     async function fetchTaskOfComments() {
@@ -212,32 +315,119 @@ export default function Comments() {
                 },
                 headers: { Authorization: data.token || "" }
             })
-            setTaskObj(res.data);
-            return res.data;
+            setIschecked(res.data.status === "Completed")
+            console.log(res.data);
+            setTaskObj({
+                ...res.data,
+                spend: {
+                    ...res?.data?.spend,
+                    timeHolder: getTimeToHour(res?.data?.spend?.timeHolder || 0)
+                }
+            });
         } catch (error) {
             toast.error(error.response.data.error)
-        } finally {
+        }
+        finally {
             setIsLoading(false);
         }
     }
 
-    async function getValue() {
-        const taskData = await fetchTaskOfComments();
+    async function deleteTask() {
+        try {
+            const res = await axios.delete(`${url}/api/task/${taskObj._id}`, {
+                headers: {
+                    Authorization: data.token || ""
+                }
+            })
+            toast.success(res.data.message);
+            navigate(`/${whoIs}/tasks`);
+        } catch (error) {
+            toast.error(error.response.data.error)
+        }
+    }
+
+    function changeTask(event, name) {
+        const files = event?.target?.files; // Extract files correctly
+        const value = event; // Extract value properly
+
+        if (name === "attachments" || name.includes("attachments")) {
+            const imgUrls = [];
+
+            for (let index = 0; index < files.length; index++) {
+                imgUrls.push(URL.createObjectURL(files[index]));
+            }
+
+            // Update state once with all images
+            setPreviewList((prev = []) => [...prev, ...imgUrls]);
+        }
+
+        setTaskObj((prev) => {
+            if (name.startsWith("spend.")) {
+                const spendChild = name.split(".")[1];
+
+                return {
+                    ...prev,
+                    spend: {
+                        ...prev.spend,
+                        [spendChild]: files || value, // Store correctly
+                    },
+                };
+            } else if (name.startsWith("comments.")) {
+                const commentChild = name.split(".")[1];
+                return {
+                    ...prev,
+                    comments: prev.comments.length > 0
+                        ? [
+                            ...prev.comments.slice(0, -1), // Keep all except the last one
+                            {
+                                ...prev.comments[prev.comments.length - 1], // Modify last comment
+                                [commentChild]: name.includes("attachments")
+                                    ? [...(prev?.comments?.[prev.comments.length - 1]?.[commentChild] || []), ...files]
+                                    : value,
+                            },
+                        ]
+                        : [{ [commentChild]: name.includes("attachments") ? [...files] : value }],
+                };
+            } else {
+                return {
+                    ...prev,
+                    [name]: name === "attachments"
+                        ? [...(prev[name] || []), ...files] // Spread FileList properly
+                        : value, // Update other fields directly
+                };
+            }
+        });
+    }
+
+    async function getValue(value) {
         const updatedTask = {
-            ...taskData,
-            "status": "Completed"
+            ...taskObj,
+            "status": value ? "Completed" : taskObj.status
         }
         editTask(updatedTask)
     }
+    async function fetchProjects() {
+        setIsLoading(true)
+        try {
+            const res = await axios.get(`${url}/api/project`, {
+                headers: {
+                    Authorization: data.token || ""
+                }
+            })
 
-    useEffect(() => {
-        getValue()
-    }, [ischecked])
+            setProjects(res.data.map((project) => ({ label: project.name, value: project._id })));
+            // setFilterProjects(res.data.map((project) => ({ label: project.name, value: project._id })))
+        } catch (error) {
+            toast.error(error.response.data.error)
+        }
+        setIsLoading(false)
+    }
 
     useEffect(() => {
         if (id) {
             fetchTaskOfComments()
         }
+        fetchProjects()
     }, [])
 
     return (
@@ -248,22 +438,32 @@ export default function Comments() {
                 isAddData={isEditCommit}
                 modifyData={handleEditCommit}
                 changeData={changeCommit}
-                editData={editTask}
+                editData={editCommitTask}
                 dataObj={commentObj}
                 previewList={previewList}
-            /> :
-
-                <div className='commentsParent'>
+            /> : isEditTask ? <CommonModel
+                dataObj={taskObj}
+                previewList={previewList}
+                isAddData={isEditTask}
+                editData={editTask}
+                changeData={changeTask}
+                projects={projects}
+                removeAttachment={removeAttachment}
+                employees={employees}
+                type="Task"
+                modifyData={handleEdiTask} /> : isDeleteTask
+                ? <CommonModel type="Task Confirmation" modifyData={handleDeleteTask} deleteData={deleteTask} isAddData={isDeleteTask} />
+                : <div className='commentsParent'>
                     <div className="comments">
                         <div className="d-flex justify-content-between row">
                             <div className="col-lg-1">
                                 <span className='timeBox'>
-                                    <TimerOutlinedIcon /> {getTimeToHour(taskObj?.spend?.timeHolder)}
+                                    <TimerOutlinedIcon /> {taskObj?.spend?.timeHolder}
                                 </span>
                             </div>
                             {/* center content of left */}
                             <div className="col-lg-2 text-end my-3">
-                                <input type='checkbox' onChange={(e) => setIschecked(e.target.checked)} checked={ischecked} className='mb-3' />
+                                <input type='checkbox' onChange={(e) => getValue(e.target.checked)} checked={ischecked} className='mb-3' />
                                 <div style={{ textAlign: "end", marginTop: "16px" }}>
                                     <p><b>Assigned to</b></p>
                                     <p style={{ marginTop: "13px" }}><b>Due On</b></p>
@@ -278,7 +478,7 @@ export default function Comments() {
                                     taskObj?.assignedTo?.map((emp) => {
                                         return (
                                             <>
-                                                <img src={emp.profile || profile} className='userProfile' />
+                                                <img src={emp.profile || profile} className='userProfile' key={emp._id} />
                                                 {emp?.FirstName[0]?.toUpperCase() + emp?.FirstName?.slice(1) + " " + emp?.LastName + "   "}
                                             </>)
                                     })
