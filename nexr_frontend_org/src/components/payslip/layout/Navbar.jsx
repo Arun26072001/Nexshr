@@ -68,7 +68,7 @@ export default function Navbar({ handleSideBar }) {
     // Function to start the timer
     const startTimer = async () => {
         if (!workRef.current) {
-            await startLoginTimer(workLocation, placeId);
+            await startLoginTimer();
             if (isStartLogin) {
                 workRef.current = setInterval(incrementTime, 1000);
             }
@@ -77,57 +77,45 @@ export default function Navbar({ handleSideBar }) {
     };
 
     // get user current location
-    function getAddress(lat, lng) {
-        let url = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat.toFixed(7)},${lng.toFixed(7)}&location_type=ROOFTOP&key=${"AIzaSyCnTS1G5VMwK4rgqtt6VAgzt9BeLnGmLSw"}`;
+    async function getAddress(lat, lng) {
+        const API_KEY = process.env.REACT_APP_MAPKEY;  // Replace with a secured API key (keep it secret)
+        const url = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat.toFixed(7)},${lng.toFixed(7)}&result_type=street_address|locality|postal_code&key=${API_KEY}`;
 
-        fetch(url)
-            .then(response => response.json())
-            .then(data => {
-                if (data.status === "OK") {
-                    let locationId = data.results[0].place_id;
+        try {
+            const response = await fetch(url);
+            const data = await response.json();
 
-                    setPlaceId(locationId)
-                    console.log("placeId:", data.results[0]);
+            if (data.status === "OK" && data.results.length > 0) {
+                const address = data.results[0].formatted_address;
+                const placeId = data.results[0].place_id;
 
-                } else {
-                    console.log("Geocoding failed: " + data.error_message);
-                }
-            })
-            .catch(error => console.log("Error: " + error));
-    }
+                console.log("Address:", address);
+                console.log("Place ID:", placeId);
 
-    function isValidCoordinates(lat, lng) {
-        return lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180;
-    }
-
-    function adjustCoordinates(lat, lng, meters = 0) {
-        let newLat = lat + (meters / 111320); // Adjust latitude
-        let newLng = lng + (meters / (111320 * Math.cos(lat * (Math.PI / 180)))); // Adjust longitude
-        return { newLat, newLng };
-    }
-
-    useEffect(() => {
-        function getUserPlaceIdUntilCorrect() {
-            if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition((position) => {
-                    let lat = position.coords.latitude;
-                    let lng = position.coords.longitude;
-                    // if (isValidCoordinates(lat, lng)) {
-                    //     let newCoords = adjustCoordinates(lat, lng);
-                    //     getAddress(newCoords.newLat, newCoords.newLng);
-                    // } else {
-                    //     console.log("Invalid coordinates!");
-                    // }
-                    getAddress(lat, lng);
-                });
+                return { address, placeId };
             } else {
-                console.log("Geolocation is not supported by this browser.");
+                console.error("Geocoding failed:", data.status, data.error_message);
             }
+        } catch (error) {
+            console.error("Error fetching location:", error);
         }
-        if (!placeId) {
-            getUserPlaceIdUntilCorrect();
-        }
-    }, [placeId])
+    }
+
+    // useEffect(() => {
+    //     if (navigator.geolocation) {
+    //         navigator.geolocation.getCurrentPosition(
+    //             (position) => {
+    //                 const { latitude, longitude } = position.coords;
+    //                 getAddress(latitude, longitude);
+    //             },
+    //             (error) => console.error("Error getting location:", error),
+    //             { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+    //         );
+    //     } else {
+    //         console.log("Geolocation is not supported by this browser.");
+    //     }
+
+    // }, [placeId])
 
     // Function to stop the timer
     const stopTimer = async () => {
@@ -351,14 +339,14 @@ export default function Navbar({ handleSideBar }) {
                 </div>
 
                 <div className='gap-2 col-lg-4 col-md-3 d-flex align-items-center justify-content-end'>
-                    <SelectPicker
+                    {/* <SelectPicker
                         data={worklocationType}
                         searchable={false}
                         onChange={setWorklocation}
                         value={workLocation}
                         appearance="default"
                         placeholder="Choose your work place"
-                    />
+                    /> */}
                     <span className="lg ms-5">
                         <svg width="16" height="17" viewBox="0 0 16 17" fill="none" xmlns="http://www.w3.org/2000/svg">
                             <g clipPath="url(#clip0_2046_6893)">

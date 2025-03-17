@@ -314,16 +314,16 @@ router.post("/not-login/apply-leave", async (req, res) => {
 
 router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
     try {
-        const { worklocation, placeId } = req.query;
-        console.log(worklocation, placeId);
+        // const { worklocation, placeId } = req.query;
+        // console.log(worklocation, placeId);
 
         let regular = 0, late = 0, early = 0;
         const today = new Date();
         const startOfDay = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate(), 0, 0, 0));
         const endOfDay = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate(), 23, 59, 59));
-        if (!worklocation || !placeId) {
-            return res.status(400).send({ error: "Please select your work location" })
-        }
+        // if (!worklocation || !placeId) {
+        //     return res.status(400).send({ error: "Please select your work location" })
+        // }
         // Fetch employee details with required fields
         const emp = await Employee.findById(req.params.id)
             .populate("workingTimePattern")
@@ -336,13 +336,13 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
 
         if (!emp) return res.status(404).send({ error: "Employee not found!" });
         if (emp?.clockIns?.length > 0) return res.status(409).send({ message: "You have already Punch-In!" });
-        console.log(emp.company.placeId);
 
-        if (worklocation === "WFO") {
-            if (emp.company.placeId !== placeId) {
-                return res.status(400).send({ error: "Please start the timer when you arrive at the office" })
-            }
-        }
+        //verify emp is in office
+        // if (worklocation === "WFO") {
+        //     if (emp.company.placeId !== placeId) {
+        //         return res.status(400).send({ error: "Please start the timer when you arrive at the office" })
+        //     }
+        // }
         // Office login time & employee login time
         const officeLoginTime = emp?.workingTimePattern?.StartingTime || "9:00";
         const loginTimeRaw = req.body?.login?.startingTime?.[0];
