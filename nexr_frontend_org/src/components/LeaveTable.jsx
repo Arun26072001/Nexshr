@@ -30,7 +30,9 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
     const [openModal, setOpenModal] = useState(false);
     const [modelData, setModelData] = useState({});
     const params = useParams();
-    const [timeOption, setTimeOption] = useState("login");
+    // const [timeOption, setTimeOption] = useState("login");
+    console.log(data);
+
 
     const handleChangePage = (event, newPage) => {
         setPage(newPage);
@@ -150,21 +152,21 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
             label: 'Punch In',
             minWidth: 130,
             align: 'center',
-            getter: (row) => row?.login?.startingTime ? row?.login?.startingTime[0] : "N/A"
+            getter: (row) => row?.login?.startingTime ? row?.login?.startingTime[0] : "00:00:00"
         },
         {
             id: 'punchOut',
             label: 'Punch Out',
             minWidth: 130,
             align: 'center',
-            getter: (row) => row?.login?.endingTime ? row.login.endingTime[row.login.endingTime.length - 1] : "N/A"
+            getter: (row) => row?.login?.endingTime ? row.login.endingTime[row.login.endingTime.length - 1] : "00:00:00"
         },
         {
             id: 'totalHour',
             label: 'Total Hour',
             minWidth: 130,
             align: 'center',
-            getter: (row) => row?.login?.totalHour || 0
+            getter: (row) => row?.login?.totalHour || "00:00:00"
         },
         {
             id: 'behaviour',
@@ -182,47 +184,48 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
     ];
 
     const column5 = [
-        { id: 'Name', label: 'Name', minWidth: 130, align: 'left', getter: (row) => row?.Name ? row.Name : 'N/A' },
+        { id: 'Name', label: 'Name', minWidth: 130, align: 'left', getter: (row) => row?.Name || row.employee.FirstName + " " + row.employee.LastName || 'N/A' },
         {
             id: 'date',
             label: 'Date',
             minWidth: 130,
             align: 'left',
-            getter: (row) => row?.date ? row.date : "no date"
+            getter: (row) => row?.date ? row.date.split("T")[0] : "no date"
         },
         {
             id: 'type',
             label: 'Type',
             minWidth: 130,
             align: 'left',
+            getter: (row) => row.type || "login"
         },
         {
             id: 'punchIn',
             label: 'Punch In',
             minWidth: 130,
             align: 'left',
-            getter: (row) => row?.punchIn ? row.punchIn : "N/A"
+            getter: (row) => row?.punchIn || row?.login?.startingTime[0]
         },
         {
             id: 'punchOut',
             label: 'Punch Out',
             minWidth: 130,
             align: 'left',
-            getter: (row) => row?.punchOut ? row.punchOut : "00:00:00"
+            getter: (row) => row?.punchOut || row?.login?.endingTime[row.login.endingTime.length - 1]
         },
         {
             id: 'totalHour',
             label: 'Total Hour',
             minWidth: 130,
             align: 'left',
-            getter: (row) => row?.totalHour || 0
+            getter: (row) => row?.totalHour || row.login.timeHolder || 0
         },
         {
             id: 'behaviour',
             label: 'Behaviour',
             minWidth: 130,
             align: 'left',
-            getter: (row) => row.behaviour ? row.behaviour : 'N/A'
+            getter: (row) => row?.behaviour || 0
         }
     ]
 
@@ -357,8 +360,8 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
         { id: 'fromDate', label: 'Start Date', minWidth: 130, align: 'left', getter: (row) => row.fromDate ? row.fromDate.split("T")[0] : 'N/A' },
         { id: 'toDate', label: 'End Date', minWidth: 130, align: 'left', getter: (row) => row.toDate ? row.toDate.split("T")[0] : 'N/A' },
         { id: 'leaveType', label: 'Type', minWidth: 130, align: 'left', getter: (row) => row.leaveType },
-        { id: 'reasonForLeave', label: 'Reason', minWidth: 130, align: 'left', getter: (row) => row.reasonForLeave },
-        { id: 'status', label: 'Status', minWidth: 130, align: 'left', getter: (row) => row.status },
+        { id: 'reasonForLeave', label: 'Reason', minWidth: 100, align: 'left', getter: (row) => row.reasonForLeave },
+        { id: 'status', label: 'Status', minWidth: 100, align: 'left', getter: (row) => row.status },
     ];
 
     const column9 = [
@@ -551,7 +554,7 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
                 return setColumns(column2)
             }
         })
-    }, [data, timeOption]);
+    }, [data]);
 
 
     return (
