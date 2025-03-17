@@ -22,6 +22,7 @@ const App = () => {
   const socket = io(`${url}`, { autoConnect: false });
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [showOfflineAlert, setShowOfflineAlert] = useState(false);
+  const [hasInternet, setHasInternet] = useState(true);
   const [whoIs, setWhoIs] = useState("");
   const [isStartLogin, setIsStartLogin] = useState([null, "false"].includes(localStorage.getItem("isStartLogin")) ? false : true);
   const [isStartActivity, setIsStartActivity] = useState([null, "false"].includes(localStorage.getItem("isStartActivity")) ? false : true);
@@ -116,7 +117,6 @@ const App = () => {
       }
     }
   };
-
 
   const handleSubmit = (event) => {
     event.preventDefault();
@@ -229,15 +229,24 @@ const App = () => {
       window.removeEventListener('offline', handleOffline);
     };
   }, []);
+  // Check actual internet access
+  const checkInternetAccess = async () => {
+    try {
+      const response = await fetch("https://www.google.com", { mode: "no-cors" });
+      setHasInternet(true);
+    } catch (error) {
+      setHasInternet(false);
+    }
+  };
 
   useEffect(() => {
-
     if (!isOnline && showOfflineAlert) {
       navigate("/no-internet-connection")
     } else if (isOnline && !showOfflineAlert && location.pathname === "/no-internet-connection") {
+      checkInternetAccess();
       navigate(`/${whoIs}`)
     }
-  }, [isLogin, showOfflineAlert])
+  }, [isLogin, showOfflineAlert, hasInternet])
 
   // Component Rendering
   return (
