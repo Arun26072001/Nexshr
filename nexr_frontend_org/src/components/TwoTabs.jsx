@@ -193,7 +193,7 @@ export default function Twotabs() {
           </div>
           <div className="row" >
             <div className="leaveCircle col-lg-6 col-sm-12 col-md-12 p-0" >
-              <CircleBar annualLeave={Number(annualLeave).toFixed(2) || 0} takenLeave={takenLeave.toFixed(2) || 0} />
+              <CircleBar annualLeave={Number(annualLeave).toFixed(1) || 0} takenLeave={takenLeave.toFixed(2) || 0} />
             </div>
 
             <div className='text-center col-lg-6 col-sm-12 col-md-12 p-0 m-auto' style={{ fontSize: "13px" }} >
@@ -229,7 +229,7 @@ export default function Twotabs() {
       </CustomTabPanel>
 
       <CustomTabPanel value={value} index={1}>
-        Overtime
+        Under Development
       </CustomTabPanel>
     </Box>
   );
