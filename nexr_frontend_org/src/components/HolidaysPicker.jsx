@@ -10,6 +10,7 @@ import "react-big-calendar/lib/css/react-big-calendar.css";
 import "./calendar.css";
 import { getHoliday } from "./ReuseableAPI";
 import Loading from "./Loader";
+import NoDataFound from "./payslip/NoDataFound";
 
 const localizer = dayjsLocalizer(dayjs);
 
@@ -47,6 +48,8 @@ function HolidayPicker({ changeHolidayUI, isAddHolidays }) {
                 console.log("please fill all date of title");
             }
         } catch (error) {
+            console.log(error);
+
             toast.error(error.response?.data?.error || "Error adding holidays");
         }
     }
@@ -72,9 +75,8 @@ function HolidayPicker({ changeHolidayUI, isAddHolidays }) {
             setIsLoading(true);
             try {
                 const res = await getHoliday();
-
                 setFetchedHolidays(
-                    res.holidays.map((item) => ({
+                    res?.holidays?.map((item) => ({
                         title: item.title || "Untitled Holiday", // ✅ Ensure title is not empty
                         start: new Date(item.date),
                         end: new Date(item.date),
@@ -99,7 +101,7 @@ function HolidayPicker({ changeHolidayUI, isAddHolidays }) {
 
     return (
         isLoading ? <Loading /> :
-            fetchedHolidays.length > 0 ?
+            fetchedHolidays?.length > 0 ?
                 <Calendar
                     localizer={localizer}
                     events={fetchedHolidays}
@@ -109,41 +111,44 @@ function HolidayPicker({ changeHolidayUI, isAddHolidays }) {
                     eventPropGetter={eventPropGetter}
                     style={{ height: 500 }}
                 /> :
-                <div className="d-flex gap-2 justify-content-end my-2">
-                    <DatePicker
-                        value={holidays}
-                        onChange={(dates) => {
-                            setHolidays(dates.map((date) => date.format("YYYY-MM-DD"))); // Properly updating state
-                        }}
-                        multiple
-                        style={{ height: "40px" }}
-                        plugins={[<DatePanel key="date-panel" />]}
-                        placeholder="Select Year of Holidays"
-                    />
+                <>
+                    <div className="d-flex gap-2 justify-content-end my-2">
+                        <DatePicker
+                            value={holidays}
+                            onChange={(dates) => {
+                                setHolidays(dates.map((date) => date.format("YYYY-MM-DD"))); // Properly updating state
+                            }}
+                            multiple
+                            style={{ height: "40px" }}
+                            plugins={[<DatePanel key="date-panel" />]}
+                            placeholder="Select Year of Holidays"
+                        />
 
-                    {holidays.length > 0 && (
-                        <div className="inputs">
-                            {holidays.map((day) => (
-                                <Input
-                                    key={day}
-                                    size="sm"
-                                    name={day}
-                                    value={titles[day] || ""}
-                                    onChange={(value) => handleHolidaysTitle(value, day)}
-                                    placeholder={`Title for ${day}`}
-                                />
-                            ))}
-                        </div>
-                    )}
+                        {holidays.length > 0 && (
+                            <div className="inputs">
+                                {holidays.map((day) => (
+                                    <Input
+                                        key={day}
+                                        size="sm"
+                                        name={day}
+                                        value={titles[day] || ""}
+                                        onChange={(value) => handleHolidaysTitle(value, day)}
+                                        placeholder={`Title for ${day}`}
+                                    />
+                                ))}
+                            </div>
+                        )}
 
-                    <button
-                        className="button"
-                        onClick={addHolidays}
-                        disabled={holidays.length === Object.keys(titles).length ? false : true}
-                    >
-                        + Add Holidays
-                    </button>
-                </div>
+                        <button
+                            className="button"
+                            onClick={addHolidays}
+                            disabled={holidays.length === Object.keys(titles).length ? false : true}
+                        >
+                            + Add Holidays
+                        </button>
+                    </div>
+                    <NoDataFound message="Please Add Holidays for this year" />
+                </>
     );
 }
 
