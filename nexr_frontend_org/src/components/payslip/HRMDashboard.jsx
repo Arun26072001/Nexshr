@@ -12,7 +12,6 @@ import {
 import { jwtDecode } from 'jwt-decode';
 import axios from 'axios';
 import { EssentialValues } from '../../App';
-import Loading from '../Loader';
 import Company from '../Administration/Company';
 import Holiday from '../Administration/Holiday';
 import Country from '../Administration/Country';
@@ -50,7 +49,7 @@ const Department = React.lazy(() => import('../Administration/Department'));
 const Position = React.lazy(() => import('../Administration/Position'));
 const Parent = React.lazy(() => import('./layout/Parent'));
 const PayslipUI = React.lazy(() => import('./PayslipUI'));
-const AttendanceCalendar = React.lazy(() => import('../AttendanceCalendar'));
+const AttendanceCalendar = React.lazy(() => import('./AttendanceCalendar'));
 const Projects = React.lazy(() => import("../Projects"));
 const Tasks = React.lazy(() => import("../Tasks"));
 const Reports = React.lazy(() => import("../Reports"));

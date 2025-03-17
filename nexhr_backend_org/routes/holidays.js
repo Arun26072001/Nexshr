@@ -35,7 +35,7 @@ router.get("/:year", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
     try {
         const response = await Holiday.findOne({ currentYear: req.params.year }).exec();
         if (!response) {
-            return res.status(404).send({ error: `Please add ${req.params.year} year of holidays!` })
+            return res.status(200).send({ message: `Please add ${req.params.year} year of holidays!` })
         } else {
             return res.send(response);
         }
