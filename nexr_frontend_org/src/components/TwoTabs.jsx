@@ -196,7 +196,7 @@ export default function Twotabs() {
             </div>
 
             <div className='text-center col-lg-6 col-sm-12 col-md-12 p-0 m-auto' style={{ fontSize: "13px" }} >
-              <p><b>{(Number(annualLeave) - takenLeave) || 0} Days</b> Remaining</p>
+              <p><b>{(Number(annualLeave) - takenLeave).toFixed(2) || 0} Days</b> Remaining</p>
               <p><b>{annualLeave || 0} Days</b> Allowance</p>
             </div>
           </div>

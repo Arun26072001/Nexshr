@@ -90,7 +90,7 @@ const getCurrentTimeInMinutes = () => {
 };
 
 function formatTimeFromMinutes(minutes) {
-  if (NaN) {
+  if ([NaN,0].includes(minutes)) {
     return `00:00:00`;
   } else {
     const hours = Math.floor(minutes / 60); // Get the number of hours
@@ -104,7 +104,6 @@ function formatTimeFromMinutes(minutes) {
     const formattedSeconds = String(secs).padStart(2, '0');
 
     return `${formattedHours}:${formattedMinutes}:${formattedSeconds}`;
-
   }
 
 }

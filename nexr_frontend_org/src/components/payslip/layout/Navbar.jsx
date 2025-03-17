@@ -78,7 +78,6 @@ export default function Navbar({ handleSideBar }) {
 
     // get user current location
     function getAddress(lat, lng) {
-
         let url = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat.toFixed(7)},${lng.toFixed(7)}&location_type=ROOFTOP&key=${"AIzaSyCnTS1G5VMwK4rgqtt6VAgzt9BeLnGmLSw"}`;
 
         fetch(url)
@@ -108,23 +107,27 @@ export default function Navbar({ handleSideBar }) {
     }
 
     useEffect(() => {
-        // Example usage with user's location
-        if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition((position) => {
-                let lat = position.coords.latitude;
-                let lng = position.coords.longitude;
-                if (isValidCoordinates(lat, lng)) {
-                    let newCoords = adjustCoordinates(lat, lng);
-                    getAddress(newCoords.newLat, newCoords.newLng);
-                } else {
-                    console.log("Invalid coordinates!");
-                }
-                // getAddress(lat, lng);
-            });
-        } else {
-            console.log("Geolocation is not supported by this browser.");
+        function getUserPlaceIdUntilCorrect() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition((position) => {
+                    let lat = position.coords.latitude;
+                    let lng = position.coords.longitude;
+                    // if (isValidCoordinates(lat, lng)) {
+                    //     let newCoords = adjustCoordinates(lat, lng);
+                    //     getAddress(newCoords.newLat, newCoords.newLng);
+                    // } else {
+                    //     console.log("Invalid coordinates!");
+                    // }
+                    getAddress(lat, lng);
+                });
+            } else {
+                console.log("Geolocation is not supported by this browser.");
+            }
         }
-    }, [])
+        if (!placeId) {
+            getUserPlaceIdUntilCorrect();
+        }
+    }, [placeId])
 
     // Function to stop the timer
     const stopTimer = async () => {

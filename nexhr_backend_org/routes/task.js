@@ -23,17 +23,17 @@ router.get("/project/:id", verifyAdminHREmployeeManagerNetwork, async (req, res)
             let { startingTime: startingTimes, endingTime: endingTimes } = task.spend;
 
             if (!Array.isArray(startingTimes) || startingTimes.length === 0) {
+
                 let totalCommentSpendTime = 0;
                 task?.comments?.map((comment) => totalCommentSpendTime += Number(comment.spend));
-                console.log(totalCommentSpendTime);
 
                 return {
                     ...task.toObject(),
                     spend: {
                         ...(task.spend ? task.spend.toObject() : {}), // Ensure spend exists
-                        timeHolder: formatTimeFromMinutes(
-                            (Number(task.spend?.timeHolder || 0) + totalCommentSpendTime) * 60
-                        )
+                        timeHolder: task?.spend?.timeHolder?.split(":")?.length > 2 && ["00:00:00"].includes(task.spend?.timeHolder) ? formatTimeFromMinutes(
+                            (Number(task.spend?.timeHolder) + totalCommentSpendTime) * 60
+                        ) : task.spend.timeHolder
                     }
                 };
             }

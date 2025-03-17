@@ -296,7 +296,7 @@ export default function HRMDashboard() {
             if (data) {
                 setAttendanceForSummary(data);
             } else {
-                toast.error("Error in fetch attendance Data");
+                console.log("error in fetch attendance Data");
             }
         } catch (err) {
             console.error(err);
