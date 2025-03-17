@@ -33,7 +33,6 @@ const CommonModel = ({
 }) => {
     const [confirmationTxt, setConfirmationTxt] = useState("");
     const [isDisabled, setIsDisabled] = useState(true);
-    console.log(dataObj);
 
     return (
         <Modal open={isAddData} size="sm" backdrop="static">
@@ -41,7 +40,7 @@ const CommonModel = ({
                 <Modal.Title>
                     {type === "Assign" ? `Edit ${type}` :
                         ["Confirmation", "Report Confirmation"].includes(type) ? "" :
-                            type === "Add Comments" ? "Add Comments" :
+                            type === "Add Comments" ? "Add Comments" : type === "Edit Comments" ? "Edit Comments" :
                                 dataObj?._id ? `Edit ${type}` : `Add a ${type}`}
                 </Modal.Title>
             </Modal.Header>
@@ -129,11 +128,20 @@ const CommonModel = ({
                         </div>}
 
                         {
-                            type === "Add Comments" &&
+                            ["Add Comments"].includes(type) &&
                             <div className="col-half">
                                 <div className="modelInput">
                                     <p className='modelLabel'>Spend time:</p>
                                     <InputNumber size='lg' defaultValue={0.00} style={{ width: "100%" }} step={0.01} value={dataObj?.comments[0]?.["spend"]} onChange={(e) => changeData(e, "comments.spend")} />
+                                </div>
+                            </div>
+                        }
+                        {
+                            type === "Edit Comments" &&
+                            <div className="col-half">
+                                <div className="modelInput">
+                                    <p className='modelLabel'>Spend time:</p>
+                                    <InputNumber size='lg' defaultValue={0.00} style={{ width: "100%" }} step={0.01} value={dataObj?.spend} onChange={(e) => changeData(e, "spend")} />
                                 </div>
                             </div>
                         }
@@ -156,7 +164,7 @@ const CommonModel = ({
                         </div>}
                     </div>
 
-                    {["Task", "Task View", "Add Comments"].includes(type) && (
+                    {["Task", "Task View", "Add Comments", "Edit Comments"].includes(type) && (
                         <div className="col-full">
                             <div className="modelInput">
                                 <p className="modelLabel">Attachments: </p>
@@ -446,7 +454,7 @@ const CommonModel = ({
                     )
                 }
                 {
-                    ["Announcement", "Add Comments"].includes(type) &&
+                    ["Announcement", "Add Comments", "Edit Comments"].includes(type) &&
                     <>
                         {
                             type === "Announcement" &&
@@ -480,8 +488,8 @@ const CommonModel = ({
                                     </p>
 
                                     <TextEditor
-                                        handleChange={(e) => changeData(e, type === "Announcement" ? "message" : "comments.comment")}
-                                        content={type === "Add Comments" ? dataObj?.comments[0]?.["comment"] : dataObj?.["message"]}
+                                        handleChange={(e) => changeData(e, type === "Announcement" ? "message" : type === "Edit Comments" ? "comment" : "comments.comment")}
+                                        content={type === "Add Comments" ? dataObj?.comments[0]?.["comment"] : type === "Edit Comments" ? dataObj?.["comment"] : dataObj?.["message"]}
                                     />
                                 </div>
                             </div>
@@ -825,7 +833,6 @@ const CommonModel = ({
                         <>
                             <Button
                                 onClick={() => {
-
                                     if (["Company", "Country", "Edit Country"].includes(type)) {
                                         modifyData(dataObj._id || type === "Edit Country" ? "Edit" : "Add");
                                     } else if (type === "Report View") {
@@ -842,14 +849,14 @@ const CommonModel = ({
                             {
                                 !["Report View", "Task View", "Project View"].includes(type) && (
                                     <Button
-                                        onClick={() => (dataObj?._id || type === "Edit Country" ? editData(dataObj) : addData())}
+                                        onClick={() => ((type === "Add Comments" && dataObj._id) ? editData(dataObj, true) : dataObj?._id || type === "Edit Country" ? editData(dataObj) : type === "Edit Comments" ? editData() : addData())}
                                         appearance="primary"
                                         disabled={
-                                            ["Project", "Assign", "Task", "Task Assign", "Report", "Company", "Country", "Edit Country", "Announcement", "Team", "Add Comments"].includes(type)
+                                            ["Project", "Assign", "Task", "Task Assign", "Report", "Company", "Country", "Edit Country", "Announcement", "Team", "Add Comments", "Edit Comments"].includes(type)
                                                 ? false : (["Department", "Position"].includes(type) && dataObj?.company ? false : true)
                                         }
                                     >
-                                        {type === "Add Comments" ? "Add" : dataObj?._id || type === "Edit Country" ? "Update" : "Save"}
+                                        {type === "Add Comments" ? "Add" : dataObj?._id || type === "Edit Country" || type === "Edit Comments" ? "Update" : "Save"}
                                     </Button>
                                 )
                             }

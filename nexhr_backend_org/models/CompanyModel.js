@@ -13,7 +13,7 @@ var companySchema = new mongoose.Schema({
   PanNo: { type: String, },
   GSTNo: { type: String, },
   CINNo: { type: String, },
-  // city: [{ type: mongoose.Schema.Types.ObjectId, ref: "City" }]
+  placeId: { type: String }
 }, { timestamps: true });
 
 var Company = mongoose.model("Company", companySchema);
@@ -51,7 +51,10 @@ const CompanyValidation = Joi.object().keys({
     .required(),
   CINNo: Joi.string()
     .max(200)
-    .required()
+    .required(),
+  placeId: Joi.string()
+    .allow("", null)
+    .optional()
 });
 
 

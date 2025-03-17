@@ -90,17 +90,22 @@ const getCurrentTimeInMinutes = () => {
 };
 
 function formatTimeFromMinutes(minutes) {
-  const hours = Math.floor(minutes / 60); // Get the number of hours
-  const mins = Math.floor(minutes % 60); // Get the remaining whole minutes
-  const fractionalPart = minutes % 1; // Get the fractional part of the minutes
-  const secs = Math.round(fractionalPart * 60); // Convert the fractional part to seconds
+  if ([NaN,0].includes(minutes)) {
+    return `00:00:00`;
+  } else {
+    const hours = Math.floor(minutes / 60); // Get the number of hours
+    const mins = Math.floor(minutes % 60); // Get the remaining whole minutes
+    const fractionalPart = minutes % 1; // Get the fractional part of the minutes
+    const secs = Math.round(fractionalPart * 60); // Convert the fractional part to seconds
 
-  // Format each part to ensure two digits (e.g., "04" instead of "4")
-  const formattedHours = String(hours).padStart(2, '0');
-  const formattedMinutes = String(mins).padStart(2, '0');
-  const formattedSeconds = String(secs).padStart(2, '0');
+    // Format each part to ensure two digits (e.g., "04" instead of "4")
+    const formattedHours = String(hours).padStart(2, '0');
+    const formattedMinutes = String(mins).padStart(2, '0');
+    const formattedSeconds = String(secs).padStart(2, '0');
 
-  return `${formattedHours}:${formattedMinutes}:${formattedSeconds}`;
+    return `${formattedHours}:${formattedMinutes}:${formattedSeconds}`;
+  }
+
 }
 
 module.exports = { convertToString, getDayDifference, getWeekdaysOfCurrentMonth, mailContent, getCurrentTimeInMinutes, timeToMinutes, formatTimeFromMinutes };

@@ -1,6 +1,6 @@
 import axios from 'axios';
 import React, { useContext, useEffect, useState } from 'react'
-import { useNavigate, useParams } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import { EssentialValues } from '../App';
 import { Checkbox } from 'rsuite';
 import profile from "../imgs/male_avatar.webp";
@@ -8,7 +8,6 @@ import { toast } from 'react-toastify';
 import Loading from './Loader';
 
 export default function TimeLog() {
-    const navigate = useNavigate();
     const [taskObj, setTaskObj] = useState([]);
     const { id } = useParams();
     const { data } = useContext(EssentialValues);
@@ -26,6 +25,9 @@ export default function TimeLog() {
             setIsLoading(true);
             try {
                 const res = await axios.get(`${url}/api/task/${id}`, {
+                    params: {
+                        withComments: false
+                    },
                     headers: { Authorization: data.token || "" }
                 })
                 setTaskObj(res.data);

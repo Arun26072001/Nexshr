@@ -12,14 +12,16 @@ const spendTimeSchema = new mongoose.Schema({
     endingTime: [{ type: String }],
     timeHolder: { type: String },
     reasonForLate: { type: String }
-}, { _id: false })
+}, { _id: false, timestamps: true })
 
 const commentSchema = new mongoose.Schema({
     comment: { type: String },
     attachments: [{ type: String }],
-    spend: { type: String },
-    date: { type: Date }
-})
+    spend: { type: String, default: 0 },
+    date: { type: Date },
+    createdBy: { type: mongoose.Schema.Types.ObjectId, ref: "Employee" },
+    isDeleted: { type: Boolean, default: false }
+}, { timestamps: true })
 
 const taskSchema = new mongoose.Schema({
     title: { type: String },

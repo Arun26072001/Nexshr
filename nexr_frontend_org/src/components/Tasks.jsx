@@ -1,5 +1,7 @@
 import React, { useContext, useEffect, useState } from "react"
 import { Dropdown, Input, Popover, SelectPicker, Whisper } from "rsuite";
+import { formatTimeFromHour, getTimeToHour } from "./ReuseableAPI";
+import { useNavigate } from "react-router-dom";
 import CommonModel from "./Administration/CommonModel";
 import axios from "axios";
 import { EssentialValues } from "../App";
@@ -21,9 +23,9 @@ import DeleteRoundedIcon from '@mui/icons-material/DeleteRounded';
 import PauseCircleOutlineRoundedIcon from '@mui/icons-material/PauseCircleOutlineRounded';
 import HourglassTopRoundedIcon from '@mui/icons-material/HourglassTopRounded';
 import CheckCircleOutlineRoundedIcon from '@mui/icons-material/CheckCircleOutlineRounded';
-import { formatTimeFromHour, getTimeToHour } from "./ReuseableAPI";
 
 const Tasks = ({ employees }) => {
+  const navigate = useNavigate();
   const url = process.env.REACT_APP_API_URL;
   const { data, whoIs } = useContext(EssentialValues);
   const { isAddTask, setIsAddTask, handleAddTask, selectedProject } = useContext(TimerStates);
@@ -39,7 +41,6 @@ const Tasks = ({ employees }) => {
   const [completedFilterTasks, setCompletedFilterTasks] = useState([]);
   const [processFilterTasks, setProgressFilterTasks] = useState([]);
   const [previewList, setPreviewList] = useState([]);
-  // const []
   const [isEditTask, setIsEditTask] = useState(false);
   const [isviewTask, setIsViewtask] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -97,33 +98,52 @@ const Tasks = ({ employees }) => {
     );
   };
 
-  function changeTask(value, name) {
-    console.log(name);
+  const renderMenu3 = (task) => ({ onClose, right, top, className }, ref) => {
+    const handleSelect = eventKey => {
+      if (eventKey === 1) {
+        navigate(`/${whoIs}/tasks/comments/${task._id}`)
+      } else if (eventKey === 2) {
+        navigate(`/${whoIs}/tasks/time-log/${task._id}`)
+      }
+      onClose();
+    };
+    return (
+      <Popover ref={ref} className={className} style={{ right, top }} full>
+        <Dropdown.Menu onSelect={handleSelect} title="Personal Settings">
+          <Dropdown.Item eventKey={1}><b><WatchLaterOutlinedIcon /> Comments</b></Dropdown.Item>
+          <Dropdown.Item eventKey={2}><b><AddRoundedIcon />  Time Logs</b></Dropdown.Item>
+        </Dropdown.Menu>
+      </Popover>
+    );
+  };
+
+  function changeTask(event, name) {
+    const files = event?.target?.files; // Extract files correctly
+    const value = event; // Extract value properly
 
     if (name === "attachments" || name.includes("attachments")) {
-      const files = value.target.files;
       const imgUrls = [];
 
       for (let index = 0; index < files.length; index++) {
         imgUrls.push(URL.createObjectURL(files[index]));
       }
-      console.log(imgUrls);
 
       // Update state once with all images
       setPreviewList((prev = []) => [...prev, ...imgUrls]);
     }
 
     setTaskObj((prev) => {
-      if (name.includes("spend")) {
+      if (name.startsWith("spend.")) {
         const spendChild = name.split(".")[1];
+
         return {
           ...prev,
           spend: {
             ...prev.spend,
-            [spendChild]: value,
+            [spendChild]: files || value, // Store correctly
           },
         };
-      } else if (name.includes("comments")) {
+      } else if (name.startsWith("comments.")) {
         const commentChild = name.split(".")[1];
 
         return {
@@ -133,21 +153,19 @@ const Tasks = ({ employees }) => {
               ...prev.comments.slice(0, -1), // Keep all except the last one
               {
                 ...prev.comments[prev.comments.length - 1], // Modify last comment
-                [commentChild]:
-                  name.includes("attachments") ?
-                    [...(prev?.comments?.[commentChild] || []), ...value.target.files]
-                    : value,
+                [commentChild]: name.includes("attachments")
+                  ? [...(prev?.comments?.[prev.comments.length - 1]?.[commentChild] || []), ...files]
+                  : value,
               },
             ]
-            : [{ [commentChild]: value }], // Handle empty comments array case
+            : [{ [commentChild]: name.includes("attachments") ? [...files] : value }],
         };
       } else {
         return {
           ...prev,
-          [name]:
-            name === "attachments"
-              ? [...(prev[name] || []), ...value.target.files] // Spread the FileList into the array
-              : value, // Update other fields directly
+          [name]: name === "attachments"
+            ? [...(prev[name] || []), ...files] // Spread FileList properly
+            : value, // Update other fields directly
         };
       }
     });
@@ -223,7 +241,7 @@ const Tasks = ({ employees }) => {
         }
       });
       if (storeCommentImgs) {
-        setPreviewList(res.data?.comments[res.data.comments.length - 1]?.attachments);
+        setPreviewList(res.data?.comments[0]?.attachments);
       } else {
         setPreviewList(res.data.attachments);
       }
@@ -232,6 +250,7 @@ const Tasks = ({ employees }) => {
       console.log(error);
     }
   }
+  console.log(allTasks);
 
   function filterByName(value) {
     if (["", null].includes(value)) {
@@ -270,7 +289,8 @@ const Tasks = ({ employees }) => {
     getSelectStatusTasks()
   }, [status, allTasks]);
 
-  async function editTask(updatedTask) {
+  async function editTask(updatedTask, changeComments) {
+
     if (!updatedTask?._id) {
       toast.error("Invalid task. Please try again.");
       return;
@@ -279,39 +299,62 @@ const Tasks = ({ employees }) => {
     let taskToUpdate = { ...updatedTask };
 
     // Ensure `spend.timeHolder` is correctly formatted
-    if (updatedTask?.spend?.timeHolder?.split(":")?.length <= 2) {
+    if (typeof updatedTask?.spend?.timeHolder === "string" && updatedTask.spend.timeHolder.split(":").length <= 2) {
       taskToUpdate.spend = {
         ...updatedTask.spend,
         timeHolder: formatTimeFromHour(updatedTask.spend.timeHolder) || "00:00:00",
       };
     }
     setIsUpdateTime(true);
-
+    let files;
     try {
       // Ensure attachments exist before filtering
-      const files = taskToUpdate?.attachments?.filter((file) => file.type === "image/png") || [];
+      if (taskToUpdate?.comments[0]?.attachments?.length) {
+
+        files = taskToUpdate?.comments[0]?.attachments.filter((file) => file.type === "image/png")
+      } else {
+        files = taskToUpdate?.attachments?.filter((file) => file.type === "image/png") || [];
+      }
+
       const formData = new FormData(); // Ensure FormData is created
+      let updatedTaskData;
+      if (files.length > 0) {
 
-      // Append each file to the FormData
-      for (let index = 0; index < files.length; index++) {
-        formData.append("documents", files[index]); // Ensure correct field name for your backend
-      }
-      const response = await axios.post(`${url}/api/upload`, formData, {
-        headers: {
-          Accept: 'application/json', // Accept JSON response
+        // Append each file to the FormData
+        for (let index = 0; index < files.length; index++) {
+          formData.append("documents", files[index]); // Ensure correct field name for your backend
         }
-      });
-
-      // Check if the response is successful
-      if (!response.data) {
-        console.error('Upload failed with status:', response.status);
-        return;
-      }
-
-      const uploadedImgPath = taskToUpdate.attachments.filter((file) => file.type !== "image/png")
-      const updatedTaskData = {
-        ...taskToUpdate,
-        ["attachments"]: [...uploadedImgPath, ...response.data.files.map(((file) => file.originalFile))]
+        const response = await axios.post(`${url}/api/upload`, formData, {
+          headers: {
+            Accept: 'application/json', // Accept JSON response
+          }
+        });
+        // Check if the response is successful
+        if (!response.data) {
+          console.error('Upload failed with status:', response.status);
+          return;
+        }
+        if (taskToUpdate?.comments[0]?.attachments?.length > 0) {
+          updatedTaskData = {
+            ...taskToUpdate,
+            comments: [
+              {
+                ...taskToUpdate.comments[0],
+                ["attachments"]: [...response.data.files.map(((file) => file.originalFile))]
+              }
+            ]
+          }
+        } else {
+          const uploadedImgPath = taskToUpdate.attachments.filter((file) => file.type !== "image/png")
+          updatedTaskData = {
+            ...taskToUpdate,
+            ["attachments"]: [...uploadedImgPath, ...response.data.files.map(((file) => file.originalFile))]
+          }
+        }
+      } else {
+        updatedTaskData = {
+          ...taskToUpdate
+        }
       }
 
       // Send updated task
@@ -319,6 +362,9 @@ const Tasks = ({ employees }) => {
         `${url}/api/task/${data._id}/${taskToUpdate._id}`, // Ensure correct projectId
         updatedTaskData,
         {
+          params: {
+            changeComments
+          },
           headers: {
             Authorization: data.token || "",
           },
@@ -339,7 +385,6 @@ const Tasks = ({ employees }) => {
       setIsAddComment(false);
     }
   }
-
 
   // handling to delete task
   function handleDeleteTask() {
@@ -496,7 +541,7 @@ const Tasks = ({ employees }) => {
     const taskData = await fetchTaskById(task._id);
     const updatedTask = {
       ...taskData,
-      "status": "Completed"
+      "status": task.status === "Completed" ? "Pending" : "Completed"
     }
     editTask(updatedTask)
   }
@@ -608,18 +653,18 @@ const Tasks = ({ employees }) => {
                       <Loading />
                     ) : status === "Pending" ? (
                       Array.isArray(pendingTasks) && pendingTasks?.length > 0 ? (
-                        pendingTasks.map((task) => <TaskItem key={task._id} task={task} handleAddComment={handleAddComment} status={status} isLoading={isUpdateTime} getValue={getValue} handleEditTask={handleEditTask} fetchTaskById={fetchTaskById} updatedTimerInTask={updatedTimerInTask} renderMenu2={renderMenu2} handleViewTask={handleViewTask} whoIs={whoIs} updateTask={updatedTimerInTask} />)
+                        pendingTasks.map((task) => <TaskItem key={task._id} task={task} renderMenu3={renderMenu3} handleAddComment={handleAddComment} status={status} isLoading={isUpdateTime} getValue={getValue} handleEditTask={handleEditTask} fetchTaskById={fetchTaskById} updatedTimerInTask={updatedTimerInTask} renderMenu2={renderMenu2} handleViewTask={handleViewTask} whoIs={whoIs} updateTask={updatedTimerInTask} />)
                       ) : (
                         <NoDataFound message="Task Not Found" />
                       )
                     ) : status === "Completed" ? (
                       Array.isArray(completedTasks) && completedTasks?.length > 0 ? (
-                        completedTasks.map((task) => <TaskItem key={task._id} task={task} status={status} getValue={getValue} handleEditTask={handleEditTask} fetchTaskById={fetchTaskById} updatedTimerInTask={updatedTimerInTask} renderMenu2={renderMenu2} handleViewTask={handleViewTask} whoIs={whoIs} updateTask={updatedTimerInTask} />)
+                        completedTasks.map((task) => <TaskItem key={task._id} task={task} status={status} renderMenu3={renderMenu3} getValue={getValue} handleAddComment={handleAddComment} handleEditTask={handleEditTask} fetchTaskById={fetchTaskById} updatedTimerInTask={updatedTimerInTask} renderMenu2={renderMenu2} handleViewTask={handleViewTask} whoIs={whoIs} updateTask={updatedTimerInTask} />)
                       ) : (
                         <NoDataFound message="Task Not Found" />
                       )
                     ) : progressTasks.length > 0 ? (
-                      progressTasks.map((task) => <TaskItem key={task._id} task={task} handleAddComment={handleAddComment} status={status} isLoading={isUpdateTime} getValue={getValue} handleEditTask={handleEditTask} fetchTaskById={fetchTaskById} updatedTimerInTask={updatedTimerInTask} renderMenu2={renderMenu2} handleViewTask={handleViewTask} whoIs={whoIs} updateTask={updatedTimerInTask} />)
+                      progressTasks.map((task) => <TaskItem key={task._id} task={task} handleAddComment={handleAddComment} renderMenu3={renderMenu3} status={status} isLoading={isUpdateTime} getValue={getValue} handleEditTask={handleEditTask} fetchTaskById={fetchTaskById} updatedTimerInTask={updatedTimerInTask} renderMenu2={renderMenu2} handleViewTask={handleViewTask} whoIs={whoIs} updateTask={updatedTimerInTask} />)
                     ) : (
                       <NoDataFound message="Task Not Found" />
                     )

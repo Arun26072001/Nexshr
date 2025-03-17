@@ -163,7 +163,7 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
             label: 'Total Hour',
             minWidth: 130,
             align: 'center',
-            getter: (row) => row?.login?.timeHolder || 0
+            getter: (row) => row?.login?.totalHour || 0
         },
         {
             id: 'behaviour',
@@ -214,7 +214,7 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
             label: 'Total Hour',
             minWidth: 130,
             align: 'left',
-            getter: (row) => row?.timeHolder || 0
+            getter: (row) => row?.totalHour || 0
         },
         {   
             id: 'behaviour',

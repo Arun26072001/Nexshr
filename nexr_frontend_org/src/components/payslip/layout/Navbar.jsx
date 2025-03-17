@@ -5,7 +5,7 @@ import TableRowsRoundedIcon from '@mui/icons-material/TableRowsRounded';
 import PunchIn from "../../../asserts/PunchIn.svg";
 import PunchOut from "../../../asserts/punchOut.svg";
 import { TimerStates } from '../HRMDashboard';
-import { Accordion, Dropdown, Popover, Whisper } from 'rsuite';
+import { Accordion, Dropdown, Popover, SelectPicker, Whisper } from 'rsuite';
 import logo from "../../../imgs/male_avatar.webp";
 import { EssentialValues } from '../../../App';
 import axios from "axios";
@@ -24,6 +24,9 @@ export default function Navbar({ handleSideBar }) {
     const url = process.env.REACT_APP_API_URL;
     const [announcements, setAnnouncements] = useState([]);
     const [isRemove, setIsRemove] = useState([]);
+    const [workLocation, setWorklocation] = useState("");
+    const [placeId, setPlaceId] = useState("");
+    const worklocationType = ["WFH", "WFO"].map((item) => ({ label: item, value: item }))
 
     // Timer logic to increment time
     const incrementTime = () => {
@@ -72,6 +75,47 @@ export default function Navbar({ handleSideBar }) {
 
         }
     };
+
+    // get user current location
+    async function getAddress(lat, lng) {
+        const API_KEY = process.env.REACT_APP_MAPKEY;  // Replace with a secured API key (keep it secret)
+        const url = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat.toFixed(7)},${lng.toFixed(7)}&result_type=street_address|locality|postal_code&key=${API_KEY}`;
+
+        try {
+            const response = await fetch(url);
+            const data = await response.json();
+
+            if (data.status === "OK" && data.results.length > 0) {
+                const address = data.results[0].formatted_address;
+                const placeId = data.results[0].place_id;
+
+                console.log("Address:", address);
+                console.log("Place ID:", placeId);
+
+                return { address, placeId };
+            } else {
+                console.error("Geocoding failed:", data.status, data.error_message);
+            }
+        } catch (error) {
+            console.error("Error fetching location:", error);
+        }
+    }
+
+    // useEffect(() => {
+    //     if (navigator.geolocation) {
+    //         navigator.geolocation.getCurrentPosition(
+    //             (position) => {
+    //                 const { latitude, longitude } = position.coords;
+    //                 getAddress(latitude, longitude);
+    //             },
+    //             (error) => console.error("Error getting location:", error),
+    //             { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+    //         );
+    //     } else {
+    //         console.log("Geolocation is not supported by this browser.");
+    //     }
+
+    // }, [placeId])
 
     // Function to stop the timer
     const stopTimer = async () => {
@@ -210,7 +254,6 @@ export default function Navbar({ handleSideBar }) {
         setIsRemove((prev) => {
             const updated = [...prev]; // Create a copy of the previous state
             updated[index] = true; // Update the specific index
-            console.log(updated);
             return updated; // Return the new state
         });
         const updatedMsg = {
@@ -226,7 +269,7 @@ export default function Navbar({ handleSideBar }) {
         }, 300)
     }
     useHandleTabClose(isStartLogin, workTimeTracker, data.token);
-   
+
     return (
         <div className="webnxs">
             <div className="row mx-auto justify-content-between">
@@ -296,10 +339,14 @@ export default function Navbar({ handleSideBar }) {
                 </div>
 
                 <div className='gap-2 col-lg-4 col-md-3 d-flex align-items-center justify-content-end'>
-                    {/* <Dropdown title={"Choose your work place"} >
-                        <Dropdown.Item>Work From Home</Dropdown.Item>
-                        <Dropdown.Item>Work From Office</Dropdown.Item>
-                    </Dropdown> */}
+                    {/* <SelectPicker
+                        data={worklocationType}
+                        searchable={false}
+                        onChange={setWorklocation}
+                        value={workLocation}
+                        appearance="default"
+                        placeholder="Choose your work place"
+                    /> */}
                     <span className="lg ms-5">
                         <svg width="16" height="17" viewBox="0 0 16 17" fill="none" xmlns="http://www.w3.org/2000/svg">
                             <g clipPath="url(#clip0_2046_6893)">

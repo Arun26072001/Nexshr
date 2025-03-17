@@ -5,13 +5,12 @@ import Tabs from '@mui/material/Tabs';
 import Tab from '@mui/material/Tab';
 import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
-import { fetchLeaveRequests, getHoliday } from './ReuseableAPI';
+import { fetchLeaveRequests } from './ReuseableAPI';
 import CircleBar from './CircleProcess';
 import { useNavigate } from 'react-router-dom';
 import { EssentialValues } from '../App';
-import { toast } from 'react-toastify';
 import Loading from './Loader';
-import { Badge, Calendar, Dropdown, HStack, List, Popover, Whisper } from 'rsuite';
+import { Badge, Calendar, Dropdown, HStack, Popover, Whisper } from 'rsuite';
 
 function CustomTabPanel(props) {
   const { children, value, index, ...other } = props;
@@ -62,7 +61,7 @@ export default function Twotabs() {
   const handleChange = (event, newValue) => {
     setValue(newValue);
   };
-  
+
   useEffect(() => {
     // debugger;
     const gettingLeaveRequests = async () => {
@@ -99,78 +98,80 @@ export default function Twotabs() {
   }, []);
 
   useEffect(() => {
-          async function getAllEmpLeaveData() {
-              setIsLoading(true);
-              try {
-                  const res = await fetchLeaveRequests(data._id);
-                  setLeaveData(res.leaveApplications.map((leave) => ({
-                      title: `${leave.employee.FirstName[0].toUpperCase() + leave.employee.FirstName.slice(1)} ${leave.employee.LastName} (${leave.leaveType[0].toUpperCase() + leave.leaveType.slice(1)} - ${leave.status})`,
-                      start: new Date(leave.fromDate),
-                      end: new Date(leave.toDate),
-                      status: leave.status
-                  })))
-              } catch (error) {
-                  console.log(error);
-              }
-              setIsLoading(false)
-          }
-          if (["2", "3"].includes(data.Account)) {
-              getAllEmpLeaveData();
-          }
-      }, [])
-
-      function getTodoList(date) {
-        if (!date) {
-          return [];
-        }
-      
-        return leaveData.filter((leave) => {
-          return leave.start.toDateString() === date.toDateString();
-        });
+    async function getAllEmpLeaveData() {
+      setIsLoading(true);
+      try {
+        const res = await fetchLeaveRequests(data._id);
+        setLeaveData(res.leaveApplications.map((leave) => ({
+          title: `${leave.employee.FirstName[0].toUpperCase() + leave.employee.FirstName.slice(1)} ${leave.employee.LastName} (${leave.leaveType[0].toUpperCase() + leave.leaveType.slice(1)} - ${leave.status})`,
+          start: new Date(leave.fromDate),
+          end: new Date(leave.toDate),
+          status: leave.status
+        })))
+      } catch (error) {
+        console.log(error);
       }
-
-      const renderMenu = (date) => ({ onClose, right, top, className }, ref) => {
-        const list = getTodoList(date);
-        if (!list.length) {
-            return null; // Return null instead of []
-        }
-    
-        const handleSelect = (eventKey) => {
-            if (eventKey === 1) {
-                // Handle selection
-            }
-            onClose();
-        };
-    
-        return (
-            <Popover ref={ref} className={className} style={{ right, top }} full>
-                <Dropdown.Menu onSelect={handleSelect} title="Personal Settings">
-                    {list.map((item) => (
-                        <Dropdown.Item key={item.start}>{item.title}</Dropdown.Item>
-                    ))}
-                </Dropdown.Menu>
-            </Popover>
-        );
-    };
-    
-    function highlightToLeave(date) {
-        if (!leaveData || !leaveData.length) return null; // Ensure leaveData exists
-    
-        const isLeave = leaveData.some((leave) =>
-            leave.start.toDateString() === date.toDateString()
-        );
-    
-        if (isLeave) {
-            return (
-                <Whisper placement="bottomEnd" trigger="click" speaker={renderMenu(date)}>
-                    <Badge className="calendar-todo-item-badge" />
-                </Whisper>
-            );
-        }
-    
-        return null; // Return null if no leave is found
+      setIsLoading(false)
     }
-    
+    if (["2", "3"].includes(data.Account)) {
+      getAllEmpLeaveData();
+    }
+  }, [])
+
+  function getTodoList(date) {
+    if (!date) {
+      return [];
+    }
+
+    return leaveData.filter((leave) => {
+      return leave.start.toDateString() === date.toDateString();
+    });
+  }
+
+  const renderMenu = (date) => ({ onClose, right, top, className }, ref) => {
+    const list = getTodoList(date);
+    if (!list.length) {
+      return null; // Return null instead of []
+    }
+
+    const handleSelect = (eventKey) => {
+      if (eventKey === 1) {
+        // Handle selection
+      }
+      onClose();
+    };
+
+    return (
+      <Popover ref={ref} className={className} style={{ right, top }} full>
+        <Dropdown.Menu onSelect={handleSelect} title="Personal Settings">
+          {list.map((item) => (
+            <Dropdown.Item key={item.start}>{item.title}</Dropdown.Item>
+          ))}
+        </Dropdown.Menu>
+      </Popover>
+    );
+  };
+
+  function highlightToLeave(date) {
+    if (!leaveData || !leaveData.length) return null; // Ensure leaveData exists
+
+    const isLeave = leaveData.some((leave) =>
+      leave.start.toDateString() === date.toDateString()
+    );
+
+    if (isLeave) {
+      return (
+        <Whisper placement="bottomEnd" trigger="click" speaker={renderMenu(date)}>
+          <div style={{ width: "20px", height: "20px" }}>
+            <Badge className="calendar-todo-item-badge" />
+          </div>
+        </Whisper>
+      );
+    }
+
+    return null; // Return null if no leave is found
+  }
+
 
   return (
     <Box sx={{ width: '100%', border: '2px solid rgb(208 210 210)', borderRadius: '5px', height: "100%" }}>
@@ -187,16 +188,16 @@ export default function Twotabs() {
               <button className='button' onClick={() => navigate(`/${whoIs}/leave-request`)}>Apply Leave</button>
             </div>
             <div className=''>
-              <button className="outline-btn p-2" onClick={()=>navigate(`/${whoIs}/job-desk/leave`)}>Absence history</button>
+              <button className="outline-btn p-2" onClick={() => navigate(`/${whoIs}/job-desk/leave`)}>Absence history</button>
             </div>
           </div>
           <div className="row" >
             <div className="leaveCircle col-lg-6 col-sm-12 col-md-12 p-0" >
-              <CircleBar annualLeave={Number(annualLeave || 0)} takenLeave={takenLeave || 0} />
+              <CircleBar annualLeave={Number(annualLeave).toFixed(2) || 0} takenLeave={takenLeave.toFixed(2) || 0} />
             </div>
 
             <div className='text-center col-lg-6 col-sm-12 col-md-12 p-0 m-auto' style={{ fontSize: "13px" }} >
-              <p><b>{(Number(annualLeave) - takenLeave) || 0} Days</b> Remaining</p>
+              <p><b>{(Number(annualLeave) - takenLeave).toFixed(2) || 0} Days</b> Remaining</p>
               <p><b>{annualLeave || 0} Days</b> Allowance</p>
             </div>
           </div>
@@ -220,7 +221,7 @@ export default function Twotabs() {
           {
             <HStack spacing={10} style={{ height: 320 }} alignItems="flex-start" wrap className='position-relative'>
               {/* <TodoList date={selectedDate} /> */}
-              <Calendar compact style={{ width: 320, paddingTop: "0px" }} renderCell={highlightToLeave} onChange={(value)=>setSelectedDate(value)} bordered />
+              <Calendar compact style={{ width: 320, paddingTop: "0px" }} renderCell={highlightToLeave} onChange={(value) => setSelectedDate(value)} bordered />
             </HStack>
           }
 
@@ -233,56 +234,3 @@ export default function Twotabs() {
     </Box>
   );
 }
-
-
-    // useEffect(() => {
-    //   function setDateFormatForHoliday() {
-    //     for (let i = 0; i < holidays?.length; i++) {
-    //       const holidayDate = new Date(holidays[i]);
-    //       if (holidayDate > today) {
-    //         const options = { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' };
-    //         setupComingHoliday(new Intl.DateTimeFormat('default', options).format(holidayDate).replace(",", ""))
-    //         break;
-    //       }
-    //     }
-    //   }
-  
-    //   if (holidays?.length > 0) {
-    //     setDateFormatForHoliday()
-    //   }
-    // }, [holidays]);
-  
-    // useEffect(() => {
-    //     async function getAllEmpLeaveData() {
-    //         setIsLoading(true);
-    //         try {
-    //             const res = await fetchLeaveRequests(data._id);
-    //             setLeaveRequests(res.leaveApplications.map((leave) => ({
-    //                 title: `${leave.employee.FirstName[0].toUpperCase() + leave.employee.FirstName.slice(1)} ${leave.employee.LastName} (${leave.leaveType[0].toUpperCase() + leave.leaveType.slice(1)} - ${leave.status})`,
-    //                 start: new Date(leave.fromDate),
-    //                 end: new Date(leave.toDate),
-    //                 status: leave.status
-    //             })))
-    //         } catch (error) {
-    //             console.log(error);
-    //         }
-    //         setIsLoading(false)
-    //     }
-    //     if (["2", "3"].includes(data.Account)) {
-    //         getAllEmpLeaveData();
-    //     }
-    // }, [])
-  
-  
-    // useEffect(() => {
-    //   async function gettingHoliday() {
-    //     try {
-    //       const res = await getHoliday();
-    //       setHolidays(res.holidays)
-    //     } catch (error) {
-    //       setHolidays([])
-    //       toast.error(error)
-    //     }
-    //   }
-    //   gettingHoliday();
-    // }, [isAddHolidays])

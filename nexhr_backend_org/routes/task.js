@@ -23,11 +23,17 @@ router.get("/project/:id", verifyAdminHREmployeeManagerNetwork, async (req, res)
             let { startingTime: startingTimes, endingTime: endingTimes } = task.spend;
 
             if (!Array.isArray(startingTimes) || startingTimes.length === 0) {
+
+                let totalCommentSpendTime = 0;
+                task?.comments?.map((comment) => totalCommentSpendTime += Number(comment.spend));
+
                 return {
                     ...task.toObject(),
                     spend: {
-                        ...task.spend.toObject(),
-                        timeHolder: task.spend.timeHolder || "00:00:00"
+                        ...(task.spend ? task.spend.toObject() : {}), // Ensure spend exists
+                        timeHolder: task?.spend?.timeHolder?.split(":")?.length > 2 && ["00:00:00"].includes(task.spend?.timeHolder) ? formatTimeFromMinutes(
+                            (Number(task.spend?.timeHolder) + totalCommentSpendTime) * 60
+                        ) : task.spend.timeHolder
                     }
                 };
             }
@@ -63,14 +69,26 @@ router.get("/project/:id", verifyAdminHREmployeeManagerNetwork, async (req, res)
 })
 
 router.get("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
+    const { withComments } = req.query;
     try {
-        let task = await Task.findById(req.params.id).populate({
-            path: "tracker.who", // Populate 'who' inside tracker
-            select: "FirstName LastName Email profile" // Fetch only required fields
-        }).populate({
-            path: "createdby", // Populate 'who' inside tracker
-            select: "FirstName LastName Email profile"
-        })
+        let query = Task.findById(req.params.id)
+            .populate({
+                path: "tracker.who", // Populate 'who' inside tracker
+                select: "FirstName LastName Email profile" // Fetch only required fields
+            })
+            .populate("comments.createdBy", "FirstName LastName profile")
+            .populate({
+                path: "createdby", // Populate 'createdby'
+                select: "FirstName LastName Email profile"
+            });
+
+        if (withComments) {
+            query = query
+                .populate("assignedTo", "FirstName LastName profile")
+        }
+
+        let task = await query;
+
         if (!task) {
             return res.status(404).send({ error: "No Task found" })
         }
@@ -94,9 +112,25 @@ router.get("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
         });
 
         const totalValue = values?.reduce((acc, value) => acc + value, 0)
-        const timeHolder = formatTimeFromMinutes(totalValue);
+        //add comments of spend time
+        let totalCommentSpendTime = 0;
+        task?.comments?.map((comment) => totalCommentSpendTime += Number(comment.spend));
+        const timeHolder = formatTimeFromMinutes(totalValue + (totalCommentSpendTime * 60));
         if (task?.spend?.timeHolder) {
             task.spend.timeHolder = timeHolder;
+        }
+
+        if (!withComments) {
+            task = {
+                ...task.toObject(),
+                comments: []
+            }
+        } else {
+            const notDeletedComments = task?.comments?.filter((comment) => comment.isDeleted === false)
+            task = {
+                ...task.toObject(),
+                comments: notDeletedComments
+            }
         }
 
         return res.send(task);
@@ -260,7 +294,7 @@ router.put("/:empId/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) 
             const oldValue = convertToString(value);
             if (
                 newValue !== undefined &&
-                !["createdAt", "createdby", "tracker", "updatedAt", "_id", "tracker", "__v", "spend"]?.includes(key) &&
+                !["createdAt", "createdby", "tracker", "updatedAt", "_id", "tracker", "__v", "spend", "from", "to"]?.includes(key) &&
                 (Array.isArray(oldValue) ? oldValue.length !== newValue.length : oldValue !== newValue)
             ) {
                 return {
@@ -272,21 +306,36 @@ router.put("/:empId/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) 
             return [];
         });
 
+        let updatedComment = null;
+        if (req.query.changeComments && req.body.comments && req.body.comments.length > 0) {
+            updatedComment = {
+                ...req.body.comments[0],
+                createdBy: req.params.empId,
+                date: new Date()
+            };
+        }
+
+        // Ensure `createdby` is stored correctly as an ObjectId or string
+        const createdById = typeof req.body.createdby === "object" ? req.body.createdby._id : req.body.createdby;
+
+        // Ensure `comments` is an array and properly updated
+        const updatedComments = req.body.comments?.length === 1 && updatedComment
+            ? [...taskData.comments, updatedComment]
+            : req.body.comments || taskData.comments;
+
         // Prepare Updated Task Data
         const updatedTask = {
             ...req.body,
             tracker: [...taskData.tracker, ...taskChanges],
-            createdby: req.body.createdby._id || req.body.createdby
+            createdby: createdById,
+            comments: updatedComments
         };
-
-        // // Validate Task Data
-        // const { error } = taskValidation.validate(updatedTask);
-        // if (error) {
-        //     return res.status(400).send({ error: error.details[0].message });
-        // }
 
         // Update Task in Database
         const task = await Task.findByIdAndUpdate(req.params.id, updatedTask, { new: true });
+
+        // Ensure Task Exists After Update
+        if (!task) return res.status(404).send({ error: "Failed to update task" });
 
         // Prepare Assigned Person's Name
         const assignedPersonName = `${assignedPerson.FirstName.charAt(0).toUpperCase()}${assignedPerson.FirstName.slice(1)} ${assignedPerson.LastName}`;
@@ -385,6 +434,7 @@ router.put("/:empId/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) 
         return res.status(500).send({ error: error.message });
     }
 });
+
 
 
 router.delete("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {

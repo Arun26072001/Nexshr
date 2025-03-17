@@ -41,7 +41,8 @@ const clockInsSchema = new mongoose.Schema({
   behaviour: { type: String },
   punchInMsg: { type: String },
   employee: { type: mongoose.Types.ObjectId, ref: "Employee" },
-  machineRecords: [{ type: String, default: [] }]
+  machineRecords: [{ type: String, default: [] }],
+  worklocation: { type: String }
 });
 
 const ClockIns = mongoose.model('clockIns', clockInsSchema);
