@@ -12,6 +12,7 @@ const Dashboard = () => {
     const { updateClockins } = useContext(TimerStates)
     const { handleLogout } = useContext(EssentialValues);
     const empId = localStorage.getItem("_id");
+    const token = localStorage.getItem("token");
     const [leaveData, setLeaveData] = useState({});
     const [isLoading, setIsLoading] = useState(false);
     const [dailyLogindata, setDailyLoginData] = useState({})
@@ -60,7 +61,8 @@ const Dashboard = () => {
             setLeaveData({ ...data, workingHour });
 
         } catch (error) {
-            toast.error(error.message || "An error occurred while fetching employee data.");
+            console.log(error.message || "An error occurred while fetching employee data.");
+            // toast.error(error.message || "An error occurred while fetching employee data.");
             setLeaveData({});
         } finally {
             setIsLoading(false); // Ensure loading state is always updated
@@ -111,7 +113,7 @@ const Dashboard = () => {
                             <div className='col-lg-3 col-md-3 col-6 my-1 text-center'>
                                 <p className='leaveIndicatorTxt'>Leave request pending</p>
                                 <p className='text-primary number'>{leaveData?.pendingLeaveRequests || 0}</p>
-                            </div>  
+                            </div>
                         </div>
                         <div className='time flex-wrap'>
                             <h6 className='col-lg-12 col-12'>Time Log</h6>

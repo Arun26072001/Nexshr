@@ -5,7 +5,6 @@ const empId = localStorage.getItem('_id');
 const token = localStorage.getItem('token');
 
 const updateDataAPI = async (body) => {
-
     try {
         if (body._id) {
             const response = await axios.put(`${url}/api/clock-ins/${body._id}`, body, {
@@ -35,6 +34,7 @@ async function getTotalWorkingHourPerDay(start, end) {
 
 const getDataAPI = async (empId) => {
     try {
+
         const response = await axios.get(`${url}/api/clock-ins/${empId}`, {
             params: { date: new Date().toISOString() },
             headers: { authorization: token || '' },
@@ -43,8 +43,11 @@ const getDataAPI = async (empId) => {
         const data = response.data;
 
         return data;
+
     } catch (error) {
-        return error?.response?.data?.message;
+        console.log(error?.response?.data?.error);
+
+        // return error?.response?.data?.error;
     }
 };
 
@@ -137,9 +140,6 @@ async function deleteLeave(id) {
 
 const fetchEmployeeData = async (id) => {
     try {
-        if (!token) {
-            window.location.reload();
-        }
         const response = await axios.get(`${url}/api/employee/${id}`, {
             headers: {
                 authorization: token || ""
@@ -184,6 +184,10 @@ const fetchAllEmployees = async () => {
 }
 
 const gettingClockinsData = async (empId) => {
+    if (!token) {
+        window.location.reload();
+        return;
+    }
     try {
         const dashboard = await axios.get(`${url}/api/clock-ins/employee/${empId}`, {
             headers: {

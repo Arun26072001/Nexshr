@@ -5,7 +5,7 @@ import TableRowsRoundedIcon from '@mui/icons-material/TableRowsRounded';
 import PunchIn from "../../../asserts/PunchIn.svg";
 import PunchOut from "../../../asserts/punchOut.svg";
 import { TimerStates } from '../HRMDashboard';
-import { Accordion, Dropdown, Popover, SelectPicker, Whisper } from 'rsuite';
+import { Accordion, Dropdown, Popover, Whisper } from 'rsuite';
 import logo from "../../../imgs/male_avatar.webp";
 import { EssentialValues } from '../../../App';
 import axios from "axios";
@@ -24,9 +24,9 @@ export default function Navbar({ handleSideBar }) {
     const url = process.env.REACT_APP_API_URL;
     const [announcements, setAnnouncements] = useState([]);
     const [isRemove, setIsRemove] = useState([]);
-    const [workLocation, setWorklocation] = useState("");
-    const [placeId, setPlaceId] = useState("");
-    const worklocationType = ["WFH", "WFO"].map((item) => ({ label: item, value: item }))
+    // const [workLocation, setWorklocation] = useState("");
+    // const [placeId, setPlaceId] = useState("");
+    // const worklocationType = ["WFH", "WFO"].map((item) => ({ label: item, value: item }))
 
     // Timer logic to increment time
     const incrementTime = () => {
@@ -344,6 +344,7 @@ export default function Navbar({ handleSideBar }) {
                         searchable={false}
                         onChange={setWorklocation}
                         value={workLocation}
+
                         appearance="default"
                         placeholder="Choose your work place"
                     /> */}

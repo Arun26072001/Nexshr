@@ -23,7 +23,7 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
     const navigate = useNavigate();
     const { changeEmpEditForm } = useContext(TimerStates)
     const [page, setPage] = useState(0);
-    const [rowsPerPage, setRowsPerPage] = useState(10);
+    const [rowsPerPage, setRowsPerPage] = useState(+localStorage.getItem("rowsPerPage") || 10);
     const [rows, setRows] = useState([]);
     const [columns, setColumns] = useState([]);
     const [totalHours, setTotalHours] = useState({}); // To hold total hours for each entry
@@ -37,7 +37,8 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
     };
 
     const handleChangeRowsPerPage = (event) => {
-        setRowsPerPage(+event.target.value);
+        localStorage.setItem("rowsPerPage", event.target.value)
+        setRowsPerPage(event.target.value);
         setPage(0);
     };
 
@@ -216,7 +217,7 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
             align: 'left',
             getter: (row) => row?.totalHour || 0
         },
-        {   
+        {
             id: 'behaviour',
             label: 'Behaviour',
             minWidth: 130,
@@ -672,20 +673,6 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
                                                         </Dropdown>
                                                     );
                                                 }
-                                                //  else if (column.id === "type" && params["*"] === "attendance") {
-                                                //     console.log("aaaaaa");
-
-                                                //     return (
-                                                //         <select className='form-control' value={timeOption} onChange={(e) => setTimeOption(e.target.value)}>
-                                                //             <option value="login">Login</option>
-                                                //             <option value="meeting">Meeting</option>
-                                                //             <option value="morningBreak">Morning Break</option>
-                                                //             <option value="lunch">Lunch</option>
-                                                //             <option value="eveningBreak">Evening Break</option>
-                                                //             <option value="event">Event</option>
-                                                //         </select>
-                                                //     )
-                                                // }
                                                 return null;
                                             };
 

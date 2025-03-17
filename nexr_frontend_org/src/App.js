@@ -271,7 +271,7 @@ const App = () => {
       <ToastContainer />
       <Routes>
         <Route path="login" element={<Login />} />
-        <Route path="/" element={whoIs ? <Navigate to={`/${whoIs}`} /> : <Navigate to="/login" />} />
+        <Route path="/" element={isLogin && whoIs && data.token ? <Navigate to={`/${whoIs}`} /> : <Navigate to="/login" />} />
         <Route
           path={`${whoIs}/*`}
           element={isLogin && whoIs && data.token ? <HRMDashboard /> : <Navigate to="/login" />}
