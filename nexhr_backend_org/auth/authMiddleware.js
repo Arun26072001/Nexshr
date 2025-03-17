@@ -106,7 +106,7 @@ async function verifyAdminHREmployeeManagerNetwork(req, res, next) {
 
     jwt.verify(token, jwtKey, (err, authData) => {
       if (err) {
-        console.log("error in verify");
+        console.log(err, "error in verify");
         res.sendStatus(401);
       } else {
         if ([1, 2, 3, 4, 5].includes(authData.Account)) {
