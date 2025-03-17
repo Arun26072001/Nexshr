@@ -1,11 +1,12 @@
 /* eslint-disable no-restricted-globals */
-import React, { useState, useContext, useEffect } from "react"
+import React, { useState, useContext, useEffect, Suspense } from "react"
 import { Outlet } from "react-router-dom";
 import "./ParentStyle.css";
 import { createContext } from "react";
 import { EssentialValues } from "../../../App";
 import Sidebar from "./Sidebar";
 import Navbar from "./Navbar";
+import Loading from "../../Loader";
 
 export const WorkTimeTrackerContext = createContext(null);
 
@@ -40,7 +41,9 @@ const Parent = () => {
             <div className="d-flex marTop">
                 <Sidebar handleLogout={handleLogout} handleSideBar={handleSideBar} sideBar={sideBar} />
                 <div className="navContent">
-                    <Outlet />
+                    <Suspense fallback={<Loading />}>
+                        <Outlet />
+                    </Suspense>
                 </div>
             </div>
         </div>

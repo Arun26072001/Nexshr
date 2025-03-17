@@ -437,7 +437,6 @@ export default function HRMDashboard() {
 
     return (
         <TimerStates.Provider value={{ workTimeTracker, reloadRolePage, setIsEditEmp, updateWorkTracker, trackTimer, startLoginTimer, stopLoginTimer, changeReasonForLate, startActivityTimer, stopActivityTimer, setWorkTimeTracker, updateClockins, timeOption, isStartLogin, isStartActivity, handleAddTask, changeEmpEditForm, isEditEmp, isAddTask, setIsAddTask, handleAddTask, selectedProject, daterangeValue, setDaterangeValue }}>
-            <Suspense fallback={<Loading />}>
                 <Routes >
                     <Route path="/" element={<Parent />} >
                         <Route index element={<Dashboard data={data} />} />
@@ -514,7 +513,6 @@ export default function HRMDashboard() {
                         <Route path="unauthorize" element={<UnAuthorize />} />
                     </Route>
                 </Routes>
-            </Suspense>
         </TimerStates.Provider>
     )
 }

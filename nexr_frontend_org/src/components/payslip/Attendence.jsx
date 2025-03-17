@@ -43,9 +43,9 @@ const Attendence = () => {
             Name: `${item.employee.FirstName} ${item.employee.LastName}`,
             date: item.date.split("T")[0],
             type: timeOptionKey,
-            punchIn: timeData.startingTime?.[0] || "N/A", // Avoid errors if empty
-            punchOut: timeData.endingTime?.[timeData.endingTime.length - 1] || "N/A",
-            totalHour: timeData.timeHolder || "N/A",
+            punchIn: timeData.startingTime?.[0] || "00:00:00", // Avoid errors if empty
+            punchOut: timeData.endingTime?.[timeData.endingTime.length - 1] || "00:00:00",
+            totalHour: timeData.timeHolder || "00:00:00",
             behaviour: timeOptionKey === "login" ? item.behaviour : timeData.reasonForLate || "N/A"
           };
         })
