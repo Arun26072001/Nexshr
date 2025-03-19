@@ -125,7 +125,7 @@ const Attendence = () => {
       </div>
 
       {isLoading ? (
-        <Loading />
+        <Loading height="80vh" />
       ) : Object.keys(clockInsData).length > 0 ? (
         <>
           {/* Attendance Chart */}

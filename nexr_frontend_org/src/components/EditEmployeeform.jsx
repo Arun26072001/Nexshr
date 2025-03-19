@@ -252,7 +252,7 @@ const EditEmployeeform = ({ details, empData, handleScroll, handlePersonal, hand
 
 
     return (
-        isLoading ? <Loading /> :
+        isLoading ? <Loading height="80vh" /> :
             <NoDataFound message={errorData} /> ?
                 <form onSubmit={formik.handleSubmit}>
                     <div className="empForm">

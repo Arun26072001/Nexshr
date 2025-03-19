@@ -14,6 +14,7 @@ export default function Company() {
     const [isCompanychange, setIsCompanyChange] = useState(false);
     const token = localStorage.getItem("token");
     const [isLoading, setIsLoading] = useState(false);
+    const [isChangingCompany, setIschangingCompany] = useState(false);
     const [modifyCompany, setModifyCompany] = useState({
         isAdd: false,
         isEdit: false,
@@ -60,6 +61,7 @@ export default function Company() {
     }
 
     async function addCompany() {
+        setIschangingCompany(true);
         try {
             const msg = await axios.post(url + "/api/company", companyObj, {
                 headers: {
@@ -73,6 +75,7 @@ export default function Company() {
         } catch (error) {
             return toast.error(error?.response?.data?.error)
         }
+        setIschangingCompany(false);
     }
 
     async function fetchCompanyById(id) {
@@ -99,6 +102,7 @@ export default function Company() {
 
 
     async function editCompany() {
+        setIschangingCompany(true);
         try {
             // Assuming the correct API endpoint for editing a department is '/api/department/${id}'
             const response = await axios.put(`${url}/api/company/${companyObj._id}`, companyObj, {
@@ -114,6 +118,7 @@ export default function Company() {
         } catch (error) {
             toast.error(error?.response?.data?.error);
         }
+        setIschangingCompany(false);
     }
 
     useEffect(() => {
@@ -132,9 +137,9 @@ export default function Company() {
     }, [isCompanychange])
 
     return (
-        isLoading ? <Loading /> :
-            modifyCompany.isAdd ? <CommonModel type="Company" modifyData={changeCompanyOperation} addData={addCompany} changeData={changeCompany} dataObj={companyObj} isAddData={modifyCompany.isAdd} /> :
-                modifyCompany.isEdit ? <CommonModel type="Company" modifyData={changeCompanyOperation} addData={addCompany} changeData={changeCompany} dataObj={companyObj} isAddData={modifyCompany.isEdit} editData={editCompany} /> :
+        isLoading ? <Loading height="80vh" /> :
+            modifyCompany.isAdd ? <CommonModel type="Company" isWorkingApi={isChangingCompany} modifyData={changeCompanyOperation} addData={addCompany} changeData={changeCompany} dataObj={companyObj} isAddData={modifyCompany.isAdd} /> :
+                modifyCompany.isEdit ? <CommonModel type="Company" isWorkingApi={isChangingCompany} modifyData={changeCompanyOperation} addData={addCompany} changeData={changeCompany} dataObj={companyObj} isAddData={modifyCompany.isEdit} editData={editCompany} /> :
                     <div className='dashboard-parent pt-4'>
                         <div className="row">
                             <div className='col-lg-6 col-6'>

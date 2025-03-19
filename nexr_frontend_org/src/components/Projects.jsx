@@ -34,6 +34,7 @@ export default function Projects({ employees }) {
     const [isLoading, setIsLoading] = useState(false);
     const url = process.env.REACT_APP_API_URL;
     const [companies, setCompanies] = useState([]);
+    const [isChangingProject, setIsChangingProject] = useState(false);
 
     // Fetch companies data
     const fetchCompanies = async () => {
@@ -113,6 +114,7 @@ export default function Projects({ employees }) {
     }
 
     async function updateProject() {
+        setIsChangingProject(true);
         try {
             const res = await axios.put(`${url}/api/project/${data._id}/${projectObj?._id}`, projectObj, {
                 headers: {
@@ -126,9 +128,11 @@ export default function Projects({ employees }) {
         } catch (error) {
             toast.error(error?.response?.data?.error)
         }
+        setIsChangingProject(false);
     }
 
     async function addProject() {
+        setIsChangingProject(true);
         try {
             const res = await axios.post(`${url}/api/project/${data._id}`, projectObj, {
                 headers: {
@@ -141,6 +145,7 @@ export default function Projects({ employees }) {
         } catch (error) {
             toast.error(error.response.data.error)
         }
+        setIsChangingProject(false);
     }
 
     useEffect(() => {
@@ -252,7 +257,7 @@ export default function Projects({ employees }) {
 
     return (
         isViewProject ? <CommonModel type="Project View" comps={companies} teams={teams} isAddData={isViewProject} employees={employees} dataObj={projectObj} modifyData={handleViewProject} /> :
-            isEdit ? <CommonModel type="Assign" isAddData={isEdit} employees={employees} changeData={changeProject} dataObj={projectObj} editData={updateProject} modifyData={handleEditProject} /> :
+            isEdit ? <CommonModel type="Assign" isAddData={isEdit} isWorkingApi={isChangingProject} employees={employees} changeData={changeProject} dataObj={projectObj} editData={updateProject} modifyData={handleEditProject} /> :
                 isDelete.type ? <CommonModel type="Confirmation" modifyData={handleDeleteProject} deleteData={deleteProject} isAddData={isDelete} /> :
                     isAddProject ? <CommonModel
                         comps={companies}
@@ -261,11 +266,12 @@ export default function Projects({ employees }) {
                         changeData={changeProject}
                         teams={teams}
                         addData={addProject}
+                        isWorkingApi={isChangingProject}
                         type="Project"
                         editData={updateProject}
                         employees={employees}
                         modifyData={handleAddProject} />
-                        : isLoading ? < Loading /> : <>
+                        : isLoading ? <Loading height='80vh' /> : <>
                             <div className="projectParent">
                                 <div className="projectTitle col-lg-6">Projects</div>
                                 <div className="col-lg-6 projectChild">
@@ -347,7 +353,7 @@ export default function Projects({ employees }) {
                                                         >
                                                             Client: {project?.company?.CompanyName}
                                                         </div>
-                                                        <div className="d-flex align-items-center gap-2 my-3" style={{overflow: "auto"}}>
+                                                        <div className="d-flex align-items-center gap-2 my-3" style={{ overflow: "auto" }}>
                                                             {project?.employees?.map((emp) => (
                                                                 <div className="nameHolder" style={{ width: "35px", height: "35px" }} key={emp?._id}>
                                                                     {emp?.FirstName[0]?.toUpperCase() +

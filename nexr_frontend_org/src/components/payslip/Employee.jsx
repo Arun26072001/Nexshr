@@ -181,7 +181,7 @@ export default function Employee() {
 
                 {
                     isLoading ? (
-                        <Loading />
+                        <Loading height="80vh" />
                     ) : errorData ? (
                         <NoDataFound message={errorData} />
                     ) : (

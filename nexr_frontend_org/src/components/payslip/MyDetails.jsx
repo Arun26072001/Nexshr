@@ -28,7 +28,7 @@ const MyDetails = () => {
 
     return (
         error ? <NoDataFound message={error} /> :
-            isLoading ? <Loading /> :
+            isLoading ? <Loading height="80vh" /> :
                 <div>
                     {empObj?.FirstName && empObj?.LastName && (
                         <>

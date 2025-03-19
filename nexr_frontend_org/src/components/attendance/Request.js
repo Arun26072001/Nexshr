@@ -8,7 +8,7 @@ import Loading from '../Loader';
 const Request = ({ attendanceData, isLoading }) => {
     
     return (
-        isLoading ? <Loading /> :
+        isLoading ? <Loading height="80vh" /> :
             <div className='dashboard-parent pt-4'>
                 <div className="d-flex  justify-content-between align-items-start p-3">
                     <div>

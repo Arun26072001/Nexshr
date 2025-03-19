@@ -100,7 +100,7 @@ function HolidayPicker({ changeHolidayUI, isAddHolidays }) {
     }
 
     return (
-        isLoading ? <Loading /> :
+        isLoading ? <Loading height="80vh" /> :
             fetchedHolidays?.length > 0 ?
                 <Calendar
                     localizer={localizer}

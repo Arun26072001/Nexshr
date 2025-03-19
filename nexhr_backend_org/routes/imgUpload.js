@@ -1,8 +1,5 @@
 const express = require("express");
 const multer = require("multer");
-const path = require("path");
-const sharp = require("sharp");
-const fs = require("fs");
 
 const imgUpload = express.Router();
 
@@ -17,17 +14,6 @@ const storage = multer.diskStorage({
 });
 const upload = multer({
   storage,
-  // fileFilter: (req, file, cb) => {
-  //   // const allowedTypes = null;
-  //   // const isValidExt = allowedTypes.test(path.extname(file.originalname).toLowerCase());
-  //   // const isValidMime = allowedTypes.test(file.mimetype);
-
-  //   if (isValidExt && isValidMime) {
-  //     cb(null, true);
-  //   } else {
-  //     cb(new Error("Error: File type not supported!"), false);
-  //   }
-  // },
   limits: { fileSize: 10 * 1024 * 1024 }, // Limit file size to 10MB
 });
 
@@ -43,15 +29,6 @@ imgUpload.post("/", upload.array("documents", 10), async (req, res) => {
     // Process each uploaded file
     for (const file of req.files) {
       try {
-        
-        // const originalName = path.parse(file.originalname).name;
-        // const webpFileName = `${Date.now()}-${originalName.replace(/ /g, "-").toLowerCase()}.webp`;
-        // const newFilePath = path.join(uploadsDir, webpFileName);
-
-        // Convert the in-memory file buffer to WebP format using sharp
-        // await sharp(file.buffer)
-        //   .toFormat("webp")
-        //   .toFile(newFilePath);
 
         // Add the file details to the result array
         convertedFiles.push({

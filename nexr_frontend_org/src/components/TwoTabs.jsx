@@ -203,7 +203,7 @@ export default function Twotabs() {
           </div>
 
           {
-            isLoading ? <Loading /> :
+            isLoading ? <Loading height="80vh" /> :
               leaveRequests?.map((req, index) => {
                 // debugger;
                 let todayDate = today.getTime()

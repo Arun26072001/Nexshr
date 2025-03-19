@@ -4,14 +4,15 @@ import "../leave/../leaveForm.css";
 import axios from 'axios';
 import { toast } from 'react-toastify';
 import { useNavigate, useParams } from 'react-router-dom';
+import Loading from '../Loader';
 
 export default function PageAndActionAuth() {
     const { id } = useParams();
     const navigate = useNavigate();
     const params = useParams();
-
     const url = process.env.REACT_APP_API_URL;
     const token = localStorage.getItem("token");
+    const [isChangingRole, setIschangingRole] = useState(false);
     const [roleObj, setRoleObj] = useState({});
     const actions = [
         { sNo: 1, action: "Leave" },
@@ -67,7 +68,7 @@ export default function PageAndActionAuth() {
             }
         }))
     }
-    
+
     async function fetchRoleById() {
         try {
             const role = await axios.get(`${url}/api/role/${id}`, {
@@ -84,6 +85,7 @@ export default function PageAndActionAuth() {
     }
 
     async function addRoleAndPermission() {
+        setIschangingRole(true);
         try {
             const roleData = await axios.post(`${url}/api/role`, roleObj, {
                 headers: {
@@ -95,10 +97,11 @@ export default function PageAndActionAuth() {
         } catch (error) {
             toast.error(error?.response?.data?.error)
         }
+        setIschangingRole(false);
     }
 
     async function updateRoleAndPermission() {
-
+        setIschangingRole(true)
         try {
             const updatedRole = await axios.put(`${url}/api/role/${id}`, roleObj, {
                 headers: {
@@ -111,6 +114,7 @@ export default function PageAndActionAuth() {
         } catch (error) {
             toast.error(error?.response?.data?.error)
         }
+        setIschangingRole(false);
     }
 
     async function getInitialRoleObj() {
@@ -182,7 +186,7 @@ export default function PageAndActionAuth() {
                             <div className="col-lg-3 col-12">
                                 <div className="btnParent mx-auto">
                                     <button className="outline-btn" onClick={() => navigate(-1)} style={{ background: "#e0e0e0", border: "none" }} >Cancel</button>
-                                    <button className="button" onClick={id ? updateRoleAndPermission : addRoleAndPermission}>{id ? "Update" : "Save"}</button>
+                                    <button className="button" onClick={id ? updateRoleAndPermission : addRoleAndPermission}>{isChangingRole ? <Loading size={20} color='white' /> : id ? "Update" : "Save"}</button>
                                 </div>
                             </div>
                         </div> : <button className="outline-btn" onClick={() => navigate(-1)} style={{ background: "#e0e0e0", border: "none" }} >Back</button>

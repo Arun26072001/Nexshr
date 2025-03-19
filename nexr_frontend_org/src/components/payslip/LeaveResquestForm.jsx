@@ -258,7 +258,7 @@ const LeaveRequestForm = () => {
   }, [])
 
   return (
-    isLoading ? <Loading /> :
+    isLoading ? <Loading height="80vh" /> :
       <form onSubmit={formik.handleSubmit}>
         <div className="leaveFormContainer">
           <div className="leaveFormParent" style={{ width: "600px" }}>

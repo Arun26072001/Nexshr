@@ -15,7 +15,7 @@ export default function Status() {
     }, [empName, daterangeValue]);
     
     return (
-        isLoading ? <Loading /> :
+        isLoading ? <Loading height="80vh" /> :
             <div>
                 {/* Top date input and leave label */}
                 <div className="leaveDateParent">

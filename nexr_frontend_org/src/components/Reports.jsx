@@ -235,7 +235,7 @@ export default function Reports({ employees }) {
                                     </div>
                                 </div>
                                 {
-                                    isLoading ? <Loading /> :
+                                    isLoading ? <Loading height="80vh" /> :
                                         reports.length > 0 ?
                                             <LeaveTable data={reports} handleDelete={handleDelete} fetchReportById={fetchReportById} />
                                             : <NoDataFound message={"Reports Not Found"} />

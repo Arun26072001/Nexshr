@@ -49,7 +49,7 @@ const Roles = () => {
     }, [reloadRolePage])
 
     return (
-        isLoading ? <Loading /> :
+        isLoading ? <Loading height="80vh" /> :
             <div className='dashboard-parent pt-4'>
                 <div className="row">
                     <div className='col-lg-6 col-6'>

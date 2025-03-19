@@ -9,23 +9,22 @@ import MoreVertRoundedIcon from '@mui/icons-material/MoreVertRounded';
 import KeyboardArrowRightRoundedIcon from '@mui/icons-material/KeyboardArrowRightRounded';
 import Mytimer2 from './Mytimer2';
 import { ScaleLoader } from 'react-spinners';
-import { getTimeToHour } from './ReuseableAPI';
+import { formatTimeFromHour, getTimeFromHour } from './ReuseableAPI';
 
 export default function TaskItem({ task, status, getValue, handleEditTask, handleAddComment, fetchTaskById, renderMenu3, updatedTimerInTask, renderMenu2, handleViewTask, isLoading }) {
     const [remainingTime, setRemainingTime] = useState({ hour: 0, min: 0, sec: 0 });
 
-    function convertDecimalToTime(decimalHours) {
-        const timeValues = {
-            hour: Math.floor(decimalHours) || 0,
-            min: Math.floor((decimalHours * 60) % 60) || 0,
-            sec: Math.floor((decimalHours * 3600) % 60) || 0
-        };
-        return timeValues;
-    }
-
     useEffect(() => {
-        const calculatedValue = Number(task.estTime) - getTimeToHour(task.spend.timeHolder)
-        setRemainingTime(convertDecimalToTime(calculatedValue));
+        const spendTime = task.spend.timeHolder.split(":").length > 2 ? getTimeFromHour(task.spend.timeHolder) : Number(task.spend.timeHolder)
+
+        const calculatedValue = Number(task.estTime) - spendTime
+        const hourMinSec = formatTimeFromHour(calculatedValue)
+
+        setRemainingTime({
+            hour: hourMinSec.split(":")[0],
+            min: hourMinSec.split(":")[1],
+            sec: hourMinSec.split(":")[2]
+        });
     }, [task]);
 
     return (

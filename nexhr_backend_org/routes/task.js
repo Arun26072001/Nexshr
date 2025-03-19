@@ -112,6 +112,8 @@ router.get("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
         });
 
         const totalValue = values?.reduce((acc, value) => acc + value, 0)
+        console.log(totalValue);
+        
         //add comments of spend time
         let totalCommentSpendTime = 0;
         task?.comments?.map((comment) => totalCommentSpendTime += Number(comment.spend));
@@ -275,7 +277,7 @@ router.put("/:empId/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) 
         if (!taskData) return res.status(404).send({ error: "Task not found" });
 
         // Identify Newly Assigned Employees
-        const newAssignees = req.body.assignedTo?.filter(emp => !taskData?.assignedTo?.includes(emp)) || [];
+        const newAssignees = req.body?.assignedTo?.filter(emp => !taskData?.assignedTo?.includes(emp)) || [];
 
         // Fetch Assigned Person & Employee Data
         const assignedPerson = await Employee.findById(req.body.createdby)
@@ -307,6 +309,7 @@ router.put("/:empId/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) 
         });
 
         let updatedComment = null;
+        // for add from task with only one comment
         if (req.query.changeComments && req.body.comments && req.body.comments.length > 0) {
             updatedComment = {
                 ...req.body.comments[0],
@@ -430,12 +433,10 @@ router.put("/:empId/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) 
         return res.status(200).send({ message: "Task updated successfully", task });
 
     } catch (error) {
-        console.error(error);
+        console.error(error.message);
         return res.status(500).send({ error: error.message });
     }
 });
-
-
 
 router.delete("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
     try {

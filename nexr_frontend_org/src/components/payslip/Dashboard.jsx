@@ -94,7 +94,7 @@ const Dashboard = () => {
         <div className='dashboard-parent'>
             <ActivityTimeTracker leaveData={leaveData} handleLogout={handleLogout} updateClockins={updateClockins} />
             {
-                isLoading ? <Loading /> :
+                isLoading ? <Loading height="80vh" /> :
                     <>
                         {/* <div className="allowance row container-fluid mx-auto g-2"> */}
                         <div className='allowance flex-wrap'>

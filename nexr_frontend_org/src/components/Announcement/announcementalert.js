@@ -7,11 +7,12 @@ import { EssentialValues } from '../../App';
 import AddRoundedIcon from '@mui/icons-material/AddRounded';
 
 const AnnouncementComponent = ({ handleChangeAnnouncement }) => {
+    const url = process.env.REACT_APP_API_URL;
     const { data, socket } = useContext(EssentialValues);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [team_member, setTeam_member] = useState([]);
     const [announcementObj, setAnnouncementObj] = useState({})
-    const url = process.env.REACT_APP_API_URL;
+    const [isChangingAnnouncement, setIschangingAnnouncement] = useState(false);
 
     const headers = {
         Authorization: data.token || ""
@@ -22,11 +23,7 @@ const AnnouncementComponent = ({ handleChangeAnnouncement }) => {
         const fetchData = async () => {
             try {
                 const response = await axios.get(`${url}/api/employee/user`,
-                    {
-                        headers: {
-                            authorization: `${data.token}`
-                        }
-                    },
+                    { headers },
                 );
                 setTeam_member(response?.data?.Team || []);
             } catch (error) {
@@ -51,7 +48,7 @@ const AnnouncementComponent = ({ handleChangeAnnouncement }) => {
     }
 
     const handleSubmit = async () => {
-
+        setIschangingAnnouncement(true);
         try {
             const addAnnounce = await axios.post(`${url}/api/announcements/${data._id}`, announcementObj,
                 { headers }
@@ -65,6 +62,7 @@ const AnnouncementComponent = ({ handleChangeAnnouncement }) => {
             toast.error(error.response.data.error)
             console.error('Error creating the announcement or sending notification:', error);
         }
+        setIschangingAnnouncement(false);
     };
 
 
@@ -75,7 +73,7 @@ const AnnouncementComponent = ({ handleChangeAnnouncement }) => {
             </button>
 
             {isModalOpen && (
-                <CommonModel type="Announcement" isAddData={isModalOpen} modifyData={handleModel} changeData={changeAnnouncementData} addData={handleSubmit} team_member={team_member} dataObj={announcementObj} />
+                <CommonModel type="Announcement" isAddData={isModalOpen} isWorkingApi={isChangingAnnouncement} modifyData={handleModel} changeData={changeAnnouncementData} addData={handleSubmit} team_member={team_member} dataObj={announcementObj} />
             )}
         </div>
     );

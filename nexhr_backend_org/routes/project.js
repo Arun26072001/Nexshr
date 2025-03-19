@@ -67,8 +67,8 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
     const newProject = {
       ...req.body,
       status: req.body.status || "Not Started",
-      employees: [...req.body.employees, req.params.id] || [],
-      createdby: req.body.createdby || req.params.id,
+      employees: [...req?.body?.employees, req?.params?.id] || [],
+      createdby: req?.body?.createdby || req?.params?.id,
       tracker: [{
         date: new Date(),
         message: `${req.body.name} Project is created by ${FirstName}`,
@@ -78,7 +78,7 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
     if (await Project.exists({ name: req.body.name })) {
       return res.status(400).send({ error: `${req.body.name} project is already exists` })
     }
-    
+
     const { error } = projectValidation.validate(newProject);
     if (error) {
       return res.status(400).send({ error: error.details[0].message })
@@ -148,6 +148,7 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
     })
     return res.status(201).send({ message: "Project is created Successfully", project })
   } catch (error) {
+    console.log(error);
     res.status(500).send({ error: error.message })
   }
 });

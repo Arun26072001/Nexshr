@@ -115,7 +115,6 @@
 .activeCard {
   background-color: rgba(126, 126, 126, 0.2) !important;
   transform: scale(0.98);
-  /* backdrop-filter: blur(10px); */
 }
 
 .timeController {

@@ -7,7 +7,6 @@ import { toast } from "react-toastify";
 import WavingHandRoundedIcon from '@mui/icons-material/WavingHandRounded';
 import { Modal, Button } from "rsuite";
 import { EssentialValues } from "../App";
-import axios from "axios";
 
 const ActivityTimeTracker = () => {
     const {

@@ -15,6 +15,7 @@ export default function Department({ companies }) {
     const [isLoading, setIsLoading] = useState(false);
     const [isDepartmentsDataUpdate, setIsDepartmentDataUpdate] = useState(false);
     const [isAddDepartment, setIsAddDepartment] = useState(false);
+    const [isChangingDepartment, setIsChangingDepartment] = useState(false);
 
     function reloadDepartmentPage() {
         setIsDepartmentDataUpdate(!isDepartmentsDataUpdate)
@@ -34,6 +35,7 @@ export default function Department({ companies }) {
         }))
     }
     async function addDepartment() {
+        setIsChangingDepartment(true);
         try {
             const msg = await axios.post(url + "/api/department", departmentObj, {
                 headers: {
@@ -47,6 +49,7 @@ export default function Department({ companies }) {
         } catch (error) {
             return toast.error(error?.response?.data?.error)
         }
+        setIsChangingDepartment(false);
     }
 
     async function deleteDepartment(id) {
@@ -65,6 +68,7 @@ export default function Department({ companies }) {
     }
 
     async function editDepartment() {
+        setIsChangingDepartment(true);
         try {
             // Assuming the correct API endpoint for editing a department is '/api/department/${id}'
             const response = await axios.put(`${url}/api/department/${departmentObj._id}`, departmentObj, {
@@ -84,6 +88,7 @@ export default function Department({ companies }) {
             const errorMessage = error?.response?.data?.message || error.message || "Something went wrong";
             toast.error(errorMessage);
         }
+        setIsChangingDepartment(false);
     }
 
     async function getEditDepartmentId(id) {
@@ -120,7 +125,7 @@ export default function Department({ companies }) {
     }, [isDepartmentsDataUpdate]);
 
     return (
-        isLoading ? <Loading /> :
+        isLoading ? <Loading height="80vh" /> :
             isAddDepartment ? <CommonModel
                 dataObj={departmentObj}
                 editData={editDepartment}
@@ -130,6 +135,7 @@ export default function Department({ companies }) {
                 comps={companies}
                 modifyData={modifyDepartments}
                 type="Department"
+                isWorkingApi={isChangingDepartment}
             /> :
                 <div className='dashboard-parent pt-4'>
                     <div className="row">

@@ -9,7 +9,7 @@ const History = ({ payslips, isLoading }) => {
     const navigate = useNavigate();
 
     if (isLoading) {
-        return <Loading />;
+        return <Loading height="80vh" />;
     }
 
     return (
