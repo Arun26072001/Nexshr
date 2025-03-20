@@ -4,18 +4,6 @@ const { Department, DepartmentValidation, departmentSchema } = require('../model
 const { Employee } = require('../models/EmpModel');
 const Joi = require('joi');
 const { verifyAdminHR } = require('../auth/authMiddleware');
-const { getEmployeeModel } = require('./employee');
-
-const departmentModels = {};
-
-function getDepartmentModel(orgName) {
-  // If model already exists in the object, return it; otherwise, create it
-  if (!departmentModels[orgName]) {
-    departmentModels[orgName] = mongoose.model(`${orgName}Department`, departmentSchema);
-  }
-
-  return departmentModels[orgName];
-}
 
 router.get("/", async (req, res) => {
   try {
@@ -25,7 +13,7 @@ router.get("/", async (req, res) => {
       .populate({
         path: 'company',
         select: '_id CompanyName'
-      });
+      }).lean();
     res.send(departments);
   } catch (err) {
     res.status(500).send({ error: err.message });
@@ -34,13 +22,7 @@ router.get("/", async (req, res) => {
 
 router.get("/:id", async (req, res) => {
   try {
-    // const {orgName} = jwt.decode(req.headers['authorization']);
-    // const Department = getDepartmentModel(orgName)
-    const department = await Department.findById(req.params.id)
-    // .populate({
-    //   path: 'company',
-    //   select: '_id CompanyName'
-    // });
+    const department = await Department.findById(req.params.id).lean()
     res.send(department);
   } catch (err) {
     res.status(500).send({ error: err.message });

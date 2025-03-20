@@ -134,7 +134,7 @@ export default function Comments({ employees }) {
             // Filter out PNG files for upload
             const files = commentObj?.attachments;
 
-            if (files.length > 0) {
+            if (files?.length > 0) {
                 const responseData = await fileUploadInServer(files);
 
                 // Merge old attachments with new uploaded files
@@ -149,25 +149,24 @@ export default function Comments({ employees }) {
             taskObj.comments[taskObj.comments.length] = updatedCommentObj;
 
             socket.emit("updatedTask_In_AddComment", taskObj, data._id, data.token);
-            socket.on("send_updated_task", (updatedData) => {
-                setIschecked(updatedData.status === "Completed")
-                setTaskObj({
-                    ...updatedData,
-                    spend: {
-                        ...updatedData?.spend,
-                        timeHolder: getTimeFromHour(updatedData?.spend?.timeHolder || 0)
-                    }
-                });
-            })
             setIsAddComment(false);
             setPreviewList([]);
             setCommentObj({});
         } catch (error) {
             console.log(error);
-
         }
     }
-    console.log(taskObj);
+
+    socket.on("send_updated_task", (updatedData) => {
+        setIschecked(updatedData.status === "Completed")
+        setTaskObj({
+            ...updatedData,
+            spend: {
+                ...updatedData?.spend,
+                timeHolder: getTimeFromHour(updatedData?.spend?.timeHolder || 0)
+            }
+        });
+    })
 
     async function editCommitTask() {
         setIsChangingComment(true);
@@ -175,7 +174,7 @@ export default function Comments({ employees }) {
             let updatedCommentObj = { ...commentObj };
 
             // Filter out PNG files for upload
-            const files = commentObj?.attachments?.filter((file) => ["image/png","video/mp4"].includes(file.type)) || [];
+            const files = commentObj?.attachments?.filter((file) => ["image/png", "video/mp4"].includes(file.type)) || [];
 
             if (files.length > 0) {
                 const responseData = await fileUploadInServer(files);
@@ -194,25 +193,20 @@ export default function Comments({ employees }) {
             // Update the comment in the task object if taskData is not provided
             taskObj.comments[editCommentIndex] = updatedCommentObj;
 
-            // Send PUT request to update task
-            const res = await axios.put(
-                `${url}/api/task/${data._id}/${taskObj._id}`,
-                taskObj,
-                {
-                    headers: {
-                        Authorization: data.token || "",
-                    },
-                }
-            );
-
-            // Show success message
-            toast.success(res.data.message);
-
-            // Reset states
+            socket.emit("updatedTask_In_AddComment", taskObj, data._id, data.token);
+            // socket.on("send_updated_task", (updatedData) => {
+            //     setIschecked(updatedData.status === "Completed")
+            //     setTaskObj({
+            //         ...updatedData,
+            //         spend: {
+            //             ...updatedData?.spend,
+            //             timeHolder: getTimeFromHour(updatedData?.spend?.timeHolder || 0)
+            //         }
+            //     });
+            // })
             setIsEditCommit(false);
-            fetchTaskOfComments();
-            setIsEditTask(false);
-            setEditCommentIndex(null);
+            setPreviewList([]);
+            setCommentObj({});
         } catch (error) {
             console.error("Error updating task:", error);
             toast.error("Failed to update task.");
@@ -231,16 +225,17 @@ export default function Comments({ employees }) {
             }
             taskObj.comments[index] = updatedCommit;
             try {
-                const res = await axios.put(
-                    `${url}/api/task/${data._id}/${taskObj._id}`, // Ensure correct projectId
-                    taskObj,
-                    {
-                        headers: {
-                            Authorization: data.token || "",
-                        },
-                    }
-                );
-                fetchTaskOfComments()
+                socket.emit("updatedTask_In_AddComment", taskObj, data._id, data.token);
+                socket.on("send_updated_task", (updatedData) => {
+                    setIschecked(updatedData.status === "Completed")
+                    setTaskObj({
+                        ...updatedData,
+                        spend: {
+                            ...updatedData?.spend,
+                            timeHolder: getTimeFromHour(updatedData?.spend?.timeHolder || 0)
+                        }
+                    });
+                })
                 toast.success("Commit has been move trash")
             } catch (error) {
                 console.log(error);
@@ -334,6 +329,7 @@ export default function Comments({ employees }) {
                 }
             });
         } catch (error) {
+            console.log(error)
             toast.error(error.response.data.error)
         }
         finally {
@@ -473,7 +469,7 @@ export default function Comments({ employees }) {
                                 </span>
                             </div>
                             {/* center content of left */}
-                            <div className="col-lg-2 text-end my-3">
+                            <div className="col-lg-2 col-4 text-end my-3">
                                 <input type='checkbox' onChange={(e) => getValue(e.target.checked)} checked={ischecked} className='mb-3' />
                                 <div style={{ textAlign: "end", marginTop: "16px" }}>
                                     <p><b>Assigned to</b></p>
@@ -481,7 +477,7 @@ export default function Comments({ employees }) {
                                 </div>
                             </div>
                             {/* center content of right */}
-                            <div className="col-lg-8 my-3">
+                            <div className="col-lg-8 col-6 my-3">
                                 <div className="commentsHeader mb-3">
                                     {taskObj.title}
                                 </div>
@@ -496,7 +492,7 @@ export default function Comments({ employees }) {
                                 }</p>
                                 <p className='d-flex align-items-center'><CalendarMonthRoundedIcon />{new Date(taskObj.to).toDateString()}</p>
                             </div>
-                            <div className="col-lg-1">
+                            <div className="col-lg-1 col-2">
                                 <span className='circleEditIcon' >
                                     <Whisper placement="bottomEnd" trigger="click" speaker={renderMenu1}>
                                         <MoreHorizOutlinedIcon fontSize='large' />
@@ -507,20 +503,21 @@ export default function Comments({ employees }) {
 
                         {
                             taskObj?.comments?.map((comment, index) => {
+                                console.log(comment);
                                 const commentCreator = comment?.createdBy?.FirstName?.[0]?.toUpperCase() + comment?.createdBy?.FirstName?.slice(1) + " " + comment?.createdBy?.LastName || "Arun Kumar";
                                 return (
-                                    <div className="row d-flex justify-content-center">
-                                        <div className="col-lg-10">
+                                    <div className="d-flex justify-content-center">
+                                        <div className="col-lg-10 col-md-10 col-12">
                                             <div className='text-align-center'>
                                                 <hr width="100%" size="2" color='gray' style={{ borderTop: "1px solid gray" }}></hr>
-                                                <div className='d-flex row'>
-                                                    <div className="col-lg-2">
+                                                <div className='row'>
+                                                    <div className="col-lg-2 col-md-2 col-12">
                                                         {new Date(comment.date).toDateString().split(" ").slice(1).join(" ")}
                                                     </div>
-                                                    <div className="col-lg-1">
+                                                    <div className="col-lg-1 col-md-1 col-3">
                                                         <img src={comment?.createdBy?.profile || profile} alt='profile' className='userProfile' style={{ height: "45px", width: "45px" }} />
                                                     </div>
-                                                    <div className="col-lg-8">
+                                                    <div className="col-lg-8 col-md-8 col-7">
                                                         <p className='my-1' style={{ fontSize: "17px" }}><b>{commentCreator}</b></p>
                                                         <p>
                                                             {
@@ -528,31 +525,34 @@ export default function Comments({ employees }) {
                                                             }
                                                         </p>
                                                         <div className="imgsContainer">
-                                                            {comment.attachments.map((file, index) => (
-                                                                <div key={index} className={`col-lg-${[2, 4].includes(comment.attachments.length) ? "5" : comment.attachments.length === 1 ? "12" : comment.attachments.length === 3 ? "5" : "3"}`}>
-                                                                    {file.includes(".mp4") ? (
-                                                                        <video controls style={{ width: "100%", height: "auto", margin: "10px 0px", border: "1px solid gray" }}>
-                                                                            <source src={file} type="video/mp4" />
-                                                                            Your browser does not support the video tag.
-                                                                        </video>
-                                                                    ) : (
-                                                                        <img
-                                                                            src={file}
-                                                                            style={{
-                                                                                width: "100%",
-                                                                                height: "auto",
-                                                                                margin: "10px 0px",
-                                                                                border: "1px solid gray",
-                                                                            }}
-                                                                            alt="taskCommentAttachment"
-                                                                        />
-                                                                    )}
-                                                                </div>
-                                                            ))}
+                                                            {
+                                                                comment?.attachments?.length ?
+                                                                    comment?.attachments?.map((file, index) => (
+                                                                        <div key={index} className={`col-lg-${[2, 4].includes(comment.attachments.length) ? "5" : comment.attachments.length === 1 ? "12" : comment.attachments.length === 3 ? "5" : "3"}`}>
+                                                                            {file.includes(".mp4") ? (
+                                                                                <video controls style={{ width: "100%", height: "auto", margin: "10px 0px", border: "1px solid gray" }}>
+                                                                                    <source src={file} type="video/mp4" />
+                                                                                    Your browser does not support the video tag.
+                                                                                </video>
+                                                                            ) : (
+                                                                                <img
+                                                                                    src={file}
+                                                                                    style={{
+                                                                                        width: "100%",
+                                                                                        height: "auto",
+                                                                                        margin: "10px 0px",
+                                                                                        border: "1px solid gray",
+                                                                                    }}
+                                                                                    alt="taskCommentAttachment"
+                                                                                />
+                                                                            )}
+                                                                        </div>
+                                                                    )) : null
+                                                            }
                                                         </div>
 
                                                     </div>
-                                                    <div className="col-lg-1" >
+                                                    <div className="col-lg-1 col-md-1 col-2" >
                                                         <Whisper placement="bottomEnd" trigger="click" speaker={renderMenu2(comment, index)}>
                                                             <MoreHorizOutlinedIcon sx={{ cursor: "pointer" }} />
                                                         </Whisper>
@@ -565,16 +565,16 @@ export default function Comments({ employees }) {
                             })
                         }
                         <div className="row d-flex justify-content-center">
-                            <div className="col-lg-10">
+                            <div className="col-lg-10 col-md-10 col-12">
                                 <div className='text-align-center'>
                                     <hr width="100%" size="2" color='gray' style={{ borderTop: "1px solid gray" }}></hr>
-                                    <div className='d-flex row'>
-                                        <div className="col-lg-2">
+                                    <div className='row'>
+                                        <div className="col-lg-2 col-md-2 col-2">
                                         </div>
-                                        <div className="col-lg-1">
+                                        <div className="col-lg-1 colmd-1 col-2">
                                             <img src={data.profile || profile} alt='profile' className='userProfile' style={{ height: "45px", width: "45px" }} />
                                         </div>
-                                        <div className="col-lg-8">
+                                        <div className="col-lg-8 col-md-8 col-8">
                                             {isAddComment
                                                 ? <>
                                                     <TextEditor

@@ -659,157 +659,93 @@ router.get("/item/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) =>
 
 // get login and logout data from employee
 router.get("/employee/:empId", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
-    const emp = await Employee.findById({ _id: req.params.empId }).exec();
-
-    let totalEmpWorkingHours = 0; // Track total working hours for the employee
-    let totalLeaveDays = 0;
-
     const now = new Date();
-    let startOfMonth;
-    let endOfMonth;
-    if (req?.query?.daterangeValue) {
-        startOfMonth = new Date(req.query.daterangeValue[0]);
-        endOfMonth = new Date(req.query.daterangeValue[1]);
-    } else {
-        startOfMonth = new Date(Date.UTC(
-            now.getUTCFullYear(),
-            now.getUTCMonth(),
-            now.getUTCDate(),
-            0, 0, 0, 0
-        ))
-        // startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-        // const joiningDate = new Date(emp?.dateOfJoining);
-        // if (startOfMonth.getTime() < joiningDate.getTime()) {
-        //     startOfMonth = joiningDate;
-        // }
-        endOfMonth = new Date(Date.UTC(
-            now.getUTCFullYear(),
-            now.getUTCMonth(),
-            now.getUTCDate(),
-            23, 59, 59, 999
-        ));
-    }
+    const { empId } = req.params;
+    let totalEmpWorkingHours = 0;
+    let totalLeaveDays = 0;
+    let regular = 0, late = 0, early = 0;
 
-    let regular = 0;
-    let late = 0;
-    let early = 0;
-    // Function to check login times and update status counts
-    async function checkLogin(scheduledTime, actualTime) {
-        const [scheduledHours, scheduledMinutes] = scheduledTime.split(':').map(Number);
+    const [startOfMonth, endOfMonth] = req.query.daterangeValue
+        ? [new Date(req.query.daterangeValue[0]), new Date(req.query.daterangeValue[1])]
+        : [
+            new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 0, 0, 0)),
+            new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 23, 59, 59, 999))
+        ];
+
+    const checkLogin = (scheduledTime, actualTime) => {
+        const [schedHours, schedMinutes] = scheduledTime.split(':').map(Number);
         const [actualHours, actualMinutes] = actualTime.split(':').map(Number);
 
-        const scheduledDate = new Date(2000, 0, 1, scheduledHours, scheduledMinutes);
+        const scheduledDate = new Date(2000, 0, 1, schedHours, schedMinutes);
         const actualDate = new Date(2000, 0, 1, actualHours, actualMinutes);
 
         if (actualDate > scheduledDate) {
-            late += 1;
+            late++;
             return "Late";
         } else if (actualDate < scheduledDate) {
-            early += 1;
+            early++;
             return "Early";
         } else {
-            regular += 1;
+            regular++;
             return "On Time";
         }
-    }
+    };
 
-    // Function to calculate total working hours excluding weekends
-    async function getTotalWorkingHoursExcludingWeekends(startDate, endDate, dailyHours = 8) {
-        const start = new Date(startDate);
-        const end = new Date(endDate);
-        let totalWorkingHours = 0;
-
-        // Iterate through each date in the range
+    const getTotalWorkingHoursExcludingWeekends = (start, end, dailyHours = 8) => {
+        let totalHours = 0;
         for (let date = new Date(start); date <= end; date.setDate(date.getDate() + 1)) {
-            const dayOfWeek = date.getDay();
-            if (dayOfWeek !== 0 && dayOfWeek !== 6) { // Exclude weekends (Sundays and Saturdays)
-                totalWorkingHours += dailyHours;
+            if (date.getDay() !== 0 && date.getDay() !== 6) { // Exclude weekends
+                totalHours += dailyHours;
             }
         }
-
-        return totalWorkingHours;
-    }
+        return totalHours;
+    };
 
     try {
-        const employee = await Employee.findById(req.params.empId, "_id FirstName LastName clockIns leaveApplication")
+        const employee = await Employee.findById(empId, "_id FirstName LastName clockIns leaveApplication")
             .populate({
                 path: "clockIns",
-                match: {
-                    date: {
-                        $gte: startOfMonth,
-                        $lte: endOfMonth
-                    }
-                },
-                populate: {
-                    path: "employee", // Ensure this matches the defined model name
-                    select: "FirstName LastName"
-                }
+                match: { date: { $gte: startOfMonth, $lte: endOfMonth } },
+                populate: { path: "employee", select: "FirstName LastName" }
             })
             .populate({
                 path: "leaveApplication",
                 match: {
-                    fromDate: {
-                        $gte: startOfMonth,
-                        $lte: endOfMonth
-                    },
-                    toDate: {
-                        $gte: startOfMonth,
-                        $lte: endOfMonth
-                    },
+                    fromDate: { $gte: startOfMonth, $lte: endOfMonth },
+                    toDate: { $gte: startOfMonth, $lte: endOfMonth },
                     status: "approved"
                 }
             });
 
+        if (!employee) return res.status(400).send({ message: "Employee not found." });
 
-        if (!employee) {
-            return res.status(400).send({ message: "No Employee found with given ID" });
-        }
+        totalLeaveDays = employee.leaveApplication.reduce((sum, leave) => sum + getDayDifference(leave), 0);
 
-        // Calculate company's total working hours per month excluding weekends
-        const companyTotalWorkingHour = await getTotalWorkingHoursExcludingWeekends(
-            startOfMonth,
-            endOfMonth
-        );
-        const totalWorkingHoursPerMonth = await getTotalWorkingHoursExcludingWeekends(
-            startOfMonth,
-            new Date(now.getFullYear(), now.getMonth() + 1, 0)
-        )
-
-        //get lastMonth of leave days
-        employee.leaveApplication.forEach((leave) => {
-            totalLeaveDays += getDayDifference(leave)
-        })
-
-        // Process employee clock-in data
-        employee.clockIns.forEach(async (clockIn) => {
-            const { startingTime, endingTime } = clockIn.login;
-
-            // Calculate total working hours for this employee clock-in
-            const workingHours = getTotalWorkingHourPerDay(startingTime[0], endingTime[endingTime.length - 1]);
-
-            totalEmpWorkingHours += workingHours;
-
-            // Compare with scheduled time (assumed to be "09:00")
-            await checkLogin("09:00", startingTime[0]);
+        employee.clockIns.forEach(({ login }) => {
+            const { startingTime, endingTime } = login;
+            totalEmpWorkingHours += getTotalWorkingHourPerDay(startingTime[0], endingTime[endingTime.length - 1]);
+            checkLogin("09:00", startingTime[0]);
         });
-        const arrangedData = employee?.clockIns?.sort((a, b) => new Date(a.date) - new Date(b.date));
 
-        // Return the response with collected data
+        const companyWorkingHours = getTotalWorkingHoursExcludingWeekends(startOfMonth, endOfMonth);
+        const totalWorkingHoursPerMonth = getTotalWorkingHoursExcludingWeekends(startOfMonth, new Date(now.getFullYear(), now.getMonth() + 1, 0));
+
         res.send({
             totalRegularLogins: regular,
             totalLateLogins: late,
             totalEarlyLogins: early,
-            companyTotalWorkingHour,
+            companyWorkingHours,
             totalWorkingHoursPerMonth,
-            totalEmpWorkingHours: totalEmpWorkingHours.toFixed(2),// Return total working hours for the employee
+            totalEmpWorkingHours: totalEmpWorkingHours.toFixed(2),
             totalLeaveDays,
-            clockIns: arrangedData
+            clockIns: employee.clockIns.sort((a, b) => new Date(a.date) - new Date(b.date))
         });
     } catch (error) {
-        console.error(error);
+        console.error("Error fetching employee data:", error);
         res.status(500).send({ message: "Server error", details: error.message });
     }
 });
+
 
 router.get("/sendmail/:id/:clockinId", async (req, res) => {
     try {
@@ -940,12 +876,13 @@ router.get("/sendmail/:id/:clockinId", async (req, res) => {
 
 router.get("/", verifyAdminHrNetworkAdmin, async (req, res) => {
     try {
-        let attendanceData = await ClockIns.find({})
+        let attendanceData = await ClockIns.find()
             .populate({ path: "employee", select: "FirstName LastName" })
             .sort({ date: -1 });
 
         res.send(attendanceData);
     } catch (error) {
+        console.error("Error fetching attendance data:", error);
         res.status(500).send({ message: error.message })
     }
 })

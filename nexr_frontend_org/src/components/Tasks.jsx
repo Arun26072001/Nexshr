@@ -588,9 +588,9 @@ const Tasks = ({ employees }) => {
               />
             ) :
               <>
-                <div className="projectParent">
-                  <div className="col-lg-6 projectTitle">Tasks</div>
-                  <div className="col-lg-6 projectChild">
+                <div className="projectParent flex-wrap">
+                  <div className="col-lg-6 col-md-4 col-12 projectTitle">Tasks</div>
+                  <div className="col-lg-6 col-md-8 col-12 projectChild">
                     <SelectPicker
                       data={projects}
                       size="lg"

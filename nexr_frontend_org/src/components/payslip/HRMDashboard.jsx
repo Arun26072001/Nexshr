@@ -342,7 +342,8 @@ export default function HRMDashboard() {
     async function gettingEmps() {
         try {
             const emps = await fetchAllEmployees();
-            setEmployees(emps.map((emp) => ({ label: emp.FirstName + " " + emp.LastName, value: emp._id })))
+            const withoutMyData = emps.filter((emp)=> emp._id !== _id);
+            setEmployees(withoutMyData.map((emp) => ({ label: emp.FirstName + " " + emp.LastName, value: emp._id })))
         } catch (error) {
             console.log(error);
         }

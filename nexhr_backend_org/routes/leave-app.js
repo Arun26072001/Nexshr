@@ -573,193 +573,204 @@ leaveApp.get("/:id", verifyHREmployee, async (req, res) => {
 
 // get employee of leave data
 leaveApp.get("/date-range/hr", verifyHR, async (req, res) => {
-  let startOfMonth;
-  let endOfMonth;
+  const now = new Date();
+  let startOfMonth, endOfMonth;
 
-  if (req?.query?.daterangeValue) {
-    startOfMonth = new Date(req.query.daterangeValue[0]);
-    endOfMonth = new Date(req.query.daterangeValue[1]);
-    // Include the full last day of the range
-    endOfMonth.setHours(23, 59, 59, 999);
+  if (req.query?.daterangeValue) {
+    [startOfMonth, endOfMonth] = req.query.daterangeValue.map(date => new Date(date));
+    endOfMonth.setHours(23, 59, 59, 999); // Include full last day
   } else {
-    const now = new Date(); // Define "now" for current date logic
     startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-    endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
-    // Include the full last day of the month
-    endOfMonth.setHours(23, 59, 59, 999);
+    endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
   }
 
   try {
-    // Fetch leave data for employees with Account 3
     const employeesLeaveData = await Employee.find({ Account: 3 }, "_id FirstName LastName")
       .populate({
         path: "leaveApplication",
         match: {
-          fromDate: {
-            $gte: startOfMonth,
-            $lte: endOfMonth
-          },
-          toDate: {
-            $gte: startOfMonth,
-            $lte: endOfMonth
-          }
+          fromDate: { $gte: startOfMonth, $lte: endOfMonth },
+          toDate: { $gte: startOfMonth, $lte: endOfMonth }
         },
-        populate: [{ path: "employee", select: "FirstName LastName Email" },
-        { path: "coverBy", select: "FirstName LastName Email" }]
+        populate: [
+          { path: "employee", select: "FirstName LastName Email" },
+          { path: "coverBy", select: "FirstName LastName Email" }
+        ]
       });
 
-    // Flatten leaveApplication data
-    let leaveData = employeesLeaveData.map(data => data.leaveApplication).flat();
-    leaveData = leaveData.sort((a, b) => new Date(a.fromDate) - new Date(b.fromDate));
-    leaveData = leaveData.map((leave) => {
-      return {
+    let leaveData = employeesLeaveData
+      .flatMap(emp => emp.leaveApplication) // Flatten leave data
+      .sort((a, b) => new Date(a.fromDate) - new Date(b.fromDate))
+      .map(leave => ({
         ...leave.toObject(),
         prescription: leave.prescription
           ? `${process.env.REACT_APP_API_URL}/uploads/${leave.prescription}`
           : null
-      }
-    })
-    // Filter and calculate leave data
-    const approvedLeave = leaveData.filter(data => data.status === "approved");
-    const leaveInHours = approvedLeave.reduce((total, data) => total + getDayDifference(data) * 9, 0);
-    const pendingLeave = leaveData.filter(data => data.status === "pending");
-    const upComingLeave = leaveData.filter(data => new Date(data.date).getTime() > new Date().getTime());
-    const peoplesOnLeave = approvedLeave.filter(data => new Date(data.date).toDateString() === new Date().toDateString());
+      }));
+
+    const approvedLeave = leaveData.filter(leave => leave.status === "approved");
+    const leaveInHours = approvedLeave.reduce(
+      (total, leave) => total + getDayDifference(leave) * 9, 0
+    );
+
+    const pendingLeave = leaveData.filter(leave => leave.status === "pending");
+    const upcomingLeave = leaveData.filter(leave => new Date(leave.fromDate) > now);
+    const peopleOnLeave = approvedLeave.filter(leave =>
+      new Date(leave.fromDate).toDateString() === now.toDateString()
+    );
 
     res.send({
       leaveData,
       approvedLeave,
-      peoplesOnLeave,
+      leaveInHours,
+      peopleOnLeave,
       pendingLeave,
-      upComingLeave,
-      leaveInHours
+      upcomingLeave
     });
-  } catch (err) {
-    console.error("Error fetching leave data:", err);
-    res.status(500).send({ error: err.message });
+  } catch (error) {
+    console.error("Error fetching leave data:", error);
+    res.status(500).send({ error: "An error occurred while fetching leave data." });
   }
 });
 
 //get all employees of leave application in month
 leaveApp.get("/date-range/admin", verifyAdmin, async (req, res) => {
+  const now = new Date();
+  let startOfMonth, endOfMonth;
 
-  let startOfMonth;
-  let endOfMonth;
-  if (req?.query?.daterangeValue) {
+  if (req.query?.daterangeValue) {
     startOfMonth = new Date(req.query.daterangeValue[0]);
     endOfMonth = new Date(req.query.daterangeValue[1]);
+    endOfMonth.setHours(23, 59, 59, 999); // Ensure the full last day is included
   } else {
     startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-    endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+    endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
   }
 
   try {
-    // if a person has account 2, can get date range of all emp leave data
     const employeesLeaveData = await Employee.find({}, "_id FirstName LastName")
       .populate({
         path: "leaveApplication",
         match: {
-          fromDate: {
-            $gte: startOfMonth,
-            $lte: endOfMonth
-          },
-          toDate: {
-            $gte: startOfMonth,
-            $lte: endOfMonth
-          }
+          fromDate: { $gte: startOfMonth, $lte: endOfMonth },
+          toDate: { $gte: startOfMonth, $lte: endOfMonth }
         },
-        populate: [{ path: "employee", select: "FirstName LastName Email" },
-        { path: "coverBy", select: "FirstName LastName Email" }]
+        populate: [
+          { path: "employee", select: "FirstName LastName Email" },
+          { path: "coverBy", select: "FirstName LastName Email" }
+        ]
       });
 
-    let leaveData = employeesLeaveData.map(data => data.leaveApplication).flat();
-    leaveData = leaveData.sort((a, b) => new Date(a.fromDate) - new Date(b.fromDate));
-    leaveData = leaveData.map((leave) => {
-      return {
+    let leaveData = employeesLeaveData
+      .flatMap(emp => emp.leaveApplication) // Flatten leave data
+      .sort((a, b) => new Date(a.fromDate) - new Date(b.fromDate))
+      .map(leave => ({
         ...leave.toObject(),
         prescription: leave.prescription
           ? `${process.env.REACT_APP_API_URL}/uploads/${leave.prescription}`
           : null
-      }
-    })
-    const approvedLeave = leaveData.filter(data => data.status === "approved");
-    const leaveInHours = approvedLeave.reduce((total, data) => total + getDayDifference(data) * 9, 0);
-    const pendingLeave = leaveData.filter(data => data.status === "pending");
-    const upComingLeave = leaveData.filter(data => new Date(data.date).getTime() > new Date().getTime())
-    const peoplesOnLeave = approvedLeave.filter(data => new Date(data.date).getTime() === new Date().getTime())
-    res.send({ leaveData, approvedLeave, peoplesOnLeave, pendingLeave, upComingLeave, leaveInHours });
-  } catch (err) {
-    res.status(500).send({ errpr: err.message })
+      }));
+
+    const approvedLeave = leaveData.filter(leave => leave.status === "approved");
+    const leaveInHours = approvedLeave.reduce(
+      (total, leave) => total + getDayDifference(leave) * 9, 0
+    );
+
+    const pendingLeave = leaveData.filter(leave => leave.status === "pending");
+    const upcomingLeave = leaveData.filter(leave => new Date(leave.fromDate) > now);
+    const peopleOnLeave = approvedLeave.filter(leave =>
+      new Date(leave.fromDate).toDateString() === now.toDateString()
+    );
+
+    res.send({
+      leaveData,
+      approvedLeave,
+      leaveInHours,
+      peopleOnLeave,
+      pendingLeave,
+      upcomingLeave
+    });
+  } catch (error) {
+    console.error("Error fetching leave data:", error);
+    res.status(500).send({ error: "Server error occurred while fetching leave data." });
   }
-})
+});
 
 // To get leave range date of data
 leaveApp.get("/date-range/:empId", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
   const now = new Date();
-  let startOfMonth;
-  let endOfMonth;
-  if (req?.query?.daterangeValue) {
+  let startOfMonth, endOfMonth;
+
+  if (req.query?.daterangeValue) {
     startOfMonth = new Date(req.query.daterangeValue[0]);
     endOfMonth = new Date(req.query.daterangeValue[1]);
+    endOfMonth.setHours(23, 59, 59, 999); // Include the full last day
   } else {
     startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-    endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+    endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
   }
 
-  // const Header = req.headers["authorization"]
-  // jwt.verify(Header, jwtKey, async (err, authData) => {
   try {
-    // if a person has account 3, can get date range of his leave data
     const employeeLeaveData = await Employee.findById(req.params.empId, "_id FirstName LastName")
       .populate({
         path: "leaveApplication",
         match: {
-          fromDate: {
-            $gte: startOfMonth,
-            $lte: endOfMonth
-          },
-          toDate: {
-            $gte: startOfMonth,
-            $lte: endOfMonth
-          },
+          fromDate: { $gte: startOfMonth, $lte: endOfMonth },
+          toDate: { $gte: startOfMonth, $lte: endOfMonth }
         },
-        populate: [{ path: "employee", select: "FirstName LastName Email" },
-        { path: "coverBy", select: "FirstName LastName Email" }] // need name in table
+        populate: [
+          { path: "employee", select: "FirstName LastName Email" },
+          { path: "coverBy", select: "FirstName LastName Email" }
+        ]
       });
 
-    if (employeeLeaveData?.leaveApplication.length > 0) {
-      let leaveData = employeeLeaveData.leaveApplication.map(data => data).flat();
-      leaveData = leaveData.sort((a, b) => new Date(a.fromDate) - new Date(b.fromDate));
-
-      leaveData = leaveData.map((leave) => {
-        return {
-          ...leave.toObject(),
-          prescription: leave.prescription
-            ? `${process.env.REACT_APP_API_URL}/uploads/${leave.prescription}`
-            : null
-        }
-      })
-      const approvedLeave = leaveData.filter(data => data.status === "approved");
-      const leaveInHours = approvedLeave.reduce((total, data) => total + getDayDifference(data) * 9, 0);
-      const pendingLeave = leaveData.filter(data => data.status === "pending");
-      const upComingLeave = leaveData.filter(data => new Date(data.date).getTime() > new Date().getTime())
-      const peoplesOnLeave = approvedLeave.filter(data => new Date(data.date).getTime() === new Date().getTime())
-      res.send({ leaveData, approvedLeave, peoplesOnLeave, pendingLeave, upComingLeave, leaveInHours });
-    } else {
-      res.send({
+    if (!employeeLeaveData || !employeeLeaveData.leaveApplication.length) {
+      return res.send({
         leaveData: [],
         approvedLeave: [],
-        peoplesOnLeave: [],
+        peopleOnLeave: [],
         pendingLeave: [],
-        upComingLeave: [],
+        upcomingLeave: [],
         leaveInHours: 0
-      })
+      });
     }
 
-  } catch (err) {
-    res.status(500).send({ message: "Error in getting emp of leave reqests", details: err.message })
+    const leaveData = employeeLeaveData.leaveApplication
+      .sort((a, b) => new Date(a.fromDate) - new Date(b.fromDate))
+      .map(leave => ({
+        ...leave.toObject(),
+        prescription: leave.prescription
+          ? `${process.env.REACT_APP_API_URL}/uploads/${leave.prescription}`
+          : null
+      }));
+
+    const approvedLeave = leaveData.filter(leave => leave.status === "approved");
+    const leaveInHours = approvedLeave.reduce(
+      (total, leave) => total + getDayDifference(leave) * 9, 0
+    );
+    
+    const pendingLeave = leaveData.filter(leave => leave.status === "pending");
+    const upcomingLeave = leaveData.filter(leave => new Date(leave.fromDate) > now);
+    const peopleOnLeave = approvedLeave.filter(leave =>
+      new Date(leave.fromDate).toDateString() === now.toDateString()
+    );
+
+    res.send({
+      leaveData,
+      approvedLeave,
+      peopleOnLeave,
+      pendingLeave,
+      upcomingLeave,
+      leaveInHours
+    });
+  } catch (error) {
+    console.error("Error fetching leave data:", error);
+    res.status(500).send({
+      message: "Error retrieving leave requests.",
+      details: error.message
+    });
   }
-})
+});
 
 leaveApp.get("/", verifyAdminHR, async (req, res) => {
   try {
@@ -781,7 +792,6 @@ leaveApp.get("/", verifyAdminHR, async (req, res) => {
             : null
         }
       })
-      console.log(requests.length);
 
       res.send(requests);
     }

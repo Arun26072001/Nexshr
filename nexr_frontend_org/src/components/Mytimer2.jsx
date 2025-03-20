@@ -17,8 +17,6 @@ export default function Mytimer2({ task, updatedTimerInTask }) {
             setMin(newMin || 0);
             setSec(newSec || 0);
         } else {
-            console.log(task?.spend?.timeHolder);
-
             const hourMinSec = formatTimeFromHour(Number(task?.spend?.timeHolder));
             setHour(hourMinSec.split(":")[0])
             setMin(hourMinSec.split(":")[1])

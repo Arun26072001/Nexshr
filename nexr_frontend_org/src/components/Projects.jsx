@@ -105,6 +105,8 @@ export default function Projects({ employees }) {
                     Authorization: data.token || ""
                 }
             })
+            console.log(res.data);
+
             setProjects(res.data);
             setFilterProjects(res.data);
         } catch (error) {
@@ -274,7 +276,7 @@ export default function Projects({ employees }) {
                         : isLoading ? <Loading height='80vh' /> : <>
                             <div className="projectParent">
                                 <div className="projectTitle col-lg-6">Projects</div>
-                                <div className="col-lg-6 projectChild">
+                                <div className="col-lg-6 projectChild gap-1">
                                     <SelectPicker
                                         data={companies}
                                         size="lg"

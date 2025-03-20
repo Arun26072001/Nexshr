@@ -5,7 +5,7 @@ const { verifyHR, verifyAdminHR, verifyAdminHREmployeeManagerNetwork } = require
 const { Country } = require('../OrgModels/CountryModel');
 
 router.get("/", verifyAdminHREmployeeManagerNetwork, (req, res) => {
-    Country.find()
+    Country.find().lean()
       .exec(function (err, country) {
         if(err){
           res.status(500).send(err);
@@ -18,6 +18,7 @@ router.get("/", verifyAdminHREmployeeManagerNetwork, (req, res) => {
   router.get("/:id", verifyAdminHR, (req, res) => {
     Country.findById(req.params.id)
       .populate("states")
+      .lean()
       .exec((err, country) => {
         if (err) {
           res.status(500).send(err);

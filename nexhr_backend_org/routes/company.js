@@ -11,7 +11,7 @@ const { Position } = require('../models/PositionModel');
 dotenv.config()
 
 router.get("/", verifyAdminHREmployeeManagerNetwork, (req, res) => {
-  Company.find()
+  Company.find().lean()
     .exec(function (err, compnay) {
       if (err) {
         return res.status(500).send({ error: err.message })
@@ -22,8 +22,7 @@ router.get("/", verifyAdminHREmployeeManagerNetwork, (req, res) => {
 
 router.get("/:id", verifyAdminHR, async (req, res) => {
   try {
-    const company = await Company.findById(req.params.id).exec();
-    console.log(company);
+    const company = await Company.findById(req.params.id).lean().exec();
 
     if (!company) {
       return res.status(404).send({ error: "Company not found" })
@@ -92,9 +91,6 @@ router.put("/:id", verifyAdminHR, (req, res) => {
         }
       });
     }
-
-    console.log("put");
-    console.log(req.body);
   });
 });
 
