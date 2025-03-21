@@ -5,7 +5,6 @@ const { LeaveApplication,
 } = require('../models/LeaveAppModel');
 const { Employee } = require('../models/EmpModel');
 const { verifyHR, verifyHREmployee, verifyEmployee, verifyAdmin, verifyAdminHREmployeeManagerNetwork, verifyAdminHR, verifyAdminHREmployee, verifyTeamHigherAuthority } = require('../auth/authMiddleware');
-const { Position } = require('../models/PositionModel');
 const { Team } = require('../models/TeamModel');
 const { upload } = require('./imgUpload');
 const now = new Date();
@@ -280,7 +279,7 @@ leaveApp.get("/emp/:empId", verifyAdminHREmployeeManagerNetwork, async (req, res
     const { daterangeValue } = req.query;
 
     // Fetch employee data with necessary fields
-    const emp = await Employee.findById(empId, 
+    let emp = await Employee.findById(empId,
       "annualLeaveYearStart position FirstName LastName Email phone typesOfLeaveCount typesOfLeaveRemainingDays"
     ).populate("position", "PositionName").lean();
 
@@ -315,11 +314,11 @@ leaveApp.get("/emp/:empId", verifyAdminHREmployeeManagerNetwork, async (req, res
     // Fetch team members' leaves only if team exists
     const peopleLeaveOnMonth = team
       ? await LeaveApplication.find({
-          employee: { $in: team.employees },
-          fromDate: { $lte: endDate },
-          toDate: { $gte: startDate },
-          status: "approved"
-        }).lean()
+        employee: { $in: team.employees },
+        fromDate: { $lte: endDate },
+        toDate: { $gte: startDate },
+        status: "approved"
+      }).lean()
       : [];
 
     // Helper function to format leave data
@@ -327,6 +326,20 @@ leaveApp.get("/emp/:empId", verifyAdminHREmployeeManagerNetwork, async (req, res
       ...leave,
       prescription: leave.prescription ? `${process.env.REACT_APP_API_URL}/uploads/${leave.prescription}` : null
     });
+
+    const permissionLeaveCount = leaveApplications.filter((leave) => leave.leaveType.includes("Permission")).length;
+    const unpaidLeaveCount = leaveApplications.filter((leave) => leave.leaveType.includes("Unpaid")).length;
+    emp = {
+      ...emp,
+      typesOfLeaveCount: {
+        ...emp.typesOfLeaveCount,
+        unpaidLeaveCount
+      },
+      typesOfLeaveRemainingDays: {
+        ...emp.typesOfLeaveRemainingDays,
+        permissionLeaveCount
+      }
+    }
 
     res.json({
       employee: emp,
@@ -709,7 +722,7 @@ leaveApp.get("/date-range/:empId", verifyAdminHREmployeeManagerNetwork, async (r
     const leaveInHours = approvedLeave.reduce(
       (total, leave) => total + getDayDifference(leave) * 9, 0
     );
-    
+
     const pendingLeave = leaveData.filter(leave => leave.status === "pending");
     const upcomingLeave = leaveData.filter(leave => new Date(leave.fromDate) > now);
     const peopleOnLeave = approvedLeave.filter(leave =>

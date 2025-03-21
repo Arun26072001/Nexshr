@@ -222,7 +222,6 @@ router.post("/not-login/apply-leave", async (req, res) => {
                 }
             }
         ]);
-        console.log(notLoginEmps[0]);
 
         if (notLoginEmps.length === 0) {
             return res.send({ message: "No employees found without punch-in today." });
@@ -245,7 +244,6 @@ router.post("/not-login/apply-leave", async (req, res) => {
                 emp.workingTimePattern.FinishingTime
             );
             const fromDate = new Date(now.getTime() - (workingHours || 1000 * 60 * 60 * 9.30));
-            console.log(fromDate);
 
             // Create new full-day leave application
             const leaveApplication = {
@@ -287,14 +285,14 @@ router.post("/not-login/apply-leave", async (req, res) => {
         const insertedLeaves = await LeaveApplication.insertMany(leaveApplications);
 
         // Prepare employee updates for bulk write
-        // notLoginEmps.forEach((emp, index) => {
-        //     employeeUpdates.push({
-        //         updateOne: {
-        //             filter: { _id: emp._id },
-        //             update: { $set: { leaveApplication: [insertedLeaves[index]._id] } }
-        //         }
-        //     });
-        // });
+        notLoginEmps.forEach((emp, index) => {
+            employeeUpdates.push({
+                updateOne: {
+                    filter: { _id: emp._id },
+                    update: { $set: { leaveApplication: [insertedLeaves[index]._id] } }
+                }
+            });
+        });
 
         // Perform bulk update on employees
         if (employeeUpdates.length > 0) {
