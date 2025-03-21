@@ -25,6 +25,7 @@ const AddEmployeeForm = ({ details, handleScroll, handlePersonal, handleFinancia
     const [splitError, setSplitError] = useState("");
     const [selectedCountryCode, setselectedCountryCode] = useState("");
     const [selectedCountry, setSelectedCountry] = useState("");
+    const [isAddEmployee, setIsAddEmployee] = useState(false);
     const [employeeObj, setEmployeeObj] = useState({
         FirstName: "",
         LastName: "",
@@ -125,6 +126,7 @@ const AddEmployeeForm = ({ details, handleScroll, handlePersonal, handleFinancia
         initialValues: employeeObj,
         validationSchema: empFormValidation,
         onSubmit: async (values, { resetForm }) => {
+            setIsAddEmployee(true);
             try {
                 const res = await axios.post(`${url}/api/employee`, values, {
                     headers: {
@@ -142,6 +144,7 @@ const AddEmployeeForm = ({ details, handleScroll, handlePersonal, handleFinancia
                     console.log("error occured!");
                 }
             }
+            setIsAddEmployee(false);
         }
     })
 
@@ -999,7 +1002,7 @@ const AddEmployeeForm = ({ details, handleScroll, handlePersonal, handleFinancia
                         </div>
                         <div className="w-50">
                             <button type="submit" className="button" style={{ padding: "12px" }} onClick={navToError}>
-                                Save
+                                {isAddEmployee ? <Loading size={20} color='white' /> : "Save"}
                             </button>
                         </div>
                     </div>

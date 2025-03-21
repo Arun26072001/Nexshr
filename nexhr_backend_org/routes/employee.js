@@ -333,7 +333,7 @@ router.put("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
       department: req?.body?.department || null,
       teamLead: req?.body?.teamLead || "665601de20a3c61c646a135f",
       managerId: req?.body?.managerId || "6651e4a810994f1d24cf3a19",
-      Account: roleName?.toLowerCase() === "manager" ? 4 : roleName.toLowerCase() === "network admin" ? 5 : 3
+      Account: roleName === "Admin" ? 1 : roleName === "HR" ? 2 : roleName?.toLowerCase() === "manager" ? 4 : roleName.toLowerCase() === "network admin" ? 5 : 3
     };
 
     if (req.body.hour && req.body.mins) {
