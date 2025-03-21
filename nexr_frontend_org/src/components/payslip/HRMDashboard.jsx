@@ -420,8 +420,10 @@ export default function HRMDashboard() {
             try {
                 if (_id) {
                     const { timeData } = await getDataAPI(_id);
-                    if (timeData?.clockIns[0]?._id) {
-                        setWorkTimeTracker(timeData.clockIns[0])
+                    console.log(timeData);
+                    
+                    if (timeData?.[0]) {
+                        setWorkTimeTracker(timeData[0])
                     } else {
                         setWorkTimeTracker({ ...workTimeTracker });
                         removeClockinsData();
