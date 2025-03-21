@@ -113,7 +113,7 @@ export default function LeaveRequest() {
     };
     return (
         isLoading ? (
-            <Loading />
+            <Loading height="80vh" />
         ) : (
             <>
                 <input

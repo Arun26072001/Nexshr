@@ -14,6 +14,7 @@ export default function Position({ companies }) {
     const [isLoading, setIsLoading] = useState(false);
     const [isPositionsDataUpdate, setIsPositionsDataUpdate] = useState(false);
     const [isAddPosition, setIsAddPosition] = useState(false);
+    const [isChangingPosition, setIschangingPosition] = useState(false);
 
     function reloadPositionPage() {
         setIsPositionsDataUpdate(!isPositionsDataUpdate);
@@ -34,6 +35,7 @@ export default function Position({ companies }) {
     }
 
     async function addPosition() {
+        setIschangingPosition(true);
         try {
             const msg = await axios.post(url + "/api/position", positionObj, {
                 headers: {
@@ -47,6 +49,7 @@ export default function Position({ companies }) {
         } catch (error) {
             toast.error(error?.response?.data?.message || "Failed to add position");
         }
+        setIschangingPosition(false);
     }
 
     async function deletePosition(id) {
@@ -65,6 +68,7 @@ export default function Position({ companies }) {
     }
 
     async function editPosition() {
+        setIschangingPosition(true);
         try {
             const response = await axios.put(`${url}/api/position/${positionObj._id}`, positionObj, {
                 headers: {
@@ -80,6 +84,7 @@ export default function Position({ companies }) {
             const errorMessage = error?.response?.data?.message || error.message || "Something went wrong";
             toast.error(errorMessage);
         }
+        setIschangingPosition(false);
     }
 
     async function getEditPositionId(id) {
@@ -118,7 +123,7 @@ export default function Position({ companies }) {
     }, [isPositionsDataUpdate]);
 
     return (
-        isLoading ? <Loading /> :
+        isLoading ? <Loading height="80vh" /> :
             isAddPosition ? (
                 <CommonModel
                     dataObj={positionObj}
@@ -129,6 +134,7 @@ export default function Position({ companies }) {
                     comps={companies}
                     modifyData={modifyPositions}
                     type="Position"
+                    isWorkingApi={isChangingPosition}
                 />
             ) : (
                 <div className='dashboard-parent pt-4'>

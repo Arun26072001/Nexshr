@@ -330,6 +330,10 @@ async function getUserLocation(lat, lng) {
 }
 
 function formatTimeFromHour(hour) {
+    if (!hour) {
+        return `00:00:00`;
+    }
+
     const hours = Math.floor(hour);
     const minutes = Math.floor(hour % 60);
     const seconds = Math.floor((hour * 60) % 60); // Convert remaining fraction to seconds
@@ -389,7 +393,7 @@ async function fetchCompanies() {
     }
 }
 
-function getTimeToHour(timeStr) {
+function getTimeFromHour(timeStr) {
     if (timeStr) {
         const [hours, minutes, seconds] = timeStr.split(":").map(Number);
         return (((hours * 60) + minutes + (seconds / 60)) / 60)?.toFixed(2);
@@ -398,9 +402,36 @@ function getTimeToHour(timeStr) {
     }
 }
 
+async function fileUploadInServer(files) {
+    console.log(files);
+
+    const formData = new FormData();
+
+    // Append each file to FormData
+    files.forEach((file) => {
+        formData.append("documents", file); // Ensure correct field name
+    });
+
+    // Upload the files
+    const response = await axios.post(`${url}/api/upload`, formData, {
+        headers: {
+            Accept: "application/json",
+        },
+    });
+    if (response) {
+        return response.data
+    }
+
+    // Check if upload was successful
+    if (!response.data || !response.data.files) {
+        console.error("Upload failed:", response);
+        return;
+    }
+
+}
 
 export {
-    getTimeToHour,
+    getTimeFromHour,
     getHoliday,
     addDataAPI,
     fetchCompanies,
@@ -427,5 +458,6 @@ export {
     formatTime,
     fetchWorkplace,
     fetchRoles,
-    formatTimeFromHour
+    formatTimeFromHour,
+    fileUploadInServer
 };

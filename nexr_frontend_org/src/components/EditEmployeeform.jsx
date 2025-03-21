@@ -28,10 +28,8 @@ const EditEmployeeform = ({ details, empData, handleScroll, handlePersonal, hand
     const [leaveTypes, setLeaveTypes] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
     const [errorData, setErrorData] = useState("");
-    const [employeeObj, setEmployeeObj] = useState(
-        empData
-    );
-
+    const employeeObj = empData;
+    
     const empFormValidation = Yup.object().shape({
         FirstName: Yup.string().required('First Name is required'),
         LastName: Yup.string().required('Last Name is required'),
@@ -252,7 +250,7 @@ const EditEmployeeform = ({ details, empData, handleScroll, handlePersonal, hand
 
 
     return (
-        isLoading ? <Loading /> :
+        isLoading ? <Loading height="80vh" /> :
             <NoDataFound message={errorData} /> ?
                 <form onSubmit={formik.handleSubmit}>
                     <div className="empForm">

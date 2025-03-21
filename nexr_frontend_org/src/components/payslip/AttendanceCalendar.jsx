@@ -46,7 +46,7 @@ export default function AttendanceCalendar() {
         gettingHoliday();
     }, []);
     return (
-        isLoading ? <Loading /> :
+        isLoading ? <Loading height="80vh" /> :
             holidays?.length > 0 ?
                 <Calendar
                     localizer={localizer}

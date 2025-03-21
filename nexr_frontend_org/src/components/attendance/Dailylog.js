@@ -77,7 +77,7 @@ const Dailylog = ({ attendanceData, isLoading }) => {
     };
 
     return (
-        isLoading ? <Loading /> :
+        isLoading ? <Loading height="80vh" /> :
             <div className='dashboard-parent pt-4'>
                 <div className='d-flex justify-content-between align-items-center px-3'>
                     <div>

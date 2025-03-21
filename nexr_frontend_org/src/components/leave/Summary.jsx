@@ -28,7 +28,7 @@ export default function LeaveSummary() {
                 </div>
             </div>
             {
-                isLoading ? <Loading /> :
+                isLoading ? <Loading height="80vh" /> :
                     <div>
 
                         <div className="leaveContainer d-block">

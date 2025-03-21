@@ -8,7 +8,7 @@ const Payslip = ({ payslips, isLoading }) => {
     const [daterangeValue, setDaterangeValue] = useState("");
 
     return (
-        isLoading ? <Loading /> :
+        isLoading ? <Loading height="80vh" /> :
             <div>
                 <div className="leaveDateParent mb-2">
                     <p className="payslipTitle">

@@ -34,7 +34,7 @@ export default function LeaveCalender() {
             </div>
 
             {
-                isLoading ? <Loading /> :
+                isLoading ? <Loading height="80vh" /> :
                     <div className="leaveContainer d-block">
                         {/* Search Input */}
                         <div className='px-3 my-3'>

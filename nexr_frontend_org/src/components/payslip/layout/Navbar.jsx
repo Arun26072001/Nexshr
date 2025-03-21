@@ -348,7 +348,7 @@ export default function Navbar({ handleSideBar }) {
                         appearance="default"
                         placeholder="Choose your work place"
                     /> */}
-                    <span className="lg ms-5">
+                    {/* <span className="lg ms-5">
                         <svg width="16" height="17" viewBox="0 0 16 17" fill="none" xmlns="http://www.w3.org/2000/svg">
                             <g clipPath="url(#clip0_2046_6893)">
                                 <path d="M14 8C14 11.5899 11.0899 14.5 7.5 14.5M14 8C14 4.41015 11.0899 1.5 7.5 1.5M14 8H1M7.5 14.5C3.91015 14.5 1 11.5899 1 8M7.5 14.5C8.91418 14.5 10.0606 11.5899 10.0606 8C10.0606 4.41015 8.91418 1.5 7.5 1.5M7.5 14.5C6.08582 14.5 4.93939 11.5899 4.93939 8C4.93939 4.41015 6.08582 1.5 7.5 1.5M1 8C1 4.41015 3.91015 1.5 7.5 1.5" stroke="#212143" strokeWidth="1.20741" strokeLinejoin="round" />
@@ -359,12 +359,12 @@ export default function Navbar({ handleSideBar }) {
                                 </clipPath>
                             </defs>
                         </svg>
-                    </span>
-                    <span className="lang ms-2">
+                    </span> */}
+                    {/* <span className="lang ms-2">
                         <svg width="17" height="11" viewBox="0 0 17 11" fill="none" xmlns="http://www.w3.org/2000/svg">
                             <path d="M0.118608 11V0.818182H6.50213V2.14062H1.65483V5.2429H6.16903V6.56037H1.65483V9.67756H6.56179V11H0.118608ZM16.6882 0.818182V11H15.2763L10.1008 3.53267H10.0064V11H8.47016V0.818182H9.89203L15.0724 8.29545H15.1669V0.818182H16.6882Z" fill="#212143" />
                         </svg>
-                    </span>
+                    </span> */}
                     <span className="bell mx-2 position-relative" data-bs-toggle="offcanvas" data-bs-target="#offcanvasRight" aria-controls="offcanvasRight">
                         <svg width="16" height="17" viewBox="0 0 16 17" fill="none" xmlns="http://www.w3.org/2000/svg">
                             <g clipPath="url(#clip0_2046_6896)">

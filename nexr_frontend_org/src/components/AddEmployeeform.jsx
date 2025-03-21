@@ -345,7 +345,7 @@ const AddEmployeeForm = ({ details, handleScroll, handlePersonal, handleFinancia
     }
 
     return (
-        isLoading ? <Loading /> :
+        isLoading ? <Loading height="80vh" /> :
             <form onSubmit={formik.handleSubmit}>
                 <div className="empForm">
                     <div className="catogaries-container">

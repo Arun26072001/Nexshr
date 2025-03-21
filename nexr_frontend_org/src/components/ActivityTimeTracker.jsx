@@ -7,7 +7,6 @@ import { toast } from "react-toastify";
 import WavingHandRoundedIcon from '@mui/icons-material/WavingHandRounded';
 import { Modal, Button } from "rsuite";
 import { EssentialValues } from "../App";
-import axios from "axios";
 
 const ActivityTimeTracker = () => {
     const {
@@ -20,11 +19,9 @@ const ActivityTimeTracker = () => {
         changeReasonForLate
     } = useContext(TimerStates);
     const { data, socket } = useContext(EssentialValues);
-
     const [isDisabled, setIsDisabled] = useState(false);
-    const EmpName = localStorage.getItem("Name") || "Employee";
+    const EmpName = data.Name;
     const [isViewTakeTime, setIsTaketime] = useState(localStorage.getItem("isViewTakeTime") ? true : false);
-    const url = process.env.REACT_APP_API_URL;
 
     const [sec, setSec] = useState(
         Number(workTimeTracker?.[timeOption]?.timeHolder?.split(':')[2] || 0)
@@ -218,13 +215,6 @@ const ActivityTimeTracker = () => {
                             style={{ padding: "15px 15px" }}
                             title={isStartActivity ? "Stop" : "Start"}
                             onClick={
-                                // (min >= 20
-                                // && ["morningBreak", "eveningBreak"].includes(timeOption)
-                                // && !workTimeTracker[timeOption].reasonForLate)
-                                // || (min >= 40
-                                //     && timeOption === "lunch"
-                                //     && !workTimeTracker[timeOption].reasonForLate)
-                                // ? changeViewReasonForTaketime :
                                 workTimeTracker?._id
                                     ? (isDisabled
                                         ? stopTimer

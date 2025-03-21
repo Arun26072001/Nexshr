@@ -174,7 +174,7 @@ io.on("connection", (socket) => {
       const employeeSocketID = onlineUsers[employeeId]; // Get employee's socket ID
 
       if (employeeSocketID) {
-        io.to(employeeSocketID).emit("receive_announcement", data);
+        (employeeSocketID).emit("receive_announcement", data);
       } else {
         console.log(`Employee ${employeeId} is offline, skipping.`);
       }
@@ -235,6 +235,37 @@ io.on("connection", (socket) => {
       }
     }, delay);
   });
+
+  socket.on("updatedTask_In_AddComment", async (data, empId, token) => {
+
+    try {
+      const updateTask = await axios.put(`${process.env.REACT_APP_API_URL}/api/task/${empId}/${data._id}`, data, {
+        headers: {
+          Authorization: token || ""
+        }
+      });
+
+      const res = await axios.get(`${process.env.REACT_APP_API_URL}/api/task/${data._id}`, {
+        params: {
+          withComments: true
+        },
+        headers: {
+          Authorization: token || ""
+        }
+      })
+      console.log(res.data.assignedTo);
+      
+      res.data.assignedTo.map((emp) => {
+        const employeeSocketID = onlineUsers[emp._id];
+        console.log(employeeSocketID);
+        io.to(employeeSocketID).emit("send_updated_task", res.data)
+      })
+    } catch (error) {
+      console.log(error);
+
+      console.log(error.response.data.error);
+    }
+  })
 
   // Handle user disconnection
   socket.on("disconnect", () => {

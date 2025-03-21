@@ -1,6 +1,6 @@
 import React, { useContext, useEffect, useState } from "react"
 import { Dropdown, Input, Popover, SelectPicker, Whisper } from "rsuite";
-import { formatTimeFromHour, getTimeToHour } from "./ReuseableAPI";
+import { fileUploadInServer, formatTimeFromHour, getTimeFromHour } from "./ReuseableAPI";
 import { useNavigate } from "react-router-dom";
 import CommonModel from "./Administration/CommonModel";
 import axios from "axios";
@@ -48,6 +48,7 @@ const Tasks = ({ employees }) => {
   const [isDelete, setIsDelete] = useState({ type: false, value: "" });
   const [status, setStatus] = useState("Pending");
   const [isAddComment, setIsAddComment] = useState(false);
+  const [isTaskChanging, setIsTaskChanging] = useState(false);
 
   const renderMenu1 = ({ onClose, right, top, className }, ref) => {
     const handleSelect = eventKey => {
@@ -118,6 +119,7 @@ const Tasks = ({ employees }) => {
   };
 
   function changeTask(event, name) {
+
     const files = event?.target?.files; // Extract files correctly
     const value = event; // Extract value properly
 
@@ -185,10 +187,11 @@ const Tasks = ({ employees }) => {
     }
     handleAddTask()
   }
-  function removeAttachment(value) {
+  function removeAttachment(value, fileIndex) {
+
     const updatedPrevireList = previewList.filter((imgFile) => imgFile !== value);
     setPreviewList(updatedPrevireList);
-    const updatedAttachments = taskObj.attachments.filter((data) => data !== value);
+    const updatedAttachments = taskObj.attachments.filter((file, index) => index !== fileIndex);
     setTaskObj({ ...taskObj, attachments: updatedAttachments })
   }
 
@@ -237,7 +240,7 @@ const Tasks = ({ employees }) => {
         ...res.data,
         spend: {
           ...res?.data?.spend,
-          timeHolder: getTimeToHour(res?.data?.spend?.timeHolder || 0)
+          timeHolder: getTimeFromHour(res?.data?.spend?.timeHolder || 0)
         }
       });
       if (storeCommentImgs) {
@@ -250,7 +253,6 @@ const Tasks = ({ employees }) => {
       console.log(error);
     }
   }
-  console.log(allTasks);
 
   function filterByName(value) {
     if (["", null].includes(value)) {
@@ -290,7 +292,6 @@ const Tasks = ({ employees }) => {
   }, [status, allTasks]);
 
   async function editTask(updatedTask, changeComments) {
-
     if (!updatedTask?._id) {
       toast.error("Invalid task. Please try again.");
       return;
@@ -299,75 +300,61 @@ const Tasks = ({ employees }) => {
     let taskToUpdate = { ...updatedTask };
 
     // Ensure `spend.timeHolder` is correctly formatted
-    if (typeof updatedTask?.spend?.timeHolder === "string" && updatedTask.spend.timeHolder.split(":").length <= 2) {
+    if (
+      typeof updatedTask?.spend?.timeHolder === "string" &&
+      updatedTask.spend.timeHolder.split(":").length <= 2
+    ) {
       taskToUpdate.spend = {
         ...updatedTask.spend,
         timeHolder: formatTimeFromHour(updatedTask.spend.timeHolder) || "00:00:00",
       };
     }
+
     setIsUpdateTime(true);
-    let files;
+
+    let files = [];
+
     try {
       // Ensure attachments exist before filtering
-      if (taskToUpdate?.comments[0]?.attachments?.length) {
-
-        files = taskToUpdate?.comments[0]?.attachments.filter((file) => file.type === "image/png")
+      if (taskToUpdate?.comments?.[0]?.attachments?.length) {
+        files = taskToUpdate.comments[0].attachments.filter((file) => file.type === "image/png");
       } else {
         files = taskToUpdate?.attachments?.filter((file) => file.type === "image/png") || [];
       }
 
-      const formData = new FormData(); // Ensure FormData is created
-      let updatedTaskData;
-      if (files.length > 0) {
+      let updatedTaskData = { ...taskToUpdate };
 
-        // Append each file to the FormData
-        for (let index = 0; index < files.length; index++) {
-          formData.append("documents", files[index]); // Ensure correct field name for your backend
-        }
-        const response = await axios.post(`${url}/api/upload`, formData, {
-          headers: {
-            Accept: 'application/json', // Accept JSON response
-          }
-        });
-        // Check if the response is successful
-        if (!response.data) {
-          console.error('Upload failed with status:', response.status);
-          return;
-        }
-        if (taskToUpdate?.comments[0]?.attachments?.length > 0) {
+      if (files.length > 0) {
+        // Upload files if any exist
+        const responseData = await fileUploadInServer(files);
+
+        if (taskToUpdate?.comments?.[0]?.attachments?.length > 0) {
           updatedTaskData = {
             ...taskToUpdate,
             comments: [
               {
                 ...taskToUpdate.comments[0],
-                ["attachments"]: [...response.data.files.map(((file) => file.originalFile))]
-              }
-            ]
-          }
+                attachments: responseData.files.map((file) => file.originalFile),
+              },
+            ],
+          };
         } else {
-          const uploadedImgPath = taskToUpdate.attachments.filter((file) => file.type !== "image/png")
+          const uploadedImgPath = taskToUpdate.attachments?.filter((file) => file.type !== "image/png" && file.type !== "video/mp4") || [];
+
           updatedTaskData = {
             ...taskToUpdate,
-            ["attachments"]: [...uploadedImgPath, ...response.data.files.map(((file) => file.originalFile))]
-          }
-        }
-      } else {
-        updatedTaskData = {
-          ...taskToUpdate
+            attachments: [...uploadedImgPath, ...responseData.files.map((file) => file.originalFile)],
+          };
         }
       }
 
       // Send updated task
       const res = await axios.put(
-        `${url}/api/task/${data._id}/${taskToUpdate._id}`, // Ensure correct projectId
+        `${url}/api/task/${projectId}/${taskToUpdate._id}`, // Ensure correct projectId
         updatedTaskData,
         {
-          params: {
-            changeComments
-          },
-          headers: {
-            Authorization: data.token || "",
-          },
+          params: { changeComments },
+          headers: { Authorization: data?.token || "" },
         }
       );
 
@@ -385,6 +372,7 @@ const Tasks = ({ employees }) => {
       setIsAddComment(false);
     }
   }
+
 
   // handling to delete task
   function handleDeleteTask() {
@@ -418,58 +406,56 @@ const Tasks = ({ employees }) => {
   }
 
   async function addTask() {
+    let newTask;
+    setIsTaskChanging(true);
+
     if (taskObj?.attachments?.length > 0) {
-      const files = taskObj.attachments;
-      const formData = new FormData(); // Ensure FormData is created
-
-      // Append each file to the FormData
-      for (let index = 0; index < files.length; index++) {
-        formData.append("documents", files[index]); // Ensure correct field name for your backend
-      }
-
-      setIsLoading(true);
       try {
-        const response = await fetch(`${url}/api/upload`, {
-          method: 'POST',
-          body: formData,
-          headers: {
-            Accept: 'application/json', // Accept JSON response
-          },
-        });
+        const files = taskObj.attachments;
+        const responseData = await fileUploadInServer(files)
 
-        // Check if the response is successful
-        if (!response.ok) {
-          console.error('Upload failed with status:', response.status);
-          return;
-        }
-
-        const responseData = await response.json();
-        const newTask = {
+        newTask = {
           ...taskObj,
-          ["attachments"]: responseData.files.map(((file) => file.originalFile))
-        }
-        try {
-          const res = await axios.post(`${url}/api/task/${data._id}`, newTask, {
-            headers: {
-              Authorization: data.token || ""
-            }
-          })
-          toast.success(res.data.message);
-          setTaskObj({});
-          triggerHandleAddTask();
+          estTime: (new Date(taskObj.to) - new Date(taskObj.from)) / (1000 * 60 * 60),
+          attachments: responseData.files.map(file => file.originalFile)
+        };
 
-        } catch (error) {
-          toast.error(error.response.data.error)
-        }
-
+        // After successful upload, create the task
+        await createTask(newTask);
       } catch (error) {
-        console.error('An error occurred during the upload:', error);
+        console.error("Upload error:", error);
+        toast.error("File upload failed");
+      } finally {
+        setIsLoading(false);
       }
-      setIsLoading(false);
     } else {
-      console.log('No attachments to upload.');
+      newTask = {
+        ...taskObj,
+        estTime: (new Date(taskObj.to) - new Date(taskObj.from)) / (1000 * 60 * 60)
+      };
+
+      await createTask(newTask);
+    }
+
+    setIsTaskChanging(false);
+  }
+
+  // Separate function to create the task
+  async function createTask(task) {
+    try {
+      const res = await axios.post(`${url}/api/task/${data._id}`, task, {
+        headers: { Authorization: data.token || "" }
+      });
+
+      toast.success(res.data.message);
+      setTaskObj({});
+      triggerHandleAddTask();
+    } catch (error) {
+      console.error("Task creation error:", error);
+      toast.error(error.response?.data?.error || "Task creation failed");
     }
   }
+
 
   async function fetchEmpsProjects() {
     setIsLoading(true)
@@ -577,6 +563,7 @@ const Tasks = ({ employees }) => {
       isDelete.type ? <CommonModel type="Task Confirmation" modifyData={handleDeleteTask} deleteData={deleteTask} isAddData={isDelete.type} /> :
         isEditTask ? <CommonModel type="Task Assign" isAddData={isEditTask} employees={employees} changeData={changeTask} dataObj={taskObj} editData={editTask} modifyData={handleEditTask} /> :
           isAddTask ? <CommonModel
+            isWorkingApi={isTaskChanging}
             dataObj={taskObj}
             previewList={previewList}
             isAddData={isAddTask}
@@ -601,9 +588,9 @@ const Tasks = ({ employees }) => {
               />
             ) :
               <>
-                <div className="projectParent">
-                  <div className="col-lg-6 projectTitle">Tasks</div>
-                  <div className="col-lg-6 projectChild">
+                <div className="projectParent flex-wrap">
+                  <div className="col-lg-6 col-md-4 col-12 projectTitle">Tasks</div>
+                  <div className="col-lg-6 col-md-8 col-12 projectChild">
                     <SelectPicker
                       data={projects}
                       size="lg"
@@ -628,7 +615,7 @@ const Tasks = ({ employees }) => {
                     {
                       [{ name: "Pending", color: "white", icon: PauseCircleOutlineRoundedIcon, taskData: pendingTasks }, { name: "In Progress", icon: HourglassTopRoundedIcon, color: "white", taskData: progressTasks }, { name: "Completed", color: "white", icon: CheckCircleOutlineRoundedIcon, taskData: completedTasks }].map((item) => {
                         return <div className={`box-content messageCount cardContent ${status === item.name && "activeCard"}`} style={{ background: item.color, boxShadow: "rgba(0, 0, 0, 0.02) 0px 1px 3px 0px, rgba(27, 31, 35, 0.15) 0px 0px 0px 1px" }} onClick={() => setStatus(item.name)}>
-                          {<item.icon sx={{ fontSize: "65px" }} />}
+                          {<item.icon sx={{ fontSize: "50px" }} />}
                           <p className="m-0">
                             <b>
                               {item.name} Task
@@ -650,7 +637,7 @@ const Tasks = ({ employees }) => {
                   </div>
                   {
                     isLoading ? (
-                      <Loading />
+                      <Loading height="60vh" />
                     ) : status === "Pending" ? (
                       Array.isArray(pendingTasks) && pendingTasks?.length > 0 ? (
                         pendingTasks.map((task) => <TaskItem key={task._id} task={task} renderMenu3={renderMenu3} handleAddComment={handleAddComment} status={status} isLoading={isUpdateTime} getValue={getValue} handleEditTask={handleEditTask} fetchTaskById={fetchTaskById} updatedTimerInTask={updatedTimerInTask} renderMenu2={renderMenu2} handleViewTask={handleViewTask} whoIs={whoIs} updateTask={updatedTimerInTask} />)

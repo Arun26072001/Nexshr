@@ -76,7 +76,7 @@ const Permission = () => {
                 </div>
             </div>
             {
-                isLoading ? <Loading /> :
+                isLoading ? <Loading height="80vh" /> :
                     error ? <NoDataFound message={error} /> :
                         <table className="table table-striped my-4">
                             <thead>

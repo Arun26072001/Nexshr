@@ -7,7 +7,7 @@ import Loading from '../Loader';
 
 const Details = ({ attendanceData, isLoading }) => {
     return (
-        isLoading ? <Loading /> :
+        isLoading ? <Loading height="80vh" /> :
             <div className='dashboard-parent pt-4'>
                 <div className="row p-3">
                     <div className='col-lg-6 col-6'>

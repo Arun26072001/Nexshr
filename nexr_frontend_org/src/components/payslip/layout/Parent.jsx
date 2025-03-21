@@ -41,7 +41,7 @@ const Parent = () => {
             <div className="d-flex marTop">
                 <Sidebar handleLogout={handleLogout} handleSideBar={handleSideBar} sideBar={sideBar} />
                 <div className="navContent">
-                    <Suspense fallback={<Loading />}>
+                    <Suspense fallback={<Loading height="80vh" />}>
                         <Outlet />
                     </Suspense>
                 </div>

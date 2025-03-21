@@ -9,10 +9,8 @@ import { toast } from 'react-toastify';
 import { TimerStates } from './HRMDashboard';
 
 const Dashboard = () => {
-    const { updateClockins } = useContext(TimerStates)
-    const { handleLogout } = useContext(EssentialValues);
-    const empId = localStorage.getItem("_id");
-    const token = localStorage.getItem("token");
+    const { updateClockins, isEditEmp } = useContext(TimerStates)
+    const { handleLogout, setData, data } = useContext(EssentialValues);
     const [leaveData, setLeaveData] = useState({});
     const [isLoading, setIsLoading] = useState(false);
     const [dailyLogindata, setDailyLoginData] = useState({})
@@ -21,26 +19,31 @@ const Dashboard = () => {
     const gettingEmpdata = async () => {
         try {
             let workingHour = 0;
-            if (!empId) return; // Exit early if empId is not provided
+            if (!data._id) return; // Exit early if empId is not provided
 
             setIsLoading(true);
 
             // Fetch employee data
-            const data = await fetchEmployeeData(empId);
+            const empData = await fetchEmployeeData(data._id);
 
-            if (!data) {
+            if (!empData) {
                 toast.error("Error in fetching workingTimePattern data!");
                 setLeaveData({});
                 return;
             }
+            setData((pre) => ({
+                ...pre,
+                Name: empData.FirstName + " " + empData.LastName,
+                annualleave: empData.annualLeaveEntitlement
+            }))
 
             // Calculate working hours for the day
-            if (data?.workingTimePattern?.StartingTime && data?.workingTimePattern?.FinishingTime) {
-                workingHour = await getTotalWorkingHourPerDay(data?.workingTimePattern?.StartingTime, data?.workingTimePattern?.FinishingTime);
+            if (empData?.workingTimePattern?.StartingTime && empData?.workingTimePattern?.FinishingTime) {
+                workingHour = await getTotalWorkingHourPerDay(empData?.workingTimePattern?.StartingTime, empData?.workingTimePattern?.FinishingTime);
             }
 
             // Fetch clock-ins data
-            const getEmpMonthPunchIns = await gettingClockinsData(empId);
+            const getEmpMonthPunchIns = await gettingClockinsData(data._id);
 
             // Calculate total working hour percentage and total worked hour percentage
             const totalWorkingHourPercentage = (getEmpMonthPunchIns.companyTotalWorkingHour / getEmpMonthPunchIns.totalWorkingHoursPerMonth) * 100;
@@ -54,7 +57,7 @@ const Dashboard = () => {
             });
 
             // Fetch daily clock-in data
-            const clockinsData = await getDataAPI(empId);
+            const clockinsData = await getDataAPI(data._id);
             setDailyLoginData(clockinsData);
 
             // Set leave data with working hours
@@ -88,13 +91,13 @@ const Dashboard = () => {
 
     useEffect(() => {
         gettingEmpdata();
-    }, [empId]);
+    }, [isEditEmp]);
 
     return (
         <div className='dashboard-parent'>
-            <ActivityTimeTracker leaveData={leaveData} handleLogout={handleLogout} updateClockins={updateClockins} />
+            <ActivityTimeTracker empName={data.Name} leaveData={leaveData} handleLogout={handleLogout} updateClockins={updateClockins} />
             {
-                isLoading ? <Loading /> :
+                isLoading ? <Loading height="80vh" /> :
                     <>
                         {/* <div className="allowance row container-fluid mx-auto g-2"> */}
                         <div className='allowance flex-wrap'>

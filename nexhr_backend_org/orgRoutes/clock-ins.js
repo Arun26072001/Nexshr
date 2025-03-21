@@ -133,7 +133,6 @@ router.post("/:orgId/:id", verifyAdminHREmployeeManagerNetwork, async (req, res)
 
 router.get("/:orgId/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
     const { orgName } = await Org.findById({ _id: req.params.orgId });
-  
 
     try {
         const queryDate = new Date(req.query.date); // Parse the query date

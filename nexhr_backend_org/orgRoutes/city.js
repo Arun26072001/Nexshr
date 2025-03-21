@@ -8,6 +8,7 @@ const { verifyHR } = require('../auth/authMiddleware');
 router.get("/", verifyHR, (req, res) => {
   City.find()
     .populate({ path: "state", populate: { path: "country" } })
+    .lean()
     .exec(function (err, city) {
       if (err) {
         res.status(500).send("check url")
@@ -113,9 +114,6 @@ router.delete("/:id", verifyHR, (req, res) => {
       }
     }
   });
-
-  console.log("delete");
-  console.log(req.params.id);
 });
 
 

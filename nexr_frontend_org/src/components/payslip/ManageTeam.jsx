@@ -26,6 +26,7 @@ const ManageTeam = () => {
     const url = process.env.REACT_APP_API_URL;
     const { data, whoIs } = useContext(EssentialValues);
     const { token, _id } = data;
+    const [isChangingTeam, setIsChangingTeam] = useState(false);
     const { isTeamHead, isTeamLead, isTeamManager } = jwtDecode(token);
 
     const filterTeam = (e) => {
@@ -102,6 +103,7 @@ const ManageTeam = () => {
     };
 
     const editTeam = async (team) => {
+        setIsChangingTeam(true);
         try {
             const res = await axios.get(`${url}/api/team/${team._id}`,
                 {
@@ -116,9 +118,11 @@ const ManageTeam = () => {
         } catch (err) {
             toast.error(err?.response?.data?.error);
         }
+        setIsChangingTeam(false);
     };
 
     const handleSubmit = async () => {
+        setIsChangingTeam(true);
         try {
 
             const response = await axios.post(`${url}/api/team`, teamObj, {
@@ -135,6 +139,7 @@ const ManageTeam = () => {
         } catch (err) {
             toast.error(err.response.data.error);
         }
+        setIsChangingTeam(false)
     };
 
     const handleSubmitEdit = async () => {
@@ -260,7 +265,7 @@ const ManageTeam = () => {
     }, [])
 
     return (
-        isLoading ? <Loading /> :
+        isLoading ? <Loading height="80vh" /> :
             <div className="my-2">
                 <div className="d-flex gap-2">
                     <InputGroup inside style={{ width: "300px" }}>
@@ -286,6 +291,7 @@ const ManageTeam = () => {
                         managers={managers}
                         modifyData={toggleAddTeam}
                         employees={employees}
+                        isWorkingApi={isChangingTeam}
                     />
                 )}
 

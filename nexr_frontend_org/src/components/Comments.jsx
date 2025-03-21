@@ -6,7 +6,7 @@ import { EssentialValues } from '../App';
 import { toast } from 'react-toastify';
 import Loading from './Loader';
 import TimerOutlinedIcon from '@mui/icons-material/TimerOutlined';
-import { getTimeToHour } from './ReuseableAPI';
+import { fileUploadInServer, getTimeFromHour } from './ReuseableAPI';
 import MoreHorizOutlinedIcon from '@mui/icons-material/MoreHorizOutlined';
 import profile from "../imgs/male_avatar.webp";
 import CalendarMonthRoundedIcon from '@mui/icons-material/CalendarMonthRounded';
@@ -14,6 +14,7 @@ import { Dropdown, Popover, Whisper } from 'rsuite';
 import BorderColorRoundedIcon from '@mui/icons-material/BorderColorRounded';
 import DeleteRoundedIcon from '@mui/icons-material/DeleteRounded';
 import CommonModel from './Administration/CommonModel';
+import TextEditor from './payslip/TextEditor';
 
 export default function Comments({ employees }) {
     const navigate = useNavigate();
@@ -21,7 +22,7 @@ export default function Comments({ employees }) {
     const [taskObj, setTaskObj] = useState({});
     const [commentObj, setCommentObj] = useState({});
     const { id } = useParams();
-    const { data, whoIs } = useContext(EssentialValues);
+    const { data, whoIs, socket } = useContext(EssentialValues);
     const url = process.env.REACT_APP_API_URL;
     const [previewList, setPreviewList] = useState([]);
     const [projects, setProjects] = useState([]);
@@ -30,6 +31,8 @@ export default function Comments({ employees }) {
     const [ischecked, setIschecked] = useState(false);
     const [isEditTask, setIsEditTask] = useState(false);
     const [isDeleteTask, setDeleteTask] = useState(false);
+    const [ischangingComment, setIsChangingComment] = useState(false);
+    const [isAddComment, setIsAddComment] = useState(false);
 
     function handleCommitToEdit(commitData) {
         setPreviewList(commitData.attachments);
@@ -76,41 +79,25 @@ export default function Comments({ employees }) {
         setDeleteTask(!isDeleteTask)
     }
 
+
     async function editTask(taskData) {
+        setIsChangingComment(true)
         try {
-            const files = taskData?.attachments?.filter((file) => file.type === "image/png") || [];
             let updatedTaskData;
-            if (files.length > 0) {
-                const formData = new FormData();
-
-                // Append each file to FormData
-                files.forEach((file) => {
-                    formData.append("documents", file); // Ensure correct field name
-                });
-
-                // Upload the files
-                const response = await axios.post(`${url}/api/upload`, formData, {
-                    headers: {
-                        Accept: "application/json",
-                    },
-                });
-
-                // Check if upload was successful
-                if (!response.data || !response.data.files) {
-                    console.error("Upload failed:", response);
-                    return;
-                }
+            const files = taskData?.attachments?.filter((file) => file.type === "image/png") || [];
+            if (files.length) {
+                const responseData = await fileUploadInServer(files);
+                console.log(responseData);
 
                 // Get previously uploaded attachments (excluding PNGs)
                 const uploadedImgPath = taskData.attachments.filter((file) => file.type !== "image/png")
                 updatedTaskData = {
                     ...taskData,
-                    ["attachments"]: [...uploadedImgPath, ...response.data.files.map(((file) => file.originalFile))]
+                    ["attachments"]: [...uploadedImgPath, ...responseData.files.map(((file) => file.originalFile))]
                 }
-
             } else {
                 updatedTaskData = {
-                    ...taskData
+                    ...taskObj
                 }
             }
 
@@ -137,43 +124,68 @@ export default function Comments({ employees }) {
             console.error("Error updating task:", error);
             toast.error("Failed to update task.");
         }
+        setIsChangingComment(false);
     }
 
-    async function editCommitTask() {
+    async function addComment() {
         try {
-            let updatedCommentObj = { ...commentObj };
+            let updatedCommentObj = { ...commentObj, createdBy: data._id };
 
             // Filter out PNG files for upload
-            const files = commentObj?.attachments?.filter((file) => file.type === "image/png") || [];
+            const files = commentObj?.attachments;
 
-            if (files.length > 0) {
-                const formData = new FormData();
-
-                // Append each file to FormData
-                files.forEach((file) => {
-                    formData.append("documents", file); // Ensure correct field name
-                });
-
-                // Upload the files
-                const response = await axios.post(`${url}/api/upload`, formData, {
-                    headers: {
-                        Accept: "application/json",
-                    },
-                });
-
-                // Check if upload was successful
-                if (!response.data || !response.data.files) {
-                    console.error("Upload failed:", response);
-                    return;
-                }
-
-                // Get previously uploaded attachments (excluding PNGs)
-                const nonPngAttachments = commentObj.attachments.filter((file) => file.type !== "image/png");
+            if (files?.length > 0) {
+                const responseData = await fileUploadInServer(files);
 
                 // Merge old attachments with new uploaded files
                 updatedCommentObj = {
                     ...commentObj,
-                    attachments: [...nonPngAttachments, ...response.data.files.map((file) => file.originalFile)],
+                    createdBy: data._id,
+                    attachments: [...responseData.files.map((file) => file.originalFile)],
+                };
+            }
+
+            // Update the comment in the task object if taskData is not provided
+            taskObj.comments[taskObj.comments.length] = updatedCommentObj;
+
+            socket.emit("updatedTask_In_AddComment", taskObj, data._id, data.token);
+            setIsAddComment(false);
+            setPreviewList([]);
+            setCommentObj({});
+        } catch (error) {
+            console.log(error);
+        }
+    }
+
+    socket.on("send_updated_task", (updatedData) => {
+        setIschecked(updatedData.status === "Completed")
+        setTaskObj({
+            ...updatedData,
+            spend: {
+                ...updatedData?.spend,
+                timeHolder: getTimeFromHour(updatedData?.spend?.timeHolder || 0)
+            }
+        });
+    })
+
+    async function editCommitTask() {
+        setIsChangingComment(true);
+        try {
+            let updatedCommentObj = { ...commentObj };
+
+            // Filter out PNG files for upload
+            const files = commentObj?.attachments?.filter((file) => ["image/png", "video/mp4"].includes(file.type)) || [];
+
+            if (files.length > 0) {
+                const responseData = await fileUploadInServer(files);
+
+                // Get previously uploaded attachments (excluding PNGs)
+                const nonPngAttachments = commentObj.attachments.filter((file) => file.type !== "image/png" && file.type !== "video/mp4");
+
+                // Merge old attachments with new uploaded files
+                updatedCommentObj = {
+                    ...commentObj,
+                    attachments: [...nonPngAttachments, ...responseData.files.map((file) => file.originalFile)],
                 };
 
             }
@@ -181,32 +193,25 @@ export default function Comments({ employees }) {
             // Update the comment in the task object if taskData is not provided
             taskObj.comments[editCommentIndex] = updatedCommentObj;
 
-            // Send PUT request to update task
-            const res = await axios.put(
-                `${url}/api/task/${data._id}/${taskObj._id}`,
-                taskObj,
-                {
-                    params: {
-                        changeComments: true
-                    },
-                    headers: {
-                        Authorization: data.token || "",
-                    },
-                }
-            );
-
-            // Show success message
-            toast.success(res.data.message);
-
-            // Reset states
+            socket.emit("updatedTask_In_AddComment", taskObj, data._id, data.token);
+            // socket.on("send_updated_task", (updatedData) => {
+            //     setIschecked(updatedData.status === "Completed")
+            //     setTaskObj({
+            //         ...updatedData,
+            //         spend: {
+            //             ...updatedData?.spend,
+            //             timeHolder: getTimeFromHour(updatedData?.spend?.timeHolder || 0)
+            //         }
+            //     });
+            // })
             setIsEditCommit(false);
-            fetchTaskOfComments();
-            setIsEditTask(false);
-            setEditCommentIndex(null);
+            setPreviewList([]);
+            setCommentObj({});
         } catch (error) {
             console.error("Error updating task:", error);
             toast.error("Failed to update task.");
         }
+        setIsChangingComment(false);
     }
 
     async function deleteCommit(comment, index) {
@@ -220,17 +225,17 @@ export default function Comments({ employees }) {
             }
             taskObj.comments[index] = updatedCommit;
             try {
-                const res = await axios.put(
-                    `${url}/api/task/${data._id}/${taskObj._id}`, // Ensure correct projectId
-                    taskObj,
-                    {
-                        headers: {
-                            Authorization: data.token || "",
-                        },
-                    }
-                );
-                console.log(res.data);
-                fetchTaskOfComments()
+                socket.emit("updatedTask_In_AddComment", taskObj, data._id, data.token);
+                socket.on("send_updated_task", (updatedData) => {
+                    setIschecked(updatedData.status === "Completed")
+                    setTaskObj({
+                        ...updatedData,
+                        spend: {
+                            ...updatedData?.spend,
+                            timeHolder: getTimeFromHour(updatedData?.spend?.timeHolder || 0)
+                        }
+                    });
+                })
                 toast.success("Commit has been move trash")
             } catch (error) {
                 console.log(error);
@@ -294,11 +299,11 @@ export default function Comments({ employees }) {
         );
     };
 
-    function removeAttachment(value) {
+    function removeAttachment(value, fileIndex) {
         const updatedPrevireList = previewList.filter((imgFile) => imgFile !== value);
         setPreviewList(updatedPrevireList);
         if (commentObj) {
-            const updatedAttachments = commentObj.attachments.filter((data) => data !== value);
+            const updatedAttachments = commentObj.attachments.filter((data, index) => index !== fileIndex);
             setCommentObj({ ...commentObj, attachments: updatedAttachments })
         } else {
             const updatedAttachments = taskObj.attachments.filter((data) => data !== value);
@@ -316,15 +321,15 @@ export default function Comments({ employees }) {
                 headers: { Authorization: data.token || "" }
             })
             setIschecked(res.data.status === "Completed")
-            console.log(res.data);
             setTaskObj({
                 ...res.data,
                 spend: {
                     ...res?.data?.spend,
-                    timeHolder: getTimeToHour(res?.data?.spend?.timeHolder || 0)
+                    timeHolder: getTimeFromHour(res?.data?.spend?.timeHolder || 0)
                 }
             });
         } catch (error) {
+            console.log(error)
             toast.error(error.response.data.error)
         }
         finally {
@@ -402,7 +407,7 @@ export default function Comments({ employees }) {
     async function getValue(value) {
         const updatedTask = {
             ...taskObj,
-            "status": value ? "Completed" : taskObj.status
+            "status": value ? "Completed" : "Pending"
         }
         editTask(updatedTask)
     }
@@ -431,11 +436,12 @@ export default function Comments({ employees }) {
     }, [])
 
     return (
-        isLoading ? <Loading /> :
+        isLoading ? <Loading height="80vh" /> :
             isEditCommit ? <CommonModel
                 type="Edit Comments"
                 removeAttachment={removeAttachment}
                 isAddData={isEditCommit}
+                isWorkingApi={ischangingComment}
                 modifyData={handleEditCommit}
                 changeData={changeCommit}
                 editData={editCommitTask}
@@ -445,6 +451,7 @@ export default function Comments({ employees }) {
                 dataObj={taskObj}
                 previewList={previewList}
                 isAddData={isEditTask}
+                isWorkingApi={ischangingComment}
                 editData={editTask}
                 changeData={changeTask}
                 projects={projects}
@@ -462,7 +469,7 @@ export default function Comments({ employees }) {
                                 </span>
                             </div>
                             {/* center content of left */}
-                            <div className="col-lg-2 text-end my-3">
+                            <div className="col-lg-2 col-4 text-end my-3">
                                 <input type='checkbox' onChange={(e) => getValue(e.target.checked)} checked={ischecked} className='mb-3' />
                                 <div style={{ textAlign: "end", marginTop: "16px" }}>
                                     <p><b>Assigned to</b></p>
@@ -470,7 +477,7 @@ export default function Comments({ employees }) {
                                 </div>
                             </div>
                             {/* center content of right */}
-                            <div className="col-lg-8 my-3">
+                            <div className="col-lg-8 col-6 my-3">
                                 <div className="commentsHeader mb-3">
                                     {taskObj.title}
                                 </div>
@@ -479,13 +486,13 @@ export default function Comments({ employees }) {
                                         return (
                                             <>
                                                 <img src={emp.profile || profile} className='userProfile' key={emp._id} />
-                                                {emp?.FirstName[0]?.toUpperCase() + emp?.FirstName?.slice(1) + " " + emp?.LastName + "   "}
+                                                {emp?.FirstName?.[0]?.toUpperCase() + emp?.FirstName?.slice(1) + " " + emp?.LastName + "   "}
                                             </>)
                                     })
                                 }</p>
                                 <p className='d-flex align-items-center'><CalendarMonthRoundedIcon />{new Date(taskObj.to).toDateString()}</p>
                             </div>
-                            <div className="col-lg-1">
+                            <div className="col-lg-1 col-2">
                                 <span className='circleEditIcon' >
                                     <Whisper placement="bottomEnd" trigger="click" speaker={renderMenu1}>
                                         <MoreHorizOutlinedIcon fontSize='large' />
@@ -496,37 +503,56 @@ export default function Comments({ employees }) {
 
                         {
                             taskObj?.comments?.map((comment, index) => {
-                                const commentCreator = comment?.createdBy?.FirstName[0]?.toUpperCase() + comment?.createdBy?.FirstName?.slice(1) + " " + comment?.createdBy?.LastName || "Arun Kumar";
+                                console.log(comment);
+                                const commentCreator = comment?.createdBy?.FirstName?.[0]?.toUpperCase() + comment?.createdBy?.FirstName?.slice(1) + " " + comment?.createdBy?.LastName || "Arun Kumar";
                                 return (
-                                    <div className="row d-flex justify-content-center">
-                                        <div className="col-lg-10">
+                                    <div className="d-flex justify-content-center">
+                                        <div className="col-lg-10 col-md-10 col-12">
                                             <div className='text-align-center'>
                                                 <hr width="100%" size="2" color='gray' style={{ borderTop: "1px solid gray" }}></hr>
-                                                <div className='d-flex row'>
-                                                    <div className="col-lg-2">
+                                                <div className='row'>
+                                                    <div className="col-lg-2 col-md-2 col-12">
                                                         {new Date(comment.date).toDateString().split(" ").slice(1).join(" ")}
                                                     </div>
-                                                    <div className="col-lg-1">
+                                                    <div className="col-lg-1 col-md-1 col-3">
                                                         <img src={comment?.createdBy?.profile || profile} alt='profile' className='userProfile' style={{ height: "45px", width: "45px" }} />
                                                     </div>
-                                                    <div className="col-lg-8">
+                                                    <div className="col-lg-8 col-md-8 col-7">
                                                         <p className='my-1' style={{ fontSize: "17px" }}><b>{commentCreator}</b></p>
                                                         <p>
                                                             {
-                                                                <div dangerouslySetInnerHTML={{ __html: comment.comment }}></div> || "hdiwqdiwq diqwd iwqudiqwdoiuwq d"
+                                                                <div dangerouslySetInnerHTML={{ __html: comment.comment }}></div>
                                                             }
                                                         </p>
-                                                        <div className='imgsContainer'>
-                                                            {comment.attachments.map((file) => {
-                                                                if (comment.attachments.length === 1) {
-                                                                    return <img src={file} style={{ width: "100%", height: "80%", margin: "10px 0px", border: "1px solid gray" }} alt='taskCommentAttackFile' />
-                                                                } else {
-                                                                    return <img src={file} style={{ flex: 1, width: "45%", height: "45%", margin: "10px 0px", border: "1px solid gray" }} alt='taskCommentAttackFile' />
-                                                                }
-                                                            })}
+                                                        <div className="imgsContainer">
+                                                            {
+                                                                comment?.attachments?.length ?
+                                                                    comment?.attachments?.map((file, index) => (
+                                                                        <div key={index} className={`col-lg-${[2, 4].includes(comment.attachments.length) ? "5" : comment.attachments.length === 1 ? "12" : comment.attachments.length === 3 ? "5" : "3"}`}>
+                                                                            {file.includes(".mp4") ? (
+                                                                                <video controls style={{ width: "100%", height: "auto", margin: "10px 0px", border: "1px solid gray" }}>
+                                                                                    <source src={file} type="video/mp4" />
+                                                                                    Your browser does not support the video tag.
+                                                                                </video>
+                                                                            ) : (
+                                                                                <img
+                                                                                    src={file}
+                                                                                    style={{
+                                                                                        width: "100%",
+                                                                                        height: "auto",
+                                                                                        margin: "10px 0px",
+                                                                                        border: "1px solid gray",
+                                                                                    }}
+                                                                                    alt="taskCommentAttachment"
+                                                                                />
+                                                                            )}
+                                                                        </div>
+                                                                    )) : null
+                                                            }
                                                         </div>
+
                                                     </div>
-                                                    <div className="col-lg-1" >
+                                                    <div className="col-lg-1 col-md-1 col-2" >
                                                         <Whisper placement="bottomEnd" trigger="click" speaker={renderMenu2(comment, index)}>
                                                             <MoreHorizOutlinedIcon sx={{ cursor: "pointer" }} />
                                                         </Whisper>
@@ -538,7 +564,39 @@ export default function Comments({ employees }) {
                                 )
                             })
                         }
-
+                        <div className="row d-flex justify-content-center">
+                            <div className="col-lg-10 col-md-10 col-12">
+                                <div className='text-align-center'>
+                                    <hr width="100%" size="2" color='gray' style={{ borderTop: "1px solid gray" }}></hr>
+                                    <div className='row'>
+                                        <div className="col-lg-2 col-md-2 col-2">
+                                        </div>
+                                        <div className="col-lg-1 colmd-1 col-2">
+                                            <img src={data.profile || profile} alt='profile' className='userProfile' style={{ height: "45px", width: "45px" }} />
+                                        </div>
+                                        <div className="col-lg-8 col-md-8 col-8">
+                                            {isAddComment
+                                                ? <>
+                                                    <TextEditor
+                                                        handleChange={(e) => changeCommit(e, "comment")}
+                                                        content={commentObj?.comment}
+                                                        isAllowFile={true}
+                                                        files={previewList}
+                                                        changeCommit={changeCommit}
+                                                        dataObj={commentObj}
+                                                        removeAttachment={removeAttachment}
+                                                    />
+                                                    <button className='button' onClick={addComment}>Add Comment</button>
+                                                </>
+                                                : <p style={{ fontSize: "20px", color: "gray", marginBottom: "30px" }} onClick={() => setIsAddComment(true)}>
+                                                    Add a comment here....
+                                                </p>}
+                                        </div>
+                                    </div>
+                                    <hr width="100%" size="2" color='gray' style={{ borderTop: "1px solid gray" }}></hr>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div >
 

@@ -162,7 +162,7 @@ const TimePattern = () => {
                             </React.Fragment>
                         ))}
                     </tbody>
-                </table>) : <div className="d-flex align-items-center justify-content-center"><Loading /></div>}
+                </table>) : <div className="d-flex align-items-center justify-content-center"><Loading height="80vh" /></div>}
 
             </>
         )

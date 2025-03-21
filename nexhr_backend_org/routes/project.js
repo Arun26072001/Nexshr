@@ -7,15 +7,14 @@ const sendMail = require('./mailSender');
 const { Employee } = require('../models/EmpModel');
 const { error } = require('joi/lib/types/lazy');
 const { Report } = require('../models/ReportModel');
-const mongoose = require("mongoose");
 const { convertToString } = require('../Reuseable_functions/reusableFunction');
 
 router.get("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
   try {
     const project = await Project.findById(req.params.id)
-    // if(!project){
-    //   return res.status(200).send({message: "Project"})
-    // }
+    if(!project){
+      return res.status(200).send({message: "Project"})
+    }
     return res.send(project);
   } catch (error) {
     return res.status(500).send({ error: error.message })
@@ -24,31 +23,35 @@ router.get("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
 
 router.get("/", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
   try {
-    let projects = await Project.find({ trash: false })
-      .populate({ path: "company", select: "CompanyName" })
-      .populate({ path: "employees", select: "FirstName LastName Email" })
-      .populate({ path: "tasks" })
+    const projects = await Project.find({ trash: false })
+      .populate("company", "CompanyName")
+      .populate("employees", "FirstName LastName Email")
+      .populate("tasks");
 
-    projects = projects.map((project) => {
-      const completedTasks = project.tasks.filter((task) => task.status === "Completed")
-      const pendingTasks = project.tasks.filter((task) => task.status !== "Completed")
+    const formattedProjects = projects.map((project) => {
+      const { tasks } = project;
+      const completedTasksCount = tasks.filter(task => task.status === "Completed").length;
+      const progress = tasks.length ? (completedTasksCount / tasks.length) * 100 : 0;
+      const pendingTasks = tasks.filter(task => task.status !== "Completed");
+
       return {
         ...project.toObject(),
-        "progress": (completedTasks.length / project.tasks.length) * 100,
+        progress,
         pendingTasks
-      }
-    })
-    return res.send(projects);
-  } catch (error) {
-    console.log(error);
+      };
+    });
 
-    return res.status(500).send({ error: error.message })
+    res.send(formattedProjects);
+  } catch (error) {
+    console.error("Error fetching projects:", error);
+    res.status(500).send({ error: "An error occurred while fetching projects." });
   }
 });
 
+
 router.get("/emp/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
   try {
-    const projects = await Project.find({ employees: { $in: req.params.id }, createdby: req.params.id, trash: false })
+    const projects = await Project.find({ employees: { $in: req.params.id }, trash: false })
       .populate({ path: "company", select: "CompanyName" })
       .populate({ path: "employees", select: "FirstName LastName Email" })
       .populate({ path: "tasks" })
@@ -67,8 +70,8 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
     const newProject = {
       ...req.body,
       status: req.body.status || "Not Started",
-      employees: [...req.body.employees, req.params.id] || [],
-      createdby: req.body.createdby || req.params.id,
+      employees: [...req?.body?.employees, req?.params?.id] || [],
+      createdby: req?.body?.createdby || req?.params?.id,
       tracker: [{
         date: new Date(),
         message: `${req.body.name} Project is created by ${FirstName}`,
@@ -78,7 +81,7 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
     if (await Project.exists({ name: req.body.name })) {
       return res.status(400).send({ error: `${req.body.name} project is already exists` })
     }
-    
+
     const { error } = projectValidation.validate(newProject);
     if (error) {
       return res.status(400).send({ error: error.details[0].message })
@@ -148,6 +151,7 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
     })
     return res.status(201).send({ message: "Project is created Successfully", project })
   } catch (error) {
+    console.log(error);
     res.status(500).send({ error: error.message })
   }
 });

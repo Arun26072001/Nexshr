@@ -28,7 +28,7 @@ router.get("/", verifyAdminHRTeamHigherAuth, async (req, res) => {
         populate: {
           path: "department"
         }
-      })
+      }).lean();
     res.send(employees)
   } catch (err) {
     console.log(err);
@@ -42,9 +42,7 @@ router.get("/user", verifyAdminHR, async (req, res) => {
       .populate({
         path: "department",
         select: "DepartmentName",
-      });
-
-
+      }).lean();
     const departmentMap = {};
 
     employees?.forEach((employee) => {
@@ -179,34 +177,21 @@ router.get("/team/members/:id", verifyTeamHigherAuthority, async (req, res) => {
   }
 })
 
-// router.post("/add-admin", async (req, res) => {
-//   try {
-//     const emps = await Employee.find();
-//     emps.map(async (emp) => {
-//       emp.admin = "6651e4a810994f1d24cf3a19"
-//       await emp.save();
-//     })
-//     console.log("all emps of admin field updated.");
-
-//   } catch (error) {
-//     console.log(error);
-
-//   }
-// })
-
 router.get('/:id', verifyAdminHREmployeeManagerNetwork, async (req, res) => {
   let totalTakenLeaveCount = 0;
 
   try {
     const emp = await Employee.findById(req.params.id)
-      .populate("role")
-      .populate({
-        path: "leaveApplication",
-        match: { leaveType: { $ne: "Permission Leave" } }, // Fixed issue
-      })
-      .populate("workingTimePattern")
-      .populate("department")
-      .populate("position")
+      .populate([
+        { path: "role" },
+        {
+          path: "leaveApplication",
+          match: { leaveType: { $ne: "Permission Leave" } }
+        },
+        { path: "workingTimePattern" },
+        { path: "department" },
+        { path: "position" }
+      ])
       .exec();
 
     if (!emp) {

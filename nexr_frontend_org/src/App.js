@@ -253,6 +253,7 @@ const App = () => {
     <EssentialValues.Provider
       value={{
         data,
+        setData,
         handleLogout,
         handleSubmit,
         loading,

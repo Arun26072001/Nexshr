@@ -9,31 +9,30 @@ import MoreVertRoundedIcon from '@mui/icons-material/MoreVertRounded';
 import KeyboardArrowRightRoundedIcon from '@mui/icons-material/KeyboardArrowRightRounded';
 import Mytimer2 from './Mytimer2';
 import { ScaleLoader } from 'react-spinners';
-import { getTimeToHour } from './ReuseableAPI';
+import { formatTimeFromHour, getTimeFromHour } from './ReuseableAPI';
 
 export default function TaskItem({ task, status, getValue, handleEditTask, handleAddComment, fetchTaskById, renderMenu3, updatedTimerInTask, renderMenu2, handleViewTask, isLoading }) {
     const [remainingTime, setRemainingTime] = useState({ hour: 0, min: 0, sec: 0 });
 
-    function convertDecimalToTime(decimalHours) {
-        const timeValues = {
-            hour: Math.floor(decimalHours) || 0,
-            min: Math.floor((decimalHours * 60) % 60) || 0,
-            sec: Math.floor((decimalHours * 3600) % 60) || 0
-        };
-        return timeValues;
-    }
-
     useEffect(() => {
-        const calculatedValue = Number(task.estTime) - getTimeToHour(task.spend.timeHolder)
-        setRemainingTime(convertDecimalToTime(calculatedValue));
+        const spendTime = task?.spend?.timeHolder?.split(":")?.length > 2 ? getTimeFromHour(task.spend.timeHolder) : Number(task.spend.timeHolder)
+
+        const calculatedValue = Number(task.estTime) - spendTime
+        const hourMinSec = formatTimeFromHour(calculatedValue)
+
+        setRemainingTime({
+            hour: hourMinSec.split(":")[0],
+            min: hourMinSec.split(":")[1],
+            sec: hourMinSec.split(":")[2]
+        });
     }, [task]);
 
     return (
 
-        <div key={task._id} className="box-content d-flex align-items-center justify-content-between my-3">
+        <div key={task._id} className="box-content  d-flex flex-wrap  align-items-center justify-content-between my-3">
 
             {/* Left Section - Task Details */}
-            <div className="d-flex align-items-center col-half gap-1">
+            <div className=" d-flex flex-wrap  align-items-center col-lg-6 col-12 col-md-6 col-half gap-1">
                 <Checkbox
                     onCheckboxClick={() => getValue(task)}
                     checked={status === "Completed"}
@@ -45,7 +44,7 @@ export default function TaskItem({ task, status, getValue, handleEditTask, handl
                 </span> ||
 
                 {/* Assigned Employees */}
-                <div className="d-flex align-items-center gap-1 mx-1">
+                <div className=" d-flex flex-wrap  align-items-center gap-1 mx-1">
                     {task.assignedTo.map((emp) => (
                         <div
                             className="nameHolder"
@@ -69,10 +68,10 @@ export default function TaskItem({ task, status, getValue, handleEditTask, handl
             </div>
 
             {/* Right Section - Timer & Actions */}
-            <div className="cal-half d-flex align-items-center justify-content-center gap-2">
+            <div className="cal-half  d-flex flex-wrap  col-lg-6 col-12 col-md-6 align-items-center justify-content-end gap-2">
                 {
                     JSON.parse(localStorage.getItem(`isRunning_${task._id}`)) === false &&
-                    <div className='d-flex align-items-center gap-1 timerTxt box-content position-relative' title='Remaining Hours' style={{ padding: "10px" }}>
+                    <div className=' d-flex flex-wrap  align-items-center gap-1 timerTxt box-content position-relative' title='Remaining Hours' style={{ padding: "10px" }}>
                         <span>{String(remainingTime.hour).padStart(2, "0")}</span> :
                         <span>{String(remainingTime.min).padStart(2, "0")}</span> :
                         <span>{String(remainingTime.sec).padStart(2, "0")}</span>

@@ -125,7 +125,7 @@ const Attendence = () => {
       </div>
 
       {isLoading ? (
-        <Loading />
+        <Loading height="80vh" />
       ) : Object.keys(clockInsData).length > 0 ? (
         <>
           {/* Attendance Chart */}
@@ -179,27 +179,31 @@ const Attendence = () => {
             ))}
           </div>
 
-          {/* Filters: Date Picker & Time Selector */}
-          <div className="d-flex justify-content-between align-items-center p-2">
-            <div style={{ width: "30%" }}>
-              <DateRangePicker value={daterangeValue} size="lg" placeholder="Select Date" onChange={setDaterangeValue} />
-            </div>
-            <div style={{ width: "60%" }}>
-              <TagPicker
-                data={timeOptions}
-                required
-                size="lg"
-                appearance="default"
-                style={{ width: "100%" }}
-                placeholder="Select time options"
-                value={selectedTimeOption}
-                onChange={(e) => setSelectedTimeOption(e)}
-              />
-            </div>
-          </div>
 
           {/* Table or No Data Message */}
-          {tableData.length > 0 ? <LeaveTable data={tableData} /> : <NoDataFound message="Attendance data not found!" />}
+          {tableData.length > 0 ?
+            <>
+              {/* Filters: Date Picker & Time Selector */}
+              <div className="d-flex justify-content-between align-items-center p-2">
+                <div style={{ width: "30%" }}>
+                  <DateRangePicker value={daterangeValue} size="lg" placeholder="Select Date" onChange={setDaterangeValue} />
+                </div>
+                <div style={{ width: "60%" }}>
+                  <TagPicker
+                    data={timeOptions}
+                    required
+                    size="lg"
+                    appearance="default"
+                    style={{ width: "100%" }}
+                    placeholder="Select time options"
+                    value={selectedTimeOption}
+                    onChange={(e) => setSelectedTimeOption(e)}
+                  />
+                </div>
+              </div>
+              <LeaveTable data={tableData} />
+            </>
+            : <NoDataFound message="Attendance data not found!" />}
         </>
       ) : null}
     </div>

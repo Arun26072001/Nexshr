@@ -8,6 +8,7 @@ import "react-datepicker/dist/react-datepicker.css";
 import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
 import "../projectndTask.css";
 import { MultiCascader, VStack } from 'rsuite';
+import Loading from '../Loader';
 
 const CommonModel = ({
     dataObj,
@@ -29,6 +30,7 @@ const CommonModel = ({
     comps,
     changeState,
     removeAttachment,
+    isWorkingApi,
     type // New prop to determine if it's for "department" or "position"
 }) => {
     const [confirmationTxt, setConfirmationTxt] = useState("");
@@ -179,21 +181,27 @@ const CommonModel = ({
 
                             {/* Display preview images */}
                             {previewList?.length > 0 ? (
-                                previewList?.map((imgFile, index) => (
-                                    <div key={index} style={{ display: "inline-block", margin: "10px", position: "relative" }}>
-                                        <img
-                                            src={imgFile}
-                                            width={50}
-                                            height={50}
-                                            alt="uploaded file"
-                                            style={{ borderRadius: "4px" }}
-                                        />
-                                        {/* Close button */}
-                                        <button onClick={() => removeAttachment(imgFile)} className="remBtn">
-                                            &times;
-                                        </button>
-                                    </div>
-                                ))
+                                <div className='d-flex align-items-center justify-content-center'>
+                                    {previewList?.map((imgFile, index) => (
+                                        <div className="col-lg-4 p-2">
+                                            <div className="position-relative">
+                                                {(dataObj.attachments.length === previewList.length && dataObj?.attachments[index].type === "video/mp4" || imgFile.includes(".mp4")) ?
+                                                    <video className="w-100 h-auto" controls>
+                                                        <source src={imgFile} type={dataObj?.attachments[index].type} />
+                                                    </video> :
+                                                    <img
+                                                        src={imgFile}
+                                                        className="w-100 h-auto"
+                                                        alt="uploaded file"
+                                                        style={{ borderRadius: "4px" }}
+                                                    />}
+                                                <button onClick={() => removeAttachment(imgFile, index)} className="remBtn">
+                                                    &times;
+                                                </button>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
                             ) : (
                                 <>
                                     {/* Attachments from dataObj */}
@@ -201,20 +209,27 @@ const CommonModel = ({
                                         ? dataObj?.comments?.[0]?.attachments?.length > 0
                                         : dataObj?.attachments?.length > 0
                                             ? (dataObj?.comments?.[0]?.attachments ?? dataObj?.attachments)?.map((imgFile, index) => (
-                                                <div key={index} style={{ display: "inline-block", margin: "10px", position: "relative" }}>
-                                                    <img
-                                                        src={imgFile}
-                                                        width={50}
-                                                        height={50}
-                                                        alt="uploaded file"
-                                                        style={{ borderRadius: "4px" }}
-                                                    />
-                                                    {/* Close button */}
-                                                    {type !== "Task View" && (
-                                                        <button onClick={() => removeAttachment(imgFile)} className="remBtn">
+                                                <div key={index} className="col-lg-4 p-2" >
+                                                    <div className="position-relative">
+                                                        {
+                                                            (dataObj?.comments?.[0]?.attachments.length === previewList.length && dataObj?.comments?.[0]?.attachments[index].type === "video/mp4") ?
+                                                                <video
+                                                                    className="w-100 h-auto"
+                                                                    controls>
+                                                                    <source src={imgFile} type={dataObj?.attachments[index].type} />
+                                                                </video> :
+                                                                <img
+                                                                    className="w-100 h-auto"
+                                                                    src={imgFile}
+                                                                    alt="uploaded file"
+                                                                    style={{ borderRadius: "4px" }}
+                                                                />
+                                                        }
+                                                        {/* Close button */}
+                                                        <button onClick={() => removeAttachment(imgFile, index)} className="remBtn">
                                                             &times;
                                                         </button>
-                                                    )}
+                                                    </div>
                                                 </div>
                                             ))
                                             : null}
@@ -231,8 +246,9 @@ const CommonModel = ({
                             <div className="modelInput">
                                 <p className="modelLabel important">{type === "Task" ? "From" : "Start Date"}</p>
                                 <DatePicker
-                                    showTimeSelect={type === "Announcement"}
-                                    dateFormat={type === "Announcement" ? "Pp" : "yyyy-MM-dd"} // Added valid default format
+                                    showTimeSelect={["Announcement", "Task"].includes(type)}
+                                    dateFormat={["Announcement", "Task"].includes(type) ? "yyyy-MM-dd HH:mm" : "yyyy-MM-dd"} // Added valid default format
+                                    timeFormat='HH:mm'
                                     className="rsuite_input"
                                     style={{ width: "100%" }}
                                     disabled={["Report View", "Task View"].includes(type)}
@@ -259,9 +275,11 @@ const CommonModel = ({
                             <div className="modelInput">
                                 <p className="modelLabel important">To:</p>
                                 <DatePicker
-                                    showTimeSelect
+                                    showTimeSelect={["Announcement", "Task"].includes(type)}
                                     className="rsuite_input"
                                     style={{ width: "100%" }}
+                                    dateFormat={["Announcement", "Task"].includes(type) ? "yyyy-MM-dd HH:mm" : "yyyy-MM-dd"}
+                                    timeFormat='HH:mm'
                                     disabled={["Report View", "Task View"].includes(type)}
                                     minDate={new Date()}
                                     placeholder="Select Due Date"
@@ -369,7 +387,8 @@ const CommonModel = ({
                                         size='lg'
                                         placeholder="Select Time"
                                         style={{ width: "100%" }}
-                                        value={dataObj?.estTime}
+                                        value={(new Date(String(dataObj?.to)) - new Date(String(dataObj?.from))) / (1000 * 60 * 60) || 0}
+                                        disabled={true}
                                         onChange={(e) => changeData(e, "estTime")}
                                         step={0.01}
                                     />
@@ -856,7 +875,7 @@ const CommonModel = ({
                                                 ? false : (["Department", "Position"].includes(type) && dataObj?.company ? false : true)
                                         }
                                     >
-                                        {type === "Add Comments" ? "Add" : dataObj?._id || type === "Edit Country" || type === "Edit Comments" ? "Update" : "Save"}
+                                        {isWorkingApi ? <Loading size={20} color='white' /> : type === "Add Comments" ? "Add" : dataObj?._id || type === "Edit Country" || type === "Edit Comments" ? "Update" : "Save"}
                                     </Button>
                                 )
                             }

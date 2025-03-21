@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import PauseRoundedIcon from '@mui/icons-material/PauseRounded';
 import PlayArrowRoundedIcon from '@mui/icons-material/PlayArrowRounded';
+import { formatTimeFromHour } from './ReuseableAPI';
 
 export default function Mytimer2({ task, updatedTimerInTask }) {
     const timerRef = useRef(null);
@@ -8,14 +9,18 @@ export default function Mytimer2({ task, updatedTimerInTask }) {
     const [hour, setHour] = useState(0);
     const [min, setMin] = useState(0);
     const [sec, setSec] = useState(0);
-    console.log(task.spend.timeHolder);
 
     useEffect(() => {
-        if (task?.spend?.timeHolder) {
+        if (task?.spend?.timeHolder && task?.spend?.timeHolder.split(":").length > 2) {
             const [newHour, newMin, newSec] = task.spend.timeHolder.split(":").map(Number);
             setHour(newHour || 0);
             setMin(newMin || 0);
             setSec(newSec || 0);
+        } else {
+            const hourMinSec = formatTimeFromHour(Number(task?.spend?.timeHolder));
+            setHour(hourMinSec.split(":")[0])
+            setMin(hourMinSec.split(":")[1])
+            setSec(hourMinSec.split(":")[2])
         }
     }, [task]);
 

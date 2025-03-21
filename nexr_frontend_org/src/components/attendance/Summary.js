@@ -122,7 +122,7 @@ const Summary = () => {
     }, [_id]);
 
     if (isLoading) {
-        return <Loading />;
+        return <Loading height="80vh" />;
     }
 
     return (

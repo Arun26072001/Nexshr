@@ -131,7 +131,7 @@ const Leave = () => {
                 </div>
 
                 {
-                    isLoading ? <Loading /> :
+                    isLoading ? <Loading height="80vh" /> :
                         leaveRequests?.leaveData?.length > 0 ?
                             <LeaveTable data={leaveRequests.leaveData} fetchData={deleteLeave} />
                             : <NoDataFound message={"Leave data not for this month!"} />

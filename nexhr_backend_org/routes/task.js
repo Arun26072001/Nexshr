@@ -71,75 +71,49 @@ router.get("/project/:id", verifyAdminHREmployeeManagerNetwork, async (req, res)
 router.get("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
     const { withComments } = req.query;
     try {
+        const fields = "FirstName LastName Email profile";
         let query = Task.findById(req.params.id)
-            .populate({
-                path: "tracker.who", // Populate 'who' inside tracker
-                select: "FirstName LastName Email profile" // Fetch only required fields
-            })
-            .populate("comments.createdBy", "FirstName LastName profile")
-            .populate({
-                path: "createdby", // Populate 'createdby'
-                select: "FirstName LastName Email profile"
-            });
+            .populate([
+                { path: "tracker.who", select: fields },
+                { path: "comments.createdBy", select: fields },
+                { path: "createdby", select: fields }
+            ]);
 
         if (withComments) {
-            query = query
-                .populate("assignedTo", "FirstName LastName profile")
+            query = query.populate("assignedTo", fields);
         }
 
         let task = await query;
+        if (!task) return res.status(404).send({ error: "No Task found" });
 
-        if (!task) {
-            return res.status(404).send({ error: "No Task found" })
+        const { spend, comments } = task;
+        const { startingTime = [], endingTime = [] } = spend || {};
+
+        const totalTaskTime = startingTime.reduce((total, startTime, index) => {
+            if (!startTime) return total;
+            const startTimeInMin = timeToMinutes(startTime);
+            const endTimeInMin = endingTime[index] ? timeToMinutes(endingTime[index]) : getCurrentTimeInMinutes();
+            return total + Math.abs(endTimeInMin - startTimeInMin);
+        }, 0);
+
+        const totalCommentSpendTime = (comments || []).reduce((sum, comment) => sum + (comment.isDeleted ? 0 : Number(comment.spend)), 0);
+        const totalTime = totalTaskTime + totalCommentSpendTime * 60;
+
+        if (spend) {
+            spend.timeHolder = formatTimeFromMinutes(totalTime);
         }
 
-        let startingTimes = task?.spend?.startingTime;
-        let endingTimes = task?.spend?.endingTime;
-
-        const values = startingTimes?.map((startTime, index) => {
-            if (!startTime) return 0; // No start time means no value
-
-            let endTimeInMin = 0;
-            if (endingTimes[index]) {
-                // Calculate time difference with an ending time
-                endTimeInMin = timeToMinutes(endingTimes[index]);
-            } else {
-                // Calculate time difference with the current time
-                endTimeInMin = getCurrentTimeInMinutes();
-            }
-            const startTimeInMin = timeToMinutes(startTime);
-            return Math.abs(endTimeInMin - startTimeInMin);
+        return res.send({
+            ...task.toObject(),
+            comments: withComments ? comments.filter(comment => !comment.isDeleted) : []
         });
 
-        const totalValue = values?.reduce((acc, value) => acc + value, 0)
-        //add comments of spend time
-        let totalCommentSpendTime = 0;
-        task?.comments?.map((comment) => totalCommentSpendTime += Number(comment.spend));
-        const timeHolder = formatTimeFromMinutes(totalValue + (totalCommentSpendTime * 60));
-        if (task?.spend?.timeHolder) {
-            task.spend.timeHolder = timeHolder;
-        }
-
-        if (!withComments) {
-            task = {
-                ...task.toObject(),
-                comments: []
-            }
-        } else {
-            const notDeletedComments = task?.comments?.filter((comment) => comment.isDeleted === false)
-            task = {
-                ...task.toObject(),
-                comments: notDeletedComments
-            }
-        }
-
-        return res.send(task);
     } catch (error) {
-        console.log(error);
-
-        res.status(500).send({ error: error.message })
+        console.error(error);
+        res.status(500).send({ error: error.message });
     }
-})
+});
+
 
 router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
     try {
@@ -164,6 +138,7 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
         const newTask = {
             ...req.body,
             createdby: req.params.id,
+            assignedTo: [...req.body.assignedTo, req.params.id],
             status: req.body.status || "On Hold",
             tracker: [],
             spend: req.body.spend || {}
@@ -275,7 +250,7 @@ router.put("/:empId/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) 
         if (!taskData) return res.status(404).send({ error: "Task not found" });
 
         // Identify Newly Assigned Employees
-        const newAssignees = req.body.assignedTo?.filter(emp => !taskData?.assignedTo?.includes(emp)) || [];
+        const newAssignees = req.body?.assignedTo?.filter(emp => !taskData?.assignedTo?.includes(emp)) || [];
 
         // Fetch Assigned Person & Employee Data
         const assignedPerson = await Employee.findById(req.body.createdby)
@@ -299,7 +274,7 @@ router.put("/:empId/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) 
             ) {
                 return {
                     date: new Date(),
-                    message: `Task field "${key}" updated by ${empData.FirstName} ${empData.LastName}`,
+                    message: `Task field "${key}" updated by ${empData.FirstName} ${empData.LastName} from ${oldValue} to ${newValue}`,
                     who: req.params.empId
                 };
             }
@@ -307,6 +282,7 @@ router.put("/:empId/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) 
         });
 
         let updatedComment = null;
+        // for add from task with only one comment
         if (req.query.changeComments && req.body.comments && req.body.comments.length > 0) {
             updatedComment = {
                 ...req.body.comments[0],
@@ -430,12 +406,10 @@ router.put("/:empId/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) 
         return res.status(200).send({ message: "Task updated successfully", task });
 
     } catch (error) {
-        console.error(error);
+        console.error(error.message);
         return res.status(500).send({ error: error.message });
     }
 });
-
-
 
 router.delete("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
     try {

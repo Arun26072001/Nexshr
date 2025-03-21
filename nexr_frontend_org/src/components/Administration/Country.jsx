@@ -6,18 +6,23 @@ import LeaveTable from '../LeaveTable';
 import NoDataFound from '../payslip/NoDataFound';
 import { toast } from 'react-toastify';
 import CommonModel from './CommonModel';
+import "../payslip/payslip.css";
+import { Input } from 'rsuite';
 
 export default function Country() {
     const [countries, setCountries] = useState([]);
+    const [filteredCountries, setFilteredContries] = useState([]);
     const [countryObj, setcountryObj] = useState({});
     const url = process.env.REACT_APP_API_URL;
     const { data } = useContext(EssentialValues);
     const [isLoading, setIsLoading] = useState(false);
+    const [isChangingCountry, setIschangingCountry] = useState(false);
     const [modifyCountry, setModifyCountry] = useState({
         isAdd: false,
         isEdit: false,
         isDelete: false
     });
+    const [countryName, setCountryName] = useState("");
 
     function changeCountry(value, name) {
         setcountryObj((pre) => ({
@@ -78,6 +83,7 @@ export default function Country() {
         }
     }
     async function updateCountry() {
+        setIschangingCountry(true);
         try {
             const res = await axios.put(`${url}/api/country/${countryObj.code}`, countryObj, {
                 headers: {
@@ -90,9 +96,11 @@ export default function Country() {
         } catch (error) {
             toast.error(error.response.data.error)
         }
+        setIschangingCountry(false);
     }
 
     async function addCountry() {
+        setIschangingCountry(true);
         try {
             const res = await axios.post(`${url}/api/country`, countryObj, {
                 headers: {
@@ -106,7 +114,19 @@ export default function Country() {
             toast.error(error.response.data.error)
             console.log(error);
         }
+        setIschangingCountry(false);
     }
+
+    useEffect(() => {
+        function filterCountry() {
+            if (countryName === "") {
+                setCountries(filteredCountries)
+            } else {
+                setCountries(filteredCountries.filter((country) => country.name.toLowerCase().includes(countryName)))
+            }
+        }
+        filterCountry()
+    }, [countryName])
 
     async function fetchCountryData(code, type) {
         const selectedCountry = countries.filter((item) => item.code === code);
@@ -123,9 +143,8 @@ export default function Country() {
                         Authorization: data.token || ""
                     }
                 })
-                // console.log(res.data);
-
                 setCountries(res.data);
+                setFilteredContries(res.data);
             } catch (error) {
                 console.log(error);
             }
@@ -136,20 +155,20 @@ export default function Country() {
     }, [modifyCountry.isAdd, data.token, modifyCountry.isEdit])
 
     return (
-        modifyCountry.isAdd ? <CommonModel type="Country" addData={addCountry} removeState={removeState} dataObj={countryObj} isAddData={modifyCountry.isAdd} changeState={changeState} modifyData={changeCountryOperation} changeData={changeCountry} /> :
-            modifyCountry.isEdit ? <CommonModel type="Edit Country" removeState={removeState} editData={updateCountry} changeState={changeState} dataObj={countryObj} isAddData={modifyCountry.isEdit} modifyData={changeCountryOperation} changeData={changeCountry} /> :
+        modifyCountry.isAdd ? <CommonModel type="Country" isWorkingApi={isChangingCountry} addData={addCountry} removeState={removeState} dataObj={countryObj} isAddData={modifyCountry.isAdd} changeState={changeState} modifyData={changeCountryOperation} changeData={changeCountry} /> :
+            modifyCountry.isEdit ? <CommonModel type="Edit Country" isWorkingApi={isChangingCountry} removeState={removeState} editData={updateCountry} changeState={changeState} dataObj={countryObj} isAddData={modifyCountry.isEdit} modifyData={changeCountryOperation} changeData={changeCountry} /> :
                 <div className="dashboard-parent">
-                    <div className="row">
-                        <div className='col-lg-6 col-6'>
+                    <div className="row d-flex align-items-center">
+                        <div className='col-lg-4 col-4'>
                             <h5 className='text-daily'>Country</h5>
                         </div>
-                        <div className='col-lg-6 col-6 d-flex gap-2 justify-content-end'>
-                            {/* <button className='button m-0' >+ Add State</button> */}
+                        <div className='col-lg-8 col-8 d-flex gap-2 justify-content-end'>
+                            <Input size="lg" appearance="default" onChange={setCountryName} style={{ width: "250px" }} placeholder="Search Country" />
                             <button className='button m-0' onClick={() => changeCountryOperation("Add")} >+ Add Country</button>
                         </div>
                     </div>
                     {
-                        isLoading ? <Loading /> :
+                        isLoading ? <Loading height="80vh" /> :
                             countries?.length > 0 ?
                                 <LeaveTable data={countries} fetchData={fetchCountryData} /> :
                                 <NoDataFound message={"Countries data not found"} />

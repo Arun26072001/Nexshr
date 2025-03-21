@@ -18,7 +18,7 @@ const commentSchema = new mongoose.Schema({
     comment: { type: String },
     attachments: [{ type: String }],
     spend: { type: String, default: 0 },
-    date: { type: Date },
+    date: { type: Date, default: new Date() },
     createdBy: { type: mongoose.Schema.Types.ObjectId, ref: "Employee" },
     isDeleted: { type: Boolean, default: false }
 }, { timestamps: true })
@@ -57,11 +57,12 @@ const taskValidation = Joi.object({
     description: Joi.string().allow('').label('Description'),
     assignedTo: Joi.array()
         .items(Joi.string().regex(/^[0-9a-fA-F]{24}$/).label('Employee ID'))
+        .required()
         .label('Assigned To'),
-    from: Joi.date().optional().label('Start Date'),
+    from: Joi.date().required().label('Start Date'),
     to: Joi.date()
         .greater(Joi.ref('from'))
-        .optional()
+        .required()
         .label('End Date'),
     status: Joi.string()
         .valid('Pending', 'In Progress', 'Completed', 'On Hold')
@@ -72,11 +73,11 @@ const taskValidation = Joi.object({
         .required()
         .label('Created By'),
     tracker: Joi.any().label("Tracker"),
-    estTime: Joi.any().label("EstTime"),
+    estTime: Joi.any().required().label("EstTime"),
     spend: Joi.any().label("Spend"),
     comments: Joi.any().label("Comments"),
     trash: Joi.boolean().allow("", null).label("Trash"),
-    project: Joi.string().regex(/^[0-9a-fA-F]{24}$/).label('Project ID'),
+    project: Joi.string().regex(/^[0-9a-fA-F]{24}$/).required().label('Project ID'),
     createdAt: Joi.string().allow('').label('createdAt'),
     updatedAt: Joi.string().allow('').label('updatedAt')
 });

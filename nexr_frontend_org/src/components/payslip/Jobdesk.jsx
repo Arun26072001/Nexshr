@@ -12,6 +12,7 @@ import { fetchEmployeeData, fetchPayslipFromEmp } from "../ReuseableAPI";
 import { EssentialValues } from "../../App";
 import { toast } from "react-toastify";
 import MyDetails from "./MyDetails";
+import "../../components/landinPage.css";
 
 const JobDesk = () => {
     const [empObj, setEmpObj] = useState({});

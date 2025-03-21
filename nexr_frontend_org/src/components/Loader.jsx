@@ -1,11 +1,11 @@
 import * as React from 'react';
-import CircularProgress from '@mui/material/CircularProgress';
 import Box from '@mui/material/Box';
 
-export default function Loading() {
+export default function Loading({ height = "fit-content", size = 40, color = "blue" }) {
   return (
-    <Box sx={{ display: 'flex', alignItems: "center", justifyContent: "center", height: "80vh" }}>
-      <CircularProgress />
+    <Box sx={{ display: 'flex', alignItems: "center", justifyContent: "center", height: height }}>
+      <div className="custom-loading" style={{ width: size, height: size, border: `3px solid ${color}` }}>
+      </div>
     </Box>
   );
 }

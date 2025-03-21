@@ -9,7 +9,6 @@ const Announce = () => {
     const url = process.env.REACT_APP_API_URL;
     const [announcements, setAnnouncements] = useState([]);
     const [changeAnnouncement, setChangeAnnouncement] = useState(false);
-    const [anchorEl, setAnchorEl] = useState(null);  // For managing the menu anchor element
     const token = localStorage.getItem("token");
     const [isLoading, setIsLoading] = useState(false);
 
@@ -33,8 +32,6 @@ const Announce = () => {
 
                 // Remove the deleted announcement from the state
                 setAnnouncements(announcements.filter(announcement => announcement.announcementId !== announcementId));
-                setAnchorEl(null); // Close the menu after deletion
-
                 // Show success notification
                 toast.success('Announcement deleted successfully!');
             } catch (error) {
@@ -66,7 +63,7 @@ const Announce = () => {
     }, [changeAnnouncement]);
 
     return (
-        isLoading ? <Loading /> :
+        isLoading ? <Loading height="80vh" /> :
             <div className='dashboard-parent py-4'>
                 <div className="d-flex  justify-content-between align-items-center">
                     <div>

@@ -48,7 +48,7 @@ export default function TimeLog() {
             </p>
 
             {
-                isLoading ? <Loading /> :
+                isLoading ? <Loading height="80vh" /> :
                     <div className="row gap-3 mb-5">
                         <div className="col-lg-3">
                             <div className="box-content">

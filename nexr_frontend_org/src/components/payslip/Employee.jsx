@@ -56,8 +56,9 @@ export default function Employee() {
             setIsLoading(true);
             try {
                 const empData = await fetchEmployees();
-                setEmployees(empData);
-                setAllEmployees(empData);
+                const withoutMyData = empData.filter((emp)=> emp._id !== data._id)
+                setEmployees(withoutMyData);
+                setAllEmployees(withoutMyData);
             } catch (error) {
                 console.log("error: ", error);
 
@@ -71,12 +72,11 @@ export default function Employee() {
             setIsLoading(true);
             try {
                 const empData = await fetchAllEmployees();
-                setEmployees(empData);
-                setAllEmployees(empData);
+                const withoutMyData = empData.filter((emp)=> emp._id !== data._id)
+                setEmployees(withoutMyData);
+                setAllEmployees(withoutMyData);
             } catch (error) {
                 console.log("error: ", error);
-
-                // setErrorData(error.response.data.message)
                 toast.error("Failed to fetch employees");
             }
             setIsLoading(false);
@@ -181,7 +181,7 @@ export default function Employee() {
 
                 {
                     isLoading ? (
-                        <Loading />
+                        <Loading height="80vh" />
                     ) : errorData ? (
                         <NoDataFound message={errorData} />
                     ) : (

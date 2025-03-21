@@ -59,6 +59,6 @@ export default function ViewAttendanceModel({ modelData, toggleView, openModal }
                     <Button onClick={toggleView}>Close</Button>
                 </DialogActions>
             </Dialog>
-        ) : <Loading />)
+        ) : <Loading height="80vh" />)
     );
 }

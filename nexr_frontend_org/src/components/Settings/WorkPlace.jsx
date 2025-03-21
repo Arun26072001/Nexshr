@@ -218,7 +218,7 @@ const WorkPlaceTab = () => {
         </table>
       ) : (
         <div className="align-items-center justify-content-center">
-          <Loading />
+          <Loading height="80vh" />
         </div>
       )}
     </div>
