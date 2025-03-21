@@ -419,9 +419,7 @@ export default function HRMDashboard() {
         const getClockInsData = async () => {
             try {
                 if (_id) {
-                    const { timeData } = await getDataAPI(_id);
-                    console.log(timeData);
-                    
+                    const { timeData } = await getDataAPI(_id);                    
                     if (timeData?.clockIns[0]?._id) {
                         setWorkTimeTracker(timeData.clockIns[0])
                     } else {

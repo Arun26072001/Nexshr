@@ -222,7 +222,6 @@ router.post("/not-login/apply-leave", async (req, res) => {
                 }
             }
         ]);
-        console.log(notLoginEmps[0]);
 
         if (notLoginEmps.length === 0) {
             return res.send({ message: "No employees found without punch-in today." });
@@ -245,7 +244,6 @@ router.post("/not-login/apply-leave", async (req, res) => {
                 emp.workingTimePattern.FinishingTime
             );
             const fromDate = new Date(now.getTime() - (workingHours || 1000 * 60 * 60 * 9.30));
-            console.log(fromDate);
 
             // Create new full-day leave application
             const leaveApplication = {
@@ -259,7 +257,7 @@ router.post("/not-login/apply-leave", async (req, res) => {
                 TeamLead: "approved",
                 TeamHead: "approved",
                 Hr: "approved",
-                Manager: "approved"
+                Manager: "approved",
             };
 
             leaveApplications.push(leaveApplication);
@@ -727,14 +725,14 @@ router.get("/employee/:empId", verifyAdminHREmployeeManagerNetwork, async (req, 
             checkLogin("09:00", startingTime[0]);
         });
 
-        const companyWorkingHours = getTotalWorkingHoursExcludingWeekends(startOfMonth, endOfMonth);
+        const companyTotalWorkingHour = getTotalWorkingHoursExcludingWeekends(startOfMonth, endOfMonth);
         const totalWorkingHoursPerMonth = getTotalWorkingHoursExcludingWeekends(startOfMonth, new Date(now.getFullYear(), now.getMonth() + 1, 0));
 
         res.send({
             totalRegularLogins: regular,
             totalLateLogins: late,
             totalEarlyLogins: early,
-            companyWorkingHours,
+            companyTotalWorkingHour,
             totalWorkingHoursPerMonth,
             totalEmpWorkingHours: totalEmpWorkingHours.toFixed(2),
             totalLeaveDays,

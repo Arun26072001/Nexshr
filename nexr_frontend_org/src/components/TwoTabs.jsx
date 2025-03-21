@@ -113,9 +113,9 @@ export default function Twotabs() {
       }
       setIsLoading(false)
     }
-    if (["2", "3"].includes(data.Account)) {
+    // if (["2", "3"].includes(data.Account)) {
       getAllEmpLeaveData();
-    }
+    // }
   }, [])
 
   function getTodoList(date) {
@@ -152,6 +152,8 @@ export default function Twotabs() {
     );
   };
 
+  console.log(leaveData);
+  
   function highlightToLeave(date) {
     if (!leaveData || !leaveData.length) return null; // Ensure leaveData exists
 
