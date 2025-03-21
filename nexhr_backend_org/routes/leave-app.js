@@ -277,110 +277,71 @@ leaveApp.put("/reject-leave", async (req, res) => {
 leaveApp.get("/emp/:empId", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
   try {
     const { empId } = req.params;
+    const { daterangeValue } = req.query;
 
-    // Fetch employee data
-    const emp = await Employee.findById(empId, "annualLeaveYearStart position FirstName LastName Email phone typesOfLeaveCount typesOfLeaveRemainingDays")
-      .populate("position")
-      .exec();
+    // Fetch employee data with necessary fields
+    const emp = await Employee.findById(empId, 
+      "annualLeaveYearStart position FirstName LastName Email phone typesOfLeaveCount typesOfLeaveRemainingDays"
+    ).populate("position", "PositionName").lean();
 
-    if (!emp) {
-      return res.status(404).send({ message: "Employee not found!" });
-    }
+    if (!emp) return res.status(404).json({ message: "Employee not found!" });
+
+    // Define date range for leave filtering
     let startDate, endDate;
-
-    if (req?.query?.daterangeValue) {
-      startDate = new Date(req.query.daterangeValue[0]);
-      endDate = new Date(req.query.daterangeValue[1]);
-      // Include the full last day of the range
-      // endDate.setHours(23, 59, 59, 999);
+    if (Array.isArray(daterangeValue) && daterangeValue.length === 2) {
+      [startDate, endDate] = daterangeValue.map(date => new Date(date));
     } else {
-      const annualLeaveYearStart = new Date(emp.annualLeaveYearStart);
       const now = new Date();
-
-      // Define start and end dates for leave filter
-      startDate =
-        annualLeaveYearStart.getFullYear() > now.getFullYear() - 1
-          ? new Date(now.getFullYear(), annualLeaveYearStart.getMonth(), annualLeaveYearStart.getDate())
-          : new Date(annualLeaveYearStart.getFullYear(), annualLeaveYearStart.getMonth(), annualLeaveYearStart.getDate());
-
-      endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0); // End of current month
-      endDate.setHours(23, 59, 59, 999);
+      const annualStart = new Date(emp.annualLeaveYearStart);
+      startDate = new Date(now.getFullYear(), annualStart.getMonth(), annualStart.getDate());
+      endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
     }
 
-    // Fetch leave requests within the defined range
-    const leaveReqs = await LeaveApplication.find({
-      employee: empId,
-      fromDate: { $gte: startDate, $lte: endDate }
-    })
-      .populate({ path: "employee", select: "FirstName LastName" })
-      .exec();
+    const today = new Date();
+    const filterLeaves = { fromDate: { $lte: today }, toDate: { $gte: today }, status: "approved" };
 
-    let leaveApplications = leaveReqs.sort((a, b) => new Date(a.fromDate) - new Date(b.fromDate));
+    // **Parallel Data Fetching**
+    const [leaveApplications, colleagues, peopleOnLeave, team] = await Promise.all([
+      LeaveApplication.find({ employee: empId, fromDate: { $gte: startDate, $lte: endDate } })
+        .populate("employee", "FirstName LastName")
+        .lean(),
+      emp.position
+        ? Employee.find({ position: emp.position._id, _id: { $ne: empId } }, "FirstName LastName Email phone").lean()
+        : [],
+      LeaveApplication.find(filterLeaves).populate("employee", "FirstName LastName").lean(),
+      Team.findOne({ employees: empId }, "employees").lean()
+    ]);
 
-    leaveApplications = leaveApplications.map((leave) => {
-      return {
-        ...leave.toObject(),
-        prescription: leave.prescription
-          ? `${process.env.REACT_APP_API_URL}/uploads/${leave.prescription}`
-          : null
-      }
-    })
+    // Fetch team members' leaves only if team exists
+    const peopleLeaveOnMonth = team
+      ? await LeaveApplication.find({
+          employee: { $in: team.employees },
+          fromDate: { $lte: endDate },
+          toDate: { $gte: startDate },
+          status: "approved"
+        }).lean()
+      : [];
 
-    // Fetch colleagues in the same position
-    const positionName = emp.position?.PositionName;
+    // Helper function to format leave data
+    const formatLeaveData = (leave) => ({
+      ...leave,
+      prescription: leave.prescription ? `${process.env.REACT_APP_API_URL}/uploads/${leave.prescription}` : null
+    });
 
-    let colleagues = [];
-    if (positionName) {
-      const positionIds = await Position.find({ PositionName: positionName }, "_id").exec();
-      colleagues = await Employee.find(
-        { position: { $in: positionIds }, _id: { $ne: empId } },
-        "FirstName LastName Email phone"
-      ).exec();
-    }
-
-    // Fetch people on leave today
-    const today = new Date().toISOString().split("T")[0];
-    const peopleOnLeave = await LeaveApplication.find({
-      fromDate: { $lte: today },
-      toDate: { $gte: today },
-      status: "approved"
-    })
-      .populate({ path: "employee", select: "FirstName LastName" })
-      .exec();
-
-    // Fetch team members' leaves this month
-    const team = await Team.findOne({ employees: empId }, "employees").exec();
-    let peopleLeaveOnMonth = [];
-    if (team) {
-      peopleLeaveOnMonth = await LeaveApplication.find({
-        employee: { $in: team.employees },
-        fromDate: { $lte: endDate },
-        toDate: { $gte: startDate },
-        status: "approved"
-      }).exec();
-
-      peopleLeaveOnMonth = peopleLeaveOnMonth.map((leave) => {
-        return {
-          ...leave.toObject(),
-          prescription: leave.prescription
-            ? `${process.env.REACT_APP_API_URL}/uploads/${leave.prescription}`
-            : null
-        }
-      })
-    }
-    // Respond with aggregated data
-    res.send({
+    res.json({
       employee: emp,
-      leaveApplications,
+      leaveApplications: leaveApplications.sort((a, b) => new Date(a.fromDate) - new Date(b.fromDate)).map(formatLeaveData),
       colleagues,
       peopleOnLeave,
-      peopleLeaveOnMonth
+      peopleLeaveOnMonth: peopleLeaveOnMonth.map(formatLeaveData)
     });
+
   } catch (err) {
     console.error("Error fetching employee data:", err);
-    res.status(500).send({ message: "Internal server error", details: err.message });
+    res.status(500).json({ message: "Internal server error", details: err.message });
   }
 });
+
 
 leaveApp.get("/hr", verifyHR, async (req, res) => {
   try {

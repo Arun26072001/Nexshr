@@ -90,7 +90,7 @@ const getCurrentTimeInMinutes = () => {
 };
 
 function formatTimeFromMinutes(minutes) {
-  if ([NaN,0].includes(minutes)) {
+  if ([NaN, 0].includes(minutes)) {
     return `00:00:00`;
   } else {
     const hours = Math.floor(minutes / 60); // Get the number of hours
@@ -105,7 +105,35 @@ function formatTimeFromMinutes(minutes) {
 
     return `${formattedHours}:${formattedMinutes}:${formattedSeconds}`;
   }
-
 }
 
-module.exports = { convertToString, getDayDifference, getWeekdaysOfCurrentMonth, mailContent, getCurrentTimeInMinutes, timeToMinutes, formatTimeFromMinutes };
+const checkLogin = (scheduledTime, actualTime) => {
+  const [schedHours, schedMinutes] = scheduledTime.split(':').map(Number);
+  const [actualHours, actualMinutes] = actualTime.split(':').map(Number);
+
+  const scheduledDate = new Date(2000, 0, 1, schedHours, schedMinutes);
+  const actualDate = new Date(2000, 0, 1, actualHours, actualMinutes);
+
+  if (actualDate > scheduledDate) {
+    late++;
+    return "Late";
+  } else if (actualDate < scheduledDate) {
+    early++;
+    return "Early";
+  } else {
+    regular++;
+    return "On Time";
+  }
+};
+
+const getTotalWorkingHoursExcludingWeekends = (start, end, dailyHours = 8) => {
+  let totalHours = 0;
+  for (let date = new Date(start); date <= end; date.setDate(date.getDate() + 1)) {
+    if (date.getDay() !== 0 && date.getDay() !== 6) { // Exclude weekends
+      totalHours += dailyHours;
+    }
+  }
+  return totalHours;
+};
+
+module.exports = { convertToString, getDayDifference, getWeekdaysOfCurrentMonth, mailContent, checkLogin, getTotalWorkingHoursExcludingWeekends, getCurrentTimeInMinutes, timeToMinutes, formatTimeFromMinutes };

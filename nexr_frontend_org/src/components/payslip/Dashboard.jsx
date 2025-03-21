@@ -93,6 +93,8 @@ const Dashboard = () => {
         gettingEmpdata();
     }, [isEditEmp]);
 
+    console.log(monthlyLoginData?.totalWorkingHourPercentage);
+
     return (
         <div className='dashboard-parent'>
             <ActivityTimeTracker empName={data.Name} leaveData={leaveData} handleLogout={handleLogout} updateClockins={updateClockins} />

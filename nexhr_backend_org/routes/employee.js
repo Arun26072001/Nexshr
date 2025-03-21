@@ -90,35 +90,32 @@ router.get("/user", verifyAdminHR, async (req, res) => {
 router.get("/all", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
   try {
     const employees = await Employee.find({}, "_id FirstName LastName employmentType dateOfJoining gender working code docType serialNo")
-      .populate({
-        path: "company",
-        select: "_id CompanyName Town"
-      })
-      .populate({
-        path: "position"
-      })
-      .populate({
-        path: "department"
-      })
-      .populate({
-        path: "workingTimePattern",
-      })
-      .populate({
-        path: "role"
-      })
-      .populate({
-        path: 'teamLead',
-        select: "_id FirstName LastName",
-        populate: {
+      .populate([
+        {
+          path: "company",
+          select: "_id CompanyName Town"
+        }, {
+          path: "position"
+        },
+        {
           path: "department"
+        }, {
+          path: "workingTimePattern",
+        }, {
+          path: "role"
+        }, {
+          path: 'teamLead',
+          select: "_id FirstName LastName",
+          populate: {
+            path: "department"
+          }
         }
-      })
+      ]).lean().exec();
     res.send(employees)
   } catch (err) {
     console.log(err);
     res.status(500).send({ error: err.message })
   }
-
 });
 
 router.get("/team/:higher", verifyAdminHRTeamHigherAuth, async (req, res) => {

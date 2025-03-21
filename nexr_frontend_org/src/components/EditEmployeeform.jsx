@@ -27,9 +27,10 @@ const EditEmployeeform = ({ details, empData, handleScroll, handlePersonal, hand
     const [splitError, setSplitError] = useState("");
     const [leaveTypes, setLeaveTypes] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
+    const [isWorkingApi, setIsWorkingApi] = useState(false);
     const [errorData, setErrorData] = useState("");
     const employeeObj = empData;
-    
+
     const empFormValidation = Yup.object().shape({
         FirstName: Yup.string().required('First Name is required'),
         LastName: Yup.string().required('Last Name is required'),
@@ -79,7 +80,7 @@ const EditEmployeeform = ({ details, empData, handleScroll, handlePersonal, hand
         initialValues: employeeObj,
         validationSchema: empFormValidation,
         onSubmit: async (values, { resetForm }) => {
-
+            setIsWorkingApi(true);
             try {
                 const res = await updateEmp(values, id);
                 if (res !== undefined) {
@@ -88,6 +89,7 @@ const EditEmployeeform = ({ details, empData, handleScroll, handlePersonal, hand
                     resetForm();
                 }
             } catch (err) {
+                toast.error(err.response.data.error)
                 // console.log(err);
                 // if (err.response && err.response.data && err.response.data.error) {
                 //     toast.error(err.response.data.error)
@@ -95,6 +97,7 @@ const EditEmployeeform = ({ details, empData, handleScroll, handlePersonal, hand
                 console.log("error occured in edit employee!");
                 // }
             }
+            setIsWorkingApi(false);
         }
     })
 
@@ -896,7 +899,7 @@ const EditEmployeeform = ({ details, empData, handleScroll, handlePersonal, hand
                                     onClick={navToError}
                                     disabled={splitError ? true : false}
                                 >
-                                    Update
+                                    {isWorkingApi ? <Loading /> : "Update"}
                                 </button>
                             </div>
                         </div>
