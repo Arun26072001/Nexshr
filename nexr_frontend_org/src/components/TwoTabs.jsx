@@ -178,7 +178,7 @@ export default function Twotabs() {
       <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
         <Tabs value={value} onChange={handleChange} aria-label="basic tabs example" style={{ backgroundColor: 'rgb(238, 247, 255)' }}>
           <Tab label="Absence" {...a11yProps(0)} />
-          <Tab label="Overtime" {...a11yProps(1)} />
+          {/* <Tab label="Overtime" {...a11yProps(1)} /> */}
         </Tabs>
       </Box>
       <CustomTabPanel value={value} index={0} className="bg-light tabParent">

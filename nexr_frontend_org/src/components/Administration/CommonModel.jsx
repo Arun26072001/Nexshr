@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useContext, useState } from 'react';
 import "../Settings/SettingsStyle.css";
 import { Modal, Button, SelectPicker, TagPicker, Input, InputNumber } from 'rsuite';
 import TextEditor from '../payslip/TextEditor';
@@ -9,6 +9,7 @@ import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
 import "../projectndTask.css";
 import { MultiCascader, VStack } from 'rsuite';
 import Loading from '../Loader';
+import { EssentialValues } from '../../App';
 
 const CommonModel = ({
     dataObj,
@@ -33,6 +34,7 @@ const CommonModel = ({
     isWorkingApi,
     type // New prop to determine if it's for "department" or "position"
 }) => {
+    const { data } = useContext(EssentialValues);
     const [confirmationTxt, setConfirmationTxt] = useState("");
     const [isDisabled, setIsDisabled] = useState(true);
 
@@ -455,6 +457,7 @@ const CommonModel = ({
                                         data={employees}
                                         required
                                         size="lg"
+                                        defaultValue={[data._id]}
                                         appearance="default"
                                         disabled={["Report View", "Project View"].includes(type) ? true : false}
                                         style={{ width: "100%" }}

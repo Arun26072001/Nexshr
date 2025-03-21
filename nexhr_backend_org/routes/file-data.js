@@ -310,14 +310,14 @@ router.post("/employees", upload.single("documents"), verifyAdminHR, async (req,
                     bloodGroup: row[14],
                     annualLeaveEntitlement: 14,
                     typesOfLeaveCount: {
-                        "Annual Leave": "7",
-                        "Sick Leave": "7",
+                        "Annual Leave": row[12] === "Intern" ? "1" : "7",
+                        "Sick Leave": row[12] === "Intern" ? "2" :  "7",
                         "permission": "2"
                     },
 
                     typesOfLeaveRemainingDays: {
-                        "Annual Leave": "7",
-                        "Sick Leave": "7"
+                        "Annual Leave": row[12] === "Intern" ? "1" :  "7",
+                        "Sick Leave": row[12] === "Intern" ? "2" :  "7"
                     },
                     role: "679b31dba453436edb1b27a3",
                     workingTimePattern: "679ca37c9ac5c938538f18ba",
