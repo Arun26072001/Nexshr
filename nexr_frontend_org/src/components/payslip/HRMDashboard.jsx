@@ -422,8 +422,8 @@ export default function HRMDashboard() {
                     const { timeData } = await getDataAPI(_id);
                     console.log(timeData);
                     
-                    if (timeData?.[0]) {
-                        setWorkTimeTracker(timeData[0])
+                    if (timeData?.clockIns[0]?._id) {
+                        setWorkTimeTracker(timeData.clockIns[0])
                     } else {
                         setWorkTimeTracker({ ...workTimeTracker });
                         removeClockinsData();
