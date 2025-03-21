@@ -114,7 +114,7 @@ export default function Twotabs() {
       setIsLoading(false)
     }
     // if (["2", "3"].includes(data.Account)) {
-      getAllEmpLeaveData();
+    getAllEmpLeaveData();
     // }
   }, [])
 
@@ -152,20 +152,22 @@ export default function Twotabs() {
     );
   };
 
-  console.log(leaveData);
-  
   function highlightToLeave(date) {
     if (!leaveData || !leaveData.length) return null; // Ensure leaveData exists
 
-    const isLeave = leaveData.some((leave) =>
-      leave.start.toDateString() === date.toDateString()
-    );
+    // Filter leaveData based on date comparison
+    const isLeave = leaveData.filter((leave) => {
+      const leaveDate = new Date(leave.start); // Ensure `leave.start` is a Date object
+      return leaveDate.toDateString() === date.toDateString();
+    });
 
-    if (isLeave) {
+    if (isLeave.length > 0) {
+      const leaveStatus = isLeave[0].status; // Get status from the first matched leave
+
       return (
         <Whisper placement="bottomEnd" trigger="click" speaker={renderMenu(date)}>
           <div style={{ width: "20px", height: "20px" }}>
-            <Badge className="calendar-todo-item-badge" />
+            <Badge className={`calendar-todo-item-badge ${leaveStatus === "pending" ? "bg-warning" : ""}`} />
           </div>
         </Whisper>
       );
@@ -173,7 +175,6 @@ export default function Twotabs() {
 
     return null; // Return null if no leave is found
   }
-
 
   return (
     <Box sx={{ width: '100%', border: '2px solid rgb(208 210 210)', borderRadius: '5px', height: "100%" }}>
