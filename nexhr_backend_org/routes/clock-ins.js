@@ -7,7 +7,7 @@ const { getDayDifference } = require("./leave-app");
 const sendMail = require("./mailSender");
 const { LeaveApplication, LeaveApplicationValidation } = require("../models/LeaveAppModel");
 const { Team } = require("../models/TeamModel");
-const { getCurrentTimeInMinutes, formatTimeFromMinutes, timeToMinutes, checkLogin, getTotalWorkingHoursExcludingWeekends } = require("../Reuseable_functions/reusableFunction");
+const { getCurrentTimeInMinutes, timeToMinutes, getTotalWorkingHoursExcludingWeekends } = require("../Reuseable_functions/reusableFunction");
 
 async function checkLoginForOfficeTime(scheduledTime, actualTime, permissionTime) {
 
@@ -627,6 +627,24 @@ router.get("/employee/:empId", verifyAdminHREmployeeManagerNetwork, async (req, 
     let totalEmpWorkingHours = 0;
     let totalLeaveDays = 0;
     let regular = 0, late = 0, early = 0;
+    const checkLogin = (scheduledTime, actualTime) => {
+        const [schedHours, schedMinutes] = scheduledTime.split(':').map(Number);
+        const [actualHours, actualMinutes] = actualTime.split(':').map(Number);
+
+        const scheduledDate = new Date(2000, 0, 1, schedHours, schedMinutes);
+        const actualDate = new Date(2000, 0, 1, actualHours, actualMinutes);
+
+        if (actualDate > scheduledDate) {
+            late++;
+            return "Late";
+        } else if (actualDate < scheduledDate) {
+            early++;
+            return "Early";
+        } else {
+            regular++;
+            return "On Time";
+        }
+    };
 
     const [startOfMonth, endOfMonth] = req.query.daterangeValue
         ? [new Date(req.query.daterangeValue[0]), new Date(req.query.daterangeValue[1])]
