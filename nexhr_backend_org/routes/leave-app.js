@@ -327,7 +327,7 @@ leaveApp.get("/emp/:empId", verifyAdminHREmployeeManagerNetwork, async (req, res
       prescription: leave.prescription ? `${process.env.REACT_APP_API_URL}/uploads/${leave.prescription}` : null
     });
 
-    const permissionLeaveCount = leaveApplications.filter((leave) => leave.leaveType.includes("Permission")).length;
+    const permission = leaveApplications.filter((leave) => leave.leaveType.includes("Permission")).length;
     const unpaidLeaveCount = leaveApplications.filter((leave) => leave.leaveType.includes("Unpaid")).length;
     emp = {
       ...emp,
@@ -337,7 +337,7 @@ leaveApp.get("/emp/:empId", verifyAdminHREmployeeManagerNetwork, async (req, res
       },
       typesOfLeaveRemainingDays: {
         ...emp.typesOfLeaveRemainingDays,
-        permissionLeaveCount
+        permission
       }
     }
 
