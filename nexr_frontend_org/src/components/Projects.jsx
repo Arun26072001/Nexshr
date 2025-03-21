@@ -26,7 +26,7 @@ export default function Projects({ employees }) {
     const [isDelete, setIsDelete] = useState({ type: false, value: "" });
     const [isEdit, setIsEdit] = useState(false);
     const [projects, setProjects] = useState([]);
-    const [name, setName] = useState("");
+    const [name, setName] = useState(localStorage.getItem("selectedCompany"));
     const [filterProjects, setFilterProjects] = useState([]);
     const [projectObj, setProjectObj] = useState({});
     const [isAddProject, setIsAddProject] = useState(false);
@@ -163,6 +163,7 @@ export default function Projects({ employees }) {
     }, [])
 
     function filterByName(name) {
+        localStorage.setItem("selectedCompany", name)
         setName(name);
         if (["", null].includes(name)) {
             setProjects(filterProjects)
@@ -170,7 +171,14 @@ export default function Projects({ employees }) {
             setProjects(filterProjects.filter((project) => project.name.toLowerCase().includes(name?.toLowerCase()) || project.status.includes(name) || project?.company?._id?.includes(name)))
         }
     }
-
+    // useEffect(() => {
+    //     function changeUIForSelectedCompany() {
+    //         setName
+    //     }
+    //     if (name) {
+    //         changeUIForSelectedCompany()
+    //     }
+    // }, [name])
 
     async function deleteProject() {
         try {
