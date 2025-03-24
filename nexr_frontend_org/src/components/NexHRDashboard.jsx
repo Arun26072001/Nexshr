@@ -14,7 +14,7 @@ const NexHRDashboard = ({ updateClockins }) => {
   const { isTeamLead, isTeamHead } = jwtDecode(token);
   
   return (
-    (<div className="row">
+    <div className="row">
       <div className="col-lg-8 col-md-12 col-12" >
         {/* Left card */}
         <Card style={{ border: '2px solid rgb(208 210 210)', height: '100%' }}>
@@ -38,7 +38,7 @@ const NexHRDashboard = ({ updateClockins }) => {
         {/* right Card */}
         <Twotabs />
       </div>
-    </div>)
+    </div>
   )
 };
 

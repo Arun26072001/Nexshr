@@ -10,6 +10,7 @@ import { TimerStates } from './payslip/HRMDashboard';
 import Loading from './Loader';
 import { EssentialValues } from '../App';
 import { jwtDecode } from 'jwt-decode';
+import { Skeleton } from '@mui/material';
 
 function CustomTabPanel(props) {
     const { children, value, index, ...other } = props;
@@ -50,8 +51,8 @@ export default function Home() {
     const [value, setValue] = useState(0);
     const [isLoading, setLoading] = useState(true); // Track loading state
     const empId = localStorage.getItem('_id');
-    const { data, whoIs } = useContext(EssentialValues);    
-    const { isTeamLead, isTeamHead } = jwtDecode(data.token);
+    // const { data } = useContext(EssentialValues);    
+    // const { isTeamLead, isTeamHead } = jwtDecode(data.token);
 
     const staticData = {
         startingTime: "00:00",
@@ -94,63 +95,69 @@ export default function Home() {
     }, [updateClockins]);
 
     return (
-        isLoading ? <Loading height="80vh" /> :
-            <Box sx={{ width: '100%' }}>
-                <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
-                    <Tabs value={value} onChange={handleChange} aria-label="basic tabs example">
-                        <Tab label={"My Summary"} {...a11yProps(0)} />
-                    </Tabs>
-                </Box>
+        <Box sx={{ width: '100%' }}>
+            <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
+                <Tabs value={value} onChange={handleChange} aria-label="basic tabs example">
+                    <Tab label={"My Summary"} {...a11yProps(0)} />
+                </Tabs>
+            </Box>
 
-                <CustomTabPanel value={value} index={0} className="tabParent" style={{ backgroundColor: "white" }}>
-                    <div className='row'>
-                        <div className='col-lg-6 col-md-6 col-12'>
-                            <table className='table table-striped'>
-                                <thead>
-                                    <tr>
-                                        <th>Activity</th>
-                                        <th>Starting Time</th>
-                                        <th>Ending Time</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {
-                                        tableData?.map((data, index) => (
-                                            <tr key={index}>
-                                                <td>
-                                                    {data.activity}
-                                                </td>
-                                                <td>
-                                                    {data.startingTime}
-                                                </td>
-                                                <td>
-                                                    {data.endingTime}
-                                                </td>
-                                            </tr>
-                                        ))
-                                    }
-                                </tbody>
-                            </table>
-                        </div>
-                        <div className='col-lg-6 col-md-6 col-12'>
-                            {
-                                workTimeTracker?.login?.startingTime?.length === workTimeTracker?.login?.endingTime?.length &&
+            <CustomTabPanel value={value} index={0} className="tabParent" style={{ backgroundColor: "white" }}>
+                <div className='row'>
+                    <div className='col-lg-6 col-md-6 col-12'>
+                        {
+                            isLoading ?
+                                [...Array(5)].map((_, index) => (
+                                    <Skeleton key={index} variant="rounded" width={300} height={30} className="my-1" />
+                                ))
+                                :
+                                <table className='table table-striped'>
+                                    <thead>
+                                        <tr>
+                                            <th>Activity</th>
+                                            <th>Starting Time</th>
+                                            <th>Ending Time</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className='w-100'>
+                                        {
+                                            tableData?.map((data, index) => (
+                                                <tr key={index}>
+                                                    <td>
+                                                        {data.activity}
+                                                    </td>
+                                                    <td>
+                                                        {data.startingTime}
+                                                    </td>
+                                                    <td>
+                                                        {data.endingTime}
+                                                    </td>
+                                                </tr>
+                                            ))
+                                        }
+                                    </tbody>
+                                </table>
+                        }
+                    </div>
+                    <div className='col-lg-6 col-md-6 col-12'>
+                        {
+                            workTimeTracker?.login?.startingTime?.length === workTimeTracker?.login?.endingTime?.length &&
                                 workTimeTracker[timeOption]?.startingTime?.length === workTimeTracker[timeOption]?.endingTime?.length &&
+                                isLoading ? <Skeleton varient="rounded" width={300} height={250} /> :
                                 <>
                                     <p className='chartTitle'>Time Activity</p>
                                     <ApexChart activitiesData={tableData} />
                                 </>
-                                // <NoDataFound message={"You can't view time value, until stop timers"} />
-                            }
-                        </div>
+                        }
                     </div>
-                </CustomTabPanel>
-                <CustomTabPanel value={value} index={1}>
-                    Working Status
-                </CustomTabPanel>
-                <CustomTabPanel value={value} index={2}>
-                    Who's Working?
-                </CustomTabPanel>
-            </Box>
+                </div>
+            </CustomTabPanel>
+            <CustomTabPanel value={value} index={1}>
+                Working Status
+            </CustomTabPanel>
+            <CustomTabPanel value={value} index={2}>
+                Who's Working?
+            </CustomTabPanel>
+        </Box>
     );
 }
