@@ -661,14 +661,17 @@ router.get("/employee/:empId", verifyAdminHREmployeeManagerNetwork, async (req, 
     const { empId } = req.params;
     let totalEmpWorkingHours = 0;
     let totalLeaveDays = 0;
+    let totalUnpaidLeaves = 0;
     let regular = 0, late = 0, early = 0;
+    let startOfMonth, endOfMonth;
 
-    const [startOfMonth, endOfMonth] = req.query.daterangeValue
-        ? [new Date(req.query.daterangeValue[0]), new Date(req.query.daterangeValue[1])]
-        : [
-            new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 0, 0, 0)),
-            new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 23, 59, 59, 999))
-        ];
+    if (req?.query?.daterangeValue) {
+        startOfMonth = new Date(req.query.daterangeValue[0]);
+        endOfMonth = new Date(req.query.daterangeValue[1]);
+    } else {
+        startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+        endOfMonth = new Date();
+    }
 
     const checkLogin = (scheduledTime, actualTime) => {
         const [schedHours, schedMinutes] = scheduledTime.split(':').map(Number);
@@ -718,6 +721,7 @@ router.get("/employee/:empId", verifyAdminHREmployeeManagerNetwork, async (req, 
         if (!employee) return res.status(400).send({ message: "Employee not found." });
 
         totalLeaveDays = employee.leaveApplication.reduce((sum, leave) => sum + getDayDifference(leave), 0);
+        totalUnpaidLeaves = employee.leaveApplication.filter((leave)=> leave.leaveType.includes("Unpaid")).length;
 
         employee.clockIns.forEach(({ login }) => {
             const { startingTime, endingTime } = login;
@@ -727,15 +731,17 @@ router.get("/employee/:empId", verifyAdminHREmployeeManagerNetwork, async (req, 
 
         const companyTotalWorkingHour = getTotalWorkingHoursExcludingWeekends(startOfMonth, endOfMonth);
         const totalWorkingHoursPerMonth = getTotalWorkingHoursExcludingWeekends(startOfMonth, new Date(now.getFullYear(), now.getMonth() + 1, 0));
+        
 
         res.send({
             totalRegularLogins: regular,
             totalLateLogins: late,
             totalEarlyLogins: early,
             companyTotalWorkingHour,
+            totalUnpaidLeaves,
             totalWorkingHoursPerMonth,
-            totalEmpWorkingHours: totalEmpWorkingHours.toFixed(2),
-            totalLeaveDays,
+            totalEmpWorkingHours,
+            totalLeaveDays: totalLeaveDays,
             clockIns: employee.clockIns.sort((a, b) => new Date(a.date) - new Date(b.date))
         });
     } catch (error) {
