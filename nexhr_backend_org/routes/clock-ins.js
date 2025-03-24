@@ -661,6 +661,7 @@ router.get("/employee/:empId", verifyAdminHREmployeeManagerNetwork, async (req, 
     const { empId } = req.params;
     let totalEmpWorkingHours = 0;
     let totalLeaveDays = 0;
+    let totalUnpaidLeaves = 0;
     let regular = 0, late = 0, early = 0;
     let startOfMonth, endOfMonth;
 
@@ -720,6 +721,7 @@ router.get("/employee/:empId", verifyAdminHREmployeeManagerNetwork, async (req, 
         if (!employee) return res.status(400).send({ message: "Employee not found." });
 
         totalLeaveDays = employee.leaveApplication.reduce((sum, leave) => sum + getDayDifference(leave), 0);
+        totalUnpaidLeaves = employee.leaveApplication.filter((leave)=> leave.leaveType.includes("Unpaid")).length;
 
         employee.clockIns.forEach(({ login }) => {
             const { startingTime, endingTime } = login;
@@ -729,12 +731,14 @@ router.get("/employee/:empId", verifyAdminHREmployeeManagerNetwork, async (req, 
 
         const companyTotalWorkingHour = getTotalWorkingHoursExcludingWeekends(startOfMonth, endOfMonth);
         const totalWorkingHoursPerMonth = getTotalWorkingHoursExcludingWeekends(startOfMonth, new Date(now.getFullYear(), now.getMonth() + 1, 0));
+        
 
         res.send({
             totalRegularLogins: regular,
             totalLateLogins: late,
             totalEarlyLogins: early,
             companyTotalWorkingHour,
+            totalUnpaidLeaves,
             totalWorkingHoursPerMonth,
             totalEmpWorkingHours,
             totalLeaveDays: totalLeaveDays,

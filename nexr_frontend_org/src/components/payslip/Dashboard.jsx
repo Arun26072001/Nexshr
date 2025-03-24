@@ -102,7 +102,7 @@ const Dashboard = () => {
             <>
 
                 <div className='allowance flex-wrap'>
-                    <div className={`col-lg-3 col-md-3 col-6 my-1 ${isLoading ? "d-flex justify-content-center" : "text-center"}`}>
+                    <div className={`col-lg-2 col-md-6 col-4 my-1 ${isLoading ? "d-flex justify-content-center" : "text-center"}`}>
                         {
                             isLoading ?
                                 <ContentLoader />
@@ -113,7 +113,7 @@ const Dashboard = () => {
                         }
                     </div>
 
-                    <div className={`col-lg-3 col-md-3 col-6 my-1 ${isLoading ? "d-flex justify-content-center" : "text-center"}`}>
+                    <div className={`col-lg-2 col-md-6 col-4 my-1 ${isLoading ? "d-flex justify-content-center" : "text-center"}`}>
                         {
                             isLoading ? <ContentLoader /> :
                                 <>
@@ -122,7 +122,7 @@ const Dashboard = () => {
                                 </>
                         }
                     </div>
-                    <div className={`col-lg-3 col-md-3 col-6 my-1 ${isLoading ? "d-flex justify-content-center" : "text-center"}`}>
+                    <div className={`col-lg-2 col-md-6 col-4 my-1 ${isLoading ? "d-flex justify-content-center" : "text-center"}`}>
                         {
                             isLoading ? <ContentLoader /> :
                                 <>
@@ -131,12 +131,21 @@ const Dashboard = () => {
                                 </>
                         }
                     </div>
-                    <div className={`col-lg-3 col-md-3 col-6 my-1 ${isLoading ? "d-flex justify-content-center" : "text-center"}`}>
+                    <div className={`col-lg-3 col-md-6 col-4 my-1 ${isLoading ? "d-flex justify-content-center" : "text-center"}`}>
                         {
                             isLoading ? <ContentLoader /> :
                                 <>
                                     <p className='leaveIndicatorTxt'>Leave request pending</p>
                                     <p className='text-primary number'>{leaveData?.pendingLeaveRequests || 0}</p>
+                                </>
+                        }
+                    </div>
+                    <div className={`col-lg-2 col-md-6 col-4 my-1 ${isLoading ? "d-flex justify-content-center" : "text-center"}`}>
+                        {
+                            isLoading ? <ContentLoader /> :
+                                <>
+                                    <p className='leaveIndicatorTxt'>Total Unpaid Leave</p>
+                                    <p className='text-primary number'>{monthlyLoginData?.totalUnpaidLeaves || 0}</p>
                                 </>
                         }
                     </div>
@@ -240,7 +249,6 @@ const Dashboard = () => {
                 </div>
                 <NexHRDashboard updateClockins={updateClockins} />
             </>
-
         </div>
     );
 };
