@@ -136,7 +136,7 @@ export default function PayslipUI() {
                                 </div>
                             </div>
                             <p style={{ fontSize: "10px", fontWeight: "900" }}>
-                                {payslips?.employee?.company[0]?.CompanyName || "Company Name"} {payslips?.employee?.company[0]?.Address || "Address"}
+                                {payslips?.employee?.company?.CompanyName || "Company Name"} {payslips?.employee?.company?.Address || "Address"}
                             </p>
                         </div>
                         <div className='text-center' >

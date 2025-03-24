@@ -98,9 +98,7 @@ const Dashboard = () => {
     return (
         <div className='dashboard-parent'>
             <ActivityTimeTracker empName={data.Name} leaveData={leaveData} handleLogout={handleLogout} updateClockins={updateClockins} />
-
             <>
-
                 <div className='allowance flex-wrap'>
                     <div className={`col-lg-2 col-md-6 col-4 my-1 ${isLoading ? "d-flex justify-content-center" : "text-center"}`}>
                         {

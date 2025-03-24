@@ -11,6 +11,7 @@ import { useNavigate } from 'react-router-dom';
 import { EssentialValues } from '../App';
 import Loading from './Loader';
 import { Badge, Calendar, Dropdown, HStack, Popover, Whisper } from 'rsuite';
+import { Skeleton } from '@mui/material';
 
 function CustomTabPanel(props) {
   const { children, value, index, ...other } = props;
@@ -196,17 +197,31 @@ export default function Twotabs() {
           </div>
           <div className="row" >
             <div className="leaveCircle col-lg-6 col-sm-12 col-md-12 p-0" >
-              <CircleBar annualLeave={Number(annualLeave).toFixed(1) || 0} takenLeave={takenLeave.toFixed(2) || 0} />
+              {
+                isLoading ? <Skeleton variant="circular" width={120} height={120} className="m-2" /> :
+                  <CircleBar annualLeave={Number(annualLeave).toFixed(1) || 0} takenLeave={takenLeave.toFixed(2) || 0} />
+              }
             </div>
 
             <div className='text-center col-lg-6 col-sm-12 col-md-12 p-0 m-auto' style={{ fontSize: "13px" }} >
-              <p><b>{(Number(annualLeave) - takenLeave).toFixed(2) || 0} Days</b> Remaining</p>
-              <p><b>{annualLeave || 0} Days</b> Allowance</p>
+              {
+                isLoading ?
+                  <>
+                    <Skeleton variant='text' />
+                    <Skeleton variant='text' />
+                  </> :
+                  <>
+                    <p><b>{(Number(annualLeave) - takenLeave).toFixed(2) || 0} Days</b> Remaining</p>
+                    <p><b>{annualLeave || 0} Days</b> Allowance</p>
+                  </>
+              }
             </div>
           </div>
 
           {
-            isLoading ? <Loading height="80vh" /> :
+            isLoading ? [...Array(5)].map((item) => {
+              return <Skeleton variant='rounded' width={"100%"} className='my-1' height={30} />
+            }) :
               leaveRequests?.map((req, index) => {
                 // debugger;
                 let todayDate = today.getTime()
@@ -221,12 +236,12 @@ export default function Twotabs() {
               })
           }
 
-          {
-            <HStack spacing={10} style={{ height: 320 }} alignItems="flex-start" wrap className='position-relative'>
-              {/* <TodoList date={selectedDate} /> */}
-              <Calendar compact style={{ width: 320, paddingTop: "0px" }} renderCell={highlightToLeave} onChange={(value) => setSelectedDate(value)} bordered />
-            </HStack>
-          }
+          <HStack spacing={10} style={{ height: 320 }} alignItems="flex-start" wrap className='position-relative'>
+            {
+              isLoading ? <Skeleton variant='rounded' width={"100%"} height={300} />
+                : <Calendar compact style={{ width: 320, paddingTop: "0px" }} renderCell={highlightToLeave} onChange={(value) => setSelectedDate(value)} bordered />
+            }
+          </HStack>
 
         </div>
       </CustomTabPanel>

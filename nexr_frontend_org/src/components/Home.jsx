@@ -143,7 +143,13 @@ export default function Home() {
                         {
                             workTimeTracker?.login?.startingTime?.length === workTimeTracker?.login?.endingTime?.length &&
                                 workTimeTracker[timeOption]?.startingTime?.length === workTimeTracker[timeOption]?.endingTime?.length &&
-                                isLoading ? <Skeleton varient="rounded" width={300} height={250} /> :
+                                isLoading ?
+                                <>
+                                    <Skeleton varient="text" />
+                                    <Skeleton varient="text" />
+                                    <Skeleton varient="text" />
+                                    <Skeleton varient="circular" width={150} height={150} />
+                                </> :
                                 <>
                                     <p className='chartTitle'>Time Activity</p>
                                     <ApexChart activitiesData={tableData} />
