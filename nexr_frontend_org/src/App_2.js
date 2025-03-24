@@ -75,6 +75,96 @@ const App = () => {
   const login = async (email, password) => {
     setLoading(true);
     try {
+        // login in centralization api
+        try {
+            setLoading(true);
+      
+            // Step 1: Verify User Email
+            const verifyUserEmail = await axios.post(`${cen_url}/verify_user`, { email_id: email });
+      
+            if (!verifyUserEmail.data.user_details._id) {
+              setLoading(false);
+              setPass(false);
+              toast.error("Email not found, Plese Register.");
+              return; // Exit early
+            }
+      
+            const userDetails = verifyUserEmail.data.user_details;
+            if (!userDetails || !userDetails.email_id) {
+              setLoading(false);
+              setPass(false);
+              console.error("User details not found.");
+              return; // Exit early
+            }
+      
+            // Step 2: Login User
+            const loginData = {
+              email_id: email,
+              password,
+              loginfrom: 3,
+            };
+            const loginEmp = await axios.post(`${cen_url}/login`, loginData);
+      
+            // if not login in return as error
+            if (!loginEmp.data || loginEmp.data.status === "false") {
+              setLoading(false);
+              setPass(false);
+              console.error("Login failed.");
+              return; // Exit early
+            }
+            const setCookieCrdentials = {
+              email_id: email,
+              loginfrom: 3
+            }
+            const tokenData = await axios.post(`${cen_url}/set_cookie`, setCookieCrdentials, {
+              withCredentials: true,
+              headers: {
+                "Content-Type": "application/json",
+              },
+            });
+            // get Token
+            // const getToken = await axios.get(`${cen_url}/get-token`, {
+            //   withCredentials: true,
+            //   headers: {
+            //   }
+            // });
+            // console.log(getToken.data);
+      
+            // Step 3: Set User Data and Token
+            const authToken = tokenData.data.token;
+            const user = loginEmp.data.user_details;
+      
+            // cookies.set("name", user.name, { path: "/" });
+            setIsLogin(true);
+            // cookies.set("authToken", authToken, { path: "/" });
+            // cookies.set("isLogin", true, { path: "/" });
+            // cookies.set("cen_user_id", user._id, { path: "/" });
+            // cookies.set("email", user.email_id, { path: "/" });
+      
+            // const orgIds = user.nexhr_organisations?.split(",") || [];
+            // cookies.set("orgIds", user.nexhr_organisations, { path: "/" });
+      
+            // if (orgIds.length > 1) {
+            //   // Multiple organizations (to get multiple orgs of data)
+            //   const orgsData = await axios.post(`${url}/api/organization`, { orgs: orgIds });
+            //   console.log(orgsData.data);
+            //   setOrgIds(orgsData.data);
+            //   navigate("/org-list");
+            // } else {
+            //   // Single organization
+            //   const orgId = user.nexhr_organisations;
+            //   // const orgData = await axios.get(`${url}/api/organization/${orgId}`);
+            //   goToDash(orgId);
+            // }
+      
+          } catch (error) {
+            console.error("An error occurred during login:", error.message);
+            setPass(false); // Reset states on failure
+          } finally {
+            setLoading(false); // Ensure loading stops
+          }
+
+        //login in nexhr
       const response = await axios.post(`${url}/api/login`, { Email: email, Password: password });
       const decodedData = jwtDecode(response.data);
 
