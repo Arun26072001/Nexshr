@@ -100,6 +100,11 @@ const Dashboard = () => {
                 isLoading ? <Loading height="80vh" /> :
                     <>
                         {/* <div className="allowance row container-fluid mx-auto g-2"> */}
+                        {/* <div className="waves">
+                            <div className="wave"></div>
+                            <div className="wave"></div>
+                            <div className="wave"></div>
+                        </div> */}
                         <div className='allowance flex-wrap'>
                             <div className='col-lg-3 col-md-3 col-6 my-1 text-center'>
                                 <p className='leaveIndicatorTxt'>Total leave allowance</p>
@@ -181,10 +186,10 @@ const Dashboard = () => {
                                     <div className='col-lg-6 col-md-6 col-sm-6 col-12'>
                                         <div className='space row'>
                                             <div className='col-lg-6 col-md-6 col-sm-6 col-6 text-start'><span className='text_gap'>Shortage time</span></div>
-                                            <div className='col-lg-6 col-md-6 col-sm-6 col-6 text-end'><span className='value'>{(monthlyLoginData?.companyTotalWorkingHour || 0 - monthlyLoginData?.totalEmpWorkingHours || 0)?.toFixed(2)} hour</span></div>
+                                            <div className='col-lg-6 col-md-6 col-sm-6 col-6 text-end'><span className='value'>{(monthlyLoginData?.companyTotalWorkingHour - monthlyLoginData?.totalEmpWorkingHours || 0)?.toFixed(2)} hour</span></div>
                                         </div>
                                         <div className="progress">
-                                            <div className="progress-bar progress-bar-striped" role="progressbar" style={{ width: `${monthlyLoginData?.companyTotalWorkingHour || 0 - monthlyLoginData?.totalEmpWorkingHours || 0}%` }} aria-valuenow="10" aria-valuemin="0" aria-valuemax="100"></div>
+                                            <div className="progress-bar progress-bar-striped" role="progressbar" style={{ width: `${monthlyLoginData?.companyTotalWorkingHour - monthlyLoginData?.totalEmpWorkingHours || 0}%` }} aria-valuenow="10" aria-valuemin="0" aria-valuemax="100"></div>
                                         </div>
                                     </div>
 
@@ -200,7 +205,6 @@ const Dashboard = () => {
                                 </div>
                             </div>
                         </div>
-
                         <NexHRDashboard updateClockins={updateClockins} />
                     </>
             }

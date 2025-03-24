@@ -662,13 +662,15 @@ router.get("/employee/:empId", verifyAdminHREmployeeManagerNetwork, async (req, 
     let totalEmpWorkingHours = 0;
     let totalLeaveDays = 0;
     let regular = 0, late = 0, early = 0;
+    let startOfMonth, endOfMonth;
 
-    const [startOfMonth, endOfMonth] = req.query.daterangeValue
-        ? [new Date(req.query.daterangeValue[0]), new Date(req.query.daterangeValue[1])]
-        : [
-            new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 0, 0, 0)),
-            new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 23, 59, 59, 999))
-        ];
+    if (req?.query?.daterangeValue) {
+        startOfMonth = new Date(req.query.daterangeValue[0]);
+        endOfMonth = new Date(req.query.daterangeValue[1]);
+    } else {
+        startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+        endOfMonth = new Date();
+    }
 
     const checkLogin = (scheduledTime, actualTime) => {
         const [schedHours, schedMinutes] = scheduledTime.split(':').map(Number);
@@ -734,8 +736,8 @@ router.get("/employee/:empId", verifyAdminHREmployeeManagerNetwork, async (req, 
             totalEarlyLogins: early,
             companyTotalWorkingHour,
             totalWorkingHoursPerMonth,
-            totalEmpWorkingHours: totalEmpWorkingHours.toFixed(2),
-            totalLeaveDays,
+            totalEmpWorkingHours,
+            totalLeaveDays: totalLeaveDays,
             clockIns: employee.clockIns.sort((a, b) => new Date(a.date) - new Date(b.date))
         });
     } catch (error) {
