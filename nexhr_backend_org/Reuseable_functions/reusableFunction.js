@@ -8,7 +8,7 @@ const convertToString = (value) => {
 };
 
 function getDayDifference(leave) {
-  if (leave.leaveType === "half day") {
+  if (leave?.leaveType === "half day") {
     return 0.5;
   }
   let toDate = new Date(leave.toDate);

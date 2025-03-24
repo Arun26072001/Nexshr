@@ -326,18 +326,24 @@ leaveApp.get("/emp/:empId", verifyAdminHREmployeeManagerNetwork, async (req, res
       ...leave,
       prescription: leave.prescription ? `${process.env.REACT_APP_API_URL}/uploads/${leave.prescription}` : null
     });
-
-    const permissionLeaveCount = leaveApplications.filter((leave) => leave.leaveType.includes("Permission")).length;
-    const unpaidLeaveCount = leaveApplications.filter((leave) => leave.leaveType.includes("Unpaid")).length;
+    // filter current month of permissions and unpaid leave
+    const currentMonth = new Date().getMonth();
+    const currentYear = new Date().getFullYear();
+    const currentMonthOfLeaves = leaveApplications.filter((leave) => {
+      const fromDate = new Date(leave.fromDate);
+      return currentMonth === fromDate.getMonth() && fromDate.getFullYear() === currentYear;
+    })
+    const permission = currentMonthOfLeaves.filter((leave) => leave.leaveType.includes("Permission")).length;
+    const unpaidLeaveCount = currentMonthOfLeaves.filter((leave) => leave.leaveType.includes("Unpaid")).length;
     emp = {
       ...emp,
       typesOfLeaveCount: {
         ...emp.typesOfLeaveCount,
-        unpaidLeaveCount
+        unpaidLeaveCount,
       },
       typesOfLeaveRemainingDays: {
         ...emp.typesOfLeaveRemainingDays,
-        permissionLeaveCount
+        permission
       }
     }
 

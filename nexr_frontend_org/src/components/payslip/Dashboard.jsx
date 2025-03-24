@@ -61,7 +61,7 @@ const Dashboard = () => {
             setDailyLoginData(clockinsData);
 
             // Set leave data with working hours
-            setLeaveData({ ...data, workingHour });
+            setLeaveData({ ...empData, workingHour });
 
         } catch (error) {
             console.log(error.message || "An error occurred while fetching employee data.");
@@ -92,8 +92,6 @@ const Dashboard = () => {
     useEffect(() => {
         gettingEmpdata();
     }, [isEditEmp]);
-
-    console.log(monthlyLoginData?.totalWorkingHourPercentage);
 
     return (
         <div className='dashboard-parent'>

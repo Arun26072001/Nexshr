@@ -253,11 +253,9 @@ io.on("connection", (socket) => {
           Authorization: token || ""
         }
       })
-      console.log(res.data.assignedTo);
       
       res.data.assignedTo.map((emp) => {
         const employeeSocketID = onlineUsers[emp._id];
-        console.log(employeeSocketID);
         io.to(employeeSocketID).emit("send_updated_task", res.data)
       })
     } catch (error) {
