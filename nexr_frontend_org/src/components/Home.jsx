@@ -92,7 +92,7 @@ export default function Home() {
             }
         };
         getClockInsData();
-    }, [updateClockins]);
+    }, []);
 
     return (
         <Box sx={{ width: '100%' }}>

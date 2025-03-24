@@ -3,6 +3,7 @@ import Loading from "../Loader";
 import { EssentialValues } from "../../App";
 import RequestPageIcon from '@mui/icons-material/RequestPage';
 import { useNavigate } from "react-router-dom";
+import NoDataFound from "./NoDataFound";
 
 const History = ({ payslips, isLoading }) => {
     const { data, whoIs } = useContext(EssentialValues);
@@ -15,7 +16,7 @@ const History = ({ payslips, isLoading }) => {
     return (
         <div className="container-fluid">
             <p className="payslipTitle">History</p>
-            {payslips.map((item, index) => {
+            {payslips.length > 0 ? payslips.map((item, index) => {
                 const {
                     ESI = 0, LossOfPay = 0, ProfessionalTax = 0, ProvidentFund = 0,
                     bonusAllowance = 0, conveyanceAllowance = 0,
@@ -51,7 +52,9 @@ const History = ({ payslips, isLoading }) => {
                         </div>
                     </div>
                 );
-            })}
+            }):
+            <NoDataFound message="No payslip data found" />
+            }
         </div>
     );
 };
