@@ -812,6 +812,7 @@ leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("pre
 
     // Ensure `coverBy` is either null or a valid value
     const coverByValue = coverBy === "" ? null : coverBy;
+    const personId = req.body.applyFor === 'undefined' ? empId : req.body.applyFor;
 
     // Construct leave request object
     const leaveRequest = {
@@ -822,7 +823,7 @@ leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("pre
       reasonForLeave,
       prescription,
       coverBy: coverByValue,
-      employee: req.body.applyFor || empId,
+      employee: personId,
       appliedBy: empId
     };
 
@@ -850,8 +851,7 @@ leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("pre
     const now = new Date();
     const startDate = new Date(now.getFullYear(), now.getMonth(), 1);
     const endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0);
-
-    const emp = await Employee.findById(req.body.applyFor || empId, "_id FirstName LastName monthlyPermissions permissionHour")
+    const emp = await Employee.findById({ _id: personId }, "FirstName LastName monthlyPermissions permissionHour")
       .populate({
         path: "admin",
         select: "FirstName LastName Email"
