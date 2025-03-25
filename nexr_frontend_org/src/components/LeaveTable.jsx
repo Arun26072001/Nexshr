@@ -31,7 +31,6 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
     const [modelData, setModelData] = useState({});
     const params = useParams();
     // const [timeOption, setTimeOption] = useState("login");
-    console.log(data);
 
 
     const handleChangePage = (event, newPage) => {

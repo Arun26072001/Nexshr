@@ -248,8 +248,8 @@ const CommonModel = ({
                             <div className="modelInput">
                                 <p className="modelLabel important">{type === "Task" ? "From" : "Start Date"}</p>
                                 <DatePicker
-                                    showTimeSelect={["Announcement", "Task"].includes(type)}
-                                    dateFormat={["Announcement", "Task"].includes(type) ? "yyyy-MM-dd HH:mm" : "yyyy-MM-dd"} // Added valid default format
+                                    showTimeSelect={["Announcement", "Task", "Report"].includes(type)}
+                                    dateFormat={["Announcement", "Task", "Report"].includes(type) ? "yyyy-MM-dd HH:mm" : "yyyy-MM-dd"} // Added valid default format
                                     timeFormat='HH:mm'
                                     className="rsuite_input"
                                     style={{ width: "100%" }}
@@ -277,10 +277,10 @@ const CommonModel = ({
                             <div className="modelInput">
                                 <p className="modelLabel important">To:</p>
                                 <DatePicker
-                                    showTimeSelect={["Announcement", "Task"].includes(type)}
+                                    showTimeSelect={["Announcement", "Task", "Report"].includes(type)}
                                     className="rsuite_input"
                                     style={{ width: "100%" }}
-                                    dateFormat={["Announcement", "Task"].includes(type) ? "yyyy-MM-dd HH:mm" : "yyyy-MM-dd"}
+                                    dateFormat={["Announcement", "Task", "Report"].includes(type) ? "yyyy-MM-dd HH:mm" : "yyyy-MM-dd"}
                                     timeFormat='HH:mm'
                                     disabled={["Report View", "Task View"].includes(type)}
                                     minDate={new Date()}

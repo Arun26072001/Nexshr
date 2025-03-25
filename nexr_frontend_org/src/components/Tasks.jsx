@@ -23,6 +23,7 @@ import DeleteRoundedIcon from '@mui/icons-material/DeleteRounded';
 import PauseCircleOutlineRoundedIcon from '@mui/icons-material/PauseCircleOutlineRounded';
 import HourglassTopRoundedIcon from '@mui/icons-material/HourglassTopRounded';
 import CheckCircleOutlineRoundedIcon from '@mui/icons-material/CheckCircleOutlineRounded';
+import { Skeleton } from "@mui/material";
 
 const Tasks = ({ employees }) => {
   const navigate = useNavigate();
@@ -442,7 +443,13 @@ const Tasks = ({ employees }) => {
   // Separate function to create the task
   async function createTask(task) {
     try {
-      const res = await axios.post(`${url}/api/task/${data._id}`, task, {
+      let newTaskObj = {
+        ...task,
+        assignedTo: Array.isArray(task?.assignedTo) && task.assignedTo.includes(data._id)
+          ? task.assignedTo
+          : [...(task?.assignedTo || []), data._id]
+      }
+      const res = await axios.post(`${url}/api/task/${data._id}`, newTaskObj, {
         headers: { Authorization: data.token || "" }
       });
 
@@ -612,19 +619,20 @@ const Tasks = ({ employees }) => {
                 <div className="projectBody">
                   <div className="card-parent">
                     {
-                      [{ name: "Pending", color: "white", icon: PauseCircleOutlineRoundedIcon, taskData: pendingTasks }, { name: "In Progress", icon: HourglassTopRoundedIcon, color: "white", taskData: progressTasks }, { name: "Completed", color: "white", icon: CheckCircleOutlineRoundedIcon, taskData: completedTasks }].map((item) => {
-                        return <div className={`box-content messageCount cardContent ${status === item.name && "activeCard"}`} style={{ background: item.color, boxShadow: "rgba(0, 0, 0, 0.02) 0px 1px 3px 0px, rgba(27, 31, 35, 0.15) 0px 0px 0px 1px" }} onClick={() => setStatus(item.name)}>
-                          {<item.icon sx={{ fontSize: "50px" }} />}
-                          <p className="m-0">
-                            <b>
-                              {item.name} Task
-                            </b>
-                          </p>
-                          <p className="org_name" style={{ margin: "0px" }}>
-                            {item?.taskData?.length || 0}
-                          </p>
-                        </div>
-                      })
+                      isLoading ? [...Array(3)].map((item) => (<Skeleton variant="rounded" width={300} height={80} />))
+                        : [{ name: "Pending", color: "white", icon: PauseCircleOutlineRoundedIcon, taskData: pendingTasks }, { name: "In Progress", icon: HourglassTopRoundedIcon, color: "white", taskData: progressTasks }, { name: "Completed", color: "white", icon: CheckCircleOutlineRoundedIcon, taskData: completedTasks }].map((item) => {
+                          return <div className={`box-content messageCount cardContent ${status === item.name && "activeCard"}`} style={{ background: item.color, boxShadow: "rgba(0, 0, 0, 0.02) 0px 1px 3px 0px, rgba(27, 31, 35, 0.15) 0px 0px 0px 1px" }} onClick={() => setStatus(item.name)}>
+                            {<item.icon sx={{ fontSize: "50px" }} />}
+                            <p className="m-0">
+                              <b>
+                                {item.name} Task
+                              </b>
+                            </p>
+                            <p className="org_name" style={{ margin: "0px" }}>
+                              {item?.taskData?.length || 0}
+                            </p>
+                          </div>
+                        })
                     }
                   </div>
                   <div className="d-flex justify-content-end">
@@ -636,7 +644,7 @@ const Tasks = ({ employees }) => {
                   </div>
                   {
                     isLoading ? (
-                      <Loading height="60vh" />
+                      [...Array(2)].map((item) => (<Skeleton variant="rounded" width={"100%"} height={80} className="my-3" />))
                     ) : status === "Pending" ? (
                       Array.isArray(pendingTasks) && pendingTasks?.length > 0 ? (
                         pendingTasks.map((task) => <TaskItem key={task._id} task={task} renderMenu3={renderMenu3} handleAddComment={handleAddComment} status={status} isLoading={isUpdateTime} getValue={getValue} handleEditTask={handleEditTask} fetchTaskById={fetchTaskById} updatedTimerInTask={updatedTimerInTask} renderMenu2={renderMenu2} handleViewTask={handleViewTask} whoIs={whoIs} updateTask={updatedTimerInTask} />)

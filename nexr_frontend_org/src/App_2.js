@@ -124,12 +124,12 @@ const App = () => {
               },
             });
             // get Token
-            // const getToken = await axios.get(`${cen_url}/get-token`, {
-            //   withCredentials: true,
-            //   headers: {
-            //   }
-            // });
-            // console.log(getToken.data);
+            const getToken = await axios.get(`${cen_url}/get-token`, {
+              withCredentials: true,
+              headers: {
+              }
+            });
+            console.log(getToken.data);
       
             // Step 3: Set User Data and Token
             const authToken = tokenData.data.token;

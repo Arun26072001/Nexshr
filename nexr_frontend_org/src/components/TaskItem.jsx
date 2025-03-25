@@ -29,7 +29,7 @@ export default function TaskItem({ task, status, getValue, handleEditTask, handl
 
     return (
 
-        <div key={task._id} className="box-content  d-flex flex-wrap  align-items-center justify-content-between my-3">
+        <div key={task._id} className="box-content d-flex flex-wrap  align-items-center justify-content-between my-3">
 
             {/* Left Section - Task Details */}
             <div className=" d-flex flex-wrap  align-items-center col-lg-6 col-12 col-md-6 col-half gap-1">

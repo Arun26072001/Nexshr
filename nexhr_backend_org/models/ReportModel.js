@@ -28,6 +28,7 @@ const ReportValidation = Joi.object({
     employees: Joi.array()
         .items(Joi.string().regex(/^[0-9a-fA-F]{24}$/))
         .required(), // Array of ObjectIds
+    trash: Joi.any().label("Trash"),
     createdby: Joi.string().regex(/^[0-9a-fA-F]{24}$/).required(),
     createdAt: Joi.string().allow('').label('createdAt'),
     updatedAt: Joi.string().allow('').label('updatedAt')
