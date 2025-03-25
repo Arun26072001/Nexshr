@@ -3,11 +3,8 @@ import './dashboard.css';
 import { fetchEmployeeData, formatTime, getDataAPI, gettingClockinsData, getTotalWorkingHourPerDay } from '../ReuseableAPI';
 import ActivityTimeTracker from '../ActivityTimeTracker';
 import NexHRDashboard from '../NexHRDashboard';
-import Loading from '../Loader';
 import { EssentialValues } from '../../App';
-import { toast } from 'react-toastify';
 import { TimerStates } from './HRMDashboard';
-import { Skeleton } from '@mui/material';
 import ContentLoader from './ContentLoader';
 
 const Dashboard = () => {
@@ -28,11 +25,11 @@ const Dashboard = () => {
             // Fetch employee data
             const empData = await fetchEmployeeData(data._id);
 
-            if (!empData) {
-                toast.error("Error in fetching workingTimePattern data!");
-                setLeaveData({});
-                return;
-            }
+            // if (!empData) {
+            //     toast.error("Error in fetching workingTimePattern data!");
+            //     setLeaveData({});
+            //     return;
+            // }
             setData((pre) => ({
                 ...pre,
                 Name: empData.FirstName + " " + empData.LastName,

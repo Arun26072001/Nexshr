@@ -657,91 +657,69 @@ router.get("/item/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) =>
 
 // get login and logout data from employee
 router.get("/employee/:empId", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
-    const now = new Date();
-    const { empId } = req.params;
-    let totalEmpWorkingHours = 0;
-    let totalLeaveDays = 0;
-    let totalUnpaidLeaves = 0;
-    let regular = 0, late = 0, early = 0;
-    let startOfMonth, endOfMonth;
-
-    if (req?.query?.daterangeValue) {
-        startOfMonth = new Date(req.query.daterangeValue[0]);
-        endOfMonth = new Date(req.query.daterangeValue[1]);
-    } else {
-        startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-        endOfMonth = new Date();
-    }
-
-    const checkLogin = (scheduledTime, actualTime) => {
-        const [schedHours, schedMinutes] = scheduledTime.split(':').map(Number);
-        const [actualHours, actualMinutes] = actualTime.split(':').map(Number);
-
-        const scheduledDate = new Date(2000, 0, 1, schedHours, schedMinutes);
-        const actualDate = new Date(2000, 0, 1, actualHours, actualMinutes);
-
-        if (actualDate > scheduledDate) {
-            late++;
-            return "Late";
-        } else if (actualDate < scheduledDate) {
-            early++;
-            return "Early";
-        } else {
-            regular++;
-            return "On Time";
-        }
-    };
-
-    const getTotalWorkingHoursExcludingWeekends = (start, end, dailyHours = 8) => {
-        let totalHours = 0;
-        for (let date = new Date(start); date <= end; date.setDate(date.getDate() + 1)) {
-            if (date.getDay() !== 0 && date.getDay() !== 6) { // Exclude weekends
-                totalHours += dailyHours;
-            }
-        }
-        return totalHours;
-    };
-
     try {
-        const employee = await Employee.findById(empId, "_id FirstName LastName clockIns leaveApplication")
+        const now = new Date();
+        const { empId } = req.params;
+        const { daterangeValue } = req.query;
+        
+        const [startOfMonth, endOfMonth] = daterangeValue ?
+            [new Date(daterangeValue[0]), new Date(daterangeValue[1])] :
+            [new Date(now.getFullYear(), now.getMonth(), 1), now];
+
+        let totalEmpWorkingHours = 0, totalLeaveDays = 0, totalUnpaidLeaves = 0;
+        let regular = 0, late = 0, early = 0;
+
+        const checkLogin = (scheduledTime, actualTime) => {
+            const [schedHours, schedMinutes] = scheduledTime.split(':').map(Number);
+            const [actualHours, actualMinutes] = actualTime.split(':').map(Number);
+            const scheduled = schedHours * 60 + schedMinutes;
+            const actual = actualHours * 60 + actualMinutes;
+            
+            if (actual > scheduled) late++;
+            else if (actual < scheduled) early++;
+            else regular++;
+        };
+
+        const getTotalWorkingHoursExcludingWeekends = (start, end, dailyHours = 8) => {
+            let totalHours = 0;
+            for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+                if (![0, 6].includes(d.getDay())) totalHours += dailyHours;
+            }
+            return totalHours;
+        };
+
+        const employee = await Employee.findById(empId, "FirstName LastName clockIns leaveApplication")
             .populate({
                 path: "clockIns",
                 match: { date: { $gte: startOfMonth, $lte: endOfMonth } },
-                populate: { path: "employee", select: "FirstName LastName" }
+                select: "login date"
             })
             .populate({
                 path: "leaveApplication",
-                match: {
-                    fromDate: { $gte: startOfMonth, $lte: endOfMonth },
-                    toDate: { $gte: startOfMonth, $lte: endOfMonth },
-                    status: "approved"
-                }
+                match: { fromDate: { $lte: endOfMonth }, toDate: { $gte: startOfMonth }, status: "approved" },
+                select: "fromDate toDate leaveType"
             });
 
         if (!employee) return res.status(400).send({ message: "Employee not found." });
-
+        
         totalLeaveDays = employee.leaveApplication.reduce((sum, leave) => sum + getDayDifference(leave), 0);
-        totalUnpaidLeaves = employee.leaveApplication.filter((leave)=> leave.leaveType.includes("Unpaid")).length;
+        totalUnpaidLeaves = employee.leaveApplication.filter(leave => leave.leaveType.includes("Unpaid")).length;
 
         employee.clockIns.forEach(({ login }) => {
             const { startingTime, endingTime } = login;
-            totalEmpWorkingHours += getTotalWorkingHourPerDay(startingTime[0], endingTime[endingTime.length - 1]);
+            totalEmpWorkingHours += getTotalWorkingHourPerDay(startingTime[0], endingTime.at(-1));
             checkLogin("09:00", startingTime[0]);
         });
-
-        const companyTotalWorkingHour = getTotalWorkingHoursExcludingWeekends(startOfMonth, endOfMonth);
-        const totalWorkingHoursPerMonth = getTotalWorkingHoursExcludingWeekends(startOfMonth, new Date(now.getFullYear(), now.getMonth() + 1, 0));
-        
 
         res.send({
             totalRegularLogins: regular,
             totalLateLogins: late,
             totalEarlyLogins: early,
-            companyTotalWorkingHour,
+            companyTotalWorkingHour: getTotalWorkingHoursExcludingWeekends(startOfMonth, endOfMonth),
             totalUnpaidLeaves,
-            totalWorkingHoursPerMonth,
+            totalWorkingHoursPerMonth: getTotalWorkingHoursExcludingWeekends(startOfMonth, new Date(now.getFullYear(), now.getMonth() + 1, 0)),
             totalEmpWorkingHours,
-            totalLeaveDays: totalLeaveDays,
+            totalLeaveDays,
             clockIns: employee.clockIns.sort((a, b) => new Date(a.date) - new Date(b.date))
         });
     } catch (error) {

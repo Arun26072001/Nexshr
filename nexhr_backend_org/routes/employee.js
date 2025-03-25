@@ -178,7 +178,7 @@ router.get('/:id', verifyAdminHREmployeeManagerNetwork, async (req, res) => {
   let totalTakenLeaveCount = 0;
 
   try {
-    const emp = await Employee.findById(req.params.id)
+    const emp = await Employee.findById(req.params.id, "-clockIns -payslip")
       .populate([
         { path: "role" },
         {
@@ -211,7 +211,7 @@ router.get('/:id', verifyAdminHREmployeeManagerNetwork, async (req, res) => {
       }).exec();
 
     if (!collegues || collegues.length === 0) {
-      return res.status(404).send({ message: "No colleagues found with the same role!" });
+      return res.status(200).send({ message: "No colleagues found in your team" });
     }
     // Send response with employee details, pending leave requests, taken leave count, and colleagues
     res.send({

@@ -4,7 +4,6 @@ import "./leaveForm.css";
 import { useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
 import { toast } from "react-toastify";
-import { fetchLeaveRequests } from "./ReuseableAPI";
 
 const EditLeaveRequestForm = () => {
     const { id } = useParams();
@@ -43,14 +42,25 @@ const EditLeaveRequestForm = () => {
             }
         };
 
-        const fetchCollegues = async (id) => {
-            const leaveReqs = await fetchLeaveRequests(id);
-            const emps = leaveReqs.collegues.filter((emp) => (emp._id !== empId))
-            setColleagues(emps)
-        };
+        async function fetchCollegues() {
+            try {
+                const res = await axios.get(`${url}/api/team/members/${empId}`, {
+                    params: {
+                        isLead: "employees"
+                    },
+                    headers: {
+                        Authorization: token || ""
+                    }
+                })
+                setColleagues(res.data.employees.filter((emp)=> emp._id !== empId))
+            } catch (error) {
+                console.log(error);
 
+            }
+        }
+
+        fetchCollegues()
         fetchLeaveRequest();
-
     }, []);
 
     const handleChange = (e) => {
@@ -185,7 +195,7 @@ const EditLeaveRequestForm = () => {
                         >
                             <option>Select a Relief Officer</option>
                             {colleagues.map((emp) => (
-                                <option key={emp._id} selected={`${formData.coverBy === emp._id}`} value={emp._id}>{emp.FirstName}</option>
+                                <option key={emp._id} selected={`${formData.coverBy === emp._id}`} value={emp._id}>{emp.FirstName[0].toUpperCase()+emp.FirstName.slice(1)}</option>
                             ))}
                         </select>
                     </div>
@@ -208,7 +218,7 @@ const EditLeaveRequestForm = () => {
 
                     <div className="row gap-2 d-flex align-items-center justify-content-center my-4">
                         <div className="col-12 col-lg-5 col-md-5">
-                            <button className="btn btn-outline-dark w-100" onClick={()=>navigate(-1)}>Cancel</button>
+                            <button className="btn btn-outline-dark w-100" onClick={() => navigate(-1)}>Cancel</button>
                         </div>
                         <div className="col-12 col-lg-5 my-2 col-md-5">
                             <button className="btn btn-dark w-100" type="submit">Update</button>

@@ -127,7 +127,6 @@ const LeaveRequestForm = () => {
         formData.append("reasonForLeave", formik.values.reasonForLeave);
         formData.append("prescription", prescriptionFile); // Assuming `file` is the file object
         formData.append("coverBy", formik.values.coverBy);
-        // ["admin"]whoIs
         formData.append("applyFor", formik.values.applyFor);
         try {
           // Leave request submission
@@ -192,6 +191,7 @@ const LeaveRequestForm = () => {
           setExcludeDates((prev) => [...prev, ...duplicateDates]);
         }
 
+        Object.entries(leaveReqs?.employee?.typesOfLeaveCount)
         // Set types of leave
         setTypOfLeave(leaveReqs?.employee?.typesOfLeaveCount || {});
 
@@ -256,6 +256,7 @@ const LeaveRequestForm = () => {
     gettingHoliday();
     gettingEmps();
   }, [])
+  console.log(typeOfLeave);
 
   return (
     isLoading ? <Loading height="80vh" /> :
