@@ -692,7 +692,8 @@ router.get("/employee/:empId", verifyAdminHREmployeeManagerNetwork, async (req, 
             .populate({
                 path: "clockIns",
                 match: { date: { $gte: startOfMonth, $lte: endOfMonth } },
-                select: "login date"
+                // select: "login date"
+                populate: {path: "employee", select: "FirstName LastName"}
             })
             .populate({
                 path: "leaveApplication",

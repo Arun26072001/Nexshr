@@ -149,7 +149,7 @@ const Sidebar = ({ sideBar }) => {
           )}
 
         {renderNavLink(
-          ['admin', 'hr', 'emp',"manager"].includes(whoIs),
+          ['admin', 'emp',"manager"].includes(whoIs),
           `/${whoIs}/projects`,
           folderIcon,
           'Project',
@@ -158,7 +158,7 @@ const Sidebar = ({ sideBar }) => {
 
 
         {renderNavLink(
-          ['admin', 'hr', 'emp', "manager"].includes(whoIs),
+          ['admin', 'emp', "manager"].includes(whoIs),
           `/${whoIs}/tasks`,
           taskIcon,
           'Tasks',
@@ -166,7 +166,7 @@ const Sidebar = ({ sideBar }) => {
         )}
 
         {renderNavLink(
-          ['admin', 'hr', 'emp', "manager"].includes(whoIs),
+          ['admin', 'emp', "manager"].includes(whoIs),
           `/${whoIs}/reports`,
           fileIcon,
           'Reports',

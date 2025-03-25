@@ -145,6 +145,7 @@ const EditEmployeeform = ({ details, empData, handleScroll, handlePersonal, hand
         }
     }
 
+    console.log(roles);
 
     function getValueforLeave(e) {
         const { name, value } = e.target;

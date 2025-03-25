@@ -20,22 +20,56 @@ export default function TimeLog() {
         return dateValue + " " + fullMonthName;
     }
 
-    useEffect(() => {
-        async function fetchTaskOfTimeLogs() {
-            setIsLoading(true);
-            try {
-                const res = await axios.get(`${url}/api/task/${id}`, {
-                    params: {
-                        withComments: false
-                    },
-                    headers: { Authorization: data.token || "" }
-                })
-                setTaskObj(res.data);
-            } catch (error) {
-                toast.error(error.response.data.error)
-            }
-            setIsLoading(false);
+    async function editTask(updatedTask, changeComments) {
+        if (!updatedTask?._id) {
+            toast.error("Invalid task. Please try again.");
+            return;
         }
+
+        try {
+            // Send updated task
+            const res = await axios.put(
+                `${url}/api/task/${data._id}/${updatedTask._id}`, // Ensure correct projectId
+                updatedTask,
+                {
+                    params: { changeComments },
+                    headers: { Authorization: data?.token || "" },
+                }
+            );
+
+            toast.success(res.data.message);
+            fetchTaskOfTimeLogs();
+        } catch (error) {
+            console.error("Error updating task:", error);
+            const errorMessage = error?.response?.data?.error || "An error occurred while updating the task.";
+            toast.error(errorMessage);
+        }
+    }
+
+    async function getValue() {
+        const updatedTask = {
+            ...taskObj,
+            "status": taskObj.status === "Completed" ? "Pending" : "Completed"
+        }
+        editTask(updatedTask)
+    }
+
+    async function fetchTaskOfTimeLogs() {
+        setIsLoading(true);
+        try {
+            const res = await axios.get(`${url}/api/task/${id}`, {
+                params: {
+                    withComments: false
+                },
+                headers: { Authorization: data.token || "" }
+            })
+            setTaskObj(res.data);
+        } catch (error) {
+            toast.error(error.response.data.error)
+        }
+        setIsLoading(false);
+    }
+    useEffect(() => {
         if (id) {
             fetchTaskOfTimeLogs()
         }
@@ -56,7 +90,8 @@ export default function TimeLog() {
                                     From: {`${getMonthFullNameNdDate(taskObj.from)} - ${getMonthFullNameNdDate(taskObj.to)}`}
                                 </p>
                                 <div className="d-flex align-items-center">
-                                    <Checkbox />
+                                    <Checkbox onCheckboxClick={getValue}
+                                        checked={taskObj.status === "Completed"} />
                                     <b>
                                         {taskObj.title}
                                     </b>

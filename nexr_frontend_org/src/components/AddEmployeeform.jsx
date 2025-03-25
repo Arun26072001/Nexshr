@@ -31,8 +31,8 @@ const AddEmployeeForm = ({ details, handleScroll, handlePersonal, handleFinancia
         LastName: "",
         Email: "",
         Password: "",
-        teamLead: "",
-        managerId: "",
+        teamLead: null,
+        managerId: null,
         countryCode: "",
         phone: "",
         company: "",
@@ -83,8 +83,8 @@ const AddEmployeeForm = ({ details, handleScroll, handlePersonal, handleFinancia
         Email: Yup.string().email('Invalid email format').required('Email is required'),
         Password: Yup.string().min(6, 'Password must be at least 6 characters').required('Password is required'),
         company: Yup.string().optional(),
-        teamLead: Yup.string().optional(), // assuming it's an ObjectId or string
-        managerId: Yup.string().optional(),
+        teamLead: Yup.string().nullable().optional(), // assuming it's an ObjectId or string
+        managerId: Yup.string().nullable().optional(),
         countryCode: Yup.string().optional(),
         phone: Yup.string().optional(), // can add phone validation if needed
         dateOfBirth: Yup.string().optional(),
@@ -97,7 +97,7 @@ const AddEmployeeForm = ({ details, handleScroll, handlePersonal, handleFinancia
         }).optional(),
         position: Yup.string().optional(),
         department: Yup.string().optional(),
-        role: Yup.string().optional(),
+        role: Yup.string().required("Role is required"),
         // description: Yup.string().min(10, "mininum 10 characters must be in description").required("Description is required"),
         description: Yup.string().optional(),
         dateOfJoining: Yup.string().optional(),

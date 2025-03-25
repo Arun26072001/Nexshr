@@ -175,6 +175,7 @@ export default function Twotabs() {
 
     return null; // Return null if no leave is found
   }
+  console.log(annualLeave, takenLeave);
 
   return (
     <Box sx={{ width: '100%', border: '2px solid rgb(208 210 210)', borderRadius: '5px', height: "100%" }}>
