@@ -51,55 +51,57 @@ export default function Employee() {
         setProcessing(false);
     };
 
-    useEffect(() => {
-        const fetchEmployeeData = async () => {
-            setIsLoading(true);
-            try {
-                const empData = await fetchEmployees();
-                const withoutMyData = empData.filter((emp)=> emp._id !== data._id)
-                setEmployees(withoutMyData);
-                setAllEmployees(withoutMyData);
-            } catch (error) {
-                console.log("error: ", error);
+    const fetchEmployeeData = async () => {
+        setIsLoading(true);
+        try {
+            const empData = await fetchEmployees();
+            console.log(empData);
+            
+            const withoutMyData = empData?.filter((emp)=> emp._id !== data._id)
+            setEmployees(withoutMyData);
+            setAllEmployees(withoutMyData);
+        } catch (error) {
+            console.log("error: ", error);
 
-                setErrorData(error.response.data.error)
-                toast.error("Failed to fetch employees");
-            }
-            setIsLoading(false);
-        };
-
-        const fetchAllEmployeeData = async () => {
-            setIsLoading(true);
-            try {
-                const empData = await fetchAllEmployees();
-                const withoutMyData = empData.filter((emp)=> emp._id !== data._id)
-                setEmployees(withoutMyData);
-                setAllEmployees(withoutMyData);
-            } catch (error) {
-                console.log("error: ", error);
-                toast.error("Failed to fetch employees");
-            }
-            setIsLoading(false);
-        };
-
-        async function fetchTeamEmps() {
-            setIsLoading(true);
-            try {
-                const res = await axios.get(`${url}/api/employee/team/members/${data._id}`, {
-                    who: isTeamLead ? "lead" : isTeamHead ? "head" : "manager",
-                    headers: {
-                        Authorization: data.token || ""
-                    }
-                })
-                setEmployees(res.data)
-
-            } catch (error) {
-                console.log(error);
-
-            }
-            setIsLoading(false)
+            setErrorData(error.response.data.error)
+            toast.error("Failed to fetch employees");
         }
+        setIsLoading(false);
+    };
 
+    const fetchAllEmployeeData = async () => {
+        setIsLoading(true);
+        try {
+            const empData = await fetchAllEmployees();
+            const withoutMyData = empData.filter((emp)=> emp._id !== data._id)
+            setEmployees(withoutMyData);
+            setAllEmployees(withoutMyData);
+        } catch (error) {
+            console.log("error: ", error);
+            toast.error("Failed to fetch employees");
+        }
+        setIsLoading(false);
+    };
+
+    async function fetchTeamEmps() {
+        setIsLoading(true);
+        try {
+            const res = await axios.get(`${url}/api/employee/team/members/${data._id}`, {
+                who: isTeamLead ? "lead" : isTeamHead ? "head" : "manager",
+                headers: {
+                    Authorization: data.token || ""
+                }
+            })
+            setEmployees(res.data)
+
+        } catch (error) {
+            console.log(error);
+
+        }
+        setIsLoading(false)
+    }
+    
+    useEffect(() => {
         if (data.Account === "1") {
             fetchAllEmployeeData()
         } else if ([isTeamLead, isTeamHead, isTeamManager].includes(true)) {

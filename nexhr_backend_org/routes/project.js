@@ -23,10 +23,10 @@ router.get("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
 
 router.get("/", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
   try {
-    const projects = await Project.find({ trash: false })
+    const projects = await Project.find({ trash: false }, "-trash -tracker")
       .populate("company", "CompanyName")
       .populate("employees", "FirstName LastName Email")
-      .populate("tasks");
+      .populate("tasks", "-tracker -comments");
 
     const formattedProjects = projects.map((project) => {
       const { tasks } = project;
@@ -51,7 +51,7 @@ router.get("/", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
 
 router.get("/emp/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
   try {
-    const projects = await Project.find({ employees: { $in: req.params.id }, trash: false })
+    const projects = await Project.find({ employees: { $in: req.params.id }, trash: false }, "-tasks -reports -tracker")
       .populate({ path: "company", select: "CompanyName" })
       .populate({ path: "employees", select: "FirstName LastName Email" })
       .populate({ path: "tasks" })

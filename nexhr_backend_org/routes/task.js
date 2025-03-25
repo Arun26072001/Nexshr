@@ -9,7 +9,7 @@ const router = express.Router();
 
 router.get("/project/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
     try {
-        let tasks = await Task.find({ project: { $in: req.params.id } })
+        let tasks = await Task.find({ project: { $in: req.params.id } }, "-tracker -comments")
             .populate({ path: "project", select: "name color" })
             .populate({ path: "assignedTo", select: "FirstName LastName" })
             .exec();
@@ -113,7 +113,6 @@ router.get("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
         res.status(500).send({ error: error.message });
     }
 });
-
 
 router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
     try {

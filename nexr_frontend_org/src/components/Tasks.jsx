@@ -373,7 +373,6 @@ const Tasks = ({ employees }) => {
     }
   }
 
-
   // handling to delete task
   function handleDeleteTask() {
     setIsDelete((pre) => ({

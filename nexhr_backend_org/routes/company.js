@@ -11,7 +11,7 @@ const { Position } = require('../models/PositionModel');
 dotenv.config()
 
 router.get("/", verifyAdminHREmployeeManagerNetwork, (req, res) => {
-  Company.find().lean()
+  Company.find({}, "CompanyName").lean()
     .exec(function (err, compnay) {
       if (err) {
         return res.status(500).send({ error: err.message })

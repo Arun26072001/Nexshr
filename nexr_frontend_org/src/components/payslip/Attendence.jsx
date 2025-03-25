@@ -33,7 +33,7 @@ const Attendence = () => {
   const [filteredTabledata, setFilteredTableData] = useState([]);
 
   useEffect(() => {
-    if (selectedTimeOption.length > 0) {
+    if (selectedTimeOption.length > 0 ) {
       const updateTableData = filteredTabledata.flatMap((item) =>
         selectedTimeOption.map((option) => {
           const timeOptionKey = option; // Get the corresponding key
@@ -84,39 +84,46 @@ const Attendence = () => {
     }
   }
 
-  useEffect(() => {
-    const getClockins = async () => {
-      setIsLoading(true);
-      if (empId) {
-        const dashboard = await axios.get(`${url}/api/clock-ins/employee/${empId}`, {
-          params: {
-            daterangeValue
-          },
-          headers: {
-            authorization: token || ""
-          }
-        });
-        setclockInsData(dashboard.data);
-        setTableData(dashboard.data.clockIns);
-        setFilteredTableData(dashboard.data.clockIns)
-        const { totalEarlyLogins, totalLateLogins, totalRegularLogins } = dashboard.data;
-        const totalLogins = totalEarlyLogins + totalLateLogins + totalRegularLogins
-
-        // Calculate height percentages
-        if (totalLogins > 0) {
-          setRegularHeight((totalRegularLogins / totalLogins) * 100);
-          setLateHeight((totalLateLogins / totalLogins) * 100);
-          setEarlyHeight((totalEarlyLogins / totalLogins) * 100);
+  const getClockins = async () => {
+    setIsLoading(true);
+    try {
+      const dashboard = await axios.get(`${url}/api/clock-ins/employee/${empId}`, {
+        params: {
+          daterangeValue
+        },
+        headers: {
+          authorization: token || ""
         }
-        setIsLoading(false);
-      } else {
-        setIsLoading(false);
-        toast.error("Employee Id not found!")
-      }
-    }
-    getClockins()
-  }, [empId, daterangeValue])
+      });
+      console.log(dashboard.data);
+      
+      setclockInsData(dashboard.data);
+      setTableData(dashboard.data.clockIns);
+      setFilteredTableData(dashboard.data.clockIns)
+      const { totalEarlyLogins, totalLateLogins, totalRegularLogins } = dashboard.data;
+      const totalLogins = totalEarlyLogins + totalLateLogins + totalRegularLogins
 
+      // Calculate height percentages
+      if (totalLogins > 0) {
+        setRegularHeight((totalRegularLogins / totalLogins) * 100);
+        setLateHeight((totalLateLogins / totalLogins) * 100);
+        setEarlyHeight((totalEarlyLogins / totalLogins) * 100);
+      }
+    } catch (error) {
+      console.log(error);
+    }
+    setIsLoading(false);
+
+  }
+
+  useEffect(() => {
+    if (empId) {
+      getClockins()
+    } else {
+      setIsLoading(false);
+      toast.error("Employee Id not found!")
+    }
+  }, [empId, daterangeValue])
 
   return (
     <div>
