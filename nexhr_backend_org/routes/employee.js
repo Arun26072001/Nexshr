@@ -243,10 +243,10 @@ router.post("/", verifyAdminHR, async (req, res) => {
 
     const employeeData = {
       ...req.body,
-      role: req.body.role || "6718e3b9e67fca36a0a8357b",
-      teamLead: teamLead || "665601de20a3c61c646a135f",
-      managerId: managerId || "6651e4a810994f1d24cf3a19",
-      workingTimePattern: req.body.workingTimePattern || "667a7413c8d506a974e3dabd",
+      role: req.body.role || "679b31dba453436edb1b27a3",
+      teamLead: teamLead ,
+      managerId: managerId,
+      workingTimePattern: req.body.workingTimePattern || "679ca37c9ac5c938538f18ba",
       company: company || "679b5ee55eb2dc34115be175",
       position: null,
       department: null,
