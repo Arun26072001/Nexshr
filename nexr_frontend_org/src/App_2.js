@@ -18,6 +18,7 @@ export const EssentialValues = createContext(null);
 
 const App = () => {
   const url = process.env.REACT_APP_API_URL;
+  const cen_url = process.env.REACT_APP_CENTRALIZATION_BASEURL;
   // State Variables
   const socket = io(`${url}`, { autoConnect: false });
   const [isOnline, setIsOnline] = useState(navigator.onLine);

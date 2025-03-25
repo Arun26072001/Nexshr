@@ -9,7 +9,6 @@ import { fetchLeaveRequests } from './ReuseableAPI';
 import CircleBar from './CircleProcess';
 import { useNavigate } from 'react-router-dom';
 import { EssentialValues } from '../App';
-import Loading from './Loader';
 import { Badge, Calendar, Dropdown, HStack, Popover, Whisper } from 'rsuite';
 import { Skeleton } from '@mui/material';
 

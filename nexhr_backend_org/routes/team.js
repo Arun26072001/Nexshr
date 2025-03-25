@@ -22,6 +22,32 @@ router.get("/", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
     }
 });
 
+router.get("/members/:id", verifyEmployee, async (req, res) => {
+    try {
+        const who = req.params.isLead ? "lead" : req.params.isLead ? "head" : req.params.isLead ? "manager" : "employees"
+        const response = await Team.findOne({ [who]: req.params.id })
+            .populate({
+                path: "employees",
+                select: "_id FirstName LastName",
+                populate: {
+                    path: 'teamLead',
+                    select: "_id FirstName LastName",
+                    populate: {
+                        path: "department"
+                    }
+                }
+            })
+        if (!response) {
+            res.status(404).send({ message: "You haven't in any team" })
+        } else {
+            res.send(response);
+        }
+    } catch (err) {
+        console.log(err);
+        res.status(500).send({ message: "Error in get a team of Employee", details: err })
+    }
+})
+
 router.get("/:who/:id", verifyTeamHigherAuthority, async (req, res) => {
     try {
         const teams = await Team.find({ [req.params.who]: req.params.id })
@@ -94,34 +120,6 @@ router.get("/:id", verifyAdminHRTeamHigherAuth, async (req, res) => {
     } catch (err) {
         console.log(err);
         res.status(500).send({ error: "Error in get a team of Employee", details: err })
-    }
-})
-
-router.get("/members/:id", verifyEmployee, async (req, res) => {
-    try {
-        // const {orgName} = jwt.decode(req.headers['authorization']);
-        // const Team = getTeamModel(orgName)
-        const who = req.params.isLead ? "lead" : "head"
-        const response = await Team.findOne({ [who]: req.params.id })
-            .populate({
-                path: "employees",
-                select: "_id FirstName LastName",
-                populate: {
-                    path: 'teamLead',
-                    select: "_id FirstName LastName",
-                    populate: {
-                        path: "department"
-                    }
-                }
-            })
-        if (!response) {
-            res.status(404).send({ message: "team not found" })
-        } else {
-            res.send(response);
-        }
-    } catch (err) {
-        console.log(err);
-        res.status(500).send({ message: "Error in get a team of Employee", details: err })
     }
 })
 
