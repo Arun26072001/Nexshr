@@ -110,7 +110,7 @@ async function verifyAdminHREmployeeManagerNetwork(req, res, next) {
         console.log(err, "error in verify");
         res.sendStatus(401);
       } else {
-        if ([1, 2, 3, 4, 5].includes(authData.Account)) {
+        if ([1, 2, 3, 4, 5, 17].includes(authData.Account)) {
           next();
         }
         else {
@@ -317,13 +317,11 @@ function verifySuperAdmin(req, res, next) {
   const token = req.headers['authorization'];
 
   if (typeof token !== "undefined") {
-    // decodedData = jwt.decode(req.headers['authorization']);
-    // if(decodedData.Account)
     jwt.verify(token, jwtKey, (err, authData) => {
       if (err) {
         res.status(401).send({ error: err.message });
       } else {
-        if (authData.Account == 0) {
+        if (authData.Account === 17) {
           next();
         } else {
           res.status(401).send({ error: "unAuthorize: Super Admin can only do this action!" });

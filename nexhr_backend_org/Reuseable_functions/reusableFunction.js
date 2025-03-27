@@ -136,4 +136,34 @@ const getTotalWorkingHoursExcludingWeekends = (start, end, dailyHours = 8) => {
   return totalHours;
 };
 
-module.exports = { convertToString, getDayDifference, getWeekdaysOfCurrentMonth, mailContent, checkLogin, getTotalWorkingHoursExcludingWeekends, getCurrentTimeInMinutes, timeToMinutes, formatTimeFromMinutes };
+const connections = {};
+const getOrgDB = async (organizationId) => {
+  if (connections[organizationId]) {
+    return connections[organizationId];
+  }
+
+  const dbName = `teamnex_${organizationId}`;
+  const mongoURI = process.env.DATABASEURL;
+
+  const newConnection = mongoose.createConnection(mongoURI, {
+    dbName
+  });
+
+  await new Promise((resolve, reject) => {
+    newConnection.once('connected', () => {
+      console.log(`✅ MongoDB connected: ${dbName}`);
+      resolve();
+    });
+
+    newConnection.once('error', (err) => {
+      console.error(`❌ MongoDB connection error: ${dbName}`, err);
+      reject(err);
+    });
+  });
+  console.log(`📌 New DB Connection: ${mongoURI}/${dbName}`);
+
+  connections[organizationId] = newConnection;
+  return newConnection;
+};
+
+module.exports = { convertToString, getDayDifference, getOrgDB, getWeekdaysOfCurrentMonth, mailContent, checkLogin, getTotalWorkingHoursExcludingWeekends, getCurrentTimeInMinutes, timeToMinutes, formatTimeFromMinutes };

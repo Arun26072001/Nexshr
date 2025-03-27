@@ -14,7 +14,7 @@ import KeyboardArrowDownRoundedIcon from '@mui/icons-material/KeyboardArrowDownR
 import useHandleTabClose from '../../../handleCloseTab';
 
 export default function Navbar({ handleSideBar }) {
-    const { handleLogout, data, handleUpdateAnnouncements, isChangeAnnouncements } = useContext(EssentialValues)
+    const { handleLogout, data, handleUpdateAnnouncements, isChangeAnnouncements, whoIs } = useContext(EssentialValues)
     const { startLoginTimer, stopLoginTimer, workTimeTracker, isStartLogin, trackTimer } = useContext(TimerStates);
     const [sec, setSec] = useState(workTimeTracker?.login?.timeHolder?.split(':')[2])
     const [min, setMin] = useState(workTimeTracker?.login?.timeHolder?.split(':')[1])
@@ -272,7 +272,7 @@ export default function Navbar({ handleSideBar }) {
 
     return (
         <div className="webnxs">
-            <div className="row mx-auto justify-content-between">
+            <div className="row mx-auto justify-content-between" style={{ height: "50px" }}>
                 <div className="col-lg-3 col-md-3 col-6 d-flex align-items-center">
                     <div className={`sidebarIcon`} onClick={handleSideBar}>
                         <TableRowsRoundedIcon />
@@ -286,57 +286,60 @@ export default function Navbar({ handleSideBar }) {
                     />
                     <span style={{ fontSize: "16px", fontWeight: "700" }}>NexHR</span>
                 </div>
-
-                <div className='col-lg-1 col-md-3  col-6 d-flex align-items-center justify-content-center'>
-                    <div className='d-flex align-items-center gap-1 timerTxt' >
-                        <span>{hour.toString().padStart(2, '0')}</span> :
-                        <span>{min.toString().padStart(2, '0')}</span> :
-                        <span>{sec.toString().padStart(2, '0')}</span>
-                    </div>
-                </div>
-
-                {/* <div className="col-lg-6 col-md-6 col-12 d-flex align-items-center justify-content-between"> */}
-                <div className='col-lg-3 col-md-3 col-12 d-flex align-items-center justify-content-center'>
-                    <div className='d-flex'>
-                        <div className="punchBtnParent">
-                            <button
-                                className='punchBtn'
-                                disabled={isDisabled}
-                                onClick={() => startTimer()}
-                                style={{ backgroundColor: "#CEE5D3" }}
-                            >
-                                <img src={PunchIn} width="25" height="25" alt="startTimer_btn" />
-                            </button>
-                            <div className="">
-                                <p className='timerText'>
-                                    {workTimeTracker?.login?.startingTime.length > 0
-                                        ? workTimeTracker?.login?.startingTime[0]
-                                        : "00:00"}
-                                </p>
-                                <div className='sub_text'>Punch In</div>
+                {
+                    whoIs !== "superAdmin" &&
+                    <>
+                        <div className='col-lg-1 col-md-3  col-6 d-flex align-items-center justify-content-center'>
+                            <div className='d-flex align-items-center gap-1 timerTxt' >
+                                <span>{hour.toString().padStart(2, '0')}</span> :
+                                <span>{min.toString().padStart(2, '0')}</span> :
+                                <span>{sec.toString().padStart(2, '0')}</span>
                             </div>
                         </div>
 
-                        <div className="punchBtnParent">
-                            <button
-                                className='punchBtn'
-                                onClick={() => stopTimer()}
-                                disabled={!isDisabled}
-                                style={{ backgroundColor: "#FFD6DB" }}
-                            >
-                                <img src={PunchOut} width="25" height="25" alt="stoptimer_btn" />
-                            </button>
-                            <div className="">
-                                <p className='timerText'>
-                                    {workTimeTracker?.login?.endingTime?.length > 0
-                                        ? workTimeTracker?.login?.endingTime[workTimeTracker?.login?.endingTime.length - 1]
-                                        : "00:00"}
-                                </p>
-                                <p className='sub_text'>Punch Out</p>
+                        <div className='col-lg-3 col-md-3 col-12 d-flex align-items-center justify-content-center'>
+                            <div className='d-flex'>
+                                <div className="punchBtnParent">
+                                    <button
+                                        className='punchBtn'
+                                        disabled={isDisabled}
+                                        onClick={() => startTimer()}
+                                        style={{ backgroundColor: "#CEE5D3" }}
+                                    >
+                                        <img src={PunchIn} width="25" height="25" alt="startTimer_btn" />
+                                    </button>
+                                    <div className="">
+                                        <p className='timerText'>
+                                            {workTimeTracker?.login?.startingTime.length > 0
+                                                ? workTimeTracker?.login?.startingTime[0]
+                                                : "00:00"}
+                                        </p>
+                                        <div className='sub_text'>Punch In</div>
+                                    </div>
+                                </div>
+
+                                <div className="punchBtnParent">
+                                    <button
+                                        className='punchBtn'
+                                        onClick={() => stopTimer()}
+                                        disabled={!isDisabled}
+                                        style={{ backgroundColor: "#FFD6DB" }}
+                                    >
+                                        <img src={PunchOut} width="25" height="25" alt="stoptimer_btn" />
+                                    </button>
+                                    <div className="">
+                                        <p className='timerText'>
+                                            {workTimeTracker?.login?.endingTime?.length > 0
+                                                ? workTimeTracker?.login?.endingTime[workTimeTracker?.login?.endingTime.length - 1]
+                                                : "00:00"}
+                                        </p>
+                                        <p className='sub_text'>Punch Out</p>
+                                    </div>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                </div>
+                    </>
+                }
 
                 <div className='gap-2 col-lg-4 col-md-3 d-flex align-items-center justify-content-end'>
                     {/* <SelectPicker

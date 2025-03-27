@@ -7,10 +7,8 @@ const userAccountSchema = new mongoose.Schema({
     password: { type: String },
     countryCode: { type: String },
     phone: { type: String },
-    orgs: [{ type: mongoose.Schema.Types.ObjectId, ref: "Organization" }],
-    createdAt: { type: Date, default: Date.now },
-    expiresAt: { type: Date },
-    Account: { type: Number, default: 0 }
+    // orgs: [{ type: mongoose.Schema.Types.ObjectId, ref: "Organization" }],
+    // Account: { type: Number, default: 0 }
 })
 
 const UserAccount = mongoose.model("UserAccount", userAccountSchema);
@@ -22,20 +20,20 @@ const userAccountValidation = Joi.object({
         .required(),
 
     email: Joi.string()
-        .email()
-        .required(),
+        .email(),
+        // .required(),
 
     password: Joi.string()
         .min(6)
-        .max(128)
-        .required(),
+        .max(128),
+        // .required(),
 
-    countryCode: Joi.string()
-        .required(),
-
+    countryCode: Joi.string(),
+        // .required(),
     phone: Joi.string()
         .regex(/^\d{7,15}$/) // Accepts 7 to 15 digits
-        .required()
+        .required(),
+        
 });
 
 

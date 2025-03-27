@@ -1,4 +1,4 @@
-import React, { createContext, Suspense, useCallback, useContext, useEffect, useState } from 'react';
+import React, { createContext, useCallback, useContext, useEffect, useState } from 'react';
 import { Route, Routes, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import {

@@ -33,6 +33,8 @@ router.post("/", async (req, res) => {
             })
 
             if (!emp) {
+                console.log("no emp");
+                
                 return res.status(400).send({ message: "Invalid Credentials" })
             } else {
                 const empDataWithEmailVerified = {
@@ -65,6 +67,7 @@ router.post("/", async (req, res) => {
                     profile: emp.profile,
                     FirstName: emp.FirstName,
                     LastName: emp.LastName,
+                    organizations: emp.company,
                     annualLeaveEntitlement: emp.annualLeaveEntitlement,
                     roleData: emp?.role,
                     isLogin: updateIsEmailVerify.isLogin,

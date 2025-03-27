@@ -1,6 +1,6 @@
 import React, { useContext, useState } from 'react';
 import "../Settings/SettingsStyle.css";
-import { Modal, Button, SelectPicker, TagPicker, Input, InputNumber } from 'rsuite';
+import { Modal, Button, SelectPicker, TagPicker, Input, InputNumber, InputGroup } from 'rsuite';
 import TextEditor from '../payslip/TextEditor';
 import ErrorOutlineRoundedIcon from '@mui/icons-material/ErrorOutlineRounded';
 import DatePicker from "react-datepicker";
@@ -10,6 +10,8 @@ import "../projectndTask.css";
 import { MultiCascader, VStack } from 'rsuite';
 import Loading from '../Loader';
 import { EssentialValues } from '../../App';
+import VisibilityOffOutlinedIcon from '@mui/icons-material/VisibilityOffOutlined';
+import RemoveRedEyeOutlinedIcon from '@mui/icons-material/RemoveRedEyeOutlined';
 
 const CommonModel = ({
     dataObj,
@@ -32,11 +34,15 @@ const CommonModel = ({
     changeState,
     removeAttachment,
     isWorkingApi,
+    removePreview,
+    preview,
     type // New prop to determine if it's for "department" or "position"
 }) => {
     const { data } = useContext(EssentialValues);
     const [confirmationTxt, setConfirmationTxt] = useState("");
     const [isDisabled, setIsDisabled] = useState(true);
+    const [isShowPassword, setIsShowPassword] = useState(false);
+    console.log(preview);
 
     return (
         <Modal open={isAddData} size="sm" backdrop="static">
@@ -51,19 +57,20 @@ const CommonModel = ({
 
             <Modal.Body>
                 {
-                    (["Department", "Position", "Project", "Report", "Report View", "Country", "Edit Country", "Project View", "Team"].includes(type)) &&
+                    (["Department", "Position", "Project", "Report", "Report View", "Country", "Edit Country", "Project View", "Team", "Organization"].includes(type)) &&
                     <div className="d-flex justify-content-between">
                         {
-                            ["Department", "Position", "Project", "Report", "Report View", "Country", "Edit Country", "Team"].includes(type) &&
+                            ["Department", "Position", "Project", "Report", "Report View", "Country", "Edit Country", "Team", "Organization"].includes(type) &&
                             <div className={`${type === "Team" ? "col-full" : "col-half"}`}>
                                 <div className="modelInput">
                                     <p className='modelLabel important'>{type} Name: </p>
                                     <Input required
+                                        size='lg'
                                         name={`name`}
-                                        value={dataObj?.[type === "Department" ? "DepartmentName" : type === "Position" ? "PositionName" : type === "Team" ? "teamName" : `name`] || ""}
+                                        value={dataObj?.[type === "Department" ? "DepartmentName" : type === "Position" ? "PositionName" : type === "Team" ? "teamName" : type === "Organization" ? "orgName" : `name`] || ""}
                                         disabled={["Report View", "Project View"].includes(type) ? true : false}
                                         onChange={!["Report View", "Project View"].includes(type) ? (e) =>
-                                            changeData(e, type === "Department" ? "DepartmentName" : type === "Position" ? "PositionName" : type === "Team" ? "teamName" : "name") : null}
+                                            changeData(e, type === "Department" ? "DepartmentName" : type === "Position" ? "PositionName" : type === "Team" ? "teamName" : type === "Organization" ? "orgName" : "name") : null}
                                     />
                                 </div>
                             </div>
@@ -108,6 +115,15 @@ const CommonModel = ({
                                         value={dataObj?.department}
                                         onChange={type !== "Report View" ? (e) => changeData(e, "department") : null}
                                     />
+                                </div>
+                            </div>
+                        }
+                        {
+                            type === "Organization" &&
+                            <div className="col-half">
+                                <div className="modelInput">
+                                    <p className='modelLabel important'>EntendValidity:</p>
+                                    <InputNumber size='lg' defaultValue={0} style={{ width: "100%" }} step={1} value={dataObj?.entendValidity} onChange={(e) => changeData(e, "entendValidity")} />
                                 </div>
                             </div>
                         }
@@ -168,41 +184,54 @@ const CommonModel = ({
                         </div>}
                     </div>
 
-                    {["Task", "Task View", "Add Comments", "Edit Comments"].includes(type) && (
+                    {["Task", "Task View", "Add Comments", "Edit Comments", "Organization"].includes(type) && (
                         <div className="col-full">
                             <div className="modelInput">
-                                <p className="modelLabel">Attachments: </p>
+                                <p className="modelLabel">{type === "Organization" ? "OrgImage" : "Attachments"}: </p>
                                 <input
                                     type="file"
                                     disabled={type === "Task View"}
                                     className="form-control"
-                                    onChange={(e) => changeData(e, type === "Add Comments" ? `comments.attachments` : "attachments")}
-                                    multiple
+                                    onChange={(e) => changeData(e, type === "Add Comments" ? `comments.attachments` : type === "Organization" ? "orgImg" : "attachments")}
+                                    multiple={type !== "Organization"}
                                 />
                             </div>
 
                             {/* Display preview images */}
-                            {previewList?.length > 0 ? (
+                            {previewList?.length > 0 || preview ? (
                                 <div className='d-flex align-items-center justify-content-center'>
-                                    {previewList?.map((imgFile, index) => (
-                                        <div className="col-lg-4 p-2">
-                                            <div className="position-relative">
-                                                {(dataObj.attachments.length === previewList.length && dataObj?.attachments[index].type === "video/mp4" || imgFile.includes(".mp4")) ?
-                                                    <video className="w-100 h-auto" controls>
-                                                        <source src={imgFile} type={dataObj?.attachments[index].type} />
-                                                    </video> :
-                                                    <img
-                                                        src={imgFile}
-                                                        className="w-100 h-auto"
-                                                        alt="uploaded file"
-                                                        style={{ borderRadius: "4px" }}
-                                                    />}
-                                                <button onClick={() => removeAttachment(imgFile, index)} className="remBtn">
-                                                    &times;
-                                                </button>
-                                            </div>
+
+                                    {
+                                        type === "Organization" ? <div className="position-relative">
+                                            <img
+                                                src={preview}
+                                                className="w-100 h-auto"
+                                                alt="uploaded file"
+                                                style={{ borderRadius: "4px" }}
+                                            /> <button onClick={() => removePreview()} className="remBtn">
+                                                &times;
+                                            </button>
                                         </div>
-                                    ))}
+                                            :
+                                            previewList?.map((imgFile, index) => (
+                                                <div className="col-lg-4 p-2">
+                                                    <div className="position-relative">
+                                                        {(dataObj.attachments.length === previewList.length && dataObj?.attachments[index].type === "video/mp4" || imgFile.includes(".mp4")) ?
+                                                            <video className="w-100 h-auto" controls>
+                                                                <source src={imgFile} type={dataObj?.attachments[index].type} />
+                                                            </video> :
+                                                            <img
+                                                                src={imgFile}
+                                                                className="w-100 h-auto"
+                                                                alt="uploaded file"
+                                                                style={{ borderRadius: "4px" }}
+                                                            />}
+                                                        <button onClick={() => removeAttachment(imgFile, index)} className="remBtn">
+                                                            &times;
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            ))}
                                 </div>
                             ) : (
                                 <>
@@ -842,6 +871,60 @@ const CommonModel = ({
                         <Input required placeholder={`Please Type "Delete" to delete this ${type === "Confirmation" ? "Project" : type === "Report Confirmation" ? "Report" : "Task"}`} onChange={setConfirmationTxt} value={confirmationTxt} appearance="default" size='lg' />
                     </div>
                 }
+                {
+                    type === "Organization" &&
+                    <>
+                        <div className="col-full">
+                            <div className="modelInput">
+                                <p className='modelLabel'>User Name:</p>
+                                <Input
+                                    required
+                                    size="lg"
+                                    style={{ width: "100%", height: 45 }}
+                                    type={"name"}
+                                    value={dataObj?.[`name`] || ""}
+                                    appearance='default'
+                                    onChange={(e) => changeData(e, "name")}
+                                />
+                            </div>
+                        </div>
+                        <div className="d-flex justify-content-between gap-2">
+                            <div className="col-half">
+                                <div className="modelInput">
+                                    <p className='modelLabel'>Email:</p>
+                                    <Input
+                                        required
+                                        size="lg"
+                                        style={{ width: "100%", height: 45 }}
+                                        type={"email"}
+                                        value={dataObj?.[`email`] || ""}
+                                        appearance='default'
+                                        onChange={(e) => changeData(e, "email")}
+                                    />
+                                </div>
+                            </div>
+                            <div className="col-half">
+                                <div className="modelInput">
+                                    <p className='modelLabel'>Password:</p>
+                                    <InputGroup inside size='lg' style={{ width: "100%", height: 45 }}>
+                                        <Input
+                                            required
+                                            size="lg"
+                                            // style={{ width: "100%", height: 45 }}
+                                            type={isShowPassword ? "text" : "password"}
+                                            value={dataObj?.[`password`] || ""}
+                                            appearance='default'
+                                            onChange={(e) => changeData(e, "password")}
+                                        />
+                                        <InputGroup.Button style={{ height: 43 }} onClick={() => setIsShowPassword(!isShowPassword)}>
+                                            {isShowPassword ? <VisibilityOffOutlinedIcon /> : <RemoveRedEyeOutlinedIcon />}
+                                        </InputGroup.Button>
+                                    </InputGroup>
+                                </div>
+                            </div>
+                        </div>
+                    </>
+                }
 
             </Modal.Body>
 
@@ -855,10 +938,12 @@ const CommonModel = ({
                         <>
                             <Button
                                 onClick={() => {
-                                    if (["Company", "Country", "Edit Country"].includes(type)) {
+                                    if (["Company", "Country", "Edit Country", "Organization"].includes(type)) {
                                         modifyData(dataObj._id || type === "Edit Country" ? "Edit" : "Add");
                                     } else if (type === "Report View") {
                                         modifyData(dataObj._id, "Cancel");
+                                    } else if (dataObj._id && type === "Organization") {
+                                        modifyData("Edit")
                                     } else {
                                         modifyData();
                                     }
@@ -874,7 +959,7 @@ const CommonModel = ({
                                         onClick={() => ((type === "Add Comments" && dataObj._id) ? editData(dataObj, true) : dataObj?._id || type === "Edit Country" ? editData(dataObj) : type === "Edit Comments" ? editData() : addData())}
                                         appearance="primary"
                                         disabled={
-                                            ["Project", "Assign", "Task", "Task Assign", "Report", "Company", "Country", "Edit Country", "Announcement", "Team", "Add Comments", "Edit Comments"].includes(type)
+                                            ["Project", "Assign", "Task", "Task Assign", "Report", "Company", "Country", "Edit Country", "Announcement", "Team", "Add Comments", "Edit Comments", "Organization"].includes(type)
                                                 ? false : (["Department", "Position"].includes(type) && dataObj?.company ? false : true)
                                         }
                                     >
