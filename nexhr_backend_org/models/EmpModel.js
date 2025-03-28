@@ -86,8 +86,6 @@ module.exports = {
   employeeSchema
 };
 
-
-// const EmployeeValidation = Joi.object({
 //   FirstName: Joi.string().required(),
 //   LastName: Joi.string().required(),
 //   Email: Joi.string().email().required(),

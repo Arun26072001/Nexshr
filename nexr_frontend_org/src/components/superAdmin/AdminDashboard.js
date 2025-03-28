@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useState } from 'react';
-import { Link, Route, Routes, useNavigate } from 'react-router-dom';
+import { Link, Route, Routes, useNavigate, useParams } from 'react-router-dom';
 import settingsIcon from '../../asserts/settingsIcon.svg';
 import homeIcon from '../../asserts/homeIcon.svg';
 import userIcon from '../../asserts/userIcon.svg';
@@ -25,6 +25,8 @@ const AdminDashboard = () => {
     const url = process.env.REACT_APP_API_URL;
     const [isLoading, setIsLoading] = useState(false);
     const [ischangedOrgs, setIsChangedOrgs] = useState(false);
+    const params = useParams();
+    const [activeNavLink, setActiveNavLink] = useState(params["*"]);
 
     function handleChangeToRefetchOrgs() {
         setIsChangedOrgs(!ischangedOrgs)
@@ -54,8 +56,6 @@ const AdminDashboard = () => {
                     Authorization: token || ""
                 }
             });
-            console.log(res.data);
-            
             setUsers(res.data)
         } catch (error) {
             console.log(error);
@@ -81,6 +81,7 @@ const AdminDashboard = () => {
     }
     return (
         <div className="admin-dashboard-container">
+            {/* navbar */}
             <nav className="admin-navbar">
                 <Link className="text-decoration-none text-dark">
                     <div className="d-flex">
@@ -115,7 +116,7 @@ const AdminDashboard = () => {
                 </div>
             </nav>
 
-            <div className="d-flex main-content-container">
+            <div className="d-flex main-content-container w-100">
                 {/* Sidebar */}
                 <aside className={`sidebar ${isSidebarCollapsed ? 'collapsed' : ''} text-light p-3`}>
                     <button
@@ -132,28 +133,27 @@ const AdminDashboard = () => {
                         />
                     </button>
                     <nav className="nav flex-column">
-                        <Link className="nav-link text-dark" to={`/${whoIs}`}>
+                        <Link className={`nav-link text-dark ${activeNavLink === "" ? "activeLink" : ""}`} to={`/${whoIs}`} onClick={() => setActiveNavLink("")}>
                             <img src={homeIcon} width={22} height={22} className="m-1" />
                             {!isSidebarCollapsed && "Dashboard"}
                         </Link>
-                        <Link className="nav-link text-dark" to={`/${whoIs}/organizations`}>
+                        <Link className={`nav-link text-dark ${activeNavLink === "organizations" ? "activeLink" : ""}`} onClick={() => setActiveNavLink("organizations")} to={`/${whoIs}/organizations`}>
                             <img src={orgIcon} width={22} height={22} className="m-1" />
                             {!isSidebarCollapsed && "Organizations"}
                         </Link>
-                        <Link className="nav-link text-dark" to={`/${whoIs}/users`}>
+                        <Link className={`nav-link text-dark ${activeNavLink === "users" ? "activeLink" : ""}`} onClick={() => setActiveNavLink("users")} to={`/${whoIs}/users`}>
                             <img src={userIcon} width={22} height={22} className="m-1" />
                             {!isSidebarCollapsed && "Users"}
                         </Link>
-                        <Link className="nav-link text-dark" to={`/${whoIs}/settings`}>
+                        <Link className={`nav-link text-dark ${activeNavLink === "settings" ? "activeLink" : ""}`} onClick={() => setActiveNavLink("settings")} to={`/${whoIs}/settings`}>
                             <img src={settingsIcon} width={22} height={22} className="m-1" />
                             {!isSidebarCollapsed && "Settings"}
                         </Link>
                     </nav>
                 </aside>
-
-                <main className="pe-4  w-100">
+                <div className={`${isSidebarCollapsed ? "in-active" : "active"} right-side ms-auto`}>
                     <Routes>
-                        <Route path="/" element={<AdmiMain organizations={organizations} users={users} isLoading={isLoading} />} />
+                        <Route path="/" element={<AdmiMain organizations={organizations} users={users} isLoading={isLoading}  />} />
                         <Route path="organizations" element={<AdminOrganizations organizations={organizations} isLoading={isLoading} handleChangeToRefetchOrgs={handleChangeToRefetchOrgs} />} />
                         <Route path="organizations/:organizationId" element={<ViewOrganization organizations={organizations} isLoading={isLoading} handleChangeToRefetchOrgs={handleChangeToRefetchOrgs} />} />
                         <Route path="organizations/:organizationId/members" element={<AdminOrgMembers organizations={organizations} isLoading={isLoading} />} />
@@ -162,7 +162,7 @@ const AdminDashboard = () => {
                         <Route path="settings" element={<AdminSettings />} />
                         <Route path="*" element={<h1 className='text-center'>404</h1>} />
                     </Routes>
-                </main>
+                </div>
             </div>
         </div>
     );

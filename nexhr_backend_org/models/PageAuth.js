@@ -71,4 +71,4 @@ const pageAuthValidation = Joi.object({
     Settings: Joi.string().optional(),
 });
 
-module.exports = { PageAuth, pageAuthValidation }
+module.exports = { PageAuth, pageAuthValidation, pageAuthSchema }

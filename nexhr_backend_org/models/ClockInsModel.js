@@ -73,5 +73,6 @@ const clockInsValidation = Joi.object({
 
 module.exports = {
   ClockIns,
-  clockInsValidation
+  clockInsValidation,
+  clockInsSchema
 };

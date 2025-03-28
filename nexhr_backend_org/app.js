@@ -11,6 +11,10 @@ const http = require("http");
 const path = require("path");
 const { Server } = require("socket.io");
 
+// models or schema
+const { TimePattern } = require("./models/TimePatternModel");
+
+// routes
 const login = require("./routes/login");
 const company = require("./routes/company");
 const department = require("./routes/department");
@@ -50,8 +54,7 @@ const { imgUpload } = require('./routes/imgUpload');
 const holidays = require("./routes/holidays");
 const report = require("./routes/reports");
 const fileData = require("./routes/file-data");
-const { TimePattern } = require("./models/TimePatternModel");
-const { ClockIns } = require("./models/ClockInsModel");
+const mailSettings = require("./routes/mail-settings");
 
 // MongoDB Connection
 const mongoURI = process.env.DATABASEURL;
@@ -147,7 +150,8 @@ app.use("/api/user-permission", userPermission);
 app.use("/api/page-auth", pageAuth);
 app.use("/api/upload", imgUpload);
 app.use("/api/report", report)
-app.use("/api/google-sheet/upload", fileData)
+app.use("/api/google-sheet/upload", fileData);
+app.use("/api/mail-settings", mailSettings);
 
 // Create HTTP Server and Socket.IO
 const server = http.createServer(app);

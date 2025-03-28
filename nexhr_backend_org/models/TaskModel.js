@@ -84,5 +84,6 @@ const taskValidation = Joi.object({
 
 module.exports = {
     taskValidation,
-    Task
+    Task,
+    taskSchema
 }

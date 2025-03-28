@@ -51,5 +51,6 @@ const LeaveApplicationHRValidation = Joi.object().keys({
 module.exports = {
   LeaveApplication,
   LeaveApplicationHRValidation,
-  LeaveApplicationValidation
+  LeaveApplicationValidation,
+  leaveApplicationSchema
 };

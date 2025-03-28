@@ -211,7 +211,6 @@ const AddTimePattern = ({ handleAddWorkingTime, dom, reload }) => {
                     </div>
                 </div>
 
-
                 <p className="my-2 styleText">
                     <b>{timePattern.WeeklyDays} working days </b>
                     Selected totalling <b>{(timePattern.WeeklyDays * ((timeDifference - timePattern.BreakTime) / 60)).toFixed(2)} hrs</b>. excluding breaks

@@ -34,5 +34,6 @@ const WorkPlace = mongoose.model("WorkPlace", WorkPlaceSchema);
 
   module.exports = {
     WorkPlace,
-    WorkPlaceValidation
+    WorkPlaceValidation,
+    WorkPlaceSchema
   }

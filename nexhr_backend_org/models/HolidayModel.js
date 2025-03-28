@@ -15,4 +15,4 @@ const HolidayValidation = Joi.object().keys({
     holidays: Joi.array().items(Joi.object()).min(2).required("Holidays")
 })
 
-module.exports = { Holiday, HolidayValidation }
+module.exports = { Holiday, HolidayValidation, HolidaySchema }

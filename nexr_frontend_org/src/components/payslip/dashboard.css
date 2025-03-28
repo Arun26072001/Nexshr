@@ -76,7 +76,7 @@ thead {
 }
 .dropdown {
   position: relative;
-  width: 50%;
+  /* width: 50%; */
   margin-left: 64%;
 }
 .dropdown_menu {

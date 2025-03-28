@@ -153,38 +153,36 @@ const AdminOrganizations = ({ organizations, isLoading, handleChangeToRefetchOrg
         isLoading ? <Loading height='80vh' /> :
             isChangeOrg.isAdd ? <CommonModel type={"Organization"} isAddData={isChangeOrg.isAdd} modifyData={handleChangeOrg} dataObj={orgObj} changeData={handleChange} addData={addOrganization} /> :
                 isChangeOrg.isEdit ? <CommonModel type={"Organization"} preview={preview} removePreview={removePreview} isAddData={isChangeOrg.isEdit} modifyData={handleChangeOrg} dataObj={orgObj} changeData={handleChange} editData={editOrganization} /> :
-                    <div>
-                        <main className="p-4 w-100 main-container">
-                            <div className='d-flex justify-content-between'>
-                                <div>
-                                    <p className="mb-4 titleText">Organizations</p>
-                                </div>
-                                <div>
-                                    <button className='button' onClick={handleChangeOrg}>
-                                        Add Organization
-                                    </button>
-                                </div>
+                    <main className="p-4 w-100 main-container">
+                        <div className='d-flex justify-content-between'>
+                            <div>
+                                <p className="mb-4 titleText">Organizations</p>
+                            </div>
+                            <div>
+                                <button className='button' onClick={handleChangeOrg}>
+                                    Add Organization
+                                </button>
+                            </div>
 
+                        </div>
+                        <div className="mb-3 d-flex justify-content-between align-items-center px-3">
+                            <div className="d-flex align-items-center">
+                                <Input
+                                    required
+                                    size="lg"
+                                    style={{ width: "250px", height: 45 }}
+                                    type={"text"}
+                                    value={orgName}
+                                    placeholder='Search Organization'
+                                    appearance='default'
+                                    onChange={setOrgName}
+                                />
                             </div>
-                            <div className="mb-3 d-flex justify-content-between align-items-center px-3">
-                                <div className="d-flex align-items-center">
-                                    <Input
-                                        required
-                                        size="lg"
-                                        style={{ width: "250px", height: 45 }}
-                                        type={"text"}
-                                        value={orgName}
-                                        placeholder='Search Organization'
-                                        appearance='default'
-                                        onChange={setOrgName}
-                                    />
-                                </div>
-                            </div>
-                            {
-                                filterOrgs.length > 0 ? <LeaveTable data={filterOrgs} fetchOrgData={fetchOrgData} /> : <NoDataFound message={"Organizations not found"} />
-                            }
-                        </main>
-                    </div >
+                        </div>
+                        {
+                            filterOrgs.length > 0 ? <LeaveTable data={filterOrgs} fetchOrgData={fetchOrgData} /> : <NoDataFound message={"Organizations not found"} />
+                        }
+                    </main>
     );
 };
 

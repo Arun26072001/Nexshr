@@ -60,5 +60,6 @@ const CompanyValidation = Joi.object().keys({
 
 module.exports = {
   Company,
-  CompanyValidation
+  CompanyValidation,
+  companySchema
 }

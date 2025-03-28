@@ -10,4 +10,4 @@ const PayslipSchema = mongoose.Schema({
 
 const Payslip = mongoose.model('payslip', PayslipSchema);
 
-module.exports = { Payslip }
+module.exports = { Payslip, PayslipSchema }

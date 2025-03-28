@@ -42,7 +42,7 @@ const CommonModel = ({
     const [confirmationTxt, setConfirmationTxt] = useState("");
     const [isDisabled, setIsDisabled] = useState(true);
     const [isShowPassword, setIsShowPassword] = useState(false);
-    console.log(preview);
+    console.log(dataObj);
 
     return (
         <Modal open={isAddData} size="sm" backdrop="static">
@@ -925,6 +925,121 @@ const CommonModel = ({
                         </div>
                     </>
                 }
+                {
+                    ["MailSettings nodemailer", "MailSettings postmark"].includes(type) &&
+                    <>
+                        <div className="d-flex justify-content-between gap-2">
+                            <div className={`${type === "MailSettings postmark" ? "col-full" : "col-half"}`}>
+                                <div className="modelInput">
+                                    <p className='modelLabel'>Service:</p>
+                                    <Input
+                                        required
+                                        size="lg"
+                                        style={{ width: "100%", height: 45 }}
+                                        type={"text"}
+                                        disabled={true}
+                                        value={dataObj?.[`service`] || ""}
+                                        appearance='default'
+                                        onChange={(e) => changeData(e, "service")}
+                                    />
+                                </div>
+                            </div>
+                            {
+                                type === "MailSettings nodemailer" &&
+                                <div className="col-half">
+                                    <div className="modelInput">
+                                        <p className='modelLabel'>Mail Host:</p>
+                                        <Input
+                                            required
+                                            size="lg"
+                                            type={"text"}
+                                            value={dataObj?.[`mailHost`] || ""}
+                                            appearance='default'
+                                            onChange={(e) => changeData(e, "mailHost")}
+                                        />
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                        {
+                            type === "MailSettings nodemailer" &&
+                            <div className="d-flex justify-content-between gap-2">
+                                <div className="col-half">
+                                    <div className="modelInput">
+                                        <p className='modelLabel'>Mail Port:</p>
+                                        <InputNumber
+                                            required
+                                            size="lg"
+                                            style={{ width: "100%", height: 45 }}
+                                            value={dataObj?.[`mailPort`] || ""}
+                                            appearance='default'
+                                            onChange={(e) => changeData(e, "mailport")}
+                                        />
+                                    </div>
+                                </div>
+                                <div className="col-half">
+                                    <div className="modelInput">
+                                        <p className='modelLabel'>Mail Password:</p>
+                                        <Input
+                                            required
+                                            size="lg"
+                                            type={"text"}
+                                            value={dataObj?.[`mailPassword`] || ""}
+                                            appearance='default'
+                                            onChange={(e) => changeData(e, "mailPassword")}
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                        <div className="d-flex justify-content-between gap-2">
+                            <div className="col-half">
+                                <div className="modelInput">
+                                    <p className='modelLabel'>From Mail:</p>
+                                    <Input
+                                        required
+                                        size="lg"
+                                        style={{ width: "100%", height: 45 }}
+                                        type={"text"}
+                                        value={dataObj?.[`fromEmail`] || ""}
+                                        appearance='default'
+                                        onChange={(e) => changeData(e, "fromEmail")}
+                                    />
+                                </div>
+                            </div>
+                            <div className="col-half">
+                                <div className="modelInput">
+                                    <p className='modelLabel'>IsActive:</p>
+                                    <SelectPicker
+                                        required
+                                        data={["true", "false"].map((data) => ({ label: data, value: data }))}
+                                        size="lg"
+                                        appearance='default'
+                                        style={{ width: "100%", zIndex: 1 }}
+                                        value={String(dataObj?.isActive)}
+                                        onChange={(e) => changeData(e, "isActive")}
+                                    />
+                                </div>
+                            </div>
+                        </div>
+                        {
+                            type === "MailSettings postmark" &&
+                            <div className="col-full">
+                                <div className="modelInput">
+                                    <p className='modelLabel'>API token:</p>
+                                    <Input
+                                        required
+                                        size="lg"
+                                        appearance='default'
+                                        style={{ width: "100%", zIndex: 1 }}
+                                        value={dataObj?.apiToken}
+                                        onChange={(e) => changeData(e, "apiToken")}
+                                    />
+                                </div>
+                            </div>
+                        }
+                    </>
+                }
 
             </Modal.Body>
 
@@ -944,6 +1059,8 @@ const CommonModel = ({
                                         modifyData(dataObj._id, "Cancel");
                                     } else if (dataObj._id && type === "Organization") {
                                         modifyData("Edit")
+                                    } else if (["MailSettings postmark", "MailSettings nodemailer"].includes(type)) {
+                                        modifyData(dataObj)
                                     } else {
                                         modifyData();
                                     }
@@ -959,7 +1076,7 @@ const CommonModel = ({
                                         onClick={() => ((type === "Add Comments" && dataObj._id) ? editData(dataObj, true) : dataObj?._id || type === "Edit Country" ? editData(dataObj) : type === "Edit Comments" ? editData() : addData())}
                                         appearance="primary"
                                         disabled={
-                                            ["Project", "Assign", "Task", "Task Assign", "Report", "Company", "Country", "Edit Country", "Announcement", "Team", "Add Comments", "Edit Comments", "Organization"].includes(type)
+                                            ["Project", "Assign", "Task", "Task Assign", "Report", "Company", "Country", "Edit Country", "Announcement", "Team", "Add Comments", "Edit Comments", "Organization", "MailSettings postmark", "MailSettings nodemailer"].includes(type)
                                                 ? false : (["Department", "Position"].includes(type) && dataObj?.company ? false : true)
                                         }
                                     >

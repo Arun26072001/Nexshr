@@ -35,5 +35,5 @@ const ReportValidation = Joi.object({
 });
 
 module.exports = {
-    Report, ReportValidation
+    Report, ReportValidation, reportSchema
 }

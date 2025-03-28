@@ -253,4 +253,4 @@ const userPermissionsValidation = Joi.object({
     Payroll: Joi.allow(null)
 });
 
-module.exports = { UserPermission, userPermissionsValidation }
+module.exports = { UserPermission, userPermissionsValidation, userPermissionsSchema }

@@ -1,72 +1,113 @@
-import React, { useState } from 'react';
-import { useParams } from 'react-router-dom';
+import React, { useContext, useEffect, useState } from 'react';
+import CommonModel from '../Administration/CommonModel';
+import axios from "axios";
+import { EssentialValues } from '../../App';
+import Loading from '../Loader';
+import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
+import { toast } from 'react-toastify';
 
 const AdminOrgSettings = ({ organizations }) => {
-    // const { organizationId } = useParams(); // Fetch the organization ID from the URL
-    // const organization = organizations?.find(org => org._id === organizationId); // Find the matching organization
-    // console.log(organization)
-    // State for form inputs
-    const [formData, setFormData] = useState({});
+    const url = process.env.REACT_APP_API_URL;
+    const { data } = useContext(EssentialValues)
+    const [mailSettingsObj, setMailSettingsObj] = useState({});
+    const [mailSettings, setMailSettings] = useState([]);
+    const [isChangeMail, setIsChangeMail] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
+    const [type, setType] = useState("");
+
+    function handleChangeMailSettings() {
+        setIsChangeMail(!isChangeMail)
+    }
 
     // Handle input changes
-    const handleChange = (e) => {
-        const { name, value } = e.target;
-        setFormData(prevState => ({
+    const handleChange = (value, name) => {
+        setMailSettingsObj(prevState => ({
             ...prevState,
-            [name]: value,
+            [name]: value
         }));
     };
 
-    // Handle form submission
-    const handleSubmit = (e) => {
-        e.preventDefault();
-        console.log('Updated Organization Details:', formData);
-        // Add logic to save changes, e.g., API call
-    };
+    async function fetchMailSettings() {
+        setIsLoading(true)
+        try {
+            const res = await axios.get(`${url}/api/mail-settings`, {
+                headers: {
+                    Authorization: data.token || ""
+                }
+            })
+            setMailSettings(res.data)
+        } catch (error) {
+            console.log(error);
+        } finally {
+            setIsLoading(false)
+        }
+    }
+
+    async function editMailSetting(updatedData) {
+        try {
+            updatedData = {
+                ...updatedData,
+                isActive: JSON.parse(updatedData.isActive)
+            }
+            const res = await axios.put(`${url}/api/mail-settings/${updatedData._id}`, updatedData, {
+                headers: {
+                    Authorization: data.token || ""
+                }
+            })
+            toast.success(res.data.message);
+            fetchMailSettings();
+            setIsChangeMail(false)
+        } catch (error) {
+            console.log(error);
+        }
+    }
+
+    function makeItActive(item) {
+        const updatedMailSetting = {
+            ...item,
+            isActive: !item.isActive
+        }
+        editMailSetting(updatedMailSetting)
+    }
+
+    useEffect(() => {
+        fetchMailSettings()
+    }, [])
 
     return (
-        <div className="p-4 w-full">
-            <p className="titleText text-start">Mail Settings</p>
-            <div className="row">
-                <div className="col-md-6">
-                    <div className={`box-content messageCount cardContent text-dark d-block activeCard`} style={{ background: "white", textAlign: "center", height: "100%", boxShadow: "rgba(0, 0, 0, 0.02) 0px 1px 3px 0px, rgba(27, 31, 35, 0.15) 0px 0px 0px 1px" }}>
-                        <div className="d-flex">
-                            <div className="col-lg-5 text-start"><b>FROM EMAIL</b></div>
-                            <div className="col-lg-5 text-start">  hr@webnexs.com</div> {/* Add value if needed */}
-                        </div>
-                        <div className="d-flex">
-                            <div className="col-lg-5 text-start"><b>POSTMARK TOKEN</b></div>
-                            <div className="col-lg-5 text-start">  5403b130-ff09-4e7f-bc85-999c75a4413b</div> {/* Add value if needed */}
-                        </div>
+        isLoading ? <Loading height='100vh' /> :
+            isChangeMail ? <CommonModel type={`MailSettings ${type}`} isAddData={isChangeMail} dataObj={mailSettingsObj} modifyData={handleChangeMailSettings} changeData={handleChange} editData={editMailSetting} /> :
+                <div className="p-4 w-100">
+                    <p className="titleText text-start">Mail Settings</p>
+                    <div className="row">
+                        {
+                            mailSettings.map((item) => {
+                                return <div className="col-md-6">
+                                    <div className={`box-content messageCount position-relative cardContent d-block ${item.isActive ? "activeCard" : ""}`} style={{ background: "white", textAlign: "center", height: "100%", boxShadow: "rgba(0, 0, 0, 0.02) 0px 1px 3px 0px, rgba(27, 31, 35, 0.15) 0px 0px 0px 1px" }}>
+                                        <span className="RadioPosition" onClick={() => makeItActive(item)}>
+                                            <input type="radio" checked={item.isActive} className="styleRadio" style={{ cursor: "pointer" }} />
+                                        </span>
+                                        <button className='button positioning' onClick={() => {
+                                            setMailSettingsObj(item)
+                                            handleChangeMailSettings()
+                                            setType(item.service)
+                                        }}><EditOutlinedIcon /></button>
+                                        {
+                                            Object.entries(item).map(([key, value]) => {
+                                                if (!["__v", "_id", "isActive"].includes(key)) {
+                                                    return <div className="d-flex my-1">
+                                                        <div className="col-lg-5 text-start"><b>{key.toUpperCase()}</b></div>
+                                                        <div className="col-lg-5 text-start sub_text " style={{ fontSize: "15px", fontWeight: 600, color: "rgb(150 147 147)" }}>  {value}</div>
+                                                    </div>
+                                                }
+                                            })
+                                        }
+                                    </div>
+                                </div>
+                            })
+                        }
                     </div>
                 </div>
-                <div className="col-md-6" >
-                    <div className={`box-content messageCount cardContent text-dark d-block`}
-                        style={{
-                            background: "white",
-                            textAlign: "center",
-                            boxShadow: "rgba(0, 0, 0, 0.02) 0px 1px 3px 0px, rgba(27, 31, 35, 0.15) 0px 0px 0px 1px"
-                        }}>
-                        <div className="d-flex">
-                            <div className="col-lg-5 text-start"><b>MAIL HOST</b></div>
-                            <div className="col-lg-5 text-start">  server.webnexs.in</div>
-                        </div>
-                        <div className="d-flex">
-                            <div className="col-lg-5 text-start"><b>MAIL PORT</b></div>
-                            <div className="col-lg-5 text-start">  587</div>
-                        </div>
-                        <div className="d-flex">
-                            <div className="col-lg-5 text-start"><b>MAIL USER</b></div>
-                            <div className="col-lg-5 text-start">  demo@webnexs.in</div>
-                        </div>
-                        <div className="d-flex">
-                            <div className="col-lg-5 text-start"><b>FROM EMAIL</b></div>
-                            <div className="col-lg-5 text-start">  hr@webnexs.com</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
     );
 };
 

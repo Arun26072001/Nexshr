@@ -184,7 +184,7 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
             const empName = `${emp.FirstName.charAt(0).toUpperCase()}${emp.FirstName.slice(1)} ${emp.LastName}`;
 
             sendMail({
-                From: empData.Email,
+                From: process.env.FROM_MAIL,
                 To: emp.Email,
                 Subject: `${createdPersonName} has Assigned a Task to You`,
                 HtmlBody: `

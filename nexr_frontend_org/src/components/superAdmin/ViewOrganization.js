@@ -24,7 +24,7 @@ const ViewOrganization = ({ organizations, isLoading, handleChangeToRefetchOrgs 
 
     async function editOrganization() {
         try {
-            
+
             const response = await axios.put(`${url}/api/organization/${organizationId}`, orgObj,
                 {
                     headers: {
@@ -63,50 +63,48 @@ const ViewOrganization = ({ organizations, isLoading, handleChangeToRefetchOrgs 
 
     return (
         isChangeOrg ? <CommonModel type={"Organization"} isAddData={isChangeOrg} modifyData={handleChangeOrg} dataObj={orgObj} changeData={changeOrg} editData={editOrganization} /> :
-            <div>
-                <main className="p-4 w-100 main-container">
-                    <div className='d-flex align-items-center justify-content-between'>
-                        <div>
-                            <h1 className="mb-4">{orgObj.orgName}</h1>
-                        </div>
-                        <div>
-                            <button
-                                className='edirOrgBtn p-2 border rounded'
-                                onClick={handleChangeOrg}
-                            >
-                                Edit Organization
-                            </button>
+            <main className="p-4 w-100 main-container">
+                <div className='d-flex align-items-center justify-content-between'>
+                    <div>
+                        <h1 className="mb-4">{orgObj.orgName}</h1>
+                    </div>
+                    <div>
+                        <button
+                            className='edirOrgBtn p-2 border rounded'
+                            onClick={handleChangeOrg}
+                        >
+                            Edit Organization
+                        </button>
+                    </div>
+                </div>
+                <div className='d-flex justify-content-between'>
+                    <div>
+                        <h5>Owner: {orgObj.createdBy.FirstName}</h5>
+                    </div>
+                    <div>
+                        <h5>Created at: {new Date(orgObj.createdAt).toDateString()}</h5>
+                    </div>
+                </div>
+                <div className="row">
+                    <div className="col-md-6"
+                        state={{
+                            projects: projects?.projects,
+                            organization: organization || {}
+                        }}>
+                        <div className={`box-content messageCount cardContent d-block text-align-center`} style={{ background: "white", boxShadow: "rgba(0, 0, 0, 0.02) 0px 1px 3px 0px, rgba(27, 31, 35, 0.15) 0px 0px 0px 1px" }}>
+                            <h5 className='text-dark'>Total Projects</h5>
+                            <p className="fs-2 text-dark fw-bold">{0}</p>
                         </div>
                     </div>
-                    <div className='d-flex justify-content-between'>
-                        <div>
-                            <h5>Owner: {orgObj.createdBy.FirstName}</h5>
-                        </div>
-                        <div>
-                            <h5>Created at: {new Date(orgObj.createdAt).toDateString()}</h5>
-                        </div>
-                    </div>
-                    <div className="row">
-                        <div className="col-md-6"
-                            state={{
-                                projects: projects?.projects,
-                                organization: organization || {}
-                            }}>
-                            <div className={`box-content messageCount cardContent d-block text-align-center`} style={{ background: "white", boxShadow: "rgba(0, 0, 0, 0.02) 0px 1px 3px 0px, rgba(27, 31, 35, 0.15) 0px 0px 0px 1px" }}>
-                                <h5 className='text-dark'>Total Projects</h5>
-                                <p className="fs-2 text-dark fw-bold">{0}</p>
-                            </div>
-                        </div>
-                        <div className="col-md-6"
-                            state={{ projects: projects?.projects }}>
-                            <div className={`box-content messageCount cardContent d-block text-align-center`} style={{ background: "white", boxShadow: "rgba(0, 0, 0, 0.02) 0px 1px 3px 0px, rgba(27, 31, 35, 0.15) 0px 0px 0px 1px" }}>
-                                <h5 className='text-dark'>Total Members</h5>
-                                <p className="fs-2 fw-bold text-dark">{organization?.members?.length}</p>
-                            </div>
+                    <div className="col-md-6"
+                        state={{ projects: projects?.projects }}>
+                        <div className={`box-content messageCount cardContent d-block text-align-center`} style={{ background: "white", boxShadow: "rgba(0, 0, 0, 0.02) 0px 1px 3px 0px, rgba(27, 31, 35, 0.15) 0px 0px 0px 1px" }}>
+                            <h5 className='text-dark'>Total Members</h5>
+                            <p className="fs-2 fw-bold text-dark">{organization?.members?.length}</p>
                         </div>
                     </div>
-                </main>
-            </div>
+                </div>
+            </main>
     );
 };
 

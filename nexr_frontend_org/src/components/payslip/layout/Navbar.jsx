@@ -272,7 +272,7 @@ export default function Navbar({ handleSideBar }) {
 
     return (
         <div className="webnxs">
-            <div className="row mx-auto justify-content-between" style={{ height: "50px" }}>
+            <div className="row mx-auto justify-content-between" >
                 <div className="col-lg-3 col-md-3 col-6 d-flex align-items-center">
                     <div className={`sidebarIcon`} onClick={handleSideBar}>
                         <TableRowsRoundedIcon />
