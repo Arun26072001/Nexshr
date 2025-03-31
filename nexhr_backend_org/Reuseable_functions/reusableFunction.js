@@ -126,6 +126,34 @@ const checkLogin = (scheduledTime, actualTime) => {
   }
 };
 
+// Function to calculate working hours between start and end times
+function getTotalWorkingHourPerDay(startingTime, endingTime) {
+  if (startingTime !== "00:00:00" && endingTime) {
+
+    // Convert time strings to Date objects (using today's date)
+    const today = new Date();
+    const start = new Date(today.getFullYear(), today.getMonth(), today.getDate(), ...startingTime?.split(':').map(Number));
+    const end = new Date(today.getFullYear(), today.getMonth(), today.getDate(), ...endingTime?.split(':').map(Number));
+
+    // Calculate the difference in milliseconds
+    const startTime = start.getTime();
+    const endTime = end.getTime();
+    let timeDifference;
+    if (endTime > startTime) {
+      timeDifference = end - start;
+    } else {
+      timeDifference = start - end
+    }
+
+    // Convert the difference to minutes
+    const minutesDifference = Math.floor(timeDifference / (1000 * 60));
+
+    return minutesDifference / 60;
+  } else {
+    return 0;
+  }
+}
+
 const getTotalWorkingHoursExcludingWeekends = (start, end, dailyHours = 8) => {
   let totalHours = 0;
   for (let date = new Date(start); date <= end; date.setDate(date.getDate() + 1)) {
@@ -136,4 +164,34 @@ const getTotalWorkingHoursExcludingWeekends = (start, end, dailyHours = 8) => {
   return totalHours;
 };
 
-module.exports = { convertToString, getDayDifference, getWeekdaysOfCurrentMonth, mailContent, checkLogin, getTotalWorkingHoursExcludingWeekends, getCurrentTimeInMinutes, timeToMinutes, formatTimeFromMinutes };
+const connections = {};
+const getOrgDB = async (organizationId) => {
+  if (connections[organizationId]) {
+    return connections[organizationId];
+  }
+
+  const dbName = `teamnex_${organizationId}`;
+  const mongoURI = process.env.DATABASEURL;
+
+  const newConnection = mongoose.createConnection(mongoURI, {
+    dbName
+  });
+
+  await new Promise((resolve, reject) => {
+    newConnection.once('connected', () => {
+      console.log(`✅ MongoDB connected: ${dbName}`);
+      resolve();
+    });
+
+    newConnection.once('error', (err) => {
+      console.error(`❌ MongoDB connection error: ${dbName}`, err);
+      reject(err);
+    });
+  });
+  console.log(`📌 New DB Connection: ${mongoURI}/${dbName}`);
+
+  connections[organizationId] = newConnection;
+  return newConnection;
+};
+
+module.exports = { convertToString, getTotalWorkingHourPerDay, getDayDifference, getOrgDB, getWeekdaysOfCurrentMonth, mailContent, checkLogin, getTotalWorkingHoursExcludingWeekends, getCurrentTimeInMinutes, timeToMinutes, formatTimeFromMinutes };

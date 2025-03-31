@@ -25,6 +25,7 @@ export default function Reports({ employees }) {
     const [departments, setDepartments] = useState([]);
     const [companies, setCompanies] = useState([]);
     const [projects, setProjects] = useState([]);
+    const [isWorkingApi, setIsWorkingApi] = useState(false);
 
     async function fetchProjects() {
         try {
@@ -110,8 +111,15 @@ export default function Reports({ employees }) {
     }
 
     async function addReport() {
+        setIsWorkingApi(true);
         try {
-            const res = await axios.post(`${url}/api/report/${data._id}`, reportObj, {
+            let newReportObj = {
+                ...reportObj,
+                employees: Array.isArray(reportObj?.employees) && reportObj.employees.includes(data._id)
+                    ? reportObj.employees
+                    : [...(reportObj?.employees || []), data._id]
+            }
+            const res = await axios.post(`${url}/api/report/${data._id}`, newReportObj, {
                 headers: {
                     Authorization: data.token || ""
                 }
@@ -120,12 +128,17 @@ export default function Reports({ employees }) {
             setReportObj({});
             toast.success(res.data.message);
         } catch (error) {
-            toast.error(error.reponse.data.error);
+            console.log(error);
+
+            // toast.error(error.response.data.error);
+        } finally {
+            setIsWorkingApi(false);
         }
     }
 
 
     async function editReport(updatedReport) {
+        setIsWorkingApi(true);
         try {
             const res = await axios.put(`${url}/api/report/${data._id}/${updatedReport._id}`, updatedReport, {
                 headers: {
@@ -139,6 +152,7 @@ export default function Reports({ employees }) {
         } catch (error) {
             toast.error(error.response.data.error)
         }
+        setIsWorkingApi(false);
     }
 
     async function fetchDepartments() {
@@ -206,8 +220,8 @@ export default function Reports({ employees }) {
     return (
         isViewReport ? <CommonModel type="Report View" isAddData={isViewReport} modifyData={fetchReportById} dataObj={reportObj} projects={projects} comps={companies} departments={departments} employees={employees} /> :
             isDeleteReport.type ? <CommonModel type="Report Confirmation" modifyData={handleDeleteReport} deleteData={deleteReport} isAddData={isDeleteReport.type} /> :
-                isAddReport ? <CommonModel type="Report" isAddData={isAddReport} projects={projects} comps={companies} departments={departments} modifyData={handleAddReport} changeData={changeReport} addData={addReport} dataObj={reportObj} editData={editReport} employees={employees} /> :
-                    isEditReport ? <CommonModel type="Report" isAddData={isEditReport} projects={projects} comps={companies} departments={departments} modifyData={handleEditReport} changeData={changeReport} dataObj={reportObj} editData={editReport} employees={employees} /> :
+                isAddReport ? <CommonModel type="Report" isWorkingApi={isWorkingApi} isAddData={isAddReport} projects={projects} comps={companies} departments={departments} modifyData={handleAddReport} changeData={changeReport} addData={addReport} dataObj={reportObj} editData={editReport} employees={employees} /> :
+                    isEditReport ? <CommonModel type="Report" isWorkingApi={isWorkingApi} isAddData={isEditReport} projects={projects} comps={companies} departments={departments} modifyData={handleEditReport} changeData={changeReport} dataObj={reportObj} editData={editReport} employees={employees} /> :
                         <>
                             <div className="projectParent">
                                 <div className="projectTitle col-lg-6 ">Reports</div>

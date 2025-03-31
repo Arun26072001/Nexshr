@@ -13,6 +13,7 @@ import "react-datepicker/dist/react-datepicker.css";
 import io from "socket.io-client";
 import { Notification, toaster } from "rsuite";
 import companyLogo from "./imgs/webnexs_logo.webp";
+import AdminDashboard from "./components/superAdmin/AdminDashboard.js";
 
 export const EssentialValues = createContext(null);
 
@@ -45,8 +46,6 @@ const App = () => {
   }
   // Helper Functions
   const handleLogout = () => {
-    console.log(isStartLogin, isStartActivity);
-
     if (isStartLogin || isStartActivity) {
       toast.warn("You can't logout until the timer stops.");
       return;
@@ -78,7 +77,7 @@ const App = () => {
       const response = await axios.post(`${url}/api/login`, { Email: email, Password: password });
       const decodedData = jwtDecode(response.data);
 
-      if (!decodedData.Account || !["1", "2", "3", "4", "5"].includes(String(decodedData.Account))) {
+      if (!decodedData.Account || !["17", "1", "2", "3", "4", "5"].includes(String(decodedData.Account))) {
         throw new Error("Invalid account type.");
       }
 
@@ -104,10 +103,12 @@ const App = () => {
       setIsLogin(true);
       // send emp id for extension
       sendEmpIdtoExtension(decodedData._id, response.data);
-      const roles = { "1": "admin", "2": "hr", "3": "emp", "4": "manager", "5": "sys-admin" };
+      const roles = { "17": "superAdmin", "1": "admin", "2": "hr", "3": "emp", "4": "manager", "5": "sys-admin" };
       setWhoIs(roles[String(localStorage.getItem("Account"))] || "");
       navigate(`/${roles[String(localStorage.getItem("Account"))]}`);
     } catch (error) {
+      console.log(error);
+
       setPass(false);
       setLoading(false);
       if (error?.response?.data?.details?.includes("buffering timed out after 10000ms")) {
@@ -195,7 +196,7 @@ const App = () => {
       token: localStorage.getItem("token") || "",
       annualLeave: localStorage.getItem("annualLeaveEntitment") || 0,
     }))
-    const roles = { "1": "admin", "2": "hr", "3": "emp", "4": "manager", "5": "sys-admin" };
+    const roles = { "17": "superAdmin", "1": "admin", "2": "hr", "3": "emp", "4": "manager", "5": "sys-admin" };
     setWhoIs(roles[String(localStorage.getItem("Account"))] || "");
 
     if (window.location.pathname !== "/login" || window.location.pathname !== `/${whoIs}`) {
@@ -275,7 +276,7 @@ const App = () => {
         <Route path="/" element={isLogin && whoIs && data.token ? <Navigate to={`/${whoIs}`} /> : <Navigate to="/login" />} />
         <Route
           path={`${whoIs}/*`}
-          element={isLogin && whoIs && data.token ? <HRMDashboard /> : <Navigate to="/login" />}
+          element={isLogin && whoIs && data.token ? whoIs === "superAdmin" ? <AdminDashboard /> : <HRMDashboard /> : <Navigate to="/login" />}
         />
         <Route path="no-internet-connection" element={<NoInternet />} />
         <Route path="*" element=

@@ -179,7 +179,7 @@ leaveApp.put("/reject-leave", async (req, res) => {
       },
       {
         $lookup: {
-          From: "employees", // Replace with your employee collection name
+          from: "employees", // ✅ Corrected from "From" to "from"
           localField: "employee",
           foreignField: "_id",
           as: "employeeDetails",
@@ -187,87 +187,61 @@ leaveApp.put("/reject-leave", async (req, res) => {
       },
       {
         $project: {
-          leaveType: 1,  // Include the leaveType field
-          fromDate: 1,  // Include the fromDate field
-          toDate: 1,  // Include the toDate field
-          periodOfLeave: 1,  // Default "full day" if periodOfLeave is null
-          reasonForLeave: 1,  // Default "fever" if reasonForLeave is null
-          prescription: 1,  // Include the prescription field
-          employee: 1,  // Include the employee reference
-          coverBy: 1,  // Include the coverBy field
-          "employeeDetails.FirstName": 1,  // Include employee's FirstName
-          "employeeDetails.LastName": 1,  // Include employee's LastName
-          "employeeDetails.Email": 1  // Include employee's Email
+          leaveType: 1,
+          fromDate: 1,
+          toDate: 1,
+          periodOfLeave: 1,
+          reasonForLeave: 1,
+          prescription: 1,
+          employee: 1,
+          coverBy: 1,
+          "employeeDetails.FirstName": 1,
+          "employeeDetails.LastName": 1,
+          "employeeDetails.Email": 1,
         },
       },
     ]);
 
     if (leaves.length > 0) {
-      leaves.map(async (leave) => {
+      for (const leave of leaves) {
         const updatedLeave = {
           leaveType: leave.leaveType,
           fromDate: leave.fromDate,
-          toDate: leave.toDate,  // Include the toDate field
-          periodOfLeave: leave.periodOfLeave,  // Default "full day" if periodOfLeave is null
-          reasonForLeave: leave.reasonForLeave,  // Default "fever" if reasonForLeave is null
-          prescription: leave.prescription,  // Include the prescription field
-          employee: leave.employee,  // Include the employee reference
+          toDate: leave.toDate,
+          periodOfLeave: leave.periodOfLeave || "full day",
+          reasonForLeave: leave.reasonForLeave || "fever",
+          prescription: leave.prescription,
+          employee: leave.employee,
           coverBy: leave.coverBy,
           status: "rejected",
           TeamLead: "rejected",
           Hr: "rejected",
-          TeamHead: "rejected"
-        }
-        const updateLeave = await LeaveApplication.findByIdAndUpdate(leave._id, updatedLeave, { new: true });
-        // Prepare and send the email
+          TeamHead: "rejected",
+        };
+
+        await LeaveApplication.findByIdAndUpdate(leave._id, updatedLeave, { new: true });
+
+        const employee = leave.employeeDetails[0]; // ✅ Fix employeeDetails array access
+
         const htmlContent = `
-               <!DOCTYPE html>
-               <html lang="en">
-               <head>
-                 <meta charset="UTF-8">
-                 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                 <title>NexsHR</title>
-                 <style>
-                   body { font-family: Arial, sans-serif; background-color: #f6f9fc; color: #333; }
-                   .container { max-width: 600px; margin: auto; padding: 20px; background-color: #fff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); }
-                   .header { text-align: center; padding: 20px; }
-                   .header img { max-width: 100px; }
-                   .content { margin: 20px 0; }
-                   .important {font-color:rgb(248, 73, 73), font-weight: bold;  }
-                   .footer { text-align: center; font-size: 14px; margin-top: 20px; color: #777; }
-                 </style>
-               </head>
-               <body>
-                 <div class="container">
-                   <div class="header">
-                     <img src="https://imagedelivery.net/r89jzjNfZziPHJz5JXGOCw/1dd59d6a-7b64-49d7-ea24-1366e2f48300/public" alt="Logo" />
-                     <h1>Leave application(${leave.fromDate} - ${leave.toDate}) has been rejected!</h1>
-                   </div>
-                   <div class="content">
-                       <p>Hi ${employeeDetails.FirstName},</p>
-                       <p>Your leave application has been rejected by higher authority.</p>
-                       <p class='important'>If you take leave, It will deduct your salary!</p>
-                       <p>Thank you!</p>
-                   </div>
-                   <div class="footer">
-                     <p>Need help? <a href="mailto:webnexs29@gmail.com">Contact our Team Head</a>.</p>
-                   </div>
-                 </div>
-               </body>
-               </html>
-             `;
+           <p>Hi ${employee?.FirstName || "Employee"},</p>
+           <p>Your leave application has been rejected by higher authority.</p>
+           <p style="color: red; font-weight: bold;">If you take leave, It will deduct your salary!</p>
+           <p>Thank you!</p>
+        `;
 
         sendMail({
           From: process.env.FROM_MAIL,
-          To: employeeDetails.Email,
+          To: employee?.Email || "default@email.com",
           Subject: "Leave Application Rejected",
           HtmlBody: htmlContent,
         });
-
-      })
+      }
     }
+    res.status(200).send({ message: "Leave rejection processed successfully." });
+
   } catch (error) {
-    console.error("Error fetching leave applications:", error);
+    console.error("Error fetching leave applications:", error.message);
     res.status(500).send({ error: "An error occurred while fetching data." });
   }
 });
@@ -293,7 +267,7 @@ leaveApp.get("/emp/:empId", verifyAdminHREmployeeManagerNetwork, async (req, res
       const now = new Date();
       const annualStart = new Date(emp.annualLeaveYearStart);
       startDate = new Date(now.getFullYear(), annualStart.getMonth(), annualStart.getDate());
-      endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
+      endDate = new Date(now.getFullYear(), now.getMonth() + 2, 0, 23, 59, 59, 999);
     }
 
     const today = new Date();
@@ -418,7 +392,7 @@ leaveApp.get("/team/:id", verifyTeamHigherAuthority, async (req, res) => {
       endOfMonth = new Date(req.query.daterangeValue[1]);
     } else {
       startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-      endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+      endOfMonth = new Date(now.getFullYear(), now.getMonth() + 2, 0);
     }
     const who = req?.query?.who;
     const team = await Team.findOne({ [who]: req.params.id }).exec();
@@ -450,6 +424,7 @@ leaveApp.get("/team/:id", verifyTeamHigherAuthority, async (req, res) => {
             : null
         }
       })
+
       teamLeaves = teamLeaves.sort((a, b) => new Date(a.fromDate) - new Date(b.fromDate));
       const approvedLeave = teamLeaves.filter(data => data.status === "approved");
       const pendingLeave = teamLeaves.filter(data => data.status === "pending");
@@ -921,12 +896,11 @@ leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("pre
 
     // Send notification emails
     const mailList = [
-      emp?.team?.lead?.Email,
-      emp?.team?.head?.Email,
-      emp?.team?.manager?.Email,
+      emp?.team?.lead[0]?.Email,
+      emp?.team?.head[0]?.Email,
+      emp?.team?.manager[0]?.Email,
       emp?.admin?.Email
     ].filter(Boolean);
-    console.log(mailList);
 
     sendMail({
       From: process.env.FROM_MAIL,
@@ -960,9 +934,10 @@ leaveApp.put('/:id', verifyAdminHREmployee, async (req, res) => {
     const today = new Date();
     const leaveAppStartedHour = new Date(req.body.fromDate).getHours();
     const startOfDay = new Date(today.setHours((leaveAppStartedHour || 0) - 2, 0, 0, 0));
+    console.log(req.body);
 
-    const { Hr, TeamLead, TeamHead, employee, leaveType, ...restBody } = req.body;
-    const approvers = [Hr, TeamLead, TeamHead];
+    const { Hr, TeamLead, TeamHead, Manager, employee, leaveType, ...restBody } = req.body;
+    const approvers = [Hr, TeamLead, TeamHead, Manager];
 
     const allApproved = approvers.every(status => status === 'approved');
     const anyRejected = approvers.some(status => status === 'rejected');
@@ -999,9 +974,9 @@ leaveApp.put('/:id', verifyAdminHREmployee, async (req, res) => {
 
     const members = [
       { type: "emp", Email: emp.Email, name: `${emp.FirstName} ${emp.LastName}` },
-      emp.team.lead && { type: "lead", Email: emp.team.lead.Email, name: `${emp.team.lead.FirstName} ${emp.team.lead.LastName}` },
-      emp.team.head && { type: "head", Email: emp.team.head.Email, name: `${emp.team.head.FirstName} ${emp.team.head.LastName}` },
-      emp.team.manager && { type: "manager", Email: emp.team.manager.Email, name: `${emp.team.manager.FirstName} ${emp.team.manager.LastName}` },
+      emp.team.lead[0] && { type: "lead", Email: emp.team.lead[0].Email, name: `${emp.team.lead[0].FirstName} ${emp.team.lead[0].LastName}` },
+      emp.team.head[0] && { type: "head", Email: emp.team.head[0].Email, name: `${emp.team.head[0].FirstName} ${emp.team.head[0].LastName}` },
+      emp.team.manager[0] && { type: "manager", Email: emp.team.manager[0].Email, name: `${emp.team.manager[0].FirstName} ${emp.team.manager[0].LastName}` },
       emp.admin && { type: "admin", Email: emp.admin.Email, name: `${emp.admin.FirstName} ${emp.admin.LastName}` }
     ].filter(Boolean);
 
@@ -1010,6 +985,7 @@ leaveApp.put('/:id', verifyAdminHREmployee, async (req, res) => {
       Hr,
       TeamHead,
       TeamLead,
+      Manager,
       status: allApproved ? "approved" : anyRejected ? "rejected" : restBody.status
     };
 

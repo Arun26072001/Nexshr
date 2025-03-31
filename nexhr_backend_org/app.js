@@ -1,6 +1,5 @@
 // Required Imports
 const express = require("express");
-const router = express.Router();
 const schedule = require("node-schedule");
 const axios = require("axios");
 const mongoose = require("mongoose");
@@ -11,6 +10,10 @@ const http = require("http");
 const path = require("path");
 const { Server } = require("socket.io");
 
+// models or schema
+const { TimePattern } = require("./models/TimePatternModel");
+
+// routes
 const login = require("./routes/login");
 const company = require("./routes/company");
 const department = require("./routes/department");
@@ -50,8 +53,9 @@ const { imgUpload } = require('./routes/imgUpload');
 const holidays = require("./routes/holidays");
 const report = require("./routes/reports");
 const fileData = require("./routes/file-data");
-const { TimePattern } = require("./models/TimePatternModel");
-const { ClockIns } = require("./models/ClockInsModel");
+const mailSettings = require("./routes/mail-settings");
+const { Employee } = require("./models/EmpModel");
+const { timeToMinutes, getCurrentTimeInMinutes, getTotalWorkingHourPerDay } = require("./Reuseable_functions/reusableFunction");
 
 // MongoDB Connection
 const mongoURI = process.env.DATABASEURL;
@@ -147,7 +151,8 @@ app.use("/api/user-permission", userPermission);
 app.use("/api/page-auth", pageAuth);
 app.use("/api/upload", imgUpload);
 app.use("/api/report", report)
-app.use("/api/google-sheet/upload", fileData)
+app.use("/api/google-sheet/upload", fileData);
+app.use("/api/mail-settings", mailSettings);
 
 // Create HTTP Server and Socket.IO
 const server = http.createServer(app);
@@ -216,7 +221,7 @@ io.on("connection", (socket) => {
   socket.on("remainder_notification", (data) => {
 
     // Ensure `time` is valid
-    const delay = Number(data.time) * 60000;
+    const delay = Number(data.time) * (1000 * 60 * 60);
     if (isNaN(delay) || delay <= 0) {
       console.error("Invalid delay time:", data.time);
       return;
@@ -236,6 +241,50 @@ io.on("connection", (socket) => {
     }, delay);
   });
 
+  //verify is completed today workinghour
+  socket.on("verify_completed_workinghour", async (data) => {
+    const empData = await Employee.findById(data.employee, "workingTimePattern")
+      .populate("workingTimePattern").exec();
+
+    let startingTimes = data.login?.startingTime;
+    let endingTimes = data.login?.endingTime;
+
+    const values = startingTimes?.map((startTime, index) => {
+      if (!startTime) return 0; // No start time means no value
+
+      let endTimeInMin = 0;
+      if (endingTimes[index]) {
+        // Calculate time difference with an ending time
+        endTimeInMin = timeToMinutes(endingTimes[index]);
+      } else {
+        // Calculate time difference with the current time
+        endTimeInMin = getCurrentTimeInMinutes();
+      }
+      const startTimeInMin = timeToMinutes(startTime);
+      return Math.abs(endTimeInMin - startTimeInMin);
+    });
+
+    const totalValue = values?.reduce((acc, value) => acc + value, 0) ;
+    const scheduleWorkingHours = getTotalWorkingHourPerDay(
+      empData.workingTimePattern.StartingTime,
+      empData.workingTimePattern.FinishingTime
+    )
+    console.log(totalValue, scheduleWorkingHours);
+
+    if (scheduleWorkingHours > totalValue) {
+      const employeeSocketID = onlineUsers[empData._id]; // ✅ Get correct socket ID
+      if (employeeSocketID) {
+        io.to(employeeSocketID).emit("early_logout", {
+          message: "Why are you logout early?"
+        });
+        // console.log(`Sent Ask_reason_for_late to Employee ${data.employee}`);
+      } else {
+        console.log(`User ${data.employee} is offline, skipping emit.`);
+      }
+    }
+  })
+
+  // update task in Comments(CURD operation with socket)
   socket.on("updatedTask_In_AddComment", async (data, empId, token) => {
 
     try {
@@ -253,7 +302,7 @@ io.on("connection", (socket) => {
           Authorization: token || ""
         }
       })
-      
+
       res.data.assignedTo.map((emp) => {
         const employeeSocketID = onlineUsers[emp._id];
         io.to(employeeSocketID).emit("send_updated_task", res.data)

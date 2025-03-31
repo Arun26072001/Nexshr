@@ -16,6 +16,7 @@ import RemoveRedEyeRoundedIcon from '@mui/icons-material/RemoveRedEyeRounded';
 import { jwtDecode } from 'jwt-decode';
 import { TimerStates } from './payslip/HRMDashboard';
 import { useNavigate } from 'react-router-dom';
+import { Skeleton } from '@mui/material';
 
 export default function Projects({ employees }) {
     const navigator = useNavigate();
@@ -34,7 +35,7 @@ export default function Projects({ employees }) {
     const [isLoading, setIsLoading] = useState(false);
     const url = process.env.REACT_APP_API_URL;
     const [companies, setCompanies] = useState([]);
-    const [isChangingProject, setIsChangingProject] = useState(false);
+    const [isWorkingApi, setIsWorkingApi] = useState(false);
 
     // Fetch companies data
     const fetchCompanies = async () => {
@@ -116,7 +117,7 @@ export default function Projects({ employees }) {
     }
 
     async function updateProject() {
-        setIsChangingProject(true);
+        setIsWorkingApi(true);
         try {
             const res = await axios.put(`${url}/api/project/${data._id}/${projectObj?._id}`, projectObj, {
                 headers: {
@@ -130,13 +131,19 @@ export default function Projects({ employees }) {
         } catch (error) {
             toast.error(error?.response?.data?.error)
         }
-        setIsChangingProject(false);
+        setIsWorkingApi(false);
     }
 
     async function addProject() {
-        setIsChangingProject(true);
+        setIsWorkingApi(true);
         try {
-            const res = await axios.post(`${url}/api/project/${data._id}`, projectObj, {
+            let newProjectObj = {
+                ...projectObj,
+                "employees": Array.isArray(projectObj?.employees) && projectObj.employees.includes(data._id)
+                    ? projectObj.employees
+                    : [...(projectObj?.employees || []), data._id]
+            }
+            const res = await axios.post(`${url}/api/project/${data._id}`, newProjectObj, {
                 headers: {
                     Authorization: data.token || ""
                 }
@@ -147,7 +154,7 @@ export default function Projects({ employees }) {
         } catch (error) {
             toast.error(error.response.data.error)
         }
-        setIsChangingProject(false);
+        setIsWorkingApi(false);
     }
 
     useEffect(() => {
@@ -171,14 +178,6 @@ export default function Projects({ employees }) {
             setProjects(filterProjects.filter((project) => project.name.toLowerCase().includes(name?.toLowerCase()) || project.status.includes(name) || project?.company?._id?.includes(name)))
         }
     }
-    // useEffect(() => {
-    //     function changeUIForSelectedCompany() {
-    //         setName
-    //     }
-    //     if (name) {
-    //         changeUIForSelectedCompany()
-    //     }
-    // }, [name])
 
     async function deleteProject() {
         try {
@@ -267,7 +266,7 @@ export default function Projects({ employees }) {
 
     return (
         isViewProject ? <CommonModel type="Project View" comps={companies} teams={teams} isAddData={isViewProject} employees={employees} dataObj={projectObj} modifyData={handleViewProject} /> :
-            isEdit ? <CommonModel type="Assign" isAddData={isEdit} isWorkingApi={isChangingProject} employees={employees} changeData={changeProject} dataObj={projectObj} editData={updateProject} modifyData={handleEditProject} /> :
+            isEdit ? <CommonModel type="Assign" isAddData={isEdit} isWorkingApi={isWorkingApi} employees={employees} changeData={changeProject} dataObj={projectObj} editData={updateProject} modifyData={handleEditProject} /> :
                 isDelete.type ? <CommonModel type="Confirmation" modifyData={handleDeleteProject} deleteData={deleteProject} isAddData={isDelete} /> :
                     isAddProject ? <CommonModel
                         comps={companies}
@@ -276,12 +275,12 @@ export default function Projects({ employees }) {
                         changeData={changeProject}
                         teams={teams}
                         addData={addProject}
-                        isWorkingApi={isChangingProject}
+                        isWorkingApi={isWorkingApi}
                         type="Project"
                         editData={updateProject}
                         employees={employees}
                         modifyData={handleAddProject} />
-                        : isLoading ? <Loading height='80vh' /> : <>
+                        : <>
                             <div className="projectParent">
                                 <div className="projectTitle col-lg-6">Projects</div>
                                 <div className="col-lg-6 projectChild gap-1">
@@ -327,67 +326,70 @@ export default function Projects({ employees }) {
                                 </div>
                                 <div className="container">
                                     <div className="row mx-2">
-                                        {projects?.length > 0 ? (
-                                            projects?.map((project) => (
-                                                <div key={project._id} className="col-lg-4 col-md-6 mb-4">
-                                                    <div className="box-content">
-                                                        <div className="progress my-2">
+                                        {isLoading ? [...Array(3)].map(((project) => {
+                                            return <Skeleton variant='rounded' width={280} height={250} className='m-2' />
+                                        })) :
+                                            projects?.length > 0 ? (
+                                                projects?.map((project) => (
+                                                    <div key={project._id} className="col-lg-4 col-md-6 mb-4">
+                                                        <div className="box-content">
+                                                            <div className="progress my-2">
+                                                                <div
+                                                                    className="progress-bar progress-bar-striped"
+                                                                    role="progressbar"
+                                                                    style={{ width: `${project.progress || 0}%` }}
+                                                                    aria-valuenow={project.progress || 0}
+                                                                    aria-valuemin="0"
+                                                                    aria-valuemax="100"
+                                                                ></div>
+                                                            </div>
+                                                            <div className="projectDetails my-3">
+                                                                <h5>
+                                                                    ({project.prefix}) - {project.name}
+                                                                </h5>
+                                                                <span style={{ cursor: "pointer" }}>
+                                                                    <Whisper placement="bottomEnd" trigger="click" speaker={renderMenu(project)}>
+                                                                        <MoreVertIcon />
+                                                                    </Whisper>
+                                                                </span>
+                                                            </div>
+                                                            <div className="projectDetails m-0">
+                                                                <span className="defaultDesign">({project.status})</span>
+                                                                <span>
+                                                                    <b>{project?.pendingTasks?.length || 0}</b> Pending Task(s)
+                                                                </span>
+                                                            </div>
                                                             <div
-                                                                className="progress-bar progress-bar-striped"
-                                                                role="progressbar"
-                                                                style={{ width: `${project.progress || 0}%` }}
-                                                                aria-valuenow={project.progress || 0}
-                                                                aria-valuemin="0"
-                                                                aria-valuemax="100"
-                                                            ></div>
-                                                        </div>
-                                                        <div className="projectDetails my-3">
-                                                            <h5>
-                                                                ({project.prefix}) - {project.name}
-                                                            </h5>
-                                                            <span style={{ cursor: "pointer" }}>
-                                                                <Whisper placement="bottomEnd" trigger="click" speaker={renderMenu(project)}>
-                                                                    <MoreVertIcon />
-                                                                </Whisper>
-                                                            </span>
-                                                        </div>
-                                                        <div className="projectDetails m-0">
-                                                            <span className="defaultDesign">({project.status})</span>
-                                                            <span>
-                                                                <b>{project?.pendingTasks?.length || 0}</b> Pending Task(s)
-                                                            </span>
-                                                        </div>
-                                                        <div
-                                                            className="d-flex justify-content-end"
-                                                            style={{ color: "#6c757d" }}
-                                                        >
-                                                            Client: {project?.company?.CompanyName}
-                                                        </div>
-                                                        <div className="d-flex align-items-center gap-2 my-3" style={{ overflow: "auto" }}>
-                                                            {project?.employees?.map((emp) => (
-                                                                <div className="nameHolder" style={{ width: "35px", height: "35px" }} key={emp?._id}>
-                                                                    {emp?.FirstName[0]?.toUpperCase() +
-                                                                        emp?.LastName[0]?.toUpperCase()}
-                                                                </div>
-                                                            ))}
-                                                            <AddCircleOutlineRoundedIcon fontSize="large" sx={{ cursor: "pointer" }} color="disabled" onClick={() => {
-                                                                fetchProjectById(project._id)
-                                                                handleEditProject()
-                                                            }} />
-                                                        </div>
+                                                                className="d-flex justify-content-end"
+                                                                style={{ color: "#6c757d" }}
+                                                            >
+                                                                Client: {project?.company?.CompanyName}
+                                                            </div>
+                                                            <div className="d-flex align-items-center gap-2 my-3" style={{ overflow: "auto" }}>
+                                                                {project?.employees?.map((emp) => (
+                                                                    <div className="nameHolder" style={{ width: "35px", height: "35px" }} key={emp?._id}>
+                                                                        {emp?.FirstName[0]?.toUpperCase() +
+                                                                            emp?.LastName[0]?.toUpperCase()}
+                                                                    </div>
+                                                                ))}
+                                                                <AddCircleOutlineRoundedIcon fontSize="large" sx={{ cursor: "pointer" }} color="disabled" onClick={() => {
+                                                                    fetchProjectById(project._id)
+                                                                    handleEditProject()
+                                                                }} />
+                                                            </div>
 
-                                                        <div className='w-100' onClick={() => {
-                                                            navigator(`/${whoIs}/tasks`)
-                                                            handleAddTask(project._id)
-                                                        }} >
-                                                            <button className='button' style={{ background: "#4b70f5", width: "100%", padding: "6px" }}>Add Task</button>
+                                                            <div className='w-100' onClick={() => {
+                                                                navigator(`/${whoIs}/tasks`)
+                                                                handleAddTask(project._id)
+                                                            }} >
+                                                                <button className='button' style={{ background: "#4b70f5", width: "100%", padding: "6px" }}>Add Task</button>
+                                                            </div>
                                                         </div>
                                                     </div>
-                                                </div>
-                                            ))
-                                        ) : (
-                                            <NoDataFound message={"Project Not Found"} />
-                                        )}
+                                                ))
+                                            ) : (
+                                                <NoDataFound message={"Project Not Found"} />
+                                            )}
                                     </div>
                                 </div>
 

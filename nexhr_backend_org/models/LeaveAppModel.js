@@ -33,7 +33,7 @@ const LeaveApplicationValidation = Joi.object({
   toDate: Joi.date().required().label('toDate'),
   reasonForLeave: Joi.string().required().label('reasonForLeave'),
   periodOfLeave: Joi.string().label('periodOfLeave'),
-  prescription: Joi.string().label('prescription').allow("", null),
+  prescription: Joi.string().allow("", null).optional().label('prescription'),
   coverBy: Joi.string().label('coverBy').allow("", null),
   status: Joi.string().label('status'),
   appliedOn: Joi.date().label('appliedOn'),
@@ -51,5 +51,6 @@ const LeaveApplicationHRValidation = Joi.object().keys({
 module.exports = {
   LeaveApplication,
   LeaveApplicationHRValidation,
-  LeaveApplicationValidation
+  LeaveApplicationValidation,
+  leaveApplicationSchema
 };

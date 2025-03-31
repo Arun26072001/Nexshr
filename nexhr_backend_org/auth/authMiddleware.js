@@ -110,7 +110,7 @@ async function verifyAdminHREmployeeManagerNetwork(req, res, next) {
         console.log(err, "error in verify");
         res.sendStatus(401);
       } else {
-        if ([1, 2, 3, 4, 5].includes(authData.Account)) {
+        if ([1, 2, 3, 4, 5, 17].includes(authData.Account)) {
           next();
         }
         else {
@@ -189,42 +189,27 @@ async function verifyAdminHRTeamHigherAuth(req, res, next) {
 
 
 function verifyAdminHREmployee(req, res, next) {
-  // Retrieve the token from the Authorization header
-  const authHeader = req.headers['authorization'];
+  const token = req.headers['authorization'];
+  if (typeof token !== "undefined") {
 
-  if (!authHeader) {
-    // If no Authorization header is present
-    console.log("Missing authorization token");
-    return res.status(401).json({ error: "Authorization token is required" });
+    jwt.verify(token, jwtKey, (err, authData) => {
+      const { isTeamLead, isTeamHead, isTeamManager } = authData;
+      if (err) {
+        console.log("error in verify");
+        res.sendStatus(401);
+      } else {
+        if ([1, 2].includes(authData.Account) || [isTeamLead, isTeamHead, isTeamManager].includes(true)) {
+          next();
+        }
+        else {
+          res.status(401).send({ error: "You has no Authorization!" });
+        }
+      }
+    });
+  } else {
+    // Forbidden
+    res.send(401).send({ error: "token not not found" });
   }
-
-  // Extract the token (e.g., "Bearer <token>")
-  const token = authHeader.startsWith("Bearer ") ? authHeader.split(" ")[1] : authHeader;
-
-  // Verify the token
-  jwt.verify(token, jwtKey, (err, authData) => {
-    if (err) {
-      // Handle token verification errors
-      console.error("Token verification error:", err.message);
-      return res.status(401).json({ error: "Invalid or expired token" });
-    }
-
-    // Ensure authData is valid and contains the Account field
-    if (!authData || typeof authData.Account === 'undefined') {
-      console.error("Invalid token payload: Account property missing");
-      return res.status(403).json({ error: "Access denied" });
-    }
-
-    // Check if the user has admin or HR access
-    if ([1, 2, 3].includes(authData.Account)) {
-      // User is authorized
-      next();
-    } else {
-      // User is not authorized
-      console.warn("Unauthorized access attempt");
-      return res.status(403).json({ error: "Access denied" });
-    }
-  });
 }
 
 function verifyAdmin(req, res, next) {
@@ -317,13 +302,11 @@ function verifySuperAdmin(req, res, next) {
   const token = req.headers['authorization'];
 
   if (typeof token !== "undefined") {
-    // decodedData = jwt.decode(req.headers['authorization']);
-    // if(decodedData.Account)
     jwt.verify(token, jwtKey, (err, authData) => {
       if (err) {
         res.status(401).send({ error: err.message });
       } else {
-        if (authData.Account == 0) {
+        if (authData.Account === 17) {
           next();
         } else {
           res.status(401).send({ error: "unAuthorize: Super Admin can only do this action!" });

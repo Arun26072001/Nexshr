@@ -22,4 +22,4 @@ const announcementValidation = Joi.object({
     createdBy: Joi.string().required(),
 });
 
-module.exports = { Announcement, announcementValidation }
+module.exports = { Announcement, announcementValidation, announcementSchema }

@@ -154,7 +154,8 @@ const ActivityTimeTracker = () => {
     return (
         <>
             {
-                isViewTakeTime && <Modal open={isViewTakeTime} size="sm" backdrop="static">
+                isViewTakeTime && 
+                <Modal open={isViewTakeTime} size="sm" backdrop="static">
                     <Modal.Header >
                         <Modal.Title>
                             {timeOption[0].toUpperCase() + timeOption.slice(1)} Reason For Late

@@ -1,10 +1,11 @@
-import React, { useEffect, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import axios from 'axios';
 import { toast } from 'react-toastify';
 import CircleBar from './CircleProcess';
 import { Skeleton } from '@mui/material';
+import { EssentialValues } from '../App';
 
-const CircleProgressBar = ({ isTeamLead, token, account, id, isTeamHead }) => {
+const CircleProgressBar = ({ isTeamLead, isTeamHead, isTeamManager }) => {
   const url = process.env.REACT_APP_API_URL;
   const [todayLeaveCount, setTodayLeaveCount] = useState(0);
   const [tomorrowLeaveCount, setTomorrowLeaveCount] = useState(0);
@@ -12,6 +13,8 @@ const CircleProgressBar = ({ isTeamLead, token, account, id, isTeamHead }) => {
   const [leaveRequests, setLeaveRequests] = useState([]);
   const [emps, setEmps] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
+  const { data } = useContext(EssentialValues);
+  const { token, Account, _id } = data;
 
   // Calculate dates for today, tomorrow, and yesterday, skipping weekends
   let today = new Date();
@@ -69,9 +72,9 @@ const CircleProgressBar = ({ isTeamLead, token, account, id, isTeamHead }) => {
       setIsLoading(true)
       try {
         // Fetch leave requests
-        const leaveRes = await axios.get(`${url}/api/leave-application/team/${id}`, {
+        const leaveRes = await axios.get(`${url}/api/leave-application/team/${_id}`, {
           params: {
-            isLead: isTeamHead ? true : false
+            who: isTeamHead ? "head" : isTeamLead ? "lead" : "manager"
           },
           headers: {
             authorization: token || "",
@@ -80,9 +83,9 @@ const CircleProgressBar = ({ isTeamLead, token, account, id, isTeamHead }) => {
         setLeaveRequests(leaveRes.data.leaveData);
 
         // Fetch employees
-        const empRes = await axios.get(`${url}/api/team/members/${id}`, {
+        const empRes = await axios.get(`${url}/api/team/members/${_id}`, {
           params: {
-            isLead: isTeamLead ? true : false
+            who: isTeamLead ? "lead" : isTeamHead ? "head" : "manager",
           },
           headers: {
             authorization: token || "",
@@ -97,9 +100,9 @@ const CircleProgressBar = ({ isTeamLead, token, account, id, isTeamHead }) => {
       setIsLoading(false)
     }
 
-    if (account === "2") {
+    if (Account === "2") {
       fetchData();
-    } else if (account === "3" && isTeamLead || account === "3" && isTeamHead) {
+    } else if (Account === "3" && [isTeamLead, isTeamHead, isTeamManager].includes(true)) {
       fetchDataInTeam();
     }
   }, [url, token]);

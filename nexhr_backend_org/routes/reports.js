@@ -2,6 +2,7 @@ const express = require("express");
 const { verifyAdminHREmployeeManagerNetwork } = require("../auth/authMiddleware");
 const { Report, ReportValidation } = require("../models/ReportModel");
 const { Project } = require("../models/ProjectModel");
+const { Employee } = require("../models/EmpModel");
 const router = express.Router();
 
 router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
@@ -10,14 +11,15 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
             ...req.body,
             createdby: req.params.id
         }
-        const project = await Project.findById({ _id: req.body.project })
-        if (!project) {
-            return res.status(404).send({ error: "Project not found" });
-        }
         const { error } = ReportValidation.validate(newReport);
         if (error) {
             return res.status(400).send({ error: error.details[0].message })
         }
+        const project = await Project.findById({ _id: req?.body?.project })
+        if (!project) {
+            return res.status(404).send({ error: "Project not found" });
+        }
+        const empData = await Employee.findById(req.params.id, "FirstName LastName");
         const newTracker = {
             date: new Date(),
             message: `New Report(${req.body.name}) is created by ${empData.FirstName} ${empData.LastName}`,
@@ -29,6 +31,8 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
         await project.save();
         return res.send({ message: "Report is created successfully", result })
     } catch (error) {
+        console.log(error);
+
         return res.status(500).send({ error: error.message })
     }
 })

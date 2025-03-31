@@ -21,7 +21,7 @@ var projectSchema = new mongoose.Schema({
   estCost: { type: String },
   estTime: { type: String },
   priority: { type: String },
-  tracker: [TrackerSchema],
+  tracker: [{type: TrackerSchema}],
   createdby: { type: mongoose.Schema.Types.ObjectId, ref: "Employee" }
 }, { timestamps: true });
 

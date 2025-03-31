@@ -65,5 +65,5 @@ var TimePatternValidation = Joi.object().keys({
 });
 
 module.exports = {
-    TimePattern, TimePatternValidation
+    TimePattern, TimePatternValidation, timePatternSchema
 };

@@ -19,9 +19,9 @@ import KeyRoundedIcon from '@mui/icons-material/KeyRounded';
 import BorderColorRoundedIcon from '@mui/icons-material/BorderColorRounded';
 import DeleteRoundedIcon from '@mui/icons-material/DeleteRounded';
 
-export default function LeaveTable({ data, Account, getCheckedValue, handleDelete, fetchReportById, isTeamHead, isTeamLead, fetchData, roleObj, getCheckAll, deleteData, replyToLeave }) {
+export default function LeaveTable({ data, Account, getCheckedValue, handleDelete, fetchReportById, fetchOrgData, fetchData, roleObj, getCheckAll, deleteData, replyToLeave, isTeamHead, isTeamLead, isTeamManager }) {
     const navigate = useNavigate();
-    const { changeEmpEditForm } = useContext(TimerStates)
+    const timerStateData = useContext(TimerStates)
     const [page, setPage] = useState(0);
     const [rowsPerPage, setRowsPerPage] = useState(+localStorage.getItem("rowsPerPage") || 10);
     const [rows, setRows] = useState([]);
@@ -30,9 +30,6 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
     const [openModal, setOpenModal] = useState(false);
     const [modelData, setModelData] = useState({});
     const params = useParams();
-    // const [timeOption, setTimeOption] = useState("login");
-    console.log(data);
-
 
     const handleChangePage = (event, newPage) => {
         setPage(newPage);
@@ -61,6 +58,8 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
                     return row.TeamHead;
                 } else if (isTeamLead) {
                     return row.TeamLead;
+                } else if (isTeamManager) {
+                    return row.Manager;
                 } else if (Account === "2") {
                     return row.Hr;
                 } else {
@@ -471,6 +470,89 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
         }
     ];
 
+    const column15 = [
+        {
+            id: 'orgName',
+            label: 'Organization Name',
+            minWidth: 150,
+            align: 'left',
+            getter: (row) => row?.orgName
+        },
+        {
+            id: 'createdAt',
+            label: 'Created At',
+            minWidth: 150,
+            align: 'center',
+            getter: (row) => row?.createdAt ? row?.createdAt.split("T")[0] : "N/A"
+        },
+        {
+            id: 'expireAt',
+            label: 'Expire At',
+            minWidth: 150,
+            align: 'center',
+            getter: (row) => row?.expireAt ? row?.expireAt.split("T")[0] : "N/A"
+        },
+        {
+            id: 'members',
+            label: 'Members',
+            minWidth: 120,
+            align: 'center',
+            getter: (row) => row?.members ? row.members.length : 0
+        },
+        {
+            id: 'createdBy',
+            label: 'Created By',
+            minWidth: 150,
+            align: 'center',
+            getter: (row) => row?.createdBy?.name ? row?.createdBy?.name[0].toUpperCase() + row?.createdBy?.name.slice(1) : "N/A"
+        },
+        {
+            id: 'status',
+            label: 'Status',
+            minWidth: 120,
+            align: 'center',
+            getter: (row) => row?.status ? row.status : "N/A"
+        }, {
+            id: "Action",
+            label: "Action",
+            minWidth: 60,
+            align: "center"
+        },
+    ];
+
+    const column16 = [
+        {
+            id: 'name',
+            label: 'Name',
+            minWidth: 150,
+            align: 'left',
+            getter: (row) => row?.name
+                ? row.name[0].toUpperCase() + row.name.slice(1)  // Capitalize first letter
+                : "N/A"
+        },
+        {
+            id: 'email',
+            label: 'Email',
+            minWidth: 200,
+            align: 'center',
+            getter: (row) => row?.email || "N/A"
+        },
+        {
+            id: 'password',
+            label: 'Password',
+            minWidth: 150,
+            align: 'center',
+            getter: (row) => row?.password ? row.password : "N/A" // Mask password for security
+        },
+        {
+            id: "Action",
+            label: "Action",
+            minWidth: 100,
+            align: "center"
+        }
+    ];
+
+
     function toggleView() {
         setOpenModal(!openModal);
     }
@@ -512,7 +594,6 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
         }
     }
 
-
     useEffect(() => {
         setRows(data || []);
         data?.map((item) => {
@@ -549,13 +630,16 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
                 return setColumns(column13)
             } else if (item?.icon) {
                 return setColumns(column14)
+            } else if (item?.orgName) {
+                return setColumns(column15)
+            } else if (params["*"] === "users" || item.Name) {
+                return setColumns(column16)
             }
             else {
                 return setColumns(column2)
             }
         })
     }, [data]);
-
 
     return (
         <div className="container-fluid my-3">
@@ -594,6 +678,7 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
                                             const renderActions = () => {
                                                 if (column.id === "reasonForLeave") {
                                                 } else if (column.id === "Action") {
+
                                                     if (params['*'] === "leave-request") {
                                                         return (
                                                             <Dropdown placement='leftStart' title={<EditRoundedIcon style={{ cursor: "pointer" }} />} noCaret>
@@ -610,7 +695,7 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
                                                     } else if (params['*'] === "employee") {
                                                         return (
                                                             <Dropdown title={<EditRoundedIcon style={{ cursor: "pointer" }} />} placement='leftStart' noCaret>
-                                                                <Dropdown.Item style={{ minWidth: 120 }} onClick={() => changeEmpEditForm(row._id)}>Edit</Dropdown.Item>
+                                                                <Dropdown.Item style={{ minWidth: 120 }} onClick={() => timerStateData?.changeEmpEditForm(row._id)}>Edit</Dropdown.Item>
                                                                 <Dropdown.Item style={{ minWidth: 120 }}>Delete</Dropdown.Item>
                                                             </Dropdown>
                                                         );
@@ -651,6 +736,19 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
                                                                 </b>
                                                             </Dropdown.Item>
                                                         </Dropdown>)
+                                                    } else if (["organizations", "users"].includes(params["*"])) {
+                                                        return (<Dropdown title={"Action"} placement='leftStart' noCaret>
+                                                            <Dropdown.Item style={{ minWidth: 80 }} onClick={() => fetchOrgData(row._id, "Edit")}>
+                                                                <b>
+                                                                    <BorderColorRoundedIcon sx={{ color: "#FFD65A" }} /> Edit
+                                                                </b>
+                                                            </Dropdown.Item>
+                                                            <Dropdown.Item style={{ minWidth: 80 }} onClick={() => handleDelete(row)}>
+                                                                <b>
+                                                                    <DeleteRoundedIcon sx={{ color: "#F93827" }} /> Delete
+                                                                </b>
+                                                            </Dropdown.Item>
+                                                        </Dropdown>);
                                                     }
                                                 } else if (column.id === "auth") {
                                                     return (
@@ -676,6 +774,7 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
                                                         </Dropdown>
                                                     );
                                                 }
+
                                                 return null;
                                             };
 

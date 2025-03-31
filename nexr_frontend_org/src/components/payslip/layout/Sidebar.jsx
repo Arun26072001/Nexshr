@@ -1,22 +1,23 @@
 import React, { useContext, useState } from 'react';
-import { NavLink, useParams } from 'react-router-dom';
+import { Link, NavLink, useParams } from 'react-router-dom';
 import './sidebar.css';
 import KeyboardArrowDownSharpIcon from '@mui/icons-material/KeyboardArrowDownSharp';
-import settingsIcon from '../../../asserts/settingsIcon.svg';
 import jobDeskIcon from '../../../asserts/jobDeskIcon.svg';
+import settingsIcon from '../../../asserts/settingsIcon.svg';
+import homeIcon from '../../../asserts/homeIcon.svg';
 import userIcon from '../../../asserts/userIcon.svg';
 import leaveIcon from '../../../asserts/leaveIcon.svg';
 import attendanceIcon from '../../../asserts/attendanceIcon.svg';
-// import CalendarTodayRoundedIcon from '@mui/icons-material/CalendarTodayRounded';
 import calendarIcon from "../../../asserts/calendar.svg";
 import adminIcon from '../../../asserts/adminIcon.svg';
-import homeIcon from '../../../asserts/homeIcon.svg';
 import fileIcon from "../../../asserts/file.svg";
 import folderIcon from "../../../asserts/folder.svg";
 import taskIcon from "../../../asserts/task.svg";
+import orgIcon from "../../../asserts/ORGANISATion.svg";
 import { EssentialValues } from '../../../App';
 import { jwtDecode } from 'jwt-decode';
 import { TimerStates } from '../HRMDashboard';
+import ArrowCircleRightRoundedIcon from '@mui/icons-material/ArrowCircleRightRounded';
 
 const Sidebar = ({ sideBar }) => {
   const { data, whoIs, handleLogout } = useContext(EssentialValues);
@@ -28,6 +29,7 @@ const Sidebar = ({ sideBar }) => {
     Attendance, Administration, Settings
   } = decodedData?.roleData?.pageAuth;
   const param = useParams();
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
 
   const [activeSubmenu, setActiveSubmenu] = useState(param['*']);
   const [activeNavLink, setActiveNavLink] = useState();
@@ -107,166 +109,164 @@ const Sidebar = ({ sideBar }) => {
   };
 
   return (
-    <div style={{ width: '250px' }} className={`${!sideBar ? "d-none" : ""} sidebar sidebar_hrm`}>
-      <ul className="sidebar-nav p-0" id="sidebar-nav">
-        {renderNavLink(
-          Dashboard === 'allow' || ['admin', 'hr', 'emp'].includes(whoIs),
-          `/${whoIs}`,
-          homeIcon,
-          'Dashboard',
-          'dashboard'
-        )}
-
-        {renderNavLink(
-          JobDesk === 'allow' || ['admin', 'hr', 'emp'].includes(whoIs),
-          `/${whoIs}/job-desk/my-details`,
-          jobDeskIcon,
-          'Job Desk',
-          'jobDesk'
-        )}
-
-        {(Employee === 'allow' && [isTeamHead, isTeamLead, isTeamManager].includes(true)) &&
-          renderSubMenu(
-            "employee",
-            [
-              { key: `my-details`, path: `/${whoIs}/employee/edit/${_id}`, label: 'My Details' },
-              { key: 'my-team', path: `/${whoIs}/employee`, label: 'My Teams' }
-            ],
-            userIcon,
-            'Associate'
+      <div style={{ width: '250px' }} className={`${!sideBar ? "d-none" : ""} sidebar sidebar_hrm`}>
+        <ul className="sidebar-nav p-0" id="sidebar-nav">
+          {renderNavLink(
+            Dashboard === 'allow' || ['admin', 'hr', 'emp'].includes(whoIs),
+            `/${whoIs}`,
+            homeIcon,
+            'Dashboard',
+            'dashboard'
           )}
 
-
-        {![isTeamHead, isTeamLead, isTeamManager].includes(true) &&
-          renderNavLink(
-            (Employee === 'allow' || ['admin', 'hr', 'emp'].includes(whoIs)),
-            (["emp", "sys-admin"].includes(whoIs)
-              ? `/${whoIs}/employee/edit/${_id}`
-              : `/${whoIs}/employee`),
-            userIcon,
-            'Associate',
-            'employee'
+          {renderNavLink(
+            JobDesk === 'allow' || ['admin', 'hr', 'emp'].includes(whoIs),
+            `/${whoIs}/job-desk/my-details`,
+            jobDeskIcon,
+            'Job Desk',
+            'jobDesk'
           )}
 
-        {renderNavLink(
-          ['admin', 'emp',"manager"].includes(whoIs),
-          `/${whoIs}/projects`,
-          folderIcon,
-          'Project',
-          'project'
-        )}
+          {(Employee === 'allow' && [isTeamHead, isTeamLead, isTeamManager].includes(true)) &&
+            renderSubMenu(
+              "employee",
+              [
+                { key: `my-details`, path: `/${whoIs}/employee/edit/${_id}`, label: 'My Details' },
+                { key: 'my-team', path: `/${whoIs}/employee`, label: 'My Teams' }
+              ],
+              userIcon,
+              'Associate'
+            )}
 
+          {![isTeamHead, isTeamLead, isTeamManager].includes(true) &&
+            renderNavLink(
+              (Employee === 'allow' || ['admin', 'hr', 'emp'].includes(whoIs)),
+              (["emp", "sys-admin"].includes(whoIs)
+                ? `/${whoIs}/employee/edit/${_id}`
+                : `/${whoIs}/employee`),
+              userIcon,
+              'Associate',
+              'employee'
+            )}
 
-        {renderNavLink(
-          ['admin', 'emp', "manager"].includes(whoIs),
-          `/${whoIs}/tasks`,
-          taskIcon,
-          'Tasks',
-          'tasks'
-        )}
-
-        {renderNavLink(
-          ['admin', 'emp', "manager"].includes(whoIs),
-          `/${whoIs}/reports`,
-          fileIcon,
-          'Reports',
-          'reports'
-        )}
-
-        {renderNavLink(
-          ['hr', "emp"].includes(whoIs),
-          `/${whoIs}/calendar`,
-          calendarIcon,
-          'Calendar',
-          'calendar'
-        )}
-
-        {(Leave === 'allow' && ['admin', 'hr'].includes(whoIs)) &&
-          renderSubMenu(
-            'leave',
-            [
-              { key: 'status', path: `/${whoIs}/leave/status`, label: 'Status' },
-              { key: 'leave-request', path: `/${whoIs}/leave/leave-request`, label: 'Leave Request' },
-              { key: 'calendar', path: `/${whoIs}/leave/calendar`, label: 'Calendar' },
-              { key: 'leave-summary', path: `/${whoIs}/leave/leave-summary`, label: 'Leave Summary' }
-            ],
-            leaveIcon,
-            'Leave'
+          {renderNavLink(
+            ['emp', "manager"].includes(whoIs),
+            `/${whoIs}/projects`,
+            folderIcon,
+            'Project',
+            'project'
           )}
 
-        {(
-          (decodedData.isTeamLead && whoIs === "emp") ||
-          (decodedData.isTeamHead && whoIs === "emp") ||
-          (decodedData.isTeamManager && whoIs === "manager")
-        ) &&
-          renderSubMenu(
-            'leave',
-            [
-              { key: 'leave-request', path: `/${whoIs}/leave/leave-request`, label: 'Leave Request' },
-            ],
-            leaveIcon,
-            'Leave'
+          {renderNavLink(
+            ['emp', "manager"].includes(whoIs),
+            `/${whoIs}/tasks`,
+            taskIcon,
+            'Tasks',
+            'tasks'
           )}
 
-        {(((decodedData.isTeamLead && whoIs === "emp") ||
-          (decodedData.isTeamHead && whoIs === "emp") ||
-          (decodedData.isTeamManager && whoIs === "manager"))
-          &&
-          renderSubMenu(
-            'attendance',
-            [
-              { key: 'daily-log', path: `/${whoIs}/attendance/daily-log`, label: 'Daily Log' }
-            ],
-            attendanceIcon,
-            'Attendance'
-          ))}
-
-        {(Attendance === 'allow' && ['admin', 'hr'].includes(whoIs)) &&
-          renderSubMenu(
-            'attendance',
-            [
-              { key: 'daily-log', path: `/${whoIs}/attendance/daily-log`, label: 'Daily Log' },
-              { key: 'attendance-request', path: `/${whoIs}/attendance/attendance-request`, label: 'Attendance Request' },
-              { key: 'details', path: `/${whoIs}/attendance/details`, label: 'Details' },
-              { key: 'attendance-summary', path: `/${whoIs}/attendance/attendance-summary`, label: 'Attendance Summary' }
-            ],
-            attendanceIcon,
-            'Attendance'
+          {renderNavLink(
+            ['emp', "manager"].includes(whoIs),
+            `/${whoIs}/reports`,
+            fileIcon,
+            'Reports',
+            'reports'
           )}
 
-        {(Administration === 'allow' || whoIs === 'admin') &&
-          renderSubMenu(
-            'administration',
-            [
-              { key: 'role', path: `/${whoIs}/administration/role`, label: 'Role' },
-              { key: 'company', path: `/${whoIs}/administration/company`, label: 'Company' },
-              { key: 'country', path: `/${whoIs}/administration/country`, label: 'Country' },
-              { key: 'department', path: `/${whoIs}/administration/department`, label: 'Department' },
-              { key: 'position', path: `/${whoIs}/administration/position`, label: 'Position' },
-              { key: 'holiday', path: `/${whoIs}/administration/holiday`, label: 'Holiday' },
-              { key: 'announcement', path: `/${whoIs}/administration/announcement`, label: 'Announcement' },
-              { key: 'team', path: `/${whoIs}/administration/team`, label: 'Team' },
-            ],
-            adminIcon,
-            'Administration'
+          {renderNavLink(
+            ['hr', "emp"].includes(whoIs),
+            `/${whoIs}/calendar`,
+            calendarIcon,
+            'Calendar',
+            'calendar'
           )}
 
-        {(Settings === 'allow' || whoIs === 'admin') &&
-          renderSubMenu(
-            'settings',
-            [
-              { key: 'profile', path: `/${whoIs}/settings/profile`, label: 'Profile' },
-              { key: 'account', path: `/${whoIs}/settings/account`, label: 'Account' },
-              { key: 'payroll', path: `/${whoIs}/settings/payroll`, label: 'Payroll' }
-            ],
-            settingsIcon,
-            'Settings'
-          )}
-      </ul>
-      <div className="logOutBtnParent p-3" onClick={handleLogout}>
+          {(Leave === 'allow' && ['admin', 'hr'].includes(whoIs)) &&
+            renderSubMenu(
+              'leave',
+              [
+                { key: 'status', path: `/${whoIs}/leave/status`, label: 'Status' },
+                { key: 'leave-request', path: `/${whoIs}/leave/leave-request`, label: 'Leave Request' },
+                { key: 'calendar', path: `/${whoIs}/leave/calendar`, label: 'Calendar' },
+                { key: 'leave-summary', path: `/${whoIs}/leave/leave-summary`, label: 'Leave Summary' }
+              ],
+              leaveIcon,
+              'Leave'
+            )}
+
+          {(
+            (decodedData.isTeamLead && whoIs === "emp") ||
+            (decodedData.isTeamHead && whoIs === "emp") ||
+            (decodedData.isTeamManager && whoIs === "manager")
+          ) &&
+            renderSubMenu(
+              'leave',
+              [
+                { key: 'leave-request', path: `/${whoIs}/leave/leave-request`, label: 'Leave Request' },
+              ],
+              leaveIcon,
+              'Leave'
+            )}
+
+          {(((decodedData.isTeamLead && whoIs === "emp") ||
+            (decodedData.isTeamHead && whoIs === "emp") ||
+            (decodedData.isTeamManager && whoIs === "manager"))
+            &&
+            renderSubMenu(
+              'attendance',
+              [
+                { key: 'daily-log', path: `/${whoIs}/attendance/daily-log`, label: 'Daily Log' }
+              ],
+              attendanceIcon,
+              'Attendance'
+            ))}
+
+          {(Attendance === 'allow' && ['admin', 'hr'].includes(whoIs)) &&
+            renderSubMenu(
+              'attendance',
+              [
+                { key: 'daily-log', path: `/${whoIs}/attendance/daily-log`, label: 'Daily Log' },
+                { key: 'attendance-request', path: `/${whoIs}/attendance/attendance-request`, label: 'Attendance Request' },
+                { key: 'details', path: `/${whoIs}/attendance/details`, label: 'Details' },
+                { key: 'attendance-summary', path: `/${whoIs}/attendance/attendance-summary`, label: 'Attendance Summary' }
+              ],
+              attendanceIcon,
+              'Attendance'
+            )}
+
+          {(Administration === 'allow' || whoIs === 'admin') &&
+            renderSubMenu(
+              'administration',
+              [
+                { key: 'role', path: `/${whoIs}/administration/role`, label: 'Role' },
+                { key: 'company', path: `/${whoIs}/administration/company`, label: 'Company' },
+                { key: 'country', path: `/${whoIs}/administration/country`, label: 'Country' },
+                { key: 'department', path: `/${whoIs}/administration/department`, label: 'Department' },
+                { key: 'position', path: `/${whoIs}/administration/position`, label: 'Position' },
+                { key: 'holiday', path: `/${whoIs}/administration/holiday`, label: 'Holiday' },
+                { key: 'announcement', path: `/${whoIs}/administration/announcement`, label: 'Announcement' },
+                { key: 'team', path: `/${whoIs}/administration/team`, label: 'Team' },
+              ],
+              adminIcon,
+              'Administration'
+            )}
+
+          {(Settings === 'allow' || whoIs === 'admin') &&
+            renderSubMenu(
+              'settings',
+              [
+                { key: 'profile', path: `/${whoIs}/settings/profile`, label: 'Profile' },
+                { key: 'account', path: `/${whoIs}/settings/account`, label: 'Account' },
+                { key: 'payroll', path: `/${whoIs}/settings/payroll`, label: 'Payroll' }
+              ],
+              settingsIcon,
+              'Settings'
+            )}
+        </ul>
+        {/* <div className="logOutBtnParent p-3" onClick={handleLogout}>
         <button className="w-100 log_out">Logout</button>
+      </div> */}
       </div>
-    </div>
   );
 };
 

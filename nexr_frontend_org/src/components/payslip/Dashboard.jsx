@@ -25,11 +25,6 @@ const Dashboard = () => {
             // Fetch employee data
             const empData = await fetchEmployeeData(data._id);
 
-            // if (!empData) {
-            //     toast.error("Error in fetching workingTimePattern data!");
-            //     setLeaveData({});
-            //     return;
-            // }
             setData((pre) => ({
                 ...pre,
                 Name: empData.FirstName + " " + empData.LastName,
@@ -70,6 +65,7 @@ const Dashboard = () => {
             setIsLoading(false); // Ensure loading state is always updated
         }
     };
+
 
     function getPadStartHourAndMin(time) {
         if (isNaN(time) || time < 0) return "00:00";
