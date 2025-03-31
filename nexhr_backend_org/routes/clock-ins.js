@@ -7,7 +7,7 @@ const { getDayDifference } = require("./leave-app");
 const sendMail = require("./mailSender");
 const { LeaveApplication, LeaveApplicationValidation } = require("../models/LeaveAppModel");
 const { Team } = require("../models/TeamModel");
-const { getCurrentTimeInMinutes, formatTimeFromMinutes, timeToMinutes } = require("../Reuseable_functions/reusableFunction");
+const { getCurrentTimeInMinutes, formatTimeFromMinutes, timeToMinutes, getTotalWorkingHourPerDay } = require("../Reuseable_functions/reusableFunction");
 
 async function checkLoginForOfficeTime(scheduledTime, actualTime, permissionTime) {
 
@@ -31,34 +31,6 @@ async function checkLoginForOfficeTime(scheduledTime, actualTime, permissionTime
         return `You came ${differenceInMinutes} minutes early today.`;
     } else {
         return `You came on time today.`;
-    }
-}
-
-// Function to calculate working hours between start and end times
-function getTotalWorkingHourPerDay(startingTime, endingTime) {
-    if (startingTime !== "00:00:00" && endingTime) {
-
-        // Convert time strings to Date objects (using today's date)
-        const today = new Date();
-        const start = new Date(today.getFullYear(), today.getMonth(), today.getDate(), ...startingTime?.split(':').map(Number));
-        const end = new Date(today.getFullYear(), today.getMonth(), today.getDate(), ...endingTime?.split(':').map(Number));
-
-        // Calculate the difference in milliseconds
-        const startTime = start.getTime();
-        const endTime = end.getTime();
-        let timeDifference;
-        if (endTime > startTime) {
-            timeDifference = end - start;
-        } else {
-            timeDifference = start - end
-        }
-
-        // Convert the difference to minutes
-        const minutesDifference = Math.floor(timeDifference / (1000 * 60));
-
-        return minutesDifference / 60;
-    } else {
-        return 0;
     }
 }
 
@@ -509,7 +481,6 @@ router.get("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
             return res.status(200).send({ status: false, message: "No clock-ins found for the given date." });
         }
 
-
         // Define activities and calculate times
         const activities = ["login", "meeting", "morningBreak", "lunch", "eveningBreak", "event"];
         const clockIn = timeData.clockIns[0]; // Assuming the first clock-in for the day
@@ -661,10 +632,10 @@ router.get("/employee/:empId", verifyAdminHREmployeeManagerNetwork, async (req, 
         const now = new Date();
         const { empId } = req.params;
         const { daterangeValue } = req.query;
-        
+
         const [startOfMonth, endOfMonth] = daterangeValue ?
             [new Date(daterangeValue[0]), new Date(daterangeValue[1])] :
-            [new Date(now.getFullYear(), now.getMonth(), 1), now];
+            [new Date(now.getFullYear(), now.getMonth() + 2, 0), now];
 
         let totalEmpWorkingHours = 0, totalLeaveDays = 0, totalUnpaidLeaves = 0;
         let regular = 0, late = 0, early = 0;
@@ -674,7 +645,7 @@ router.get("/employee/:empId", verifyAdminHREmployeeManagerNetwork, async (req, 
             const [actualHours, actualMinutes] = actualTime.split(':').map(Number);
             const scheduled = schedHours * 60 + schedMinutes;
             const actual = actualHours * 60 + actualMinutes;
-            
+
             if (actual > scheduled) late++;
             else if (actual < scheduled) early++;
             else regular++;
@@ -693,7 +664,7 @@ router.get("/employee/:empId", verifyAdminHREmployeeManagerNetwork, async (req, 
                 path: "clockIns",
                 match: { date: { $gte: startOfMonth, $lte: endOfMonth } },
                 // select: "login date"
-                populate: {path: "employee", select: "FirstName LastName"}
+                populate: { path: "employee", select: "FirstName LastName" }
             })
             .populate({
                 path: "leaveApplication",
@@ -702,7 +673,7 @@ router.get("/employee/:empId", verifyAdminHREmployeeManagerNetwork, async (req, 
             });
 
         if (!employee) return res.status(400).send({ message: "Employee not found." });
-        
+
         totalLeaveDays = employee.leaveApplication.reduce((sum, leave) => sum + getDayDifference(leave), 0);
         totalUnpaidLeaves = employee.leaveApplication.filter(leave => leave.leaveType.includes("Unpaid")).length;
 
@@ -753,97 +724,48 @@ router.get("/sendmail/:id/:clockinId", async (req, res) => {
             };
         })
 
-        const htmlContent = `
-        <!DOCTYPE html>
-        <html lang="en">
-        <head>
-          <meta charset="UTF-8">
-          <meta name="viewport" content="width=device-width, initial-scale=1.0">
-          <title>NexsHR</title>
-          <style>
-            body {
-              font-family: Arial, sans-serif;
-              background-color: #f6f9fc;
-              color: #333;
-              margin: 0;
-              padding: 20px;
-            }
-            .table {
-              width: 100%;
-              border-collapse: collapse;
-              margin: 20px 0;
-              font-size: 16px;
-              text-align: left;
-              background-color: #fff;
-              box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-            }
-            .table th, .table td {
-              padding: 12px 15px;
-              border: 1px solid #ddd;
-            }
-            .table th {
-              background-color: #4CAF50;
-              color: white;
-              font-weight: bold;
-              text-transform: uppercase;
-            }
-            .table tr:nth-child(even) {
-              background-color: #f2f2f2;
-            }
-            .table tr:hover {
-              background-color: #e9f4f1;
-            }
-            .row {
-              display: flex;
-              justify-content: center;
-              margin: 20px;
-            }
-            .col-lg-6, .col-md-6, .col-12 {
-              flex: 1;
-              max-width: 80%;
-              margin: 0 auto;
-            }
-            p {
-              font-size: 18px;
-            }
-          </style>
-        </head>
-        <body>
-          <div class="row">
-            <div class="col-lg-6 col-md-6 col-12">
-              <p>Hi ${emp.FirstName},</p>
-              <p>Your timing details for today are here:</p>
-              <table class="table">
-                <thead>
-                  <tr>
-                    <th>Activity</th>
-                    <th>Starting Time</th>
-                    <th>Ending Time</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  ${activitiesData && activitiesData.length > 0
+        const htmlContent = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NexsHR</title>
+</head>
+<body style="font-family: Arial, sans-serif; background-color: #f6f9fc; color: #333; margin: 0; padding: 20px;">
+  <div style="display: flex; justify-content: center; margin: 20px;">
+    <div style="flex: 1; max-width: 80%; margin: 0 auto;">
+      <p style="font-size: 18px;">Hi ${emp.FirstName},</p>
+      <p style="font-size: 18px;">Your timing details for today are here:</p>
+      <table style="width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 16px; text-align: left; background-color: #fff; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);">
+        <thead>
+          <tr>
+            <th style="padding: 12px 15px; border: 1px solid #ddd; background-color: #4CAF50; color: white; font-weight: bold; text-transform: uppercase;">Activity</th>
+            <th style="padding: 12px 15px; border: 1px solid #ddd; background-color: #4CAF50; color: white; font-weight: bold; text-transform: uppercase;">Starting Time</th>
+            <th style="padding: 12px 15px; border: 1px solid #ddd; background-color: #4CAF50; color: white; font-weight: bold; text-transform: uppercase;">Ending Time</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${activitiesData && activitiesData.length > 0
                 ? activitiesData
                     .map(
                         (data) => `
-                              <tr>
-                                <td>${data.activity}</td>
-                                <td>${data.startingTime}</td>
-                                <td>${data.endingTime}</td>
-                              </tr>
-                            `
+                          <tr style="background-color: ${data.index % 2 === 0 ? '#f2f2f2' : '#fff'};">
+                            <td style="padding: 12px 15px; border: 1px solid #ddd;">${data.activity}</td>
+                            <td style="padding: 12px 15px; border: 1px solid #ddd;">${data.startingTime}</td>
+                            <td style="padding: 12px 15px; border: 1px solid #ddd;">${data.endingTime}</td>
+                          </tr>
+                        `
                     )
                     .join("")
-                : `<tr><td colspan="3" style="text-align: center;">No activity data available</td></tr>`
+                : `<tr><td colspan="3" style="text-align: center; padding: 12px 15px; border: 1px solid #ddd;">No activity data available</td></tr>`
             }
-                </tbody>
-              </table>
-              <p>Happy working!</p>
-            </div>
-          </div>
-        </body>
-        </html>
-      `;
+        </tbody>
+      </table>
+      <p style="font-size: 18px;">Happy working!</p>
+    </div>
+  </div>
+</body>
+</html>`
 
         sendMail({
             From: process.env.FROM_MAIL,
@@ -870,7 +792,7 @@ router.get("/", verifyAdminHrNetworkAdmin, async (req, res) => {
     }
 })
 
-router.put("/:id", verifyAdminHREmployeeManagerNetwork, (req, res) => {
+router.put("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
     let body = req.body;
 
     ClockIns.findByIdAndUpdate(req.params.id, body, {

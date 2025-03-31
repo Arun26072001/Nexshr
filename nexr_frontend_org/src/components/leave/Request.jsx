@@ -2,7 +2,7 @@ import React, { useContext, useEffect } from 'react';
 import LeaveTable from '../LeaveTable';
 import NoDataFound from '../payslip/NoDataFound';
 import Loading from '../Loader';
-import { LeaveStates } from '../payslip/HRMDashboard';
+import { LeaveStates, TimerStates } from '../payslip/HRMDashboard';
 import axios from "axios";
 import "../payslip/payslip.css";
 import { toast } from 'react-toastify';
@@ -16,12 +16,14 @@ import FileDownloadRoundedIcon from '@mui/icons-material/FileDownloadRounded';
 export default function LeaveRequest() {
     const url = process.env.REACT_APP_API_URL;
     const { empName, setEmpName, filterLeaveRequests, isLoading, leaveRequests, changeRequests, } = useContext(LeaveStates);
-    const { daterangeValue, setDaterangeValue } = useContext(EssentialValues)
+    const { daterangeValue, setDaterangeValue } = useContext(TimerStates)
     const { data } = useContext(EssentialValues);
     const { token } = data;
-    const { isTeamHead, isTeamLead } = jwtDecode(token);
+    const { isTeamHead, isTeamLead, isTeamManager } = jwtDecode(token);
 
     async function replyToLeave(leave, response) {
+        console.log(response);
+
         try {
             let updatedLeaveRequest;
             if (isTeamHead) {
@@ -34,7 +36,13 @@ export default function LeaveRequest() {
                     ...leave,
                     TeamLead: response
                 }
-            } else if (String(data.Account) === "2") {
+            } else if (isTeamManager) {
+                updatedLeaveRequest = {
+                    ...leave,
+                    Manager: response
+                }
+            }
+            else if (String(data.Account) === "2") {
                 updatedLeaveRequest = {
                     ...leave,
                     Hr: response
@@ -196,9 +204,8 @@ export default function LeaveRequest() {
                     {/* Leave Table */}
                     {
                         leaveRequests?.leaveData?.length > 0 ?
-                            <LeaveTable Account={data.Account} data={leaveRequests.leaveData} replyToLeave={replyToLeave} isTeamHead={isTeamHead} isTeamLead={isTeamLead} /> :
+                            <LeaveTable Account={data.Account} data={leaveRequests.leaveData} replyToLeave={replyToLeave} isTeamHead={isTeamHead} isTeamLead={isTeamLead} isTeamManager={isTeamManager} /> :
                             <NoDataFound message={"No Leave request in this month"} />
-
                     }
                 </div>
             </>

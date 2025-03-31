@@ -19,7 +19,7 @@ import KeyRoundedIcon from '@mui/icons-material/KeyRounded';
 import BorderColorRoundedIcon from '@mui/icons-material/BorderColorRounded';
 import DeleteRoundedIcon from '@mui/icons-material/DeleteRounded';
 
-export default function LeaveTable({ data, Account, getCheckedValue, handleDelete, fetchReportById, isTeamHead, fetchOrgData, isTeamLead, fetchData, roleObj, getCheckAll, deleteData, replyToLeave }) {
+export default function LeaveTable({ data, Account, getCheckedValue, handleDelete, fetchReportById, fetchOrgData, fetchData, roleObj, getCheckAll, deleteData, replyToLeave, isTeamHead, isTeamLead, isTeamManager }) {
     const navigate = useNavigate();
     const timerStateData = useContext(TimerStates)
     const [page, setPage] = useState(0);
@@ -30,7 +30,6 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
     const [openModal, setOpenModal] = useState(false);
     const [modelData, setModelData] = useState({});
     const params = useParams();
-
 
     const handleChangePage = (event, newPage) => {
         setPage(newPage);
@@ -59,6 +58,8 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
                     return row.TeamHead;
                 } else if (isTeamLead) {
                     return row.TeamLead;
+                } else if (isTeamManager) {
+                    return row.Manager;
                 } else if (Account === "2") {
                     return row.Hr;
                 } else {

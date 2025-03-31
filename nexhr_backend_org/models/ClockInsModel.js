@@ -15,13 +15,20 @@ const timeRangeSchema1 = new mongoose.Schema({
   reasonForLate: { type: String }
 }, { _id: false })
 
+const timeRangeSchema2 = new mongoose.Schema({
+  startingTime: [{ type: String }],
+  endingTime: [{ type: String }],
+  timeHolder: { type: String },
+  reasonForEarly: { type: String }
+}, { _id: false })
+
 // Define the main schema
 const clockInsSchema = new mongoose.Schema({
   date: {
     type: Date
   },
   login: {
-    type: timeRangeSchema
+    type: timeRangeSchema2
   },
   meeting: {
     type: timeRangeSchema

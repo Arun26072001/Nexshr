@@ -46,7 +46,7 @@ const EditLeaveRequestForm = () => {
             try {
                 const res = await axios.get(`${url}/api/team/members/${empId}`, {
                     params: {
-                        isLead: "employees"
+                        who: "employees"
                     },
                     headers: {
                         Authorization: token || ""

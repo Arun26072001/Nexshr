@@ -267,7 +267,7 @@ leaveApp.get("/emp/:empId", verifyAdminHREmployeeManagerNetwork, async (req, res
       const now = new Date();
       const annualStart = new Date(emp.annualLeaveYearStart);
       startDate = new Date(now.getFullYear(), annualStart.getMonth(), annualStart.getDate());
-      endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
+      endDate = new Date(now.getFullYear(), now.getMonth() + 2, 0, 23, 59, 59, 999);
     }
 
     const today = new Date();
@@ -392,7 +392,7 @@ leaveApp.get("/team/:id", verifyTeamHigherAuthority, async (req, res) => {
       endOfMonth = new Date(req.query.daterangeValue[1]);
     } else {
       startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-      endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+      endOfMonth = new Date(now.getFullYear(), now.getMonth() + 2, 0);
     }
     const who = req?.query?.who;
     const team = await Team.findOne({ [who]: req.params.id }).exec();
@@ -424,6 +424,7 @@ leaveApp.get("/team/:id", verifyTeamHigherAuthority, async (req, res) => {
             : null
         }
       })
+
       teamLeaves = teamLeaves.sort((a, b) => new Date(a.fromDate) - new Date(b.fromDate));
       const approvedLeave = teamLeaves.filter(data => data.status === "approved");
       const pendingLeave = teamLeaves.filter(data => data.status === "pending");
@@ -895,12 +896,11 @@ leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("pre
 
     // Send notification emails
     const mailList = [
-      emp?.team?.lead?.Email,
-      emp?.team?.head?.Email,
-      emp?.team?.manager?.Email,
+      emp?.team?.lead[0]?.Email,
+      emp?.team?.head[0]?.Email,
+      emp?.team?.manager[0]?.Email,
       emp?.admin?.Email
     ].filter(Boolean);
-    console.log(mailList);
 
     sendMail({
       From: process.env.FROM_MAIL,
@@ -934,9 +934,10 @@ leaveApp.put('/:id', verifyAdminHREmployee, async (req, res) => {
     const today = new Date();
     const leaveAppStartedHour = new Date(req.body.fromDate).getHours();
     const startOfDay = new Date(today.setHours((leaveAppStartedHour || 0) - 2, 0, 0, 0));
+    console.log(req.body);
 
-    const { Hr, TeamLead, TeamHead, employee, leaveType, ...restBody } = req.body;
-    const approvers = [Hr, TeamLead, TeamHead];
+    const { Hr, TeamLead, TeamHead, Manager, employee, leaveType, ...restBody } = req.body;
+    const approvers = [Hr, TeamLead, TeamHead, Manager];
 
     const allApproved = approvers.every(status => status === 'approved');
     const anyRejected = approvers.some(status => status === 'rejected');
@@ -973,9 +974,9 @@ leaveApp.put('/:id', verifyAdminHREmployee, async (req, res) => {
 
     const members = [
       { type: "emp", Email: emp.Email, name: `${emp.FirstName} ${emp.LastName}` },
-      emp.team.lead && { type: "lead", Email: emp.team.lead.Email, name: `${emp.team.lead.FirstName} ${emp.team.lead.LastName}` },
-      emp.team.head && { type: "head", Email: emp.team.head.Email, name: `${emp.team.head.FirstName} ${emp.team.head.LastName}` },
-      emp.team.manager && { type: "manager", Email: emp.team.manager.Email, name: `${emp.team.manager.FirstName} ${emp.team.manager.LastName}` },
+      emp.team.lead[0] && { type: "lead", Email: emp.team.lead[0].Email, name: `${emp.team.lead[0].FirstName} ${emp.team.lead[0].LastName}` },
+      emp.team.head[0] && { type: "head", Email: emp.team.head[0].Email, name: `${emp.team.head[0].FirstName} ${emp.team.head[0].LastName}` },
+      emp.team.manager[0] && { type: "manager", Email: emp.team.manager[0].Email, name: `${emp.team.manager[0].FirstName} ${emp.team.manager[0].LastName}` },
       emp.admin && { type: "admin", Email: emp.admin.Email, name: `${emp.admin.FirstName} ${emp.admin.LastName}` }
     ].filter(Boolean);
 
@@ -984,6 +985,7 @@ leaveApp.put('/:id', verifyAdminHREmployee, async (req, res) => {
       Hr,
       TeamHead,
       TeamLead,
+      Manager,
       status: allApproved ? "approved" : anyRejected ? "rejected" : restBody.status
     };
 
