@@ -23,12 +23,17 @@ const Leave = () => {
 
     function filterLeaveRequests() {
         if (empName === "") {
-            setLeaveRequests(fullLeaveRequests);
+            setLeaveRequests((pre) => ({
+                ...pre,
+                "leaveData": fullLeaveRequests
+            }));
         } else {
             const filterRequests = fullLeaveRequests.filter((leave) => leave.employee.FirstName.toLowerCase().includes(empName));
             setLeaveRequests(filterRequests);
         }
     }
+    console.log(fullLeaveRequests);
+
 
     async function deleteLeave(leaveId) {
         try {
@@ -46,8 +51,8 @@ const Leave = () => {
 
 
     const getLeaveData = async () => {
+        setIsLoading(true);
         try {
-            setIsLoading(true);
             const leaveData = await axios.get(`${url}/api/leave-application/date-range/${_id}`, {
                 params: {
                     daterangeValue
@@ -59,9 +64,10 @@ const Leave = () => {
 
             setLeaveRequests(leaveData.data);
             setFullLeaveRequests(leaveData.data.leaveData);
-            setIsLoading(false);
         } catch (err) {
             toast.error(err?.response?.data?.message)
+        } finally {
+            setIsLoading(false);
         }
     }
     useEffect(() => {
@@ -103,7 +109,7 @@ const Leave = () => {
                         <div className="leaveData">
                             <div className="d-flex flex-column">
                                 <div className="leaveDays">
-                                    {leaveRequests?.upComingLeave?.length} Days
+                                    {leaveRequests?.upComingLeave?.length || 0} Days
                                 </div>
                                 <div className="leaveDaysDesc">
                                     Upcoming leave
