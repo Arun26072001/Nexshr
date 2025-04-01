@@ -11,14 +11,22 @@ function getDayDifference(leave) {
   if (leave?.leaveType === "half day") {
     return 0.5;
   }
+
   let toDate = new Date(leave.toDate);
   let fromDate = new Date(leave.fromDate);
+
   let timeDifference = toDate - fromDate;
-  return timeDifference === 0 ? 1 : (timeDifference / (1000 * 60 * 60)) <= 8 && 1;
+  let dayDifference = timeDifference / (1000 * 60 * 60 * 24); // Convert milliseconds to days
+
+  if (dayDifference < 1) {
+    return 1; // Minimum one day for a leave if it's less than a full day
+  }
+
+  return dayDifference;
 }
 
-function getWeekdaysOfCurrentMonth(year, month) {// 0-based index (0 = January)
 
+function getWeekdaysOfCurrentMonth(year, month) {// 0-based index (0 = January)
   const weekdays = [];
   const daysInMonth = new Date(year, month + 1, 0).getDate(); // Get total days in month
 
@@ -194,10 +202,10 @@ const getOrgDB = async (organizationId) => {
   return newConnection;
 };
 
-  // Helper function to format leave data
-  const formatLeaveData = (leave) => ({
-    ...leave,
-    prescription: leave.prescription ? `${process.env.REACT_APP_API_URL}/uploads/${leave.prescription}` : null
-  });
+// Helper function to format leave data
+const formatLeaveData = (leave) => ({
+  ...leave?.toObject(),
+  prescription: leave.prescription ? `${process.env.REACT_APP_API_URL}/uploads/${leave.prescription}` : null
+});
 
-module.exports = { convertToString, getTotalWorkingHourPerDay, formatLeaveData,getDayDifference, getOrgDB, getWeekdaysOfCurrentMonth, mailContent, checkLogin, getTotalWorkingHoursExcludingWeekends, getCurrentTimeInMinutes, timeToMinutes, formatTimeFromMinutes };
+module.exports = { convertToString, getTotalWorkingHourPerDay, formatLeaveData, getDayDifference, getOrgDB, getWeekdaysOfCurrentMonth, mailContent, checkLogin, getTotalWorkingHoursExcludingWeekends, getCurrentTimeInMinutes, timeToMinutes, formatTimeFromMinutes };
