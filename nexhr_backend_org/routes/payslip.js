@@ -34,7 +34,7 @@ router.post("/", async (req, res) => {
 
   try {
     // Fetch employees with unpaid leave in the current month
-    const employees = await Employee.find().populate({
+    const employees = await Employee.find({}, "basicSalary payslipFields").populate({
       path: "leaveApplication",
       match: {
         $or: [
@@ -45,32 +45,37 @@ router.post("/", async (req, res) => {
       }
     }).exec();
 
+
     if (!employees.length) {
       return res.status(404).json({ message: "No unpaid leave records found for this month" });
     }
+    const unPayslipFieldsEmps = [];
 
     const payslipPromises = employees.map(async (emp) => {
-      if (!emp.leaveApplication || emp.leaveApplication.length === 0) return;
 
-      const perDayOfSalary = emp.basicSalary ? Number(emp.basicSalary) / getWeekdaysOfCurrentMonth(startOfMonth.getFullYear(), startOfMonth.getMonth()) : 0;
-      const leaveDays = emp.leaveApplication.reduce((total, leave) => total + getDayDifference(leave), 0);
+      if (emp.basicSalary && emp.payslipFields) {
+        const perDayOfSalary = emp.basicSalary ? Number(emp.basicSalary) / getWeekdaysOfCurrentMonth(startOfMonth.getFullYear(), startOfMonth.getMonth()) : 0;
+        const leaveDays = emp.leaveApplication.reduce((total, leave) => total + getDayDifference(leave), 0);
 
-      const payslip = {
-        ...emp.payslipFields,
-        LossOfPay: Number((leaveDays * perDayOfSalary).toFixed(2)),
-        status: "pending",
-        period: `${startOfMonth.toLocaleString("default", { month: "long" })} ${startOfMonth.getFullYear()}`,
-        employee: emp._id
-      };
-      console.log(payslip);
+        const payslip = {
+          ...emp.payslipFields,
+          LossOfPay: Number((leaveDays * perDayOfSalary).toFixed(2)),
+          status: "pending",
+          period: `${startOfMonth.toLocaleString("default", { month: "long" })} ${startOfMonth.getFullYear()}`,
+          employee: emp._id
+        };
+        console.log(payslip);
 
-      const payslipData = await Payslip.create(payslip);
-      emp.payslip.push(payslipData._id);
-      await emp.save();
+        const payslipData = await Payslip.create(payslip);
+        emp.payslip.push(payslipData._id);
+        await emp.save();
+      } else {
+        unPayslipFieldsEmps.push(emp._id);
+      }
     });
 
     await Promise.all(payslipPromises);
-    res.json({ message: "Payslips have been generated successfully" });
+    res.json({ message: `Payslips have been generated successfully and ${unPayslipFieldsEmps.length} for not assign PayslipFields` });
 
   } catch (err) {
     console.error("Error generating payslips:", err);

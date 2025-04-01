@@ -51,7 +51,6 @@ const Leave = () => {
         }
     }
 
-
     const getLeaveData = async () => {
         setIsLoading(true);
         try {
@@ -63,6 +62,7 @@ const Leave = () => {
                     authorization: token || ""
                 }
             })
+            console.log(leaveData.data);
 
             setLeaveRequests(leaveData.data);
             setFullLeaveRequests(leaveData.data.leaveData);
