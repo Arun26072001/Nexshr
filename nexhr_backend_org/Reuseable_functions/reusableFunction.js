@@ -14,7 +14,7 @@ function getDayDifference(leave) {
   let toDate = new Date(leave.toDate);
   let fromDate = new Date(leave.fromDate);
   let timeDifference = toDate - fromDate;
-  return timeDifference === 0 ? 1 : timeDifference / (1000 * 60 * 60 * 24);
+  return timeDifference === 0 ? 1 : (timeDifference / (1000 * 60 * 60)) <= 8 && 1;
 }
 
 function getWeekdaysOfCurrentMonth(year, month) {// 0-based index (0 = January)
