@@ -118,6 +118,8 @@ const CircleProgressBar = ({ isTeamLead, isTeamHead, isTeamManager }) => {
       const yesterdayDate = yesterday.toISOString().split("T")[0];
 
       leaveRequests.forEach((request) => {
+        console.log(request);
+
         const appliedDate = new Date(request.fromDate).toISOString().split("T")[0];
 
         if (appliedDate === todayDate) {

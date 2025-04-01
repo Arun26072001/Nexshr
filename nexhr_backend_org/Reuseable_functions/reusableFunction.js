@@ -196,7 +196,7 @@ const getOrgDB = async (organizationId) => {
 
   // Helper function to format leave data
   const formatLeaveData = (leave) => ({
-    ...leave.toObject(),
+    ...leave,
     prescription: leave.prescription ? `${process.env.REACT_APP_API_URL}/uploads/${leave.prescription}` : null
   });
 
