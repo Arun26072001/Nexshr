@@ -308,11 +308,11 @@ leaveApp.get("/emp/:empId", verifyAdminHREmployeeManagerNetwork, async (req, res
       ...emp,
       typesOfLeaveCount: {
         ...emp.typesOfLeaveCount,
-        ["Unpaid"+" "+"Leave"]: UnpaidLeave
+        ["Unpaid" + " " + "Leave"]: UnpaidLeave
       },
       typesOfLeaveRemainingDays: {
         ...emp.typesOfLeaveRemainingDays,
-        ["Permission"+" "+"Leave"]: Permission
+        ["Permission" + " " + "Leave"]: Permission
       }
     }
 
@@ -362,14 +362,7 @@ leaveApp.get("/hr", verifyHR, async (req, res) => {
       .map((req) => req.leaveApplication)
       .flat()
       .sort((a, b) => new Date(a.fromDate) - new Date(b.fromDate)); // Sort by fromDate
-    empLeaveReqs = empLeaveReqs.map((leave) => {
-      return {
-        ...leave.toObject(),
-        prescription: leave.prescription
-          ? `${process.env.REACT_APP_API_URL}/uploads/${leave.prescription}`
-          : null
-      }
-    })
+    empLeaveReqs = empLeaveReqs.map(formatLeaveData)
     res.send(empLeaveReqs);
   } catch (err) {
     console.error("Error fetching leave requests:", err);
@@ -411,14 +404,7 @@ leaveApp.get("/team/:id", verifyTeamHigherAuthority, async (req, res) => {
           path: "employee",
           select: "FirstName LastName"
         });
-      teamLeaves = teamLeaves.map((leave) => {
-        return {
-          ...leave.toObject(),
-          prescription: leave.prescription
-            ? `${process.env.REACT_APP_API_URL}/uploads/${leave.prescription}`
-            : null
-        }
-      })
+      teamLeaves = teamLeaves.map(formatLeaveData)
 
       teamLeaves = teamLeaves.sort((a, b) => new Date(a.fromDate) - new Date(b.fromDate));
       const approvedLeave = teamLeaves.filter(data => data.status === "approved");
@@ -449,14 +435,7 @@ leaveApp.get("/all/emp", verifyAdminHR, async (req, res) => {
     // Flatten leaveApplication data
     let leaveData = employeesLeaveData.map(data => data.leaveApplication).flat();
     leaveData = leaveData.sort((a, b) => new Date(a.fromDate) - new Date(b.fromDate));
-    leaveData = leaveData.map((leave) => {
-      return {
-        ...leave.toObject(),
-        prescription: leave.prescription
-          ? `${process.env.REACT_APP_API_URL}/uploads/${leave.prescription}`
-          : null
-      }
-    })
+    leaveData = leaveData.map(formatLeaveData)
 
     res.send({
       leaveData
@@ -551,12 +530,7 @@ leaveApp.get("/date-range/hr", verifyHR, async (req, res) => {
     let leaveData = employeesLeaveData
       .flatMap(emp => emp.leaveApplication) // Flatten leave data
       .sort((a, b) => new Date(a.fromDate) - new Date(b.fromDate))
-      .map(leave => ({
-        ...leave.toObject(),
-        prescription: leave.prescription
-          ? `${process.env.REACT_APP_API_URL}/uploads/${leave.prescription}`
-          : null
-      }));
+      .map(formatLeaveData);
 
     const approvedLeave = leaveData.filter(leave => leave.status === "approved");
     const leaveInHours = approvedLeave.reduce(
@@ -614,12 +588,7 @@ leaveApp.get("/date-range/admin", verifyAdmin, async (req, res) => {
     let leaveData = employeesLeaveData
       .flatMap(emp => emp.leaveApplication) // Flatten leave data
       .sort((a, b) => new Date(a.fromDate) - new Date(b.fromDate))
-      .map(leave => ({
-        ...leave.toObject(),
-        prescription: leave.prescription
-          ? `${process.env.REACT_APP_API_URL}/uploads/${leave.prescription}`
-          : null
-      }));
+      .map(formatLeaveData);
 
     const approvedLeave = leaveData.filter(leave => leave.status === "approved");
     const leaveInHours = approvedLeave.reduce(
@@ -729,15 +698,7 @@ leaveApp.get("/", verifyAdminHR, async (req, res) => {
       })
     } else {
       requests = requests.sort((a, b) => new Date(a.fromDate) - new Date(b.fromDate));
-      requests = requests.map((leave) => {
-        return {
-          ...leave.toObject(),
-          prescription: leave.prescription
-            ? `${process.env.REACT_APP_API_URL}/uploads/${leave.prescription}`
-            : null
-        }
-      })
-
+      requests = requests.map(formatLeaveData)
       res.send(requests);
     }
   } catch (err) {
@@ -768,7 +729,7 @@ leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("pre
       fromDate,
       toDate,
       periodOfLeave,
-      reasonForLeave,
+      reasonForLeave, 
       coverBy,
     } = req.body;
 
@@ -824,7 +785,7 @@ leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("pre
       })
       .populate({
         path: "leaveApplication",
-        match: { leaveType: "Permission Leave", fromDate: { $gte: startDate, $lte: endDate } },
+        match: { leaveType: "Permission Leave", fromDate: { $gte: startDate, $lte: endDate }, status:"approved" },
       })
       .populate({
         path: "team",
@@ -866,7 +827,7 @@ leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("pre
 
     const takenLeaveCount = approvedLeaveData.reduce((acc, leave) => acc + getDayDifference(leave), 0);
 
-    if (leaveType !== "Permission Leave") { 
+    if (leaveType !== "Permission Leave") {
       const leaveDaysCount = emp?.typesOfLeaveRemainingDays?.[leaveType] || 0;
       console.log(takenLeaveCount, leaveDaysCount, leaveType);
       if (leaveDaysCount < takenLeaveCount) {

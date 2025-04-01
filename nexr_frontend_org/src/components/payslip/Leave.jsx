@@ -28,11 +28,13 @@ const Leave = () => {
                 "leaveData": fullLeaveRequests
             }));
         } else {
-            const filterRequests = fullLeaveRequests.filter((leave) => leave.employee.FirstName.toLowerCase().includes(empName));
-            setLeaveRequests(filterRequests);
+            const filterRequests = fullLeaveRequests.filter((leave) => leave.leaveType.toLowerCase().includes(empName.toLowerCase()))
+            setLeaveRequests((pre) => ({
+                ...pre,
+                "leaveData": filterRequests
+            }));
         }
     }
-    console.log(fullLeaveRequests);
 
 
     async function deleteLeave(leaveId) {
