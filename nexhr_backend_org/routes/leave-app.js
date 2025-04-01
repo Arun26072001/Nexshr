@@ -313,8 +313,7 @@ leaveApp.get("/emp/:empId", verifyAdminHREmployeeManagerNetwork, async (req, res
       ...emp,
       typesOfLeaveCount: {
         ...emp.typesOfLeaveCount,
-        ["Unpaid"+" "+"Leave"]: UnpaidLeave,
-        Permission: 2
+        ["Unpaid"+" "+"Leave"]: UnpaidLeave
       },
       typesOfLeaveRemainingDays: {
         ...emp.typesOfLeaveRemainingDays,

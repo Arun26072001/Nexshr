@@ -122,8 +122,8 @@ const LeaveRequestForm = () => {
       if (error === "") {
         const formData = new FormData();
         formData.append("leaveType", formik.values.leaveType);
-        formData.append("fromDate", formik.values.fromDate);
-        formData.append("toDate", formik.values.toDate);
+        formData.append("fromDate", new Date(formik.values.fromDate).toISOString());
+        formData.append("toDate", new Date(formik.values.toDate).toISOString());
         formData.append("periodOfLeave", formik.values.periodOfLeave);
         formData.append("reasonForLeave", formik.values.reasonForLeave);
         formData.append("prescription", prescriptionFile); // Assuming `file` is the file object
