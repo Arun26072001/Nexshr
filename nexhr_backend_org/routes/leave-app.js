@@ -313,7 +313,7 @@ leaveApp.get("/emp/:empId", verifyAdminHREmployeeManagerNetwork, async (req, res
       ...emp,
       typesOfLeaveCount: {
         ...emp.typesOfLeaveCount,
-        UnpaidLeave,
+        ["Unpaid"+" "+"Leave"]: UnpaidLeave,
         Permission: 2
       },
       typesOfLeaveRemainingDays: {
@@ -937,7 +937,6 @@ leaveApp.put('/:id', verifyAdminHREmployee, async (req, res) => {
     const today = new Date();
     const leaveAppStartedHour = new Date(req.body.fromDate).getHours();
     const startOfDay = new Date(today.setHours((leaveAppStartedHour || 0) - 2, 0, 0, 0));
-    console.log(req.body);
 
     const { Hr, TeamLead, TeamHead, Manager, employee, leaveType, ...restBody } = req.body;
     const approvers = [Hr, TeamLead, TeamHead, Manager];

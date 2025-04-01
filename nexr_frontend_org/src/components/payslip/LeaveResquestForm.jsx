@@ -27,6 +27,7 @@ const LeaveRequestForm = () => {
   const [content, setContent] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [employees, setEmployees] = useState([]);
+  const [isWorkingApi, setIsWorkingApi] = useState(false);
 
   let leaveObj = {
     leaveType: "",
@@ -129,6 +130,7 @@ const LeaveRequestForm = () => {
         formData.append("coverBy", formik.values.coverBy);
         formData.append("applyFor", formik.values.applyFor);
         try {
+          setIsWorkingApi(true);
           // Leave request submission
           const res = await axios.post(`${url}/api/leave-application/${empId}`, formData, {
             headers: {
@@ -143,6 +145,8 @@ const LeaveRequestForm = () => {
         } catch (err) {
           toast.error(err?.response?.data?.error);
           console.log(err);
+        } finally {
+          setIsWorkingApi(false);
         }
       }
     },
@@ -412,7 +416,7 @@ const LeaveRequestForm = () => {
               </div>
               <div className="col-12 col-lg-5 my-2 col-md-5">
                 <button type="submit" className="btn btn-dark w-100">
-                  Submit
+                  {isWorkingApi ? <Loading size={20} color="white" /> : "Submit"}
                 </button>
               </div>
             </div>
