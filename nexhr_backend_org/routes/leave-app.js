@@ -307,17 +307,18 @@ leaveApp.get("/emp/:empId", verifyAdminHREmployeeManagerNetwork, async (req, res
       const fromDate = new Date(leave.fromDate);
       return currentMonth === fromDate.getMonth() && fromDate.getFullYear() === currentYear;
     })
-    const permission = currentMonthOfLeaves.filter((leave) => leave.leaveType.includes("Permission")).length;
-    const unpaidLeaveCount = currentMonthOfLeaves.filter((leave) => leave.leaveType.includes("Unpaid")).length;
+    const Permission = currentMonthOfLeaves.filter((leave) => leave.leaveType.includes("Permission")).length;
+    const UnpaidLeave = currentMonthOfLeaves.filter((leave) => leave.leaveType.includes("Unpaid")).length;
     emp = {
       ...emp,
       typesOfLeaveCount: {
         ...emp.typesOfLeaveCount,
-        unpaidLeaveCount,
+        UnpaidLeave,
+        Permission: 2
       },
       typesOfLeaveRemainingDays: {
         ...emp.typesOfLeaveRemainingDays,
-        permission
+        Permission
       }
     }
 
