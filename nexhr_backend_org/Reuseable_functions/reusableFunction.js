@@ -194,4 +194,10 @@ const getOrgDB = async (organizationId) => {
   return newConnection;
 };
 
-module.exports = { convertToString, getTotalWorkingHourPerDay, getDayDifference, getOrgDB, getWeekdaysOfCurrentMonth, mailContent, checkLogin, getTotalWorkingHoursExcludingWeekends, getCurrentTimeInMinutes, timeToMinutes, formatTimeFromMinutes };
+  // Helper function to format leave data
+  const formatLeaveData = (leave) => ({
+    ...leave.toObject(),
+    prescription: leave.prescription ? `${process.env.REACT_APP_API_URL}/uploads/${leave.prescription}` : null
+  });
+
+module.exports = { convertToString, getTotalWorkingHourPerDay, formatLeaveData,getDayDifference, getOrgDB, getWeekdaysOfCurrentMonth, mailContent, checkLogin, getTotalWorkingHoursExcludingWeekends, getCurrentTimeInMinutes, timeToMinutes, formatTimeFromMinutes };

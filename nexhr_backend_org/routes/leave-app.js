@@ -9,7 +9,7 @@ const { Team } = require('../models/TeamModel');
 const { upload } = require('./imgUpload');
 const now = new Date();
 const sendMail = require("./mailSender");
-const { getDayDifference, mailContent } = require('../Reuseable_functions/reusableFunction');
+const { getDayDifference, mailContent, formatLeaveData } = require('../Reuseable_functions/reusableFunction');
 
 // Helper function to generate leave request email content
 function generateLeaveEmail(empData, fromDateValue, toDateValue, reasonForLeave, leaveType) {
@@ -295,11 +295,6 @@ leaveApp.get("/emp/:empId", verifyAdminHREmployeeManagerNetwork, async (req, res
       }).lean()
       : [];
 
-    // Helper function to format leave data
-    const formatLeaveData = (leave) => ({
-      ...leave,
-      prescription: leave.prescription ? `${process.env.REACT_APP_API_URL}/uploads/${leave.prescription}` : null
-    });
     // filter current month of permissions and unpaid leave
     const currentMonth = new Date().getMonth();
     const currentYear = new Date().getFullYear();
@@ -317,7 +312,7 @@ leaveApp.get("/emp/:empId", verifyAdminHREmployeeManagerNetwork, async (req, res
       },
       typesOfLeaveRemainingDays: {
         ...emp.typesOfLeaveRemainingDays,
-        Permission
+        ["Permission"+" "+"Leave"]: Permission
       }
     }
 
@@ -691,13 +686,8 @@ leaveApp.get("/date-range/:empId", verifyAdminHREmployeeManagerNetwork, async (r
     }
 
     const leaveData = employeeLeaveData.leaveApplication
-      .sort((a, b) => new Date(a.fromDate) - new Date(b.fromDate))
-      .map(leave => ({
-        ...leave.toObject(),
-        prescription: leave.prescription
-          ? `${process.env.REACT_APP_API_URL}/uploads/${leave.prescription}`
-          : null
-      }));
+      .sort((a, b) => new Date(b.fromDate) - new Date(a.fromDate))
+      .map(formatLeaveData);
 
     const approvedLeave = leaveData.filter(leave => leave.status === "approved");
     const leaveInHours = approvedLeave.reduce(
