@@ -264,7 +264,7 @@ io.on("connection", (socket) => {
       return Math.abs(endTimeInMin - startTimeInMin);
     });
 
-    const totalValue = values?.reduce((acc, value) => acc + value, 0) ;
+    const totalValue = values?.reduce((acc, value) => acc + value, 0) / 60;
     const scheduleWorkingHours = getTotalWorkingHourPerDay(
       empData.workingTimePattern.StartingTime,
       empData.workingTimePattern.FinishingTime
@@ -277,7 +277,7 @@ io.on("connection", (socket) => {
         io.to(employeeSocketID).emit("early_logout", {
           message: "Why are you logout early?"
         });
-        // console.log(`Sent Ask_reason_for_late to Employee ${data.employee}`);
+        console.log(`Sent early_logout to Employee ${empData._id}`);
       } else {
         console.log(`User ${data.employee} is offline, skipping emit.`);
       }
