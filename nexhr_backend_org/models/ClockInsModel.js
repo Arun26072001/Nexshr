@@ -19,7 +19,7 @@ const timeRangeSchema2 = new mongoose.Schema({
   startingTime: [{ type: String }],
   endingTime: [{ type: String }],
   timeHolder: { type: String },
-  reasonForEarly: { type: String }
+  reasonForEarlyLogout: { type: String }
 }, { _id: false })
 
 // Define the main schema

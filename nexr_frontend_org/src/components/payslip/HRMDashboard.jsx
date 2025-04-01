@@ -153,14 +153,14 @@ export default function HRMDashboard() {
     }
 
     //change reason for early(login) input field
-    function changeReasonForEarly(e) {
-        const { value } = e.target;
+    function changeReasonForEarly(value, name) {
+        console.log(name, value);
 
         setWorkTimeTracker((pre) => ({
             ...pre,
             "login": {
                 ...pre?.["login"],
-                reasonForEarly: value
+                [name]: value
             }
         }))
     }

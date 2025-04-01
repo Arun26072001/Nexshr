@@ -635,7 +635,7 @@ router.get("/employee/:empId", verifyAdminHREmployeeManagerNetwork, async (req, 
 
         const [startOfMonth, endOfMonth] = daterangeValue ?
             [new Date(daterangeValue[0]), new Date(daterangeValue[1])] :
-            [new Date(now.getFullYear(), now.getMonth() + 2, 0), now];
+            [new Date(now.getFullYear(), now.getMonth(), 1), now];
 
         let totalEmpWorkingHours = 0, totalLeaveDays = 0, totalUnpaidLeaves = 0;
         let regular = 0, late = 0, early = 0;

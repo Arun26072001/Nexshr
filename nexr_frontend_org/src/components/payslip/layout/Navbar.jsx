@@ -5,7 +5,7 @@ import TableRowsRoundedIcon from '@mui/icons-material/TableRowsRounded';
 import PunchIn from "../../../asserts/PunchIn.svg";
 import PunchOut from "../../../asserts/punchOut.svg";
 import { TimerStates } from '../HRMDashboard';
-import { Accordion, Button, Dropdown, Modal, Popover, Whisper } from 'rsuite';
+import { Accordion, Button, Dropdown, Input, Modal, Popover, Whisper } from 'rsuite';
 import logo from "../../../imgs/male_avatar.webp";
 import { EssentialValues } from '../../../App';
 import axios from "axios";
@@ -276,7 +276,7 @@ export default function Navbar({ handleSideBar }) {
         if (!isViewEarlyLogout) {
             localStorage.setItem("isViewEarlyLogout", true)
         }
-        setIsViewEarlyLogout(isViewEarlyLogout)
+        setIsViewEarlyLogout(!isViewEarlyLogout)
     }
 
     function checkIsEnterReasonforEarly() {
@@ -286,41 +286,41 @@ export default function Navbar({ handleSideBar }) {
 
     useEffect(() => {
         socket.connect();
-        socket.on("early_logout", (data) => {
+        socket.on("early_logout", (earlylogoutData) => {
+            console.log(earlylogoutData);
+
             changeViewReasonForEarlyLogout()
         })
     }, [socket])
     return (
-        isViewEarlyLogout ? <Modal open={isViewEarlyLogout} size="sm" backdrop="static">
-            <Modal.Header >
-                <Modal.Title>
-                    Reason for early logout
-                </Modal.Title>
-            </Modal.Header >
+        isViewEarlyLogout ?
+            <Modal open={isViewEarlyLogout} size="sm" backdrop="static">
+                <Modal.Header >
+                    <Modal.Title>
+                        Reason for early logout
+                    </Modal.Title>
+                </Modal.Header >
 
-            <Modal.Body>
-                <div className="modelInput">
-                    <p>Please Enter reason for early logout</p>
-                    <input
-                        className='form-control'
-                        type="text"
-                        name={`reasonForEarly`}
-                        value={workTimeTracker?.login?.reasonForEarly}
-                        onChange={(e) => changeReasonForEarly(e)}
-                    />
-                </div>
-            </Modal.Body>
+                <Modal.Body>
+                    <div className="modelInput">
+                        <p>Please Enter reason for early logout</p>
+                        <Input size='lg'
+                            type='text'
+                            onChange={(e) => changeReasonForEarly(e, "reasonForEarlyLogout")}
+                            value={workTimeTracker?.login?.reasonForEarlyLogout} />
+                    </div>
+                </Modal.Body>
 
-            <Modal.Footer>
-                <Button
-                    onClick={checkIsEnterReasonforEarly}
-                    appearance="primary"
-                    disabled={workTimeTracker.login.reasonForEarly ? false : true}
-                >
-                    Add
-                </Button>
-            </Modal.Footer>
-        </Modal > :
+                <Modal.Footer>
+                    <Button
+                        onClick={checkIsEnterReasonforEarly}
+                        appearance="primary"
+                        disabled={workTimeTracker.login.reasonForEarlyLogout ? false : true}
+                    >
+                        Add
+                    </Button>
+                </Modal.Footer>
+            </Modal > :
             <div className="webnxs">
                 <div className="row mx-auto justify-content-between" >
                     <div className="col-lg-3 col-md-3 col-6 d-flex align-items-center">
@@ -472,5 +472,6 @@ export default function Navbar({ handleSideBar }) {
                     </div>
                 </div>
             </div >
+
     );
 }
