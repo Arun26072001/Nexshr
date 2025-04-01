@@ -906,55 +906,27 @@ router.post("/remainder/:id/:timeOption", async (req, res) => {
             From: process.env.FROM_MAIL,
             To: emp.Email,
             Subject: `Your ${timeOption[0].toUpperCase() + timeOption.slice(1)} time has ended`,
-            HtmlBody: `
-            <html lang="en">
-            <head>
-                <meta charset="UTF-8">
-                <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                <title>${emp.company.CompanyName}</title>
-                <style>
-                    body {
-                        font-family: Arial, sans-serif;
-                        background-color: #f6f9fc;
-                        color: #333;
-                        margin: 0;
-                        padding: 0;
-                    }
-                    .container {
-                        max-width: 600px;
-                        margin: auto;
-                        padding: 20px;
-                        background-color: #fff;
-                        border-radius: 8px;
-                        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-                    }
-                    .content {
-                        margin: 20px 0;
-                    }
-                    .footer {
-                        text-align: center;
-                        font-size: 14px;
-                        margin-top: 20px;
-                        color: #777;
-                    }
-                </style>
-            </head>
-            <body>
-                <div class="container">
-                    <div class="content">
-                        <p>Dear ${emp.FirstName} ${emp.LastName},</p>
-                        <p>Your ${timeOption[0].toUpperCase() + timeOption.slice(1)} time has ended. Please resume your work.</p>
-                        <p>If you encounter any issues, please contact HR.</p>
-                        <p>Kindly adhere to the necessary guidelines.</p><br />
-                        <p>Thank you!</p>
-                    </div>
-                    <div class="footer">
-                        <p>Have questions or need assistance? <a href="mailto:${process.env.FROM_MAIL}">Contact us</a>.</p>
-                    </div>
-                </div>
-            </body>
-            </html>
-            `
+            HtmlBody: `  <html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>${emp.company.CompanyName}</title>
+</head>
+<body style="font-family: Arial, sans-serif; background-color: #f6f9fc; color: #333; margin: 0; padding: 0;">
+    <div style="max-width: 600px; margin: auto; padding: 20px; background-color: #fff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);">
+        <div style="margin: 20px 0;">
+            <p>Dear ${emp.FirstName} ${emp.LastName},</p>
+            <p>Your ${timeOption[0].toUpperCase() + timeOption.slice(1)} time has ended. Please resume your work.</p>
+            <p>If you encounter any issues, please contact HR.</p>
+            <p>Kindly adhere to the necessary guidelines.</p><br />
+            <p>Thank you!</p>
+        </div>
+        <div style="text-align: center; font-size: 14px; margin-top: 20px; color: #777;">
+            <p>Have questions or need assistance? <a href="mailto:${process.env.FROM_MAIL}">Contact us</a>.</p>
+        </div>
+    </div>
+</body>
+</html> `
         });
         res.send({ message: "Sent mail to employee successfully." })
     } catch (error) {

@@ -817,6 +817,7 @@ leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("pre
         return res.status(400).json({ error: "Sick leave is only applicable for today and yesterday." });
       }
     } else if (["Annual Leave", "Casual Leave"].includes(leaveType)) {
+      console.log(fromDateObj.toDateString(), today.toDateString());
       const isToday = fromDateObj.toDateString() === today.toDateString();
       if (isToday) {
         return res.status(400).send({ error: `${leaveType} is not applicable for same day` })
@@ -826,7 +827,7 @@ leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("pre
     const now = new Date();
     const startDate = new Date(now.getFullYear(), now.getMonth(), 1);
     const endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0);
-    const emp = await Employee.findById({ _id: personId }, "FirstName LastName monthlyPermissions permissionHour")
+    const emp = await Employee.findById({ _id: personId }, "FirstName LastName monthlyPermissions permissionHour typesOfLeaveRemainingDays typesOfLeaveCount")
       .populate({
         path: "admin",
         select: "FirstName LastName Email"
@@ -875,8 +876,9 @@ leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("pre
 
     const takenLeaveCount = approvedLeaveData.reduce((acc, leave) => acc + getDayDifference(leave), 0);
 
-    if (leaveType !== "Permission Leave") {
+    if (leaveType !== "Permission Leave") { 
       const leaveDaysCount = emp?.typesOfLeaveRemainingDays?.[leaveType] || 0;
+      console.log(takenLeaveCount, leaveDaysCount, leaveType);
       if (leaveDaysCount < takenLeaveCount) {
         return res.status(400).json({ error: `${leaveType} limit reached.` });
       }

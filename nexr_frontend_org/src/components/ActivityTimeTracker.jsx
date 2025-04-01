@@ -78,8 +78,10 @@ const ActivityTimeTracker = () => {
             if (["morningBreak", "eveningBreak", "lunch"].includes(timeOption)) {
                 socket.emit("send_notification", {
                     employee: data._id,
+                    timerId: workTimeTracker._id,
                     timeOption,
-                    time: timeOption === "lunch" ? 30 : 15
+                    time: timeOption === "lunch" ? 30 : 15,
+                    token: data.token
                 })
             }
         }

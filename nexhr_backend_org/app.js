@@ -197,22 +197,26 @@ io.on("connection", (socket) => {
     }
 
     setTimeout(async () => {
-
-      try {
-        const res = await axios.post(
-          `${process.env.REACT_APP_API_URL}/api/clock-ins/remainder/${data.employee}/${data.timeOption}`
-        );
-        const employeeSocketID = onlineUsers[data.employee]; // ✅ Get correct socket ID
-        if (employeeSocketID) {
-          io.to(employeeSocketID).emit("Ask_reason_for_late", {
-            message: "Why were you late?"
-          });
-          // console.log(`Sent Ask_reason_for_late to Employee ${data.employee}`);
-        } else {
-          console.log(`User ${data.employee} is offline, skipping emit.`);
+      const timerData = await axios.get(`${process.env.REACT_APP_API_URL}/api/clock-ins/item/${data.timerId}`, {
+        headers: { Authorization: data.token }
+      })
+      if (timerData[data.timeOption].startingTime.length !== timerData[data.timeOption].endingTime.length) {
+        try {
+          const res = await axios.post(
+            `${process.env.REACT_APP_API_URL}/api/clock-ins/remainder/${data.employee}/${data.timeOption}`
+          );
+          const employeeSocketID = onlineUsers[data.employee]; // ✅ Get correct socket ID
+          if (employeeSocketID) {
+            io.to(employeeSocketID).emit("Ask_reason_for_late", {
+              message: "Why were you late?"
+            });
+            // console.log(`Sent Ask_reason_for_late to Employee ${data.employee}`);
+          } else {
+            console.log(`User ${data.employee} is offline, skipping emit.`);
+          }
+        } catch (error) {
+          console.error("Error sending remainder request:", error.message);
         }
-      } catch (error) {
-        console.error("Error sending remainder request:", error.message);
       }
     }, delay);
   });
@@ -269,13 +273,15 @@ io.on("connection", (socket) => {
       empData.workingTimePattern.StartingTime,
       empData.workingTimePattern.FinishingTime
     )
-    console.log(totalValue, scheduleWorkingHours);
+    let isCompleteworkingHours = true;
 
     if (scheduleWorkingHours > totalValue) {
+      isCompleteworkingHours = false;
       const employeeSocketID = onlineUsers[empData._id]; // ✅ Get correct socket ID
       if (employeeSocketID) {
         io.to(employeeSocketID).emit("early_logout", {
-          message: "Why are you logout early?"
+          message: "Why are you logout early?",
+          isCompleteworkingHours
         });
         console.log(`Sent early_logout to Employee ${empData._id}`);
       } else {

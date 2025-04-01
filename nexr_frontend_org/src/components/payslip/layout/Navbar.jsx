@@ -77,46 +77,6 @@ export default function Navbar({ handleSideBar }) {
         }
     };
 
-    // get user current location
-    async function getAddress(lat, lng) {
-        const API_KEY = process.env.REACT_APP_MAPKEY;  // Replace with a secured API key (keep it secret)
-        const url = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat.toFixed(7)},${lng.toFixed(7)}&result_type=street_address|locality|postal_code&key=${API_KEY}`;
-
-        try {
-            const response = await fetch(url);
-            const data = await response.json();
-
-            if (data.status === "OK" && data.results.length > 0) {
-                const address = data.results[0].formatted_address;
-                const placeId = data.results[0].place_id;
-
-                console.log("Address:", address);
-                console.log("Place ID:", placeId);
-
-                return { address, placeId };
-            } else {
-                console.error("Geocoding failed:", data.status, data.error_message);
-            }
-        } catch (error) {
-            console.error("Error fetching location:", error);
-        }
-    }
-
-    // useEffect(() => {
-    //     if (navigator.geolocation) {
-    //         navigator.geolocation.getCurrentPosition(
-    //             (position) => {
-    //                 const { latitude, longitude } = position.coords;
-    //                 getAddress(latitude, longitude);
-    //             },
-    //             (error) => console.error("Error getting location:", error),
-    //             { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
-    //         );
-    //     } else {
-    //         console.log("Geolocation is not supported by this browser.");
-    //     }
-
-    // }, [placeId])
 
     // Function to stop the timer
     const stopTimer = async () => {
@@ -126,41 +86,6 @@ export default function Navbar({ handleSideBar }) {
             workRef.current = null;
         }
     };
-
-    useEffect(() => {
-        const startLength = workTimeTracker?.login?.startingTime?.length || 0;
-        const endLength = workTimeTracker?.login?.endingTime?.length || 0;
-        if (workTimeTracker?._id) { //timer start to allow, if is timer data in obj 
-            if (startLength !== endLength) {
-                setIsDisabled(true);
-                startOnlyTimer();
-            } else {
-                stopOnlyTimer();
-                setIsDisabled(false);
-            }
-        }
-        return () => stopOnlyTimer(); // Cleanup on unmount
-    }, [workTimeTracker]);
-
-    // Sync timer with inactivity
-    useEffect(() => {
-        const handleVisibilityChange = () => {
-            trackTimer();
-        };
-
-        document.addEventListener("visibilitychange", handleVisibilityChange);
-        return () => document.removeEventListener("visibilitychange", handleVisibilityChange);
-    }, []);
-
-    // Initialize time based on selected workTimeTracker and timeOption
-    useEffect(() => {
-        if (workTimeTracker?.login?.timeHolder) {
-            const [newHour, newMin, newSec] = workTimeTracker?.login?.timeHolder?.split(":").map(Number);
-            setHour(newHour);
-            setMin(newMin);
-            setSec(newSec);
-        }
-    }, [workTimeTracker, isStartLogin]);
 
     const renderMenu = ({ onClose, right, top, className }, ref) => {
         const handleSelect = eventKey => {
@@ -207,6 +132,18 @@ export default function Navbar({ handleSideBar }) {
         fetchAnnouncements();
     }, [isChangeAnnouncements])
 
+    function checkIsCompletedWorkingHour() {
+        const currentTime = new Date().toTimeString().split(' ')[0];
+        const updatedState = {
+            ...workTimeTracker,
+            login: {
+                ...workTimeTracker?.login,
+                endingTime: [...(workTimeTracker?.login?.endingTime || []), currentTime],
+                timeHolder: `${String(hour).padStart(2, '0')}:${String(min).padStart(2, '0')}:${String(sec).padStart(2, '0')}`,
+            },
+        };
+        socket.emit("verify_completed_workinghour", updatedState);
+    }
 
     async function updateNotification(value) {
         try {
@@ -259,6 +196,7 @@ export default function Navbar({ handleSideBar }) {
             updated[index] = true; // Update the specific index
             return updated; // Return the new state
         });
+
         const updatedMsg = {
             ...value,
             howViewed: {
@@ -282,16 +220,57 @@ export default function Navbar({ handleSideBar }) {
     function checkIsEnterReasonforEarly() {
         changeViewReasonForEarlyLogout();
         localStorage.removeItem("isViewEarlyLogout");
+        stopTimer();
     }
 
     useEffect(() => {
         socket.connect();
-        socket.on("early_logout", (earlylogoutData) => {
-            console.log(earlylogoutData);
+        socket.on("early_logout", ({ isCompleteworkingHours }) => {
+            console.log(isCompleteworkingHours);
 
-            changeViewReasonForEarlyLogout()
+            if (isCompleteworkingHours) {
+                stopTimer()
+            } else {
+                changeViewReasonForEarlyLogout()
+            }
+
         })
     }, [socket])
+
+    useEffect(() => {
+        const startLength = workTimeTracker?.login?.startingTime?.length || 0;
+        const endLength = workTimeTracker?.login?.endingTime?.length || 0;
+        if (workTimeTracker?._id) { //timer start to allow, if is timer data in obj 
+            if (startLength !== endLength) {
+                setIsDisabled(true);
+                startOnlyTimer();
+            } else {
+                stopOnlyTimer();
+                setIsDisabled(false);
+            }
+        }
+        return () => stopOnlyTimer(); // Cleanup on unmount
+    }, [workTimeTracker]);
+
+    // Sync timer with inactivity
+    useEffect(() => {
+        const handleVisibilityChange = () => {
+            trackTimer();
+        };
+
+        document.addEventListener("visibilitychange", handleVisibilityChange);
+        return () => document.removeEventListener("visibilitychange", handleVisibilityChange);
+    }, []);
+
+    // Initialize time based on selected workTimeTracker and timeOption
+    useEffect(() => {
+        if (workTimeTracker?.login?.timeHolder) {
+            const [newHour, newMin, newSec] = workTimeTracker?.login?.timeHolder?.split(":").map(Number);
+            setHour(newHour);
+            setMin(newMin);
+            setSec(newSec);
+        }
+    }, [workTimeTracker, isStartLogin]);
     return (
         isViewEarlyLogout ?
             <Modal open={isViewEarlyLogout} size="sm" backdrop="static">
@@ -371,7 +350,7 @@ export default function Navbar({ handleSideBar }) {
                                     <div className="punchBtnParent">
                                         <button
                                             className='punchBtn'
-                                            onClick={() => stopTimer()}
+                                            onClick={() => checkIsCompletedWorkingHour()}
                                             disabled={!isDisabled}
                                             style={{ backgroundColor: "#FFD6DB" }}
                                         >
@@ -392,32 +371,6 @@ export default function Navbar({ handleSideBar }) {
                     }
 
                     <div className='gap-2 col-lg-4 col-md-3 d-flex align-items-center justify-content-end'>
-                        {/* <SelectPicker
-                        data={worklocationType}
-                        searchable={false}
-                        onChange={setWorklocation}
-                        value={workLocation}
-
-                        appearance="default"
-                        placeholder="Choose your work place"
-                    /> */}
-                        {/* <span className="lg ms-5">
-                        <svg width="16" height="17" viewBox="0 0 16 17" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <g clipPath="url(#clip0_2046_6893)">
-                                <path d="M14 8C14 11.5899 11.0899 14.5 7.5 14.5M14 8C14 4.41015 11.0899 1.5 7.5 1.5M14 8H1M7.5 14.5C3.91015 14.5 1 11.5899 1 8M7.5 14.5C8.91418 14.5 10.0606 11.5899 10.0606 8C10.0606 4.41015 8.91418 1.5 7.5 1.5M7.5 14.5C6.08582 14.5 4.93939 11.5899 4.93939 8C4.93939 4.41015 6.08582 1.5 7.5 1.5M1 8C1 4.41015 3.91015 1.5 7.5 1.5" stroke="#212143" strokeWidth="1.20741" strokeLinejoin="round" />
-                            </g>
-                            <defs>
-                                <clipPath id="clip0_2046_6893">
-                                    <rect width="16" height="16" fill="white" transform="translate(0 0.5)" />
-                                </clipPath>
-                            </defs>
-                        </svg>
-                    </span> */}
-                        {/* <span className="lang ms-2">
-                        <svg width="17" height="11" viewBox="0 0 17 11" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M0.118608 11V0.818182H6.50213V2.14062H1.65483V5.2429H6.16903V6.56037H1.65483V9.67756H6.56179V11H0.118608ZM16.6882 0.818182V11H15.2763L10.1008 3.53267H10.0064V11H8.47016V0.818182H9.89203L15.0724 8.29545H15.1669V0.818182H16.6882Z" fill="#212143" />
-                        </svg>
-                    </span> */}
                         <span className="bell mx-2 position-relative" data-bs-toggle="offcanvas" data-bs-target="#offcanvasRight" aria-controls="offcanvasRight">
                             <svg width="16" height="17" viewBox="0 0 16 17" fill="none" xmlns="http://www.w3.org/2000/svg">
                                 <g clipPath="url(#clip0_2046_6896)">
@@ -475,3 +428,70 @@ export default function Navbar({ handleSideBar }) {
 
     );
 }
+
+// {/* <SelectPicker
+// data={worklocationType}
+// searchable={false}
+// onChange={setWorklocation}
+// value={workLocation}
+
+// appearance="default"
+// placeholder="Choose your work place"
+// /> */}
+// {/* <span className="lg ms-5">
+// <svg width="16" height="17" viewBox="0 0 16 17" fill="none" xmlns="http://www.w3.org/2000/svg">
+//     <g clipPath="url(#clip0_2046_6893)">
+//         <path d="M14 8C14 11.5899 11.0899 14.5 7.5 14.5M14 8C14 4.41015 11.0899 1.5 7.5 1.5M14 8H1M7.5 14.5C3.91015 14.5 1 11.5899 1 8M7.5 14.5C8.91418 14.5 10.0606 11.5899 10.0606 8C10.0606 4.41015 8.91418 1.5 7.5 1.5M7.5 14.5C6.08582 14.5 4.93939 11.5899 4.93939 8C4.93939 4.41015 6.08582 1.5 7.5 1.5M1 8C1 4.41015 3.91015 1.5 7.5 1.5" stroke="#212143" strokeWidth="1.20741" strokeLinejoin="round" />
+//     </g>
+//     <defs>
+//         <clipPath id="clip0_2046_6893">
+//             <rect width="16" height="16" fill="white" transform="translate(0 0.5)" />
+//         </clipPath>
+//     </defs>
+// </svg>
+// </span> */}
+// {/* <span className="lang ms-2">
+// <svg width="17" height="11" viewBox="0 0 17 11" fill="none" xmlns="http://www.w3.org/2000/svg">
+//     <path d="M0.118608 11V0.818182H6.50213V2.14062H1.65483V5.2429H6.16903V6.56037H1.65483V9.67756H6.56179V11H0.118608ZM16.6882 0.818182V11H15.2763L10.1008 3.53267H10.0064V11H8.47016V0.818182H9.89203L15.0724 8.29545H15.1669V0.818182H16.6882Z" fill="#212143" />
+// </svg>
+// </span> */}
+// get user current location
+//  async function getAddress(lat, lng) {
+//     const API_KEY = process.env.REACT_APP_MAPKEY;  // Replace with a secured API key (keep it secret)
+//     const url = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat.toFixed(7)},${lng.toFixed(7)}&result_type=street_address|locality|postal_code&key=${API_KEY}`;
+
+//     try {
+//         const response = await fetch(url);
+//         const data = await response.json();
+
+//         if (data.status === "OK" && data.results.length > 0) {
+//             const address = data.results[0].formatted_address;
+//             const placeId = data.results[0].place_id;
+
+//             console.log("Address:", address);
+//             console.log("Place ID:", placeId);
+
+//             return { address, placeId };
+//         } else {
+//             console.error("Geocoding failed:", data.status, data.error_message);
+//         }
+//     } catch (error) {
+//         console.error("Error fetching location:", error);
+//     }
+// }
+
+// useEffect(() => {
+//     if (navigator.geolocation) {
+//         navigator.geolocation.getCurrentPosition(
+//             (position) => {
+//                 const { latitude, longitude } = position.coords;
+//                 getAddress(latitude, longitude);
+//             },
+//             (error) => console.error("Error getting location:", error),
+//             { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+//         );
+//     } else {
+//         console.log("Geolocation is not supported by this browser.");
+//     }
+
+// }, [placeId])
