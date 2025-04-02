@@ -291,8 +291,8 @@ leaveApp.get("/emp/:empId", verifyAdminHREmployeeManagerNetwork, async (req, res
     const peopleLeaveOnMonth = team
       ? await LeaveApplication.find({
         employee: { $in: team.employees },
-        // fromDate: { $lte: endDate },
-        // toDate: { $gte: startDate },
+        fromDate: { $lte: new Date(endDate) },
+        toDate: { $gte: new Date(startDate) },
         status: "approved"
       }).lean()
       : [];
