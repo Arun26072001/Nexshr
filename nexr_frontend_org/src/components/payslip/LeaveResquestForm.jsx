@@ -173,6 +173,7 @@ const LeaveRequestForm = () => {
     try {
       if (empId) {
         const leaveReqs = await fetchLeaveRequests(empId);
+        console.log(leaveReqs);
 
         const leaveDates = leaveReqs?.peopleLeaveOnMonth.flatMap((leave) => [
           new Date(leave.fromDate).toISOString(),
@@ -195,13 +196,15 @@ const LeaveRequestForm = () => {
           setExcludeDates((prev) => [...prev, ...duplicateDates]);
         }
 
-        Object.entries(leaveReqs?.employee?.typesOfLeaveCount)
         // Set types of leave
-        setTypOfLeave(leaveReqs?.employee?.typesOfLeaveCount || {});
+        const validLeaveTypes = Object.keys(leaveReqs?.employee?.typesOfLeaveCount).filter((type) => type !== "Unpaid Leave");
+        console.log(validLeaveTypes);
+
+        setTypOfLeave(validLeaveTypes || {});
 
         // Filter colleagues 
-        // const emps = leaveReqs.colleagues.filter((emp) => emp._id !== empId);
-        setCollegues(leaveReqs.colleagues);
+        const teamMembers = leaveReqs.employee.team.employees.filter((emp) => emp._id !== empId);
+        setCollegues(teamMembers);
       } else {
         toast.error("empId is not loaded in the app.");
       }
@@ -260,7 +263,6 @@ const LeaveRequestForm = () => {
     gettingHoliday();
     gettingEmps();
   }, [])
-  console.log(typeOfLeave);
 
   return (
     isLoading ? <Loading height="80vh" /> :
@@ -305,9 +307,9 @@ const LeaveRequestForm = () => {
                 value={formik.values.leaveType}
               >
                 <option>Select Leave type</option>
-                {Object.entries(typeOfLeave)?.length > 0 &&
-                  Object.entries(typeOfLeave)?.map((data) => {
-                    return <option value={`${data[0]}`}>{data[0]?.charAt(0)?.toUpperCase() + data[0]?.slice(1)}</option>;
+                {typeOfLeave?.length > 0 &&
+                  typeOfLeave?.map((data) => {
+                    return <option value={`${data}`}>{data[0]?.toUpperCase() + data?.slice(1)}</option>;
                   })
                 }
               </select>

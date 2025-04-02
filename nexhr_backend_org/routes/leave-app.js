@@ -254,8 +254,8 @@ leaveApp.get("/emp/:empId", verifyAdminHREmployeeManagerNetwork, async (req, res
 
     // Fetch employee data with necessary fields
     let emp = await Employee.findById(empId,
-      "annualLeaveYearStart position FirstName LastName Email phone typesOfLeaveCount typesOfLeaveRemainingDays"
-    ).populate("position", "PositionName").lean();
+      "annualLeaveYearStart position FirstName LastName Email phone typesOfLeaveCount typesOfLeaveRemainingDays team"
+    ).populate([{ path: "position", select: "PositionName" }, { path: "team", populate: { path: "employees", select: "FirstName LastName Email phone" } }]).lean();
 
     if (!emp) return res.status(404).json({ message: "Employee not found!" });
 
@@ -274,15 +274,10 @@ leaveApp.get("/emp/:empId", verifyAdminHREmployeeManagerNetwork, async (req, res
     const filterLeaves = { fromDate: { $lte: today }, toDate: { $gte: today }, status: "approved" };
 
     // **Parallel Data Fetching**
-    const [leaveApplications, teamData, peopleOnLeave, team] = await Promise.all([
+    const [leaveApplications, peopleOnLeave, team] = await Promise.all([
       LeaveApplication.find({ employee: empId, fromDate: { $gte: startDate, $lte: endDate } })
         .populate("employee", "FirstName LastName")
         .lean(),
-      emp.team ?
-        Team.findOne({ employees: req.params.empId })
-          .populate("employees", "FirstName LastName Email phone")
-          .lean()
-        : [],
       LeaveApplication.find(filterLeaves).populate("employee", "FirstName LastName").lean(),
       Team.findOne({ employees: empId }, "employees").lean()
     ]);
@@ -296,7 +291,6 @@ leaveApp.get("/emp/:empId", verifyAdminHREmployeeManagerNetwork, async (req, res
         status: "approved"
       }).lean()
       : [];
-    console.log(peopleLeaveOnMonth, startDate, endDate);
 
     // filter current month of permissions and unpaid leave
     const currentMonth = new Date().getMonth();
@@ -323,11 +317,11 @@ leaveApp.get("/emp/:empId", verifyAdminHREmployeeManagerNetwork, async (req, res
       ...leave,
       prescription: leave.prescription ? `${process.env.REACT_APP_API_URL}/uploads/${leave.prescription}` : null
     });
-
+    // const colleagues = emp.team.employees.filter((emp) => emp._id !== req.params.empId)
     res.json({
       employee: emp,
       leaveApplications: leaveApplications.sort((a, b) => new Date(a.fromDate) - new Date(b.fromDate)).map(changeActualImgData),
-      colleagues: teamData.employees,
+      // colleagues,
       peopleOnLeave,
       peopleLeaveOnMonth: peopleLeaveOnMonth.map(changeActualImgData)
     });
@@ -771,7 +765,7 @@ leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("pre
 
     // Ensure `coverBy` is either null or a valid value
     const coverByValue = coverBy === "" ? null : coverBy;
-    const personId = req.body.applyFor === 'undefined' ? empId : req.body.applyFor;
+    const personId = req.body.applyFor === undefined ? empId : req.body.applyFor;
 
     // Construct leave request object
     const leaveRequest = {
@@ -861,7 +855,6 @@ leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("pre
 
     if (leaveType !== "Permission Leave") {
       const leaveDaysCount = emp?.typesOfLeaveRemainingDays?.[leaveType] || 0;
-      console.log(takenLeaveCount, leaveDaysCount, leaveType);
       if (leaveDaysCount < takenLeaveCount) {
         return res.status(400).json({ error: `${leaveType} limit reached.` });
       }

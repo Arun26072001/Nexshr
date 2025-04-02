@@ -122,6 +122,24 @@ const fetchLeaveRequests = async (empId) => {
     }
 };
 
+function getDayDifference(leave) {
+    if (leave?.leaveType === "half day") {
+      return 0.5;
+    }
+  
+    let toDate = new Date(leave.toDate);
+    let fromDate = new Date(leave.fromDate);
+  
+    let timeDifference = toDate - fromDate;
+    let dayDifference = timeDifference / (1000 * 60 * 60 * 24); // Convert milliseconds to days
+  
+    if (dayDifference < 1) {
+      return 1; // Minimum one day for a leave if it's less than a full day
+    }
+  
+    return dayDifference;
+  }
+
 async function deleteLeave(id) {
     try {
         let deletedMsg = await axios.delete(`${url}/api/leave-application/${empId}/${id}`, {
@@ -459,5 +477,6 @@ export {
     fetchWorkplace,
     fetchRoles,
     formatTimeFromHour,
-    fileUploadInServer
+    fileUploadInServer,
+    getDayDifference
 };
