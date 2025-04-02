@@ -66,6 +66,7 @@ const Dashboard = () => {
         }
     };
 
+    console.log(leaveData);
 
     function getPadStartHourAndMin(time) {
         if (isNaN(time) || time < 0) return "00:00";

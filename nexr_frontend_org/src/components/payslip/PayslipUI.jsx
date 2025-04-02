@@ -29,7 +29,7 @@ export default function PayslipUI() {
             pdf.save(`payslip/${payslips?.payslip?.status}.pdf`);
         });
     };
-    
+
     function numberToWords(num) {
         const a = ['', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten', 'eleven', 'twelve', 'thirteen', 'fourteen', 'fifteen', 'sixteen', 'seventeen', 'eighteen', 'nineteen'];
         const b = ['', '', 'twenty', 'thirty', 'forty', 'fifty', 'sixty', 'seventy', 'eighty', 'ninety'];
@@ -205,33 +205,33 @@ export default function PayslipUI() {
                             </thead>
                             <tbody>
                                 <tr>
-                                    <td>{payslipFields[0]?.fieldName[0].toUpperCase()+payslipFields[0]?.fieldName.slice(1) || "N/A"}</td>
+                                    <td>{payslipFields[0]?.fieldName[0].toUpperCase() + payslipFields[0]?.fieldName.slice(1) || "N/A"}</td>
                                     <td>{payslips?.employee?.[payslipFields[0]?.fieldName] || "N/A"}</td>
-                                    <td>{payslipFields[5]?.fieldName[0].toUpperCase()+payslipFields[5]?.fieldName.slice(1)|| "N/A"}</td>
+                                    <td>{payslipFields[5]?.fieldName[0].toUpperCase() + payslipFields[5]?.fieldName.slice(1) || "N/A"}</td>
                                     <td>{payslips?.payslip?.[payslipFields[5]?.fieldName] || "N/A"}</td>
                                 </tr>
                                 <tr>
-                                    <td>{payslipFields[1]?.fieldName[0].toUpperCase()+payslipFields[1]?.fieldName.slice(1) || "N/A"}</td>
+                                    <td>{payslipFields[1]?.fieldName[0].toUpperCase() + payslipFields[1]?.fieldName.slice(1) || "N/A"}</td>
                                     <td>{payslips?.payslip[payslipFields[1]?.fieldName] || "N/A"}</td>
-                                    <td>{payslipFields[6]?.fieldName[0].toUpperCase()+payslipFields[6]?.fieldName.slice(1) || "N/A"}</td>
+                                    <td>{payslipFields[6]?.fieldName[0].toUpperCase() + payslipFields[6]?.fieldName.slice(1) || "N/A"}</td>
                                     <td>{payslips?.payslip[payslipFields[6]?.fieldName] || "N/A"}</td>
                                 </tr>
                                 <tr>
-                                    <td>{payslipFields[2]?.fieldName[0].toUpperCase()+payslipFields[2]?.fieldName.slice(1) || "N/A"}</td>
+                                    <td>{payslipFields[2]?.fieldName[0].toUpperCase() + payslipFields[2]?.fieldName.slice(1) || "N/A"}</td>
                                     <td>{payslips?.payslip[payslipFields[2]?.fieldName] || "N/A"}</td>
-                                    <td>{payslipFields[7]?.fieldName[0].toUpperCase()+payslipFields[7]?.fieldName.slice(1) || "N/A"}</td>
+                                    <td>{payslipFields[7]?.fieldName[0].toUpperCase() + payslipFields[7]?.fieldName.slice(1) || "N/A"}</td>
                                     <td>{payslips?.payslip[payslipFields[7]?.fieldName]}</td>
                                 </tr>
                                 <tr>
-                                    <td>{payslipFields[3]?.fieldName[0].toUpperCase()+payslipFields[3]?.fieldName.slice(1) || "N/A"}</td>
+                                    <td>{payslipFields[3]?.fieldName[0].toUpperCase() + payslipFields[3]?.fieldName.slice(1) || "N/A"}</td>
                                     <td>{payslips?.payslip[payslipFields[3]?.fieldName] || "N/A"}</td>
-                                    <td>{payslipFields[8]?.fieldName[0].toUpperCase()+payslipFields[8]?.fieldName.slice(1) || "N/A"}</td>
+                                    <td>{payslipFields[8]?.fieldName[0].toUpperCase() + payslipFields[8]?.fieldName.slice(1) || "N/A"}</td>
                                     <td>{payslips?.payslip[payslipFields[8]?.fieldName] || "N/A"}</td>
                                 </tr>
                                 <tr>
-                                    <td>{payslipFields[4]?.fieldName[0].toUpperCase()+payslipFields[4]?.fieldName.slice(1) || "N/A"}</td>
+                                    <td>{payslipFields[4]?.fieldName[0].toUpperCase() + payslipFields[4]?.fieldName.slice(1) || "N/A"}</td>
                                     <td>{payslips?.payslip[payslipFields[4]?.fieldName] || "N/A"}</td>
-                                    <td>{payslipFields[9]?.fieldName[0].toUpperCase()+payslipFields[9]?.fieldName.slice(1) || "N/A"}</td>
+                                    <td>{payslipFields[9]?.fieldName[0].toUpperCase() + payslipFields[9]?.fieldName.slice(1) || "N/A"}</td>
                                     <td>{payslips?.payslip[payslipFields[9]?.fieldName]}</td>
                                 </tr>
                             </tbody>
@@ -253,7 +253,7 @@ export default function PayslipUI() {
                             <p className='payslipTxt m-0'>Gross Earnings - Total Deductions</p>
                         </div>
                         <div className='totalBox'>
-                            ₹{earnings && deductions !== 0 && earnings - deductions}
+                            ₹{earnings && deductions !== 0 && (earnings - deductions).toFixed(2)}
                         </div>
                     </div>
 

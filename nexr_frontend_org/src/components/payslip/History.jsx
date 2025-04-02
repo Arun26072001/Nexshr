@@ -33,7 +33,7 @@ const History = ({ payslips, isLoading }) => {
 
                 return (
                     <div className="historyCard" key={index}>
-                        <div className="salaryFont">{Salary} &#8377;</div>
+                        <div className="salaryFont">{Salary.toFixed(2)} &#8377;</div>
                         <div className="d-flex justify-content-between">
                             <div className="d-flex align-items-center">
                                 <div className="historyCardText" style={{ borderRight: "2px solid gray" }}>
@@ -52,8 +52,8 @@ const History = ({ payslips, isLoading }) => {
                         </div>
                     </div>
                 );
-            }):
-            <NoDataFound message="No payslip data found" />
+            }) :
+                <NoDataFound message="No payslip data found" />
             }
         </div>
     );
