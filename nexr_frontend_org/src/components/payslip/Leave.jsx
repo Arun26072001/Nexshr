@@ -133,11 +133,10 @@ const Leave = () => {
                 <div className='px-3 my-3'>
                     <div className="row">
                         <div className="col-lg-12 searchInputIcon">
-                            <input type="text" className='payrunInput' value={empName} onChange={(e) => setEmpName(e.target.value)} placeholder='Search' />
+                            <input type="text" className='payrunInput' value={empName} onChange={(e) => setEmpName(e.target.value)} placeholder='Search by Leave type' />
                         </div>
                     </div>
                 </div>
-
                 {
                     isLoading ? <Loading height="80vh" /> :
                         leaveRequests?.leaveData?.length > 0 ?

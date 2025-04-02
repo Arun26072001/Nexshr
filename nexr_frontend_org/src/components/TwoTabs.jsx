@@ -167,7 +167,7 @@ export default function Twotabs() {
       return (
         <Whisper placement="bottomEnd" trigger="click" speaker={renderMenu(date)}>
           <div style={{ width: "20px", height: "20px" }}>
-            <Badge className={`calendar-todo-item-badge ${leaveStatus === "pending" ? "bg-warning" : ""}`} />
+            <Badge className={`calendar-todo-item-badge ${leaveStatus === "pending" ? "bg-warning" : leaveStatus === "approved" ? "bg-success" : ""}`} />
           </div>
         </Whisper>
       );

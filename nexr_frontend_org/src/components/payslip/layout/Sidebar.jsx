@@ -246,6 +246,7 @@ const Sidebar = ({ sideBar }) => {
                 { key: 'holiday', path: `/${whoIs}/administration/holiday`, label: 'Holiday' },
                 { key: 'announcement', path: `/${whoIs}/administration/announcement`, label: 'Announcement' },
                 { key: 'team', path: `/${whoIs}/administration/team`, label: 'Team' },
+                { key: 'leave-details', path: `/${whoIs}/administration/leave-details`, label: 'Leave Details' },
               ],
               adminIcon,
               'Administration'

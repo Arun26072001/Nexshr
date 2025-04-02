@@ -20,6 +20,7 @@ import Country from '../Administration/Country';
 import ManageTeam from './ManageTeam';
 import TimeLog from '../TimeLog';
 import Comments from '../Comments';
+import LeaveDetails from '../Administration/LeaveDetails';
 
 // Lazy loading components
 const Dashboard = React.lazy(() => import('./Dashboard'));
@@ -523,6 +524,7 @@ export default function HRMDashboard() {
                             <Route path="/announcement" element={<Announce />} />
                             <Route path="/country" element={<Country />} />
                             <Route path="/team" element={<ManageTeam />} />
+                            <Route path="/leave-details" element={<LeaveDetails />} />
                         </Routes>
                     } />
                     <Route path="settings/*" element={

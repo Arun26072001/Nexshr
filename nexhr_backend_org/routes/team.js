@@ -22,7 +22,7 @@ router.get("/", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
     }
 });
 
-router.get("/members/:id", verifyEmployee, async (req, res) => {
+router.get("/members/:id", verifyTeamHigherAuthority, async (req, res) => {
     try {
         const who = req.params.isLead ? "lead" : req.params.isLead ? "head" : req.params.isLead ? "manager" : "employees"
         const response = await Team.findOne({ [who]: req.params.id })
