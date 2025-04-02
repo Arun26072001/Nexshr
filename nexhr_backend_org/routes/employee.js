@@ -176,6 +176,11 @@ router.get("/team/members/:id", verifyTeamHigherAuthority, async (req, res) => {
 
 router.get('/:id', verifyAdminHREmployeeManagerNetwork, async (req, res) => {
   let totalTakenLeaveCount = 0;
+  const empData = await Employee.findById(req.params.id, "annualLeaveYearStart")
+  const now = new Date();
+  const annualStart = empData.annualLeaveYearStart ? new Date(emp.annualLeaveYearStart) : now;
+  startDate = new Date(now.getFullYear(), annualStart.getMonth(), annualStart.getDate());
+  endDate = new Date(startDate.getFullYear() + 1, startDate.getMonth(), startDate.getDate() - 1, 23, 59, 59, 999);
 
   try {
     const emp = await Employee.findById(req.params.id, "-clockIns -payslip")
@@ -183,8 +188,9 @@ router.get('/:id', verifyAdminHREmployeeManagerNetwork, async (req, res) => {
         { path: "role" },
         {
           path: "leaveApplication",
-          match: { leaveType: { $ne: "Permission Leave" } }
+          match: { leaveType: { $ne: "Permission Leave" }, fromDate: { $gte: startDate }, toDate: { $lte: endDate } }
         },
+        { path: "team", populate: { path: "employees", select: "FirstName LastName Email" } },
         { path: "workingTimePattern" },
         { path: "department" },
         { path: "position" }
@@ -197,28 +203,17 @@ router.get('/:id', verifyAdminHREmployeeManagerNetwork, async (req, res) => {
 
     // Filter leave requests
     const pendingLeaveRequests = emp.leaveApplication.filter((leave) => leave.status === "pending");
-    const takenLeaveRequests = emp.leaveApplication.filter((leave) => leave.status === "approved");
+    const takenLeaveRequests = emp.leaveApplication.filter((leave) => leave.status === "approved" && leave.leveType !== "Unpaid Leave (LWP)");
 
     // Calculate total taken leave count
     takenLeaveRequests.forEach((leave) => totalTakenLeaveCount += getDayDifference(leave));
 
-    // Find colleagues with the same role
-    const collegues = await Employee.find({}, "FirstName LastName")
-      .populate({
-        path: "role",
-        match: { RoleName: emp.role.RoleName }, // Accessing the first role in the array
-        select: "RoleName"
-      }).exec();
-
-    if (!collegues || collegues.length === 0) {
-      return res.status(200).send({ message: "No colleagues found in your team" });
-    }
     // Send response with employee details, pending leave requests, taken leave count, and colleagues
     res.send({
       ...emp.toObject(), // Ensure that you return a plain object, not a Mongoose document
       pendingLeaveRequests: pendingLeaveRequests?.length,
       totalTakenLeaveCount: Number(totalTakenLeaveCount?.toFixed(2)),
-      collegues
+      collegues: emp.team ? emp.team.employees : []
     });
 
   } catch (err) {
@@ -244,7 +239,7 @@ router.post("/", verifyAdminHR, async (req, res) => {
     const employeeData = {
       ...req.body,
       role: req.body.role || "679b31dba453436edb1b27a3",
-      teamLead: teamLead ,
+      teamLead: teamLead,
       managerId: managerId,
       workingTimePattern: req.body.workingTimePattern || "679ca37c9ac5c938538f18ba",
       company: company || "679b5ee55eb2dc34115be175",
