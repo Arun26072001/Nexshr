@@ -5,7 +5,7 @@ import Tabs from '@mui/material/Tabs';
 import Tab from '@mui/material/Tab';
 import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
-import { fetchLeaveRequests } from './ReuseableAPI';
+import { fetchLeaveRequests, getDayDifference } from './ReuseableAPI';
 import CircleBar from './CircleProcess';
 import { useNavigate } from 'react-router-dom';
 import { EssentialValues } from '../App';
@@ -75,10 +75,7 @@ export default function Twotabs() {
           leaveReqs.leaveApplications.forEach((req) => {
             // if (req.status === "pending" || req.status === "approved") {
             if (req.status === "approved" && req.leaveType !== "Permission Leave") {
-              let toDate = new Date(req.toDate);
-              let fromDate = new Date(req.fromDate);
-              let timeDifference = toDate - fromDate;
-              const dayDifference = timeDifference === 0 ? 1 : timeDifference / (1000 * 60 * 60 * 24);
+              const dayDifference = getDayDifference(req)
 
               setTakenLeave(prev => prev + Number(dayDifference.toFixed(2)));  // Set this to the correct unit (e.g., days)
             }
