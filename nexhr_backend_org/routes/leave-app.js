@@ -267,7 +267,7 @@ leaveApp.get("/emp/:empId", verifyAdminHREmployeeManagerNetwork, async (req, res
       const now = new Date();
       const annualStart = new Date(emp.annualLeaveYearStart);
       startDate = new Date(now.getFullYear(), annualStart.getMonth(), annualStart.getDate());
-      endDate = new Date(now.getFullYear(), now.getMonth() + 2, 0, 23, 59, 59, 999);
+      endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
     }
 
     const today = new Date();
@@ -291,8 +291,8 @@ leaveApp.get("/emp/:empId", verifyAdminHREmployeeManagerNetwork, async (req, res
     const peopleLeaveOnMonth = team
       ? await LeaveApplication.find({
         employee: { $in: team.employees },
-        fromDate: { $lte: endDate },
-        toDate: { $gte: startDate },
+        // fromDate: { $lte: endDate },
+        // toDate: { $gte: startDate },
         status: "approved"
       }).lean()
       : [];
