@@ -274,12 +274,14 @@ leaveApp.get("/emp/:empId", verifyAdminHREmployeeManagerNetwork, async (req, res
     const filterLeaves = { fromDate: { $lte: today }, toDate: { $gte: today }, status: "approved" };
 
     // **Parallel Data Fetching**
-    const [leaveApplications, colleagues, peopleOnLeave, team] = await Promise.all([
+    const [leaveApplications, teamData, peopleOnLeave, team] = await Promise.all([
       LeaveApplication.find({ employee: empId, fromDate: { $gte: startDate, $lte: endDate } })
         .populate("employee", "FirstName LastName")
         .lean(),
-      emp.position
-        ? Employee.find({ position: emp.position._id, _id: { $ne: empId } }, "FirstName LastName Email phone").lean()
+      emp.team ?
+        Team.findOne({ employees: req.params.empId })
+          .populate("employees", "FirstName LastName Email phone")
+          .lean()
         : [],
       LeaveApplication.find(filterLeaves).populate("employee", "FirstName LastName").lean(),
       Team.findOne({ employees: empId }, "employees").lean()
@@ -324,7 +326,7 @@ leaveApp.get("/emp/:empId", verifyAdminHREmployeeManagerNetwork, async (req, res
     res.json({
       employee: emp,
       leaveApplications: leaveApplications.sort((a, b) => new Date(a.fromDate) - new Date(b.fromDate)).map(changeActualImgData),
-      colleagues,
+      colleagues: teamData.employees,
       peopleOnLeave,
       peopleLeaveOnMonth: peopleLeaveOnMonth.map(changeActualImgData)
     });
@@ -798,7 +800,6 @@ leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("pre
         return res.status(400).json({ error: "Sick leave is only applicable for today and yesterday." });
       }
     } else if (["Annual Leave", "Casual Leave"].includes(leaveType)) {
-      console.log(fromDateObj.toDateString(), today.toDateString());
       const isToday = fromDateObj.toDateString() === today.toDateString();
       if (isToday) {
         return res.status(400).send({ error: `${leaveType} is not applicable for same day` })

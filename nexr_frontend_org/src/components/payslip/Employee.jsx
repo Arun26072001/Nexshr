@@ -56,8 +56,8 @@ export default function Employee() {
         try {
             const empData = await fetchEmployees();
             console.log(empData);
-            
-            const withoutMyData = empData?.filter((emp)=> emp._id !== data._id)
+
+            const withoutMyData = empData?.filter((emp) => emp._id !== data._id)
             setEmployees(withoutMyData);
             setAllEmployees(withoutMyData);
         } catch (error) {
@@ -73,7 +73,7 @@ export default function Employee() {
         setIsLoading(true);
         try {
             const empData = await fetchAllEmployees();
-            const withoutMyData = empData.filter((emp)=> emp._id !== data._id)
+            const withoutMyData = empData.filter((emp) => emp._id !== data._id)
             setEmployees(withoutMyData);
             setAllEmployees(withoutMyData);
         } catch (error) {
@@ -100,7 +100,7 @@ export default function Employee() {
         }
         setIsLoading(false)
     }
-    
+
     useEffect(() => {
         if (data.Account === "1") {
             fetchAllEmployeeData()
@@ -121,7 +121,7 @@ export default function Employee() {
             if (empName === "") {
                 setEmployees(allEmployees);
             } else {
-                setEmployees(allEmployees?.filter((emp) => emp?.FirstName?.toLowerCase()?.includes(empName)));
+                setEmployees(allEmployees?.filter((emp) => emp?.FirstName?.toLowerCase()?.includes(empName.toLowerCase())));
             }
         }
         filterEmployees();
@@ -176,7 +176,7 @@ export default function Employee() {
                 <div className='px-3'>
                     <div className="row">
                         <div className="col-lg-12 searchInputIcon">
-                            <input type="text" className='payrunInput' onChange={(e) => setEmpName(e.target.value)} placeholder='Search' />
+                            <input type="text" className='payrunInput' onChange={(e) => setEmpName(e.target.value)} placeholder='Search by EmpName' />
                         </div>
                     </div>
                 </div>

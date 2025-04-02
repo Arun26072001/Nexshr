@@ -317,7 +317,7 @@ const AddEmployeeForm = ({ details, handleScroll, handlePersonal, handleFinancia
                         Authorization: `${token}` || ""
                     }
                 });
-                setLeaveTypes(leaveTypes.data.map((leave) => ({ label: leave.LeaveName, value: leave.LeaveName })));
+                setLeaveTypes(leaveTypes.data.map((leave) => ({ label: `${leave.LeaveName} (${leave.limitDays})`, value: leave.LeaveName })));
             } catch (error) {
                 toast.error(error.response.data.error)
             }

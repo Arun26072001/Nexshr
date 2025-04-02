@@ -211,6 +211,8 @@ export default function Navbar({ handleSideBar }) {
     }
 
     function changeViewReasonForEarlyLogout() {
+        console.log(isViewEarlyLogout);
+
         if (!isViewEarlyLogout) {
             localStorage.setItem("isViewEarlyLogout", true)
         }
@@ -218,7 +220,7 @@ export default function Navbar({ handleSideBar }) {
     }
 
     function checkIsEnterReasonforEarly() {
-        changeViewReasonForEarlyLogout();
+        changeViewReasonForEarlyLogout()
         localStorage.removeItem("isViewEarlyLogout");
         stopTimer();
     }

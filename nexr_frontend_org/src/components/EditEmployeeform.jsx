@@ -215,7 +215,7 @@ const EditEmployeeform = ({ details, empData, handleScroll, handlePersonal, hand
                         Authorization: `${token}` || ""
                     }
                 });
-                setLeaveTypes(leaveTypes.data.map((leave) => ({ label: leave.LeaveName, value: leave.LeaveName })));
+                setLeaveTypes(leaveTypes.data.map((leave) => ({ label: leave.LeaveName + " " + (leave.limitDays), value: leave.LeaveName })));
             } catch (error) {
                 setErrorData(error.response.data.error)
             }
@@ -228,6 +228,7 @@ const EditEmployeeform = ({ details, empData, handleScroll, handlePersonal, hand
         setSelectedCountry(countryFullData?.name);
         setStateData(countryFullData?.states);
     }, []);
+    console.log(leaveTypes);
 
 
     const hourAndMin = timeDifference.toString().split(".");

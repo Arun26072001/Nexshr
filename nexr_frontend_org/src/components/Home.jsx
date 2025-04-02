@@ -7,9 +7,6 @@ import Box from '@mui/material/Box';
 import { getDataAPI } from './ReuseableAPI';
 import ApexChart from './ApexChart';
 import { TimerStates } from './payslip/HRMDashboard';
-import Loading from './Loader';
-import { EssentialValues } from '../App';
-import { jwtDecode } from 'jwt-decode';
 import { Skeleton } from '@mui/material';
 
 function CustomTabPanel(props) {

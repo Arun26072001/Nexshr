@@ -57,20 +57,19 @@ const CommonModel = ({
 
             <Modal.Body>
                 {
-                    (["Department", "Position", "Project", "Report", "Report View", "Country", "Edit Country", "Project View", "Team", "Organization"].includes(type)) &&
+                    (["Department", "Position", "Project", "Report", "Report View", "Country", "Edit Country", "Project View", "Team", "Organization", "LeaveType"].includes(type)) &&
                     <div className="d-flex justify-content-between">
                         {
-                            ["Department", "Position", "Project", "Report", "Report View", "Country", "Edit Country", "Team", "Organization"].includes(type) &&
+                            ["Department", "Position", "Project", "Report", "Report View", "Country", "Edit Country", "Team", "Organization", "LeaveType"].includes(type) &&
                             <div className={`${type === "Team" ? "col-full" : "col-half"}`}>
                                 <div className="modelInput">
                                     <p className='modelLabel important'>{type} Name: </p>
                                     <Input required
                                         size='lg'
-                                        name={`name`}
-                                        value={dataObj?.[type === "Department" ? "DepartmentName" : type === "Position" ? "PositionName" : type === "Team" ? "teamName" : type === "Organization" ? "orgName" : `name`] || ""}
+                                        value={dataObj?.[type === "Department" ? "DepartmentName" : type === "Position" ? "PositionName" : type === "Team" ? "teamName" : type === "Organization" ? "orgName" : type === "LeaveType" ? "LeaveName" : `name`] || ""}
                                         disabled={["Report View", "Project View"].includes(type) ? true : false}
                                         onChange={!["Report View", "Project View"].includes(type) ? (e) =>
-                                            changeData(e, type === "Department" ? "DepartmentName" : type === "Position" ? "PositionName" : type === "Team" ? "teamName" : type === "Organization" ? "orgName" : "name") : null}
+                                            changeData(e, type === "Department" ? "DepartmentName" : type === "Position" ? "PositionName" : type === "Team" ? "teamName" : type === "Organization" ? "orgName" : type === "LeaveType" ? "LeaveName" : "name") : null}
                                     />
                                 </div>
                             </div>
@@ -124,6 +123,15 @@ const CommonModel = ({
                                 <div className="modelInput">
                                     <p className='modelLabel important'>EntendValidity:</p>
                                     <InputNumber size='lg' defaultValue={0} style={{ width: "100%" }} step={1} value={dataObj?.entendValidity} onChange={(e) => changeData(e, "entendValidity")} />
+                                </div>
+                            </div>
+                        }
+                        {
+                            type === "LeaveType" &&
+                            <div className="col-half">
+                                <div className="modelInput">
+                                    <p className='modelLabel important'>LimitDays:</p>
+                                    <InputNumber size='lg' defaultValue={0} style={{ width: "100%" }} step={1} value={dataObj?.limitDays} onChange={(e) => changeData(e, "limitDays")} />
                                 </div>
                             </div>
                         }
@@ -1040,6 +1048,22 @@ const CommonModel = ({
                         }
                     </>
                 }
+                {
+                    type === "LeaveType" &&
+                    <div className="col-full">
+                        <div className="modelInput">
+                            <p className='modelLabel'>Leave Type Description</p>
+                            <Input
+                                required
+                                size="lg"
+                                appearance='default'
+                                style={{ width: "100%", zIndex: 1 }}
+                                value={dataObj?.Description}
+                                onChange={(e) => changeData(e, "Description")}
+                            />
+                        </div>
+                    </div>
+                }
 
             </Modal.Body>
 
@@ -1061,6 +1085,8 @@ const CommonModel = ({
                                         modifyData("Edit")
                                     } else if (["MailSettings postmark", "MailSettings nodemailer"].includes(type)) {
                                         modifyData(dataObj)
+                                    } else if (dataObj._id && type === "LeaveType") {
+                                        modifyData("Edit")
                                     } else {
                                         modifyData();
                                     }
@@ -1076,7 +1102,7 @@ const CommonModel = ({
                                         onClick={() => ((type === "Add Comments" && dataObj._id) ? editData(dataObj, true) : dataObj?._id || type === "Edit Country" ? editData(dataObj) : type === "Edit Comments" ? editData() : addData())}
                                         appearance="primary"
                                         disabled={
-                                            ["Project", "Assign", "Task", "Task Assign", "Report", "Company", "Country", "Edit Country", "Announcement", "Team", "Add Comments", "Edit Comments", "Organization", "MailSettings postmark", "MailSettings nodemailer"].includes(type)
+                                            ["Project", "Assign", "Task", "Task Assign", "Report", "Company", "Country", "Edit Country", "Announcement", "Team", "Add Comments", "Edit Comments", "Organization", "MailSettings postmark", "MailSettings nodemailer", "LeaveType"].includes(type)
                                                 ? false : (["Department", "Position"].includes(type) && dataObj?.company ? false : true)
                                         }
                                     >

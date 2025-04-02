@@ -19,7 +19,7 @@ import KeyRoundedIcon from '@mui/icons-material/KeyRounded';
 import BorderColorRoundedIcon from '@mui/icons-material/BorderColorRounded';
 import DeleteRoundedIcon from '@mui/icons-material/DeleteRounded';
 
-export default function LeaveTable({ data, Account, getCheckedValue, handleDelete, fetchReportById, fetchOrgData, fetchData, roleObj, getCheckAll, deleteData, replyToLeave, isTeamHead, isTeamLead, isTeamManager }) {
+export default function LeaveTable({ data, Account, getCheckedValue, handleDelete, fetchReportById, fetchOrgData, fetchData, roleObj, getCheckAll, deleteData, replyToLeave, handleChangeLeavetype, isTeamHead, isTeamLead, isTeamManager }) {
     const navigate = useNavigate();
     const timerStateData = useContext(TimerStates)
     const [page, setPage] = useState(0);
@@ -552,6 +552,35 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
         }
     ];
 
+    const column17 = [
+        {
+            id: 'LeaveName',
+            label: 'Leave Name',
+            minWidth: 150,
+            getter: (row) => row?.LeaveName || 'N/A'
+        },
+        {
+            id: 'limitDays',
+            label: 'Limit Days',
+            minWidth: 100,
+            align: 'center',
+            getter: (row) => row?.limitDays || 'N/A'
+        },
+        {
+            id: 'Description',
+            label: 'Description',
+            minWidth: 200,
+            align: "center",
+            getter: (row) => row?.Description || 'N/A'
+        },
+        {
+            id: "Action",
+            label: "Action",
+            minWidth: 100,
+            align: "center"
+        }
+    ];
+
 
     function toggleView() {
         setOpenModal(!openModal);
@@ -634,12 +663,15 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
                 return setColumns(column15)
             } else if (params["*"] === "users" || item.Name) {
                 return setColumns(column16)
+            } else if (params["*"] === "leave-details" && item.LeaveName) {
+                return setColumns(column17)
             }
             else {
                 return setColumns(column2)
             }
         })
     }, [data]);
+    console.log(params["*"]);
 
     return (
         <div className="container-fluid my-3">
@@ -728,6 +760,21 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
                                                             </Dropdown.Item>
                                                         </Dropdown>)
 
+                                                    } else if (params["*"] === "leave-details") {
+                                                        return (
+                                                            <Dropdown title={"Action"} placement='leftStart' noCaret>
+                                                                <Dropdown.Item style={{ minWidth: 80 }} onClick={() => handleChangeLeavetype("Edit", row)}>
+                                                                    <b>
+                                                                        <BorderColorRoundedIcon sx={{ color: "#FFD65A" }} /> Edit
+                                                                    </b>
+                                                                </Dropdown.Item>
+                                                                <Dropdown.Item style={{ minWidth: 80 }} onClick={() => handleChangeLeavetype("Delete", row)}>
+                                                                    <b>
+                                                                        <DeleteRoundedIcon sx={{ color: "#F93827" }} /> Delete
+                                                                    </b>
+                                                                </Dropdown.Item>
+                                                            </Dropdown>
+                                                        )
                                                     } else if (params["*"] === "leave") {
                                                         return (<Dropdown title={"Action"} noCaret placement="leftStart">
                                                             <Dropdown.Item style={{ minWidth: 80 }} onClick={() => fetchData(row._id, "delete")}>
@@ -764,7 +811,8 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
                                                             <Dropdown.Item style={{ minWidth: 120 }} onClick={() => fetchData(row._id)}>
                                                                 <b>
                                                                     <BorderColorRoundedIcon sx={{ color: "#FFD65A" }} /> Edit
-                                                                </b>                                                        </Dropdown.Item>
+                                                                </b>
+                                                            </Dropdown.Item>
                                                             <Dropdown.Item style={{ minWidth: 120 }} onClick={() => deleteData(row._id)}>
                                                                 <b>
                                                                     <DeleteRoundedIcon sx={{ color: "#F93827" }} />
@@ -775,7 +823,7 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
                                                     );
                                                 }
 
-                                                return null;
+                                                return <p>sjdjkh</p>;
                                             };
 
                                             return (

@@ -80,6 +80,8 @@ const CircleProgressBar = ({ isTeamLead, isTeamHead, isTeamManager }) => {
             authorization: token || "",
           },
         });
+        console.log(leaveRes.data.leaveData);
+
         setLeaveRequests(leaveRes.data.leaveData);
 
         // Fetch employees
@@ -102,7 +104,7 @@ const CircleProgressBar = ({ isTeamLead, isTeamHead, isTeamManager }) => {
 
     if (Account === "2") {
       fetchData();
-    } else if (Account === "3" && [isTeamLead, isTeamHead, isTeamManager].includes(true)) {
+    } else if ([isTeamLead, isTeamHead, isTeamManager].includes(true)) {
       fetchDataInTeam();
     }
   }, [url, token]);

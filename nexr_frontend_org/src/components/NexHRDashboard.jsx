@@ -18,7 +18,7 @@ const NexHRDashboard = ({ updateClockins }) => {
       <div className="col-lg-8 col-md-12 col-12" >
         {/* Left card */}
         <Card style={{ border: '2px solid rgb(208 210 210)', height: '100%' }}>
-          {(Account === '2' || isTeamLead || isTeamHead) &&
+          {(Account === '2' || [isTeamLead, isTeamHead, isTeamManager].includes(true)) &&
             <>
               <div className="d-flex align-items-center justify-content-between m-2">
                 <span className="bold m-2">

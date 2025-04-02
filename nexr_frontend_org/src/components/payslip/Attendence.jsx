@@ -33,7 +33,7 @@ const Attendence = () => {
   const [filteredTabledata, setFilteredTableData] = useState([]);
 
   useEffect(() => {
-    if (selectedTimeOption.length > 0 ) {
+    if (selectedTimeOption.length > 0) {
       const updateTableData = filteredTabledata.flatMap((item) =>
         selectedTimeOption.map((option) => {
           const timeOptionKey = option; // Get the corresponding key
@@ -96,7 +96,7 @@ const Attendence = () => {
         }
       });
       console.log(dashboard.data);
-      
+
       setclockInsData(dashboard.data);
       setTableData(dashboard.data.clockIns);
       setFilteredTableData(dashboard.data.clockIns)
@@ -185,16 +185,14 @@ const Attendence = () => {
               </div>
             ))}
           </div>
-
-
           {/* Table or No Data Message */}
-          {tableData.length > 0 ?
-            <>
-              {/* Filters: Date Picker & Time Selector */}
-              <div className="d-flex justify-content-between align-items-center p-2">
-                <div style={{ width: "30%" }}>
-                  <DateRangePicker value={daterangeValue} size="lg" placeholder="Select Date" onChange={setDaterangeValue} />
-                </div>
+          <>
+            {/* Filters: Date Picker & Time Selector */}
+            <div className="d-flex justify-content-between align-items-center p-2">
+              <div style={{ width: "30%" }}>
+                <DateRangePicker value={daterangeValue} size="lg" placeholder="Select Date" onChange={setDaterangeValue} />
+              </div>
+              {tableData.length > 0 &&
                 <div style={{ width: "60%" }}>
                   <TagPicker
                     data={timeOptions}
@@ -207,10 +205,14 @@ const Attendence = () => {
                     onChange={(e) => setSelectedTimeOption(e)}
                   />
                 </div>
-              </div>
-              <LeaveTable data={tableData} />
-            </>
-            : <NoDataFound message="Attendance data not found!" />}
+              }
+            </div>
+            {
+              tableData.length > 0 ?
+                <LeaveTable data={tableData} />
+                : <NoDataFound message="Attendance data not found!" />
+            }
+          </>
         </>
       ) : null}
     </div>
