@@ -296,6 +296,7 @@ leaveApp.get("/emp/:empId", verifyAdminHREmployeeManagerNetwork, async (req, res
         status: "approved"
       }).lean()
       : [];
+    console.log(peopleLeaveOnMonth);
 
     // filter current month of permissions and unpaid leave
     const currentMonth = new Date().getMonth();
