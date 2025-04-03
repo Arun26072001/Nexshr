@@ -29,8 +29,8 @@ router.get("/:id", async (req, res) => {
 
 router.post("/", async (req, res) => {
   const now = new Date();
-  const startOfMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-  const endOfMonth = new Date(now.getFullYear(), now.getMonth(), 0);
+  const startOfMonth = new Date(now.getFullYear(), now.getMonth() - 2, 1);
+  const endOfMonth = new Date(startOfMonth.getFullYear(), startOfMonth.getMonth() + 1, 0);
 
   try {
     // Fetch employees with unpaid leave in the current month
@@ -63,7 +63,8 @@ router.post("/", async (req, res) => {
             ...emp.payslipFields,
             LossOfPay: Number((leaveDays * perDayOfSalary).toFixed(2)),
             status: "pending",
-            period: `${startOfMonth.toLocaleString("default", { month: "long" })} ${startOfMonth.getFullYear()}`
+            period: `${startOfMonth.toLocaleString("default", { month: "long" })} ${startOfMonth.getFullYear()}`,
+            paidDays: `${getWeekdaysOfCurrentMonth(startOfMonth.getFullYear(), startOfMonth.getMonth())}`
           },
           employee: emp._id
         };

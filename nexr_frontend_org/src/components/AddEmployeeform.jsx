@@ -22,48 +22,11 @@ const AddEmployeeForm = ({ details, handleScroll, handlePersonal, handleFinancia
     const [isLoading, setIsLoading] = useState(false);
     const [stateData, setStateData] = useState([]);
     const [selectedLeaveTypes, setSelectedLeavetypes] = useState([]);
-    const [splitError, setSplitError] = useState("");
+    // const [splitError, setSplitError] = useState("");
     const [selectedCountryCode, setselectedCountryCode] = useState("");
     const [selectedCountry, setSelectedCountry] = useState("");
     const [isAddEmployee, setIsAddEmployee] = useState(false);
-    const [employeeObj, setEmployeeObj] = useState({
-        FirstName: "",
-        LastName: "",
-        Email: "",
-        Password: "",
-        teamLead: null,
-        managerId: null,
-        countryCode: "",
-        phone: "",
-        company: "",
-        dateOfBirth: "",
-        gender: "",
-        address: {
-            city: "",
-            state: "",
-            country: "",
-            zipCode: ""
-        },
-        position: "",
-        department: "",
-        role: "",
-        description: "",
-        dateOfJoining: "",
-        employmentType: "",
-        workingTimePattern: "",
-        annualLeaveYearStart: "",
-        companyWorkingHourPerWeek: "",
-        publicHoliday: "",
-        monthlyPermissions: 2,
-        annualLeaveEntitlement: "",
-        basicSalary: "",
-        bankName: "",
-        accountNo: "",
-        accountHolderName: "",
-        IFSCcode: "",
-        taxDeduction: "",
-
-    });
+    const [employeeObj, setEmployeeObj] = useState({});
 
     useEffect(() => {
         const additionalFields = payslipFields.reduce((acc, field) => {
@@ -280,34 +243,15 @@ const AddEmployeeForm = ({ details, handleScroll, handlePersonal, handleFinancia
     }
 
     function handleTagSelector(value) {
+        let leaveCount = 0;
+
+        const updatedTypesOfLeaveCount = 
+
+        value.map((type) => leaveCount += Number(type.split(" ").at(-1)));
+        formik.setFieldValue("annualLeaveEntitlement", leaveCount)
         setSelectedLeavetypes(value);
     }
-
-    function getValueforLeave(e) {
-        const { name, value } = e.target;
-
-        // Create a new object with the updated value for the specific leave type
-        const updatedTypesOfLeaveCount = {
-            ...formik.values.typesOfLeaveCount,
-            [name]: Number(value),
-        };
-
-        // Calculate the total using the updated `typesOfLeaveCount`
-        const totalOfSplited = Object.values(updatedTypesOfLeaveCount)
-            .map(Number)
-            .reduce((acc, curr) => acc + curr, 0);
-
-        const annualLeaveEntitlement = Number(formik.values.annualLeaveEntitlement);
-
-        // Check against the annual leave entitlement
-        if (totalOfSplited > annualLeaveEntitlement) {
-            setSplitError("Getting more than Annual leave value!");
-        } else {
-            // Update the Formik state with the new `typesOfLeaveCount`
-            formik.setFieldValue("typesOfLeaveCount", updatedTypesOfLeaveCount);
-            setSplitError("");
-        }
-    }
+    console.log(formik.values);
 
     useEffect(() => {
         const gettingLeaveTypes = async () => {
@@ -317,7 +261,7 @@ const AddEmployeeForm = ({ details, handleScroll, handlePersonal, handleFinancia
                         Authorization: `${token}` || ""
                     }
                 });
-                setLeaveTypes(leaveTypes.data.map((leave) => ({ label: `${leave.LeaveName} (${leave.limitDays})`, value: leave.LeaveName })));
+                setLeaveTypes(leaveTypes.data.map((leave) => ({ label: `${leave.LeaveName} ${leave.limitDays}`, value: `${leave.LeaveName} ${leave.limitDays}` })));
             } catch (error) {
                 toast.error(error.response.data.error)
             }
@@ -766,10 +710,24 @@ const AddEmployeeForm = ({ details, handleScroll, handlePersonal, handleFinancia
                             </div>
 
                             <div className="row d-flex justify-content-center">
-                                {
+                                {/* {
                                     splitError &&
                                     <div className="text-center text-danger">{splitError}</div>
-                                }
+                                } */}
+                                <div className="col-lg-6 my-2">
+                                    <div className="inputLabel">
+                                        Select Leave Types
+                                    </div>
+                                    <TagPicker
+                                        data={leaveTypes}
+                                        // disabled={formik.values.annualLeaveEntitlement ? false : true}
+                                        // title={!formik.values.annualLeaveEntitlement && "Please Enter Annual Leave"}
+                                        size="lg"
+                                        onChange={handleTagSelector}
+                                        value={selectedLeaveTypes}
+                                        className={formik.values.annualLeaveEntitlement ? "rsuite_selector" : "rsuite_selector_disabled"}
+                                        style={{ width: 300, border: "none" }} />
+                                </div>
                                 <div className="col-lg-6 my-2">
                                     <div className="inputLabel">
                                         Annual Leave Entitlement
@@ -783,18 +741,7 @@ const AddEmployeeForm = ({ details, handleScroll, handlePersonal, handleFinancia
                                         <div className="text-center text-danger">{formik.errors.annualLeaveEntitlement}</div>
                                     ) : null}
                                 </div>
-                                <div className="col-lg-6 my-2">
-                                    <div className="inputLabel">
-                                        Select Leave Types
-                                    </div>
-                                    <TagPicker data={leaveTypes}
-                                        disabled={formik.values.annualLeaveEntitlement ? false : true}
-                                        title={!formik.values.annualLeaveEntitlement && "Please Enter Annual Leave"}
-                                        size="lg" onChange={handleTagSelector}
-                                        value={selectedLeaveTypes}
-                                        className={formik.values.annualLeaveEntitlement ? "rsuite_selector" : "rsuite_selector_disabled"}
-                                        style={{ width: 300, border: "none" }} />
-                                </div>
+
                             </div>
                             <div className="row d-flex justify-content-center">
                                 {
@@ -804,7 +751,8 @@ const AddEmployeeForm = ({ details, handleScroll, handlePersonal, handleFinancia
                                                 Choose {leaveName} count
                                             </div>
                                             <input type="number"
-                                                onChange={(e) => getValueforLeave(e)}
+                                                value={leaveName.split(" ").at(-1)}
+                                                // onChange={(e) => getValueforLeave(e)}
                                                 name={leaveName}
                                                 className={`inputField`} />
                                         </div>

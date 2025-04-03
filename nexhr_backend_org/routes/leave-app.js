@@ -265,7 +265,7 @@ leaveApp.get("/emp/:empId", verifyAdminHREmployeeManagerNetwork, async (req, res
       [startDate, endDate] = daterangeValue.map(date => new Date(date));
     } else {
       const now = new Date();
-      const annualStart = emp.annualLeaveYearStart ? new Date(emp.annualLeaveYearStart) : now;
+      const annualStart = emp.annualLeaveYearStart ? new Date(emp.annualLeaveYearStart) : new Date(now.getDate(1));
       startDate = new Date(now.getFullYear(), annualStart.getMonth(), annualStart.getDate());
       endDate = new Date(startDate.getFullYear() + 1, startDate.getMonth(), startDate.getDate() - 1, 23, 59, 59, 999);
     }

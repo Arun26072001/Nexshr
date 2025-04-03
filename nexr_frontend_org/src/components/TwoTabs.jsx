@@ -74,9 +74,10 @@ export default function Twotabs() {
 
           leaveReqs.leaveApplications.forEach((req) => {
             // if (req.status === "pending" || req.status === "approved") {
-            if (req.status === "approved" && req.leaveType !== "Permission Leave") {
-              const dayDifference = getDayDifference(req)
+            if (req.status === "approved" && !["Permission Leave", "Unpaid Leave (LWP)"].includes(req.leaveType)) {
+              console.log(req);
 
+              const dayDifference = Math.ceil(getDayDifference(req));
               setTakenLeave(prev => prev + Number(dayDifference.toFixed(2)));  // Set this to the correct unit (e.g., days)
             }
           });

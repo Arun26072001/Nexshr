@@ -10,9 +10,10 @@ import CommonModel from './Administration/CommonModel';
 import { toast } from 'react-toastify';
 import { getDepartments } from './ReuseableAPI';
 
-export default function Reports({ employees }) {
+export default function Reports() {
     const url = process.env.REACT_APP_API_URL;
     const { data } = useContext(EssentialValues);
+    const [employees, setEmployees] = useState([]);
     const [empId, setEmpId] = useState(data?._id);
     const [reports, setReports] = useState([]);
     const [reportObj, setReportObj] = useState({});
@@ -190,8 +191,27 @@ export default function Reports({ employees }) {
                 console.log(error);
             }
         }
-
     }
+
+      async function fetchProjectEmps() {
+        try {
+          const res = await axios.get(`${url}/api/project/employees/${reportObj?.project}`, {
+            headers: {
+              Authorization: data.token || ""
+            }
+          })
+          setEmployees(res.data.map((emp) => ({ label: emp.FirstName + " " + emp.LastName, value: emp._id })))
+        } catch (error) {
+          console.log("error in fetch employess", error);
+        }
+      }
+    
+      // fetch prject of employees
+      useEffect(() => {
+        if (reportObj?.project) {
+          fetchProjectEmps()
+        }
+      }, [reportObj?.project])
 
     useEffect(() => {
         async function fetchReportsByEmp() {

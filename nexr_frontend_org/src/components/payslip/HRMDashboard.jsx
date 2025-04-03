@@ -476,13 +476,13 @@ export default function HRMDashboard() {
                     <Route path="projects" element={<Projects employees={employees} />} />
                     <Route path="tasks/*" element={
                         <Routes>
-                            <Route index element={<Tasks employees={employees} />} />
+                            <Route index element={<Tasks />} />
                             <Route path="time-log/:id" element={<TimeLog />} />
                             <Route path="comments/:id" element={<Comments employees={employees} />} />
                         </Routes>
                     } />
 
-                    <Route path="reports" element={<Reports employees={employees} />} />
+                    <Route path="reports" element={<Reports />} />
                     <Route path="employee" element={<Employee />} />
                     <Route path="employee/add" element={<Employees />} />
                     <Route path="employee/edit/:id" element={<AddEmployee />} />
