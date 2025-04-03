@@ -173,7 +173,6 @@ const LeaveRequestForm = () => {
     try {
       if (empId) {
         const leaveReqs = await fetchLeaveRequests(empId);
-        console.log(leaveReqs);
 
         const leaveDates = leaveReqs?.peopleLeaveOnMonth.flatMap((leave) => [
           new Date(leave.fromDate).toISOString(),
@@ -198,13 +197,12 @@ const LeaveRequestForm = () => {
 
         // Set types of leave
         const validLeaveTypes = Object.keys(leaveReqs?.employee?.typesOfLeaveCount).filter((type) => type !== "Unpaid Leave");
-        console.log(validLeaveTypes);
 
         setTypOfLeave(validLeaveTypes || {});
 
         // Filter colleagues 
-        const teamMembers = leaveReqs.employee.team.employees.filter((emp) => emp._id !== empId);
-        setCollegues(teamMembers);
+        const teamMembers = leaveReqs?.employee?.team?.employees?.filter((emp) => emp._id !== empId);
+        setCollegues(teamMembers || []);
       } else {
         toast.error("empId is not loaded in the app.");
       }

@@ -245,15 +245,15 @@ const AddEmployeeForm = ({ details, handleScroll, handlePersonal, handleFinancia
     function handleTagSelector(value) {
         let leaveCount = 0;
 
-        const leaveTypeCount = {}
-        value.map((type) => {
-            leaveTypeCount[type.split(" ").slice(0, 2)] = type.split(" ").at(0)
-        })
-        console.log(leaveTypeCount);
+        const leaveTypeCount = {};
+        value.forEach((type) => {
+            const key = type.split(" ").slice(0, 2).join(" "); // Ensure it's a string
+            leaveTypeCount[key] = type.split(" ")[0]; // Get only the first word
+        });
 
         value.map((type) => leaveCount += Number(type.split(" ").at(-1)));
         formik.setFieldValue("annualLeaveEntitlement", leaveCount);
-        // formik.setFieldValue("typesOfLeaveCount", updatedTypesOfLeaveCount)
+        formik.setFieldValue("typesOfLeaveCount", leaveTypeCount)
         setSelectedLeavetypes(value);
     }
     console.log(formik.values);
