@@ -245,7 +245,7 @@ const AddEmployeeForm = ({ details, handleScroll, handlePersonal, handleFinancia
     function handleTagSelector(value) {
         let leaveCount = 0;
 
-        const updatedTypesOfLeaveCount = 
+        // const updatedTypesOfLeaveCount = 
 
         value.map((type) => leaveCount += Number(type.split(" ").at(-1)));
         formik.setFieldValue("annualLeaveEntitlement", leaveCount)

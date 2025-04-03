@@ -180,12 +180,12 @@ export default function HRMDashboard() {
             if (!updatedState?._id) {
                 // Add new clock-ins data
                 const clockinsData = await addDataAPI(updatedState, worklocation, placeId);
-
+                const totalWorkingHour = await getTotalWorkingHourPerDay(workingTimePattern.StartingTime, workingTimePattern.FinishingTime)
                 if (clockinsData !== "undefined") {
                     if (!workTimeTracker.login.startingTime.length) {
                         socket.emit("remainder_notification", {
                             employee: data._id,
-                            time: getTotalWorkingHourPerDay(workingTimePattern.StartingTime, workingTimePattern.FinishingTime),
+                            time: totalWorkingHour,
                             clockinsId: clockinsData?._id
                         })
                     }
@@ -220,7 +220,7 @@ export default function HRMDashboard() {
                 timeHolder: timeHolderData,
             },
         };
-        socket.emit("verify_completed_workinghour", updatedState);
+        // socket.emit("verify_completed_workinghour", updatedState);
 
         try {
             const updatedData = await updateDataAPI(updatedState);

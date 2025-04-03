@@ -197,10 +197,11 @@ io.on("connection", (socket) => {
     }
 
     setTimeout(async () => {
-      const timerData = await axios.get(`${process.env.REACT_APP_API_URL}/api/clock-ins/item/${data.timerId}`, {
+      const timer = await axios.get(`${process.env.REACT_APP_API_URL}/api/clock-ins/item/${data.timerId}`, {
         headers: { Authorization: data.token }
       })
-      if (timerData[data.timeOption].startingTime.length !== timerData[data.timeOption].endingTime.length) {
+
+      if (timer.data.timeData[data.timeOption].startingTime.length !== timer.data.timeData[data.timeOption].endingTime.length) {
         try {
           const res = await axios.post(
             `${process.env.REACT_APP_API_URL}/api/clock-ins/remainder/${data.employee}/${data.timeOption}`
