@@ -210,7 +210,7 @@ export default function HRMDashboard() {
     };
 
     const stopLoginTimer = async (timeHolderData) => {
-        trackTimer();
+        // trackTimer();
         const currentTime = new Date().toTimeString().split(' ')[0];
         const updatedState = {
             ...workTimeTracker,

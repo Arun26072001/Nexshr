@@ -765,7 +765,7 @@ leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("pre
 
     // Ensure `coverBy` is either null or a valid value
     const coverByValue = coverBy === "" ? null : coverBy;
-    const personId = req.body.applyFor === undefined ? empId : req.body.applyFor;
+    const personId = [undefined, "undefined"].includes(req.body.applyFor) ? empId : req.body.applyFor;
 
     // Construct leave request object
     const leaveRequest = {
@@ -930,6 +930,7 @@ leaveApp.put('/:id', verifyAdminHREmployee, async (req, res) => {
       .populate({ path: "admin", select: "FirstName LastName Email" });
 
     if (!emp) return res.status(404).send({ error: 'Employee not found.' });
+    if (!emp.team) return res.status(404).send({ error: `${emp.FirstName} is not a member of any team. Please add him.` })
 
     const fromDateValue = new Date(req.body.fromDate);
     const toDateValue = new Date(req.body.toDate);

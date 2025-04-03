@@ -200,10 +200,10 @@ router.get('/:id', verifyAdminHREmployeeManagerNetwork, async (req, res) => {
     if (!emp) {
       return res.status(404).send({ error: "Employee not found!" });
     }
-
     // Filter leave requests
     const pendingLeaveRequests = emp.leaveApplication.filter((leave) => leave.status === "pending");
-    const takenLeaveRequests = emp.leaveApplication.filter((leave) => leave.status === "approved" && leave.leveType !== "Unpaid Leave (LWP)");
+    const takenLeaveRequests = emp.leaveApplication.filter((leave) => leave.status === "approved" && leave.leaveType !== "Unpaid Leave (LWP)");
+    console.log(takenLeaveRequests);
 
     // Calculate total taken leave count
     takenLeaveRequests.forEach((leave) => totalTakenLeaveCount += Math.ceil(getDayDifference(leave)));
