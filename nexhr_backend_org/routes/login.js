@@ -60,6 +60,8 @@ router.post("/", async (req, res) => {
                 if (teamManager) {
                     isTeamManager = true;
                 }
+                console.log(teamManager);
+                
                 const updateIsEmailVerify = await Employee.findByIdAndUpdate(emp._id, empDataWithEmailVerified, { new: true });
                 const empData = {
                     _id: emp._id,

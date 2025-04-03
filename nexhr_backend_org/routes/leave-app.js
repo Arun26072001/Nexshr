@@ -930,6 +930,7 @@ leaveApp.put('/:id', verifyAdminHREmployee, async (req, res) => {
       .populate({ path: "admin", select: "FirstName LastName Email" });
 
     if (!emp) return res.status(404).send({ error: 'Employee not found.' });
+    if(!emp.team) return res.status(404).send({error: `${emp.FirstName} is not a member of any team. Please add him.`})
 
     const fromDateValue = new Date(req.body.fromDate);
     const toDateValue = new Date(req.body.toDate);

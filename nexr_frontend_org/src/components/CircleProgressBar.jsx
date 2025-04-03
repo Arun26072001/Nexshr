@@ -80,14 +80,13 @@ const CircleProgressBar = ({ isTeamLead, isTeamHead, isTeamManager }) => {
             authorization: token || "",
           },
         });
-        console.log(leaveRes.data.leaveData);
 
         setLeaveRequests(leaveRes.data.leaveData);
 
         // Fetch employees
         const empRes = await axios.get(`${url}/api/team/members/${_id}`, {
           params: {
-            who: isTeamLead ? "lead" : isTeamHead ? "head" : "manager",
+            who: isTeamLead ? "lead" : isTeamHead ? "head" : isTeamManager ? "manager" : "employees",
           },
           headers: {
             authorization: token || "",
@@ -108,6 +107,7 @@ const CircleProgressBar = ({ isTeamLead, isTeamHead, isTeamManager }) => {
       fetchDataInTeam();
     }
   }, [url, token]);
+  console.log(isTeamLead, isTeamHead, isTeamManager);
 
   useEffect(() => {
     const getLeaveCounts = async () => {

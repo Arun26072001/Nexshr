@@ -276,7 +276,7 @@ io.on("connection", (socket) => {
     )
     let isCompleteworkingHours = true;
 
-    if (scheduleWorkingHours > totalValue) {
+    if (scheduleWorkingHours > totalValue && !data.login.reasonForEarlyLogout) {
       isCompleteworkingHours = false;
       const employeeSocketID = onlineUsers[empData._id]; // ✅ Get correct socket ID
       if (employeeSocketID) {
@@ -287,6 +287,15 @@ io.on("connection", (socket) => {
         console.log(`Sent early_logout to Employee ${empData._id}`);
       } else {
         console.log(`User ${data.employee} is offline, skipping emit.`);
+      }
+    } else {
+      const employeeSocketID = onlineUsers[empData._id]; // ✅ Get correct socket ID
+      if (employeeSocketID) {
+        io.to(employeeSocketID).emit("early_logout", {
+          message: "Why are you logout early?",
+          isCompleteworkingHours
+        });
+        console.log(`Sent early_logout to Employee ${empData._id}`);
       }
     }
   })

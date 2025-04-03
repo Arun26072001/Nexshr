@@ -245,10 +245,15 @@ const AddEmployeeForm = ({ details, handleScroll, handlePersonal, handleFinancia
     function handleTagSelector(value) {
         let leaveCount = 0;
 
-        // const updatedTypesOfLeaveCount = 
+        const leaveTypeCount = {}
+        value.map((type) => {
+            leaveTypeCount[type.split(" ").slice(0, 2)] = type.split(" ").at(0)
+        })
+        console.log(leaveTypeCount);
 
         value.map((type) => leaveCount += Number(type.split(" ").at(-1)));
-        formik.setFieldValue("annualLeaveEntitlement", leaveCount)
+        formik.setFieldValue("annualLeaveEntitlement", leaveCount);
+        // formik.setFieldValue("typesOfLeaveCount", updatedTypesOfLeaveCount)
         setSelectedLeavetypes(value);
     }
     console.log(formik.values);
