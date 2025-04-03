@@ -80,7 +80,7 @@ const ActivityTimeTracker = () => {
                     employee: data._id,
                     timerId: workTimeTracker._id,
                     timeOption,
-                    time: timeOption === "lunch" ? 30 : 15,
+                    time: timeOption === "lunch" ? 30 : 1,
                     token: data.token
                 })
             }

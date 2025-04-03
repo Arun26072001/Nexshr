@@ -25,9 +25,10 @@ import HourglassTopRoundedIcon from '@mui/icons-material/HourglassTopRounded';
 import CheckCircleOutlineRoundedIcon from '@mui/icons-material/CheckCircleOutlineRounded';
 import { Skeleton } from "@mui/material";
 
-const Tasks = ({ employees }) => {
+const Tasks = () => {
   const navigate = useNavigate();
   const url = process.env.REACT_APP_API_URL;
+  const [employees, setEmployees] = useState([]);
   const { data, whoIs } = useContext(EssentialValues);
   const { isAddTask, setIsAddTask, handleAddTask, selectedProject } = useContext(TimerStates);
   const { isTeamLead, isTeamHead } = jwtDecode(data.token)
@@ -69,6 +70,26 @@ const Tasks = ({ employees }) => {
       </Popover>
     );
   };
+
+  async function fetchProjectEmps() {
+    try {
+      const res = await axios.get(`${url}/api/project/employees/${taskObj?.project}`, {
+        headers: {
+          Authorization: data.token || ""
+        }
+      })
+      setEmployees(res.data.map((emp) => ({ label: emp.FirstName + " " + emp.LastName, value: emp._id })))
+    } catch (error) {
+      console.log("error in fetch employess", error);
+    }
+  }
+
+  // fetch prject of employees
+  useEffect(() => {
+    if (taskObj?.project) {
+      fetchProjectEmps()
+    }
+  }, [taskObj?.project])
 
   const renderMenu2 = (task) => ({ onClose, right, top, className }, ref) => {
     const handleSelect = eventKey => {

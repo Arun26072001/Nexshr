@@ -180,12 +180,12 @@ export default function HRMDashboard() {
             if (!updatedState?._id) {
                 // Add new clock-ins data
                 const clockinsData = await addDataAPI(updatedState, worklocation, placeId);
-
+                const totalWorkingHour = await getTotalWorkingHourPerDay(workingTimePattern.StartingTime, workingTimePattern.FinishingTime)
                 if (clockinsData !== "undefined") {
                     if (!workTimeTracker.login.startingTime.length) {
                         socket.emit("remainder_notification", {
                             employee: data._id,
-                            time: getTotalWorkingHourPerDay(workingTimePattern.StartingTime, workingTimePattern.FinishingTime),
+                            time: totalWorkingHour,
                             clockinsId: clockinsData?._id
                         })
                     }
@@ -220,7 +220,7 @@ export default function HRMDashboard() {
                 timeHolder: timeHolderData,
             },
         };
-        socket.emit("verify_completed_workinghour", updatedState);
+        // socket.emit("verify_completed_workinghour", updatedState);
 
         try {
             const updatedData = await updateDataAPI(updatedState);
@@ -476,13 +476,13 @@ export default function HRMDashboard() {
                     <Route path="projects" element={<Projects employees={employees} />} />
                     <Route path="tasks/*" element={
                         <Routes>
-                            <Route index element={<Tasks employees={employees} />} />
+                            <Route index element={<Tasks />} />
                             <Route path="time-log/:id" element={<TimeLog />} />
                             <Route path="comments/:id" element={<Comments employees={employees} />} />
                         </Routes>
                     } />
 
-                    <Route path="reports" element={<Reports employees={employees} />} />
+                    <Route path="reports" element={<Reports />} />
                     <Route path="employee" element={<Employee />} />
                     <Route path="employee/add" element={<Employees />} />
                     <Route path="employee/edit/:id" element={<AddEmployee />} />

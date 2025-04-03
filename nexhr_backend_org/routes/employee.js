@@ -178,7 +178,7 @@ router.get('/:id', verifyAdminHREmployeeManagerNetwork, async (req, res) => {
   let totalTakenLeaveCount = 0;
   const empData = await Employee.findById(req.params.id, "annualLeaveYearStart")
   const now = new Date();
-  const annualStart = empData.annualLeaveYearStart ? new Date(emp.annualLeaveYearStart) : now;
+  const annualStart = empData.annualLeaveYearStart ? new Date(empData.annualLeaveYearStart) : new Date(now.setDate(1));
   startDate = new Date(now.getFullYear(), annualStart.getMonth(), annualStart.getDate());
   endDate = new Date(startDate.getFullYear() + 1, startDate.getMonth(), startDate.getDate() - 1, 23, 59, 59, 999);
 
@@ -206,7 +206,7 @@ router.get('/:id', verifyAdminHREmployeeManagerNetwork, async (req, res) => {
     const takenLeaveRequests = emp.leaveApplication.filter((leave) => leave.status === "approved" && leave.leveType !== "Unpaid Leave (LWP)");
 
     // Calculate total taken leave count
-    takenLeaveRequests.forEach((leave) => totalTakenLeaveCount += getDayDifference(leave));
+    takenLeaveRequests.forEach((leave) => totalTakenLeaveCount += Math.ceil(getDayDifference(leave)));
 
     // Send response with employee details, pending leave requests, taken leave count, and colleagues
     res.send({

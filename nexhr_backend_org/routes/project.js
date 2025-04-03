@@ -12,8 +12,8 @@ const { convertToString } = require('../Reuseable_functions/reusableFunction');
 router.get("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
   try {
     const project = await Project.findById(req.params.id)
-    if(!project){
-      return res.status(200).send({message: "Project"})
+    if (!project) {
+      return res.status(200).send({ message: "Project" })
     }
     return res.send(project);
   } catch (error) {
@@ -48,6 +48,18 @@ router.get("/", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
   }
 });
 
+router.get("/employees/:projectId", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
+  try {
+    if (await Project.exists({ _id: req.params.projectId })) {
+      const { employees } = await Project.findById(req.params.projectId, "employees").populate("employees", "FirstName LastName").exec();
+      return res.send(employees)
+    } else {
+      return res.status(404).send([])
+    }
+  } catch (error) {
+    return res.status(500).send({ error: error.message })
+  }
+})
 
 router.get("/emp/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
   try {
