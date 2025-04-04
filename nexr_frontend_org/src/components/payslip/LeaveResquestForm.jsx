@@ -30,8 +30,6 @@ const LeaveRequestForm = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [employees, setEmployees] = useState([]);
   const [isWorkingApi, setIsWorkingApi] = useState(false);
-  const [colleguesTask, setColleguesTask] = useState([]);
-  const [options, setOptions] = useState([]);
   const now = new Date()
 
   let leaveObj = {
@@ -155,22 +153,6 @@ const LeaveRequestForm = () => {
       }
     },
   });
-  useEffect(() => {
-    if (collegues.length) {
-      setOptions(collegues.map((emp, index) => {
-        const empTasks = colleguesTask.filter((task) => task.assignedTo.includes(emp._id))
-
-        return {
-          value: emp._id,
-          label: (
-            <div className="d-flex justify-content-between align-items-center">
-              {emp.FirstName} {empTasks.map((task) => <p>Task: <b>{task.title}</b> ({task.estTime})</p>)} <AddCircleOutlineRoundedIcon onClick={() => navigate(`${whoIs}/tasks`)} />
-            </div>
-          )
-        }
-      }))
-    }
-  }, [colleguesTask])
 
   useEffect(() => {
     if (formik.values.fromDate && formik.values.toDate) {
@@ -220,8 +202,8 @@ const LeaveRequestForm = () => {
         setTypOfLeave(validLeaveTypes || {});
 
         // Filter colleagues 
-        const teamMembers = leaveReqs?.employee?.team?.employees?.filter((emp) => emp._id !== empId);
-        setCollegues(teamMembers);
+        // const teamMembers = leaveReqs?.employee?.team?.employees?.filter((emp) => emp._id !== empId);
+        // setCollegues(teamMembers);
       } else {
         toast.error("empId is not loaded in the app.");
       }
@@ -266,32 +248,6 @@ const LeaveRequestForm = () => {
       console.log(error);
     }
   }
-
-  useEffect(() => {
-    async function fetchTeamMembersTask(fromDate, toDate) {
-      try {
-
-        const emps = collegues.map((col) => col._id)
-
-        const res = await axios.post(`${url}/api/task/members`, {
-          collegues: [...emps, empId],
-          dateRange: [fromDate, toDate]
-        }, {
-          headers: {
-            Authorization: token || ""
-          }
-        })
-
-        setColleguesTask(res.data)
-      } catch (error) {
-        console.log(error);
-
-      }
-    }
-    if (formik.values.fromDate && formik.values.toDate) {
-      fetchTeamMembersTask(formik.values.fromDate, formik.values.toDate)
-    }
-  }, [formik.values])
 
   useEffect(() => {
     async function gettingHoliday() {
@@ -434,17 +390,6 @@ const LeaveRequestForm = () => {
                 onChange={getFileData} // Set the actual file, not just the name
               />
             </div>
-
-            {/* Select Relief Officer */}
-            {/* <div className="my-3">
-              <span className="inputLabel">Choose Relief Officer</span>
-              <Select
-                name="coverBy"
-                // className="selectInput"
-                options={options}
-                onChange={(selectedOption) => formik.setFieldValue("coverBy", selectedOption.value)}
-              />
-            </div> */}
 
             {/* Action buttons */}
             <div className="row gap-2 d-flex align-items-center justify-content-center my-4">
