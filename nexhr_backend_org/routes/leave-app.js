@@ -867,6 +867,22 @@ leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("pre
       return res.status(400).json({ error: error.message });
     }
 
+    // check reliving officer is leave on the day
+    if (req.body.coverBy) {
+      const empData = await Employee.findById(req.body.coverBy, "leaveApplication FirstName LastName")
+        .populate({
+          path: "leaveApplication",
+          match: {
+            fromDate: { $gte: startDate },
+            toDate: { $lte: endDate },
+            leaveType: { $ne: "Permission Leave" }
+          }
+        })
+      if (empData.leaveApplication.length) {
+        return res.status(400).send({ error: `${empData.FirstName} is Leave on the date` })
+      }
+    }
+
     // Save leave request and update employee leave list
     const newLeaveApp = await LeaveApplication.create(leaveRequest);
     emp.leaveApplication.push(newLeaveApp._id);

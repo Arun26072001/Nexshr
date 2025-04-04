@@ -90,8 +90,10 @@ router.post("/", async (req, res) => {
 
 router.get("/emp/:empId", async (req, res) => {
   try {
-    const payslips = await Payslip.find({ employee: req.params.empId }).populate("employee").exec();
-    res.send(payslips);
+    let payslips = await Payslip.find({ employee: req.params.empId }).populate("employee", "FirstName LastName payslip").exec();
+    const arrangedPayslips = payslips.sort((a, b) => new Date(String(a.payslip.period)) - new Date(String(b.payslip.period)))
+
+    return res.send(arrangedPayslips)
   } catch (err) {
     res.status(500).send({ error: err.message })
   }

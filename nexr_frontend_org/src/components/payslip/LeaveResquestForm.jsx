@@ -11,6 +11,8 @@ import DatePicker from "react-datepicker";
 import TextEditor from "./TextEditor";
 import { EssentialValues } from "../../App";
 import Loading from "../Loader";
+import Select from "react-select";
+import AddCircleOutlineRoundedIcon from '@mui/icons-material/AddCircleOutlineRounded';
 
 const LeaveRequestForm = () => {
   const url = process.env.REACT_APP_API_URL;
@@ -151,7 +153,16 @@ const LeaveRequestForm = () => {
       }
     },
   });
-  console.log(formik.values);
+
+  // const options = collegues.map(emp => ({
+  //   value: emp._id,
+  //   label: (
+  //     <div className="d-flex justify-content-between align-items-center">
+  //       {emp.FirstName} <AddCircleOutlineRoundedIcon />
+  //     </div>
+  //   )
+  // }));
+
 
   useEffect(() => {
     if (formik.values.fromDate && formik.values.toDate) {
@@ -229,7 +240,6 @@ const LeaveRequestForm = () => {
   }
 
   function getFileData(e) {
-    console.log(e.target.files);
 
     setPrescriptionFile(e.target.files[0])
   }
@@ -248,6 +258,12 @@ const LeaveRequestForm = () => {
       console.log(error);
     }
   }
+
+  useEffect(() => {
+    if (formik.values.fromDate && formik.values.toDate) {
+
+    }
+  }, [formik.values])
 
   useEffect(() => {
     async function gettingHoliday() {
@@ -388,17 +404,28 @@ const LeaveRequestForm = () => {
             </div>
 
             {/* Select Relief Officer */}
+            {/* <div className="my-3">
+              <span className="inputLabel">Choose Relief Officer</span>
+              <Select
+                name="coverBy"
+                // className="selectInput"
+                options={options}
+                onChange={(selectedOption) => formik.setFieldValue("coverBy", selectedOption.value)}
+              />
+            </div> */}
             <div className="my-3">
               <span className="inputLabel">Choose Relief Officer</span>
               <select
+                // disabled
+                // aria-readonlyl
                 name="coverBy"
                 className="selectInput"
-                onChange={formik.handleChange}
-                value={formik.values.coverBy}
+                onChange={handleChange}
+                value={formik.values.coverBy || ""}
               >
                 <option>Select a Relief Officer</option>
-                {collegues?.map((emp) => (
-                  <option value={emp._id}>{emp.FirstName}</option>
+                {collegues.map((emp) => (
+                  <option key={emp._id} selected={`${formik.values.coverBy === emp._id}`} value={emp._id}>{emp.FirstName[0].toUpperCase() + emp.FirstName.slice(1)}</option>
                 ))}
               </select>
             </div>

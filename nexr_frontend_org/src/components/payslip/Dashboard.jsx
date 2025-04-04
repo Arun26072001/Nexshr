@@ -24,6 +24,7 @@ const Dashboard = () => {
 
             // Fetch employee data
             const empData = await fetchEmployeeData(data._id);
+            console.log(empData);
 
             setData((pre) => ({
                 ...pre,
@@ -135,7 +136,7 @@ const Dashboard = () => {
                             isLoading ? <ContentLoader /> :
                                 <>
                                     <p className='leaveIndicatorTxt'>Total Unpaid Leave</p>
-                                    <p className='text-primary number'>{monthlyLoginData?.totalUnpaidLeaves || 0}</p>
+                                    <p className='text-primary number'>{leaveData.totalUnpaidLeaveCount}</p>
                                 </>
                         }
                     </div>

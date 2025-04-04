@@ -176,6 +176,7 @@ router.get("/team/members/:id", verifyTeamHigherAuthority, async (req, res) => {
 
 router.get('/:id', verifyAdminHREmployeeManagerNetwork, async (req, res) => {
   let totalTakenLeaveCount = 0;
+  let totalUnpaidLeaveCount = 0;
   const empData = await Employee.findById(req.params.id, "annualLeaveYearStart")
   const now = new Date();
   const annualStart = empData.annualLeaveYearStart ? new Date(empData.annualLeaveYearStart) : new Date(now.setDate(1));
@@ -203,22 +204,23 @@ router.get('/:id', verifyAdminHREmployeeManagerNetwork, async (req, res) => {
     // Filter leave requests
     const pendingLeaveRequests = emp.leaveApplication.filter((leave) => leave.status === "pending");
     const takenLeaveRequests = emp.leaveApplication.filter((leave) => leave.status === "approved" && leave.leaveType !== "Unpaid Leave (LWP)");
-    console.log(takenLeaveRequests);
+    const unpaidLeaveRequest = emp.leaveApplication.filter((leave) => leave.leaveType.includes("Unpaid Leave"))
 
     // Calculate total taken leave count
     takenLeaveRequests.forEach((leave) => totalTakenLeaveCount += Math.ceil(getDayDifference(leave)));
+    unpaidLeaveRequest.forEach((leave) => totalUnpaidLeaveCount += Math.ceil(getDayDifference(leave)))
 
     // Send response with employee details, pending leave requests, taken leave count, and colleagues
     res.send({
       ...emp.toObject(), // Ensure that you return a plain object, not a Mongoose document
       pendingLeaveRequests: pendingLeaveRequests?.length,
       totalTakenLeaveCount: Number(totalTakenLeaveCount?.toFixed(2)),
+      totalUnpaidLeaveCount,
       collegues: emp.team ? emp.team.employees : []
     });
 
   } catch (err) {
     console.log(err);
-
     res.status(500).send({ error: err.message });
   }
 });

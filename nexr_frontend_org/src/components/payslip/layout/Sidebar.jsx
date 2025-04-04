@@ -13,11 +13,9 @@ import adminIcon from '../../../asserts/adminIcon.svg';
 import fileIcon from "../../../asserts/file.svg";
 import folderIcon from "../../../asserts/folder.svg";
 import taskIcon from "../../../asserts/task.svg";
-import orgIcon from "../../../asserts/ORGANISATion.svg";
 import { EssentialValues } from '../../../App';
 import { jwtDecode } from 'jwt-decode';
 import { TimerStates } from '../HRMDashboard';
-import ArrowCircleRightRoundedIcon from '@mui/icons-material/ArrowCircleRightRounded';
 
 const Sidebar = ({ sideBar }) => {
   const { data, whoIs, handleLogout } = useContext(EssentialValues);
@@ -29,7 +27,6 @@ const Sidebar = ({ sideBar }) => {
     Attendance, Administration, Settings
   } = decodedData?.roleData?.pageAuth;
   const param = useParams();
-  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
 
   const [activeSubmenu, setActiveSubmenu] = useState(param['*']);
   const [activeNavLink, setActiveNavLink] = useState();
