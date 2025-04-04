@@ -31,6 +31,8 @@ const LeaveRequestForm = () => {
   const [employees, setEmployees] = useState([]);
   const [isWorkingApi, setIsWorkingApi] = useState(false);
   const [colleguesTask, setColleguesTask] = useState([]);
+  const [options, setOptions] = useState([]);
+  const now = new Date()
 
   let leaveObj = {
     leaveType: "",
@@ -52,7 +54,7 @@ const LeaveRequestForm = () => {
           const { leaveType } = this.parent;
           // Accessing another field
           if (!["Permission Leave", "Sick Leave", "Medical Leave"].includes(leaveType) && value) {
-            return value >= new Date(); // Ensure the date is in the future
+            return value >= now; // Ensure the date is in the future
           }
           return true;
         }
@@ -124,8 +126,8 @@ const LeaveRequestForm = () => {
       if (error === "") {
         const formData = new FormData();
         formData.append("leaveType", formik.values.leaveType);
-        formData.append("fromDate", new Date(formik.values.fromDate).toISOString());
-        formData.append("toDate", new Date(formik.values.toDate).toISOString());
+        formData.append("fromDate", formik.values.fromDate);
+        formData.append("toDate", formik.values.toDate);
         formData.append("periodOfLeave", formik.values.periodOfLeave);
         formData.append("reasonForLeave", formik.values.reasonForLeave);
         formData.append("prescription", prescriptionFile); // Assuming `file` is the file object
@@ -153,15 +155,22 @@ const LeaveRequestForm = () => {
       }
     },
   });
+  useEffect(() => {
+    if (collegues.length) {
+      setOptions(collegues.map((emp, index) => {
+        const empTasks = colleguesTask.filter((task) => task.assignedTo.includes(emp._id))
 
-  const options = collegues.map(emp => ({
-    value: emp._id,
-    label: (
-      <div className="d-flex justify-content-between align-items-center">
-        {emp.FirstName} <AddCircleOutlineRoundedIcon />
-      </div>
-    )
-  }));
+        return {
+          value: emp._id,
+          label: (
+            <div className="d-flex justify-content-between align-items-center">
+              {emp.FirstName} {empTasks.map((task) => <p>Task: <b>{task.title}</b> ({task.estTime})</p>)} <AddCircleOutlineRoundedIcon onClick={() => navigate(`${whoIs}/tasks`)} />
+            </div>
+          )
+        }
+      }))
+    }
+  }, [colleguesTask])
 
   useEffect(() => {
     if (formik.values.fromDate && formik.values.toDate) {
@@ -212,7 +221,7 @@ const LeaveRequestForm = () => {
 
         // Filter colleagues 
         const teamMembers = leaveReqs?.employee?.team?.employees?.filter((emp) => emp._id !== empId);
-        setCollegues(teamMembers || []);
+        setCollegues(teamMembers);
       } else {
         toast.error("empId is not loaded in the app.");
       }
@@ -261,18 +270,19 @@ const LeaveRequestForm = () => {
   useEffect(() => {
     async function fetchTeamMembersTask(fromDate, toDate) {
       try {
+
         const emps = collegues.map((col) => col._id)
+
         const res = await axios.post(`${url}/api/task/members`, {
-          collegues: emps,
+          collegues: [...emps, empId],
           dateRange: [fromDate, toDate]
         }, {
           headers: {
             Authorization: token || ""
           }
         })
-        console.log(res.data);
 
-        // setColleguesTask()
+        setColleguesTask(res.data)
       } catch (error) {
         console.log(error);
 
@@ -359,7 +369,9 @@ const LeaveRequestForm = () => {
                   className={`inputField ${formik.touched.fromDate && formik.errors.fromDate ? "error" : ""} w-100`}
                   selected={formik.values.fromDate}
                   onChange={(date) => formik.setFieldValue("fromDate", date)}
-                  minDate={new Date()}
+                  minDate={now}
+                  minTime={formik.values.leaveType === "Permission Leave" ? now : false}
+                  maxTime={formik.values.leaveType === "Permission Leave" ? new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59) : false}
                   excludeDates={excludedDates} />
 
                 {formik.touched.fromDate && formik.errors.fromDate ? (
@@ -374,7 +386,9 @@ const LeaveRequestForm = () => {
                   className={`inputField ${formik.touched.toDate && formik.errors.toDate ? "error" : ""}`}
                   selected={formik.values.toDate}
                   onChange={(date) => formik.setFieldValue("toDate", date)}
-                  minDate={new Date()}
+                  minDate={now}
+                  minTime={formik.values.leaveType === "Permission Leave" ? now : false}
+                  maxTime={formik.values.leaveType === "Permission Leave" ? new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59) : false}
                   excludeDates={excludedDates}
                 />
                 {formik.errors.toDate && formik.touched.toDate ? (
@@ -422,7 +436,7 @@ const LeaveRequestForm = () => {
             </div>
 
             {/* Select Relief Officer */}
-            <div className="my-3">
+            {/* <div className="my-3">
               <span className="inputLabel">Choose Relief Officer</span>
               <Select
                 name="coverBy"
@@ -430,7 +444,7 @@ const LeaveRequestForm = () => {
                 options={options}
                 onChange={(selectedOption) => formik.setFieldValue("coverBy", selectedOption.value)}
               />
-            </div>
+            </div> */}
 
             {/* Action buttons */}
             <div className="row gap-2 d-flex align-items-center justify-content-center my-4">

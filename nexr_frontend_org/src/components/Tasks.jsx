@@ -7,7 +7,6 @@ import axios from "axios";
 import { EssentialValues } from "../App";
 import "./projectndTask.css";
 import { toast } from "react-toastify";
-import Loading from "./Loader";
 import NoDataFound from "./payslip/NoDataFound";
 import { jwtDecode } from "jwt-decode";
 import { TimerStates } from "./payslip/HRMDashboard";

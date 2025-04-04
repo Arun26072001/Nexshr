@@ -166,7 +166,7 @@ const App = () => {
   }, []);
 
   useEffect(() => {
-    if (!isStartLogin) {
+    if (!isStartLogin && isLogin) {
       toaster.push(
         <Notification
           header={

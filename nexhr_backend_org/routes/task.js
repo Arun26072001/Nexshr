@@ -122,7 +122,7 @@ router.post("/members", verifyAdminHREmployeeManagerNetwork, async (req, res) =>
         const toDate = new Date(dateRange[1]);
         console.log(fromDate, toDate);
 
-        const taskData = await Task.find({ assignedTo: { $in: collegues }, from: { $gte: fromDate }, to: { $lte: toDate } });
+        const taskData = await Task.find({ assignedTo: { $in: collegues }, from: { $gte: fromDate, $lte: toDate } });
         console.log(taskData);
 
         return res.send(taskData)

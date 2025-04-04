@@ -2,6 +2,7 @@ const express = require("express");
 const { Employee } = require("../models/EmpModel");
 const { Payslip } = require("../models/PaySlipModel");
 const { getDayDifference, getWeekdaysOfCurrentMonth } = require("../Reuseable_functions/reusableFunction");
+const { Holiday } = require("../models/HolidayModel");
 const router = express.Router();
 
 router.get("/:id", async (req, res) => {
@@ -27,7 +28,7 @@ router.get("/:id", async (req, res) => {
 
 router.post("/", async (req, res) => {
   const now = new Date();
-  const startOfMonth = new Date(now.getFullYear(), now.getMonth() - 2, 1);
+  const startOfMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
   const endOfMonth = new Date(startOfMonth.getFullYear(), startOfMonth.getMonth() + 1, 0);
 
   try {
@@ -43,9 +44,11 @@ router.post("/", async (req, res) => {
         status: "approved"
       }
     }).exec();
+    const response = await Holiday.findOne({ currentYear: startOfMonth.getFullYear() }).exec();
+    const currentMonthOfLeaveDays = response.holidays.filter((holiday) => new Date(holiday.date).getMonth() === startOfMonth.getMonth()).map((item) => new Date(item.date).getDate())
 
     if (!employees.length) {
-      return res.status(404).json({ message: "No unpaid leave records found for this month" });
+      return res.status(404).json({ message: "No employees found" });
     }
     let unPayslipFieldsEmps = [];
     let payslipGendratedEmps = [];
@@ -53,7 +56,7 @@ router.post("/", async (req, res) => {
     const payslipPromises = employees.map(async (emp) => {
 
       if (emp.basicSalary && emp.payslipFields) {
-        const perDayOfSalary = emp.basicSalary ? Number(emp.basicSalary) / getWeekdaysOfCurrentMonth(startOfMonth.getFullYear(), startOfMonth.getMonth()) : 0;
+        const perDayOfSalary = emp.basicSalary ? Number(emp.basicSalary) / getWeekdaysOfCurrentMonth(startOfMonth.getFullYear(), startOfMonth.getMonth(), currentMonthOfLeaveDays) : 0;
         const leaveDays = emp.leaveApplication.reduce((total, leave) => total + getDayDifference(leave), 0);
 
         const payslip = {
@@ -62,7 +65,7 @@ router.post("/", async (req, res) => {
             LossOfPay: Number((leaveDays * perDayOfSalary).toFixed(2)),
             status: "pending",
             period: `${startOfMonth.toLocaleString("default", { month: "long" })} ${startOfMonth.getFullYear()}`,
-            paidDays: `${getWeekdaysOfCurrentMonth(startOfMonth.getFullYear(), startOfMonth.getMonth())}`
+            paidDays: `${getWeekdaysOfCurrentMonth(startOfMonth.getFullYear(), startOfMonth.getMonth(), currentMonthOfLeaveDays)}`
           },
           employee: emp._id
         };
