@@ -114,14 +114,22 @@ router.get("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
     }
 });
 
-router.get("/members", verifyAdminHREmployeeManagerNetwork, async(req, res)=>{
+router.post("/members", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
     try {
-        const {collegues, dateRange} = req.query;
+
+        const { dateRange, collegues } = req.body;
         const fromDate = new Date(dateRange[0]);
         const toDate = new Date(dateRange[1]);
-        const taskData = await Task.find({assignedTo: {$in: collegues}})
+        console.log(fromDate, toDate);
+
+        const taskData = await Task.find({ assignedTo: { $in: collegues }, from: { $gte: fromDate }, to: { $lte: toDate } });
+        console.log(taskData);
+
+        return res.send(taskData)
+
     } catch (error) {
-        
+        console.log(error);
+        return res.status(500).send({ error: error.message })
     }
 })
 

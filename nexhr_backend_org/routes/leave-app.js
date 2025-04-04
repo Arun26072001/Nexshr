@@ -317,11 +317,11 @@ leaveApp.get("/emp/:empId", verifyAdminHREmployeeManagerNetwork, async (req, res
       ...leave,
       prescription: leave.prescription ? `${process.env.REACT_APP_API_URL}/uploads/${leave.prescription}` : null
     });
-    // const colleagues = emp.team.employees.filter((emp) => emp._id !== req.params.empId)
+    const colleagues = emp.team.employees.filter((emp) => emp._id !== req.params.empId)
     res.json({
       employee: emp,
       leaveApplications: leaveApplications.sort((a, b) => new Date(a.fromDate) - new Date(b.fromDate)).map(changeActualImgData),
-      // colleagues,
+      colleagues,
       peopleOnLeave,
       peopleLeaveOnMonth: peopleLeaveOnMonth.map(changeActualImgData)
     });

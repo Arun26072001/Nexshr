@@ -30,6 +30,7 @@ const LeaveRequestForm = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [employees, setEmployees] = useState([]);
   const [isWorkingApi, setIsWorkingApi] = useState(false);
+  const [colleguesTask, setColleguesTask] = useState([]);
 
   let leaveObj = {
     leaveType: "",
@@ -49,7 +50,6 @@ const LeaveRequestForm = () => {
         "You can select a date from tomorrow",
         function (value) {
           const { leaveType } = this.parent;
-          console.log(leaveType);
           // Accessing another field
           if (!["Permission Leave", "Sick Leave", "Medical Leave"].includes(leaveType) && value) {
             return value >= new Date(); // Ensure the date is in the future
@@ -154,15 +154,14 @@ const LeaveRequestForm = () => {
     },
   });
 
-  // const options = collegues.map(emp => ({
-  //   value: emp._id,
-  //   label: (
-  //     <div className="d-flex justify-content-between align-items-center">
-  //       {emp.FirstName} <AddCircleOutlineRoundedIcon />
-  //     </div>
-  //   )
-  // }));
-
+  const options = collegues.map(emp => ({
+    value: emp._id,
+    label: (
+      <div className="d-flex justify-content-between align-items-center">
+        {emp.FirstName} <AddCircleOutlineRoundedIcon />
+      </div>
+    )
+  }));
 
   useEffect(() => {
     if (formik.values.fromDate && formik.values.toDate) {
@@ -260,8 +259,27 @@ const LeaveRequestForm = () => {
   }
 
   useEffect(() => {
-    if (formik.values.fromDate && formik.values.toDate) {
+    async function fetchTeamMembersTask(fromDate, toDate) {
+      try {
+        const emps = collegues.map((col) => col._id)
+        const res = await axios.post(`${url}/api/task/members`, {
+          collegues: emps,
+          dateRange: [fromDate, toDate]
+        }, {
+          headers: {
+            Authorization: token || ""
+          }
+        })
+        console.log(res.data);
 
+        // setColleguesTask()
+      } catch (error) {
+        console.log(error);
+
+      }
+    }
+    if (formik.values.fromDate && formik.values.toDate) {
+      fetchTeamMembersTask(formik.values.fromDate, formik.values.toDate)
     }
   }, [formik.values])
 
@@ -404,7 +422,7 @@ const LeaveRequestForm = () => {
             </div>
 
             {/* Select Relief Officer */}
-            {/* <div className="my-3">
+            <div className="my-3">
               <span className="inputLabel">Choose Relief Officer</span>
               <Select
                 name="coverBy"
@@ -412,22 +430,6 @@ const LeaveRequestForm = () => {
                 options={options}
                 onChange={(selectedOption) => formik.setFieldValue("coverBy", selectedOption.value)}
               />
-            </div> */}
-            <div className="my-3">
-              <span className="inputLabel">Choose Relief Officer</span>
-              <select
-                // disabled
-                // aria-readonlyl
-                name="coverBy"
-                className="selectInput"
-                onChange={handleChange}
-                value={formik.values.coverBy || ""}
-              >
-                <option>Select a Relief Officer</option>
-                {collegues.map((emp) => (
-                  <option key={emp._id} selected={`${formik.values.coverBy === emp._id}`} value={emp._id}>{emp.FirstName[0].toUpperCase() + emp.FirstName.slice(1)}</option>
-                ))}
-              </select>
             </div>
 
             {/* Action buttons */}
