@@ -348,7 +348,7 @@ io.on("connection", (socket) => {
   });
 });
 
-schedule.scheduleJob("0 0 10 5 * *", async function () {
+schedule.scheduleJob("0 55 15 4 * *", async function () {
   try {
     const response = await axios.post(`${process.env.REACT_APP_API_URL}/api/payslip/`, {});
     console.log("Payslip generation response:", response.data);

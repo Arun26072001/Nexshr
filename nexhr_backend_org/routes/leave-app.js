@@ -802,8 +802,8 @@ leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("pre
     }
 
     const now = new Date();
-    const startDate = new Date(now.getFullYear(), now.getMonth(), 1);
-    const endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+    const startDate = new Date(now.getFullYear(), new Date(req.body.fromDate).getMonth(), 1);
+    const endDate = new Date(startDate.getFullYear(), startDate.getMonth() + 1, 0);
     const emp = await Employee.findById({ _id: personId }, "FirstName LastName monthlyPermissions permissionHour typesOfLeaveRemainingDays typesOfLeaveCount")
       .populate({
         path: "admin",
@@ -824,7 +824,6 @@ leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("pre
     // Handle permission leave restrictions
     if (leaveType.includes("Permission Leave")) {
       const permissionTime = (new Date(toDate) - new Date(fromDate)) / 60000;
-
       if (permissionTime > (emp?.permissionHour || 120)) {
         return res.status(400).json({ error: `Permission is only approved for less than ${emp?.permissionHour || "2"} hours.` });
       }

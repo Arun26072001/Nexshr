@@ -26,7 +26,7 @@ function getDayDifference(leave) {
 }
 
 
-function getWeekdaysOfCurrentMonth(year, month) {// 0-based index (0 = January)
+function getWeekdaysOfCurrentMonth(year, month, holidays) {// 0-based index (0 = January)
   const weekdays = [];
   const daysInMonth = new Date(year, month + 1, 0).getDate(); // Get total days in month
 
@@ -35,7 +35,7 @@ function getWeekdaysOfCurrentMonth(year, month) {// 0-based index (0 = January)
     const dayOfWeek = currentDate.getDay(); // 0 = Sunday, 6 = Saturday
 
     // Check if it's a weekday (Monday to Friday)
-    if (dayOfWeek >= 1 && dayOfWeek <= 5) {
+    if (dayOfWeek >= 1 && dayOfWeek <= 5 && !holidays.includes(day)) {
       weekdays.push(currentDate);
     }
   }
