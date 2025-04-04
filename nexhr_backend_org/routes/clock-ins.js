@@ -388,10 +388,10 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
                         </html>`;
                 } else {
                     // Allow Permission Leave (1st or 2nd)
-                    const toDateTime = new Date(now.getTime() + 2 * 60 * 60 * 1000);
+                    const toDateTime = new Date(today.getTime() + 2 * 60 * 60 * 1000);
                     leaveAppData = {
                         leaveType: "Permission Leave",
-                        fromDate: now,
+                        fromDate: today,
                         toDate: toDateTime,
                         periodOfLeave: "half day",
                         reasonForLeave: "Came too late",
