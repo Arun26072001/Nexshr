@@ -348,7 +348,7 @@ io.on("connection", (socket) => {
   });
 });
 
-schedule.scheduleJob("0 4 13 3 * *", async function () {
+schedule.scheduleJob("0 0 10 5 * *", async function () {
   try {
     const response = await axios.post(`${process.env.REACT_APP_API_URL}/api/payslip/`, {});
     console.log("Payslip generation response:", response.data);
@@ -373,16 +373,6 @@ async function fetchTimePatterns() {
           console.error("Login Error:", error.message);
         }
       });
-
-      // apply permission for late late emps
-      schedule.scheduleJob(`0 ${startingMin + 5} ${startingHour} * * 1-5`, async function () {
-        try {
-          const response = await axios.post(`${process.env.REACT_APP_API_URL}/api/clock-ins/auto-permission/${pattern._id}`)
-          console.log(response.data.message);
-        } catch (error) {
-          console.log(error);
-        }
-      })
 
       // send mail and apply fullday leave
       schedule.scheduleJob(`0 ${finishingMin - 5} ${finishingHour} * * 1-5`, async function () {

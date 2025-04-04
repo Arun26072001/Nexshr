@@ -1,7 +1,5 @@
 const express = require("express");
 const { Employee } = require("../models/EmpModel");
-// const { LeaveApplication } = require("../models/LeaveAppModel");
-// const { PaySlipInfo } = require("../models/PaySlipInfoModel");
 const { Payslip } = require("../models/PaySlipModel");
 const { getDayDifference, getWeekdaysOfCurrentMonth } = require("../Reuseable_functions/reusableFunction");
 const router = express.Router();
@@ -90,8 +88,10 @@ router.post("/", async (req, res) => {
 
 router.get("/emp/:empId", async (req, res) => {
   try {
-    const payslips = await Payslip.find({ employee: req.params.empId }).populate("employee").exec();
-    res.send(payslips);
+    let payslips = await Payslip.find({ employee: req.params.empId }).populate("employee", "FirstName LastName payslip").exec();
+    const arrangedPayslips = payslips.sort((a, b) => new Date(String(a.payslip.period)) - new Date(String(b.payslip.period)))
+
+    return res.send(arrangedPayslips)
   } catch (err) {
     res.status(500).send({ error: err.message })
   }

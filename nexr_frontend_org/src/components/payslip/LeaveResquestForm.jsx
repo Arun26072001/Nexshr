@@ -11,6 +11,8 @@ import DatePicker from "react-datepicker";
 import TextEditor from "./TextEditor";
 import { EssentialValues } from "../../App";
 import Loading from "../Loader";
+import Select from "react-select";
+import AddCircleOutlineRoundedIcon from '@mui/icons-material/AddCircleOutlineRounded';
 
 const LeaveRequestForm = () => {
   const url = process.env.REACT_APP_API_URL;
@@ -28,6 +30,7 @@ const LeaveRequestForm = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [employees, setEmployees] = useState([]);
   const [isWorkingApi, setIsWorkingApi] = useState(false);
+  const [colleguesTask, setColleguesTask] = useState([]);
 
   let leaveObj = {
     leaveType: "",
@@ -47,7 +50,6 @@ const LeaveRequestForm = () => {
         "You can select a date from tomorrow",
         function (value) {
           const { leaveType } = this.parent;
-          console.log(leaveType);
           // Accessing another field
           if (!["Permission Leave", "Sick Leave", "Medical Leave"].includes(leaveType) && value) {
             return value >= new Date(); // Ensure the date is in the future
@@ -151,7 +153,15 @@ const LeaveRequestForm = () => {
       }
     },
   });
-  console.log(formik.values);
+
+  const options = collegues.map(emp => ({
+    value: emp._id,
+    label: (
+      <div className="d-flex justify-content-between align-items-center">
+        {emp.FirstName} <AddCircleOutlineRoundedIcon />
+      </div>
+    )
+  }));
 
   useEffect(() => {
     if (formik.values.fromDate && formik.values.toDate) {
@@ -229,7 +239,6 @@ const LeaveRequestForm = () => {
   }
 
   function getFileData(e) {
-    console.log(e.target.files);
 
     setPrescriptionFile(e.target.files[0])
   }
@@ -248,6 +257,31 @@ const LeaveRequestForm = () => {
       console.log(error);
     }
   }
+
+  useEffect(() => {
+    async function fetchTeamMembersTask(fromDate, toDate) {
+      try {
+        const emps = collegues.map((col) => col._id)
+        const res = await axios.post(`${url}/api/task/members`, {
+          collegues: emps,
+          dateRange: [fromDate, toDate]
+        }, {
+          headers: {
+            Authorization: token || ""
+          }
+        })
+        console.log(res.data);
+
+        // setColleguesTask()
+      } catch (error) {
+        console.log(error);
+
+      }
+    }
+    if (formik.values.fromDate && formik.values.toDate) {
+      fetchTeamMembersTask(formik.values.fromDate, formik.values.toDate)
+    }
+  }, [formik.values])
 
   useEffect(() => {
     async function gettingHoliday() {
@@ -390,17 +424,12 @@ const LeaveRequestForm = () => {
             {/* Select Relief Officer */}
             <div className="my-3">
               <span className="inputLabel">Choose Relief Officer</span>
-              <select
+              <Select
                 name="coverBy"
-                className="selectInput"
-                onChange={formik.handleChange}
-                value={formik.values.coverBy}
-              >
-                <option>Select a Relief Officer</option>
-                {collegues?.map((emp) => (
-                  <option value={emp._id}>{emp.FirstName}</option>
-                ))}
-              </select>
+                // className="selectInput"
+                options={options}
+                onChange={(selectedOption) => formik.setFieldValue("coverBy", selectedOption.value)}
+              />
             </div>
 
             {/* Action buttons */}

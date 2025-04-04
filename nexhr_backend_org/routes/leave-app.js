@@ -317,11 +317,11 @@ leaveApp.get("/emp/:empId", verifyAdminHREmployeeManagerNetwork, async (req, res
       ...leave,
       prescription: leave.prescription ? `${process.env.REACT_APP_API_URL}/uploads/${leave.prescription}` : null
     });
-    // const colleagues = emp.team.employees.filter((emp) => emp._id !== req.params.empId)
+    const colleagues = emp.team.employees.filter((emp) => emp._id !== req.params.empId)
     res.json({
       employee: emp,
       leaveApplications: leaveApplications.sort((a, b) => new Date(a.fromDate) - new Date(b.fromDate)).map(changeActualImgData),
-      // colleagues,
+      colleagues,
       peopleOnLeave,
       peopleLeaveOnMonth: peopleLeaveOnMonth.map(changeActualImgData)
     });
@@ -865,6 +865,22 @@ leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("pre
     if (error) {
       console.error("Validation Error:", error);
       return res.status(400).json({ error: error.message });
+    }
+
+    // check reliving officer is leave on the day
+    if (req.body.coverBy) {
+      const empData = await Employee.findById(req.body.coverBy, "leaveApplication FirstName LastName")
+        .populate({
+          path: "leaveApplication",
+          match: {
+            fromDate: { $gte: startDate },
+            toDate: { $lte: endDate },
+            leaveType: { $ne: "Permission Leave" }
+          }
+        })
+      if (empData.leaveApplication.length) {
+        return res.status(400).send({ error: `${empData.FirstName} is Leave on the date` })
+      }
     }
 
     // Save leave request and update employee leave list
