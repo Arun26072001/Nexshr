@@ -10,79 +10,104 @@ const { upload } = require('./imgUpload');
 const now = new Date();
 const sendMail = require("./mailSender");
 const { getDayDifference, mailContent, formatLeaveData } = require('../Reuseable_functions/reusableFunction');
+const { Task } = require('../models/TaskModel');
 
 // Helper function to generate leave request email content
-function generateLeaveEmail(empData, fromDateValue, toDateValue, reasonForLeave, leaveType) {
+function generateLeaveEmail(empData, fromDateValue, toDateValue, reasonForLeave, leaveType, deadLineTask = []) {
+  const fromDate = new Date(fromDateValue);
+  const toDate = new Date(toDateValue);
+
+  const formattedFromDate = `${fromDate.toLocaleString("default", { month: "long" })} ${fromDate.getDate()}, ${fromDate.getFullYear()}`;
+  const formattedToDate = `${toDate.toLocaleString("default", { month: "long" })} ${toDate.getDate()}, ${toDate.getFullYear()}`;
+
+  const deadlineTasksHtml = deadLineTask.length
+    ? `
+      <h3 style="text-align:center;margin: 10px 0;">${empData.FirstName} ${empData.LastName} has ${deadLineTask.length} deadline task(s)</h3>
+      ${deadLineTask
+      .map(
+        (task) =>
+          `<p><b>${task.title}</b> (${task.status}): (${task.from} - ${task.to})</p>`
+      )
+      .join("")}
+    `
+    : "";
+
   return `
   <!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>NexsHR - Leave Application</title>
-</head>
-<body style="font-family: Arial, sans-serif; background-color: #f6f9fc; color: #333; margin: 0; padding: 0;">
-  <div style="max-width: 500px; margin: auto; padding: 20px; background-color: #fff; border-radius: 8px;
-              box-shadow: rgba(0, 0, 0, 0.02) 0px 1px 3px 0px, rgba(27, 31, 35, 0.15) 0px 0px 0px 1px;">
-    
-    <!-- Header -->
-    <div style="text-align: center; padding: 20px;">
-      <img src="https://imagedelivery.net/r89jzjNfZziPHJz5JXGOCw/1dd59d6a-7b64-49d7-ea24-1366e2f48300/public"
-           alt="Company Logo" style="max-width: 100px;" />
-      <h1 style="font-size: 20px; margin: 10px 0;">Leave Application (${leaveType} from ${new Date(fromDateValue).toLocaleString("default", { month: "long" })} ${new Date(fromDateValue).getDate()}, ${new Date(fromDateValue).getFullYear()} 
-      to ${new Date(toDateValue).toLocaleString("default", { month: "long" })} ${new Date(toDateValue).getDate()}, ${new Date(toDateValue).getFullYear()})</h1>
-      <h2 style="font-size: 16px; margin: 5px 0; color: #555;">Submitted by: ${empData.FirstName} ${empData.LastName}</h2>
-    </div>
+  <html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>NexsHR - Leave Application</title>
+  </head>
+  <body style="font-family: Arial, sans-serif; background-color: #f6f9fc; color: #333; margin: 0; padding: 0;">
+    <div style="max-width: 500px; margin: auto; padding: 20px; background-color: #fff; border-radius: 8px;
+                box-shadow: rgba(0, 0, 0, 0.02) 0px 1px 3px 0px, rgba(27, 31, 35, 0.15) 0px 0px 0px 1px;">
+      
+      <!-- Header -->
+      <div style="text-align: center; padding: 20px;">
+        <img src="https://imagedelivery.net/r89jzjNfZziPHJz5JXGOCw/1dd59d6a-7b64-49d7-ea24-1366e2f48300/public"
+             alt="Company Logo" style="max-width: 100px;" />
+        <h1 style="font-size: 20px; margin: 10px 0;">
+          Leave Application (${leaveType} from ${formattedFromDate} to ${formattedToDate})
+        </h1>
+        <h2 style="font-size: 16px; margin: 5px 0; color: #555;">
+          Submitted by: ${empData.FirstName} ${empData.LastName}
+        </h2>
+      </div>
 
-    <!-- Content -->
-    <div style="margin: 20px 0; padding: 10px;">
-      <p style="font-size: 14px; margin: 10px 0;"><strong>Reason for Leave:</strong> ${reasonForLeave}</p>
-      <p style="font-size: 14px; margin: 10px 0;">Kindly review and respond accordingly.</p>
-      <p style="font-size: 14px; margin: 10px 0;">Thank you!</p>
-    </div>
+      ${deadlineTasksHtml}
 
-    <!-- Footer -->
-    <div style="text-align: center; padding-top: 15px; border-top: 1px solid #ddd; margin-top: 20px;">
-      <p style="font-size: 12px; color: #777;">&copy; ${new Date().getFullYear()} NexsHR. All rights reserved.</p>
+      <!-- Content -->
+      <div style="margin: 20px 0; padding: 10px;">
+        <p style="font-size: 14px; margin: 10px 0;"><strong>Reason for Leave:</strong> ${reasonForLeave}</p>
+        <p style="font-size: 14px; margin: 10px 0;">Kindly review and respond accordingly.</p>
+        <p style="font-size: 14px; margin: 10px 0;">Thank you!</p>
+      </div>
+
+      <!-- Footer -->
+      <div style="text-align: center; padding-top: 15px; border-top: 1px solid #ddd; margin-top: 20px;">
+        <p style="font-size: 12px; color: #777;">&copy; ${new Date().getFullYear()} NexsHR. All rights reserved.</p>
+      </div>
     </div>
-  </div>
-</body>
-</html>
-`;
+  </body>
+  </html>
+  `;
 }
+
 
 // Helper function to generate coverBy email content
 function generateCoverByEmail(empData, relievingOffData) {
   return `
-    <!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>NexsHR - Task Assignment</title>
-</head>
-<body style="font-family: Arial, sans-serif; background-color: #f6f9fc; color: #333; margin: 0; padding: 0;">
-  <div style="max-width: 600px; margin: 20px auto; padding: 20px; background-color: #fff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);">
-    <div style="text-align: center; padding: 20px;">
-      <img src="https://imagedelivery.net/r89jzjNfZziPHJz5JXGOCw/1dd59d6a-7b64-49d7-ea24-1366e2f48300/public" alt="Company Logo" style="max-width: 100px;" />
-      <h1 style="margin: 0;">Task Assignment Notification</h1>
-    </div>
+  < !DOCTYPE html >
+    <html lang="en">
+      <head>
+        <meta charset="UTF-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>NexsHR - Task Assignment</title>
+          </head>
+          <body style="font-family: Arial, sans-serif; background-color: #f6f9fc; color: #333; margin: 0; padding: 0;">
+            <div style="max-width: 600px; margin: 20px auto; padding: 20px; background-color: #fff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);">
+              <div style="text-align: center; padding: 20px;">
+                <img src="https://imagedelivery.net/r89jzjNfZziPHJz5JXGOCw/1dd59d6a-7b64-49d7-ea24-1366e2f48300/public" alt="Company Logo" style="max-width: 100px;" />
+                <h1 style="margin: 0;">Task Assignment Notification</h1>
+              </div>
 
-    <div style="margin: 20px 0; font-size: 16px; line-height: 1.5;">
-      <p>Hi <strong>${relievingOffData.FirstName}</strong>,</p>
-      <p><strong>${empData.FirstName}</strong> has assigned some tasks to you during their leave.</p>
-      <p>Please ensure the assigned tasks are completed as required.</p>
-      <p>Let us know if you need any assistance.</p>
-      <p>Thank you!</p>
-    </div>
+              <div style="margin: 20px 0; font-size: 16px; line-height: 1.5;">
+                <p>Hi <strong>${relievingOffData.FirstName}</strong>,</p>
+                <p><strong>${empData.FirstName}</strong> has assigned some tasks to you during their leave.</p>
+                <p>Please ensure the assigned tasks are completed as required.</p>
+                <p>Let us know if you need any assistance.</p>
+                <p>Thank you!</p>
+              </div>
 
-    <div style="text-align: center; font-size: 14px; margin-top: 20px; color: #777;">
-      <p>&copy; ${new Date().getFullYear()} NexsHR. All rights reserved.</p>
-    </div>
-  </div>
-</body>
-</html>
-  `;
+              <div style="text-align: center; font-size: 14px; margin-top: 20px; color: #777;">
+                <p>&copy; ${new Date().getFullYear()} NexsHR. All rights reserved.</p>
+              </div>
+            </div>
+          </body>
+        </html>
+        `;
 }
 
 leaveApp.get("/make-know", async (req, res) => {
@@ -107,7 +132,7 @@ leaveApp.get("/make-know", async (req, res) => {
       })
       .exec();
 
-    // const { fromDate, toDate, reasonForLeave } = req.body; // Destructure request body
+    // const {fromDate, toDate, reasonForLeave} = req.body; // Destructure request body
 
     for (const empData of leaveApps) {
       if (!empData.employee?.team) continue; // Skip if team data is missing
@@ -118,34 +143,34 @@ leaveApp.get("/make-know", async (req, res) => {
       const htmlContent = `
         <!DOCTYPE html>
         <html lang="en">
-        <head>
-          <meta charset="UTF-8">
-          <meta name="viewport" content="width=device-width, initial-scale=1.0">
-          <title>NexsHR</title>
-          <style>
-            body { font-family: Arial, sans-serif; background-color: #f6f9fc; color: #333; }
-            .container { max-width: 600px; margin: auto; padding: 20px; background-color: #fff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); }
-            .header { text-align: center; padding: 20px; }
-            .header img { max-width: 100px; }
-            .content { margin: 20px 0; }
-            .footer { text-align: center; font-size: 14px; margin-top: 20px; color: #777; }
-          </style>
-        </head>
-        <body>
-          <div class="container">
-            <div class="header">
-              <img src="https://imagedelivery.net/r89jzjNfZziPHJz5JXGOCw/1dd59d6a-7b64-49d7-ea24-1366e2f48300/public" alt="Logo" />
-              <h1>${empData.employee.FirstName} ${empData.employee.LastName} has applied for leave From ${empData.fromDate} To ${empData.toDate}</h1>
-            </div>
-            <div class="content">
-                <p>Hi all,</p>
-                <p>I have applied for leave From ${empData.fromDate} To ${empData.toDate} due To ${empData.reasonForLeave}. Please respond To this request.</p>
-                <p>Thank you!</p>
-            </div>
-          </div>
-        </body>
-        </html>
-      `;
+          <head>
+            <meta charset="UTF-8">
+              <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <title>NexsHR</title>
+                <style>
+                  body {font - family: Arial, sans-serif; background-color: #f6f9fc; color: #333; }
+                  .container {max - width: 600px; margin: auto; padding: 20px; background-color: #fff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); }
+                  .header {text - align: center; padding: 20px; }
+                  .header img {max - width: 100px; }
+                  .content {margin: 20px 0; }
+                  .footer {text - align: center; font-size: 14px; margin-top: 20px; color: #777; }
+                </style>
+              </head>
+              <body>
+                <div class="container">
+                  <div class="header">
+                    <img src="https://imagedelivery.net/r89jzjNfZziPHJz5JXGOCw/1dd59d6a-7b64-49d7-ea24-1366e2f48300/public" alt="Logo" />
+                    <h1>${empData.employee.FirstName} ${empData.employee.LastName} has applied for leave From ${empData.fromDate} To ${empData.toDate}</h1>
+                  </div>
+                  <div class="content">
+                    <p>Hi all,</p>
+                    <p>I have applied for leave From ${empData.fromDate} To ${empData.toDate} due To ${empData.reasonForLeave}. Please respond To this request.</p>
+                    <p>Thank you!</p>
+                  </div>
+                </div>
+              </body>
+            </html>
+            `;
 
       const mailList = [lead?.Email, head?.Email];
 
@@ -224,11 +249,11 @@ leaveApp.put("/reject-leave", async (req, res) => {
         const employee = leave.employeeDetails[0]; // ✅ Fix employeeDetails array access
 
         const htmlContent = `
-           <p>Hi ${employee?.FirstName || "Employee"},</p>
-           <p>Your leave application has been rejected by higher authority.</p>
-           <p style="color: red; font-weight: bold;">If you take leave, It will deduct your salary!</p>
-           <p>Thank you!</p>
-        `;
+            <p>Hi ${employee?.FirstName || "Employee"},</p>
+            <p>Your leave application has been rejected by higher authority.</p>
+            <p style="color: red; font-weight: bold;">If you take leave, It will deduct your salary!</p>
+            <p>Thank you!</p>
+            `;
 
         sendMail({
           From: process.env.FROM_MAIL,
@@ -317,11 +342,11 @@ leaveApp.get("/emp/:empId", verifyAdminHREmployeeManagerNetwork, async (req, res
       ...leave,
       prescription: leave.prescription ? `${process.env.REACT_APP_API_URL}/uploads/${leave.prescription}` : null
     });
-    const colleagues = emp.team.employees.filter((emp) => emp._id !== req.params.empId)
+    // const colleagues = emp.team.employees.filter((emp) => emp._id !== req.params.empId)
     res.json({
       employee: emp,
       leaveApplications: leaveApplications.sort((a, b) => new Date(a.fromDate) - new Date(b.fromDate)).map(changeActualImgData),
-      colleagues,
+      // colleagues,
       peopleOnLeave,
       peopleLeaveOnMonth: peopleLeaveOnMonth.map(changeActualImgData)
     });
@@ -331,7 +356,6 @@ leaveApp.get("/emp/:empId", verifyAdminHREmployeeManagerNetwork, async (req, res
     res.status(500).json({ message: "Internal server error", details: err.message });
   }
 });
-
 
 leaveApp.get("/hr", verifyHR, async (req, res) => {
   try {
@@ -858,6 +882,8 @@ leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("pre
         return res.status(400).json({ error: `${leaveType} limit reached.` });
       }
     }
+    // check has any deadline task on leaveDays
+    const deadLineTasks = await Task.find({ assignedTo: { $in: req.params.empId }, to: { $gte: fromDate, $lte: toDate } });
 
     // Validate leave request schema
     const { error } = LeaveApplicationValidation.validate(leaveRequest);
@@ -899,7 +925,7 @@ leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("pre
       From: process.env.FROM_MAIL,
       To: mailList.join(","),
       Subject: "Leave Application Notification",
-      HtmlBody: generateLeaveEmail(emp, fromDate, toDate, reasonForLeave, leaveType),
+      HtmlBody: generateLeaveEmail(emp, fromDate, toDate, reasonForLeave, leaveType, deadLineTasks),
     });
 
     // If coverBy is assigned, notify the relieving officer
