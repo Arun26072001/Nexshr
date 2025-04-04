@@ -319,80 +319,11 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
         const loginTimeRaw = req.body?.login?.startingTime?.[0];
         if (!loginTimeRaw) return res.status(400).send({ error: "You must start Punch-in Timer" });
 
-        // Handle permission leave & apply half-day leave if exceeded
-        // if (emp?.leaveApplication.length > 0) {
-        //     const leave = emp.leaveApplication[0];
-        //     const totalPermissionMinutes = (new Date(leave.toDate).getTime() - new Date(leave.fromDate).getTime()) / 60000;
-        //     const companyLoginMinutes = timeToMinutes(officeLoginTime);
-        //     const empLoginMinutes = timeToMinutes(loginTimeRaw);
-
-        //     if (companyLoginMinutes + totalPermissionMinutes < empLoginMinutes) {
-        //         const halfDayLeaveApp = {
-        //             leaveType: "Unpaid Leave (LWP)",
-        //             fromDate: today,
-        //             toDate: today,
-        //             periodOfLeave: "half day",
-        //             reasonForLeave: "Came too late",
-        //             prescription: "",
-        //             employee: emp._id,
-        //             coverBy: null,
-        //             status: "approved",
-        //             TeamLead: "approved",
-        //             TeamHead: "approved",
-        //             Hr: "approved",
-        //             approvedOn: null,
-        //             approverId: []
-        //         };
-        //         const deletePermission = await LeaveApplication.findByIdAndDelete(leave._id);
-        //         const removedPermissionLeaves = emp.leaveApplication.filter((leave) => leave !== leave._id)
-        //         emp.leaveApplication = removedPermissionLeaves;
-        //         const addLeave = await LeaveApplication.create(halfDayLeaveApp);
-        //         emp.leaveApplication.push(addLeave._id);
-        //         await emp.save();
-
-        //         // Send email notification
-        //         const htmlContent = `
-        //         <html>
-        //             <head>
-        //                 <style>
-        //                     body { font-family: Arial, sans-serif; background-color: #f6f9fc; color: #333; }
-        //                     .container { max-width: 600px; margin: auto; padding: 20px; background-color: #fff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); }
-        //                     .content { margin: 20px 0; }
-        //                     .footer { text-align: center; font-size: 14px; margin-top: 20px; color: #777; }
-        //                 </style>
-        //             </head>
-        //             <body>
-        //                 <div class="container">
-        //                     <div class="content">
-        //                         <h2 class="center_text">You arrived much later than your permitted time.</h2>
-        //                         <p>
-        //                             As a result, a half-day leave has been applied.  
-        //                             Moving forward, please ensure you arrive on time by **${emp.workingTimePattern.StartingTime}**.  
-        //                             Kindly adhere to company policies.  
-        //                             **Thank you!**
-        //                         </p>
-        //                     </div>
-        //                     <div class="footer">
-        //                         <p>Need help? <a href="mailto:webnexs29@gmail.com">Contact our support team</a>.</p>
-        //                     </div>
-        //                 </div>
-        //             </body>
-        //         </html>`;
-
-        //         sendMail({
-        //             From: process.env.FROM_MAIL,
-        //             To: emp.Email,
-        //             Subject: `Half-day Leave Applied (Unpaid Leave - LWP)`,
-        //             HtmlBody: htmlContent,
-        //         });
-        //     }
-        // }
-
         const companyLoginMinutes = timeToMinutes(officeLoginTime);
         const empLoginMinutes = timeToMinutes(loginTimeRaw);
         if (companyLoginMinutes < empLoginMinutes) {
             const timeDiff = empLoginMinutes - companyLoginMinutes;
-            const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+            const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
             const endOfMonth = new Date();
 
             if (timeDiff > 120 && timeDiff < 240) {

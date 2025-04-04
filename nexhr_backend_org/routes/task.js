@@ -5,6 +5,7 @@ const { Project } = require("../models/ProjectModel");
 const { Employee } = require("../models/EmpModel");
 const sendMail = require("./mailSender");
 const { convertToString, getCurrentTimeInMinutes, timeToMinutes, formatTimeFromMinutes } = require("../Reuseable_functions/reusableFunction");
+const { Team } = require("../models/TeamModel");
 const router = express.Router();
 
 router.get("/project/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
@@ -16,7 +17,6 @@ router.get("/project/:id", verifyAdminHREmployeeManagerNetwork, async (req, res)
         if (tasks.length === 0) {
             return res.status(200).send({ tasks: [] })
         }
-
         const timeUpdatedTasks = tasks.map((task) => {
             if (!task?.spend) return task; // Ensure spend exists
 
@@ -113,6 +113,17 @@ router.get("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
         res.status(500).send({ error: error.message });
     }
 });
+
+router.get("/members", verifyAdminHREmployeeManagerNetwork, async(req, res)=>{
+    try {
+        const {collegues, dateRange} = req.query;
+        const fromDate = new Date(dateRange[0]);
+        const toDate = new Date(dateRange[1]);
+        const taskData = await Task.find({assignedTo: {$in: collegues}})
+    } catch (error) {
+        
+    }
+})
 
 router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
     try {

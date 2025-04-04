@@ -1,7 +1,5 @@
 const express = require("express");
 const { Employee } = require("../models/EmpModel");
-// const { LeaveApplication } = require("../models/LeaveAppModel");
-// const { PaySlipInfo } = require("../models/PaySlipInfoModel");
 const { Payslip } = require("../models/PaySlipModel");
 const { getDayDifference, getWeekdaysOfCurrentMonth } = require("../Reuseable_functions/reusableFunction");
 const router = express.Router();
