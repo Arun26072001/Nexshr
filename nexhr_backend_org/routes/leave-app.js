@@ -281,7 +281,6 @@ leaveApp.get("/emp/:empId", verifyAdminHREmployeeManagerNetwork, async (req, res
     let emp = await Employee.findById(empId,
       "annualLeaveYearStart position FirstName LastName Email phone typesOfLeaveCount typesOfLeaveRemainingDays team"
     ).populate([{ path: "position", select: "PositionName" }, { path: "team", populate: { path: "employees", select: "FirstName LastName Email phone" } }]).lean();
-    console.log("empData", emp);
 
     if (!emp) return res.status(404).json({ message: "Employee not found!" });
 
@@ -842,7 +841,7 @@ leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("pre
     }
 
     // 3. Permission Leave Validation
-    if (leaveType === "Permission Leave") {
+    if (leaveType?.toLowerCase()?.includes("permission")) {
       const duration = (new Date(toDate) - new Date(fromDate)) / 60000;
       if (duration > (emp?.permissionHour || 120)) {
         return res.status(400).json({ error: `Permission is only allowed for less than ${emp?.permissionHour || "2"} hours.` });
@@ -877,7 +876,7 @@ leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("pre
 
     const takenLeaveCount = approvedLeaves.reduce((acc, leave) => acc + getDayDifference(leave), 0);
     const leaveBalance = emp.typesOfLeaveRemainingDays?.[leaveType] || 0;
-    if (leaveType !== "Permission Leave") {
+    if (!leaveType.toLowerCase().includes("permission")) {
       if (leaveBalance < takenLeaveCount) {
         return res.status(400).json({ error: `${leaveType} limit has been reached.` });
       }
