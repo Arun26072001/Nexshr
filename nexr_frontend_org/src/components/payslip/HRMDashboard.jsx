@@ -155,13 +155,11 @@ export default function HRMDashboard() {
 
     //change reason for early(login) input field
     function changeReasonForEarly(value, name) {
-        console.log(name, value);
-
         setWorkTimeTracker((pre) => ({
             ...pre,
             "login": {
                 ...pre?.["login"],
-                [name]: value
+                [name]: value.trim()
             }
         }))
     }
@@ -210,7 +208,7 @@ export default function HRMDashboard() {
     };
 
     const stopLoginTimer = async (timeHolderData) => {
-        // trackTimer();
+        trackTimer();
         const currentTime = new Date().toTimeString().split(' ')[0];
         const updatedState = {
             ...workTimeTracker,

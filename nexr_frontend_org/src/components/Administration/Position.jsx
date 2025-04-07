@@ -63,7 +63,7 @@ export default function Position({ companies }) {
             reloadPositionPage();
         } catch (error) {
             console.error("Error deleting position:", error);
-            toast.error(error?.response?.data?.message || "Failed to delete position");
+            toast.error(error?.response?.data?.error || "Failed to delete position");
         }
     }
 

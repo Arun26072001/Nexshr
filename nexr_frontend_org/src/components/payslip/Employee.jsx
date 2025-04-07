@@ -55,8 +55,6 @@ export default function Employee() {
         setIsLoading(true);
         try {
             const empData = await fetchEmployees();
-            console.log(empData);
-
             const withoutMyData = empData?.filter((emp) => emp._id !== data._id)
             setEmployees(withoutMyData);
             setAllEmployees(withoutMyData);
@@ -93,7 +91,7 @@ export default function Employee() {
                 }
             })
             setEmployees(res.data)
-
+            setAllEmployees(res.data)
         } catch (error) {
             console.log(error);
 
@@ -115,6 +113,7 @@ export default function Employee() {
         }
     }, [isModifyEmps]);
 
+
     // Filter employees when `empName` changes
     useEffect(() => {
         function filterEmployees() {
@@ -126,6 +125,7 @@ export default function Employee() {
         }
         filterEmployees();
     }, [empName]);
+    console.log("all employees", allEmployees);
 
     return (
         <>

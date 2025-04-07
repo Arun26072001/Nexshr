@@ -155,24 +155,3 @@ router.put("/:id", async (req, res) => {
 
 
 module.exports = router;
-// Find the user account by ID and add the organization ID to its orgs array
-// const userAccountData = await UserAccount.findById(req.params.id);
-// if (!userAccountData) {
-//     return res.status(404).send({ error: "User account not found" });
-// }
-
-// userAccountData.orgs.push(orgData?._id);
-// await userAccountData.save();
-
-// router.post("/", async (req, res) => {
-//     try {
-//         const orgs = await Org.find({ _id: { $in: req.body.orgs } });
-//         if (orgs.length < 1) {
-//             return res.status(404).send({ error: "Not found orgs in given id!" })
-//         } else {
-//             return res.send(orgs)
-//         }
-//     } catch (error) {
-//         return res.status(500).send({ error: error.message })
-//     }
-// })

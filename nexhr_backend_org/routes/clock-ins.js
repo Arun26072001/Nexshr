@@ -847,16 +847,26 @@ router.post("/ontime/:type", async (req, res) => {
         const hour = date.getHours();
         const min = date.getMinutes();
         const { type } = req.params;
-
-        const emps = await Employee.find({}, "FirstName LastName Email")
-            .populate("company")
-            .populate({ path: "workingTimePattern" });
+        let emps;
+        if (type === "logout") {
+            const today = new Date();
+            const startOfDay = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate(), 0, 0, 0));
+            const endOfDay = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate(), 23, 59, 59));
+            emps = await Employee.find({}, "FirstName LastName Email")
+                .populate("company")
+                .populate("workingTimePattern")
+                .populate({ path: "clockIns", match: { date: { $gte: startOfDay, $lte: endOfDay } } })
+        } else {
+            emps = await Employee.find({}, "FirstName LastName Email")
+                .populate("company")
+                .populate("workingTimePattern");
+        }
 
         const activeEmps = emps.filter((emp) => {
             if (type === "login") {
                 return emp?.workingTimePattern?.StartingTime == `${hour}:${min}`
             } else {
-                return emp?.workingTimePattern?.FinishingTime == `${hour}:${min}`
+                return emp?.workingTimePattern?.FinishingTime == `${hour}:${min}` && emp?.clockIns?.length > 0
             }
         })
 

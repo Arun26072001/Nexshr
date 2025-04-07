@@ -225,6 +225,7 @@ const Tasks = () => {
         }
       })
       setAllTask(res.data.tasks);
+      console.log(res.data.tasks);
       // getSelectStatusTasks();
     } catch (error) {
       setAllTask([])
@@ -249,6 +250,7 @@ const Tasks = () => {
     }
     setIsAddComment(!isAddComment);
   }
+  console.log("pending tasks", pendingTasks);
 
   async function fetchTaskById(id, storeCommentImgs) {
     try {
@@ -368,10 +370,11 @@ const Tasks = () => {
           };
         }
       }
-
+      // set loader true task is updating
+      setIsTaskChanging(true);
       // Send updated task
       const res = await axios.put(
-        `${url}/api/task/${projectId}/${taskToUpdate._id}`, // Ensure correct projectId
+        `${url}/api/task/${data._id}/${taskToUpdate._id}`, // Ensure correct projectId
         updatedTaskData,
         {
           params: { changeComments },
@@ -391,6 +394,7 @@ const Tasks = () => {
     } finally {
       setIsUpdateTime(false);
       setIsAddComment(false);
+      setIsTaskChanging(false);
     }
   }
 
@@ -587,7 +591,7 @@ const Tasks = () => {
 
     isviewTask ? <CommonModel type="Task View" isAddData={isviewTask} modifyData={handleViewTask} dataObj={taskObj} projects={projects} removeAttachment={removeAttachment} employees={employees} /> :
       isDelete.type ? <CommonModel type="Task Confirmation" modifyData={handleDeleteTask} deleteData={deleteTask} isAddData={isDelete.type} /> :
-        isEditTask ? <CommonModel type="Task Assign" isAddData={isEditTask} employees={employees} changeData={changeTask} dataObj={taskObj} editData={editTask} modifyData={handleEditTask} /> :
+        isEditTask ? <CommonModel type="Task Assign" isAddData={isEditTask} employees={employees} changeData={changeTask} dataObj={taskObj} editData={editTask} isWorkingApi={isTaskChanging} modifyData={handleEditTask} /> :
           isAddTask ? <CommonModel
             isWorkingApi={isTaskChanging}
             dataObj={taskObj}
