@@ -66,9 +66,12 @@ const ManageTeam = () => {
     useEffect(() => {
         const fetchEmployees = async () => {
             try {
-                const res = await axios.get(`${url}/api/employee`, {
+                const res = await axios.get(`${url}/api/employee/all`, {
+                    // params: {
+                    //     onlyEmps: true
+                    // },
                     headers: {
-                        Authorization: `${token}`
+                        Authorization: token
                     }
                 });
                 setEmployees(res.data.map((emp) => ({
@@ -98,7 +101,7 @@ const ManageTeam = () => {
             toast.success(res.data.message);
             reloadUI();
         } catch (err) {
-            toast.error(err.message);
+            toast.error(err.response.data.error);
         }
     };
 
@@ -127,7 +130,7 @@ const ManageTeam = () => {
 
             const response = await axios.post(`${url}/api/team`, teamObj, {
                 headers: {
-                    Authorization: `${token}` || ""
+                    Authorization: token || ""
                 }
             });
 
@@ -258,6 +261,7 @@ const ManageTeam = () => {
         }
 
     }, [dom]);
+
     useEffect(() => {
         fetchHeads();
         fetchLeads();

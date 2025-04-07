@@ -42,7 +42,7 @@ const CommonModel = ({
     const [confirmationTxt, setConfirmationTxt] = useState("");
     const [isDisabled, setIsDisabled] = useState(true);
     const [isShowPassword, setIsShowPassword] = useState(false);
-    console.log(dataObj);
+    console.log(dataObj, comps);
 
     return (
         <Modal open={isAddData} size="sm" backdrop="static">
@@ -221,10 +221,11 @@ const CommonModel = ({
                                             </button>
                                         </div>
                                             :
+                                            previewList.length &&
                                             previewList?.map((imgFile, index) => (
                                                 <div className="col-lg-4 p-2">
                                                     <div className="position-relative">
-                                                        {(dataObj.attachments.length === previewList.length && dataObj?.attachments[index].type === "video/mp4" || imgFile.includes(".mp4")) ?
+                                                        {(dataObj?.attachments?.length === previewList?.length && dataObj?.attachments[index]?.type === "video/mp4" || imgFile.includes(".mp4")) ?
                                                             <video className="w-100 h-auto" controls>
                                                                 <source src={imgFile} type={dataObj?.attachments[index].type} />
                                                             </video> :
@@ -354,11 +355,11 @@ const CommonModel = ({
                                         appearance='default'
                                         style={{ width: "100%" }}
                                         placeholder="Select Company"
-                                        value={dataObj?.company}
+                                        value={dataObj?.company[0] || dataObj?.company}
                                         onChange={(e) => changeData(e, "company")}
                                     />
                                 </div>
-                            </div>
+                            </div>  
                             {
                                 ["Report", "Report View"].includes(type) &&
                                 <div className="col-half">

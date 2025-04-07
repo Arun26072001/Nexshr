@@ -44,7 +44,7 @@ function a11yProps(index) {
 }
 
 export default function Home() {
-    const { isStartLogin, isStartActivity, workTimeTracker, timeOption } = useContext(TimerStates);
+    const { isStartLogin, isStartActivity, workTimeTracker, timeOption, updateClockins } = useContext(TimerStates);
     const [value, setValue] = useState(0);
     const [isLoading, setLoading] = useState(true); // Track loading state
     const empId = localStorage.getItem('_id');
@@ -89,7 +89,7 @@ export default function Home() {
             }
         };
         getClockInsData();
-    }, []);
+    }, [updateClockins]);
 
     return (
         <Box sx={{ width: '100%' }}>

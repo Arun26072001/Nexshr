@@ -3,6 +3,7 @@ const router = express.Router();
 const { verifyAdminHR, verifyEmployee, verifyAdminHREmployeeManagerNetwork, verifyAdminHREmployee, verifyAdminHRTeamHigherAuth, verifyTeamHigherAuthority } = require("../auth/authMiddleware");
 const { TeamValidation, Team } = require("../models/TeamModel");
 const { Employee } = require("../models/EmpModel");
+const sendMail = require("./mailSender");
 
 router.get("/", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
     try {
@@ -125,97 +126,83 @@ router.get("/:id", verifyAdminHRTeamHigherAuth, async (req, res) => {
 
 router.post("/", verifyAdminHR, async (req, res) => {
     try {
-        const validation = TeamValidation.validate(req.body);
-        const { error } = validation;
-        const isTeamName = await Team.find({ teamName: req.body.teamName }).exec();
-        if (isTeamName.length > 0) {
-            return res.status(400).send({ error: `${isTeamName.teamName} Already exist!` })
+        // Validate request body
+        const { error } = TeamValidation.validate(req.body);
+        if (error) return res.status(400).send({ error: error.details[0].message });
+
+        const existingTeam = await Team.findOne({ teamName: req.body.teamName });
+        if (existingTeam) {
+            return res.status(400).send({ error: `"${req.body.teamName}" already exists!` });
         }
-        // const isTeamLead = await Team.find({ lead: req.body.lead }).populate("lead","FirstName LastName");
-        // if (isTeamLead.length > 0) {
-        //     return res.status(400).send({ error: `${isTeamLead.lead.FirstName} already lead in ${isTeamLead.teamName}` })
-        // }
-        if (error) {
-            return res.status(400).send({ error: error.details[0].message })
-        } else {
-            const newTeamData = {
-                ...req.body,
-                employees: [...req.body.employees, ...req.body.lead, ...req.body.head, ...req.body.manager]
-            }
-            const newTeam = await Team.create(newTeamData, { new: true });
-            const emps = await Employee.find({ _id: req.body.employees }).populate({ path: "company" });
-            emps.map(async (emp) => {
-                emp.teamLead = req.body.lead
-                emp.team = newTeam._id
+        const { employees = [], lead = [], head = [], manager = [] } = req.body;
+
+        const withOutLeadHeadManagerInEmps = employees.filter(emp =>
+            !lead.includes(emp) &&
+            !head.includes(emp) &&
+            !manager.includes(emp)
+        );
+        // Merge all roles into employees
+        const allEmployees = [
+            ...withOutLeadHeadManagerInEmps,
+            ...lead,
+            ...head,
+            ...manager
+        ];
+
+        const newTeamData = { ...req.body, employees: allEmployees };
+        const newTeam = await Team.create(newTeamData);
+
+        // Fetch employees and update team-related info
+        const employeesToUpdate = await Employee.find({ _id: req.body.employees }, "FirstName LastName teamLead team").populate("company", "CompanyName");
+
+        // Created person name used in email (optional fallback)
+        const createdPersonName = req.body.createdByName || "HR Team";
+
+        // Update employees and send welcome emails in parallel
+        await Promise.all(
+            employeesToUpdate.map(async (emp) => {
+                emp.teamLead = req.body.lead;
+                emp.team = newTeam._id;
                 await emp.save();
-                sendMail({
+
+                const frontendUrl = process.env.REACT_APP_API_URL
+                const companyName = emp?.company?.CompanyName || "Webnexs";
+                const empName = emp.FirstName[0].toUpperCase() + emp.FirstName.slice(1) + " " + emp.LastName
+                await sendMail({
                     From: process.env.FROM_MAIL,
                     To: emp.Email,
-                    Subject: `Welcome to ${newTeam.teamName} Team`,
-                    HtmlBody: `<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>${emp.company.CompanyName} - Team Invitation</title>
-  </head>
-  <body style="font-family: Arial, sans-serif; background-color: #f6f9fc; color: #333; margin: 0; padding: 0;">
-    <div style="max-width: 600px; margin: auto; padding: 20px; background-color: #fff; border-radius: 8px;
-                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); text-align: center;">
-      
-      <!-- Header -->
-      <div style="padding-bottom: 15px;">
-        <h1 style="font-size: 22px; color: #333; margin: 0;">Welcome to the ${newTeam.teamName} Team!</h1>
-      </div>
-
-      <!-- Content -->
-      <div style="margin: 20px 0; padding: 10px; text-align: left;">
-        <p style="font-size: 14px; color: #333; margin: 10px 0;">Hello ${emp.FirstName} 👋,</p>
-        <p style="font-size: 14px; color: #333; margin: 10px 0;">
-          You have been invited to join the <b>${newTeam.teamName}</b> team at <b>${emp.company.CompanyName}</b>.
-        </p>
-        <p style="font-size: 14px; color: #333; margin: 10px 0;">
-          As a part of this team, you will collaborate with colleagues, participate in projects, and contribute to the company's success.
-        </p>
-        <p style="font-size: 14px; color: #333; margin: 10px 0;">
-          Please click the button below to accept the invitation and get started.
-        </p>
-        
-        <div style="text-align: center; margin: 20px 0;">
-          <a href="${process.env.FRONTEND_URL}" style="background-color: #007BFF; color: white; padding: 12px 24px; border-radius: 5px; 
-              text-decoration: none; font-size: 16px; display: inline-block;">
-            Accept Invitation
-          </a>
-        </div>
-        
-        <p style="font-size: 14px; color: #333; margin: 10px 0;">We’re excited to have you on board!</p>
-        <p style="font-size: 14px; color: #333; margin: 10px 0;">Best regards,</p>
-        <p style="font-size: 14px; color: #333; margin: 10px 0;"><b>${createdPersonName}</b></p>
-      </div>
-
-      <!-- Footer -->
-      <div style="font-size: 14px; margin-top: 20px; color: #777; text-align: center;">
-        <p style="margin: 10px 0;">
-          Have questions? Need help?
-          <a href="mailto:${process.env.FROM_MAIL}" style="color: #007BFF; text-decoration: none;">
-            Contact ${emp.company.CompanyName}
-          </a>.
-        </p>
-      </div>
-    </div>
-  </body>
-</html>
- `,
-                })
+                    Subject: `You're invited to join the ${newTeam.name} team at ${companyName}`,
+                    HtmlBody: `
+                    <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+                        <h2>Hi ${empName},</h2>
+                        <p>${createdPersonName} has invited you to join the <strong>${newTeam.name}</strong> team at <strong>${companyName}</strong>.</p>
+                        <p>Click the button below to accept your invitation and join the team:</p>
+                        <p>
+                            <a href="${frontendUrl}" style="
+                                display: inline-block;
+                                padding: 10px 20px;
+                                background-color: #4CAF50;
+                                color: white;
+                                text-decoration: none;
+                                border-radius: 5px;
+                            ">Join Team</a>
+                        </p>
+                        <p>If the button doesn't work, copy and paste the following link into your browser:</p>
+                        <p><a href="${frontendUrl}">${frontendUrl}</a></p>
+                        <p>Welcome aboard!<br>The ${companyName} Team</p>
+                    </div>
+                `
+                });
             })
-            res.send({ message: `new ${newTeam.teamName} team has been added!`, newTeam })
-        }
-    } catch (error) {
-        console.log(error);
+        );
 
-        res.status(500).send({ error: error.message })
+        return res.send({ message: `New team "${newTeam.teamName}" has been added!`, newTeam });
+
+    } catch (error) {
+        console.error(error);
+        return res.status(500).send({ error: error.message });
     }
-})
+});
 
 router.put("/:id", verifyAdminHRTeamHigherAuth, async (req, res) => {
     try {
@@ -241,16 +228,18 @@ router.put("/:id", verifyAdminHRTeamHigherAuth, async (req, res) => {
 
 router.delete("/:id", verifyAdminHR, async (req, res) => {
     try {
-        // const {orgName} = jwt.decode(req.headers['authorization']);
-        // const Team = getTeamModel(orgName)
+        const teamData = await Team.findById(req.params.id);
+        if (teamData.employees.length) {
+            return res.status(400).send({ error: `${teamData.employees.length} employees has in ${teamData.teamName}, Please change the team for them` })
+        }
         const response = await Team.findByIdAndDelete(req.params.id);
         if (!response) {
             res.status(404).send({ message: "Team not found!" })
         } else {
-            res.send({ message: "Team has been deleted!" })
+            res.send({ message: `${response.data.teamName} Team has been deleted!` })
         }
     } catch (err) {
-        res.status(500).send({ message: "error in delete Team", error: err })
+        res.status(500).send({ error: err })
     }
 })
 

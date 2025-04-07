@@ -25,7 +25,6 @@ function getDayDifference(leave) {
   return dayDifference;
 }
 
-
 function getWeekdaysOfCurrentMonth(year, month, holidays) {// 0-based index (0 = January)
   const weekdays = [];
   const daysInMonth = new Date(year, month + 1, 0).getDate(); // Get total days in month

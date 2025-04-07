@@ -76,38 +76,6 @@ router.put("/:id", verifyAdminHR, (req, res) => {
   });
 });
 
-// router.delete("/:id", verifyAdminHR, (req, res) => {
-//   // const { orgName } = jwt.decode(req.headers['authorization']);
-//   // const OrgEmployeeModel = getEmployeeModel(orgName);
-//   Position.find({ position: req.params.id }, function (err, p) {
-//     if (err) {
-//       console.log(err);
-//       res.send(err);
-//     } else {
-//       if (p.length == 0) {
-//         Position.findByIdAndRemove(req.params.id, function (
-//           err,
-//           position
-//         ) {
-//           if (!err) {
-//             res.send({ message: "position has been deleted!" });
-//           } else {
-//             res.status(403).send(err);
-//           }
-//         });
-//         console.log("delete");
-//         console.log(req.params.id);
-//       } else {
-//         res
-//           .status(403)
-//           .send(
-//             "This Position is associated with Employee so you can not delete this"
-//           );
-//       }
-//     }
-//   });
-// });
-
 router.delete("/:id", async (req, res) => {
   try {
     const isEmpInPosition = await Employee.find({ position: req.params.id }).exec();
@@ -115,7 +83,7 @@ router.delete("/:id", async (req, res) => {
       return res.status(400).send({ error: "In this position has some Employee, Please change them to position" })
     } else {
       const deletePos = await Position.findByIdAndRemove({ _id: req.params.id });
-      return res.send({ message: "Position has been deleted" })
+      return res.send({ message: `${deletePos.PositionName} Position has been deleted successfully` })
     }
   } catch (error) {
     res.status(500).send({ error: error.message })

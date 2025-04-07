@@ -5,12 +5,11 @@ const { Project } = require("../models/ProjectModel");
 const { Employee } = require("../models/EmpModel");
 const sendMail = require("./mailSender");
 const { convertToString, getCurrentTimeInMinutes, timeToMinutes, formatTimeFromMinutes } = require("../Reuseable_functions/reusableFunction");
-const { Team } = require("../models/TeamModel");
 const router = express.Router();
 
 router.get("/project/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
     try {
-        let tasks = await Task.find({ project: { $in: req.params.id } }, "-tracker -comments")
+        let tasks = await Task.find({ project: { $in: req.params.id } }, "-tracker")
             .populate({ path: "project", select: "name color" })
             .populate({ path: "assignedTo", select: "FirstName LastName" })
             .exec();
@@ -26,12 +25,13 @@ router.get("/project/:id", verifyAdminHREmployeeManagerNetwork, async (req, res)
 
                 let totalCommentSpendTime = 0;
                 task?.comments?.map((comment) => totalCommentSpendTime += Number(comment.spend));
+                console.log(task);
 
                 return {
                     ...task.toObject(),
                     spend: {
                         ...(task.spend ? task.spend.toObject() : {}), // Ensure spend exists
-                        timeHolder: task?.spend?.timeHolder?.split(":")?.length > 2 && ["00:00:00"].includes(task.spend?.timeHolder) ? formatTimeFromMinutes(
+                        timeHolder: task?.spend?.timeHolder?.split(":")?.length === 2 && ["00:00:00"].includes(task.spend?.timeHolder) ? formatTimeFromMinutes(
                             (Number(task.spend?.timeHolder) + totalCommentSpendTime) * 60
                         ) : task.spend.timeHolder
                     }
@@ -58,6 +58,7 @@ router.get("/project/:id", verifyAdminHREmployeeManagerNetwork, async (req, res)
                 }
             };
         }).filter(Boolean);
+        console.log(timeUpdatedTasks);
 
 
         return res.send({ tasks: timeUpdatedTasks });
@@ -271,15 +272,19 @@ router.put("/:empId/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) 
         const newAssignees = req.body?.assignedTo?.filter(emp => !taskData?.assignedTo?.includes(emp)) || [];
 
         // Fetch Assigned Person & Employee Data
-        const assignedPerson = await Employee.findById(req.body.createdby)
-            .populate({ path: "company", select: "CompanyName" });
-
+        const [assignedPerson, empData, emps] = await Promise.all([
+            await Employee.findById(req.body.createdby)
+                .populate({ path: "company", select: "CompanyName" }),
+            await Employee.findById(req.params.empId),
+            await Employee.find({ _id: { $in: newAssignees } }, "FirstName LastName Email")
+        ])
+        // const assignedPerson = await Employee.findById(req.body.createdby)
+        //     .populate({ path: "company", select: "CompanyName" });
+        // const empData = await Employee.findById(req.params.empId);
+        // const emps = await Employee.find({ _id: { $in: newAssignees } }, "FirstName LastName Email");
         if (!assignedPerson) return res.status(404).send({ error: "Assigned person not found" });
-
-        const empData = await Employee.findById(req.params.empId);
         if (!empData) return res.status(404).send({ error: "Employee not found" });
 
-        const emps = await Employee.find({ _id: { $in: newAssignees } }, "FirstName LastName Email");
 
         // Generate Task Change Logs
         const taskChanges = Object.entries(taskData.toObject()).flatMap(([key, value]) => {

@@ -9,7 +9,9 @@ const { Team } = require('../models/TeamModel');
 
 router.get("/", verifyAdminHRTeamHigherAuth, async (req, res) => {
   try {
-    const employees = await Employee.find({ Account: 3 }, "_id FirstName LastName employmentType dateOfJoining gender working code docType serialNo")
+    const { onlyEmps } = req.query;
+
+    let employees = await Employee.find({ Account: 3 }, "_id FirstName LastName employmentType dateOfJoining gender working code docType serialNo")
       .populate({
         path: "position"
       })
@@ -29,6 +31,9 @@ router.get("/", verifyAdminHRTeamHigherAuth, async (req, res) => {
           path: "department"
         }
       }).lean();
+    if (onlyEmps) {
+      employees = employees.filter((emp) => !["Team Lead", "Team Head", "Manager"].includes(emp?.position?.PositionName))
+    }
     res.send(employees)
   } catch (err) {
     console.log(err);
@@ -120,21 +125,30 @@ router.get("/all", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
 
 router.get("/team/:higher", verifyAdminHRTeamHigherAuth, async (req, res) => {
   try {
-    const positions = await Employee.find({}, "FirstName LastName").populate("position").exec();
-    const higherAuth = positions.filter((emp) => {
-      const positionName = emp?.position?.PositionName;
-      return positionName ===
-        (req.params.higher === "lead" ? "Team Lead" :
-          req.params.higher === "head" ? "Team Head" :
-            "Manager");
-    });
-    console.log(higherAuth);
+    const { higher } = req.params;
 
-    res.send(higherAuth);
+    // Determine the keyword to filter by
+    let keyword;
+    if (higher === "lead") keyword = "Lead";
+    else if (higher === "head") keyword = "Head";
+    else keyword = "Manager";
+
+    const employees = await Employee.find({}, "FirstName LastName position")
+      .populate("position", "PositionName") // Populate only PositionName
+      .exec();
+
+    // Filter employees based on position name containing the keyword
+    const filtered = employees.filter(emp => {
+      const positionName = emp?.position?.PositionName;
+      return positionName && positionName.includes(keyword);
+    });
+
+    res.send(filtered);
   } catch (err) {
-    res.status(500).send({ error: err.message })
+    res.status(500).send({ error: err.message });
   }
-})
+});
+
 
 router.get("/team/members/:id", verifyTeamHigherAuthority, async (req, res) => {
   try {
@@ -179,7 +193,7 @@ router.get('/:id', verifyAdminHREmployeeManagerNetwork, async (req, res) => {
   let totalUnpaidLeaveCount = 0;
   const empData = await Employee.findById(req.params.id, "annualLeaveYearStart")
   const now = new Date();
-  const annualStart = empData.annualLeaveYearStart ? new Date(empData.annualLeaveYearStart) : new Date(now.setDate(1));
+  const annualStart = empData?.annualLeaveYearStart ? new Date(empData?.annualLeaveYearStart) : new Date(now.setDate(1));
   startDate = new Date(now.getFullYear(), annualStart.getMonth(), annualStart.getDate());
   endDate = new Date(startDate.getFullYear() + 1, startDate.getMonth(), startDate.getDate() - 1, 23, 59, 59, 999);
 
