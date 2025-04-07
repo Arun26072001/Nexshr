@@ -229,8 +229,6 @@ export default function Navbar({ handleSideBar }) {
     useEffect(() => {
         socket.connect();
         socket.on("early_logout", ({ isCompleteworkingHours }) => {
-            console.log(isCompleteworkingHours);
-
             if (isCompleteworkingHours) {
                 stopTimer()
             } else {
@@ -274,7 +272,6 @@ export default function Navbar({ handleSideBar }) {
             setSec(newSec);
         }
     }, [workTimeTracker, isStartLogin]);
-    console.log(isWorkingLoginTimerApi);
 
     return (
         isViewEarlyLogout ?
