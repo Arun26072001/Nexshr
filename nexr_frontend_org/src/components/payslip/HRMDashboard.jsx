@@ -84,6 +84,8 @@ export default function HRMDashboard() {
     const [workingTimePattern, setWorkingTimePattern] = useState({});
     // for handle task modal
     const [isAddTask, setIsAddTask] = useState(false);
+    const [isWorkingLoginTimerApi, setIsWorkingLoginTimerApi] = useState(false);
+    const [isworkingActivityTimerApi, setISWorkingActivityTimerApi] = useState(false);
     const [selectedProject, setSelectedProject] = useState("");
 
     // files for payroll
@@ -173,7 +175,7 @@ export default function HRMDashboard() {
                 startingTime: [...(workTimeTracker?.login?.startingTime || []), currentTime],
             },
         };
-
+        setIsWorkingLoginTimerApi(true)
         try {
             if (!updatedState?._id) {
                 // Add new clock-ins data
@@ -204,6 +206,8 @@ export default function HRMDashboard() {
             setIsStartLogin(false);
             localStorage.setItem("isStartLogin", false);
             toast.error(error);
+        } finally {
+            setIsWorkingLoginTimerApi(false)
         }
     };
 
@@ -219,7 +223,7 @@ export default function HRMDashboard() {
             },
         };
         // socket.emit("verify_completed_workinghour", updatedState);
-
+        setIsWorkingLoginTimerApi(true)
         try {
             const updatedData = await updateDataAPI(updatedState);
             setWorkTimeTracker(updatedData);
@@ -228,6 +232,8 @@ export default function HRMDashboard() {
             updateClockins();
         } catch (err) {
             console.error(err);
+        } finally {
+            setIsWorkingLoginTimerApi(false);
         }
     };
 
@@ -241,7 +247,7 @@ export default function HRMDashboard() {
                 startingTime: [...(workTimeTracker[timeOption]?.startingTime || []), currentTime],
             },
         };
-
+        setISWorkingActivityTimerApi(true)
         try {
             await updateDataAPI(updatedState);
             localStorage.setItem("isStartActivity", true);
@@ -252,6 +258,8 @@ export default function HRMDashboard() {
         } catch (error) {
             console.error('Error updating data:', error);
             toast.error('Please PunchIn');
+        }finally{
+            setISWorkingActivityTimerApi(false)
         }
     }
 
@@ -271,7 +279,7 @@ export default function HRMDashboard() {
                 timeHolder: workTimeTracker[timeOption].timeHolder
             },
         });
-
+        setISWorkingActivityTimerApi(true)
         try {
             // Call the API with the updated state
             const updatedData = await updateDataAPI(updatedState(workTimeTracker));
@@ -281,6 +289,8 @@ export default function HRMDashboard() {
             updateClockins();
         } catch (error) {
             toast.error(error.message);
+        }finally{
+            setISWorkingActivityTimerApi(false)
         }
     }
 
@@ -464,7 +474,7 @@ export default function HRMDashboard() {
     }, [])
 
     return (
-        <TimerStates.Provider value={{ workTimeTracker, reloadRolePage, setIsEditEmp, updateWorkTracker, trackTimer, startLoginTimer, stopLoginTimer, changeReasonForLate, changeReasonForEarly, startActivityTimer, stopActivityTimer, setWorkTimeTracker, updateClockins, timeOption, isStartLogin, isStartActivity, handleAddTask, changeEmpEditForm, isEditEmp, isAddTask, setIsAddTask, handleAddTask, selectedProject, daterangeValue, setDaterangeValue }}>
+        <TimerStates.Provider value={{ workTimeTracker, reloadRolePage, setIsEditEmp, updateWorkTracker, isWorkingLoginTimerApi, isworkingActivityTimerApi,trackTimer, startLoginTimer, stopLoginTimer, changeReasonForLate, changeReasonForEarly, startActivityTimer, stopActivityTimer, setWorkTimeTracker, updateClockins, timeOption, isStartLogin, isStartActivity, handleAddTask, changeEmpEditForm, isEditEmp, isAddTask, setIsAddTask, handleAddTask, selectedProject, daterangeValue, setDaterangeValue }}>
             <Routes >
                 <Route path="/" element={<Parent />} >
                     <Route index element={<Dashboard data={data} />} />

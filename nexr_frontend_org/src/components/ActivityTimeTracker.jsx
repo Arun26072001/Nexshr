@@ -7,6 +7,7 @@ import { toast } from "react-toastify";
 import WavingHandRoundedIcon from '@mui/icons-material/WavingHandRounded';
 import { Modal, Button } from "rsuite";
 import { EssentialValues } from "../App";
+import Loading from "./Loader";
 
 const ActivityTimeTracker = () => {
     const {
@@ -16,7 +17,8 @@ const ActivityTimeTracker = () => {
         isStartActivity,
         timeOption,
         trackTimer,
-        changeReasonForLate
+        changeReasonForLate,
+        isworkingActivityTimerApi
     } = useContext(TimerStates);
     const { data, socket } = useContext(EssentialValues);
     const [isDisabled, setIsDisabled] = useState(false);
@@ -80,14 +82,14 @@ const ActivityTimeTracker = () => {
                     employee: data._id,
                     timerId: workTimeTracker._id,
                     timeOption,
-                    time: timeOption === "lunch" ? 30 : 1,
+                    time: timeOption === "lunch" ? 30 : 15,
                     token: data.token
                 })
             }
         }
     };
 
-    
+
     // Stop the timer with activity
     const stopTimer = async () => {
         if (timerRef.current) {
@@ -96,7 +98,7 @@ const ActivityTimeTracker = () => {
             timerRef.current = null;
         }
     };
-    
+
     function changeViewReasonForTaketime() {
         if (!isViewTakeTime) {
             localStorage.setItem("isViewTakeTime", true)
@@ -156,7 +158,7 @@ const ActivityTimeTracker = () => {
     return (
         <>
             {
-                isViewTakeTime && 
+                isViewTakeTime &&
                 <Modal open={isViewTakeTime} size="sm" backdrop="static">
                     <Modal.Header >
                         <Modal.Title>
@@ -228,7 +230,10 @@ const ActivityTimeTracker = () => {
                             }
                             id="startActivityTimerBtn"
                         >
-                            <PowerSettingsNewRoundedIcon />
+                            {
+                                isworkingActivityTimerApi ? <Loading size={20} color='white' /> :
+                                    <PowerSettingsNewRoundedIcon />
+                            }
                         </button>
                     </div>
                 </div>

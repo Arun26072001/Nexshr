@@ -854,9 +854,14 @@ leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("pre
 
     // 4. Duplicate Check
     const existingRequest = await LeaveApplication.findOne({
-      fromDate,
-      toDate,
       employee: empId,
+      status: "approved",
+      $or: [
+        {
+          fromDate: { $lte: req.body.toDate },
+          toDate: { $gte: req.body.fromDate },
+        }
+      ]
     });
 
     if (existingRequest) {
@@ -878,27 +883,27 @@ leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("pre
     }
 
     // 6. Task Conflict Check
-    const deadlineTasks = await Task.find({
-      assignedTo: empId,
-      to: { $gte: fromDate, $lte: toDate },
-    });
+    // const deadlineTasks = await Task.find({
+    //   assignedTo: empId,
+    //   to: { $gte: fromDate, $lte: toDate },
+    // });
 
-    // 7. CoverBy Check
-    if (coverByValue) {
-      const reliever = await Employee.findById(coverByValue, "FirstName LastName leaveApplication")
-        .populate({
-          path: "leaveApplication",
-          match: {
-            fromDate: { $lte: toDate },
-            toDate: { $gte: fromDate },
-            leaveType: { $ne: "Permission Leave" },
-          },
-        });
+    // // 7. CoverBy Check
+    // if (coverByValue) {
+    //   const reliever = await Employee.findById(coverByValue, "FirstName LastName leaveApplication")
+    //     .populate({
+    //       path: "leaveApplication",
+    //       match: {
+    //         fromDate: { $lte: toDate },
+    //         toDate: { $gte: fromDate },
+    //         leaveType: { $ne: "Permission Leave" },
+    //       },
+    //     });
 
-      if (reliever?.leaveApplication?.length) {
-        return res.status(400).json({ error: `${reliever.FirstName} is on leave during the selected dates.` });
-      }
-    }
+    //   if (reliever?.leaveApplication?.length) {
+    //     return res.status(400).json({ error: `${reliever.FirstName} is on leave during the selected dates.` });
+    //   }
+    // }
 
     // 8. Validate and Save
     const leaveRequest = {
@@ -908,6 +913,11 @@ leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("pre
       periodOfLeave,
       reasonForLeave,
       prescription,
+      TeamLead: "approved",
+      TeamHead: "approved",
+      Hr: "approved",
+      Manager: "approved",
+      status: "approved",
       coverBy: coverByValue,
       employee: personId,
       appliedBy: empId,
@@ -932,20 +942,20 @@ leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("pre
       From: process.env.FROM_MAIL,
       To: mailList.join(","),
       Subject: "Leave Application Notification",
-      HtmlBody: generateLeaveEmail(emp, fromDate, toDate, reasonForLeave, leaveType, deadlineTasks),
+      HtmlBody: generateLeaveEmail(emp, fromDate, toDate, reasonForLeave, leaveType),
     });
 
-    if (coverByValue) {
-      const reliever = await Employee.findById(coverByValue, "Email FirstName LastName");
-      if (reliever) {
-        sendMail({
-          From: process.env.FROM_MAIL,
-          To: reliever.Email,
-          Subject: "Task Relieving Request",
-          HtmlBody: generateCoverByEmail(emp, reliever),
-        });
-      }
-    }
+    // if (coverByValue) {
+    //   const reliever = await Employee.findById(coverByValue, "Email FirstName LastName");
+    //   if (reliever) {
+    //     sendMail({
+    //       From: process.env.FROM_MAIL,
+    //       To: reliever.Email,
+    //       Subject: "Task Relieving Request",
+    //       HtmlBody: generateCoverByEmail(emp, reliever),
+    //     });
+    //   }
+    // }
 
     return res.status(201).json({ message: "Leave request has been submitted successfully.", newLeaveApp });
 

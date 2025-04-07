@@ -95,7 +95,6 @@ const Attendence = () => {
           authorization: token || ""
         }
       });
-      console.log(dashboard.data);
 
       setclockInsData(dashboard.data);
       setTableData(dashboard.data.clockIns);
@@ -124,6 +123,7 @@ const Attendence = () => {
       toast.error("Employee Id not found!")
     }
   }, [empId, daterangeValue])
+  console.log(clockInsData.totalLeaveDays);
 
   return (
     <div>
