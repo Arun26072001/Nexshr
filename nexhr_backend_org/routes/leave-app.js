@@ -877,16 +877,17 @@ leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("pre
 
     const takenLeaveCount = approvedLeaves.reduce((acc, leave) => acc + getDayDifference(leave), 0);
     const leaveBalance = emp.typesOfLeaveRemainingDays?.[leaveType] || 0;
-
-    if (leaveType !== "Permission Leave" && leaveBalance < takenLeaveCount) {
-      return res.status(400).json({ error: `${leaveType} limit has been reached.` });
+    if (leaveType !== "Permission Leave") {
+      if (leaveBalance < takenLeaveCount) {
+        return res.status(400).json({ error: `${leaveType} limit has been reached.` });
+      }
     }
 
     // 6. Task Conflict Check
-    // const deadlineTasks = await Task.find({
-    //   assignedTo: empId,
-    //   to: { $gte: fromDate, $lte: toDate },
-    // });
+    const deadlineTasks = await Task.find({
+      assignedTo: empId,
+      to: { $gte: fromDate, $lte: toDate },
+    });
 
     // // 7. CoverBy Check
     // if (coverByValue) {
@@ -942,7 +943,7 @@ leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("pre
       From: process.env.FROM_MAIL,
       To: mailList.join(","),
       Subject: "Leave Application Notification",
-      HtmlBody: generateLeaveEmail(emp, fromDate, toDate, reasonForLeave, leaveType),
+      HtmlBody: generateLeaveEmail(emp, fromDate, toDate, reasonForLeave, leaveType, deadlineTasks),
     });
 
     // if (coverByValue) {
@@ -958,7 +959,6 @@ leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("pre
     // }
 
     return res.status(201).json({ message: "Leave request has been submitted successfully.", newLeaveApp });
-
   } catch (err) {
     console.error(err);
     return res.status(500).json({ error: err.message });
