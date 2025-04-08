@@ -54,7 +54,6 @@ const Dashboard = () => {
             // Fetch daily clock-in data
             const clockinsData = await getDataAPI(data._id);
             setDailyLoginData(clockinsData);
-
             // Set leave data with working hours
             setLeaveData({ ...empData, workingHour });
 

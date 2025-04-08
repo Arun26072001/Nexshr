@@ -122,7 +122,6 @@ const Attendence = () => {
       toast.error("Employee Id not found!")
     }
   }, [empId, daterangeValue])
-  console.log(clockInsData.totalLeaveDays);
 
   return (
     <div>
