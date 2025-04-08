@@ -102,8 +102,23 @@ const EditEmployeeform = ({ details, empData, handleScroll, handlePersonal, hand
     })
 
     function handleTagSelector(value) {
+        console.log("selectedvalue: ", value);
+
+        let leaveCount = 0;
+
+        const leaveTypeCount = {};
+        value.forEach((type) => {
+            const key = type.split(" ").slice(0, 2).join(" "); // Ensure it's a string
+            leaveTypeCount[key] = type.split(" ")[0]; // Get only the first word
+        });
+        console.log(leaveTypeCount);
+
+        value.map((type) => leaveCount += Number(type.split(" ").at(-1)));
+        formik.setFieldValue("annualLeaveEntitlement", leaveCount);
+        formik.setFieldValue("typesOfLeaveCount", leaveTypeCount)
         setSelectedLeavetypes(value);
     }
+    // console.log(formik.values);
 
     function navToError() {
         if (formik.errors.FirstName
@@ -144,8 +159,6 @@ const EditEmployeeform = ({ details, empData, handleScroll, handlePersonal, hand
             handleFinancial()
         }
     }
-
-    console.log(roles);
 
     function getValueforLeave(e) {
         const { name, value } = e.target;
@@ -204,7 +217,7 @@ const EditEmployeeform = ({ details, empData, handleScroll, handlePersonal, hand
     }, [formik.values.workingTimePattern]);
 
     useEffect(() => {
-        setSelectedLeavetypes(Object.entries(empData.typesOfLeaveCount).map(([key, value]) => key))
+        // setSelectedLeavetypes(Object.entries(empData.typesOfLeaveCount).map(([key, value]) => key))
     }, [empData])
 
     useEffect(() => {
@@ -215,7 +228,7 @@ const EditEmployeeform = ({ details, empData, handleScroll, handlePersonal, hand
                         Authorization: `${token}` || ""
                     }
                 });
-                setLeaveTypes(leaveTypes.data.map((leave) => ({ label: leave.LeaveName + " " + (leave.limitDays), value: leave.LeaveName })));
+                setLeaveTypes(leaveTypes.data.map((leave) => ({ label: `${leave.LeaveName} ${leave.limitDays}`, value: `${leave.LeaveName} ${leave.limitDays}` })));
             } catch (error) {
                 setErrorData(error.response.data.error)
             }
@@ -228,8 +241,6 @@ const EditEmployeeform = ({ details, empData, handleScroll, handlePersonal, hand
         setSelectedCountry(countryFullData?.name);
         setStateData(countryFullData?.states);
     }, []);
-    console.log(leaveTypes);
-
 
     const hourAndMin = timeDifference.toString().split(".");
     const [hour, min] = hourAndMin;
@@ -666,7 +677,7 @@ const EditEmployeeform = ({ details, empData, handleScroll, handlePersonal, hand
                                     </div>
                                 </div>
 
-                                <div className="row d-flex justify-content-center">
+                                {/* <div className="row d-flex justify-content-center">
                                     {
                                         splitError &&
                                         <div className="text-center text-danger">{splitError}</div>
@@ -696,6 +707,33 @@ const EditEmployeeform = ({ details, empData, handleScroll, handlePersonal, hand
                                             className={formik.values.annualLeaveEntitlement ? "rsuite_selector" : "rsuite_selector_disabled"}
                                             style={{ width: 300, border: "none" }} />
                                     </div>
+                                </div> */}
+                                <div className="row d-flex justify-content-center">
+                                    <div className="col-lg-6 my-2">
+                                        <div className="inputLabel">
+                                            Select Leave Types
+                                        </div>
+                                        <TagPicker
+                                            data={leaveTypes}
+                                            size="lg"
+                                            onChange={handleTagSelector}
+                                            value={selectedLeaveTypes}
+                                            className={formik.values.annualLeaveEntitlement ? "rsuite_selector" : "rsuite_selector_disabled"}
+                                            style={{ width: 300, border: "none" }} />
+                                    </div>
+                                    <div className="col-lg-6 my-2">
+                                        <div className="inputLabel">
+                                            Annual Leave Entitlement
+                                        </div>
+                                        <input type="number"
+                                            value={formik.values.annualLeaveEntitlement}
+                                            onChange={formik.handleChange}
+                                            name="annualLeaveEntitlement"
+                                            className={`inputField ${formik.touched.annualLeaveEntitlement && formik.errors.annualLeaveEntitlement ? "error" : ""}`} />
+                                        {formik.touched.annualLeaveEntitlement && formik.errors.annualLeaveEntitlement ? (
+                                            <div className="text-center text-danger">{formik.errors.annualLeaveEntitlement}</div>
+                                        ) : null}
+                                    </div>
                                 </div>
                                 <div className="row d-flex justify-content-center">
                                     {
@@ -705,12 +743,12 @@ const EditEmployeeform = ({ details, empData, handleScroll, handlePersonal, hand
                                                     Choose {leaveName} count
                                                 </div>
                                                 <input type="number"
-                                                    // onChange={(e) => getValueforLeave(e)}
                                                     disabled={whoIs === "emp" ? true : false}
                                                     onChange={whoIs === "emp" ? null : (e) => getValueforLeave(e)}
                                                     name={leaveName}
                                                     className={`inputField`}
-                                                    value={formik?.values?.typesOfLeaveCount[leaveName]}
+                                                    // value={formik?.values?.typesOfLeaveCount[leaveName]}
+                                                    value={leaveName.split(" ").at(-1)}
                                                 />
 
                                             </div>

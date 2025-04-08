@@ -256,7 +256,6 @@ const AddEmployeeForm = ({ details, handleScroll, handlePersonal, handleFinancia
         formik.setFieldValue("typesOfLeaveCount", leaveTypeCount)
         setSelectedLeavetypes(value);
     }
-    console.log(formik.values);
 
     useEffect(() => {
         const gettingLeaveTypes = async () => {
@@ -715,10 +714,6 @@ const AddEmployeeForm = ({ details, handleScroll, handlePersonal, handleFinancia
                             </div>
 
                             <div className="row d-flex justify-content-center">
-                                {/* {
-                                    splitError &&
-                                    <div className="text-center text-danger">{splitError}</div>
-                                } */}
                                 <div className="col-lg-6 my-2">
                                     <div className="inputLabel">
                                         Select Leave Types
@@ -757,6 +752,7 @@ const AddEmployeeForm = ({ details, handleScroll, handlePersonal, handleFinancia
                                             </div>
                                             <input type="number"
                                                 value={leaveName.split(" ").at(-1)}
+                                                disabled={true}
                                                 // onChange={(e) => getValueforLeave(e)}
                                                 name={leaveName}
                                                 className={`inputField`} />

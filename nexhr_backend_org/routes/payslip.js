@@ -91,7 +91,7 @@ router.post("/", async (req, res) => {
 
 router.get("/emp/:empId", async (req, res) => {
   try {
-    let payslips = await Payslip.find({ employee: req.params.empId }).populate("employee", "FirstName LastName payslip").exec();
+    let payslips = await Payslip.find({ employee: req.params.empId }).populate("employee", "FirstName LastName payslip basicSalary").exec();
     const arrangedPayslips = payslips.sort((a, b) => new Date(String(a.payslip.period)) - new Date(String(b.payslip.period)))
 
     return res.send(arrangedPayslips)
