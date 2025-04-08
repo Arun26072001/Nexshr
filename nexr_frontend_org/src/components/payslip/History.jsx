@@ -17,12 +17,13 @@ const History = ({ payslips, isLoading }) => {
         <div className="container-fluid">
             <p className="payslipTitle">History</p>
             {payslips.length > 0 ? payslips.map((item, index) => {
+                console.log("payslipItem", item);
+
                 const {
                     ESI = 0, LossOfPay = 0, ProfessionalTax = 0, ProvidentFund = 0,
                     bonusAllowance = 0, conveyanceAllowance = 0,
                     houseRentAllowance = 0, incomeTax = 0, othersAllowance = 0
                 } = item.payslip;
-
                 const basicSalary = Number(item.employee.basicSalary) || 0;
 
                 const Salary =

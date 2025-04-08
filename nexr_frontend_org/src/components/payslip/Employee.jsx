@@ -125,7 +125,6 @@ export default function Employee() {
         }
         filterEmployees();
     }, [empName]);
-    console.log("all employees", allEmployees);
 
     return (
         <>

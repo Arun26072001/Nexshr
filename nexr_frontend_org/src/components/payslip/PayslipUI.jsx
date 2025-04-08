@@ -105,7 +105,7 @@ export default function PayslipUI() {
 
             // Set the final values once after the loop
             setEarnings(totalEarnings);
-            setDeductions(totalDeductions);
+            setDeductions(totalDeductions.toFixed(2));
         }
     }, [payslipFields, payslips]);
 
@@ -123,7 +123,6 @@ export default function PayslipUI() {
         }
         fetchPayslips();
     }, [id]);
-    
 
     return (
         isLoading ? <Loading height='80vh' /> :

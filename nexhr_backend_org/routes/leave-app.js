@@ -313,6 +313,7 @@ leaveApp.get("/emp/:empId", verifyAdminHREmployeeManagerNetwork, async (req, res
         employee: { $in: team.employees },
         fromDate: { $lte: endDate },
         toDate: { $gte: startDate },
+        leaveType: { $ne: "Permission Leave" },
         status: "approved"
       }).lean()
       : [];
@@ -795,7 +796,7 @@ leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("pre
 
     // 1. Handle if applied on behalf of someone else
     if (applyFor) {
-      const emp = await Employee.findById(empId, "clockIns").populate({
+      const emp = await Employee.findById(personId, "clockIns").populate({
         path: "clockIns",
         match: { date: { $gte: fromDate, $lte: toDate } },
       });
@@ -817,24 +818,25 @@ leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("pre
       }
     }
 
+    // leave application applied person
+
     const monthStart = new Date(fromDateObj.getFullYear(), fromDateObj.getMonth(), 1);
     const monthEnd = new Date(fromDateObj.getFullYear(), fromDateObj.getMonth() + 1, 0);
 
     const emp = await Employee.findById(personId, "FirstName LastName monthlyPermissions permissionHour typesOfLeaveRemainingDays typesOfLeaveCount leaveApplication")
-      .populate("admin", "FirstName LastName Email")
-      .populate({
+      .populate([{ path: "admin", select: "FirstName LastName Email" },
+      {
         path: "leaveApplication",
         match: { leaveType: "Permission Leave", fromDate: { $gte: monthStart, $lte: monthEnd } },
-      })
-      .populate({
+      }, {
         path: "team",
         populate: [
           { path: "lead", select: "Email" },
           { path: "head", select: "Email" },
           { path: "manager", select: "Email" },
         ],
-      })
-      .exec();
+      }
+      ]).exec();
 
     if (!emp) {
       return res.status(400).json({ error: `No employee found for ID ${empId}` });
@@ -853,14 +855,9 @@ leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("pre
 
     // 4. Duplicate Check
     const existingRequest = await LeaveApplication.findOne({
-      employee: empId,
+      employee: personId,
       status: "approved",
-      $or: [
-        {
-          fromDate: { $lte: req.body.toDate },
-          toDate: { $gte: req.body.fromDate },
-        }
-      ]
+      fromDate: { $gte: req.body.fromDate }
     });
 
     if (existingRequest) {
@@ -871,7 +868,7 @@ leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("pre
     const approvedLeaves = await LeaveApplication.find({
       leaveType: new RegExp(`^${leaveType}`, "i"),
       status: "approved",
-      employee: empId,
+      employee: personId,
     });
 
     const takenLeaveCount = approvedLeaves.reduce((acc, leave) => acc + getDayDifference(leave), 0);
@@ -884,7 +881,7 @@ leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("pre
 
     // 6. Task Conflict Check
     const deadlineTasks = await Task.find({
-      assignedTo: empId,
+      assignedTo: personId,
       to: { $gte: fromDate, $lte: toDate },
     });
 
@@ -904,24 +901,40 @@ leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("pre
     //     return res.status(400).json({ error: `${reliever.FirstName} is on leave during the selected dates.` });
     //   }
     // }
-
+    let leaveRequest;
     // 8. Validate and Save
-    const leaveRequest = {
-      leaveType,
-      fromDate,
-      toDate,
-      periodOfLeave,
-      reasonForLeave,
-      prescription,
-      TeamLead: "approved",
-      TeamHead: "approved",
-      Hr: "approved",
-      Manager: "approved",
-      status: "approved",
-      coverBy: coverByValue,
-      employee: personId,
-      appliedBy: empId,
-    };
+    if (applyFor) {
+      leaveRequest = {
+        leaveType,
+        fromDate,
+        toDate,
+        periodOfLeave,
+        reasonForLeave,
+        prescription,
+        TeamLead: "approved",
+        TeamHead: "approved",
+        Hr: "approved",
+        Manager: "approved",
+        status: "approved",
+        coverBy: coverByValue,
+        employee: personId,
+        appliedBy: empId,
+      };
+      emp.typesOfLeaveRemainingDays[leaveType] -= leaveDaysTaken;
+      await emp.save();
+    } else {
+      leaveRequest = {
+        leaveType,
+        fromDate,
+        toDate,
+        periodOfLeave,
+        reasonForLeave,
+        prescription,
+        coverBy: coverByValue,
+        employee: personId,
+        appliedBy: empId,
+      };
+    }
 
     const { error } = LeaveApplicationValidation.validate(leaveRequest);
     if (error) return res.status(400).json({ error: error.message });
@@ -929,33 +942,23 @@ leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("pre
     const newLeaveApp = await LeaveApplication.create(leaveRequest);
     emp.leaveApplication.push(newLeaveApp._id);
     await emp.save();
+    if (!applyFor) {
 
-    // 9. Notifications
-    const mailList = [
-      emp?.team?.lead?.[0]?.Email,
-      emp?.team?.head?.[0]?.Email,
-      emp?.team?.manager?.[0]?.Email,
-      emp?.admin?.Email,
-    ].filter(Boolean);
+      // 9. Notifications
+      const mailList = [
+        emp?.team?.lead?.[0]?.Email,
+        emp?.team?.head?.[0]?.Email,
+        emp?.team?.manager?.[0]?.Email,
+        emp?.admin?.Email,
+      ].filter(Boolean);
 
-    sendMail({
-      From: process.env.FROM_MAIL,
-      To: mailList.join(","),
-      Subject: "Leave Application Notification",
-      HtmlBody: generateLeaveEmail(emp, fromDate, toDate, reasonForLeave, leaveType, deadlineTasks),
-    });
-
-    // if (coverByValue) {
-    //   const reliever = await Employee.findById(coverByValue, "Email FirstName LastName");
-    //   if (reliever) {
-    //     sendMail({
-    //       From: process.env.FROM_MAIL,
-    //       To: reliever.Email,
-    //       Subject: "Task Relieving Request",
-    //       HtmlBody: generateCoverByEmail(emp, reliever),
-    //     });
-    //   }
-    // }
+      sendMail({
+        From: process.env.FROM_MAIL,
+        To: mailList.join(","),
+        Subject: "Leave Application Notification",
+        HtmlBody: generateLeaveEmail(emp, fromDate, toDate, reasonForLeave, leaveType, deadlineTasks),
+      });
+    }
 
     return res.status(201).json({ message: "Leave request has been submitted successfully.", newLeaveApp });
   } catch (err) {

@@ -1,5 +1,5 @@
-import React, { useContext, useState } from 'react';
-import { Link, NavLink, useParams } from 'react-router-dom';
+import React, { useContext, useEffect, useState } from 'react';
+import { NavLink, useParams } from 'react-router-dom';
 import './sidebar.css';
 import KeyboardArrowDownSharpIcon from '@mui/icons-material/KeyboardArrowDownSharp';
 import jobDeskIcon from '../../../asserts/jobDeskIcon.svg';
@@ -18,7 +18,7 @@ import { jwtDecode } from 'jwt-decode';
 import { TimerStates } from '../HRMDashboard';
 
 const Sidebar = ({ sideBar }) => {
-  const { data, whoIs, handleLogout } = useContext(EssentialValues);
+  const { data, whoIs } = useContext(EssentialValues);
   const { setIsEditEmp } = useContext(TimerStates);
   const { token, _id } = data;
   const decodedData = jwtDecode(token);
@@ -29,7 +29,7 @@ const Sidebar = ({ sideBar }) => {
   const param = useParams();
 
   const [activeSubmenu, setActiveSubmenu] = useState(param['*']);
-  const [activeNavLink, setActiveNavLink] = useState(param["*"] === "" ? "dashboard" : param["*"].includes("employee") ? "employee" : param["*"].includes("my-details") ? "jobDesk" : param["*"]);
+  const [activeNavLink, setActiveNavLink] = useState("");
 
   const toggleActiveLink = (name) => {
     setActiveNavLink(activeNavLink === name ? '' : name);
@@ -42,8 +42,11 @@ const Sidebar = ({ sideBar }) => {
 
   const renderNavLink = (condition, path, icon, text, key) => {
     if (path.includes("/employee/edit/")) {
+      console.log("call to cancel");
       setIsEditEmp(true)
     }
+
+
 
     return (
       condition && (
@@ -64,9 +67,7 @@ const Sidebar = ({ sideBar }) => {
       )
     )
   };
-
   const renderSubMenu = (menuKey, submenuItems, icon, label) => {
-
     return (
       <li className="nav-item">
         <NavLink
@@ -105,6 +106,9 @@ const Sidebar = ({ sideBar }) => {
     );
   };
 
+  useEffect(() => {
+    setActiveNavLink(param["*"] === "" ? "dashboard" : param["*"].includes("employee") ? "employee" : param["*"].includes("my-details") ? "jobDesk" : param["*"])
+  }, [param])
   return (
     <div style={{ width: '250px' }} className={`${!sideBar ? "d-none" : ""} sidebar sidebar_hrm`}>
       <ul className="sidebar-nav p-0" id="sidebar-nav">
