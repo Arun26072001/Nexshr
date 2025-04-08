@@ -764,20 +764,19 @@ leaveApp.get("/", verifyAdminHR, async (req, res) => {
   }
 });
 
-leaveApp.get("/today/:empId", async (req, res) => {
-  try {
-    const today = new Date();
-    const startDate = new Date(today.setHours(0, 0, 0, 0));
-    let endDate = new Date(today.setHours(23, 59, 59, 999));
-    const leaveData = await Employee.findById({ _id: req.params.empId }, "leaveApplication")
-      .populate({
-        path: "leaveApplication", match:
-          { $gte: startDate, $lte: endDate }
-      })
-  } catch (error) {
-
-  }
-})
+// leaveApp.get("/today/:empId", async (req, res) => {
+//   try {
+//     const today = new Date();
+//     const startDate = new Date(today.setHours(0, 0, 0, 0));
+//     let endDate = new Date(today.setHours(23, 59, 59, 999));
+//     const leaveData = await Employee.findById({ _id: req.params.empId }, "leaveApplication")
+//       .populate({
+//         path: "leaveApplication", match:
+//           { $gte: startDate, $lte: endDate }
+//       })
+//   } catch (error) {
+//   }
+// })
 
 leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("prescription"), async (req, res) => {
   try {
@@ -884,11 +883,11 @@ leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("pre
       }
     }
     // verify sufficient leave days for leave
-    const balanceLeave = emp.typesOfLeaveRemainingDays?.[leaveType] || 0;
-    const leaveDays = getDayDifference(req.body);
-    if (balanceLeave < leaveDays) {
-      return res.status(400).send({error: `Insufficient Leave for ${leaveType}`})
-    }
+    // const balanceLeave = emp.typesOfLeaveRemainingDays?.[leaveType] || 0;
+    // const leaveDays = getDayDifference(req.body);
+    // if (balanceLeave < leaveDays) {
+    //   return res.status(400).send({error: `Insufficient Leave for ${leave}`})
+    // }
 
     // 6. Task Conflict Check
     const deadlineTasks = await Task.find({
