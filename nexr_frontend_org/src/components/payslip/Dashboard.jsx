@@ -96,7 +96,8 @@ const Dashboard = () => {
                         Authorization: data.token || ""
                     }
                 })
-                setPeopleOnLeave(res.data)
+                const withoutMyData = res.data.filter((leave) => leave.employee._id !== data._id)
+                setPeopleOnLeave(withoutMyData)
             } catch (error) {
                 setPeopleOnLeave([]);
                 console.log("error in fetch peopleOnLeave data: ", error);

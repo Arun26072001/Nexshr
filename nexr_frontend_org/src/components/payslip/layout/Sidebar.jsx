@@ -22,6 +22,7 @@ const Sidebar = ({ sideBar }) => {
   const { setIsEditEmp } = useContext(TimerStates);
   const { token, _id } = data;
   const decodedData = jwtDecode(token);
+
   const { isTeamLead, isTeamHead, isTeamManager } = decodedData;
   const { Dashboard, JobDesk, Employee, Leave,
     Attendance, Administration, Settings

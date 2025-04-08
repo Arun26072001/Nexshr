@@ -62,7 +62,6 @@ export default function Employee() {
         } catch (error) {
             setEmployees([]);
             console.log("error: ", error);
-            setErrorData(error.response.data.error)
             toast.error("Failed to fetch employees");
         } finally {
             setIsLoading(false);
@@ -78,7 +77,7 @@ export default function Employee() {
             setAllEmployees(withoutMyData);
         } catch (error) {
             console.log("error: ", error);
-            toast.error("Failed to fetch employees");
+            // toast.error("Failed to fetch employees");
         } finally {
             setIsLoading(false);
         }
@@ -185,16 +184,12 @@ export default function Employee() {
                 </div>
 
                 {
-                    isLoading ? (
-                        <Loading height="80vh" />
-                    ) : errorData ? (
-                        <NoDataFound message={errorData} />
-                    ) : (
-                        employees.length > 0 &&
-                        <LeaveTable data={employees} />
-                    )
+                    isLoading ?
+                        <Loading height="80vh" /> :
+                        employees.length > 0 ?
+                            <LeaveTable data={employees} />
+                            : <NoDataFound message={"Employee data not found"} />
                 }
-
             </div>
         </>
     )
