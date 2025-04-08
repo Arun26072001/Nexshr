@@ -8,6 +8,8 @@ import { getDataAPI } from './ReuseableAPI';
 import ApexChart from './ApexChart';
 import { TimerStates } from './payslip/HRMDashboard';
 import { Skeleton } from '@mui/material';
+import profile from "../imgs/male_avatar.webp";
+import "./NexHRDashboard.css";
 
 function CustomTabPanel(props) {
     const { children, value, index, ...other } = props;
@@ -43,13 +45,11 @@ function a11yProps(index) {
     };
 }
 
-export default function Home() {
+export default function Home({ peopleOnLeave }) {
     const { isStartLogin, isStartActivity, workTimeTracker, timeOption, updateClockins } = useContext(TimerStates);
     const [value, setValue] = useState(0);
     const [isLoading, setLoading] = useState(true); // Track loading state
     const empId = localStorage.getItem('_id');
-    // const { data } = useContext(EssentialValues);    
-    // const { isTeamLead, isTeamHead } = jwtDecode(data.token);
 
     const staticData = {
         startingTime: "00:00",
@@ -151,6 +151,19 @@ export default function Home() {
                                     <p className='chartTitle'>Time Activity</p>
                                     <ApexChart activitiesData={tableData} />
                                 </>
+                        }
+                    </div>
+                    <p className='payslipTitle my-2 px-3'>PeopleOnLeave</p>
+                    <div className="d-flex flex-wrap gap-2 align-items-center justify-content-center my-2">
+                        {
+                            peopleOnLeave.map((leave) => {
+                                return <div className='box-content d-flex align-items-center justify-content-around' style={{ flex: 1, width: "100%" }}>
+                                    <div className="imgContainer">
+                                        <img src={leave?.employee?.profile || profile} alt="" width={"100%"} />
+                                    </div>
+                                    <p><b>{leave?.employee?.FirstName[0].toUpperCase() + leave?.employee?.FirstName.slice(1) + " " + leave?.employee?.LastName}</b>({leave?.employee?.team?.teamName})</p>
+                                </div>
+                            })
                         }
                     </div>
                 </div>

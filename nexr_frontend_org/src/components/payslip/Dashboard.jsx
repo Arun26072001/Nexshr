@@ -6,14 +6,17 @@ import NexHRDashboard from '../NexHRDashboard';
 import { EssentialValues } from '../../App';
 import { TimerStates } from './HRMDashboard';
 import ContentLoader from './ContentLoader';
+import axios from 'axios';
 
 const Dashboard = () => {
+    const url = process.env.REACT_APP_API_URL;
     const { updateClockins, isEditEmp } = useContext(TimerStates)
     const { handleLogout, setData, data } = useContext(EssentialValues);
     const [leaveData, setLeaveData] = useState({});
     const [isLoading, setIsLoading] = useState(false);
     const [dailyLogindata, setDailyLoginData] = useState({})
     const [monthlyLoginData, setMonthlyLoginData] = useState({});
+    const [peopleOnLeave, setPeopleOnLeave] = useState([]);
 
     const gettingEmpdata = async () => {
         try {
@@ -24,8 +27,6 @@ const Dashboard = () => {
 
             // Fetch employee data
             const empData = await fetchEmployeeData(data._id);
-            console.log(empData);
-
             setData((pre) => ({
                 ...pre,
                 Name: empData.FirstName + " " + empData.LastName,
@@ -86,6 +87,24 @@ const Dashboard = () => {
     useEffect(() => {
         gettingEmpdata();
     }, [isEditEmp]);
+
+    useEffect(() => {
+        async function fetchPeopleOnLeave() {
+            try {
+                const res = await axios.get(`${url}/api/leave-application/people-on-leave`, {
+                    headers: {
+                        Authorization: data.token || ""
+                    }
+                })
+                setPeopleOnLeave(res.data)
+            } catch (error) {
+                setPeopleOnLeave([]);
+                console.log("error in fetch peopleOnLeave data: ", error);
+            }
+        }
+
+        fetchPeopleOnLeave();
+    }, [])
 
     return (
         <div className='dashboard-parent'>
@@ -237,7 +256,7 @@ const Dashboard = () => {
 
                     </div>
                 </div>
-                <NexHRDashboard updateClockins={updateClockins} />
+                <NexHRDashboard updateClockins={updateClockins} peopleOnLeave={peopleOnLeave} />
             </>
         </div>
     );

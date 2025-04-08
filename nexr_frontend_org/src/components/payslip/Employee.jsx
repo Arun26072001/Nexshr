@@ -47,8 +47,9 @@ export default function Employee() {
         } catch (error) {
             console.error('File upload failed:', error);
             toast.error(error.response.data.error);
+        } finally {
+            setProcessing(false);
         }
-        setProcessing(false);
     };
 
     const fetchEmployeeData = async () => {
@@ -59,12 +60,13 @@ export default function Employee() {
             setEmployees(withoutMyData);
             setAllEmployees(withoutMyData);
         } catch (error) {
+            setEmployees([]);
             console.log("error: ", error);
-
             setErrorData(error.response.data.error)
             toast.error("Failed to fetch employees");
+        } finally {
+            setIsLoading(false);
         }
-        setIsLoading(false);
     };
 
     const fetchAllEmployeeData = async () => {
@@ -77,8 +79,9 @@ export default function Employee() {
         } catch (error) {
             console.log("error: ", error);
             toast.error("Failed to fetch employees");
+        } finally {
+            setIsLoading(false);
         }
-        setIsLoading(false);
     };
 
     async function fetchTeamEmps() {
@@ -93,10 +96,11 @@ export default function Employee() {
             setEmployees(res.data)
             setAllEmployees(res.data)
         } catch (error) {
+            setEmployees([]);
             console.log(error);
-
+        } finally {
+            setIsLoading(false)
         }
-        setIsLoading(false)
     }
 
     useEffect(() => {
