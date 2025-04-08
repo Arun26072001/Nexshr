@@ -276,6 +276,7 @@ leaveApp.get("/emp/:empId", verifyAdminHREmployeeManagerNetwork, async (req, res
   try {
     const { empId } = req.params;
     const { daterangeValue } = req.query;
+    console.log("daterange", daterangeValue);
 
     // Fetch employee data with necessary fields
     let emp = await Employee.findById(empId,
@@ -297,15 +298,23 @@ leaveApp.get("/emp/:empId", verifyAdminHREmployeeManagerNetwork, async (req, res
 
     const today = new Date();
     const filterLeaves = { fromDate: { $lte: today }, toDate: { $gte: today }, status: "approved" };
+    console.log(startDate, endDate);
 
     // **Parallel Data Fetching**
     const [leaveApplications, peopleOnLeave, team] = await Promise.all([
-      LeaveApplication.find({ employee: empId, fromDate: { $gte: startDate, $lte: endDate } })
+      LeaveApplication.find({
+        employee: empId,
+        fromDate: {
+          $gte: new Date(startDate),
+          $lte: new Date(endDate)
+        }
+      })
         .populate("employee", "FirstName LastName")
         .lean(),
       LeaveApplication.find(filterLeaves).populate("employee", "FirstName LastName").lean(),
       Team.findOne({ employees: empId }, "employees").lean()
     ]);
+    console.log(leaveApplications);
 
     // Fetch team members' leaves only if team exists
     const peopleLeaveOnMonth = team
@@ -347,7 +356,6 @@ leaveApp.get("/emp/:empId", verifyAdminHREmployeeManagerNetwork, async (req, res
     res.json({
       employee: emp,
       leaveApplications: leaveApplications.sort((a, b) => new Date(a.fromDate) - new Date(b.fromDate)).map(changeActualImgData),
-      // colleagues,
       peopleOnLeave,
       peopleLeaveOnMonth: peopleLeaveOnMonth.map(changeActualImgData)
     });
@@ -1094,210 +1102,3 @@ leaveApp.delete("/:id/:leaveId", verifyEmployee, async (req, res) => {
 })
 
 module.exports = { leaveApp, getDayDifference };
-
-// leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("prescription"), async (req, res) => {
-//   try {
-//     const { empId } = req.params;
-//     const {
-//       leaveType,
-//       fromDate,
-//       toDate,
-//       periodOfLeave,
-//       reasonForLeave,
-//       coverBy,
-//     } = req.body;
-
-//     // const leaveType = leaveType.toLowerCase();
-//     const prescription = req.file ? req.file.filename : null;
-
-//     // Ensure `coverBy` is either null or a valid value
-//     const coverByValue = coverBy === "" ? null : coverBy;
-//     const personId = [undefined, "undefined"].includes(req.body.applyFor) ? empId : req.body.applyFor;
-
-//     if (req.body.applyFor) {
-//       // check employee is start timer on the day
-//       const emp = await Employee.findById(empId, "clockIns").populate({ path: "clockIns", match: { date: { $gte: fromDate, $lte: toDate } } })
-//       if (emp.clockIns.length) {
-//         return res.status(400).send({ error: "The employee was working during the given leave application date range." });
-//       } else {
-//         try {
-//           const leaveRequest = {
-//             leaveType,
-//             fromDate,
-//             toDate,
-//             periodOfLeave,
-//             reasonForLeave,
-//             prescription,
-//             coverBy: coverByValue,
-//             employee: personId,
-//             appliedBy: empId
-//           }
-//           // Validate leave request schema
-//           const { error } = LeaveApplicationValidation.validate(leaveRequest);
-//           if (error) {
-//             console.error("Validation Error:", error);
-//             return res.status(400).json({ error: error.message });
-//           }
-//           const leaveData = await LeaveApplication.create(leaveRequest);
-//           return res.send({ message: "Leave application applied by higher authority", leaveData })
-//         } catch (error) {
-//           return res.status(500).send({ error: error.message })
-//         }
-//       };
-//     }
-//     // Construct leave request object
-//     const leaveRequest = {
-//       leaveType,
-//       fromDate,
-//       toDate,
-//       periodOfLeave,
-//       reasonForLeave,
-//       prescription,
-//       coverBy: coverByValue,
-//       employee: personId,
-//       appliedBy: empId
-//     };
-
-//     const today = new Date();
-//     const yesterday = new Date();
-//     yesterday.setDate(today.getDate() - 1);
-//     const fromDateObj = new Date(fromDate);
-
-//     // Handle sick leave restriction
-//     if (["Sick Leave", "Medical Leave"].includes(leaveType)) {
-//       const isTodayOrYesterday =
-//         fromDateObj.toDateString() === today.toDateString() ||
-//         fromDateObj.toDateString() === yesterday.toDateString();
-
-//       if (!isTodayOrYesterday) {
-//         return res.status(400).json({ error: "Sick leave is only applicable for today and yesterday." });
-//       }
-//     } else if (["Annual Leave", "Casual Leave"].includes(leaveType)) {
-//       const isToday = fromDateObj.toDateString() === today.toDateString();
-//       if (isToday) {
-//         return res.status(400).send({ error: `${leaveType} is not applicable for same day` })
-//       }
-//     }
-
-//     const now = new Date();
-//     const startDate = new Date(now.getFullYear(), new Date(req.body.fromDate).getMonth(), 1);
-//     const endDate = new Date(startDate.getFullYear(), startDate.getMonth() + 1, 0);
-//     const emp = await Employee.findById({ _id: personId }, "FirstName LastName monthlyPermissions permissionHour typesOfLeaveRemainingDays typesOfLeaveCount")
-//       .populate({
-//         path: "admin",
-//         select: "FirstName LastName Email"
-//       })
-//       .populate({
-//         path: "leaveApplication",
-//         match: { leaveType: "Permission Leave", fromDate: { $gte: startDate, $lte: endDate } },
-//       })
-//       .populate({
-//         path: "team",
-//         populate: [{ path: "lead", select: "Email" }, { path: "head", select: "Email" }, { path: "manager", select: "Email" }],
-//       }).exec();
-
-//     if (!emp) {
-//       return res.status(400).json({ error: `No employee found for ID ${empId}` });
-//     }
-//     // Handle permission leave restrictions
-//     if (leaveType.includes("Permission Leave")) {
-//       const permissionTime = (new Date(toDate) - new Date(fromDate)) / 60000;
-//       if (permissionTime > (emp?.permissionHour || 120)) {
-//         return res.status(400).json({ error: `Permission is only approved for less than ${emp?.permissionHour || "2"} hours.` });
-//       }
-//       if (emp.leaveApplication.length >= emp?.monthlyPermissions) {
-//         return res.status(400).json({ error: "You have already used 2 permissions this month." });
-//       }
-//     }
-
-//     // Check if leave request for the same date already exists
-//     const existingRequest = await LeaveApplication.findOne({
-//       fromDate,
-//       toDate,
-//       employee: empId,
-//     });
-
-//     if (existingRequest) {
-//       return res.status(400).json({ error: "Leave request already submitted for this date." });
-//     }
-
-//     // Fetch approved leave count for the requested leave type
-//     const approvedLeaveData = await LeaveApplication.find({
-//       leaveType: new RegExp("^" + leaveType, "i"),
-//       status: "approved",
-//       employee: empId,
-//     });
-
-//     const takenLeaveCount = approvedLeaveData.reduce((acc, leave) => acc + getDayDifference(leave), 0);
-
-//     if (leaveType !== "Permission Leave") {
-//       const leaveDaysCount = emp?.typesOfLeaveRemainingDays?.[leaveType] || 0;
-//       if (leaveDaysCount < takenLeaveCount) {
-//         return res.status(400).json({ error: `${leaveType} limit reached.` });
-//       }
-//     }
-//     // check has any deadline task on leaveDays
-//     const deadLineTasks = await Task.find({ assignedTo: { $in: req.params.empId }, to: { $gte: fromDate, $lte: toDate } });
-
-//     // Validate leave request schema
-//     const { error } = LeaveApplicationValidation.validate(leaveRequest);
-//     if (error) {
-//       console.error("Validation Error:", error);
-//       return res.status(400).json({ error: error.message });
-//     }
-
-//     // check reliving officer is leave on the day
-//     if (req.body.coverBy) {
-//       const empData = await Employee.findById(req.body.coverBy, "leaveApplication FirstName LastName")
-//         .populate({
-//           path: "leaveApplication",
-//           match: {
-//             fromDate: { $gte: startDate },
-//             toDate: { $lte: endDate },
-//             leaveType: { $ne: "Permission Leave" }
-//           }
-//         })
-//       if (empData.leaveApplication.length) {
-//         return res.status(400).send({ error: `${empData.FirstName} is Leave on the date` })
-//       }
-//     }
-
-//     // Save leave request and update employee leave list
-//     const newLeaveApp = await LeaveApplication.create(leaveRequest);
-//     emp.leaveApplication.push(newLeaveApp._id);
-//     await emp.save();
-
-//     // Send notification emails
-//     const mailList = [
-//       emp?.team?.lead[0]?.Email,
-//       emp?.team?.head[0]?.Email,
-//       emp?.team?.manager[0]?.Email,
-//       emp?.admin?.Email
-//     ].filter(Boolean);
-
-//     sendMail({
-//       From: process.env.FROM_MAIL,
-//       To: mailList.join(","),
-//       Subject: "Leave Application Notification",
-//       HtmlBody: generateLeaveEmail(emp, fromDate, toDate, reasonForLeave, leaveType, deadLineTasks),
-//     });
-
-//     // If coverBy is assigned, notify the relieving officer
-//     if (coverByValue) {
-//       const relievingOffData = await Employee.findById(coverByValue, "Email FirstName LastName");
-//       if (relievingOffData) {
-//         sendMail({
-//           From: process.env.FROM_MAIL,
-//           To: relievingOffData.Email,
-//           Subject: "Task Relieving Request",
-//           HtmlBody: generateCoverByEmail(emp, relievingOffData),
-//         });
-//       }
-//     }
-
-//     return res.status(201).json({ message: "Leave request has been sent to higher authority.", newLeaveApp });
-//   } catch (err) {
-//     console.error(err);
-//     return res.status(500).json({ error: err.message });
-//   }
-// });

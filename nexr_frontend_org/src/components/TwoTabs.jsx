@@ -69,7 +69,7 @@ export default function Twotabs() {
       setIsLoading(true)
       if (_id) {
         const leaveReqs = await fetchLeaveRequests(_id);
-        console.log(leaveReqs);
+        console.log("leavReq", leaveReqs);
 
         if (leaveReqs?.leaveApplications?.length > 0) {
           setLeaveRequests(leaveReqs.leaveApplications);
