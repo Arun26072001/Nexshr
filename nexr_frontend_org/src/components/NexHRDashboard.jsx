@@ -24,9 +24,9 @@ const NexHRDashboard = ({ updateClockins }) => {
                 <span className="bold m-2">
                   OVERVIEW
                 </span>
-                <NavLink to={`/${whoIs}/leave-request`}>
+                {/* <NavLink to={`/${whoIs}/leave-request`}>
                   <button className="button">+ Add Time of</button>
-                </NavLink>
+                </NavLink> */}
               </div>
               <CircleProgressBar token={token} isTeamLead={isTeamLead} isTeamManager={isTeamManager} account={Account} id={_id} isTeamHead={isTeamHead} />
             </>
