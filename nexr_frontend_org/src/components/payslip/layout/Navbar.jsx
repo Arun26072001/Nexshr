@@ -12,10 +12,11 @@ import axios from "axios";
 import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
 import KeyboardArrowDownRoundedIcon from '@mui/icons-material/KeyboardArrowDownRounded';
 import useHandleTabClose from '../../../handleCloseTab';
+import Loading from '../../Loader';
 
 export default function Navbar({ handleSideBar }) {
     const { handleLogout, data, handleUpdateAnnouncements, isChangeAnnouncements, whoIs, socket } = useContext(EssentialValues)
-    const { startLoginTimer, stopLoginTimer, workTimeTracker, isStartLogin, trackTimer, changeReasonForEarly } = useContext(TimerStates);
+    const { startLoginTimer, stopLoginTimer, workTimeTracker, isStartLogin, trackTimer, changeReasonForEarly, isWorkingLoginTimerApi } = useContext(TimerStates);
     const [sec, setSec] = useState(workTimeTracker?.login?.timeHolder?.split(':')[2])
     const [min, setMin] = useState(workTimeTracker?.login?.timeHolder?.split(':')[1])
     const [hour, setHour] = useState(workTimeTracker?.login?.timeHolder?.split(':')[0])
@@ -228,8 +229,6 @@ export default function Navbar({ handleSideBar }) {
     useEffect(() => {
         socket.connect();
         socket.on("early_logout", ({ isCompleteworkingHours }) => {
-            console.log(isCompleteworkingHours);
-
             if (isCompleteworkingHours) {
                 stopTimer()
             } else {
@@ -273,6 +272,7 @@ export default function Navbar({ handleSideBar }) {
             setSec(newSec);
         }
     }, [workTimeTracker, isStartLogin]);
+
     return (
         isViewEarlyLogout ?
             <Modal open={isViewEarlyLogout} size="sm" backdrop="static">
@@ -337,7 +337,10 @@ export default function Navbar({ handleSideBar }) {
                                             onClick={() => startTimer()}
                                             style={{ backgroundColor: "#CEE5D3" }}
                                         >
-                                            <img src={PunchIn} width="25" height="25" alt="startTimer_btn" />
+                                            {
+                                                !isDisabled && isWorkingLoginTimerApi ? <Loading size={20} color="#0a7e22" /> :
+                                                    <img src={PunchIn} width="25" height="25" alt="startTimer_btn" />
+                                            }
                                         </button>
                                         <div className="">
                                             <p className='timerText'>
@@ -356,7 +359,10 @@ export default function Navbar({ handleSideBar }) {
                                             disabled={!isDisabled}
                                             style={{ backgroundColor: "#FFD6DB" }}
                                         >
-                                            <img src={PunchOut} width="25" height="25" alt="stoptimer_btn" />
+                                            {
+                                                isDisabled && isWorkingLoginTimerApi ? <Loading size={20} color="#fd314d" /> :
+                                                    <img src={PunchOut} width="25" height="25" alt="stoptimer_btn" />
+                                            }
                                         </button>
                                         <div className="">
                                             <p className='timerText'>

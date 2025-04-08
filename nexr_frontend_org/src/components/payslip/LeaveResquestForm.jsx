@@ -11,15 +11,15 @@ import DatePicker from "react-datepicker";
 import TextEditor from "./TextEditor";
 import { EssentialValues } from "../../App";
 import Loading from "../Loader";
-import Select from "react-select";
-import AddCircleOutlineRoundedIcon from '@mui/icons-material/AddCircleOutlineRounded';
+// import Select from "react-select";
+// import AddCircleOutlineRoundedIcon from '@mui/icons-material/AddCircleOutlineRounded';
 
 const LeaveRequestForm = () => {
   const url = process.env.REACT_APP_API_URL;
   const empId = localStorage.getItem("_id");
   const { whoIs } = useContext(EssentialValues);
   const token = localStorage.getItem("token");
-  const [collegues, setCollegues] = useState([]);
+  // const [collegues, setCollegues] = useState([]);
   const [error, setError] = useState("");
   const [isShowPeriodOfLeave, setIsShowPeriodOfLeave] = useState(false);
   const navigate = useNavigate();
@@ -49,6 +49,9 @@ const LeaveRequestForm = () => {
         "min-date",
         "You can select a date from tomorrow",
         function (value) {
+          if (["admin", "hr"].includes(whoIs)) {
+            return true;
+          }
           const { leaveType } = this.parent;
           // Accessing another field
           if (!["Permission Leave", "Sick Leave", "Medical Leave"].includes(leaveType) && value) {
@@ -74,6 +77,9 @@ const LeaveRequestForm = () => {
         "min-date",
         "To Date must be after From Date",
         function (value) {
+          if (["admin", "hr"].includes(whoIs)) {
+            return true;
+          }
           const { fromDate } = this.parent; // Accessing another field
           if (value && fromDate) {
             return value >= fromDate; // Ensure `toDate` is not before `fromDate`
@@ -261,6 +267,7 @@ const LeaveRequestForm = () => {
     gettingHoliday();
     gettingEmps();
   }, [])
+  // console.log(excludedDates);
 
   return (
     isLoading ? <Loading height="80vh" /> :
@@ -325,7 +332,7 @@ const LeaveRequestForm = () => {
                   className={`inputField ${formik.touched.fromDate && formik.errors.fromDate ? "error" : ""} w-100`}
                   selected={formik.values.fromDate}
                   onChange={(date) => formik.setFieldValue("fromDate", date)}
-                  minDate={now}
+                  minDate={["admin", "hr"].includes(whoIs) ? "" : now}
                   minTime={formik.values.leaveType === "Permission Leave" ? now : false}
                   maxTime={formik.values.leaveType === "Permission Leave" ? new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59) : false}
                   excludeDates={excludedDates} />
@@ -342,7 +349,7 @@ const LeaveRequestForm = () => {
                   className={`inputField ${formik.touched.toDate && formik.errors.toDate ? "error" : ""}`}
                   selected={formik.values.toDate}
                   onChange={(date) => formik.setFieldValue("toDate", date)}
-                  minDate={now}
+                  minDate={["admin", "hr"].includes(whoIs) ? false : now}
                   minTime={formik.values.leaveType === "Permission Leave" ? now : false}
                   maxTime={formik.values.leaveType === "Permission Leave" ? new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59) : false}
                   excludeDates={excludedDates}

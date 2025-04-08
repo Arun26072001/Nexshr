@@ -671,7 +671,6 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
             }
         })
     }, [data]);
-    console.log(params["*"]);
 
     return (
         <div className="container-fluid my-3">
