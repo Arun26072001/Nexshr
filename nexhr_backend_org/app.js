@@ -276,7 +276,7 @@ io.on("connection", (socket) => {
     )
     let isCompleteworkingHours = true;
 
-    if (scheduleWorkingHours > totalValue && !data.login.reasonForEarlyLogout) {
+    if (30 > totalValue && !data.login.reasonForEarlyLogout) {
       isCompleteworkingHours = false;
       const employeeSocketID = onlineUsers[empData._id]; // ✅ Get correct socket ID
       if (employeeSocketID) {
