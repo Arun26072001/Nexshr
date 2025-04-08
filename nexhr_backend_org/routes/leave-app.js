@@ -819,7 +819,6 @@ leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("pre
     }
 
     // leave application applied person
-
     const monthStart = new Date(fromDateObj.getFullYear(), fromDateObj.getMonth(), 1);
     const monthEnd = new Date(fromDateObj.getFullYear(), fromDateObj.getMonth() + 1, 0);
 
@@ -884,6 +883,7 @@ leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("pre
       assignedTo: personId,
       to: { $gte: fromDate, $lte: toDate },
     });
+    console.log("apply for", applyFor);
 
     // // 7. CoverBy Check
     // if (coverByValue) {
@@ -903,7 +903,7 @@ leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("pre
     // }
     let leaveRequest;
     // 8. Validate and Save
-    if (applyFor) {
+    if (![undefined, "undefined"].includes(applyFor)) {
       leaveRequest = {
         leaveType,
         fromDate,
@@ -920,6 +920,7 @@ leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("pre
         employee: personId,
         appliedBy: empId,
       };
+      const leaveDaysTaken = Math.max(getDayDifference(leaveRequest), 1);
       emp.typesOfLeaveRemainingDays[leaveType] -= leaveDaysTaken;
       await emp.save();
     } else {
@@ -943,7 +944,6 @@ leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("pre
     emp.leaveApplication.push(newLeaveApp._id);
     await emp.save();
     if (!applyFor) {
-
       // 9. Notifications
       const mailList = [
         emp?.team?.lead?.[0]?.Email,
@@ -1077,7 +1077,7 @@ leaveApp.delete("/:id/:leaveId", verifyEmployee, async (req, res) => {
           return res.status(409).send({ message: "Error in deleting leave or leave not found" })
         } else {
           const leaveApplication = await emp.leaveApplication.filter((leaveId) => {
-            return leaveId != req.params.leaveId
+            return leaveId !== req.params.leaveId
           })
           emp.leaveApplication = leaveApplication;
           await emp.save();

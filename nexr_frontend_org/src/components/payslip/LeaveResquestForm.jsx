@@ -19,7 +19,6 @@ const LeaveRequestForm = () => {
   const empId = localStorage.getItem("_id");
   const { whoIs } = useContext(EssentialValues);
   const token = localStorage.getItem("token");
-  // const [collegues, setCollegues] = useState([]);
   const [error, setError] = useState("");
   const [isShowPeriodOfLeave, setIsShowPeriodOfLeave] = useState(false);
   const navigate = useNavigate();
