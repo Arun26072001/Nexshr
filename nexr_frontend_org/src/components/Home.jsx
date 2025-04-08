@@ -161,7 +161,10 @@ export default function Home({ peopleOnLeave }) {
                                     <div className="imgContainer">
                                         <img src={leave?.employee?.profile || profile} alt="" width={"100%"} />
                                     </div>
-                                    <p><b>{leave?.employee?.FirstName[0].toUpperCase() + leave?.employee?.FirstName.slice(1) + " " + leave?.employee?.LastName}</b>({leave?.employee?.team?.teamName})</p>
+                                    <div className="d-block">
+                                        <p><b>{leave?.employee?.FirstName[0].toUpperCase() + leave?.employee?.FirstName.slice(1) + " " + leave?.employee?.LastName}</b>({leave?.employee?.team?.teamName || "TeamName"})</p>
+                                        <p className='sub_text'><b>{leave.fromDate.split("T")[0]} / {leave.toDate.split("T")[0]}</b></p>
+                                    </div>
                                 </div>
                             })
                         }
