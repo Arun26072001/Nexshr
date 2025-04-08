@@ -8,7 +8,8 @@ const convertToString = (value) => {
 };
 
 function getDayDifference(leave) {
-  if (leave?.leaveType === "half day") {
+
+  if (leave?.periodOfLeave === "half day") {
     return 0.5;
   }
 
@@ -21,7 +22,6 @@ function getDayDifference(leave) {
   if (dayDifference < 1) {
     return 1; // Minimum one day for a leave if it's less than a full day
   }
-
   return dayDifference;
 }
 
@@ -85,8 +85,13 @@ function mailContent(type, fromDateValue, toDateValue, emp, leaveType, actionBy,
 }
 
 function timeToMinutes(timeStr) {
-  const [hours, minutes, seconds] = timeStr.split(":").map(Number);
-  return Number(((hours * 60) + minutes + (seconds / 60)).toFixed(2)) || 0; // Defaults to 0 if input is invalid
+  if (timeStr.split(":").length === 3) {
+    const [hours, minutes, seconds] = timeStr.split(":").map(Number);
+    return Number(((hours * 60) + minutes + (seconds / 60)).toFixed(2)) || 0; // Defaults to 0 if input is invalid
+  } else {
+    const [hours, minutes] = timeStr.split(":").map(Number);
+    return Number(((hours * 60) + minutes).toFixed(2)) || 0;
+  }
 }
 
 const getCurrentTimeInMinutes = () => {

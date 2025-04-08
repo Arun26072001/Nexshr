@@ -112,7 +112,6 @@ const Attendence = () => {
       console.log(error);
     }
     setIsLoading(false);
-
   }
 
   useEffect(() => {

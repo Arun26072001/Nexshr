@@ -34,122 +34,6 @@ async function checkLoginForOfficeTime(scheduledTime, actualTime, permissionTime
     }
 }
 
-// router.post("/auto-permission/:patternId", async (req, res) => {
-//     try {
-//         const now = new Date();
-//         const startOfDay = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 0, 0, 0, 0));
-//         const endOfDay = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 23, 59, 59, 999));
-
-//         // Fetch employees who haven't logged in
-//         let notLoginEmps = await Employee.find({ workingTimePattern: req.params.patternId })
-//             .populate({
-//                 path: "clockIns",
-//                 match: { date: { $gte: startOfDay, $lt: endOfDay } }
-//             })
-//             .populate({
-//                 path: "leaveApplication",
-//                 match: {
-//                     fromDate: { $gte: startOfDay, $lt: endOfDay },
-//                     status: "approved"
-//                 }
-//             })
-//             .populate("workingTimePattern");
-
-//         notLoginEmps = notLoginEmps.filter((emp) => emp?.clockIns?.length === 0 && emp?.leaveApplication.length === 0);
-
-//         // Process each employee sequentially
-//         for (const emp of notLoginEmps) {
-//             const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-//             const endOfMonth = new Date();
-//             const empPermissions = await LeaveApplication.find({
-//                 employee: emp._id,
-//                 fromDate: { $gte: startOfMonth, $lt: endOfMonth },
-//                 leaveType: "Permission Leave",
-//                 status: "approved"
-//             });
-
-//             let halfDayLeaveApp;
-//             let subject, htmlContent;
-
-//             if (empPermissions.length === 2) {
-//                 // Apply Half-day Leave
-//                 halfDayLeaveApp = {
-//                     leaveType: "Unpaid Leave (LWP)",
-//                     fromDate: now,
-//                     toDate: new Date(now.getTime() + 4 * 60 * 60 * 1000),
-//                     periodOfLeave: "half day",
-//                     reasonForLeave: "Came too late",
-//                     employee: emp._id.toString(),
-//                     status: "approved",
-//                     TeamLead: "approved",
-//                     TeamHead: "approved",
-//                     Hr: "approved",
-//                     Manager: "approved"
-//                 };
-
-//                 subject = "Half-day Leave Applied (Unpaid Leave)";
-//                 htmlContent = `
-//                     <html>
-//                         <body>
-//                             <h2>You have exceeded your permission limit.</h2>
-//                             <p>We are marking you on a half-day leave due to late arrival. Please adhere to the company's policies.</p>
-//                         </body>
-//                     </html>`;
-//             } else {
-//                 // Apply Permission Leave
-//                 const toDateTime = new Date(now.getTime() + 2 * 60 * 60 * 1000); // +2 hours
-//                 halfDayLeaveApp = {
-//                     leaveType: "Permission Leave",
-//                     fromDate: now,
-//                     toDate: toDateTime,
-//                     periodOfLeave: "half day",
-//                     reasonForLeave: "Came too late",
-//                     employee: emp._id.toString(),
-//                     status: "approved",
-//                     TeamLead: "approved",
-//                     TeamHead: "approved",
-//                     Hr: "approved",
-//                     Manager: "approved"
-//                 };
-
-//                 subject = empPermissions.length === 1 ? "2nd Permission Applied" : "1st Permission Applied";
-//                 htmlContent = `
-//                     <html>
-//                         <body>
-//                             <h2>${empPermissions.length === 1 ? "Second" : "First"} permission applied.</h2>
-//                             <p>You have arrived late and have been granted a 2-hour permission. Ensure timely arrival.</p>
-//                         </body>
-//                     </html>`;
-//             }
-
-//             const { error } = LeaveApplicationValidation.validate(halfDayLeaveApp);
-//             if (error) {
-//                 return res.status(400).send({ error: error.details[0].message });
-//             }
-
-//             // Save Leave Application
-//             const addLeave = await LeaveApplication.create(halfDayLeaveApp);
-//             emp.leaveApplication.push(addLeave._id);
-//             await emp.save();
-
-//             // Send Email Notification
-//             sendMail({
-//                 From: process.env.FROM_MAIL,
-//                 To: emp.Email,
-//                 Subject: subject,
-//                 HtmlBody: htmlContent,
-//             });
-//         }
-
-//         // Send response only once
-//         return res.send({ message: "Permission applied for late employees" });
-
-//     } catch (error) {
-//         console.error(error);
-//         return res.status(500).send({ error: error.message });
-//     }
-// });
-
 router.post("/not-login/apply-leave", async (req, res) => {
     try {
         const now = new Date();
@@ -318,7 +202,6 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
         const officeLoginTime = emp?.workingTimePattern?.StartingTime || "9:00";
         const loginTimeRaw = req.body?.login?.startingTime?.[0];
         if (!loginTimeRaw) return res.status(400).send({ error: "You must start Punch-in Timer" });
-
         const companyLoginMinutes = timeToMinutes(officeLoginTime);
         const empLoginMinutes = timeToMinutes(loginTimeRaw);
         if (companyLoginMinutes < empLoginMinutes) {
@@ -672,7 +555,7 @@ router.get("/employee/:empId", verifyAdminHREmployeeManagerNetwork, async (req, 
             [new Date(daterangeValue[0]), new Date(daterangeValue[1])] :
             [new Date(now.getFullYear(), now.getMonth(), 1), now];
 
-        let totalEmpWorkingHours = 0, totalLeaveDays = 0, totalUnpaidLeaves = 0;
+        let totalEmpWorkingHours = 0, totalLeaveDays = 0
         let regular = 0, late = 0, early = 0;
 
         const checkLogin = (scheduledTime, actualTime) => {
@@ -695,21 +578,21 @@ router.get("/employee/:empId", verifyAdminHREmployeeManagerNetwork, async (req, 
         };
 
         const employee = await Employee.findById(empId, "FirstName LastName clockIns leaveApplication")
-            .populate({
+            .populate([{ path: "workingTimePattern" },
+            {
                 path: "clockIns",
                 match: { date: { $gte: startOfMonth, $lte: endOfMonth } },
                 populate: { path: "employee", select: "FirstName LastName" }
-            })
-            .populate({
+            },
+            {
                 path: "leaveApplication",
-                match: { fromDate: { $lte: endOfMonth }, toDate: { $gte: startOfMonth }, status: "approved" },
-                select: "fromDate toDate leaveType"
-            });
+                match: { fromDate: { $lte: endOfMonth }, toDate: { $gte: startOfMonth }, status: "approved", leaveType: { $ne: "Permission Leave" } },
+                select: "fromDate toDate leaveType periodOfLeave"
+            }])
 
         if (!employee) return res.status(400).send({ message: "Employee not found." });
 
-        totalLeaveDays = employee.leaveApplication.reduce((sum, leave) => sum + getDayDifference(leave), 0);
-        // totalUnpaidLeaves = employee.leaveApplication.filter(leave => leave.leaveType.includes("Unpaid")).length;
+        totalLeaveDays = Math.ceil(employee.leaveApplication.reduce((sum, leave) => sum + getDayDifference(leave), 0));
 
         employee.clockIns.forEach(({ login }) => {
             const { startingTime, endingTime } = login;
@@ -722,7 +605,6 @@ router.get("/employee/:empId", verifyAdminHREmployeeManagerNetwork, async (req, 
             totalLateLogins: late,
             totalEarlyLogins: early,
             companyTotalWorkingHour: getTotalWorkingHoursExcludingWeekends(startOfMonth, endOfMonth),
-            // totalUnpaidLeaves,
             totalWorkingHoursPerMonth: getTotalWorkingHoursExcludingWeekends(startOfMonth, new Date(now.getFullYear(), now.getMonth() + 1, 0)),
             totalEmpWorkingHours,
             totalLeaveDays,
