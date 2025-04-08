@@ -30,6 +30,8 @@ const EditEmployeeform = ({ details, empData, handleScroll, handlePersonal, hand
     const [isWorkingApi, setIsWorkingApi] = useState(false);
     const [errorData, setErrorData] = useState("");
     const employeeObj = empData;
+    console.log("leavTypeValue:", selectedLeaveTypes);
+    console.log("orLeavetype: ", leaveTypes);
 
     const empFormValidation = Yup.object().shape({
         FirstName: Yup.string().required('First Name is required'),
@@ -217,7 +219,7 @@ const EditEmployeeform = ({ details, empData, handleScroll, handlePersonal, hand
     }, [formik.values.workingTimePattern]);
 
     useEffect(() => {
-        // setSelectedLeavetypes(Object.entries(empData.typesOfLeaveCount).map(([key, value]) => key))
+        setSelectedLeavetypes(Object.entries(empData.typesOfLeaveCount).map(([key, value]) => key + " " + value))
     }, [empData])
 
     useEffect(() => {
@@ -676,38 +678,6 @@ const EditEmployeeform = ({ details, empData, handleScroll, handlePersonal, hand
                                         ) : null}
                                     </div>
                                 </div>
-
-                                {/* <div className="row d-flex justify-content-center">
-                                    {
-                                        splitError &&
-                                        <div className="text-center text-danger">{splitError}</div>
-                                    }
-                                    <div className="col-lg-6 my-2">
-                                        <div className="inputLabel">
-                                            Annual Leave Entitlement
-                                        </div>
-                                        <input type="number"
-                                            value={formik.values.annualLeaveEntitlement}
-                                            disabled={whoIs === "emp" ? true : false}
-                                            onChange={whoIs === "emp" ? null : formik.handleChange}
-                                            name="annualLeaveEntitlement"
-                                            className={`inputField ${formik.touched.annualLeaveEntitlement && formik.errors.annualLeaveEntitlement ? "error" : ""}`} />
-                                        {formik.touched.annualLeaveEntitlement && formik.errors.annualLeaveEntitlement ? (
-                                            <div className="text-center text-danger">{formik.errors.annualLeaveEntitlement}</div>
-                                        ) : null}
-                                    </div>
-                                    <div className="col-lg-6 my-2">
-                                        <div className="inputLabel">
-                                            Select Leave Types
-                                        </div>
-                                        <TagPicker data={leaveTypes} disabled={formik.values.annualLeaveEntitlement ? false : true}
-                                            title={!formik.values.annualLeaveEntitlement && "Please Enter Annual Leave"}
-                                            size="lg" readOnly={whoIs === "emp" ? true : false} onChange={whoIs === "emp" ? null : handleTagSelector}
-                                            value={selectedLeaveTypes}
-                                            className={formik.values.annualLeaveEntitlement ? "rsuite_selector" : "rsuite_selector_disabled"}
-                                            style={{ width: 300, border: "none" }} />
-                                    </div>
-                                </div> */}
                                 <div className="row d-flex justify-content-center">
                                     <div className="col-lg-6 my-2">
                                         <div className="inputLabel">
@@ -743,7 +713,7 @@ const EditEmployeeform = ({ details, empData, handleScroll, handlePersonal, hand
                                                     Choose {leaveName} count
                                                 </div>
                                                 <input type="number"
-                                                    disabled={whoIs === "emp" ? true : false}
+                                                    // disabled={whoIs === "emp" ? true : false}
                                                     onChange={whoIs === "emp" ? null : (e) => getValueforLeave(e)}
                                                     name={leaveName}
                                                     className={`inputField`}
