@@ -276,7 +276,6 @@ leaveApp.get("/emp/:empId", verifyAdminHREmployeeManagerNetwork, async (req, res
   try {
     const { empId } = req.params;
     const { daterangeValue } = req.query;
-    console.log("daterange", daterangeValue);
 
     // Fetch employee data with necessary fields
     let emp = await Employee.findById(empId,
@@ -298,7 +297,6 @@ leaveApp.get("/emp/:empId", verifyAdminHREmployeeManagerNetwork, async (req, res
 
     const today = new Date();
     const filterLeaves = { fromDate: { $lte: today }, toDate: { $gte: today }, status: "approved" };
-    console.log(startDate, endDate);
 
     // **Parallel Data Fetching**
     const [leaveApplications, peopleOnLeave, team] = await Promise.all([
@@ -885,13 +883,18 @@ leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("pre
         return res.status(400).json({ error: `${leaveType} limit has been reached.` });
       }
     }
+    // verify sufficient leave days for leave
+    const balanceLeave = emp.typesOfLeaveRemainingDays?.[leaveType] || 0;
+    const leaveDays = getDayDifference(req.body);
+    if (balanceLeave < leaveDays) {
+      return res.status(400).send({error: `Insufficient Leave for ${leaveType}`})
+    }
 
     // 6. Task Conflict Check
     const deadlineTasks = await Task.find({
       assignedTo: personId,
       to: { $gte: fromDate, $lte: toDate },
     });
-    console.log("apply for", applyFor);
 
     // // 7. CoverBy Check
     // if (coverByValue) {
@@ -944,6 +947,8 @@ leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("pre
         appliedBy: empId,
       };
     }
+
+
 
     const { error } = LeaveApplicationValidation.validate(leaveRequest);
     if (error) return res.status(400).json({ error: error.message });

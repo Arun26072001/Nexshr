@@ -202,7 +202,7 @@ const LeaveRequestForm = () => {
         }
 
         // Set types of leave
-        const validLeaveTypes = Object.keys(leaveReqs?.employee?.typesOfLeaveCount).filter((type) => type !== "Unpaid Leave");
+        const validLeaveTypes = Object.keys(leaveReqs?.employee?.typesOfLeaveCount).map((type) => type);
 
         setTypOfLeave(validLeaveTypes || {});
 
