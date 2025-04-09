@@ -55,7 +55,7 @@ const App = () => {
     }
 
     localStorage.clear();
-    setData({ _id: "", Account: "", Name: "", token: "", annualLeave: 0 });
+    setData({ _id: "", Account: "", Name: "", token: "", annualLeave: 0, profile: "" });
     setWhoIs("");
 
     setIsLogin(false);
@@ -68,7 +68,6 @@ const App = () => {
 
   async function sendEmpIdtoExtension(empId, token) {
     window.postMessage({ type: "FROM_REACT", payload: { empId, token } }, "*");
-    console.log("send message");
   }
 
   const login = async (email, password) => {
@@ -88,6 +87,7 @@ const App = () => {
         Name: `${decodedData.FirstName} ${decodedData.LastName}`,
         token: response.data,
         annualLeave: decodedData.annualLeaveEntitlement || 0,
+        profile: decodedData.profile
       });
 
       // Update local storage
@@ -97,6 +97,7 @@ const App = () => {
       localStorage.setItem("Name", `${decodedData.FirstName} ${decodedData.LastName}`);
       localStorage.setItem("annualLeaveEntitment", decodedData.annualLeaveEntitlement || 0);
       localStorage.setItem("token", response.data);
+      localStorage.setItem("profile", decodedData.profile)
 
       setPass(true);
       setLoading(false);
@@ -195,6 +196,7 @@ const App = () => {
       Name: localStorage.getItem("Name") || "",
       token: localStorage.getItem("token") || "",
       annualLeave: localStorage.getItem("annualLeaveEntitment") || 0,
+      profile: localStorage.getItem("profile")
     }))
     const roles = { "17": "superAdmin", "1": "admin", "2": "hr", "3": "emp", "4": "manager", "5": "sys-admin" };
     setWhoIs(roles[String(localStorage.getItem("Account"))] || "");

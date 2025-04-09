@@ -176,14 +176,14 @@ export default function Twotabs() {
   }
 
   return (
-    <Box sx={{ width: '100%', border: '2px solid rgb(208 210 210)', borderRadius: '5px', height: "100%" }}>
+    <Box sx={{ width: '100%', borderRadius: '5px', height: "100%", backgroundColor: 'white' }} >
       <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
-        <Tabs value={value} onChange={handleChange} aria-label="basic tabs example" style={{ backgroundColor: 'rgb(238, 247, 255)' }}>
+        <Tabs value={value} onChange={handleChange} aria-label="basic tabs example">
           <Tab label="Absence" {...a11yProps(0)} />
           {/* <Tab label="Overtime" {...a11yProps(1)} /> */}
         </Tabs>
       </Box>
-      <CustomTabPanel value={value} index={0} className="bg-light tabParent">
+      <CustomTabPanel value={value} index={0} className="tabParent">
         <div className='empActivies'>
           <div className="d-flex justify-content-between w-100" style={{ fontSize: "12px", fontWeight: 600 }}>
             <div className=''>

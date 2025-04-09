@@ -167,12 +167,10 @@ export default function Home({ peopleOnLeave, isFetchPeopleOnLeave }) {
                                 </> :
                                 peopleOnLeave.length ?
                                     peopleOnLeave.map((leave) => {
-                                        return <div className='box-content d-flex align-items-center justify-content-around col-lg-5 col-12 col-md-5'>
-                                            <div className="imgContainer">
-                                                <img src={leave?.employee?.profile || profile} alt="" width={"100%"} />
-                                            </div>
+                                        return <div className='box-content d-flex align-items-center justify-content-around col-lg-5 col-12 col-md-5' style={{ boxShadow: "rgba(0, 0, 0, 0.02) 0px 1px 3px 0px, rgba(27, 31, 35, 0.15) 0px 0px 0px 1px" }}>
+                                                <img src={leave?.employee?.profile || profile} alt="" className='imgContainer' />
                                             <div className="d-block">
-                                                <p><b>{leave?.employee?.FirstName[0].toUpperCase() + leave?.employee?.FirstName.slice(1) + " " + leave?.employee?.LastName}</b>({leave?.employee?.team?.teamName || "TeamName"})</p>
+                                                <p style={{ fontSize: "13px" }}><b>{leave?.employee?.FirstName[0].toUpperCase() + leave?.employee?.FirstName.slice(1) + " " + leave?.employee?.LastName}</b>({leave?.employee?.team?.teamName || "TeamName"})</p>
                                                 <p className='sub_text'><b>{leave.fromDate.split("T")[0]} / {leave.toDate.split("T")[0]}</b></p>
                                             </div>
                                         </div>

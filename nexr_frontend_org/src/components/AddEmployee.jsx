@@ -36,6 +36,7 @@ const AddEmployee = () => {
   const token = localStorage.getItem("token");
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
+  const [preview, setPreview] = useState("");
 
   function handlePersonal() {
     if (personalRef.current) {
@@ -218,7 +219,7 @@ const AddEmployee = () => {
     setIsLoading(true);
     try {
       const empData = await fetchEmployeeData(id);
-
+      setPreview(empData.profile);
       setEmployeeObj({
         FirstName: empData?.FirstName || "",
         LastName: empData?.LastName || "",
@@ -260,7 +261,6 @@ const AddEmployee = () => {
 
     } catch (error) {
       console.log(error);
-
       toast.error(error.message);
     }
     setIsLoading(false);
@@ -336,6 +336,8 @@ const AddEmployee = () => {
           positions={positions}
           managers={managers}
           timePatterns={timePatterns}
+          preview={preview}
+          setPreview={setPreview}
         />
       ) : (
         <AddEmployeeForm

@@ -841,7 +841,7 @@ leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("pre
 
     // 2. Validate sick leave and casual leave dates
     if (["Sick Leave", "Medical Leave"].includes(leaveType)) {
-      const isValid = [today.toDateString(), yesterday.toDateString()].includes(fromDateObj.toDateString());
+      const isValid = [today.toLocaleString(), yesterday.toLocaleString()].includes(fromDateObj.toLocaleString());
       if (!isValid) {
         return res.status(400).json({ error: "Sick leave is only applicable for today and yesterday." });
       }

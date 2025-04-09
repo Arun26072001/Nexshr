@@ -25,7 +25,6 @@ export default function Employee() {
     const [isLoading, setIsLoading] = useState(false);
     const [processing, setProcessing] = useState(false);
     const navigate = useNavigate();
-    const [errorData, setErrorData] = useState("");
 
     function handleModifyEmps() {
         setIsModifyEmps(!isModifyEmps)
@@ -51,6 +50,22 @@ export default function Employee() {
             setProcessing(false);
         }
     };
+    // delete employee
+    async function handleDeleteEmp(empId) {
+        console.log(empId);
+        
+        try {
+            const res = await axios.delete(`${url}/api/employee/${empId}`, {
+                headers: {
+                    Authorization: data.token || ""
+                }
+            })
+            toast.success(res.data.message);
+            handleModifyEmps();
+        } catch (error) {
+            console.log("error in delete emp", error);
+        }
+    }
 
     const fetchEmployeeData = async () => {
         setIsLoading(true);
@@ -155,7 +170,7 @@ export default function Employee() {
                             <button className="button" onClick={() => navigate(`/${whoIs}/employee/add`)}>
                                 <AddRoundedIcon /> Add Employee
                             </button>
-                            <button className="button bg-light text-dark" onClick={() => document.getElementById("fileUploader").click()} >
+                            <button className="button " onClick={() => document.getElementById("fileUploader").click()} >
                                 <AddRoundedIcon />Import
                             </button>
                         </>
@@ -187,7 +202,7 @@ export default function Employee() {
                     isLoading ?
                         <Loading height="80vh" /> :
                         employees.length > 0 ?
-                            <LeaveTable data={employees} />
+                            <LeaveTable data={employees} deleteData={handleDeleteEmp} />
                             : <NoDataFound message={"Employee data not found"} />
                 }
             </div>

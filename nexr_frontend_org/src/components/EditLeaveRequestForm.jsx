@@ -1,71 +1,63 @@
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import LibraryBooksIcon from '@mui/icons-material/LibraryBooks';
 import "./leaveForm.css";
 import { useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
 import { toast } from "react-toastify";
+import { EssentialValues } from "../App";
+import { fetchLeaveRequests } from "./ReuseableAPI";
 
 const EditLeaveRequestForm = () => {
     const { id } = useParams();
     const url = process.env.REACT_APP_API_URL;
+    const { whoIs } = useContext(EssentialValues);
     const empId = localStorage.getItem("_id");
     const token = localStorage.getItem("token");
     const [colleagues, setColleagues] = useState([]);
     const navigate = useNavigate();
-    const [formData, setFormData] = useState({
-        leaveType: "",
-        fromDate: "",
-        toDate: "",
-        periodOfLeave: "",
-        reasonForLeave: "",
-        prescription: "",
-        coverBy: "",
-        status: ""
-    });
-
-    useEffect(() => {
-        const fetchLeaveRequest = async () => {
-            if (id) {
-                try {
-                    const response = await axios.get(`${url}/api/leave-application/${id}`, {
-                        headers: {
-                            authorization: token || ""
-                        }
-                    });
-                    setFormData(response.data);
-                    if (response.data.employee) {
-                        fetchCollegues(response.data.employee)
-                    }
-                } catch (error) {
-                    toast.error("Failed to fetch leave request data.");
-                }
-            }
-        };
-
-        async function fetchCollegues() {
+    const [leaveRequestObj, setLeaveRequestObj] = useState({});
+    
+    const fetchLeaveRequest = async () => {
+        if (id) {
             try {
-                const res = await axios.get(`${url}/api/team/members/${empId}`, {
-                    params: {
-                        who: "employees"
-                    },
+                const response = await axios.get(`${url}/api/leave-application/${id}`, {
                     headers: {
-                        Authorization: token || ""
+                        authorization: token || ""
                     }
-                })
-                setColleagues(res.data.employees.filter((emp)=> emp._id !== empId))
+                });
+                setLeaveRequestObj(response.data);
+                if (response.data.employee) {
+                    fetchCollegues(response.data.employee)
+                }
             } catch (error) {
-                console.log(error);
-
+                toast.error("Failed to fetch leave request data.");
             }
         }
+    };
+    async function fetchCollegues() {
+        try {
+            const res = await axios.get(`${url}/api/team/members/${empId}`, {
+                params: {
+                    who: "employees"
+                },
+                headers: {
+                    Authorization: token || ""
+                }
+            })
+            setColleagues(res.data.employees.filter((emp) => emp._id !== empId))
+        } catch (error) {
+            console.log(error);
 
+        }
+    }
+    useEffect(() => {
         fetchCollegues()
         fetchLeaveRequest();
     }, []);
 
     const handleChange = (e) => {
         const { name, value } = e.target;
-        setFormData((prev) => ({
+        setLeaveRequestObj((prev) => ({
             ...prev,
             [name]: value
         }));
@@ -74,17 +66,60 @@ const EditLeaveRequestForm = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            const res = await axios.put(`${url}/api/leave-application/${id}`, formData, {
+            const res = await axios.put(`${url}/api/leave-application/${id}`, leaveRequestObj, {
                 headers: {
                     authorization: token || ""
                 }
             });
             toast.success(res.data.message);
-            navigate("/hr/leave-management");
+            setLeaveRequestObj({});
+            navigate(`/${whoIs}`);
         } catch (error) {
             toast.error(error.response.data.details);
         }
     };
+
+    // const gettingLeaveRequests = async () => {
+    //     setIsLoading(true)
+    //     try {
+    //       if (empId) {
+    //         const leaveReqs = await fetchLeaveRequests(empId);
+    
+    //         const leaveDates = leaveReqs?.peopleLeaveOnMonth.flatMap((leave) => [
+    //           new Date(leave.fromDate).toISOString(),
+    //           new Date(leave.toDate).toISOString(),
+    //         ]) || [];
+    
+    //         // Count occurrences of each date
+    //         const dateCounts = leaveDates.reduce((acc, date) => {
+    //           acc[date] = (acc[date] || 0) + 1;
+    //           return acc;
+    //         }, {});
+    
+    //         // Filter dates with more than one occurrence
+    //         const duplicateDates = Object.entries(dateCounts)
+    //           .filter(([, count]) => count > 1) // Keep only dates with count > 1
+    //           .map(([date]) => new Date(date)); // Convert back to Date objects
+    
+    //         // Update the excludeDates array
+    //         if (duplicateDates.length > 0) {
+    //           setExcludeDates((prev) => [...prev, ...duplicateDates]);
+    //         }
+    
+    //         // Set types of leave
+    //         const validLeaveTypes = Object.keys(leaveReqs?.employee?.typesOfLeaveCount).map((type) => type);
+    
+    //         setTypOfLeave(validLeaveTypes || {});
+    
+    //       } else {
+    //         toast.error("empId is not loaded in the app.");
+    //       }
+    //     } catch (error) {
+    //       console.error("Error fetching leave requests:", error);
+    //       toast.error("Failed to fetch leave requests. Please try again.");
+    //     }
+    //     setIsLoading(false);
+    //   };
 
     return (
         <form onSubmit={handleSubmit}>
@@ -103,12 +138,9 @@ const EditLeaveRequestForm = () => {
                             onChange={handleChange}
                             disabled
                             aria-readonly
-                            value={formData.leaveType || ""}
+                            value={leaveRequestObj.leaveType || ""}
                         >
-                            <option>Select Leave type</option>
-                            <option selected={`${formData.leaveType.toLocaleLowerCase() === "annual leave"}`} value="annual leave" >Annual Leave</option>
-                            <option selected={`${formData.leaveType.toLocaleLowerCase() === "sick leave"}`} value="sick leave" >Sick Leave</option>
-                            <option selected={`${formData.leaveType.toLocaleLowerCase() === "casual leave"}`} value="casual leave" >Casual Leave</option>
+
                         </select>
                     </div>
 
@@ -123,7 +155,7 @@ const EditLeaveRequestForm = () => {
                                 min={new Date().toISOString().split("T")[0]}
                                 className="inputField"
                                 onChange={handleChange}
-                                value={formData.fromDate ? formData.fromDate.split('T')[0] : ""}
+                                value={leaveRequestObj.fromDate ? leaveRequestObj.fromDate.split('T')[0] : ""}
                             />
                         </div>
                         <div className="col-12 col-lg-6 col-md-6">
@@ -136,7 +168,7 @@ const EditLeaveRequestForm = () => {
                                 min={new Date().toISOString().split("T")[0]}
                                 className="inputField"
                                 onChange={handleChange}
-                                value={formData.toDate ? formData.toDate.split('T')[0] : ""}
+                                value={leaveRequestObj.toDate ? leaveRequestObj.toDate.split('T')[0] : ""}
                             />
                         </div>
                     </div>
@@ -149,11 +181,11 @@ const EditLeaveRequestForm = () => {
                             name="periodOfLeave"
                             className="selectInput"
                             onChange={handleChange}
-                            value={formData.periodOfLeave || ""}
+                            value={leaveRequestObj.periodOfLeave || ""}
                         >
                             <option>Select Leave type</option>
-                            <option value="full day" selected={`${formData.periodOfLeave === "full day"}`}>Full Day</option>
-                            <option value="half day" selected={`${formData.periodOfLeave === "half day"}`}>Half Day</option>
+                            <option value="full day" selected={`${leaveRequestObj.periodOfLeave === "full day"}`}>Full Day</option>
+                            <option value="half day" selected={`${leaveRequestObj.periodOfLeave === "half day"}`}>Half Day</option>
                         </select>
                     </div>
 
@@ -166,7 +198,7 @@ const EditLeaveRequestForm = () => {
                             name="reasonForLeave"
                             className="inputField"
                             onChange={handleChange}
-                            value={formData.reasonForLeave || ""}
+                            value={leaveRequestObj.reasonForLeave || ""}
                         />
                     </div>
 
@@ -179,7 +211,7 @@ const EditLeaveRequestForm = () => {
                             name="prescription"
                             className="fileInput"
                             onChange={handleChange}
-                            value={formData.prescription || ""}
+                            value={leaveRequestObj.prescription || ""}
                         />
                     </div> */}
 
@@ -191,11 +223,11 @@ const EditLeaveRequestForm = () => {
                             name="coverBy"
                             className="selectInput"
                             onChange={handleChange}
-                            value={formData.coverBy || ""}
+                            value={leaveRequestObj.coverBy || ""}
                         >
                             <option>Select a Relief Officer</option>
                             {colleagues.map((emp) => (
-                                <option key={emp._id} selected={`${formData.coverBy === emp._id}`} value={emp._id}>{emp.FirstName[0].toUpperCase()+emp.FirstName.slice(1)}</option>
+                                <option key={emp._id} selected={`${leaveRequestObj.coverBy === emp._id}`} value={emp._id}>{emp.FirstName[0].toUpperCase() + emp.FirstName.slice(1)}</option>
                             ))}
                         </select>
                     </div>
@@ -207,12 +239,12 @@ const EditLeaveRequestForm = () => {
                             name="status"
                             className="selectInput"
                             onChange={handleChange}
-                            value={formData.status || ""}
+                            value={leaveRequestObj.status || ""}
                         >
                             <option>Select Leave Status</option>
-                            <option value="pending" selected={`${formData.status === "pending"}`}>Pending</option>
-                            <option value="approved" selected={`${formData.status === "approved"}`}>Approved</option>
-                            <option value="rejected" selected={`${formData.status === "rejected"}`}>Rejected</option>
+                            <option value="pending" selected={`${leaveRequestObj.status === "pending"}`}>Pending</option>
+                            <option value="approved" selected={`${leaveRequestObj.status === "approved"}`}>Approved</option>
+                            <option value="rejected" selected={`${leaveRequestObj.status === "rejected"}`}>Rejected</option>
                         </select>
                     </div>
 

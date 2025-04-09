@@ -480,7 +480,6 @@ export default function HRMDashboard() {
                     <Route index element={<Dashboard data={data} />} />
                     <Route path="job-desk/*" element={<JobDesk />} />
                     <Route path="calendar" element={<AttendanceCalendar />} />
-
                     <Route path="projects" element={<Projects employees={employees} />} />
                     <Route path="tasks/*" element={
                         <Routes>
@@ -505,7 +504,7 @@ export default function HRMDashboard() {
                         </LeaveStates.Provider>
                     } />
                     <Route path='/leave-request' element={<LeaveRequestForm />} />
-                    <Route path="/leave-request/edit/:id" element={<EditLeaveRequestForm />} />
+                    <Route path="/leave-request/edit/:id" element={<LeaveRequestForm />} />
                     <Route path="attendance/*" element={
                         <Routes>
                             <Route index path="attendance-request" element={<Request attendanceData={attendanceData} isLoading={waitForAttendance} />} />

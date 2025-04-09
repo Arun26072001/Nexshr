@@ -12,7 +12,7 @@ import Loading from "./Loader";
 import NoDataFound from "./payslip/NoDataFound";
 import { EssentialValues } from "../App";
 
-const EditEmployeeform = ({ details, empData, handleScroll, handlePersonal, handleFinancial, handleJob, handleContact, handleEmployment, timePatterns, personalRef, contactRef, employmentRef, jobRef, financialRef, countries, companies, departments, positions, roles, leads, managers }) => {
+const EditEmployeeform = ({ details, empData, handleScroll, handlePersonal, preview, setPreview, handleFinancial, handleJob, handleContact, handleEmployment, timePatterns, personalRef, contactRef, employmentRef, jobRef, financialRef, countries, companies, departments, positions, roles, leads, managers }) => {
     const { id } = useParams();
     const navigate = useNavigate()
     const { changeEmpEditForm } = useContext(TimerStates);
@@ -30,8 +30,6 @@ const EditEmployeeform = ({ details, empData, handleScroll, handlePersonal, hand
     const [isWorkingApi, setIsWorkingApi] = useState(false);
     const [errorData, setErrorData] = useState("");
     const employeeObj = empData;
-    console.log("leavTypeValue:", selectedLeaveTypes);
-    console.log("orLeavetype: ", leaveTypes);
 
     const empFormValidation = Yup.object().shape({
         FirstName: Yup.string().required('First Name is required'),
@@ -84,6 +82,26 @@ const EditEmployeeform = ({ details, empData, handleScroll, handlePersonal, hand
         onSubmit: async (values, { resetForm }) => {
             setIsWorkingApi(true);
             try {
+                console.log(formik.values);
+
+                if (formik?.values?.profile?.type?.includes("image")) {
+                    const formData = new FormData();
+                    formData.append("documents", formik.values.profile); // "files" is the key for the server
+                    try {
+                        const response = await axios.post(`${process.env.REACT_APP_API_URL}/api/upload`, formData, {
+                            headers: {
+                                'Content-Type': 'multipart/form-data'
+                            }
+                        });
+                        const updatedFile = response.data.files[0].originalFile
+                        console.log(updatedFile);
+
+                        formik.setFieldValue("profile", updatedFile)
+
+                    } catch (error) {
+                        console.error("Error uploading file:", error.response.data.message);
+                    }
+                }
                 const res = await updateEmp(values, id);
                 if (res !== undefined) {
                     toast.success(res);
@@ -91,21 +109,15 @@ const EditEmployeeform = ({ details, empData, handleScroll, handlePersonal, hand
                     resetForm();
                 }
             } catch (err) {
-                toast.error(err.response.data.error)
-                // console.log(err);
-                // if (err.response && err.response.data && err.response.data.error) {
-                //     toast.error(err.response.data.error)
-                // } else {
-                console.log("error occured in edit employee!");
-                // }
+
+                console.log("error occured in edit employee!", err);
+            } finally {
+                setIsWorkingApi(false);
             }
-            setIsWorkingApi(false);
         }
     })
 
     function handleTagSelector(value) {
-        console.log("selectedvalue: ", value);
-
         let leaveCount = 0;
 
         const leaveTypeCount = {};
@@ -113,7 +125,6 @@ const EditEmployeeform = ({ details, empData, handleScroll, handlePersonal, hand
             const key = type.split(" ").slice(0, 2).join(" "); // Ensure it's a string
             leaveTypeCount[key] = type.split(" ")[0]; // Get only the first word
         });
-        console.log(leaveTypeCount);
 
         value.map((type) => leaveCount += Number(type.split(" ").at(-1)));
         formik.setFieldValue("annualLeaveEntitlement", leaveCount);
@@ -266,7 +277,13 @@ const EditEmployeeform = ({ details, empData, handleScroll, handlePersonal, hand
         }
     }
 
+    async function changeImg(event) {
+        const { name, files } = event.target;
+        console.log(name);
 
+        setPreview(URL.createObjectURL(files[0]));
+        formik.setFieldValue(name, files[0])
+    }
     return (
         isLoading ? <Loading height="80vh" /> :
             <NoDataFound message={errorData} /> ?
@@ -401,6 +418,24 @@ const EditEmployeeform = ({ details, empData, handleScroll, handlePersonal, hand
                                             <div className="text-center text-danger">{formik.errors.employmentType}</div>
                                         ) : null}
                                     </div>
+                                    <div className="my-3">
+                                        <span className="inputLabel">
+                                            Attach Employee profile (recommended for JPG)
+                                        </span>
+                                        <input type="file" name="profile" className="fileInput"
+                                            onChange={(e) => changeImg(e)}
+                                        />
+                                    </div>
+                                    {
+                                        ![undefined, "undefined"].includes(preview) &&
+                                        <div className="position-relative">
+                                            <img
+                                                src={preview}
+                                                alt="uploaded file"
+                                                style={{ borderRadius: "4px", width: "100px", height: "auto" }}
+                                            />
+                                        </div>
+                                    }
                                 </div>
                             </div>
 

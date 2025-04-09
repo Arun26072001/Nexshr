@@ -27,6 +27,7 @@ const AddEmployeeForm = ({ details, handleScroll, handlePersonal, handleFinancia
     const [selectedCountry, setSelectedCountry] = useState("");
     const [isAddEmployee, setIsAddEmployee] = useState(false);
     const [employeeObj, setEmployeeObj] = useState({});
+    const [preview, setPreview] = useState("");
 
     useEffect(() => {
         const additionalFields = payslipFields.reduce((acc, field) => {
@@ -91,6 +92,25 @@ const AddEmployeeForm = ({ details, handleScroll, handlePersonal, handleFinancia
         onSubmit: async (values, { resetForm }) => {
             setIsAddEmployee(true);
             try {
+                //upload employee of profile
+                if (formik.values.profile) {
+                    const formData = new FormData();
+                    formData.append("documents", formik.values.profile); // "files" is the key for the server
+                    try {
+                        const response = await axios.post(`${process.env.REACT_APP_API_URL}/api/upload`, formData, {
+                            headers: {
+                                'Content-Type': 'multipart/form-data'
+                            }
+                        });
+                        const updatedFile = response.data.files[0].originalFile
+                        formik.setFieldValue("profile", updatedFile)
+
+                    } catch (error) {
+                        console.error("Error uploading file:", error.response.data.message);
+                    }
+                }
+
+                // add employee data
                 const res = await axios.post(`${url}/api/employee`, values, {
                     headers: {
                         authorization: token || ""
@@ -216,30 +236,8 @@ const AddEmployeeForm = ({ details, handleScroll, handlePersonal, handleFinancia
 
     async function changeImg(event) {
         const { name, files } = event.target;
-
-        if (files.length > 0) {
-
-            const formData = new FormData();
-            for (let i = 0; i < files.length; i++) {
-                formData.append(name, files[i]); // "files" is the key for the server
-            }
-
-
-            try {
-                const response = await axios.post(`${process.env.REACT_APP_API_URL}/api/upload`, formData, {
-                    headers: {
-                        'Content-Type': 'multipart/form-data'
-                    }
-                });
-                const files = response.data.files.map((file) => {
-                    return file.convertedFile
-                })
-                formik.setFieldValue("docType", files)
-
-            } catch (error) {
-                console.error("Error uploading file:", error.response.data.message);
-            }
-        }
+        setPreview(URL.createObjectURL(files[0]));
+        formik.setFieldValue(name, files[0])
     }
 
     function handleTagSelector(value) {
@@ -256,6 +254,7 @@ const AddEmployeeForm = ({ details, handleScroll, handlePersonal, handleFinancia
         formik.setFieldValue("typesOfLeaveCount", leaveTypeCount)
         setSelectedLeavetypes(value);
     }
+    console.log(formik.errors);
 
     useEffect(() => {
         const gettingLeaveTypes = async () => {
@@ -442,11 +441,20 @@ const AddEmployeeForm = ({ details, handleScroll, handlePersonal, handleFinancia
                                     <span className="inputLabel">
                                         Attach Employee profile (recommended for JPG)
                                     </span>
-                                    <input type="file" name="documents" className="fileInput"
-                                        onChange={(e) => changeImg(e)} multiple
+                                    <input type="file" name="profile" className="fileInput"
+                                        onChange={(e) => changeImg(e)}
                                     />
-
                                 </div>
+                                {
+                                    preview &&
+                                    <div className="position-relative">
+                                        <img
+                                            src={preview}
+                                            alt="uploaded file"
+                                            style={{ borderRadius: "4px", width: "100px", height: "auto" }}
+                                        />
+                                    </div>
+                                }
                             </div>
                         </div>
                         <div className="contactDetails" ref={contactRef}>

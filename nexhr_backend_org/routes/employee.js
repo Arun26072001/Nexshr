@@ -411,17 +411,14 @@ router.put("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
   }
 });
 
-router.delete("/:id", verifyHR, (req, res) => {
-  Employee.findByIdAndRemove({ _id: req.params.id }, function (err, employee) {
-    if (err) {
-      console.log(err);
-      res.send("error");
-    } else {
-      res.send({
-        message: "Employee deleted"
-      })
-    }
-  });
+router.delete("/:id", verifyAdminHR, async (req, res) => {
+  try {
+    const deletEmp = await Employee.findByIdAndRemove(req.params.id);
+    return res.status(200).send({ message: `${deletEmp.FirstName + " " + deletEmp.LastName} deleted successfully` })
+  } catch (error) {
+    console.log(error);
+    return res.status(500).send({ error: error.message })
+  }
 });
 
 // module.getEmployeeModel = getEmployeeModel;
