@@ -110,8 +110,6 @@ const Dashboard = () => {
 
         fetchPeopleOnLeave();
     }, [])
-
-    console.log(isFetchPeopleOnLeave);
     
     return (
         <div className='dashboard-parent'>
