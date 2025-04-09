@@ -816,8 +816,6 @@ leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("pre
       coverBy,
       applyFor,
     } = req.body;
-    console.log("fromDateObj: ", fromDate);
-    console.log("fromDate", fromDate);
 
     const prescription = req.file?.filename || null;
     const coverByValue = coverBy || null;
@@ -826,6 +824,8 @@ leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("pre
     const today = new Date();
     const yesterday = new Date(today);
     yesterday.setDate(today.getDate() - 1);
+    console.log("fromDateObj: ", fromDateObj);
+    console.log("fromDate", fromDate);
 
     // 1. Handle if applied on behalf of someone else
     if (applyFor) {
@@ -975,8 +975,6 @@ leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("pre
         appliedBy: empId,
       };
     }
-
-
 
     const { error } = LeaveApplicationValidation.validate(leaveRequest);
     if (error) return res.status(400).json({ error: error.message });
