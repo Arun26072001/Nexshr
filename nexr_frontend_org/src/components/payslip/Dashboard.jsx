@@ -17,6 +17,7 @@ const Dashboard = () => {
     const [dailyLogindata, setDailyLoginData] = useState({})
     const [monthlyLoginData, setMonthlyLoginData] = useState({});
     const [peopleOnLeave, setPeopleOnLeave] = useState([]);
+    const [isFetchPeopleOnLeave, setIsFetchPeopleOnLeave] = useState(false);
 
     const gettingEmpdata = async () => {
         try {
@@ -91,6 +92,7 @@ const Dashboard = () => {
     useEffect(() => {
         async function fetchPeopleOnLeave() {
             try {
+                setIsFetchPeopleOnLeave(true);
                 const res = await axios.get(`${url}/api/leave-application/people-on-leave`, {
                     headers: {
                         Authorization: data.token || ""
@@ -101,12 +103,16 @@ const Dashboard = () => {
             } catch (error) {
                 setPeopleOnLeave([]);
                 console.log("error in fetch peopleOnLeave data: ", error);
+            } finally {
+                setIsFetchPeopleOnLeave(false);
             }
         }
 
         fetchPeopleOnLeave();
     }, [])
 
+    console.log(isFetchPeopleOnLeave);
+    
     return (
         <div className='dashboard-parent'>
             <ActivityTimeTracker empName={data.Name} leaveData={leaveData} handleLogout={handleLogout} updateClockins={updateClockins} />
@@ -257,7 +263,7 @@ const Dashboard = () => {
 
                     </div>
                 </div>
-                <NexHRDashboard updateClockins={updateClockins} peopleOnLeave={peopleOnLeave} />
+                <NexHRDashboard updateClockins={updateClockins} peopleOnLeave={peopleOnLeave} isFetchPeopleOnLeave={isFetchPeopleOnLeave} />
             </>
         </div>
     );

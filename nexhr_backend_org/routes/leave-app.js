@@ -493,6 +493,7 @@ leaveApp.get("/people-on-leave", verifyAdminHREmployeeManagerNetwork, async (req
     const leaveData = await LeaveApplication.find({
       fromDate: { $gte: startOfDay, $lte: endOfDay },
       leaveType: { $nin: ["Permission", "Permission Leave"] },
+      // periodOfLeave: "full day",
       status: "approved"
     }, "fromDate toDate status leaveType")
       .populate({
