@@ -846,6 +846,7 @@ leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("pre
         return res.status(400).json({ error: "Sick leave is only applicable for today and yesterday." });
       }
     } else if (["Annual Leave", "Casual Leave"].includes(leaveType)) {
+      console.log(fromDateObj.toDateString(), today.toDateString());
       if (fromDateObj.toDateString() === today.toDateString()) {
         return res.status(400).json({ error: `${leaveType} is not applicable for the same day.` });
       }
