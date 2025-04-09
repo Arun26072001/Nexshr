@@ -6,14 +6,18 @@ import NexHRDashboard from '../NexHRDashboard';
 import { EssentialValues } from '../../App';
 import { TimerStates } from './HRMDashboard';
 import ContentLoader from './ContentLoader';
+import axios from 'axios';
 
 const Dashboard = () => {
+    const url = process.env.REACT_APP_API_URL;
     const { updateClockins, isEditEmp } = useContext(TimerStates)
     const { handleLogout, setData, data } = useContext(EssentialValues);
     const [leaveData, setLeaveData] = useState({});
     const [isLoading, setIsLoading] = useState(false);
     const [dailyLogindata, setDailyLoginData] = useState({})
     const [monthlyLoginData, setMonthlyLoginData] = useState({});
+    const [peopleOnLeave, setPeopleOnLeave] = useState([]);
+    const [isFetchPeopleOnLeave, setIsFetchPeopleOnLeave] = useState(false);
 
     const gettingEmpdata = async () => {
         try {
@@ -24,8 +28,6 @@ const Dashboard = () => {
 
             // Fetch employee data
             const empData = await fetchEmployeeData(data._id);
-            console.log(empData);
-
             setData((pre) => ({
                 ...pre,
                 Name: empData.FirstName + " " + empData.LastName,
@@ -87,6 +89,30 @@ const Dashboard = () => {
         gettingEmpdata();
     }, [isEditEmp]);
 
+    useEffect(() => {
+        async function fetchPeopleOnLeave() {
+            try {
+                setIsFetchPeopleOnLeave(true);
+                const res = await axios.get(`${url}/api/leave-application/people-on-leave`, {
+                    headers: {
+                        Authorization: data.token || ""
+                    }
+                })
+                const withoutMyData = res.data.filter((leave) => leave.employee._id !== data._id)
+                setPeopleOnLeave(withoutMyData)
+            } catch (error) {
+                setPeopleOnLeave([]);
+                console.log("error in fetch peopleOnLeave data: ", error);
+            } finally {
+                setIsFetchPeopleOnLeave(false);
+            }
+        }
+
+        fetchPeopleOnLeave();
+    }, [])
+
+    console.log(isFetchPeopleOnLeave);
+    
     return (
         <div className='dashboard-parent'>
             <ActivityTimeTracker empName={data.Name} leaveData={leaveData} handleLogout={handleLogout} updateClockins={updateClockins} />
@@ -237,7 +263,7 @@ const Dashboard = () => {
 
                     </div>
                 </div>
-                <NexHRDashboard updateClockins={updateClockins} />
+                <NexHRDashboard updateClockins={updateClockins} peopleOnLeave={peopleOnLeave} isFetchPeopleOnLeave={isFetchPeopleOnLeave} />
             </>
         </div>
     );

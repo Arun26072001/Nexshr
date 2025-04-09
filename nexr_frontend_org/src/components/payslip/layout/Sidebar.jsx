@@ -22,6 +22,7 @@ const Sidebar = ({ sideBar }) => {
   const { setIsEditEmp } = useContext(TimerStates);
   const { token, _id } = data;
   const decodedData = jwtDecode(token);
+
   const { isTeamLead, isTeamHead, isTeamManager } = decodedData;
   const { Dashboard, JobDesk, Employee, Leave,
     Attendance, Administration, Settings
@@ -42,11 +43,8 @@ const Sidebar = ({ sideBar }) => {
 
   const renderNavLink = (condition, path, icon, text, key) => {
     if (path.includes("/employee/edit/")) {
-      console.log("call to cancel");
       setIsEditEmp(true)
     }
-
-
 
     return (
       condition && (

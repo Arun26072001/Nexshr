@@ -173,11 +173,11 @@ async function verifyAdminHRTeamHigherAuth(req, res, next) {
         console.log("error in verify");
         res.sendStatus(401);
       } else {
-        if ([1, 2].includes(authData.Account) || [isTeamLead, isTeamHead, isTeamManager].includes(true)) {
+        if ([1, 2, 4].includes(authData.Account) || [isTeamLead, isTeamHead, isTeamManager].includes(true)) {
           next();
         }
         else {
-          res.status(401).send({ error: "You has no Authorization!" });
+          res.status(401).send({ error: "You are not part of any higher authority team." });
         }
       }
     });
@@ -186,7 +186,6 @@ async function verifyAdminHRTeamHigherAuth(req, res, next) {
     res.send(401).send({ error: "token not not found" });
   }
 }
-
 
 function verifyAdminHREmployee(req, res, next) {
   const token = req.headers['authorization'];

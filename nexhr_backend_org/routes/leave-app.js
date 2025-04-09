@@ -312,7 +312,6 @@ leaveApp.get("/emp/:empId", verifyAdminHREmployeeManagerNetwork, async (req, res
       LeaveApplication.find(filterLeaves).populate("employee", "FirstName LastName").lean(),
       Team.findOne({ employees: empId }, "employees").lean()
     ]);
-    console.log(leaveApplications);
 
     // Fetch team members' leaves only if team exists
     const peopleLeaveOnMonth = team
@@ -471,7 +470,6 @@ leaveApp.get("/all/emp", verifyAdminHR, async (req, res) => {
         path: "leaveApplication",
         populate: { path: "employee", select: "FirstName LastName" }
       });
-
     // Flatten leaveApplication data
     let leaveData = employeesLeaveData.map(data => data.leaveApplication).flat();
     leaveData = leaveData.sort((a, b) => new Date(a.fromDate) - new Date(b.fromDate));
@@ -485,6 +483,35 @@ leaveApp.get("/all/emp", verifyAdminHR, async (req, res) => {
     res.status(500).send({ error: err.message });
   }
 })
+
+leaveApp.get("/people-on-leave", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
+  const today = new Date();
+  const startOfDay = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate(), 0, 0, 0));
+  const endOfDay = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate(), 23, 59, 59));
+
+  try {
+    const leaveData = await LeaveApplication.find({
+      fromDate: { $gte: startOfDay, $lte: endOfDay },
+      leaveType: { $nin: ["Permission", "Permission Leave"] },
+      // periodOfLeave: "full day",
+      status: "approved"
+    }, "fromDate toDate status leaveType")
+      .populate({
+        path: "employee",
+        select: "FirstName LastName profile",
+        populate: {
+          path: "team",
+          select: "teamName"
+        }
+      })
+      .lean()
+      .exec();
+
+    return res.status(200).send(leaveData);
+  } catch (error) {
+    return res.status(500).send({ error: error.message });
+  }
+});
 
 leaveApp.get("/all/team/:id", verifyEmployee, async (req, res) => {
   try {

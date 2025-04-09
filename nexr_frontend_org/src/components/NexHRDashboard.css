@@ -1,12 +1,3 @@
-/* .main-sidebar {
-    width: fit-content;
-    position: fixed;
-    top: 0;
-    left: 0;
-    height: 100%;
-    background-color: #0A2233;
-    color: white;
-} */
 
 .dashBoard {
   display: flex;
@@ -94,18 +85,11 @@ a {
 .txt {
   font-weight: 600;
 }
-/* .MuiButtonBase-root.btnRose{
-      background-color: #FF0080;
-      margin-left: 10px;
-      color: white;
-    }
-    .MuiButtonBase-root.btnRose:hover{
-        background-color: #f9afd4;
-        color: #01204E;
-    } */
-/* .btnRose-outline{
-      border: 1px solid #FF0080;
-      color: #FF0080;
-    } */
 
+.imgContainer{
+  width: 50px;
+  height: 50px;
+  object-fit: cover;
+  border-radius: 50%;
+}
 

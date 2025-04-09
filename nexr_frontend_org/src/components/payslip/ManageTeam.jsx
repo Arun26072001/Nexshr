@@ -178,9 +178,9 @@ const ManageTeam = () => {
                 value: emp._id
             })));
         } catch (error) {
-            console.log(error);
+            console.log(error.response.data.error);
 
-            toast.error(error.repsonse.data.error)
+            // toast.error(error.response.data.error)
         }
     }
 
@@ -197,7 +197,8 @@ const ManageTeam = () => {
                 value: emp._id
             })));
         } catch (error) {
-            toast.error(error.repsonse.data.error)
+            console.log(error.response.data.error);
+            // toast.error(error.response.data.error)
         }
     }
 
@@ -213,7 +214,9 @@ const ManageTeam = () => {
                 value: emp._id
             })));
         } catch (error) {
-            toast.error(error.repsonse.data.error)
+            console.log(error.response.data.error);
+
+            // toast.error(error.response.data.error)
         }
     }
 

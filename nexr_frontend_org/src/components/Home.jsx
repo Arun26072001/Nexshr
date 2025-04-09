@@ -8,6 +8,10 @@ import { getDataAPI } from './ReuseableAPI';
 import ApexChart from './ApexChart';
 import { TimerStates } from './payslip/HRMDashboard';
 import { Skeleton } from '@mui/material';
+import profile from "../imgs/male_avatar.webp";
+import "./NexHRDashboard.css";
+import Loading from './Loader';
+import NoDataFound from './payslip/NoDataFound';
 
 function CustomTabPanel(props) {
     const { children, value, index, ...other } = props;
@@ -43,13 +47,11 @@ function a11yProps(index) {
     };
 }
 
-export default function Home() {
+export default function Home({ peopleOnLeave, isFetchPeopleOnLeave }) {
     const { isStartLogin, isStartActivity, workTimeTracker, timeOption, updateClockins } = useContext(TimerStates);
     const [value, setValue] = useState(0);
     const [isLoading, setLoading] = useState(true); // Track loading state
     const empId = localStorage.getItem('_id');
-    // const { data } = useContext(EssentialValues);    
-    // const { isTeamLead, isTeamHead } = jwtDecode(data.token);
 
     const staticData = {
         startingTime: "00:00",
@@ -90,6 +92,7 @@ export default function Home() {
         };
         getClockInsData();
     }, [updateClockins]);
+    console.log(isFetchPeopleOnLeave);
 
     return (
         <Box sx={{ width: '100%' }}>
@@ -151,6 +154,29 @@ export default function Home() {
                                     <p className='chartTitle'>Time Activity</p>
                                     <ApexChart activitiesData={tableData} />
                                 </>
+                        }
+                    </div>
+                    <p className='payslipTitle my-2 px-3'>PeopleOnLeave</p>
+                    <div className="d-flex flex-wrap gap-2 align-items-center justify-content-center my-2">
+
+                        {
+                            isFetchPeopleOnLeave ?
+                                <>
+                                    <Skeleton varient="circular" height={150} style={{ flex: 1, width: "100%" }} />
+                                    <Skeleton varient="circular" height={150} style={{ flex: 1, width: "100%" }} />
+                                </> :
+                                peopleOnLeave.length ?
+                                    peopleOnLeave.map((leave) => {
+                                        return <div className='box-content d-flex align-items-center justify-content-around col-lg-5 col-12 col-md-5'>
+                                            <div className="imgContainer">
+                                                <img src={leave?.employee?.profile || profile} alt="" width={"100%"} />
+                                            </div>
+                                            <div className="d-block">
+                                                <p><b>{leave?.employee?.FirstName[0].toUpperCase() + leave?.employee?.FirstName.slice(1) + " " + leave?.employee?.LastName}</b>({leave?.employee?.team?.teamName || "TeamName"})</p>
+                                                <p className='sub_text'><b>{leave.fromDate.split("T")[0]} / {leave.toDate.split("T")[0]}</b></p>
+                                            </div>
+                                        </div>
+                                    }) : <NoDataFound message={"No one leave Today"} />
                         }
                     </div>
                 </div>

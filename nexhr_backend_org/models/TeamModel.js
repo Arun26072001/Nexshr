@@ -24,9 +24,9 @@ const TeamValidation = Joi.object({
     _id: Joi.string().optional(),
     teamName: Joi.string().required().label("Team Name"),
     employees: Joi.array().items(Joi.string()).required().label("Employees"),
-    lead: Joi.array().items(Joi.string()).required().label("Lead"),
-    head: Joi.array().items(Joi.string()).required().label("Head"),
-    manager: Joi.array().items(Joi.string()).required().label("Manager"),
+    lead: Joi.array().items(Joi.string()).optional().label("Lead"),
+    head: Joi.array().items(Joi.string()).optional().label("Head"),
+    manager: Joi.array().items(Joi.string()).optional().label("Manager"),
     __v: Joi.number().optional(),
     createdAt: Joi.string().allow('').label('createdAt'),
     updatedAt: Joi.string().allow('').label('updatedAt')
