@@ -493,7 +493,6 @@ leaveApp.get("/people-on-leave", verifyAdminHREmployeeManagerNetwork, async (req
     const leaveData = await LeaveApplication.find({
       fromDate: { $gte: startOfDay, $lte: endOfDay },
       leaveType: { $nin: ["Permission", "Permission Leave"] },
-      // periodOfLeave: "full day",
       status: "approved"
     }, "fromDate toDate status leaveType")
       .populate({
@@ -817,6 +816,8 @@ leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("pre
       coverBy,
       applyFor,
     } = req.body;
+    console.log("fromDateObj: ", fromDate);
+    console.log("fromDate", fromDate);
 
     const prescription = req.file?.filename || null;
     const coverByValue = coverBy || null;
