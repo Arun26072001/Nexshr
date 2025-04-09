@@ -2,13 +2,14 @@ var mongoose = require('mongoose');
 var Joi = require("joi");
 
 var timePatternSchema = new mongoose.Schema({
-    PatternName: { type: String, required: true },
-    DefaultPattern: { type: Boolean, required: true },
-    StartingTime: { type: String, required: true },
-    FinishingTime: { type: String, required: true },
-    BreakTime: { type: String, required: true },
-    WeeklyDays: { type: Number, required: true },
-    PublicHoliday: { type: String, required: true }
+    PatternName: { type: String },
+    DefaultPattern: { type: Boolean },
+    StartingTime: { type: String },
+    WaitingTime: { type: String },
+    FinishingTime: { type: String },
+    BreakTime: { type: String },
+    WeeklyDays: { type: Number },
+    PublicHoliday: { type: String }
 }, { timestamps: true })
 
 var TimePattern = mongoose.model("TimePattern", timePatternSchema);
@@ -56,6 +57,8 @@ var TimePatternValidation = Joi.object().keys({
     FinishingTime: Joi.string()
         .required(),
     BreakTime: Joi.string()
+        .required(),
+    WaitingTime: Joi.string()
         .required(),
     WeeklyDays: Joi.number()
         .max(7)
