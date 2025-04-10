@@ -79,29 +79,33 @@ const EditEmployeeform = ({ details, empData, handleScroll, handlePersonal, prev
     const formik = useFormik({
         initialValues: employeeObj,
         validationSchema: empFormValidation,
-        onSubmit: async (values, { resetForm }) => {
+        onSubmit: async (values, { resetForm, setFieldValue }) => {
             setIsWorkingApi(true);
             try {
-                console.log(formik.values);
-
-                if (formik?.values?.profile?.type?.includes("image")) {
+                // Check if profile is a File (new upload), and has image type
+                if (values?.profile instanceof File && values.profile.type?.includes("image")) {
                     const formData = new FormData();
-                    formData.append("documents", formik.values.profile); // "files" is the key for the server
-                    try {
-                        const response = await axios.post(`${process.env.REACT_APP_API_URL}/api/upload`, formData, {
+                    formData.append("documents", values.profile);
+    
+                    const uploadRes = await axios.post(
+                        `${process.env.REACT_APP_API_URL}/api/upload`,
+                        formData,
+                        {
                             headers: {
                                 'Content-Type': 'multipart/form-data'
                             }
-                        });
-                        const updatedFile = response.data.files[0].originalFile
-                        console.log(updatedFile);
-
-                        formik.setFieldValue("profile", updatedFile)
-
-                    } catch (error) {
-                        console.error("Error uploading file:", error.response.data.message);
+                        }
+                    );
+    
+                    const uploadedFile = uploadRes?.data?.files?.[0]?.originalFile;
+                    if (uploadedFile) {
+                        setFieldValue("profile", uploadedFile); // Update form field with uploaded file URL
+                        values.profile = uploadedFile; // Make sure to send updated value
+                    } else {
+                        throw new Error("No file returned from upload response.");
                     }
                 }
+    
                 const res = await updateEmp(values, id);
                 if (res !== undefined) {
                     toast.success(res);
@@ -109,13 +113,13 @@ const EditEmployeeform = ({ details, empData, handleScroll, handlePersonal, prev
                     resetForm();
                 }
             } catch (err) {
-
-                console.log("error occured in edit employee!", err);
+                console.error("Error occurred in edit employee!", err?.response?.data?.message || err.message);
+                toast.error("Failed to update employee. Please try again.");
             } finally {
                 setIsWorkingApi(false);
             }
         }
-    })
+    });    
 
     function handleTagSelector(value) {
         let leaveCount = 0;

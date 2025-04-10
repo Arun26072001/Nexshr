@@ -8,6 +8,7 @@ import WavingHandRoundedIcon from '@mui/icons-material/WavingHandRounded';
 import { Modal, Button } from "rsuite";
 import { EssentialValues } from "../App";
 import Loading from "./Loader";
+import { getTimeFromHour } from "./ReuseableAPI";
 
 const ActivityTimeTracker = () => {
     const {
@@ -73,19 +74,39 @@ const ActivityTimeTracker = () => {
 
     // Start the timer with activity
     const startTimer = async () => {
-        if (!timerRef.current) {
-            await startActivityTimer();
-            trackTimer()
-            timerRef.current = setInterval(incrementTime, 1000);
-            if (["morningBreak", "eveningBreak", "lunch"].includes(timeOption)) {
-                socket.emit("send_notification", {
-                    employee: data._id,
-                    timerId: workTimeTracker._id,
-                    timeOption,
-                    time: timeOption === "lunch" ? 30 : 15,
-                    token: data.token
-                })
+        const timeData = getTimeFromHour(workTimeTracker[timeOption].timeHolder, true);
+        if (timeOption === "lunch" && timeData < 30) {
+            if (!timerRef.current) {
+                await startActivityTimer();
+                trackTimer()
+                timerRef.current = setInterval(incrementTime, 1000);
+                if (["morningBreak", "eveningBreak", "lunch"].includes(timeOption)) {
+                    socket.emit("send_notification", {
+                        employee: data._id,
+                        timerId: workTimeTracker._id,
+                        timeOption,
+                        time: timeOption === "lunch" ? 30 : 1,
+                        token: data.token
+                    })
+                }
             }
+        } else if (["morningBreak", "eveningBreak"].includes(timeOption) && timeData < 1) {
+            if (!timerRef.current) {
+                await startActivityTimer();
+                trackTimer()
+                timerRef.current = setInterval(incrementTime, 1000);
+                if (["morningBreak", "eveningBreak", "lunch"].includes(timeOption)) {
+                    socket.emit("send_notification", {
+                        employee: data._id,
+                        timerId: workTimeTracker._id,
+                        timeOption,
+                        time: timeOption === "lunch" ? 30 - Number(getTimeFromHour(workTimeTracker[timeOption].timeHolder, true)) : 1 - Number(getTimeFromHour(workTimeTracker[timeOption].timeHolder, true)),
+                        token: data.token
+                    })
+                }
+            }
+        } else {
+            toast.warning(`${timeOption[0].toUpperCase() + timeOption.slice(1)} time has been reached`)
         }
     };
 

@@ -88,7 +88,7 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
             id: 'FirstName',
             label: 'Profile',
             minWidth: 100,
-            getter: (row) => row?.FirstName + row?.LastName || 'N/A'
+            getter: (row) => row?.FirstName[0].toUpperCase() + row?.FirstName.slice(1) + row?.LastName || 'N/A'
         },
         {
             id: 'code',

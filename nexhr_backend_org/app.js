@@ -201,7 +201,25 @@ io.on("connection", (socket) => {
         headers: { Authorization: data.token }
       })
 
-      if (timer.data.timeData[data.timeOption].startingTime.length !== timer.data.timeData[data.timeOption].endingTime.length) {
+      let startingTimes = timer.data.timeData[data.timeOption]?.startingTime;
+      let endingTimes = timer.data.timeData[data.timeOption]?.endingTime;
+
+      const values = startingTimes?.map((startTime, index) => {
+        if (!startTime) return 0; // No start time means no value
+
+        let endTimeInMin = 0;
+        if (endingTimes[index]) {
+          // Calculate time difference with an ending time
+          endTimeInMin = timeToMinutes(endingTimes[index]);
+        } else {
+          // Calculate time difference with the current time
+          endTimeInMin = getCurrentTimeInMinutes();
+        }
+        const startTimeInMin = timeToMinutes(startTime);
+        return Math.abs(endTimeInMin - startTimeInMin);
+      });
+
+      if (timer.data.timeData[data.timeOption].startingTime.length !== timer.data.timeData[data.timeOption].endingTime.length && values.at(-1) > data.time) {
         try {
           const res = await axios.post(
             `${process.env.REACT_APP_API_URL}/api/clock-ins/remainder/${data.employee}/${data.timeOption}`

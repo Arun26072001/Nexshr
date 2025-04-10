@@ -124,21 +124,21 @@ const fetchLeaveRequests = async (empId) => {
 
 function getDayDifference(leave) {
     if (leave?.leaveType === "half day") {
-      return 0.5;
+        return 0.5;
     }
-  
+
     let toDate = new Date(leave.toDate);
     let fromDate = new Date(leave.fromDate);
-  
+
     let timeDifference = toDate - fromDate;
     let dayDifference = timeDifference / (1000 * 60 * 60 * 24); // Convert milliseconds to days
-  
+
     if (dayDifference < 1) {
-      return 1; // Minimum one day for a leave if it's less than a full day
+        return 1; // Minimum one day for a leave if it's less than a full day
     }
-  
+
     return dayDifference;
-  }
+}
 
 async function deleteLeave(id) {
     try {
@@ -410,18 +410,20 @@ async function fetchCompanies() {
     }
 }
 
-function getTimeFromHour(timeStr) {
+function getTimeFromHour(timeStr, min = false) {
     if (timeStr) {
         const [hours, minutes, seconds] = timeStr.split(":").map(Number);
-        return (((hours * 60) + minutes + (seconds / 60)) / 60)?.toFixed(2);
+        if (min) {
+            return ((hours * 60) + minutes + (seconds / 60))?.toFixed(2);
+        } else {
+            return (((hours * 60) + minutes + (seconds / 60)) / 60)?.toFixed(2);
+        }
     } else {
         return 0;
     }
 }
 
 async function fileUploadInServer(files) {
-    console.log(files);
-
     const formData = new FormData();
 
     // Append each file to FormData

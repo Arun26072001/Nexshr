@@ -254,7 +254,7 @@ export default function HRMDashboard() {
             setIsStartActivity(true);
             setWorkTimeTracker(updatedState);
             localStorage.setItem("timeOption", timeOption);
-            toast.success(`${timeOption} timer has been started!`);
+            toast.success(`${timeOption[0].toUpperCase()+timeOption.slice(1)} timer has been started!`);
         } catch (error) {
             console.error('Error updating data:', error);
             toast.error('Please PunchIn');

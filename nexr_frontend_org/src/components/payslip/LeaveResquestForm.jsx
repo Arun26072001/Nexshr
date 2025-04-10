@@ -122,8 +122,8 @@ const LeaveRequestForm = () => {
       if (error === "") {
         const formData = new FormData();
         formData.append("leaveType", formik.values.leaveType);
-        formData.append("fromDate", new Date(formik.values.fromDate).toISOString());
-        formData.append("toDate", new Date(formik.values.toDate).toISOString());
+        formData.append("fromDate", new Date(formik.values.fromDate).toLocaleString());
+        formData.append("toDate", new Date(formik.values.toDate).toLocaleString());
         formData.append("periodOfLeave", formik.values.periodOfLeave);
         formData.append("reasonForLeave", formik.values.reasonForLeave);
         formData.append("prescription", prescriptionFile); // Assuming `file` is the file object
@@ -278,8 +278,6 @@ const LeaveRequestForm = () => {
     gettingHoliday();
     gettingEmps();
   }, [])
-  // console.log(excludedDates);
-  console.log(now);
 
   return (
     isLoading ? <Loading height="80vh" /> :
