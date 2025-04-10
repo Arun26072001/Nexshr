@@ -18,9 +18,11 @@ import { TimerStates } from './payslip/HRMDashboard';
 import KeyRoundedIcon from '@mui/icons-material/KeyRounded';
 import BorderColorRoundedIcon from '@mui/icons-material/BorderColorRounded';
 import DeleteRoundedIcon from '@mui/icons-material/DeleteRounded';
+import { EssentialValues } from '../App';
 
 export default function LeaveTable({ data, Account, getCheckedValue, handleDelete, fetchReportById, fetchOrgData, fetchData, roleObj, getCheckAll, deleteData, replyToLeave, handleChangeLeavetype, isTeamHead, isTeamLead, isTeamManager }) {
     const navigate = useNavigate();
+    const { whoIs } = useContext(EssentialValues);
     const timerStateData = useContext(TimerStates)
     const [page, setPage] = useState(0);
     const [rowsPerPage, setRowsPerPage] = useState(+localStorage.getItem("rowsPerPage") || 10);
@@ -86,7 +88,7 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
             id: 'FirstName',
             label: 'Profile',
             minWidth: 100,
-            getter: (row) => row?.FirstName + row?.LastName || 'N/A'
+            getter: (row) => row?.FirstName[0].toUpperCase() + row?.FirstName.slice(1) + row?.LastName || 'N/A'
         },
         {
             id: 'code',
@@ -726,8 +728,16 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
                                                     } else if (params['*'] === "employee") {
                                                         return (
                                                             <Dropdown title={<EditRoundedIcon style={{ cursor: "pointer" }} />} placement='leftStart' noCaret>
-                                                                <Dropdown.Item style={{ minWidth: 120 }} onClick={() => timerStateData?.changeEmpEditForm(row._id)}>Edit</Dropdown.Item>
-                                                                <Dropdown.Item style={{ minWidth: 120 }}>Delete</Dropdown.Item>
+                                                                <Dropdown.Item style={{ minWidth: 120 }} onClick={() => timerStateData?.changeEmpEditForm(row._id)}>
+                                                                    <b>
+                                                                        <BorderColorRoundedIcon sx={{ color: "#FFD65A" }} /> Edit
+                                                                    </b>
+                                                                </Dropdown.Item>
+                                                                <Dropdown.Item style={{ minWidth: 120 }} onClick={() => deleteData(row._id)}>
+                                                                    <b>
+                                                                        <DeleteRoundedIcon sx={{ color: "#F93827" }} /> Delete
+                                                                    </b>
+                                                                </Dropdown.Item>
                                                             </Dropdown>
                                                         );
                                                     } else if (params["*"] === "reports") {
@@ -776,6 +786,19 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
                                                         )
                                                     } else if (params["*"] === "leave") {
                                                         return (<Dropdown title={"Action"} noCaret placement="leftStart">
+                                                            <Dropdown.Item style={{ minWidth: 80 }} onClick={() => fetchData(row._id, "delete")}>
+                                                                <b>
+                                                                    <RemoveRedEyeRoundedIcon sx={{ color: "#80C4E9" }} /> View
+                                                                </b>
+                                                            </Dropdown.Item>
+                                                            {
+                                                                row.status === "pending" &&
+                                                                <Dropdown.Item style={{ minWidth: 80 }} onClick={() => navigate(`/${whoIs}/leave-request/edit/${row._id}`)}>
+                                                                    <b>
+                                                                        <BorderColorRoundedIcon sx={{ color: "#FFD65A" }} /> Edit
+                                                                    </b>
+                                                                </Dropdown.Item>
+                                                            }
                                                             <Dropdown.Item style={{ minWidth: 80 }} onClick={() => fetchData(row._id, "delete")}>
                                                                 <b>
                                                                     <DeleteRoundedIcon sx={{ color: "#F93827" }} /> Delete

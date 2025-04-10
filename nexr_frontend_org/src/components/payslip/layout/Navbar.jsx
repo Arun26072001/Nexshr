@@ -16,6 +16,7 @@ import Loading from '../../Loader';
 
 export default function Navbar({ handleSideBar }) {
     const { handleLogout, data, handleUpdateAnnouncements, isChangeAnnouncements, whoIs, socket } = useContext(EssentialValues)
+
     const { startLoginTimer, stopLoginTimer, workTimeTracker, isStartLogin, trackTimer, changeReasonForEarly, isWorkingLoginTimerApi } = useContext(TimerStates);
     const [sec, setSec] = useState(workTimeTracker?.login?.timeHolder?.split(':')[2])
     const [min, setMin] = useState(workTimeTracker?.login?.timeHolder?.split(':')[1])
@@ -400,7 +401,9 @@ export default function Navbar({ handleSideBar }) {
                         </span>
                         {/* Profile Section */}
                         <Whisper placement="bottomEnd" trigger="click" speaker={renderMenu}>
-                            <img src={logo} width={40} height={40} alt='emp_img' />
+
+                            <img src={data.profile || logo} className='imgContainer' style={{ width: "40px", height: "40px" }} alt='emp_img' />
+
                         </Whisper>
                         {/* Messages Section */}
                         <div className="offcanvas offcanvas-end" tabindex="-1" id="offcanvasRight" aria-labelledby="offcanvasRightLabel">

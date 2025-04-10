@@ -12,18 +12,18 @@ import { jwtDecode } from 'jwt-decode';
 import ArrowDropDownRoundedIcon from '@mui/icons-material/ArrowDropDownRounded';
 import FileUploadRoundedIcon from '@mui/icons-material/FileUploadRounded';
 import FileDownloadRoundedIcon from '@mui/icons-material/FileDownloadRounded';
+import { useNavigate } from 'react-router-dom';
 
 export default function LeaveRequest() {
     const url = process.env.REACT_APP_API_URL;
-    const { empName, setEmpName, filterLeaveRequests, isLoading, leaveRequests, changeRequests, } = useContext(LeaveStates);
+    const { empName, setEmpName, filterLeaveRequests, isLoading, leaveRequests, changeRequests } = useContext(LeaveStates);
     const { daterangeValue, setDaterangeValue } = useContext(TimerStates)
-    const { data } = useContext(EssentialValues);
+    const { data, whoIs } = useContext(EssentialValues);
     const { token } = data;
     const { isTeamHead, isTeamLead, isTeamManager } = jwtDecode(token);
+    const navigate = useNavigate()
 
     async function replyToLeave(leave, response) {
-        console.log(response);
-
         try {
             let updatedLeaveRequest;
             if (isTeamHead) {
@@ -133,12 +133,16 @@ export default function LeaveRequest() {
                 <div className='d-flex justify-content-between px-2'>
                     <p className="payslipTitle">
                         Leave Request
-                    </p> <button className='button' style={{ cursor: 'pointer' }}>
-                        <Whisper placement="bottomEnd" trigger="click" speaker={renderMenu}>
-                            Action <ArrowDropDownRoundedIcon />
-                        </Whisper>
-                    </button>
+                    </p>
+                    <div className='d-flex gap-2'>
 
+                        <button className='button' onClick={() => navigate(`/${whoIs}/leave-request`)}>Apply Leave</button>
+                        <button className='button' style={{ cursor: 'pointer' }}>
+                            <Whisper placement="bottomEnd" trigger="click" speaker={renderMenu}>
+                                Action <ArrowDropDownRoundedIcon />
+                            </Whisper>
+                        </button>
+                    </div>
                 </div>
 
                 <div className="leaveContainer d-block">

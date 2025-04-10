@@ -202,7 +202,8 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
         const officeLoginTime = emp?.workingTimePattern?.StartingTime || "9:00";
         const loginTimeRaw = req.body?.login?.startingTime?.[0];
         if (!loginTimeRaw) return res.status(400).send({ error: "You must start Punch-in Timer" });
-        const companyLoginMinutes = timeToMinutes(officeLoginTime);
+        const companyLoginMinutes = timeToMinutes(officeLoginTime) + Number(emp.workingTimePattern.WaitingTime);
+        console.log("officeTime: ", timeToMinutes(officeLoginTime), "waitingtime: ", Number(emp.workingTimePattern.WaitingTime));
         const empLoginMinutes = timeToMinutes(loginTimeRaw);
         if (companyLoginMinutes < empLoginMinutes) {
             const timeDiff = empLoginMinutes - companyLoginMinutes;
@@ -686,7 +687,7 @@ router.get("/sendmail/:id/:clockinId", async (req, res) => {
         sendMail({
             From: process.env.FROM_MAIL,
             To: emp.Email,
-            Subject: `You have punched in for the Today`,
+            Subject: `You have punched in for the ${emp.clockIns[0].date}`,
             HtmlBody: htmlContent,
         });
         return res.send({ message: "We have send mail for you have completed 8 working hours." })

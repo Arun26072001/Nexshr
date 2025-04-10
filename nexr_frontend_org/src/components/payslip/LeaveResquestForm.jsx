@@ -1,6 +1,6 @@
 import React, { useContext, useEffect, useState } from "react";
 import LibraryBooksIcon from '@mui/icons-material/LibraryBooks';
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { useFormik } from "formik";
 import * as Yup from "yup";
 import axios from "axios";
@@ -15,6 +15,7 @@ import Loading from "../Loader";
 // import AddCircleOutlineRoundedIcon from '@mui/icons-material/AddCircleOutlineRounded';
 
 const LeaveRequestForm = () => {
+  const { id } = useParams();
   const url = process.env.REACT_APP_API_URL;
   const empId = localStorage.getItem("_id");
   const { whoIs } = useContext(EssentialValues);
@@ -30,16 +31,7 @@ const LeaveRequestForm = () => {
   const [employees, setEmployees] = useState([]);
   const [isWorkingApi, setIsWorkingApi] = useState(false);
   const now = new Date()
-
-  let leaveObj = {
-    leaveType: "",
-    fromDate: "",
-    toDate: "",
-    reasonForLeave: "",
-    prescription: "",
-    periodOfLeave: "full time",
-    coverBy: ""
-  };
+  const [leaveRequestObj, setLeaveRequestObj] = useState({});
 
   let leaveObjValidation = Yup.object().shape({
     leaveType: Yup.string().required("Leave type is required!"),
@@ -121,16 +113,17 @@ const LeaveRequestForm = () => {
     coverBy: Yup.string().notRequired(),
     applyFor: Yup.string().notRequired()
   });
+
   const formik = useFormik({
-    initialValues: leaveObj,
+    initialValues: leaveRequestObj,
     validationSchema: leaveObjValidation,
     validateOnChange: true,
     onSubmit: async (values, { resetForm }) => {
       if (error === "") {
         const formData = new FormData();
         formData.append("leaveType", formik.values.leaveType);
-        formData.append("fromDate", new Date(formik.values.fromDate).toISOString());
-        formData.append("toDate", new Date(formik.values.toDate).toISOString());
+        formData.append("fromDate", new Date(formik.values.fromDate).toLocaleString());
+        formData.append("toDate", new Date(formik.values.toDate).toLocaleString());
         formData.append("periodOfLeave", formik.values.periodOfLeave);
         formData.append("reasonForLeave", formik.values.reasonForLeave);
         formData.append("prescription", prescriptionFile); // Assuming `file` is the file object
@@ -148,7 +141,7 @@ const LeaveRequestForm = () => {
           toast.success(res.data.message);
           resetForm();
           setContent("")
-          navigate(`/${whoIs}/`); // Navigate back
+          navigate(`/${whoIs}`); // Navigate back
         } catch (err) {
           toast.error(err?.response?.data?.error);
           console.log(err);
@@ -158,6 +151,25 @@ const LeaveRequestForm = () => {
       }
     },
   });
+  console.log(formik.values);
+
+  const fetchLeaveRequest = async () => {
+    try {
+      const response = await axios.get(`${url}/api/leave-application/${id}`, {
+        headers: {
+          authorization: token || ""
+        }
+      });
+      setLeaveRequestObj(response.data);
+      Object.entries(response.data).map(([key, value]) => {
+        if (!["employee", "coverBy", "status", "TeamLead", "TeamHead", "Hr", "Manager", "appliedOn", "approverId", "appliedBy"].includes(key)) {
+          formik.setFieldValue(key, value)
+        }
+      })
+    } catch (error) {
+      toast.error("Failed to fetch leave request data.");
+    }
+  };
 
   useEffect(() => {
     if (formik.values.fromDate && formik.values.toDate) {
@@ -218,6 +230,10 @@ const LeaveRequestForm = () => {
 
   useEffect(() => {
     gettingLeaveRequests();
+
+    if (id) {
+      fetchLeaveRequest()
+    }
   }, [empId]);
 
   function handleLeaveType(e) {
@@ -232,7 +248,6 @@ const LeaveRequestForm = () => {
   }
 
   function getFileData(e) {
-
     setPrescriptionFile(e.target.files[0])
   }
 
@@ -263,7 +278,6 @@ const LeaveRequestForm = () => {
     gettingHoliday();
     gettingEmps();
   }, [])
-  // console.log(excludedDates);
 
   return (
     isLoading ? <Loading height="80vh" /> :
@@ -323,15 +337,17 @@ const LeaveRequestForm = () => {
             <div className="row my-3">
               <div className="col-12 col-lg-6 col-md-6">
                 <span className="inputLabel">Start Date</span>
-                <DatePicker showTimeSelect
+                <DatePicker
+                  showTimeSelect
                   dateFormat="Pp"
                   className={`inputField ${formik.touched.fromDate && formik.errors.fromDate ? "error" : ""} w-100`}
                   selected={formik.values.fromDate}
                   onChange={(date) => formik.setFieldValue("fromDate", date)}
-                  minDate={["admin", "hr"].includes(whoIs) ? "" : now}
-                  minTime={formik.values.leaveType === "Permission Leave" ? now : false}
-                  maxTime={formik.values.leaveType === "Permission Leave" ? new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59) : false}
-                  excludeDates={excludedDates} />
+                  minDate={["admin", "hr"].includes(whoIs) ? null : now}
+                  minTime={formik.values.leaveType === "Permission Leave" ? now : null}
+                  maxTime={formik.values.leaveType === "Permission Leave" ? new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59) : null}
+                  excludeDates={excludedDates}
+                />
 
                 {formik.touched.fromDate && formik.errors.fromDate ? (
                   <div className="text-center text-danger">{formik.errors.fromDate}</div>
@@ -345,9 +361,9 @@ const LeaveRequestForm = () => {
                   className={`inputField ${formik.touched.toDate && formik.errors.toDate ? "error" : ""}`}
                   selected={formik.values.toDate}
                   onChange={(date) => formik.setFieldValue("toDate", date)}
-                  minDate={["admin", "hr"].includes(whoIs) ? false : now}
-                  minTime={formik.values.leaveType === "Permission Leave" ? now : false}
-                  maxTime={formik.values.leaveType === "Permission Leave" ? new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59) : false}
+                  minDate={["admin", "hr"].includes(whoIs) ? null : now}
+                  minTime={formik.values.leaveType === "Permission Leave" ? now : null}
+                  maxTime={formik.values.leaveType === "Permission Leave" ? new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59) : null}
                   excludeDates={excludedDates}
                 />
                 {formik.errors.toDate && formik.touched.toDate ? (
@@ -376,7 +392,7 @@ const LeaveRequestForm = () => {
             {/* Reason for Leave */}
             <div className="my-3">
               <span className="inputLabel">Reason for Leave</span>
-              <TextEditor handleChange={handleChange} content={content} />
+              <TextEditor handleChange={handleChange} content={formik.values.reasonForLeave} />
 
               {formik.touched.reasonForLeave && formik.errors.reasonForLeave ? (
                 <div className="text-center text-danger">{formik.errors.reasonForLeave}</div>

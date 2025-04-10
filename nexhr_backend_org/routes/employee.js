@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { Employee } = require('../models/EmpModel');
-const { verifyHR, verifyAdminHREmployeeManagerNetwork, verifyAdminHR, verifyAdmin, verifyTeamHigherAuthority, verifyAdminHRTeamHigherAuth, verifyAdminHREmployee } = require('../auth/authMiddleware');
+const {  verifyAdminHREmployeeManagerNetwork, verifyAdminHR, verifyAdmin, verifyTeamHigherAuthority, verifyAdminHRTeamHigherAuth, verifyAdminHREmployee } = require('../auth/authMiddleware');
 const { getDayDifference } = require('./leave-app');
 const sendMail = require("./mailSender");
 const { RoleAndPermission } = require('../models/RoleModel');
@@ -11,7 +11,7 @@ router.get("/", verifyAdminHRTeamHigherAuth, async (req, res) => {
   try {
     const { onlyEmps } = req.query;
 
-    let employees = await Employee.find({ Account: 3 }, "_id FirstName LastName employmentType dateOfJoining gender working code docType serialNo")
+    let employees = await Employee.find({}, "_id FirstName LastName Account employmentType dateOfJoining gender working code docType serialNo")
       .populate({
         path: "position"
       })
@@ -32,7 +32,7 @@ router.get("/", verifyAdminHRTeamHigherAuth, async (req, res) => {
         }
       }).lean();
     if (onlyEmps) {
-      employees = employees.filter((emp) => !["Team Lead", "Team Head", "Manager"].includes(emp?.position?.PositionName))
+      employees = employees.filter((emp) => !["Team Lead", "Team Head", "Manager"].includes(emp?.position?.PositionName) && emp.Account !== 1)
     }
     res.send(employees)
   } catch (err) {
@@ -411,17 +411,14 @@ router.put("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
   }
 });
 
-router.delete("/:id", verifyHR, (req, res) => {
-  Employee.findByIdAndRemove({ _id: req.params.id }, function (err, employee) {
-    if (err) {
-      console.log(err);
-      res.send("error");
-    } else {
-      res.send({
-        message: "Employee deleted"
-      })
-    }
-  });
+router.delete("/:id", verifyAdminHR, async (req, res) => {
+  try {
+    const deletEmp = await Employee.findByIdAndRemove(req.params.id);
+    return res.status(200).send({ message: `${deletEmp.FirstName + " " + deletEmp.LastName} deleted successfully` })
+  } catch (error) {
+    console.log(error);
+    return res.status(500).send({ error: error.message })
+  }
 });
 
 // module.getEmployeeModel = getEmployeeModel;
