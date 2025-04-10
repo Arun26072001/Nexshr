@@ -123,7 +123,7 @@ const LeaveRequestForm = () => {
         formData.append("leaveType", formik.values.leaveType);
         formData.append("fromDate", new Date(formik.values.fromDate).toLocaleString());
         formData.append("toDate", new Date(formik.values.toDate).toLocaleString());
-        formData.append("periodOfLeave", formik.values.periodOfLeave);
+        formData.append("periodOfLeave", formik.values.periodOfLeave || formik?.values?.leaveType?.toLowerCase()?.includes("permission") ? "half day": "full day");
         formData.append("reasonForLeave", formik.values.reasonForLeave);
         formData.append("prescription", prescriptionFile); // Assuming `file` is the file object
         formData.append("coverBy", formik.values.coverBy);
