@@ -5,7 +5,7 @@ const { clockInsValidation, ClockIns } = require("../models/ClockInsModel");
 const { Employee } = require("../models/EmpModel");
 const { getDayDifference } = require("./leave-app");
 const sendMail = require("./mailSender");
-const { LeaveApplication, LeaveApplicationValidation } = require("../models/LeaveAppModel");
+const { LeaveApplication } = require("../models/LeaveAppModel");
 const { Team } = require("../models/TeamModel");
 const { getCurrentTimeInMinutes, formatTimeFromMinutes, timeToMinutes, getTotalWorkingHourPerDay } = require("../Reuseable_functions/reusableFunction");
 
@@ -80,86 +80,88 @@ router.post("/not-login/apply-leave", async (req, res) => {
             }
         ]);
 
-        if (notLoginEmps.length === 0) {
-            return res.send({ message: "No employees found without punch-in today." });
-        }
+        console.log(notLoginEmps.length);
 
-        const leaveApplications = [];
-        const employeeUpdates = [];
-        const emailPromises = [];
+        // if (notLoginEmps.length === 0) {
+        //     return res.send({ message: "No employees found without punch-in today." });
+        // }
 
-        for (const emp of notLoginEmps) {
-            if (!emp.workingTimePattern) continue;// Skip employees without a working pattern
+        // const leaveApplications = [];
+        // const employeeUpdates = [];
+        // const emailPromises = [];
 
-            // Remove any existing leave applications for the employee
-            if (emp.leaveApplications.length > 0) {
-                return;
-            }
+        // for (const emp of notLoginEmps) {
+        //     if (!emp.workingTimePattern) continue;// Skip employees without a working pattern
 
-            const workingHours = getTotalWorkingHourPerDay(
-                emp.workingTimePattern.StartingTime,
-                emp.workingTimePattern.FinishingTime
-            );
-            const fromDate = new Date(now.getTime() - (workingHours || 1000 * 60 * 60 * 9.30));
+        //     // Remove any existing leave applications for the employee
+        //     if (emp.leaveApplications.length > 0) {
+        //         return;
+        //     }
 
-            // Create new full-day leave application
-            const leaveApplication = {
-                leaveType: "Unpaid Leave (LWP)",
-                fromDate,
-                toDate: now,
-                periodOfLeave: "full day",
-                reasonForLeave: "Didn't punch in until EOD",
-                employee: emp._id.toString(),
-                status: "approved",
-                TeamLead: "approved",
-                TeamHead: "approved",
-                Hr: "approved",
-                Manager: "approved",
-            };
+        //     const workingHours = getTotalWorkingHourPerDay(
+        //         emp.workingTimePattern.StartingTime,
+        //         emp.workingTimePattern.FinishingTime
+        //     );
+        //     const fromDate = new Date(now.getTime() - ((workingHours || 9.30) * 1000 * 60 * 60));
 
-            leaveApplications.push(leaveApplication);
+        //     // Create new full-day leave application
+        //     const leaveApplication = {
+        //         leaveType: "Unpaid Leave (LWP)",
+        //         fromDate,
+        //         toDate: now,
+        //         periodOfLeave: "full day",
+        //         reasonForLeave: "Didn't punch in until EOD",
+        //         employee: emp._id.toString(),
+        //         status: "approved",
+        //         TeamLead: "approved",
+        //         TeamHead: "approved",
+        //         Hr: "approved",
+        //         Manager: "approved",
+        //     };
 
-            // Email notification
-            const subject = "Full-day Leave Applied (Unpaid Leave)";
-            const htmlContent = `
-                <html>
-                    <body>
-                        <h2>You didn't punch in on HRM until the end of the day.</h2>
-                        <p>As a result, we are marking you as on full-day leave, which will be deducted from your salary. Please adhere to the company's policies.</p>
-                    </body>
-                </html>`;
+        //     leaveApplications.push(leaveApplication);
 
-            emailPromises.push(sendMail({
-                From: process.env.FROM_MAIL,
-                To: emp.Email,
-                Subject: subject,
-                HtmlBody: htmlContent,
-            }));
-        }
+        //     // Email notification
+        //     const subject = "Full-day Leave Applied (Unpaid Leave)";
+        //     const htmlContent = `
+        //         <html>
+        //             <body>
+        //                 <h2>You didn't punch in on HRM until the end of the day.</h2>
+        //                 <p>As a result, we are marking you as on full-day leave, which will be deducted from your salary. Please adhere to the company's policies.</p>
+        //             </body>
+        //         </html>`;
 
-        // Insert new leave applications in bulk
+        //     emailPromises.push(sendMail({
+        //         From: process.env.FROM_MAIL,
+        //         To: emp.Email,
+        //         Subject: subject,
+        //         HtmlBody: htmlContent,
+        //     }));
+        // }
 
-        const insertedLeaves = await LeaveApplication.insertMany(leaveApplications);
+        // // Insert new leave applications in bulk
 
-        // Prepare employee updates for bulk write
-        notLoginEmps.forEach((emp, index) => {
-            employeeUpdates.push({
-                updateOne: {
-                    filter: { _id: emp._id },
-                    update: { $set: { leaveApplication: [insertedLeaves[index]._id] } }
-                }
-            });
-        });
+        // const insertedLeaves = await LeaveApplication.insertMany(leaveApplications);
 
-        // Perform bulk update on employees
-        if (employeeUpdates.length > 0) {
-            await Employee.bulkWrite(employeeUpdates);
-        }
+        // // Prepare employee updates for bulk write
+        // notLoginEmps.forEach((emp, index) => {
+        //     employeeUpdates.push({
+        //         updateOne: {
+        //             filter: { _id: emp._id },
+        //             update: { $set: { leaveApplication: [insertedLeaves[index]._id] } }
+        //         }
+        //     });
+        // });
 
-        // Send all emails in parallel
-        await Promise.all(emailPromises);
+        // // Perform bulk update on employees
+        // if (employeeUpdates.length > 0) {
+        //     await Employee.bulkWrite(employeeUpdates);
+        // }
 
-        res.send({ message: "Full-day leave applied and emails sent for employees who didn't punch in." });
+        // // Send all emails in parallel
+        // await Promise.all(emailPromises);
+
+        // res.send({ message: "Full-day leave applied and emails sent for employees who didn't punch in." });
 
     } catch (error) {
         console.error("Error:", error);

@@ -824,8 +824,6 @@ leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("pre
     const today = new Date();
     const yesterday = new Date(today);
     yesterday.setDate(today.getDate() - 1);
-    console.log("fromDateObj: ", fromDateObj);
-    console.log("fromDate", fromDate);
 
     // 1. Handle if applied on behalf of someone else
     if (applyFor) {

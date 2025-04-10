@@ -197,7 +197,7 @@ function verifyAdminHREmployee(req, res, next) {
         console.log("error in verify");
         res.sendStatus(401);
       } else {
-        if ([1, 2].includes(authData.Account) || [isTeamLead, isTeamHead, isTeamManager].includes(true)) {
+        if ([1, 2, 3].includes(authData.Account)) {
           next();
         }
         else {

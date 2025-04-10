@@ -75,7 +75,7 @@ export default function Home({ peopleOnLeave, isFetchPeopleOnLeave }) {
         const actualDate = new Date(date)
         const dateValue = actualDate.getDate();
         const monthString = actualDate.toLocaleString("default", { month: "short" })
-        return `${dateValue + " " + monthString + " " + actualDate.getHours() + ":" + actualDate.getMinutes()}`
+        return `${dateValue + " " + monthString + " " + String(actualDate.getHours()).padStart(2, "0") + ":" + String(actualDate.getMinutes()).padStart(2, "0")}`
     }
 
     useEffect(() => {
@@ -176,7 +176,7 @@ export default function Home({ peopleOnLeave, isFetchPeopleOnLeave }) {
                                             <img src={leave?.employee?.profile || profile} alt="" className='imgContainer' />
                                             <div className="d-block">
                                                 <p style={{ fontSize: "13px" }}><b>{leave?.employee?.FirstName[0].toUpperCase() + leave?.employee?.FirstName.slice(1) + " " + leave?.employee?.LastName}</b>({leave?.employee?.team?.teamName || "TeamName"})</p>
-                                                <p className='sub_text'><b>{formatDate(leave.fromDate)} / {formatDate(leave.toDate)}</b></p>
+                                                <p className='sub_text'><b>{formatDate(leave.fromDate)} - {formatDate(leave.toDate)}</b></p>
                                             </div>
                                         </div>
                                     }) : <NoDataFound message={"No one leave Today"} />

@@ -14,7 +14,7 @@ import Loading from "../Loader";
 // import Select from "react-select";
 // import AddCircleOutlineRoundedIcon from '@mui/icons-material/AddCircleOutlineRounded';
 
-const LeaveRequestForm = () => {
+const LeaveRequestForm = ({ type }) => {
   const { id } = useParams();
   const url = process.env.REACT_APP_API_URL;
   const empId = localStorage.getItem("_id");
@@ -31,8 +31,7 @@ const LeaveRequestForm = () => {
   const [employees, setEmployees] = useState([]);
   const [isWorkingApi, setIsWorkingApi] = useState(false);
   const now = new Date()
-  const [leaveRequestObj, setLeaveRequestObj] = useState({
-  });
+  const [leaveRequestObj, setLeaveRequestObj] = useState({});
 
   let leaveObjValidation = Yup.object().shape({
     leaveType: Yup.string().required("Leave type is required!"),
@@ -123,33 +122,66 @@ const LeaveRequestForm = () => {
         formData.append("leaveType", formik.values.leaveType);
         formData.append("fromDate", new Date(formik.values.fromDate).toLocaleString());
         formData.append("toDate", new Date(formik.values.toDate).toLocaleString());
-        formData.append("periodOfLeave", formik.values.periodOfLeave || formik?.values?.leaveType?.toLowerCase()?.includes("permission") ? "half day": "full day");
+        formData.append("periodOfLeave", formik.values.periodOfLeave || formik?.values?.leaveType?.toLowerCase()?.includes("permission") ? "half day" : "full day");
         formData.append("reasonForLeave", formik.values.reasonForLeave);
         formData.append("prescription", prescriptionFile); // Assuming `file` is the file object
         formData.append("coverBy", formik.values.coverBy);
         formData.append("applyFor", formik.values.applyFor);
-        try {
-          setIsWorkingApi(true);
-          // Leave request submission
-          const res = await axios.post(`${url}/api/leave-application/${empId}`, formData, {
-            headers: {
-              "Content-Type": "multipart/form-data",
-              authorization: token || "",
-            },
-          });
-          toast.success(res.data.message);
-          resetForm();
-          setContent("")
-          navigate(`/${whoIs}`); // Navigate back
-        } catch (err) {
-          toast.error(err?.response?.data?.error);
-          console.log(err);
-        } finally {
-          setIsWorkingApi(false);
+        if (leaveRequestObj._id) {
+          updateLeave(formData, resetForm)
+        } else {
+          applyLeave(formData, resetForm)
         }
       }
     },
   });
+
+  async function applyLeave(formData, resetForm) {
+    try {
+      setIsWorkingApi(true);
+      // Leave request submission
+      const res = await axios.post(`${url}/api/leave-application/${empId}`, formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+          authorization: token || "",
+        },
+      });
+      toast.success(res.data.message);
+      resetForm();
+      setContent("")
+      navigate(`/${whoIs}`); // Navigate back
+    } catch (err) {
+      toast.error(err?.response?.data?.error);
+      console.log(err);
+    } finally {
+      setIsWorkingApi(false);
+    }
+  }
+
+  async function updateLeave(formData, resetForm) {
+    const leaveData = {
+      ...formData,
+      employee: empId
+    }
+
+    try {
+      setIsWorkingApi(true);
+      const res = await axios.put(`${url}/api/leave-application/${leaveRequestObj._id}`, leaveData, {
+        headers: {
+          Authorization: token || ""
+        }
+      })
+      toast.success(res.data.message);
+      resetForm();
+      setContent("")
+      navigate(`/${whoIs}`); // Navigate back
+    } catch (error) {
+      toast.error(error?.response?.data?.error);
+      console.log(error);
+    } finally {
+      setIsWorkingApi(false);
+    }
+  }
 
   const fetchLeaveRequest = async () => {
     try {
@@ -161,6 +193,9 @@ const LeaveRequestForm = () => {
       setLeaveRequestObj(response.data);
       Object.entries(response.data).map(([key, value]) => {
         if (!["employee", "coverBy", "status", "TeamLead", "TeamHead", "Hr", "Manager", "appliedOn", "approverId", "appliedBy"].includes(key)) {
+          // if (["fromDate", "toDate"].includes(key)) {
+          //   formik.setFieldValue(key, new Date(value))
+          // }
           formik.setFieldValue(key, value)
         }
       })
@@ -297,8 +332,9 @@ const LeaveRequestForm = () => {
                 <select
                   name="applyFor"
                   className={`selectInput ${formik.touched.applyFor && formik.errors.applyFor ? "error" : ""}`}
-                  onChange={formik.handleChange}
+                  onChange={type === "view" ? null : formik.handleChange}
                   value={formik.values.applyFor}
+                  disabled={type === "view" ? true : false}
                 >
                   <option>Select Employee</option>
                   {employees.map((emp) => {
@@ -316,8 +352,9 @@ const LeaveRequestForm = () => {
               <select
                 name="leaveType"
                 className={`selectInput ${formik.touched.leaveType && formik.errors.leaveType ? "error" : ""}`}
-                onChange={(e) => handleLeaveType(e)}
+                onChange={(e) => type === "view" ? null : handleLeaveType(e)}
                 value={formik.values.leaveType}
+                disabled={type === "view" ? true : false}
               >
                 <option>Select Leave type</option>
                 {typeOfLeave?.length > 0 &&
@@ -338,9 +375,10 @@ const LeaveRequestForm = () => {
                 <DatePicker
                   showTimeSelect
                   dateFormat="Pp"
+                  disabled={type === "view" ? true : false}
                   className={`inputField ${formik.touched.fromDate && formik.errors.fromDate ? "error" : ""} w-100`}
-                  selected={formik.values.fromDate}
-                  onChange={(date) => formik.setFieldValue("fromDate", date)}
+                  selected={formik.values.fromDate ? new Date(formik.values.fromDate) : null}
+                  onChange={(date) => type === "view" ? null : formik.setFieldValue("fromDate", new Date(date))}
                   minDate={["admin", "hr"].includes(whoIs) ? null : now}
                   minTime={formik?.values?.leaveType?.toLowerCase()?.includes("permission") ? now : null}
                   maxTime={formik?.values?.leaveType?.toLowerCase()?.includes("permission") ? new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59) : null}
@@ -356,9 +394,10 @@ const LeaveRequestForm = () => {
                 <DatePicker
                   showTimeSelect
                   dateFormat="Pp"
+                  disabled={type === "view" ? true : false}
                   className={`inputField ${formik.touched.toDate && formik.errors.toDate ? "error" : ""}`}
-                  selected={formik.values.toDate}
-                  onChange={(date) => formik.setFieldValue("toDate", date)}
+                  selected={formik.values.toDate ? new Date(formik.values.toDate) : null}
+                  onChange={(date) => type === "view" ? null : formik.setFieldValue("toDate", date)}
                   minDate={["admin", "hr"].includes(whoIs) ? null : now}
                   minTime={formik?.values?.leaveType?.toLowerCase()?.includes("permission") ? now : null}
                   maxTime={formik?.values?.leaveType?.toLowerCase()?.includes("permission") ? new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59) : null}
@@ -377,8 +416,9 @@ const LeaveRequestForm = () => {
                 <select
                   name="periodOfLeave"
                   className="selectInput"
-                  onChange={formik.handleChange}
+                  onChange={type === "view" ? null : formik.handleChange}
                   value={formik.values.periodOfLeave}
+                  disabled={type === "view" ? true : false}
                 >
                   <option>Select Leave Period</option>
                   <option value="full day">Full Day</option>
@@ -390,7 +430,7 @@ const LeaveRequestForm = () => {
             {/* Reason for Leave */}
             <div className="my-3">
               <span className="inputLabel">Reason for Leave</span>
-              <TextEditor handleChange={handleChange} content={formik.values.reasonForLeave} />
+              <TextEditor handleChange={(e) => type === "view" ? null : handleChange(e)} content={formik.values.reasonForLeave} isDisabled={type === "view" ? true : false} />
 
               {formik.touched.reasonForLeave && formik.errors.reasonForLeave ? (
                 <div className="text-center text-danger">{formik.errors.reasonForLeave}</div>
@@ -404,27 +444,37 @@ const LeaveRequestForm = () => {
                 type="file"
                 name="prescription"
                 className="fileInput"
-                onChange={getFileData} // Set the actual file, not just the name
+                onChange={type === "view" ? null : getFileData} // Set the actual file, not just the name
+                disabled={type === "view" ? true : false}
               />
             </div>
 
             {/* Action buttons */}
-            <div className="row gap-2 d-flex align-items-center justify-content-center my-4">
-              <div className="col-12 col-lg-5 col-md-5">
-                <button
+            {
+              type !== "view" ?
+                <div className="row gap-2 d-flex align-items-center justify-content-center my-4">
+                  <div className="col-12 col-lg-5 col-md-5">
+                    <button
+                      type="button"
+                      className="btn btn-outline-dark w-100"
+                      onClick={() => navigate(`/${whoIs}`)}
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                  <div className="col-12 col-lg-5 my-2 col-md-5">
+                    <button type="submit" className="btn btn-dark w-100">
+                      {isWorkingApi ? <Loading size={20} color="white" /> : leaveRequestObj._id ? "Update" : "Submit"}
+                    </button>
+                  </div>
+                </div> : <button
                   type="button"
-                  className="btn btn-outline-dark w-100"
-                  onClick={() => navigate(`/${whoIs}`)}
+                  className="btn btn-outline-dark"
+                  onClick={() => navigate(-1)}
                 >
-                  Cancel
+                  Back
                 </button>
-              </div>
-              <div className="col-12 col-lg-5 my-2 col-md-5">
-                <button type="submit" className="btn btn-dark w-100">
-                  {isWorkingApi ? <Loading size={20} color="white" /> : "Submit"}
-                </button>
-              </div>
-            </div>
+            }
           </div>
         </div>
       </form>

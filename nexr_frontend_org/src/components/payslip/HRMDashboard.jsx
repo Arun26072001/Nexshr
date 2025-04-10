@@ -505,6 +505,7 @@ export default function HRMDashboard() {
                     } />
                     <Route path='/leave-request' element={<LeaveRequestForm />} />
                     <Route path="/leave-request/edit/:id" element={<LeaveRequestForm />} />
+                    <Route path="/leave-request/view/:id" element={<LeaveRequestForm type={"view"} />} />
                     <Route path="attendance/*" element={
                         <Routes>
                             <Route index path="attendance-request" element={<Request attendanceData={attendanceData} isLoading={waitForAttendance} />} />
