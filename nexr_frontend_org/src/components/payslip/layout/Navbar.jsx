@@ -79,7 +79,6 @@ export default function Navbar({ handleSideBar }) {
         }
     };
 
-
     // Function to stop the timer
     const stopTimer = async () => {
         if (workRef.current) {

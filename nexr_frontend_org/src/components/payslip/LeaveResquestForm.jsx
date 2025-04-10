@@ -31,7 +31,8 @@ const LeaveRequestForm = () => {
   const [employees, setEmployees] = useState([]);
   const [isWorkingApi, setIsWorkingApi] = useState(false);
   const now = new Date()
-  const [leaveRequestObj, setLeaveRequestObj] = useState({});
+  const [leaveRequestObj, setLeaveRequestObj] = useState({
+  });
 
   let leaveObjValidation = Yup.object().shape({
     leaveType: Yup.string().required("Leave type is required!"),
@@ -99,8 +100,6 @@ const LeaveRequestForm = () => {
             const toTime = new Date(value).getTime(); // Ensure timestamp conversion
 
             const twoHours = 2 * 60 * 60 * 1000; // ✅ Convert 2 hours to milliseconds
-            console.log(toTime - fromTime <= twoHours);
-
             return toTime - fromTime <= twoHours; // ✅ Now properly checks for 2 hours
           }
           return true; // Allow validation to pass for other leave types
@@ -151,7 +150,6 @@ const LeaveRequestForm = () => {
       }
     },
   });
-  console.log(formik.values);
 
   const fetchLeaveRequest = async () => {
     try {
@@ -344,9 +342,9 @@ const LeaveRequestForm = () => {
                   selected={formik.values.fromDate}
                   onChange={(date) => formik.setFieldValue("fromDate", date)}
                   minDate={["admin", "hr"].includes(whoIs) ? null : now}
-                  minTime={formik.values.leaveType === "Permission Leave" ? now : null}
-                  maxTime={formik.values.leaveType === "Permission Leave" ? new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59) : null}
-                  excludeDates={excludedDates}
+                  minTime={formik?.values?.leaveType?.toLowerCase()?.includes("permission") ? now : null}
+                  maxTime={formik?.values?.leaveType?.toLowerCase()?.includes("permission") ? new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59) : null}
+                  excludeDates={!formik?.values?.leaveType?.toLowerCase()?.includes("permission") && excludedDates}
                 />
 
                 {formik.touched.fromDate && formik.errors.fromDate ? (
@@ -362,9 +360,9 @@ const LeaveRequestForm = () => {
                   selected={formik.values.toDate}
                   onChange={(date) => formik.setFieldValue("toDate", date)}
                   minDate={["admin", "hr"].includes(whoIs) ? null : now}
-                  minTime={formik.values.leaveType === "Permission Leave" ? now : null}
-                  maxTime={formik.values.leaveType === "Permission Leave" ? new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59) : null}
-                  excludeDates={excludedDates}
+                  minTime={formik?.values?.leaveType?.toLowerCase()?.includes("permission") ? now : null}
+                  maxTime={formik?.values?.leaveType?.toLowerCase()?.includes("permission") ? new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59) : null}
+                  excludeDates={!formik?.values?.leaveType?.toLowerCase()?.includes("permission") && excludedDates}
                 />
                 {formik.errors.toDate && formik.touched.toDate ? (
                   <div className="text-center text-danger">{formik.errors.toDate}</div>

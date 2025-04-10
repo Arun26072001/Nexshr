@@ -10,7 +10,6 @@ import { TimerStates } from './payslip/HRMDashboard';
 import { Skeleton } from '@mui/material';
 import profile from "../imgs/male_avatar.webp";
 import "./NexHRDashboard.css";
-import Loading from './Loader';
 import NoDataFound from './payslip/NoDataFound';
 
 function CustomTabPanel(props) {
