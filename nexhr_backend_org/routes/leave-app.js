@@ -818,7 +818,7 @@ leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("pre
     } = req.body;
 
     const prescription = req.file?.filename || null;
-    const coverByValue = coverBy || null;
+    const coverByValue = [undefined, "undefined"].includes(coverBy) ? null : coverBy;
     const personId = [undefined, "undefined"].includes(applyFor) ? empId : applyFor;
     const fromDateObj = new Date(fromDate);
     const today = new Date();
