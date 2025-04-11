@@ -536,7 +536,7 @@ leaveApp.get("/all/team/:id", verifyEmployee, async (req, res) => {
 });
 
 // get leave application by id
-leaveApp.get("/:id", verifyHREmployee, async (req, res) => {
+leaveApp.get("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
   try {
     const leaveReq = await LeaveApplication.findById(req.params.id);
 

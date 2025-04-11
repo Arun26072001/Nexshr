@@ -80,88 +80,86 @@ router.post("/not-login/apply-leave", async (req, res) => {
             }
         ]);
 
-        console.log(notLoginEmps.length);
+        if (notLoginEmps.length === 0) {
+            return res.send({ message: "No employees found without punch-in today." });
+        }
 
-        // if (notLoginEmps.length === 0) {
-        //     return res.send({ message: "No employees found without punch-in today." });
-        // }
+        const leaveApplications = [];
+        const employeeUpdates = [];
+        const emailPromises = [];
 
-        // const leaveApplications = [];
-        // const employeeUpdates = [];
-        // const emailPromises = [];
+        for (const emp of notLoginEmps) {
+            if (!emp.workingTimePattern) continue;// Skip employees without a working pattern
 
-        // for (const emp of notLoginEmps) {
-        //     if (!emp.workingTimePattern) continue;// Skip employees without a working pattern
+            // Remove any existing leave applications for the employee
+            if (emp.leaveApplications.length > 0) {
+                return;
+            }
 
-        //     // Remove any existing leave applications for the employee
-        //     if (emp.leaveApplications.length > 0) {
-        //         return;
-        //     }
+            const workingHours = getTotalWorkingHourPerDay(
+                emp.workingTimePattern.StartingTime,
+                emp.workingTimePattern.FinishingTime
+            );
+            const fromDate = new Date(now.getTime() - ((workingHours || 9.30) * 1000 * 60 * 60));
 
-        //     const workingHours = getTotalWorkingHourPerDay(
-        //         emp.workingTimePattern.StartingTime,
-        //         emp.workingTimePattern.FinishingTime
-        //     );
-        //     const fromDate = new Date(now.getTime() - ((workingHours || 9.30) * 1000 * 60 * 60));
+            // Create new full-day leave application
+            const leaveApplication = {
+                leaveType: "Unpaid Leave (LWP)",
+                fromDate,
+                toDate: now,
+                periodOfLeave: "full day",
+                reasonForLeave: "Didn't punch in until EOD",
+                employee: emp._id.toString(),
+                status: "approved",
+                TeamLead: "approved",
+                TeamHead: "approved",
+                Hr: "approved",
+                Manager: "approved",
+            };
 
-        //     // Create new full-day leave application
-        //     const leaveApplication = {
-        //         leaveType: "Unpaid Leave (LWP)",
-        //         fromDate,
-        //         toDate: now,
-        //         periodOfLeave: "full day",
-        //         reasonForLeave: "Didn't punch in until EOD",
-        //         employee: emp._id.toString(),
-        //         status: "approved",
-        //         TeamLead: "approved",
-        //         TeamHead: "approved",
-        //         Hr: "approved",
-        //         Manager: "approved",
-        //     };
+            leaveApplications.push(leaveApplication);
 
-        //     leaveApplications.push(leaveApplication);
+            // Email notification
+            const subject = "Full-day Leave Applied (Unpaid Leave)";
+            const htmlContent = `
+                <html>
+                    <body>
+                        <h2>You didn't punch in on HRM until the end of the day.</h2>
+                        <p>As a result, we are marking you as on full-day leave, which will be deducted from your salary. Please adhere to the company's policies.</p>
+                    </body>
+                </html>`;
 
-        //     // Email notification
-        //     const subject = "Full-day Leave Applied (Unpaid Leave)";
-        //     const htmlContent = `
-        //         <html>
-        //             <body>
-        //                 <h2>You didn't punch in on HRM until the end of the day.</h2>
-        //                 <p>As a result, we are marking you as on full-day leave, which will be deducted from your salary. Please adhere to the company's policies.</p>
-        //             </body>
-        //         </html>`;
+            emailPromises.push(sendMail({
+                From: process.env.FROM_MAIL,
+                To: emp.Email,
+                Subject: subject,
+                HtmlBody: htmlContent,
+            }));
+        }
 
-        //     emailPromises.push(sendMail({
-        //         From: process.env.FROM_MAIL,
-        //         To: emp.Email,
-        //         Subject: subject,
-        //         HtmlBody: htmlContent,
-        //     }));
-        // }
+        // Insert new leave applications in bulk
 
-        // // Insert new leave applications in bulk
+        const insertedLeaves = await LeaveApplication.insertMany(leaveApplications);
 
-        // const insertedLeaves = await LeaveApplication.insertMany(leaveApplications);
+        // Prepare employee updates for bulk write
+        notLoginEmps.forEach((emp, index) => {
+            employeeUpdates.push({
+                updateOne: {
+                    filter: { _id: emp._id },
+                    update: { $set: { leaveApplication: [insertedLeaves[index]._id] } }
+                }
+            });
+        });
 
-        // // Prepare employee updates for bulk write
-        // notLoginEmps.forEach((emp, index) => {
-        //     employeeUpdates.push({
-        //         updateOne: {
-        //             filter: { _id: emp._id },
-        //             update: { $set: { leaveApplication: [insertedLeaves[index]._id] } }
-        //         }
-        //     });
-        // });
+        // Perform bulk update on employees
+        if (employeeUpdates.length > 0) {
+            await Employee.bulkWrite(employeeUpdates);
+        }
 
-        // // Perform bulk update on employees
-        // if (employeeUpdates.length > 0) {
-        //     await Employee.bulkWrite(employeeUpdates);
-        // }
+        // Send all emails in parallel
+        await Promise.all(emailPromises);
 
-        // // Send all emails in parallel
-        // await Promise.all(emailPromises);
-
-        // res.send({ message: "Full-day leave applied and emails sent for employees who didn't punch in." });
+        res.send({ message: "Full-day leave applied and emails sent for employees who didn't punch in." });
 
     } catch (error) {
         console.error("Error:", error);

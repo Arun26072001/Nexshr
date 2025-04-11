@@ -374,6 +374,7 @@ schedule.scheduleJob("0 0 11 8 * *", async function () {
     console.error("Error while generating payslips:", err);
   }
 });
+
 async function fetchTimePatterns() {
   try {
     const timePatterns = await TimePattern.find();

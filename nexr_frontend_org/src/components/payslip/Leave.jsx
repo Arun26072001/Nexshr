@@ -62,7 +62,6 @@ const Leave = () => {
                     authorization: token || ""
                 }
             })
-            console.log(leaveData.data);
 
             setLeaveRequests(leaveData.data);
             setFullLeaveRequests(leaveData.data.leaveData);

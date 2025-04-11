@@ -222,8 +222,8 @@ const LeaveRequestForm = ({ type }) => {
   const gettingLeaveRequests = async () => {
     setIsLoading(true)
     try {
-      if (empId) {
-        const leaveReqs = await fetchLeaveRequests(empId);
+      if (formik.values.applyFor || empId) {
+        const leaveReqs = await fetchLeaveRequests(formik.values.applyFor || empId);
 
         const leaveDates = leaveReqs?.peopleLeaveOnMonth.flatMap((leave) => [
           new Date(leave.fromDate).toISOString(),
@@ -267,7 +267,7 @@ const LeaveRequestForm = ({ type }) => {
     if (id) {
       fetchLeaveRequest()
     }
-  }, [empId]);
+  }, [empId, formik.values.applyFor]);
 
   function handleLeaveType(e) {
     const { name, value } = e.target;
@@ -321,7 +321,10 @@ const LeaveRequestForm = ({ type }) => {
               <h5 className="my-3">
                 <LibraryBooksIcon /> Leave Request Form
               </h5>
-              <p className="text-dark">Fill the required fields below to apply for annual leave</p>
+              {
+                leaveRequestObj._id ? <p className="text-dark">Update the required fields below to modify your annual leave request</p> :
+                  <p className="text-dark">Fill the required fields below to apply for annual leave</p>
+              }
             </div>
 
             {/* Apply leave for employees*/}

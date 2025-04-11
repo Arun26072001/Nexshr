@@ -90,7 +90,7 @@ const ActivityTimeTracker = () => {
                     })
                 }
             }
-        } else if (["morningBreak", "eveningBreak"].includes(timeOption) && timeData < 1) {
+        } else if (["morningBreak", "eveningBreak"].includes(timeOption) && timeData < 15) {
             if (!timerRef.current) {
                 await startActivityTimer();
                 trackTimer()
@@ -100,7 +100,7 @@ const ActivityTimeTracker = () => {
                         employee: data._id,
                         timerId: workTimeTracker._id,
                         timeOption,
-                        time: timeOption === "lunch" ? 30 - Number(getTimeFromHour(workTimeTracker[timeOption].timeHolder, true)) : 1 - Number(getTimeFromHour(workTimeTracker[timeOption].timeHolder, true)),
+                        time: timeOption === "lunch" ? 30 - Number(getTimeFromHour(workTimeTracker[timeOption].timeHolder, true)) : 15 - Number(getTimeFromHour(workTimeTracker[timeOption].timeHolder, true)),
                         token: data.token
                     })
                 }
