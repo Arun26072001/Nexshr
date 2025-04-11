@@ -3,17 +3,18 @@ import Loading from '../Loader';
 import LeaveTable from '../LeaveTable';
 import NoDataFound from '../payslip/NoDataFound';
 import { DateRangePicker } from 'rsuite';
-import { LeaveStates } from '../payslip/HRMDashboard';
+import { LeaveStates, TimerStates } from '../payslip/HRMDashboard';
 import "../payslip/payslip.css";
 
 export default function Status() {
-    const { empName, setEmpName, filterLeaveRequests, leaveRequests, isLoading, daterangeValue, setDaterangeValue } = useContext(LeaveStates);
+    const { empName, setEmpName, filterLeaveRequests, leaveRequests, isLoading } = useContext(LeaveStates);
+    const { daterangeValue, setDaterangeValue } = useContext(TimerStates)
 
     // Filter leave requests when empName or daterangeValue changes
     useEffect(() => {
         filterLeaveRequests();
     }, [empName, daterangeValue]);
-    
+
     return (
         isLoading ? <Loading height="80vh" /> :
             <div>
@@ -22,24 +23,14 @@ export default function Status() {
                     <p className="payslipTitle">
                         Leave Status
                     </p>
-                    <div>
-                        <DateRangePicker
-                            size="md"
-                            showOneCalendar
-                            placement="bottomEnd"
-                            value={daterangeValue}
-                            placeholder="Select Date"
-                            onChange={setDaterangeValue}
-                        />
-                    </div>
                 </div>
 
                 {/* Display leave data or no data found */}
                 <div>
                     <div className="leaveContainer d-block">
                         <div className='px-3 my-3'>
-                            <div className="row">
-                                <div className="col-lg-12 searchInputIcon">
+                            <div className="d-flex align-items-center justify-content-between">
+                                <div className="searchInputIcon">
                                     <input
                                         type="text"
                                         className='payrunInput'
@@ -48,6 +39,14 @@ export default function Status() {
                                         placeholder='Search Employee'
                                     />
                                 </div>
+                                <DateRangePicker
+                                    size="lg"
+                                    showOneCalendar
+                                    placement="bottomEnd"
+                                    value={daterangeValue}
+                                    placeholder="Select Date"
+                                    onChange={setDaterangeValue}
+                                />
                             </div>
                         </div>
                         <div className="w-100 d-flex justify-content-center">

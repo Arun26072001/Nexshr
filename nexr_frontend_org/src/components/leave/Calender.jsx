@@ -2,13 +2,14 @@ import React, { useContext, useEffect } from 'react';
 import LeaveTable from '../LeaveTable';
 import NoDataFound from '../payslip/NoDataFound';
 import Loading from '../Loader';
-import { LeaveStates } from '../payslip/HRMDashboard';
+import { LeaveStates, TimerStates } from '../payslip/HRMDashboard';
 import { DateRangePicker } from 'rsuite';
 import PersonRoundedIcon from '@mui/icons-material/PersonRounded';
 import "../payslip/payslip.css";
 
 export default function LeaveCalender() {
-    const { empName, setEmpName, filterLeaveRequests, leaveRequests, daterangeValue, isLoading, setDaterangeValue } = useContext(LeaveStates);
+    const { empName, setEmpName, filterLeaveRequests, leaveRequests, isLoading } = useContext(LeaveStates);
+    const { daterangeValue, setDaterangeValue } = useContext(TimerStates)
 
     useEffect(() => {
         filterLeaveRequests();
@@ -21,16 +22,6 @@ export default function LeaveCalender() {
                 <p className="payslipTitle">
                     Calendar
                 </p>
-                <div>
-                    <DateRangePicker
-                        size="md"
-                        showOneCalendar
-                        placement="bottomEnd"
-                        value={daterangeValue}
-                        placeholder="Select Date"
-                        onChange={setDaterangeValue}
-                    />
-                </div>
             </div>
 
             {
@@ -38,8 +29,8 @@ export default function LeaveCalender() {
                     <div className="leaveContainer d-block">
                         {/* Search Input */}
                         <div className='px-3 my-3'>
-                            <div className="row">
-                                <div className="col-lg-12 searchInputIcon">
+                            <div className="d-flex align-items-center justify-content-between">
+                                <div className="searchInputIcon">
                                     <input
                                         type="text"
                                         className='payrunInput'
@@ -48,6 +39,14 @@ export default function LeaveCalender() {
                                         placeholder='Search Employee'
                                     />
                                 </div>
+                                <DateRangePicker
+                                    size="lg"
+                                    showOneCalendar
+                                    placement="bottomEnd"
+                                    value={daterangeValue}
+                                    placeholder="Select Date"
+                                    onChange={setDaterangeValue}
+                                />
                             </div>
                         </div>
                         <div className="w-100 d-flex justify-content-center">

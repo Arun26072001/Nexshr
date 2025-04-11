@@ -104,9 +104,6 @@ const Sidebar = ({ sideBar }) => {
     );
   };
 
-  // useEffect(() => {
-  //   setActiveNavLink(param["*"] === "" ? "dashboard" : param["*"].includes("employee") ? "employee" : param["*"].includes("my-details") ? "jobDesk" : param["*"])
-  // }, [param])
   return (
     <div style={{ width: '250px' }} className={`${!sideBar ? "d-none" : ""} sidebar sidebar_hrm`}>
       <ul className="sidebar-nav p-0" id="sidebar-nav">

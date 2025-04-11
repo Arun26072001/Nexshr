@@ -203,7 +203,6 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
         const loginTimeRaw = req.body?.login?.startingTime?.[0];
         if (!loginTimeRaw) return res.status(400).send({ error: "You must start Punch-in Timer" });
         const companyLoginMinutes = timeToMinutes(officeLoginTime) + Number(emp.workingTimePattern.WaitingTime);
-        console.log("officeTime: ", timeToMinutes(officeLoginTime), "waitingtime: ", Number(emp.workingTimePattern.WaitingTime));
         const empLoginMinutes = timeToMinutes(loginTimeRaw);
         if (companyLoginMinutes < empLoginMinutes) {
             const timeDiff = empLoginMinutes - companyLoginMinutes;
@@ -215,7 +214,7 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
                 const halfDayLeaveApp = {
                     leaveType: "Unpaid Leave (LWP)",
                     fromDate: today,
-                    toDate: today,
+                    toDate: new Date(today.getTime() + (4 * 1000 * 60 * 60)),
                     periodOfLeave: "half day",
                     reasonForLeave: "Came too late",
                     prescription: "",
@@ -248,7 +247,7 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
                     leaveAppData = {
                         leaveType: "Unpaid Leave (LWP)",
                         fromDate: today,
-                        toDate: today,
+                        toDate: new Date(today.getTime() + (4 * 1000 * 60 * 60)),
                         periodOfLeave: "half day",
                         reasonForLeave: "Came too late",
                         prescription: "",

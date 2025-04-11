@@ -1,67 +1,61 @@
 const express = require('express');
 const router = express.Router();
-const {TimePattern, TimePatternValidation} = require('../models/TimePatternModel');
+const { TimePattern, TimePatternValidation } = require('../models/TimePatternModel');
 const Joi = require('joi');
 const { verifyAdminHR, verifyAdminHREmployeeManagerNetwork } = require('../auth/authMiddleware');
 
 
-router.get("/", verifyAdminHREmployeeManagerNetwork, (req, res)=>{
-    TimePattern.find()
-    .exec((err, pattern)=>{
-        if(err) {
-          res.status(403).send({
-            "message": "Time patterns not found!"
-          })
-        }
-        else{
-            res.send(pattern)
-        }
+router.get("/", verifyAdminHREmployeeManagerNetwork, (req, res) => {
+  TimePattern.find()
+    .exec((err, pattern) => {
+      if (err) {
+        res.status(403).send({
+          "message": "Time patterns not found!"
+        })
+      }
+      else {
+        res.send(pattern)
+      }
     })
 })
 
-router.post("/", verifyAdminHR, (req, res)=>{
-  // console.log("46: "+req.body);
-    Joi.validate(req.body, TimePatternValidation, (err, result)=>{
-        if(err) {
-          res.status(400)
-            res.json({
-              "status": 400 
-            });
-        }else {
-            console.log("53: "+result);
-            let newTimepattern = req.body;
+router.post("/", verifyAdminHR, async (req, res) => {
+  try {
+    // verify already exists
+    if (await TimePattern.exists({ PatternName: req.body.PatternName })) {
+      return res.status(400).send({ error: `${req.body.PatternName} pattern is already exists` })
+    }
+    const { error } = TimePatternValidation.validate(req.body);
+    if (error) {
+      return res.status(400).send({ error: error.details[0].message })
+    }
+    const addPattern = await TimePattern.create(req.body);
+    return res.send({ message: `${req.body.PatternName} pattern has been added successfully`, pattern: addPattern })
 
-            TimePattern.create(newTimepattern, (err, data)=>{
-                if(err) {
-                  res.status(500).send("invalid data!")
-                }
-                else{
-                    res.send("Time pattern added");
-                }
-            })
-        }
-    })
+  } catch (error) {
+    return res.status(500).send({ error: error.message })
+  }
 })
 
-router.put("/:id", verifyAdminHR, (req, res)=>{
+router.put("/:id", verifyAdminHR, (req, res) => {
   TimePattern.findByIdAndUpdate(req.params.id, {
     $set: {
       PatternName: req.body.PatternName
     }
-  }, (err, updatedDT)=>{
-    if(err) {
+  }, (err, updatedDT) => {
+    if (err) {
       res.status(403).send("pattern not found")
-    }else {
+    } else {
       res.send("WTP has been updated!")
     }
   })
 })
 
-router.delete("/:id", verifyAdminHR, (req, res) =>{
-  TimePattern.findByIdAndDelete(req.params.id, (err, result)=>{
-    if(err) {
+router.delete("/:id", verifyAdminHR, (req, res) => {
+  TimePattern.findByIdAndDelete(req.params.id, (err, result) => {
+    if (err) {
       res.status(403).send("not found!")
-    }else {
+    } else {
       res.send("WTP Deleted successfully!")
     }
   })

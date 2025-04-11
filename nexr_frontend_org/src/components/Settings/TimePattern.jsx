@@ -21,6 +21,7 @@ const TimePattern = () => {
     const [curState, setCurState] = useState(null);
     const [curPattern, setCurPattern] = useState(null);
     const [timePatterns, setTimePatterns] = useState([]);
+    const [selectedPattern, setSelectedPattern] = useState("");
     const [dom, reload] = useState(false);
 
     function handleAddWorkingTime() {
@@ -80,6 +81,14 @@ const TimePattern = () => {
             })
         } else {
             toast.error("Can't delete default time pattern")
+        }
+    }
+
+    function handleSelectedPattern(pattern) {
+        if (selectedPattern) {
+            setSelectedPattern("")
+        } else {
+            setSelectedPattern(pattern)
         }
     }
 
@@ -148,7 +157,9 @@ const TimePattern = () => {
                                             </Dropdown>
                                         </div>
                                         <div className="hoverStyle">
-                                            <KeyboardArrowDownIcon fontSize="large" color="primary" onClick={() => ChangeShowDays(pattern)} />
+                                            <span className={`KeyboardArrowDownSharpIcon ${selectedPattern === pattern._id ? "rotate" : ""}`} onClick={() => handleSelectedPattern(pattern._id)}>
+                                                <KeyboardArrowDownIcon fontSize="large" color="primary" onClick={() => ChangeShowDays(pattern)} />
+                                            </span>
                                         </div>
                                     </td>
                                 </tr>
