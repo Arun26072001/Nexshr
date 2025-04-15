@@ -5,10 +5,10 @@ const WorkPlaceSchema = mongoose.Schema({
     CompanyName: {type: String, unique: true},
     Address_1: {type: String},
     Address_2: {type: String},
-    Country: {type: mongoose.Schema.Types.ObjectId, ref: "Country"},
-    State: {type: mongoose.Schema.Types.ObjectId, ref: "State"},
+    Country: {type: String},
+    State: {type: String},
     PostCode: {type: Number},
-    EmpID: [{type: mongoose.Schema.Types.ObjectId, ref: "Employee"}],
+    employees: [{type: mongoose.Schema.Types.ObjectId, ref: "Employee"}],
     Town: {type: String},
 })
 
@@ -23,13 +23,14 @@ const WorkPlace = mongoose.model("WorkPlace", WorkPlaceSchema);
       .max(100)
       .required(),
     Address_2: Joi.string().optional(),
-    Country: Joi.array().items(Joi.string().required()).min(1).required(),
-    State: Joi.array().items(Joi.string().required()).min(1).required(),
+    Country: Joi.string().required(),
+    State: Joi.string().required(),
     Town: Joi.string()
-    .max(100)
-    .required(),
+    .optional(),
     PostCode: Joi.number().integer().min(10000).max(999999).optional(),
-    EmpID: Joi.optional()
+    employees: Joi.optional(),
+    _id: Joi.optional(),
+    __v: Joi.optional()
   });
 
   module.exports = {

@@ -8,7 +8,7 @@ var timePatternSchema = new mongoose.Schema({
     WaitingTime: { type: String },
     FinishingTime: { type: String },
     BreakTime: { type: String },
-    WeeklyDays: { type: Number },
+    WeeklyDays: [{ type: String }],
     PublicHoliday: { type: String }
 }, { timestamps: true })
 
@@ -51,7 +51,7 @@ var TimePatternValidation = Joi.object().keys({
         .max(200)
         .required(),
     DefaultPattern: Joi.boolean()
-        .required(),
+        .optional(),
     StartingTime: Joi.string()
         .required(),
     FinishingTime: Joi.string()
@@ -60,11 +60,15 @@ var TimePatternValidation = Joi.object().keys({
         .required(),
     WaitingTime: Joi.string()
         .required(),
-    WeeklyDays: Joi.number()
-        .max(7)
+    WeeklyDays: Joi.array()
+        .items(Joi.string())
         .required(),
     PublicHoliday: Joi.string()
-        .required()
+        .required(),
+    createdAt: Joi.string().allow('').label('createdAt'),
+    updatedAt: Joi.string().allow('').label('updatedAt'),
+    _id: Joi.string().allow("").label('_id'),
+    __v: Joi.string().allow(0).label('__v')
 });
 
 module.exports = {

@@ -194,80 +194,63 @@ leaveApp.get("/make-know", async (req, res) => {
   }
 });
 
+// need to update this api
 leaveApp.put("/reject-leave", async (req, res) => {
   try {
-    const leaves = await LeaveApplication.aggregate([
-      {
-        $match: {
-          $expr: { $eq: [{ $dayOfMonth: "$fromDate" }, 9] }, // Match documents with the 9th day
-        },
-      },
-      {
-        $lookup: {
-          from: "employees", // ✅ Corrected from "From" to "from"
-          localField: "employee",
-          foreignField: "_id",
-          as: "employeeDetails",
-        },
-      },
-      {
-        $project: {
-          leaveType: 1,
-          fromDate: 1,
-          toDate: 1,
-          periodOfLeave: 1,
-          reasonForLeave: 1,
-          prescription: 1,
-          employee: 1,
-          coverBy: 1,
-          "employeeDetails.FirstName": 1,
-          "employeeDetails.LastName": 1,
-          "employeeDetails.Email": 1,
-        },
-      },
-    ]);
+    const today = new Date();
+    const startOfDay = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate(), 0, 0, 0));
+    const endOfDay = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate(), 23, 59, 59));
 
-    if (leaves.length > 0) {
-      for (const leave of leaves) {
-        const updatedLeave = {
-          leaveType: leave.leaveType,
-          fromDate: leave.fromDate,
-          toDate: leave.toDate,
-          periodOfLeave: leave.periodOfLeave || "full day",
-          reasonForLeave: leave.reasonForLeave || "fever",
-          prescription: leave.prescription,
-          employee: leave.employee,
-          coverBy: leave.coverBy,
-          status: "rejected",
-          TeamLead: "rejected",
-          Hr: "rejected",
-          TeamHead: "rejected",
-        };
+    const leaves = await LeaveApplication.find({
+      fromDate: { $gte: startOfDay, $lte: endOfDay },
+      status: "pending"
+    }).populate("employee", "FirstName LastName Email").exec();
 
-        await LeaveApplication.findByIdAndUpdate(leave._id, updatedLeave, { new: true });
-
-        const employee = leave.employeeDetails[0]; // ✅ Fix employeeDetails array access
-
-        const htmlContent = `
-            <p>Hi ${employee?.FirstName || "Employee"},</p>
-            <p>Your leave application has been rejected by higher authority.</p>
-            <p style="color: red; font-weight: bold;">If you take leave, It will deduct your salary!</p>
-            <p>Thank you!</p>
-            `;
-
-        sendMail({
-          From: process.env.FROM_MAIL,
-          To: employee?.Email || "default@email.com",
-          Subject: "Leave Application Rejected",
-          HtmlBody: htmlContent,
-        });
-      }
+    if (!leaves.length) {
+      return res.status(200).send({ message: "No pending leave applications found for today." });
     }
-    res.status(200).send({ message: "Leave rejection processed successfully." });
+
+    await Promise.all(leaves.map(async (leave) => {
+      const updatedLeave = {
+        leaveType: leave.leaveType,
+        fromDate: leave.fromDate,
+        toDate: leave.toDate,
+        periodOfLeave: leave.periodOfLeave || "full day",
+        reasonForLeave: leave.reasonForLeave || "Not specified",
+        prescription: leave.prescription,
+        employee: leave.employee._id,
+        coverBy: leave.coverBy,
+        status: "rejected",
+        TeamLead: "rejected",
+        Hr: "rejected",
+        TeamHead: "rejected",
+        Manager: "rejected"
+      };
+
+      await LeaveApplication.findByIdAndUpdate(leave._id, updatedLeave, { new: true });
+
+      const employee = leave.employee;
+
+      const htmlContent = `
+        <p>Dear ${employee?.FirstName || "Employee"},</p>
+        <p>This is to inform you that your recent leave application(${leave.leaveType}/ (<b>${formatDate(leave.fromDate)} - ${formatDate(leave.toDate)}</b>)) has not been approved by the higher officials.</p>
+        <p style="color: red; font-weight: bold;">Kindly note that if you choose to proceed with the leave, it will be considered as unpaid and may result in a corresponding deduction from your salary.</p>
+        <p>Thank you for your understanding.</p>
+      `;
+
+      await sendMail({
+        From: process.env.FROM_MAIL,
+        To: employee?.Email,
+        Subject: `Leave Application Rejected ${leave.leaveType}/ (${formatDate(leave.fromDate)} - ${formatDate(leave.toDate)})`,
+        HtmlBody: htmlContent,
+      });
+    }));
+
+    return res.status(200).send({ message: "Leave rejection processed successfully." });
 
   } catch (error) {
-    console.error("Error fetching leave applications:", error.message);
-    res.status(500).send({ error: "An error occurred while fetching data." });
+    console.error("Error processing leave rejections:", error.message);
+    return res.status(500).send({ error: "An error occurred while processing leave rejections." });
   }
 });
 
@@ -790,20 +773,6 @@ leaveApp.get("/", verifyAdminHR, async (req, res) => {
   }
 });
 
-// leaveApp.get("/today/:empId", async (req, res) => {
-//   try {
-//     const today = new Date();
-//     const startDate = new Date(today.setHours(0, 0, 0, 0));
-//     let endDate = new Date(today.setHours(23, 59, 59, 999));
-//     const leaveData = await Employee.findById({ _id: req.params.empId }, "leaveApplication")
-//       .populate({
-//         path: "leaveApplication", match:
-//           { $gte: startDate, $lte: endDate }
-//       })
-//   } catch (error) {
-//   }
-// })
-
 leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("prescription"), async (req, res) => {
   try {
     const { empId } = req.params;
@@ -837,15 +806,28 @@ leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("pre
       }
     }
 
+    // Duplicate Check
+    const existingRequest = await LeaveApplication.findOne({
+      employee: personId,
+      status: "approved",
+      fromDate: { $gte: req.body.fromDate, $lte: req.body.toDate }
+    });
+
+    if (existingRequest) {
+      return res.status(400).json({ error: "Leave request already exists for the given date range." });
+    }
+
     // 2. Validate sick leave and casual leave dates
     if (["Sick Leave", "Medical Leave"].includes(leaveType)) {
-      const isValid = [today.toLocaleString(), yesterday.toLocaleString()].includes(fromDateObj.toLocaleString());
+      console.log("today", today.toLocaleDateString(), "yesterDay", yesterday.toLocaleDateString(), "fromDate:", fromDateObj.toLocaleDateString())
+
+      const isValid = [today.toLocaleDateString(), yesterday.toLocaleDateString()].includes(fromDateObj.toLocaleDateString());
       if (!isValid) {
         return res.status(400).json({ error: "Sick leave is only applicable for today and yesterday." });
       }
     } else if (["Annual Leave", "Casual Leave"].includes(leaveType)) {
-      console.log(fromDateObj.getDate(), today.getDate());
-      if (fromDateObj.getDate() === today.getDate()) {
+      console.log(fromDateObj.toLocaleDateString(), today.toLocaleDateString());
+      if (fromDateObj.toLocaleDateString() === today.toLocaleDateString()) {
         return res.status(400).json({ error: `${leaveType} is not applicable for the same day.` });
       }
     }
@@ -882,17 +864,6 @@ leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("pre
       if ((emp.leaveApplication?.length || 0) >= (emp?.monthlyPermissions || 2)) {
         return res.status(400).json({ error: `You have already used ${emp.monthlyPermissions} permissions this month.` });
       }
-    }
-
-    // 4. Duplicate Check
-    const existingRequest = await LeaveApplication.findOne({
-      employee: personId,
-      status: "approved",
-      fromDate: { $gte: req.body.fromDate }
-    });
-
-    if (existingRequest) {
-      return res.status(400).json({ error: "Leave request already exists for the given date range." });
     }
 
     // 5. Check Leave Balance

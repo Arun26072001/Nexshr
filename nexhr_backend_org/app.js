@@ -131,7 +131,6 @@ app.use("/api/payslip-info", payslipInfo);
 app.use("/api/department", department);
 app.use("/api/work-experience", workExp);
 app.use("/api/work-place", workPlace);
-// app.use("/api/company", company);
 app.use("/api/portal", portal);
 app.use("/api/company-settings", companySettings);
 app.use("/api/position", position);
@@ -320,7 +319,6 @@ io.on("connection", (socket) => {
 
   // update task in Comments(CURD operation with socket)
   socket.on("updatedTask_In_AddComment", async (data, empId, token) => {
-
     try {
       const updateTask = await axios.put(`${process.env.REACT_APP_API_URL}/api/task/${empId}/${data._id}`, data, {
         headers: {
@@ -396,7 +394,7 @@ async function fetchTimePatterns() {
       // send mail and apply fullday leave
       schedule.scheduleJob(`0 ${finishingMin - 5} ${finishingHour} * * 1-5`, async function () {
         try {
-          const response = await axios.post(`${process.env.REACT_APP_API_URL}/api/clock-ins/not-login/apply-leave`);
+          const response = await axios.post(`${process.env.REACT_APP_API_URL}/api/clock-ins/not-login/apply-leave/${pattern._id}`);
           console.log("Apply Leave for Not-login Triggered:", response.data.message);
         } catch (error) {
           console.error("Logout Error:", error);
@@ -421,7 +419,7 @@ async function fetchTimePatterns() {
 // Call function to schedule jobs
 fetchTimePatterns();
 
-schedule.scheduleJob("0 10 * * *", async () => {
+schedule.scheduleJob("0 10 * * 1-5", async () => {
   try {
     const response = await axios.get(`${process.env.REACT_APP_API_URL}/api/leave-application/make-know`);
     console.log(response.data);
@@ -430,7 +428,7 @@ schedule.scheduleJob("0 10 * * *", async () => {
   }
 });
 
-schedule.scheduleJob("0 7 * * *", async () => {
+schedule.scheduleJob("0 7 * * 1-5", async () => {
   try {
     const res = await axios.put(`${process.env.REACT_APP_API_URL}/api/leave-application/reject-leave`);
     console.log(res.data);

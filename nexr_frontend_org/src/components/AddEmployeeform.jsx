@@ -254,7 +254,6 @@ const AddEmployeeForm = ({ details, handleScroll, handlePersonal, handleFinancia
         formik.setFieldValue("typesOfLeaveCount", leaveTypeCount)
         setSelectedLeavetypes(value);
     }
-    console.log(formik.errors);
 
     useEffect(() => {
         const gettingLeaveTypes = async () => {
@@ -269,7 +268,6 @@ const AddEmployeeForm = ({ details, handleScroll, handlePersonal, handleFinancia
                 toast.error(error.response.data.error)
             }
         }
-
         setIsLoading(true);
         gettingLeaveTypes();
         setIsLoading(false);

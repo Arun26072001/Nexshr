@@ -393,7 +393,7 @@ export default function HRMDashboard() {
                     authorization: token || ""
                 }
             })
-            console.log("current leaveData:", leaveData.data.length);
+            console.log("current leaveData:", leaveData.data);
 
             setLeaveRequests(leaveData.data);
             setFullLeaveRequests(leaveData.data);
@@ -475,18 +475,18 @@ export default function HRMDashboard() {
     }, [])
 
     return (
-        <TimerStates.Provider value={{ workTimeTracker, reloadRolePage, setIsEditEmp, updateWorkTracker, isWorkingLoginTimerApi, isworkingActivityTimerApi, trackTimer, startLoginTimer, stopLoginTimer, changeReasonForLate, changeReasonForEarly, startActivityTimer, stopActivityTimer, setWorkTimeTracker, updateClockins, timeOption, isStartLogin, isStartActivity, handleAddTask, changeEmpEditForm, isEditEmp, isAddTask, setIsAddTask, handleAddTask, selectedProject, daterangeValue, setDaterangeValue }}>
+        <TimerStates.Provider value={{ workTimeTracker, reloadRolePage, setIsEditEmp, employees,updateWorkTracker, isWorkingLoginTimerApi, isworkingActivityTimerApi, trackTimer, startLoginTimer, stopLoginTimer, changeReasonForLate, changeReasonForEarly, startActivityTimer, stopActivityTimer, setWorkTimeTracker, updateClockins, timeOption, isStartLogin, isStartActivity, handleAddTask, changeEmpEditForm, isEditEmp, isAddTask, setIsAddTask, handleAddTask, selectedProject, daterangeValue, setDaterangeValue }}>
             <Routes >
                 <Route path="/" element={<Parent />} >
                     <Route index element={<Dashboard data={data} />} />
                     <Route path="job-desk/*" element={<JobDesk />} />
                     <Route path="calendar" element={<AttendanceCalendar />} />
-                    <Route path="projects" element={<Projects employees={employees} />} />
+                    <Route path="projects" element={<Projects />} />
                     <Route path="tasks/*" element={
                         <Routes>
                             <Route index element={<Tasks />} />
                             <Route path="time-log/:id" element={<TimeLog />} />
-                            <Route path="comments/:id" element={<Comments employees={employees} />} />
+                            <Route path="comments/:id" element={<Comments />} />
                         </Routes>
                     } />
 

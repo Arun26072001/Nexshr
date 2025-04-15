@@ -25,8 +25,9 @@ const LeaveRequestForm = ({ type }) => {
   const navigate = useNavigate();
   const [typeOfLeave, setTypOfLeave] = useState({});
   const [excludedDates, setExcludeDates] = useState([]);
+  const [filteredExcludesDates, setFilteredExcludeDates] = useState([]);
   const [prescriptionFile, setPrescriptionFile] = useState("");
-  const [content, setContent] = useState("");
+  // const [content, setContent] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [employees, setEmployees] = useState([]);
   const [isWorkingApi, setIsWorkingApi] = useState(false);
@@ -148,7 +149,7 @@ const LeaveRequestForm = ({ type }) => {
       });
       toast.success(res.data.message);
       resetForm();
-      setContent("")
+      // setContent("")
       navigate(`/${whoIs}`); // Navigate back
     } catch (err) {
       toast.error(err?.response?.data?.error);
@@ -173,7 +174,7 @@ const LeaveRequestForm = ({ type }) => {
       })
       toast.success(res.data.message);
       resetForm();
-      setContent("")
+      // setContent("")
       navigate(`/${whoIs}`); // Navigate back
     } catch (error) {
       toast.error(error?.response?.data?.error);
@@ -244,6 +245,7 @@ const LeaveRequestForm = ({ type }) => {
         // Update the excludeDates array
         if (duplicateDates.length > 0) {
           setExcludeDates((prev) => [...prev, ...duplicateDates]);
+          setFilteredExcludeDates((prev) => [...prev, ...duplicateDates])
         }
 
         // Set types of leave
@@ -271,12 +273,14 @@ const LeaveRequestForm = ({ type }) => {
 
   function handleLeaveType(e) {
     const { name, value } = e.target;
-    if (["Permission Leave"].includes(value.toLowerCase())) {
+    if (["permission leave", "sick leave"].includes(value.toLowerCase())) {
       setExcludeDates([]);
+      fetchHolidays();
       formik.setFieldValue(`${name}`, value);
     } else {
+      fetchHolidays();
+      setExcludeDates(filteredExcludesDates);
       formik.setFieldValue(`${name}`, value);
-      // gettingLeaveRequests();
     }
   }
 
@@ -285,7 +289,7 @@ const LeaveRequestForm = ({ type }) => {
   }
 
   function handleChange(value) {
-    setContent(value);
+    // setContent(value);
     formik.setFieldValue("reasonForLeave", value)
   }
 
@@ -299,16 +303,16 @@ const LeaveRequestForm = ({ type }) => {
     }
   }
 
-  useEffect(() => {
-    async function gettingHoliday() {
-      try {
-        const res = await getHoliday();
-        setExcludeDates(res.map((data) => new Date(data)))
-      } catch (error) {
-        toast.error(error)
-      }
+  async function fetchHolidays() {
+    try {
+      const res = await getHoliday();
+      setExcludeDates(res.map((data) => new Date(data)))
+    } catch (error) {
+      toast.error(error)
     }
-    gettingHoliday();
+  }
+  useEffect(() => {
+    fetchHolidays();
     gettingEmps();
   }, [])
 

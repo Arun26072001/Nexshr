@@ -449,7 +449,32 @@ async function fileUploadInServer(files) {
 
 }
 
+function calculateTimePattern(timePatternObj) {
+    if (timePatternObj.StartingTime && timePatternObj.FinishingTime) {
+
+        const [startHour, startMinute] = timePatternObj.StartingTime.split(".").map(num => parseInt(num, 10));
+        const [endHour, endMinute] = timePatternObj.FinishingTime.split(".").map(num => parseInt(num, 10));
+        console.log("startingTime: ", startHour, startMinute);
+        console.log("finishingtime: ", endHour, endMinute);
+
+        const startDate = new Date();
+        startDate.setHours(startHour);
+        startDate.setMinutes(startMinute);
+
+        const endDate = new Date();
+        endDate.setHours(endHour);
+        endDate.setMinutes(endMinute);
+
+        const timeDiff = endDate.getTime() - startDate.getTime();
+        const hoursDiff = Math.floor(timeDiff / (1000 * 60 * 60));
+        console.log(hoursDiff);
+
+        return hoursDiff
+    }
+}
+
 export {
+    calculateTimePattern,
     getTimeFromHour,
     getHoliday,
     addDataAPI,

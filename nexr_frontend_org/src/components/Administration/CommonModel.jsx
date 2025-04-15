@@ -1,6 +1,6 @@
 import React, { useContext, useState } from 'react';
 import "../Settings/SettingsStyle.css";
-import { Modal, Button, SelectPicker, TagPicker, Input, InputNumber, InputGroup } from 'rsuite';
+import { Modal, Button, SelectPicker, TagPicker, Input, InputNumber, InputGroup, Toggle, TimePicker } from 'rsuite';
 import TextEditor from '../payslip/TextEditor';
 import ErrorOutlineRoundedIcon from '@mui/icons-material/ErrorOutlineRounded';
 import DatePicker from "react-datepicker";
@@ -12,6 +12,7 @@ import Loading from '../Loader';
 import { EssentialValues } from '../../App';
 import VisibilityOffOutlinedIcon from '@mui/icons-material/VisibilityOffOutlined';
 import RemoveRedEyeOutlinedIcon from '@mui/icons-material/RemoveRedEyeOutlined';
+import { calculateTimePattern } from '../ReuseableAPI';
 
 const CommonModel = ({
     dataObj,
@@ -36,13 +37,14 @@ const CommonModel = ({
     isWorkingApi,
     removePreview,
     preview,
+    countries,
+    states,
     type // New prop to determine if it's for "department" or "position"
 }) => {
     const { data } = useContext(EssentialValues);
     const [confirmationTxt, setConfirmationTxt] = useState("");
     const [isDisabled, setIsDisabled] = useState(true);
     const [isShowPassword, setIsShowPassword] = useState(false);
-    console.log(dataObj, comps);
 
     return (
         <Modal open={isAddData} size="sm" backdrop="static">
@@ -57,19 +59,19 @@ const CommonModel = ({
 
             <Modal.Body>
                 {
-                    (["Department", "Position", "Project", "Report", "Report View", "Country", "Edit Country", "Project View", "Team", "Organization", "LeaveType"].includes(type)) &&
+                    (["Department", "Position", "Project", "Report", "Report View", "Country", "Edit Country", "Project View", "Team", "Organization", "LeaveType", "TimePattern", "WorkPlace", "View WorkPlace"].includes(type)) &&
                     <div className="d-flex justify-content-between">
                         {
-                            ["Department", "Position", "Project", "Report", "Report View", "Country", "Edit Country", "Team", "Organization", "LeaveType"].includes(type) &&
+                            ["Department", "Position", "Project", "Report", "Report View", "Country", "Edit Country", "Team", "TimePattern", "Organization", "LeaveType", "WorkPlace", "View WorkPlace"].includes(type) &&
                             <div className={`${type === "Team" ? "col-full" : "col-half"}`}>
                                 <div className="modelInput">
                                     <p className='modelLabel important'>{type} Name: </p>
                                     <Input required
                                         size='lg'
-                                        value={dataObj?.[type === "Department" ? "DepartmentName" : type === "Position" ? "PositionName" : type === "Team" ? "teamName" : type === "Organization" ? "orgName" : type === "LeaveType" ? "LeaveName" : `name`] || ""}
-                                        disabled={["Report View", "Project View"].includes(type) ? true : false}
-                                        onChange={!["Report View", "Project View"].includes(type) ? (e) =>
-                                            changeData(e, type === "Department" ? "DepartmentName" : type === "Position" ? "PositionName" : type === "Team" ? "teamName" : type === "Organization" ? "orgName" : type === "LeaveType" ? "LeaveName" : "name") : null}
+                                        value={dataObj?.[type === "Department" ? "DepartmentName" : type === "Position" ? "PositionName" : type === "Team" ? "teamName" : type === "Organization" ? "orgName" : type === "LeaveType" ? "LeaveName" : type === "TimePattern" ? "PatternName" : ["WorkPlace", "View WorkPlace"].includes(type) ? "CompanyName" : `name`] || ""}
+                                        disabled={["Report View", "Project View", "View WorkPlace"].includes(type) ? true : false}
+                                        onChange={!["Report View", "Project View", "View WorkPlace"].includes(type) ? (e) =>
+                                            changeData(e, type === "Department" ? "DepartmentName" : type === "Position" ? "PositionName" : type === "Team" ? "teamName" : type === "Organization" ? "orgName" : type === "LeaveType" ? "LeaveName" : type === "TimePattern" ? "PatternName" : ["WorkPlace", "View WorkPlace"].includes(type) ? "CompanyName" : "name") : null}
                                     />
                                 </div>
                             </div>
@@ -106,10 +108,10 @@ const CommonModel = ({
                                     <SelectPicker
                                         required
                                         data={departments}
-                                        size="lg"
-                                        disabled={type === "Report View" ? true : false}
                                         appearance='default'
                                         style={{ width: "100%" }}
+                                        size="lg"
+                                        disabled={type === "Report View" ? true : false}
                                         placeholder="Select Department"
                                         value={dataObj?.department}
                                         onChange={type !== "Report View" ? (e) => changeData(e, "department") : null}
@@ -135,11 +137,28 @@ const CommonModel = ({
                                 </div>
                             </div>
                         }
+                        {
+                            ["TimePattern", "View TimePattern"].includes(type) &&
+                            <div className="col-half">
+                                <div className="modelInput">
+                                    <p className='modelLabel important'>Default Pattern:</p>
+                                    <Toggle checked={dataObj.DefaultPattern} onChange={(e) => changeData(e, "DefaultPattern")} />
+                                </div>
+                            </div>
+                        }
+                        {
+                            ["WorkPlace", "View WorkPlace"].includes(type) &&
+                            <div className="col-half">
+                                <div className="modelInput">
+                                    <p className='modelLabel important'>Postcode:</p>
+                                    <InputNumber size='lg' value={dataObj?.PostCode} onChange={(e) => changeData(e, "PostCode")} disabled={type === "View WorkPlace"} />
+                                </div>
+                            </div>
+                        }
                     </div>
                 }
 
                 <>
-
                     <div className="d-flex justify-content-between">
 
                         {["Task", "Task View", "Announcement", "Add Comments"].includes(type) && <div className={type === "Announcement" ? "col-full" : "col-half"}>
@@ -359,7 +378,7 @@ const CommonModel = ({
                                         onChange={(e) => changeData(e, "company")}
                                     />
                                 </div>
-                            </div>  
+                            </div>
                             {
                                 ["Report", "Report View"].includes(type) &&
                                 <div className="col-half">
@@ -483,7 +502,7 @@ const CommonModel = ({
                 }
 
                 {
-                    ["Project", "Project View", "Assign", "Task", "Task View", "Task Assign", "Report", "Report View", "Team"].includes(type) && (
+                    ["Project", "Project View", "Assign", "Task", "Task View", "Task Assign", "Report", "Report View", "Team", "WorkPlace", "View WorkPlace"].includes(type) && (
                         <div className="d-flex justify-content-between">
                             <div className="col-full">
                                 <div className="modelInput">
@@ -497,7 +516,7 @@ const CommonModel = ({
                                         size="lg"
                                         defaultValue={[data._id]}
                                         appearance="default"
-                                        disabled={["Report View", "Project View"].includes(type) ? true : false}
+                                        disabled={["Report View", "Project View", "View WorkPlace"].includes(type) ? true : false}
                                         style={{ width: "100%" }}
                                         placeholder="Select Employees"
                                         value={type.includes("Task") ? dataObj?.assignedTo : dataObj?.employees}
@@ -1065,6 +1084,175 @@ const CommonModel = ({
                         </div>
                     </div>
                 }
+                {
+                    ["TimePattern", "View TimePattern"].includes(type) &&
+                    <>
+                        <div className="d-flex justify-content-between gap-2">
+                            <div className="col-half">
+                                <div className="modelInput">
+                                    <p className='modelLabel'>Starting Time:</p>
+                                    <InputNumber size='lg' step={0.01} onChange={(e) => changeData(e, "StartingTime")} disabled={type === "View TimePattern"} value={dataObj?.StartingTime} />
+                                </div>
+                            </div>
+                            <div className="col-half">
+                                <div className="modelInput">
+                                    <p className='modelLabel'>Finishing Time:</p>
+                                    <InputNumber size='lg' step={0.01} onChange={(e) => changeData(e, "FinishingTime")} disabled={type === "View TimePattern"} value={dataObj?.FinishingTime} />
+                                </div>
+                            </div>
+                        </div>
+                        <div className="d-flex justify-content-between gap-2">
+                            <div className="col-half">
+                                <div className="modelInput">
+                                    <p className='modelLabel'>Waiting Time:</p>
+                                    <InputNumber size='lg' step={0.01} onChange={(e) => changeData(e, "WaitingTime")} disabled={type === "View TimePattern"} value={dataObj?.WaitingTime} />
+                                </div>
+                            </div>
+                            <div className="col-half">
+                                <div className="modelInput">
+                                    <p className='modelLabel'>Break Time:</p>
+                                    <InputNumber size='lg' step={0.01} onChange={(e) => changeData(e, "BreakTime")} disabled={type === "View TimePattern"} value={dataObj?.BreakTime} />
+                                </div>
+                            </div>
+                        </div>
+                        <div className="col-full">
+                            <div className="modelInput">
+                                <p className='modelLabel'>Weekly Days:</p>
+                                <TagPicker
+                                    required
+                                    data={["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((data) => ({ label: data, value: data }))}
+                                    size="lg"
+                                    disabled={type === "View TimePattern"}
+                                    appearance='default'
+                                    style={{ width: "100%", zIndex: 1 }}
+                                    defaultValue={dataObj?.WeeklyDays}
+                                    onChange={(e) => changeData(e, "WeeklyDays")}
+                                />
+                            </div>
+                        </div>
+                        {
+                            dataObj.StartingTime && dataObj.FinishingTime && dataObj.BreakTime &&
+                            <p className="my-2 styleText">
+                                <b>{dataObj?.WeeklyDays?.length} working days </b>
+                                Selected totalling <b>{(dataObj?.WeeklyDays?.length * (calculateTimePattern(dataObj) - Number(dataObj?.BreakTime))).toFixed(2)} hrs</b>. excluding breaks
+                            </p>
+                        }
+                        <div className="modelInput d-flex">
+                            <p className='modelLabel'>PublicHoliday:</p>
+                        </div>
+                        <div className="row">
+                            <div className="col-lg-4 d-flex">
+                                <div className={`position-relative ${dataObj?.PublicHoliday === "Deducated" ? 'box-content active' : 'box-content'}`} onClick={() => type !== "View TimePattern" ? changeData("Deducated", "PublicHoliday") : null}>
+                                    <span className="RadioPosition">
+                                        <input type="radio" name="timePattern.PublicHoliday" checked={dataObj?.PublicHoliday === "Deducated"} className="styleRadio" />
+                                    </span>
+                                    <h6 className="my-2">
+                                        Deducated
+                                    </h6>
+
+                                    <p className="styleText">
+                                        They'll have a day
+                                        off any public holidays they would
+                                        normally br wokring on and this is
+                                        taken from Their yearly holiday
+                                        entitlement
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div className="col-lg-4 d-flex">
+                                <div className={`position-relative ${dataObj?.PublicHoliday === "Not deducated" ? 'box-content active' : 'box-content'}`} onClick={() => type !== "View TimePattern" ? changeData("Not deducated", "PublicHoliday") : null}>
+                                    <span className="RadioPosition">
+                                        <input type="radio" name="timePattern.PublicHoliday" checked={dataObj?.PublicHoliday === "Not deducated"} className="styleRadio" />
+                                    </span>
+                                    <h6 className="my-2">
+                                        Not Deducated
+                                    </h6>
+
+                                    <p className="styleText">
+                                        They'll have a day
+                                        off any public holidays they would
+                                        normally br wokring on and this
+                                        will be given on top of their yearly
+                                        holiday entitlement
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div className="col-lg-4 d-flex">
+                                <div className={`position-relative ${dataObj?.PublicHoliday === "works public holidays" ? 'box-content active' : 'box-content'}`} onClick={() => type !== "View TimePattern" ? changeData("works public holidays", "PublicHoliday") : null}>
+                                    <span className="RadioPosition">
+                                        <input type="radio" name="timePattern.PublicHoliday" checked={dataObj?.PublicHoliday === "works public holidays"} className="styleRadio" />
+                                    </span>
+                                    <h6 className="my-2">
+                                        Works public holidays
+                                    </h6>
+
+                                    <p className="styleText">
+                                        Public holidays are seen as normal day
+                                        and they won't have the day off.
+                                    </p>
+                                </div>
+
+                            </div>
+                        </div>
+                    </>
+                }
+                {
+                    ["WorkPlace", "View WorkPlace"] &&
+                    <>
+                        <div className="col-full">
+                            <div className="modelInput">
+                                <p className='modelLabel important'>Address_1:</p>
+                                <Input type='text' onChange={(e) => changeData(e, "Address_1")} value={dataObj?.Address_1} disabled={type === "View WorkPlace"} />
+                            </div>
+                        </div>
+                        <div className="col-full">
+                            <div className="modelInput">
+                                <p className='modelLabel'>Address_2:</p>
+                                <Input type='text' onChange={(e) => changeData(e, "Address_2")} value={dataObj?.Address_2} disabled={type === "View WorkPlace"} />
+                            </div>
+                        </div>
+                        <div className="d-flex justify-content-between gap-2">
+                            <div className="col-half">
+                                <div className="modelInput">
+                                    <p className='modelLabel important'>Country:</p>
+                                    <SelectPicker
+                                        appearance='default'
+                                        style={{ width: "100%" }}
+                                        size="lg"
+                                        data={countries}
+                                        disabled={type === "View WorkPlace"}
+                                        labelKey="name"
+                                        valueKey="name"
+                                        value={dataObj?.Country}
+                                        onChange={(value) => changeData(value, "Country")}
+                                    />
+                                </div>
+                            </div>
+                            <div className="col-half">
+                                <div className="modelInput">
+                                    <p className='modelLabel important'>State:</p>
+                                    <SelectPicker
+                                        appearance='default'
+                                        style={{ width: "100%" }}
+                                        disabled={type === "View WorkPlace"}
+                                        size="lg"
+                                        data={states}
+                                        value={dataObj?.State}
+                                        onChange={(value) => changeData(value, "State")}
+                                    />
+                                </div>
+                            </div>
+                        </div>
+                        <div className="col-full">
+                            <div className="modelInput">
+                                <p className='modelLabel'>Town:</p>
+                                <Input type='text' onChange={(e) => changeData(e, "Town")} value={dataObj?.Town} disabled={type === "View WorkPlace"} />
+                            </div>
+                        </div>
+                    </>
+                }
 
             </Modal.Body>
 
@@ -1088,7 +1276,14 @@ const CommonModel = ({
                                         modifyData(dataObj)
                                     } else if (dataObj._id && type === "LeaveType") {
                                         modifyData("Edit")
-                                    } else {
+                                    } else if (["TimePattern", "WorkPlace"].includes(type) && dataObj._id) {
+                                        modifyData("Edit")
+                                    } else if (["TimePattern", "WorkPlace"].includes(type) && !dataObj._id) {
+                                        modifyData("Add")
+                                    } else if (["View TimePattern", "View WorkPlace"].includes(type) && dataObj._id) {
+                                        modifyData("View")
+                                    }
+                                    else {
                                         modifyData();
                                     }
                                 }}
@@ -1098,12 +1293,12 @@ const CommonModel = ({
                             </Button>
 
                             {
-                                !["Report View", "Task View", "Project View"].includes(type) && (
+                                !["Report View", "Task View", "Project View", "View TimePattern"].includes(type) && (
                                     <Button
                                         onClick={() => ((type === "Add Comments" && dataObj._id) ? editData(dataObj, true) : dataObj?._id || type === "Edit Country" ? editData(dataObj) : type === "Edit Comments" ? editData() : addData())}
                                         appearance="primary"
                                         disabled={
-                                            ["Project", "Assign", "Task", "Task Assign", "Report", "Company", "Country", "Edit Country", "Announcement", "Team", "Add Comments", "Edit Comments", "Organization", "MailSettings postmark", "MailSettings nodemailer", "LeaveType"].includes(type)
+                                            ["Project", "Assign", "Task", "Task Assign", "Report", "Company", "Country", "Edit Country", "Announcement", "Team", "Add Comments", "TimePattern", "Edit Comments", "Organization", "MailSettings postmark", "MailSettings nodemailer", "LeaveType", "WorkPlace"].includes(type)
                                                 ? false : (["Department", "Position"].includes(type) && dataObj?.company ? false : true)
                                         }
                                     >

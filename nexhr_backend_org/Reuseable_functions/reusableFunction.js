@@ -212,4 +212,11 @@ const formatLeaveData = (leave) => ({
   prescription: leave.prescription ? `${process.env.REACT_APP_API_URL}/uploads/${leave.prescription}` : null
 });
 
-module.exports = { convertToString, getTotalWorkingHourPerDay, formatLeaveData, getDayDifference, getOrgDB, getWeekdaysOfCurrentMonth, mailContent, checkLogin, getTotalWorkingHoursExcludingWeekends, getCurrentTimeInMinutes, timeToMinutes, formatTimeFromMinutes };
+function formatDate(date) {
+  const actualDate = new Date(date)
+  const dateValue = actualDate.getDate();
+  const monthString = actualDate.toLocaleString("default", { month: "short" })
+  return `${dateValue + " " + monthString + " " + String(actualDate.getHours()).padStart(2, "0") + ":" + String(actualDate.getMinutes()).padStart(2, "0")}`
+}
+
+module.exports = { convertToString, getTotalWorkingHourPerDay, formatLeaveData, getDayDifference, getOrgDB, formatDate, getWeekdaysOfCurrentMonth, mailContent, checkLogin, getTotalWorkingHoursExcludingWeekends, getCurrentTimeInMinutes, timeToMinutes, formatTimeFromMinutes };
