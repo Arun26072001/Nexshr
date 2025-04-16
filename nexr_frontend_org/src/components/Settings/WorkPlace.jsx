@@ -1,227 +1,212 @@
-import React, { useEffect, useState } from "react";
-import GroupOutlinedIcon from '@mui/icons-material/GroupOutlined';
+import React, { useContext, useEffect, useState } from "react";
 import InfoIcon from '@mui/icons-material/Info';
 import "./SettingsStyle.css";
 import axios from "axios";
-import MoreVertIcon from '@mui/icons-material/MoreVert'; // For vertical ellipsis
-import { Menu, MenuItem } from "@mui/material"; // Menu and MenuItem for actions
 import { toast } from "react-toastify";
 import Loading from "../Loader";
-import EditWorkingPlace from "./EditWorkPlace";
-import AddWorkingPlace from "./AddWorkingPlace";
 import { fetchWorkplace } from "../ReuseableAPI";
+import LeaveTable from "../LeaveTable";
+import { EssentialValues } from "../../App";
+import CommonModel from "../Administration/CommonModel";
+import { TimerStates } from "../payslip/HRMDashboard";
 
 const WorkPlaceTab = () => {
-  const [showModel, setShowModel] = useState(false);
-  const [editModel, setEditModel] = useState(false);
-  const [editWorkPlace, setEditWorkPlace] = useState([]);
-  const [stateData, setStateData] = useState([]);
-  const [changeWorkPlace, setChangeWorkPlace] = useState(false);
   const url = process.env.REACT_APP_API_URL;
   const [workPlaces, setWorkPlaces] = useState([]);
+  const { data } = useContext(EssentialValues);
+  const { employees } = useContext(TimerStates);
+  const [isLoading, setIsLoading] = useState(false);
+  const [workPlaceObj, setWorkPlaceObj] = useState({});
+  const [countries, setCountries] = useState([]);
+  const [states, setStates] = useState([]);
+  const [isWorkingApi, setIsWorkingApi] = useState(false);
+  const [changeWorkplace, setChangeWorkPlace] = useState({
+    isAdd: false,
+    isEdit: false,
+    isView: false
+  })
+  console.log(workPlaceObj);
 
-  const [anchorEl, setAnchorEl] = useState(null); // State for Menu anchor
-  const [selectedWorkPlace, setSelectedWorkPlace] = useState(null); // Store selected workplace for actions
-
-  const token = localStorage.getItem("token");
-
-  // Handle opening and closing the menu
-  const handleClick = (event, workPlace) => {
-    setAnchorEl(event.currentTarget);
-    setSelectedWorkPlace(workPlace);
-  };
-
-  const handleClose = () => {
-    setAnchorEl(null);
-  };
-
-  async function onChangeEdit(e) {
-    const { name, value } = e.target;
-    if (name === "Country" || name === "State") {
-      let values = value.split(",");
-      setEditWorkPlace((prevEditWorkPlace) => ({
-        ...prevEditWorkPlace,
-        [name]: values
-      }));
-      if (name === "Country") {
-        try {
-          const states = await axios.get(`${url}/api/country/${values[0]}`, {
-            Authorization: token || ""
-          });
-          setStateData(states)
-        } catch (err) {
-          console.error(err);
-          toast.error("Error in fetch state")
+  async function fetchCountries() {
+    try {
+      const res = await axios.get(`${url}/api/country`, {
+        headers: {
+          authorization: data.token || ""
         }
+      })
+      setCountries(res.data);
+    } catch (err) {
+      toast.error(err.response.data.error)
+    }
+  }
+
+  function handleChangeWorkPlace(type, pattern) {
+    if (type === "Add") {
+      setChangeWorkPlace((pre) => ({
+        ...pre,
+        isAdd: !pre.isAdd
+      }))
+      if (changeWorkplace.isAdd) {
+        setWorkPlaceObj({})
+      }
+    } else if (type === "Edit") {
+      if (!changeWorkplace.isEdit) {
+        setWorkPlaceObj({
+          ...pattern,
+          employees: pattern.employees.map((emp) => emp._id)
+        })
+      }
+      setChangeWorkPlace((pre) => ({
+        ...pre,
+        isEdit: !pre.isEdit
+      }))
+      if (changeWorkplace.isEdit) {
+        setWorkPlaceObj({})
       }
     } else {
-      setEditWorkPlace((prevEditWorkPlace) => ({
-        ...prevEditWorkPlace,
-        [name]: value
-      }));
-    }
-  }
-
-  async function editToGetWorkPlace(id) {
-
-    try {
-      const workPlace = await axios.get(`${url}/api/work-place/${id}`, {
-        headers: {
-          Authorization: token || ""
-        }
-      })
-      setEditWorkPlace(workPlace.data);
-      setEditModel(true);
-    } catch (error) {
-      console.log(error);
-    }
-  }
-
-  function handleDelete(workPlace) {
-    if (workPlace.EmpID.length > 0) {
-      return toast.error(`Can't delete workPlace. There Have ${workPlace.EmpID.length} Employees!`);
-    } else {
-      axios.delete(`${url}/api/work-place/${workPlace._id}`, {
-        headers: {
-          Authorization: `${token}` || ""
-        }
-      })
-        .then((res) => {
-          toast.success(res.data);
-          setChangeWorkPlace(!changeWorkPlace);
+      if (!changeWorkplace.isView) {
+        setWorkPlaceObj({
+          ...pattern,
+          employees: pattern.employees.map((emp) => emp._id)
         })
-        .catch((err) => {
-          toast.error(err);
-        });
+      }
+      setChangeWorkPlace((pre) => ({
+        ...pre,
+        isView: !pre.isView
+      }))
+      if (changeWorkplace.isView) {
+        setWorkPlaceObj({})
+      }
     }
   }
 
-  function updateWorkPlaces() {
-    setChangeWorkPlace(!changeWorkPlace);
+  function fetchStateData(value) {
+    const stateData = countries.find(country => country.name === value)?.states || [];
+    setStates(stateData.map((state) => ({ label: state, value: state })));
   }
+
+  function fillworkplaceObj(value, name) {
+    if (name === "Country") {
+      fetchStateData(value);
+    }
+    setWorkPlaceObj((pre) => ({
+      ...pre,
+      [name]: value
+    }))
+  }
+
+  async function addWorkplace() {
+    try {
+      setIsWorkingApi(true);
+      const res = await axios.post(`${url}/api/work-place`, workPlaceObj, {
+        headers: {
+          Authorization: data.token || ""
+        }
+      })
+      toast.success(res.data.message);
+      fetchWorkPlaces();
+      setWorkPlaceObj({});
+      handleChangeWorkPlace("Add");
+    } catch (error) {
+      console.log("error in add workplace:", error);
+      toast.error(error.response.data.error)
+    } finally {
+      setIsWorkingApi(false);
+    }
+  }
+
+  async function editWorkPlace() {
+    try {
+      setIsWorkingApi(true);
+      const res = await axios.put(`${url}/api/work-place/${workPlaceObj._id}`, workPlaceObj, {
+        headers: {
+          Authorization: data.token || ""
+        }
+      })
+      toast.success(res.data.message);
+      setWorkPlaceObj({})
+      handleChangeWorkPlace("Edit");
+      fetchWorkPlaces();
+    } catch (error) {
+      console.log("error in add workplace:", error);
+      toast.error(error.response.data.error)
+    } finally {
+      setIsWorkingApi(false);
+    }
+  }
+
+  async function deleteWorkplace(workPlaceId) {
+    try {
+      const res = await axios.delete(`${url}/api/work-place/${workPlaceId}`, {
+        headers: {
+          Authorization: data.token || ""
+        }
+      })
+      toast.success(res.data.message);
+      fetchWorkPlaces();
+    } catch (error) {
+      console.log("error in delete workplace", error);
+      toast.error(error.response.data.error)
+    }
+  }
+
+  async function fetchWorkPlaces() {
+    try {
+      setIsLoading(true)
+      const workPlaces = await fetchWorkplace();
+      setWorkPlaces(workPlaces);
+    } catch (err) {
+      console.error(err);
+      toast.error(err.response.data.error);
+    } finally {
+      setIsLoading(false);
+    }
+  }
+  useEffect(() => {
+    fetchWorkPlaces();
+    fetchCountries();
+  }, []);
 
   useEffect(() => {
-    async function gettingWorkPlaces() {
-      try {
-        const workPlaces = await fetchWorkplace();
-        setWorkPlaces(workPlaces);
-      } catch (err) {
-        console.error(err);
-        toast.error(err);
-      }
+    if (workPlaceObj?.Country) {
+      fetchStateData()
     }
-    gettingWorkPlaces();
-  }, [changeWorkPlace]);
-
+  }, [changeWorkplace.isEdit])
+  
   return (
-    <div className="container">
-      <div className="my-3 row">
-        <div className="col-6 d-flex justify-content-start">
-          <span>
-            <h5>PLACES OF WORK</h5>
-          </span>
-        </div>
-        <div className="col-6 d-flex justify-content-end">
-          <button type="button" onClick={() => setShowModel(!showModel)} className="button">
-            NEW PLACE TO WORK
-          </button>
-        </div>
-      </div>
-      <p className="mt-3">
-        Places of work are where working activities are conducted. Only assign employees to their regular place of work.
-      </p>
-      <p className="text-warning my-2">
-        <InfoIcon /> Note: Places of work cannot be fully edited once they have employees assigned.
-      </p>
-
-      {showModel && (
-        <div className="formModal" id="" tabIndex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
-          <div className="modal-dialog modal-dialog-centered" role="document">
-            <div className="modal-content">
-              <div className="modal-body">
-                <AddWorkingPlace changeModel={() => setShowModel(!showModel)} updateWorkPlaces={updateWorkPlaces} editWorkPlace={editWorkPlace} />
+    changeWorkplace.isAdd ? <CommonModel type={"WorkPlace"} isAddData={changeWorkplace.isAdd} isWorkingApi={isWorkingApi} employees={employees} dataObj={workPlaceObj} countries={countries} states={states} modifyData={handleChangeWorkPlace} addData={addWorkplace} changeData={fillworkplaceObj} /> :
+      changeWorkplace.isEdit ? <CommonModel type={"WorkPlace"} isAddData={changeWorkplace.isEdit} employees={employees} isWorkingApi={isWorkingApi} dataObj={workPlaceObj} countries={countries} states={states} modifyData={handleChangeWorkPlace} editData={editWorkPlace} changeData={fillworkplaceObj} /> :
+        changeWorkplace.isView ? <CommonModel type={"View WorkPlace"} employees={employees} isAddData={changeWorkplace.isView} dataObj={workPlaceObj} countries={countries} states={states} modifyData={handleChangeWorkPlace} /> :
+          <div className="container">
+            <div className="my-3 row">
+              <div className="col-6 d-flex justify-content-start">
+                <span>
+                  <h5>PLACES OF WORK</h5>
+                </span>
+              </div>
+              <div className="col-6 d-flex justify-content-end">
+                <button type="button" onClick={() => handleChangeWorkPlace("Add")} className="button">
+                  NEW PLACE TO WORK
+                </button>
               </div>
             </div>
+            <p className="mt-3">
+              Places of work are where working activities are conducted. Only assign employees to their regular place of work.
+            </p>
+            <p className="text-warning my-2">
+              <InfoIcon /> Note: Places of work cannot be fully edited once they have employees assigned.
+            </p>
+
+            {isLoading ? <Loading height="80vh" /> :
+              workPlaces.length > 0 ? (
+                <LeaveTable data={workPlaces} handleChangeData={handleChangeWorkPlace} deleteData={deleteWorkplace} />
+              ) : (
+                <div className="align-items-center justify-content-center">
+                  <Loading height="80vh" />
+                </div>
+              )
+            }
           </div>
-        </div>
-      )}
-
-      {editModel && (
-        <div className="formModal" id="" tabIndex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
-          <div className="modal-dialog modal-dialog-centered" role="document">
-            <div className="modal-content">
-              <div className="modal-body">
-                <EditWorkingPlace
-                  modifyWorkPlace={() => setChangeWorkPlace(!changeWorkPlace)}
-                  onChangeEdit={onChangeEdit}
-                  changeEditModel={() => setEditModel(!editModel)}
-                  editWorkPlace={editWorkPlace}
-                />
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {workPlaces.length > 0 ? (
-        <table className="table table-striped my-2 mt-4">
-          <thead>
-            <tr className="text-center">
-              <th>Name</th>
-              <th>Address</th>
-              <th>Assigned employees</th>
-              <th>Action</th>
-            </tr>
-          </thead>
-          <tbody>
-            {workPlaces.map((workPlace, index) => (
-              <tr key={index} className="text-center">
-                <td><b>{workPlace.CompanyName}</b></td>
-                <td>
-                  <div>
-                    {workPlace.Address_1}, {workPlace.Address_2}, {workPlace.Town}, {workPlace.State[1]}, {workPlace.PostCode}, {workPlace.Country[1]}
-                  </div>
-
-                </td>
-                <td>
-                  <div style={{ fontSize: '17px' }} className="text-primary">
-                    <GroupOutlinedIcon fontSize="large" color="primary" />
-                    {workPlace.EmpID.length}
-                  </div>
-                </td>
-                <td className="justify-content-center align-items-center">
-                  <MoreVertIcon
-                    fontSize="large"
-                    onClick={(e) => handleClick(e, workPlace)}
-                  />
-                  <Menu
-                    anchorEl={anchorEl}
-                    open={Boolean(anchorEl)}
-                    onClose={handleClose}
-                  >
-                    <MenuItem
-                      onClick={() => { editToGetWorkPlace(selectedWorkPlace._id); handleClose(); }}
-                    >
-                      Edit
-                    </MenuItem>
-                    <MenuItem
-                      onClick={() => { handleDelete(selectedWorkPlace); handleClose(); }}
-                    >
-                      Delete
-                    </MenuItem>
-
-                  </Menu>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      ) : (
-        <div className="align-items-center justify-content-center">
-          <Loading height="80vh" />
-        </div>
-      )}
-    </div>
   );
 };
 

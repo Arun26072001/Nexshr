@@ -1,172 +1,160 @@
-import React, { useEffect, useState } from "react";
-import AddTimePattern from "./AddTimePattern";
+import React, { useContext, useEffect, useState } from "react";
 import axios from "axios";
 import { toast } from "react-toastify";
-import GroupOutlinedIcon from "@mui/icons-material/GroupOutlined";
-import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
-import EditRoundedIcon from '@mui/icons-material/EditRounded';
-import EditTimePattern from "./EditTimePattern";
-import WeeklyDaysDetails from "./WeeklyDaysDetails";
-import Loading from "../Loader";
 import "../payslip/dashboard.css";
-import { Dropdown } from "rsuite";
+import LeaveTable from "../LeaveTable";
+import NoDataFound from "../payslip/NoDataFound";
+import CommonModel from "../Administration/CommonModel";
+import { EssentialValues } from "../../App";
+import Loading from "../Loader";
 
 const TimePattern = () => {
     const url = process.env.REACT_APP_API_URL;
-    const token = localStorage.getItem("token");
-    const [workingTime, setWorkingTime] = useState(false);
-    const [patternName, setPatternName] = useState("");
-    const names = ["Names", "Days", "Assigned"];
-    const days = ["Mon", "Tues", "Wednes", "Thus", "Fri", "Sat", "Sun"];
-    const [curState, setCurState] = useState(null);
-    const [curPattern, setCurPattern] = useState(null);
+    const { data } = useContext(EssentialValues);
+    const { token } = data;
+    const [changePattern, setChangePattern] = useState({
+        isAdd: false,
+        isEdit: false,
+        isView: false
+    });
+    const [isLoading, setIsLoading] = useState(false);
+    const [timePatternObj, setTimePatternObj] = useState({});
     const [timePatterns, setTimePatterns] = useState([]);
     const [dom, reload] = useState(false);
+    const [isWoringApi, setIsWorkingApi] = useState(false);
 
-    function handleAddWorkingTime() {
-        setWorkingTime(!workingTime);
-    }
-
-    function ChangeShowDays(pattern) {
-        setCurPattern(prevPattern => prevPattern === pattern ? null : pattern);
-    }
-
-    function handleEdit(pattern) {
-        setPatternName(pattern.PatternName)
-        setCurState(pattern);
-    }
-
-    function closeModel() {
-        setCurState(null)
-    }
-
-    function handleSubmit(id) {
-        const body = {
-            "PatternName": curState.PatternName
-        };
-        console.log(body);
-        axios.put(`${url}/api/time-pattern/${id}`, body, {
-            headers: {
-                authorization: token || ""
+    function handleChangeTimePattern(type, pattern) {
+        if (type === "Add") {
+            setChangePattern((pre) => ({
+                ...pre,
+                isAdd: !pre.isAdd
+            }))
+        } else if (type === "Edit") {
+            if (!changePattern.isEdit) {
+                setTimePatternObj(pattern)
             }
-        }).then((res) => {
-            setCurState(null)
-            reload(!dom);
-            toast.success(res.data);
-        }).catch((err) => {
-            toast.error(err)
-        })
+            setChangePattern((pre) => ({
+                ...pre,
+                isEdit: !pre.isEdit
+            }))
+        } else {
+            if (!changePattern.isView) {
+                setTimePatternObj(pattern)
+            }
+            setChangePattern((pre) => ({
+                ...pre,
+                isView: !pre.isView
+            }))
+        }
     }
-
-    function changePatternName(e) {
-        const { name, value } = e.target;
-        setCurState({
-            ...curState,
+    
+    function fillPatternData(value, name) {
+        setTimePatternObj({
+            ...timePatternObj,
             [name]: value
         })
     }
 
-    function handleDelete(pattern) {
-        if (!pattern.DefaultPattern) {
-            axios.delete(`${url}/api/time-pattern/${pattern._id}`, {
+    async function updateTimePattern() {
+        try {
+            setIsWorkingApi(true);
+            const res = await axios.put(`${url}/api/time-pattern/${timePatternObj._id}`, timePatternObj, {
                 headers: {
                     authorization: token || ""
                 }
-            }).then((res) => {
-                reload(!dom);
-                toast.success(res.data);
-            }).catch((err) => {
-                console.log(err);
             })
-        } else {
-            toast.error("Can't delete default time pattern")
+            toast.success(res.data.message);
+            handleChangeTimePattern("Edit");
+            setTimePatternObj({})
+            reload();
+        } catch (error) {
+            console.log(error);
+        } finally {
+            setIsWorkingApi(false)
+        }
+    }
+
+    async function addTimePattern() {
+        try {
+            setIsWorkingApi(true)
+            const res = await axios.post(`${url}/api/time-pattern`, timePatternObj, {
+                headers: {
+                    Authorization: token
+                }
+            })
+            setTimePatternObj({});
+            toast.success(res.data.message);
+            handleChangeTimePattern("Add");
+            reload();
+        } catch (error) {
+            toast.error(error.response.data.error);
+            console.log("error in add timepattern", error);
+        } finally {
+            setIsWorkingApi(false)
+        }
+    }
+
+    async function deletePattern(pattern) {
+        console.log(pattern);
+
+        try {
+            const res = await axios.delete(`${url}/api/time-pattern/${pattern}`, {
+                headers: {
+                    authorization: token || ""
+                }
+            })
+
+            toast.success(res.data.message);
+            reload();
+        } catch (error) {
+            console.log("error in delete timePatternObj:", error);
         }
     }
 
     useEffect(() => {
-        axios.get(`${url}/api/time-pattern`, {
-            headers: {
-                authorization: token || ""
+        async function fetchTimePatterns() {
+            setIsLoading(true)
+            try {
+                const res = await axios.get(`${url}/api/time-pattern`, {
+                    headers: {
+                        authorization: token || ""
+                    }
+                })
+                setTimePatterns(res.data);
+            } catch (error) {
+                console.log(error);
+                setTimePatterns([]);
+            } finally {
+                setIsLoading(false);
             }
-        }).then((res) => {
-            setTimePatterns(res.data);
-            console.log(res.data);
-        }).catch((err) => {
-            console.log(err);
-        })
+        }
+        fetchTimePatterns();
     }, [dom]);
 
     return (
-        workingTime ? (
-            <AddTimePattern handleAddWorkingTime={handleAddWorkingTime} dom={dom} reload={reload} />
-        ) : (
-            <>
-                <div className="d-flex align-items-center justify-content-between m-3">
-                    <div>
-                        <h5>CURRENT WORKING TIME PATTERNS </h5>
-                        <p className="styleText mt-3">
-                            New employees imported into the system will be defaulted to the pattern: <b>{timePatterns.length > 0 && timePatterns[timePatterns.length - 1].PatternName}</b>
-                        </p>
-                    </div>
-                    <div>
-                        <button className="button" onClick={handleAddWorkingTime}>
-                            Add new pattern
-                        </button>
-                    </div>
-                </div>
-                {timePatterns.length > 0 ? (<table className='table table-striped my-2'>
-                    <thead>
-                        <tr style={{ backgroundColor: "#BBE9FF", textAlign: "center" }}>
-                            {names.map((name, index) => (
-                                <th key={index}>{name}</th>
-                            ))}
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {timePatterns.map(pattern => (
-                            <React.Fragment key={pattern._id}>
-                                {curState && <EditTimePattern handleSubmit={handleSubmit} patternName={patternName} changePatternName={changePatternName} closeModel={closeModel} pattern={curState} />}
-                                <tr>
-                                    <td className="text-center">
-
-                                        <div className="col-lg-12 row">
-                                            <div className="col-lg-6"> {pattern.PatternName}</div>
-                                            <div className="col-lg-6">{pattern.DefaultPattern && <div className="defaultDesign text-lead">Default</div>}</div>
-                                        </div>
-                                    </td>
-                                    <td className="text-center">
-                                        Monday - {days[pattern.WeeklyDays - 1]}day
-                                    </td>
-                                    <td className="d-flex justify-content-between align-item-center">
-                                        <div className="text-primary d-flex align-items-center">
-                                            <GroupOutlinedIcon fontSize="large" color="primary" />
-                                            <span className="px-2">0</span>
-                                            <Dropdown placement='leftStart' title={<EditRoundedIcon style={{ cursor: "pointer" }} />} noCaret>
-                                                {/* <Dropdown.Item style={{ minWidth: 120 }}>Response</Dropdown.Item> */}
-                                                <Dropdown.Item style={{ minWidth: 120 }} onClick={() => handleEdit(pattern)}>Edit</Dropdown.Item>
-                                                <Dropdown.Item style={{ minWidth: 120 }} onClick={() => handleDelete(pattern)}>Delete</Dropdown.Item>
-                                            </Dropdown>
-                                        </div>
-                                        <div className="hoverStyle">
-                                            <KeyboardArrowDownIcon fontSize="large" color="primary" onClick={() => ChangeShowDays(pattern)} />
-                                        </div>
-                                    </td>
-                                </tr>
-                                {curPattern === pattern && (
-                                    <tr>
-                                        <td colSpan="3">
-                                            <WeeklyDaysDetails pattern={curPattern} />
-                                        </td>
-                                    </tr>
-                                )}
-                            </React.Fragment>
-                        ))}
-                    </tbody>
-                </table>) : <div className="d-flex align-items-center justify-content-center"><Loading height="80vh" /></div>}
-
-            </>
-        )
-    );
-};
-
+        isLoading ? <Loading height="80vh" /> :
+            changePattern.isAdd ? <CommonModel type={"TimePattern"} isWorkingApi={isWoringApi} isAddData={changePattern.isAdd} changeData={fillPatternData} dataObj={timePatternObj} modifyData={handleChangeTimePattern} addData={addTimePattern} /> :
+                changePattern.isEdit ? <CommonModel type={"TimePattern"} isWorkingApi={isWoringApi} isAddData={changePattern.isEdit} dataObj={timePatternObj} changeData={fillPatternData} editData={updateTimePattern} modifyData={handleChangeTimePattern} /> :
+                    changePattern.isView ? <CommonModel type={"View TimePattern"} isAddData={changePattern.isView} dataObj={timePatternObj} modifyData={handleChangeTimePattern} /> :
+                        <>
+                            <div className="d-flex align-items-center justify-content-between m-3">
+                                <div>
+                                    <h5>CURRENT WORKING TIME PATTERNS</h5>
+                                    <p className="styleText mt-3">
+                                        New employees imported into the system will be defaulted to the pattern: <b>{timePatterns.length > 0 && timePatterns[timePatterns.length - 1].PatternName}</b>
+                                    </p>
+                                </div>
+                                <div>
+                                    <button className="button" onClick={() => handleChangeTimePattern("Add")}>
+                                        Add new pattern
+                                    </button>
+                                </div>
+                            </div>
+                            {
+                                timePatterns.length ? <LeaveTable data={timePatterns} deleteData={deletePattern} handleChangeData={handleChangeTimePattern} /> :
+                                    <NoDataFound message={"Time Pattern data not found"} />
+                            }
+                        </>
+    )
+}
 export default TimePattern;

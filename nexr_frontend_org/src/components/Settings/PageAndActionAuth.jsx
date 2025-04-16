@@ -1,17 +1,18 @@
-import React, { useEffect, useState } from 'react'
+import React, { useContext, useEffect, useState } from 'react'
 import LeaveTable from '../LeaveTable';
 import "../leave/../leaveForm.css";
 import axios from 'axios';
 import { toast } from 'react-toastify';
 import { useNavigate, useParams } from 'react-router-dom';
 import Loading from '../Loader';
+import { EssentialValues } from '../../App';
 
 export default function PageAndActionAuth() {
     const { id } = useParams();
     const navigate = useNavigate();
     const params = useParams();
     const url = process.env.REACT_APP_API_URL;
-    const token = localStorage.getItem("token");
+    const {data} = useContext(EssentialValues);
     const [isChangingRole, setIschangingRole] = useState(false);
     const [roleObj, setRoleObj] = useState({});
     const actions = [
@@ -73,7 +74,7 @@ export default function PageAndActionAuth() {
         try {
             const role = await axios.get(`${url}/api/role/${id}`, {
                 headers: {
-                    Authorization: token || ""
+                    Authorization: data.token || ""
                 }
             });
 
@@ -89,7 +90,7 @@ export default function PageAndActionAuth() {
         try {
             const roleData = await axios.post(`${url}/api/role`, roleObj, {
                 headers: {
-                    Authorization: token || ""
+                    Authorization: data.token || ""
                 }
             });
             toast.success(roleData.data?.message);
@@ -105,7 +106,7 @@ export default function PageAndActionAuth() {
         try {
             const updatedRole = await axios.put(`${url}/api/role/${id}`, roleObj, {
                 headers: {
-                    authorization: token || ""
+                    authorization: data.token || ""
                 }
             });
             console.log(updatedRole.data);
@@ -122,7 +123,7 @@ export default function PageAndActionAuth() {
         try {
             const roleData = await axios.get(`${url}/api/role/name`, {
                 headers: {
-                    authorization: token || ""
+                    authorization: data.token || ""
                 }
             });
             setRoleObj({

@@ -8,14 +8,14 @@ const sendMail = require("./mailSender");
 router.get("/", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
     try {
         const teams = await Team.find()
-            .populate({
-                path: "employees",
-                select: "_id FirstName LastName"
-            })
-            .populate({
-                path: "lead",
-                select: "_id FirstName LastName"
-            });
+            // .populate({
+            //     path: "employees",
+            //     select: "_id FirstName LastName"
+            // })
+            // .populate({
+            //     path: "lead",
+            //     select: "_id FirstName LastName"
+            // });
         res.send(teams)
     } catch (err) {
         console.error(err)
@@ -52,14 +52,14 @@ router.get("/members/:id", verifyTeamHigherAuthority, async (req, res) => {
 router.get("/:who/:id", verifyTeamHigherAuthority, async (req, res) => {
     try {
         const teams = await Team.find({ [req.params.who]: req.params.id })
-            .populate({
-                path: "employees",
-                select: "_id FirstName LastName"
-            })
-            .populate({
-                path: "lead",
-                select: "_id FirstName LastName"
-            });
+            // .populate({
+            //     path: "employees",
+            //     select: "_id FirstName LastName"
+            // })
+            // .populate({
+            //     path: "lead",
+            //     select: "_id FirstName LastName"
+            // });
 
         res.send(teams);
     } catch (err) {

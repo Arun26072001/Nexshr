@@ -3,15 +3,15 @@ import DeleteOutlineOutlinedIcon from "@mui/icons-material/DeleteOutlineOutlined
 import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
 import CommonModel from "../Administration/CommonModel";
 
-const EmpCard = ({ team, deleteTeam, editTeam }) => {
+const EmpCard = ({ team, deleteTeam, editTeam, whoIs }) => {
     const [isDelete, setIsDelete] = useState(false);
     const [deleteId, setDeleteId] = useState("");
+    console.log(team);
 
     function handleDelete(id) {
         setDeleteId(id);
         setIsDelete(true);
     }
-    
 
     function confirmDelete() {
         deleteTeam(deleteId); // Call delete function with the ID
@@ -45,9 +45,12 @@ const EmpCard = ({ team, deleteTeam, editTeam }) => {
                     <div onClick={() => editTeam(team)}>
                         <EditOutlinedIcon color="primary" sx={{ cursor: "pointer" }} />
                     </div>
-                    <div onClick={() => handleDelete(team._id)}>
-                        <DeleteOutlineOutlinedIcon color="primary" sx={{ cursor: "pointer" }} />
-                    </div>
+                    {
+                        ["admin", "hr"].includes(whoIs) &&
+                        <div onClick={() => handleDelete(team._id)}>
+                            <DeleteOutlineOutlinedIcon color="primary" sx={{ cursor: "pointer" }} />
+                        </div>
+                    }
                 </div>
             </div>
         </>

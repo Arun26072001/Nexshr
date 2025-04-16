@@ -5,7 +5,7 @@ import axios from "axios";
 
 const AssignEmp = ({ handleSubmit, teamObj, updateTeamObj, toggleAssignEmp, teams }) => {
     const url = process.env.REACT_APP_API_URL;
-    const token = localStorage.getItem("token");
+    const 
     const [nameSearch, setNameSearch] = useState("");
     const [rotateState, setRotateState] = useState({
         employees: true // Initially expand employee section

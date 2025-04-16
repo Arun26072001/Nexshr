@@ -4,13 +4,18 @@ import { EssentialValues } from "../../App";
 import RequestPageIcon from '@mui/icons-material/RequestPage';
 import { useNavigate } from "react-router-dom";
 import NoDataFound from "./NoDataFound";
+import { Skeleton } from "@mui/material";
 
 const History = ({ payslips, isLoading }) => {
     const { data, whoIs } = useContext(EssentialValues);
     const navigate = useNavigate();
 
     if (isLoading) {
-        return <Loading height="80vh" />;
+        return <div className="gap-1">
+            <Skeleton variant="circular" height={130} className="my-3" />
+            <Skeleton variant="circular" height={130} className="my-3" />
+            <Skeleton variant="circular" height={130} className="my-3" />
+        </div>;
     }
 
     return (

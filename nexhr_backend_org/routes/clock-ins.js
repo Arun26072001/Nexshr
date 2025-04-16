@@ -5,7 +5,7 @@ const { clockInsValidation, ClockIns } = require("../models/ClockInsModel");
 const { Employee } = require("../models/EmpModel");
 const { getDayDifference } = require("./leave-app");
 const sendMail = require("./mailSender");
-const { LeaveApplication, LeaveApplicationValidation } = require("../models/LeaveAppModel");
+const { LeaveApplication } = require("../models/LeaveAppModel");
 const { Team } = require("../models/TeamModel");
 const { getCurrentTimeInMinutes, formatTimeFromMinutes, timeToMinutes, getTotalWorkingHourPerDay } = require("../Reuseable_functions/reusableFunction");
 
@@ -34,93 +34,68 @@ async function checkLoginForOfficeTime(scheduledTime, actualTime, permissionTime
     }
 }
 
-router.post("/not-login/apply-leave", async (req, res) => {
+router.post("/not-login/apply-leave/:workPatternId", async (req, res) => {
     try {
         const now = new Date();
-        const startOfDay = new Date(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 0, 0, 0, 0);
-        const endOfDay = new Date(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 23, 59, 59, 999);
+        const startOfDay = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 0, 0, 0));
+        const endOfDay = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 23, 59, 59));
 
-        // Fetch employees who haven't logged in using aggregation for better performance
-        let notLoginEmps = await Employee.aggregate([
-            {
-                $lookup: {
-                    from: "clockins",
-                    localField: "_id",
-                    foreignField: "employee",
-                    as: "clockIns",
-                    pipeline: [{ $match: { date: { $gte: startOfDay, $lt: endOfDay } } }]
-                }
-            },
-            { $match: { "clockIns.0": { $exists: false } } }, // Employees with no clock-ins
-            {
-                $lookup: {
-                    from: "timepatterns",
-                    localField: "workingTimePattern",
-                    foreignField: "_id",
-                    as: "workingTimePattern"
-                }
-            },
-            { $unwind: { path: "$workingTimePattern", preserveNullAndEmptyArrays: true } }, // Preserve employees without a working pattern
-            {
-                $lookup: {
-                    from: "leaveapplications",
-                    localField: "leaveApplication",
-                    foreignField: "_id",
-                    as: "leaveApplications",
-                    pipeline: [
-                        {
-                            $match: {
-                                date: { $gte: startOfDay, $lt: endOfDay },
-                                status: "approved",
-                                leaveType: { $ne: "Permission Leave" }
-                            }
-                        }
-                    ]
-                }
-            }
-        ]);
+        // 1. Fetch all employees
+        const allEmployees = await Employee.find({ workingTimePattern: req.params.workPatternId }, "_id workingTimePattern FirstName LastName Email").populate("leaveApplication");
 
-        if (notLoginEmps.length === 0) {
+        const notLoginEmps = [];
+
+        for (const emp of allEmployees) {
+            // 2. Check if employee has clock-in today
+            const hasClockIn = await ClockIns.exists({ employee: emp._id, date: { $gte: startOfDay, $lt: endOfDay } });
+            if (hasClockIn) continue;
+
+            // 3. Check if they already have a valid leave
+            const leaveExists = await LeaveApplication.exists({
+                employee: emp._id,
+                fromDate: { $gte: startOfDay, $lt: endOfDay },
+                status: "approved",
+                leaveType: { $ne: "Permission Leave" }
+            });
+
+            if (!leaveExists) notLoginEmps.push(emp);
+        }
+
+        if (!notLoginEmps.length) {
             return res.send({ message: "No employees found without punch-in today." });
         }
 
         const leaveApplications = [];
-        const employeeUpdates = [];
         const emailPromises = [];
 
         for (const emp of notLoginEmps) {
-            if (!emp.workingTimePattern) continue;// Skip employees without a working pattern
-
-            // Remove any existing leave applications for the employee
-            if (emp.leaveApplications.length > 0) {
-                return;
-            }
+            if (!emp.workingTimePattern) continue;
 
             const workingHours = getTotalWorkingHourPerDay(
                 emp.workingTimePattern.StartingTime,
                 emp.workingTimePattern.FinishingTime
             );
-            const fromDate = new Date(now.getTime() - (workingHours || 1000 * 60 * 60 * 9.30));
+            const fromDate = new Date(now.getTime() - ((workingHours || 9.30) * 60 * 60 * 1000));
 
-            // Create new full-day leave application
-            const leaveApplication = {
+            const leaveData = {
                 leaveType: "Unpaid Leave (LWP)",
                 fromDate,
                 toDate: now,
                 periodOfLeave: "full day",
                 reasonForLeave: "Didn't punch in until EOD",
-                employee: emp._id.toString(),
+                employee: emp._id,
                 status: "approved",
                 TeamLead: "approved",
                 TeamHead: "approved",
                 Hr: "approved",
-                Manager: "approved",
+                Manager: "approved"
             };
 
-            leaveApplications.push(leaveApplication);
+            const leave = await LeaveApplication.create(leaveData, { new: true });
+            leaveApplications.push(leave);
 
-            // Email notification
-            const subject = "Full-day Leave Applied (Unpaid Leave)";
+            await Employee.findByIdAndUpdate(emp._id, { $set: { leaveApplication: [leave._id] } });
+
             const htmlContent = `
                 <html>
                     <body>
@@ -132,34 +107,14 @@ router.post("/not-login/apply-leave", async (req, res) => {
             emailPromises.push(sendMail({
                 From: process.env.FROM_MAIL,
                 To: emp.Email,
-                Subject: subject,
-                HtmlBody: htmlContent,
+                Subject: "Full-day Leave Applied (Unpaid Leave)",
+                HtmlBody: htmlContent
             }));
         }
 
-        // Insert new leave applications in bulk
-
-        const insertedLeaves = await LeaveApplication.insertMany(leaveApplications);
-
-        // Prepare employee updates for bulk write
-        notLoginEmps.forEach((emp, index) => {
-            employeeUpdates.push({
-                updateOne: {
-                    filter: { _id: emp._id },
-                    update: { $set: { leaveApplication: [insertedLeaves[index]._id] } }
-                }
-            });
-        });
-
-        // Perform bulk update on employees
-        if (employeeUpdates.length > 0) {
-            await Employee.bulkWrite(employeeUpdates);
-        }
-
-        // Send all emails in parallel
         await Promise.all(emailPromises);
 
-        res.send({ message: "Full-day leave applied and emails sent for employees who didn't punch in." });
+        res.send({ message: `${leaveApplications.length} employees for Leave applied and notifications sent.` });
 
     } catch (error) {
         console.error("Error:", error);
@@ -203,7 +158,6 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
         const loginTimeRaw = req.body?.login?.startingTime?.[0];
         if (!loginTimeRaw) return res.status(400).send({ error: "You must start Punch-in Timer" });
         const companyLoginMinutes = timeToMinutes(officeLoginTime) + Number(emp.workingTimePattern.WaitingTime);
-        console.log("officeTime: ", timeToMinutes(officeLoginTime), "waitingtime: ", Number(emp.workingTimePattern.WaitingTime));
         const empLoginMinutes = timeToMinutes(loginTimeRaw);
         if (companyLoginMinutes < empLoginMinutes) {
             const timeDiff = empLoginMinutes - companyLoginMinutes;
@@ -215,7 +169,7 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
                 const halfDayLeaveApp = {
                     leaveType: "Unpaid Leave (LWP)",
                     fromDate: today,
-                    toDate: today,
+                    toDate: new Date(today.getTime() + (4 * 1000 * 60 * 60)),
                     periodOfLeave: "half day",
                     reasonForLeave: "Came too late",
                     prescription: "",
@@ -248,7 +202,7 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
                     leaveAppData = {
                         leaveType: "Unpaid Leave (LWP)",
                         fromDate: today,
-                        toDate: today,
+                        toDate: new Date(today.getTime() + (4 * 1000 * 60 * 60)),
                         periodOfLeave: "half day",
                         reasonForLeave: "Came too late",
                         prescription: "",

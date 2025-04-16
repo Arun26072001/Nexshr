@@ -13,16 +13,14 @@ import { EssentialValues } from "../App";
 
 const AddEmployeeForm = ({ details, handleScroll, handlePersonal, handleFinancial, handleJob, handleContact, handleEmployment, timePatterns, personalRef, contactRef, employmentRef, jobRef, financialRef, payslipRef, countries, companies, departments, positions, roles, leads, managers }) => {
     const navigate = useNavigate()
-    const { whoIs } = useContext(EssentialValues)
+    const { whoIs, data } = useContext(EssentialValues)
     const [timeDifference, setTimeDifference] = useState(0);
     const [payslipFields, setPayslipFields] = useState([]);
-    const token = localStorage.getItem("token");
     const url = process.env.REACT_APP_API_URL;
     const [leaveTypes, setLeaveTypes] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
     const [stateData, setStateData] = useState([]);
     const [selectedLeaveTypes, setSelectedLeavetypes] = useState([]);
-    // const [splitError, setSplitError] = useState("");
     const [selectedCountryCode, setselectedCountryCode] = useState("");
     const [selectedCountry, setSelectedCountry] = useState("");
     const [isAddEmployee, setIsAddEmployee] = useState(false);
@@ -113,7 +111,7 @@ const AddEmployeeForm = ({ details, handleScroll, handlePersonal, handleFinancia
                 // add employee data
                 const res = await axios.post(`${url}/api/employee`, values, {
                     headers: {
-                        authorization: token || ""
+                        authorization: data.token || ""
                     }
                 })
                 toast.success(res.data.message);
@@ -254,14 +252,13 @@ const AddEmployeeForm = ({ details, handleScroll, handlePersonal, handleFinancia
         formik.setFieldValue("typesOfLeaveCount", leaveTypeCount)
         setSelectedLeavetypes(value);
     }
-    console.log(formik.errors);
 
     useEffect(() => {
         const gettingLeaveTypes = async () => {
             try {
                 const leaveTypes = await axios.get(`${url}/api/leave-type`, {
                     headers: {
-                        Authorization: `${token}` || ""
+                        Authorization: data.token || ""
                     }
                 });
                 setLeaveTypes(leaveTypes.data.map((leave) => ({ label: `${leave.LeaveName} ${leave.limitDays}`, value: `${leave.LeaveName} ${leave.limitDays}` })));
@@ -269,7 +266,6 @@ const AddEmployeeForm = ({ details, handleScroll, handlePersonal, handleFinancia
                 toast.error(error.response.data.error)
             }
         }
-
         setIsLoading(true);
         gettingLeaveTypes();
         setIsLoading(false);

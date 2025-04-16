@@ -11,6 +11,7 @@ import { Skeleton } from '@mui/material';
 import profile from "../imgs/male_avatar.webp";
 import "./NexHRDashboard.css";
 import NoDataFound from './payslip/NoDataFound';
+import { EssentialValues } from '../App';
 
 function CustomTabPanel(props) {
     const { children, value, index, ...other } = props;
@@ -50,7 +51,7 @@ export default function Home({ peopleOnLeave, isFetchPeopleOnLeave }) {
     const { isStartLogin, isStartActivity, workTimeTracker, timeOption, updateClockins } = useContext(TimerStates);
     const [value, setValue] = useState(0);
     const [isLoading, setLoading] = useState(true); // Track loading state
-    const empId = localStorage.getItem('_id');
+    const {data} =useContext(EssentialValues);
 
     const staticData = {
         startingTime: "00:00",
@@ -75,15 +76,15 @@ export default function Home({ peopleOnLeave, isFetchPeopleOnLeave }) {
         const actualDate = new Date(date)
         const dateValue = actualDate.getDate();
         const monthString = actualDate.toLocaleString("default", { month: "short" })
-        return `${dateValue + " " + monthString + " " + actualDate.getHours() + ":" + actualDate.getMinutes()}`
+        return `${dateValue + " " + monthString + " " + String(actualDate.getHours()).padStart(2, "0") + ":" + String(actualDate.getMinutes()).padStart(2, "0")}`
     }
 
     useEffect(() => {
         const getClockInsData = async () => {
             try {
                 setLoading(true);
-                if (!isStartLogin && !isStartActivity && empId) {
-                    const { activitiesData } = await getDataAPI(empId);
+                if (!isStartLogin && !isStartActivity && data._id) {
+                    const { activitiesData } = await getDataAPI(data._id);
                     if (activitiesData) {
                         setTableData(activitiesData)
                     } else {
@@ -176,7 +177,8 @@ export default function Home({ peopleOnLeave, isFetchPeopleOnLeave }) {
                                             <img src={leave?.employee?.profile || profile} alt="" className='imgContainer' />
                                             <div className="d-block">
                                                 <p style={{ fontSize: "13px" }}><b>{leave?.employee?.FirstName[0].toUpperCase() + leave?.employee?.FirstName.slice(1) + " " + leave?.employee?.LastName}</b>({leave?.employee?.team?.teamName || "TeamName"})</p>
-                                                <p className='sub_text'><b>{formatDate(leave.fromDate)} / {formatDate(leave.toDate)}</b></p>
+                                                <p className='sub_text'><b>{formatDate(leave.fromDate)} - {formatDate(leave.toDate)}</b></p>
+                                                <p className={`sub_text ${leave?.leaveType?.toLowerCase()?.includes("unpaid") ? "text-danger" : "text-success"}`}>{leave.leaveType}</p>
                                             </div>
                                         </div>
                                     }) : <NoDataFound message={"No one leave Today"} />

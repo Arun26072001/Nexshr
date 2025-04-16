@@ -8,7 +8,6 @@ import axios from 'axios';
 import { toast } from 'react-toastify';
 import CommonModel from './Administration/CommonModel';
 import AddCircleOutlineRoundedIcon from '@mui/icons-material/AddCircleOutlineRounded';
-import Loading from './Loader';
 import NoDataFound from './payslip/NoDataFound';
 import BorderColorRoundedIcon from '@mui/icons-material/BorderColorRounded';
 import DeleteRoundedIcon from '@mui/icons-material/DeleteRounded';
@@ -18,11 +17,11 @@ import { TimerStates } from './payslip/HRMDashboard';
 import { useNavigate } from 'react-router-dom';
 import { Skeleton } from '@mui/material';
 
-export default function Projects({ employees }) {
+export default function Projects() {
     const navigator = useNavigate();
     const { whoIs, data } = useContext(EssentialValues);
     const { isTeamLead, isTeamHead } = jwtDecode(data.token);
-    const { handleAddTask } = useContext(TimerStates);
+    const { handleAddTask, employees } = useContext(TimerStates);
     const [teams, setTeams] = useState([]);
     const [isDelete, setIsDelete] = useState({ type: false, value: "" });
     const [isEdit, setIsEdit] = useState(false);

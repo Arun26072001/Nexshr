@@ -8,7 +8,7 @@ import { EssentialValues } from "../App";
 import { jwtDecode } from "jwt-decode";
 
 const NexHRDashboard = ({ peopleOnLeave, isFetchPeopleOnLeave }) => {
-  const { whoIs, data } = useContext(EssentialValues);
+  const { data } = useContext(EssentialValues);
   const { token, Account, _id } = data;
   const { isTeamLead, isTeamHead, isTeamManager } = jwtDecode(token);
 

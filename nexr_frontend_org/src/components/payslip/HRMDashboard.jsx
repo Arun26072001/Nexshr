@@ -254,11 +254,11 @@ export default function HRMDashboard() {
             setIsStartActivity(true);
             setWorkTimeTracker(updatedState);
             localStorage.setItem("timeOption", timeOption);
-            toast.success(`${timeOption[0].toUpperCase()+timeOption.slice(1)} timer has been started!`);
+            toast.success(`${timeOption[0].toUpperCase() + timeOption.slice(1)} timer has been started!`);
         } catch (error) {
             console.error('Error updating data:', error);
             toast.error('Please PunchIn');
-        }finally{
+        } finally {
             setISWorkingActivityTimerApi(false)
         }
     }
@@ -289,7 +289,7 @@ export default function HRMDashboard() {
             updateClockins();
         } catch (error) {
             toast.error(error.message);
-        }finally{
+        } finally {
             setISWorkingActivityTimerApi(false)
         }
     }
@@ -382,47 +382,49 @@ export default function HRMDashboard() {
         setIsAddTask(!isAddTask);
     }
 
+    const getLeaveData = async () => {
+        setIsLoading(true);
+        try {
+            const leaveData = await axios.get(`${url}/api/leave-application/date-range/${whoIs}`, {
+                params: {
+                    daterangeValue
+                },
+                headers: {
+                    authorization: token || ""
+                }
+            })
+            console.log("current leaveData:", leaveData.data);
+
+            setLeaveRequests(leaveData.data);
+            setFullLeaveRequests(leaveData.data);
+        } catch (err) {
+            toast.error(err?.response?.data?.message);
+        }
+        setIsLoading(false);
+    }
+
+    const getLeaveDataFromTeam = async () => {
+        setIsLoading(true);
+        try {
+            const leaveData = await axios.get(`${url}/api/leave-application/team/${_id}`, {
+                params: {
+                    who: isTeamLead ? "lead" : isTeamHead ? "head" : "manager",
+                    daterangeValue
+                },
+                headers: {
+                    authorization: token || ""
+                }
+            })
+            console.log("leaveDate:", leaveData.data);
+            setLeaveRequests(leaveData.data);
+            setFullLeaveRequests(leaveData.data);
+        } catch (err) {
+            toast.error(err?.response?.data?.message);
+        }
+        setIsLoading(false);
+    }
     useEffect(() => {
-        const getLeaveData = async () => {
-            setIsLoading(true);
-            try {
-                const leaveData = await axios.get(`${url}/api/leave-application/date-range/${whoIs}`, {
-                    params: {
-                        daterangeValue
-                    },
-                    headers: {
-                        authorization: token || ""
-                    }
-                })
-
-                setLeaveRequests(leaveData.data);
-                setFullLeaveRequests(leaveData.data);
-            } catch (err) {
-                toast.error(err?.response?.data?.message);
-            }
-            setIsLoading(false);
-        }
-
-        const getLeaveDataFromTeam = async () => {
-            setIsLoading(true);
-            try {
-                const leaveData = await axios.get(`${url}/api/leave-application/team/${_id}`, {
-                    params: {
-                        who: isTeamLead ? "lead" : isTeamHead ? "head" : "manager",
-                        daterangeValue
-                    },
-                    headers: {
-                        authorization: token || ""
-                    }
-                })
-                setLeaveRequests(leaveData.data);
-                setFullLeaveRequests(leaveData.data);
-            } catch (err) {
-                toast.error(err?.response?.data?.message);
-            }
-            setIsLoading(false);
-        }
-        if ((whoIs) && (String(Account) === '2' || String(Account) === '1')) {
+        if (["1", "2"].includes(Account)) {
             getLeaveData();
         } else if (whoIs && [isTeamHead, isTeamLead, isTeamManager].includes(true)) {
             getLeaveDataFromTeam()
@@ -474,18 +476,18 @@ export default function HRMDashboard() {
     }, [])
 
     return (
-        <TimerStates.Provider value={{ workTimeTracker, reloadRolePage, setIsEditEmp, updateWorkTracker, isWorkingLoginTimerApi, isworkingActivityTimerApi,trackTimer, startLoginTimer, stopLoginTimer, changeReasonForLate, changeReasonForEarly, startActivityTimer, stopActivityTimer, setWorkTimeTracker, updateClockins, timeOption, isStartLogin, isStartActivity, handleAddTask, changeEmpEditForm, isEditEmp, isAddTask, setIsAddTask, handleAddTask, selectedProject, daterangeValue, setDaterangeValue }}>
+        <TimerStates.Provider value={{ workTimeTracker, reloadRolePage, setIsEditEmp, employees, updateWorkTracker, isWorkingLoginTimerApi, isworkingActivityTimerApi, trackTimer, startLoginTimer, stopLoginTimer, changeReasonForLate, changeReasonForEarly, startActivityTimer, stopActivityTimer, setWorkTimeTracker, updateClockins, timeOption, isStartLogin, isStartActivity, handleAddTask, changeEmpEditForm, isEditEmp, isAddTask, setIsAddTask, handleAddTask, selectedProject, daterangeValue, setDaterangeValue }}>
             <Routes >
                 <Route path="/" element={<Parent />} >
                     <Route index element={<Dashboard data={data} />} />
                     <Route path="job-desk/*" element={<JobDesk />} />
                     <Route path="calendar" element={<AttendanceCalendar />} />
-                    <Route path="projects" element={<Projects employees={employees} />} />
+                    <Route path="projects" element={<Projects />} />
                     <Route path="tasks/*" element={
                         <Routes>
                             <Route index element={<Tasks />} />
                             <Route path="time-log/:id" element={<TimeLog />} />
-                            <Route path="comments/:id" element={<Comments employees={employees} />} />
+                            <Route path="comments/:id" element={<Comments />} />
                         </Routes>
                     } />
 
@@ -505,6 +507,7 @@ export default function HRMDashboard() {
                     } />
                     <Route path='/leave-request' element={<LeaveRequestForm />} />
                     <Route path="/leave-request/edit/:id" element={<LeaveRequestForm />} />
+                    <Route path="/leave-request/view/:id" element={<LeaveRequestForm type={"view"} />} />
                     <Route path="attendance/*" element={
                         <Routes>
                             <Route index path="attendance-request" element={<Request attendanceData={attendanceData} isLoading={waitForAttendance} />} />

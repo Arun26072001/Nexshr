@@ -1,5 +1,5 @@
 import axios from "axios";
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import DatePicker from "react-multi-date-picker";
 import { toast } from "react-toastify";
 import DatePanel from "react-multi-date-picker/plugins/date_panel";
@@ -11,6 +11,7 @@ import "./calendar.css";
 import { getHoliday } from "./ReuseableAPI";
 import Loading from "./Loader";
 import NoDataFound from "./payslip/NoDataFound";
+import { EssentialValues } from "../App";
 
 const localizer = dayjsLocalizer(dayjs);
 
@@ -19,7 +20,7 @@ function HolidayPicker({ changeHolidayUI, isAddHolidays }) {
     const [titles, setTitles] = useState([]);
     const [fetchedHolidays, setFetchedHolidays] = useState([]); // Stores holiday titles
     const url = process.env.REACT_APP_API_URL;
-    const token = localStorage.getItem("token");
+    const {data} = useContext(EssentialValues)
     const [isLoading, setIsLoading] = useState(false);
 
     // Function to send holidays to backend
@@ -36,7 +37,7 @@ function HolidayPicker({ changeHolidayUI, isAddHolidays }) {
                     { holidays: newHolidays },
                     {
                         headers: {
-                            Authorization: token || "",
+                            Authorization: data.token || "",
                         },
                     }
                 );

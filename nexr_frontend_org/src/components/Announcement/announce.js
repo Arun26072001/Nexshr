@@ -1,15 +1,16 @@
-import React, { useEffect, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import Announcementalert from './announcementalert';
 import axios from 'axios';
 import { toast } from 'react-toastify';
 import LeaveTable from '../LeaveTable';
 import Loading from '../Loader';
+import { EssentialValues } from '../../App';
 
 const Announce = () => {
     const url = process.env.REACT_APP_API_URL;
     const [announcements, setAnnouncements] = useState([]);
     const [changeAnnouncement, setChangeAnnouncement] = useState(false);
-    const token = localStorage.getItem("token");
+    const { data } = useContext(EssentialValues);
     const [isLoading, setIsLoading] = useState(false);
 
     function handleChangeAnnouncement() {
@@ -22,7 +23,7 @@ const Announce = () => {
             try {
                 const response = await axios.delete(`${url}/api/announcements/${announcementId}`, {
                     headers: {
-                        Authorization: `${token}`
+                        Authorization: `${data.token}`
                     }
                 });
 
@@ -47,7 +48,7 @@ const Announce = () => {
             try {
                 const response = await axios.get(`${url}/api/announcements`, {
                     headers: {
-                        Authorization: token || ""
+                        Authorization: data.token || ""
                     }
                 });
                 const data = response.data;

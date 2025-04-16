@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useContext, useEffect, useState } from 'react'
 import LeaveTable from '../LeaveTable'
 import NoDataFound from '../payslip/NoDataFound'
 import Loading from '../Loader';
@@ -6,10 +6,11 @@ import { toast } from 'react-toastify';
 import axios from 'axios';
 import { getDepartments } from '../ReuseableAPI';
 import CommonModel from './CommonModel';
+import { EssentialValues } from '../../App';
 
 export default function Department({ companies }) {
     const url = process.env.REACT_APP_API_URL;
-    const token = localStorage.getItem("token");
+    const { data } = useContext(EssentialValues);
     const [departmentObj, setDepartmentObj] = useState({});
     const [departments, setDepartments] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
@@ -39,7 +40,7 @@ export default function Department({ companies }) {
         try {
             const msg = await axios.post(url + "/api/department", departmentObj, {
                 headers: {
-                    authorization: token || ""
+                    authorization: data.token || ""
                 }
             });
             toast.success(msg?.data?.message);
@@ -56,7 +57,7 @@ export default function Department({ companies }) {
         try {
             const deleteDep = await axios.delete(`${url}/api/department/${id}`, {
                 headers: {
-                    Authorization: token || ""
+                    Authorization: data.token || ""
                 }
             });
             toast.success(deleteDep?.data?.message);
@@ -73,7 +74,7 @@ export default function Department({ companies }) {
             // Assuming the correct API endpoint for editing a department is '/api/department/${id}'
             const response = await axios.put(`${url}/api/department/${departmentObj._id}`, departmentObj, {
                 headers: {
-                    Authorization: token || ""
+                    Authorization: data.token || ""
                 }
             });
 
@@ -96,7 +97,7 @@ export default function Department({ companies }) {
         try {
             const department = await axios.get(`${url}/api/department/${id}`, {
                 headers: {
-                    Authorization: token || ""
+                    Authorization: data.token || ""
                 }
             });
             setDepartmentObj(department.data);

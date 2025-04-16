@@ -11,10 +11,13 @@ var leaveApplicationSchema = new mongoose.Schema({
   employee: { type: mongoose.Schema.Types.ObjectId, ref: 'Employee' },
   coverBy: { type: mongoose.Schema.Types.ObjectId, ref: "Employee", default: null },
   status: { type: String, default: "pending" },
-  TeamLead: { type: String, default: "pending" },
-  TeamHead: { type: String, default: "pending" },
-  Hr: { type: String, default: "pending" },
-  Manager: { type: String, default: "pending" },
+  // TeamLead: { type: String, default: "pending" },
+  // TeamHead: { type: String, default: "pending" },
+  // Hr: { type: String, default: "pending" },
+  // Manager: { type: String, default: "pending" },
+  approvers: {
+    type: mongoose.Schema.Types.Mixed, default: {}
+  },
   appliedOn: { type: Date, default: new Date().toISOString() },
   approvedOn: { type: Date },
   approverId: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Employee' }],
@@ -37,10 +40,11 @@ const LeaveApplicationValidation = Joi.object({
   coverBy: Joi.any().label('coverBy').allow("", null),
   status: Joi.string().label('status'),
   appliedOn: Joi.date().label('appliedOn'),
-  TeamLead: Joi.string().allow("", null),
-  TeamHead: Joi.string().allow("", null),
-  Hr: Joi.string().allow("", null),
-  Manager: Joi.string().allow("", null),
+  approvers: Joi.any().optional(),
+  // TeamLead: Joi.string().allow("", null),
+  // TeamHead: Joi.string().allow("", null),
+  // Hr: Joi.string().allow("", null),
+  // Manager: Joi.string().allow("", null),
   appliedBy: Joi.string().allow("", null)
 });
 

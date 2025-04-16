@@ -4,10 +4,11 @@ import CustomDropdown from './CustomDropDown';
 import PowerSettingsNewRoundedIcon from '@mui/icons-material/PowerSettingsNewRounded';
 import { TimerStates } from './payslip/HRMDashboard';
 import { toast } from 'react-toastify';
+import { EssentialValues } from '../App';
 
 const ClockIns = () => {
     const { startActivityTimer, stopActivityTimer, workTimeTracker, isStartActivity, timeOption } = useContext(TimerStates);
-    const EmpName = localStorage.getItem("Name");
+    const {data} = useContext(EssentialValues);
     const [sec, setSec] = useState(() => parseInt(localStorage.getItem("activityTimer")?.split(":")[2]) || 0);
     const [min, setMin] = useState(() => parseInt(localStorage.getItem("activityTimer")?.split(":")[1]) || 0);
     const [hour, setHour] = useState(() => parseInt(localStorage.getItem("activityTimer")?.split(":")[0]) || 0);
@@ -90,7 +91,7 @@ const ClockIns = () => {
             </div>
             <div className='good container-fluid row mx-auto'>
                 <div className="col-lg-6 col-md-4 col-12">
-                    <div><h6>Good to see you, {EmpName[0].toUpperCase() + EmpName.slice(1)} 👋</h6></div>
+                    <div><h6>Good to see you, {data.Name[0].toUpperCase() + data.Name.slice(1)} 👋</h6></div>
                     <div className='sub_text'>
                         {workTimeTracker?.punchInMsg || "Waiting for Login"}
                     </div>

@@ -1,16 +1,20 @@
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import InfoIcon from '@mui/icons-material/Info';
 import './SettingsStyle.css';
 import { Switch } from "@mui/material";
 import axios from "axios";
 import { toast } from "react-toastify";
 import WeekDay from "./WeekDays";
+import { EssentialValues } from "../../App";
+import Loading from "../Loader";
 
 
-const AddTimePattern = ({ handleAddWorkingTime, dom, reload }) => {
+const AddTimePattern = ({ handleAddWorkingTime, reload }) => {
     const url = process.env.REACT_APP_API_URL;
+    const { data } = useContext(EssentialValues);
     const days = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
     const [timeDifference, setTimeDifference] = useState(0);
+    const [isWorkingApi, setIsWorkingApi] = useState(false);
 
     const [timePattern, setTimePattern] = useState({
         PatternName: "",
@@ -18,6 +22,7 @@ const AddTimePattern = ({ handleAddWorkingTime, dom, reload }) => {
         StartingTime: "",
         FinishingTime: "",
         BreakTime: 0,
+        WaitingTime:0,
         DefaultPattern: false,
         PublicHoliday: "",
     })
@@ -58,17 +63,10 @@ const AddTimePattern = ({ handleAddWorkingTime, dom, reload }) => {
     }
 
     function handleSwitch() {
-        if (timePattern.DefaultPattern) {
-            setTimePattern({
-                ...timePattern,
-                ["DefaultPattern"]: false
-            })
-        } else {
-            setTimePattern({
-                ...timePattern,
-                ["DefaultPattern"]: true
-            })
-        }
+        setTimePattern({
+            ...timePattern,
+            ["DefaultPattern"]: !timePattern.DefaultPattern
+        })
     }
 
     function ChangeTimePattern(e) {
@@ -79,26 +77,28 @@ const AddTimePattern = ({ handleAddWorkingTime, dom, reload }) => {
         })
     }
 
-    function handleTimePattern(e) {
-        e.preventDefault();
-        const body = timePattern;
-
-        axios.post(`${url}/api/time-pattern`, body,
-            {
-                headers: {
-                    authorization: localStorage.getItem("token") || ""
-                }
-            }
-        ).then((res) => {
-            console.log("in db added data: " + res);
-            toast.success("Pattern added!")
-            handleAddWorkingTime()
-            reload(!dom)
+    //add time pattern
+    async function handleTimePattern(e) {
+        try {
+            e.preventDefault();
+            setIsWorkingApi(true);
+            const body = timePattern;
+            const res = await axios.post(`${url}/api/time-pattern`, body,
+                {
+                    headers: {
+                        authorization: data.token
+                    }
+                })
+            toast.success(res.data.message);
+            setTimePattern({});
+            reload();
+            handleAddWorkingTime();
+        } catch (error) {
+            toast.error(error.response.data.error);
+            console.log(error);
+        } finally {
+            setIsWorkingApi(false);
         }
-        ).catch(err => {
-            toast.error("plese fill all details")
-        })
-
     }
 
     const isSaveEnabled = () => {
@@ -148,7 +148,7 @@ const AddTimePattern = ({ handleAddWorkingTime, dom, reload }) => {
                 <p className="styleText my-2">
                     Enter start and end times for your working time pattern.
                 </p>
-                <div className="row mx-auto gap-2 d-flex align-items-center">
+                <div className="row mx-auto gap-2 d-flex align-items-center justify-content-center">
                     {/* Start Time */}
                     <div className="col-lg-2 text-center">
                         <span className="styletext">Start</span>
@@ -189,7 +189,23 @@ const AddTimePattern = ({ handleAddWorkingTime, dom, reload }) => {
                             <input
                                 type="number"
                                 name="BreakTime"
+                                value={timePattern.BreakTime}
                                 className="form-control m-0"
+                                style={{ border: "none" }}
+                                onChange={(e) => ChangeTimePattern(e)}
+                            />
+                            <span className="input-group-text" style={{ border: "none", padding: "5px 7px" }}>Mins</span>
+                        </div>
+                    </div>
+
+                    <div className="col-lg-2 text-center">
+                        <span className="styletext">Waiting Time</span>
+                        <div className="input-group mt-1">
+                            <input
+                                type="number"
+                                name="WaitingTime"
+                                className="form-control m-0"
+                                value={timePattern.WaitingTime}
                                 style={{ border: "none" }}
                                 onChange={(e) => ChangeTimePattern(e)}
                             />
@@ -224,7 +240,7 @@ const AddTimePattern = ({ handleAddWorkingTime, dom, reload }) => {
                     Select it employees on this working time pattern work public holidays and if they are included as part of the annual leave entitlement.
                 </p>
 
-                <div className="row">
+                <div className="row mb-5">
                     <div className="col-lg-2 d-flex align-items-center">
                         Public holidays
                     </div>
@@ -283,13 +299,20 @@ const AddTimePattern = ({ handleAddWorkingTime, dom, reload }) => {
                         </div>
                     </div>
                 </div>
-                <div className="my-2 d-flex justify-content-between">
-                    <button className="button m-0" type="submit" disabled={!isSaveEnabled()}>
-                        Save
-                    </button>
-                    <button className="outline-btn" onClick={handleAddWorkingTime}>
-                        cancel
-                    </button>
+
+                <div className="btnBackground">
+                    <div className="fixedPositionBtns">
+                        <div className="w-50">
+                            <button type="button" className="outline-btn mx-2" onClick={handleAddWorkingTime} >
+                                Cancel
+                            </button>
+                        </div>
+                        <div className="w-50">
+                            <button type="submit" className="button" style={{ padding: "12px" }} disabled={!isSaveEnabled()}>
+                                {isWorkingApi ? <Loading size={20} color='white' /> : "Save"}
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </form>
         </div>

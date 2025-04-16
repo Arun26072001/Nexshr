@@ -92,12 +92,12 @@ const App = () => {
 
       // Update local storage
       localStorage.setItem("isLogin", true);
-      localStorage.setItem("Account", accountType);
-      localStorage.setItem("_id", decodedData._id);
-      localStorage.setItem("Name", `${decodedData.FirstName} ${decodedData.LastName}`);
-      localStorage.setItem("annualLeaveEntitment", decodedData.annualLeaveEntitlement || 0);
-      localStorage.setItem("token", response.data);
-      localStorage.setItem("profile", decodedData.profile)
+      // localStorage.setItem("Account", accountType);
+      // localStorage.setItem("_id", decodedData._id);
+      // localStorage.setItem("Name", `${decodedData.FirstName} ${decodedData.LastName}`);
+      // localStorage.setItem("annualLeaveEntitment", decodedData.annualLeaveEntitlement || 0);
+      // localStorage.setItem("token", response.data);
+      // localStorage.setItem("profile", decodedData.profile)
 
       setPass(true);
       setLoading(false);

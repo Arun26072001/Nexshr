@@ -15,14 +15,16 @@ import BorderColorRoundedIcon from '@mui/icons-material/BorderColorRounded';
 import DeleteRoundedIcon from '@mui/icons-material/DeleteRounded';
 import CommonModel from './Administration/CommonModel';
 import TextEditor from './payslip/TextEditor';
+import { TimerStates } from './payslip/HRMDashboard';
 
-export default function Comments({ employees }) {
+export default function Comments() {
     const navigate = useNavigate();
     const [isLoading, setIsLoading] = useState(false);
     const [taskObj, setTaskObj] = useState({});
     const [commentObj, setCommentObj] = useState({});
     const { id } = useParams();
     const { data, whoIs, socket } = useContext(EssentialValues);
+    const {employees} = useContext(TimerStates);
     const url = process.env.REACT_APP_API_URL;
     const [previewList, setPreviewList] = useState([]);
     const [projects, setProjects] = useState([]);

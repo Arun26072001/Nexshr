@@ -7,10 +7,11 @@ import LeaveTable from '../LeaveTable';
 import NoDataFound from '../payslip/NoDataFound';
 import { TimerStates } from '../payslip/HRMDashboard';
 import axios from 'axios';
+import { EssentialValues } from '../../App';
 
 const Roles = () => {
     const url = process.env.REACT_APP_API_URL;
-    const token = localStorage.getItem("token");
+    const { data } = useContext(EssentialValues);
     const { reloadRolePage } = useContext(TimerStates);
     const [isLoading, setIsLoading] = useState(false);
     const [roles, setRoles] = useState([]);
@@ -20,7 +21,7 @@ const Roles = () => {
         try {
             const deleteRole = await axios.delete(`${url}/api/role/${id}`, {
                 headers: {
-                    Authorization: token || ""
+                    Authorization: data.token || ""
                 }
             });
             toast.success(deleteRole?.data?.message);

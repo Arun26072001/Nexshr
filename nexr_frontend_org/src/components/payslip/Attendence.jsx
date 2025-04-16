@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import "./payslip.css";
 import axios from "axios";
 import LeaveTable from "../LeaveTable";
@@ -7,11 +7,12 @@ import Loading from "../Loader";
 import { formatTime } from "../ReuseableAPI";
 import NoDataFound from "./NoDataFound";
 import { toast } from "react-toastify";
+import { EssentialValues } from "../../App";
 
 const Attendence = () => {
   const url = process.env.REACT_APP_API_URL;
-  const empId = localStorage.getItem("_id")
-  const token = localStorage.getItem("token");
+  const { data } = useContext(EssentialValues);
+  const { _id, token } = data;
   const [clockInsData, setclockInsData] = useState({});
   const [regularHeight, setRegularHeight] = useState(0);
   const [lateHeight, setLateHeight] = useState(0);
@@ -87,7 +88,7 @@ const Attendence = () => {
   const getClockins = async () => {
     setIsLoading(true);
     try {
-      const dashboard = await axios.get(`${url}/api/clock-ins/employee/${empId}`, {
+      const dashboard = await axios.get(`${url}/api/clock-ins/employee/${_id}`, {
         params: {
           daterangeValue
         },
@@ -115,13 +116,13 @@ const Attendence = () => {
   }
 
   useEffect(() => {
-    if (empId) {
+    if (_id) {
       getClockins()
     } else {
       setIsLoading(false);
       toast.error("Employee Id not found!")
     }
-  }, [empId, daterangeValue])
+  }, [_id, daterangeValue])
 
   return (
     <div>

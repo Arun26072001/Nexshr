@@ -1,14 +1,15 @@
-import React, { useEffect, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import NoDataFound from '../payslip/NoDataFound';
 import Loading from '../Loader';
 import { toast } from 'react-toastify';
 import axios from 'axios';
 import CommonModel from './CommonModel';
 import LeaveTable from '../LeaveTable';
+import { EssentialValues } from '../../App';
 
 export default function Position({ companies }) {
     const url = process.env.REACT_APP_API_URL;
-    const token = localStorage.getItem("token");
+    const { data } = useContext(EssentialValues);
     const [positionObj, setPositionObj] = useState({});
     const [positions, setPositions] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
@@ -39,7 +40,7 @@ export default function Position({ companies }) {
         try {
             const msg = await axios.post(url + "/api/position", positionObj, {
                 headers: {
-                    Authorization: token || ""
+                    Authorization: data.token || ""
                 }
             });
             toast.success(msg?.data?.message);
@@ -56,7 +57,7 @@ export default function Position({ companies }) {
         try {
             const deletePos = await axios.delete(`${url}/api/position/${id}`, {
                 headers: {
-                    Authorization: token || ""
+                    Authorization: data.token || ""
                 }
             });
             toast.success(deletePos?.data?.message);
@@ -72,7 +73,7 @@ export default function Position({ companies }) {
         try {
             const response = await axios.put(`${url}/api/position/${positionObj._id}`, positionObj, {
                 headers: {
-                    Authorization: token || ""
+                    Authorization: data.token || ""
                 }
             });
             toast.success(response?.data?.message);
@@ -91,7 +92,7 @@ export default function Position({ companies }) {
         try {
             const position = await axios.get(`${url}/api/position/${id}`, {
                 headers: {
-                    Authorization: token || ""
+                    Authorization: data.token || ""
                 }
             });
             setPositionObj(position.data);
@@ -108,7 +109,7 @@ export default function Position({ companies }) {
             try {
                 const response = await axios.get(url + "/api/position", {
                     headers: {
-                        Authorization: token || ""
+                        Authorization: data.token || ""
                     }
                 });
                 setPositions(response.data);

@@ -30,7 +30,8 @@ const Sidebar = ({ sideBar }) => {
   const param = useParams();
 
   const [activeSubmenu, setActiveSubmenu] = useState(param['*']);
-  const [activeNavLink, setActiveNavLink] = useState("");
+  const [activeNavLink, setActiveNavLink] = useState(param['*'] === "" ? "dashboard" : param['*'].includes("my-details") ? "jobDesk" : param['*']);
+  console.log(param['*']);
 
   const toggleActiveLink = (name) => {
     setActiveNavLink(activeNavLink === name ? '' : name);
@@ -104,9 +105,6 @@ const Sidebar = ({ sideBar }) => {
     );
   };
 
-  // useEffect(() => {
-  //   setActiveNavLink(param["*"] === "" ? "dashboard" : param["*"].includes("employee") ? "employee" : param["*"].includes("my-details") ? "jobDesk" : param["*"])
-  // }, [param])
   return (
     <div style={{ width: '250px' }} className={`${!sideBar ? "d-none" : ""} sidebar sidebar_hrm`}>
       <ul className="sidebar-nav p-0" id="sidebar-nav">

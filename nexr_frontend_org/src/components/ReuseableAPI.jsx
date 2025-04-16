@@ -1,8 +1,9 @@
 import axios from 'axios';
+import { jwtDecode } from 'jwt-decode';
 import { toast } from 'react-toastify';
 const url = process.env.REACT_APP_API_URL;
-const empId = localStorage.getItem('_id');
 const token = localStorage.getItem('token');
+const { _id } = jwtDecode(token);
 
 const updateDataAPI = async (body) => {
     try {
@@ -32,10 +33,10 @@ async function getTotalWorkingHourPerDay(start, end) {
     return diffHrs > 0 ? diffHrs : 0; // Ensure non-negative value
 }
 
-const getDataAPI = async (empId) => {
+const getDataAPI = async (_id) => {
     try {
 
-        const response = await axios.get(`${url}/api/clock-ins/${empId}`, {
+        const response = await axios.get(`${url}/api/clock-ins/${_id}`, {
             params: { date: new Date().toISOString() },
             headers: { authorization: token || '' },
         });
@@ -67,7 +68,7 @@ const getclockinsDataById = async (id) => {
 
 const addDataAPI = async (body, worklocation, placeId) => {
     try {
-        const response = await axios.post(`${url}/api/clock-ins/${empId}`, body, {
+        const response = await axios.post(`${url}/api/clock-ins/${_id}`, body, {
             // params: {
             //     worklocation,
             //     placeId
@@ -107,9 +108,9 @@ const fetchEmpLeaveRequests = async () => {
     }
 }
 
-const fetchLeaveRequests = async (empId) => {
+const fetchLeaveRequests = async (_id) => {
     try {
-        const res = await axios.get(`${url}/api/leave-application/emp/${empId}`, {
+        const res = await axios.get(`${url}/api/leave-application/emp/${_id}`, {
             headers: {
                 authorization: token || ""
             }
@@ -142,7 +143,7 @@ function getDayDifference(leave) {
 
 async function deleteLeave(id) {
     try {
-        let deletedMsg = await axios.delete(`${url}/api/leave-application/${empId}/${id}`, {
+        let deletedMsg = await axios.delete(`${url}/api/leave-application/${_id}/${id}`, {
             headers: {
                 authorization: token || ""
             }
@@ -200,13 +201,13 @@ const fetchAllEmployees = async () => {
     }
 }
 
-const gettingClockinsData = async (empId) => {
+const gettingClockinsData = async (_id) => {
     if (!token) {
         window.location.reload();
         return;
     }
     try {
-        const dashboard = await axios.get(`${url}/api/clock-ins/employee/${empId}`, {
+        const dashboard = await axios.get(`${url}/api/clock-ins/employee/${_id}`, {
             headers: {
                 authorization: token || ""
             }
@@ -257,9 +258,9 @@ const fetchPayslipInfo = async () => {
     }
 }
 
-const fetchPayslipFromEmp = async (empId) => {
+const fetchPayslipFromEmp = async (_id) => {
     try {
-        const payslip = await axios.get(`${url}/api/payslip/emp/${empId}`);
+        const payslip = await axios.get(`${url}/api/payslip/emp/${_id}`);
         return payslip.data;
     } catch (error) {
         return error?.response?.data?.message
@@ -270,7 +271,7 @@ const fetchRoles = async () => {
     try {
         const roles = await axios.get(url + "/api/role", {
             headers: {
-                authorization: localStorage.getItem("token") || ""
+                authorization: token || ""
             }
         });
         return roles.data;
@@ -449,7 +450,32 @@ async function fileUploadInServer(files) {
 
 }
 
+function calculateTimePattern(timePatternObj) {
+    if (timePatternObj.StartingTime && timePatternObj.FinishingTime) {
+
+        const [startHour, startMinute] = timePatternObj.StartingTime.split(".").map(num => parseInt(num, 10));
+        const [endHour, endMinute] = timePatternObj.FinishingTime.split(".").map(num => parseInt(num, 10));
+        console.log("startingTime: ", startHour, startMinute);
+        console.log("finishingtime: ", endHour, endMinute);
+
+        const startDate = new Date();
+        startDate.setHours(startHour);
+        startDate.setMinutes(startMinute);
+
+        const endDate = new Date();
+        endDate.setHours(endHour);
+        endDate.setMinutes(endMinute);
+
+        const timeDiff = endDate.getTime() - startDate.getTime();
+        const hoursDiff = Math.floor(timeDiff / (1000 * 60 * 60));
+        console.log(hoursDiff);
+
+        return hoursDiff
+    }
+}
+
 export {
+    calculateTimePattern,
     getTimeFromHour,
     getHoliday,
     addDataAPI,

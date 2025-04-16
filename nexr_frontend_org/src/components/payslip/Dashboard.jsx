@@ -98,8 +98,10 @@ const Dashboard = () => {
                         Authorization: data.token || ""
                     }
                 })
-                const withoutMyData = res.data.filter((leave) => leave.employee._id !== data._id)
-                setPeopleOnLeave(withoutMyData)
+                // const withoutMyData = res.data.filter((leave) => leave.employee._id !== data._id)
+                // setPeopleOnLeave(withoutMyData)
+                console.log("peopleoOnLEave:", res.data)
+                setPeopleOnLeave(res.data);
             } catch (error) {
                 setPeopleOnLeave([]);
                 console.log("error in fetch peopleOnLeave data: ", error);
@@ -110,7 +112,7 @@ const Dashboard = () => {
 
         fetchPeopleOnLeave();
     }, [])
-    
+
     return (
         <div className='dashboard-parent'>
             <ActivityTimeTracker empName={data.Name} leaveData={leaveData} handleLogout={handleLogout} updateClockins={updateClockins} />

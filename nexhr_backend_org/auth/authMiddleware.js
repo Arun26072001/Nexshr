@@ -192,12 +192,11 @@ function verifyAdminHREmployee(req, res, next) {
   if (typeof token !== "undefined") {
 
     jwt.verify(token, jwtKey, (err, authData) => {
-      const { isTeamLead, isTeamHead, isTeamManager } = authData;
       if (err) {
         console.log("error in verify");
         res.sendStatus(401);
       } else {
-        if ([1, 2].includes(authData.Account) || [isTeamLead, isTeamHead, isTeamManager].includes(true)) {
+        if ([1, 2, 3].includes(authData.Account)) {
           next();
         }
         else {
