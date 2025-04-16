@@ -11,11 +11,13 @@ import CommonModel from "../Administration/CommonModel";
 import { jwtDecode } from "jwt-decode";
 
 const ManageTeam = () => {
+    const url = process.env.REACT_APP_API_URL;
+    const { data, whoIs } = useContext(EssentialValues);
+    const { token, _id } = data;
     const [teamObj, setTeamObj] = useState({});
     const [isLoading, setIsLoading] = useState(false);
     const [searchTeam, setSearchTeam] = useState('');
     const [dom, reload] = useState(false);
-    const [assignEmp, setAssignEmp] = useState(false);
     const [addTeam, setAddTeam] = useState(false);
     const [employees, setEmployees] = useState([]); // Null indicates no team is being edited
     const [teams, setTeams] = useState([]);
@@ -23,9 +25,6 @@ const ManageTeam = () => {
     const [leads, setLeads] = useState([]);
     const [heads, setHeads] = useState([]);
     const [managers, setManagers] = useState([]);
-    const url = process.env.REACT_APP_API_URL;
-    const { data, whoIs } = useContext(EssentialValues);
-    const { token, _id } = data;
     const [isChangingTeam, setIsChangingTeam] = useState(false);
     const { isTeamHead, isTeamLead, isTeamManager } = jwtDecode(token);
 
@@ -47,10 +46,6 @@ const ManageTeam = () => {
         if (addTeam) {
             setTeamObj({});  // Reset editTeamObj when toggling out of add/edit mode
         }
-    };
-
-    const toggleAssignEmp = () => {
-        setAssignEmp(!assignEmp);
     };
 
     const changeTeamObj = (value, name) => {
@@ -105,64 +100,45 @@ const ManageTeam = () => {
         }
     };
 
-    const editTeam = async (team) => {
-        setIsChangingTeam(true);
-        try {
-            const res = await axios.get(`${url}/api/team/${team._id}`,
-                {
-                    headers: {
-                        Authorization: `${token}` || ""
-                    }
-                }
-            );
-
-            setTeamObj(res.data);
-            toggleAddTeam();
-        } catch (err) {
-            toast.error(err?.response?.data?.error);
-        }
-        setIsChangingTeam(false);
-    };
-
     const handleSubmit = async () => {
-        setIsChangingTeam(true);
         try {
-
+            setIsChangingTeam(true);
             const response = await axios.post(`${url}/api/team`, teamObj, {
                 headers: {
                     Authorization: token || ""
                 }
             });
 
-            toggleAssignEmp();
+            // toggleAssignEmp();
             toggleAddTeam();
             setTeamObj({})
             reloadUI();
             toast.success(response.data.message);
         } catch (err) {
             toast.error(err.response.data.error);
+        } finally {
+            setIsChangingTeam(false)
         }
-        setIsChangingTeam(false)
     };
 
     const handleSubmitEdit = async () => {
         try {
-
+            setIsChangingTeam(true);
             const res = await axios.put(`${url}/api/team/${teamObj._id}`, teamObj, {
                 headers: {
-                    Authorization: `${token}` || ""
+                    Authorization: token || ""
                 }
             });
 
-            toggleAssignEmp();
+            // toggleAssignEmp();
             toggleAddTeam();
             reloadUI();
             toast.success(res.data.message);
-
         } catch (err) {
             console.log(err);
-
             toast.error(err.message);
+        } finally {
+            setIsChangingTeam(false);
         }
     };
 
@@ -239,6 +215,11 @@ const ManageTeam = () => {
         setIsLoading(false);
     }
 
+    function handleEditTeam(team) {
+        setTeamObj(team);
+        toggleAddTeam();
+    }
+
     useEffect(() => {
         const fetchTeams = async () => {
             setIsLoading(true);
@@ -275,22 +256,24 @@ const ManageTeam = () => {
         isLoading ? <Loading height="80vh" /> :
             <div className="my-2">
                 <div className="d-flex gap-2">
-                    <InputGroup inside style={{ width: "300px" }}>
+                    <InputGroup inside style={{ width: "300px" }} size="lg">
                         <Input placeholder="Team Name" className="m-0" value={searchTeam} onChange={filterTeam} />
                         <InputGroup.Button className="m-auto">
                             <SearchRoundedIcon />
                         </InputGroup.Button>
                     </InputGroup>
-                    <button className="button" onClick={toggleAddTeam}>
-                        {addTeam ? "Cancel" : "Add a new team"}
-                    </button>
+                    {
+                        ["admin", "hr"].includes(whoIs) &&
+                        <button className="button" onClick={toggleAddTeam}>
+                            {addTeam ? "Cancel" : "Add a new team"}
+                        </button>
+                    }
                 </div>
 
                 {addTeam && (
                     <CommonModel type="Team" leads={leads}
                         isAddData={addTeam}
                         changeData={changeTeamObj}
-                        toggleAssignEmp={toggleAssignEmp}
                         editData={handleSubmitEdit}
                         heads={heads}
                         addData={handleSubmit}
@@ -305,7 +288,7 @@ const ManageTeam = () => {
                 {filteredTeams.length > 0 ? (
                     <div className="row d-flex justify-content-start">
                         {filteredTeams.map((team) => (
-                            <EmpCard key={team._id} team={team} editTeam={editTeam} deleteTeam={deleteTeam} />
+                            <EmpCard key={team._id} team={team} editTeam={handleEditTeam} whoIs={whoIs} deleteTeam={deleteTeam} />
                         ))}
                     </div>
                 ) : (

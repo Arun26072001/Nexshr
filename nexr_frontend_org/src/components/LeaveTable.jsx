@@ -57,13 +57,13 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
             align: 'left',
             getter: (row) => {
                 if (isTeamHead) {
-                    return row.TeamHead;
+                    return row?.approvers?.head || "N/A";
                 } else if (isTeamLead) {
-                    return row.TeamLead;
+                    return row?.approvers?.lead || "N/A";
                 } else if (isTeamManager) {
-                    return row.Manager;
+                    return row?.approvers?.manager || "N/A";
                 } else if (Account === "2") {
-                    return row.Hr;
+                    return row?.approvers?.hr || "N/A";
                 } else {
                     return row.status;
                 }

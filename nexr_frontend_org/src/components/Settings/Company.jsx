@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
 import Tabs from '@mui/material/Tabs';
 import Tab from '@mui/material/Tab';
@@ -13,6 +13,7 @@ import HouseRoundedIcon from '@mui/icons-material/HouseRounded';
 import EventNoteOutlinedIcon from '@mui/icons-material/EventNoteOutlined';
 import axios from 'axios';
 import { toast } from 'react-toastify';
+import { EssentialValues } from '../../App';
 
 function TabPanel(props) {
   const { children, value, index, ...other } = props;
@@ -51,7 +52,7 @@ export default function CompanyTab() {
   const [value, setValue] = useState(0);
   const names = ["Show", "Hide"];
   const url = process.env.REACT_APP_API_URL;
-  const token = localStorage.getItem("token");
+  const {data} = useContext(EssentialValues);
 
   const [RadioOption, setRadioOption] = useState({
     CompanyName: "",
@@ -72,7 +73,7 @@ export default function CompanyTab() {
     const body = RadioOption;
     axios.post(`${url}/api/company-settings`, body, {
       headers: {
-        authorization: token || ""
+        authorization: data.token || ""
       }
     }).then((res) => {
       toast.success(res.data)
@@ -116,7 +117,7 @@ export default function CompanyTab() {
       try {
         const res = await axios.get(`${url}/api/company-settings`, {
           headers: {
-            Authorization: token || ""
+            Authorization: data.token || ""
           }
         })
         setRadioOption(res.data)

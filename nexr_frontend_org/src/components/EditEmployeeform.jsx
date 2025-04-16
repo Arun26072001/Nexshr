@@ -17,11 +17,10 @@ const EditEmployeeform = ({ details, empData, handleScroll, handlePersonal, prev
     const navigate = useNavigate()
     const { changeEmpEditForm } = useContext(TimerStates);
     const [stateData, setStateData] = useState([]);
-    const { whoIs } = useContext(EssentialValues);
+    const { whoIs, data } = useContext(EssentialValues);
     const [timeDifference, setTimeDifference] = useState(0);
     const [selectedCountryCode, setselectedCountryCode] = useState("");
     const [selectedCountry, setSelectedCountry] = useState("");
-    const token = localStorage.getItem("token");
     const url = process.env.REACT_APP_API_URL;
     const [selectedLeaveTypes, setSelectedLeavetypes] = useState([]);
     const [splitError, setSplitError] = useState("");
@@ -86,7 +85,7 @@ const EditEmployeeform = ({ details, empData, handleScroll, handlePersonal, prev
                 if (values?.profile instanceof File && values.profile.type?.includes("image")) {
                     const formData = new FormData();
                     formData.append("documents", values.profile);
-    
+
                     const uploadRes = await axios.post(
                         `${process.env.REACT_APP_API_URL}/api/upload`,
                         formData,
@@ -96,7 +95,7 @@ const EditEmployeeform = ({ details, empData, handleScroll, handlePersonal, prev
                             }
                         }
                     );
-    
+
                     const uploadedFile = uploadRes?.data?.files?.[0]?.originalFile;
                     if (uploadedFile) {
                         setFieldValue("profile", uploadedFile); // Update form field with uploaded file URL
@@ -105,7 +104,7 @@ const EditEmployeeform = ({ details, empData, handleScroll, handlePersonal, prev
                         throw new Error("No file returned from upload response.");
                     }
                 }
-    
+
                 const res = await updateEmp(values, id);
                 if (res !== undefined) {
                     toast.success(res);
@@ -119,7 +118,7 @@ const EditEmployeeform = ({ details, empData, handleScroll, handlePersonal, prev
                 setIsWorkingApi(false);
             }
         }
-    });    
+    });
 
     function handleTagSelector(value) {
         let leaveCount = 0;
@@ -242,7 +241,7 @@ const EditEmployeeform = ({ details, empData, handleScroll, handlePersonal, prev
             try {
                 const leaveTypes = await axios.get(`${url}/api/leave-type`, {
                     headers: {
-                        Authorization: `${token}` || ""
+                        Authorization: `${data.token}` || ""
                     }
                 });
                 setLeaveTypes(leaveTypes.data.map((leave) => ({ label: `${leave.LeaveName} ${leave.limitDays}`, value: `${leave.LeaveName} ${leave.limitDays}` })));

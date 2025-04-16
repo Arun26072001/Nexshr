@@ -75,41 +75,6 @@ function generateLeaveEmail(empData, fromDateValue, toDateValue, reasonForLeave,
   `;
 }
 
-
-// Helper function to generate coverBy email content
-function generateCoverByEmail(empData, relievingOffData) {
-  return `
-  < !DOCTYPE html >
-    <html lang="en">
-      <head>
-        <meta charset="UTF-8">
-          <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>NexsHR - Task Assignment</title>
-          </head>
-          <body style="font-family: Arial, sans-serif; background-color: #f6f9fc; color: #333; margin: 0; padding: 0;">
-            <div style="max-width: 600px; margin: 20px auto; padding: 20px; background-color: #fff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);">
-              <div style="text-align: center; padding: 20px;">
-                <img src="https://imagedelivery.net/r89jzjNfZziPHJz5JXGOCw/1dd59d6a-7b64-49d7-ea24-1366e2f48300/public" alt="Company Logo" style="max-width: 100px;" />
-                <h1 style="margin: 0;">Task Assignment Notification</h1>
-              </div>
-
-              <div style="margin: 20px 0; font-size: 16px; line-height: 1.5;">
-                <p>Hi <strong>${relievingOffData.FirstName}</strong>,</p>
-                <p><strong>${empData.FirstName}</strong> has assigned some tasks to you during their leave.</p>
-                <p>Please ensure the assigned tasks are completed as required.</p>
-                <p>Let us know if you need any assistance.</p>
-                <p>Thank you!</p>
-              </div>
-
-              <div style="text-align: center; font-size: 14px; margin-top: 20px; color: #777;">
-                <p>&copy; ${new Date().getFullYear()} NexsHR. All rights reserved.</p>
-              </div>
-            </div>
-          </body>
-        </html>
-        `;
-}
-
 leaveApp.get("/make-know", async (req, res) => {
   try {
     const leaveApps = await LeaveApplication.find({ status: "pending" })
@@ -127,6 +92,10 @@ leaveApp.get("/make-know", async (req, res) => {
               path: "head",
               select: "Email",
             },
+            {
+              path: "manager",
+              select: "Email",
+            },
           ],
         },
       })
@@ -136,9 +105,12 @@ leaveApp.get("/make-know", async (req, res) => {
 
     for (const empData of leaveApps) {
       if (!empData.employee?.team) continue; // Skip if team data is missing
-
-      const { lead, head } = empData.employee.team;
-      if (!lead?.Email || !head?.Email) continue; // Skip if lead or head email is missing
+      let members = [];
+      Object.entries(empData.employee?.team).filter(([key, value]) => {
+        if (!["teamName", "employees", "_id", "__v", "createdAt", "updatedAt"].includes(key)) {
+          Array.isArray(value) && value.map((item) => members.push(item.Email))
+        }
+      })
 
       const htmlContent = `
         <!DOCTYPE html>
@@ -172,7 +144,7 @@ leaveApp.get("/make-know", async (req, res) => {
             </html>
             `;
 
-      const mailList = [lead?.Email, head?.Email];
+      const mailList = members;
 
       try {
         sendMail({
@@ -211,6 +183,10 @@ leaveApp.put("/reject-leave", async (req, res) => {
     }
 
     await Promise.all(leaves.map(async (leave) => {
+      let approvers = {};
+      Object.entries(leave.approvers).map(([key, value]) => {
+        approvers[key] = "rejected"
+      })
       const updatedLeave = {
         leaveType: leave.leaveType,
         fromDate: leave.fromDate,
@@ -221,10 +197,7 @@ leaveApp.put("/reject-leave", async (req, res) => {
         employee: leave.employee._id,
         coverBy: leave.coverBy,
         status: "rejected",
-        TeamLead: "rejected",
-        Hr: "rejected",
-        TeamHead: "rejected",
-        Manager: "rejected"
+        approvers
       };
 
       await LeaveApplication.findByIdAndUpdate(leave._id, updatedLeave, { new: true });
@@ -376,7 +349,7 @@ leaveApp.get("/hr", verifyHR, async (req, res) => {
     let empLeaveReqs = leaveReqs
       .map((req) => req.leaveApplication)
       .flat()
-      .sort((a, b) => new Date(a.fromDate) - new Date(b.fromDate)); // Sort by fromDate
+      .sort((a, b) => new Date(b.fromDate) - new Date(a.fromDate)); // Sort by fromDate
     empLeaveReqs = empLeaveReqs.map(formatLeaveData)
     res.send(empLeaveReqs);
   } catch (err) {
@@ -428,7 +401,7 @@ leaveApp.get("/team/:id", verifyTeamHigherAuthority, async (req, res) => {
         }
       })
 
-      teamLeaves = teamLeaves.sort((a, b) => new Date(a.fromDate) - new Date(b.fromDate));
+      teamLeaves = teamLeaves.sort((a, b) => new Date(b.fromDate) - new Date(a.fromDate));
       const approvedLeave = teamLeaves.filter(data => data.status === "approved");
       const pendingLeave = teamLeaves.filter(data => data.status === "pending");
       const upComingLeave = approvedLeave.filter(data => new Date(data.fromDate).getTime() > new Date().getTime())
@@ -455,7 +428,7 @@ leaveApp.get("/all/emp", verifyAdminHR, async (req, res) => {
       });
     // Flatten leaveApplication data
     let leaveData = employeesLeaveData.map(data => data.leaveApplication).flat();
-    leaveData = leaveData.sort((a, b) => new Date(a.fromDate) - new Date(b.fromDate));
+    leaveData = leaveData.sort((a, b) => new Date(b.fromDate) - new Date(a.fromDate));
     leaveData = leaveData.map(formatLeaveData)
 
     res.send({
@@ -510,7 +483,7 @@ leaveApp.get("/all/team/:id", verifyEmployee, async (req, res) => {
           path: "employee",
           select: "FirstName LastName"
         });
-      teamLeaves = teamLeaves.sort((a, b) => new Date(a.fromDate) - new Date(b.fromDate));
+      teamLeaves = teamLeaves.sort((a, b) => new Date(b.fromDate) - new Date(a.fromDate));
       res.send({ leaveData: teamLeaves });
     }
   } catch (error) {
@@ -578,7 +551,7 @@ leaveApp.get("/date-range/hr", verifyHR, async (req, res) => {
 
     let leaveData = employeesLeaveData
       .flatMap(emp => emp.leaveApplication) // Flatten leave data
-      .sort((a, b) => new Date(a.fromDate) - new Date(b.fromDate))
+      .sort((a, b) => new Date(b.fromDate) - new Date(a.fromDate))
       .map(leave => ({
         ...leave.toObject(),
         prescription: leave.prescription
@@ -641,7 +614,7 @@ leaveApp.get("/date-range/admin", verifyAdmin, async (req, res) => {
 
     let leaveData = employeesLeaveData
       .flatMap(emp => emp.leaveApplication) // Flatten leave data
-      .sort((a, b) => new Date(a.fromDate) - new Date(b.fromDate))
+      .sort((a, b) => new Date(b.fromDate) - new Date(a.fromDate))
       .map(leave => ({
         ...leave.toObject(),
         prescription: leave.prescription
@@ -756,7 +729,7 @@ leaveApp.get("/", verifyAdminHR, async (req, res) => {
         message: "No leave requests in DB"
       })
     } else {
-      requests = requests.sort((a, b) => new Date(a.fromDate) - new Date(b.fromDate));
+      requests = requests.sort((a, b) => new Date(b.fromDate) - new Date(a.fromDate));
       requests = requests.map((leave) => {
         return {
           ...leave.toObject(),
@@ -790,83 +763,90 @@ leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("pre
     const coverByValue = [undefined, "undefined"].includes(coverBy) ? null : coverBy;
     const personId = [undefined, "undefined"].includes(applyFor) ? empId : applyFor;
     const fromDateObj = new Date(fromDate);
+    const toDateObj = new Date(toDate);
     const today = new Date();
     const yesterday = new Date(today);
     yesterday.setDate(today.getDate() - 1);
 
-    // 1. Handle if applied on behalf of someone else
+    // 1. If applying on behalf, ensure target employee isn't already working those days
     if (applyFor) {
       const emp = await Employee.findById(personId, "clockIns").populate({
         path: "clockIns",
-        match: { date: { $gte: fromDate, $lte: toDate } },
+        match: { date: { $gte: fromDateObj, $lte: toDateObj } },
       });
 
-      if (emp.clockIns.length) {
-        return res.status(400).send({ error: "The employee was working during the given leave application date range." });
+      if (emp?.clockIns?.length) {
+        return res.status(400).json({ error: "The employee was working during the selected leave period." });
       }
     }
 
-    // Duplicate Check
+    // 2. Check for duplicate leave
     const existingRequest = await LeaveApplication.findOne({
       employee: personId,
       status: "approved",
-      fromDate: { $gte: req.body.fromDate, $lte: req.body.toDate }
+      fromDate: { $gte: fromDate, $lte: toDate },
     });
 
     if (existingRequest) {
       return res.status(400).json({ error: "Leave request already exists for the given date range." });
     }
 
-    // 2. Validate sick leave and casual leave dates
+    // 3. Sick/Medical leave must be for today or yesterday
     if (["Sick Leave", "Medical Leave"].includes(leaveType)) {
-      console.log("today", today.toLocaleDateString(), "yesterDay", yesterday.toLocaleDateString(), "fromDate:", fromDateObj.toLocaleDateString())
-
-      const isValid = [today.toLocaleDateString(), yesterday.toLocaleDateString()].includes(fromDateObj.toLocaleDateString());
-      if (!isValid) {
-        return res.status(400).json({ error: "Sick leave is only applicable for today and yesterday." });
+      const formattedFrom = fromDateObj.toDateString();
+      if (![today.toDateString(), yesterday.toDateString()].includes(formattedFrom)) {
+        return res.status(400).json({ error: "Sick leave is only applicable for today or yesterday." });
       }
-    } else if (["Annual Leave", "Casual Leave"].includes(leaveType)) {
-      console.log(fromDateObj.toLocaleDateString(), today.toLocaleDateString());
-      if (fromDateObj.toLocaleDateString() === today.toLocaleDateString()) {
+    }
+
+    // 4. Annual/Casual leave can't be for today
+    if (["Annual Leave", "Casual Leave"].includes(leaveType)) {
+      if (fromDateObj.toDateString() === today.toDateString()) {
         return res.status(400).json({ error: `${leaveType} is not applicable for the same day.` });
       }
     }
 
-    // leave application applied person
+    // 5. Fetch employee info
     const monthStart = new Date(fromDateObj.getFullYear(), fromDateObj.getMonth(), 1);
     const monthEnd = new Date(fromDateObj.getFullYear(), fromDateObj.getMonth() + 1, 0);
 
     const emp = await Employee.findById(personId, "FirstName LastName monthlyPermissions permissionHour typesOfLeaveRemainingDays typesOfLeaveCount leaveApplication")
-      .populate([{ path: "admin", select: "FirstName LastName Email" },
-      {
-        path: "leaveApplication",
-        match: { leaveType: "Permission Leave", fromDate: { $gte: monthStart, $lte: monthEnd } },
-      }, {
-        path: "team",
-        populate: [
-          { path: "lead", select: "Email" },
-          { path: "head", select: "Email" },
-          { path: "manager", select: "Email" },
-        ],
-      }
-      ]).exec();
+      .populate([
+        {
+          path: "admin",
+          select: "FirstName LastName Email",
+        },
+        {
+          path: "leaveApplication",
+          match: { leaveType: "Permission Leave", fromDate: { $gte: monthStart, $lte: monthEnd } },
+        },
+        {
+          path: "team",
+          populate: [
+            { path: "lead", select: "Email" },
+            { path: "head", select: "Email" },
+            { path: "manager", select: "Email" },
+          ],
+        },
+      ]);
 
     if (!emp) {
       return res.status(400).json({ error: `No employee found for ID ${empId}` });
     }
 
-    // 3. Permission Leave Validation
-    if (leaveType?.toLowerCase()?.includes("permission")) {
-      const duration = (new Date(toDate) - new Date(fromDate)) / 60000;
-      if (duration > (emp?.permissionHour || 120)) {
-        return res.status(400).json({ error: `Permission is only allowed for less than ${emp?.permissionHour || "2"} hours.` });
+    // 6. Permission Leave logic
+    if (leaveType?.toLowerCase().includes("permission")) {
+      const durationInMinutes = (toDateObj - fromDateObj) / 60000;
+      if (durationInMinutes > (emp.permissionHour || 120)) {
+        return res.status(400).json({ error: `Permission is only allowed for less than ${emp.permissionHour || "2"} hours.` });
       }
-      if ((emp.leaveApplication?.length || 0) >= (emp?.monthlyPermissions || 2)) {
+
+      if ((emp.leaveApplication?.length || 0) >= (emp.monthlyPermissions || 2)) {
         return res.status(400).json({ error: `You have already used ${emp.monthlyPermissions} permissions this month.` });
       }
     }
 
-    // 5. Check Leave Balance
+    // 7. Leave Balance Check
     const approvedLeaves = await LeaveApplication.find({
       leaveType: new RegExp(`^${leaveType}`, "i"),
       status: "approved",
@@ -875,25 +855,12 @@ leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("pre
 
     const takenLeaveCount = approvedLeaves.reduce((acc, leave) => acc + getDayDifference(leave), 0);
     const leaveBalance = emp.typesOfLeaveRemainingDays?.[leaveType] || 0;
-    if (!leaveType.toLowerCase().includes("permission")) {
-      if (leaveBalance < takenLeaveCount) {
-        return res.status(400).json({ error: `${leaveType} limit has been reached.` });
-      }
+
+    if (!leaveType.toLowerCase().includes("permission") && leaveBalance < takenLeaveCount) {
+      return res.status(400).json({ error: `${leaveType} limit has been reached.` });
     }
-    // verify sufficient leave days for leave
-    // const balanceLeave = emp.typesOfLeaveRemainingDays?.[leaveType] || 0;
-    // const leaveDays = getDayDifference(req.body);
-    // if (balanceLeave < leaveDays) {
-    //   return res.status(400).send({error: `Insufficient Leave for ${leave}`})
-    // }
 
-    // 6. Task Conflict Check
-    const deadlineTasks = await Task.find({
-      assignedTo: personId,
-      to: { $gte: fromDate, $lte: toDate },
-    });
-
-    // // 7. CoverBy Check
+    // 8. Optional: CoverBy logic (currently commented out)
     // if (coverByValue) {
     //   const reliever = await Employee.findById(coverByValue, "FirstName LastName leaveApplication")
     //     .populate({
@@ -906,57 +873,64 @@ leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("pre
     //     });
 
     //   if (reliever?.leaveApplication?.length) {
-    //     return res.status(400).json({ error: `${reliever.FirstName} is on leave during the selected dates.` });
+    //     return res.status(400).json({ error: ${reliever.FirstName} is on leave during the selected dates. });
     //   }
     // }
-    let leaveRequest;
-    // 8. Validate and Save
-    if (![undefined, "undefined"].includes(applyFor)) {
-      leaveRequest = {
-        leaveType,
-        fromDate,
-        toDate,
-        periodOfLeave,
-        reasonForLeave,
-        prescription,
-        TeamLead: "approved",
-        TeamHead: "approved",
-        Hr: "approved",
-        Manager: "approved",
-        status: "approved",
-        coverBy: coverByValue,
-        employee: personId,
-        appliedBy: empId,
-      };
+
+    // 9. Task Conflict
+    const deadlineTasks = await Task.find({
+      assignedTo: personId,
+      to: { $gte: fromDate, $lte: toDate },
+    });
+
+    // 10. Approvers setup
+    const approvers = {};
+    const teamRoles = ["lead", "head", "manager"];
+
+    for (const role of teamRoles) {
+      if (emp?.team?.[role]) {
+        approvers[role] = ![undefined, "undefined"].includes(applyFor) ? "approved" : "pending";
+      }
+    }
+
+    approvers.hr = ![undefined, "undefined"].includes(applyFor) ? "approved" : "pending";
+
+    // 11. Create leave request
+    const leaveRequest = {
+      leaveType,
+      fromDate,
+      toDate,
+      periodOfLeave,
+      reasonForLeave,
+      prescription,
+      approvers,
+      status: ![undefined, "undefined"].includes(applyFor) ? "approved" : "pending",
+      coverBy: coverByValue,
+      employee: personId,
+      appliedBy: empId,
+    };
+
+    // Deduct leave days if approved
+    if (![undefined, "undefined"].includes(applyFor) && !leaveType.toLowerCase().includes("permission")) {
       const leaveDaysTaken = Math.max(getDayDifference(leaveRequest), 1);
       emp.typesOfLeaveRemainingDays[leaveType] -= leaveDaysTaken;
       await emp.save();
-    } else {
-      leaveRequest = {
-        leaveType,
-        fromDate,
-        toDate,
-        periodOfLeave,
-        reasonForLeave,
-        prescription,
-        coverBy: coverByValue,
-        employee: personId,
-        appliedBy: empId,
-      };
     }
 
+    // 12. Validate and Save
     const { error } = LeaveApplicationValidation.validate(leaveRequest);
     if (error) return res.status(400).json({ error: error.message });
 
     const newLeaveApp = await LeaveApplication.create(leaveRequest);
     emp.leaveApplication.push(newLeaveApp._id);
     await emp.save();
+
+    // 13. Send Notification (only for self-application)
     if (!applyFor) {
-      // 9. Notifications
       const mailList = [
-        emp?.team?.lead?.[0]?.Email,
-        emp?.team?.head?.[0]?.Email,
-        emp?.team?.manager?.[0]?.Email,
+        emp?.team?.lead?.Email,
+        emp?.team?.head?.Email,
+        emp?.team?.manager?.Email,
         emp?.admin?.Email,
       ].filter(Boolean);
 
@@ -968,71 +942,74 @@ leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("pre
       });
     }
 
-    return res.status(201).json({ message: "Leave request has been submitted successfully.", newLeaveApp });
+    return res.status(201).json({ message: "Leave request submitted successfully.", newLeaveApp });
+
   } catch (err) {
     console.error(err);
     return res.status(500).json({ error: err.message });
   }
 });
 
-
-leaveApp.put('/:id', verifyAdminHREmployee, async (req, res) => {
+leaveApp.put('/:id', verifyAdminHREmployeeManagerNetwork, async (req, res) => {
   try {
+    const { approvers, employee, leaveType, fromDate, toDate, ...restBody } = req.body;
+
+    const fromDateValue = new Date(fromDate);
+    const toDateValue = new Date(toDate);
+
     const today = new Date();
-    const leaveAppStartedHour = new Date(req.body.fromDate).getHours();
-    const startOfDay = new Date(today.setHours((leaveAppStartedHour || 0) - 2, 0, 0, 0));
+    const leaveHour = fromDateValue.getHours() || 0;
+    const startOfDay = new Date(today.setHours(leaveHour - 2, 0, 0, 0));
 
-    const { Hr, TeamLead, TeamHead, Manager, employee, leaveType, ...restBody } = req.body;
-    const approvers = [Hr, TeamLead, TeamHead, Manager];
+    const allApproved = Object.values(approvers).every((status) => status === "approved");
+    const anyRejected = Object.values(approvers).some((status) => status === "rejected");
 
-    const allApproved = approvers.every(status => status === 'approved');
-    const anyRejected = approvers.some(status => status === 'rejected');
-
-    const emp = await Employee.findById(employee).populate({
-      path: "team",
-      populate: [
-        { path: "lead", select: "FirstName LastName Email" },
-        { path: "head", select: "FirstName LastName Email" },
-        { path: "manager", select: "FirstName LastName Email" }
-      ]
-    })
+    const emp = await Employee.findById(employee)
+      .populate({
+        path: "team",
+        populate: [
+          { path: "lead", select: "FirstName LastName Email" },
+          { path: "head", select: "FirstName LastName Email" },
+          { path: "manager", select: "FirstName LastName Email" }
+        ]
+      })
       .populate({ path: "admin", select: "FirstName LastName Email" });
 
     if (!emp) return res.status(404).send({ error: 'Employee not found.' });
-    if (!emp.team) return res.status(404).send({ error: `${emp.FirstName} is not a member of any team. Please add him.` })
-
-    const fromDateValue = new Date(req.body.fromDate);
-    const toDateValue = new Date(req.body.toDate);
+    if (!emp.team) return res.status(404).send({ error: `${emp.FirstName} is not assigned to a team.` });
 
     if (allApproved) {
-      const leaveDaysTaken = Math.max(getDayDifference(req.body), 1);
+      const leaveDaysTaken = Math.max(getDayDifference({ fromDate, toDate }), 1);
+      const leaveBalance = emp.typesOfLeaveRemainingDays?.[leaveType] ?? 0;
 
-      if (!emp.typesOfLeaveRemainingDays[leaveType]) {
-        return res.status(400).send({ error: 'Invalid leave type.' });
-      }
-
-      if (emp.typesOfLeaveRemainingDays[leaveType] < leaveDaysTaken) {
+      if (leaveBalance < leaveDaysTaken) {
         return res.status(400).send({ error: 'Insufficient leave balance for the requested leave type.' });
       }
 
       emp.typesOfLeaveRemainingDays[leaveType] -= leaveDaysTaken;
       await emp.save();
     }
-
+    const leads = emp.team.lead.map((item) => ({
+      type: "lead", Email: item.Email, name: `${item.FirstName} ${item.LastName}`
+    }));
+    const heads = emp.team.head.map((item) => ({
+      type: "head", Email: item.Email, name: `${item.FirstName} ${item.LastName}`
+    }));
+    const managers = emp.team.manager.map((item) => ({
+      type: "manager", Email: item.Email, name: `${item.FirstName} ${item.LastName}`
+    }));
     const members = [
-      { type: "emp", Email: emp.Email, name: `${emp.FirstName} ${emp.LastName}` },
-      emp.team.lead[0] && { type: "lead", Email: emp.team.lead[0].Email, name: `${emp.team.lead[0].FirstName} ${emp.team.lead[0].LastName}` },
-      emp.team.head[0] && { type: "head", Email: emp.team.head[0].Email, name: `${emp.team.head[0].FirstName} ${emp.team.head[0].LastName}` },
-      emp.team.manager[0] && { type: "manager", Email: emp.team.manager[0].Email, name: `${emp.team.manager[0].FirstName} ${emp.team.manager[0].LastName}` },
-      emp.admin && { type: "admin", Email: emp.admin.Email, name: `${emp.admin.FirstName} ${emp.admin.LastName}` }
+      emp.Email && { type: "emp", Email: emp.Email, name: `${emp.FirstName} ${emp.LastName}` },
+      // emp?.team?.lead?.[0] && { type: "lead", Email: emp.team.lead[0].Email, name: `${emp.team.lead[0].FirstName} ${emp.team.lead[0].LastName}` },
+      // emp?.team?.head?.[0] && { type: "head", Email: emp.team.head[0].Email, name: `${emp.team.head[0].FirstName} ${emp.team.head[0].LastName}` },
+      // emp?.team?.manager?.[0] && { type: "manager", Email: emp.team.manager[0].Email, name: `${emp.team.manager[0].FirstName} ${emp.team.manager[0].LastName}` },
+      ...leads, ...heads, ...managers,
+      emp?.admin && { type: "admin", Email: emp.admin.Email, name: `${emp.admin.FirstName} ${emp.admin.LastName}` }
     ].filter(Boolean);
 
     const updatedLeaveApp = {
       ...restBody,
-      Hr,
-      TeamHead,
-      TeamLead,
-      Manager,
+      approvers,
       status: allApproved ? "approved" : anyRejected ? "rejected" : restBody.status
     };
 
@@ -1043,14 +1020,13 @@ leaveApp.put('/:id', verifyAdminHREmployee, async (req, res) => {
     );
 
     if (!updatedRequest) {
-      return res.status(400).send({ error: 'Leave request has expired.' });
+      return res.status(400).send({ error: 'Leave request has expired or already started.' });
     }
 
-    const actionBy = Hr === "approved" ? "HR" :
-      TeamHead === "approved" ? "TeamHead" :
-        TeamLead === "approved" ? "TeamLead" : "Manager";
+    // Determine who approved or rejected
+    const actionBy = Object.entries(approvers).find(([_, value]) => value === "approved" || value === "rejected")?.[0] || "unknown";
+    const emailType = allApproved ? "approved" : anyRejected ? "rejected" : "pending";
 
-    const emailType = allApproved ? "approved" : "rejected";
     members.forEach(member => {
       sendMail({
         From: process.env.FROM_MAIL,
@@ -1102,3 +1078,39 @@ leaveApp.delete("/:id/:leaveId", verifyEmployee, async (req, res) => {
 })
 
 module.exports = { leaveApp, getDayDifference };
+
+
+
+// Helper function to generate coverBy email content
+function generateCoverByEmail(empData, relievingOffData) {
+  return `
+  < !DOCTYPE html >
+    <html lang="en">
+      <head>
+        <meta charset="UTF-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>NexsHR - Task Assignment</title>
+          </head>
+          <body style="font-family: Arial, sans-serif; background-color: #f6f9fc; color: #333; margin: 0; padding: 0;">
+            <div style="max-width: 600px; margin: 20px auto; padding: 20px; background-color: #fff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);">
+              <div style="text-align: center; padding: 20px;">
+                <img src="https://imagedelivery.net/r89jzjNfZziPHJz5JXGOCw/1dd59d6a-7b64-49d7-ea24-1366e2f48300/public" alt="Company Logo" style="max-width: 100px;" />
+                <h1 style="margin: 0;">Task Assignment Notification</h1>
+              </div>
+
+              <div style="margin: 20px 0; font-size: 16px; line-height: 1.5;">
+                <p>Hi <strong>${relievingOffData.FirstName}</strong>,</p>
+                <p><strong>${empData.FirstName}</strong> has assigned some tasks to you during their leave.</p>
+                <p>Please ensure the assigned tasks are completed as required.</p>
+                <p>Let us know if you need any assistance.</p>
+                <p>Thank you!</p>
+              </div>
+
+              <div style="text-align: center; font-size: 14px; margin-top: 20px; color: #777;">
+                <p>&copy; ${new Date().getFullYear()} NexsHR. All rights reserved.</p>
+              </div>
+            </div>
+          </body>
+        </html>
+        `;
+}

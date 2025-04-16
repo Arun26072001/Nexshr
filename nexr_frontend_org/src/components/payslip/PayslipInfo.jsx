@@ -1,13 +1,14 @@
 import axios from "axios";
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import { fetchPayslipInfo } from "../ReuseableAPI";
 import EditRoundedIcon from "@mui/icons-material/EditRounded";
 import DeleteRoundedIcon from "@mui/icons-material/DeleteRounded";
+import { EssentialValues } from "../../App";
 
 export default function PayslipInfo() {
     const url = process.env.REACT_APP_API_URL;
-    const token = localStorage.getItem("token");
+    const {data}  = useContext(EssentialValues);
     const [payslipInfos, setPayslipInfos] = useState({ payslipFields: [] });
     const [modalVisible, setModalVisible] = useState(false);
     const [field, setField] = useState({});
@@ -39,7 +40,7 @@ export default function PayslipInfo() {
     async function addPayslipInfo() {
         try {
             const response = await axios.post(`${url}/api/payslip-info`, payslipInfos, {
-                headers: { Authorization: token || "" },
+                headers: { Authorization: data.token || "" },
             });
             toast.success(response.data.message);
         } catch (error) {
@@ -109,7 +110,7 @@ export default function PayslipInfo() {
     const updatePayslipInfo = async () => {
         try {
             const response = await axios.put(`${url}/api/payslip-info/${payslipInfos._id}`, payslipInfos, {
-                headers: { Authorization: token || "" },
+                headers: { Authorization: data.token || "" },
             });
             toast.success(response.data.message);
         } catch (error) {

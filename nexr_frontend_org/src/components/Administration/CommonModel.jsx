@@ -892,8 +892,8 @@ const CommonModel = ({
                         {
                             type === "Confirmation" &&
                             <div className="projectBody bg-warning text-dark text-center">
-                                <p className='my-2'><b>Are you sure you want to delete this Project</b></p>
-                                <p>By deleting this project all its task, invoice and time entries will be deleted.</p>
+                                <p className='my-2'><b>Are you sure you want to delete this data</b></p>
+                                <p>By deleting this data all its item, invoice and time entries will be deleted.</p>
                             </div>
                         }
                         <Input required placeholder={`Please Type "Delete" to delete this ${type === "Confirmation" ? "Project" : type === "Report Confirmation" ? "Report" : "Task"}`} onChange={setConfirmationTxt} value={confirmationTxt} appearance="default" size='lg' />
@@ -1199,7 +1199,7 @@ const CommonModel = ({
                     </>
                 }
                 {
-                    ["WorkPlace", "View WorkPlace"] &&
+                    ["WorkPlace", "View WorkPlace"].includes(type) &&
                     <>
                         <div className="col-full">
                             <div className="modelInput">

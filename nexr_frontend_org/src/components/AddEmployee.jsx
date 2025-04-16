@@ -14,7 +14,7 @@ import { EssentialValues } from "../App";
 const AddEmployee = () => {
   const { id } = useParams();
   const { isEditEmp } = useContext(TimerStates);
-  const { whoIs } = useContext(EssentialValues);
+  const { whoIs, data } = useContext(EssentialValues);
   const [details, setDetails] = useState("personal");
   const [departments, setDepartments] = useState([]);
   const [roles, setRoles] = useState([]);
@@ -33,7 +33,7 @@ const AddEmployee = () => {
   const jobRef = useRef(null);
   const financialRef = useRef(null);
   const url = process.env.REACT_APP_API_URL;
-  const token = localStorage.getItem("token");
+  const { token } = data;
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
   const [preview, setPreview] = useState("");

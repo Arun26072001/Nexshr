@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useContext, useEffect, useState } from 'react'
 import LeaveTable from '../LeaveTable'
 import axios from 'axios';
 import { fetchCompanies } from '../ReuseableAPI';
@@ -6,13 +6,14 @@ import NoDataFound from '../payslip/NoDataFound';
 import { toast } from 'react-toastify';
 import CommonModel from './CommonModel';
 import Loading from '../Loader';
+import { EssentialValues } from '../../App';
 
 export default function Company() {
     const url = process.env.REACT_APP_API_URL;
     const [companies, setCompanies] = useState([]);
     const [companyObj, setCompanyObj] = useState({});
     const [isCompanychange, setIsCompanyChange] = useState(false);
-    const token = localStorage.getItem("token");
+    const { data } = useContext(EssentialValues);
     const [isLoading, setIsLoading] = useState(false);
     const [isChangingCompany, setIschangingCompany] = useState(false);
     const [modifyCompany, setModifyCompany] = useState({
@@ -49,7 +50,7 @@ export default function Company() {
         try {
             const deleteCom = await axios.delete(`${url}/api/company/${id}`, {
                 headers: {
-                    Authorization: token || ""
+                    Authorization: data.token || ""
                 }
             });
             toast.success(deleteCom?.data?.message);
@@ -65,7 +66,7 @@ export default function Company() {
         try {
             const msg = await axios.post(url + "/api/company", companyObj, {
                 headers: {
-                    authorization: token || ""
+                    authorization: data.token || ""
                 }
             });
             toast.success(msg?.data?.message);
@@ -82,7 +83,7 @@ export default function Company() {
         try {
             const company = await axios.get(`${url}/api/company/${id}`, {
                 headers: {
-                    Authorization: token || ""
+                    Authorization: data.token || ""
                 }
             });
             setCompanyObj(company.data);
@@ -107,7 +108,7 @@ export default function Company() {
             // Assuming the correct API endpoint for editing a department is '/api/department/${id}'
             const response = await axios.put(`${url}/api/company/${companyObj._id}`, companyObj, {
                 headers: {
-                    Authorization: token || ""
+                    Authorization: data.token || ""
                 }
             });
 

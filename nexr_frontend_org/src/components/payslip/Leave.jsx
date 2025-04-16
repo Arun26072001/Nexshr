@@ -87,7 +87,7 @@ const Leave = () => {
                     Leave
                 </p>
                 <div className="col-6 d-flex justify-content-end">
-                    <DateRangePicker size="md" className="ml-1" showOneCalendar placement="bottomEnd" value={daterangeValue} placeholder="Select Date" onChange={setDaterangeValue} />
+                    <DateRangePicker size="lg" className="ml-1" showOneCalendar placement="bottomEnd" value={daterangeValue} placeholder="Select Date" onChange={setDaterangeValue} />
                     <button className="button mx-1" onClick={() => navigate(`/${whoIs}/leave-request`)}>
                         Add Leave
                     </button>

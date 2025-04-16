@@ -29,23 +29,35 @@ export default function LeaveRequest() {
             if (isTeamHead) {
                 updatedLeaveRequest = {
                     ...leave,
-                    TeamHead: response
+                    approvers: {
+                        ...leave.approvers,
+                        head: response
+                    }
                 }
             } else if (isTeamLead) {
                 updatedLeaveRequest = {
                     ...leave,
-                    TeamLead: response
+                    approvers: {
+                        ...leave.approvers,
+                        lead: response
+                    }
                 }
             } else if (isTeamManager) {
                 updatedLeaveRequest = {
                     ...leave,
-                    Manager: response
+                    approvers: {
+                        ...leave.approvers,
+                        manager: response
+                    }
                 }
             }
             else if (String(data.Account) === "2") {
                 updatedLeaveRequest = {
                     ...leave,
-                    Hr: response
+                    approvers: {
+                        ...leave.approvers,
+                        hr: response
+                    }
                 }
             }
 
@@ -157,7 +169,7 @@ export default function LeaveRequest() {
                             />
                         </div>
                         <DateRangePicker
-                            size="md"
+                            size="lg"
                             showOneCalendar
                             placement="bottomEnd"
                             value={daterangeValue}

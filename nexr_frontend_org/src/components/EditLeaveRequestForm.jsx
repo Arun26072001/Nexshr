@@ -5,18 +5,16 @@ import { useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
 import { toast } from "react-toastify";
 import { EssentialValues } from "../App";
-import { fetchLeaveRequests } from "./ReuseableAPI";
 
 const EditLeaveRequestForm = () => {
     const { id } = useParams();
     const url = process.env.REACT_APP_API_URL;
-    const { whoIs } = useContext(EssentialValues);
-    const empId = localStorage.getItem("_id");
-    const token = localStorage.getItem("token");
+    const { whoIs, data } = useContext(EssentialValues);
+    const { _id, token } = data;
     const [colleagues, setColleagues] = useState([]);
     const navigate = useNavigate();
     const [leaveRequestObj, setLeaveRequestObj] = useState({});
-    
+
     const fetchLeaveRequest = async () => {
         if (id) {
             try {
@@ -36,7 +34,7 @@ const EditLeaveRequestForm = () => {
     };
     async function fetchCollegues() {
         try {
-            const res = await axios.get(`${url}/api/team/members/${empId}`, {
+            const res = await axios.get(`${url}/api/team/members/${_id}`, {
                 params: {
                     who: "employees"
                 },
@@ -44,7 +42,7 @@ const EditLeaveRequestForm = () => {
                     Authorization: token || ""
                 }
             })
-            setColleagues(res.data.employees.filter((emp) => emp._id !== empId))
+            setColleagues(res.data.employees.filter((emp) => emp._id !== _id))
         } catch (error) {
             console.log(error);
 
@@ -78,48 +76,6 @@ const EditLeaveRequestForm = () => {
             toast.error(error.response.data.details);
         }
     };
-
-    // const gettingLeaveRequests = async () => {
-    //     setIsLoading(true)
-    //     try {
-    //       if (empId) {
-    //         const leaveReqs = await fetchLeaveRequests(empId);
-    
-    //         const leaveDates = leaveReqs?.peopleLeaveOnMonth.flatMap((leave) => [
-    //           new Date(leave.fromDate).toISOString(),
-    //           new Date(leave.toDate).toISOString(),
-    //         ]) || [];
-    
-    //         // Count occurrences of each date
-    //         const dateCounts = leaveDates.reduce((acc, date) => {
-    //           acc[date] = (acc[date] || 0) + 1;
-    //           return acc;
-    //         }, {});
-    
-    //         // Filter dates with more than one occurrence
-    //         const duplicateDates = Object.entries(dateCounts)
-    //           .filter(([, count]) => count > 1) // Keep only dates with count > 1
-    //           .map(([date]) => new Date(date)); // Convert back to Date objects
-    
-    //         // Update the excludeDates array
-    //         if (duplicateDates.length > 0) {
-    //           setExcludeDates((prev) => [...prev, ...duplicateDates]);
-    //         }
-    
-    //         // Set types of leave
-    //         const validLeaveTypes = Object.keys(leaveReqs?.employee?.typesOfLeaveCount).map((type) => type);
-    
-    //         setTypOfLeave(validLeaveTypes || {});
-    
-    //       } else {
-    //         toast.error("empId is not loaded in the app.");
-    //       }
-    //     } catch (error) {
-    //       console.error("Error fetching leave requests:", error);
-    //       toast.error("Failed to fetch leave requests. Please try again.");
-    //     }
-    //     setIsLoading(false);
-    //   };
 
     return (
         <form onSubmit={handleSubmit}>

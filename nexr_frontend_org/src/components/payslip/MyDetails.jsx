@@ -3,6 +3,7 @@ import { fetchEmployeeData } from "../ReuseableAPI";
 import { EssentialValues } from "../../App";
 import NoDataFound from "./NoDataFound";
 import Loading from "../Loader";
+import { Skeleton } from "@mui/material";
 
 const MyDetails = () => {
     const [empObj, setEmpObj] = useState({});
@@ -28,26 +29,43 @@ const MyDetails = () => {
 
     return (
         error ? <NoDataFound message={error} /> :
-            isLoading ? <Loading height="80vh" /> :
-                <div>
-                    {empObj?.FirstName && empObj?.LastName && (
-                        <>
-                            <p className="sub_title">Personal Details</p>
-                            <ul className="my-3 list_style" style={{ listStyleType: "disc" }}>
-                                {empObj?.FirstName && empObj?.LastName && (
-                                    <li>
-                                        Name: {empObj?.FirstName[0]?.toUpperCase() + empObj?.FirstName?.slice(1)} {empObj.LastName}
-                                    </li>
-                                )}
-                                {empObj?.Email && <li>Email: {empObj?.Email}</li>}
-                                {empObj?.DOB && <li>DOB: {empObj?.DOB.split("T")[0]}</li>}
-                                {empObj?.countryCode && empObj?.phone && <li>Phone: {empObj.countryCode} {empObj.phone}</li>}
-                                {empObj?.gender && <li>Gender: {empObj?.gender}</li>}
-                            </ul>
-                        </>
-                    )}
+            // isLoading ? <Loading height="80vh" /> :
+            <div>
 
-                    {empObj?.role && empObj?.position && empObj?.department && (
+                {
+                    isLoading ?
+                        <>
+                            <Skeleton varient="text" height={50} width={250} />
+                            <Skeleton varient="text" height={30} width={200} />
+                            <Skeleton varient="text" height={30} width={200} />
+                            <Skeleton varient="text" height={30} width={200} />
+                        </> :
+                        empObj?.FirstName && empObj?.LastName && (
+                            <>
+                                <p className="sub_title">Personal Details</p>
+                                <ul className="my-3 list_style" style={{ listStyleType: "disc" }}>
+                                    {empObj?.FirstName && empObj?.LastName && (
+                                        <li>
+                                            Name: {empObj?.FirstName[0]?.toUpperCase() + empObj?.FirstName?.slice(1)} {empObj.LastName}
+                                        </li>
+                                    )}
+                                    {empObj?.Email && <li>Email: {empObj?.Email}</li>}
+                                    {empObj?.DOB && <li>DOB: {empObj?.DOB.split("T")[0]}</li>}
+                                    {empObj?.countryCode && empObj?.phone && <li>Phone: {empObj.countryCode} {empObj.phone}</li>}
+                                    {empObj?.gender && <li>Gender: {empObj?.gender}</li>}
+                                </ul>
+                            </>
+                        )
+                }
+
+                {isLoading ?
+                    <div className="my-2">
+                        <Skeleton varient="text" height={50} width={250} />
+                        <Skeleton varient="text" height={30} width={200} />
+                        <Skeleton varient="text" height={30} width={200} />
+                        <Skeleton varient="text" height={30} width={200} />
+                    </div> :
+                    empObj?.role && empObj?.position && empObj?.department && (
                         <>
                             <p className="sub_title">Employment Details</p>
                             <ul className="my-3 list_style" style={{ listStyleType: "disc" }}>
@@ -60,7 +78,14 @@ const MyDetails = () => {
                         </>
                     )}
 
-                    {empObj?.workingTimePattern && (
+                {isLoading ?
+                    <div className="my-2">
+                        <Skeleton varient="text" height={50} width={250} />
+                        <Skeleton varient="text" height={30} width={200} />
+                        <Skeleton varient="text" height={30} width={200} />
+                        <Skeleton varient="text" height={30} width={200} />
+                    </div> :
+                    empObj?.workingTimePattern && (
                         <>
                             <p className="sub_title">Job Details</p>
                             <ul className="my-3 list_style" style={{ listStyleType: "disc" }}>
@@ -90,18 +115,31 @@ const MyDetails = () => {
                         </>
                     )}
 
-                    {empObj?.typesOfLeaveCount && Object.keys(empObj.typesOfLeaveCount).length > 0 && (
+                {isLoading ?
+                    <div className="my-2">
+                        <Skeleton varient="text" height={50} width={250} />
+                        <Skeleton varient="text" height={30} width={200} />
+                        <Skeleton varient="text" height={30} width={200} />
+                        <Skeleton varient="text" height={30} width={200} />
+                    </div> :
+                    empObj?.typesOfLeaveCount && Object.keys(empObj.typesOfLeaveCount).length > 0 && (
                         <>
                             <p className="sub_title">Annual Leave Entitlement</p>
                             <ul className="my-3 list_style" style={{ listStyleType: "disc" }}>
                                 {Object.entries(empObj.typesOfLeaveCount).map(([key, value]) => (
-                                    <li key={key}>{key[0].toUpperCase()+key.slice(1)}: {value}</li>
+                                    <li key={key}>{key[0].toUpperCase() + key.slice(1)}: {value}</li>
                                 ))}
                             </ul>
                         </>
                     )}
 
-                    {empObj?.basicSalary && empObj?.accountNo && empObj?.bankName && empObj?.IFSCcode && (
+                {isLoading ?
+                    <div className="my-2">
+                        <Skeleton varient="text" height={50} width={250} />
+                        <Skeleton varient="text" height={30} width={200} />
+                        <Skeleton varient="text" height={30} width={200} />
+                        <Skeleton varient="text" height={30} width={200} />
+                    </div> : empObj?.basicSalary && empObj?.accountNo && empObj?.bankName && empObj?.IFSCcode && (
                         <>
                             <p className="sub_title">Bank Details</p>
                             <ul className="my-3 list_style" style={{ listStyleType: "disc" }}>
@@ -113,7 +151,14 @@ const MyDetails = () => {
                         </>
                     )}
 
-                    {empObj?.payslipFields && Object.keys(empObj.payslipFields).length > 0 && (
+                {isLoading ?
+                    <div className="my-2">
+                        <Skeleton varient="text" height={50} width={250} />
+                        <Skeleton varient="text" height={30} width={200} />
+                        <Skeleton varient="text" height={30} width={200} />
+                        <Skeleton varient="text" height={30} width={200} />
+                    </div> :
+                    empObj?.payslipFields && Object.keys(empObj.payslipFields).length > 0 && (
                         <>
                             <p className="sub_title">Payslip Details</p>
                             <ul className="my-3 list_style" style={{ listStyleType: "disc" }}>
@@ -123,7 +168,7 @@ const MyDetails = () => {
                             </ul>
                         </>
                     )}
-                </div>
+            </div>
 
     )
 };

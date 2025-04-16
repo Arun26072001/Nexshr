@@ -17,9 +17,8 @@ import Loading from "../Loader";
 const LeaveRequestForm = ({ type }) => {
   const { id } = useParams();
   const url = process.env.REACT_APP_API_URL;
-  const empId = localStorage.getItem("_id");
-  const { whoIs } = useContext(EssentialValues);
-  const token = localStorage.getItem("token");
+  const { whoIs, data } = useContext(EssentialValues);
+  const { _id, token } = data;
   const [error, setError] = useState("");
   const [isShowPeriodOfLeave, setIsShowPeriodOfLeave] = useState(false);
   const navigate = useNavigate();
@@ -27,7 +26,6 @@ const LeaveRequestForm = ({ type }) => {
   const [excludedDates, setExcludeDates] = useState([]);
   const [filteredExcludesDates, setFilteredExcludeDates] = useState([]);
   const [prescriptionFile, setPrescriptionFile] = useState("");
-  // const [content, setContent] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [employees, setEmployees] = useState([]);
   const [isWorkingApi, setIsWorkingApi] = useState(false);
@@ -141,7 +139,7 @@ const LeaveRequestForm = ({ type }) => {
     try {
       setIsWorkingApi(true);
       // Leave request submission
-      const res = await axios.post(`${url}/api/leave-application/${empId}`, formData, {
+      const res = await axios.post(`${url}/api/leave-application/${_id}`, formData, {
         headers: {
           "Content-Type": "multipart/form-data",
           authorization: token || "",
@@ -162,7 +160,7 @@ const LeaveRequestForm = ({ type }) => {
   async function updateLeave(formData, resetForm) {
     const leaveData = {
       ...formData,
-      employee: empId
+      employee: _id
     }
 
     try {
@@ -223,8 +221,8 @@ const LeaveRequestForm = ({ type }) => {
   const gettingLeaveRequests = async () => {
     setIsLoading(true)
     try {
-      if (formik.values.applyFor || empId) {
-        const leaveReqs = await fetchLeaveRequests(formik.values.applyFor || empId);
+      if (formik.values.applyFor || _id) {
+        const leaveReqs = await fetchLeaveRequests(formik.values.applyFor || _id);
 
         const leaveDates = leaveReqs?.peopleLeaveOnMonth.flatMap((leave) => [
           new Date(leave.fromDate).toISOString(),
@@ -254,7 +252,7 @@ const LeaveRequestForm = ({ type }) => {
         setTypOfLeave(validLeaveTypes || {});
 
       } else {
-        toast.error("empId is not loaded in the app.");
+        toast.error("_id is not loaded in the app.");
       }
     } catch (error) {
       console.error("Error fetching leave requests:", error);
@@ -269,7 +267,7 @@ const LeaveRequestForm = ({ type }) => {
     if (id) {
       fetchLeaveRequest()
     }
-  }, [empId, formik.values.applyFor]);
+  }, [_id, formik.values.applyFor]);
 
   function handleLeaveType(e) {
     const { name, value } = e.target;
@@ -296,7 +294,7 @@ const LeaveRequestForm = ({ type }) => {
   async function gettingEmps() {
     try {
       const emps = await fetchAllEmployees();
-      const filterEmps = emps.filter((emp) => emp._id !== empId)
+      const filterEmps = emps.filter((emp) => emp._id !== _id)
       setEmployees(filterEmps.map((emp) => ({ label: emp.FirstName + " " + emp.LastName, value: emp._id })))
     } catch (error) {
       console.log(error);

@@ -37,7 +37,3 @@ module.exports = {
     TeamValidation,
     TeamSchema
 }
-
-// module.exports.AddNewTeamCollection = function(orgName) {
-//     return mongoose.model(orgName+"Team", TeamSchema)
-//   }
