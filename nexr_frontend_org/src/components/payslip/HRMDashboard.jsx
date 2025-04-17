@@ -38,7 +38,6 @@ const LeaveCalender = React.lazy(() => import('../leave/Calender'));
 const Settings = React.lazy(() => import('../Settings/Settings'));
 const UnAuthorize = React.lazy(() => import('./UnAuthorize'));
 const LeaveRequestForm = React.lazy(() => import('./LeaveResquestForm'));
-const EditLeaveRequestForm = React.lazy(() => import('../EditLeaveRequestForm'));
 const Payroll = React.lazy(() => import('../Settings/Payroll'));
 const PayrollManage = React.lazy(() => import('./PayrollManage'));
 const PayslipInfo = React.lazy(() => import('./PayslipInfo'));
@@ -62,7 +61,7 @@ export const TimerStates = createContext(null);
 
 export default function HRMDashboard() {
     const url = process.env.REACT_APP_API_URL;
-    const { data, isStartLogin, isStartActivity, setIsStartLogin, setIsStartActivity, whoIs, socket } = useContext(EssentialValues);
+    const { data, setData, isStartLogin, isStartActivity, setIsStartLogin, setIsStartActivity, whoIs, socket } = useContext(EssentialValues);
     const { token, Account, _id } = data;
     const { isTeamLead, isTeamHead, isTeamManager } = jwtDecode(token);
     const [attendanceData, setAttendanceData] = useState([]);
@@ -462,18 +461,26 @@ export default function HRMDashboard() {
         gettingEmps()
         getClockInsData()
     }, [syncTimer]);
+console.log(data);
 
     useEffect(() => {
         async function fetchworktimePattern() {
             try {
                 const empData = await fetchEmployeeData(_id);
-                setWorkingTimePattern(empData.workingTimePattern)
+                setData((pre) => ({
+                    ...pre,
+                    Name: empData.FirstName + " " + empData.LastName,
+                    annualLeave: empData.annualLeaveEntitlement,
+                    profile: empData.profile,
+                    Account: String(empData.Account)
+                }))
+                setWorkingTimePattern(empData.workingTimePattern);
             } catch (error) {
                 console.log("Error in fetch workingtimepattern: ", error);
             }
         }
         fetchworktimePattern()
-    }, [])
+    }, [isEditEmp])
 
     return (
         <TimerStates.Provider value={{ workTimeTracker, reloadRolePage, setIsEditEmp, employees, updateWorkTracker, isWorkingLoginTimerApi, isworkingActivityTimerApi, trackTimer, startLoginTimer, stopLoginTimer, changeReasonForLate, changeReasonForEarly, startActivityTimer, stopActivityTimer, setWorkTimeTracker, updateClockins, timeOption, isStartLogin, isStartActivity, handleAddTask, changeEmpEditForm, isEditEmp, isAddTask, setIsAddTask, handleAddTask, selectedProject, daterangeValue, setDaterangeValue }}>

@@ -28,11 +28,6 @@ const Dashboard = () => {
 
             // Fetch employee data
             const empData = await fetchEmployeeData(data._id);
-            setData((pre) => ({
-                ...pre,
-                Name: empData.FirstName + " " + empData.LastName,
-                annualleave: empData.annualLeaveEntitlement
-            }))
 
             // Calculate working hours for the day
             if (empData?.workingTimePattern?.StartingTime && empData?.workingTimePattern?.FinishingTime) {

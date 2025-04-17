@@ -428,6 +428,7 @@ const EditEmployeeform = ({ details, empData, handleScroll, handlePersonal, prev
                                             Attach Employee profile (recommended for JPG)
                                         </span>
                                         <input type="file" name="profile" className="fileInput"
+                                            accept=".jpeg,.png,.jpg,.webp"
                                             onChange={(e) => changeImg(e)}
                                         />
                                     </div>

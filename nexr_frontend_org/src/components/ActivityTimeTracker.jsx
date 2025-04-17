@@ -225,7 +225,6 @@ const ActivityTimeTracker = () => {
             </div>
             <div className='good flex-wrap justify-content-between'>
                 <div className="col-lg-4 col-md-4 col-12">
-                    {/* <p style={{ fontSize: "15px", fontWeight: "600" }}>Good to see you, {EmpName[0]?.toUpperCase() + EmpName?.slice(1)} <WavingHandRoundedIcon sx={{color: "#FCC737"}} /></p> */}
                     <span style={{ fontSize: '15px', fontWeight: 600 }}>
                         Good to see you,
                         {formattedName}

@@ -189,29 +189,30 @@ const App = () => {
   }, [])
 
   useEffect(() => {
-    function fetchEssentialData() {
-      const decodedData = jwtDecode(localStorage.getItem("token"));
-      setData((prev) => ({
-        ...prev,
-        _id: decodedData._id || "",
-        Account: decodedData.Account || "",
-        Name: `${decodedData.FirstName} ${decodedData.LastName}` || "",
-        annualLeave: decodedData.annualLeaveEntitment || 0,
-        token: localStorage.getItem("token") || "",
-        profile: decodedData.profile
-      }))
-      const roles = { "17": "superAdmin", "1": "admin", "2": "hr", "3": "emp", "4": "manager", "5": "sys-admin" };
-      setWhoIs(roles[String(decodedData.Account)] || "");
+    // function fetchEssentialData() {
+    const decodedData = jwtDecode(localStorage.getItem("token"));
+    setData((prev) => ({
+      ...prev,
+      _id: decodedData._id || "",
+      Account: decodedData.Account || "",
+      Name: `${decodedData.FirstName} ${decodedData.LastName}` || "",
+      annualLeave: decodedData.annualLeaveEntitment || 0,
+      token: localStorage.getItem("token") || "",
+      profile: decodedData.profile
+    }))
+    const roles = { "17": "superAdmin", "1": "admin", "2": "hr", "3": "emp", "4": "manager", "5": "sys-admin" };
+    setWhoIs(roles[String(decodedData.Account)] || "");
 
-      if (window.location.pathname !== "/login" || window.location.pathname !== `/${whoIs}`) {
-        if (roles[String(data.Account)]) {
-          replaceMiddleSegment()
-        }
+    if (window.location.pathname !== "/login" || window.location.pathname !== `/${whoIs}`) {
+      if (roles[String(decodedData.Account)]) {
+        console.log("go to place");
+        replaceMiddleSegment()
       }
     }
-    if (localStorage.getItem("token")) {
-      fetchEssentialData()
-    }
+    // }
+    // if (localStorage.getItem("token")) {
+    //   fetchEssentialData()
+    // }
   }, []);
 
 
@@ -256,7 +257,6 @@ const App = () => {
       navigate(`/${whoIs}`)
     }
   }, [isLogin, showOfflineAlert, hasInternet])
-  console.log(isLogin, whoIs, data.token);
 
   // Component Rendering
   return (
