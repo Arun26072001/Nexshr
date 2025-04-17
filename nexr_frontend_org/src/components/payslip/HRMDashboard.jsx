@@ -333,6 +333,9 @@ export default function HRMDashboard() {
     const getAttendanceData = async () => {
         try {
             const empOfAttendances = await axios.get(`${url}/api/clock-ins/`, {
+                params: {
+                    daterangeValue
+                },
                 headers: {
                     Authorization: token || ""
                 }
@@ -384,7 +387,7 @@ export default function HRMDashboard() {
     const getLeaveData = async () => {
         setIsLoading(true);
         try {
-            const leaveData = await axios.get(`${url}/api/leave-application/date-range/${whoIs}`, {
+            const leaveData = await axios.get(`${url}/api/leave-application/date-range/management/${whoIs}`, {
                 params: {
                     daterangeValue
                 },
@@ -392,7 +395,6 @@ export default function HRMDashboard() {
                     authorization: token || ""
                 }
             })
-            console.log("current leaveData:", leaveData.data);
 
             setLeaveRequests(leaveData.data);
             setFullLeaveRequests(leaveData.data);
@@ -423,19 +425,21 @@ export default function HRMDashboard() {
         setIsLoading(false);
     }
     useEffect(() => {
-        if (["1", "2"].includes(Account)) {
-            getLeaveData();
-        } else if (whoIs && [isTeamHead, isTeamLead, isTeamManager].includes(true)) {
+        if (whoIs && [isTeamHead, isTeamLead, isTeamManager].includes(true)) {
             getLeaveDataFromTeam()
+        } else {
+            getLeaveData();
         }
     }, [daterangeValue, _id, whoIs, isUpdatedRequest]);
 
     // to view attendance data for admin and hr
     useEffect(() => {
-        if (["1", "2", "5"].includes(Account)) {
-            getAttendanceData()
-        } else if ([isTeamHead, isTeamLead, isTeamManager].includes(true)) {
+        console.log("call on change");
+
+        if ([isTeamHead, isTeamLead, isTeamManager].includes(true)) {
             getTeamAttendance();
+        } else {
+            getAttendanceData()
         }
         getClocknsData();
         fetchCompanies();
@@ -461,7 +465,6 @@ export default function HRMDashboard() {
         gettingEmps()
         getClockInsData()
     }, [syncTimer]);
-console.log(data);
 
     useEffect(() => {
         async function fetchworktimePattern() {

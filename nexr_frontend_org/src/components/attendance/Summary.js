@@ -1,23 +1,24 @@
 import React, { useContext, useEffect, useState } from 'react';
-import Popup from './Popup';
 import { Doughnut } from 'react-chartjs-2';
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js';
-import { fetchEmployees, gettingClockinsData } from '../ReuseableAPI';
+import { gettingClockinsData } from '../ReuseableAPI';
 import { toast } from 'react-toastify';
 import LeaveTable from '../LeaveTable';
 import NoDataFound from '../payslip/NoDataFound';
 import Loading from '../Loader';
 import "./Summary.css";
 import { EssentialValues } from '../../App';
+import { TimerStates } from '../payslip/HRMDashboard';
+import { SelectPicker } from 'rsuite';
 
 // Register required Chart.js components
 ChartJS.register(ArcElement, Tooltip, Legend);
 
 const Summary = () => {
     const { data } = useContext(EssentialValues);
-    const { _id, Name } = data || {}; // Ensure safe access to `_id` & `Name`
-
-    const [employees, setEmployees] = useState([]);
+    const { employees } = useContext(TimerStates);
+    const { _id } = data; // Ensure safe access to `_id` & `Name`
+    const [selectedEmp, setSelectedEmp] = useState(_id);
     const [clockinsData, setClockinsData] = useState({});
     const [isLoading, setIsLoading] = useState(false);
     const [chartData, setChartData] = useState({
@@ -64,17 +65,6 @@ const Summary = () => {
         }
     };
 
-    // Fetch employee data
-    const getEmpData = async () => {
-        try {
-            const emps = await fetchEmployees();
-
-            if (emps) setEmployees(emps);
-        } catch (error) {
-            toast.error("Error fetching employees.");
-        }
-    };
-
     // Update chart data safely
     const updateChartData = (data) => {
         setChartData((prevChartData) => ({
@@ -118,7 +108,6 @@ const Summary = () => {
             }
         };
         getClockinsData();
-        getEmpData();
     }, [_id]);
 
     if (isLoading) {
@@ -129,20 +118,20 @@ const Summary = () => {
         <div className='dashboard-parent pt-4'>
             <div className="d-flex justify-content-between align-items-center p-3">
                 <h5 className='text-daily'>Summary</h5>
-                <div className='d-flex'>
+                {/* <div className='d-flex'>
                     <Popup />
                     <button className="btn attends btn-light ms-2" type="button">
                         <svg width="15" height="16" viewBox="0 0 15 16" fill="none" xmlns="http://www.w3.org/2000/svg">
                             <path d="M7.5 1.5V9.77273M7.5 1.5L10.0606 3.86364M7.5 1.5L4.93939 3.86364M14 10.9545V12.9242C14 13.7945 13.2945 14.5 12.4242 14.5H2.57576C1.70549 14.5 1 13.7945 1 12.9242V10.9545" stroke="#0A0A0A" strokeWidth="1.20741" strokeLinecap="round" strokeLinejoin="round" />
                         </svg> Export
                     </button>
-                </div>
+                </div> */}
             </div>
 
             <div className='row container-fluid attendanceFile m-0'>
                 <div className="row d-flex justify-content-end">
                     <div className="col-12 col-md-4">
-                        <select className="form-select mt-2" onChange={(e) => selectEmpClockins(e.target.value)}>
+                        {/* <select className="form-select mt-2" onChange={(e) => selectEmpClockins(e.target.value)}>
                             <option value={_id}>{Name || "Select Employee"}</option>
 
                             {employees.length &&
@@ -151,7 +140,11 @@ const Summary = () => {
                                         {`${employee.FirstName} ${employee.LastName}`}
                                     </option>
                                 ))} 
-                        </select>
+                        </select> */}
+                        <SelectPicker size="lg" style={{ width: "100%" }} value={selectedEmp} data={employees} onChange={(e) => {
+                            setSelectedEmp(e)
+                            selectEmpClockins(e)
+                        }} />
                     </div>
                 </div>
                 <div className='col-lg-6 d-flex align-items-center justify-content-center'>

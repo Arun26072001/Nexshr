@@ -44,12 +44,12 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
     };
 
     const column1 = [
-        { id: 'FirstName', label: 'Name', minWidth: 100, align: "left", getter: (row) => row.employee.FirstName[0].toUpperCase() + row.employee.FirstName.slice(1) + row.employee.LastName || 'Unknown' },
+        { id: 'FirstName', label: 'Name', minWidth: 100, align: "left", getter: (row) => row?.employee?.FirstName[0]?.toUpperCase() + row?.employee?.FirstName?.slice(1) + row?.employee?.LastName || 'Unknown' },
         { id: 'periodOfLeave', label: 'Period Of Leave', align: "left", minWidth: 100, getter: (row) => row.periodOfLeave },
-        { id: 'fromDate', label: 'Start Date', minWidth: 100, align: 'left', getter: (row) => row.fromDate ? row.fromDate.split("T")[0] : 'N/A' },
-        { id: 'toDate', label: 'End Date', minWidth: 100, align: 'left', getter: (row) => row.toDate ? row.toDate.split("T")[0] : 'N/A' },
+        { id: 'fromDate', label: 'Start Date', minWidth: 120, align: 'left', getter: (row) => row.fromDate ? row.fromDate.split("T")[0] : 'N/A' },
+        { id: 'toDate', label: 'End Date', minWidth: 120, align: 'left', getter: (row) => row.toDate ? row.toDate.split("T")[0] : 'N/A' },
         { id: 'leaveType', label: 'Type', minWidth: 100, align: 'left', getter: (row) => row.leaveType },
-        { id: '', label: 'Reason', minWidth: 100, align: 'left', getter: (row) => <div dangerouslySetInnerHTML={{ __html: row.reasonForLeave }} /> },
+        { id: '', label: 'Reason', minWidth: 100, align: 'left', getter: (row) => <div dangerouslySetInnerHTML={{ __html: row.reasonForLeave.slice(0,20) }} /> },
         {
             id: 'status',
             label: 'Status',

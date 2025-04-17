@@ -59,6 +59,9 @@ export default function LeaveRequest() {
                         hr: response
                     }
                 }
+            }else{
+                toast.error("You are not approver for this leave")
+                return;
             }
 
             const res = await axios.put(`${url}/api/leave-application/${leave._id}`, updatedLeaveRequest, {

@@ -4,7 +4,7 @@ const { LeaveApplication,
   LeaveApplicationValidation
 } = require('../models/LeaveAppModel');
 const { Employee } = require('../models/EmpModel');
-const { verifyHR, verifyHREmployee, verifyEmployee, verifyAdmin, verifyAdminHREmployeeManagerNetwork, verifyAdminHR, verifyAdminHREmployee, verifyTeamHigherAuthority } = require('../auth/authMiddleware');
+const { verifyHR, verifyHREmployee, verifyEmployee, verifyAdmin, verifyAdminHREmployeeManagerNetwork, verifyAdminHR, verifyAdminHREmployee, verifyTeamHigherAuthority, verifyAdminHrNetworkAdmin } = require('../auth/authMiddleware');
 const { Team } = require('../models/TeamModel');
 const { upload } = require('./imgUpload');
 const now = new Date();
@@ -529,7 +529,7 @@ leaveApp.get("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
 });
 
 // get employee of leave data
-leaveApp.get("/date-range/hr", verifyHR, async (req, res) => {
+leaveApp.get("/date-range/management/:whoIs", verifyAdminHrNetworkAdmin, async (req, res) => {
   const now = new Date();
   let startOfMonth, endOfMonth;
 
@@ -542,7 +542,14 @@ leaveApp.get("/date-range/hr", verifyHR, async (req, res) => {
   }
 
   try {
-    const employeesLeaveData = await Employee.find({ Account: 3 }, "_id FirstName LastName")
+
+    let filterObj = {};
+    if (req.params.whoIs === "hr") {
+      filterObj = {
+        Account: 3
+      }
+    }
+    const employeesLeaveData = await Employee.find(filterObj, "_id FirstName LastName")
       .populate({
         path: "leaveApplication",
         match: {
@@ -590,68 +597,68 @@ leaveApp.get("/date-range/hr", verifyHR, async (req, res) => {
   }
 });
 
-//get all employees of leave application in month
-leaveApp.get("/date-range/admin", verifyAdmin, async (req, res) => {
-  const now = new Date();
-  let startOfMonth, endOfMonth;
+// //get all employees of leave application in month
+// leaveApp.get("/date-range/admin", verifyAdmin, async (req, res) => {
+//   const now = new Date();
+//   let startOfMonth, endOfMonth;
 
-  if (req.query?.daterangeValue) {
-    startOfMonth = new Date(req.query.daterangeValue[0]);
-    endOfMonth = new Date(req.query.daterangeValue[1]);
-    endOfMonth.setHours(23, 59, 59, 999); // Ensure the full last day is included
-  } else {
-    startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-    endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
-  }
+//   if (req.query?.daterangeValue) {
+//     startOfMonth = new Date(req.query.daterangeValue[0]);
+//     endOfMonth = new Date(req.query.daterangeValue[1]);
+//     endOfMonth.setHours(23, 59, 59, 999); // Ensure the full last day is included
+//   } else {
+//     startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+//     endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
+//   }
 
-  try {
-    const employeesLeaveData = await Employee.find({}, "_id FirstName LastName")
-      .populate({
-        path: "leaveApplication",
-        match: {
-          fromDate: { $gte: startOfMonth, $lte: endOfMonth },
-          toDate: { $gte: startOfMonth, $lte: endOfMonth }
-        },
-        populate: [
-          { path: "employee", select: "FirstName LastName Email" },
-          { path: "coverBy", select: "FirstName LastName Email" }
-        ]
-      });
+//   try {
+//     const employeesLeaveData = await Employee.find({}, "_id FirstName LastName")
+//       .populate({
+//         path: "leaveApplication",
+//         match: {
+//           fromDate: { $gte: startOfMonth, $lte: endOfMonth },
+//           toDate: { $gte: startOfMonth, $lte: endOfMonth }
+//         },
+//         populate: [
+//           { path: "employee", select: "FirstName LastName Email" },
+//           { path: "coverBy", select: "FirstName LastName Email" }
+//         ]
+//       });
 
-    let leaveData = employeesLeaveData
-      .flatMap(emp => emp.leaveApplication) // Flatten leave data
-      .sort((a, b) => new Date(b.fromDate) - new Date(a.fromDate))
-      .map(leave => ({
-        ...leave.toObject(),
-        prescription: leave.prescription
-          ? `${process.env.REACT_APP_API_URL}/uploads/${leave.prescription}`
-          : null
-      }));
+//     let leaveData = employeesLeaveData
+//       .flatMap(emp => emp.leaveApplication) // Flatten leave data
+//       .sort((a, b) => new Date(b.fromDate) - new Date(a.fromDate))
+//       .map(leave => ({
+//         ...leave.toObject(),
+//         prescription: leave.prescription
+//           ? `${process.env.REACT_APP_API_URL}/uploads/${leave.prescription}`
+//           : null
+//       }));
 
-    const approvedLeave = leaveData.filter(leave => leave.status === "approved");
-    const leaveInHours = approvedLeave.reduce(
-      (total, leave) => total + getDayDifference(leave) * 9, 0
-    );
+//     const approvedLeave = leaveData.filter(leave => leave.status === "approved");
+//     const leaveInHours = approvedLeave.reduce(
+//       (total, leave) => total + getDayDifference(leave) * 9, 0
+//     );
 
-    const pendingLeave = leaveData.filter(leave => leave.status === "pending");
-    const upcomingLeave = leaveData.filter(leave => new Date(leave.fromDate) > now);
-    const peopleOnLeave = approvedLeave.filter(leave =>
-      new Date(leave.fromDate).toDateString() === now.toDateString()
-    );
+//     const pendingLeave = leaveData.filter(leave => leave.status === "pending");
+//     const upcomingLeave = leaveData.filter(leave => new Date(leave.fromDate) > now);
+//     const peopleOnLeave = approvedLeave.filter(leave =>
+//       new Date(leave.fromDate).toDateString() === now.toDateString()
+//     );
 
-    res.send({
-      leaveData,
-      approvedLeave,
-      leaveInHours,
-      peopleOnLeave,
-      pendingLeave,
-      upcomingLeave
-    });
-  } catch (error) {
-    console.error("Error fetching leave data:", error);
-    res.status(500).send({ error: "Server error occurred while fetching leave data." });
-  }
-});
+//     res.send({
+//       leaveData,
+//       approvedLeave,
+//       leaveInHours,
+//       peopleOnLeave,
+//       pendingLeave,
+//       upcomingLeave
+//     });
+//   } catch (error) {
+//     console.error("Error fetching leave data:", error);
+//     res.status(500).send({ error: "Server error occurred while fetching leave data." });
+//   }
+// });
 
 // To get leave range date of data
 leaveApp.get("/date-range/:empId", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
