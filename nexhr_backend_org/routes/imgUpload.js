@@ -1,5 +1,6 @@
 const express = require("express");
 const multer = require("multer");
+const path = require("path");
 
 const imgUpload = express.Router();
 
@@ -10,11 +11,26 @@ const storage = multer.diskStorage({
   },
   filename(req, file, callback) {
     callback(null, `${file.fieldname}_${Date.now()}_${file.originalname}`);
-  },
+  }
 });
+// File filter to allow only JPG, PNG, and WEBP files
+const fileFilter = (req, file, callback) => {
+  const allowedTypes = /jpeg|jpg|png|webp/;
+  const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
+  console.log("extName: ", path.extname(file.originalname));
+  const mimetype = allowedTypes.test(file.mimetype);
+  console.log("mimetype: ", file.mimetype);
+
+  if (extname && mimetype) {
+    callback(null, true);
+  } else {
+    callback(new Error('Only .jpg, .png, and .webp files are allowed!'));
+  }
+};
 const upload = multer({
   storage,
   limits: { fileSize: 10 * 1024 * 1024 }, // Limit file size to 10MB
+  fileFilter
 });
 
 // POST route for uploading and converting files

@@ -5,6 +5,7 @@ import { toast } from 'react-toastify';
 import LeaveTable from '../LeaveTable';
 import Loading from '../Loader';
 import { EssentialValues } from '../../App';
+import NoDataFound from '../payslip/NoDataFound';
 
 const Announce = () => {
     const url = process.env.REACT_APP_API_URL;
@@ -66,17 +67,21 @@ const Announce = () => {
     return (
         isLoading ? <Loading height="80vh" /> :
             <div className='dashboard-parent py-4'>
-                <div className="d-flex  justify-content-between align-items-center">
-                    <div>
-                        <h5 className='text-daily'>Announcement</h5>
+                <div className="d-flex justify-content-between px-2">
+                    <h5 className='text-daily'>Announcement</h5>
+                    <Announcementalert handleChangeAnnouncement={handleChangeAnnouncement} />
+                    {/* <div>
                     </div>
                     <div className='d-flex'>
-                        <Announcementalert handleChangeAnnouncement={handleChangeAnnouncement} />
-                    </div>
+                    </div> */}
                 </div>
                 <div className='tabline mt-3 p-4'>
                     <div className='profiles mt-3'>
-                        <LeaveTable handleDelete={handleDelete} data={announcements} />
+                        {
+                            announcements.length > 0 ?
+                            <LeaveTable handleDelete={handleDelete} data={announcements} />:
+                            <NoDataFound message={"Announcement data not found"} />
+                        }
                     </div>
                 </div>
             </div>

@@ -139,13 +139,9 @@ export default function Department({ companies }) {
                 isWorkingApi={isChangingDepartment}
             /> :
                 <div className='dashboard-parent pt-4'>
-                    <div className="row">
-                        <div className='col-lg-6 col-6'>
-                            <h5 className='text-daily'>Department</h5>
-                        </div>
-                        <div className='col-lg-6 col-6 d-flex gap-2 justify-content-end'>
-                            <button className='button m-0' onClick={modifyDepartments}>+ Add Department</button>
-                        </div>
+                    <div className="d-flex justify-content-between px-2">
+                        <h5 className='text-daily'>Department</h5>
+                        <button className='button m-0' onClick={modifyDepartments}>+ Add Department</button>
                     </div>
                     {
                         departments.length > 0 ?

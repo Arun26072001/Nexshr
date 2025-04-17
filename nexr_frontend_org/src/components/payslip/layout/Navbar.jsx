@@ -16,7 +16,6 @@ import Loading from '../../Loader';
 
 export default function Navbar({ handleSideBar }) {
     const { handleLogout, data, handleUpdateAnnouncements, isChangeAnnouncements, whoIs, socket } = useContext(EssentialValues)
-
     const { startLoginTimer, stopLoginTimer, workTimeTracker, isStartLogin, trackTimer, changeReasonForEarly, isWorkingLoginTimerApi } = useContext(TimerStates);
     const [sec, setSec] = useState(workTimeTracker?.login?.timeHolder?.split(':')[2])
     const [min, setMin] = useState(workTimeTracker?.login?.timeHolder?.split(':')[1])
