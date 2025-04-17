@@ -22,8 +22,6 @@ export default function LeaveRequest() {
     const { token } = data;
     const { isTeamHead, isTeamLead, isTeamManager } = jwtDecode(token);
     const navigate = useNavigate()
-    console.log(leaveRequests);
-
 
     async function replyToLeave(leave, response) {
         try {
