@@ -1,4 +1,4 @@
-import React, { useContext, useEffect } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import LeaveTable from '../LeaveTable';
 import NoDataFound from '../payslip/NoDataFound';
 import Loading from '../Loader';
@@ -22,6 +22,8 @@ export default function LeaveRequest() {
     const { token } = data;
     const { isTeamHead, isTeamLead, isTeamManager } = jwtDecode(token);
     const navigate = useNavigate()
+    console.log(leaveRequests);
+
 
     async function replyToLeave(leave, response) {
         try {
@@ -59,7 +61,7 @@ export default function LeaveRequest() {
                         hr: response
                     }
                 }
-            }else{
+            } else {
                 toast.error("You are not approver for this leave")
                 return;
             }

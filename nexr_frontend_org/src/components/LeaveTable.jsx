@@ -49,7 +49,7 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
         { id: 'fromDate', label: 'Start Date', minWidth: 120, align: 'left', getter: (row) => row.fromDate ? row.fromDate.split("T")[0] : 'N/A' },
         { id: 'toDate', label: 'End Date', minWidth: 120, align: 'left', getter: (row) => row.toDate ? row.toDate.split("T")[0] : 'N/A' },
         { id: 'leaveType', label: 'Type', minWidth: 100, align: 'left', getter: (row) => row.leaveType },
-        { id: '', label: 'Reason', minWidth: 100, align: 'left', getter: (row) => <div dangerouslySetInnerHTML={{ __html: row.reasonForLeave.slice(0,20) }} /> },
+        { id: '', label: 'Reason', minWidth: 100, align: 'left', getter: (row) => <div dangerouslySetInnerHTML={{ __html: row.reasonForLeave.slice(0, 20) }} /> },
         {
             id: 'status',
             label: 'Status',
@@ -743,7 +743,7 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
                                                     if (params['*'] === "leave-request") {
                                                         return (
                                                             <Dropdown placement='leftStart' title={<EditRoundedIcon style={{ cursor: "pointer" }} />} noCaret>
-                                                                {/* <Dropdown.Item style={{ minWidth: 120 }}>Response</Dropdown.Item> */}
+                                                                <Dropdown.Item style={{ minWidth: 120 }} onClick={() => navigate(`/${whoIs}/leave-request/view/${row._id}`)}>View</Dropdown.Item>
                                                                 <Dropdown.Item style={{ minWidth: 120 }} onClick={() => replyToLeave(row, "approved")}>Approve</Dropdown.Item>
                                                                 <Dropdown.Item style={{ minWidth: 120 }} onClick={() => replyToLeave(row, "rejected")}>Reject</Dropdown.Item>
                                                             </Dropdown>
