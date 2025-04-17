@@ -66,8 +66,8 @@ h1 {
 .messageCount,
 .circleEditIcon {
   display: flex;
-  align-items: center;
   justify-content: center;
+  align-items: center;
 }
 
 .hoverStyle {

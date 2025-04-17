@@ -1,11 +1,12 @@
 const express = require('express');
 const router = express.Router();
 const { Employee } = require('../models/EmpModel');
-const {  verifyAdminHREmployeeManagerNetwork, verifyAdminHR, verifyAdmin, verifyTeamHigherAuthority, verifyAdminHRTeamHigherAuth, verifyAdminHREmployee } = require('../auth/authMiddleware');
+const { verifyAdminHREmployeeManagerNetwork, verifyAdminHR, verifyAdmin, verifyTeamHigherAuthority, verifyAdminHRTeamHigherAuth, verifyAdminHREmployee } = require('../auth/authMiddleware');
 const { getDayDifference } = require('./leave-app');
 const sendMail = require("./mailSender");
 const { RoleAndPermission } = require('../models/RoleModel');
 const { Team } = require('../models/TeamModel');
+const fs = require("fs");
 
 router.get("/", verifyAdminHRTeamHigherAuth, async (req, res) => {
   try {
@@ -336,6 +337,12 @@ router.put("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
     if (req?.body?.role) {
       const roleData = await RoleAndPermission.findById(req.body.role, "RoleName")
       roleName = roleData.RoleName;
+    }
+    // check previous profile and current are same
+    const empData = await Employee.findById(req.params.id);
+    if (empData.profile !== req.body.profile) {
+      const filename = empData.profile.split("/").at(-1);
+      fs.unlinkSync(`uploads/${filename}`)
     }
     let newEmployee = {
       ...req.body,

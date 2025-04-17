@@ -255,7 +255,7 @@ leaveApp.get("/emp/:empId", verifyAdminHREmployeeManagerNetwork, async (req, res
     const filterLeaves = { fromDate: { $lte: today }, toDate: { $gte: today }, status: "approved" };
 
     // **Parallel Data Fetching**
-    const [leaveApplications, peopleOnLeave, team] = await Promise.all([
+    let [leaveApplications, peopleOnLeave, team] = await Promise.all([
       LeaveApplication.find({
         employee: empId,
         fromDate: {
@@ -268,6 +268,12 @@ leaveApp.get("/emp/:empId", verifyAdminHREmployeeManagerNetwork, async (req, res
       LeaveApplication.find(filterLeaves).populate("employee", "FirstName LastName").lean(),
       Team.findOne({ employees: empId }, "employees").lean()
     ]);
+
+    // change reason for leave as actual string
+    leaveApplications = leaveApplications.map((leave) => ({
+      ...leave,
+      reasonForLeave: leave.reasonForLeave.replace(/<\/?[^>]+(>|$)/g, '')
+    }))
 
     // Fetch team members' leaves only if team exists
     const peopleLeaveOnMonth = team
@@ -765,8 +771,8 @@ leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("pre
     const fromDateObj = new Date(fromDate);
     const toDateObj = new Date(toDate);
     const today = new Date();
-    const yesterday = new Date(today);
-    yesterday.setDate(today.getDate() - 1);
+    const tomorrow = new Date(today);
+    tomorrow.setDate(today.getDate() + 1);
 
     // 1. If applying on behalf, ensure target employee isn't already working those days
     if (applyFor) {
@@ -791,11 +797,11 @@ leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("pre
       return res.status(400).json({ error: "Leave request already exists for the given date range." });
     }
 
-    // 3. Sick/Medical leave must be for today or yesterday
+    // 3. Sick/Medical leave must be for today or tomorrow
     if (["Sick Leave", "Medical Leave"].includes(leaveType)) {
       const formattedFrom = fromDateObj.toDateString();
-      if (![today.toDateString(), yesterday.toDateString()].includes(formattedFrom)) {
-        return res.status(400).json({ error: "Sick leave is only applicable for today or yesterday." });
+      if (![today.toDateString(), tomorrow.toDateString()].includes(formattedFrom)) {
+        return res.status(400).json({ error: "Sick leave is only applicable for today or tomorrow." });
       }
     }
 
@@ -1047,7 +1053,7 @@ leaveApp.put('/:id', verifyAdminHREmployeeManagerNetwork, async (req, res) => {
   }
 });
 
-leaveApp.delete("/:id/:leaveId", verifyEmployee, async (req, res) => {
+leaveApp.delete("/:id/:leaveId", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
   try {
     const emp = await Employee.findById(req.params.id);
     if (!emp) {

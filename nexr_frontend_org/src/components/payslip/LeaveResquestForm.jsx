@@ -126,6 +126,8 @@ const LeaveRequestForm = ({ type }) => {
         formData.append("prescription", prescriptionFile); // Assuming `file` is the file object
         formData.append("coverBy", formik.values.coverBy);
         formData.append("applyFor", formik.values.applyFor);
+        console.log(formData);
+
         if (leaveRequestObj._id) {
           updateLeave(formData, resetForm)
         } else {
@@ -134,6 +136,8 @@ const LeaveRequestForm = ({ type }) => {
       }
     },
   });
+  console.log(formik.values);
+
 
   async function applyLeave(formData, resetForm) {
     try {
