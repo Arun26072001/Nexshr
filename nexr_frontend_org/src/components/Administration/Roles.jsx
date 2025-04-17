@@ -52,13 +52,9 @@ const Roles = () => {
     return (
         isLoading ? <Loading height="80vh" /> :
             <div className='dashboard-parent pt-4'>
-                <div className="row">
-                    <div className='col-lg-6 col-6'>
-                        <h5 className='text-daily'>Roles</h5>
-                    </div>
-                    <div className='col-lg-6 col-6 d-flex gap-2 justify-content-end'>
-                        <button className='button m-0' onClick={() => navigate(`add`)}>+ Add Role</button>
-                    </div>
+                <div className="d-flex justify-content-between px-2">
+                    <h5 className='text-daily'>Roles</h5>
+                    <button className='button m-0' onClick={() => navigate(`add`)}>+ Add Role</button>
                 </div>
                 {
                     roles.length > 0 ?

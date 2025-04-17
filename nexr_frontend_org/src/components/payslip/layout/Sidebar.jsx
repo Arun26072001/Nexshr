@@ -31,7 +31,6 @@ const Sidebar = ({ sideBar }) => {
 
   const [activeSubmenu, setActiveSubmenu] = useState(param['*']);
   const [activeNavLink, setActiveNavLink] = useState(param['*'] === "" ? "dashboard" : param['*'].includes("my-details") ? "jobDesk" : param['*']);
-  console.log(param['*']);
 
   const toggleActiveLink = (name) => {
     setActiveNavLink(activeNavLink === name ? '' : name);

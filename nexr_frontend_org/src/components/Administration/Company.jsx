@@ -142,13 +142,9 @@ export default function Company() {
             modifyCompany.isAdd ? <CommonModel type="Company" isWorkingApi={isChangingCompany} modifyData={changeCompanyOperation} addData={addCompany} changeData={changeCompany} dataObj={companyObj} isAddData={modifyCompany.isAdd} /> :
                 modifyCompany.isEdit ? <CommonModel type="Company" isWorkingApi={isChangingCompany} modifyData={changeCompanyOperation} addData={addCompany} changeData={changeCompany} dataObj={companyObj} isAddData={modifyCompany.isEdit} editData={editCompany} /> :
                     <div className='dashboard-parent pt-4'>
-                        <div className="row">
-                            <div className='col-lg-6 col-6'>
-                                <h5 className='text-daily'>Company</h5>
-                            </div>
-                            <div className='col-lg-6 col-6 d-flex gap-2 justify-content-end'>
-                                <button className='button m-0' onClick={() => changeCompanyOperation("Add")}>+ Add Company</button>
-                            </div>
+                        <div className="d-flex justify-content-between px-2">
+                            <h5 className='text-daily'>Company</h5>
+                            <button className='button m-0' onClick={() => changeCompanyOperation("Add")}>+ Add Company</button>
                         </div>
                         {
                             companies?.length > 0 ?

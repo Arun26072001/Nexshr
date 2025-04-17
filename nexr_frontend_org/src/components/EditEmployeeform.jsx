@@ -81,28 +81,30 @@ const EditEmployeeform = ({ details, empData, handleScroll, handlePersonal, prev
         onSubmit: async (values, { resetForm, setFieldValue }) => {
             setIsWorkingApi(true);
             try {
-                // Check if profile is a File (new upload), and has image type
-                if (values?.profile instanceof File && values.profile.type?.includes("image")) {
-                    const formData = new FormData();
-                    formData.append("documents", values.profile);
+                try {
+                    // Check if profile is a File (new upload), and has image type
+                    if (values?.profile instanceof File && values.profile.type?.includes("image")) {
+                        const formData = new FormData();
+                        formData.append("documents", values.profile);
 
-                    const uploadRes = await axios.post(
-                        `${process.env.REACT_APP_API_URL}/api/upload`,
-                        formData,
-                        {
-                            headers: {
-                                'Content-Type': 'multipart/form-data'
+                        const uploadRes = await axios.post(
+                            `${process.env.REACT_APP_API_URL}/api/upload`,
+                            formData,
+                            {
+                                headers: {
+                                    'Content-Type': 'multipart/form-data'
+                                }
                             }
-                        }
-                    );
+                        );
 
-                    const uploadedFile = uploadRes?.data?.files?.[0]?.originalFile;
-                    if (uploadedFile) {
+                        const uploadedFile = uploadRes?.data?.files?.[0]?.originalFile;
                         setFieldValue("profile", uploadedFile); // Update form field with uploaded file URL
                         values.profile = uploadedFile; // Make sure to send updated value
-                    } else {
-                        throw new Error("No file returned from upload response.");
+
                     }
+                } catch (error) {
+                    console.log("error in update file", error);
+                    toast.error(error.response.data.error)
                 }
 
                 const res = await updateEmp(values, id);
@@ -113,7 +115,7 @@ const EditEmployeeform = ({ details, empData, handleScroll, handlePersonal, prev
                 }
             } catch (err) {
                 console.error("Error occurred in edit employee!", err?.response?.data?.message || err.message);
-                toast.error("Failed to update employee. Please try again.");
+                toast.error(err.response.data.error);
             } finally {
                 setIsWorkingApi(false);
             }
