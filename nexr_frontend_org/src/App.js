@@ -92,11 +92,11 @@ const App = () => {
 
       // Update local storage
       localStorage.setItem("isLogin", true);
+      localStorage.setItem("_id", decodedData._id);
+      localStorage.setItem("token", response.data);
       // localStorage.setItem("Account", accountType);
-      // localStorage.setItem("_id", decodedData._id);
       // localStorage.setItem("Name", `${decodedData.FirstName} ${decodedData.LastName}`);
       // localStorage.setItem("annualLeaveEntitment", decodedData.annualLeaveEntitlement || 0);
-      // localStorage.setItem("token", response.data);
       // localStorage.setItem("profile", decodedData.profile)
 
       setPass(true);
@@ -105,8 +105,8 @@ const App = () => {
       // send emp id for extension
       sendEmpIdtoExtension(decodedData._id, response.data);
       const roles = { "17": "superAdmin", "1": "admin", "2": "hr", "3": "emp", "4": "manager", "5": "sys-admin" };
-      setWhoIs(roles[String(localStorage.getItem("Account"))] || "");
-      navigate(`/${roles[String(localStorage.getItem("Account"))]}`);
+      setWhoIs(roles[String(accountType)] || "");
+      navigate(`/${roles[String(accountType)]}`);
     } catch (error) {
       console.log(error);
 
@@ -189,22 +189,28 @@ const App = () => {
   }, [])
 
   useEffect(() => {
-    setData((prev) => ({
-      ...prev,
-      _id: localStorage.getItem("_id") || "",
-      Account: localStorage.getItem("Account") || "",
-      Name: localStorage.getItem("Name") || "",
-      token: localStorage.getItem("token") || "",
-      annualLeave: localStorage.getItem("annualLeaveEntitment") || 0,
-      profile: localStorage.getItem("profile")
-    }))
-    const roles = { "17": "superAdmin", "1": "admin", "2": "hr", "3": "emp", "4": "manager", "5": "sys-admin" };
-    setWhoIs(roles[String(localStorage.getItem("Account"))] || "");
+    function fetchEssentialData() {
+      const decodedData = jwtDecode(localStorage.getItem("token"));
+      setData((prev) => ({
+        ...prev,
+        _id: decodedData._id || "",
+        Account: decodedData.Account || "",
+        Name: `${decodedData.FirstName} ${decodedData.LastName}` || "",
+        annualLeave: decodedData.annualLeaveEntitment || 0,
+        token: localStorage.getItem("token") || "",
+        profile: decodedData.profile
+      }))
+      const roles = { "17": "superAdmin", "1": "admin", "2": "hr", "3": "emp", "4": "manager", "5": "sys-admin" };
+      setWhoIs(roles[String(decodedData.Account)] || "");
 
-    if (window.location.pathname !== "/login" || window.location.pathname !== `/${whoIs}`) {
-      if (roles[String(localStorage.getItem("Account"))]) {
-        replaceMiddleSegment()
+      if (window.location.pathname !== "/login" || window.location.pathname !== `/${whoIs}`) {
+        if (roles[String(data.Account)]) {
+          replaceMiddleSegment()
+        }
       }
+    }
+    if (localStorage.getItem("token")) {
+      fetchEssentialData()
     }
   }, []);
 
@@ -250,6 +256,7 @@ const App = () => {
       navigate(`/${whoIs}`)
     }
   }, [isLogin, showOfflineAlert, hasInternet])
+  console.log(isLogin, whoIs, data.token);
 
   // Component Rendering
   return (
