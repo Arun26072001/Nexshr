@@ -1,9 +1,8 @@
 import axios from 'axios';
-import { jwtDecode } from 'jwt-decode';
 import { toast } from 'react-toastify';
 const url = process.env.REACT_APP_API_URL;
 const token = localStorage.getItem('token');
-const { _id } = jwtDecode(token);
+const _id = localStorage.getItem("_id");
 
 const updateDataAPI = async (body) => {
     try {
