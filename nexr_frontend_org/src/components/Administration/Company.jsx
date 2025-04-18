@@ -1,7 +1,7 @@
 import React, { useContext, useEffect, useState } from 'react'
 import LeaveTable from '../LeaveTable'
 import axios from 'axios';
-import { fetchCompanies } from '../ReuseableAPI';
+import { fetchCompanies, fileUploadInServer } from '../ReuseableAPI';
 import NoDataFound from '../payslip/NoDataFound';
 import { toast } from 'react-toastify';
 import CommonModel from './CommonModel';
@@ -15,6 +15,7 @@ export default function Company() {
     const [isCompanychange, setIsCompanyChange] = useState(false);
     const { data } = useContext(EssentialValues);
     const [isLoading, setIsLoading] = useState(false);
+    const [logoPreview, setLogoPreView] = useState("");
     const [isChangingCompany, setIschangingCompany] = useState(false);
     const [modifyCompany, setModifyCompany] = useState({
         isAdd: false,
@@ -64,7 +65,18 @@ export default function Company() {
     async function addCompany() {
         setIschangingCompany(true);
         try {
-            const msg = await axios.post(url + "/api/company", companyObj, {
+            let updatedCompanyObj = {
+                ...companyObj
+            };
+            // upload company logo
+            if (companyObj.logo) {
+                const upload = await fileUploadInServer([companyObj.logo]);
+                updatedCompanyObj = {
+                    ...companyObj,
+                    logo: upload.files[0].originalFile
+                }
+            }
+            const msg = await axios.post(url + "/api/company", updatedCompanyObj, {
                 headers: {
                     authorization: data.token || ""
                 }
@@ -95,18 +107,29 @@ export default function Company() {
     }
 
     function changeCompany(value, name) {
+        setLogoPreView(URL.createObjectURL(value.target.files[0]))
         setCompanyObj((pre) => ({
             ...pre,
-            [name]: value
+            [name]: name === "logo" ? value.target.files[0] : value
         }))
     }
-
+    console.log(companyObj);
 
     async function editCompany() {
         setIschangingCompany(true);
+        let updatedCompanyObj = {
+            ...companyObj
+        }
         try {
+            if (companyObj?.logo?.type?.includes("image")) {
+                const upload = await fileUploadInServer([companyObj.logo]);
+                updatedCompanyObj = {
+                    ...companyObj,
+                    logo: upload.files[0].originalFile
+                }
+            }
             // Assuming the correct API endpoint for editing a department is '/api/department/${id}'
-            const response = await axios.put(`${url}/api/company/${companyObj._id}`, companyObj, {
+            const response = await axios.put(`${url}/api/company/${companyObj._id}`, updatedCompanyObj, {
                 headers: {
                     Authorization: data.token || ""
                 }
@@ -139,8 +162,8 @@ export default function Company() {
 
     return (
         isLoading ? <Loading height="80vh" /> :
-            modifyCompany.isAdd ? <CommonModel type="Company" isWorkingApi={isChangingCompany} modifyData={changeCompanyOperation} addData={addCompany} changeData={changeCompany} dataObj={companyObj} isAddData={modifyCompany.isAdd} /> :
-                modifyCompany.isEdit ? <CommonModel type="Company" isWorkingApi={isChangingCompany} modifyData={changeCompanyOperation} addData={addCompany} changeData={changeCompany} dataObj={companyObj} isAddData={modifyCompany.isEdit} editData={editCompany} /> :
+            modifyCompany.isAdd ? <CommonModel type="Company" preview={logoPreview} isWorkingApi={isChangingCompany} modifyData={changeCompanyOperation} addData={addCompany} changeData={changeCompany} dataObj={companyObj} isAddData={modifyCompany.isAdd} /> :
+                modifyCompany.isEdit ? <CommonModel type="Company" preview={logoPreview} isWorkingApi={isChangingCompany} modifyData={changeCompanyOperation} addData={addCompany} changeData={changeCompany} dataObj={companyObj} isAddData={modifyCompany.isEdit} editData={editCompany} /> :
                     <div className='dashboard-parent pt-4'>
                         <div className="d-flex justify-content-between px-2">
                             <h5 className='text-daily'>Company</h5>

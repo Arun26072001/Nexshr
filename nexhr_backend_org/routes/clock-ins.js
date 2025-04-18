@@ -575,10 +575,12 @@ router.get("/employee/:empId", verifyAdminHREmployeeManagerNetwork, async (req, 
 router.get("/sendmail/:id/:clockinId", async (req, res) => {
     try {
         // Fetch employee leave data
-        const emp = await Employee.findById(req.params.id).populate({
+        const emp = await Employee.findById(req.params.id).populate([{
             path: "clockIns",
             match: { _id: req.params.clockinId }
-        }).exec()
+        }, {
+            path: "company", select: "ComanyName logo"
+        }]).exec()
 
         const activities = ["login", "meeting", "morningBreak", "lunch", "eveningBreak", "event"];
         const clockIn = emp.clockIns[0]; // Assuming the first clock-in for the day
@@ -600,7 +602,7 @@ router.get("/sendmail/:id/:clockinId", async (req, res) => {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>NexsHR</title>
+  <title>${emp.company.CompanyName}</title>
 </head>
 <body style="font-family: Arial, sans-serif; background-color: #f6f9fc; color: #333; margin: 0; padding: 20px;">
   <div style="display: flex; justify-content: center; margin: 20px;">
@@ -721,60 +723,32 @@ router.post("/ontime/:type", async (req, res) => {
                 To: emp.Email,
                 Subject: type === "login" ? "Login Remainder" : "Logout Remainder",
                 HtmlBody: `
-        <html lang="en">
-        <head>
-            <meta charset="UTF-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>${emp?.company?.CompanyName}</title>
-            <style>
-                body {
-                    font-family: Arial, sans-serif;
-                    background-color: #f6f9fc;
-                    color: #333;
-                    margin: 0;
-                    padding: 0;
-                }
-                .container {
-                    max-width: 600px;
-                    margin: auto;
-                    padding: 20px;
-                    background-color: #fff;
-                    border-radius: 8px;
-                    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-                }
-                .content {
-                    margin: 20px 0;
-                }
-                .footer {
-                    text-align: center;
-                    font-size: 14px;
-                    margin-top: 20px;
-                    color: #777;
-                }
-            </style>
-        </head>
-        <body>
-            <div class="container">
-                <div class="content">
-                    <p>Dear ${emp.FirstName} ${emp.LastName},</p>
-                    ${type === "login" ?
-                        `
-                                <p>Please ensure that you log in on time at ${emp?.workingTimePattern?.StartingTime}.</p>
-                                <p>If you are delayed due to traffic or any unforeseen circumstances, please inform HR as soon as possible.</p>
-                                ` :
-                        `<p>Please ensure that you log out on time at ${emp?.workingTimePattern?.FinishingTime}.</p>`
-                    }
-                    <p>Kindly follow the necessary guidelines.</p><br />
-                    <p>Thank you!</p>
-                </div>
-                <div class="footer">
-                    <p>Have questions or need assistance? <a href="mailto:${process.env.FROM_MAIL}">Contact ${process.env.FROM_MAIL}</a>.</p>
-                </div>
-            </div>
-        </body>
-        </html>
-        `
-            })
+                <html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>${emp?.company?.CompanyName}</title>
+</head>
+<body style="font-family: Arial, sans-serif; background-color: #f6f9fc; color: #333; margin: 0; padding: 0;">
+    <div style="max-width: 600px; margin: auto; padding: 20px; background-color: #fff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);">
+        <div style="margin: 20px 0;">
+            <p>Dear ${emp.FirstName} ${emp.LastName},</p>
+            ${type === "login" ? `
+                <p>Please ensure that you log in on time at ${emp?.workingTimePattern?.StartingTime}.</p>
+                <p>If you are delayed due to traffic or any unforeseen circumstances, please inform HR as soon as possible.</p>
+            ` : `
+                <p>Please ensure that you log out on time at ${emp?.workingTimePattern?.FinishingTime}.</p>
+            `}
+            <p>Kindly follow the necessary guidelines.</p><br />
+            <p>Thank you!</p>
+        </div>
+        <div style="text-align: center; font-size: 14px; margin-top: 20px; color: #777;">
+            <p>Have questions or need assistance? <a href="mailto:${process.env.FROM_MAIL}">Contact ${process.env.FROM_MAIL}</a>.</p>
+        </div>
+    </div>
+</body>
+</html>
+`  })
         })
         console.log("sent successfully!");
 

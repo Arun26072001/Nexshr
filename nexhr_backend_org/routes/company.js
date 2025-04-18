@@ -1,14 +1,11 @@
 const express = require('express');
 const router = express();
 const { Company, CompanyValidation } = require('../models/CompanyModel');
-const jwt = require('jsonwebtoken');
 const Joi = require('joi');
-const dotenv = require('dotenv');
-const { verifyAdminHR,  verifyAdminHREmployeeManagerNetwork } = require('../auth/authMiddleware');
+const { verifyAdminHR, verifyAdminHREmployeeManagerNetwork } = require('../auth/authMiddleware');
 const { Employee } = require('../models/EmpModel');
 const { Department } = require('../models/DepartmentModel');
 const { Position } = require('../models/PositionModel');
-dotenv.config()
 
 router.get("/", verifyAdminHREmployeeManagerNetwork, (req, res) => {
   Company.find({}, "CompanyName").lean()
@@ -57,41 +54,22 @@ router.post("/", verifyAdminHR, (req, res) => {
   });
 });
 
-router.put("/:id", verifyAdminHR, (req, res) => {
-  let newCompany;
-
-  newCompany = {
-    CompanyName: req.body.CompanyName,
-    Address: req.body.Address,
-    PostalCode: req.body.PostalCode,
-    Website: req.body.Website,
-    Email: req.body.Email,
-    ContactPerson: req.body.ContactPerson,
-    ContactNo: req.body.ContactNo,
-    FaxNo: req.body.FaxNo,
-    PanNo: req.body.PanNo,
-    GSTNo: req.body.GSTNo,
-    CINNo: req.body.CINNo
-  };
-  Joi.validate(newCompany, CompanyValidation, (err, result) => {
-    if (err) {
-      console.log(err);
-      res.status(400).send({ error: err.details[0].message });
+router.put("/:id", verifyAdminHR, async (req, res) => {
+  try {
+    // check validation for company
+    const { error } = CompanyValidation.validate(req.body);
+    if (error) {
+      return res.status(400).send({ error: error.details[0].message })
     } else {
-
-      Company.findByIdAndUpdate(req.params.id, newCompany, { new: true }, function (
-        err,
-        company
-      ) {
-        if (err) {
-
-          return res.status(500).send({ error: err.message })
-        } else {
-          res.send({ message: `${company.CompanyName} is updated successfully`, newCompany });
-        }
-      });
+      //update company
+      const updateCompany = await Company.findByIdAndUpdate(req.params.id, req.body, { new: true });
+      return res.send({ message: `${updateCompany.CompanyName} company is updated successfully` })
     }
-  });
+  } catch (error) {
+    console.log(error);
+
+    return res.status(500).send({ erorr: error.message })
+  }
 });
 
 router.delete("/:id", verifyAdminHR, async (req, res) => {

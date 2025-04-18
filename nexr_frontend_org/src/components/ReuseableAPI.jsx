@@ -434,7 +434,7 @@ async function fileUploadInServer(files) {
     // Upload the files
     const response = await axios.post(`${url}/api/upload`, formData, {
         headers: {
-            Accept: "application/json",
+            'Content-Type': 'multipart/form-data'
         },
     });
     if (response) {

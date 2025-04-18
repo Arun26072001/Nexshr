@@ -211,16 +211,16 @@ const CommonModel = ({
                         </div>}
                     </div>
 
-                    {["Task", "Task View", "Add Comments", "Edit Comments", "Organization"].includes(type) && (
+                    {["Task", "Task View", "Add Comments", "Edit Comments", "Organization", "Company"].includes(type) && (
                         <div className="col-full">
                             <div className="modelInput">
-                                <p className="modelLabel">{type === "Organization" ? "OrgImage" : "Attachments"}: </p>
+                                <p className="modelLabel">{type === "Organization" ? "OrgImage" : type === "Company" ? "Logo" : "Attachments"}: </p>
                                 <input
                                     type="file"
                                     disabled={type === "Task View"}
                                     className="form-control"
-                                    onChange={(e) => changeData(e, type === "Add Comments" ? `comments.attachments` : type === "Organization" ? "orgImg" : "attachments")}
-                                    multiple={type !== "Organization"}
+                                    onChange={(e) => changeData(e, type === "Add Comments" ? `comments.attachments` : type === "Organization" ? "orgImg" : type === "Company" ? "logo" : "attachments")}
+                                    multiple={!["Organization", "Company"].includes(type)}
                                 />
                             </div>
 
@@ -229,18 +229,21 @@ const CommonModel = ({
                                 <div className='d-flex align-items-center justify-content-center'>
 
                                     {
-                                        type === "Organization" ? <div className="position-relative">
+                                        ["Organization", "Company"].includes(type) ? <div className="position-relative">
                                             <img
                                                 src={preview}
-                                                className="w-100 h-auto"
+                                                className="w-25 h-auto"
                                                 alt="uploaded file"
                                                 style={{ borderRadius: "4px" }}
-                                            /> <button onClick={() => removePreview()} className="remBtn">
-                                                &times;
-                                            </button>
+                                            /> {
+                                                type !== "Company" &&
+                                                <button onClick={() => removePreview()} className="remBtn">
+                                                    &times;
+                                                </button>
+                                            }
                                         </div>
                                             :
-                                            previewList.length &&
+                                            previewList?.length &&
                                             previewList?.map((imgFile, index) => (
                                                 <div className="col-lg-4 p-2">
                                                     <div className="position-relative">
