@@ -11,13 +11,11 @@ import DatePicker from "react-datepicker";
 import TextEditor from "./TextEditor";
 import { EssentialValues } from "../../App";
 import Loading from "../Loader";
-// import Select from "react-select";
-// import AddCircleOutlineRoundedIcon from '@mui/icons-material/AddCircleOutlineRounded';
 
 const LeaveRequestForm = ({ type }) => {
   const { id } = useParams();
   const url = process.env.REACT_APP_API_URL;
-  const { whoIs, data } = useContext(EssentialValues);
+  const { whoIs, data, socket } = useContext(EssentialValues);
   const { _id, token } = data;
   const [error, setError] = useState("");
   const [isShowPeriodOfLeave, setIsShowPeriodOfLeave] = useState(false);
@@ -126,7 +124,6 @@ const LeaveRequestForm = ({ type }) => {
         formData.append("prescription", prescriptionFile); // Assuming `file` is the file object
         formData.append("coverBy", formik.values.coverBy);
         formData.append("applyFor", formik.values.applyFor);
-        console.log(formData);
 
         if (leaveRequestObj._id) {
           updateLeave(formData, resetForm)
@@ -148,8 +145,9 @@ const LeaveRequestForm = ({ type }) => {
         },
       });
       toast.success(res.data.message);
+      //send notification for higher authority
+      socket.emit("send_notification_for_leave", formik.values, _id)
       resetForm();
-      // setContent("")
       navigate(`/${whoIs}`); // Navigate back
     } catch (err) {
       toast.error(err?.response?.data?.error);
@@ -219,7 +217,6 @@ const LeaveRequestForm = ({ type }) => {
       }
     }
   }, [formik.values.fromDate, formik.values.toDate]);
-  console.log(formik.values, typeOfLeave);
 
   const gettingLeaveRequests = async () => {
     setIsLoading(true)
@@ -290,7 +287,6 @@ const LeaveRequestForm = ({ type }) => {
   }
 
   function handleChange(value) {
-    // setContent(value);
     formik.setFieldValue("reasonForLeave", value)
   }
 

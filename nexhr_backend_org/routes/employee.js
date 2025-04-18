@@ -7,6 +7,7 @@ const sendMail = require("./mailSender");
 const { RoleAndPermission } = require('../models/RoleModel');
 const { Team } = require('../models/TeamModel');
 const fs = require("fs");
+const path = require("path");
 
 router.get("/", verifyAdminHRTeamHigherAuth, async (req, res) => {
   try {
@@ -336,9 +337,18 @@ router.put("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
     }
     // check previous profile and current are same
     const empData = await Employee.findById(req.params.id, "profile company").populate("company", "logo CompanyName");
-    if (empData.profile !== req.body.profile) {
-      const filename = empData.profile.split("/").at(-1);
-      fs.unlinkSync(`uploads/${filename}`)
+
+    if (empData?.profile && empData.profile !== req.body.profile) {
+      const filename = empData.profile.split("/").pop();
+      const filePath = path.join(__dirname, "..", "uploads", filename);
+      try {
+        if (fs.existsSync(filePath)) {
+          fs.unlinkSync(filePath);
+          console.log(`Deleted old profile image: ${filename}`);
+        }
+      } catch (error) {
+        console.error("Error deleting profile image:", error.message);
+      }
     }
     let newEmployee = {
       ...req.body,

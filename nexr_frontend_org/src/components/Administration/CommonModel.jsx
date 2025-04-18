@@ -45,6 +45,7 @@ const CommonModel = ({
     const [confirmationTxt, setConfirmationTxt] = useState("");
     const [isDisabled, setIsDisabled] = useState(true);
     const [isShowPassword, setIsShowPassword] = useState(false);
+    console.log(dataObj);
 
     return (
         <Modal open={isAddData} size="sm" backdrop="static">
@@ -94,6 +95,7 @@ const CommonModel = ({
                                 <div className="modelInput">
                                     <p className='modelLabel'>{type === "Project" ? "Prefix" : "Icon"}:</p>
                                     <Input required
+                                        size='lg'
                                         name={`prefix`}
                                         disabled={type === "Project View" ? true : false}
                                         value={dataObj?.[`prefix`] || ""}
@@ -377,7 +379,7 @@ const CommonModel = ({
                                         appearance='default'
                                         style={{ width: "100%" }}
                                         placeholder="Select Company"
-                                        value={dataObj?.company[0] || dataObj?.company}
+                                        value={dataObj?.company}
                                         onChange={(e) => changeData(e, "company")}
                                     />
                                 </div>

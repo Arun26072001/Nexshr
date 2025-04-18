@@ -11,10 +11,6 @@ var leaveApplicationSchema = new mongoose.Schema({
   employee: { type: mongoose.Schema.Types.ObjectId, ref: 'Employee' },
   coverBy: { type: mongoose.Schema.Types.ObjectId, ref: "Employee", default: null },
   status: { type: String, default: "pending" },
-  // TeamLead: { type: String, default: "pending" },
-  // TeamHead: { type: String, default: "pending" },
-  // Hr: { type: String, default: "pending" },
-  // Manager: { type: String, default: "pending" },
   approvers: {
     type: mongoose.Schema.Types.Mixed, default: {}
   },
@@ -22,6 +18,7 @@ var leaveApplicationSchema = new mongoose.Schema({
   approvedOn: { type: Date },
   approverId: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Employee' }],
   appliedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'Employee' },
+  whoViewed: { type: mongoose.Schema.Types.Mixed, default: {} }
 }, { timestamps: true });
 
 var LeaveApplication = mongoose.model(

@@ -52,9 +52,7 @@ const Announce = () => {
                         Authorization: data.token || ""
                     }
                 });
-                const data = response.data;
-
-                setAnnouncements(data.Team || data); // Adjust based on your API response structure
+                setAnnouncements(response.data.Team || response.data); // Adjust based on your API response structure
             } catch (error) {
                 console.error('Error fetching announcements:', error);
             }
@@ -63,6 +61,7 @@ const Announce = () => {
 
         fetchAnnouncements();
     }, [changeAnnouncement]);
+    console.log("announcements", announcements);
 
     return (
         isLoading ? <Loading height="80vh" /> :
@@ -79,8 +78,8 @@ const Announce = () => {
                     <div className='profiles mt-3'>
                         {
                             announcements.length > 0 ?
-                            <LeaveTable handleDelete={handleDelete} data={announcements} />:
-                            <NoDataFound message={"Announcement data not found"} />
+                                <LeaveTable handleDelete={handleDelete} data={announcements} /> :
+                                <NoDataFound message={"Announcement data not found"} />
                         }
                     </div>
                 </div>

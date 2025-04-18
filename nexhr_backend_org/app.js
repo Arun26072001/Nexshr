@@ -55,7 +55,7 @@ const report = require("./routes/reports");
 const fileData = require("./routes/file-data");
 const mailSettings = require("./routes/mail-settings");
 const { Employee } = require("./models/EmpModel");
-const { timeToMinutes, getCurrentTimeInMinutes, getTotalWorkingHourPerDay } = require("./Reuseable_functions/reusableFunction");
+const { timeToMinutes, getCurrentTimeInMinutes, getTotalWorkingHourPerDay, formatDate } = require("./Reuseable_functions/reusableFunction");
 
 // MongoDB Connection
 const mongoURI = process.env.DATABASEURL;
@@ -175,10 +175,11 @@ io.on("connection", (socket) => {
   socket.on("send_announcement", (data) => {
 
     data.selectTeamMembers.forEach((employeeId) => {
+      console.log(employeeId);
       const employeeSocketID = onlineUsers[employeeId]; // Get employee's socket ID
 
       if (employeeSocketID) {
-        (employeeSocketID).emit("receive_announcement", data);
+        io.to(employeeSocketID).emit("receive_announcement", data);
       } else {
         console.log(`Employee ${employeeId} is offline, skipping.`);
       }
@@ -343,6 +344,80 @@ io.on("connection", (socket) => {
       console.log(error);
 
       console.log(error.response.data.error);
+    }
+  })
+
+  //send notification for leave application involved employees
+  socket.on("send_notification_for_leave", async (data, empId) => {
+    try {
+      const empData = await Employee.findById(empId, "FirstName LastName")
+        .populate([
+          {
+            path: "admin",
+            select: "FirstName LastName Email",
+          },
+          {
+            path: "team",
+            populate: [
+              { path: "lead", select: "Email" },
+              { path: "head", select: "Email" },
+              { path: "manager", select: "Email" },
+            ],
+          },
+        ]);
+
+      Object.entries(empData.team.toObject()).map(([key, value]) => {
+        if (Array.isArray(value) && key !== "employees") {
+          value?.map((emp) => {
+            const employeeSocketID = onlineUsers[emp._id];
+            io.to(employeeSocketID).emit("send_leave_notification", {
+              title: "Leave Application notification",
+              message: `${empData.FirstName} ${empData.LastName} has applied for leave from ${formatDate(data.fromDate)} to ${formatDate(data.toDate)}.`
+            })
+          })
+        }
+      })
+    } catch (error) {
+      console.log("error in send notification for leave", error);
+
+    }
+  })
+
+  socket.on("send_notification_for_project", async (project) => {
+    try {
+      const emps = await Employee.find({ _id: { $in: project.employees } }, "FirstName LastName Email").lean().exec();
+      if (emps.length) {
+        emps.map((emp) => {
+          console.log(emp);
+          const employeeSocketID = onlineUsers[emp._id];
+          io.to(employeeSocketID).emit("send_project_notification", {
+            title: "You've Been Assigned to a New Project",
+            message: `We're excited to let you know that you've been officially assigned "${project.name}".`
+          })
+        })
+      }
+    } catch (error) {
+      console.log("error in send notification for leave", error);
+    }
+  })
+
+  socket.on("send_notification_for_task", async (task) => {
+    try {
+      const emps = await Employee.find({ _id: { $in: task.assignedTo } }, "_id").lean().exec()
+      if (emps.length) {
+        emps.map((emp) => {
+          console.log(emp);
+
+          const employeeSocketID = onlineUsers[emp._id];
+          io.to(employeeSocketID).emit("send_task_notification", {
+            title: "You've Been Assigned a New Task",
+            message: `You've been assigned a new task: "${task.title}". Please review the details and get started!`
+          });
+        })
+      }
+    } catch (error) {
+      console.log("error in send notification for leave", error);
+
     }
   })
 

@@ -57,14 +57,14 @@ router.post("/", verifyAdminHR, (req, res) => {
 router.put("/:id", verifyAdminHR, async (req, res) => {
   try {
     // check validation for company
-    // const { error } = CompanyValidation.validate(req.body);
-    // if (error) {
-    //   return res.status(400).send({ error: error.details[0].message })
-    // } else {
-    //   //update company
-    // }
-    const updateCompany = await Company.findByIdAndUpdate(req.params.id, req.body, { new: true });
-    return res.send({ message: `${updateCompany.CompanyName} company is updated successfully` })
+    const { error } = CompanyValidation.validate(req.body);
+    if (error) {
+      return res.status(400).send({ error: error.details[0].message })
+    } else {
+      //update company
+      const updateCompany = await Company.findByIdAndUpdate(req.params.id, req.body, { new: true });
+      return res.send({ message: `${updateCompany.CompanyName} company is updated successfully` })
+    }
   } catch (error) {
     console.log(error);
 

@@ -172,8 +172,8 @@ export default function Navbar({ handleSideBar }) {
                 announcements.map(async (item) => {
                     const updatedMsg = {
                         ...item,
-                        howViewed: {
-                            ...item.howViewed,
+                        whoViewed: {
+                            ...item.whoViewed,
                             [data._id]: "viewed"
                         }
                     };
@@ -199,8 +199,8 @@ export default function Navbar({ handleSideBar }) {
 
         const updatedMsg = {
             ...value,
-            howViewed: {
-                ...value.howViewed,
+            whoViewed: {
+                ...value.whoViewed,
                 [data._id]: "viewed"
             }
         }
