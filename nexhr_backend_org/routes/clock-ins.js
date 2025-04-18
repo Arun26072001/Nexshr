@@ -652,7 +652,15 @@ router.get("/sendmail/:id/:clockinId", async (req, res) => {
 
 router.get("/", verifyAdminHrNetworkAdmin, async (req, res) => {
     try {
-        let attendanceData = await ClockIns.find()
+        let filterObj = {};
+        if (req.query.daterangeValue) {
+            const startDate = new Date(req.query.daterangeValue[0]);
+            const endDate = new Date(req.query.daterangeValue[1])
+            filterObj = {
+                date: { $gte: startDate, $lte: endDate }
+            }
+        }
+        let attendanceData = await ClockIns.find(filterObj)
             .populate({ path: "employee", select: "FirstName LastName" })
             .sort({ date: -1 });
 

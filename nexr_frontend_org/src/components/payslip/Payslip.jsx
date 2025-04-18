@@ -10,12 +10,12 @@ const Payslip = ({ payslips, isLoading }) => {
     return (
         isLoading ? <Loading height="80vh" /> :
             <div>
-                <div className="leaveDateParent mb-2">
+                <div className="d-flex justify-content-between align-items-center px-2 my-2">
                     <p className="payslipTitle">
                         Payslip
                     </p>
                     <div>
-                        <DateRangePicker size="md" showOneCalendar placement="bottomEnd" value={daterangeValue} placeholder="Select Date" onChange={setDaterangeValue} />
+                        <DateRangePicker size="lg" showOneCalendar placement="bottomEnd" value={daterangeValue} placeholder="Select Date" onChange={setDaterangeValue} />
                     </div>
                 </div>
 

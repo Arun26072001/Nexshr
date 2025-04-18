@@ -23,8 +23,8 @@ export default function ViewAttendanceModel({ modelData, toggleView, openModal }
                         <TableCell>{key.replace(/([A-Z])/g, ' $1').trim().charAt(0).toUpperCase() + key.replace(/([A-Z])/g, ' $1').trim().slice(1)}</TableCell>
                         {/* Check if the object has 'startingTime' and 'endingTime' */}
                         <TableCell>
-                            {modelData[key].startingTime && modelData[key].endingTime
-                                ? `${modelData[key].startingTime} - ${modelData[key].endingTime}`
+                            {modelData[key]?.startingTime?.length && modelData[key]?.endingTime?.length
+                                ? `${modelData[key]?.startingTime[0]} - ${modelData[key]?.endingTime.at(-1)}`
                                 : 'N/A'}
                         </TableCell>
                     </TableRow>
@@ -42,10 +42,10 @@ export default function ViewAttendanceModel({ modelData, toggleView, openModal }
     };
 
     return (
-         (modelData ? (
+        (modelData ? (
             <Dialog open={openModal} onClose={toggleView} className='aa'>
                 <DialogTitle className='text-center'>{modelData?.title}</DialogTitle>
-     
+
                 <DialogContent > {/* Use ref here */}
                     <TableContainer>
                         <Table>

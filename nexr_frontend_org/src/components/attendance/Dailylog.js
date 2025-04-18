@@ -1,6 +1,5 @@
 import React, { useContext } from 'react';
 import './Attendence.css';
-import Popup from './Popup';
 import LeaveTable from '../LeaveTable';
 import NoDataFound from '../payslip/NoDataFound';
 import Loading from '../Loader';
@@ -12,12 +11,12 @@ import AddRoundedIcon from '@mui/icons-material/AddRounded';
 import axios from 'axios';
 import { toast } from 'react-toastify';
 import { EssentialValues } from '../../App';
+import { TimerStates } from '../payslip/HRMDashboard';
 
 const Dailylog = ({ attendanceData, isLoading }) => {
-    const { daterangeValue, setDaterangeValue, data, whoIs } = useContext(EssentialValues)
+    const { data, whoIs } = useContext(EssentialValues)
+    const { daterangeValue, setDaterangeValue } = useContext(TimerStates);
     const url = process.env.REACT_APP_API_URL;
-
-    console.log(attendanceData);
 
     // Handle file upload
     const handleUpload = async (file) => {
@@ -77,7 +76,7 @@ const Dailylog = ({ attendanceData, isLoading }) => {
     };
 
     return (
-        isLoading ? <Loading height="80vh" /> :
+        isLoading ? <Loading height="60vh" /> :
             <div className='dashboard-parent pt-4'>
                 <div className='d-flex justify-content-between align-items-center px-3'>
                     <div>
@@ -85,11 +84,11 @@ const Dailylog = ({ attendanceData, isLoading }) => {
                     </div>
 
                     <div className='d-flex gap-3'>
-                        <div className='text-center'>
+                        {/* <div className='text-center'>
                             <Popup />
-                        </div>
+                        </div> */}
                         <DateRangePicker
-                            size="md"
+                            size="lg"
                             showOneCalendar
                             placement="bottomEnd"
                             value={daterangeValue}

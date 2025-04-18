@@ -1,7 +1,6 @@
 import React from 'react';
 import './Attendence.css';
 import LeaveTable from '../LeaveTable';
-import Popup from './Popup';
 import NoDataFound from '../payslip/NoDataFound';
 import Loading from '../Loader';
 
@@ -15,7 +14,7 @@ const Request = ({ attendanceData, isLoading }) => {
                         <h5 className='text-daily'>Request</h5>
                     </div>
                     <div className='d-flex'>
-                        <Popup />
+                        {/* <Popup /> */}
                         <div className='ms-2'>
                             <button className="btn attends btn-light w-100" type="button" id="dropdownMenuButton1">
                                 <svg width="16" height="17" viewBox="0 0 16 17" fill="none" xmlns="http://www.w3.org/2000/svg">

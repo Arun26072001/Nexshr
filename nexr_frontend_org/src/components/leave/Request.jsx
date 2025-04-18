@@ -1,4 +1,4 @@
-import React, { useContext, useEffect } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import LeaveTable from '../LeaveTable';
 import NoDataFound from '../payslip/NoDataFound';
 import Loading from '../Loader';
@@ -59,6 +59,9 @@ export default function LeaveRequest() {
                         hr: response
                     }
                 }
+            } else {
+                toast.error("You are not approver for this leave")
+                return;
             }
 
             const res = await axios.put(`${url}/api/leave-application/${leave._id}`, updatedLeaveRequest, {

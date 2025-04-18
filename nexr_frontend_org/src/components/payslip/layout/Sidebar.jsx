@@ -27,6 +27,8 @@ const Sidebar = ({ sideBar }) => {
   const { Dashboard, JobDesk, Employee, Leave,
     Attendance, Administration, Settings
   } = decodedData?.roleData?.pageAuth;
+  console.log(decodedData?.roleData?.pageAuth);
+
   const param = useParams();
 
   const [activeSubmenu, setActiveSubmenu] = useState(param['*']);
@@ -177,7 +179,7 @@ const Sidebar = ({ sideBar }) => {
           'calendar'
         )}
 
-        {(Leave === 'allow' && ['admin', 'hr'].includes(whoIs)) &&
+        {Leave === 'allow' && ["admin", "sys-admin", "hr"].includes(whoIs) &&
           renderSubMenu(
             'leave',
             [
@@ -193,8 +195,8 @@ const Sidebar = ({ sideBar }) => {
         {(
           (decodedData.isTeamLead && whoIs === "emp") ||
           (decodedData.isTeamHead && whoIs === "emp") ||
-          (decodedData.isTeamManager && whoIs === "manager")
-        ) &&
+          (decodedData.isTeamManager && whoIs === "manager"))
+          &&
           renderSubMenu(
             'leave',
             [
@@ -204,7 +206,7 @@ const Sidebar = ({ sideBar }) => {
             'Leave'
           )}
 
-        {(((decodedData.isTeamLead && whoIs === "emp") ||
+        {((decodedData.isTeamLead && whoIs === "emp") ||
           (decodedData.isTeamHead && whoIs === "emp") ||
           (decodedData.isTeamManager && whoIs === "manager"))
           &&
@@ -215,9 +217,9 @@ const Sidebar = ({ sideBar }) => {
             ],
             attendanceIcon,
             'Attendance'
-          ))}
+          )}
 
-        {(Attendance === 'allow' && ['admin', 'hr'].includes(whoIs)) &&
+        {Attendance === 'allow' && ["admin", "sys-admin", "hr"].includes(whoIs) &&
           renderSubMenu(
             'attendance',
             [

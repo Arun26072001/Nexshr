@@ -136,8 +136,6 @@ const LeaveRequestForm = ({ type }) => {
       }
     },
   });
-  console.log(formik.values);
-
 
   async function applyLeave(formData, resetForm) {
     try {
@@ -221,6 +219,7 @@ const LeaveRequestForm = ({ type }) => {
       }
     }
   }, [formik.values.fromDate, formik.values.toDate]);
+  console.log(formik.values, typeOfLeave);
 
   const gettingLeaveRequests = async () => {
     setIsLoading(true)
