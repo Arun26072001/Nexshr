@@ -744,8 +744,18 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
                                                         return (
                                                             <Dropdown placement='leftStart' title={<EditRoundedIcon style={{ cursor: "pointer" }} />} noCaret>
                                                                 <Dropdown.Item style={{ minWidth: 120 }} onClick={() => navigate(`/${whoIs}/leave-request/view/${row._id}`)}>View</Dropdown.Item>
-                                                                <Dropdown.Item style={{ minWidth: 120 }} onClick={() => replyToLeave(row, "approved")}>Approve</Dropdown.Item>
-                                                                <Dropdown.Item style={{ minWidth: 120 }} onClick={() => replyToLeave(row, "rejected")}>Reject</Dropdown.Item>
+                                                                {
+                                                                    (isTeamLead && row?.approvers?.lead === "pending") ||
+                                                                        (isTeamHead && row?.approvers?.head === "pending") ||
+                                                                        (whoIs === "manager" && row?.approvers?.manager === "pending") ||
+                                                                        (whoIs === "hr" && row?.approvers?.hr === "pending") ? (
+                                                                        <>
+                                                                            <Dropdown.Item style={{ minWidth: 120 }} onClick={() => replyToLeave(row, "approved")}>Approve</Dropdown.Item>
+                                                                            <Dropdown.Item style={{ minWidth: 120 }} onClick={() => replyToLeave(row, "rejected")}>Reject</Dropdown.Item>
+                                                                        </>
+                                                                    ) : null
+                                                                }
+
                                                             </Dropdown>
                                                         );
                                                     } else if (params['*'] === "payslip" || params['*'] === "daily-log") {

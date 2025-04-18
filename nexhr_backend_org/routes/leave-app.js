@@ -299,7 +299,7 @@ leaveApp.get("/emp/:empId", verifyAdminHREmployeeManagerNetwork, async (req, res
       ...emp,
       typesOfLeaveCount: {
         ...emp.typesOfLeaveCount,
-        ["Unpaid" + " " + "Leave"]: UnpaidLeave
+        ["Unpaid" + " " + "Leave (LWP)"]: UnpaidLeave
       },
       typesOfLeaveRemainingDays: {
         ...emp.typesOfLeaveRemainingDays,
@@ -366,59 +366,74 @@ leaveApp.get("/hr", verifyHR, async (req, res) => {
 
 leaveApp.get("/team/:id", verifyTeamHigherAuthority, async (req, res) => {
   try {
-    let startOfMonth;
-    let endOfMonth;
+    const now = new Date(); // added missing `now`
+    const { daterangeValue, who } = req.query;
 
-    if (req?.query?.daterangeValue) {
-      startOfMonth = new Date(req.query.daterangeValue[0]);
-      endOfMonth = new Date(req.query.daterangeValue[1]);
-    } else {
-      startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-      endOfMonth = new Date(now.getFullYear(), now.getMonth() + 2, 0);
-    }
-    const who = req?.query?.who;
+    const [startOfMonth, endOfMonth] = daterangeValue
+      ? [new Date(daterangeValue[0]), new Date(daterangeValue[1])]
+      : [new Date(now.getFullYear(), now.getMonth(), 1), new Date(now.getFullYear(), now.getMonth() + 2, 0)];
+
+    // Find team where the current user is a lead/head/etc.
     const team = await Team.findOne({ [who]: req.params.id }).exec();
+
     if (!team) {
-      return res.status(404).send({ error: "You are not lead in any team" })
-    } else {
-      const { employees } = team;
-      const colleagues = await Employee.find({ _id: employees }, "FirstName LastName Email phone");
-      let teamLeaves = await LeaveApplication.find({
-        employee: { $in: employees },
-        fromDate: {
-          $gte: startOfMonth,
-          $lte: endOfMonth
-        },
-        toDate: {
-          $gte: startOfMonth,
-          $lte: endOfMonth
-        }
-      })
-        .populate({
-          path: "employee",
-          select: "FirstName LastName"
-        });
-      teamLeaves = teamLeaves.map((leave) => {
-        return {
-          ...leave.toObject(),
-          prescription: leave.prescription
-            ? `${process.env.REACT_APP_API_URL}/uploads/${leave.prescription}`
-            : null
-        }
-      })
-
-      teamLeaves = teamLeaves.sort((a, b) => new Date(b.fromDate) - new Date(a.fromDate));
-      const approvedLeave = teamLeaves.filter(data => data.status === "approved");
-      const pendingLeave = teamLeaves.filter(data => data.status === "pending");
-      const upComingLeave = approvedLeave.filter(data => new Date(data.fromDate).getTime() > new Date().getTime())
-      const peoplesOnLeave = approvedLeave.filter(data => new Date(data.fromDate).getTime() === new Date().getTime())
-      const takenLeave = approvedLeave.filter(data => new Date(data.fromDate).getTime() < new Date().getTime())
-      res.send({ leaveData: teamLeaves, pendingLeave, upComingLeave, approvedLeave, peoplesOnLeave, takenLeave, colleagues });
+      return res.status(404).json({ error: "You are not lead in any team" });
     }
-  } catch (error) {
-    console.log(error);
 
-    res.status(500).send({ error: error.message })
+    const { employees } = team;
+
+    // Fetch team members' basic info
+    const colleagues = await Employee.find(
+      { _id: { $in: employees } },
+      "FirstName LastName Email phone"
+    ).lean();
+
+    // Fetch leave applications within the date range
+    let teamLeaves = await LeaveApplication.find({
+      employee: { $in: employees },
+      $or: [
+        {
+          fromDate: { $lte: endOfMonth },
+          toDate: { $gte: startOfMonth }
+        }
+      ]
+    })
+      .populate("employee", "FirstName LastName")
+      .lean(); // lean = returns plain JS objects, faster
+
+    // Map prescription URLs
+    const baseURL = process.env.REACT_APP_API_URL;
+    teamLeaves = teamLeaves.map((leave) => ({
+      ...leave,
+      prescription: leave.prescription ? `${baseURL}/uploads/${leave.prescription}` : null
+    }));
+
+    // Sort by fromDate descending
+    teamLeaves.sort((a, b) => new Date(b.fromDate) - new Date(a.fromDate));
+
+    const nowTime = new Date().getTime();
+    const approvedLeave = teamLeaves.filter(l => l.status === "approved");
+    const pendingLeave = teamLeaves.filter(l => l.status === "pending");
+    const upComingLeave = approvedLeave.filter(l => new Date(l.fromDate).getTime() > nowTime);
+    const peoplesOnLeave = approvedLeave.filter(l => {
+      const from = new Date(l.fromDate).setHours(0, 0, 0, 0);
+      const today = new Date().setHours(0, 0, 0, 0);
+      return from === today;
+    });
+    const takenLeave = approvedLeave.filter(l => new Date(l.fromDate).getTime() < nowTime);
+
+    res.json({
+      leaveData: teamLeaves,
+      pendingLeave,
+      upComingLeave,
+      approvedLeave,
+      peoplesOnLeave,
+      takenLeave,
+      colleagues
+    });
+  } catch (error) {
+    console.error("Error in /team/:id:", error);
+    res.status(500).json({ error: error.message });
   }
 });
 
