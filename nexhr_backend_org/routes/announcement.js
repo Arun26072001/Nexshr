@@ -5,14 +5,14 @@ const router = express.Router();
 
 router.post('/:id', async (req, res) => {
   try {
-    const howViewed = req.body.selectTeamMembers.reduce((acc, emp) => {
+    const whoViewed = req.body.selectTeamMembers.reduce((acc, emp) => {
       acc[emp] = "not viewed";
       return acc;
     }, {});
 
     const newAnnouncement = {
       ...req.body,
-      howViewed,
+      whoViewed,
       createdBy: req.params.id
     }
 
@@ -57,7 +57,7 @@ router.get('/', verifyAdminHREmployeeManagerNetwork, async (req, res) => {
 router.get("/emp/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
   try {
     const notifications = await Announcement.find({ selectTeamMembers: req.params.id }).exec();
-    const notViewAnnouncements = notifications.filter((item) => item?.howViewed[req.params.id] === "not viewed")
+    const notViewAnnouncements = notifications.filter((item) => item?.whoViewed[req.params.id] === "not viewed")
     if (notViewAnnouncements.length === 0) {
       return res.status(200).send([])
     } else {

@@ -59,7 +59,7 @@ function mailContent(type, fromDateValue, toDateValue, emp, leaveType, actionBy,
   <body style="font-family: Arial, sans-serif; background-color: #f6f9fc; color: #333; margin: 0; padding: 0; text-align: center;">
     <div style="text-align: center;">
       <img src="${emp.company.logo}" alt="Company Logo" style="width: 100px; height: 100px; object-fit: cover; margin-top: 20px;" />
-      <div style="width: 100%; display: flex; justify-content: center; align-items: center; padding: 20px;">
+      <div style="display: flex; justify-content: center; align-items: center; padding: 20px;">
         <div style="border: 1px solid gray; border-radius: 10px; padding: 30px; max-width: 500px; text-align: left; background-color: #fff;">
           <p style="font-size: 20px; font-weight: 500; color: black; margin: 10px 0;">Hi ${member.name},</p>
           <div style="border-bottom: 3px solid ${isRejected ? "red" : "green"}; width: 30px; margin-bottom: 10px;"></div>

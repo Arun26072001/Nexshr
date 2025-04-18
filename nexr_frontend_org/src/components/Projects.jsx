@@ -19,7 +19,7 @@ import { Skeleton } from '@mui/material';
 
 export default function Projects() {
     const navigator = useNavigate();
-    const { whoIs, data } = useContext(EssentialValues);
+    const { whoIs, data, socket } = useContext(EssentialValues);
     const { isTeamLead, isTeamHead } = jwtDecode(data.token);
     const { handleAddTask, employees } = useContext(TimerStates);
     const [teams, setTeams] = useState([]);
@@ -105,7 +105,6 @@ export default function Projects() {
                     Authorization: data.token || ""
                 }
             })
-            console.log(res.data);
 
             setProjects(res.data);
             setFilterProjects(res.data);
@@ -148,6 +147,7 @@ export default function Projects() {
                 }
             })
             toast.success(res.data.message);
+            socket.emit("send_notification_for_project", newProjectObj)
             setProjectObj({});
             handleAddProject();
         } catch (error) {

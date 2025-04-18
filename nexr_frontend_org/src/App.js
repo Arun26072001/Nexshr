@@ -156,10 +156,74 @@ const App = () => {
       );
     });
 
+    socket.on("send_leave_notification", (response) => {
+      toaster.push(
+        <Notification
+          header={
+            <div style={{ display: 'flex', alignItems: 'center' }}>
+
+              <img src={companyLogo} alt="Company Logo" style={{ width: 50, height: 50, marginRight: 10 }} />
+
+              <span style={{ fontWeight: 'bold', fontSize: '16px' }}>Webnexs</span>
+            </div>
+          }
+          closable
+        >
+          <strong>{response.title}</strong>
+          <br />
+          <p>{response.message}</p>
+        </Notification>,
+        { placement: 'bottomEnd' }
+      );
+    });
+
+    socket.on("send_project_notification", (response) => {
+      toaster.push(
+        <Notification
+          header={
+            <div style={{ display: 'flex', alignItems: 'center' }}>
+
+              <img src={companyLogo} alt="Company Logo" style={{ width: 50, height: 50, marginRight: 10 }} />
+
+              <span style={{ fontWeight: 'bold', fontSize: '16px' }}>Webnexs</span>
+            </div>
+          }
+          closable
+        >
+          <strong>{response.title}</strong>
+          <br />
+          <p>{response.message}</p>
+        </Notification>,
+        { placement: 'bottomEnd' }
+      );
+    });
+
+    socket.on("send_task_notification", (response) => {
+      toaster.push(
+        <Notification
+          header={
+            <div style={{ display: 'flex', alignItems: 'center' }}>
+
+              <img src={companyLogo} alt="Company Logo" style={{ width: 50, height: 50, marginRight: 10 }} />
+
+              <span style={{ fontWeight: 'bold', fontSize: '16px' }}>Webnexs</span>
+            </div>
+          }
+          closable
+        >
+          <strong>{response.title}</strong>
+          <br />
+          <p>{response.message}</p>
+        </Notification>,
+        { placement: 'bottomEnd' }
+      );
+    });
+
     return () => {
       socket.off("receive_announcement");
     };
   }, [socket]);
+  console.log(data);
 
   useEffect(() => {
     localStorage.setItem("isStartLogin", isStartLogin);
@@ -172,9 +236,7 @@ const App = () => {
         <Notification
           header={
             <div style={{ display: 'flex', alignItems: 'center' }}>
-
               <img src={companyLogo} alt="Company Logo" style={{ width: 50, height: 50, marginRight: 10 }} />
-
               <span style={{ fontWeight: 'bold', fontSize: '16px' }}>Webnexs</span>
             </div>
           }
