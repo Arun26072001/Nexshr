@@ -50,7 +50,7 @@ const CompanyValidation = Joi.object().keys({
   FaxNo: Joi.string()
     .max(100)
     .required(),
-  Town: Joi.string().required(),
+  Town: Joi.string().optional(),
   PanNo: Joi.string()
     .max(200)
     .required(),
