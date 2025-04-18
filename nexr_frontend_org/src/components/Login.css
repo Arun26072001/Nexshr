@@ -12,9 +12,14 @@
   border-radius: 10px;
 }
 
+.center-box {
+  height: 100vh;
+}
+
 #logo-div {
-  width: 24%;
-  margin: auto;
+  width: 100%;
+  margin: 0px auto;
+  text-align: center;
 }
 
 #title-div {
@@ -84,5 +89,4 @@
   100% {
     transform: rotate(360deg);
   }
-
 }

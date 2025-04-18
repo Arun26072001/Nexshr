@@ -4,7 +4,7 @@ import * as Yup from "yup";
 import axios from "axios";
 import { toast } from "react-toastify";
 import "./leaveForm.css";
-import { fetchPayslipInfo } from "./ReuseableAPI";
+import { fetchPayslipInfo, fileUploadInServer } from "./ReuseableAPI";
 import { useNavigate } from "react-router-dom";
 import { SelectPicker, TagPicker } from "rsuite";
 import Loading from "./Loader";
@@ -92,24 +92,12 @@ const AddEmployeeForm = ({ details, handleScroll, handlePersonal, handleFinancia
             try {
                 //upload employee of profile
                 if (formik.values.profile) {
-                    const formData = new FormData();
-                    formData.append("documents", formik.values.profile); // "files" is the key for the server
-                    try {
-                        const response = await axios.post(`${process.env.REACT_APP_API_URL}/api/upload`, formData, {
-                            headers: {
-                                'Content-Type': 'multipart/form-data'
-                            }
-                        });
-                        const updatedFile = response.data.files[0].originalFile
-                        formik.setFieldValue("profile", updatedFile)
-
-                    } catch (error) {
-                        console.error("Error uploading file:", error.response.data.message);
-                    }
+                    const uploadedfile = await fileUploadInServer(formik.values.profile)
+                    formik.setFieldValue("profile", uploadedfile.files[0].originalFile)
                 }
 
                 // add employee data
-                const res = await axios.post(`${url}/api/employee`, values, {
+                const res = await axios.post(`${url}/api/employee/${data._id}`, values, {
                     headers: {
                         authorization: data.token || ""
                     }

@@ -101,37 +101,33 @@ router.post("/attendance", upload.single("documents"), verifyAdminHrNetworkAdmin
 
                             // send mail To employee
                             const htmlContent = `
-                            <html>
-                                <head>
-                                    <style>
-                                        body {font - family: Arial, sans-serif; background-color: #f6f9fc; color: #333; }
-                                        .container { max-width: 600px; margin: auto; padding: 20px; background-color: #fff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); }
-                                        .content {margin: 20px 0; }
-                                        .footer {text - align: center; font-size: 14px; margin-top: 20px; color: #777; }
-                                    </style>
-                                </head>
-                                <body>
-                                    <div class="container">
-                                        <div class="content">
-                                            <h2 class="center_text">You came much later than your permitted time.</h2>
-                                            <p>
-                                                So, we are marking you as taking a half-day leave.
-                                                Hereafter, please come early or by (${emp.workingTimePattern.StartingTime}).
-                                                Please follow the company instructions.
-                                                Thank you!
-                                            </p>
+                                <html>
+                                    <head>
+                                        <meta charset="UTF-8">
+                                            <title>Late Arrival Notice</title>
+                                    </head>
+                                    <body style="font-family: Arial, sans-serif; background-color: #f6f9fc; color: #333; margin: 0; padding: 0;">
+                                        <div style="max-width: 600px; margin: auto; padding: 20px; background-color: #fff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);">
+                                            <div style="margin: 20px 0;">
+                                                <h2 style="text-align: center;">You came much later than your permitted time.</h2>
+                                                <p>
+                                                    So, we are marking you as taking a half-day leave.<br />
+                                                    Hereafter, please come early or by (${emp.workingTimePattern.StartingTime}).<br />
+                                                    Please follow the company instructions.<br />
+                                                    Thank you!
+                                                </p>
+                                            </div>
+                                            <div style="text-align: center; font-size: 14px; margin-top: 20px; color: #777;">
+                                                <p>Have questions? Need help? <a href="mailto:webnexs29@gmail.com" style="color: #777;">Contact our support team</a>.</p>
+                                            </div>
                                         </div>
+                                    </body>
+                                </html>`;
 
-                                        <div class="footer">
-                                            <p>Have questions? Need help? <a href="mailto:webnexs29@gmail.com">Contact our support team</a>.</p>
-                                        </div>
-                                    </div>
-                                </body>
-                            </html>`
                             sendMail({
                                 From: process.env.FROM_MAIL,
                                 To: emp.Email,
-                                Subject: `Half-day Leave Applied(Unpaid Leave (LWP))`,
+                                Subject: `Half - day Leave Applied(Unpaid Leave(LWP))`,
                                 HtmlBody: htmlContent,
                             })
                             continue;
@@ -161,37 +157,34 @@ router.post("/attendance", upload.single("documents"), verifyAdminHrNetworkAdmin
                             await emp.save();
 
                             const htmlContent = `
+                            <!DOCTYPE html>
                             <html>
-                                <head>
-                                    <style>
-                                        body {font - family: Arial, sans-serif; background-color: #f6f9fc; color: #333; }
-                                        .container { max-width: 600px; margin: auto; padding: 20px; background-color: #fff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); }
-                                        .content {margin: 20px 0; }
-                                        .footer {text - align: center; font-size: 14px; margin-top: 20px; color: #777; }
-                                    </style>
-                                </head>
-                                <body>
-                                    <div class="container">
-                                        <div class="content">
-                                            <h2 class="center_text">You came much later than your permitted time.</h2>
-                                            <p>
-                                                So, we are marking you as taking a half-day leave.
-                                                Hereafter, please come early or by (${emp.workingTimePattern.StartingTime}).
-                                                Please follow the company instructions.
-                                                Thank you!
-                                            </p>
-                                        </div>
-    
-                                        <div class="footer">
-                                            <p>Have questions? Need help? <a href="mailto:${process.env.FROM_MAIL}">Contact our support team</a>.</p>
-                                        </div>
-                                    </div>
-                                </body>
-                            </html>`
+                              <head>
+                                <meta charset="UTF-8">
+                                <title>Late Arrival Notice</title>
+                              </head>
+                              <body style="font-family: Arial, sans-serif; background-color: #f6f9fc; color: #333; margin: 0; padding: 0;">
+                                <div style="max-width: 600px; margin: auto; padding: 20px; background-color: #fff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);">
+                                  <div style="margin: 20px 0;">
+                                    <h2 style="text-align: center;">You came much later than your permitted time.</h2>
+                                    <p>
+                                      So, we are marking you as taking a half-day leave.<br />
+                                      Hereafter, please come early or by (${emp.workingTimePattern.StartingTime}).<br />
+                                      Please follow the company instructions.<br />
+                                      Thank you!
+                                    </p>
+                                  </div>
+                                  <div style="text-align: center; font-size: 14px; margin-top: 20px; color: #777;">
+                                    <p>Have questions? Need help? <a href="mailto:${process.env.FROM_MAIL}" style="color: #777;">Contact our support team</a>.</p>
+                                  </div>
+                                </div>
+                              </body>
+                            </html>`;
+
                             sendMail({
                                 From: process.env.FROM_MAIL,
                                 To: emp.Email,
-                                Subject: `Half-day Leave Applied(Unpaid Leave (LWP))`,
+                                Subject: `Half - day Leave Applied(Unpaid Leave(LWP))`,
                                 HtmlBody: htmlContent,
                             })
                             continue;
@@ -214,43 +207,36 @@ router.post("/attendance", upload.single("documents"), verifyAdminHrNetworkAdmin
                         await ClockIns.findByIdAndUpdate(clockIn._id, { ...clockIn, machineRecords: record.punchInRecords });
 
                         const emailHtml = `
+                        <!DOCTYPE html>
                         <html>
-                        <head>
-                          <style>
-                            body { font-family: Arial, sans-serif; background-color: #f6f9fc; color: #333; }
-                            .table { width: 100%; border-collapse: collapse; font-size: 16px; background-color: #fff; }
-                            .table th, .table td { padding: 12px; border: 1px solid #ddd; text-align: left; }
-                            .table th { background-color: #4CAF50; color: white; text-transform: uppercase; }
-                            .table tr:nth-child(even) { background-color: #f2f2f2; }
-                            .table tr:hover { background-color: #e9f4f1; }
-                            .center_text { text-align: center; margin: 20px 0; }
-                          </style>
-                        </head>
-                        <body>
-                          <h2 class="center_text">Total Working Hours - ${record.totalHours} (Machine Recorded)</h2>
-                          <table class="table">
+                          <head>
+                            <meta charset="UTF-8">
+                            <title>Working Hours Summary</title>
+                          </head>
+                          <body style="font-family: Arial, sans-serif; background-color: #f6f9fc; color: #333; margin: 0; padding: 20px;">
+                            <h2 style="text-align: center; margin: 20px 0;">Total Working Hours - ${record.totalHours} (Machine Recorded)</h2>
+                            <table style="width: 100%; border-collapse: collapse; font-size: 16px; background-color: #fff;">
                               <thead>
-                                  <tr>
-                                      <th>Activity</th>
-                                      <th>Starting Time</th>
-                                      <th>Ending Time</th>
-                                      <th>Machine Records</th>
-                                  </tr>
+                                <tr>
+                                  <th style="padding: 12px; border: 1px solid #ddd; text-align: left; background-color: #4CAF50; color: white; text-transform: uppercase;">Activity</th>
+                                  <th style="padding: 12px; border: 1px solid #ddd; text-align: left; background-color: #4CAF50; color: white; text-transform: uppercase;">Starting Time</th>
+                                  <th style="padding: 12px; border: 1px solid #ddd; text-align: left; background-color: #4CAF50; color: white; text-transform: uppercase;">Ending Time</th>
+                                  <th style="padding: 12px; border: 1px solid #ddd; text-align: left; background-color: #4CAF50; color: white; text-transform: uppercase;">Machine Records</th>
+                                </tr>
                               </thead>
                               <tbody>
-                                  ${activitiesData.map((data, index) => `
-                                      <tr>
-                                          <td>${data.activity[0].toUpperCase() + data.activity.slice(1)}</td>
-                                          <td>${data.startingTime}</td>
-                                          <td>${data.endingTime}</td>
-                                          <td>${record.punchInRecords[index] || "00:00"} - ${record.punchInRecords[index + 1] || "00:00"}</td>
-                                      </tr>
-                                  `).join("")}
+                                ${activitiesData.map((data, index) => `
+                                  <tr style="background-color: ${index % 2 === 0 ? '#fff' : '#f2f2f2'};">
+                                    <td style="padding: 12px; border: 1px solid #ddd; text-align: left;">${data.activity[0].toUpperCase() + data.activity.slice(1)}</td>
+                                    <td style="padding: 12px; border: 1px solid #ddd; text-align: left;">${data.startingTime}</td>
+                                    <td style="padding: 12px; border: 1px solid #ddd; text-align: left;">${data.endingTime}</td>
+                                    <td style="padding: 12px; border: 1px solid #ddd; text-align: left;">${record.punchInRecords[index] || "00:00"} - ${record.punchInRecords[index + 1] || "00:00"}</td>
+                                  </tr>
+                                `).join("")}
                               </tbody>
-                          </table>
-                        </body>
-                        </html>
-                    `;
+                            </table>
+                          </body>
+                        </html>`;
 
                         sendMail({
                             From: process.env.FROM_MAIL,
@@ -272,13 +258,14 @@ router.post("/attendance", upload.single("documents"), verifyAdminHrNetworkAdmin
         }
     });
 
-router.post("/employees", upload.single("documents"), verifyAdminHR, async (req, res) => {
+router.post("/employees/:id", upload.single("documents"), verifyAdminHR, async (req, res) => {
     if (!req.file) {
         return res.status(400).json({ status: false, message: "No file uploaded." });
     }
 
     const filePath = req.file.path;
     try {
+        const inviter = await Employee.findById(req.params.id, "company").populate("company", "logo CompanyName")
         const workbook = XLSX.readFile(filePath);
         const sheet = workbook.Sheets[workbook.SheetNames[0]];
         // Convert to JSON while trimming empty rows
@@ -311,13 +298,13 @@ router.post("/employees", upload.single("documents"), verifyAdminHR, async (req,
                     annualLeaveEntitlement: 14,
                     typesOfLeaveCount: {
                         "Annual Leave": row[12] === "Intern" ? "1" : "7",
-                        "Sick Leave": row[12] === "Intern" ? "2" :  "7",
+                        "Sick Leave": row[12] === "Intern" ? "2" : "7",
                         "permission": "2"
                     },
 
                     typesOfLeaveRemainingDays: {
-                        "Annual Leave": row[12] === "Intern" ? "1" :  "7",
-                        "Sick Leave": row[12] === "Intern" ? "2" :  "7"
+                        "Annual Leave": row[12] === "Intern" ? "1" : "7",
+                        "Sick Leave": row[12] === "Intern" ? "2" : "7"
                     },
                     role: "679b31dba453436edb1b27a3",
                     workingTimePattern: "679ca37c9ac5c938538f18ba",
@@ -331,42 +318,34 @@ router.post("/employees", upload.single("documents"), verifyAdminHR, async (req,
                 try {
                     const addEmp = await Employee.create(newEmp);
                     const htmlContent = `
-                        <!DOCTYPE html>
-                        <html lang="en">
-                        <head>
-                          <meta charset="UTF-8">
-                          <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                          <title>NexsHR</title>
-                          <style>
-                            body { font-family: Arial, sans-serif; background-color: #f6f9fc; color: #333; }
-                            .container { max-width: 600px; margin: auto; padding: 20px; background-color: #fff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); }
-                            .header { text-align: center; padding: 20px; }
-                            .header img { max-width: 100px; }
-                            .content { margin: 20px 0; }
-                            .footer { text-align: center; font-size: 14px; margin-top: 20px; color: #777; }
-                            .button { display: inline-block; padding: 10px 20px; background-color: #28a745; color: #fff !important; text-decoration: none; border-radius: 5px; margin-top: 10px; }
-                          </style>
-                        </head>
-                        <body>
-                          <div class="container">
-                            <div class="header">
-                              <img src="https://imagedelivery.net/r89jzjNfZziPHJz5JXGOCw/1dd59d6a-7b64-49d7-ea24-1366e2f48300/public" alt="Logo" />
-                              <h1>Welcome To NexsHR</h1>
-                            </div>
-                            <div class="content">
-                              <p>Hey ${addEmp.FirstName} ${addEmp.LastName} 👋,</p>
-                              <p><b>Your credentials</b></p><br />
-                              <p><b>Email</b>: ${addEmp.Email}</p><br />
-                              <p><b>Password</b>: ${addEmp.Password}</p><br />
-                              <p>Your details have been registered! Please confirm your email by clicking the button below.</p>
-                              <a href="${process.env.FRONTEND_URL}" class="button">Confirm Email</a>
-                            </div>
-                            <div class="footer">
-                              <p>Have questions? Need help? <a href="mailto:webnexs29@gmail.com">Contact our support team</a>.</p>
-                            </div>
+                    <!DOCTYPE html>
+                    <html lang="en">
+                      <head>
+                        <meta charset="UTF-8">
+                        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                        <title>${inviter.company.CompanyName}</title>
+                      </head>
+                      <body style="font-family: Arial, sans-serif; background-color: #f6f9fc; color: #333; margin: 0; padding: 0;">
+                        <div style="max-width: 600px; margin: auto; padding: 20px; background-color: #fff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);">
+                          <div style="text-align: center; padding: 20px;">
+                            <img src="${inviter.company.logo}" alt="Logo" style="max-width: 100px;" />
+                            <h1 style="margin: 0;">Welcome To ${inviter.company.CompanyName}</h1>
                           </div>
-                        </body>
-                        </html>`;
+                          <div style="margin: 20px 0;">
+                            <p>Hey ${addEmp.FirstName} ${addEmp.LastName} 👋,</p>
+                            <p><b>Your credentials</b></p><br />
+                            <p><b>Email</b>: ${addEmp.Email}</p><br />
+                            <p><b>Password</b>: ${addEmp.Password}</p><br />
+                            <p>Your details have been registered! Please confirm your email by clicking the button below.</p>
+                            <a href="${process.env.FRONTEND_URL}" style="display: inline-block; padding: 10px 20px; background-color: #28a745; color: #fff !important; text-decoration: none; border-radius: 5px; margin-top: 10px;">Confirm Email</a>
+                          </div>
+                          <div style="text-align: center; font-size: 14px; margin-top: 20px; color: #777;">
+                            <p>Have questions? Need help? <a href="mailto:${process.env.FROM_MAIL}" style="color: #777;">Contact our support team</a>.</p>
+                          </div>
+                        </div>
+                      </body>
+                    </html>
+                  `;
 
                     sendMail({
                         From: process.env.FROM_MAIL,

@@ -51,8 +51,6 @@ router.post("/:id", verifySuperAdmin, async (req, res) => {
 
         const addEmployee = await Employee.create(employeeData);
 
-        
-
         // Generate and send the email
         const htmlContent = `
         <!DOCTYPE html>

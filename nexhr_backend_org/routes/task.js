@@ -348,37 +348,30 @@ router.put("/:empId/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) 
                     To: assignedPerson.Email,
                     Subject: `Your assigned task (${req.body.title}) is completed`,
                     HtmlBody: `
-                    <html lang="en">
-                    <head>
-                        <meta charset="UTF-8">
-                        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                        <title>${assignedPerson.company.CompanyName}</title>
-                        <style>
-                            body { font-family: Arial, sans-serif; background-color: #f6f9fc; color: #333; margin: 0; padding: 0; }
-                            .container { max-width: 600px; margin: auto; padding: 20px; background-color: #fff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); }
-                            .header { text-align: center; padding: 20px; }
-                            .content { margin: 20px 0; }
-                            .footer { text-align: center; font-size: 14px; margin-top: 20px; color: #777; }
-                        </style>
-                    </head>
-                    <body>
-                        <div class="container">
-                            <div class="header">
-                                <h1>Your Assigned Task Has Been Completed</h1>
-                            </div>
-                            <div class="content">
-                                <p>Hey ${assignedPersonName} 👋,</p>
-                                <p><b>${empName} has successfully completed the task named "${req.body.title}".</b></p>
-                                <p>Please review the completed task and take any necessary actions.</p><br />
-                                <p>Thank you!</p>
-                            </div>
-                            <div class="footer">
-                                <p>Have questions? Need help? <a href="mailto:${emp.Email}">Contact ${empName}</a>.</p>
-                            </div>
-                        </div>
-                    </body>
-                    </html>
-                    `
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>${assignedPerson.company.CompanyName}</title>
+  </head>
+  <body style="font-family: Arial, sans-serif; background-color: #f6f9fc; color: #333; margin: 0; padding: 0;">
+    <div style="max-width: 600px; margin: auto; padding: 20px; background-color: #fff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);">
+      <div style="text-align: center; padding: 20px;">
+        <h1 style="margin: 0;">Your Assigned Task Has Been Completed</h1>
+      </div>
+      <div style="margin: 20px 0;">
+        <p>Hey ${assignedPersonName} 👋,</p>
+        <p><b>${empName} has successfully completed the task named "${req.body.title}".</b></p>
+        <p>Please review the completed task and take any necessary actions.</p><br />
+        <p>Thank you!</p>
+      </div>
+      <div style="text-align: center; font-size: 14px; margin-top: 20px; color: #777;">
+        <p>Have questions? Need help? <a href="mailto:${emp.Email}">Contact ${empName}</a>.</p>
+      </div>
+    </div>
+  </body>
+</html>
+`
                 });
             });
         }
@@ -391,38 +384,31 @@ router.put("/:empId/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) 
                 To: emp.Email,
                 Subject: `${assignedPersonName} has assigned a task to you`,
                 HtmlBody: `
-                            <html lang="en">
-                                <head>
-                                    <meta charset="UTF-8">
-                                        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                                            <title>${assignedPerson.company.CompanyName}</title>
-                                            <style>
-                                                body {font - family: Arial, sans-serif; background-color: #f6f9fc; color: #333; margin: 0; padding: 0; }
-                                                .container {max - width: 600px; margin: auto; padding: 20px; background-color: #fff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); }
-                                                .header {text - align: center; padding: 20px; }
-                                                .content {margin: 20px 0; }
-                                                .footer {text - align: center; font-size: 14px; margin-top: 20px; color: #777; }
-                                            </style>
-                                        </head>
-                                        <body>
-                                            <div class="container">
-                                                <div class="header">
-                                                    <h1>${assignedPersonName} has Assigned a Task to You!</h1>
-                                                </div>
-                                                <div class="content">
-                                                    <p>Hey ${empName} 👋,</p>
-                                                    <p><b>${assignedPersonName} has created a task named "${req.body.title}".</b></p>
-                                                    <p>You have been assigned to this task as a responsible member.</p>
-                                                    <p>Please follow the provided instructions and complete the task accordingly.</p><br />
-                                                    <p>Thank you!</p>
-                                                </div>
-                                                <div class="footer">
-                                                    <p>Have questions? Need help? <a href="mailto:${assignedPerson.Email}">Contact ${assignedPersonName}</a>.</p>
-                                                </div>
-                                            </div>
-                                        </body>
-                                    </html>
-                                    `
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>${assignedPerson.company.CompanyName}</title>
+  </head>
+  <body style="font-family: Arial, sans-serif; background-color: #f6f9fc; color: #333; margin: 0; padding: 0;">
+    <div style="max-width: 600px; margin: auto; padding: 20px; background-color: #fff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);">
+      <div style="text-align: center; padding: 20px;">
+        <h1 style="margin: 0;">${assignedPersonName} has Assigned a Task to You!</h1>
+      </div>
+      <div style="margin: 20px 0;">
+        <p>Hey ${empName} 👋,</p>
+        <p><b>${assignedPersonName} has created a task named "${req.body.title}".</b></p>
+        <p>You have been assigned to this task as a responsible member.</p>
+        <p>Please follow the provided instructions and complete the task accordingly.</p><br />
+        <p>Thank you!</p>
+      </div>
+      <div style="text-align: center; font-size: 14px; margin-top: 20px; color: #777;">
+        <p>Have questions? Need help? <a href="mailto:${assignedPerson.Email}">Contact ${assignedPersonName}</a>.</p>
+      </div>
+    </div>
+  </body>
+</html>
+`
             });
         });
 

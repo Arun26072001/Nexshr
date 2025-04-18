@@ -8,14 +8,6 @@ const sendMail = require("./mailSender");
 router.get("/", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
     try {
         const teams = await Team.find()
-            // .populate({
-            //     path: "employees",
-            //     select: "_id FirstName LastName"
-            // })
-            // .populate({
-            //     path: "lead",
-            //     select: "_id FirstName LastName"
-            // });
         res.send(teams)
     } catch (err) {
         console.error(err)

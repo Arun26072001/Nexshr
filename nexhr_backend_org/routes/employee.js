@@ -240,8 +240,11 @@ router.get('/:id', verifyAdminHREmployeeManagerNetwork, async (req, res) => {
   }
 });
 
-router.post("/", verifyAdminHR, async (req, res) => {
+router.post("/:id", verifyAdminHR, async (req, res) => {
   try {
+    const inviter = await Employee.findById(req.params.id, "FirstName LastName")
+      .populate("company", "logo CompanyName");
+
     const { Email, phone, FirstName, LastName, Password, teamLead, managerId, company, annualLeaveEntitlement, typesOfLeaveCount, employementType } = req.body;
 
     // Check if email already exists
@@ -271,47 +274,40 @@ router.post("/", verifyAdminHR, async (req, res) => {
     const employee = await Employee.create(employeeData);
 
     const htmlContent = `
-      <!DOCTYPE html>
-      <html lang="en">
-      <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>NexsHR</title>
-        <style>
-          body { font-family: Arial, sans-serif; background-color: #f6f9fc; color: #333; }
-          .container { max-width: 600px; margin: auto; padding: 20px; background-color: #fff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); }
-          .header { text-align: center; padding: 20px; }
-          .header img { max-width: 100px; }
-          .content { margin: 20px 0; }
-          .footer { text-align: center; font-size: 14px; margin-top: 20px; color: #777; }
-          .button { display: inline-block; padding: 10px 20px; background-color: #28a745; color: #fff !important; text-decoration: none; border-radius: 5px; margin-top: 10px; }
-        </style>
-      </head>
-      <body>
-        <div class="container">
-          <div class="header">
-            <img src="https://imagedelivery.net/r89jzjNfZziPHJz5JXGOCw/1dd59d6a-7b64-49d7-ea24-1366e2f48300/public" alt="Logo" />
-            <h1>Welcome to NexsHR</h1>
-          </div>
-          <div class="content">
-            <p>Hey ${FirstName} ${LastName} 👋,</p>
-            <p><b>Your credentials</b></p><br />
-            <p><b>Email</b>: ${Email}</p><br />
-            <p><b>Password</b>: ${Password}</p><br />
-            <p>Your details has been register! Please confirm your email by clicking the button below.</p>
-            <a href="${process.env.FRONTEND_URL}" class="button">Confirm Email</a>
-          </div>
-          <div class="footer">
-            <p>Have questions? Need help? <a href="mailto:${process.env.FRONTEND_URL}">Contact our support team</a>.</p>
-          </div>
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>${inviter.company.CompanyName}</title>
+    </head>
+    <body style="font-family: Arial, sans-serif; background-color: #f6f9fc; color: #333; margin: 0; padding: 0;">
+      <div style="max-width: 600px; margin: auto; padding: 20px; background-color: #fff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);">
+        <div style="text-align: center; padding: 20px;">
+          <img src="${inviter.company.logo}" alt="Logo" style="max-width: 100px;" />
+          <h1 style="margin-top: 10px;">Welcome to ${inviter.company.CompanyName}</h1>
         </div>
-      </body>
-      </html>`;
+        <div style="margin: 20px 0;">
+          <p>Hey ${FirstName} ${LastName} 👋,</p>
+          <p><b>Your credentials</b></p><br />
+          <p><b>Email</b>: ${Email}</p><br />
+          <p><b>Password</b>: ${Password}</p><br />
+          <p>Your details have been registered! Please confirm your email by clicking the button below.</p>
+          <a href="${process.env.FRONTEND_URL}" style="display: inline-block; padding: 10px 20px; background-color: #28a745; color: #fff !important; text-decoration: none; border-radius: 5px; margin-top: 10px;">Confirm Email</a>
+        </div>
+        <div style="text-align: center; font-size: 14px; margin-top: 20px; color: #777;">
+          <p>Have questions? Need help? <a href="mailto:${process.env.FRONTEND_URL}" style="color: #777;">Contact our support team</a>.</p>
+        </div>
+      </div>
+    </body>
+    </html>
+  `;
+
 
     sendMail({
       From: process.env.FROM_MAIL,
       To: Email,
-      Subject: "Welcome to NexsHR",
+      Subject: `Welcome to ${inviter.company.CompanyName}`,
       HtmlBody: htmlContent,
     });
 
@@ -339,7 +335,7 @@ router.put("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
       roleName = roleData.RoleName;
     }
     // check previous profile and current are same
-    const empData = await Employee.findById(req.params.id);
+    const empData = await Employee.findById(req.params.id, "profile company").populate("company", "logo CompanyName");
     if (empData.profile !== req.body.profile) {
       const filename = empData.profile.split("/").at(-1);
       fs.unlinkSync(`uploads/${filename}`)
@@ -370,33 +366,24 @@ router.put("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
       <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>NexsHR</title>
-        <style>
-          body { font-family: Arial, sans-serif; background-color: #f6f9fc; color: #333; }
-          .container { max-width: 600px; margin: auto; padding: 20px; background-color: #fff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); }
-          .header { text-align: center; padding: 20px; }
-          .header img { max-width: 100px; }
-          .content { margin: 20px 0; }
-          .footer { text-align: center; font-size: 14px; margin-top: 20px; color: #777; }
-          .button { display: inline-block; padding: 10px 20px; background-color: #28a745; color: #fff !important; text-decoration: none; border-radius: 5px; margin-top: 10px; }
-        </style>
+        <title>${empData.company.CompanyName}</title>
       </head>
-      <body>
-        <div class="container">
-          <div class="header">
-            <img src="https://imagedelivery.net/r89jzjNfZziPHJz5JXGOCw/1dd59d6a-7b64-49d7-ea24-1366e2f48300/public" alt="Logo" />
-            <h1>Welcome to NexsHR</h1>
+      <body style="font-family: Arial, sans-serif; background-color: #f6f9fc; color: #333; margin: 0; padding: 0;">
+        <div style="max-width: 600px; margin: auto; padding: 20px; background-color: #fff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);">
+          <div style="text-align: center; padding: 20px;">
+            <img src="${empData.company.logo}" alt="Logo" style="max-width: 100px;" />
+            <h1 style="margin-top: 10px;">Welcome to ${empData.company.CompanyName}</h1>
           </div>
-          <div class="content">
+          <div style="margin: 20px 0;">
             <p>Hey ${FirstName} ${LastName} 👋,</p>
             <p><b>Your Updated credentials</b></p><br />
             <p><b>Email</b>: ${req.body.Email}</p>
             <p><b>Password</b>: ${req.body.Password}</p><br />
-            <p>Your details has been Updated, Hereafter please use these credentials for login.</p>
+            <p>Your details have been updated. Hereafter, please use these credentials for login.</p>
             <p>Thank you.</p>
           </div>
-          <div class="footer">
-            <p>Have questions? Need help? <a href="mailto:${process.env.FROM_MAIL}">Contact our support team</a>.</p>
+          <div style="text-align: center; font-size: 14px; margin-top: 20px; color: #777;">
+            <p>Have questions? Need help? <a href="mailto:${process.env.FROM_MAIL}" style="color: #777;">Contact our support team</a>.</p>
           </div>
         </div>
       </body>

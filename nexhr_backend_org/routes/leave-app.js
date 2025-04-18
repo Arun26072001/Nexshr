@@ -7,7 +7,6 @@ const { Employee } = require('../models/EmpModel');
 const { verifyHR, verifyHREmployee, verifyEmployee, verifyAdmin, verifyAdminHREmployeeManagerNetwork, verifyAdminHR, verifyAdminHREmployee, verifyTeamHigherAuthority, verifyAdminHrNetworkAdmin } = require('../auth/authMiddleware');
 const { Team } = require('../models/TeamModel');
 const { upload } = require('./imgUpload');
-const now = new Date();
 const sendMail = require("./mailSender");
 const { getDayDifference, mailContent, formatLeaveData } = require('../Reuseable_functions/reusableFunction');
 const { Task } = require('../models/TaskModel');
@@ -38,7 +37,7 @@ function generateLeaveEmail(empData, fromDateValue, toDateValue, reasonForLeave,
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>NexsHR - Leave Application</title>
+    <title>${empData.company.CompanyName}- Leave Application</title>
   </head>
   <body style="font-family: Arial, sans-serif; background-color: #f6f9fc; color: #333; margin: 0; padding: 0;">
     <div style="max-width: 500px; margin: auto; padding: 20px; background-color: #fff; border-radius: 8px;
@@ -46,7 +45,7 @@ function generateLeaveEmail(empData, fromDateValue, toDateValue, reasonForLeave,
       
       <!-- Header -->
       <div style="text-align: center; padding: 20px;">
-        <img src="https://imagedelivery.net/r89jzjNfZziPHJz5JXGOCw/1dd59d6a-7b64-49d7-ea24-1366e2f48300/public"
+        <img src="${empData.company.CompanyName}"
              alt="Company Logo" style="max-width: 100px;" />
         <h1 style="font-size: 20px; margin: 10px 0;">
           Leave Application (${leaveType} from ${formattedFromDate} to ${formattedToDate})
@@ -81,6 +80,7 @@ leaveApp.get("/make-know", async (req, res) => {
       .populate({
         path: "employee",
         select: "FirstName LastName Email",
+        populate: { path: "company", select: "logo CompanyName" },
         populate: {
           path: "team",
           populate: [
@@ -113,36 +113,28 @@ leaveApp.get("/make-know", async (req, res) => {
       })
 
       const htmlContent = `
-        <!DOCTYPE html>
-        <html lang="en">
-          <head>
-            <meta charset="UTF-8">
-              <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                <title>NexsHR</title>
-                <style>
-                  body {font - family: Arial, sans-serif; background-color: #f6f9fc; color: #333; }
-                  .container {max - width: 600px; margin: auto; padding: 20px; background-color: #fff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); }
-                  .header {text - align: center; padding: 20px; }
-                  .header img {max - width: 100px; }
-                  .content {margin: 20px 0; }
-                  .footer {text - align: center; font-size: 14px; margin-top: 20px; color: #777; }
-                </style>
-              </head>
-              <body>
-                <div class="container">
-                  <div class="header">
-                    <img src="https://imagedelivery.net/r89jzjNfZziPHJz5JXGOCw/1dd59d6a-7b64-49d7-ea24-1366e2f48300/public" alt="Logo" />
-                    <h1>${empData.employee.FirstName} ${empData.employee.LastName} has applied for leave From ${empData.fromDate} To ${empData.toDate}</h1>
-                  </div>
-                  <div class="content">
-                    <p>Hi all,</p>
-                    <p>I have applied for leave From ${empData.fromDate} To ${empData.toDate} due To ${empData.reasonForLeave}. Please respond To this request.</p>
-                    <p>Thank you!</p>
-                  </div>
-                </div>
-              </body>
-            </html>
-            `;
+      <!DOCTYPE html>
+      <html lang="en">
+        <head>
+          <meta charset="UTF-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <title>${empData.employee.company.CompanyName}</title>
+        </head>
+        <body style="font-family: Arial, sans-serif; background-color: #f6f9fc; color: #333; margin: 0; padding: 0;">
+          <div style="max-width: 600px; margin: auto; padding: 20px; background-color: #fff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);">
+            <div style="text-align: center; padding: 20px;">
+              <img src="${empData.employee.company.logo}" alt="Logo" style="max-width: 100px;" />
+              <h1 style="margin: 0;">${empData.employee.FirstName} ${empData.employee.LastName} has applied for leave From ${empData.fromDate} To ${empData.toDate}</h1>
+            </div>
+            <div style="margin: 20px 0;">
+              <p>Hi all,</p>
+              <p>I have applied for leave from ${empData.fromDate} to ${empData.toDate} due to ${empData.reasonForLeave}. Please respond to this request.</p>
+              <p>Thank you!</p>
+            </div>
+          </div>
+        </body>
+      </html>
+    `;
 
       const mailList = members;
 
@@ -838,7 +830,7 @@ leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("pre
     const monthStart = new Date(fromDateObj.getFullYear(), fromDateObj.getMonth(), 1);
     const monthEnd = new Date(fromDateObj.getFullYear(), fromDateObj.getMonth() + 1, 0);
 
-    const emp = await Employee.findById(personId, "FirstName LastName monthlyPermissions permissionHour typesOfLeaveRemainingDays typesOfLeaveCount leaveApplication")
+    const emp = await Employee.findById(personId, "FirstName LastName monthlyPermissions permissionHour typesOfLeaveRemainingDays typesOfLeaveCount leaveApplication company")
       .populate([
         {
           path: "admin",
@@ -847,6 +839,10 @@ leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("pre
         {
           path: "leaveApplication",
           match: { leaveType: "Permission Leave", fromDate: { $gte: monthStart, $lte: monthEnd } },
+        },
+        {
+          path: "company",
+          select: "logo CompanyName"
         },
         {
           path: "team",
@@ -993,15 +989,18 @@ leaveApp.put('/:id', verifyAdminHREmployeeManagerNetwork, async (req, res) => {
     const anyRejected = Object.values(approvers).some((status) => status === "rejected");
 
     const emp = await Employee.findById(employee)
-      .populate({
+      .populate([{
         path: "team",
         populate: [
           { path: "lead", select: "FirstName LastName Email" },
           { path: "head", select: "FirstName LastName Email" },
           { path: "manager", select: "FirstName LastName Email" }
         ]
-      })
-      .populate({ path: "admin", select: "FirstName LastName Email" });
+      },
+      { path: "company", select: "logo CompanyName" },
+      { path: "company", select: "CompanyName logo" },
+      { path: "admin", select: "FirstName LastName Email" }
+      ]).lean().exec();
 
     if (!emp) return res.status(404).send({ error: 'Employee not found.' });
     if (!emp.team) return res.status(404).send({ error: `${emp.FirstName} is not assigned to a team.` });
@@ -1026,11 +1025,9 @@ leaveApp.put('/:id', verifyAdminHREmployeeManagerNetwork, async (req, res) => {
     const managers = emp.team.manager.map((item) => ({
       type: "manager", Email: item.Email, name: `${item.FirstName} ${item.LastName}`
     }));
+
     const members = [
       emp.Email && { type: "emp", Email: emp.Email, name: `${emp.FirstName} ${emp.LastName}` },
-      // emp?.team?.lead?.[0] && { type: "lead", Email: emp.team.lead[0].Email, name: `${emp.team.lead[0].FirstName} ${emp.team.lead[0].LastName}` },
-      // emp?.team?.head?.[0] && { type: "head", Email: emp.team.head[0].Email, name: `${emp.team.head[0].FirstName} ${emp.team.head[0].LastName}` },
-      // emp?.team?.manager?.[0] && { type: "manager", Email: emp.team.manager[0].Email, name: `${emp.team.manager[0].FirstName} ${emp.team.manager[0].LastName}` },
       ...leads, ...heads, ...managers,
       emp?.admin && { type: "admin", Email: emp.admin.Email, name: `${emp.admin.FirstName} ${emp.admin.LastName}` }
     ].filter(Boolean);

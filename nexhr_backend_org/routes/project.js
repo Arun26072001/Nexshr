@@ -108,57 +108,31 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
         To: emp.Email,
         Subject: `Welcome to ${req.body.name} project by ${FirstName}`,
         HtmlBody: `
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>${company.CompanyName}</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f6f9fc;
-            color: #333;
-            margin: 0;
-            padding: 0;
-        }
-        .container {
-            max-width: 600px;
-            margin: auto;
-            padding: 20px;
-            background-color: #fff;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        }
-        .content {
-            margin: 20px 0;
-        }
-        .footer {
-            text-align: center;
-            font-size: 14px;
-            margin-top: 20px;
-            color: #777;
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <div class="header">
-            <h1>Welcome to ${req.body.name[0].toUpperCase() + req.body.name.slice(1)}</h1>
-        </div>
-        <div class="content">
-            <p>Hey ${empName} 👋,</p>
-            <p><b>${FirstName[0].toUpperCase() + FirstName.slice(1)} has created a project named "${req.body.name}".</b></p>
-            <p>As a result, you have been assigned as a member of this project.</p>
-            <p>Please follow the instructions.</p><br />
-            <p>Thank you!</p>
-        </div>
-        <div class="footer">
-            <p>Have questions? Need help? <a href="mailto:${Email}">Contact ${FirstName[0].toUpperCase() + FirstName.slice(1)}</a>.</p>
-        </div>
-    </div>
-</body>
-</html>
-`
+        <html lang="en">
+          <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>${company.CompanyName}</title>
+          </head>
+          <body style="font-family: Arial, sans-serif; background-color: #f6f9fc; color: #333; margin: 0; padding: 0;">
+            <div style="max-width: 600px; margin: auto; padding: 20px; background-color: #fff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);">
+              <div style="text-align: center; padding: 20px;">
+                <h1 style="margin: 0;">Welcome to ${req.body.name[0].toUpperCase() + req.body.name.slice(1)}</h1>
+              </div>
+              <div style="margin: 20px 0;">
+                <p>Hey ${empName} 👋,</p>
+                <p><b>${FirstName[0].toUpperCase() + FirstName.slice(1)} has created a project named "${req.body.name}".</b></p>
+                <p>As a result, you have been assigned as a member of this project.</p>
+                <p>Please follow the instructions.</p><br />
+                <p>Thank you!</p>
+              </div>
+              <div style="text-align: center; font-size: 14px; margin-top: 20px; color: #777;">
+                <p>Have questions? Need help? <a href="mailto:${Email}">Contact ${FirstName[0].toUpperCase() + FirstName.slice(1)}</a>.</p>
+              </div>
+            </div>
+          </body>
+        </html>
+        `
       })
     })
     return res.status(201).send({ message: "Project is created Successfully", project })
@@ -227,57 +201,31 @@ router.put("/:empId/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) 
         To: emp.Email,
         Subject: `Welcome to ${req.body.name} project by ${assignedPersonName}`,
         HtmlBody: `
-    <html lang="en">
-    <head>
-      <meta charset="UTF-8">
-      <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <title>${assignedPerson?.company?.CompanyName}</title>
-      <style>
-          body {
-              font-family: Arial, sans-serif;
-              background-color: #f6f9fc;
-              color: #333;
-              margin: 0;
-              padding: 0;
-          }
-          .container {
-              max-width: 600px;
-              margin: auto;
-              padding: 20px;
-              background-color: #fff;
-              border-radius: 8px;
-              box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-          }
-          .content {
-              margin: 20px 0;
-          }
-          .footer {
-              text-align: center;
-              font-size: 14px;
-              margin-top: 20px;
-              color: #777;
-          }
-      </style>
-    </head>
-    <body>
-      <div class="container">
-          <div class="header">
-              <h1>Welcome to ${req.body.name[0].toUpperCase() + req.body.name.slice(1)}</h1>
-          </div>
-          <div class="content">
-              <p>Hey ${empName} 👋,</p>
-              <p><b>${assignedPersonName} has created a project named ${req.body.name}.</b></p>
-              <p>As a result, you have been assigned as a member of this project.</p>
-              <p>Please follow the instructions.</p><br />
-              <p>Thank you!</p>
-          </div>
-          <div class="footer">
-              <p>Have questions? Need help? <a href="mailto:${assignedPerson.Email}">Contact ${assignedPersonName}</a>.</p>
-          </div>
-      </div>
-    </body>
-    </html>
-    `
+        <html lang="en">
+          <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>${assignedPerson?.company?.CompanyName}</title>
+          </head>
+          <body style="font-family: Arial, sans-serif; background-color: #f6f9fc; color: #333; margin: 0; padding: 0;">
+            <div style="max-width: 600px; margin: auto; padding: 20px; background-color: #fff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);">
+              <div style="text-align: center; padding: 20px;">
+                <h1 style="margin: 0;">Welcome to ${req.body.name[0].toUpperCase() + req.body.name.slice(1)}</h1>
+              </div>
+              <div style="margin: 20px 0;">
+                <p>Hey ${empName} 👋,</p>
+                <p><b>${assignedPersonName} has created a project named ${req.body.name}.</b></p>
+                <p>As a result, you have been assigned as a member of this project.</p>
+                <p>Please follow the instructions.</p><br />
+                <p>Thank you!</p>
+              </div>
+              <div style="text-align: center; font-size: 14px; margin-top: 20px; color: #777;">
+                <p>Have questions? Need help? <a href="mailto:${assignedPerson.Email}">Contact ${assignedPersonName}</a>.</p>
+              </div>
+            </div>
+          </body>
+        </html>
+        `
       })
     })
     if (!project) {

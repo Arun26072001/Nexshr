@@ -15,7 +15,7 @@ const Login = () => {
   }, [])
 
   return (
-    <div className="container">
+    <div className="container center-box">
       <div id="main-outer-div">
         {/* If you decide to include the logo later, uncomment the following div */}
 

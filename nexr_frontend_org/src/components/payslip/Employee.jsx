@@ -35,7 +35,7 @@ export default function Employee() {
         formData.append('documents', file);
         setProcessing(true);
         try {
-            const response = await axios.post(`${url}/api/google-sheet/upload/employees`, formData, {
+            const response = await axios.post(`${url}/api/google-sheet/upload/employees/${data._id}`, formData, {
                 headers: {
                     'Content-Type': 'multipart/form-data',
                     Authorization: data.token || ""

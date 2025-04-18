@@ -46,6 +46,8 @@ const Task = mongoose.model("Task", taskSchema);
 const taskValidation = Joi.object({
     _id: Joi.string().allow("").label('_id'),
     __v: Joi.string().allow(0).label('__v'),
+    createdAt: Joi.string().allow('').label('createdAt'),
+    updatedAt: Joi.string().allow('').label('updatedAt'),
     title: Joi.string().required().label('Task Title'),
     priority: Joi.string()
         .valid('Low', 'Medium', 'High', 'Critical')
@@ -78,8 +80,6 @@ const taskValidation = Joi.object({
     comments: Joi.any().label("Comments"),
     trash: Joi.boolean().allow("", null).label("Trash"),
     project: Joi.string().regex(/^[0-9a-fA-F]{24}$/).required().label('Project ID'),
-    createdAt: Joi.string().allow('').label('createdAt'),
-    updatedAt: Joi.string().allow('').label('updatedAt')
 });
 
 module.exports = {
