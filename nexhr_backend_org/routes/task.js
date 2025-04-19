@@ -25,7 +25,6 @@ router.get("/project/:id", verifyAdminHREmployeeManagerNetwork, async (req, res)
 
                 let totalCommentSpendTime = 0;
                 task?.comments?.map((comment) => totalCommentSpendTime += Number(comment.spend));
-                console.log(task);
 
                 return {
                     ...task.toObject(),
@@ -58,8 +57,6 @@ router.get("/project/:id", verifyAdminHREmployeeManagerNetwork, async (req, res)
                 }
             };
         }).filter(Boolean);
-        console.log(timeUpdatedTasks);
-
 
         return res.send({ tasks: timeUpdatedTasks });
     } catch (error) {
@@ -121,11 +118,8 @@ router.post("/members", verifyAdminHREmployeeManagerNetwork, async (req, res) =>
         const { dateRange, collegues } = req.body;
         const fromDate = new Date(dateRange[0]);
         const toDate = new Date(dateRange[1]);
-        console.log(fromDate, toDate);
 
         const taskData = await Task.find({ assignedTo: { $in: collegues }, from: { $gte: fromDate, $lte: toDate } });
-        console.log(taskData);
-
         return res.send(taskData)
 
     } catch (error) {

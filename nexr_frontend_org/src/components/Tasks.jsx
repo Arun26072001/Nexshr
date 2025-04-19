@@ -250,7 +250,6 @@ const Tasks = () => {
     }
     setIsAddComment(!isAddComment);
   }
-  console.log("pending tasks", pendingTasks);
 
   async function fetchTaskById(id, storeCommentImgs) {
     try {

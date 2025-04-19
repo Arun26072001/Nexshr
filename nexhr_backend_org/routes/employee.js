@@ -43,6 +43,20 @@ router.get("/", verifyAdminHRTeamHigherAuth, async (req, res) => {
   }
 });
 
+router.get("/notifications/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
+  try {
+    const emp = await Employee.findById(req.params.id, "notifications")
+      .populate("notifications.company", "logo CompanyName")
+      .exec();
+
+    const notifications = emp.notifications.filter((item) => item.isViewed === false);
+    return res.send(notifications);
+  } catch (error) {
+    console.log(error);
+    return res.status(500).send({ error: error.message })
+  }
+})
+
 router.get("/user", verifyAdminHR, async (req, res) => {
   try {
     const employees = await Employee.find({ Account: 3 }, "_id FirstName LastName")

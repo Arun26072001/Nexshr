@@ -1,5 +1,12 @@
 const mongoose = require('mongoose');
 
+const nitificationSchema = new mongoose.Schema({
+  company: { type: mongoose.Schema.Types.ObjectId, ref: "Company", default: null },
+  title: { type: String },
+  message: { type: String },
+  isViewed: { type: Boolean, default: false }
+}, { _id: false })
+
 var employeeSchema = new mongoose.Schema({
   FirstName: { type: String },
   LastName: { type: String },
@@ -54,7 +61,8 @@ var employeeSchema = new mongoose.Schema({
   publicHoliday: {
     type: String
   },
-  announcements: [{ type: mongoose.Schema.Types.ObjectId, ref: "Announcement", default: [] }],
+  announcements: [{ type: mongoose.Schema.Types.ObjectId, ref: "Announcement" }],
+  notifications: [{ type: nitificationSchema, default: {} }],
   annualLeaveYearStart: {
     type: Date, default: new Date().toISOString()
   },

@@ -45,7 +45,6 @@ const CommonModel = ({
     const [confirmationTxt, setConfirmationTxt] = useState("");
     const [isDisabled, setIsDisabled] = useState(true);
     const [isShowPassword, setIsShowPassword] = useState(false);
-    console.log(dataObj);
 
     return (
         <Modal open={isAddData} size="sm" backdrop="static">

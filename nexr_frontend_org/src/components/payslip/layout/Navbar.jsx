@@ -24,6 +24,7 @@ export default function Navbar({ handleSideBar }) {
     const workRef = useRef(null);  // Use ref to store interval ID
     const url = process.env.REACT_APP_API_URL;
     const [announcements, setAnnouncements] = useState([]);
+    const [notifications, setNotifications] = useState([]);
     const [isRemove, setIsRemove] = useState([]);
     const [isViewEarlyLogout, setIsViewEarlyLogout] = useState(JSON.parse(localStorage.getItem("isViewEarlyLogout")) ? true : false);
     // const [workLocation, setWorklocation] = useState("");
@@ -128,8 +129,26 @@ export default function Navbar({ handleSideBar }) {
             // console.log(error.response.data.error);
         }
     }
+
+    async function fetchNotifications() {
+        try {
+            const res = await axios.get(`${url}/api/employee/notifications/${data._id}`, {
+                headers: {
+                    Authorization: data.token || ""
+                }
+            });
+            console.log(res.data);
+            setNotifications(res.data);
+        } catch (error) {
+            console.log("error in fetch notifications", error);
+
+        }
+    }
+    console.log("notifications", notifications);
+
     useEffect(() => {
         fetchAnnouncements();
+        fetchNotifications();
     }, [isChangeAnnouncements])
 
     function checkIsCompletedWorkingHour() {
@@ -160,26 +179,24 @@ export default function Navbar({ handleSideBar }) {
 
     async function clearMsgs() {
         try {
-            announcements.forEach((item, index) => {
-                setIsRemove((pre) => {
-                    const updated = [...pre];
-                    updated[index] = true;
-                    return updated;
-                })
-            })
+            announcements.forEach((item, index) => ({
+                ...item,
+                isViewed: true
+            }))
             // Use Promise.all to handle multiple async operations
-            await Promise.all(
-                announcements.map(async (item) => {
-                    const updatedMsg = {
-                        ...item,
-                        whoViewed: {
-                            ...item.whoViewed,
-                            [data._id]: "viewed"
-                        }
-                    };
-                    return updateNotification(updatedMsg); // Ensure async call is returned
-                })
-            );
+            // await Promise.all(
+            //     announcements.map(async (item) => {
+            //         const updatedMsg = {
+            //             ...item,
+            //             whoViewed: {
+            //                 ...item.whoViewed,
+            //                 [data._id]: "viewed"
+            //             }
+            //         };
+            //         return updateNotification(updatedMsg); // Ensure async call is returned
+            //     })
+            // );
+            
 
             // Call handleUpdateAnnouncements only after all updates are complete
             handleUpdateAnnouncements();
@@ -391,17 +408,15 @@ export default function Navbar({ handleSideBar }) {
                                 </defs>
                             </svg>
                             {
-                                announcements.length > 0 &&
+                                notifications.length > 0 &&
                                 <span className='messageCount'>
-                                    {announcements?.length}
+                                    {notifications?.length}
                                 </span>
                             }
                         </span>
                         {/* Profile Section */}
                         <Whisper placement="bottomEnd" trigger="click" speaker={renderMenu}>
-
                             <img src={data.profile || logo} className='imgContainer' style={{ width: "40px", height: "40px" }} alt='emp_img' />
-
                         </Whisper>
                         {/* Messages Section */}
                         <div className="offcanvas offcanvas-end" tabindex="-1" id="offcanvasRight" aria-labelledby="offcanvasRightLabel">
@@ -411,16 +426,17 @@ export default function Navbar({ handleSideBar }) {
                             </div>
                             <div className="offcanvas-body">
                                 {
-                                    announcements.map((item, index) => {
-                                        return <div key={item._id} className={`box-content my-2 ${isRemove[index] ? "remove" : ""}`}>
-                                            <div className='d-flex justify-content-end'>
+                                    notifications.map((notification, index) => {
+                                        return <div key={notification._id} className={`box-content my-2 ${isRemove[index] ? "remove" : ""}`}>
+                                            <div className='d-flex justify-content-between align-items-center'>
+                                                <img src={notification.company.logo} alt={"companyLogo"} width={50} height={"auto"} />
                                                 <CloseRoundedIcon onClick={() => {
-                                                    removeMessage(item, index)
+                                                    removeMessage(notification, index)
                                                 }} />
                                             </div>
                                             <Accordion>
-                                                <Accordion.Panel header={item.title} eventKey={1} caretAs={KeyboardArrowDownRoundedIcon}>
-                                                    <p>{item.message.replace(/<[^>]*>/g, "")}</p>
+                                                <Accordion.Panel header={notification.title} eventKey={1} caretAs={KeyboardArrowDownRoundedIcon}>
+                                                    <p>{notification.message.replace(/<[^>]*>/g, "")}</p>
                                                 </Accordion.Panel>
                                             </Accordion>
                                         </div>

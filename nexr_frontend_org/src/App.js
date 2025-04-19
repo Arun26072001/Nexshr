@@ -14,6 +14,7 @@ import io from "socket.io-client";
 import { Notification, toaster } from "rsuite";
 import companyLogo from "./imgs/webnexs_logo.webp";
 import AdminDashboard from "./components/superAdmin/AdminDashboard.js";
+import { triggerToaster } from "./components/ReuseableAPI.jsx";
 
 export const EssentialValues = createContext(null);
 
@@ -199,31 +200,14 @@ const App = () => {
     });
 
     socket.on("send_task_notification", (response) => {
-      toaster.push(
-        <Notification
-          header={
-            <div style={{ display: 'flex', alignItems: 'center' }}>
-
-              <img src={companyLogo} alt="Company Logo" style={{ width: 50, height: 50, marginRight: 10 }} />
-
-              <span style={{ fontWeight: 'bold', fontSize: '16px' }}>Webnexs</span>
-            </div>
-          }
-          closable
-        >
-          <strong>{response.title}</strong>
-          <br />
-          <p>{response.message}</p>
-        </Notification>,
-        { placement: 'bottomEnd' }
-      );
+      triggerToaster(response);
+      handleUpdateAnnouncements()
     });
 
     return () => {
       socket.off("receive_announcement");
     };
   }, [socket]);
-  console.log(data);
 
   useEffect(() => {
     localStorage.setItem("isStartLogin", isStartLogin);
