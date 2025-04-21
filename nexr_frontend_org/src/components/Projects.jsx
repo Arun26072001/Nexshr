@@ -20,7 +20,7 @@ import { Skeleton } from '@mui/material';
 export default function Projects() {
     const navigator = useNavigate();
     const { whoIs, data, socket } = useContext(EssentialValues);
-    const { isTeamLead, isTeamHead } = jwtDecode(data.token);
+    const { isTeamLead, isTeamHead, isTeamManager } = jwtDecode(data.token);
     const { handleAddTask, employees } = useContext(TimerStates);
     const [teams, setTeams] = useState([]);
     const [isDelete, setIsDelete] = useState({ type: false, value: "" });
@@ -292,9 +292,12 @@ export default function Projects() {
                                         onChange={filterByName}
                                         value={name}
                                     />
-                                    <div className="button" onClick={handleAddProject}>
-                                        + Add Project
-                                    </div>
+                                    {
+                                        ["admin", "hr"].includes(whoIs) || [isTeamHead, isTeamLead, isTeamManager].includes(true) &&
+                                        <div className="button" onClick={handleAddProject}>
+                                            + Add Project
+                                        </div>
+                                    }
                                 </div>
                             </div>
 

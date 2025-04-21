@@ -6,16 +6,19 @@ import CommonModel from "../Administration/CommonModel";
 const EmpCard = ({ team, deleteTeam, editTeam, whoIs }) => {
     const [isDelete, setIsDelete] = useState(false);
     const [deleteId, setDeleteId] = useState("");
-    console.log(team);
 
     function handleDelete(id) {
-        setDeleteId(id);
-        setIsDelete(true);
+        if (!isDelete) {
+            setDeleteId(id)
+        } else {
+            setDeleteId("");
+        }
+        setIsDelete(!isDelete);
     }
 
     function confirmDelete() {
         deleteTeam(deleteId); // Call delete function with the ID
-        setIsDelete(false); // Close modal after deletion
+        handleDelete()
     }
 
     return (

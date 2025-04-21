@@ -6,6 +6,7 @@ import axios from 'axios';
 import CommonModel from './CommonModel';
 import LeaveTable from '../LeaveTable';
 import { EssentialValues } from '../../App';
+import { Skeleton } from '@mui/material';
 
 export default function Position({ companies }) {
     const url = process.env.REACT_APP_API_URL;
@@ -124,32 +125,37 @@ export default function Position({ companies }) {
     }, [isPositionsDataUpdate]);
 
     return (
-        isLoading ? <Loading height="80vh" /> :
-            isAddPosition ? (
-                <CommonModel
-                    dataObj={positionObj}
-                    editData={editPosition}
-                    changeData={changePosition}
-                    isAddData={isAddPosition}
-                    addData={addPosition}
-                    comps={companies}
-                    modifyData={modifyPositions}
-                    type="Position"
-                    isWorkingApi={isChangingPosition}
-                />
-            ) : (
-                <div className='dashboard-parent pt-4'>
-                    <div className="d-flex justify-content-between px-2">
-                        <h5 className='text-daily'>Position</h5>
-                        <button className='button m-0' onClick={modifyPositions}>+ Add Position</button>
+        isAddPosition ? (
+            <CommonModel
+                dataObj={positionObj}
+                editData={editPosition}
+                changeData={changePosition}
+                isAddData={isAddPosition}
+                addData={addPosition}
+                comps={companies}
+                modifyData={modifyPositions}
+                type="Position"
+                isWorkingApi={isChangingPosition}
+            />
+        ) : (
+            <div className='dashboard-parent pt-4'>
+                <div className="d-flex justify-content-between px-2">
+                    <h5 className='text-daily'>Position</h5>
+                    <button className='button m-0' onClick={modifyPositions}>+ Add Position</button>
 
-                    </div>
-                    {
+                </div>
+                {
+                    isLoading ? <Skeleton
+                        sx={{ bgcolor: 'grey.500' }}
+                        variant="rectangular"
+                        width={"100%"}
+                        height={"50vh"}
+                    /> :
                         positions.length > 0 ?
                             <LeaveTable data={positions} deleteData={deletePosition} fetchData={getEditPositionId} />
                             : <NoDataFound message={"Position data not found"} />
-                    }
-                </div>
-            )
+                }
+            </div>
+        )
     );
 }

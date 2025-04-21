@@ -9,6 +9,7 @@ import Loading from "../Loader";
 import NoDataFound from "./NoDataFound";
 import { useNavigate } from "react-router-dom";
 import { EssentialValues } from "../../App";
+import { Skeleton } from "@mui/material";
 
 const Leave = () => {
     const navigate = useNavigate();
@@ -35,7 +36,6 @@ const Leave = () => {
             }));
         }
     }
-
 
     async function deleteLeave(leaveId) {
         try {
@@ -137,7 +137,13 @@ const Leave = () => {
                     </div>
                 </div>
                 {
-                    isLoading ? <Loading height="80vh" /> :
+                    isLoading ?
+                        <Skeleton
+                            sx={{ bgcolor: 'grey.500' }}
+                            variant="rectangular"
+                            width={"100%"}
+                            height={"50vh"}
+                        /> :
                         leaveRequests?.leaveData?.length > 0 ?
                             <LeaveTable data={leaveRequests.leaveData} fetchData={deleteLeave} />
                             : <NoDataFound message={"Leave data not for this month!"} />

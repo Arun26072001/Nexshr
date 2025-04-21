@@ -118,7 +118,7 @@ leaveApp.get("/make-know", async (req, res) => {
         <head>
           <meta charset="UTF-8">
           <meta name="viewport" content="width=device-width, initial-scale=1.0">
-          <title>${empData.employee.company.CompanyName}</title>
+          <title>${empData?.employee?.company?.CompanyName || "Webnexs"}</title>
         </head>
         <body style="font-family: Arial, sans-serif; background-color: #f6f9fc; color: #333; margin: 0; padding: 0;">
           <div style="max-width: 600px; margin: auto; padding: 20px; background-color: #fff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);">

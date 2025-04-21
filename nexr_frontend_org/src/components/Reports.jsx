@@ -9,6 +9,7 @@ import Loading from './Loader';
 import CommonModel from './Administration/CommonModel';
 import { toast } from 'react-toastify';
 import { getDepartments } from './ReuseableAPI';
+import { Skeleton } from '@mui/material';
 
 export default function Reports() {
     const url = process.env.REACT_APP_API_URL;
@@ -193,25 +194,25 @@ export default function Reports() {
         }
     }
 
-      async function fetchProjectEmps() {
+    async function fetchProjectEmps() {
         try {
-          const res = await axios.get(`${url}/api/project/employees/${reportObj?.project}`, {
-            headers: {
-              Authorization: data.token || ""
-            }
-          })
-          setEmployees(res.data.map((emp) => ({ label: emp.FirstName + " " + emp.LastName, value: emp._id })))
+            const res = await axios.get(`${url}/api/project/employees/${reportObj?.project}`, {
+                headers: {
+                    Authorization: data.token || ""
+                }
+            })
+            setEmployees(res.data.map((emp) => ({ label: emp.FirstName + " " + emp.LastName, value: emp._id })))
         } catch (error) {
-          console.log("error in fetch employess", error);
+            console.log("error in fetch employess", error);
         }
-      }
-    
-      // fetch prject of employees
-      useEffect(() => {
+    }
+
+    // fetch prject of employees
+    useEffect(() => {
         if (reportObj?.project) {
-          fetchProjectEmps()
+            fetchProjectEmps()
         }
-      }, [reportObj?.project])
+    }, [reportObj?.project])
 
     useEffect(() => {
         async function fetchReportsByEmp() {
@@ -269,7 +270,12 @@ export default function Reports() {
                                     </div>
                                 </div>
                                 {
-                                    isLoading ? <Loading height="80vh" /> :
+                                    isLoading ? <Skeleton
+                                        sx={{ bgcolor: 'grey.500' }}
+                                        variant="rectangular"
+                                        width={"100%"}
+                                        height={"50vh"}
+                                    /> :
                                         reports.length > 0 ?
                                             <LeaveTable data={reports} handleDelete={handleDelete} fetchReportById={fetchReportById} />
                                             : <NoDataFound message={"Reports Not Found"} />

@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { Project, projectValidation } = require('../models/ProjectModel');
-const { verifyAdminHREmployeeManagerNetwork } = require('../auth/authMiddleware');
+const { verifyAdminHREmployeeManagerNetwork, verifyAdminHRTeamHigherAuth } = require('../auth/authMiddleware');
 const { Task } = require('../models/TaskModel');
 const sendMail = require('./mailSender');
 const { Employee } = require('../models/EmpModel');
@@ -75,7 +75,7 @@ router.get("/emp/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => 
   }
 })
 
-router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
+router.post("/:id", verifyAdminHRTeamHigherAuth, async (req, res) => {
   try {
     const assignees = await Employee.find({ _id: req.body.employees }, "FirstName LastName Email");
     const { Email, FirstName, company } = await Employee.findById(req.params.id, "FirstName LastName Email").populate({ path: "company" })

@@ -6,6 +6,7 @@ import LeaveTable from '../LeaveTable';
 import Loading from '../Loader';
 import { EssentialValues } from '../../App';
 import NoDataFound from '../payslip/NoDataFound';
+import { Skeleton } from '@mui/material';
 
 const Announce = () => {
     const url = process.env.REACT_APP_API_URL;
@@ -61,29 +62,33 @@ const Announce = () => {
 
         fetchAnnouncements();
     }, [changeAnnouncement]);
-    console.log("announcements", announcements);
 
     return (
-        isLoading ? <Loading height="80vh" /> :
-            <div className='dashboard-parent py-4'>
-                <div className="d-flex justify-content-between px-2">
-                    <h5 className='text-daily'>Announcement</h5>
-                    <Announcementalert handleChangeAnnouncement={handleChangeAnnouncement} />
-                    {/* <div>
+        <div className='dashboard-parent py-4'>
+            <div className="d-flex justify-content-between px-2">
+                <h5 className='text-daily'>Announcement</h5>
+                <Announcementalert handleChangeAnnouncement={handleChangeAnnouncement} />
+                {/* <div>
                     </div>
                     <div className='d-flex'>
                     </div> */}
-                </div>
-                <div className='tabline mt-3 p-4'>
-                    <div className='profiles mt-3'>
-                        {
+            </div>
+            <div className='tabline mt-3 p-4'>
+                <div className='profiles mt-3'>
+                    {
+                        isLoading ? <Skeleton
+                            sx={{ bgcolor: 'grey.500' }}
+                            variant="rectangular"
+                            width={"100%"}
+                            height={"50vh"}
+                        /> :
                             announcements.length > 0 ?
                                 <LeaveTable handleDelete={handleDelete} data={announcements} /> :
                                 <NoDataFound message={"Announcement data not found"} />
-                        }
-                    </div>
+                    }
                 </div>
             </div>
+        </div>
 
     );
 };

@@ -44,14 +44,14 @@ router.get("/members/:id", verifyTeamHigherAuthority, async (req, res) => {
 router.get("/:who/:id", verifyTeamHigherAuthority, async (req, res) => {
     try {
         const teams = await Team.find({ [req.params.who]: req.params.id })
-            // .populate({
-            //     path: "employees",
-            //     select: "_id FirstName LastName"
-            // })
-            // .populate({
-            //     path: "lead",
-            //     select: "_id FirstName LastName"
-            // });
+        // .populate({
+        //     path: "employees",
+        //     select: "_id FirstName LastName"
+        // })
+        // .populate({
+        //     path: "lead",
+        //     select: "_id FirstName LastName"
+        // });
 
         res.send(teams);
     } catch (err) {
@@ -126,6 +126,17 @@ router.post("/", verifyAdminHR, async (req, res) => {
         if (existingTeam) {
             return res.status(400).send({ error: `"${req.body.teamName}" already exists!` });
         }
+        // check employee is already in any team
+        if (req.body.lead.length) {
+            req.body.lead.map(async (item) => {
+                if (await Team.isExists({ lead: item })) {
+                    const emp = await Employee.findById(item, "FirstName LastName").populate("team", "teamName");
+                    return res.status(400).send({error: `${FirstName} ${LastName} is already in `})
+                }
+
+            })
+
+        }
         const { employees = [], lead = [], head = [], manager = [] } = req.body;
 
         const withOutLeadHeadManagerInEmps = employees.filter(emp =>
@@ -153,7 +164,7 @@ router.post("/", verifyAdminHR, async (req, res) => {
         // Update employees and send welcome emails in parallel
         await Promise.all(
             employeesToUpdate.map(async (emp) => {
-                emp.teamLead = req.body.lead;
+                // emp.teamLead = req.body.lead;
                 emp.team = newTeam._id;
                 await emp.save();
 
@@ -221,16 +232,17 @@ router.put("/:id", verifyAdminHRTeamHigherAuth, async (req, res) => {
 router.delete("/:id", verifyAdminHR, async (req, res) => {
     try {
         const teamData = await Team.findById(req.params.id);
-        if (teamData.employees.length) {
+        if (teamData?.employees?.length) {
             return res.status(400).send({ error: `${teamData.employees.length} employees has in ${teamData.teamName}, Please change the team for them` })
         }
         const response = await Team.findByIdAndDelete(req.params.id);
         if (!response) {
             res.status(404).send({ message: "Team not found!" })
         } else {
-            res.send({ message: `${response.data.teamName} Team has been deleted!` })
+            res.send({ message: `${response?.teamName} Team has been deleted!` })
         }
     } catch (err) {
+        console.log("erorr in delete team", err);
         res.status(500).send({ error: err })
     }
 })

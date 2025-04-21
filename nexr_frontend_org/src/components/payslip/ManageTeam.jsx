@@ -12,7 +12,7 @@ import { jwtDecode } from "jwt-decode";
 
 const ManageTeam = () => {
     const url = process.env.REACT_APP_API_URL;
-    const { data, whoIs } = useContext(EssentialValues);
+    const { data, whoIs, socket } = useContext(EssentialValues);
     const { token, _id } = data;
     const [teamObj, setTeamObj] = useState({});
     const [isLoading, setIsLoading] = useState(false);
@@ -110,10 +110,11 @@ const ManageTeam = () => {
             });
 
             // toggleAssignEmp();
-            toggleAddTeam();
-            setTeamObj({})
-            reloadUI();
             toast.success(response.data.message);
+            socket.emit("sent_notification_for_team", teamObj);
+            toggleAddTeam();
+            setTeamObj({})  
+            reloadUI();
         } catch (err) {
             toast.error(err.response.data.error);
         } finally {

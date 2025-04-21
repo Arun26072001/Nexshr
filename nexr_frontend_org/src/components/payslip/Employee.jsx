@@ -12,6 +12,7 @@ import axios from "axios";
 import employeesData from "../../files/Employees data.xlsx";
 import Groups2RoundedIcon from '@mui/icons-material/Groups2Rounded';
 import { jwtDecode } from 'jwt-decode';
+import { Skeleton } from '@mui/material';
 
 export default function Employee() {
     const url = process.env.REACT_APP_API_URL;
@@ -203,7 +204,12 @@ export default function Employee() {
 
                 {
                     isLoading ?
-                        <Loading height="80vh" /> :
+                        <Skeleton
+                            sx={{ bgcolor: 'grey.500' }}
+                            variant="rectangular"
+                            width={"100%"}
+                            height={"50vh"}
+                        /> :
                         employees.length > 0 ?
                             <LeaveTable data={employees} deleteData={handleDeleteEmp} />
                             : <NoDataFound message={"Employee data not found"} />

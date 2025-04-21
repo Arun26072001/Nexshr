@@ -7,6 +7,7 @@ import NoDataFound from '../payslip/NoDataFound';
 import CommonModel from './CommonModel';
 import { toast } from 'react-toastify';
 import { Input } from 'rsuite';
+import { Skeleton } from '@mui/material';
 
 export default function LeaveDetails() {
     const [isLoading, setIsLoading] = useState(false);
@@ -138,21 +139,26 @@ export default function LeaveDetails() {
     return (
         isChangeLeavetype.isAdd ? <CommonModel isAddData={isChangeLeavetype.isAdd} type="LeaveType" dataObj={leaveTypeObj} isWorkingApi={isWorkingApi} changeData={changeLeavetypeData} modifyData={handleChangeLeavetype} addData={addLeavetype} /> :
             isChangeLeavetype.isEdit ? <CommonModel isAddData={isChangeLeavetype.isEdit} changeData={changeLeavetypeData} type="LeaveType" dataObj={leaveTypeObj} isWorkingApi={isWorkingApi} modifyData={handleChangeLeavetype} editData={editLeaveType} /> :
-                isLoading ? <Loading height="80vh" /> :
-                    <div className='dashboard-parent pt-4'>
-                        <div className="d-flex justify-content-between px-2">
-                            <h5 className='text-daily'>Leave Details</h5>
-                            <div className='d-flex gap-2'>
-                                <Input type="text" onChange={setLeavTypeName} value={leaveTypeName} style={{ width: "230px" }} placeholder='Search by LeaveName' />
-                                <button className='button m-0' onClick={handleChangeLeavetype}>+ LeaveType</button>
-                            </div>
-
+                <div className='dashboard-parent pt-4'>
+                    <div className="d-flex justify-content-between px-2">
+                        <h5 className='text-daily'>Leave Details</h5>
+                        <div className='d-flex gap-2'>
+                            <Input type="text" onChange={setLeavTypeName} value={leaveTypeName} style={{ width: "230px" }} placeholder='Search by LeaveName' />
+                            <button className='button m-0' onClick={handleChangeLeavetype}>+ LeaveType</button>
                         </div>
-                        {
+
+                    </div>
+                    {
+                        isLoading ? <Skeleton
+                            sx={{ bgcolor: 'grey.500' }}
+                            variant="rectangular"
+                            width={"100%"}
+                            height={"50vh"}
+                        /> :
                             leaveTypes.length > 0 ?
                                 <LeaveTable data={leaveTypes} handleChangeLeavetype={handleChangeLeavetype} />
                                 : <NoDataFound message={"Roles data not found"} />
-                        }
-                    </div>
+                    }
+                </div>
     )
 }

@@ -9,6 +9,7 @@ import LeaveTable from "../LeaveTable";
 import { EssentialValues } from "../../App";
 import CommonModel from "../Administration/CommonModel";
 import { TimerStates } from "../payslip/HRMDashboard";
+import { Skeleton } from "@mui/material";
 
 const WorkPlaceTab = () => {
   const url = process.env.REACT_APP_API_URL;
@@ -172,7 +173,7 @@ const WorkPlaceTab = () => {
       fetchStateData()
     }
   }, [changeWorkplace.isEdit])
-  
+
   return (
     changeWorkplace.isAdd ? <CommonModel type={"WorkPlace"} isAddData={changeWorkplace.isAdd} isWorkingApi={isWorkingApi} employees={employees} dataObj={workPlaceObj} countries={countries} states={states} modifyData={handleChangeWorkPlace} addData={addWorkplace} changeData={fillworkplaceObj} /> :
       changeWorkplace.isEdit ? <CommonModel type={"WorkPlace"} isAddData={changeWorkplace.isEdit} employees={employees} isWorkingApi={isWorkingApi} dataObj={workPlaceObj} countries={countries} states={states} modifyData={handleChangeWorkPlace} editData={editWorkPlace} changeData={fillworkplaceObj} /> :
@@ -197,7 +198,12 @@ const WorkPlaceTab = () => {
               <InfoIcon /> Note: Places of work cannot be fully edited once they have employees assigned.
             </p>
 
-            {isLoading ? <Loading height="80vh" /> :
+            {isLoading ? <Skeleton
+              sx={{ bgcolor: 'grey.500' }}
+              variant="rectangular"
+              width={"100%"}
+              height={"50vh"}
+            /> :
               workPlaces.length > 0 ? (
                 <LeaveTable data={workPlaces} handleChangeData={handleChangeWorkPlace} deleteData={deleteWorkplace} />
               ) : (

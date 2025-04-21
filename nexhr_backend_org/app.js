@@ -56,6 +56,7 @@ const fileData = require("./routes/file-data");
 const mailSettings = require("./routes/mail-settings");
 const { Employee } = require("./models/EmpModel");
 const { timeToMinutes, getCurrentTimeInMinutes, getTotalWorkingHourPerDay, formatDate } = require("./Reuseable_functions/reusableFunction");
+const e = require("express");
 
 // MongoDB Connection
 const mongoURI = process.env.DATABASEURL;
@@ -169,21 +170,6 @@ io.on("connection", (socket) => {
   // Employee joins a room
   socket.on("join_room", (employeeId) => {
     onlineUsers[employeeId] = socket.id; // ✅ Map employee ID to socket ID
-  });
-
-  // HR sends an announcement
-  socket.on("send_announcement", (data) => {
-
-    data.selectTeamMembers.forEach((employeeId) => {
-      console.log(employeeId);
-      const employeeSocketID = onlineUsers[employeeId]; // Get employee's socket ID
-
-      if (employeeSocketID) {
-        io.to(employeeSocketID).emit("receive_announcement", data);
-      } else {
-        console.log(`Employee ${employeeId} is offline, skipping.`);
-      }
-    });
   });
 
   // Sending a delayed notification
@@ -346,6 +332,29 @@ io.on("connection", (socket) => {
     }
   })
 
+  // HR sends an announcement
+  socket.on("send_announcement", async (data) => {
+    const emps = await Employee.find({ _id: { $in: data.selectTeamMembers } }, "FirstName LastName company notifications")
+      .populate("company", "CompanyName logo")
+      .exec();
+
+    emps.forEach(async (emp) => {
+      const notification = {
+        company: emp.company,
+        title: data.title,
+        message: data.message.replace(/<\/?[^>]+(>|$)/g, '')
+      }
+      emp.notifications.push(notification);
+      await emp.save();
+      const employeeSocketID = onlineUsers[emp]; // Get employee's socket ID
+      if (employeeSocketID) {
+        io.to(employeeSocketID).emit("receive_announcement", notification);
+      } else {
+        console.log(`Employee ${emp.FirstName} is offline, skipping.`);
+      }
+    })
+  });
+
   //send notification for leave application involved employees
   socket.on("send_notification_for_leave", async (data, empId) => {
     try {
@@ -364,11 +373,11 @@ io.on("connection", (socket) => {
             ]
           }
         ]);
-  
+
       const message = `${empData.FirstName} ${empData.LastName} has applied for leave from ${formatDate(data.fromDate)} to ${formatDate(data.toDate)}.`;
-  
+
       const teamData = empData.team?.toObject?.() || {};
-  
+
       for (const [key, value] of Object.entries(teamData)) {
         if (Array.isArray(value) && key !== "employees") {
           for (const emp of value) {
@@ -378,11 +387,11 @@ io.on("connection", (socket) => {
                 title: "Leave Application Notification",
                 message
               };
-  
+
               const fullEmp = await Employee.findById(emp._id, "notifications"); // Fetch fresh document to update notifications
               fullEmp.notifications.push(notification);
               await fullEmp.save();
-  
+
               const employeeSocketID = onlineUsers[emp._id.toString()];
               if (employeeSocketID) {
                 io.to(employeeSocketID).emit("send_leave_notification", {
@@ -398,7 +407,7 @@ io.on("connection", (socket) => {
     } catch (error) {
       console.error("Error in send_notification_for_leave:", error);
     }
-  });  
+  });
 
   socket.on("send_notification_for_project", async (project) => {
     try {
@@ -408,27 +417,23 @@ io.on("connection", (socket) => {
       )
         .populate({ path: "company", select: "CompanyName logo" })
         .exec();
-  
+
       if (emps.length) {
         for (const emp of emps) {
           const notification = {
-            company: emp.company._id,
+            company: emp.company,
             title: "You've Been Assigned to a New Project",
             message: `We're excited to let you know that you've been officially assigned to the project "${project.name}".`
           };
-  
+
           // Save notification to employee's notifications array
           emp.notifications.push(notification);
           await emp.save();
-  
+
           // Send real-time notification via socket if online
           const employeeSocketID = onlineUsers[emp._id.toString()];
           if (employeeSocketID) {
-            io.to(employeeSocketID).emit("send_project_notification", {
-              company: emp.company,
-              title: notification.title,
-              message: notification.message
-            });
+            io.to(employeeSocketID).emit("send_project_notification", notification);
           }
         }
       }
@@ -436,33 +441,66 @@ io.on("connection", (socket) => {
       console.error("Error in send notification for project:", error);
     }
   });
-  
+
 
   socket.on("send_notification_for_task", async (task) => {
     try {
-      const emps = await Employee.find({ _id: { $in: task.assignedTo } }, "_id")
+      const emps = await Employee.find({ _id: { $in: task.assignedTo } }, "_id FirstName LastName notifications")
         .populate({ path: "company", select: "CompanyName logo" })
         .exec();
-  
+
       if (emps.length) {
-        emps.forEach((emp) => {
+        emps.forEach(async (emp) => {
+          const notification = {
+            company: emp.company,
+            title: "You've Been Assigned a New Task",
+            message: `You've been assigned a new task: "${task.title}". Please review the details and get started!`
+          }
+          emp.notifications.push(notification);
+          await emp.save();
           const employeeSocketID = onlineUsers[emp._id.toString()];
           if (employeeSocketID) {
-            const title = "You've Been Assigned a New Task";
-            const message = `You've been assigned a new task: "${task.title}". Please review the details and get started!`;
-  
-            io.to(employeeSocketID).emit("send_task_notification", {
-              company: emp.company,
-              title,
-              message,
-            });
+            io.to(employeeSocketID).emit("send_task_notification", notification);
           }
         });
       }
     } catch (error) {
       console.error("Error in sending task notification:", error);
     }
-  });  
+  });
+
+  socket.on("sent_notification_for_team", async (team) => {
+    try {
+      const emps = await Employee.find(
+        { _id: { $in: team.employees } },
+        "FirstName LastName Email company notifications"
+      )
+        .populate({ path: "company", select: "CompanyName logo" })
+        .exec();
+
+      if (emps.length) {
+        for (const emp of emps) {
+          const notification = {
+            company: emp.company,
+            title: "You've Been Added to a Team",
+            message: `You've been successfully added to the team "${team.teamName}". Welcome aboard and get ready to collaborate!`
+          };          
+
+          // Save notification to employee's notifications array
+          emp.notifications.push(notification);
+          await emp.save();
+
+          // Send real-time notification via socket if online
+          const employeeSocketID = onlineUsers[emp._id.toString()];
+          if (employeeSocketID) {
+            io.to(employeeSocketID).emit("send_team_notification", notification);
+          }
+        }
+      }
+    } catch (error) {
+      console.error("Error in send notification for project:", error);
+    }
+  })
 
   // Handle user disconnection
   socket.on("disconnect", () => {

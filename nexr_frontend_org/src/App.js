@@ -135,68 +135,21 @@ const App = () => {
 
     socket.emit("join_room", data._id); // ✅ Make sure the employee joins their room
 
-    socket.on("receive_announcement", (announcement) => {
+    socket.on("receive_announcement", (response) => {
+      console.log("responseData", response);
+
+      triggerToaster(response);
       handleUpdateAnnouncements()
-      toaster.push(
-        <Notification
-          header={
-            <div style={{ display: 'flex', alignItems: 'center' }}>
-
-              <img src={companyLogo} alt="Company Logo" style={{ width: 50, height: 50, marginRight: 10 }} />
-
-              <span style={{ fontWeight: 'bold', fontSize: '16px' }}>Webnexs</span>
-            </div>
-          }
-          closable
-        >
-          <strong>{announcement.title}</strong>
-          <br />
-          <div dangerouslySetInnerHTML={{ __html: announcement.message }} />
-        </Notification>,
-        { placement: 'bottomEnd' }
-      );
     });
 
     socket.on("send_leave_notification", (response) => {
-      toaster.push(
-        <Notification
-          header={
-            <div style={{ display: 'flex', alignItems: 'center' }}>
-
-              <img src={companyLogo} alt="Company Logo" style={{ width: 50, height: 50, marginRight: 10 }} />
-
-              <span style={{ fontWeight: 'bold', fontSize: '16px' }}>Webnexs</span>
-            </div>
-          }
-          closable
-        >
-          <strong>{response.title}</strong>
-          <br />
-          <p>{response.message}</p>
-        </Notification>,
-        { placement: 'bottomEnd' }
-      );
+      triggerToaster(response);
+      handleUpdateAnnouncements()
     });
 
     socket.on("send_project_notification", (response) => {
-      toaster.push(
-        <Notification
-          header={
-            <div style={{ display: 'flex', alignItems: 'center' }}>
-
-              <img src={companyLogo} alt="Company Logo" style={{ width: 50, height: 50, marginRight: 10 }} />
-
-              <span style={{ fontWeight: 'bold', fontSize: '16px' }}>Webnexs</span>
-            </div>
-          }
-          closable
-        >
-          <strong>{response.title}</strong>
-          <br />
-          <p>{response.message}</p>
-        </Notification>,
-        { placement: 'bottomEnd' }
-      );
+      triggerToaster(response);
+      handleUpdateAnnouncements()
     });
 
     socket.on("send_task_notification", (response) => {
@@ -204,8 +157,17 @@ const App = () => {
       handleUpdateAnnouncements()
     });
 
+    socket.on("send_team_notification", (response) => {
+      triggerToaster(response);
+      handleUpdateAnnouncements();
+    })
+
     return () => {
       socket.off("receive_announcement");
+      socket.off("send_task_notification");
+      socket.off("send_project_notification");
+      socket.off("send_leave_notification");
+      socket.off("send_team_notification")
     };
   }, [socket]);
 

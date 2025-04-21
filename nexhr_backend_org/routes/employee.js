@@ -57,6 +57,27 @@ router.get("/notifications/:id", verifyAdminHREmployeeManagerNetwork, async (req
   }
 })
 
+router.put("/notifications/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
+  try {
+    const emp = await Employee.findById(req.params.id, "notifications").exec();
+    const updatedNotifications = emp.notifications.map((item) => {
+      const match = req.body.find((data) => data.title === item.title);
+      return match ? match : item
+    })
+
+    const updatedEmpWithNotifications = {
+      ...emp.toObject(),
+      notifications: updatedNotifications
+    }
+
+    const updated = await Employee.findByIdAndUpdate(req.params.id, updatedEmpWithNotifications, { new: true })
+    return res.send({ message: "Notifications has been updated successfully", updated })
+  } catch (error) {
+    console.log("error in update notifications", error);
+    return res.status(500).send({ error: error.message })
+  }
+})
+
 router.get("/user", verifyAdminHR, async (req, res) => {
   try {
     const employees = await Employee.find({ Account: 3 }, "_id FirstName LastName")
@@ -274,8 +295,8 @@ router.post("/:id", verifyAdminHR, async (req, res) => {
     const employeeData = {
       ...req.body,
       role: req.body.role || "679b31dba453436edb1b27a3",
-      teamLead: teamLead,
-      managerId: managerId,
+      // teamLead: teamLead,
+      // managerId: managerId,
       workingTimePattern: req.body.workingTimePattern || "679ca37c9ac5c938538f18ba",
       company: company || "679b5ee55eb2dc34115be175",
       position: null,

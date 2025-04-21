@@ -39,6 +39,7 @@ const CommonModel = ({
     preview,
     countries,
     states,
+    errorMsg,
     type // New prop to determine if it's for "department" or "position"
 }) => {
     const { data } = useContext(EssentialValues);
@@ -73,6 +74,19 @@ const CommonModel = ({
                                         onChange={!["Report View", "Project View", "View WorkPlace"].includes(type) ? (e) =>
                                             changeData(e, type === "Department" ? "DepartmentName" : type === "Position" ? "PositionName" : type === "Team" ? "teamName" : type === "Organization" ? "orgName" : type === "LeaveType" ? "LeaveName" : type === "TimePattern" ? "PatternName" : ["WorkPlace", "View WorkPlace"].includes(type) ? "CompanyName" : "name") : null}
                                     />
+                                    {/* {
+                                        [
+                                            "DepartmentName",
+                                            "PositionName",
+                                            "teamName",
+                                            "orgName",
+                                            "LeaveName",
+                                            "PatternName",
+                                            "CompanyName", // for both "WorkPlace" and "View WorkPlace"
+                                            "name"         // default
+                                          ].includes()
+                                    }
+                                    <p>{}</p> */}
                                 </div>
                             </div>
                         }
@@ -172,6 +186,7 @@ const CommonModel = ({
                                     value={dataObj?.[`title`] || ""}
                                     onChange={type !== "Task View" ? (e) => changeData(e, "title") : null}
                                 />
+                                {errorMsg.includes("title") && <p className='text-danger'>{errorMsg}</p>}
                             </div>
                         </div>}
 
@@ -566,7 +581,7 @@ const CommonModel = ({
                         <div className="d-flex justify-content-between">
                             <div className="col-full">
                                 <div className="modelInput">
-                                    <p className="modelLabel">
+                                    <p className={`modelLabel ${type === "Announcement" ? "important" : ""}`}>
                                         {type === "Announcement" ? "Message" : "Comments"}
                                     </p>
 
