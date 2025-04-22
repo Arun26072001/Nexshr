@@ -26,13 +26,14 @@ router.get("/", verifyAdminHRTeamHigherAuth, async (req, res) => {
       .populate({
         path: "role"
       })
-      .populate({
-        path: 'teamLead',
-        select: "_id FirstName LastName",
-        populate: {
-          path: "department"
-        }
-      }).lean();
+      // .populate({
+      //   path: 'teamLead',
+      //   select: "_id FirstName LastName",
+      //   populate: {
+      //     path: "department"
+      //   }
+      // })
+      .lean();
     if (onlyEmps) {
       employees = employees.filter((emp) => !["Team Lead", "Team Head", "Manager"].includes(emp?.position?.PositionName) && emp.Account !== 1)
     }
@@ -145,13 +146,14 @@ router.get("/all", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
           path: "workingTimePattern",
         }, {
           path: "role"
-        }, {
-          path: 'teamLead',
-          select: "_id FirstName LastName",
-          populate: {
-            path: "department"
-          }
-        }
+        }, 
+        // {
+        //   path: 'teamLead',
+        //   select: "_id FirstName LastName",
+        //   populate: {
+        //     path: "department"
+        //   }
+        // }
       ]).lean().exec();
     res.send(employees)
   } catch (err) {
@@ -211,13 +213,13 @@ router.get("/team/members/:id", verifyTeamHigherAuthority, async (req, res) => {
       .populate({
         path: "role"
       })
-      .populate({
-        path: 'teamLead',
-        select: "_id FirstName LastName",
-        populate: {
-          path: "department"
-        }
-      })
+      // .populate({
+      //   path: 'teamLead',
+      //   select: "_id FirstName LastName",
+      //   populate: {
+      //     path: "department"
+      //   }
+      // })
 
     return res.send(members);
   } catch (error) {
@@ -281,7 +283,7 @@ router.post("/:id", verifyAdminHR, async (req, res) => {
     const inviter = await Employee.findById(req.params.id, "FirstName LastName")
       .populate("company", "logo CompanyName");
 
-    const { Email, phone, FirstName, LastName, Password, teamLead, managerId, company, annualLeaveEntitlement, typesOfLeaveCount, employementType } = req.body;
+    const { Email, phone, FirstName, LastName, Password, company, annualLeaveEntitlement, typesOfLeaveCount, employementType } = req.body;
 
     // Check if email already exists
     if (await Employee.exists({ Email })) {
@@ -390,8 +392,8 @@ router.put("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
       company: req?.body?.company || null,
       position: req?.body?.position || null,
       department: req?.body?.department || null,
-      teamLead: req?.body?.teamLead || "665601de20a3c61c646a135f",
-      managerId: req?.body?.managerId || "6651e4a810994f1d24cf3a19",
+      // teamLead: req?.body?.teamLead || "665601de20a3c61c646a135f",
+      // managerId: req?.body?.managerId || "6651e4a810994f1d24cf3a19",
       Account: roleName === "Admin" ? 1 : roleName === "HR" ? 2 : roleName?.toLowerCase() === "manager" ? 4 : roleName.toLowerCase() === "network admin" ? 5 : 3
     };
 
