@@ -574,6 +574,7 @@ leaveApp.get("/date-range/management/:whoIs", verifyAdminHrNetworkAdmin, async (
       .sort((a, b) => new Date(b.fromDate) - new Date(a.fromDate))
       .map(leave => ({
         ...leave.toObject(),
+        reasonForLeave: leave.reasonForLeave.replace(/<\/?[^>]+(>|$)/g, ''),
         prescription: leave.prescription
           ? `${process.env.REACT_APP_API_URL}/uploads/${leave.prescription}`
           : null

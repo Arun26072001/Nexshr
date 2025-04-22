@@ -4,7 +4,7 @@ const { Task, taskValidation } = require("../models/TaskModel");
 const { Project } = require("../models/ProjectModel");
 const { Employee } = require("../models/EmpModel");
 const sendMail = require("./mailSender");
-const { convertToString, getCurrentTimeInMinutes, timeToMinutes, formatTimeFromMinutes } = require("../Reuseable_functions/reusableFunction");
+const { convertToString, getCurrentTimeInMinutes, timeToMinutes, formatTimeFromMinutes, projectMailContent } = require("../Reuseable_functions/reusableFunction");
 const router = express.Router();
 
 router.get("/project/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
@@ -195,57 +195,12 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
         // Send Emails to Assigned Employees
         assignedEmps.forEach(emp => {
             const createdPersonName = `${empData.FirstName.charAt(0).toUpperCase()}${empData.FirstName.slice(1)} ${empData.LastName}`;
-            const empName = `${emp.FirstName.charAt(0).toUpperCase()}${emp.FirstName.slice(1)} ${emp.LastName}`;
 
             sendMail({
                 From: process.env.FROM_MAIL,
                 To: emp.Email,
                 Subject: `${createdPersonName} has Assigned a Task to You`,
-                HtmlBody: `
-                    <html lang="en">
-                        <head>
-                            <meta charset="UTF-8">
-                                <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                                    <title>${empData.company.CompanyName}</title>
-                                </head>
-                                <body style="font-family: Arial, sans-serif; background-color: #f6f9fc; color: #333; margin: 0; padding: 0;">
-                                    <div style="max-width: 600px; margin: auto; padding: 20px; background-color: #fff; border-radius: 8px;
-                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);">
-                                        <!-- Header -->
-                                        <div style="text-align: center; padding-bottom: 15px;">
-                                            <h1 style="font-size: 20px; color: #333; margin: 0;">${createdPersonName} has Assigned a Task to You!</h1>
-                                        </div>
-
-                                        <!-- Content -->
-                                        <div style="margin: 20px 0; padding: 10px;">
-                                            <p style="font-size: 14px; color: #333; margin: 10px 0;">Hey ${empName} 👋,</p>
-                                            <p style="font-size: 14px; color: #333; margin: 10px 0;">
-                                                <b>${createdPersonName} has created a task named "${req.body.title}".</b>
-                                            </p>
-                                            <p style="font-size: 14px; color: #333; margin: 10px 0;">
-                                                You have been assigned to this task as a responsible member.
-                                            </p>
-                                            <p style="font-size: 14px; color: #333; margin: 10px 0;">
-                                                Please follow the provided instructions and complete the task accordingly.
-                                            </p>
-                                            <br />
-                                            <p style="font-size: 14px; color: #333; margin: 10px 0;">Thank you!</p>
-                                        </div>
-
-                                        <!-- Footer -->
-                                        <div style="text-align: center; font-size: 14px; margin-top: 20px; color: #777;">
-                                            <p style="margin: 10px 0;">
-                                                Have questions? Need help?
-                                                <a href="mailto:${empData.Email}" style="color: #007BFF; text-decoration: none;">
-                                                    Contact ${empData.FirstName}
-                                                </a>.
-                                            </p>
-                                        </div>
-                                    </div>
-                                </body>
-                            </html>
-
-                            `
+                HtmlBody: projectMailContent(emp, empData, empData.company, req.body, "task")
             });
         });
 
@@ -342,30 +297,43 @@ router.put("/:empId/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) 
                     To: assignedPerson.Email,
                     Subject: `Your assigned task (${req.body.title}) is completed`,
                     HtmlBody: `
-<html lang="en">
-  <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>${assignedPerson.company.CompanyName}</title>
-  </head>
-  <body style="font-family: Arial, sans-serif; background-color: #f6f9fc; color: #333; margin: 0; padding: 0;">
-    <div style="max-width: 600px; margin: auto; padding: 20px; background-color: #fff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);">
-      <div style="text-align: center; padding: 20px;">
-        <h1 style="margin: 0;">Your Assigned Task Has Been Completed</h1>
-      </div>
-      <div style="margin: 20px 0;">
-        <p>Hey ${assignedPersonName} 👋,</p>
-        <p><b>${empName} has successfully completed the task named "${req.body.title}".</b></p>
-        <p>Please review the completed task and take any necessary actions.</p><br />
-        <p>Thank you!</p>
-      </div>
-      <div style="text-align: center; font-size: 14px; margin-top: 20px; color: #777;">
-        <p>Have questions? Need help? <a href="mailto:${emp.Email}">Contact ${empName}</a>.</p>
-      </div>
-    </div>
-  </body>
-</html>
-`
+                    <!DOCTYPE html>
+                    <html lang="en">
+                    <head>
+                      <meta charset="UTF-8" />
+                      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+                      <title>${assignedPerson.company.CompanyName}</title>
+                    </head>
+                    <body style="font-family: Arial, sans-serif; background-color: #f6f9fc; color: #333; margin: 0; padding: 0;">
+                      <div style="text-align: center; padding-top: 30px;">
+                        <img src="${assignedPerson.company.logo}" alt="Company Logo" style="width: 100px; height: 100px; object-fit: cover; margin-bottom: 10px;" />
+                      </div>
+                  
+                      <div style="display: flex; max-width: 600px; margin: 0 auto; padding: 20px;">
+                        <div style="background-color: #ffffff; border-radius: 12px; padding: 30px; width: 100%; box-shadow: 0 2px 8px rgba(0,0,0,0.05); text-align: left;">
+                          <h2 style="font-size: 22px; font-weight: 600; margin-bottom: 10px;">Task Completed Successfully</h2>
+                          <div style="border-bottom: 3px solid #28a745; width: 30px; margin-bottom: 20px;"></div>
+                  
+                          <p style="font-size: 15px; margin-bottom: 15px;">Hey ${assignedPersonName} 👋,</p>
+                          <p style="font-size: 15px; margin-bottom: 10px;">
+                            <strong>${empName}</strong> has successfully completed the task titled "<strong>${req.body.title}</strong>".
+                          </p>
+                          <p style="font-size: 15px; margin-bottom: 10px;">
+                            Please review the completed task and take any necessary actions.
+                          </p>
+                  
+                          <p style="margin-top: 20px;">Thank you!</p>
+                        </div>
+                      </div>
+                  
+                      <div style="text-align: center; font-size: 13px; color: #777; margin-top: 20px; padding-bottom: 20px;">
+                        <p>
+                          Have questions? <a href="mailto:${emp.Email}" style="color: #007BFF; text-decoration: none;">Contact ${empName}</a>.
+                        </p>
+                      </div>
+                    </body>
+                    </html>
+                `
                 });
             });
         }
@@ -377,32 +345,7 @@ router.put("/:empId/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) 
                 From: assignedPerson.Email,
                 To: emp.Email,
                 Subject: `${assignedPersonName} has assigned a task to you`,
-                HtmlBody: `
-<html lang="en">
-  <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>${assignedPerson.company.CompanyName}</title>
-  </head>
-  <body style="font-family: Arial, sans-serif; background-color: #f6f9fc; color: #333; margin: 0; padding: 0;">
-    <div style="max-width: 600px; margin: auto; padding: 20px; background-color: #fff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);">
-      <div style="text-align: center; padding: 20px;">
-        <h1 style="margin: 0;">${assignedPersonName} has Assigned a Task to You!</h1>
-      </div>
-      <div style="margin: 20px 0;">
-        <p>Hey ${empName} 👋,</p>
-        <p><b>${assignedPersonName} has created a task named "${req.body.title}".</b></p>
-        <p>You have been assigned to this task as a responsible member.</p>
-        <p>Please follow the provided instructions and complete the task accordingly.</p><br />
-        <p>Thank you!</p>
-      </div>
-      <div style="text-align: center; font-size: 14px; margin-top: 20px; color: #777;">
-        <p>Have questions? Need help? <a href="mailto:${assignedPerson.Email}">Contact ${assignedPersonName}</a>.</p>
-      </div>
-    </div>
-  </body>
-</html>
-`
+                HtmlBody: projectMailContent(emp, assignedPerson, assignedPerson.comapany, req.body, "task")
             });
         });
 

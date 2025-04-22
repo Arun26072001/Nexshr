@@ -87,6 +87,7 @@
   font-size: 12px;
   font-weight: 700;
   color: gray;
+  text-transform: uppercase;
 }
 
 .avatar {

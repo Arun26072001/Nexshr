@@ -26,7 +26,6 @@ const WorkPlaceTab = () => {
     isEdit: false,
     isView: false
   })
-  console.log(workPlaceObj);
 
   async function fetchCountries() {
     try {

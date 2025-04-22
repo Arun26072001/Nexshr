@@ -103,7 +103,7 @@ const ManageTeam = () => {
     const handleSubmit = async () => {
         try {
             setIsChangingTeam(true);
-            const response = await axios.post(`${url}/api/team`, teamObj, {
+            const response = await axios.post(`${url}/api/team/${_id}`, teamObj, {
                 headers: {
                     Authorization: token || ""
                 }
@@ -113,7 +113,7 @@ const ManageTeam = () => {
             toast.success(response.data.message);
             socket.emit("sent_notification_for_team", teamObj);
             toggleAddTeam();
-            setTeamObj({})  
+            setTeamObj({})
             reloadUI();
         } catch (err) {
             toast.error(err.response.data.error);
@@ -156,8 +156,6 @@ const ManageTeam = () => {
             })));
         } catch (error) {
             console.log(error.response.data.error);
-
-            // toast.error(error.response.data.error)
         }
     }
 
@@ -175,7 +173,6 @@ const ManageTeam = () => {
             })));
         } catch (error) {
             console.log(error.response.data.error);
-            // toast.error(error.response.data.error)
         }
     }
 
@@ -192,14 +189,12 @@ const ManageTeam = () => {
             })));
         } catch (error) {
             console.log(error.response.data.error);
-
-            // toast.error(error.response.data.error)
         }
     }
 
     async function fetchEmpHasTeams() {
-        setIsLoading(true);
         try {
+            setIsLoading(true);
             const who = isTeamHead ? "head" : isTeamLead ? "lead" : "manager";
             const res = await axios.get(`${url}/api/team/${who}/${_id}`, {
                 headers: {
@@ -210,10 +205,10 @@ const ManageTeam = () => {
             setFilteredTeams(res.data);
         } catch (err) {
             console.log(err);
-
             toast.error(err.response.data.error);
+        } finally {
+            setIsLoading(false);
         }
-        setIsLoading(false);
     }
 
     function handleEditTeam(team) {
@@ -223,8 +218,8 @@ const ManageTeam = () => {
 
     useEffect(() => {
         const fetchTeams = async () => {
-            setIsLoading(true);
             try {
+                setIsLoading(true);
                 const res = await axios.get(`${url}/api/team`, {
                     headers: {
                         Authorization: `${token}` || ""
@@ -236,8 +231,9 @@ const ManageTeam = () => {
                 console.log(err);
 
                 toast.error(err.response.data.error);
+            } finally {
+                setIsLoading(false);
             }
-            setIsLoading(false);
         };
         if (["admin", "hr"].includes(whoIs)) {
             fetchTeams();

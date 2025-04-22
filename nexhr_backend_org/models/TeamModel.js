@@ -15,7 +15,8 @@ const TeamSchema = mongoose.Schema({
     }],
     manager: [{
         type: mongoose.Types.ObjectId, ref: "Employee"
-    }]
+    }],
+    createdBy: {type: mongoose.Schema.Types.ObjectId, ref: "Employee"}
 }, { timestamps: true })
 
 const Team = mongoose.model("Team", TeamSchema);
@@ -28,6 +29,7 @@ const TeamValidation = Joi.object({
     head: Joi.array().items(Joi.string()).optional().label("Head"),
     manager: Joi.array().items(Joi.string()).optional().label("Manager"),
     __v: Joi.number().optional(),
+    createdBy: Joi.any().optional(),
     createdAt: Joi.string().allow('').label('createdAt'),
     updatedAt: Joi.string().allow('').label('updatedAt')
 })
