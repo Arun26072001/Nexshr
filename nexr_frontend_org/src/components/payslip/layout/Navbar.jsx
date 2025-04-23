@@ -433,16 +433,16 @@ export default function Navbar({ handleSideBar }) {
                             <div className="offcanvas-body">
                                 {
                                     notifications.map((notification, index) => {
-                                        return <div key={notification._id} className={`box-content my-2 ${isRemove[index] ? "remove" : ""}`}>
-                                            <div className='d-flex justify-content-between align-items-center'>
-                                                <img src={notification.company.logo} alt={"companyLogo"} width={50} height={"auto"} />
-                                                <CloseRoundedIcon onClick={() => {
-                                                    removeMessage(notification, index)
-                                                }} />
-                                            </div>
+                                        return <div key={notification._id} className={`box-content my-2 ${isRemove[index] ? "remove" : ""} box-content my-2 d-flex justfy-content-center align-items-center position-relative`}>
+                                            {/* <div className='d-flex justify-content-between align-items-center'>
+                                            </div> */}
+                                            <span className="closeBtn" title='close' onClick={() => removeMessage(notification, index)}>
+                                                <CloseRoundedIcon fontSize='md' />
+                                            </span>
+                                            <img src={notification.company.logo} alt={"companyLogo"} width={50} height={"auto"} />
                                             <Accordion>
-                                                <Accordion.Panel header={notification.title} eventKey={1} caretAs={KeyboardArrowDownRoundedIcon}>
-                                                    <p>{notification.message.replace(/<[^>]*>/g, "")}</p>
+                                                <Accordion.Panel header={<p>{notification.title}</p>} eventKey={1} caretAs={KeyboardArrowDownRoundedIcon}>
+                                                    <p className='sub_text' style={{ fontSize: "13px" }}>{notification.message.replace(/<[^>]*>/g, "")}</p>
                                                 </Accordion.Panel>
                                             </Accordion>
                                         </div>

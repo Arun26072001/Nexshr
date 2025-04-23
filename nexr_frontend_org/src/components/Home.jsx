@@ -51,7 +51,7 @@ export default function Home({ peopleOnLeave, isFetchPeopleOnLeave }) {
     const { isStartLogin, isStartActivity, workTimeTracker, timeOption, updateClockins } = useContext(TimerStates);
     const [value, setValue] = useState(0);
     const [isLoading, setLoading] = useState(true); // Track loading state
-    const {data} =useContext(EssentialValues);
+    const { data } = useContext(EssentialValues);
 
     const staticData = {
         startingTime: "00:00",

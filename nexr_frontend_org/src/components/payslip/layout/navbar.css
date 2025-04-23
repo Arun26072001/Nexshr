@@ -36,3 +36,9 @@
   cursor: pointer;
   font-size: 10px;
 }
+
+.closeBtn {
+  position: absolute;
+  right: 10px;
+  top: 10px;
+}

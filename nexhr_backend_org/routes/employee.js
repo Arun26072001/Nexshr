@@ -13,7 +13,7 @@ router.get("/", verifyAdminHRTeamHigherAuth, async (req, res) => {
   try {
     const { onlyEmps } = req.query;
 
-    let employees = await Employee.find({}, "_id FirstName LastName Account employmentType dateOfJoining gender working code docType serialNo")
+    let employees = await Employee.find({}, "FirstName LastName Account employmentType dateOfJoining gender working code docType serialNo position department workingTimePattern role")
       .populate({
         path: "position"
       })
