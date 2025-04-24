@@ -1,13 +1,13 @@
 const express = require('express');
 const router = express.Router();
 const { Project, projectValidation } = require('../models/ProjectModel');
-const { verifyAdminHREmployeeManagerNetwork } = require('../auth/authMiddleware');
+const { verifyAdminHREmployeeManagerNetwork, verifyAdminHRTeamHigherAuth } = require('../auth/authMiddleware');
 const { Task } = require('../models/TaskModel');
 const sendMail = require('./mailSender');
 const { Employee } = require('../models/EmpModel');
 const { error } = require('joi/lib/types/lazy');
 const { Report } = require('../models/ReportModel');
-const { convertToString } = require('../Reuseable_functions/reusableFunction');
+const { convertToString, projectMailContent } = require('../Reuseable_functions/reusableFunction');
 
 router.get("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
   try {
@@ -75,10 +75,10 @@ router.get("/emp/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => 
   }
 })
 
-router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
+router.post("/:id", verifyAdminHRTeamHigherAuth, async (req, res) => {
   try {
     const assignees = await Employee.find({ _id: req.body.employees }, "FirstName LastName Email");
-    const { Email, FirstName, company } = await Employee.findById(req.params.id, "FirstName LastName Email").populate({ path: "company" })
+    const creator = await Employee.findById(req.params.id, "FirstName LastName Email").populate({ path: "company" })
     const newProject = {
       ...req.body,
       status: req.body.status || "Not Started",
@@ -102,37 +102,11 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
 
     // send mail for assignees
     assignees.map((emp) => {
-      const empName = emp.FirstName[0].toUpperCase() + emp.FirstName.slice(1) + " " + emp.LastName
       return sendMail({
         From: process.env.FROM_MAIL,
         To: emp.Email,
-        Subject: `Welcome to ${req.body.name} project by ${FirstName}`,
-        HtmlBody: `
-        <html lang="en">
-          <head>
-            <meta charset="UTF-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>${company.CompanyName}</title>
-          </head>
-          <body style="font-family: Arial, sans-serif; background-color: #f6f9fc; color: #333; margin: 0; padding: 0;">
-            <div style="max-width: 600px; margin: auto; padding: 20px; background-color: #fff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);">
-              <div style="text-align: center; padding: 20px;">
-                <h1 style="margin: 0;">Welcome to ${req.body.name[0].toUpperCase() + req.body.name.slice(1)}</h1>
-              </div>
-              <div style="margin: 20px 0;">
-                <p>Hey ${empName} 👋,</p>
-                <p><b>${FirstName[0].toUpperCase() + FirstName.slice(1)} has created a project named "${req.body.name}".</b></p>
-                <p>As a result, you have been assigned as a member of this project.</p>
-                <p>Please follow the instructions.</p><br />
-                <p>Thank you!</p>
-              </div>
-              <div style="text-align: center; font-size: 14px; margin-top: 20px; color: #777;">
-                <p>Have questions? Need help? <a href="mailto:${Email}">Contact ${FirstName[0].toUpperCase() + FirstName.slice(1)}</a>.</p>
-              </div>
-            </div>
-          </body>
-        </html>
-        `
+        Subject: `Welcome to ${req.body.name} project by ${creator.FirstName}`,
+        HtmlBody: projectMailContent(emp, creator, emp.company, req.body, "project")
       })
     })
     return res.status(201).send({ message: "Project is created Successfully", project })
@@ -194,38 +168,11 @@ router.put("/:empId/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) 
     );
     // send mail for assignees
     emps.map((emp) => {
-      const empName = emp.FirstName[0].toUpperCase() + emp.FirstName.slice(1) + " " + emp.LastName;
-      const assignedPersonName = assignedPerson.FirstName[0].toUpperCase() + assignedPerson.FirstName.slice(1) + " " + assignedPerson.LastName;
       return sendMail({
         From: assignedPerson.Email,
         To: emp.Email,
-        Subject: `Welcome to ${req.body.name} project by ${assignedPersonName}`,
-        HtmlBody: `
-        <html lang="en">
-          <head>
-            <meta charset="UTF-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>${assignedPerson?.company?.CompanyName}</title>
-          </head>
-          <body style="font-family: Arial, sans-serif; background-color: #f6f9fc; color: #333; margin: 0; padding: 0;">
-            <div style="max-width: 600px; margin: auto; padding: 20px; background-color: #fff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);">
-              <div style="text-align: center; padding: 20px;">
-                <h1 style="margin: 0;">Welcome to ${req.body.name[0].toUpperCase() + req.body.name.slice(1)}</h1>
-              </div>
-              <div style="margin: 20px 0;">
-                <p>Hey ${empName} 👋,</p>
-                <p><b>${assignedPersonName} has created a project named ${req.body.name}.</b></p>
-                <p>As a result, you have been assigned as a member of this project.</p>
-                <p>Please follow the instructions.</p><br />
-                <p>Thank you!</p>
-              </div>
-              <div style="text-align: center; font-size: 14px; margin-top: 20px; color: #777;">
-                <p>Have questions? Need help? <a href="mailto:${assignedPerson.Email}">Contact ${assignedPersonName}</a>.</p>
-              </div>
-            </div>
-          </body>
-        </html>
-        `
+        Subject: `Welcome to ${req.body.name} project by ${assignedPerson.FirstName}`,
+        HtmlBody: projectMailContent(emp, assignedPerson, emp.company, req.body, "project")
       })
     })
     if (!project) {

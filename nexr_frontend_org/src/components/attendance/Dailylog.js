@@ -12,6 +12,7 @@ import axios from 'axios';
 import { toast } from 'react-toastify';
 import { EssentialValues } from '../../App';
 import { TimerStates } from '../payslip/HRMDashboard';
+import { Skeleton } from '@mui/material';
 
 const Dailylog = ({ attendanceData, isLoading }) => {
     const { data, whoIs } = useContext(EssentialValues)
@@ -76,51 +77,56 @@ const Dailylog = ({ attendanceData, isLoading }) => {
     };
 
     return (
-        isLoading ? <Loading height="60vh" /> :
-            <div className='dashboard-parent pt-4'>
-                <div className='d-flex justify-content-between align-items-center px-3'>
-                    <div>
-                        <h5 className='text-daily'>Daily Log</h5>
-                    </div>
-
-                    <div className='d-flex gap-3'>
-                        {/* <div className='text-center'>
-                            <Popup />
-                        </div> */}
-                        <DateRangePicker
-                            size="lg"
-                            showOneCalendar
-                            placement="bottomEnd"
-                            value={daterangeValue}
-                            placeholder="Select Date Range"
-                            onChange={setDaterangeValue}
-                        />
-                        {
-                            ["admin", "hr"].includes(whoIs) &&
-                            <button className='button' style={{ cursor: 'pointer' }}>
-                                <Whisper placement="bottomEnd" trigger="click" speaker={renderMenu}>
-                                    Action <ArrowDropDownRoundedIcon />
-                                </Whisper>
-                            </button>
-                        }
-                    </div>
+        <div className='dashboard-parent pt-4'>
+            <div className='d-flex justify-content-between align-items-center px-3'>
+                <div>
+                    <h5 className='text-daily'>Daily Log</h5>
                 </div>
 
-                {/* Hidden file input for upload */}
-                <input
-                    type="file"
-                    id="fileUploader"
-                    style={{ display: 'none' }}
-                    onChange={(e) => handleUpload(e.target.files[0])}
-                />
+                <div className='d-flex gap-3'>
+                    {/* <div className='text-center'>
+                            <Popup />
+                        </div> */}
+                    <DateRangePicker
+                        size="lg"
+                        showOneCalendar
+                        placement="bottomEnd"
+                        value={daterangeValue}
+                        placeholder="Select Date Range"
+                        onChange={setDaterangeValue}
+                    />
+                    {
+                        ["admin", "hr"].includes(whoIs) &&
+                        <button className='button' style={{ cursor: 'pointer' }}>
+                            <Whisper placement="bottomEnd" trigger="click" speaker={renderMenu}>
+                                Action <ArrowDropDownRoundedIcon />
+                            </Whisper>
+                        </button>
+                    }
+                </div>
+            </div>
 
-                {
+            {/* Hidden file input for upload */}
+            <input
+                type="file"
+                id="fileUploader"
+                style={{ display: 'none' }}
+                onChange={(e) => handleUpload(e.target.files[0])}
+            />
+
+            {
+                isLoading ? <Skeleton
+                    sx={{ bgcolor: 'grey.500' }}
+                    variant="rectangular"
+                    width={"100%"}
+                    height={"50vh"}
+                /> :
                     attendanceData.length > 0 ?
                         <LeaveTable data={attendanceData} /> :
                         <NoDataFound message="Attendance data not found" />
-                }
+            }
 
-            </div>
+        </div>
     );
 };
 

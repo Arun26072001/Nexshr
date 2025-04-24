@@ -14,7 +14,9 @@ var companySchema = new mongoose.Schema({
   PanNo: { type: String },
   GSTNo: { type: String },
   CINNo: { type: String },
-  placeId: { type: String }
+  placeId: { type: String },
+  State: { type: String },
+  Country: { type: String }
 }, { timestamps: true });
 
 var Company = mongoose.model("Company", companySchema);
@@ -32,10 +34,10 @@ const CompanyValidation = Joi.object().keys({
     .required(),
   PostalCode: Joi.number()
     .max(999999)
-    .required(),
+    .optional(),
   Website: Joi.string()
     .max(2000)
-    .required(),
+    .optional(),
   logo: Joi.string()
     .required(),
   Email: Joi.string()
@@ -43,26 +45,28 @@ const CompanyValidation = Joi.object().keys({
     .required(),
   ContactPerson: Joi.string()
     .max(200)
-    .required(),
+    .optional(),
   ContactNo: Joi.string()
     .max(20)
-    .required(),
+    .optional(),
   FaxNo: Joi.string()
     .max(100)
-    .required(),
-  Town: Joi.string().optional(),
+    .optional(),
+  // Town: Joi.string().optional(),
   PanNo: Joi.string()
     .max(200)
-    .required(),
+    .optional(),
   GSTNo: Joi.string()
     .max(200)
-    .required(),
+    .optional(),
   CINNo: Joi.string()
     .max(200)
-    .required(),
+    .optional(),
   placeId: Joi.string()
     .allow("", null)
-    .optional()
+    .optional(),
+  State: Joi.string().required(),
+  Country: Joi.string().required()
 });
 
 

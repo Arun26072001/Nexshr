@@ -45,8 +45,8 @@ const AddEmployeeForm = ({ details, handleScroll, handlePersonal, handleFinancia
         Email: Yup.string().email('Invalid email format').required('Email is required'),
         Password: Yup.string().min(6, 'Password must be at least 6 characters').required('Password is required'),
         company: Yup.string().optional(),
-        teamLead: Yup.string().nullable().optional(), // assuming it's an ObjectId or string
-        managerId: Yup.string().nullable().optional(),
+        // teamLead: Yup.string().nullable().optional(), // assuming it's an ObjectId or string
+        // managerId: Yup.string().nullable().optional(),
         countryCode: Yup.string().optional(),
         phone: Yup.string().optional(), // can add phone validation if needed
         dateOfBirth: Yup.string().optional(),
@@ -121,9 +121,8 @@ const AddEmployeeForm = ({ details, handleScroll, handlePersonal, handleFinancia
         if (formik.errors.FirstName
             || formik.errors.LastName
             || formik.errors.gender
-            || formik.errors.department
             || formik.errors.role
-            || formik.errors.position) {
+        ) {
             handlePersonal()
         } else if (
             formik.errors.Email
@@ -139,13 +138,15 @@ const AddEmployeeForm = ({ details, handleScroll, handlePersonal, handleFinancia
             || formik.errors.fullTimeAnnualLeave
         ) {
             handleEmployment()
-        } else if (
-            formik.errors.managerId
-            || formik.errors.teamLead
+        }
+        else if (
+            formik.errors.department
+            || formik.errors.position
             || formik.errors.description
         ) {
             handleJob()
-        } else if (
+        }
+        else if (
             formik.errors.basicSalary
             || formik.errors.bankName
             || formik.errors.accountNo
@@ -338,42 +339,6 @@ const AddEmployeeForm = ({ details, handleScroll, handlePersonal, handleFinancia
                                         <div className="text-center text-danger">{formik.errors.gender}</div>
                                     ) : null}
                                 </div>
-                                <div className="col-lg-6">
-                                    <div className="inputLabel">Department</div>
-                                    <select name="department" className={`selectInput ${formik.touched.department && formik.errors.department ? "error" : ""}`}
-                                        onChange={formik.handleChange}
-                                        value={formik.values.department}>
-                                        <option >Select Department</option>
-                                        {
-                                            departments.map((department) => (
-                                                <option key={department._id} value={department._id}>{department.DepartmentName}</option>
-                                            ))
-                                        }
-                                    </select>
-                                    {formik.touched.department && formik.errors.department ? (
-                                        <div className="text-center text-danger">{formik.errors.department}</div>
-                                    ) : null}
-                                </div>
-                            </div>
-
-                            <div className="row d-flex justify-content-center">
-                                <div className="col-lg-6">
-                                    <div className="inputLabel">Position</div>
-                                    <select name="position" className={`selectInput ${formik.touched.position && formik.errors.position ? "error" : ""}`}
-                                        onChange={formik.handleChange}
-                                        value={formik.values.position}>
-                                        <option >Select Position</option>
-                                        {
-                                            positions.map((position) => (
-                                                <option key={position._id} value={position._id}>{position.PositionName}</option>
-                                            ))
-                                        }
-                                    </select>
-                                    {formik.touched.position && formik.errors.position ? (
-                                        <div className="text-center text-danger">{formik.errors.position}</div>
-                                    ) : null}
-                                </div>
-
                                 <div className="col-lg-6">
                                     <div className="inputLabel">Date Of Birth</div>
                                     <input
@@ -761,7 +726,7 @@ const AddEmployeeForm = ({ details, handleScroll, handlePersonal, handleFinancia
                                 </div>
                             </div>
 
-                            <div className="row d-flex justify-content-center my-3">
+                            {/* <div className="row d-flex justify-content-center my-3">
                                 <div className="col-lg-6">
                                     <div className="inputLabel">Manager</div>
                                     <select name="managerId" onChange={formik.handleChange} className={`inputField ${formik.touched.managerId && formik.errors.managerId ? "error" : ""}`}
@@ -792,6 +757,41 @@ const AddEmployeeForm = ({ details, handleScroll, handlePersonal, handleFinancia
                                         <div className="text-center text-danger">{formik.errors.teamLead}</div>
                                     ) : null}
                                 </div>
+                            </div> */}
+
+                            <div className="row d-flex justify-content-center">
+                                <div className="col-lg-6">
+                                    <div className="inputLabel">Position</div>
+                                    <select name="position" className={`selectInput ${formik.touched.position && formik.errors.position ? "error" : ""}`}
+                                        onChange={formik.handleChange}
+                                        value={formik.values.position}>
+                                        <option >Select Position</option>
+                                        {
+                                            positions.map((position) => (
+                                                <option key={position._id} value={position._id}>{position.PositionName}</option>
+                                            ))
+                                        }
+                                    </select>
+                                    {formik.touched.position && formik.errors.position ? (
+                                        <div className="text-center text-danger">{formik.errors.position}</div>
+                                    ) : null}
+                                </div>
+                                <div className="col-lg-6">
+                                    <div className="inputLabel">Department</div>
+                                    <select name="department" className={`selectInput ${formik.touched.department && formik.errors.department ? "error" : ""}`}
+                                        onChange={formik.handleChange}
+                                        value={formik.values.department}>
+                                        <option >Select Department</option>
+                                        {
+                                            departments.map((department) => (
+                                                <option key={department._id} value={department._id}>{department.DepartmentName}</option>
+                                            ))
+                                        }
+                                    </select>
+                                    {formik.touched.department && formik.errors.department ? (
+                                        <div className="text-center text-danger">{formik.errors.department}</div>
+                                    ) : null}
+                                </div>
                             </div>
 
                             <div className="row d-flex justify-content-center">
@@ -811,7 +811,6 @@ const AddEmployeeForm = ({ details, handleScroll, handlePersonal, handleFinancia
                                         <div className="text-center text-danger">{formik.errors.description}</div>
                                     ) : null}
                                 </div>
-
                             </div>
                         </div>
 

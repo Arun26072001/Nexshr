@@ -10,6 +10,7 @@ import "./Summary.css";
 import { EssentialValues } from '../../App';
 import { TimerStates } from '../payslip/HRMDashboard';
 import { SelectPicker } from 'rsuite';
+import { Skeleton } from '@mui/material';
 
 // Register required Chart.js components
 ChartJS.register(ArcElement, Tooltip, Legend);
@@ -110,10 +111,6 @@ const Summary = () => {
         getClockinsData();
     }, [_id]);
 
-    if (isLoading) {
-        return <Loading height="80vh" />;
-    }
-
     return (
         <div className='dashboard-parent pt-4'>
             <div className="d-flex justify-content-between align-items-center p-3">
@@ -167,11 +164,18 @@ const Summary = () => {
                 </div>
             </div>
 
-            {clockinsData?.clockIns?.length > 0 ? (
-                <LeaveTable data={clockinsData.clockIns} />
-            ) : (
-                <NoDataFound message={"No Attendance data for this month!"} />
-            )}
+            {
+                isLoading ? <Skeleton
+                    sx={{ bgcolor: 'grey.500' }}
+                    variant="rectangular"
+                    width={"100%"}
+                    height={"50vh"}
+                /> :
+                    clockinsData?.clockIns?.length > 0 ? (
+                        <LeaveTable data={clockinsData.clockIns} />
+                    ) : (
+                        <NoDataFound message={"No Attendance data for this month!"} />
+                    )}
         </div>
     );
 };

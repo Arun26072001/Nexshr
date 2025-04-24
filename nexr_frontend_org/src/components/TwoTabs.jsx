@@ -49,7 +49,6 @@ export default function Twotabs() {
   const { whoIs } = useContext(EssentialValues);
   const navigate = useNavigate();
   const { data } = useContext(EssentialValues);
-  console.log(data);
   
   const { annualLeave, _id } = data;
   const [value, setValue] = useState(0);

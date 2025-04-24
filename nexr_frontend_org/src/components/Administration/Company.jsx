@@ -5,8 +5,8 @@ import { fetchCompanies, fileUploadInServer } from '../ReuseableAPI';
 import NoDataFound from '../payslip/NoDataFound';
 import { toast } from 'react-toastify';
 import CommonModel from './CommonModel';
-import Loading from '../Loader';
 import { EssentialValues } from '../../App';
+import { Skeleton } from '@mui/material';
 
 export default function Company() {
     const url = process.env.REACT_APP_API_URL;
@@ -14,6 +14,8 @@ export default function Company() {
     const [companyObj, setCompanyObj] = useState({});
     const [isCompanychange, setIsCompanyChange] = useState(false);
     const { data } = useContext(EssentialValues);
+    const [countries, setCountries] = useState([]);
+    const [states, setStates] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
     const [logoPreview, setLogoPreView] = useState("");
     const [isChangingCompany, setIschangingCompany] = useState(false);
@@ -28,8 +30,10 @@ export default function Company() {
     }
 
     function changeCompanyOperation(type) {
-
         if (type === "Edit") {
+            if (modifyCompany.isEdit) {
+                setLogoPreView("")
+            }
             setModifyCompany((pre) => ({
                 ...pre,
                 isEdit: !pre.isEdit
@@ -40,6 +44,9 @@ export default function Company() {
                 isDelete: !pre.isDelete
             }))
         } else if (type === "Add") {
+            if (modifyCompany.isAdd) {
+                setLogoPreView("")
+            }
             setModifyCompany((pre) => ({
                 ...pre,
                 isAdd: !pre.isAdd
@@ -83,12 +90,14 @@ export default function Company() {
             });
             toast.success(msg?.data?.message);
             setCompanyObj({});
+            setLogoPreView("");
             handleCompanyChange();
             changeCompanyOperation("Add");
         } catch (error) {
             return toast.error(error?.response?.data?.error)
+        } finally {
+            setIschangingCompany(false);
         }
-        setIschangingCompany(false);
     }
 
     async function fetchCompanyById(id) {
@@ -99,6 +108,7 @@ export default function Company() {
                 }
             });
             setCompanyObj(company.data);
+            setLogoPreView(company.data.logo);
             changeCompanyOperation("Edit");
         } catch (error) {
             console.log(error);
@@ -107,13 +117,21 @@ export default function Company() {
     }
 
     function changeCompany(value, name) {
-        setLogoPreView(URL.createObjectURL(value.target.files[0]))
+        if (name === "Country") {
+            const selectedcountryOfStates = countries.filter((country) => country.name === value)[0].states.map((state) => ({
+                label: state, value: state
+            }))
+            setStates(selectedcountryOfStates)
+        }
+
+        if (name === "logo" && value?.target?.files) {
+            setLogoPreView(URL.createObjectURL(value.target.files[0]))
+        }
         setCompanyObj((pre) => ({
             ...pre,
             [name]: name === "logo" ? value.target.files[0] : value
         }))
     }
-    console.log(companyObj);
 
     async function editCompany() {
         setIschangingCompany(true);
@@ -137,12 +155,14 @@ export default function Company() {
 
             toast.success(response?.data?.message);
             setCompanyObj({})
+            setLogoPreView("")
             handleCompanyChange()
             changeCompanyOperation("Edit");
         } catch (error) {
             toast.error(error?.response?.data?.error);
+        } finally {
+            setIschangingCompany(false);
         }
-        setIschangingCompany(false);
     }
 
     useEffect(() => {
@@ -160,20 +180,41 @@ export default function Company() {
         gettingCompanies();
     }, [isCompanychange])
 
+    useEffect(() => {
+        async function fetchCountries() {
+            try {
+                const res = await axios.get(`${url}/api/country`, {
+                    headers: {
+                        authorization: data.token || ""
+                    }
+                })
+                setCountries(res.data);
+            } catch (err) {
+                toast.error(err.response.data.error)
+            }
+        }
+        fetchCountries();
+    }, [])
+
     return (
-        isLoading ? <Loading height="80vh" /> :
-            modifyCompany.isAdd ? <CommonModel type="Company" preview={logoPreview} isWorkingApi={isChangingCompany} modifyData={changeCompanyOperation} addData={addCompany} changeData={changeCompany} dataObj={companyObj} isAddData={modifyCompany.isAdd} /> :
-                modifyCompany.isEdit ? <CommonModel type="Company" preview={logoPreview} isWorkingApi={isChangingCompany} modifyData={changeCompanyOperation} addData={addCompany} changeData={changeCompany} dataObj={companyObj} isAddData={modifyCompany.isEdit} editData={editCompany} /> :
-                    <div className='dashboard-parent pt-4'>
-                        <div className="d-flex justify-content-between px-2">
-                            <h5 className='text-daily'>Company</h5>
-                            <button className='button m-0' onClick={() => changeCompanyOperation("Add")}>+ Add Company</button>
-                        </div>
-                        {
+        modifyCompany.isAdd ? <CommonModel type="Company" countries={countries} states={states} preview={logoPreview} isWorkingApi={isChangingCompany} modifyData={changeCompanyOperation} addData={addCompany} changeData={changeCompany} dataObj={companyObj} isAddData={modifyCompany.isAdd} /> :
+            modifyCompany.isEdit ? <CommonModel type="Company" preview={logoPreview} countries={countries} states={states} isWorkingApi={isChangingCompany} modifyData={changeCompanyOperation} addData={addCompany} changeData={changeCompany} dataObj={companyObj} isAddData={modifyCompany.isEdit} editData={editCompany} /> :
+                <div className='dashboard-parent pt-4'>
+                    <div className="d-flex justify-content-between px-2">
+                        <h5 className='text-daily'>Company</h5>
+                        <button className='button m-0' onClick={() => changeCompanyOperation("Add")}>+ Add Company</button>
+                    </div>
+                    {
+                        isLoading ? <Skeleton
+                            sx={{ bgcolor: 'grey.500' }}
+                            variant="rectangular"
+                            width={"100%"}
+                            height={"50vh"}
+                        /> :
                             companies?.length > 0 ?
                                 <LeaveTable data={companies} deleteData={deleteCompany} fetchData={fetchCompanyById} />
                                 : <NoDataFound message={"Companies data not found"} />
-                        }
-                    </div>
+                    }
+                </div>
     )
 }

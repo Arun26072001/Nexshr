@@ -2,26 +2,26 @@ import React, { useState } from "react";
 import { DateRangePicker } from "rsuite";
 import LeaveTable from "../LeaveTable";
 import NoDataFound from "./NoDataFound";
-import Loading from "../Loader";
+import { Skeleton } from "@mui/material";
 
 const Payslip = ({ payslips, isLoading }) => {
     const [daterangeValue, setDaterangeValue] = useState("");
 
     return (
-        isLoading ? <Loading height="80vh" /> :
-            <div>
-                <div className="d-flex justify-content-between align-items-center px-2 my-2">
-                    <p className="payslipTitle">
-                        Payslip
-                    </p>
-                    <div>
-                        <DateRangePicker size="lg" showOneCalendar placement="bottomEnd" value={daterangeValue} placeholder="Select Date" onChange={setDaterangeValue} />
-                    </div>
+        <div>
+            <div className="d-flex justify-content-between align-items-center px-2 my-2">
+                <p className="payslipTitle">
+                    Payslip
+                </p>
+                <div>
+                    <DateRangePicker size="lg" showOneCalendar placement="bottomEnd" value={daterangeValue} placeholder="Select Date" onChange={setDaterangeValue} />
                 </div>
+            </div>
 
+            <div className="leaveContainer d-block">
                 <div className="w-100 d-flex justify-content-center">
                     <div className="leaveBoard">
-                        <div className="leaveData">
+                        <div className="leaveData col-12 col-lg-4">
                             <div className="d-flex flex-column">
                                 <div className="leaveDays">
                                     {payslips?.length}
@@ -31,7 +31,7 @@ const Payslip = ({ payslips, isLoading }) => {
                                 </div>
                             </div>
                         </div>
-                        <div className="leaveData">
+                        <div className="leaveData col-12 col-lg-4">
                             <div className="d-flex flex-column">
                                 <div className="leaveDays">
                                     02
@@ -41,7 +41,7 @@ const Payslip = ({ payslips, isLoading }) => {
                                 </div>
                             </div>
                         </div>
-                        <div style={{ width: "30%", margin: "10px" }} >
+                        <div className="leaveData col-12 col-lg-4" >
                             <div className="d-flex flex-column">
                                 <div className="leaveDays">
                                     0
@@ -54,11 +54,19 @@ const Payslip = ({ payslips, isLoading }) => {
                     </div>
 
                 </div>
-                {payslips.length > 0 ?
-                    <LeaveTable data={payslips} />
-                    : <NoDataFound message={"Sorry! No payslip data in your account."} />
+                {
+                    isLoading ? <Skeleton
+                        sx={{ bgcolor: 'grey.500' }}
+                        variant="rectangular"
+                        width={"100%"}
+                        height={"50vh"}
+                    /> :
+                        payslips.length > 0 ?
+                            <LeaveTable data={payslips} />
+                            : <NoDataFound message={"Sorry! No payslip data in your account."} />
                 }
             </div>
+        </div>
     )
 };
 

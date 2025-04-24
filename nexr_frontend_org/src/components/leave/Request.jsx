@@ -13,6 +13,7 @@ import ArrowDropDownRoundedIcon from '@mui/icons-material/ArrowDropDownRounded';
 import FileUploadRoundedIcon from '@mui/icons-material/FileUploadRounded';
 import FileDownloadRoundedIcon from '@mui/icons-material/FileDownloadRounded';
 import { useNavigate } from 'react-router-dom';
+import { Skeleton } from '@mui/material';
 
 export default function LeaveRequest() {
     const url = process.env.REACT_APP_API_URL;
@@ -135,99 +136,102 @@ export default function LeaveRequest() {
         );
     };
     return (
-        isLoading ? (
-            <Loading height="80vh" />
-        ) : (
-            <>
-                <input
-                    type="file"
-                    id="fileUploader"
-                    style={{ display: 'none' }}
-                    onChange={(e) => handleUpload(e.target.files[0])}
-                />
-                <div className='d-flex justify-content-between px-2'>
-                    <p className="payslipTitle">
-                        Leave Request
-                    </p>
-                    <div className='d-flex gap-2'>
 
-                        <button className='button' onClick={() => navigate(`/${whoIs}/leave-request`)}>Apply Leave</button>
-                        <button className='button' style={{ cursor: 'pointer' }}>
-                            <Whisper placement="bottomEnd" trigger="click" speaker={renderMenu}>
-                                Action <ArrowDropDownRoundedIcon />
-                            </Whisper>
-                        </button>
+        <>
+            <input
+                type="file"
+                id="fileUploader"
+                style={{ display: 'none' }}
+                onChange={(e) => handleUpload(e.target.files[0])}
+            />
+            <div className='d-flex justify-content-between px-2'>
+                <p className="payslipTitle">
+                    Leave Request
+                </p>
+                <div className='d-flex gap-2'>
+
+                    <button className='button' onClick={() => navigate(`/${whoIs}/leave-request`)}>Apply Leave</button>
+                    <button className='button' style={{ cursor: 'pointer' }}>
+                        <Whisper placement="bottomEnd" trigger="click" speaker={renderMenu}>
+                            Action <ArrowDropDownRoundedIcon />
+                        </Whisper>
+                    </button>
+                </div>
+            </div>
+
+            <div className="leaveContainer d-block">
+                <div className="d-flex align-items-center justify-content-between">
+                    <div className="searchInputIcon">
+                        <input
+                            type="text"
+                            className='payrunInput'
+                            value={empName}
+                            onChange={(e) => setEmpName(e.target.value)}
+                            placeholder='Search Employee'
+                        />
+                    </div>
+                    <DateRangePicker
+                        size="lg"
+                        showOneCalendar
+                        placement="bottomEnd"
+                        value={daterangeValue}
+                        placeholder="Select Date"
+                        onChange={setDaterangeValue}
+                    />
+                </div>
+                <div className="w-100 d-flex justify-content-center">
+                    <div className="leaveBoard">
+                        {/* Leave taken */}
+                        <div className="leaveData">
+                            <div className="d-flex flex-column">
+                                <div className="leaveDays">
+                                    {leaveRequests?.takenLeave?.length || 0} Days
+                                </div>
+                                <div className="leaveDaysDesc">
+                                    Leave taken
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Upcoming leave */}
+                        <div className="leaveData">
+                            <div className="d-flex flex-column">
+                                <div className="leaveDays">
+                                    {leaveRequests?.upComingLeave?.length || 0} Days
+                                </div>
+                                <div className="leaveDaysDesc">
+                                    Upcoming leave
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Pending request */}
+                        <div style={{ width: "30%", margin: "10px" }}>
+                            <div className="d-flex flex-column">
+                                <div className="leaveDays">
+                                    {leaveRequests?.pendingLeave?.length || 0} Days
+                                </div>
+                                <div className="leaveDaysDesc">
+                                    Pending request
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
-                <div className="leaveContainer d-block">
-                    <div className="d-flex align-items-center justify-content-between">
-                        <div className="searchInputIcon">
-                            <input
-                                type="text"
-                                className='payrunInput'
-                                value={empName}
-                                onChange={(e) => setEmpName(e.target.value)}
-                                placeholder='Search Employee'
-                            />
-                        </div>
-                        <DateRangePicker
-                            size="lg"
-                            showOneCalendar
-                            placement="bottomEnd"
-                            value={daterangeValue}
-                            placeholder="Select Date"
-                            onChange={setDaterangeValue}
-                        />
-                    </div>
-                    <div className="w-100 d-flex justify-content-center">
-                        <div className="leaveBoard">
-                            {/* Leave taken */}
-                            <div className="leaveData">
-                                <div className="d-flex flex-column">
-                                    <div className="leaveDays">
-                                        {leaveRequests?.takenLeave?.length || 0} Days
-                                    </div>
-                                    <div className="leaveDaysDesc">
-                                        Leave taken
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Upcoming leave */}
-                            <div className="leaveData">
-                                <div className="d-flex flex-column">
-                                    <div className="leaveDays">
-                                        {leaveRequests?.upComingLeave?.length || 0} Days
-                                    </div>
-                                    <div className="leaveDaysDesc">
-                                        Upcoming leave
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Pending request */}
-                            <div style={{ width: "30%", margin: "10px" }}>
-                                <div className="d-flex flex-column">
-                                    <div className="leaveDays">
-                                        {leaveRequests?.pendingLeave?.length || 0} Days
-                                    </div>
-                                    <div className="leaveDaysDesc">
-                                        Pending request
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Leave Table */}
-                    {
+                {/* Leave Table */}
+                {
+                    isLoading ? <Skeleton
+                        sx={{ bgcolor: 'grey.500' }}
+                        variant="rectangular"
+                        width={"100%"}
+                        height={"50vh"}
+                    /> :
                         leaveRequests?.leaveData?.length > 0 ?
                             <LeaveTable Account={data.Account} data={leaveRequests.leaveData} replyToLeave={replyToLeave} isTeamHead={isTeamHead} isTeamLead={isTeamLead} isTeamManager={isTeamManager} /> :
                             <NoDataFound message={"No Leave request in this month"} />
-                    }
-                </div>
-            </>
-        )
+                }
+            </div>
+        </>
     );
 }

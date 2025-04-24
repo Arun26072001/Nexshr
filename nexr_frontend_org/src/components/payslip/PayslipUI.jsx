@@ -1,6 +1,5 @@
 import React, { useContext, useEffect, useRef, useState } from 'react';
 import "./payslipui.css";
-import logo from "../../imgs/webnexs_logo.webp";
 import { fetchPayslip, fetchPayslipInfo } from '../ReuseableAPI';
 import { toast } from 'react-toastify';
 import { jsPDF } from "jspdf";
@@ -66,7 +65,6 @@ export default function PayslipUI() {
         return result.trim();
     }
 
-
     useEffect(() => {
         const gettingPayslip = async () => {
             try {
@@ -114,6 +112,8 @@ export default function PayslipUI() {
             setIsLoading(true);
             try {
                 const slips = await fetchPayslip(id);
+                console.log(slips);
+
                 setPayslips(slips);
             } catch (err) {
                 toast.error(err?.response?.data?.error);
@@ -130,13 +130,13 @@ export default function PayslipUI() {
                 <div className="modal-content m-auto" style={{ width: "fit-content" }}>
                     <div className="container" ref={payslipRef} style={{ width: "600px", padding: "25px" }}>
                         {/* Header section */}
-                        <div className='d-flex payslipHeader'>
+                        <div className='d-flex payslipHeader align-items-center'>
                             <div>
-                                <div className='d-flex gap-1'>
-                                    <div className='brightLogo'>B</div>
+                                <div className='d-flex gap-1 my-1 align-items-center'>
+                                    <div className='brightLogo'>{payslips?.employee?.company?.CompanyName[0].toUpperCase()}</div>
                                     <div>
-                                        <p className='m-0' style={{ borderBottom: "2px solid orange", fontSize: "38px", fontWeight: "700" }}>Bright</p>
-                                        <p className='text-center m-0' style={{ letterSpacing: "2px" }}>LIVINGSTONE</p>
+                                        <p className='m-0 headingFont text-dark' style={{ fontSize: "30px", fontWeight: "700" }}>{payslips?.employee?.company?.CompanyName}</p>
+                                        {/* <p className='text-center m-0' style={{ letterSpacing: "2px" }}>LIVINGSTONE</p> */}
                                     </div>
                                 </div>
                                 <p style={{ fontSize: "10px", fontWeight: "900" }}>
@@ -144,14 +144,14 @@ export default function PayslipUI() {
                                 </p>
                             </div>
                             <div className='text-center' >
-                                <p className='headingFont'>{payslips?.employee?.company?.CompanyName || "Company Name"} Private LTD</p>
+                                <p className='headingFont' style={{ textTransform: "capitalize" }}>{payslips?.employee?.company?.CompanyName || "Company Name"}</p>
                                 <p className='m-0 payslipTxt'>{payslips?.employee?.company?.Address || "Address"}</p>
                                 <p className='m-0 payslipTxt'>
-                                    TamilNadu - {payslips?.employee?.company?.PostalCode || "Postal Code"} India
+                                    {payslips?.employee?.company?.state} - {payslips?.employee?.company?.PostalCode || "Postal Code"} {payslips?.employee?.company?.country}
                                 </p>
                             </div>
                             <div className='text-center'>
-                                <img src={logo} alt="logo" className='avatar' />
+                                <img src={payslips?.employee?.company?.logo} alt="logo" className='avatar' />
                                 <p className='payslipTxt'>Payslip For This period of Month</p>
                                 <p className='payslipTxt m-0'>
                                     <b>{payslips?.payslip?.period || "N/A"}</b>

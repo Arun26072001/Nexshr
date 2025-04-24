@@ -7,6 +7,7 @@ import axios from 'axios';
 import { getDepartments } from '../ReuseableAPI';
 import CommonModel from './CommonModel';
 import { EssentialValues } from '../../App';
+import { Skeleton } from '@mui/material';
 
 export default function Department({ companies }) {
     const url = process.env.REACT_APP_API_URL;
@@ -126,28 +127,33 @@ export default function Department({ companies }) {
     }, [isDepartmentsDataUpdate]);
 
     return (
-        isLoading ? <Loading height="80vh" /> :
-            isAddDepartment ? <CommonModel
-                dataObj={departmentObj}
-                editData={editDepartment}
-                changeData={changeDepartment}
-                isAddData={isAddDepartment}
-                addData={addDepartment}
-                comps={companies}
-                modifyData={modifyDepartments}
-                type="Department"
-                isWorkingApi={isChangingDepartment}
-            /> :
-                <div className='dashboard-parent pt-4'>
-                    <div className="d-flex justify-content-between px-2">
-                        <h5 className='text-daily'>Department</h5>
-                        <button className='button m-0' onClick={modifyDepartments}>+ Add Department</button>
-                    </div>
-                    {
+        isAddDepartment ? <CommonModel
+            dataObj={departmentObj}
+            editData={editDepartment}
+            changeData={changeDepartment}
+            isAddData={isAddDepartment}
+            addData={addDepartment}
+            comps={companies}
+            modifyData={modifyDepartments}
+            type="Department"
+            isWorkingApi={isChangingDepartment}
+        /> :
+            <div className='dashboard-parent pt-4'>
+                <div className="d-flex justify-content-between px-2">
+                    <h5 className='text-daily'>Department</h5>
+                    <button className='button m-0' onClick={modifyDepartments}>+ Add Department</button>
+                </div>
+                {
+                    isLoading ? <Skeleton
+                        sx={{ bgcolor: 'grey.500' }}
+                        variant="rectangular"
+                        width={"100%"}
+                        height={"50vh"}
+                    /> :
                         departments.length > 0 ?
                             <LeaveTable data={departments} deleteData={deleteDepartment} fetchData={getEditDepartmentId} />
                             : <NoDataFound message={"Departments data not found"} />
-                    }
-                </div>
+                }
+            </div>
     )
 }

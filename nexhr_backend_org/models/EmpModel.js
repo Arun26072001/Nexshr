@@ -1,16 +1,24 @@
 const mongoose = require('mongoose');
 
+const nitificationSchema = new mongoose.Schema({
+  company: { type: mongoose.Schema.Types.ObjectId, ref: "Company", default: null },
+  title: { type: String },
+  message: { type: String },
+  isViewed: { type: Boolean, default: false }
+}, { _id: false })
+
 var employeeSchema = new mongoose.Schema({
   FirstName: { type: String },
   LastName: { type: String },
   Email: { type: String },
   Password: { type: String },
-  teamLead: { type: mongoose.Types.ObjectId, ref: "Employee", default: null },
+  // teamLead: { type: mongoose.Types.ObjectId, ref: "Employee", default: null },
+  // managerId: { type: mongoose.Schema.Types.ObjectId, ref: "Employee" }, // Reference to another employee
   team: { type: mongoose.Types.ObjectId, ref: "Team", default: null },
   countryCode: { type: String },
   phone: { type: String },
   panNumber: { type: String },
-  profile: { type: String },
+  profile: { type: String, default: null },
   Account: { type: Number, default: 3 },
   dateOfBirth: { type: String },
   clockIns: [{ type: mongoose.Schema.Types.ObjectId, ref: "clockIns" }],
@@ -39,7 +47,6 @@ var employeeSchema = new mongoose.Schema({
   dateOfJoining: { type: String },
   employmentType: { type: String },
   benefits: [{ type: String }],
-  managerId: { type: mongoose.Schema.Types.ObjectId, ref: "Employee" }, // Reference to another employee
   emergencyContacts: [
     {
       name: { type: String },
@@ -54,7 +61,8 @@ var employeeSchema = new mongoose.Schema({
   publicHoliday: {
     type: String
   },
-  announcements: [{ type: mongoose.Schema.Types.ObjectId, ref: "Announcement", default: [] }],
+  announcements: [{ type: mongoose.Schema.Types.ObjectId, ref: "Announcement" }],
+  notifications: [{ type: nitificationSchema, default: {} }],
   annualLeaveYearStart: {
     type: Date, default: new Date().toISOString()
   },

@@ -19,7 +19,7 @@ const announcementValidation = Joi.object({
     message: Joi.string().required().label('message'),
     selectTeamMembers: Joi.array().items(Joi.string()).label("Selected members"),
     whoViewed: Joi.object().required(),
-    createdBy: Joi.string().required(),
+    createdBy: Joi.any().optional(),
 });
 
 module.exports = { Announcement, announcementValidation, announcementSchema }

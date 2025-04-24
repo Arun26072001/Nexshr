@@ -118,7 +118,7 @@ leaveApp.get("/make-know", async (req, res) => {
         <head>
           <meta charset="UTF-8">
           <meta name="viewport" content="width=device-width, initial-scale=1.0">
-          <title>${empData.employee.company.CompanyName}</title>
+          <title>${empData?.employee?.company?.CompanyName || "Webnexs"}</title>
         </head>
         <body style="font-family: Arial, sans-serif; background-color: #f6f9fc; color: #333; margin: 0; padding: 0;">
           <div style="max-width: 600px; margin: auto; padding: 20px; background-color: #fff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);">
@@ -227,7 +227,7 @@ leaveApp.get("/emp/:empId", verifyAdminHREmployeeManagerNetwork, async (req, res
 
     // Fetch employee data with necessary fields
     let emp = await Employee.findById(empId,
-      "annualLeaveYearStart position FirstName LastName Email phone typesOfLeaveCount typesOfLeaveRemainingDays team"
+      "annualLeaveYearStart position FirstName LastName Email phone typesOfLeaveCount typesOfLeaveRemainingDays team profile"
     ).populate([{ path: "position", select: "PositionName" }, { path: "team", populate: { path: "employees", select: "FirstName LastName Email phone" } }]).lean();
 
     if (!emp) return res.status(404).json({ message: "Employee not found!" });
@@ -257,7 +257,7 @@ leaveApp.get("/emp/:empId", verifyAdminHREmployeeManagerNetwork, async (req, res
       })
         .populate("employee", "FirstName LastName")
         .lean(),
-      LeaveApplication.find(filterLeaves).populate("employee", "FirstName LastName").lean(),
+      LeaveApplication.find(filterLeaves).populate("employee", "FirstName LastName profile").lean(),
       Team.findOne({ employees: empId }, "employees").lean()
     ]);
 
@@ -286,7 +286,7 @@ leaveApp.get("/emp/:empId", verifyAdminHREmployeeManagerNetwork, async (req, res
       return currentMonth === fromDate.getMonth() && fromDate.getFullYear() === currentYear;
     })
     const Permission = currentMonthOfLeaves.filter((leave) => leave.leaveType.includes("Permission")).length;
-    const UnpaidLeave = currentMonthOfLeaves.filter((leave) => leave.leaveType.includes("Unpaid")).length;
+    const UnpaidLeave = leaveApplications.filter((leave) => leave.leaveType.includes("Unpaid")).length;
     emp = {
       ...emp,
       typesOfLeaveCount: {
@@ -574,6 +574,7 @@ leaveApp.get("/date-range/management/:whoIs", verifyAdminHrNetworkAdmin, async (
       .sort((a, b) => new Date(b.fromDate) - new Date(a.fromDate))
       .map(leave => ({
         ...leave.toObject(),
+        reasonForLeave: leave.reasonForLeave.replace(/<\/?[^>]+(>|$)/g, ''),
         prescription: leave.prescription
           ? `${process.env.REACT_APP_API_URL}/uploads/${leave.prescription}`
           : null

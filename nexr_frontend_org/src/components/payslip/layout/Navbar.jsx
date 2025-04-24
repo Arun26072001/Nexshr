@@ -24,6 +24,7 @@ export default function Navbar({ handleSideBar }) {
     const workRef = useRef(null);  // Use ref to store interval ID
     const url = process.env.REACT_APP_API_URL;
     const [announcements, setAnnouncements] = useState([]);
+    const [notifications, setNotifications] = useState([]);
     const [isRemove, setIsRemove] = useState([]);
     const [isViewEarlyLogout, setIsViewEarlyLogout] = useState(JSON.parse(localStorage.getItem("isViewEarlyLogout")) ? true : false);
     // const [workLocation, setWorklocation] = useState("");
@@ -128,8 +129,30 @@ export default function Navbar({ handleSideBar }) {
             // console.log(error.response.data.error);
         }
     }
+
+    async function fetchNotifications() {
+        try {
+            const res = await axios.get(`${url}/api/employee/notifications/${data._id}`, {
+                headers: {
+                    Authorization: data.token || ""
+                }
+            });
+            const totalRemovables = [];
+            res.data.forEach((item, index) => {
+                totalRemovables.push(false);
+            });
+            setIsRemove(totalRemovables);
+            setNotifications(res.data);
+        } catch (error) {
+            console.log("error in fetch notifications", error);
+
+        }
+    }
+    console.log(isRemove);
+
     useEffect(() => {
-        fetchAnnouncements();
+        // fetchAnnouncements();
+        fetchNotifications();
     }, [isChangeAnnouncements])
 
     function checkIsCompletedWorkingHour() {
@@ -145,74 +168,74 @@ export default function Navbar({ handleSideBar }) {
         socket.emit("verify_completed_workinghour", updatedState);
     }
 
-    async function updateNotification(value) {
+    async function updateEmpNotifications(updatedValues) {
         try {
-            const res = await axios.put(`${url}/api/announcements/${value._id}`, value, {
+            const res = await axios.put(`${url}/api/employee/notifications/${data._id}`, updatedValues, {
                 headers: {
                     Authorization: data.token || ""
                 }
             })
-            console.log(res.data.message);
+            console.log("updated notifications", res.data.message);
+
         } catch (error) {
-            console.log(error);
+            console.log("Error in update notifications", error);
         }
     }
 
     async function clearMsgs() {
         try {
-            announcements.forEach((item, index) => {
+            notifications.forEach((item, index) => {
                 setIsRemove((pre) => {
                     const updated = [...pre];
                     updated[index] = true;
                     return updated;
                 })
             })
-            // Use Promise.all to handle multiple async operations
-            await Promise.all(
-                announcements.map(async (item) => {
-                    const updatedMsg = {
-                        ...item,
-                        whoViewed: {
-                            ...item.whoViewed,
-                            [data._id]: "viewed"
-                        }
-                    };
-                    return updateNotification(updatedMsg); // Ensure async call is returned
-                })
-            );
+            const viewedNotifications = notifications.map((item) => ({
+                ...item,
+                isViewed: true,
+            }));
 
-            // Call handleUpdateAnnouncements only after all updates are complete
+            await updateEmpNotifications(viewedNotifications); // Await if it's async
             handleUpdateAnnouncements();
         } catch (error) {
             console.log("Error clearing messages:", error);
         }
     }
-    // to track close or refresh the tab or browser
-    useHandleTabClose(isStartLogin, workTimeTracker, data.token);
+
+    // Call this on tab/browser close or refresh (you can add event listener if needed)
 
     async function removeMessage(value, index) {
-        setIsRemove((prev) => {
-            const updated = [...prev]; // Create a copy of the previous state
-            updated[index] = true; // Update the specific index
-            return updated; // Return the new state
-        });
+        try {
+            setIsRemove((prev) => {
+                const updated = [...prev];
+                updated[index] = true;
+                return updated;
+            });
 
-        const updatedMsg = {
-            ...value,
-            whoViewed: {
-                ...value.whoViewed,
-                [data._id]: "viewed"
-            }
+            const updatedNotifications = notifications.map((item) =>
+                item.title === value.title
+                    ? { ...item, isViewed: true }
+                    : item
+            );
+
+            setNotifications(updatedNotifications);
+
+            setTimeout(async () => {
+                try {
+                    await updateEmpNotifications(updatedNotifications); // Await if it's async
+                    handleUpdateAnnouncements();
+                } catch (err) {
+                    console.log("Error updating notifications:", err);
+                }
+            }, 300);
+        } catch (error) {
+            console.log("Error removing message:", error);
         }
-        setTimeout(() => {
-            updateNotification(updatedMsg);
-            handleUpdateAnnouncements();
-        }, 300)
     }
 
+    useHandleTabClose(isStartLogin, workTimeTracker, data.token);
     function changeViewReasonForEarlyLogout() {
-        console.log(isViewEarlyLogout);
-
         if (!isViewEarlyLogout) {
             localStorage.setItem("isViewEarlyLogout", true)
         }
@@ -391,17 +414,15 @@ export default function Navbar({ handleSideBar }) {
                                 </defs>
                             </svg>
                             {
-                                announcements.length > 0 &&
+                                notifications.length > 0 &&
                                 <span className='messageCount'>
-                                    {announcements?.length}
+                                    {notifications?.length}
                                 </span>
                             }
                         </span>
                         {/* Profile Section */}
                         <Whisper placement="bottomEnd" trigger="click" speaker={renderMenu}>
-
                             <img src={data.profile || logo} className='imgContainer' style={{ width: "40px", height: "40px" }} alt='emp_img' />
-
                         </Whisper>
                         {/* Messages Section */}
                         <div className="offcanvas offcanvas-end" tabindex="-1" id="offcanvasRight" aria-labelledby="offcanvasRightLabel">
@@ -411,16 +432,17 @@ export default function Navbar({ handleSideBar }) {
                             </div>
                             <div className="offcanvas-body">
                                 {
-                                    announcements.map((item, index) => {
-                                        return <div key={item._id} className={`box-content my-2 ${isRemove[index] ? "remove" : ""}`}>
-                                            <div className='d-flex justify-content-end'>
-                                                <CloseRoundedIcon onClick={() => {
-                                                    removeMessage(item, index)
-                                                }} />
-                                            </div>
+                                    notifications.map((notification, index) => {
+                                        return <div key={notification._id} className={`box-content my-2 ${isRemove[index] ? "remove" : ""} box-content my-2 d-flex justfy-content-center align-items-center position-relative`}>
+                                            {/* <div className='d-flex justify-content-between align-items-center'>
+                                            </div> */}
+                                            <span className="closeBtn" title='close' onClick={() => removeMessage(notification, index)}>
+                                                <CloseRoundedIcon fontSize='md' />
+                                            </span>
+                                            <img src={notification.company.logo} alt={"companyLogo"} width={50} height={"auto"} />
                                             <Accordion>
-                                                <Accordion.Panel header={item.title} eventKey={1} caretAs={KeyboardArrowDownRoundedIcon}>
-                                                    <p>{item.message.replace(/<[^>]*>/g, "")}</p>
+                                                <Accordion.Panel header={<p>{notification.title}</p>} eventKey={1} caretAs={KeyboardArrowDownRoundedIcon}>
+                                                    <p className='sub_text' style={{ fontSize: "13px" }}>{notification.message.replace(/<[^>]*>/g, "")}</p>
                                                 </Accordion.Panel>
                                             </Accordion>
                                         </div>

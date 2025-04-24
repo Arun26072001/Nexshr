@@ -27,10 +27,7 @@ const Sidebar = ({ sideBar }) => {
   const { Dashboard, JobDesk, Employee, Leave,
     Attendance, Administration, Settings
   } = decodedData?.roleData?.pageAuth;
-  console.log(decodedData?.roleData?.pageAuth);
-
   const param = useParams();
-
   const [activeSubmenu, setActiveSubmenu] = useState(param['*']);
   const [activeNavLink, setActiveNavLink] = useState(param['*'] === "" ? "dashboard" : param['*'].includes("my-details") ? "jobDesk" : param['*']);
 

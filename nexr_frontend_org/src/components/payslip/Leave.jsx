@@ -1,7 +1,7 @@
 import React, { useContext, useEffect, useState } from "react";
 import "./dashboard.css";
 import LeaveTable from "../LeaveTable";
-import { DateRangePicker } from "rsuite";
+import { DateRangePicker, Input } from "rsuite";
 // import 'rsuite/dist/rsuite.min.css';
 import axios from "axios";
 import { toast } from "react-toastify";
@@ -9,6 +9,7 @@ import Loading from "../Loader";
 import NoDataFound from "./NoDataFound";
 import { useNavigate } from "react-router-dom";
 import { EssentialValues } from "../../App";
+import { Skeleton } from "@mui/material";
 
 const Leave = () => {
     const navigate = useNavigate();
@@ -35,7 +36,6 @@ const Leave = () => {
             }));
         }
     }
-
 
     async function deleteLeave(leaveId) {
         try {
@@ -97,7 +97,7 @@ const Leave = () => {
             <div className="leaveContainer d-block">
                 <div className="w-100 d-flex justify-content-center">
                     <div className="leaveBoard">
-                        <div className="leaveData">
+                        <div className="leaveData col-12 col-lg-4">
                             <div className="d-flex flex-column">
                                 <div className="leaveDays">
                                     {leaveRequests?.approvedLeave?.length} Days
@@ -107,7 +107,7 @@ const Leave = () => {
                                 </div>
                             </div>
                         </div>
-                        <div className="leaveData">
+                        <div className="leaveData col-12 col-lg-4">
                             <div className="d-flex flex-column">
                                 <div className="leaveDays">
                                     {leaveRequests?.upComingLeave?.length || 0} Days
@@ -117,7 +117,7 @@ const Leave = () => {
                                 </div>
                             </div>
                         </div>
-                        <div style={{ width: "30%", margin: "10px" }} >
+                        <div className="leaveData col-lg-4 col-12" style={{ borderRight: "none" }} >
                             <div className="d-flex flex-column">
                                 <div className="leaveDays">
                                     {leaveRequests?.pendingLeave?.length} Days
@@ -131,13 +131,20 @@ const Leave = () => {
                 </div>
                 <div className='px-3 my-3'>
                     <div className="row">
-                        <div className="col-lg-12 searchInputIcon">
-                            <input type="text" className='payrunInput' value={empName} onChange={(e) => setEmpName(e.target.value)} placeholder='Search by Leave type' />
+                        <div className="col-lg-12 col-12 d-flex justify-content-end">
+                            {/* <input type="text" className='payrunInput' value={empName} onChange={(e) => setEmpName(e.target.value)} placeholder='Search by Leave type' /> */}
+                            <Input value={empName} size="lg" style={{ width: "250px" }} placeholder="Search by Leave type" onChange={(e) => setEmpName(e)} />
                         </div>
                     </div>
                 </div>
                 {
-                    isLoading ? <Loading height="80vh" /> :
+                    isLoading ?
+                        <Skeleton
+                            sx={{ bgcolor: 'grey.500' }}
+                            variant="rectangular"
+                            width={"100%"}
+                            height={"50vh"}
+                        /> :
                         leaveRequests?.leaveData?.length > 0 ?
                             <LeaveTable data={leaveRequests.leaveData} fetchData={deleteLeave} />
                             : <NoDataFound message={"Leave data not for this month!"} />

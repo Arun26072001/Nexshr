@@ -39,13 +39,13 @@ const CommonModel = ({
     preview,
     countries,
     states,
+    errorMsg,
     type // New prop to determine if it's for "department" or "position"
 }) => {
     const { data } = useContext(EssentialValues);
     const [confirmationTxt, setConfirmationTxt] = useState("");
     const [isDisabled, setIsDisabled] = useState(true);
     const [isShowPassword, setIsShowPassword] = useState(false);
-    console.log(dataObj);
 
     return (
         <Modal open={isAddData} size="sm" backdrop="static">
@@ -74,6 +74,19 @@ const CommonModel = ({
                                         onChange={!["Report View", "Project View", "View WorkPlace"].includes(type) ? (e) =>
                                             changeData(e, type === "Department" ? "DepartmentName" : type === "Position" ? "PositionName" : type === "Team" ? "teamName" : type === "Organization" ? "orgName" : type === "LeaveType" ? "LeaveName" : type === "TimePattern" ? "PatternName" : ["WorkPlace", "View WorkPlace"].includes(type) ? "CompanyName" : "name") : null}
                                     />
+                                    {/* {
+                                        [
+                                            "DepartmentName",
+                                            "PositionName",
+                                            "teamName",
+                                            "orgName",
+                                            "LeaveName",
+                                            "PatternName",
+                                            "CompanyName", // for both "WorkPlace" and "View WorkPlace"
+                                            "name"         // default
+                                          ].includes()
+                                    }
+                                    <p>{}</p> */}
                                 </div>
                             </div>
                         }
@@ -173,6 +186,7 @@ const CommonModel = ({
                                     value={dataObj?.[`title`] || ""}
                                     onChange={type !== "Task View" ? (e) => changeData(e, "title") : null}
                                 />
+                                {errorMsg.includes("title") && <p className='text-danger'>{errorMsg}</p>}
                             </div>
                         </div>}
 
@@ -216,7 +230,7 @@ const CommonModel = ({
                     {["Task", "Task View", "Add Comments", "Edit Comments", "Organization", "Company"].includes(type) && (
                         <div className="col-full">
                             <div className="modelInput">
-                                <p className="modelLabel">{type === "Organization" ? "OrgImage" : type === "Company" ? "Logo" : "Attachments"}: </p>
+                                <p className="modelLabel important">{type === "Organization" ? "OrgImage" : type === "Company" ? "Logo" : "Attachments"}: </p>
                                 <input
                                     type="file"
                                     disabled={type === "Task View"}
@@ -567,7 +581,7 @@ const CommonModel = ({
                         <div className="d-flex justify-content-between">
                             <div className="col-full">
                                 <div className="modelInput">
-                                    <p className="modelLabel">
+                                    <p className={`modelLabel ${type === "Announcement" ? "important" : ""}`}>
                                         {type === "Announcement" ? "Message" : "Comments"}
                                     </p>
 
@@ -637,7 +651,7 @@ const CommonModel = ({
 
                         <div className="col-full">
                             <div className="modelInput">
-                                <p className='modelLabel'>Address:</p>
+                                <p className='modelLabel important'>Address:</p>
                                 <Input
                                     required
                                     size="lg"
@@ -649,6 +663,41 @@ const CommonModel = ({
                                     appearance='default'
                                     onChange={(e) => changeData(e, "Address")}
                                 />
+                            </div>
+                        </div>
+
+                        <div className="d-flex justify-content-between gap-2">
+                            <div className="col-half">
+                                <div className="modelInput important">
+                                    <p className='modelLabel'>Company Name:</p>
+                                    <Input
+                                        required
+                                        size="lg"
+                                        style={{ width: "100%", height: 45 }}
+                                        type={"text"}
+                                        name={`name`}
+                                        // disabled={ ? true : false}
+                                        value={dataObj?.[`CompanyName`] || ""}
+                                        appearance='default'
+                                        onChange={(e) => changeData(e, "CompanyName")}
+                                    />
+                                </div>
+                            </div>
+                            <div className="col-half">
+                                <div className="modelInput">
+                                    <p className='modelLabel'>Postal Code:</p>
+                                    <Input
+                                        required
+                                        size="lg"
+                                        style={{ width: "100%", height: 45 }}
+                                        type={"number"}
+                                        name={`PostalCode`}
+                                        // disabled={ ? true : false}
+                                        value={dataObj?.[`PostalCode`] || ""}
+                                        appearance='default'
+                                        onChange={(e) => changeData(e, "PostalCode")}
+                                    />
+                                </div>
                             </div>
                         </div>
 
@@ -671,7 +720,7 @@ const CommonModel = ({
                             </div>
                             <div className="col-half">
                                 <div className="modelInput">
-                                    <p className='modelLabel '>Contact Person:</p>
+                                    <p className='modelLabel'>Contact Person:</p>
                                     <Input
                                         required
                                         size="lg"
@@ -1204,58 +1253,69 @@ const CommonModel = ({
                     </>
                 }
                 {
-                    ["WorkPlace", "View WorkPlace"].includes(type) &&
+                    ["WorkPlace", "View WorkPlace", "Company"].includes(type) &&
                     <>
-                        <div className="col-full">
-                            <div className="modelInput">
-                                <p className='modelLabel important'>Address_1:</p>
-                                <Input type='text' onChange={(e) => changeData(e, "Address_1")} value={dataObj?.Address_1} disabled={type === "View WorkPlace"} />
-                            </div>
-                        </div>
-                        <div className="col-full">
-                            <div className="modelInput">
-                                <p className='modelLabel'>Address_2:</p>
-                                <Input type='text' onChange={(e) => changeData(e, "Address_2")} value={dataObj?.Address_2} disabled={type === "View WorkPlace"} />
-                            </div>
-                        </div>
-                        <div className="d-flex justify-content-between gap-2">
-                            <div className="col-half">
-                                <div className="modelInput">
-                                    <p className='modelLabel important'>Country:</p>
-                                    <SelectPicker
-                                        appearance='default'
-                                        style={{ width: "100%" }}
-                                        size="lg"
-                                        data={countries}
-                                        disabled={type === "View WorkPlace"}
-                                        labelKey="name"
-                                        valueKey="name"
-                                        value={dataObj?.Country}
-                                        onChange={(value) => changeData(value, "Country")}
-                                    />
+                        {
+                            ["WorkPlace", "View WorkPlace"].includes(type) &&
+                            <>
+                                <div className="col-full">
+                                    <div className="modelInput">
+                                        <p className='modelLabel important'>Address_1:</p>
+                                        <Input type='text' onChange={(e) => changeData(e, "Address_1")} value={dataObj?.Address_1} disabled={type === "View WorkPlace"} />
+                                    </div>
+                                </div>
+                                <div className="col-full">
+                                    <div className="modelInput">
+                                        <p className='modelLabel'>Address_2:</p>
+                                        <Input type='text' onChange={(e) => changeData(e, "Address_2")} value={dataObj?.Address_2} disabled={type === "View WorkPlace"} />
+                                    </div>
+                                </div>
+                            </>
+                        }
+                        {
+                            ["WorkPlace", "View WorkPlace", "Company"].includes(type) &&
+                            <div className="d-flex justify-content-between gap-2">
+                                <div className="col-half">
+                                    <div className="modelInput">
+                                        <p className='modelLabel important'>Country:</p>
+                                        <SelectPicker
+                                            appearance='default'
+                                            style={{ width: "100%" }}
+                                            size="lg"
+                                            data={countries}
+                                            disabled={type === "View WorkPlace"}
+                                            labelKey="name"
+                                            valueKey="name"
+                                            value={dataObj?.Country}
+                                            onChange={(value) => changeData(value, "Country")}
+                                        />
+                                    </div>
+                                </div>
+                                <div className="col-half">
+                                    <div className="modelInput">
+                                        <p className='modelLabel important'>State:</p>
+                                        <SelectPicker
+                                            appearance='default'
+                                            style={{ width: "100%" }}
+                                            disabled={type === "View WorkPlace"}
+                                            size="lg"
+                                            data={states}
+                                            value={dataObj?.State}
+                                            onChange={(value) => changeData(value, "State")}
+                                        />
+                                    </div>
                                 </div>
                             </div>
-                            <div className="col-half">
+                        }
+                        {
+                            ["WorkPlace", "View WorkPlace"].includes(type) &&
+                            <div className="col-full">
                                 <div className="modelInput">
-                                    <p className='modelLabel important'>State:</p>
-                                    <SelectPicker
-                                        appearance='default'
-                                        style={{ width: "100%" }}
-                                        disabled={type === "View WorkPlace"}
-                                        size="lg"
-                                        data={states}
-                                        value={dataObj?.State}
-                                        onChange={(value) => changeData(value, "State")}
-                                    />
+                                    <p className='modelLabel'>Town:</p>
+                                    <Input type='text' onChange={(e) => changeData(e, "Town")} value={dataObj?.Town} disabled={type === "View WorkPlace"} />
                                 </div>
                             </div>
-                        </div>
-                        <div className="col-full">
-                            <div className="modelInput">
-                                <p className='modelLabel'>Town:</p>
-                                <Input type='text' onChange={(e) => changeData(e, "Town")} value={dataObj?.Town} disabled={type === "View WorkPlace"} />
-                            </div>
-                        </div>
+                        }
                     </>
                 }
 

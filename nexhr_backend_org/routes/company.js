@@ -6,6 +6,8 @@ const { verifyAdminHR, verifyAdminHREmployeeManagerNetwork } = require('../auth/
 const { Employee } = require('../models/EmpModel');
 const { Department } = require('../models/DepartmentModel');
 const { Position } = require('../models/PositionModel');
+const path = require("path");
+const fs = require("fs");
 
 router.get("/", verifyAdminHREmployeeManagerNetwork, (req, res) => {
   Company.find({}, "CompanyName").lean()
@@ -61,6 +63,19 @@ router.put("/:id", verifyAdminHR, async (req, res) => {
     if (error) {
       return res.status(400).send({ error: error.details[0].message })
     } else {
+      const oldCompanyData = await Company.findById(req.params.id);
+      if (oldCompanyData?.logo && oldCompanyData.logo !== req.body.logo) {
+        const filename = oldCompanyData?.logo.split("/").pop();
+        const filePath = path.join(__dirname, "..", "uploads", filename);
+        try {
+          if (fs.existsSync(filePath)) {
+            fs.unlinkSync(filePath);
+            console.log(`Deleted old profile image: ${filename}`);
+          }
+        } catch (error) {
+          console.error("Error deleting profile image:", error.message);
+        }
+      }
       //update company
       const updateCompany = await Company.findByIdAndUpdate(req.params.id, req.body, { new: true });
       return res.send({ message: `${updateCompany.CompanyName} company is updated successfully` })

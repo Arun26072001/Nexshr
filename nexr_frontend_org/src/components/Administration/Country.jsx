@@ -8,6 +8,7 @@ import { toast } from 'react-toastify';
 import CommonModel from './CommonModel';
 import "../payslip/payslip.css";
 import { Input } from 'rsuite';
+import { Skeleton } from '@mui/material';
 
 export default function Country() {
     const [countries, setCountries] = useState([]);
@@ -168,7 +169,12 @@ export default function Country() {
                         </div>
                     </div>
                     {
-                        isLoading ? <Loading height="80vh" /> :
+                        isLoading ? <Skeleton
+                            sx={{ bgcolor: 'grey.500' }}
+                            variant="rectangular"
+                            width={"100%"}
+                            height={"50vh"}
+                        /> :
                             countries?.length > 0 ?
                                 <LeaveTable data={countries} fetchData={fetchCountryData} /> :
                                 <NoDataFound message={"Countries data not found"} />

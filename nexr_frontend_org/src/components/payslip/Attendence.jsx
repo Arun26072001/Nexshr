@@ -27,9 +27,7 @@ const Attendence = () => {
     "lunch",
     "meeting",
     "event"
-  ].map(
-    item => ({ label: item, value: item })
-  );
+  ].map(item => ({ label: item, value: item }));
   const [selectedTimeOption, setSelectedTimeOption] = useState(["login", "morningBreak", "eveningBreak", "lunch"]);
   const [filteredTabledata, setFilteredTableData] = useState([]);
 
@@ -142,16 +140,19 @@ const Attendence = () => {
                 { key: "totalEarlyLogins", label: "Early", height: earlyHeight },
                 { key: "totalLateLogins", label: "Late", height: lateHeight },
                 { key: "totalLeaveDays", label: "Leave", height: clockInsData.totalLeaveDays * 10 },
-              ].map(({ key, label, height }) => (
-                <div key={key} className={`col-lg-3 ${label.toLowerCase()}`} style={{ height: `${height}%` }}>
+              ].map(({ key, label, height }) => {
+                return (<div
+                  key={key}
+                  className={`col-lg-3 ${label.toLowerCase()}`}
+                  style={{ height: `${height}%` }}>
                   <div className={`d-flex justify-content-center ${clockInsData[key] === 0 ? "emtChart" : ""}`}>
                     <p className="payslipTitle" style={{ color: "#146ADC" }}>
                       {clockInsData[key].toFixed(1)} Days
                     </p>
                     <p className="leaveDays text-center" style={{ color: "#146ADC" }}>({label})</p>
                   </div>
-                </div>
-              ))}
+                </div>)
+              })}
             </div>
           </div>
 
@@ -176,7 +177,14 @@ const Attendence = () => {
                 label: "Average Behaviour",
               },
             ].map(({ value, label, className }, index) => (
-              <div key={index} className="leaveData" style={index === 5 ? { width: "30%", margin: "10px" } : {}}>
+              <div
+                key={index}
+                className="leaveData"
+                style={{
+                  ...(index === 5 && { width: "30%", margin: "10px" }),
+                  ...(label === "Average Behaviour" && { borderRight: "none" })
+                }}
+              >
                 <div className="d-flex flex-column">
                   <div className={`leaveDays ${className || ""}`}>{value}</div>
                   <div className="leaveDaysDesc">{label}</div>
@@ -213,8 +221,9 @@ const Attendence = () => {
             }
           </>
         </>
-      ) : null}
-    </div>
+      ) : null
+      }
+    </div >
   )
 };
 

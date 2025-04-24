@@ -13,6 +13,8 @@ const AnnouncementComponent = ({ handleChangeAnnouncement }) => {
     const [team_member, setTeam_member] = useState([]);
     const [announcementObj, setAnnouncementObj] = useState({})
     const [isChangingAnnouncement, setIschangingAnnouncement] = useState(false);
+    const [errorMsg, setErrorMsg] = useState("");
+
 
     const headers = {
         Authorization: data.token || ""
@@ -59,6 +61,7 @@ const AnnouncementComponent = ({ handleChangeAnnouncement }) => {
             socket.connect() // Debugging line
             socket.emit("send_announcement", addAnnounce.data.data);
         } catch (error) {
+            setErrorMsg(error.response.data.error)
             toast.error(error.response.data.error)
             console.error('Error creating the announcement or sending notification:', error);
         }
@@ -73,7 +76,7 @@ const AnnouncementComponent = ({ handleChangeAnnouncement }) => {
             </button>
 
             {isModalOpen && (
-                <CommonModel type="Announcement" isAddData={isModalOpen} isWorkingApi={isChangingAnnouncement} modifyData={handleModel} changeData={changeAnnouncementData} addData={handleSubmit} team_member={team_member} dataObj={announcementObj} />
+                <CommonModel type="Announcement" errorMsg={errorMsg} isAddData={isModalOpen} isWorkingApi={isChangingAnnouncement} modifyData={handleModel} changeData={changeAnnouncementData} addData={handleSubmit} team_member={team_member} dataObj={announcementObj} />
             )}
         </div>
     );

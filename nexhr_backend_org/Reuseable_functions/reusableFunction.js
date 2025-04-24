@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
 
+
 const convertToString = (value) => {
   if (Array.isArray(value)) {
     return value.map((v) => (mongoose.isValidObjectId(v) ? v.toString() : v));
@@ -59,7 +60,7 @@ function mailContent(type, fromDateValue, toDateValue, emp, leaveType, actionBy,
   <body style="font-family: Arial, sans-serif; background-color: #f6f9fc; color: #333; margin: 0; padding: 0; text-align: center;">
     <div style="text-align: center;">
       <img src="${emp.company.logo}" alt="Company Logo" style="width: 100px; height: 100px; object-fit: cover; margin-top: 20px;" />
-      <div style="display: flex; justify-content: center; align-items: center; padding: 20px;">
+      <div style="display: flex; max-width:600px; margin:0 auto; padding: 20px;">
         <div style="border: 1px solid gray; border-radius: 10px; padding: 30px; max-width: 500px; text-align: left; background-color: #fff;">
           <p style="font-size: 20px; font-weight: 500; color: black; margin: 10px 0;">Hi ${member.name},</p>
           <div style="border-bottom: 3px solid ${isRejected ? "red" : "green"}; width: 30px; margin-bottom: 10px;"></div>
@@ -82,6 +83,62 @@ function mailContent(type, fromDateValue, toDateValue, emp, leaveType, actionBy,
   </body>
 </html>
   `;
+}
+
+function projectMailContent(emp, creator, company, dataObj, type) {
+  const empName = `${emp.FirstName[0].toUpperCase() + emp.FirstName.slice(1)} ${emp.LastName}`;
+  const creatorName = creator.FirstName[0].toUpperCase() + creator.FirstName.slice(1);
+  const itemTitle = type === "project" ? dataObj.name : dataObj.title;
+  const formattedTitle = itemTitle[0].toUpperCase() + itemTitle.slice(1);
+
+  const actionText = type === "project"
+    ? `${creatorName} has created a project named "<strong>${formattedTitle}</strong>" and added you as a team member.`
+    : `${creatorName} has assigned you a task titled "<strong>${formattedTitle}</strong>".`;
+
+  const instructionText = type === "project"
+    ? "Please follow the project guidelines and collaborate with your team."
+    : "Please review the task and complete it as per the given instructions.";
+
+  const headingText = type === "project"
+    ? `Welcome to ${formattedTitle}`
+    : `New Task Assigned: ${formattedTitle}`;
+
+  return `
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+      <meta charset="UTF-8" />
+      <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+      <title>${company.CompanyName}</title>
+    </head>
+    <body style="font-family: Arial, sans-serif; background-color: #f6f9fc; color: #333; margin: 0; padding: 0;">
+      <div style="text-align: center; padding-top: 30px;">
+        <img src="${company.logo}" alt="Company Logo" style="width: 100px; height: 100px; object-fit: cover; margin-bottom: 10px;" />
+      </div>
+
+      <div style="display: flex; max-width: 600px; margin: 0 auto; padding: 20px;">
+        <div style="background-color: #ffffff; border-radius: 12px; padding: 30px; width: 100%; box-shadow: 0 2px 8px rgba(0,0,0,0.05); text-align: left;">
+          <h2 style="font-size: 22px; font-weight: 600; margin-bottom: 10px;">${headingText}</h2>
+          <div style="border-bottom: 3px solid #28a745; width: 30px; margin-bottom: 20px;"></div>
+
+          <p style="font-size: 15px; margin-bottom: 15px;">Hi ${empName} 👋,</p>
+          <p style="font-size: 15px; margin-bottom: 10px;">${actionText}</p>
+          <p style="font-size: 15px; margin-bottom: 10px;">${instructionText}</p>
+
+          <p style="margin-top: 20px;">Thank you!</p>
+        </div>
+      </div>
+
+      <div style="text-align: center; font-size: 13px; color: #777; margin-top: 20px; padding-bottom: 20px;">
+        <p>Have questions? <a href="mailto:${creator.Email}" style="color: #007BFF; text-decoration: none;">Contact ${creatorName}</a>.</p>
+      </div>
+    </body>
+    </html>
+  `;
+}
+
+function teamMailContent(){
+  
 }
 
 function timeToMinutes(timeStr) {
@@ -219,4 +276,4 @@ function formatDate(date) {
   return `${dateValue + " " + monthString + " " + String(actualDate.getHours()).padStart(2, "0") + ":" + String(actualDate.getMinutes()).padStart(2, "0")}`
 }
 
-module.exports = { convertToString, getTotalWorkingHourPerDay, formatLeaveData, getDayDifference, getOrgDB, formatDate, getWeekdaysOfCurrentMonth, mailContent, checkLogin, getTotalWorkingHoursExcludingWeekends, getCurrentTimeInMinutes, timeToMinutes, formatTimeFromMinutes };
+module.exports = { convertToString, projectMailContent, getTotalWorkingHourPerDay, formatLeaveData, getDayDifference, getOrgDB, formatDate, getWeekdaysOfCurrentMonth, mailContent, checkLogin, getTotalWorkingHoursExcludingWeekends, getCurrentTimeInMinutes, timeToMinutes, formatTimeFromMinutes };

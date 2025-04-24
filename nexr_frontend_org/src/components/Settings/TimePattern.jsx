@@ -7,6 +7,7 @@ import NoDataFound from "../payslip/NoDataFound";
 import CommonModel from "../Administration/CommonModel";
 import { EssentialValues } from "../../App";
 import Loading from "../Loader";
+import { Skeleton } from "@mui/material";
 
 const TimePattern = () => {
     const url = process.env.REACT_APP_API_URL;
@@ -47,7 +48,7 @@ const TimePattern = () => {
             }))
         }
     }
-    
+
     function fillPatternData(value, name) {
         setTimePatternObj({
             ...timePatternObj,
@@ -132,29 +133,34 @@ const TimePattern = () => {
     }, [dom]);
 
     return (
-        isLoading ? <Loading height="80vh" /> :
-            changePattern.isAdd ? <CommonModel type={"TimePattern"} isWorkingApi={isWoringApi} isAddData={changePattern.isAdd} changeData={fillPatternData} dataObj={timePatternObj} modifyData={handleChangeTimePattern} addData={addTimePattern} /> :
-                changePattern.isEdit ? <CommonModel type={"TimePattern"} isWorkingApi={isWoringApi} isAddData={changePattern.isEdit} dataObj={timePatternObj} changeData={fillPatternData} editData={updateTimePattern} modifyData={handleChangeTimePattern} /> :
-                    changePattern.isView ? <CommonModel type={"View TimePattern"} isAddData={changePattern.isView} dataObj={timePatternObj} modifyData={handleChangeTimePattern} /> :
-                        <>
-                            <div className="d-flex align-items-center justify-content-between m-3">
-                                <div>
-                                    <h5>CURRENT WORKING TIME PATTERNS</h5>
-                                    <p className="styleText mt-3">
-                                        New employees imported into the system will be defaulted to the pattern: <b>{timePatterns.length > 0 && timePatterns[timePatterns.length - 1].PatternName}</b>
-                                    </p>
-                                </div>
-                                <div>
-                                    <button className="button" onClick={() => handleChangeTimePattern("Add")}>
-                                        Add new pattern
-                                    </button>
-                                </div>
+        changePattern.isAdd ? <CommonModel type={"TimePattern"} isWorkingApi={isWoringApi} isAddData={changePattern.isAdd} changeData={fillPatternData} dataObj={timePatternObj} modifyData={handleChangeTimePattern} addData={addTimePattern} /> :
+            changePattern.isEdit ? <CommonModel type={"TimePattern"} isWorkingApi={isWoringApi} isAddData={changePattern.isEdit} dataObj={timePatternObj} changeData={fillPatternData} editData={updateTimePattern} modifyData={handleChangeTimePattern} /> :
+                changePattern.isView ? <CommonModel type={"View TimePattern"} isAddData={changePattern.isView} dataObj={timePatternObj} modifyData={handleChangeTimePattern} /> :
+                    <>
+                        <div className="d-flex align-items-center justify-content-between m-3">
+                            <div>
+                                <h5>CURRENT WORKING TIME PATTERNS</h5>
+                                <p className="styleText mt-3">
+                                    New employees imported into the system will be defaulted to the pattern: <b>{timePatterns.length > 0 && timePatterns[timePatterns.length - 1].PatternName}</b>
+                                </p>
                             </div>
-                            {
+                            <div>
+                                <button className="button" onClick={() => handleChangeTimePattern("Add")}>
+                                    Add new pattern
+                                </button>
+                            </div>
+                        </div>
+                        {
+                            isLoading ? <Skeleton
+                                sx={{ bgcolor: 'grey.500' }}
+                                variant="rectangular"
+                                width={"100%"}
+                                height={"50vh"}
+                            /> :
                                 timePatterns.length ? <LeaveTable data={timePatterns} deleteData={deletePattern} handleChangeData={handleChangeTimePattern} /> :
                                     <NoDataFound message={"Time Pattern data not found"} />
-                            }
-                        </>
+                        }
+                    </>
     )
 }
 export default TimePattern;

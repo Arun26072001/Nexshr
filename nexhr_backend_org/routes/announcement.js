@@ -5,6 +5,11 @@ const router = express.Router();
 
 router.post('/:id', async (req, res) => {
   try {
+    const { error } = announcementValidation.validate(req.body);
+    if (error) {
+      return res.status(400).send({ error: error.details[0].message });
+    }
+
     const whoViewed = req.body.selectTeamMembers.reduce((acc, emp) => {
       acc[emp] = "not viewed";
       return acc;
@@ -14,13 +19,7 @@ router.post('/:id', async (req, res) => {
       ...req.body,
       whoViewed,
       createdBy: req.params.id
-    }
-
-    const { error } = announcementValidation.validate(newAnnouncement);
-
-    if (error) {
-      return res.status(400).send({ error: error.details[0].message });
-    }
+    };
 
     const announcement = await Announcement.create(newAnnouncement);
 
@@ -29,11 +28,10 @@ router.post('/:id', async (req, res) => {
       data: announcement
     });
   } catch (error) {
-    console.error("20", error);
+    console.error("Error creating announcement:", error);
     res.status(500).json({ error: error.message });
   }
 });
-
 
 router.get('/', verifyAdminHREmployeeManagerNetwork, async (req, res) => {
   try {

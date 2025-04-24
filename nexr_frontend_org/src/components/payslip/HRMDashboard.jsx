@@ -371,7 +371,7 @@ export default function HRMDashboard() {
         try {
             const emps = await fetchAllEmployees();
             // const withoutMyData = emps.filter((emp)=> emp._id !== _id);
-            setEmployees(emps.map((emp) => ({ label: emp.FirstName + " " + emp.LastName, value: emp._id })))
+            setEmployees(emps.map((emp) => ({ label: emp?.FirstName + " " + emp?.LastName, value: emp._id })))
         } catch (error) {
             console.log(error);
         }
@@ -472,7 +472,7 @@ export default function HRMDashboard() {
                 const empData = await fetchEmployeeData(_id);
                 setData((pre) => ({
                     ...pre,
-                    Name: empData.FirstName + " " + empData.LastName,
+                    Name: empData?.FirstName + " " + empData?.LastName,
                     annualLeave: empData.annualLeaveEntitlement,
                     profile: empData.profile,
                     Account: String(empData.Account)

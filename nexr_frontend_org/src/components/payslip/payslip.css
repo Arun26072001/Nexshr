@@ -103,10 +103,11 @@ ul {
   padding: 13px;
   border: 2px solid #e7e7e7;
   border-radius: 10px;
+  align-items: center;
 }
 
 .leaveData {
-  width: 33%;
+  /* width: 33%; */
   margin: 10px;
   border-right: 2px solid #e7e7e7;
 }
@@ -180,6 +181,7 @@ ul {
   background: white;
   border-radius: 10px;
   cursor: pointer;
+  width: 100%;
 }
 
 .historyCard > * {

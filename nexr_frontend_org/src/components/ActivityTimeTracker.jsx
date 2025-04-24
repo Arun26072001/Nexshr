@@ -190,7 +190,7 @@ const ActivityTimeTracker = () => {
                 <Modal open={isViewTakeTime} size="sm" backdrop="static">
                     <Modal.Header >
                         <Modal.Title>
-                            {timeOption[0].toUpperCase() + timeOption.slice(1)} Reason For Late
+                            {timeOption[0]?.toUpperCase() + timeOption?.slice(1)} Reason For Late
                         </Modal.Title>
                     </Modal.Header >
 
