@@ -227,7 +227,7 @@ leaveApp.get("/emp/:empId", verifyAdminHREmployeeManagerNetwork, async (req, res
 
     // Fetch employee data with necessary fields
     let emp = await Employee.findById(empId,
-      "annualLeaveYearStart position FirstName LastName Email phone typesOfLeaveCount typesOfLeaveRemainingDays team"
+      "annualLeaveYearStart position FirstName LastName Email phone typesOfLeaveCount typesOfLeaveRemainingDays team profile"
     ).populate([{ path: "position", select: "PositionName" }, { path: "team", populate: { path: "employees", select: "FirstName LastName Email phone" } }]).lean();
 
     if (!emp) return res.status(404).json({ message: "Employee not found!" });
@@ -257,7 +257,7 @@ leaveApp.get("/emp/:empId", verifyAdminHREmployeeManagerNetwork, async (req, res
       })
         .populate("employee", "FirstName LastName")
         .lean(),
-      LeaveApplication.find(filterLeaves).populate("employee", "FirstName LastName").lean(),
+      LeaveApplication.find(filterLeaves).populate("employee", "FirstName LastName profile").lean(),
       Team.findOne({ employees: empId }, "employees").lean()
     ]);
 
@@ -286,7 +286,7 @@ leaveApp.get("/emp/:empId", verifyAdminHREmployeeManagerNetwork, async (req, res
       return currentMonth === fromDate.getMonth() && fromDate.getFullYear() === currentYear;
     })
     const Permission = currentMonthOfLeaves.filter((leave) => leave.leaveType.includes("Permission")).length;
-    const UnpaidLeave = currentMonthOfLeaves.filter((leave) => leave.leaveType.includes("Unpaid")).length;
+    const UnpaidLeave = leaveApplications.filter((leave) => leave.leaveType.includes("Unpaid")).length;
     emp = {
       ...emp,
       typesOfLeaveCount: {

@@ -21,7 +21,7 @@ const Payslip = ({ payslips, isLoading }) => {
             <div className="leaveContainer d-block">
                 <div className="w-100 d-flex justify-content-center">
                     <div className="leaveBoard">
-                        <div className="leaveData">
+                        <div className="leaveData col-12 col-lg-4">
                             <div className="d-flex flex-column">
                                 <div className="leaveDays">
                                     {payslips?.length}
@@ -31,7 +31,7 @@ const Payslip = ({ payslips, isLoading }) => {
                                 </div>
                             </div>
                         </div>
-                        <div className="leaveData">
+                        <div className="leaveData col-12 col-lg-4">
                             <div className="d-flex flex-column">
                                 <div className="leaveDays">
                                     02
@@ -41,7 +41,7 @@ const Payslip = ({ payslips, isLoading }) => {
                                 </div>
                             </div>
                         </div>
-                        <div style={{ width: "30%", margin: "10px" }} >
+                        <div className="leaveData col-12 col-lg-4" >
                             <div className="d-flex flex-column">
                                 <div className="leaveDays">
                                     0

@@ -97,7 +97,7 @@ const Leave = () => {
             <div className="leaveContainer d-block">
                 <div className="w-100 d-flex justify-content-center">
                     <div className="leaveBoard">
-                        <div className="leaveData col-12 col-lg-3">
+                        <div className="leaveData col-12 col-lg-4">
                             <div className="d-flex flex-column">
                                 <div className="leaveDays">
                                     {leaveRequests?.approvedLeave?.length} Days
@@ -107,7 +107,7 @@ const Leave = () => {
                                 </div>
                             </div>
                         </div>
-                        <div className="leaveData col-12 col-lg-3">
+                        <div className="leaveData col-12 col-lg-4">
                             <div className="d-flex flex-column">
                                 <div className="leaveDays">
                                     {leaveRequests?.upComingLeave?.length || 0} Days
@@ -117,7 +117,7 @@ const Leave = () => {
                                 </div>
                             </div>
                         </div>
-                        <div className="leaveData col-lg-3 col-12" style={{ borderRight: "none" }} >
+                        <div className="leaveData col-lg-4 col-12" style={{ borderRight: "none" }} >
                             <div className="d-flex flex-column">
                                 <div className="leaveDays">
                                     {leaveRequests?.pendingLeave?.length} Days

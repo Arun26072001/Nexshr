@@ -18,7 +18,7 @@ var employeeSchema = new mongoose.Schema({
   countryCode: { type: String },
   phone: { type: String },
   panNumber: { type: String },
-profile: { type: String },
+  profile: { type: String, default: null },
   Account: { type: Number, default: 3 },
   dateOfBirth: { type: String },
   clockIns: [{ type: mongoose.Schema.Types.ObjectId, ref: "clockIns" }],

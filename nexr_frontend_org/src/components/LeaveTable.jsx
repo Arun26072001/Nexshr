@@ -45,7 +45,7 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
 
     const column1 = [
         { id: 'FirstName', label: 'Name', minWidth: 100, align: "left", getter: (row) => row?.employee?.FirstName[0]?.toUpperCase() + row?.employee?.FirstName?.slice(1) + row?.employee?.LastName || 'Unknown' },
-        { id: 'periodOfLeave', label: 'Period Of Leave', align: "left", minWidth: 100, getter: (row) => row.periodOfLeave },
+        { id: 'periodOfLeave', label: 'Period Of Leave', align: "left", minWidth: 120, getter: (row) => row.periodOfLeave },
         { id: 'fromDate', label: 'Start Date', minWidth: 120, align: 'left', getter: (row) => row.fromDate ? row.fromDate.split("T")[0] : 'N/A' },
         { id: 'toDate', label: 'End Date', minWidth: 120, align: 'left', getter: (row) => row.toDate ? row.toDate.split("T")[0] : 'N/A' },
         { id: 'leaveType', label: 'Type', minWidth: 100, align: 'left', getter: (row) => row.leaveType },
@@ -73,13 +73,13 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
     ];
 
     const column2 = [
-        { id: 'FirstName', label: 'Name', minWidth: 170, align: 'center', getter: (row) => row?.employee?.FirstName ? `${row.employee.FirstName[0].toUpperCase() + row.employee.FirstName.slice(1)}` : 'N/A' },
-        { id: 'basicSalary', label: 'Salary', minWidth: 170, align: 'center', getter: (row) => row?.employee?.basicSalary ? `₹${row.employee.basicSalary}` : 'N/A' },
-        { id: 'status', label: 'Status', minWidth: 170, align: 'center', getter: (row) => row?.payslip?.status ? row.payslip.status : 'N/A' },
-        { id: 'period', label: 'Period', minWidth: 220, align: 'center', getter: (row) => row?.payslip?.period ? row.payslip.period : 'N/A' },
-        { id: 'lossofpay', label: 'LOP', minWidth: 170, align: 'center', getter: (row) => row?.payslip?.LossOfPay },
-        { id: 'ESI', label: 'ESI', minWidth: 170, getter: (row) => row?.payslip?.ESI || 'N/A' },
-        { id: 'ProvidentFund', label: 'ProvidentFund', minWidth: 170, getter: (row) => row?.payslip?.ProvidentFund || 'N/A' },
+        { id: 'FirstName', label: 'Name', minWidth: 120, align: 'center', getter: (row) => row?.employee?.FirstName ? `${row.employee.FirstName[0].toUpperCase() + row.employee.FirstName.slice(1)}` : 'N/A' },
+        { id: 'basicSalary', label: 'Salary', minWidth: 120, align: 'center', getter: (row) => row?.employee?.basicSalary ? `₹${row.employee.basicSalary}` : 'N/A' },
+        { id: 'status', label: 'Status', minWidth: 120, align: 'center', getter: (row) => row?.payslip?.status ? row.payslip.status : 'N/A' },
+        { id: 'period', label: 'Period', minWidth: 120, align: 'center', getter: (row) => row?.payslip?.period ? row.payslip.period : 'N/A' },
+        { id: 'lossofpay', label: 'LOP', minWidth: 100, align: 'center', getter: (row) => row?.payslip?.LossOfPay },
+        { id: 'ESI', label: 'ESI', minWidth: 100, getter: (row) => row?.payslip?.ESI || 'N/A' },
+        { id: 'ProvidentFund', label: 'ProvidentFund', minWidth: 100, getter: (row) => row?.payslip?.ProvidentFund || 'N/A' },
         { id: "Action", label: "Action", minWidth: 100, align: "center" }
     ];
 

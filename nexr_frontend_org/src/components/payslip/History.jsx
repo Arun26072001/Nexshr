@@ -22,8 +22,6 @@ const History = ({ payslips, isLoading }) => {
         <div className="container-fluid">
             <p className="payslipTitle">History</p>
             {payslips.length > 0 ? payslips.map((item, index) => {
-                console.log("payslipItem", item);
-
                 const {
                     ESI = 0, LossOfPay = 0, ProfessionalTax = 0, ProvidentFund = 0,
                     bonusAllowance = 0, conveyanceAllowance = 0,
@@ -43,13 +41,13 @@ const History = ({ payslips, isLoading }) => {
                         <div className="d-flex justify-content-between">
                             <div className="d-flex align-items-center gap-3 flex-wrap">
                                 <div className="timeLogBox " >
-                                    {employeeName}
+                                    {employeeName|| "N/A"}
                                 </div>
                                 <div className="timeLogBox" >
-                                    {item.payslip.period}
+                                    {item.payslip.period || "N/A"}
                                 </div>
                                 <div className="timeLogBox">
-                                    {item.payslip.status}
+                                    {item.payslip.status|| "N/A"}
                                 </div>
                             </div>
                             <div onClick={() => navigate(`/${whoIs}/payslip/${item._id}`)}>
