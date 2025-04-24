@@ -143,9 +143,9 @@ const Attendence = () => {
               ].map(({ key, label, height }) => {
                 return (<div
                   key={key}
-                  className={`col-lg-3 ${label.toLowerCase()}`}
+                  className={`col-lg-3 col-3 ${label.toLowerCase()}`}
                   style={{ height: `${height}%` }}>
-                  <div className={`d-flex justify-content-center ${clockInsData[key] === 0 ? "emtChart" : ""}`}>
+                  <div className={`${screen.width < 720 ? "d-block" : "d-flex"}  justify-content-center ${clockInsData[key] === 0 ? "emtChart" : ""}`}>
                     <p className="payslipTitle" style={{ color: "#146ADC" }}>
                       {clockInsData[key].toFixed(1)} Days
                     </p>
@@ -157,7 +157,7 @@ const Attendence = () => {
           </div>
 
           {/* Attendance Summary Board */}
-          <div className="leaveBoard">
+          <div className="leaveBoard gap-2">
             {[
               { value: formatTime(clockInsData.companyTotalWorkingHour), label: "Total schedule hour" },
               { value: formatTime(clockInsData.totalLeaveDays * 9), label: "Leave hour" },
@@ -179,14 +179,10 @@ const Attendence = () => {
             ].map(({ value, label, className }, index) => (
               <div
                 key={index}
-                className="leaveData"
-                style={{
-                  ...(index === 5 && { width: "30%", margin: "10px" }),
-                  ...(label === "Average Behaviour" && { borderRight: "none" })
-                }}
+                className="timeLogBox"
               >
                 <div className="d-flex flex-column">
-                  <div className={`leaveDays ${className || ""}`}>{value}</div>
+                  <div className={`leaveDays col-12 ${className || ""}`}>{value}</div>
                   <div className="leaveDaysDesc">{label}</div>
                 </div>
               </div>
@@ -195,12 +191,12 @@ const Attendence = () => {
           {/* Table or No Data Message */}
           <>
             {/* Filters: Date Picker & Time Selector */}
-            <div className="d-flex justify-content-between align-items-center p-2">
-              <div style={{ width: "30%" }}>
+            <div className="d-flex justify-content-between align-items-center gap-2 flex-wrap my-2">
+              <div className="col-lg-5 col-12">
                 <DateRangePicker value={daterangeValue} size="lg" placeholder="Select Date" onChange={setDaterangeValue} />
               </div>
               {tableData.length > 0 &&
-                <div style={{ width: "60%" }}>
+                <div className="col-lg-5 col-12 ">
                   <TagPicker
                     data={timeOptions}
                     required

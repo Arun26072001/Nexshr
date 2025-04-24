@@ -5,7 +5,6 @@ import LeaveTable from './LeaveTable';
 import { EssentialValues } from '../App';
 import axios from 'axios';
 import NoDataFound from './payslip/NoDataFound';
-import Loading from './Loader';
 import CommonModel from './Administration/CommonModel';
 import { toast } from 'react-toastify';
 import { getDepartments } from './ReuseableAPI';
@@ -245,8 +244,8 @@ export default function Reports() {
                     isEditReport ? <CommonModel type="Report" isWorkingApi={isWorkingApi} isAddData={isEditReport} projects={projects} comps={companies} departments={departments} modifyData={handleEditReport} changeData={changeReport} dataObj={reportObj} editData={editReport} employees={employees} /> :
                         <>
                             <div className="projectParent">
-                                <div className="projectTitle col-lg-6 ">Reports</div>
-                                <div className="col-lg-6 projectChild">
+                                <div className="projectTitle col-lg-6 col-md-4 col-12">Reports</div>
+                                <div className="col-lg-6 col-md-8 col-12 projectChild flex-wrap">
                                     <SelectPicker
                                         data={employees}
                                         size="lg"

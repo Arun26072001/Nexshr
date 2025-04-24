@@ -620,7 +620,7 @@ const Tasks = () => {
               <>
                 <div className="projectParent flex-wrap">
                   <div className="col-lg-6 col-md-4 col-12 projectTitle">Tasks</div>
-                  <div className="col-lg-6 col-md-8 col-12 projectChild">
+                  <div className="col-lg-6 col-md-8 col-12 text-center flex-wrap">
                     <SelectPicker
                       data={projects}
                       size="lg"

@@ -281,13 +281,13 @@ export default function Projects() {
                         modifyData={handleAddProject} />
                         : <>
                             <div className="projectParent">
-                                <div className="projectTitle col-lg-6">Projects</div>
-                                <div className="col-lg-6 projectChild gap-1">
+                                <div className="projectTitle col-lg-6 col-12">Projects</div>
+                                <div className="col-lg-6 col-12 projectChild gap-1">
                                     <SelectPicker
                                         data={companies}
                                         size="lg"
                                         appearance="default"
-                                        style={{ width: 300 }}
+                                        style={{ width: "100%" }}
                                         placeholder="Search By Company"
                                         onChange={filterByName}
                                         value={name}
