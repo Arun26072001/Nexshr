@@ -8,6 +8,7 @@ const { RoleAndPermission } = require('../models/RoleModel');
 const { Team } = require('../models/TeamModel');
 const fs = require("fs");
 const path = require("path");
+const { LeaveApplication } = require('../models/LeaveAppModel');
 
 router.get("/", verifyAdminHRTeamHigherAuth, async (req, res) => {
   try {
@@ -26,13 +27,6 @@ router.get("/", verifyAdminHRTeamHigherAuth, async (req, res) => {
       .populate({
         path: "role"
       })
-      // .populate({
-      //   path: 'teamLead',
-      //   select: "_id FirstName LastName",
-      //   populate: {
-      //     path: "department"
-      //   }
-      // })
       .lean();
     if (onlyEmps) {
       employees = employees.filter((emp) => !["Team Lead", "Team Head", "Manager"].includes(emp?.position?.PositionName) && emp.Account !== 1)
@@ -240,10 +234,10 @@ router.get('/:id', verifyAdminHREmployeeManagerNetwork, async (req, res) => {
     const emp = await Employee.findById(req.params.id, "-clockIns -payslip")
       .populate([
         { path: "role" },
-        {
-          path: "leaveApplication",
-          match: { leaveType: { $ne: "Permission Leave" }, fromDate: { $gte: startDate }, toDate: { $lte: endDate } }
-        },
+        // {
+        //   path: "leaveApplication",
+        //   match: { leaveType: { $ne: "Permission Leave" }, fromDate: { $gte: startDate }, toDate: { $lte: endDate } }
+        // },
         { path: "team", populate: { path: "employees", select: "FirstName LastName Email" } },
         { path: "workingTimePattern" },
         { path: "department" },
@@ -254,10 +248,17 @@ router.get('/:id', verifyAdminHREmployeeManagerNetwork, async (req, res) => {
     if (!emp) {
       return res.status(404).send({ error: "Employee not found!" });
     }
+    const leaveApplications = await LeaveApplication.find({
+      employee: req.params.id,
+      fromDate: {
+        $gte: new Date(startDate),
+        $lte: new Date(endDate)
+      }
+    })
     // Filter leave requests
-    const pendingLeaveRequests = emp.leaveApplication.filter((leave) => leave.status === "pending");
-    const takenLeaveRequests = emp.leaveApplication.filter((leave) => leave.status === "approved" && leave.leaveType !== "Unpaid Leave (LWP)");
-    const unpaidLeaveRequest = emp.leaveApplication.filter((leave) => leave.leaveType.includes("Unpaid Leave"))
+    const pendingLeaveRequests = leaveApplications.filter((leave) => leave.status === "pending");
+    const takenLeaveRequests = leaveApplications.filter((leave) => leave.status === "approved" && !leave.leaveType.toLowerCase().includes("unpaid"));
+    const unpaidLeaveRequest = leaveApplications.filter((leave) => leave.leaveType.toLowerCase().includes("unpaid"))
 
     // Calculate total taken leave count
     takenLeaveRequests.forEach((leave) => totalTakenLeaveCount += Math.ceil(getDayDifference(leave)));

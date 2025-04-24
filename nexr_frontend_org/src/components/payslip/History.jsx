@@ -41,14 +41,14 @@ const History = ({ payslips, isLoading }) => {
                     <div className="historyCard" key={index}>
                         <div className="salaryFont">{Salary.toFixed(2)} &#8377;</div>
                         <div className="d-flex justify-content-between">
-                            <div className="d-flex align-items-center">
-                                <div className="historyCardText" style={{ borderRight: "2px solid gray" }}>
+                            <div className="d-flex align-items-center gap-3 flex-wrap">
+                                <div className="timeLogBox " >
                                     {employeeName}
                                 </div>
-                                <div className="historyCardText" style={{ borderRight: "2px solid gray" }}>
+                                <div className="timeLogBox" >
                                     {item.payslip.period}
                                 </div>
-                                <div className="historyCardText">
+                                <div className="timeLogBox">
                                     {item.payslip.status}
                                 </div>
                             </div>
