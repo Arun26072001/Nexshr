@@ -97,16 +97,25 @@ const MyDetails = () => {
                                             {empObj.workingTimePattern.StartingTime} - {empObj.workingTimePattern.FinishingTime})
                                         </li>
                                     )}
-                                {empObj?.managerId?.[0]?.FirstName && (
+                                {empObj?.team && empObj?.team.manager.length && (
                                     <li>
-                                        Manager: {empObj.managerId[0].FirstName[0].toUpperCase() +
-                                            empObj.managerId[0].FirstName.slice(1)}
+                                        Manager: {empObj?.team.manager.map((member) => (
+                                            member.FirstName[0].toUpperCase() + member.FirstName.slice(1) + " ,"
+                                        ))}
                                     </li>
                                 )}
-                                {empObj?.teamLead?.[0]?.FirstName && (
+                                {empObj?.team && empObj?.team.lead.length && (
                                     <li>
-                                        Team Lead: {empObj.teamLead[0].FirstName[0].toUpperCase() +
-                                            empObj.teamLead[0].FirstName.slice(1)}
+                                        Lead: {empObj?.team.lead.map((member) => (
+                                            member.FirstName[0].toUpperCase() + member.FirstName.slice(1) + " ,"
+                                        ))}
+                                    </li>
+                                )}
+                                {empObj?.team && empObj?.team.head.length && (
+                                    <li>
+                                        Head: {empObj?.team.head.map((member) => (
+                                            member.FirstName[0].toUpperCase() + member.FirstName.slice(1) + " ,"
+                                        ))}
                                     </li>
                                 )}
                                 {empObj?.description && <li>Description: {empObj.description}</li>}

@@ -36,8 +36,8 @@ const EditEmployeeform = ({ details, empData, handleScroll, handlePersonal, prev
         Email: Yup.string().email('Invalid email format').required('Email is required'),
         Password: Yup.string().min(6, 'Password must be at least 6 characters').required('Password is required'),
         company: Yup.string().optional(),
-        teamLead: Yup.string().optional(), // assuming it's an ObjectId or string
-        managerId: Yup.string().optional(),
+        // teamLead: Yup.string().optional(), // assuming it's an ObjectId or string
+        // managerId: Yup.string().optional(),
         countryCode: Yup.string().optional(),
         phone: Yup.string().optional(), // can add phone validation if needed
         dateOfBirth: Yup.string().optional(),
@@ -161,8 +161,8 @@ const EditEmployeeform = ({ details, empData, handleScroll, handlePersonal, prev
         ) {
             handleEmployment()
         } else if (
-            formik.errors.managerId
-            || formik.errors.teamLead
+            formik.errors.department
+            || formik.errors.position
             || formik.errors.description
         ) {
             handleJob()
@@ -775,46 +775,37 @@ const EditEmployeeform = ({ details, empData, handleScroll, handlePersonal, prev
                                     </div>
                                 </div>
 
-                                <div className="row d-flex justify-content-center my-3">
+                                <div className="row d-flex justify-content-center">
                                     <div className="col-lg-6">
-                                        <div className="inputLabel">Manager</div>
-                                        <select name="managerId"
-                                            className={`inputField ${formik.touched.managerId && formik.errors.managerId ? "error" : ""}`}
-                                            value={formik.values.managerId || empData?.managerId || ""}
-                                            disabled={whoIs === "emp" ? true : false}
-                                            onChange={whoIs === "emp" ? null : formik.handleChange}
-                                        >
-                                            <option >Select Manager</option>
+                                        <div className="inputLabel">Position</div>
+                                        <select name="position" className={`selectInput ${formik.touched.position && formik.errors.position ? "error" : ""}`}
+                                            onChange={formik.handleChange}
+                                            value={formik.values.position}>
+                                            <option >Select Position</option>
                                             {
-                                                managers.map((manager) => (
-                                                    <option key={manager._id} value={manager._id}>{manager.FirstName}</option>
+                                                positions.map((position) => (
+                                                    <option key={position._id} value={position._id}>{position.PositionName}</option>
                                                 ))
                                             }
                                         </select>
-                                        {formik.touched.managerId && formik.errors.managerId ? (
-                                            <div className="text-center text-danger">{formik.errors.managerId}</div>
+                                        {formik.touched.position && formik.errors.position ? (
+                                            <div className="text-center text-danger">{formik.errors.position}</div>
                                         ) : null}
                                     </div>
                                     <div className="col-lg-6">
-                                        <div className="inputLabel">Team Lead</div>
-                                        <select
-                                            name="teamLead"
-                                            disabled={whoIs === "emp" ? true : false}
-                                            onChange={whoIs === "emp" ? null : formik.handleChange}
-                                            className={`selectInput ${formik.touched.teamLead && formik.errors.teamLead ? "error" : ""}`}
-                                            value={formik.values.teamLead || empData?.teamLead || ""}
-                                        >
-                                            <option value="">Select Team Lead</option>
-                                            {leads.map((lead) => (
-                                                <option key={lead._id} value={lead._id}
-                                                >
-                                                    {lead.FirstName}
-                                                </option>
-                                            ))}
+                                        <div className="inputLabel">Department</div>
+                                        <select name="department" className={`selectInput ${formik.touched.department && formik.errors.department ? "error" : ""}`}
+                                            onChange={formik.handleChange}
+                                            value={formik.values.department}>
+                                            <option >Select Department</option>
+                                            {
+                                                departments.map((department) => (
+                                                    <option key={department._id} value={department._id}>{department.DepartmentName}</option>
+                                                ))
+                                            }
                                         </select>
-
-                                        {formik.touched.teamLead && formik.errors.teamLead ? (
-                                            <div className="text-center text-danger">{formik.errors.teamLead}</div>
+                                        {formik.touched.department && formik.errors.department ? (
+                                            <div className="text-center text-danger">{formik.errors.department}</div>
                                         ) : null}
                                     </div>
                                 </div>

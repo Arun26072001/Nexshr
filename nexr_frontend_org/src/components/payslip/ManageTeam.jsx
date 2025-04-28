@@ -137,7 +137,7 @@ const ManageTeam = () => {
             toast.success(res.data.message);
         } catch (err) {
             console.log(err);
-            toast.error(err.message);
+            toast.error(err.response.data.error);
         } finally {
             setIsChangingTeam(false);
         }

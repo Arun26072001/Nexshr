@@ -148,7 +148,6 @@ export default function Navbar({ handleSideBar }) {
 
         }
     }
-    console.log(isRemove);
 
     useEffect(() => {
         // fetchAnnouncements();
@@ -434,8 +433,6 @@ export default function Navbar({ handleSideBar }) {
                                 {
                                     notifications.map((notification, index) => {
                                         return <div key={notification._id} className={`box-content my-2 ${isRemove[index] ? "remove" : ""} box-content my-2 d-flex justfy-content-center align-items-center position-relative`}>
-                                            {/* <div className='d-flex justify-content-between align-items-center'>
-                                            </div> */}
                                             <span className="closeBtn" title='close' onClick={() => removeMessage(notification, index)}>
                                                 <CloseRoundedIcon fontSize='md' />
                                             </span>

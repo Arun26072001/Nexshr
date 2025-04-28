@@ -10,6 +10,7 @@ import { TimerStates } from './payslip/HRMDashboard';
 import { Skeleton } from '@mui/material';
 import profile from "../imgs/male_avatar.webp";
 import "./NexHRDashboard.css";
+import calendarIcon from '../asserts/calendar.svg';
 import NoDataFound from './payslip/NoDataFound';
 import { EssentialValues } from '../App';
 
@@ -148,7 +149,7 @@ export default function Home({ peopleOnLeave, isFetchPeopleOnLeave }) {
                     <div className='col-lg-6 col-md-6 col-12'>
                         {
                             workTimeTracker?.login?.startingTime?.length === workTimeTracker?.login?.endingTime?.length &&
-                                workTimeTracker[timeOption]?.startingTime?.length === workTimeTracker[timeOption]?.endingTime?.length &&
+                                workTimeTracker?.[timeOption]?.startingTime?.length === workTimeTracker[timeOption]?.endingTime?.length &&
                                 isLoading ?
                                 <>
                                     <Skeleton varient="text" />
@@ -164,7 +165,28 @@ export default function Home({ peopleOnLeave, isFetchPeopleOnLeave }) {
                     </div>
                     <p className='payslipTitle my-2 px-3'>PeopleOnLeave</p>
                     <div className="d-flex flex-wrap gap-2 align-items-center justify-content-center my-2">
+                        {/* <div className="boxContainer-parent">
+                            <div className="d-flex justify-content-between align-items-center">
+                                <p className='sub_text font-weight-bold text-dark' >People On Leave</p>
+                                <span className='timeLogBox sub_text text-dark'><img src={calendarIcon} alt='dateIcon' width={15} height={"auto"} /> 14 Oct 2025</span>
+                            </div>
+                            <div className='box-content d-flex align-items-center justify-content-around col-lg-5 col-12 col-md-5' style={{ boxShadow: "rgba(0, 0, 0, 0.02) 0px 1px 3px 0px, rgba(27, 31, 35, 0.15) 0px 0px 0px 1px" }}>
+                                <img src={profile} alt="" className='imgContainer' />
 
+                            </div>
+                        </div>
+                        <div className="boxContainer-parent">
+                            <div className="d-flex justify-content-between align-items-center my-2">
+                                <p className='sub_text text-dark font-weight-bold'>WFH Employees</p>
+                                <p className='timeLogBox sub_text text-dark' style={{ background: "white" }}><img src={calendarIcon} alt='dateIcon' width={15} height={"auto"} /> 14 Oct 2025</p>
+                            </div>
+                            {/* <hr /> */}
+                        {/* <div className='box-content d-flex align-items-center justify-content-around' style={{ boxShadow: 'none', background: "white" }}>
+                            <img src={profile} alt="" className='imgContainer' />
+                            <p style={{ fontSize: "13px" }}><b>Arun Kumar</b></p>
+                            <p className={`sub_text`}> 14 Oct - 14 Oct</p>
+                        </div> */}
+                        {/* </div> */}
                         {
                             isFetchPeopleOnLeave ?
                                 <>

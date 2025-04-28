@@ -6,7 +6,6 @@ import Tab from '@mui/material/Tab';
 import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
 import AddEmployee from '../AddEmployee';
-import ManageTeam from './ManageTeam';
 import "../leaveForm.css";
 
 function CustomTabPanel(props) {

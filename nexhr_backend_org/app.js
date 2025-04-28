@@ -55,6 +55,7 @@ const report = require("./routes/reports");
 const fileData = require("./routes/file-data");
 const mailSettings = require("./routes/mail-settings");
 const { Employee } = require("./models/EmpModel");
+const wfhRouter = require("./routes/wfh-application");
 const { timeToMinutes, getCurrentTimeInMinutes, getTotalWorkingHourPerDay, formatDate } = require("./Reuseable_functions/reusableFunction");
 const e = require("express");
 
@@ -153,6 +154,7 @@ app.use("/api/upload", imgUpload);
 app.use("/api/report", report)
 app.use("/api/google-sheet/upload", fileData);
 app.use("/api/mail-settings", mailSettings);
+app.use("/api/wfh-application", wfhRouter);
 
 // Create HTTP Server and Socket.IO
 const server = http.createServer(app);

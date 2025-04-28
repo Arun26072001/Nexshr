@@ -80,7 +80,7 @@ const Leave = () => {
     return (
         <div >
             {/* top date input and leave label */}
-            <div className="leaveDateParent row">
+            <div className="leaveDateParent row px-2">
                 <p className="payslipTitle col-6">
                     Leave
                 </p>

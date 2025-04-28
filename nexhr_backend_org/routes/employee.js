@@ -186,37 +186,28 @@ router.get("/team/:higher", verifyAdminHRTeamHigherAuth, async (req, res) => {
 router.get("/team/members/:id", verifyTeamHigherAuthority, async (req, res) => {
   try {
     const who = req?.query?.who;
-    const team = await Team.findOne({ [who]: req.params.id }).exec();
-    if (!team) {
+    const teams = await Team.find({ [who]: req.params.id })
+      .populate({
+        path: "employees",
+        select: "FirstName LastName dateOfJoining code profile company employmentType position department workingTimePattern role",
+        populate: [
+          { path: "company", select: "_id CompanyName Town" },
+          { path: "position" },
+          { path: "department" },
+          { path: "workingTimePattern" },
+          { path: "role" }
+        ]
+      })
+      .exec();
+
+    if (!teams.length) {
       return res.status(404).send({ error: "You are not a Team higher authority." })
     }
-    const members = await Employee.find({ _id: { $in: team.employees } })
-      .populate({
-        path: "company",
-        select: "_id CompanyName Town"
-      })
-      .populate({
-        path: "position"
-      })
-      .populate({
-        path: "department"
-      })
-      .populate({
-        path: "workingTimePattern",
-      })
-      .populate({
-        path: "role"
-      })
-    // .populate({
-    //   path: 'teamLead',
-    //   select: "_id FirstName LastName",
-    //   populate: {
-    //     path: "department"
-    //   }
-    // })
-
-    return res.send(members);
+    const employeesData = teams.map((team) => team.employees).flat();
+    const uniqueEmps = [...new Set([...employeesData])]
+    return res.send(uniqueEmps);
   } catch (error) {
+    console.log(error);
     return res.status(500).send({ error: error.message })
   }
 })
@@ -234,11 +225,14 @@ router.get('/:id', verifyAdminHREmployeeManagerNetwork, async (req, res) => {
     const emp = await Employee.findById(req.params.id, "-clockIns -payslip")
       .populate([
         { path: "role" },
-        // {
-        //   path: "leaveApplication",
-        //   match: { leaveType: { $ne: "Permission Leave" }, fromDate: { $gte: startDate }, toDate: { $lte: endDate } }
-        // },
-        { path: "team", populate: { path: "employees", select: "FirstName LastName Email" } },
+        {
+          path: "team", populate: [
+            { path: "employees", select: "FirstName LastName Email" },
+            { path: "lead", select: "FirstName LastName Email" },
+            { path: "head", select: "FirstName LastName Email" },
+            { path: "manager", select: "FirstName LastName Email" }
+          ]
+        },
         { path: "workingTimePattern" },
         { path: "department" },
         { path: "position" }

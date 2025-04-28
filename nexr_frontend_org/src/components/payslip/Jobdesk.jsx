@@ -13,6 +13,7 @@ import { EssentialValues } from "../../App";
 import { toast } from "react-toastify";
 import MyDetails from "./MyDetails";
 import "../../components/landinPage.css";
+import WorkFromHome from "./WorkFromHome";
 
 const JobDesk = () => {
     const [empObj, setEmpObj] = useState({});
@@ -23,7 +24,7 @@ const JobDesk = () => {
     const [payslips, setPayslips] = useState([]);
     const jobDeskFiles = [
         'my-details',
-        'attendance', 'leave', 'payslip', 'history',
+        'attendance', 'leave', "workFromHome", 'payslip', 'history',
         'contact', 'social', 'address'
     ];
 
@@ -66,6 +67,7 @@ const JobDesk = () => {
                 <Route path="my-details" element={<MyDetails empObj={empObj} />} />
                 <Route path="attendance" element={<Attendence />} />
                 <Route path="leave" element={<Leave />} />
+                <Route path="workFromHome" element={<WorkFromHome />} />
                 <Route path="history" element={<History payslips={payslips} isLoading={isLoading} />} />
                 <Route path="payslip" element={<Payslip payslips={payslips} isLoading={isLoading} />} />
                 <Route path="contact" element={<Contact empObj={empObj} error={error} />} />

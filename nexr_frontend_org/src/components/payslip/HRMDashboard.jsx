@@ -21,6 +21,7 @@ import ManageTeam from './ManageTeam';
 import TimeLog from '../TimeLog';
 import Comments from '../Comments';
 import LeaveDetails from '../Administration/LeaveDetails';
+import WFHRequestForm from './WFHRequestForm';
 
 // Lazy loading components
 const Dashboard = React.lazy(() => import('./Dashboard'));
@@ -160,7 +161,7 @@ export default function HRMDashboard() {
             ...pre,
             "login": {
                 ...pre?.["login"],
-                [name]: value.trim()
+                [name]: value.trimStart()
             }
         }))
     }
@@ -238,27 +239,33 @@ export default function HRMDashboard() {
 
 
     const startActivityTimer = async () => {
-        const currentTime = new Date().toTimeString().split(' ')[0];
-        const updatedState = {
-            ...workTimeTracker,
-            [timeOption]: {
-                ...workTimeTracker[timeOption],
-                startingTime: [...(workTimeTracker[timeOption]?.startingTime || []), currentTime],
-            },
-        };
-        setISWorkingActivityTimerApi(true)
-        try {
-            await updateDataAPI(updatedState);
-            localStorage.setItem("isStartActivity", true);
-            setIsStartActivity(true);
-            setWorkTimeTracker(updatedState);
-            localStorage.setItem("timeOption", timeOption);
-            toast.success(`${timeOption[0].toUpperCase() + timeOption.slice(1)} timer has been started!`);
-        } catch (error) {
-            console.error('Error updating data:', error);
-            toast.error('Please PunchIn');
-        } finally {
-            setISWorkingActivityTimerApi(false)
+        const loginStartTimeLen = workTimeTracker?.login?.startingTime.length;
+        const loginEndTimeLen = workTimeTracker?.login?.endingTime.length;
+        if (loginStartTimeLen !== loginEndTimeLen) {
+            const currentTime = new Date().toTimeString().split(' ')[0];
+            const updatedState = {
+                ...workTimeTracker,
+                [timeOption]: {
+                    ...workTimeTracker[timeOption],
+                    startingTime: [...(workTimeTracker[timeOption]?.startingTime || []), currentTime],
+                },
+            };
+            setISWorkingActivityTimerApi(true)
+            try {
+                await updateDataAPI(updatedState);
+                localStorage.setItem("isStartActivity", true);
+                setIsStartActivity(true);
+                setWorkTimeTracker(updatedState);
+                localStorage.setItem("timeOption", timeOption);
+                toast.success(`${timeOption[0].toUpperCase() + timeOption.slice(1)} timer has been started!`);
+            } catch (error) {
+                console.error('Error updating data:', error);
+                toast.error('Please PunchIn');
+            } finally {
+                setISWorkingActivityTimerApi(false)
+            }
+        } else {
+            toast.error(`You can't start ${timeOption} timer, until start Login Timer`)
         }
     }
 
@@ -473,7 +480,7 @@ export default function HRMDashboard() {
                 setData((pre) => ({
                     ...pre,
                     Name: empData?.FirstName + " " + empData?.LastName,
-                    annualLeave: empData.annualLeaveEntitlement,
+                    annualLeave: empData?.annualLeaveEntitlement,
                     profile: empData.profile,
                     Account: String(empData.Account)
                 }))
@@ -518,6 +525,7 @@ export default function HRMDashboard() {
                     <Route path='/leave-request' element={<LeaveRequestForm />} />
                     <Route path="/leave-request/edit/:id" element={<LeaveRequestForm />} />
                     <Route path="/leave-request/view/:id" element={<LeaveRequestForm type={"view"} />} />
+                    <Route path="/wfh-request" element={<WFHRequestForm />} />
                     <Route path="attendance/*" element={
                         <Routes>
                             <Route index path="attendance-request" element={<Request attendanceData={attendanceData} isLoading={waitForAttendance} />} />

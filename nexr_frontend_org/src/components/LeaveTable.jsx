@@ -729,12 +729,11 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
                                     <TableRow hover role="checkbox" tabIndex={-1} key={row.code}>
                                         {columns?.map((column) => {
                                             const value = column.getter ? column.getter(row, rowIndex) : row[column?.id];
-
                                             // Apply conditional styling for employee type
                                             const cellClass =
-                                                column.id === "employmentType" && value === "contract" ? "backgroundBtn bg-primary rounded" :
-                                                    value === "Part-time" ? "backgroundBtn bg-warning rounded" :
-                                                        value === "Full-time" ? "backgroundBtn bg-success rounded" : "";
+                                                column.id === "employmentType" && ["contract", "intern"].includes(value) ? "backgroundBtn text-light bg-primary rounded" :
+                                                    column.id === "employmentType" && value === "Part-time" ? "backgroundBtn text-light bg-warning rounded" :
+                                                        column.id === "employmentType" && value?.toLowerCase() === "full-time" ? "backgroundBtn bg-success text-light rounded" : "";
 
                                             // Render actions based on column.id and params
                                             const renderActions = () => {
