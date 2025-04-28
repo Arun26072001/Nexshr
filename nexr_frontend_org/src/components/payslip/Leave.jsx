@@ -2,10 +2,8 @@ import React, { useContext, useEffect, useState } from "react";
 import "./dashboard.css";
 import LeaveTable from "../LeaveTable";
 import { DateRangePicker, Input } from "rsuite";
-// import 'rsuite/dist/rsuite.min.css';
 import axios from "axios";
 import { toast } from "react-toastify";
-import Loading from "../Loader";
 import NoDataFound from "./NoDataFound";
 import { useNavigate } from "react-router-dom";
 import { EssentialValues } from "../../App";
@@ -97,7 +95,7 @@ const Leave = () => {
             <div className="leaveContainer d-block">
                 <div className="w-100 d-flex justify-content-center">
                     <div className="leaveBoard">
-                        <div className="leaveData col-12 col-lg-4">
+                        <div className="leaveData col-12 col-lg-3">
                             <div className="d-flex flex-column">
                                 <div className="leaveDays">
                                     {leaveRequests?.approvedLeave?.length} Days
@@ -107,7 +105,7 @@ const Leave = () => {
                                 </div>
                             </div>
                         </div>
-                        <div className="leaveData col-12 col-lg-4">
+                        <div className="leaveData col-12 col-lg-3">
                             <div className="d-flex flex-column">
                                 <div className="leaveDays">
                                     {leaveRequests?.upComingLeave?.length || 0} Days
@@ -117,7 +115,7 @@ const Leave = () => {
                                 </div>
                             </div>
                         </div>
-                        <div className="leaveData col-lg-4 col-12" style={{ borderRight: "none" }} >
+                        <div className="leaveData col-lg-3 col-12" style={{ borderRight: "none" }} >
                             <div className="d-flex flex-column">
                                 <div className="leaveDays">
                                     {leaveRequests?.pendingLeave?.length} Days

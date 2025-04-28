@@ -1,8 +1,7 @@
 import React, { useEffect, useContext } from 'react';
-import Loading from '../Loader';
 import LeaveTable from '../LeaveTable';
 import NoDataFound from '../payslip/NoDataFound';
-import { DateRangePicker } from 'rsuite';
+import { DateRangePicker, Input } from 'rsuite';
 import { LeaveStates, TimerStates } from '../payslip/HRMDashboard';
 import "../payslip/payslip.css";
 import { Skeleton } from '@mui/material';
@@ -30,15 +29,7 @@ export default function Status() {
                 <div className="leaveContainer d-block">
                     <div className='px-3 my-3'>
                         <div className="d-flex align-items-center justify-content-between">
-                            <div className="searchInputIcon">
-                                <input
-                                    type="text"
-                                    className='payrunInput'
-                                    value={empName}
-                                    onChange={(e) => setEmpName(e.target.value)}
-                                    placeholder='Search Employee'
-                                />
-                            </div>
+                            <Input value={empName} size="lg" style={{ width: "300px" }} placeholder="Search Employee" onChange={(e) => setEmpName(e)} />
                             <DateRangePicker
                                 size="lg"
                                 showOneCalendar
@@ -51,7 +42,7 @@ export default function Status() {
                     </div>
                     <div className="w-100 d-flex justify-content-center">
                         <div className="leaveBoard">
-                            <div className="leaveData">
+                            <div className="leaveData col-12 col-lg-3">
                                 <div className="d-flex flex-column">
                                     <div className="leaveDays">
                                         {leaveRequests?.approvedLeave?.length || 0} Days
@@ -61,7 +52,7 @@ export default function Status() {
                                     </div>
                                 </div>
                             </div>
-                            <div className="leaveData">
+                            <div className="leaveData col-12 col-lg-3">
                                 <div className="d-flex flex-column">
                                     <div className="leaveDays">
                                         {leaveRequests?.leaveInHours || 0} hrs
@@ -71,7 +62,7 @@ export default function Status() {
                                     </div>
                                 </div>
                             </div>
-                            <div style={{ width: "30%", margin: "10px" }}>
+                            <div style={{ width: "30%", margin: "10px" }} className='col-12 col-lg-3' >
                                 <div className="d-flex flex-column">
                                     <div className="leaveDays">
                                         {leaveRequests?.pendingLeave?.length || 0} Days
@@ -91,7 +82,7 @@ export default function Status() {
                             width={"100%"}
                             height={"50vh"}
                         /> :
-                            leaveRequests?.leaveData?.length > 0 ?
+                            leaveRequests?.leaveData.length > 0 ?
                                 <LeaveTable data={leaveRequests.leaveData} /> : <NoDataFound message="No Leave request for this employee Name" />
                     }
                 </div>
