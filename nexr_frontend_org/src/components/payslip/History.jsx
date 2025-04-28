@@ -12,9 +12,9 @@ const History = ({ payslips, isLoading }) => {
 
     if (isLoading) {
         return <div className="gap-1">
-            <Skeleton variant="circular" height={130} className="my-3" />
-            <Skeleton variant="circular" height={130} className="my-3" />
-            <Skeleton variant="circular" height={130} className="my-3" />
+            <Skeleton variant="rounded" height={130} className="my-3" />
+            <Skeleton variant="rounded" height={130} className="my-3" />
+            <Skeleton variant="rounded" height={130} className="my-3" />
         </div>;
     }
 
@@ -41,13 +41,13 @@ const History = ({ payslips, isLoading }) => {
                         <div className="d-flex justify-content-between">
                             <div className="d-flex align-items-center gap-3 flex-wrap">
                                 <div className="timeLogBox " >
-                                    {employeeName|| "N/A"}
+                                    {employeeName || "N/A"}
                                 </div>
                                 <div className="timeLogBox" >
                                     {item.payslip.period || "N/A"}
                                 </div>
                                 <div className="timeLogBox">
-                                    {item.payslip.status|| "N/A"}
+                                    {item.payslip.status || "N/A"}
                                 </div>
                             </div>
                             <div onClick={() => navigate(`/${whoIs}/payslip/${item._id}`)}>
