@@ -1,6 +1,6 @@
 import React, { useContext, useEffect, useState } from 'react';
 import Loading from '../Loader';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { EssentialValues } from '../../App';
 import DatePicker from "react-datepicker";
 import TextEditor from './TextEditor';
@@ -9,7 +9,9 @@ import { getDayDifference, getHoliday } from '../ReuseableAPI';
 import axios from 'axios';
 
 export default function WFHRequestForm({ type }) {
+    const { id } = useParams();
     const navigate = useNavigate();
+    const [isLoading, setIsLoading] = useState(false);
     const url = process.env.REACT_APP_API_URL;
     const { whoIs, data } = useContext(EssentialValues);
     const now = new Date();
@@ -54,28 +56,50 @@ export default function WFHRequestForm({ type }) {
 
         try {
             setIsWorkingApi(true);
+            const updatedRequest = {
+                ...wfhRequestObj,
+                numOfDays: getDayDifference(wfhRequestObj)
+            }
             if (wfhRequestObj._id) {
-                const res = await axios.put(`${url}/api/wfh-application/${wfhRequestObj._id}`, wfhRequestObj, {
+                const res = await axios.put(`${url}/api/wfh-application/${wfhRequestObj._id}`, updatedRequest, {
                     headers: {
                         Authorization: data.token || ""
                     }
                 });
-                toast.success(res.data?.message || "Request updated successfully!");
+                toast.success(res.data?.message);
+                navigate(`/${whoIs}`);
             } else {
-                const res = await axios.post(`${url}/api/wfh-application/${data._id}`, wfhRequestObj, {
+                const res = await axios.post(`${url}/api/wfh-application/${data._id}`, updatedRequest, {
                     headers: {
                         Authorization: data.token || ""
                     }
                 });
-                toast.success(res.data?.message || "Request submitted successfully!");
+                toast.success(res.data?.message);
+                navigate(`/${whoIs}`);
             }
             setwfhRequestObj({});
-            navigate(`/${whoIs}`);
         } catch (error) {
-            toast.error(error.response?.data?.error || "Something went wrong.");
+            toast.error(error.response?.data?.error);
         } finally {
             setIsWorkingApi(false);
         }
+    }
+
+    async function fetchLeaveRequest() {
+        setIsLoading(true);
+        try {
+            const res = await axios.get(`${url}/api/wfh-application/${id}`, {
+                headers: {
+                    Authorization: data.token
+                }
+            })
+            setwfhRequestObj(res.data);
+        } catch (error) {
+            console.log("error in get wfh request", error);
+        } finally {
+            setIsLoading(false);
+        }
+
     }
 
     useEffect(() => {
@@ -89,6 +113,9 @@ export default function WFHRequestForm({ type }) {
             }
         }
         fetchHolidays();
+        if (id) {
+            fetchLeaveRequest()
+        }
     }, []);
     return (
         <form onSubmit={handleSubmit}>
@@ -139,7 +166,7 @@ export default function WFHRequestForm({ type }) {
 
                     {/* Reason for Leave */}
                     <div className="my-3">
-                        <span className="inputLabel">Reason for Leave</span>
+                        <span className="inputLabel">Reason for Work From Home</span>
                         <TextEditor
                             handleChange={(content) => handleInputChange("reason", content)}
                             content={wfhRequestObj.reason}

@@ -22,6 +22,7 @@ import TimeLog from '../TimeLog';
 import Comments from '../Comments';
 import LeaveDetails from '../Administration/LeaveDetails';
 import WFHRequestForm from './WFHRequestForm';
+import WFHRequests from '../workfromhome/WFHRequests';
 
 // Lazy loading components
 const Dashboard = React.lazy(() => import('./Dashboard'));
@@ -481,7 +482,7 @@ export default function HRMDashboard() {
                     ...pre,
                     Name: empData?.FirstName + " " + empData?.LastName,
                     annualLeave: empData?.annualLeaveEntitlement,
-                    profile: empData.profile,
+                    profile: empData?.profile,
                     Account: String(empData.Account)
                 }))
                 setWorkingTimePattern(empData.workingTimePattern);
@@ -526,12 +527,20 @@ export default function HRMDashboard() {
                     <Route path="/leave-request/edit/:id" element={<LeaveRequestForm />} />
                     <Route path="/leave-request/view/:id" element={<LeaveRequestForm type={"view"} />} />
                     <Route path="/wfh-request" element={<WFHRequestForm />} />
+                    <Route path="/wfh-request/view/:id" element={<WFHRequestForm type={"view"} />} />
+                    <Route path="/wfh-request/edit/:id" element={<WFHRequestForm type={"edit"} />} />
                     <Route path="attendance/*" element={
                         <Routes>
                             <Route index path="attendance-request" element={<Request attendanceData={attendanceData} isLoading={waitForAttendance} />} />
                             <Route path="daily-log" element={<Dailylog attendanceData={attendanceData} isLoading={waitForAttendance} />} />
                             <Route path="details" element={<Details attendanceData={attendanceData} isLoading={waitForAttendance} />} />
                             <Route path="attendance-summary" element={<Summary attendanceData={attendanceForSummary} isLoading={waitForAttendance} />} />
+                        </Routes>
+                    }>
+                    </Route>
+                    <Route path="workfromhome/*" element={
+                        <Routes>
+                            <Route index path="wfh-request" element={<WFHRequests />} />
                         </Routes>
                     }>
                     </Route>

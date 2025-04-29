@@ -69,7 +69,6 @@ router.get("/members/:id", verifyTeamHigherAuthority, async (req, res) => {
 router.get("/:who/:id", verifyTeamHigherAuthority, async (req, res) => {
     try {
         const teams = await Team.find({ [req.params.who]: req.params.id })
-
         res.send(teams);
     } catch (err) {
         console.error(err)

@@ -1,7 +1,9 @@
 const express = require("express");
-const { verifyAdminHREmployeeManagerNetwork, verifyAdminHR } = require("../auth/authMiddleware");
+const { verifyAdminHREmployeeManagerNetwork, verifyAdminHR, verifyTeamHigherAuthority } = require("../auth/authMiddleware");
 const { WFHAppValidation, WFHApplication } = require("../models/WFHApplicationModel");
 const { Employee } = require("../models/EmpModel");
+const sendMail = require("./mailSender");
+const { Team } = require("../models/TeamModel");
 const router = express.Router();
 
 function generateWfhEmail(empData, fromDateValue, toDateValue, reason) {
@@ -85,7 +87,7 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
             ]);
 
         if (!emp) {
-            return res.status(400).json({ error: `No employee found for ID ${empId}` });
+            return res.status(404).json({ error: `No employee found for ID ${empId}` });
         }
 
         // 10. Approvers setup
@@ -107,7 +109,7 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
         // check wfh application validation
         const { error } = WFHAppValidation.validate(newApplication);
         if (error) {
-            return res.send({ error: error.details[0].message })
+            return res.status(400).send({ error: error.details[0].message })
         } else {
             const application = await WFHApplication.create(newApplication);
 
@@ -122,11 +124,21 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
             sendMail({
                 From: process.env.FROM_MAIL,
                 To: mailList.join(","),
-                Subject: "Work From Home Request",
+                Subject: "Work From Home Request Notification",
                 HtmlBody: generateWfhEmail(emp, req.body.fromDate, req.body.toDate, req.body.reason),
             });
+
             return res.status(201).send({ message: "WFH request has been send to higher authority", application })
         }
+    } catch (error) {
+        return res.status(500).send({ error: error.message })
+    }
+})
+
+router.get("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
+    try {
+        const data = await WFHApplication.findById(req.params.id);
+        return res.send(data);
     } catch (error) {
         return res.status(500).send({ error: error.message })
     }
@@ -135,7 +147,10 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
 // get all requests
 router.get("/", verifyAdminHR, async (req, res) => {
     try {
+        const now = new Date()
         let filterObj = {};
+        console.log(req.query.dateRangeValue);
+
         if (req.query.dateRangeValue) {
             const startDate = new Date(req.query.dateRangeValue[0]);
             const endDate = new Date(req.query.dateRangeValue[1]);
@@ -144,14 +159,127 @@ router.get("/", verifyAdminHR, async (req, res) => {
             }
         }
         const applications = await WFHApplication.find(filterObj)
-            .populate("employee", "FirstName LastName")
+            .populate("employee", "FirstName LastName profile")
             .lean()
             .exec();
-        return res.send(applications);
+        const correctRequests = applications.map((item) => ({
+            ...item,
+            reason: item.reason.replace(/<\/?[^>]+(>|$)/g, '')
+        })).sort((a, b) => new Date(b.fromDate) - new Date(a.fromDate))
+
+        const pendingRequests = correctRequests.filter((item) => item.status === "pending");
+        const approvedRequests = correctRequests.filter((item) => item.status === "approved");
+        const upcommingRequests = correctRequests.filter(request => new Date(request.fromDate) > now);
+        return res.send({
+            correctRequests,
+            pendingRequests,
+            approvedRequests,
+            upcommingRequests
+        });
     } catch (error) {
         return res.status(500).send({ error: error.message })
     }
 })
+
+router.get("/on-wfh", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
+    try {
+        const today = new Date();
+        const startOfDay = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate(), 0, 0, 0));
+        const endOfDay = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate(), 23, 59, 59));
+        const data = await WFHApplication.find({
+            fromDate: { $gte: startOfDay, $lte: endOfDay },
+            status: "approved"
+        }, "fromDate toDate status leaveType")
+            .populate({
+                path: "employee",
+                select: "FirstName LastName profile",
+                populate: {
+                    path: "team",
+                    select: "teamName"
+                }
+            }).lean().exec();
+        return res.send(data);
+    } catch (error) {
+        console.log("error in fetch on wfh emps", error);
+        return res.status(500).send({ error: error.message })
+    }
+})
+
+// get employee of all requests
+router.get("/employee/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
+    try {
+        const now = new Date();
+        let filterObj = { employee: req.params.id };
+        if (req.query?.dateRangeValue) {
+            const startDate = new Date(req.query.dateRangeValue[0]);
+            const endDate = new Date(req.query.dateRangeValue[1]);
+            filterObj = {
+                ...filterObj,
+                fromDate: { $gte: startDate, $lte: endDate }
+            }
+        }
+        const requests = await WFHApplication.find(filterObj)
+            .populate("employee", "FirstName LastName profile")
+            .lean()
+            .exec();
+        const correctRequests = requests.map((item) => ({
+            ...item,
+            reason: item.reason.replace(/<\/?[^>]+(>|$)/g, '')
+        })).sort((a, b) => new Date(b.fromDate) - new Date(a.fromDate))
+
+        const pendingRequests = correctRequests.filter((item) => item.status === "pending");
+        const approvedRequests = correctRequests.filter((item) => item.status === "approved");
+        const upcommingRequests = correctRequests.filter(request => new Date(request.fromDate) > now);
+        return res.send({
+            correctRequests,
+            pendingRequests,
+            approvedRequests,
+            upcommingRequests
+        });
+    } catch (error) {
+        return res.status(500).send({ error: error.message })
+    }
+})
+
+// get team of all employee requests
+router.get("/team/:id", verifyTeamHigherAuthority, async (req, res) => {
+    try {
+        const now = new Date()
+        const teams = await Team.find({ [req.params.who]: req.params.id })
+        if (!teams.length) {
+            return res.status(404).send({ error: "You are not a Team higher authority." })
+        }
+        const employeesData = teams.map((team) => team.employees).flat();
+        const uniqueEmps = [...new Set([...employeesData])]
+        let filterObj = { employee: { $in: uniqueEmps } };
+        if (req.query.dateRangeValue) {
+            const startDate = new Date(req.query.dateRangeValue[0]);
+            const endDate = new Date(req.query.dateRangeValue[1]);
+            filterObj = {
+                ...filterObj,
+                fromDate: { $gte: startDate, $lte: endDate }
+            }
+        }
+        const data = await WFHApplication.find(filterObj).populate("employee", "FirstName LastName profile").lean().exec();
+        const correctRequests = data.map((item) => ({
+            ...item,
+            reason: item.reason.replace(/<\/?[^>]+(>|$)/g, '')
+        })).sort((a, b) => new Date(b.fromDate) - new Date(a.fromDate))
+
+        const pendingRequests = correctRequests.filter((item) => item.status === "pending");
+        const approvedRequests = correctRequests.filter((item) => item.status === "approved");
+        const upcommingRequests = correctRequests.filter(request => new Date(request.fromDate) > now);
+        return res.send({
+            correctRequests,
+            pendingRequests,
+            approvedRequests,
+            upcommingRequests
+        });
+    } catch (error) {
+        return res.status(500).send({ error: error.message })
+    }
+})
+
 
 router.put("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
     try {
@@ -161,6 +289,19 @@ router.put("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
         }
         const updatedData = await WFHApplication.findByIdAndUpdate(req.body, { new: true });
         return res.send({ message: "WFH Request has been updated successfully", updatedData })
+    } catch (error) {
+        return res.status(500).send({ error: error.message })
+    }
+})
+
+router.delete("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
+    try {
+        if (await WFHApplication.exists({ _id: req.params.id })) {
+            const deletedRequest = await WFHApplication.findByIdAndDelete(req.params.id);
+            return res.send({ message: `WFH request has been deleted successfully` })
+        } else {
+            return res.status(404).send({ error: "Request not found" })
+        }
     } catch (error) {
         return res.status(500).send({ error: error.message })
     }

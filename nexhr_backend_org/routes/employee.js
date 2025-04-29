@@ -14,7 +14,7 @@ router.get("/", verifyAdminHRTeamHigherAuth, async (req, res) => {
   try {
     const { onlyEmps } = req.query;
 
-    let employees = await Employee.find({}, "FirstName LastName Account employmentType dateOfJoining gender working code docType serialNo position department workingTimePattern role")
+    let employees = await Employee.find({}, "FirstName LastName profile Account employmentType dateOfJoining gender working code docType serialNo position department workingTimePattern role")
       .populate({
         path: "position"
       })
@@ -40,7 +40,7 @@ router.get("/", verifyAdminHRTeamHigherAuth, async (req, res) => {
 
 router.get("/notifications/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
   try {
-    const emp = await Employee.findById(req.params.id, "notifications")
+    const emp = await Employee.findById(req.params.id, "notifications profile")
       .populate("notifications.company", "logo CompanyName")
       .exec();
 
@@ -75,7 +75,7 @@ router.put("/notifications/:id", verifyAdminHREmployeeManagerNetwork, async (req
 
 router.get("/user", verifyAdminHR, async (req, res) => {
   try {
-    const employees = await Employee.find({ Account: 3 }, "_id FirstName LastName")
+    const employees = await Employee.find({ Account: 3 }, "_id FirstName LastName profile")
       .populate({
         path: "department",
         select: "DepartmentName",
@@ -126,7 +126,7 @@ router.get("/user", verifyAdminHR, async (req, res) => {
 
 router.get("/all", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
   try {
-    const employees = await Employee.find({}, "_id FirstName LastName employmentType dateOfJoining gender working code docType serialNo")
+    const employees = await Employee.find({}, "_id FirstName LastName profile employmentType dateOfJoining gender working code docType serialNo")
       .populate([
         {
           path: "company",
@@ -166,7 +166,7 @@ router.get("/team/:higher", verifyAdminHRTeamHigherAuth, async (req, res) => {
     else if (higher === "head") keyword = "Head";
     else keyword = "Manager";
 
-    const employees = await Employee.find({}, "FirstName LastName position")
+    const employees = await Employee.find({}, "FirstName LastName position profile")
       .populate("position", "PositionName") // Populate only PositionName
       .exec();
 

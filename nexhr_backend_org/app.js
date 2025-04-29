@@ -444,6 +444,38 @@ io.on("connection", (socket) => {
     }
   });
 
+  socket.on("send_notification_for_wfh", async (project) => {
+    try {
+      const emps = await Employee.find(
+        { _id: { $in: project.employees } },
+        "FirstName LastName Email company notifications"
+      )
+        .populate({ path: "company", select: "CompanyName logo" })
+        .exec();
+
+      if (emps.length) {
+        for (const emp of emps) {
+          const notification = {
+            company: emp.company,
+            title: "You've Been Assigned to a New Project",
+            message: `We're excited to let you know that you've been officially assigned to the project "${project.name}".`
+          };
+
+          // Save notification to employee's notifications array
+          emp.notifications.push(notification);
+          await emp.save();
+
+          // Send real-time notification via socket if online
+          const employeeSocketID = onlineUsers[emp._id.toString()];
+          if (employeeSocketID) {
+            io.to(employeeSocketID).emit("send_project_notification", notification);
+          }
+        }
+      }
+    } catch (error) {
+      console.error("Error in send notification for project:", error);
+    }
+  });
 
   socket.on("send_notification_for_task", async (task) => {
     try {

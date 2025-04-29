@@ -2,7 +2,6 @@ import React, { useContext } from 'react';
 import './Attendence.css';
 import LeaveTable from '../LeaveTable';
 import NoDataFound from '../payslip/NoDataFound';
-import Loading from '../Loader';
 import { DateRangePicker, Dropdown, Popover, Whisper } from 'rsuite';
 import ArrowDropDownRoundedIcon from '@mui/icons-material/ArrowDropDownRounded';
 import FileUploadRoundedIcon from '@mui/icons-material/FileUploadRounded';

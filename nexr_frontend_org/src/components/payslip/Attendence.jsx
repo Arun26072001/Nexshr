@@ -191,7 +191,7 @@ const Attendence = () => {
           {/* Table or No Data Message */}
           <>
             {/* Filters: Date Picker & Time Selector */}
-            <div className="d-flex justify-content-between align-items-center gap-2 flex-wrap my-2">
+            <div className="d-flex justify-content-between align-items-center gap-2 flex-wrap my-2 px-2">
               <div className="col-lg-5 col-12">
                 <DateRangePicker value={daterangeValue} size="lg" placeholder="Select Date" onChange={setDaterangeValue} />
               </div>

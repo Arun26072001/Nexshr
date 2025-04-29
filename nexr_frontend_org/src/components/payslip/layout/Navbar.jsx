@@ -421,7 +421,7 @@ export default function Navbar({ handleSideBar }) {
                         </span>
                         {/* Profile Section */}
                         <Whisper placement="bottomEnd" trigger="click" speaker={renderMenu}>
-                            <img src={data.profile || logo} className='imgContainer' style={{ width: "40px", height: "40px" }} alt='emp_img' />
+                            <img src={data?.profile || logo} className='imgContainer' style={{ width: "40px", height: "40px" }} alt='emp_img' />
                         </Whisper>
                         {/* Messages Section */}
                         <div className="offcanvas offcanvas-end" tabindex="-1" id="offcanvasRight" aria-labelledby="offcanvasRightLabel">

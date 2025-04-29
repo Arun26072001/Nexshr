@@ -38,10 +38,6 @@ const LeaveApplicationValidation = Joi.object({
   status: Joi.string().label('status'),
   appliedOn: Joi.date().label('appliedOn'),
   approvers: Joi.any().optional(),
-  // TeamLead: Joi.string().allow("", null),
-  // TeamHead: Joi.string().allow("", null),
-  // Hr: Joi.string().allow("", null),
-  // Manager: Joi.string().allow("", null),
   appliedBy: Joi.string().allow("", null)
 });
 

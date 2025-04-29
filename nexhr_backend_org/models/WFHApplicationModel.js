@@ -5,17 +5,23 @@ const wfhSchema = new mongoose.Schema({
     employee: { type: mongoose.Schema.Types.ObjectId, ref: "Employee", default: null },
     fromDate: { type: Date },
     toDate: { type: Date },
-    numOfDays: { type: Date },
+    numOfDays: { type: Number },
     createdBy: { type: mongoose.Schema.Types.ObjectId, ref: "Employee" },
     reason: { type: String },
     rejectionReason: { type: String },
     status: { type: String },
-    approvedBy: { type: mongoose.Schema.Types.ObjectId, ref: "Employee" }
+    approvers: {
+        type: mongoose.Schema.Types.Mixed, default: {}
+    }
 }, { timestamps: true })
 
-const WFHApplication = mongoose.model("wfhApplications", wfhSchema);
+const WFHApplication = mongoose.model("wfhapplications", wfhSchema);
 
 const WFHAppValidation = Joi.object({
+    _id: Joi.any().optional(),
+    __v: Joi.any().optional(),
+    createdAt: Joi.any().optional(),
+    updatedAt: Joi.any().optional(),
     employee: Joi.string().required(),
     fromDate: Joi.date().required(),
     toDate: Joi.date().required(),
@@ -25,7 +31,7 @@ const WFHAppValidation = Joi.object({
     status: Joi.string()
         .valid('pending', 'approved', 'rejected')
         .required(),
-    approvedBy: Joi.string().allow(null).optional(),
+    approvers: Joi.any().optional()
 });
 
 module.exports = {

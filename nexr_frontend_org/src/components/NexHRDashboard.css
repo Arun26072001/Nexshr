@@ -87,8 +87,10 @@ a {
   font-weight: 500;
   line-height: 18px;
   border-radius: 8px;
-  padding: 8px 16px;
+  padding: 0px 16px;
   width: 48%;
+  height: 300px;
+  overflow: scroll;
 }
 .hr_border {
   width: 100%;
