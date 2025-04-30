@@ -1,6 +1,8 @@
 import axios from 'axios';
 import { toast } from 'react-toastify';
 import { Notification, toaster } from "rsuite";
+import * as XLSX from "xlsx";
+import { saveAs } from "file-saver";
 const url = process.env.REACT_APP_API_URL;
 const token = localStorage.getItem('token');
 const _id = localStorage.getItem("_id");
@@ -495,6 +497,61 @@ function triggerToaster(response) {
     )
 }
 
+// Format milliseconds to HH:mm:ss
+const formatMs = (ms) => {
+    if (!ms || isNaN(ms)) return "00:00:00";
+    return new Date(ms).toISOString().substr(11, 8);
+};
+
+function exportAttendanceToExcel(attendanceData) {
+    if (!attendanceData.length) return;
+
+    const formattedData = attendanceData.map((item) => ({
+        Date: item.date.split("T")[0],
+        Behaviour: item.behaviour,
+        EmployeeName: item.employee.FirstName + " " + item.employee.LastName,
+
+        // Login
+        LoginStart: item.login?.startingTime[0] || "00:00",
+        LoginEnd: item.login?.endingTime.at(-1) || "00:00",
+        LoginTaken: formatMs(item.login?.takenTime || 0),
+
+        // Meeting
+        MeetingStart: item.meeting?.startingTime[0] || "00:00",
+        MeetingEnd: item.meeting?.endingTime.at(-1) || "00:00",
+        MeetingTaken: formatMs(item.meeting?.takenTime || 0),
+
+        // Morning Break
+        MorningBreakStart: item.morningBreak?.startingTime[0] || "00:00",
+        MorningBreakEnd: item.morningBreak?.endingTime.at(-1) || "00:00",
+        MorningBreakTaken: formatMs(item.morningBreak?.takenTime || 0),
+
+        // Lunch
+        LunchStart: item.lunch?.startingTime[0] || "00:00",
+        LunchEnd: item.lunch?.endingTime.at(-1) || "00:00",
+        LunchTaken: formatMs(item.lunch?.takenTime || 0),
+
+        // Evening Break
+        EveningBreakStart: item.eveningBreak?.startingTime[0] || "00:00",
+        EveningBreakEnd: item.eveningBreak?.endingTime.at(-1) || "00:00",
+        EveningBreakTaken: formatMs(item.eveningBreak?.takenTime || 0),
+
+        // Event
+        EventStart: item.event?.startingTime[0] || "00:00",
+        EventEnd: item.event?.endingTime.at(-1) || "00:00",
+        EventTaken: formatMs(item.event?.takenTime || 0),
+    }));
+
+    const ws = XLSX.utils.json_to_sheet(formattedData);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Attendance");
+
+    const wbout = XLSX.write(wb, { bookType: "xlsx", type: "array" });
+    const blob = new Blob([wbout], { type: "application/octet-stream" });
+
+    saveAs(blob, "Attendance.xlsx");
+}
+
 export {
     triggerToaster,
     calculateTimePattern,
@@ -527,5 +584,6 @@ export {
     fetchRoles,
     formatTimeFromHour,
     fileUploadInServer,
-    getDayDifference
+    getDayDifference,
+    exportAttendanceToExcel
 };

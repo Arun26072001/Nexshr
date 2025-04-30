@@ -6,12 +6,12 @@ import { DateRangePicker, Dropdown, Popover, Whisper } from 'rsuite';
 import ArrowDropDownRoundedIcon from '@mui/icons-material/ArrowDropDownRounded';
 import FileUploadRoundedIcon from '@mui/icons-material/FileUploadRounded';
 import FileDownloadRoundedIcon from '@mui/icons-material/FileDownloadRounded';
-import AddRoundedIcon from '@mui/icons-material/AddRounded';
 import axios from 'axios';
 import { toast } from 'react-toastify';
 import { EssentialValues } from '../../App';
 import { TimerStates } from '../payslip/HRMDashboard';
 import { Skeleton } from '@mui/material';
+import { exportAttendanceToExcel } from '../ReuseableAPI';
 
 const Dailylog = ({ attendanceData, isLoading }) => {
     const { data, whoIs } = useContext(EssentialValues)
@@ -26,16 +26,71 @@ const Dailylog = ({ attendanceData, isLoading }) => {
         try {
             const response = await axios.post(`${url}/api/google-sheet/upload/attendance`, formData, {
                 headers: {
-                    'Content-Type': 'multipart/form-data',
+                    'Content-Type': 'multipart/form-attendanceData',
                     Authorization: data.token || ""
                 },
             });
-            toast.success(response.data.message)
+            toast.success(response.attendanceData.message)
         } catch (error) {
             console.error('File upload failed:', error);
-            toast.error(error.response.data.error);
+            toast.error(error.response.attendanceData.error);
         }
     };
+
+    // Format milliseconds to HH:mm:ss
+    // const formatMs = (ms) => {
+    //     if (!ms || isNaN(ms)) return "00:00:00";
+    //     return new Date(ms).toISOString().substr(11, 8);
+    // };
+
+    // function exportAttendanceToExcel() {
+    //     if (!attendanceData.length) return;
+
+    //     const formattedData = attendanceData.map((item) => ({
+    //         Date: item.date.split("T")[0],
+    //         Behaviour: item.behaviour,
+    //         // PunchInMessage: item.punchInMsg,
+
+    //         // Login
+    //         LoginStart: item.login?.startingTime[0] || "00:00",
+    //         LoginEnd: item.login?.endingTime.at(-1) || "00:00",
+    //         LoginTaken: formatMs(item.login?.takenTime || 0),
+
+    //         // Meeting
+    //         MeetingStart: item.meeting?.startingTime[0] || "00:00",
+    //         MeetingEnd: item.meeting?.endingTime.at(-1) || "00:00",
+    //         MeetingTaken: formatMs(item.meeting?.takenTime || 0),
+
+    //         // Morning Break
+    //         MorningBreakStart: item.morningBreak?.startingTime[0] || "00:00",
+    //         MorningBreakEnd: item.morningBreak?.endingTime.at(-1) || "00:00",
+    //         MorningBreakTaken: formatMs(item.morningBreak?.takenTime || 0),
+
+    //         // Lunch
+    //         LunchStart: item.lunch?.startingTime[0] || "00:00",
+    //         LunchEnd: item.lunch?.endingTime.at(-1) || "00:00",
+    //         LunchTaken: formatMs(item.lunch?.takenTime || 0),
+
+    //         // Evening Break
+    //         EveningBreakStart: item.eveningBreak?.startingTime[0] || "00:00",
+    //         EveningBreakEnd: item.eveningBreak?.endingTime.at(-1) || "00:00",
+    //         EveningBreakTaken: formatMs(item.eveningBreak?.takenTime || 0),
+
+    //         // Event
+    //         EventStart: item.event?.startingTime[0] || "00:00",
+    //         EventEnd: item.event?.endingTime.at(-1) || "00:00",
+    //         EventTaken: formatMs(item.event?.takenTime || 0),
+    //     }));
+
+    //     const ws = XLSX.utils.json_to_sheet(formattedData);
+    //     const wb = XLSX.utils.book_new();
+    //     XLSX.utils.book_append_sheet(wb, ws, "Attendance");
+
+    //     const wbout = XLSX.write(wb, { bookType: "xlsx", type: "array" });
+    //     const blob = new Blob([wbout], { type: "application/octet-stream" });
+
+    //     saveAs(blob, "Attendance.xlsx");
+    // }
 
     const renderMenu = ({ onClose, right, top, className }, ref) => {
         const handleSelect = (eventKey) => {
@@ -47,7 +102,7 @@ const Dailylog = ({ attendanceData, isLoading }) => {
                 alert('Download clicked');
             } else if (eventKey === 3) {
                 // Handle add logic
-                alert('Add clicked');
+                exportAttendanceToExcel(attendanceData);
             }
             onClose();
         };
@@ -67,7 +122,7 @@ const Dailylog = ({ attendanceData, isLoading }) => {
                     </Dropdown.Item>
                     <Dropdown.Item eventKey={3}>
                         <b>
-                            <AddRoundedIcon /> Add
+                            <FileDownloadRoundedIcon /> Export
                         </b>
                     </Dropdown.Item>
                 </Dropdown.Menu>
@@ -83,9 +138,6 @@ const Dailylog = ({ attendanceData, isLoading }) => {
                 </div>
 
                 <div className='d-flex gap-3'>
-                    {/* <div className='text-center'>
-                            <Popup />
-                        </div> */}
                     <DateRangePicker
                         size="lg"
                         showOneCalendar
@@ -115,9 +167,9 @@ const Dailylog = ({ attendanceData, isLoading }) => {
 
             {
                 isLoading ? <Skeleton
+                    className='my-2'
                     sx={{ bgcolor: 'grey.500' }}
-                    variant="rectangular"
-                    width={"100%"}
+                    variant="rounded"
                     height={"50vh"}
                 /> :
                     attendanceData.length > 0 ?

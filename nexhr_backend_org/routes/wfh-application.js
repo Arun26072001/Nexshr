@@ -283,10 +283,10 @@ router.get("/team/:id", verifyTeamHigherAuthority, async (req, res) => {
 
 router.put("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
     try {
-        const { error } = WFHAppValidation.validate(req.body);
-        if (error) {
-            return res.status(400).send({ error: error.details[0].message })
-        }
+        // const { error } = WFHAppValidation.validate(req.body);
+        // if (error) {
+        //     return res.status(400).send({ error: error.details[0].message })
+        // }
         const updatedData = await WFHApplication.findByIdAndUpdate(req.body, { new: true });
         return res.send({ message: "WFH Request has been updated successfully", updatedData })
     } catch (error) {

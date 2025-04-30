@@ -789,9 +789,19 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
             label: 'Status',
             minWidth: 100,
             align: 'center',
-            getter: (row) => row?.status
-                ? row.status[0].toUpperCase() + row.status.slice(1)
-                : 'N/A'
+            getter: (row) => {
+                if (isTeamHead) {
+                    return row?.approvers?.head || "N/A";
+                } else if (isTeamLead) {
+                    return row?.approvers?.lead || "N/A";
+                } else if (isTeamManager) {
+                    return row?.approvers?.manager || "N/A";
+                } else if (Account === "2") {
+                    return row?.approvers?.hr || "N/A";
+                } else {
+                    return row.status;
+                }
+            }
         },
         {
             id: 'numOfDays',
@@ -956,8 +966,6 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
                                                 if (column.id === "reasonForLeave") {
                                                 } else if (column.id === "Action") {
                                                     if (["leave-request", "wfh-request"].includes(params['*'])) {
-                                                        console.log(row.approvers);
-
                                                         return (
                                                             <Dropdown placement='leftStart' title={<EditRoundedIcon style={{ cursor: "pointer" }} />} noCaret>
                                                                 <Dropdown.Item style={{ minWidth: 120 }} onClick={() => navigate(params['*'] === "leave-request" ? `/${whoIs}/leave-request/view/${row._id}` : `/${whoIs}/wfh-request/view/${row._id}`)}>View</Dropdown.Item>

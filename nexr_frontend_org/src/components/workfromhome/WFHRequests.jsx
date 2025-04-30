@@ -7,6 +7,7 @@ import { Skeleton } from '@mui/material';
 import LeaveTable from '../LeaveTable';
 import NoDataFound from '../payslip/NoDataFound';
 import { jwtDecode } from 'jwt-decode';
+import { toast } from 'react-toastify';
 
 export default function WFHRequests() {
     const url = process.env.REACT_APP_API_URL;
@@ -55,6 +56,59 @@ export default function WFHRequests() {
         }
     }
 
+    async function replyToRequest(request, response) {
+        try {
+            let updatedWFHRequest;
+            if (isTeamHead) {
+                updatedWFHRequest = {
+                    ...request,
+                    approvers: {
+                        ...request.approvers,
+                        head: response
+                    }
+                }
+            } else if (isTeamLead) {
+                updatedWFHRequest = {
+                    ...request,
+                    approvers: {
+                        ...request.approvers,
+                        lead: response
+                    }
+                }
+            } else if (isTeamManager) {
+                updatedWFHRequest = {
+                    ...request,
+                    approvers: {
+                        ...request.approvers,
+                        manager: response
+                    }
+                }
+            }
+            else if (whoIs === "hr") {
+                updatedWFHRequest = {
+                    ...request,
+                    approvers: {
+                        ...request.approvers,
+                        hr: response
+                    }
+                }
+            } else {
+                toast.error("You are not approver for this requests")
+                return;
+            }
+
+            const res = await axios.put(`${url}/api/wfh-application/${request._id}`, updatedWFHRequest, {
+                headers: {
+                    Authorization: data.token || ""
+                }
+            })
+            toast.success(res.data.message);
+            setDaterangeValue([]);
+        } catch (error) {
+            toast.error(error.response.data.error)
+        }
+    }
+
     useEffect(() => {
         if (["admin", "hr"].includes(whoIs)) {
             fetchAllWfhRequests()
@@ -64,7 +118,7 @@ export default function WFHRequests() {
     }, [dateRangeValue])
     return (
         <div >
-            {/* top date input and leave label */}
+            {/* top date input and requests label */}
             <div className="leaveDateParent row px-2">
                 <p className="payslipTitle col-6">
                     WFH Requests
@@ -120,7 +174,7 @@ export default function WFHRequests() {
                             height={"50vh"}
                         /> :
                         requests?.correctRequests?.length > 0 ?
-                            <LeaveTable data={requests.correctRequests} />
+                            <LeaveTable data={requests.correctRequests} replyToLeave={replyToRequest} />
                             : <NoDataFound message={"WFH Requests not for this month!"} />
                 }
             </div>

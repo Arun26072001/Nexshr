@@ -27,9 +27,14 @@ export default function Navbar({ handleSideBar }) {
     const [notifications, setNotifications] = useState([]);
     const [isRemove, setIsRemove] = useState([]);
     const [isViewEarlyLogout, setIsViewEarlyLogout] = useState(JSON.parse(localStorage.getItem("isViewEarlyLogout")) ? true : false);
+    const [lat, setLat] = useState("");
+    const [long, setLong] = useState("");
+    const [placeId, setPlaceId] = useState("");
     // const [workLocation, setWorklocation] = useState("");
     // const [placeId, setPlaceId] = useState("");
     // const worklocationType = ["WFH", "WFO"].map((item) => ({ label: item, value: item }))
+
+    console.log("my placeId", placeId);
 
     // Timer logic to increment time
     const incrementTime = () => {
@@ -247,6 +252,87 @@ export default function Navbar({ handleSideBar }) {
         stopTimer();
     }
 
+    // async function getAddress(lat, lng) {
+    //     const API_KEY = process.env.REACT_APP_MAPKEY;  // Replace with a secured API key (keep it secret)
+    //     const url = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat.toFixed(7)},${lng.toFixed(7)}&result_type=street_address|locality|postal_code&key=${API_KEY}`;
+
+    //     try {
+    //         const response = await fetch(url);
+    //         const data = await response.json();
+
+    //         if (data.status === "OK" && data.results.length > 0) {
+    //             const address = data.results[0].formatted_address;
+    //             const placeId = data.results[0].place_id;
+
+    //             console.log("Address:", address);
+    //             console.log("Place ID:", placeId);
+
+    //             return { address, placeId };
+    //         } else {
+    //             console.error("Geocoding failed:", data.status, data.error_message);
+    //         }
+    //     } catch (error) {
+    //         console.error("Error fetching location:", error);
+    //     }
+    // }
+
+    // useEffect(() => {
+    //     if (navigator.geolocation) {
+    //         navigator.geolocation.getCurrentPosition(
+    //             (position) => {
+    //                 const { latitude, longitude } = position.coords;
+    //                 getAddress(latitude, longitude);
+    //             },
+    //             (error) => console.error("Error getting location:", error),
+    //             { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+    //         );
+    //     } else {
+    //         console.log("Geolocation is not supported by this browser.");
+    //     }
+
+    // }, [placeId])
+
+    function getAddress() {
+        navigator.geolocation.getCurrentPosition(
+            (pos) => {
+                console.log(pos.coords.latitude);
+                setLat(pos.coords.latitude);
+                setLong(pos.coords.longitude)
+            },
+            (err) => console.error(err),
+            { enableHighAccuracy: true }
+        );
+    }
+    getAddress()
+
+    useEffect(() => {
+        const getAddressFromCoords = async (lat, lon) => {
+            try {
+                const res = await axios.get("https://nominatim.openstreetmap.org/reverse", {
+                    params: {
+                        lat,
+                        lon,
+                        format: "json",
+                    },
+                });
+
+                if (res.data && res.data.display_name) {
+                    console.log(res.data);
+                    setPlaceId(res.data.place_id);
+                } else {
+                    setPlaceId("Address not found.");
+                }
+            } catch (err) {
+                console.error(err);
+                setPlaceId("Failed to get address.");
+            }
+        };
+        if (lat && long) {
+            console.log(lat, long);
+            getAddressFromCoords(lat, long)
+        }
+    }, [lat, long])
+
     useEffect(() => {
         socket.connect();
         socket.on("early_logout", ({ isCompleteworkingHours }) => {
@@ -333,7 +419,7 @@ export default function Navbar({ handleSideBar }) {
                             src={Webnexs}
                             width={30}
                             height={30}
-                            style={{ objectFit: "cover" }}
+                 hstartLoginTimer           style={{ objectFit: "cover" }}
                             alt="Webnexs Company Logo"
                         />
                         <span style={{ fontSize: "16px", fontWeight: "700" }}>NexHR</span>

@@ -4,10 +4,11 @@ import axios from "axios";
 import LeaveTable from "../LeaveTable";
 import { DateRangePicker, TagPicker } from "rsuite";
 import Loading from "../Loader";
-import { formatTime } from "../ReuseableAPI";
+import { exportAttendanceToExcel, formatTime } from "../ReuseableAPI";
 import NoDataFound from "./NoDataFound";
 import { toast } from "react-toastify";
 import { EssentialValues } from "../../App";
+import FileDownloadRoundedIcon from '@mui/icons-material/FileDownloadRounded';
 
 const Attendence = () => {
   const url = process.env.REACT_APP_API_URL;
@@ -121,7 +122,7 @@ const Attendence = () => {
       toast.error("Employee Id not found!")
     }
   }, [_id, daterangeValue])
-
+  console.log(clockInsData);
   return (
     <div>
       <div className="leaveDateParent">
@@ -209,6 +210,7 @@ const Attendence = () => {
                   />
                 </div>
               }
+              <button className="button" onClick={() => exportAttendanceToExcel(clockInsData.clockIns)} ><FileDownloadRoundedIcon /> Export</button>
             </div>
             {
               tableData.length > 0 ?
