@@ -7,7 +7,7 @@ import "./NexHRDashboard.css";
 import { EssentialValues } from "../App";
 import { jwtDecode } from "jwt-decode";
 
-const NexHRDashboard = ({ peopleOnLeave, peopleOnWorkFromHome,isFetchPeopleOnLeave }) => {
+const NexHRDashboard = ({ peopleOnLeave, peopleOnWorkFromHome, isFetchPeopleOnLeave, isFetchpeopleOnWfh }) => {
   const { data } = useContext(EssentialValues);
   const { token, Account, _id } = data;
   const { isTeamLead, isTeamHead, isTeamManager } = jwtDecode(token);
@@ -34,7 +34,7 @@ const NexHRDashboard = ({ peopleOnLeave, peopleOnWorkFromHome,isFetchPeopleOnLea
               <AddHomeWorkRoundedIcon /> Apply WFH
             </button>
           </div> */}
-          <Home peopleOnLeave={peopleOnLeave} peopleOnWorkFromHome={peopleOnWorkFromHome} isFetchPeopleOnLeave={isFetchPeopleOnLeave} />
+          <Home peopleOnLeave={peopleOnLeave} peopleOnWorkFromHome={peopleOnWorkFromHome} isFetchPeopleOnLeave={isFetchPeopleOnLeave} isFetchpeopleOnWfh={isFetchpeopleOnWfh} />
         </Card>
       </div>
       <div className="col-lg-4 col-md-8 col-12 d-flex jsutify-content-center">

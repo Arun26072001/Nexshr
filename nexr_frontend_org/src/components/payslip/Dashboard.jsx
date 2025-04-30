@@ -19,6 +19,7 @@ const Dashboard = () => {
     const [peopleOnLeave, setPeopleOnLeave] = useState([]);
     const [peopleOnWorkFromHome, setPeopleOnWorkFromHome] = useState([]);
     const [isFetchPeopleOnLeave, setIsFetchPeopleOnLeave] = useState(false);
+    const [isFetchpeopleOnWfh, setIsFetchPeopleOnWfh] = useState(false);
 
     const gettingEmpdata = async () => {
         try {
@@ -93,9 +94,6 @@ const Dashboard = () => {
                     Authorization: data.token || ""
                 }
             })
-            // const withoutMyData = res.data.filter((leave) => leave.employee._id !== data._id)
-            // setPeopleOnLeave(withoutMyData)
-            console.log("peopleoOnLEave:", res.data)
             setPeopleOnLeave(res.data);
         } catch (error) {
             setPeopleOnLeave([]);
@@ -107,6 +105,7 @@ const Dashboard = () => {
 
     async function fetchWorkFromHomeEmps() {
         try {
+            setIsFetchPeopleOnWfh(true);
             const res = await axios.get(`${url}/api/wfh-application/on-wfh`, {
                 headers: {
                     Authorization: data.token || ""
@@ -115,6 +114,8 @@ const Dashboard = () => {
             setPeopleOnWorkFromHome(res.data);
         } catch (error) {
             console.log("error in fetch work from home emps", error);
+        } finally {
+            setIsFetchPeopleOnWfh(false)
         }
     }
     useEffect(() => {
@@ -272,7 +273,7 @@ const Dashboard = () => {
 
                     </div>
                 </div>
-                <NexHRDashboard updateClockins={updateClockins} peopleOnLeave={peopleOnLeave} peopleOnWorkFromHome={peopleOnWorkFromHome} isFetchPeopleOnLeave={isFetchPeopleOnLeave} />
+                <NexHRDashboard updateClockins={updateClockins} peopleOnLeave={peopleOnLeave} peopleOnWorkFromHome={peopleOnWorkFromHome} isFetchpeopleOnWfh={isFetchpeopleOnWfh} isFetchPeopleOnLeave={isFetchPeopleOnLeave} />
             </>
         </div>
     );

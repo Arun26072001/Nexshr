@@ -483,7 +483,7 @@ export default function HRMDashboard() {
                     Name: empData?.FirstName + " " + empData?.LastName,
                     annualLeave: empData?.annualLeaveEntitlement,
                     profile: empData?.profile,
-                    Account: String(empData.Account)
+                    Account: String(empData?.Account)
                 }))
                 setWorkingTimePattern(empData.workingTimePattern);
             } catch (error) {

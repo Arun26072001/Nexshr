@@ -33,7 +33,7 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
     const [openModal, setOpenModal] = useState(false);
     const [modelData, setModelData] = useState({});
     const params = useParams();
-    console.log(data);
+    console.log(whoIs);
 
     const handleChangePage = (event, newPage) => {
         setPage(newPage);
@@ -927,7 +927,6 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
                         </TableHead>
                         <TableBody>
                             {
-
                                 rows.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row, rowIndex) => (
                                     <TableRow hover role="checkbox" tabIndex={-1} key={row.code}>
                                         {columns?.map((column) => {

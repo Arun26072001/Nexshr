@@ -48,12 +48,13 @@ function a11yProps(index) {
     };
 }
 
-export default function Home({ peopleOnLeave, peopleOnWorkFromHome }) {
+export default function Home({ peopleOnLeave, peopleOnWorkFromHome, isFetchPeopleOnLeave, isFetchpeopleOnWfh }) {
     const { isStartLogin, isStartActivity, workTimeTracker, timeOption, updateClockins } = useContext(TimerStates);
     const [value, setValue] = useState(0);
     const [isLoading, setLoading] = useState(true); // Track loading state
     const { data } = useContext(EssentialValues);
     const now = new Date();
+    console.log("isLoading", isFetchPeopleOnLeave);
 
     const staticData = {
         startingTime: "00:00",
@@ -173,17 +174,21 @@ export default function Home({ peopleOnLeave, peopleOnWorkFromHome }) {
                                 <p className='timeLogBox' style={{ background: "white" }}><img src={calendarIcon} alt='dateIcon' width={15} height={"auto"} /> <span className='sub_text text-dark'>{now.getDate() + " " + now.toLocaleString("default", { "month": "short" }) + " " + now.getFullYear()}</span></p>
                             </div>
                             {
-                                peopleOnLeave.length ?
-                                    peopleOnLeave.map((leave) => {
-                                        return <div className='box-content d-flex align-items-center justify-content-around my-1' style={{ boxShadow: 'none', background: "white" }}>
-                                            <img src={leave?.employee?.profile || profile} alt="profile" className='imgContainer' />
-                                            <div className="d-block">
-                                                <p style={{ fontSize: "13px" }}><b>{leave?.employee?.FirstName[0].toUpperCase() + leave?.employee?.FirstName.slice(1) + " " + leave?.employee?.LastName}</b>({leave?.employee?.team?.teamName || "TeamName"})</p>
-                                                <p className='sub_text'><b>{formatDate(leave.fromDate)} - {formatDate(leave.toDate)}</b></p>
-                                                <p className={`sub_text ${leave?.leaveType?.toLowerCase()?.includes("unpaid") ? "text-danger" : "text-success"}`}>{leave.leaveType}</p>
+                                isFetchPeopleOnLeave ? <div className="gap-1">
+                                    <Skeleton variant="rounded" height={110} className="my-3" />
+                                    <Skeleton variant="rounded" height={110} className="my-3" />
+                                </div> :
+                                    peopleOnLeave.length ?
+                                        peopleOnLeave.map((leave) => {
+                                            return <div className='box-content d-flex align-items-center justify-content-around my-1' style={{ boxShadow: 'none', background: "white" }}>
+                                                <img src={leave?.employee?.profile || profile} alt="profile" className='imgContainer' />
+                                                <div className="d-block">
+                                                    <p style={{ fontSize: "13px" }}><b>{leave?.employee?.FirstName[0].toUpperCase() + leave?.employee?.FirstName.slice(1) + " " + leave?.employee?.LastName}</b>({leave?.employee?.team?.teamName || "TeamName"})</p>
+                                                    <p className='sub_text'><b>{formatDate(leave.fromDate)} - {formatDate(leave.toDate)}</b></p>
+                                                    <p className={`sub_text ${leave?.leaveType?.toLowerCase()?.includes("unpaid") ? "text-danger" : "text-success"}`}>{leave.leaveType}</p>
+                                                </div>
                                             </div>
-                                        </div>
-                                    }) : <NoDataFound message={"No one is leave Today"} />
+                                        }) : <NoDataFound message={"No one is leave Today"} />
                             }
                         </div>
                         {/* work from home employees container */}
@@ -193,16 +198,20 @@ export default function Home({ peopleOnLeave, peopleOnWorkFromHome }) {
                                 <p className='timeLogBox' style={{ background: "white" }}><img src={calendarIcon} alt='dateIcon' width={15} height={"auto"} /> <span className='sub_text text-dark'>{now.getDate() + " " + now.toLocaleString("default", { "month": "short" }) + " " + now.getFullYear()}</span></p>
                             </div>
                             {
-                                peopleOnWorkFromHome.length ?
-                                    peopleOnWorkFromHome.map((wfh) => {
-                                        return <div className='box-content d-flex align-items-center justify-content-around my-1' style={{ boxShadow: 'none', background: "white" }}>
-                                            <img src={wfh?.employee?.profile || profile} alt="profile" className='imgContainer' />
-                                            <div className="d-block">
-                                                <p style={{ fontSize: "13px" }}><b>{wfh?.employee?.FirstName[0].toUpperCase() + wfh?.employee?.FirstName.slice(1) + " " + wfh?.employee?.LastName}</b>({wfh?.employee?.team?.teamName || "TeamName"})</p>
-                                                <p className='sub_text'><b>{formatDate(wfh.fromDate)} - {formatDate(wfh.toDate)}</b></p>
+                                isFetchpeopleOnWfh ? <div className="gap-1">
+                                    <Skeleton variant="rounded" height={110} className="my-3" />
+                                    <Skeleton variant="rounded" height={110} className="my-3" />
+                                </div> :
+                                    peopleOnWorkFromHome.length ?
+                                        peopleOnWorkFromHome.map((wfh) => {
+                                            return <div className='box-content d-flex align-items-center justify-content-around my-1' style={{ boxShadow: 'none', background: "white" }}>
+                                                <img src={wfh?.employee?.profile || profile} alt="profile" className='imgContainer' />
+                                                <div className="d-block">
+                                                    <p style={{ fontSize: "13px" }}><b>{wfh?.employee?.FirstName[0].toUpperCase() + wfh?.employee?.FirstName.slice(1) + " " + wfh?.employee?.LastName}</b>({wfh?.employee?.team?.teamName || "TeamName"})</p>
+                                                    <p className='sub_text'><b>{formatDate(wfh.fromDate)} - {formatDate(wfh.toDate)}</b></p>
+                                                </div>
                                             </div>
-                                        </div>
-                                    }) : <NoDataFound message={"No one in Work From Home"} />
+                                        }) : <NoDataFound message={"No one in Work From Home"} />
                             }
                         </div>
                     </div>
