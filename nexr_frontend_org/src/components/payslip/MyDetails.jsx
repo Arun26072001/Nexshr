@@ -2,7 +2,6 @@ import React, { useContext, useEffect, useState } from "react"
 import { fetchEmployeeData } from "../ReuseableAPI";
 import { EssentialValues } from "../../App";
 import NoDataFound from "./NoDataFound";
-import Loading from "../Loader";
 import { Skeleton } from "@mui/material";
 
 const MyDetails = () => {

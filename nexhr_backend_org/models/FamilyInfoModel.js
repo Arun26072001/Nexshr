@@ -8,10 +8,6 @@ var familyInfoSchema = new mongoose.Schema({
     DOB: { type: Date, required: true },
     Occupation: { type: String, required: true }
   });
-  // familyInfoSchema.plugin(autoIncrement.plugin, {
-  //   model: "FamilyInfo",
-  //   field: "FamilyInfoID"
-  // });
   
   var FamilyInfo = mongoose.model("FamilyInfo", familyInfoSchema);
   

@@ -221,7 +221,7 @@ export default function LeaveRequest() {
                         height={"50vh"}
                     /> :
                         leaveRequests?.leaveData?.length > 0 ?
-                            <LeaveTable Account={data.Account} data={leaveRequests.leaveData} replyToLeave={replyToLeave} isTeamHead={isTeamHead} isTeamLead={isTeamLead} isTeamManager={isTeamManager} /> :
+                            <LeaveTable Account={data?.Account} data={leaveRequests.leaveData} replyToLeave={replyToLeave} isTeamHead={isTeamHead} isTeamLead={isTeamLead} isTeamManager={isTeamManager} /> :
                             <NoDataFound message={"No Leave request in this month"} />
                 }
             </div>

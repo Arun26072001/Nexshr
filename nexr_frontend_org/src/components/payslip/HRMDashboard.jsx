@@ -167,7 +167,7 @@ export default function HRMDashboard() {
         }))
     }
 
-    const startLoginTimer = async (worklocation, placeId) => {
+    const startLoginTimer = async (worklocation, location) => {
         const currentTime = new Date().toTimeString().split(' ')[0];
         const updatedState = {
             ...workTimeTracker,
@@ -180,9 +180,9 @@ export default function HRMDashboard() {
         try {
             if (!updatedState?._id) {
                 // Add new clock-ins data
-                const clockinsData = await addDataAPI(updatedState, worklocation, placeId);
+                const clockinsData = await addDataAPI(updatedState, worklocation, location);
                 const totalWorkingHour = await getTotalWorkingHourPerDay(workingTimePattern.StartingTime, workingTimePattern.FinishingTime)
-                if (clockinsData !== "undefined") {
+                if (clockinsData !== "undefined" && clockinsData._id) {
                     if (!workTimeTracker.login.startingTime.length) {
                         socket.emit("remainder_notification", {
                             employee: data._id,

@@ -11,48 +11,48 @@ const RoleAndPermissionSchema = new mongoose.Schema({
 // Create the model
 const RoleAndPermission = mongoose.model('RoleAndPermission', RoleAndPermissionSchema);
 
-const staticRoles = [
-  {
-    "RoleName": "Admin",
-    "__v": 0,
-    "pageAuth": {
-      "$oid": "6721fcb7a3ed9a4ec05918b6"
-    },
-    "userPermissions": {
-      "$oid": "6721fb52a3ed9a4ec05918a3"
-    }
-  },
-  {
-    "RoleName": "HR",
-    "__v": 0,
-    "pageAuth": {
-      "$oid": "6721fcb7a3ed9a4ec05918c7"
-    },
-    "userPermissions": {
-      "$oid": "6721fb52a3ed9a4ec05918b4"
-    }
-  },
-  {
-    "RoleName": "Associate",
-    "__v": 0,
-    "pageAuth": {
-      "$oid": "6721fcb7a3ed9a4ec05918d8"
-    },
-    "userPermissions": {
-      "$oid": "6721fb52a3ed9a4ec05918c5"
-    }
-  }
-]
+// const staticRoles = [
+//   {
+//     "RoleName": "Admin",
+//     "__v": 0,
+//     "pageAuth": {
+//       "$oid": "6721fcb7a3ed9a4ec05918b6"
+//     },
+//     "userPermissions": {
+//       "$oid": "6721fb52a3ed9a4ec05918a3"
+//     }
+//   },
+//   {
+//     "RoleName": "HR",
+//     "__v": 0,
+//     "pageAuth": {
+//       "$oid": "6721fcb7a3ed9a4ec05918c7"
+//     },
+//     "userPermissions": {
+//       "$oid": "6721fb52a3ed9a4ec05918b4"
+//     }
+//   },
+//   {
+//     "RoleName": "Associate",
+//     "__v": 0,
+//     "pageAuth": {
+//       "$oid": "6721fcb7a3ed9a4ec05918d8"
+//     },
+//     "userPermissions": {
+//       "$oid": "6721fb52a3ed9a4ec05918c5"
+//     }
+//   }
+// ]
 
-RoleAndPermission.countDocuments().then(count => {
-  if (count === 0) {
-    RoleAndPermission.insertMany(staticRoles)
-      .then(() => console.log("Static RoleAndPermissions inserted!"))
-      .catch(err => console.error("Error inserting RoleAndPermissions:", err));
-  } else {
-    console.log("RoleAndPermissions already exist. Skipping static data insertion.");
-  }
-});
+// RoleAndPermission.countDocuments().then(count => {
+//   if (count === 0) {
+//     RoleAndPermission.insertMany(staticRoles)
+//       .then(() => console.log("Static RoleAndPermissions inserted!"))
+//       .catch(err => console.error("Error inserting RoleAndPermissions:", err));
+//   } else {
+//     console.log("RoleAndPermissions already exist. Skipping static data insertion.");
+//   }
+// });
 
 const RoleAndPermissionValidation = Joi.object({
   RoleName: Joi.string().required().label("Role Name"),

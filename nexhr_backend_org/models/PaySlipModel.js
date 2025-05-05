@@ -6,7 +6,6 @@ const PayslipSchema = mongoose.Schema({
   payslip: {
     type: mongoose.Schema.Types.Mixed, default: {}
   }
-  // createdAt: { type: Date.now() }
 }, { minimize: false, timestamp: true })
 
 const Payslip = mongoose.model('payslip', PayslipSchema);

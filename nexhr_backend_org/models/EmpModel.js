@@ -92,7 +92,6 @@ module.exports = {
   employeeSchema
 };
 
-//   LastName: Joi.string().required(),
 //   Email: Joi.string().email().required(),
 //   Password: Joi.string().min(6).required(),
 //   teamLead: Joi.string().optional(),

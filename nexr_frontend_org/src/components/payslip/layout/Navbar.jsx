@@ -5,7 +5,7 @@ import TableRowsRoundedIcon from '@mui/icons-material/TableRowsRounded';
 import PunchIn from "../../../asserts/PunchIn.svg";
 import PunchOut from "../../../asserts/punchOut.svg";
 import { TimerStates } from '../HRMDashboard';
-import { Accordion, Button, Dropdown, Input, Modal, Popover, Whisper } from 'rsuite';
+import { Accordion, Button, Dropdown, Input, Modal, Popover, SelectPicker, Whisper } from 'rsuite';
 import logo from "../../../imgs/male_avatar.webp";
 import { EssentialValues } from '../../../App';
 import axios from "axios";
@@ -27,14 +27,11 @@ export default function Navbar({ handleSideBar }) {
     const [notifications, setNotifications] = useState([]);
     const [isRemove, setIsRemove] = useState([]);
     const [isViewEarlyLogout, setIsViewEarlyLogout] = useState(JSON.parse(localStorage.getItem("isViewEarlyLogout")) ? true : false);
-    const [lat, setLat] = useState("");
-    const [long, setLong] = useState("");
-    const [placeId, setPlaceId] = useState("");
-    // const [workLocation, setWorklocation] = useState("");
-    // const [placeId, setPlaceId] = useState("");
-    // const worklocationType = ["WFH", "WFO"].map((item) => ({ label: item, value: item }))
-
-    console.log("my placeId", placeId);
+    const [latitude, setLatitude] = useState("");
+    const [longitude, setLongitude] = useState("");
+    // const [hamlet, setHamlet] = useState("");
+    const [workLocation, setWorklocation] = useState(localStorage.getItem("workLocation") || "");
+    const worklocationType = ["WFH", "WFO"].map((item) => ({ label: item, value: item }))
 
     // Timer logic to increment time
     const incrementTime = () => {
@@ -76,7 +73,7 @@ export default function Navbar({ handleSideBar }) {
     // Function to start the timer
     const startTimer = async () => {
         if (!workRef.current) {
-            await startLoginTimer();
+            await startLoginTimer(workLocation, {latitude, longitude});
             if (isStartLogin) {
                 workRef.current = setInterval(incrementTime, 1000);
             }
@@ -251,87 +248,48 @@ export default function Navbar({ handleSideBar }) {
         localStorage.removeItem("isViewEarlyLogout");
         stopTimer();
     }
-
-    // async function getAddress(lat, lng) {
-    //     const API_KEY = process.env.REACT_APP_MAPKEY;  // Replace with a secured API key (keep it secret)
-    //     const url = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat.toFixed(7)},${lng.toFixed(7)}&result_type=street_address|locality|postal_code&key=${API_KEY}`;
-
-    //     try {
-    //         const response = await fetch(url);
-    //         const data = await response.json();
-
-    //         if (data.status === "OK" && data.results.length > 0) {
-    //             const address = data.results[0].formatted_address;
-    //             const placeId = data.results[0].place_id;
-
-    //             console.log("Address:", address);
-    //             console.log("Place ID:", placeId);
-
-    //             return { address, placeId };
-    //         } else {
-    //             console.error("Geocoding failed:", data.status, data.error_message);
-    //         }
-    //     } catch (error) {
-    //         console.error("Error fetching location:", error);
-    //     }
-    // }
-
-    // useEffect(() => {
-    //     if (navigator.geolocation) {
-    //         navigator.geolocation.getCurrentPosition(
-    //             (position) => {
-    //                 const { latitude, longitude } = position.coords;
-    //                 getAddress(latitude, longitude);
-    //             },
-    //             (error) => console.error("Error getting location:", error),
-    //             { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
-    //         );
-    //     } else {
-    //         console.log("Geolocation is not supported by this browser.");
-    //     }
-
-    // }, [placeId])
-
+    
     function getAddress() {
         navigator.geolocation.getCurrentPosition(
             (pos) => {
-                console.log(pos.coords.latitude);
-                setLat(pos.coords.latitude);
-                setLong(pos.coords.longitude)
+                setLatitude(pos.coords.latitude);
+                setLongitude(pos.coords.longitude)
             },
             (err) => console.error(err),
             { enableHighAccuracy: true }
         );
     }
-    getAddress()
-
     useEffect(() => {
-        const getAddressFromCoords = async (lat, lon) => {
-            try {
-                const res = await axios.get("https://nominatim.openstreetmap.org/reverse", {
-                    params: {
-                        lat,
-                        lon,
-                        format: "json",
-                    },
-                });
+        getAddress();
+    }, [latitude, longitude])
 
-                if (res.data && res.data.display_name) {
-                    console.log(res.data);
-                    setPlaceId(res.data.place_id);
-                } else {
-                    setPlaceId("Address not found.");
-                }
-            } catch (err) {
-                console.error(err);
-                setPlaceId("Failed to get address.");
-            }
-        };
-        if (lat && long) {
-            console.log(lat, long);
-            getAddressFromCoords(lat, long)
-        }
-    }, [lat, long])
+    // useEffect(() => {
+    //     const getAddressFromCoords = async (lat, lon) => {
+    //         try {
+    //             const res = await axios.get("https://nominatim.openstreetmap.org/reverse", {
+    //                 params: {
+    //                     lat,
+    //                     lon,
+    //                     format: "json",
+    //                 },
+    //             });
+
+    //             if (res.data && res.data.display_name) {
+    //                 console.log(res.data);
+    //                 setHamlet(res.data.address.hamlet);
+    //             } else {
+    //                 setHamlet("Address not found.");
+    //             }
+    //         } catch (err) {
+    //             console.error(err);
+    //             setHamlet("Failed to get address.");
+    //         }
+    //     };
+    //     if (lat && long) {
+    //         console.log(lat, long);
+    //         getAddressFromCoords(lat, long)
+    //     }
+    // }, [lat, long])
 
     useEffect(() => {
         socket.connect();
@@ -419,7 +377,7 @@ export default function Navbar({ handleSideBar }) {
                             src={Webnexs}
                             width={30}
                             height={30}
-                 hstartLoginTimer           style={{ objectFit: "cover" }}
+                            hstartLoginTimer style={{ objectFit: "cover" }}
                             alt="Webnexs Company Logo"
                         />
                         <span style={{ fontSize: "16px", fontWeight: "700" }}>NexHR</span>
@@ -486,6 +444,18 @@ export default function Navbar({ handleSideBar }) {
                     }
 
                     <div className='gap-2 col-lg-4 col-md-3 d-flex align-items-center justify-content-end'>
+                        <SelectPicker
+                            data={worklocationType}
+                            searchable={false}
+                            onChange={(e) => {
+                                setWorklocation(e)
+                                localStorage.setItem("workLocation", e)
+                            }}
+                            style={{ width: 200 }}
+                            value={workLocation}
+                            appearance="default"
+                            placeholder="Choose work place"
+                        />
                         <span className="bell mx-2 position-relative" data-bs-toggle="offcanvas" data-bs-target="#offcanvasRight" aria-controls="offcanvasRight">
                             <svg width="16" height="17" viewBox="0 0 16 17" fill="none" xmlns="http://www.w3.org/2000/svg">
                                 <g clipPath="url(#clip0_2046_6896)">
@@ -571,8 +541,8 @@ export default function Navbar({ handleSideBar }) {
 // </span> */}
 // get user current location
 //  async function getAddress(lat, lng) {
-//     const API_KEY = process.env.REACT_APP_MAPKEY;  // Replace with a secured API key (keep it secret)
-//     const url = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat.toFixed(7)},${lng.toFixed(7)}&result_type=street_address|locality|postal_code&key=${API_KEY}`;
+    //     const API_KEY = process.env.REACT_APP_MAPKEY;  // Replace with a secured API key (keep it secret)
+    //     const url = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat.toFixed(7)},${lng.toFixed(7)}&result_type=street_address|locality|postal_code&key=${API_KEY}`;
 
 //     try {
 //         const response = await fetch(url);
@@ -580,12 +550,12 @@ export default function Navbar({ handleSideBar }) {
 
 //         if (data.status === "OK" && data.results.length > 0) {
 //             const address = data.results[0].formatted_address;
-//             const placeId = data.results[0].place_id;
+//             const hamlet = data.results[0].place_id;
 
 //             console.log("Address:", address);
-//             console.log("Place ID:", placeId);
+//             console.log("Place ID:", hamlet);
 
-//             return { address, placeId };
+//             return { address, hamlet };
 //         } else {
 //             console.error("Geocoding failed:", data.status, data.error_message);
 //         }
@@ -595,7 +565,7 @@ export default function Navbar({ handleSideBar }) {
 // }
 
 // useEffect(() => {
-//     if (navigator.geolocation) {
+    //     if (navigator.geolocation) {
 //         navigator.geolocation.getCurrentPosition(
 //             (position) => {
 //                 const { latitude, longitude } = position.coords;
@@ -605,7 +575,46 @@ export default function Navbar({ handleSideBar }) {
 //             { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
 //         );
 //     } else {
-//         console.log("Geolocation is not supported by this browser.");
-//     }
-
-// }, [placeId])
+    //         console.log("Geolocation is not supported by this browser.");
+    //     }
+    
+    // }, [hamlet])
+    // async function getAddress(lat, lng) {
+    //     const API_KEY = process.env.REACT_APP_MAPKEY;  // Replace with a secured API key (keep it secret)
+    //     const url = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat.toFixed(7)},${lng.toFixed(7)}&result_type=street_address|locality|postal_code&key=${API_KEY}`;
+    
+    //     try {
+    //         const response = await fetch(url);
+    //         const data = await response.json();
+    
+    //         if (data.status === "OK" && data.results.length > 0) {
+    //             const address = data.results[0].formatted_address;
+    //             const hamlet = data.results[0].place_id;
+    
+    //             console.log("Address:", address);
+    //             console.log("Place ID:", hamlet);
+    
+    //             return { address, hamlet };
+    //         } else {
+    //             console.error("Geocoding failed:", data.status, data.error_message);
+    //         }
+    //     } catch (error) {
+    //         console.error("Error fetching location:", error);
+    //     }
+    // }
+    
+    // useEffect(() => {
+    //     if (navigator.geolocation) {
+    //         navigator.geolocation.getCurrentPosition(
+    //             (position) => {
+    //                 const { latitude, longitude } = position.coords;
+    //                 getAddress(latitude, longitude);
+    //             },
+    //             (error) => console.error("Error getting location:", error),
+    //             { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+    //         );
+    //     } else {
+    //         console.log("Geolocation is not supported by this browser.");
+    //     }
+    
+    // }, [hamlet])

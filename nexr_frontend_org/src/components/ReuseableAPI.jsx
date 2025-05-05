@@ -68,13 +68,13 @@ const getclockinsDataById = async (id) => {
     }
 };
 
-const addDataAPI = async (body, worklocation, placeId) => {
+const addDataAPI = async (body, worklocation, location) => {
     try {
         const response = await axios.post(`${url}/api/clock-ins/${_id}`, body, {
-            // params: {
-            //     worklocation,
-            //     placeId
-            // },
+            params: {
+                worklocation,
+                location
+            },
             headers: { authorization: token || '' },
         });
         toast.success(response.data.message);

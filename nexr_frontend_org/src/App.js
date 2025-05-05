@@ -77,11 +77,11 @@ const App = () => {
       const response = await axios.post(`${url}/api/login`, { Email: email, Password: password });
       const decodedData = jwtDecode(response.data);
 
-      if (!decodedData.Account || !["17", "1", "2", "3", "4", "5"].includes(String(decodedData.Account))) {
+      if (!decodedData?.Account || !["17", "1", "2", "3", "4", "5"].includes(String(decodedData?.Account))) {
         throw new Error("Invalid account type.");
       }
 
-      const accountType = decodedData.Account;
+      const accountType = decodedData?.Account;
       setData({
         _id: decodedData._id,
         Account: String(accountType),
@@ -202,17 +202,17 @@ const App = () => {
       setData((prev) => ({
         ...prev,
         _id: decodedData._id || "",
-        Account: decodedData.Account || "",
+        Account: decodedData?.Account || "",
         Name: `${decodedData.FirstName} ${decodedData.LastName}` || "",
         annualLeave: decodedData.annualLeaveEntitment || 0,
         token: localStorage.getItem("token") || "",
         profile: decodedData.profile
       }))
       const roles = { "17": "superAdmin", "1": "admin", "2": "hr", "3": "emp", "4": "manager", "5": "sys-admin" };
-      setWhoIs(roles[String(decodedData.Account)] || "");
+      setWhoIs(roles[String(decodedData?.Account)] || "");
 
       if (window.location.pathname !== "/login" || window.location.pathname !== `/${whoIs}`) {
-        if (roles[String(decodedData.Account)]) {
+        if (roles[String(decodedData?.Account)]) {
           console.log("go to place");
           replaceMiddleSegment()
         }

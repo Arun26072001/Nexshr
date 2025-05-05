@@ -106,7 +106,7 @@ leaveApp.get("/make-know", async (req, res) => {
     for (const empData of leaveApps) {
       if (!empData.employee?.team) continue; // Skip if team data is missing
       let members = [];
-      Object.entries(empData.employee?.team).filter(([key, value]) => {
+      Object.entries(empData?.employee?.team).filter(([key, value]) => {
         if (!["teamName", "employees", "_id", "__v", "createdAt", "updatedAt"].includes(key)) {
           Array.isArray(value) && value.map((item) => members.push(item.Email))
         }
@@ -123,7 +123,7 @@ leaveApp.get("/make-know", async (req, res) => {
         <body style="font-family: Arial, sans-serif; background-color: #f6f9fc; color: #333; margin: 0; padding: 0;">
           <div style="max-width: 600px; margin: auto; padding: 20px; background-color: #fff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);">
             <div style="text-align: center; padding: 20px;">
-              <img src="${empData.employee.company.logo}" alt="Logo" style="max-width: 100px;" />
+              <img src="${empData?.employee?.company?.logo}" alt="Logo" style="max-width: 100px;" />
               <h1 style="margin: 0;">${empData.employee.FirstName} ${empData.employee.LastName} has applied for leave From ${empData.fromDate} To ${empData.toDate}</h1>
             </div>
             <div style="margin: 20px 0;">
