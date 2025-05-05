@@ -174,7 +174,7 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
         const officeLoginTime = emp?.workingTimePattern?.StartingTime || "9:00";
         const loginTimeRaw = req.body?.login?.startingTime?.[0];
         if (!loginTimeRaw) return res.status(400).send({ error: "You must start Punch-in Timer" });
-        const companyLoginMinutes = timeToMinutes(officeLoginTime) + Number(emp.workingTimePattern.WaitingTime);
+        const companyLoginMinutes = timeToMinutes(officeLoginTime) + Number(emp?.workingTimePattern?.WaitingTime);
         const empLoginMinutes = timeToMinutes(loginTimeRaw);
         if (companyLoginMinutes < empLoginMinutes) {
             const timeDiff = empLoginMinutes - companyLoginMinutes;

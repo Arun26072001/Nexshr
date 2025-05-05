@@ -45,3 +45,14 @@
 .dropdown-arrow {
   margin-left: auto; /* Ensures the arrow is aligned to the right */
 }
+.leaveIndicator .success {
+  border-top-color: #198754; 
+  border-radius: 50%;
+  animation: loading 1s linear infinite;
+}
+
+.leaveIndicator .danger {
+  border-top-color: #dc3545;
+  border-radius: 50%;
+  animation: loading 1s linear infinite;
+}
