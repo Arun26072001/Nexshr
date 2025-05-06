@@ -242,10 +242,22 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
                     subject = "Half-day Leave Applied (Unpaid Leave)";
                     htmlContent = `
                         <html>
-                            <body>
+                           <body>
                                 <h2>You have exceeded your permission limit.</h2>
-                                <p>We are marking you on a half-day leave due to late arrival. Please adhere to the company's policies.</p>
+                                <p>
+                                    This is to inform you that your punch-in on ${today} was recorded beyond the acceptable grace period. 
+                                    As per company policy, this will be considered a half-day Loss of Pay (LOP).
+                                </p>
+                                <p>
+                                    We request you to adhere to the official working hours to avoid further attendance-related deductions. 
+                                    If there is a valid reason for the delay, please raise a request through the HRM portal or contact the HR team.
+                                </p>
+                                <p>Thank you for your understanding.</p>
+                                <p>Regards,</p>
+                                <p>Kavya</p>
+                                <p>HR Department</p>
                             </body>
+
                         </html>`;
                 } else {
                     // Allow Permission Leave (1st or 2nd)

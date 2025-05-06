@@ -73,6 +73,12 @@ function mailContent(type, fromDateValue, toDateValue, emp, leaveType, actionBy,
             ${new Date(toDateValue).toLocaleString("default", { month: "long" })} ${new Date(toDateValue).getDate()}, ${new Date(toDateValue).getFullYear()}
           </p>
           <a href="${process.env.FRONTEND_URL}" style="font-weight: bold; padding: 12px 24px; border-radius: 30px; background-color: ${isRejected ? "red" : "green"}; color: white; text-decoration: none; display: inline-block; margin: 15px 0; border: none;">View Leave Details</a>
+          <p>
+            Your request for ${leaveType} on ${fromDateValue} has been not approved due to [team workload].
+          </p>
+          <p>Regards,</p>
+          <p>Kavya</p>
+          <p>HR Department</p>
           <p style="font-size: 14px; color: #B4B4B8; margin: 10px 0;">Why did you receive this mail?</p>
           <p style="font-size: 14px; color: #B4B4B8; margin: 10px 0;">
             ${["admin", "lead", "head", "manager"].includes(member.type) ? `Because you are the ${member.type} for this employee` : "Because you applied for this leave."}
@@ -137,8 +143,8 @@ function projectMailContent(emp, creator, company, dataObj, type) {
   `;
 }
 
-function teamMailContent(){
-  
+function teamMailContent() {
+
 }
 
 function timeToMinutes(timeStr) {
