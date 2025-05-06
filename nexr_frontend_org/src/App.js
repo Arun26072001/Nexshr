@@ -124,57 +124,57 @@ const App = () => {
     event.target.reset();
   };
 
-  useEffect(() => {
-    if (!socket.connected && isLogin) {
-      socket.connect();
-    }
+  // useEffect(() => {
+  //   if (!socket.connected && isLogin) {
+  //     socket.connect();
+  //   }
 
-    if (isLogin && data?._id) {
-      socket.emit("join_room", data._id);
+  //   if (isLogin && data?._id) {
+  //     socket.emit("join_room", data._id);
 
-      const handlers = {
-        receive_announcement: (response) => {
-          console.log("responseData", response);
-          triggerToaster(response);
-          handleUpdateAnnouncements();
-        },
-        send_leave_notification: (response) => {
-          console.log(response);
-          triggerToaster(response);
-          handleUpdateAnnouncements();
-        },
-        send_project_notification: (response) => {
-          triggerToaster(response);
-          handleUpdateAnnouncements();
-        },
-        send_task_notification: (response) => {
-          triggerToaster(response);
-          handleUpdateAnnouncements();
-        },
-        send_team_notification: (response) => {
-          triggerToaster(response);
-          handleUpdateAnnouncements();
-        },
-        send_wfh_notification: (response) => {
-          console.log(response);
-          triggerToaster(response);
-          handleUpdateAnnouncements();
-        },
-      };
+  //     const handlers = {
+  //       receive_announcement: (response) => {
+  //         console.log("responseData", response);
+  //         triggerToaster(response);
+  //         handleUpdateAnnouncements();
+  //       },
+  //       send_leave_notification: (response) => {
+  //         console.log(response);
+  //         triggerToaster(response);
+  //         handleUpdateAnnouncements();
+  //       },
+  //       send_project_notification: (response) => {
+  //         triggerToaster(response);
+  //         handleUpdateAnnouncements();
+  //       },
+  //       send_task_notification: (response) => {
+  //         triggerToaster(response);
+  //         handleUpdateAnnouncements();
+  //       },
+  //       send_team_notification: (response) => {
+  //         triggerToaster(response);
+  //         handleUpdateAnnouncements();
+  //       },
+  //       send_wfh_notification: (response) => {
+  //         console.log(response);
+  //         triggerToaster(response);
+  //         handleUpdateAnnouncements();
+  //       },
+  //     };
 
-      // Attach all handlers
-      Object.entries(handlers).forEach(([event, handler]) => {
-        socket.on(event, handler);
-      });
+  //     // Attach all handlers
+  //     Object.entries(handlers).forEach(([event, handler]) => {
+  //       socket.on(event, handler);
+  //     });
 
-      return () => {
-        // Detach all handlers
-        Object.keys(handlers).forEach((event) => {
-          socket.off(event);
-        });
-      };
-    }
-  }, [socket, isLogin, data?._id]);
+  //     return () => {
+  //       // Detach all handlers
+  //       Object.keys(handlers).forEach((event) => {
+  //         socket.off(event);
+  //       });
+  //     };
+  //   }
+  // }, [socket, isLogin, data?._id]);
 
   useEffect(() => {
     localStorage.setItem("isStartLogin", isStartLogin);
