@@ -21,7 +21,9 @@ const ActivityTimeTracker = () => {
         changeReasonForLate,
         isworkingActivityTimerApi
     } = useContext(TimerStates);
-    const { data, socket } = useContext(EssentialValues);
+    const { data, 
+        // socket 
+    } = useContext(EssentialValues);
     const [isDisabled, setIsDisabled] = useState(false);
     const EmpName = data.Name;
     const [isViewTakeTime, setIsTaketime] = useState(localStorage.getItem("isViewTakeTime") ? true : false);
@@ -83,13 +85,13 @@ const ActivityTimeTracker = () => {
                     trackTimer()
                     timerRef.current = setInterval(incrementTime, 1000);
                     if (["morningBreak", "eveningBreak", "lunch"].includes(timeOption)) {
-                        socket.emit("send_notification", {
-                            employee: data._id,
-                            timerId: workTimeTracker._id,
-                            timeOption,
-                            time: timeOption === "lunch" ? 30 : 1,
-                            token: data.token
-                        })
+                        // socket.emit("send_notification", {
+                        //     employee: data._id,
+                        //     timerId: workTimeTracker._id,
+                        //     timeOption,
+                        //     time: timeOption === "lunch" ? 30 : 1,
+                        //     token: data.token
+                        // })
                     }
                 }
             } else if (["morningBreak", "eveningBreak"].includes(timeOption) && timeData < 15) {
@@ -98,13 +100,13 @@ const ActivityTimeTracker = () => {
                     trackTimer()
                     timerRef.current = setInterval(incrementTime, 1000);
                     if (["morningBreak", "eveningBreak", "lunch"].includes(timeOption)) {
-                        socket.emit("send_notification", {
-                            employee: data._id,
-                            timerId: workTimeTracker._id,
-                            timeOption,
-                            time: timeOption === "lunch" ? 30 - Number(getTimeFromHour(workTimeTracker[timeOption].timeHolder, true)) : 15 - Number(getTimeFromHour(workTimeTracker[timeOption].timeHolder, true)),
-                            token: data.token
-                        })
+                        // socket.emit("send_notification", {
+                        //     employee: data._id,
+                        //     timerId: workTimeTracker._id,
+                        //     timeOption,
+                        //     time: timeOption === "lunch" ? 30 - Number(getTimeFromHour(workTimeTracker[timeOption].timeHolder, true)) : 15 - Number(getTimeFromHour(workTimeTracker[timeOption].timeHolder, true)),
+                        //     token: data.token
+                        // })
                     }
                 }
             } else {
@@ -145,12 +147,12 @@ const ActivityTimeTracker = () => {
         stopTimer();
     }
 
-    useEffect(() => {
-        socket.connect();
-        socket.on("Ask_reason_for_late", (data) => {
-            changeViewReasonForTaketime()
-        })
-    }, [socket])
+    // useEffect(() => {
+    //     socket.connect();
+    //     socket.on("Ask_reason_for_late", (data) => {
+    //         changeViewReasonForTaketime()
+    //     })
+    // }, [socket])
 
     // Manage timer state based on startingTime and endingTime
     useEffect(() => {

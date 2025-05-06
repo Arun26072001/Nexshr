@@ -21,7 +21,7 @@ export const EssentialValues = createContext(null);
 const App = () => {
   const url = process.env.REACT_APP_API_URL;
   // State Variables
-  const socket = io(`${url}`, { autoConnect: false });
+  // const socket = io(`${url}`, { autoConnect: false });
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [showOfflineAlert, setShowOfflineAlert] = useState(false);
   const [hasInternet, setHasInternet] = useState(true);
@@ -286,7 +286,7 @@ const App = () => {
         isStartActivity,
         whoIs,
         setIsStartActivity,
-        socket,
+        // socket,
         handleUpdateAnnouncements,
         isChangeAnnouncements
       }}

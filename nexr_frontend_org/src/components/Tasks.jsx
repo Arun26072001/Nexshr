@@ -28,7 +28,9 @@ const Tasks = () => {
   const navigate = useNavigate();
   const url = process.env.REACT_APP_API_URL;
   const [employees, setEmployees] = useState([]);
-  const { data, whoIs, socket } = useContext(EssentialValues);
+  const { data, whoIs, 
+    // socket
+   } = useContext(EssentialValues);
   const { isAddTask, setIsAddTask, handleAddTask, selectedProject } = useContext(TimerStates);
   const { isTeamLead, isTeamHead } = jwtDecode(data.token)
   const [taskObj, setTaskObj] = useState({});
@@ -477,7 +479,7 @@ const Tasks = () => {
       });
 
       toast.success(res.data.message);
-      socket.emit("send_notification_for_task", newTaskObj)
+      // socket.emit("send_notification_for_task", newTaskObj)
       setTaskObj({});
       triggerHandleAddTask();
     } catch (error) {

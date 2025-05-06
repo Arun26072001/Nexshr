@@ -15,7 +15,9 @@ import useHandleTabClose from '../../../handleCloseTab';
 import Loading from '../../Loader';
 
 export default function Navbar({ handleSideBar }) {
-    const { handleLogout, data, handleUpdateAnnouncements, isChangeAnnouncements, whoIs, socket } = useContext(EssentialValues)
+    const { handleLogout, data, handleUpdateAnnouncements, isChangeAnnouncements, whoIs, 
+        // socket
+     } = useContext(EssentialValues)
     const { startLoginTimer, stopLoginTimer, workTimeTracker, isStartLogin, trackTimer, changeReasonForEarly, isWorkingLoginTimerApi } = useContext(TimerStates);
     const [sec, setSec] = useState(workTimeTracker?.login?.timeHolder?.split(':')[2])
     const [min, setMin] = useState(workTimeTracker?.login?.timeHolder?.split(':')[1])
@@ -165,7 +167,7 @@ export default function Navbar({ handleSideBar }) {
                 timeHolder: `${String(hour).padStart(2, '0')}:${String(min).padStart(2, '0')}:${String(sec).padStart(2, '0')}`,
             },
         };
-        socket.emit("verify_completed_workinghour", updatedState);
+        // socket.emit("verify_completed_workinghour", updatedState);
     }
 
     async function updateEmpNotifications(updatedValues) {
@@ -262,17 +264,16 @@ export default function Navbar({ handleSideBar }) {
         getAddress();
     }, [latitude, longitude])
 
-    useEffect(() => {
-        socket.connect();
-        socket.on("early_logout", ({ isCompleteworkingHours }) => {
-            if (isCompleteworkingHours) {
-                stopTimer()
-            } else {
-                changeViewReasonForEarlyLogout()
-            }
+    // useEffect(() => {
+    //     socket.on("early_logout", ({ isCompleteworkingHours }) => {
+    //         if (isCompleteworkingHours) {
+    //             stopTimer()
+    //         } else {
+    //             changeViewReasonForEarlyLogout()
+    //         }
 
-        })
-    }, [socket])
+    //     })
+    // }, [socket])
 
     useEffect(() => {
         const startLength = workTimeTracker?.login?.startingTime?.length || 0;

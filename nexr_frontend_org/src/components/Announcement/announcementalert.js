@@ -8,7 +8,9 @@ import AddRoundedIcon from '@mui/icons-material/AddRounded';
 
 const AnnouncementComponent = ({ handleChangeAnnouncement }) => {
     const url = process.env.REACT_APP_API_URL;
-    const { data, socket } = useContext(EssentialValues);
+    const { data, 
+        // socket
+     } = useContext(EssentialValues);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [team_member, setTeam_member] = useState([]);
     const [announcementObj, setAnnouncementObj] = useState({})
@@ -58,8 +60,7 @@ const AnnouncementComponent = ({ handleChangeAnnouncement }) => {
             handleChangeAnnouncement();
             handleModel();
             toast.success(addAnnounce.data.message);
-            socket.connect() // Debugging line
-            socket.emit("send_announcement", addAnnounce.data.data);
+            // socket.emit("send_announcement", addAnnounce.data.data);
         } catch (error) {
             setErrorMsg(error.response.data.error)
             toast.error(error.response.data.error)

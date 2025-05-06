@@ -13,7 +13,9 @@ export default function WFHRequestForm({ type }) {
     const navigate = useNavigate();
     const [isLoading, setIsLoading] = useState(false);
     const url = process.env.REACT_APP_API_URL;
-    const { whoIs, data, socket } = useContext(EssentialValues);
+    const { whoIs, data, 
+        // socket
+     } = useContext(EssentialValues);
     const now = new Date();
     const [wfhRequestObj, setwfhRequestObj] = useState({
         fromDate: null,
@@ -75,7 +77,7 @@ export default function WFHRequestForm({ type }) {
                     }
                 });
                 toast.success(res.data?.message);
-                socket.emit("send_notification_for_wfh", wfhRequestObj, data._id);
+                // socket.emit("send_notification_for_wfh", wfhRequestObj, data._id);
                 setwfhRequestObj({});
                 navigate(`/${whoIs}`);
             }
