@@ -460,7 +460,7 @@ export default function Navbar({ handleSideBar }) {
                             <div className="offcanvas-body">
                                 {
                                     notifications.map((notification, index) => {
-                                        return <div key={notification._id} className={`box-content my-2 ${isRemove[index] ? "remove" : ""} box-content my-2 d-flex justfy-content-center align-items-center position-relative`}>
+                                        return <div key={notification._id || index} className={`box-content my-2 ${isRemove[index] ? "remove" : ""} box-content my-2 d-flex justfy-content-center align-items-center position-relative`}>
                                             <span className="closeBtn" title='close' onClick={() => removeMessage(notification, index)}>
                                                 <CloseRoundedIcon fontSize='md' />
                                             </span>

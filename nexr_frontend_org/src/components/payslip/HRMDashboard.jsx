@@ -426,7 +426,6 @@ export default function HRMDashboard() {
                     authorization: token || ""
                 }
             })
-            console.log("leaveDate:", leaveData.data);
             setLeaveRequests(leaveData.data);
             setFullLeaveRequests(leaveData.data);
         } catch (err) {

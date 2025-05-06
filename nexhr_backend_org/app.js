@@ -6,9 +6,9 @@ const mongoose = require("mongoose");
 const app = express();
 require("dotenv").config();
 const cors = require("cors");
-const http = require("http");
+// const http = require("http");
+// const { Server } = require("socket.io");
 const path = require("path");
-const { Server } = require("socket.io");
 
 // models or schema
 const { TimePattern } = require("./models/TimePatternModel");

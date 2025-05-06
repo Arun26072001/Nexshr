@@ -28,9 +28,9 @@ const Tasks = () => {
   const navigate = useNavigate();
   const url = process.env.REACT_APP_API_URL;
   const [employees, setEmployees] = useState([]);
-  const { data, whoIs, 
+  const { data, whoIs,
     // socket
-   } = useContext(EssentialValues);
+  } = useContext(EssentialValues);
   const { isAddTask, setIsAddTask, handleAddTask, selectedProject } = useContext(TimerStates);
   const { isTeamLead, isTeamHead } = jwtDecode(data.token)
   const [taskObj, setTaskObj] = useState({});
@@ -619,9 +619,9 @@ const Tasks = () => {
               />
             ) :
               <>
-                <div className="projectParent flex-wrap">
-                  <div className="col-lg-6 col-md-4 col-12 projectTitle">Tasks</div>
-                  <div className="col-lg-6 col-md-8 col-12 text-center flex-wrap">
+                <div className="projectParent ">
+                  <div className="col-lg-4 col-md-4 col-12 projectTitle">Tasks</div>
+                  <div className="col-lg-8 col-md-8 col-12 d-flex gap-1 justify-content-end flex-wrap">
                     <SelectPicker
                       data={projects}
                       size="lg"
@@ -644,9 +644,13 @@ const Tasks = () => {
                 <div className="projectBody">
                   <div className="card-parent">
                     {
-                      isLoading ? [...Array(3)].map((item, index) => (<Skeleton variant="rounded" width={300} height={80} key={index} />))
-                        : [{ name: "Pending", color: "white", icon: PauseCircleOutlineRoundedIcon, taskData: pendingTasks }, { name: "In Progress", icon: HourglassTopRoundedIcon, color: "white", taskData: progressTasks }, { name: "Completed", color: "white", icon: CheckCircleOutlineRoundedIcon, taskData: completedTasks }].map((item) => {
-                          return <div key={item} className={`box-content messageCount cardContent ${status === item.name && "activeCard"}`} style={{ background: item.color, boxShadow: "rgba(0, 0, 0, 0.02) 0px 1px 3px 0px, rgba(27, 31, 35, 0.15) 0px 0px 0px 1px" }} onClick={() => setStatus(item.name)}>
+                      isLoading ? [...Array(3)].map((_, index) => (<Skeleton variant="rounded" width={300} height={80} key={index} />))
+                        : [
+                          { name: "Pending", color: "white", icon: PauseCircleOutlineRoundedIcon, taskData: pendingTasks },
+                          { name: "In Progress", icon: HourglassTopRoundedIcon, color: "white", taskData: progressTasks },
+                          { name: "Completed", color: "white", icon: CheckCircleOutlineRoundedIcon, taskData: completedTasks }
+                        ].map((item, index) => {
+                          return <div key={index} className={`box-content messageCount cardContent ${status === item.name && "activeCard"}`} style={{ background: item.color, boxShadow: "rgba(0, 0, 0, 0.02) 0px 1px 3px 0px, rgba(27, 31, 35, 0.15) 0px 0px 0px 1px" }} onClick={() => setStatus(item.name)}>
                             {<item.icon sx={{ fontSize: "50px" }} />}
                             <p className="m-0">
                               <b>
@@ -669,7 +673,7 @@ const Tasks = () => {
                   </div>
                   {
                     isLoading ? (
-                      [...Array(2)].map((item, index) => (<Skeleton variant="rounded" width={"100%"} height={80} key={index} className="my-3" />))
+                      [...Array(2)].map((_, index) => (<Skeleton variant="rounded" width={"100%"} height={80} key={index} className="my-3" />))
                     ) : status === "Pending" ? (
                       Array.isArray(pendingTasks) && pendingTasks?.length > 0 ? (
                         pendingTasks.map((task) => <TaskItem key={task._id} task={task} renderMenu3={renderMenu3} handleAddComment={handleAddComment} status={status} isLoading={isUpdateTime} getValue={getValue} handleEditTask={handleEditTask} fetchTaskById={fetchTaskById} updatedTimerInTask={updatedTimerInTask} renderMenu2={renderMenu2} handleViewTask={handleViewTask} whoIs={whoIs} updateTask={updatedTimerInTask} />)
