@@ -103,13 +103,13 @@ app.use('/uploads', express.static(uploadsDir));
 
 // API Endpoints
 app.get("/", (req, res) => {
-  // require("dns").resolve("www.google.com", function (err) {
-  //   if (err) {
-  //     res.status(1024).send("Network not Connected!");
-  //   } else {
-  res.send({ message: "API and Network connected!" });
-  // }
-  // });
+  require("dns").resolve("www.google.com", function (err) {
+    if (err) {
+      res.status(1024).send("Network not Connected!");
+    } else {
+      res.send({ message: "API and Network connected!" });
+    }
+  });
 });
 
 // Routers

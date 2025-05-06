@@ -10,7 +10,7 @@ import { jwtDecode } from "jwt-decode";
 import "./App.css";
 import 'rsuite/dist/rsuite.min.css';
 import "react-datepicker/dist/react-datepicker.css";
-import io from "socket.io-client";
+// import io from "socket.io-client";
 import { Notification, toaster } from "rsuite";
 import companyLogo from "./imgs/webnexs_logo.webp";
 import AdminDashboard from "./components/superAdmin/AdminDashboard.js";
