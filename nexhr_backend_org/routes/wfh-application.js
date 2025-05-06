@@ -82,6 +82,8 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
                         { path: "lead", select: "Email" },
                         { path: "head", select: "Email" },
                         { path: "manager", select: "Email" },
+                        { path: "admin", select: "Email" },
+                        { path: "hr", select: "Email" }
                     ],
                 },
             ]);
@@ -92,7 +94,7 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
 
         // 10. Approvers setup
         const approvers = {};
-        const teamRoles = ["lead", "head", "manager", "hr"];
+        const teamRoles = ["lead", "head", "manager", "hr", "admin"];
 
         for (const role of teamRoles) {
             if (emp?.team?.[role]) {
@@ -118,7 +120,8 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
                 emp?.team?.lead?.Email,
                 emp?.team?.head?.Email,
                 emp?.team?.manager?.Email,
-                emp?.admin?.Email,
+                emp?.team?.hr?.Email,
+                emp?.team?.admin?.Email,
             ].filter(Boolean);
 
             sendMail({

@@ -25,6 +25,7 @@ const ActivityTimeTracker = () => {
     const [isDisabled, setIsDisabled] = useState(false);
     const EmpName = data.Name;
     const [isViewTakeTime, setIsTaketime] = useState(localStorage.getItem("isViewTakeTime") ? true : false);
+    const [isHover, setIsHover] = useState(false);
 
     const [sec, setSec] = useState(
         Number(workTimeTracker?.[timeOption]?.timeHolder?.split(':')[2] || 0)
@@ -244,7 +245,16 @@ const ActivityTimeTracker = () => {
                     <div className='leaveIndicator'>
                         <button
                             className={`btn btn-outline-${isDisabled ? "success" : "danger"}`}
-                            style={{ padding: "15px 15px" }}
+                            style={{
+                                padding: "15px",
+                                color: !isHover
+                                    ? isDisabled
+                                        ? "green"
+                                        : "red"
+                                    : "white"
+                            }}
+                            onMouseOver={() => setIsHover(true)}
+                            onMouseOut={() => setIsHover(false)}
                             title={isStartActivity ? "Stop" : "Start"}
                             onClick={
                                 workTimeTracker?._id
@@ -258,7 +268,7 @@ const ActivityTimeTracker = () => {
                             id="startActivityTimerBtn"
                         >
                             {
-                                isworkingActivityTimerApi ? <Loading size={20} color='white' /> :
+                                isworkingActivityTimerApi ? <Loading size={20} color={!isHover ? isDisabled ? "green" : "red" : "white"} /> :
                                     <PowerSettingsNewRoundedIcon />
                             }
                         </button>

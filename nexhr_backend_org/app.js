@@ -107,8 +107,8 @@ app.get("/", (req, res) => {
   //   if (err) {
   //     res.status(1024).send("Network not Connected!");
   //   } else {
-      res.send({ message: "API and Network connected!" });
-    // }
+  res.send({ message: "API and Network connected!" });
+  // }
   // });
 });
 
@@ -339,7 +339,7 @@ io.on("connection", (socket) => {
 
     emps.forEach(async (emp) => {
       const notification = {
-        company: emp.company,
+        company: emp.company._id,
         title: data.title,
         message: data.message.replace(/<\/?[^>]+(>|$)/g, '')
       }
@@ -347,7 +347,11 @@ io.on("connection", (socket) => {
       await emp.save();
       const employeeSocketID = onlineUsers[emp]; // Get employee's socket ID
       if (employeeSocketID) {
-        io.to(employeeSocketID).emit("receive_announcement", notification);
+        io.to(employeeSocketID).emit("receive_announcement", {
+          company: empData.company,
+          title: notification.title,
+          message: notification.message
+        });
       } else {
         console.log(`Employee ${emp.FirstName} is offline, skipping.`);
       }
@@ -363,10 +367,11 @@ io.on("connection", (socket) => {
             path: "admin",
             select: "FirstName LastName Email"
           },
+          { path: "company", select: "CompanyName logo" },
           {
             path: "team",
             populate: [
-              { path: "lead", select: "Email company", populate: { path: "company", select: "CompanyName logo" } },
+              { path: "lead", select: "Email company" },
               { path: "head", select: "Email company" },
               { path: "manager", select: "Email company" }
             ]
@@ -382,7 +387,7 @@ io.on("connection", (socket) => {
           for (const emp of value) {
             if (emp && emp.company) {
               const notification = {
-                company: emp.company._id,
+                company: empData.company._id,
                 title: "Leave Application Notification",
                 message
               };
@@ -394,7 +399,7 @@ io.on("connection", (socket) => {
               const employeeSocketID = onlineUsers[emp._id.toString()];
               if (employeeSocketID) {
                 io.to(employeeSocketID).emit("send_leave_notification", {
-                  company: emp.company,
+                  company: empData.company,
                   title: notification.title,
                   message: notification.message
                 });
@@ -470,9 +475,9 @@ io.on("connection", (socket) => {
       for (const [key, value] of Object.entries(teamData)) {
         if (Array.isArray(value) && key !== "employees") {
           for (const emp of value) {
-            if (emp && emp.company) {
+            if (emp) {
               const notification = {
-                company: emp.company._id,
+                company: empData.company._id,
                 title: "Work From Home Request Notification",
                 message
               };
@@ -651,7 +656,7 @@ schedule.scheduleJob("0 7 * * 1-5", async () => {
 // Start Server
 const port = process.env.PORT;
 
-app.listen(port, () => console.log(`Server listening on port ${port}!`));
+server.listen(port, () => console.log(`Server listening on port ${port}!`));
 process.on("uncaughtException", (err) => {
   console.log(err);
 });

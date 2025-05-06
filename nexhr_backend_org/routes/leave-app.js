@@ -789,6 +789,8 @@ leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("pre
             { path: "lead", select: "Email" },
             { path: "head", select: "Email" },
             { path: "manager", select: "Email" },
+            { path: "admin", select: "Email" },
+            { path: "hr", select: "Email" }
           ],
         },
       ]);

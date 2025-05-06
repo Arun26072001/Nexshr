@@ -108,8 +108,6 @@ export default function WFHRequestForm({ type }) {
         async function fetchHolidays() {
             try {
                 const res = await getHoliday();
-                console.log("holidays", res);
-
                 setExcludeDates(res?.holidays?.map(date => new Date(date)));
             } catch (error) {
                 console.log(error);
@@ -135,8 +133,8 @@ export default function WFHRequestForm({ type }) {
                             <div className="col-12 col-lg-6 col-md-6">
                                 <span className="inputLabel">Start Date</span>
                                 <DatePicker
-                                    showTimeSelect
-                                    dateFormat="Pp"
+                                    // showTimeSelect
+                                    // dateFormat="Pp"
                                     disabled={type === "view"}
                                     className={`inputField ${errors.fromDate ? "error" : ""} w-100`}
                                     selected={wfhRequestObj.fromDate ? new Date(wfhRequestObj.fromDate) : null}
@@ -150,8 +148,8 @@ export default function WFHRequestForm({ type }) {
                             <div className="col-12 col-lg-6 col-md-6">
                                 <span className="inputLabel">End Date</span>
                                 <DatePicker
-                                    showTimeSelect
-                                    dateFormat="Pp"
+                                    // showTimeSelect
+                                    // dateFormat="Pp"
                                     disabled={type === "view"}
                                     className={`inputField ${errors.toDate ? "error" : ""} w-100`}
                                     selected={wfhRequestObj.toDate ? new Date(wfhRequestObj.toDate) : null}

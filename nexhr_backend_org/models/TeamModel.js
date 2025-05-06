@@ -6,6 +6,10 @@ const TeamSchema = mongoose.Schema({
         type: String,
         unique: true
     },
+    hr: [{
+        type: mongoose.Types.ObjectId, ref: "Employee"
+    }],
+    admin: [{ type: mongoose.Types.ObjectId, ref: "Employee" }],
     employees: [{ type: mongoose.Types.ObjectId, ref: "Employee" }],
     lead: [{
         type: mongoose.Types.ObjectId, ref: "Employee"
@@ -16,7 +20,7 @@ const TeamSchema = mongoose.Schema({
     manager: [{
         type: mongoose.Types.ObjectId, ref: "Employee"
     }],
-    createdBy: {type: mongoose.Schema.Types.ObjectId, ref: "Employee"}
+    createdBy: { type: mongoose.Schema.Types.ObjectId, ref: "Employee" }
 }, { timestamps: true })
 
 const Team = mongoose.model("Team", TeamSchema);
@@ -28,6 +32,8 @@ const TeamValidation = Joi.object({
     lead: Joi.array().items(Joi.string()).optional().label("Lead"),
     head: Joi.array().items(Joi.string()).optional().label("Head"),
     manager: Joi.array().items(Joi.string()).optional().label("Manager"),
+    admin: Joi.array().items(Joi.string()).optional().label("Admin"),
+    hr: Joi.array().items(Joi.string()).optional().label("Hr"),
     __v: Joi.number().optional(),
     createdBy: Joi.any().optional(),
     createdAt: Joi.string().allow('').label('createdAt'),

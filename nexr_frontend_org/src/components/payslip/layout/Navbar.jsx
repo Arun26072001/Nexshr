@@ -37,7 +37,6 @@ export default function Navbar({ handleSideBar }) {
     const incrementTime = () => {
         setSec((prevSec) => {
             let newSec = prevSec + 1;
-
             if (newSec > 59) {
                 newSec = 0;
                 setMin((prevMin) => {
@@ -262,34 +261,6 @@ export default function Navbar({ handleSideBar }) {
     useEffect(() => {
         getAddress();
     }, [latitude, longitude])
-
-    // useEffect(() => {
-    //     const getAddressFromCoords = async (lat, lon) => {
-    //         try {
-    //             const res = await axios.get("https://nominatim.openstreetmap.org/reverse", {
-    //                 params: {
-    //                     lat,
-    //                     lon,
-    //                     format: "json",
-    //                 },
-    //             });
-
-    //             if (res.data && res.data.display_name) {
-    //                 console.log(res.data);
-    //                 setHamlet(res.data.address.hamlet);
-    //             } else {
-    //                 setHamlet("Address not found.");
-    //             }
-    //         } catch (err) {
-    //             console.error(err);
-    //             setHamlet("Failed to get address.");
-    //         }
-    //     };
-    //     if (lat && long) {
-    //         console.log(lat, long);
-    //         getAddressFromCoords(lat, long)
-    //     }
-    // }, [lat, long])
 
     useEffect(() => {
         socket.connect();

@@ -14,7 +14,6 @@ var companySchema = new mongoose.Schema({
   PanNo: { type: String },
   GSTNo: { type: String },
   CINNo: { type: String },
-  placeId: { type: String },
   State: { type: String },
   Country: { type: String },
   location: { type: mongoose.Schema.Types.Mixed, default: {} }
@@ -61,9 +60,6 @@ const CompanyValidation = Joi.object().keys({
     .optional(),
   CINNo: Joi.string()
     .max(200)
-    .optional(),
-  placeId: Joi.string()
-    .allow("", null)
     .optional(),
   State: Joi.string().required(),
   Country: Joi.string().required(),

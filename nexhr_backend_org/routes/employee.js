@@ -166,22 +166,25 @@ router.get("/team/:higher", verifyAdminHRTeamHigherAuth, async (req, res) => {
     else if (higher === "head") keyword = "Head";
     else keyword = "Manager";
 
-    const employees = await Employee.find({}, "FirstName LastName position profile")
+    const employees = await Employee.find({}, "FirstName LastName position profile role")
       .populate("position", "PositionName") // Populate only PositionName
+      .populate("role", "RoleName")
       .exec();
 
     // Filter employees based on position name containing the keyword
     const filtered = employees.filter(emp => {
       const positionName = emp?.position?.PositionName;
+      const roleName = emp?.role.RoleName;
+      if (["admin", "hr"].includes(higher.toLowerCase())) {
+        return roleName && roleName.toLowerCase().includes(higher)
+      }
       return positionName && positionName.includes(keyword);
     });
-
     res.send(filtered);
   } catch (err) {
     res.status(500).send({ error: err.message });
   }
 });
-
 
 router.get("/team/members/:id", verifyTeamHigherAuthority, async (req, res) => {
   try {

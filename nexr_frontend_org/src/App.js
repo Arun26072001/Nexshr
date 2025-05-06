@@ -129,50 +129,52 @@ const App = () => {
       socket.connect();
     }
 
-    socket.emit("join_room", data._id); // ✅ Make sure the employee joins their room
+    if (isLogin && data?._id) {
+      socket.emit("join_room", data._id);
 
-    socket.on("receive_announcement", (response) => {
-      console.log("responseData", response);
+      const handlers = {
+        receive_announcement: (response) => {
+          console.log("responseData", response);
+          triggerToaster(response);
+          handleUpdateAnnouncements();
+        },
+        send_leave_notification: (response) => {
+          console.log(response);
+          triggerToaster(response);
+          handleUpdateAnnouncements();
+        },
+        send_project_notification: (response) => {
+          triggerToaster(response);
+          handleUpdateAnnouncements();
+        },
+        send_task_notification: (response) => {
+          triggerToaster(response);
+          handleUpdateAnnouncements();
+        },
+        send_team_notification: (response) => {
+          triggerToaster(response);
+          handleUpdateAnnouncements();
+        },
+        send_wfh_notification: (response) => {
+          console.log(response);
+          triggerToaster(response);
+          handleUpdateAnnouncements();
+        },
+      };
 
-      triggerToaster(response);
-      handleUpdateAnnouncements()
-    });
+      // Attach all handlers
+      Object.entries(handlers).forEach(([event, handler]) => {
+        socket.on(event, handler);
+      });
 
-    socket.on("send_leave_notification", (response) => {
-      triggerToaster(response);
-      handleUpdateAnnouncements()
-    });
-
-    socket.on("send_project_notification", (response) => {
-      triggerToaster(response);
-      handleUpdateAnnouncements()
-    });
-
-    socket.on("send_task_notification", (response) => {
-      triggerToaster(response);
-      handleUpdateAnnouncements()
-    });
-
-    socket.on("send_team_notification", (response) => {
-      triggerToaster(response);
-      handleUpdateAnnouncements();
-    })
-    
-    socket.on("send_wfh_notification", (response)=>{
-      console.log(response);
-      triggerToaster(response);
-      handleUpdateAnnouncements();
-    })
-
-    return () => {
-      socket.off("receive_announcement");
-      socket.off("send_task_notification");
-      socket.off("send_project_notification");
-      socket.off("send_leave_notification");
-      socket.off("send_team_notification");
-      socket.off("send_wfh_notification");
-    };
-  }, [socket]);
+      return () => {
+        // Detach all handlers
+        Object.keys(handlers).forEach((event) => {
+          socket.off(event);
+        });
+      };
+    }
+  }, [socket, isLogin, data?._id]);
 
   useEffect(() => {
     localStorage.setItem("isStartLogin", isStartLogin);
