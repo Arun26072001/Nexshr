@@ -868,10 +868,9 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
                 return setColumns(column1);
             } else if (item?.FirstName && params["*"] === "employee") {
                 return setColumns(column3);
-            } else if (item?.date && params['*'] === "attendance-summary"
-                || item?.date && params['*'] === "details"
-                // || item?.date && params['*'] === "attendance-request"
-                || item?.date && params['*'] === "attendance"
+            } else if ((item?.date && params['*'] === "attendance-summary")
+                || (item?.date && params['*'] === "details")
+                || (item?.date && params['*'] === "attendance")
             ) {
                 return setColumns(column5);
             } else if ((item?.date && params['*'] === "attendance-request") || item?.date) {

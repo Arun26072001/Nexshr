@@ -135,11 +135,26 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
     }
 })
 
-router.get("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
+router.get("/on-wfh", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
     try {
-        const data = await WFHApplication.findById(req.params.id);
+        const today = new Date();
+        const startOfDay = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate(), 0, 0, 0));
+        const endOfDay = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate(), 23, 59, 59));
+        const data = await WFHApplication.find({
+            fromDate: { $gte: startOfDay, $lte: endOfDay },
+            status: "approved"
+        }, "fromDate toDate status leaveType")
+            .populate({
+                path: "employee",
+                select: "FirstName LastName profile",
+                populate: {
+                    path: "team",
+                    select: "teamName"
+                }
+            }).lean().exec();
         return res.send(data);
     } catch (error) {
+        console.log(error);
         return res.status(500).send({ error: error.message })
     }
 })
@@ -149,8 +164,6 @@ router.get("/", verifyAdminHR, async (req, res) => {
     try {
         const now = new Date()
         let filterObj = {};
-        console.log(req.query.dateRangeValue);
-
         if (req.query.dateRangeValue) {
             const startDate = new Date(req.query.dateRangeValue[0]);
             const endDate = new Date(req.query.dateRangeValue[1]);
@@ -181,26 +194,11 @@ router.get("/", verifyAdminHR, async (req, res) => {
     }
 })
 
-router.get("/on-wfh", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
+router.get("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
     try {
-        const today = new Date();
-        const startOfDay = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate(), 0, 0, 0));
-        const endOfDay = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate(), 23, 59, 59));
-        const data = await WFHApplication.find({
-            fromDate: { $gte: startOfDay, $lte: endOfDay },
-            status: "approved"
-        }, "fromDate toDate status leaveType")
-            .populate({
-                path: "employee",
-                select: "FirstName LastName profile",
-                populate: {
-                    path: "team",
-                    select: "teamName"
-                }
-            }).lean().exec();
+        const data = await WFHApplication.findById(req.params.id);
         return res.send(data);
     } catch (error) {
-        console.log("error in fetch on wfh emps", error);
         return res.status(500).send({ error: error.message })
     }
 })

@@ -1,7 +1,6 @@
 import React, { useContext, useEffect, useState } from 'react'
 import LeaveTable from '../LeaveTable'
 import NoDataFound from '../payslip/NoDataFound'
-import Loading from '../Loader';
 import { toast } from 'react-toastify';
 import axios from 'axios';
 import { getDepartments } from '../ReuseableAPI';

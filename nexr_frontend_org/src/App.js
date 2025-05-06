@@ -95,10 +95,6 @@ const App = () => {
       localStorage.setItem("isLogin", true);
       localStorage.setItem("_id", decodedData._id);
       localStorage.setItem("token", response.data);
-      // localStorage.setItem("Account", accountType);
-      // localStorage.setItem("Name", `${decodedData.FirstName} ${decodedData.LastName}`);
-      // localStorage.setItem("annualLeaveEntitment", decodedData.annualLeaveEntitlement || 0);
-      // localStorage.setItem("profile", decodedData.profile)
 
       setPass(true);
       setLoading(false);
@@ -161,13 +157,18 @@ const App = () => {
       triggerToaster(response);
       handleUpdateAnnouncements();
     })
+    socket.on("send_wfh_notification", (response)=>{
+      triggerToaster(response);
+      handleUpdateAnnouncements();
+    })
 
     return () => {
       socket.off("receive_announcement");
       socket.off("send_task_notification");
       socket.off("send_project_notification");
       socket.off("send_leave_notification");
-      socket.off("send_team_notification")
+      socket.off("send_team_notification");
+      socket.off("send_wfh_notification");
     };
   }, [socket]);
 
@@ -213,7 +214,6 @@ const App = () => {
 
       if (window.location.pathname !== "/login" || window.location.pathname !== `/${whoIs}`) {
         if (roles[String(decodedData?.Account)]) {
-          console.log("go to place");
           replaceMiddleSegment()
         }
       }

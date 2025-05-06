@@ -91,10 +91,17 @@ router.post("/", async (req, res) => {
 
 router.get("/emp/:empId", async (req, res) => {
   try {
-    let payslips = await Payslip.find({ employee: req.params.empId }).populate("employee", "FirstName LastName payslip basicSalary").exec();
+    let payslips = await Payslip.find({ employee: req.params.empId }).populate("employee", "FirstName LastName payslip basicSalary profile").exec();
     const arrangedPayslips = payslips.sort((a, b) => new Date(String(a.payslip.period)) - new Date(String(b.payslip.period)))
-
-    return res.send(arrangedPayslips)
+    const pendingPayslips = arrangedPayslips.filter((slip) => slip.payslip.status === "pending");
+    const conflitPayslips = arrangedPayslips.filter((slip) => slip.payslip.status === "conflict");
+    const successPayslips = arrangedPayslips.filter((slip) => slip.payslip.status === "success");
+    return res.send({
+      arrangedPayslips,
+      pendingPayslips,
+      conflitPayslips,
+      successPayslips
+    })
   } catch (err) {
     res.status(500).send({ error: err.message })
   }

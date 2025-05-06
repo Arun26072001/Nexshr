@@ -108,19 +108,19 @@ async function verifyAdminHREmployeeManagerNetwork(req, res, next) {
     jwt.verify(token, jwtKey, (err, authData) => {
       if (err) {
         console.log(err, "error in verify");
-        res.sendStatus(401);
+        return res.sendStatus(401);
       } else {
         if ([1, 2, 3, 4, 5, 17].includes(authData.Account)) {
           next();
         }
         else {
-          res.status(401).send({ error: "You has no Authorization!" });
+          return res.status(401).send({ error: "You has no Authorization!" });
         }
       }
     });
   } else {
     // Forbidden
-    res.send(401).send({ error: "token not not found" });
+    return res.send(401).send({ error: "token not not found" });
   }
 }
 

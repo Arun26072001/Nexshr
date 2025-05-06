@@ -21,7 +21,7 @@ const JobDesk = () => {
     const { data } = useContext(EssentialValues);
     const [isLoading, setIsLoading] = useState(false);
     const [refetch, setRefetch] = useState(false);
-    const [payslips, setPayslips] = useState([]);
+    const [payslipData, setPayslipData] = useState({});
     const jobDeskFiles = [
         'my-details',
         'attendance', 'leave', "workFromHome", 'payslip', 'history',
@@ -37,7 +37,7 @@ const JobDesk = () => {
             setIsLoading(true);
             try {
                 const slips = await fetchPayslipFromEmp(data._id);
-                setPayslips(slips);
+                setPayslipData(slips);
             } catch (err) {
                 toast.error(err?.response?.data?.error)
             }
@@ -68,8 +68,8 @@ const JobDesk = () => {
                 <Route path="attendance" element={<Attendence />} />
                 <Route path="leave" element={<Leave />} />
                 <Route path="workFromHome" element={<WorkFromHome />} />
-                <Route path="history" element={<History payslips={payslips} isLoading={isLoading} />} />
-                <Route path="payslip" element={<Payslip payslips={payslips} isLoading={isLoading} />} />
+                <Route path="history" element={<History payslips={payslipData} isLoading={isLoading} />} />
+                <Route path="payslip" element={<Payslip payslips={payslipData} isLoading={isLoading} />} />
                 <Route path="contact" element={<Contact empObj={empObj} error={error} />} />
                 <Route path="social" element={<Social empObj={empObj} changeFetching={changeFetching} error={error} />} />
                 <Route path="address" element={<Address empData={empObj} error={error} />} />

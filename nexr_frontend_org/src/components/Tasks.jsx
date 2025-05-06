@@ -540,7 +540,6 @@ const Tasks = () => {
         })
 
         setProjects(res.data.map((project) => ({ label: project.name, value: project._id })));
-        // setFilterProjects(res.data.map((project) => ({ label: project.name, value: project._id })))
       } catch (error) {
         toast.error(error.response.data.error)
       }
@@ -643,9 +642,9 @@ const Tasks = () => {
                 <div className="projectBody">
                   <div className="card-parent">
                     {
-                      isLoading ? [...Array(3)].map((item) => (<Skeleton variant="rounded" width={300} height={80} />))
+                      isLoading ? [...Array(3)].map((item, index) => (<Skeleton variant="rounded" width={300} height={80} key={index} />))
                         : [{ name: "Pending", color: "white", icon: PauseCircleOutlineRoundedIcon, taskData: pendingTasks }, { name: "In Progress", icon: HourglassTopRoundedIcon, color: "white", taskData: progressTasks }, { name: "Completed", color: "white", icon: CheckCircleOutlineRoundedIcon, taskData: completedTasks }].map((item) => {
-                          return <div className={`box-content messageCount cardContent ${status === item.name && "activeCard"}`} style={{ background: item.color, boxShadow: "rgba(0, 0, 0, 0.02) 0px 1px 3px 0px, rgba(27, 31, 35, 0.15) 0px 0px 0px 1px" }} onClick={() => setStatus(item.name)}>
+                          return <div key={item} className={`box-content messageCount cardContent ${status === item.name && "activeCard"}`} style={{ background: item.color, boxShadow: "rgba(0, 0, 0, 0.02) 0px 1px 3px 0px, rgba(27, 31, 35, 0.15) 0px 0px 0px 1px" }} onClick={() => setStatus(item.name)}>
                             {<item.icon sx={{ fontSize: "50px" }} />}
                             <p className="m-0">
                               <b>
@@ -668,7 +667,7 @@ const Tasks = () => {
                   </div>
                   {
                     isLoading ? (
-                      [...Array(2)].map((item) => (<Skeleton variant="rounded" width={"100%"} height={80} className="my-3" />))
+                      [...Array(2)].map((item, index) => (<Skeleton variant="rounded" width={"100%"} height={80} key={index} className="my-3" />))
                     ) : status === "Pending" ? (
                       Array.isArray(pendingTasks) && pendingTasks?.length > 0 ? (
                         pendingTasks.map((task) => <TaskItem key={task._id} task={task} renderMenu3={renderMenu3} handleAddComment={handleAddComment} status={status} isLoading={isUpdateTime} getValue={getValue} handleEditTask={handleEditTask} fetchTaskById={fetchTaskById} updatedTimerInTask={updatedTimerInTask} renderMenu2={renderMenu2} handleViewTask={handleViewTask} whoIs={whoIs} updateTask={updatedTimerInTask} />)

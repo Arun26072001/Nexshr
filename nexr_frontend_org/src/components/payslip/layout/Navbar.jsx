@@ -377,7 +377,7 @@ export default function Navbar({ handleSideBar }) {
                             src={Webnexs}
                             width={30}
                             height={30}
-                            hstartLoginTimer style={{ objectFit: "cover" }}
+                            style={{ objectFit: "cover" }}
                             alt="Webnexs Company Logo"
                         />
                         <span style={{ fontSize: "16px", fontWeight: "700" }}>NexHR</span>
@@ -480,7 +480,7 @@ export default function Navbar({ handleSideBar }) {
                             <img src={data?.profile || logo} className='imgContainer' style={{ width: "40px", height: "40px" }} alt='emp_img' />
                         </Whisper>
                         {/* Messages Section */}
-                        <div className="offcanvas offcanvas-end" tabindex="-1" id="offcanvasRight" aria-labelledby="offcanvasRightLabel">
+                        <div className="offcanvas offcanvas-end" tabIndex="-1" id="offcanvasRight" aria-labelledby="offcanvasRightLabel">
                             <div className="offcanvas-header">
                                 <h5 id="offcanvasRightLabel">Notifications</h5>
                                 <button type="button" className="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>

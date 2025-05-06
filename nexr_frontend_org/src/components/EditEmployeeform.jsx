@@ -136,7 +136,6 @@ const EditEmployeeform = ({ details, empData, handleScroll, handlePersonal, prev
         formik.setFieldValue("typesOfLeaveCount", leaveTypeCount)
         setSelectedLeavetypes(value);
     }
-    // console.log(formik.values);
 
     function navToError() {
         if (formik.errors.FirstName

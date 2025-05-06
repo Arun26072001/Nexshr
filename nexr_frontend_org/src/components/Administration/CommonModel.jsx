@@ -261,7 +261,7 @@ const CommonModel = ({
                                             :
                                             previewList?.length &&
                                             previewList?.map((imgFile, index) => (
-                                                <div className="col-lg-4 p-2">
+                                                <div className="col-lg-4 p-2" key={index}>
                                                     <div className="position-relative">
                                                         {(dataObj?.attachments?.length === previewList?.length && dataObj?.attachments[index]?.type === "video/mp4" || imgFile.includes(".mp4")) ?
                                                             <video className="w-100 h-auto" controls>

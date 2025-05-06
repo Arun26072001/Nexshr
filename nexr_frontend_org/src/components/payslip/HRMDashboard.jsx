@@ -435,18 +435,16 @@ export default function HRMDashboard() {
     useEffect(() => {
         if (whoIs && [isTeamHead, isTeamLead, isTeamManager].includes(true)) {
             getLeaveDataFromTeam()
-        } else {
+        } else if(["admin","hr"].includes(whoIs)){
             getLeaveData();
         }
     }, [daterangeValue, _id, whoIs, isUpdatedRequest]);
 
     // to view attendance data for admin and hr
     useEffect(() => {
-        console.log("call on change");
-
         if ([isTeamHead, isTeamLead, isTeamManager].includes(true)) {
             getTeamAttendance();
-        } else {
+        } else if(["admin","hr"].includes(whoIs)) {
             getAttendanceData()
         }
         getClocknsData();

@@ -328,8 +328,6 @@ io.on("connection", (socket) => {
         io.to(employeeSocketID).emit("send_updated_task", res.data)
       })
     } catch (error) {
-      console.log(error);
-
       console.log(error.response.data.error);
     }
   })
@@ -444,36 +442,63 @@ io.on("connection", (socket) => {
     }
   });
 
-  socket.on("send_notification_for_wfh", async (project) => {
+  socket.on("send_notification_for_wfh", async (wfhRequest, empId) => {
     try {
-      const emps = await Employee.find(
-        { _id: { $in: project.employees } },
-        "FirstName LastName Email company notifications"
+      console.log(wfhRequest, empId);
+      const empData = await Employee.findById(
+        empId,
+        "FirstName LastName Email company notifications team"
       )
-        .populate({ path: "company", select: "CompanyName logo" })
+        .populate([
+          { path: "company", select: "CompanyName logo" },
+          {
+            path: "admin",
+            select: "FirstName LastName Email"
+          },
+          {
+            path: "team",
+            populate: [
+              { path: "lead", select: "Email company"},
+              { path: "head", select: "Email company" },
+              { path: "manager", select: "Email company" }
+            ]
+          }
+
+        ])
         .exec();
+      console.log(empData);
 
-      if (emps.length) {
-        for (const emp of emps) {
+      const teamData = empData.team?.toObject?.() || {};
+      const notifiedIds = new Set(); // Prevent duplicate notifications
+
+      for (const role of ["lead", "head", "manager"]) {
+        const teamMember = teamData[role];
+        if (teamMember && teamMember._id && !notifiedIds.has(teamMember._id.toString())) {
           const notification = {
-            company: emp.company,
-            title: "You've Been Assigned to a New Project",
-            message: `We're excited to let you know that you've been officially assigned to the project "${project.name}".`
+            company: empData.company._id,
+            title: "Work From Home Request",
+            message: `${empData.FirstName} ${empData.LastName} has requested to work from home on ${wfhRequest.date}.`
           };
+          console.log(teamMember);
 
-          // Save notification to employee's notifications array
-          emp.notifications.push(notification);
-          await emp.save();
+          const fullEmp = await Employee.findById(teamMember._id, "notifications");
+          fullEmp.notifications.push(notification);
+          await fullEmp.save();
 
-          // Send real-time notification via socket if online
-          const employeeSocketID = onlineUsers[emp._id.toString()];
+          notifiedIds.add(teamMember._id.toString());
+
+          const employeeSocketID = onlineUsers[teamMember._id.toString()];
           if (employeeSocketID) {
-            io.to(employeeSocketID).emit("send_project_notification", notification);
+            io.to(employeeSocketID).emit("send_wfh_notification", {
+              company: teamMember.company,
+              title: notification.title,
+              message: notification.message
+            });
           }
         }
       }
     } catch (error) {
-      console.error("Error in send notification for project:", error);
+      console.error("Error in sending WFH notification:", error);
     }
   });
 
@@ -518,7 +543,7 @@ io.on("connection", (socket) => {
             company: emp.company,
             title: "You've Been Added to a Team",
             message: `You've been successfully added to the team "${team.teamName}". Welcome aboard and get ready to collaborate!`
-          };          
+          };
 
           // Save notification to employee's notifications array
           emp.notifications.push(notification);

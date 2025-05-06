@@ -109,8 +109,6 @@ const LeaveRequestForm = ({ type }) => {
     applyFor: Yup.string().notRequired()
   });
 
-  console.log("exclude", typeof new Date());
-
   const formik = useFormik({
     initialValues: leaveRequestObj,
     validationSchema: leaveObjValidation,

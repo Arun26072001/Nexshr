@@ -328,8 +328,8 @@ export default function Projects() {
                                 </div>
                                 <div className="container">
                                     <div className="row mx-2">
-                                        {isLoading ? [...Array(3)].map(((project) => {
-                                            return <Skeleton variant='rounded' width={280} height={250} className='m-2' />
+                                        {isLoading ? [...Array(3)].map(((_, index) => {
+                                            return <Skeleton variant='rounded' key={index} width={280} height={250} className='m-2' />
                                         })) :
                                             projects?.length > 0 ? (
                                                 projects?.map((project) => (

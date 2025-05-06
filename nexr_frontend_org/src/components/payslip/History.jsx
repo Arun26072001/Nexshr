@@ -11,16 +11,18 @@ const History = ({ payslips, isLoading }) => {
 
     if (isLoading) {
         return <div className="gap-1">
-            <Skeleton variant="rounded" height={130} className="my-3" />
-            <Skeleton variant="rounded" height={130} className="my-3" />
-            <Skeleton variant="rounded" height={130} className="my-3" />
+            {
+                [Array(3).length].map((_, index) => {
+                    return <Skeleton variant="rounded" key={index} height={130} className="my-3" />
+                })
+            }
         </div>;
     }
 
     return (
         <div className="container-fluid">
             <p className="payslipTitle">History</p>
-            {payslips.length > 0 ? payslips.map((item, index) => {
+            {payslips.arrangedPayslips.length > 0 ? payslips.arrangedPayslips.map((item, index) => {
                 const {
                     ESI = 0, LossOfPay = 0, ProfessionalTax = 0, ProvidentFund = 0,
                     bonusAllowance = 0, conveyanceAllowance = 0,

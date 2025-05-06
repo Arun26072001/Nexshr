@@ -24,7 +24,7 @@ const Payslip = ({ payslips, isLoading }) => {
                         <div className="leaveData col-12 col-lg-3">
                             <div className="d-flex flex-column">
                                 <div className="leaveDays">
-                                    {payslips?.length}
+                                    {payslips?.arrangedPayslips?.length}
                                 </div>
                                 <div className="leaveDaysDesc">
                                     Total Payslip
@@ -34,7 +34,7 @@ const Payslip = ({ payslips, isLoading }) => {
                         <div className="leaveData col-12 col-lg-3">
                             <div className="d-flex flex-column">
                                 <div className="leaveDays">
-                                    02
+                                    {payslips?.successPayslips?.length}
                                 </div>
                                 <div className="leaveDaysDesc">
                                     Send Payslip
@@ -44,7 +44,7 @@ const Payslip = ({ payslips, isLoading }) => {
                         <div className="leaveData col-12 col-lg-3" >
                             <div className="d-flex flex-column">
                                 <div className="leaveDays">
-                                    0
+                                    {payslips?.conflitPayslips?.length}
                                 </div>
                                 <div className="leaveDaysDesc">
                                     Conflicted Payslip
@@ -61,8 +61,8 @@ const Payslip = ({ payslips, isLoading }) => {
                         width={"100%"}
                         height={"50vh"}
                     /> :
-                        payslips.length > 0 ?
-                            <LeaveTable data={payslips} />
+                        payslips?.arrangedPayslips?.length > 0 ?
+                            <LeaveTable data={payslips?.arrangedPayslips} />
                             : <NoDataFound message={"Sorry! No payslip data in your account."} />
                 }
             </div>
