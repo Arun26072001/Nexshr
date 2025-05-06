@@ -57,7 +57,6 @@ const mailSettings = require("./routes/mail-settings");
 const { Employee } = require("./models/EmpModel");
 const wfhRouter = require("./routes/wfh-application");
 const { timeToMinutes, getCurrentTimeInMinutes, getTotalWorkingHourPerDay, formatDate } = require("./Reuseable_functions/reusableFunction");
-const e = require("express");
 
 // MongoDB Connection
 const mongoURI = process.env.DATABASEURL;
@@ -104,13 +103,13 @@ app.use('/uploads', express.static(uploadsDir));
 
 // API Endpoints
 app.get("/", (req, res) => {
-  require("dns").resolve("www.google.com", function (err) {
-    if (err) {
-      res.status(1024).send("Network not Connected!");
-    } else {
+  // require("dns").resolve("www.google.com", function (err) {
+  //   if (err) {
+  //     res.status(1024).send("Network not Connected!");
+  //   } else {
       res.send({ message: "API and Network connected!" });
-    }
-  });
+    // }
+  // });
 });
 
 // Routers
