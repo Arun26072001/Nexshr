@@ -651,7 +651,7 @@ schedule.scheduleJob("0 7 * * 1-5", async () => {
 // Start Server
 const port = process.env.PORT;
 
-server.listen(port, () => console.log(`Server listening on port ${port}!`));
+app.listen(port, () => console.log(`Server listening on port ${port}!`));
 process.on("uncaughtException", (err) => {
   console.log(err);
 });
