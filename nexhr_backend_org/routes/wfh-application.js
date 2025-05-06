@@ -27,7 +27,7 @@ function generateWfhEmail(empData, fromDateValue, toDateValue, reason) {
               
               <!-- Header -->
               <div style="text-align: center; padding: 20px;">
-                <img src="${empData.company.CompanyName}"
+                <img src="${empData.company.logo}"
                      alt="Company Logo" style="max-width: 100px;" />
                 <h1 style="font-size: 20px; margin: 10px 0;">
                   Work From Home Request (${formattedFromDate} to ${formattedToDate})
@@ -69,21 +69,17 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
         const emp = await Employee.findById(req.params.id, "FirstName LastName monthlyPermissions permissionHour typesOfLeaveRemainingDays typesOfLeaveCount leaveApplication company")
             .populate([
                 {
-                    path: "admin",
-                    select: "FirstName LastName Email",
-                },
-                {
                     path: "company",
                     select: "logo CompanyName"
                 },
                 {
                     path: "team",
                     populate: [
-                        { path: "lead", select: "Email" },
-                        { path: "head", select: "Email" },
-                        { path: "manager", select: "Email" },
-                        { path: "admin", select: "Email" },
-                        { path: "hr", select: "Email" }
+                        { path: "lead", select: "FirstName LastName Email" },
+                        { path: "head", select: "FirstName LastName Email" },
+                        { path: "manager", select: "FirstName LastName Email" },
+                        { path: "admin", select: "FirstName LastName Email" },
+                        { path: "hr", select: "FirstName LastName Email" }
                     ],
                 },
             ]);
@@ -117,12 +113,12 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
 
             // 13. Send Notification (only for self-application)
             const mailList = [
-                emp?.team?.lead?.Email,
-                emp?.team?.head?.Email,
-                emp?.team?.manager?.Email,
-                emp?.team?.hr?.Email,
-                emp?.team?.admin?.Email,
-            ].filter(Boolean);
+                ...([].concat(emp?.team?.lead || []).map(emp => emp?.Email)),
+                ...([].concat(emp?.team?.head || []).map(emp => emp?.Email)),
+                ...([].concat(emp?.team?.manager || []).map(emp => emp?.Email)),
+                ...([].concat(emp?.team?.hr || []).map(emp => emp?.Email)),
+                ...([].concat(emp?.team?.admin || []).map(emp => emp?.Email)),
+              ].filter(Boolean); // removes null/undefined/false              
 
             sendMail({
                 From: process.env.FROM_MAIL,

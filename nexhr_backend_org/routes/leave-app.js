@@ -4,7 +4,7 @@ const { LeaveApplication,
   LeaveApplicationValidation
 } = require('../models/LeaveAppModel');
 const { Employee } = require('../models/EmpModel');
-const { verifyHR, verifyHREmployee, verifyEmployee, verifyAdmin, verifyAdminHREmployeeManagerNetwork, verifyAdminHR, verifyAdminHREmployee, verifyTeamHigherAuthority, verifyAdminHrNetworkAdmin } = require('../auth/authMiddleware');
+const { verifyHR, verifyEmployee, verifyAdmin, verifyAdminHREmployeeManagerNetwork, verifyAdminHR, verifyAdminHREmployee, verifyTeamHigherAuthority, verifyAdminHrNetworkAdmin } = require('../auth/authMiddleware');
 const { Team } = require('../models/TeamModel');
 const { upload } = require('./imgUpload');
 const sendMail = require("./mailSender");
@@ -42,10 +42,9 @@ function generateLeaveEmail(empData, fromDateValue, toDateValue, reasonForLeave,
   <body style="font-family: Arial, sans-serif; background-color: #f6f9fc; color: #333; margin: 0; padding: 0;">
     <div style="max-width: 500px; margin: auto; padding: 20px; background-color: #fff; border-radius: 8px;
                 box-shadow: rgba(0, 0, 0, 0.02) 0px 1px 3px 0px, rgba(27, 31, 35, 0.15) 0px 0px 0px 1px;">
-      
       <!-- Header -->
       <div style="text-align: center; padding: 20px;">
-        <img src="${empData.company.CompanyName}"
+        <img src="${empData.company.logo}"
              alt="Company Logo" style="max-width: 100px;" />
         <h1 style="font-size: 20px; margin: 10px 0;">
           Leave Application (${leaveType} from ${formattedFromDate} to ${formattedToDate})
@@ -108,7 +107,7 @@ leaveApp.get("/make-know", async (req, res) => {
       let members = [];
       Object.entries(empData?.employee?.team).filter(([key, value]) => {
         if (!["teamName", "employees", "_id", "__v", "createdAt", "updatedAt"].includes(key)) {
-          Array.isArray(value) && value.map((item) => members.push(item.Email))
+          Array.isArray(value) && value.map((item) => item.map((person) => members.push(person)))
         }
       })
 
@@ -771,10 +770,10 @@ leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("pre
 
     const emp = await Employee.findById(personId, "FirstName LastName monthlyPermissions permissionHour typesOfLeaveRemainingDays typesOfLeaveCount leaveApplication company")
       .populate([
-        {
-          path: "admin",
-          select: "FirstName LastName Email",
-        },
+        // {
+        //   path: "admin",
+        //   select: "FirstName LastName Email",
+        // },
         {
           path: "leaveApplication",
           match: { leaveType: "Permission Leave", fromDate: { $gte: monthStart, $lte: monthEnd } },
@@ -786,11 +785,11 @@ leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("pre
         {
           path: "team",
           populate: [
-            { path: "lead", select: "Email" },
-            { path: "head", select: "Email" },
-            { path: "manager", select: "Email" },
-            { path: "admin", select: "Email" },
-            { path: "hr", select: "Email" }
+            { path: "lead", select: "FirstName LastName Email" },
+            { path: "head", select: "FirstName LastName Email" },
+            { path: "manager", select: "FirstName LastName Email" },
+            { path: "admin", select: "FirstName LastName Email" },
+            { path: "hr", select: "FirstName LastName Email" }
           ],
         },
       ]);
@@ -893,11 +892,12 @@ leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("pre
     // 13. Send Notification (only for self-application)
     if (!applyFor) {
       const mailList = [
-        emp?.team?.lead?.Email,
+        ...(Array.isArray(emp?.team?.lead) ? emp.team.lead.map(emp => emp.Email) : []),
         emp?.team?.head?.Email,
         emp?.team?.manager?.Email,
-        emp?.admin?.Email,
-      ].filter(Boolean);
+        emp?.team?.hr?.Email,
+        emp?.team?.admin?.Email,
+      ].filter(Boolean); // removes undefined, null, or false
 
       sendMail({
         From: process.env.FROM_MAIL,
@@ -935,7 +935,9 @@ leaveApp.put('/:id', verifyAdminHREmployeeManagerNetwork, async (req, res) => {
         populate: [
           { path: "lead", select: "FirstName LastName Email" },
           { path: "head", select: "FirstName LastName Email" },
-          { path: "manager", select: "FirstName LastName Email" }
+          { path: "manager", select: "FirstName LastName Email" },
+          { path: "admin", select: "FirstName LastName Email" },
+          { path: "hr", select: "FirstName LastName Email" }
         ]
       },
       { path: "company", select: "logo CompanyName" },
@@ -966,11 +968,16 @@ leaveApp.put('/:id', verifyAdminHREmployeeManagerNetwork, async (req, res) => {
     const managers = emp.team.manager.map((item) => ({
       type: "manager", Email: item.Email, name: `${item.FirstName} ${item.LastName}`
     }));
+    const hrs = emp.team.hr.map((item) => ({
+      type: "hr", Email: item.Email, name: `${item.FirstName} ${item.LastName}`
+    }));
+    const admins = emp.team.admin.map((item) => ({
+      type: "manager", Email: item.Email, name: `${item.FirstName} ${item.LastName}`
+    }));
 
     const members = [
       emp.Email && { type: "emp", Email: emp.Email, name: `${emp.FirstName} ${emp.LastName}` },
-      ...leads, ...heads, ...managers,
-      emp?.admin && { type: "admin", Email: emp.admin.Email, name: `${emp.admin.FirstName} ${emp.admin.LastName}` }
+      ...leads, ...heads, ...managers, ...admins, ...hrs
     ].filter(Boolean);
 
     const updatedLeaveApp = {
