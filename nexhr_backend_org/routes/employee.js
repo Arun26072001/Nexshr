@@ -291,13 +291,12 @@ router.post("/:id", verifyAdminHR, async (req, res) => {
 
     const employeeData = {
       ...req.body,
-      role: req.body.role || "679b31dba453436edb1b27a3",
-      // teamLead: teamLead,
-      // managerId: managerId,
-      workingTimePattern: req.body.workingTimePattern || "679ca37c9ac5c938538f18ba",
-      company: company || "679b5ee55eb2dc34115be175",
+      role: req.body.role,
+      workingTimePattern: req.body.workingTimePattern,
+      company: company || inviter.company._id,
       position: null,
       department: null,
+      isPermanentWFH: req.body.isPermanentWFH || false,
       annualLeaveEntitlement: annualLeaveEntitlement || 14,
       employementType: employementType || "Full-time",
       typesOfLeaveCount: { ...typesOfLeaveCount, Permission: 2 },

@@ -125,7 +125,7 @@ const App = () => {
   };
 
   useEffect(() => {
-    if (!socket.connected) {
+    if (!socket.connected && isLogin) {
       socket.connect();
     }
 
@@ -157,7 +157,9 @@ const App = () => {
       triggerToaster(response);
       handleUpdateAnnouncements();
     })
+    
     socket.on("send_wfh_notification", (response)=>{
+      console.log(response);
       triggerToaster(response);
       handleUpdateAnnouncements();
     })

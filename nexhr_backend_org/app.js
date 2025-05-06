@@ -444,10 +444,9 @@ io.on("connection", (socket) => {
 
   socket.on("send_notification_for_wfh", async (wfhRequest, empId) => {
     try {
-      console.log(wfhRequest, empId);
       const empData = await Employee.findById(
         empId,
-        "FirstName LastName Email company notifications team"
+        "FirstName LastName Email company notifications team admin"
       )
         .populate([
           { path: "company", select: "CompanyName logo" },
@@ -458,42 +457,40 @@ io.on("connection", (socket) => {
           {
             path: "team",
             populate: [
-              { path: "lead", select: "Email company"},
+              { path: "lead", select: "Email company" },
               { path: "head", select: "Email company" },
               { path: "manager", select: "Email company" }
             ]
           }
-
         ])
         .exec();
-      console.log(empData);
+
+      const message = `${empData.FirstName} ${empData.LastName} has applied for WFH request from ${formatDate(wfhRequest.fromDate)} to ${formatDate(wfhRequest.toDate)}.`;
 
       const teamData = empData.team?.toObject?.() || {};
-      const notifiedIds = new Set(); // Prevent duplicate notifications
+      for (const [key, value] of Object.entries(teamData)) {
+        if (Array.isArray(value) && key !== "employees") {
+          for (const emp of value) {
+            if (emp && emp.company) {
+              const notification = {
+                company: emp.company._id,
+                title: "Work From Home Request Notification",
+                message
+              };
 
-      for (const role of ["lead", "head", "manager"]) {
-        const teamMember = teamData[role];
-        if (teamMember && teamMember._id && !notifiedIds.has(teamMember._id.toString())) {
-          const notification = {
-            company: empData.company._id,
-            title: "Work From Home Request",
-            message: `${empData.FirstName} ${empData.LastName} has requested to work from home on ${wfhRequest.date}.`
-          };
-          console.log(teamMember);
+              const fullEmp = await Employee.findById(emp._id, "notifications"); // Fetch fresh document to update notifications
+              fullEmp.notifications.push(notification);
+              await fullEmp.save();
 
-          const fullEmp = await Employee.findById(teamMember._id, "notifications");
-          fullEmp.notifications.push(notification);
-          await fullEmp.save();
-
-          notifiedIds.add(teamMember._id.toString());
-
-          const employeeSocketID = onlineUsers[teamMember._id.toString()];
-          if (employeeSocketID) {
-            io.to(employeeSocketID).emit("send_wfh_notification", {
-              company: teamMember.company,
-              title: notification.title,
-              message: notification.message
-            });
+              const employeeSocketID = onlineUsers[emp._id.toString()];
+              if (employeeSocketID) {
+                io.to(employeeSocketID).emit("send_wfh_notification", {
+                  company: emp.company,
+                  title: notification.title,
+                  message: notification.message
+                });
+              }
+            }
           }
         }
       }
