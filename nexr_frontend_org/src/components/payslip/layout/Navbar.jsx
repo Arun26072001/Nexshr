@@ -392,7 +392,7 @@ export default function Navbar({ handleSideBar }) {
                                     <div className="punchBtnParent">
                                         <button
                                             className='punchBtn'
-                                            onClick={() => checkIsCompletedWorkingHour()}
+                                            onClick={stopTimer}
                                             disabled={isWorkingLoginTimerApi ? true : !isDisabled}
                                             style={{ backgroundColor: "#FFD6DB" }}
                                         >
