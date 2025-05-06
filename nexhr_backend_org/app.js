@@ -156,15 +156,15 @@ app.use("/api/mail-settings", mailSettings);
 app.use("/api/wfh-application", wfhRouter);
 
 // Create HTTP Server and Socket.IO
-const server = http.createServer(app);
-const io = new Server(server, {
-  cors: {
-    origin: "*",
-    methods: ["GET", "POST"]
-  },
-});
+// const server = http.createServer(app);
+// const io = new Server(server, {
+//   cors: {
+//     origin: "*",
+//     methods: ["GET", "POST"]
+//   },
+// });
 
-let onlineUsers = {}; // Store online users { employeeId: socketId }
+// let onlineUsers = {}; // Store online users { employeeId: socketId }
 
 // Socket.IO Connection
 // io.on("connection", (socket) => {
@@ -656,7 +656,7 @@ schedule.scheduleJob("0 7 * * 1-5", async () => {
 // Start Server
 const port = process.env.PORT;
 
-server.listen(port, () => console.log(`Server listening on port ${port}!`));
+app.listen(port, () => console.log(`Server listening on port ${port}!`));
 process.on("uncaughtException", (err) => {
   console.log(err);
 });
