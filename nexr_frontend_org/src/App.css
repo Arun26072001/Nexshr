@@ -106,10 +106,11 @@ label {
 }
 
 .notFoundText {
-  height: 40vh;
+  height: 50vh;
   font-weight: 500;
   font-size: 20px;
   color: red;
+  text-align: center;
 }
 
 a {
@@ -123,7 +124,7 @@ a {
 
 .outline-btn,
 .button {
-  padding: 10px 12px;
+  padding: 8px 12px;
   font-size: 13px;
   border-radius: 5px;
   font-weight: 500;

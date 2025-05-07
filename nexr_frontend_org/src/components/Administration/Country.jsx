@@ -1,7 +1,6 @@
 import axios from 'axios';
 import React, { useContext, useEffect, useState } from 'react'
 import { EssentialValues } from '../../App';
-import Loading from '../Loader';
 import LeaveTable from '../LeaveTable';
 import NoDataFound from '../payslip/NoDataFound';
 import { toast } from 'react-toastify';

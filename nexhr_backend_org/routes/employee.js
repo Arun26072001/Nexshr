@@ -14,7 +14,7 @@ router.get("/", verifyAdminHRTeamHigherAuth, async (req, res) => {
   try {
     const { onlyEmps } = req.query;
 
-    let employees = await Employee.find({}, "FirstName LastName Account employmentType dateOfJoining gender working code docType serialNo position department workingTimePattern role")
+    let employees = await Employee.find({}, "FirstName LastName profile Account employmentType dateOfJoining gender working code docType serialNo position department workingTimePattern role")
       .populate({
         path: "position"
       })
@@ -40,7 +40,7 @@ router.get("/", verifyAdminHRTeamHigherAuth, async (req, res) => {
 
 router.get("/notifications/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
   try {
-    const emp = await Employee.findById(req.params.id, "notifications")
+    const emp = await Employee.findById(req.params.id, "notifications profile")
       .populate("notifications.company", "logo CompanyName")
       .exec();
 
@@ -75,7 +75,7 @@ router.put("/notifications/:id", verifyAdminHREmployeeManagerNetwork, async (req
 
 router.get("/user", verifyAdminHR, async (req, res) => {
   try {
-    const employees = await Employee.find({ Account: 3 }, "_id FirstName LastName")
+    const employees = await Employee.find({ Account: 3 }, "_id FirstName LastName profile")
       .populate({
         path: "department",
         select: "DepartmentName",
@@ -126,7 +126,7 @@ router.get("/user", verifyAdminHR, async (req, res) => {
 
 router.get("/all", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
   try {
-    const employees = await Employee.find({}, "_id FirstName LastName employmentType dateOfJoining gender working code docType serialNo")
+    const employees = await Employee.find({}, "_id FirstName LastName profile employmentType dateOfJoining gender working code docType serialNo")
       .populate([
         {
           path: "company",
@@ -166,57 +166,51 @@ router.get("/team/:higher", verifyAdminHRTeamHigherAuth, async (req, res) => {
     else if (higher === "head") keyword = "Head";
     else keyword = "Manager";
 
-    const employees = await Employee.find({}, "FirstName LastName position")
+    const employees = await Employee.find({}, "FirstName LastName position profile role")
       .populate("position", "PositionName") // Populate only PositionName
+      .populate("role", "RoleName")
       .exec();
 
     // Filter employees based on position name containing the keyword
     const filtered = employees.filter(emp => {
       const positionName = emp?.position?.PositionName;
+      const roleName = emp?.role.RoleName;
+      if (["admin", "hr"].includes(higher.toLowerCase())) {
+        return roleName && roleName.toLowerCase().includes(higher)
+      }
       return positionName && positionName.includes(keyword);
     });
-
     res.send(filtered);
   } catch (err) {
     res.status(500).send({ error: err.message });
   }
 });
 
-
 router.get("/team/members/:id", verifyTeamHigherAuthority, async (req, res) => {
   try {
     const who = req?.query?.who;
-    const team = await Team.findOne({ [who]: req.params.id }).exec();
-    if (!team) {
+    const teams = await Team.find({ [who]: req.params.id })
+      .populate({
+        path: "employees",
+        select: "FirstName LastName dateOfJoining code profile company employmentType position department workingTimePattern role",
+        populate: [
+          { path: "company", select: "_id CompanyName Town" },
+          { path: "position" },
+          { path: "department" },
+          { path: "workingTimePattern" },
+          { path: "role" }
+        ]
+      })
+      .exec();
+
+    if (!teams.length) {
       return res.status(404).send({ error: "You are not a Team higher authority." })
     }
-    const members = await Employee.find({ _id: { $in: team.employees } })
-      .populate({
-        path: "company",
-        select: "_id CompanyName Town"
-      })
-      .populate({
-        path: "position"
-      })
-      .populate({
-        path: "department"
-      })
-      .populate({
-        path: "workingTimePattern",
-      })
-      .populate({
-        path: "role"
-      })
-    // .populate({
-    //   path: 'teamLead',
-    //   select: "_id FirstName LastName",
-    //   populate: {
-    //     path: "department"
-    //   }
-    // })
-
-    return res.send(members);
+    const employeesData = teams.map((team) => team.employees).flat();
+    const uniqueEmps = [...new Set([...employeesData])]
+    return res.send(uniqueEmps);
   } catch (error) {
+    console.log(error);
     return res.status(500).send({ error: error.message })
   }
 })
@@ -234,11 +228,14 @@ router.get('/:id', verifyAdminHREmployeeManagerNetwork, async (req, res) => {
     const emp = await Employee.findById(req.params.id, "-clockIns -payslip")
       .populate([
         { path: "role" },
-        // {
-        //   path: "leaveApplication",
-        //   match: { leaveType: { $ne: "Permission Leave" }, fromDate: { $gte: startDate }, toDate: { $lte: endDate } }
-        // },
-        { path: "team", populate: { path: "employees", select: "FirstName LastName Email" } },
+        {
+          path: "team", populate: [
+            { path: "employees", select: "FirstName LastName Email" },
+            { path: "lead", select: "FirstName LastName Email" },
+            { path: "head", select: "FirstName LastName Email" },
+            { path: "manager", select: "FirstName LastName Email" }
+          ]
+        },
         { path: "workingTimePattern" },
         { path: "department" },
         { path: "position" }
@@ -297,13 +294,12 @@ router.post("/:id", verifyAdminHR, async (req, res) => {
 
     const employeeData = {
       ...req.body,
-      role: req.body.role || "679b31dba453436edb1b27a3",
-      // teamLead: teamLead,
-      // managerId: managerId,
-      workingTimePattern: req.body.workingTimePattern || "679ca37c9ac5c938538f18ba",
-      company: company || "679b5ee55eb2dc34115be175",
+      role: req.body.role,
+      workingTimePattern: req.body.workingTimePattern,
+      company: company || inviter.company._id,
       position: null,
       department: null,
+      isPermanentWFH: req.body.isPermanentWFH || false,
       annualLeaveEntitlement: annualLeaveEntitlement || 14,
       employementType: employementType || "Full-time",
       typesOfLeaveCount: { ...typesOfLeaveCount, Permission: 2 },

@@ -92,7 +92,6 @@ const CircleProgressBar = ({ isTeamLead, isTeamHead, isTeamManager }) => {
             authorization: token || "",
           },
         });
-
         setEmps(empRes.data.employees);
 
       } catch (err) {

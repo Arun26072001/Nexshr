@@ -7,11 +7,10 @@ import "./NexHRDashboard.css";
 import { EssentialValues } from "../App";
 import { jwtDecode } from "jwt-decode";
 
-const NexHRDashboard = ({ peopleOnLeave, isFetchPeopleOnLeave }) => {
+const NexHRDashboard = ({ peopleOnLeave, peopleOnWorkFromHome, isFetchPeopleOnLeave, isFetchpeopleOnWfh }) => {
   const { data } = useContext(EssentialValues);
   const { token, Account, _id } = data;
   const { isTeamLead, isTeamHead, isTeamManager } = jwtDecode(token);
-
   return (
     <div className="row">
       <div className="col-lg-8 col-md-12 col-12" >
@@ -23,14 +22,19 @@ const NexHRDashboard = ({ peopleOnLeave, isFetchPeopleOnLeave }) => {
                 <span className="bold m-2">
                   OVERVIEW
                 </span>
-                {/* <NavLink to={`/${whoIs}/leave-request`}>
-                  <button className="button">+ Add Time of</button>
-                </NavLink> */}
+                {/* <button className="button" onClick={() => navigate(`/${whoIs}/wfh-request`)}>
+                  <AddHomeWorkRoundedIcon /> Apply WFH
+                </button> */}
               </div>
               <CircleProgressBar token={token} isTeamLead={isTeamLead} isTeamManager={isTeamManager} account={Account} id={_id} isTeamHead={isTeamHead} />
             </>
           }
-          <Home peopleOnLeave={peopleOnLeave} isFetchPeopleOnLeave={isFetchPeopleOnLeave} />
+          {/* <div className="d-flex align-items-center justify-content-end m-2">
+            <button className="button" onClick={() => navigate(`/${whoIs}/wfh-request`)}>
+              <AddHomeWorkRoundedIcon /> Apply WFH
+            </button>
+          </div> */}
+          <Home peopleOnLeave={peopleOnLeave} peopleOnWorkFromHome={peopleOnWorkFromHome} isFetchPeopleOnLeave={isFetchPeopleOnLeave} isFetchpeopleOnWfh={isFetchpeopleOnWfh} />
         </Card>
       </div>
       <div className="col-lg-4 col-md-8 col-12 d-flex jsutify-content-center">

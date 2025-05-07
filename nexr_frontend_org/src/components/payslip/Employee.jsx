@@ -3,7 +3,6 @@ import { toast } from 'react-toastify';
 import "./dashboard.css";
 import LeaveTable from '../LeaveTable';
 import { fetchAllEmployees, fetchEmployees } from '../ReuseableAPI';
-import Loading from '../Loader';
 import { useNavigate } from 'react-router-dom';
 import NoDataFound from './NoDataFound';
 import { EssentialValues } from '../../App';
@@ -26,6 +25,8 @@ export default function Employee() {
     const [isLoading, setIsLoading] = useState(false);
     const [processing, setProcessing] = useState(false);
     const navigate = useNavigate();
+    console.log(isTeamHead, isTeamLead, isTeamManager);
+
 
     function handleModifyEmps() {
         setIsModifyEmps(!isModifyEmps)
@@ -106,11 +107,15 @@ export default function Employee() {
         setIsLoading(true);
         try {
             const res = await axios.get(`${url}/api/employee/team/members/${data._id}`, {
-                who: isTeamLead ? "lead" : isTeamHead ? "head" : "manager",
+                params: {
+                    who: isTeamLead ? "lead" : isTeamHead ? "head" : "manager"
+                },
                 headers: {
                     Authorization: data.token || ""
                 }
             })
+            console.log("team emps", res.data);
+
             setEmployees(res.data)
             setAllEmployees(res.data)
         } catch (error) {
@@ -125,6 +130,8 @@ export default function Employee() {
         if (data.Account === "1") {
             fetchAllEmployeeData()
         } else if ([isTeamLead, isTeamHead, isTeamManager].includes(true)) {
+            console.log("akjshdkjas");
+
             fetchTeamEmps();
         }
         // else if (data.Account === "3") {

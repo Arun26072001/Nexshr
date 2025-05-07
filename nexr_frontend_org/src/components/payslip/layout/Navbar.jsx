@@ -5,7 +5,7 @@ import TableRowsRoundedIcon from '@mui/icons-material/TableRowsRounded';
 import PunchIn from "../../../asserts/PunchIn.svg";
 import PunchOut from "../../../asserts/punchOut.svg";
 import { TimerStates } from '../HRMDashboard';
-import { Accordion, Button, Dropdown, Input, Modal, Popover, Whisper } from 'rsuite';
+import { Accordion, Button, Dropdown, Input, Modal, Popover, SelectPicker, Whisper } from 'rsuite';
 import logo from "../../../imgs/male_avatar.webp";
 import { EssentialValues } from '../../../App';
 import axios from "axios";
@@ -15,7 +15,9 @@ import useHandleTabClose from '../../../handleCloseTab';
 import Loading from '../../Loader';
 
 export default function Navbar({ handleSideBar }) {
-    const { handleLogout, data, handleUpdateAnnouncements, isChangeAnnouncements, whoIs, socket } = useContext(EssentialValues)
+    const { handleLogout, data, handleUpdateAnnouncements, isChangeAnnouncements, whoIs, 
+        // socket
+     } = useContext(EssentialValues)
     const { startLoginTimer, stopLoginTimer, workTimeTracker, isStartLogin, trackTimer, changeReasonForEarly, isWorkingLoginTimerApi } = useContext(TimerStates);
     const [sec, setSec] = useState(workTimeTracker?.login?.timeHolder?.split(':')[2])
     const [min, setMin] = useState(workTimeTracker?.login?.timeHolder?.split(':')[1])
@@ -27,15 +29,16 @@ export default function Navbar({ handleSideBar }) {
     const [notifications, setNotifications] = useState([]);
     const [isRemove, setIsRemove] = useState([]);
     const [isViewEarlyLogout, setIsViewEarlyLogout] = useState(JSON.parse(localStorage.getItem("isViewEarlyLogout")) ? true : false);
-    // const [workLocation, setWorklocation] = useState("");
-    // const [placeId, setPlaceId] = useState("");
-    // const worklocationType = ["WFH", "WFO"].map((item) => ({ label: item, value: item }))
+    const [latitude, setLatitude] = useState("");
+    const [longitude, setLongitude] = useState("");
+    // const [hamlet, setHamlet] = useState("");
+    const [workLocation, setWorklocation] = useState(localStorage.getItem("workLocation") || "");
+    const worklocationType = ["WFH", "WFO"].map((item) => ({ label: item, value: item }))
 
     // Timer logic to increment time
     const incrementTime = () => {
         setSec((prevSec) => {
             let newSec = prevSec + 1;
-
             if (newSec > 59) {
                 newSec = 0;
                 setMin((prevMin) => {
@@ -71,7 +74,7 @@ export default function Navbar({ handleSideBar }) {
     // Function to start the timer
     const startTimer = async () => {
         if (!workRef.current) {
-            await startLoginTimer();
+            await startLoginTimer(workLocation, {latitude, longitude});
             if (isStartLogin) {
                 workRef.current = setInterval(incrementTime, 1000);
             }
@@ -148,7 +151,6 @@ export default function Navbar({ handleSideBar }) {
 
         }
     }
-    console.log(isRemove);
 
     useEffect(() => {
         // fetchAnnouncements();
@@ -165,7 +167,7 @@ export default function Navbar({ handleSideBar }) {
                 timeHolder: `${String(hour).padStart(2, '0')}:${String(min).padStart(2, '0')}:${String(sec).padStart(2, '0')}`,
             },
         };
-        socket.emit("verify_completed_workinghour", updatedState);
+        // socket.emit("verify_completed_workinghour", updatedState);
     }
 
     async function updateEmpNotifications(updatedValues) {
@@ -247,18 +249,31 @@ export default function Navbar({ handleSideBar }) {
         localStorage.removeItem("isViewEarlyLogout");
         stopTimer();
     }
-
+    
+    function getAddress() {
+        navigator.geolocation.getCurrentPosition(
+            (pos) => {
+                setLatitude(pos.coords.latitude);
+                setLongitude(pos.coords.longitude)
+            },
+            (err) => console.error(err),
+            { enableHighAccuracy: true }
+        );
+    }
     useEffect(() => {
-        socket.connect();
-        socket.on("early_logout", ({ isCompleteworkingHours }) => {
-            if (isCompleteworkingHours) {
-                stopTimer()
-            } else {
-                changeViewReasonForEarlyLogout()
-            }
+        getAddress();
+    }, [latitude, longitude])
 
-        })
-    }, [socket])
+    // useEffect(() => {
+    //     socket.on("early_logout", ({ isCompleteworkingHours }) => {
+    //         if (isCompleteworkingHours) {
+    //             stopTimer()
+    //         } else {
+    //             changeViewReasonForEarlyLogout()
+    //         }
+
+    //     })
+    // }, [socket])
 
     useEffect(() => {
         const startLength = workTimeTracker?.login?.startingTime?.length || 0;
@@ -377,7 +392,7 @@ export default function Navbar({ handleSideBar }) {
                                     <div className="punchBtnParent">
                                         <button
                                             className='punchBtn'
-                                            onClick={() => checkIsCompletedWorkingHour()}
+                                            onClick={stopTimer}
                                             disabled={isWorkingLoginTimerApi ? true : !isDisabled}
                                             style={{ backgroundColor: "#FFD6DB" }}
                                         >
@@ -401,6 +416,18 @@ export default function Navbar({ handleSideBar }) {
                     }
 
                     <div className='gap-2 col-lg-4 col-md-3 d-flex align-items-center justify-content-end'>
+                        <SelectPicker
+                            data={worklocationType}
+                            searchable={false}
+                            onChange={(e) => {
+                                setWorklocation(e)
+                                localStorage.setItem("workLocation", e)
+                            }}
+                            style={{ width: 200 }}
+                            value={workLocation}
+                            appearance="default"
+                            placeholder="Choose work place"
+                        />
                         <span className="bell mx-2 position-relative" data-bs-toggle="offcanvas" data-bs-target="#offcanvasRight" aria-controls="offcanvasRight">
                             <svg width="16" height="17" viewBox="0 0 16 17" fill="none" xmlns="http://www.w3.org/2000/svg">
                                 <g clipPath="url(#clip0_2046_6896)">
@@ -422,10 +449,10 @@ export default function Navbar({ handleSideBar }) {
                         </span>
                         {/* Profile Section */}
                         <Whisper placement="bottomEnd" trigger="click" speaker={renderMenu}>
-                            <img src={data.profile || logo} className='imgContainer' style={{ width: "40px", height: "40px" }} alt='emp_img' />
+                            <img src={data?.profile || logo} className='imgContainer' style={{ width: "40px", height: "40px" }} alt='emp_img' />
                         </Whisper>
                         {/* Messages Section */}
-                        <div className="offcanvas offcanvas-end" tabindex="-1" id="offcanvasRight" aria-labelledby="offcanvasRightLabel">
+                        <div className="offcanvas offcanvas-end" tabIndex="-1" id="offcanvasRight" aria-labelledby="offcanvasRightLabel">
                             <div className="offcanvas-header">
                                 <h5 id="offcanvasRightLabel">Notifications</h5>
                                 <button type="button" className="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
@@ -433,9 +460,7 @@ export default function Navbar({ handleSideBar }) {
                             <div className="offcanvas-body">
                                 {
                                     notifications.map((notification, index) => {
-                                        return <div key={notification._id} className={`box-content my-2 ${isRemove[index] ? "remove" : ""} box-content my-2 d-flex justfy-content-center align-items-center position-relative`}>
-                                            {/* <div className='d-flex justify-content-between align-items-center'>
-                                            </div> */}
+                                        return <div key={notification._id || index} className={`box-content my-2 ${isRemove[index] ? "remove" : ""} box-content my-2 d-flex justfy-content-center align-items-center position-relative`}>
                                             <span className="closeBtn" title='close' onClick={() => removeMessage(notification, index)}>
                                                 <CloseRoundedIcon fontSize='md' />
                                             </span>
@@ -488,8 +513,8 @@ export default function Navbar({ handleSideBar }) {
 // </span> */}
 // get user current location
 //  async function getAddress(lat, lng) {
-//     const API_KEY = process.env.REACT_APP_MAPKEY;  // Replace with a secured API key (keep it secret)
-//     const url = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat.toFixed(7)},${lng.toFixed(7)}&result_type=street_address|locality|postal_code&key=${API_KEY}`;
+    //     const API_KEY = process.env.REACT_APP_MAPKEY;  // Replace with a secured API key (keep it secret)
+    //     const url = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat.toFixed(7)},${lng.toFixed(7)}&result_type=street_address|locality|postal_code&key=${API_KEY}`;
 
 //     try {
 //         const response = await fetch(url);
@@ -497,12 +522,12 @@ export default function Navbar({ handleSideBar }) {
 
 //         if (data.status === "OK" && data.results.length > 0) {
 //             const address = data.results[0].formatted_address;
-//             const placeId = data.results[0].place_id;
+//             const hamlet = data.results[0].place_id;
 
 //             console.log("Address:", address);
-//             console.log("Place ID:", placeId);
+//             console.log("Place ID:", hamlet);
 
-//             return { address, placeId };
+//             return { address, hamlet };
 //         } else {
 //             console.error("Geocoding failed:", data.status, data.error_message);
 //         }
@@ -512,7 +537,7 @@ export default function Navbar({ handleSideBar }) {
 // }
 
 // useEffect(() => {
-//     if (navigator.geolocation) {
+    //     if (navigator.geolocation) {
 //         navigator.geolocation.getCurrentPosition(
 //             (position) => {
 //                 const { latitude, longitude } = position.coords;
@@ -522,7 +547,46 @@ export default function Navbar({ handleSideBar }) {
 //             { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
 //         );
 //     } else {
-//         console.log("Geolocation is not supported by this browser.");
-//     }
-
-// }, [placeId])
+    //         console.log("Geolocation is not supported by this browser.");
+    //     }
+    
+    // }, [hamlet])
+    // async function getAddress(lat, lng) {
+    //     const API_KEY = process.env.REACT_APP_MAPKEY;  // Replace with a secured API key (keep it secret)
+    //     const url = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat.toFixed(7)},${lng.toFixed(7)}&result_type=street_address|locality|postal_code&key=${API_KEY}`;
+    
+    //     try {
+    //         const response = await fetch(url);
+    //         const data = await response.json();
+    
+    //         if (data.status === "OK" && data.results.length > 0) {
+    //             const address = data.results[0].formatted_address;
+    //             const hamlet = data.results[0].place_id;
+    
+    //             console.log("Address:", address);
+    //             console.log("Place ID:", hamlet);
+    
+    //             return { address, hamlet };
+    //         } else {
+    //             console.error("Geocoding failed:", data.status, data.error_message);
+    //         }
+    //     } catch (error) {
+    //         console.error("Error fetching location:", error);
+    //     }
+    // }
+    
+    // useEffect(() => {
+    //     if (navigator.geolocation) {
+    //         navigator.geolocation.getCurrentPosition(
+    //             (position) => {
+    //                 const { latitude, longitude } = position.coords;
+    //                 getAddress(latitude, longitude);
+    //             },
+    //             (error) => console.error("Error getting location:", error),
+    //             { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+    //         );
+    //     } else {
+    //         console.log("Geolocation is not supported by this browser.");
+    //     }
+    
+    // }, [hamlet])

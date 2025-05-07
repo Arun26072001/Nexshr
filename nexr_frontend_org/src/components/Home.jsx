@@ -10,6 +10,7 @@ import { TimerStates } from './payslip/HRMDashboard';
 import { Skeleton } from '@mui/material';
 import profile from "../imgs/male_avatar.webp";
 import "./NexHRDashboard.css";
+import calendarIcon from "../asserts/calendar.svg";
 import NoDataFound from './payslip/NoDataFound';
 import { EssentialValues } from '../App';
 
@@ -47,11 +48,12 @@ function a11yProps(index) {
     };
 }
 
-export default function Home({ peopleOnLeave, isFetchPeopleOnLeave }) {
+export default function Home({ peopleOnLeave, peopleOnWorkFromHome, isFetchPeopleOnLeave, isFetchpeopleOnWfh }) {
     const { isStartLogin, isStartActivity, workTimeTracker, timeOption, updateClockins } = useContext(TimerStates);
     const [value, setValue] = useState(0);
     const [isLoading, setLoading] = useState(true); // Track loading state
     const { data } = useContext(EssentialValues);
+    const now = new Date();
 
     const staticData = {
         startingTime: "00:00",
@@ -148,12 +150,14 @@ export default function Home({ peopleOnLeave, isFetchPeopleOnLeave }) {
                     <div className='col-lg-6 col-md-6 col-12'>
                         {
                             workTimeTracker?.login?.startingTime?.length === workTimeTracker?.login?.endingTime?.length &&
-                                workTimeTracker[timeOption]?.startingTime?.length === workTimeTracker[timeOption]?.endingTime?.length &&
+                                workTimeTracker?.[timeOption]?.startingTime?.length === workTimeTracker[timeOption]?.endingTime?.length &&
                                 isLoading ?
                                 <>
-                                    <Skeleton varient="text" />
-                                    <Skeleton varient="text" />
-                                    <Skeleton varient="text" />
+                                    {
+                                        [...Array(3)].map((_, index) => {
+                                            return <Skeleton varient="text" key={index} />
+                                        })
+                                    }
                                     <Skeleton varient="circular" width={150} height={150} />
                                 </> :
                                 <>
@@ -162,27 +166,61 @@ export default function Home({ peopleOnLeave, isFetchPeopleOnLeave }) {
                                 </>
                         }
                     </div>
-                    <p className='payslipTitle my-2 px-3'>PeopleOnLeave</p>
+                    {/* <p className='payslipTitle my-2 px-3'>PeopleOnLeave</p> */}
                     <div className="d-flex flex-wrap gap-2 align-items-center justify-content-center my-2">
-
-                        {
-                            isFetchPeopleOnLeave ?
-                                <>
-                                    <Skeleton varient="circular" height={150} style={{ flex: 1, width: "100%" }} />
-                                    <Skeleton varient="circular" height={150} style={{ flex: 1, width: "100%" }} />
-                                </> :
-                                peopleOnLeave.length ?
-                                    peopleOnLeave.map((leave) => {
-                                        return <div className='box-content d-flex align-items-center justify-content-around col-lg-5 col-12 col-md-5' style={{ boxShadow: "rgba(0, 0, 0, 0.02) 0px 1px 3px 0px, rgba(27, 31, 35, 0.15) 0px 0px 0px 1px" }}>
-                                            <img src={leave?.employee?.profile || profile} alt="" className='imgContainer' />
-                                            <div className="d-block">
-                                                <p style={{ fontSize: "13px" }}><b>{leave?.employee?.FirstName[0].toUpperCase() + leave?.employee?.FirstName.slice(1) + " " + leave?.employee?.LastName}</b>({leave?.employee?.team?.teamName || "TeamName"})</p>
-                                                <p className='sub_text'><b>{formatDate(leave.fromDate)} - {formatDate(leave.toDate)}</b></p>
-                                                <p className={`sub_text ${leave?.leaveType?.toLowerCase()?.includes("unpaid") ? "text-danger" : "text-success"}`}>{leave.leaveType}</p>
+                        {/* people on leave container */}
+                        <div className="boxContainer-parent">
+                            <div className="d-flex justify-content-between align-items-center py-2" style={{ position: "sticky", top: "0px", background: "rgba(245, 245, 245, 1)" }} >
+                                <p className='sub_text text-dark' style={{ fontWeight: "bold" }}>PeopleOnLeave</p>
+                                <p className='timeLogBox' style={{ background: "white" }}><img src={calendarIcon} alt='dateIcon' width={15} height={"auto"} /> <span className='sub_text text-dark'>{now.getDate() + " " + now.toLocaleString("default", { "month": "short" }) + " " + now.getFullYear()}</span></p>
+                            </div>
+                            {
+                                isFetchPeopleOnLeave ? <div className="gap-1">
+                                    {
+                                        [...Array(2)].map((_, index) => {
+                                            return <Skeleton variant="rounded" key={index} height={110} className="my-3" />
+                                        })
+                                    }
+                                </div> :
+                                    peopleOnLeave.length ?
+                                        peopleOnLeave.map((leave, index) => {
+                                            return <div key={index} className='box-content d-flex align-items-center justify-content-around my-1' style={{ boxShadow: 'none', background: "white" }}>
+                                                <img src={leave?.employee?.profile || profile} alt="profile" className='imgContainer' />
+                                                <div className="d-block">
+                                                    <p style={{ fontSize: "13px" }}><b>{leave?.employee?.FirstName[0].toUpperCase() + leave?.employee?.FirstName.slice(1) + " " + leave?.employee?.LastName}</b>({leave?.employee?.team?.teamName || "TeamName"})</p>
+                                                    <p className='sub_text'><b>{formatDate(leave.fromDate)} - {formatDate(leave.toDate)}</b></p>
+                                                    <p className={`sub_text ${leave?.leaveType?.toLowerCase()?.includes("unpaid") ? "text-danger" : "text-success"}`}>{leave.leaveType}</p>
+                                                </div>
                                             </div>
-                                        </div>
-                                    }) : <NoDataFound message={"No one leave Today"} />
-                        }
+                                        }) : <NoDataFound message={"No one is leave Today"} />
+                            }
+                        </div>
+                        {/* work from home employees container */}
+                        <div className="boxContainer-parent">
+                            <div className="d-flex justify-content-between align-items-center py-2" style={{ position: "sticky", top: "0px", background: "rgba(245, 245, 245, 1)" }} >
+                                <p className='sub_text text-dark' style={{ fontWeight: "bold" }}>WFH Employees</p>
+                                <p className='timeLogBox' style={{ background: "white" }}><img src={calendarIcon} alt='dateIcon' width={15} height={"auto"} /> <span className='sub_text text-dark'>{now.getDate() + " " + now.toLocaleString("default", { "month": "short" }) + " " + now.getFullYear()}</span></p>
+                            </div>
+                            {
+                                isFetchpeopleOnWfh ? <div className="gap-1">
+                                    {
+                                        [...Array(2)].map((_, index) => {
+                                            return <Skeleton variant="rounded" key={index} height={110} className="my-3" />
+                                        })
+                                    }
+                                </div> :
+                                    peopleOnWorkFromHome.length ?
+                                        peopleOnWorkFromHome.map((wfh, index) => {
+                                            return <div key={index} className='box-content d-flex align-items-center justify-content-around my-1' style={{ boxShadow: 'none', background: "white" }}>
+                                                <img src={wfh?.employee?.profile || profile} alt="profile" className='imgContainer' />
+                                                <div className="d-block">
+                                                    <p style={{ fontSize: "13px" }}><b>{wfh?.employee?.FirstName[0].toUpperCase() + wfh?.employee?.FirstName.slice(1) + " " + wfh?.employee?.LastName}</b>({wfh?.employee?.team?.teamName || "TeamName"})</p>
+                                                    <p className='sub_text'><b>{formatDate(wfh.fromDate)} - {formatDate(wfh.toDate)}</b></p>
+                                                </div>
+                                            </div>
+                                        }) : <NoDataFound message={"No one in Work From Home"} />
+                            }
+                        </div>
                     </div>
                 </div>
             </CustomTabPanel>

@@ -12,8 +12,6 @@ var employeeSchema = new mongoose.Schema({
   LastName: { type: String },
   Email: { type: String },
   Password: { type: String },
-  // teamLead: { type: mongoose.Types.ObjectId, ref: "Employee", default: null },
-  // managerId: { type: mongoose.Schema.Types.ObjectId, ref: "Employee" }, // Reference to another employee
   team: { type: mongoose.Types.ObjectId, ref: "Team", default: null },
   countryCode: { type: String },
   phone: { type: String },
@@ -47,6 +45,7 @@ var employeeSchema = new mongoose.Schema({
   dateOfJoining: { type: String },
   employmentType: { type: String },
   benefits: [{ type: String }],
+  isPermanentWFH: { type: Boolean },
   emergencyContacts: [
     {
       name: { type: String },
@@ -94,7 +93,6 @@ module.exports = {
   employeeSchema
 };
 
-//   LastName: Joi.string().required(),
 //   Email: Joi.string().email().required(),
 //   Password: Joi.string().min(6).required(),
 //   teamLead: Joi.string().optional(),

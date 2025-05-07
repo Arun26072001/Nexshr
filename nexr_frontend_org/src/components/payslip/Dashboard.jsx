@@ -11,13 +11,15 @@ import axios from 'axios';
 const Dashboard = () => {
     const url = process.env.REACT_APP_API_URL;
     const { updateClockins, isEditEmp } = useContext(TimerStates)
-    const { handleLogout, setData, data } = useContext(EssentialValues);
+    const { handleLogout, data } = useContext(EssentialValues);
     const [leaveData, setLeaveData] = useState({});
     const [isLoading, setIsLoading] = useState(false);
     const [dailyLogindata, setDailyLoginData] = useState({})
     const [monthlyLoginData, setMonthlyLoginData] = useState({});
     const [peopleOnLeave, setPeopleOnLeave] = useState([]);
+    const [peopleOnWorkFromHome, setPeopleOnWorkFromHome] = useState([]);
     const [isFetchPeopleOnLeave, setIsFetchPeopleOnLeave] = useState(false);
+    const [isFetchpeopleOnWfh, setIsFetchPeopleOnWfh] = useState(false);
 
     const gettingEmpdata = async () => {
         try {
@@ -84,27 +86,40 @@ const Dashboard = () => {
         gettingEmpdata();
     }, [isEditEmp]);
 
-    useEffect(() => {
-        async function fetchPeopleOnLeave() {
-            try {
-                setIsFetchPeopleOnLeave(true);
-                const res = await axios.get(`${url}/api/leave-application/people-on-leave`, {
-                    headers: {
-                        Authorization: data.token || ""
-                    }
-                })
-                // const withoutMyData = res.data.filter((leave) => leave.employee._id !== data._id)
-                // setPeopleOnLeave(withoutMyData)
-                console.log("peopleoOnLEave:", res.data)
-                setPeopleOnLeave(res.data);
-            } catch (error) {
-                setPeopleOnLeave([]);
-                console.log("error in fetch peopleOnLeave data: ", error);
-            } finally {
-                setIsFetchPeopleOnLeave(false);
-            }
+    async function fetchPeopleOnLeave() {
+        try {
+            setIsFetchPeopleOnLeave(true);
+            const res = await axios.get(`${url}/api/leave-application/people-on-leave`, {
+                headers: {
+                    Authorization: data.token || ""
+                }
+            })
+            setPeopleOnLeave(res.data);
+        } catch (error) {
+            setPeopleOnLeave([]);
+            console.log("error in fetch peopleOnLeave data: ", error);
+        } finally {
+            setIsFetchPeopleOnLeave(false);
         }
+    }
 
+    async function fetchWorkFromHomeEmps() {
+        try {
+            setIsFetchPeopleOnWfh(true);
+            const res = await axios.get(`${url}/api/wfh-application/on-wfh`, {
+                headers: {
+                    Authorization: data.token || ""
+                }
+            })
+            setPeopleOnWorkFromHome(res.data);
+        } catch (error) {
+            console.log("error in fetch work from home emps", error);
+        } finally {
+            setIsFetchPeopleOnWfh(false)
+        }
+    }
+    useEffect(() => {
+        fetchWorkFromHomeEmps();
         fetchPeopleOnLeave();
     }, [])
 
@@ -194,8 +209,7 @@ const Dashboard = () => {
                                 <>
                                     <p className='leaveIndicatorTxt'>This month</p>
                                     <div className='row'>
-
-                                        <div className='col-lg-6 col-md-6 col-12'>
+                                        <div className='col-lg-6 col-md-5 col-12'>
                                             <div className='space row'>
                                                 <p className='col-lg-6 col-md-6 col-sm-6 col-6 text-start'><span className='text_gap '>Total</span></p>
                                                 <p className='col-lg-6 col-md-6 col-sm-6 col-6 text-end'><span className='value'>{monthlyLoginData?.companyTotalWorkingHour || 0} hour</span></p>
@@ -213,12 +227,11 @@ const Dashboard = () => {
                                             </div>
                                         </div>
 
-                                        <div className='col-lg-6 col-md-6 col-sm-6 col-12'>
+                                        <div className='col-lg-6 col-md-5 col-12'>
                                             <div className='space row'>
                                                 <div className='col-lg-6 col-md-6 col-sm-6 col-6 text-start'><span className='text_gap'>Worked time</span></div>
                                                 <div className='col-lg-6 col-md-6 col-sm-6 col-6 text-end'><span className='value'>{monthlyLoginData?.totalEmpWorkingHours?.toFixed(2) || 0} hour</span></div>
                                             </div>
-
                                             <div className="progress">
                                                 <div
                                                     className="progress-bar progress-bar-striped"
@@ -232,7 +245,7 @@ const Dashboard = () => {
                                             </div>
                                         </div>
 
-                                        <div className='col-lg-6 col-md-6 col-sm-6 col-12'>
+                                        <div className='col-lg-6 col-md-5 col-12'>
                                             <div className='space row'>
                                                 <div className='col-lg-6 col-md-6 col-sm-6 col-6 text-start'><span className='text_gap'>Shortage time</span></div>
                                                 <div className='col-lg-6 col-md-6 col-sm-6 col-6 text-end'><span className='value'>{(monthlyLoginData?.companyTotalWorkingHour - monthlyLoginData?.totalEmpWorkingHours || 0)?.toFixed(2)} hour</span></div>
@@ -242,7 +255,7 @@ const Dashboard = () => {
                                             </div>
                                         </div>
 
-                                        <div className='col-lg-6 col-md-6 col-sm-6 col-12'>
+                                        <div className='col-lg-6 col-md-5 col-12'>
                                             <div className='space row'>
                                                 <div className='col-lg-6 col-md-6 col-sm-6 col-6 text-start'><span className='text_gap'>Over time</span></div>
                                                 <div className='col-lg-6 col-md-6 col-sm-6 col-6 text-end'><span className='value'>{getOverTime(monthlyLoginData?.companyTotalWorkingHour, monthlyLoginData?.totalEmpWorkingHours)} hour</span></div>
@@ -258,7 +271,7 @@ const Dashboard = () => {
 
                     </div>
                 </div>
-                <NexHRDashboard updateClockins={updateClockins} peopleOnLeave={peopleOnLeave} isFetchPeopleOnLeave={isFetchPeopleOnLeave} />
+                <NexHRDashboard updateClockins={updateClockins} peopleOnLeave={peopleOnLeave} peopleOnWorkFromHome={peopleOnWorkFromHome} isFetchpeopleOnWfh={isFetchpeopleOnWfh} isFetchPeopleOnLeave={isFetchPeopleOnLeave} />
             </>
         </div>
     );

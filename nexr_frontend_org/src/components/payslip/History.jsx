@@ -1,5 +1,4 @@
 import React, { useContext } from "react";
-import Loading from "../Loader";
 import { EssentialValues } from "../../App";
 import RequestPageIcon from '@mui/icons-material/RequestPage';
 import { useNavigate } from "react-router-dom";
@@ -12,16 +11,18 @@ const History = ({ payslips, isLoading }) => {
 
     if (isLoading) {
         return <div className="gap-1">
-            <Skeleton variant="circular" height={130} className="my-3" />
-            <Skeleton variant="circular" height={130} className="my-3" />
-            <Skeleton variant="circular" height={130} className="my-3" />
+            {
+                [Array(3).length].map((_, index) => {
+                    return <Skeleton variant="rounded" key={index} height={130} className="my-3" />
+                })
+            }
         </div>;
     }
 
     return (
         <div className="container-fluid">
             <p className="payslipTitle">History</p>
-            {payslips.length > 0 ? payslips.map((item, index) => {
+            {payslips.arrangedPayslips.length > 0 ? payslips.arrangedPayslips.map((item, index) => {
                 const {
                     ESI = 0, LossOfPay = 0, ProfessionalTax = 0, ProvidentFund = 0,
                     bonusAllowance = 0, conveyanceAllowance = 0,
@@ -41,13 +42,13 @@ const History = ({ payslips, isLoading }) => {
                         <div className="d-flex justify-content-between">
                             <div className="d-flex align-items-center gap-3 flex-wrap">
                                 <div className="timeLogBox " >
-                                    {employeeName|| "N/A"}
+                                    {employeeName || "N/A"}
                                 </div>
                                 <div className="timeLogBox" >
                                     {item.payslip.period || "N/A"}
                                 </div>
                                 <div className="timeLogBox">
-                                    {item.payslip.status|| "N/A"}
+                                    {item.payslip.status || "N/A"}
                                 </div>
                             </div>
                             <div onClick={() => navigate(`/${whoIs}/payslip/${item._id}`)}>

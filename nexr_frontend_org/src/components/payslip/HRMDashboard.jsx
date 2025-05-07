@@ -21,6 +21,8 @@ import ManageTeam from './ManageTeam';
 import TimeLog from '../TimeLog';
 import Comments from '../Comments';
 import LeaveDetails from '../Administration/LeaveDetails';
+import WFHRequestForm from './WFHRequestForm';
+import WFHRequests from '../workfromhome/WFHRequests';
 
 // Lazy loading components
 const Dashboard = React.lazy(() => import('./Dashboard'));
@@ -61,7 +63,9 @@ export const TimerStates = createContext(null);
 
 export default function HRMDashboard() {
     const url = process.env.REACT_APP_API_URL;
-    const { data, setData, isStartLogin, isStartActivity, setIsStartLogin, setIsStartActivity, whoIs, socket } = useContext(EssentialValues);
+    const { data, setData, isStartLogin, isStartActivity, setIsStartLogin, setIsStartActivity, whoIs, 
+        // socket 
+    } = useContext(EssentialValues);
     const { token, Account, _id } = data;
     const { isTeamLead, isTeamHead, isTeamManager } = jwtDecode(token);
     const [attendanceData, setAttendanceData] = useState([]);
@@ -136,7 +140,7 @@ export default function HRMDashboard() {
         if (empName === "") {
             setLeaveRequests(fullLeaveRequests);
         } else {
-            const filterRequests = fullLeaveRequests?.leaveData.filter((leave) => leave?.employee?.FirstName?.toLowerCase()?.includes(empName));
+            const filterRequests = fullLeaveRequests?.leaveData.filter((leave) => leave?.employee?.FirstName?.toLowerCase()?.includes(empName) || leave?.employee?.LastName?.toLowerCase()?.includes(empName));
             setLeaveRequests((pre) => ({ ...pre, leaveData: filterRequests }));
         }
     }
@@ -160,12 +164,12 @@ export default function HRMDashboard() {
             ...pre,
             "login": {
                 ...pre?.["login"],
-                [name]: value.trim()
+                [name]: value.trimStart()
             }
         }))
     }
 
-    const startLoginTimer = async (worklocation, placeId) => {
+    const startLoginTimer = async (worklocation, location) => {
         const currentTime = new Date().toTimeString().split(' ')[0];
         const updatedState = {
             ...workTimeTracker,
@@ -178,16 +182,16 @@ export default function HRMDashboard() {
         try {
             if (!updatedState?._id) {
                 // Add new clock-ins data
-                const clockinsData = await addDataAPI(updatedState, worklocation, placeId);
+                const clockinsData = await addDataAPI(updatedState, worklocation, location);
                 const totalWorkingHour = await getTotalWorkingHourPerDay(workingTimePattern.StartingTime, workingTimePattern.FinishingTime)
-                if (clockinsData !== "undefined") {
-                    if (!workTimeTracker.login.startingTime.length) {
-                        socket.emit("remainder_notification", {
-                            employee: data._id,
-                            time: totalWorkingHour,
-                            clockinsId: clockinsData?._id
-                        })
-                    }
+                if (clockinsData !== "undefined" && clockinsData._id) {
+                    // if (!workTimeTracker.login.startingTime.length) {
+                    //     socket.emit("remainder_notification", {
+                    //         employee: data._id,
+                    //         time: totalWorkingHour,
+                    //         clockinsId: clockinsData?._id
+                    //     })
+                    // }
                     setWorkTimeTracker(clockinsData);
                     setIsStartLogin(true);
                     localStorage.setItem("isStartLogin", true);
@@ -238,27 +242,33 @@ export default function HRMDashboard() {
 
 
     const startActivityTimer = async () => {
-        const currentTime = new Date().toTimeString().split(' ')[0];
-        const updatedState = {
-            ...workTimeTracker,
-            [timeOption]: {
-                ...workTimeTracker[timeOption],
-                startingTime: [...(workTimeTracker[timeOption]?.startingTime || []), currentTime],
-            },
-        };
-        setISWorkingActivityTimerApi(true)
-        try {
-            await updateDataAPI(updatedState);
-            localStorage.setItem("isStartActivity", true);
-            setIsStartActivity(true);
-            setWorkTimeTracker(updatedState);
-            localStorage.setItem("timeOption", timeOption);
-            toast.success(`${timeOption[0].toUpperCase() + timeOption.slice(1)} timer has been started!`);
-        } catch (error) {
-            console.error('Error updating data:', error);
-            toast.error('Please PunchIn');
-        } finally {
-            setISWorkingActivityTimerApi(false)
+        const loginStartTimeLen = workTimeTracker?.login?.startingTime.length;
+        const loginEndTimeLen = workTimeTracker?.login?.endingTime.length;
+        if (loginStartTimeLen !== loginEndTimeLen) {
+            const currentTime = new Date().toTimeString().split(' ')[0];
+            const updatedState = {
+                ...workTimeTracker,
+                [timeOption]: {
+                    ...workTimeTracker[timeOption],
+                    startingTime: [...(workTimeTracker[timeOption]?.startingTime || []), currentTime],
+                },
+            };
+            setISWorkingActivityTimerApi(true)
+            try {
+                await updateDataAPI(updatedState);
+                localStorage.setItem("isStartActivity", true);
+                setIsStartActivity(true);
+                setWorkTimeTracker(updatedState);
+                localStorage.setItem("timeOption", timeOption);
+                toast.success(`${timeOption[0].toUpperCase() + timeOption.slice(1)} timer has been started!`);
+            } catch (error) {
+                console.error('Error updating data:', error);
+                toast.error('Please PunchIn');
+            } finally {
+                setISWorkingActivityTimerApi(false)
+            }
+        } else {
+            toast.error(`You can't start ${timeOption} timer, until start Login Timer`)
         }
     }
 
@@ -416,7 +426,6 @@ export default function HRMDashboard() {
                     authorization: token || ""
                 }
             })
-            console.log("leaveDate:", leaveData.data);
             setLeaveRequests(leaveData.data);
             setFullLeaveRequests(leaveData.data);
         } catch (err) {
@@ -427,18 +436,16 @@ export default function HRMDashboard() {
     useEffect(() => {
         if (whoIs && [isTeamHead, isTeamLead, isTeamManager].includes(true)) {
             getLeaveDataFromTeam()
-        } else {
+        } else if(["admin","hr"].includes(whoIs)){
             getLeaveData();
         }
     }, [daterangeValue, _id, whoIs, isUpdatedRequest]);
 
     // to view attendance data for admin and hr
     useEffect(() => {
-        console.log("call on change");
-
         if ([isTeamHead, isTeamLead, isTeamManager].includes(true)) {
             getTeamAttendance();
-        } else {
+        } else if(["admin","hr"].includes(whoIs)) {
             getAttendanceData()
         }
         getClocknsData();
@@ -473,9 +480,9 @@ export default function HRMDashboard() {
                 setData((pre) => ({
                     ...pre,
                     Name: empData?.FirstName + " " + empData?.LastName,
-                    annualLeave: empData.annualLeaveEntitlement,
-                    profile: empData.profile,
-                    Account: String(empData.Account)
+                    annualLeave: empData?.annualLeaveEntitlement,
+                    profile: empData?.profile,
+                    Account: String(empData?.Account)
                 }))
                 setWorkingTimePattern(empData.workingTimePattern);
             } catch (error) {
@@ -518,12 +525,21 @@ export default function HRMDashboard() {
                     <Route path='/leave-request' element={<LeaveRequestForm />} />
                     <Route path="/leave-request/edit/:id" element={<LeaveRequestForm />} />
                     <Route path="/leave-request/view/:id" element={<LeaveRequestForm type={"view"} />} />
+                    <Route path="/wfh-request" element={<WFHRequestForm />} />
+                    <Route path="/wfh-request/view/:id" element={<WFHRequestForm type={"view"} />} />
+                    <Route path="/wfh-request/edit/:id" element={<WFHRequestForm type={"edit"} />} />
                     <Route path="attendance/*" element={
                         <Routes>
                             <Route index path="attendance-request" element={<Request attendanceData={attendanceData} isLoading={waitForAttendance} />} />
                             <Route path="daily-log" element={<Dailylog attendanceData={attendanceData} isLoading={waitForAttendance} />} />
                             <Route path="details" element={<Details attendanceData={attendanceData} isLoading={waitForAttendance} />} />
                             <Route path="attendance-summary" element={<Summary attendanceData={attendanceForSummary} isLoading={waitForAttendance} />} />
+                        </Routes>
+                    }>
+                    </Route>
+                    <Route path="workfromhome/*" element={
+                        <Routes>
+                            <Route index path="wfh-request" element={<WFHRequests />} />
                         </Routes>
                     }>
                     </Route>

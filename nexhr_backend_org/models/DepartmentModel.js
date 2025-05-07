@@ -7,26 +7,26 @@ var departmentSchema = new mongoose.Schema({
 });
 
 var Department = mongoose.model("Department", departmentSchema);
-const staticDepartments = [
-  {
-    "company": {},
-    "DepartmentName": "Admin"
-  },
-  {
-    "company": {},
-    "DepartmentName": "Hr"
-  }
-]
+// const staticDepartments = [
+//   {
+//     "company": {},
+//     "DepartmentName": "Admin"
+//   },
+//   {
+//     "company": {},
+//     "DepartmentName": "Hr"
+//   }
+// ]
 
-Department.countDocuments().then(count => {
-  if (count === 0) {
-    Department.insertMany(staticDepartments)
-      .then(() => console.log("Static Departments inserted!"))
-      .catch(err => console.error("Error inserting Departments:", err));
-  } else {
-    console.log("Departments already exist. Skipping static data insertion.");
-  }
-});
+// Department.countDocuments().then(count => {
+//   if (count === 0) {
+//     Department.insertMany(staticDepartments)
+//       .then(() => console.log("Static Departments inserted!"))
+//       .catch(err => console.error("Error inserting Departments:", err));
+//   } else {
+//     console.log("Departments already exist. Skipping static data insertion.");
+//   }
+// });
 
 const DepartmentValidation = Joi.object().keys({
   DepartmentName: Joi.string()

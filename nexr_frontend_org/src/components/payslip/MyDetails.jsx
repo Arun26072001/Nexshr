@@ -2,7 +2,6 @@ import React, { useContext, useEffect, useState } from "react"
 import { fetchEmployeeData } from "../ReuseableAPI";
 import { EssentialValues } from "../../App";
 import NoDataFound from "./NoDataFound";
-import Loading from "../Loader";
 import { Skeleton } from "@mui/material";
 
 const MyDetails = () => {
@@ -35,10 +34,11 @@ const MyDetails = () => {
                 {
                     isLoading ?
                         <>
-                            <Skeleton varient="text" height={50} width={250} />
-                            <Skeleton varient="text" height={30} width={200} />
-                            <Skeleton varient="text" height={30} width={200} />
-                            <Skeleton varient="text" height={30} width={200} />
+                            {
+                                [...Array(4)].map((_, index) => {
+                                    return <Skeleton varient="text" key={index} height={50} width={index === 0 ? 250 : 200} />
+                                })
+                            }
                         </> :
                         empObj?.FirstName && empObj?.LastName && (
                             <>
@@ -60,10 +60,11 @@ const MyDetails = () => {
 
                 {isLoading ?
                     <div className="my-2">
-                        <Skeleton varient="text" height={50} width={250} />
-                        <Skeleton varient="text" height={30} width={200} />
-                        <Skeleton varient="text" height={30} width={200} />
-                        <Skeleton varient="text" height={30} width={200} />
+                        {
+                            [...Array(4)].map((_, index) => {
+                                return <Skeleton varient="text" key={index} height={50} width={index === 0 ? 250 : 200} />
+                            })
+                        }
                     </div> :
                     empObj?.role && empObj?.position && empObj?.department && (
                         <>
@@ -80,10 +81,11 @@ const MyDetails = () => {
 
                 {isLoading ?
                     <div className="my-2">
-                        <Skeleton varient="text" height={50} width={250} />
-                        <Skeleton varient="text" height={30} width={200} />
-                        <Skeleton varient="text" height={30} width={200} />
-                        <Skeleton varient="text" height={30} width={200} />
+                        {
+                            [...Array(4)].map((_, index) => {
+                                return <Skeleton varient="text" key={index} height={50} width={index === 0 ? 250 : 200} />
+                            })
+                        }
                     </div> :
                     empObj?.workingTimePattern && (
                         <>
@@ -97,16 +99,25 @@ const MyDetails = () => {
                                             {empObj.workingTimePattern.StartingTime} - {empObj.workingTimePattern.FinishingTime})
                                         </li>
                                     )}
-                                {empObj?.managerId?.[0]?.FirstName && (
+                                {empObj?.team && empObj?.team.manager.length && (
                                     <li>
-                                        Manager: {empObj.managerId[0].FirstName[0].toUpperCase() +
-                                            empObj.managerId[0].FirstName.slice(1)}
+                                        Manager: {empObj?.team.manager.map((member) => (
+                                            member.FirstName[0].toUpperCase() + member.FirstName.slice(1) + " ,"
+                                        ))}
                                     </li>
                                 )}
-                                {empObj?.teamLead?.[0]?.FirstName && (
+                                {empObj?.team && empObj?.team.lead.length && (
                                     <li>
-                                        Team Lead: {empObj.teamLead[0].FirstName[0].toUpperCase() +
-                                            empObj.teamLead[0].FirstName.slice(1)}
+                                        Lead: {empObj?.team.lead.map((member) => (
+                                            member.FirstName[0].toUpperCase() + member.FirstName.slice(1) + " ,"
+                                        ))}
+                                    </li>
+                                )}
+                                {empObj?.team && empObj?.team.head.length && (
+                                    <li>
+                                        Head: {empObj?.team.head.map((member) => (
+                                            member.FirstName[0].toUpperCase() + member.FirstName.slice(1) + " ,"
+                                        ))}
                                     </li>
                                 )}
                                 {empObj?.description && <li>Description: {empObj.description}</li>}
@@ -117,10 +128,11 @@ const MyDetails = () => {
 
                 {isLoading ?
                     <div className="my-2">
-                        <Skeleton varient="text" height={50} width={250} />
-                        <Skeleton varient="text" height={30} width={200} />
-                        <Skeleton varient="text" height={30} width={200} />
-                        <Skeleton varient="text" height={30} width={200} />
+                        {
+                            [...Array(4)].map((_, index) => {
+                                return <Skeleton varient="text" key={index} height={50} width={index === 0 ? 250 : 200} />
+                            })
+                        }
                     </div> :
                     empObj?.typesOfLeaveCount && Object.keys(empObj.typesOfLeaveCount).length > 0 && (
                         <>
@@ -135,10 +147,11 @@ const MyDetails = () => {
 
                 {isLoading ?
                     <div className="my-2">
-                        <Skeleton varient="text" height={50} width={250} />
-                        <Skeleton varient="text" height={30} width={200} />
-                        <Skeleton varient="text" height={30} width={200} />
-                        <Skeleton varient="text" height={30} width={200} />
+                        {
+                            [...Array(4)].map((_, index) => {
+                                return <Skeleton varient="text" key={index} height={50} width={index === 0 ? 250 : 200} />
+                            })
+                        }
                     </div> : empObj?.basicSalary && empObj?.accountNo && empObj?.bankName && empObj?.IFSCcode && (
                         <>
                             <p className="sub_title">Bank Details</p>
@@ -153,10 +166,11 @@ const MyDetails = () => {
 
                 {isLoading ?
                     <div className="my-2">
-                        <Skeleton varient="text" height={50} width={250} />
-                        <Skeleton varient="text" height={30} width={200} />
-                        <Skeleton varient="text" height={30} width={200} />
-                        <Skeleton varient="text" height={30} width={200} />
+                        {
+                            [...Array(4)].map((_, index) => {
+                                return <Skeleton varient="text" key={index} height={50} width={index === 0 ? 250 : 200} />
+                            })
+                        }
                     </div> :
                     empObj?.payslipFields && Object.keys(empObj.payslipFields).length > 0 && (
                         <>

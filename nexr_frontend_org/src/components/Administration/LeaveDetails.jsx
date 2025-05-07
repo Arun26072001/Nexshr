@@ -140,13 +140,12 @@ export default function LeaveDetails() {
         isChangeLeavetype.isAdd ? <CommonModel isAddData={isChangeLeavetype.isAdd} type="LeaveType" dataObj={leaveTypeObj} isWorkingApi={isWorkingApi} changeData={changeLeavetypeData} modifyData={handleChangeLeavetype} addData={addLeavetype} /> :
             isChangeLeavetype.isEdit ? <CommonModel isAddData={isChangeLeavetype.isEdit} changeData={changeLeavetypeData} type="LeaveType" dataObj={leaveTypeObj} isWorkingApi={isWorkingApi} modifyData={handleChangeLeavetype} editData={editLeaveType} /> :
                 <div className='dashboard-parent pt-4'>
-                    <div className="d-flex justify-content-between px-2">
+                    <div className="d-flex justify-content-between px-2 my-2">
                         <h5 className='text-daily'>Leave Details</h5>
                         <div className='d-flex gap-2'>
                             <Input type="text" onChange={setLeavTypeName} value={leaveTypeName} style={{ width: "230px" }} placeholder='Search by LeaveName' />
                             <button className='button m-0' onClick={handleChangeLeavetype}>+ LeaveType</button>
                         </div>
-
                     </div>
                     {
                         isLoading ? <Skeleton

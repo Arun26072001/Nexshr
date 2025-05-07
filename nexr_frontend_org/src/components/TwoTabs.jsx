@@ -11,6 +11,7 @@ import { useNavigate } from 'react-router-dom';
 import { EssentialValues } from '../App';
 import { Badge, Calendar, Dropdown, HStack, Popover, Whisper } from 'rsuite';
 import { Skeleton } from '@mui/material';
+import AddHomeWorkRoundedIcon from '@mui/icons-material/AddHomeWorkRounded';
 
 function CustomTabPanel(props) {
   const { children, value, index, ...other } = props;
@@ -188,9 +189,9 @@ export default function Twotabs() {
             <div className=''>
               <button className='button' onClick={() => navigate(`/${whoIs}/leave-request`)}>Apply Leave</button>
             </div>
-            <div className=''>
-              <button className="outline-btn p-2" onClick={() => navigate(`/${whoIs}/job-desk/leave`)}>Absence history</button>
-            </div>
+            <button className="button" onClick={() => navigate(`/${whoIs}/wfh-request`)}>
+              <AddHomeWorkRoundedIcon /> Apply WFH
+            </button>
           </div>
           <div className="row" >
             <div className="leaveCircle col-lg-6 col-sm-12 col-md-12 p-0" >
@@ -216,8 +217,8 @@ export default function Twotabs() {
           </div>
 
           {
-            isLoading ? [...Array(5)].map((item) => {
-              return <Skeleton variant='rounded' width={"100%"} className='my-1' height={30} />
+            isLoading ? [...Array(5)].map((item, index) => {
+              return <Skeleton variant='rounded' key={index} width={"100%"} className='my-1' height={30} />
             }) :
               leaveRequests?.map((req, index) => {
                 // debugger;

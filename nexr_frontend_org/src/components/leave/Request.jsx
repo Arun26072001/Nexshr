@@ -1,13 +1,12 @@
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useContext, useEffect } from 'react';
 import LeaveTable from '../LeaveTable';
 import NoDataFound from '../payslip/NoDataFound';
-import Loading from '../Loader';
 import { LeaveStates, TimerStates } from '../payslip/HRMDashboard';
 import axios from "axios";
 import "../payslip/payslip.css";
 import { toast } from 'react-toastify';
 import { EssentialValues } from '../../App';
-import { DateRangePicker, Dropdown, Popover, Whisper } from 'rsuite';
+import { DateRangePicker, Dropdown, Input, Popover, Whisper } from 'rsuite';
 import { jwtDecode } from 'jwt-decode';
 import ArrowDropDownRoundedIcon from '@mui/icons-material/ArrowDropDownRounded';
 import FileUploadRoundedIcon from '@mui/icons-material/FileUploadRounded';
@@ -160,29 +159,23 @@ export default function LeaveRequest() {
             </div>
 
             <div className="leaveContainer d-block">
-                <div className="d-flex align-items-center justify-content-between">
-                    <div className="searchInputIcon">
-                        <input
-                            type="text"
-                            className='payrunInput'
-                            value={empName}
-                            onChange={(e) => setEmpName(e.target.value)}
-                            placeholder='Search Employee'
+                <div className='px-3 my-3'>
+                    <div className="d-flex align-items-center justify-content-between my-2">
+                        <Input value={empName} size="lg" style={{ width: "300px" }} placeholder="Search Employee" onChange={(e) => setEmpName(e)} />
+                        <DateRangePicker
+                            size="lg"
+                            showOneCalendar
+                            placement="bottomEnd"
+                            value={daterangeValue}
+                            placeholder="Select Date"
+                            onChange={setDaterangeValue}
                         />
                     </div>
-                    <DateRangePicker
-                        size="lg"
-                        showOneCalendar
-                        placement="bottomEnd"
-                        value={daterangeValue}
-                        placeholder="Select Date"
-                        onChange={setDaterangeValue}
-                    />
                 </div>
                 <div className="w-100 d-flex justify-content-center">
                     <div className="leaveBoard">
                         {/* Leave taken */}
-                        <div className="leaveData">
+                        <div className="leaveData leaveData col-12 col-lg-3">
                             <div className="d-flex flex-column">
                                 <div className="leaveDays">
                                     {leaveRequests?.takenLeave?.length || 0} Days
@@ -194,7 +187,7 @@ export default function LeaveRequest() {
                         </div>
 
                         {/* Upcoming leave */}
-                        <div className="leaveData">
+                        <div className="leaveData leaveData col-12 col-lg-3">
                             <div className="d-flex flex-column">
                                 <div className="leaveDays">
                                     {leaveRequests?.upComingLeave?.length || 0} Days
@@ -206,7 +199,7 @@ export default function LeaveRequest() {
                         </div>
 
                         {/* Pending request */}
-                        <div style={{ width: "30%", margin: "10px" }}>
+                        <div style={{ width: "30%", margin: "10px" }} className='leaveData col-12 col-lg-3' >
                             <div className="d-flex flex-column">
                                 <div className="leaveDays">
                                     {leaveRequests?.pendingLeave?.length || 0} Days
@@ -228,7 +221,7 @@ export default function LeaveRequest() {
                         height={"50vh"}
                     /> :
                         leaveRequests?.leaveData?.length > 0 ?
-                            <LeaveTable Account={data.Account} data={leaveRequests.leaveData} replyToLeave={replyToLeave} isTeamHead={isTeamHead} isTeamLead={isTeamLead} isTeamManager={isTeamManager} /> :
+                            <LeaveTable Account={data?.Account} data={leaveRequests.leaveData} replyToLeave={replyToLeave} isTeamHead={isTeamHead} isTeamLead={isTeamLead} isTeamManager={isTeamManager} /> :
                             <NoDataFound message={"No Leave request in this month"} />
                 }
             </div>

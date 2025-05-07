@@ -116,7 +116,7 @@ export default function TimeLog() {
                                     }) :
                                     taskObj?.tracker?.map((change, index) => {
                                         if (index === (taskObj?.tracker?.length - 1)) {
-                                            return <div className='position-relative' >
+                                            return <div className='position-relative' key={index} >
                                                 <span className='dot'></span>
                                                 <div class="timeline-item">
                                                     <span class="timeline-time dateTimeTxt">{getMonthFullNameNdDate(change.date)}, {`${new Date(change.date).getFullYear()}`} at {`${new Date(change.date).getHours()}:${String(new Date(change.date).getMinutes()).padStart(2, "0")}`}</span>

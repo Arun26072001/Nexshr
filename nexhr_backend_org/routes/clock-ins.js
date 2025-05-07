@@ -1,13 +1,15 @@
 const express = require("express");
 const router = express.Router();
+const { getDistance } = require("geolib");
 const { verifyAdminHREmployeeManagerNetwork, verifyAdminHrNetworkAdmin, verifyTeamHigherAuthority } = require("../auth/authMiddleware");
-const { clockInsValidation, ClockIns } = require("../models/ClockInsModel");
+const { ClockIns, clockInsValidation } = require("../models/ClockInsModel");
 const { Employee } = require("../models/EmpModel");
 const { getDayDifference } = require("./leave-app");
 const sendMail = require("./mailSender");
 const { LeaveApplication } = require("../models/LeaveAppModel");
 const { Team } = require("../models/TeamModel");
 const { getCurrentTimeInMinutes, formatTimeFromMinutes, timeToMinutes, getTotalWorkingHourPerDay } = require("../Reuseable_functions/reusableFunction");
+const { WFHApplication } = require("../models/WFHApplicationModel");
 
 async function checkLoginForOfficeTime(scheduledTime, actualTime, permissionTime) {
 
@@ -85,10 +87,12 @@ router.post("/not-login/apply-leave/:workPatternId", async (req, res) => {
                 reasonForLeave: "Didn't punch in until EOD",
                 employee: emp._id,
                 status: "approved",
-                TeamLead: "approved",
-                TeamHead: "approved",
-                Hr: "approved",
-                Manager: "approved"
+                approvers: {
+                    TeamLead: "approved",
+                    TeamHead: "approved",
+                    Hr: "approved",
+                    Manager: "approved"
+                }
             };
 
             const leave = await LeaveApplication.create(leaveData, { new: true });
@@ -124,33 +128,48 @@ router.post("/not-login/apply-leave/:workPatternId", async (req, res) => {
 
 router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
     try {
-        // const { worklocation, placeId } = req.query;
-        // console.log(worklocation, placeId);
+        const { location, worklocation } = req.query;
 
         let regular = 0, late = 0, early = 0;
         const today = new Date();
         const startOfDay = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate(), 0, 0, 0));
         const endOfDay = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate(), 23, 59, 59));
-        // if (!worklocation || !placeId) {
-        //     return res.status(400).send({ error: "Please select your work location" })
+        if (!worklocation || !location.latitude) {
+            return res.status(400).send({ error: "Please select your work location" })
+        }
+        // let isWfh;
+        // if (worklocation === "WFH") {
+        //     isWfh = await WFHApplication.findOne({ fromDate: { $gte: today }, status: "approved" })
         // }
         // Fetch employee details with required fields
-        const emp = await Employee.findById(req.params.id)
+        const emp = await Employee.findById(req.params.id, "FirstName LastName Email profile company clockIns leaveApplication isPermanentWFH")
             .populate("workingTimePattern")
-            .populate("company")
+            .populate("company", "location CompanyName")
             .populate({ path: "clockIns", match: { date: { $gte: startOfDay, $lte: endOfDay } } })
             .populate({
                 path: "leaveApplication",
                 match: { fromDate: { $gte: startOfDay, $lte: endOfDay }, status: "approved", leaveType: "Permission Leave" }
             })
+        console.log(emp.FirstName);
 
         if (!emp) return res.status(404).send({ error: "Employee not found!" });
         if (emp?.clockIns?.length > 0) return res.status(409).send({ message: "You have already Punch-In!" });
 
-        //verify emp is in office
-        // if (worklocation === "WFO") {
-        //     if (emp.company.placeId !== placeId) {
-        //         return res.status(400).send({ error: "Please start the timer when you arrive at the office" })
+        // verify emp is in office
+        // if (worklocation === "WFH" && (!isWfh && !emp.isPermanentWFH)) {
+        //     console.log(isWfh, emp.isPermanentWFH);
+        //     return res.status(400).send({ error: "You have no permission for WFH, Please reach office and start timer" })
+        // } if (worklocation === "WFO") {
+        //     const userLocation = req.query.location;
+        //     const companyLocation = emp.company.location;
+        //     if (userLocation && companyLocation) {
+        //         const distance = getDistance(userLocation, companyLocation);
+        //         console.log("distance", distance);
+        //         if (distance > 100) {
+        //             return res.status(400).send({ error: "Please reach your office location and start the timer" })
+        //         }
+        //     } else {
+        //         return res.status(400).send({ error: `location not found in your ${emp.company.CompanyName}` })
         //     }
         // }
         // Office login time & employee login time
@@ -176,9 +195,12 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
                     employee: emp._id,
                     coverBy: null,
                     status: "approved",
-                    TeamLead: "approved",
-                    TeamHead: "approved",
-                    Hr: "approved",
+                    approvers: {
+                        TeamLead: "approved",
+                        TeamHead: "approved",
+                        Hr: "approved",
+                        Manager: "approved"
+                    },
                     approvedOn: null,
                     approverId: []
                 };
@@ -209,9 +231,12 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
                         employee: emp._id,
                         coverBy: null,
                         status: "approved",
-                        TeamLead: "approved",
-                        TeamHead: "approved",
-                        Hr: "approved",
+                        approvers: {
+                            TeamLead: "approved",
+                            TeamHead: "approved",
+                            Hr: "approved",
+                            Manager: "approved"
+                        },
                         approvedOn: null,
                         approverId: []
                     };
@@ -235,11 +260,13 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
                         reasonForLeave: "Came too late",
                         employee: emp._id,
                         status: "approved",
-                        TeamLead: "approved",
-                        TeamHead: "approved",
-                        Hr: "approved",
-                        Manager: "approved"
-                    };
+                        approvers: {
+                            TeamLead: "approved",
+                            TeamHead: "approved",
+                            Hr: "approved",
+                            Manager: "approved"
+                        }
+                    }
 
                     subject = empPermissions.length === 1 ? "2nd Permission Applied" : "1st Permission Applied";
                     htmlContent = `

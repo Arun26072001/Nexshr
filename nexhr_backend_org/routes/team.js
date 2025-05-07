@@ -49,18 +49,11 @@ router.get("/", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
 
 router.get("/members/:id", verifyTeamHigherAuthority, async (req, res) => {
     try {
-        const who = req.params.isLead ? "lead" : req.params.isLead ? "head" : req.params.isLead ? "manager" : "employees"
+        const who = req.params.who ? "lead" : req.params.who ? "head" : req.params.who ? "manager" : "employees"
         const response = await Team.findOne({ [who]: req.params.id })
             .populate({
                 path: "employees",
                 select: "_id FirstName LastName",
-                populate: {
-                    path: 'teamLead',
-                    select: "_id FirstName LastName",
-                    populate: {
-                        path: "department"
-                    }
-                }
             })
         if (!response) {
             res.status(404).send({ message: "You haven't in any team" })
@@ -76,7 +69,6 @@ router.get("/members/:id", verifyTeamHigherAuthority, async (req, res) => {
 router.get("/:who/:id", verifyTeamHigherAuthority, async (req, res) => {
     try {
         const teams = await Team.find({ [req.params.who]: req.params.id })
-
         res.send(teams);
     } catch (err) {
         console.error(err)
@@ -156,23 +148,23 @@ router.post("/:id", verifyAdminHR, async (req, res) => {
         const higherAuth = ["lead", "head", "manager", "employees"];
 
         // Check if members already belong to a team
-        for (const role of higherAuth) {
-            const members = roles[role];
-            if (Array.isArray(members) && members.length) {
-                for (const memberId of members) {
-                    const exists = await Team.exists({ [role]: memberId });
-                    if (exists) {
-                        const emp = await Employee.findById(memberId, "FirstName LastName team")
-                            .populate("team", "teamName");
-                        console.log(emp);
+        // for (const role of higherAuth) {
+        //     const members = roles[role];
+        //     if (Array.isArray(members) && members.length) {
+        //         for (const memberId of members) {
+        //             const exists = await Team.exists({ [role]: memberId });
+        //             if (exists) {
+        //                 const emp = await Employee.findById(memberId, "FirstName LastName team")
+        //                     .populate("team", "teamName");
+        //                 console.log(emp);
 
-                        return res.status(400).send({
-                            error: `${emp.FirstName} ${emp.LastName} is already in ${emp.team.teamName} team`
-                        });
-                    }
-                }
-            }
-        }
+        //                 return res.status(400).send({
+        //                     error: `${emp.FirstName} ${emp.LastName} is already in ${emp.team.teamName} team`
+        //                 });
+        //             }
+        //         }
+        //     }
+        // }
 
         // Merge all roles into a unique employee list
         const mergedEmployeeIds = [...new Set([...employees, ...lead, ...head, ...manager])];

@@ -19,6 +19,7 @@ import KeyRoundedIcon from '@mui/icons-material/KeyRounded';
 import BorderColorRoundedIcon from '@mui/icons-material/BorderColorRounded';
 import DeleteRoundedIcon from '@mui/icons-material/DeleteRounded';
 import { EssentialValues } from '../App';
+import profile from "../imgs/male_avatar.webp";
 
 export default function LeaveTable({ data, Account, getCheckedValue, handleDelete, handleChangeData, fetchReportById, fetchOrgData, fetchData, roleObj, getCheckAll, deleteData, replyToLeave, handleChangeLeavetype, isTeamHead, isTeamLead, isTeamManager }) {
     const navigate = useNavigate();
@@ -32,6 +33,7 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
     const [openModal, setOpenModal] = useState(false);
     const [modelData, setModelData] = useState({});
     const params = useParams();
+    console.log(whoIs);
 
     const handleChangePage = (event, newPage) => {
         setPage(newPage);
@@ -44,7 +46,32 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
     };
 
     const column1 = [
-        { id: 'FirstName', label: 'Name', minWidth: 100, align: "left", getter: (row) => row?.employee?.FirstName[0]?.toUpperCase() + row?.employee?.FirstName?.slice(1) + row?.employee?.LastName || 'Unknown' },
+        {
+            id: 'FirstName',
+            label: 'Name',
+            minWidth: 150,
+            align: 'left',
+            getter: (row) => {
+                const firstName = row?.employee?.FirstName || '';
+                const lastName = row?.employee?.LastName || '';
+                const profileImg = row?.employee?.profile || profile;
+
+                const fullName = firstName
+                    ? firstName[0].toUpperCase() + firstName.slice(1) + ' ' + lastName
+                    : 'Unknown';
+
+                return (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <img
+                            src={profileImg}
+                            alt="Profile"
+                            style={{ width: '30px', height: '30px', borderRadius: '50%' }}
+                        />
+                        <span>{fullName}</span>
+                    </div>
+                );
+            }
+        },
         { id: 'periodOfLeave', label: 'Period Of Leave', align: "left", minWidth: 120, getter: (row) => row.periodOfLeave },
         { id: 'fromDate', label: 'Start Date', minWidth: 120, align: 'left', getter: (row) => row.fromDate ? row.fromDate.split("T")[0] : 'N/A' },
         { id: 'toDate', label: 'End Date', minWidth: 120, align: 'left', getter: (row) => row.toDate ? row.toDate.split("T")[0] : 'N/A' },
@@ -73,7 +100,32 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
     ];
 
     const column2 = [
-        { id: 'FirstName', label: 'Name', minWidth: 120, align: 'center', getter: (row) => row?.employee?.FirstName ? `${row.employee.FirstName[0].toUpperCase() + row.employee.FirstName.slice(1)}` : 'N/A' },
+        {
+            id: 'FirstName',
+            label: 'Name',
+            minWidth: 150,
+            align: 'left',
+            getter: (row) => {
+                const firstName = row?.employee?.FirstName || '';
+                const lastName = row?.employee?.LastName || '';
+                const profileImg = row?.employee?.profile || profile;
+
+                const fullName = firstName
+                    ? firstName[0].toUpperCase() + firstName.slice(1) + ' ' + lastName
+                    : 'Unknown';
+
+                return (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <img
+                            src={profileImg}
+                            alt="Profile"
+                            style={{ width: '30px', height: '30px', borderRadius: '50%' }}
+                        />
+                        <span>{fullName}</span>
+                    </div>
+                );
+            }
+        },
         { id: 'basicSalary', label: 'Salary', minWidth: 120, align: 'center', getter: (row) => row?.employee?.basicSalary ? `₹${row.employee.basicSalary}` : 'N/A' },
         { id: 'status', label: 'Status', minWidth: 120, align: 'center', getter: (row) => row?.payslip?.status ? row.payslip.status : 'N/A' },
         { id: 'period', label: 'Period', minWidth: 120, align: 'center', getter: (row) => row?.payslip?.period ? row.payslip.period : 'N/A' },
@@ -87,8 +139,28 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
         {
             id: 'FirstName',
             label: 'Profile',
-            minWidth: 100,
-            getter: (row) => row?.FirstName[0].toUpperCase() + row?.FirstName.slice(1) + row?.LastName || 'N/A'
+            minWidth: 150,
+            align: 'left',
+            getter: (row) => {
+                const firstName = row?.FirstName || '';
+                const lastName = row?.LastName || '';
+                const profileImg = row?.profile || profile;
+
+                const fullName = firstName
+                    ? firstName[0].toUpperCase() + firstName.slice(1) + ' ' + lastName
+                    : 'Unknown';
+
+                return (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <img
+                            src={profileImg}
+                            alt="Profile"
+                            style={{ width: '30px', height: '30px', borderRadius: '50%' }}
+                        />
+                        <span>{fullName}</span>
+                    </div>
+                );
+            }
         },
         {
             id: 'code',
@@ -140,7 +212,33 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
     ];
 
     const column4 = [
-        { id: 'FirstName', label: 'Profile', minWidth: 170, getter: (row) => row?.employee?.FirstName + row?.employee?.LastName || 'Unknown' },
+        {
+            id: 'FirstName',
+            label: 'Profile',
+            minWidth: 150,
+            align: 'left',
+            getter: (row) => {
+                const firstName = row?.employee?.FirstName || '';
+                const lastName = row?.employee?.LastName || '';
+                const profileImg = row?.employee?.profile || profile;
+
+                const fullName = firstName
+                    ? firstName[0].toUpperCase() + firstName.slice(1) + ' ' + lastName
+                    : 'Unknown';
+
+                return (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <img
+                            src={profileImg}
+                            alt="Profile"
+                            style={{ width: '30px', height: '30px', borderRadius: '50%' }}
+                        />
+                        <span>{fullName}</span>
+                    </div>
+                );
+            }
+        }
+        ,
         {
             id: 'date',
             label: 'Date',
@@ -356,7 +454,32 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
     ]
 
     const column8 = [
-        { id: 'FirstName', label: 'Name', minWidth: 130, align: "left", getter: (row) => row.employee.FirstName[0].toUpperCase() + row.employee.FirstName.slice(1) + row.employee.LastName || 'Unknown' },
+        {
+            id: 'FirstName',
+            label: 'Name',
+            minWidth: 150,
+            align: 'left',
+            getter: (row) => {
+                const firstName = row?.employee?.FirstName || '';
+                const lastName = row?.employee?.LastName || '';
+                const profileImg = row?.employee?.profile || profile;
+
+                const fullName = firstName
+                    ? firstName[0].toUpperCase() + firstName.slice(1) + ' ' + lastName
+                    : 'Unknown';
+
+                return (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <img
+                            src={profileImg}
+                            alt="Profile"
+                            style={{ width: '30px', height: '30px', borderRadius: '50%' }}
+                        />
+                        <span>{fullName}</span>
+                    </div>
+                );
+            }
+        },
         { id: 'periodOfLeave', label: 'Period Of Leave', align: "left", minWidth: 150, getter: (row) => row.periodOfLeave },
         { id: 'fromDate', label: 'Start Date', minWidth: 130, align: 'left', getter: (row) => row.fromDate ? row.fromDate.split("T")[0] : 'N/A' },
         { id: 'toDate', label: 'End Date', minWidth: 130, align: 'left', getter: (row) => row.toDate ? row.toDate.split("T")[0] : 'N/A' },
@@ -609,6 +732,94 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
         { id: 'Action', label: 'Action', minWidth: 100, align: 'center' }
     ];
 
+    const column20 = [
+        {
+            id: 'FirstName',
+            label: 'Name',
+            minWidth: 150,
+            align: 'left',
+            getter: (row) => {
+                const firstName = row?.employee?.FirstName || '';
+                const lastName = row?.employee?.LastName || '';
+                const profileImg = row?.employee?.profile || profile;
+
+                const fullName = firstName
+                    ? firstName[0].toUpperCase() + firstName.slice(1) + ' ' + lastName
+                    : 'Unknown';
+
+                return (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <img
+                            src={profileImg}
+                            alt="Profile"
+                            style={{ width: '30px', height: '30px', borderRadius: '50%' }}
+                        />
+                        <span>{fullName}</span>
+                    </div>
+                );
+            }
+        },
+        {
+            id: 'fromDate',
+            label: 'From Date',
+            minWidth: 120,
+            align: 'center',
+            getter: (row) => row?.fromDate
+                ? new Date(row.fromDate).toLocaleDateString()
+                : 'N/A'
+        },
+        {
+            id: 'toDate',
+            label: 'To Date',
+            minWidth: 120,
+            align: 'center',
+            getter: (row) => row?.toDate
+                ? new Date(row.toDate).toLocaleDateString()
+                : 'N/A'
+        },
+        {
+            id: 'reason',
+            label: 'Reason',
+            minWidth: 200,
+            align: 'center',
+            getter: (row) => row?.reason || 'N/A'
+        },
+        {
+            id: 'status',
+            label: 'Status',
+            minWidth: 100,
+            align: 'center',
+            getter: (row) => {
+                if (isTeamHead) {
+                    return row?.approvers?.head || "N/A";
+                } else if (isTeamLead) {
+                    return row?.approvers?.lead || "N/A";
+                } else if (isTeamManager) {
+                    return row?.approvers?.manager || "N/A";
+                } else if (Account === "2") {
+                    return row?.approvers?.hr || "N/A";
+                } else {
+                    return row.status;
+                }
+            }
+        },
+        {
+            id: 'numOfDays',
+            label: 'Number of Days',
+            minWidth: 100,
+            align: 'center',
+            getter: (row) => row?.numOfDays !== undefined
+                ? row.numOfDays
+                : 'N/A'
+        },
+        {
+            id: 'Action',
+            label: 'Action',
+            minWidth: 100,
+            align: 'center'
+        }
+    ];
+
     function toggleView() {
         setOpenModal(!openModal);
     }
@@ -616,7 +827,7 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
     function getValueForView(value) {
         const [id, page] = value;
 
-        if (page === 'daily-log') {
+        if (['daily-log', "attendance-request"].includes(page)) {
             async function fetchAttendanceData() {
                 try {
                     const data = await getclockinsDataById(id);
@@ -657,13 +868,12 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
                 return setColumns(column1);
             } else if (item?.FirstName && params["*"] === "employee") {
                 return setColumns(column3);
-            } else if (item?.date && params['*'] === "attendance-summary"
-                || item?.date && params['*'] === "details"
-                || item?.date && params['*'] === "attendance-request"
-                || item?.date && params['*'] === "attendance"
+            } else if ((item?.date && params['*'] === "attendance-summary")
+                || (item?.date && params['*'] === "details")
+                || (item?.date && params['*'] === "attendance")
             ) {
                 return setColumns(column5);
-            } else if (item?.date) {
+            } else if ((item?.date && params['*'] === "attendance-request") || item?.date) {
                 return setColumns(column4);
             } else if (item?.action) {
                 return setColumns(column6);
@@ -696,6 +906,8 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
                 return setColumns(column18)
             } else if (item.Address_1 && item.PostCode) {
                 return setColumns(column19)
+            } else if (item.reason) {
+                return setColumns(column20);
             }
             else {
                 return setColumns(column2)
@@ -724,26 +936,38 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
                         </TableHead>
                         <TableBody>
                             {
-
                                 rows.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row, rowIndex) => (
                                     <TableRow hover role="checkbox" tabIndex={-1} key={row.code}>
                                         {columns?.map((column) => {
                                             const value = column.getter ? column.getter(row, rowIndex) : row[column?.id];
-
                                             // Apply conditional styling for employee type
-                                            const cellClass =
-                                                column.id === "employmentType" && value === "contract" ? "backgroundBtn bg-primary rounded" :
-                                                    value === "Part-time" ? "backgroundBtn bg-warning rounded" :
-                                                        value === "Full-time" ? "backgroundBtn bg-success rounded" : "";
+                                            const cellStyle =
+                                                column.id === "employmentType" && ["contract", "intern"].includes(value) ? {
+                                                    color: "#AFDDFF", background: "#3A59D1",
+                                                    padding: "0px",
+                                                    fontWeight: "bold"
+                                                } :
+                                                    column.id === "employmentType" && value?.toLowerCase() === "part-time" ? {
+                                                        color: "#FFEFC8", background: "#FFB22C",
+                                                        padding: "0px",
+                                                        fontWeight: "bold",
+                                                        borderRadius: "4px"
+                                                    } :
+                                                        column.id === "employmentType" && value?.toLowerCase() === "full-time" ? {
+                                                            color: "rgb(206, 229, 211)", background: "#0A7E22",
+                                                            padding: "0px",
+                                                            fontWeight: "bold",
+                                                            borderRadius: "4px"
+                                                        } : {};
 
                                             // Render actions based on column.id and params
                                             const renderActions = () => {
                                                 if (column.id === "reasonForLeave") {
                                                 } else if (column.id === "Action") {
-                                                    if (params['*'] === "leave-request") {
+                                                    if (["leave-request", "wfh-request"].includes(params['*'])) {
                                                         return (
                                                             <Dropdown placement='leftStart' title={<EditRoundedIcon style={{ cursor: "pointer" }} />} noCaret>
-                                                                <Dropdown.Item style={{ minWidth: 120 }} onClick={() => navigate(`/${whoIs}/leave-request/view/${row._id}`)}>View</Dropdown.Item>
+                                                                <Dropdown.Item style={{ minWidth: 120 }} onClick={() => navigate(params['*'] === "leave-request" ? `/${whoIs}/leave-request/view/${row._id}` : `/${whoIs}/wfh-request/view/${row._id}`)}>View</Dropdown.Item>
                                                                 {
                                                                     (isTeamLead && row?.approvers?.lead === "pending") ||
                                                                         (isTeamHead && row?.approvers?.head === "pending") ||
@@ -758,9 +982,24 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
 
                                                             </Dropdown>
                                                         );
-                                                    } else if (params['*'] === "payslip" || params['*'] === "daily-log") {
+                                                    } else if (["payslip", "daily-log", "attendance-request"].includes(params["*"])) {
                                                         return (
                                                             <Dropdown title={<RemoveRedEyeRoundedIcon style={{ cursor: "pointer" }} />} noCaret onClick={() => getValueForView([row._id, params['*']])}>
+                                                            </Dropdown>
+                                                        );
+                                                    } else if (params["*"] === "workFromHome") {
+                                                        return (
+                                                            <Dropdown title={<EditRoundedIcon style={{ cursor: "pointer" }} />} placement='leftStart' noCaret>
+                                                                <Dropdown.Item style={{ minWidth: 120 }} onClick={() => navigate(`/${whoIs}/wfh-request/edit/${row._id}`)}>
+                                                                    <b>
+                                                                        <BorderColorRoundedIcon sx={{ color: "#FFD65A" }} /> Edit
+                                                                    </b>
+                                                                </Dropdown.Item>
+                                                                <Dropdown.Item style={{ minWidth: 120 }} onClick={() => deleteData(row._id)}>
+                                                                    <b>
+                                                                        <DeleteRoundedIcon sx={{ color: "#F93827" }} /> Delete
+                                                                    </b>
+                                                                </Dropdown.Item>
                                                             </Dropdown>
                                                         );
                                                     } else if (params['*'] === "employee") {
@@ -910,7 +1149,8 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
                                                 <TableCell
                                                     key={column.id}
                                                     align={column.align}
-                                                    className={cellClass}
+                                                    // className={cellClass}
+                                                    style={cellStyle}
                                                 >
                                                     {["Action", "auth", "Manage"].includes(column.id) ? renderActions() : value}
                                                 </TableCell>

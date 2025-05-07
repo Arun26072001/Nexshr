@@ -81,8 +81,8 @@ const AdminOrgSettings = ({ organizations }) => {
                     <p className="titleText text-start">Mail Settings</p>
                     <div className="row">
                         {
-                            mailSettings.map((item) => {
-                                return <div className="col-md-6">
+                            mailSettings.map((item, index) => {
+                                return <div className="col-md-6" key={index}>
                                     <div className={`box-content messageCount position-relative cardContent d-block ${item.isActive ? "activeCard" : ""}`} style={{ background: "white", textAlign: "center", height: "100%", boxShadow: "rgba(0, 0, 0, 0.02) 0px 1px 3px 0px, rgba(27, 31, 35, 0.15) 0px 0px 0px 1px" }}>
                                         <span className="RadioPosition" onClick={() => makeItActive(item)}>
                                             <input type="radio" checked={item.isActive} className="styleRadio" style={{ cursor: "pointer" }} />
@@ -95,7 +95,7 @@ const AdminOrgSettings = ({ organizations }) => {
                                         {
                                             Object.entries(item).map(([key, value]) => {
                                                 if (!["__v", "_id", "isActive"].includes(key)) {
-                                                    return <div className="d-flex my-1">
+                                                    return <div className="d-flex my-1" key={index}>
                                                         <div className="col-lg-5 text-start"><b>{key.toUpperCase()}</b></div>
                                                         <div className="col-lg-5 text-start sub_text " style={{ fontSize: "15px", fontWeight: 600, color: "rgb(150 147 147)" }}>  {value}</div>
                                                     </div>

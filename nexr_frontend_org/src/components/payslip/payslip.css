@@ -101,9 +101,12 @@ ul {
   width: 98%;
   margin: 0 auto;
   padding: 13px;
-  border: 2px solid #e7e7e7;
   border-radius: 10px;
   align-items: center;
+  flex-wrap: wrap;
+  background-color: white;
+  justify-content: space-between;
+  border: 2px solid  #E7E7E7;
 }
 
 .leaveData {

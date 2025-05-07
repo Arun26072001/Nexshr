@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useContext, useState } from 'react';
 import { NavLink, useParams } from 'react-router-dom';
 import './sidebar.css';
 import KeyboardArrowDownSharpIcon from '@mui/icons-material/KeyboardArrowDownSharp';
@@ -13,6 +13,7 @@ import adminIcon from '../../../asserts/adminIcon.svg';
 import fileIcon from "../../../asserts/file.svg";
 import folderIcon from "../../../asserts/folder.svg";
 import taskIcon from "../../../asserts/task.svg";
+import workFromHomeIcon from "../../../asserts/workfromhome.svg";
 import { EssentialValues } from '../../../App';
 import { jwtDecode } from 'jwt-decode';
 import { TimerStates } from '../HRMDashboard';
@@ -22,8 +23,8 @@ const Sidebar = ({ sideBar }) => {
   const { setIsEditEmp } = useContext(TimerStates);
   const { token, _id } = data;
   const decodedData = jwtDecode(token);
+  const { isTeamManager } = decodedData;
 
-  const { isTeamLead, isTeamHead, isTeamManager } = decodedData;
   const { Dashboard, JobDesk, Employee, Leave,
     Attendance, Administration, Settings
   } = decodedData?.roleData?.pageAuth;
@@ -122,7 +123,7 @@ const Sidebar = ({ sideBar }) => {
           'jobDesk'
         )}
 
-        {(Employee === 'allow' && [isTeamHead, isTeamLead, isTeamManager].includes(true)) &&
+        {(Employee === 'allow' && [decodedData?.isTeamHead, decodedData?.isTeamLead, isTeamManager].includes(true)) &&
           renderSubMenu(
             "employee",
             [
@@ -133,7 +134,7 @@ const Sidebar = ({ sideBar }) => {
             'Associate'
           )}
 
-        {![isTeamHead, isTeamLead, isTeamManager].includes(true) &&
+        {![decodedData?.isTeamHead, decodedData?.isTeamLead, isTeamManager].includes(true) &&
           renderNavLink(
             (Employee === 'allow' || ['admin', 'hr', 'emp'].includes(whoIs)),
             (["emp", "sys-admin"].includes(whoIs)
@@ -190,10 +191,9 @@ const Sidebar = ({ sideBar }) => {
           )}
 
         {(
-          (decodedData.isTeamLead && whoIs === "emp") ||
-          (decodedData.isTeamHead && whoIs === "emp") ||
-          (decodedData.isTeamManager && whoIs === "manager"))
-          &&
+          (['emp'].includes(whoIs) && [decodedData?.isTeamHead, decodedData?.isTeamLead].includes(true)) ||
+          (whoIs === "manager" && isTeamManager)
+        ) &&
           renderSubMenu(
             'leave',
             [
@@ -203,10 +203,10 @@ const Sidebar = ({ sideBar }) => {
             'Leave'
           )}
 
-        {((decodedData.isTeamLead && whoIs === "emp") ||
-          (decodedData.isTeamHead && whoIs === "emp") ||
-          (decodedData.isTeamManager && whoIs === "manager"))
-          &&
+        {(
+          (whoIs === "emp" && [decodedData?.isTeamHead, decodedData?.isTeamLead].includes(true)) ||
+          (whoIs === "manager" && isTeamManager)
+        ) &&
           renderSubMenu(
             'attendance',
             [
@@ -215,6 +215,18 @@ const Sidebar = ({ sideBar }) => {
             attendanceIcon,
             'Attendance'
           )}
+
+        {
+          // WorkFromHome === 'allow' &&
+          ["admin", "hr"].includes(whoIs) || [decodedData.isTeamManager, decodedData?.isTeamHead, decodedData?.isTeamLead].includes(true) ?
+            renderSubMenu(
+              'workfromhome',
+              [
+                { key: 'wfh-request', path: `/${whoIs}/workfromhome/wfh-request`, label: 'WFH Requests' },
+              ],
+              workFromHomeIcon,
+              'WorkFromHome'
+            ) : null}
 
         {Attendance === 'allow' && ["admin", "sys-admin", "hr"].includes(whoIs) &&
           renderSubMenu(
@@ -259,9 +271,6 @@ const Sidebar = ({ sideBar }) => {
             'Settings'
           )}
       </ul>
-      {/* <div className="logOutBtnParent p-3" onClick={handleLogout}>
-        <button className="w-100 log_out">Logout</button>
-      </div> */}
     </div>
   );
 };

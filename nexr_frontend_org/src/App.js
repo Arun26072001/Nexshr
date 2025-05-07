@@ -10,7 +10,7 @@ import { jwtDecode } from "jwt-decode";
 import "./App.css";
 import 'rsuite/dist/rsuite.min.css';
 import "react-datepicker/dist/react-datepicker.css";
-import io from "socket.io-client";
+// import io from "socket.io-client";
 import { Notification, toaster } from "rsuite";
 import companyLogo from "./imgs/webnexs_logo.webp";
 import AdminDashboard from "./components/superAdmin/AdminDashboard.js";
@@ -21,7 +21,7 @@ export const EssentialValues = createContext(null);
 const App = () => {
   const url = process.env.REACT_APP_API_URL;
   // State Variables
-  const socket = io(`${url}`, { autoConnect: false });
+  // const socket = io(`${url}`, { autoConnect: false });
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [showOfflineAlert, setShowOfflineAlert] = useState(false);
   const [hasInternet, setHasInternet] = useState(true);
@@ -77,11 +77,11 @@ const App = () => {
       const response = await axios.post(`${url}/api/login`, { Email: email, Password: password });
       const decodedData = jwtDecode(response.data);
 
-      if (!decodedData.Account || !["17", "1", "2", "3", "4", "5"].includes(String(decodedData.Account))) {
+      if (!decodedData?.Account || !["17", "1", "2", "3", "4", "5"].includes(String(decodedData?.Account))) {
         throw new Error("Invalid account type.");
       }
 
-      const accountType = decodedData.Account;
+      const accountType = decodedData?.Account;
       setData({
         _id: decodedData._id,
         Account: String(accountType),
@@ -95,10 +95,6 @@ const App = () => {
       localStorage.setItem("isLogin", true);
       localStorage.setItem("_id", decodedData._id);
       localStorage.setItem("token", response.data);
-      // localStorage.setItem("Account", accountType);
-      // localStorage.setItem("Name", `${decodedData.FirstName} ${decodedData.LastName}`);
-      // localStorage.setItem("annualLeaveEntitment", decodedData.annualLeaveEntitlement || 0);
-      // localStorage.setItem("profile", decodedData.profile)
 
       setPass(true);
       setLoading(false);
@@ -128,48 +124,57 @@ const App = () => {
     event.target.reset();
   };
 
-  useEffect(() => {
-    if (!socket.connected) {
-      socket.connect();
-    }
+  // useEffect(() => {
+  //   if (!socket.connected && isLogin) {
+  //     socket.connect();
+  //   }
 
-    socket.emit("join_room", data._id); // ✅ Make sure the employee joins their room
+  //   if (isLogin && data?._id) {
+  //     socket.emit("join_room", data._id);
 
-    socket.on("receive_announcement", (response) => {
-      console.log("responseData", response);
+  //     const handlers = {
+  //       receive_announcement: (response) => {
+  //         console.log("responseData", response);
+  //         triggerToaster(response);
+  //         handleUpdateAnnouncements();
+  //       },
+  //       send_leave_notification: (response) => {
+  //         console.log(response);
+  //         triggerToaster(response);
+  //         handleUpdateAnnouncements();
+  //       },
+  //       send_project_notification: (response) => {
+  //         triggerToaster(response);
+  //         handleUpdateAnnouncements();
+  //       },
+  //       send_task_notification: (response) => {
+  //         triggerToaster(response);
+  //         handleUpdateAnnouncements();
+  //       },
+  //       send_team_notification: (response) => {
+  //         triggerToaster(response);
+  //         handleUpdateAnnouncements();
+  //       },
+  //       send_wfh_notification: (response) => {
+  //         console.log(response);
+  //         triggerToaster(response);
+  //         handleUpdateAnnouncements();
+  //       },
+  //     };
 
-      triggerToaster(response);
-      handleUpdateAnnouncements()
-    });
+  //     // Attach all handlers
+  //     Object.entries(handlers).forEach(([event, handler]) => {
+  //       socket.on(event, handler);
+  //     });
 
-    socket.on("send_leave_notification", (response) => {
-      triggerToaster(response);
-      handleUpdateAnnouncements()
-    });
-
-    socket.on("send_project_notification", (response) => {
-      triggerToaster(response);
-      handleUpdateAnnouncements()
-    });
-
-    socket.on("send_task_notification", (response) => {
-      triggerToaster(response);
-      handleUpdateAnnouncements()
-    });
-
-    socket.on("send_team_notification", (response) => {
-      triggerToaster(response);
-      handleUpdateAnnouncements();
-    })
-
-    return () => {
-      socket.off("receive_announcement");
-      socket.off("send_task_notification");
-      socket.off("send_project_notification");
-      socket.off("send_leave_notification");
-      socket.off("send_team_notification")
-    };
-  }, [socket]);
+  //     return () => {
+  //       // Detach all handlers
+  //       Object.keys(handlers).forEach((event) => {
+  //         socket.off(event);
+  //       });
+  //     };
+  //   }
+  // }, [socket, isLogin, data?._id]);
 
   useEffect(() => {
     localStorage.setItem("isStartLogin", isStartLogin);
@@ -202,18 +207,17 @@ const App = () => {
       setData((prev) => ({
         ...prev,
         _id: decodedData._id || "",
-        Account: decodedData.Account || "",
+        Account: decodedData?.Account || "",
         Name: `${decodedData.FirstName} ${decodedData.LastName}` || "",
         annualLeave: decodedData.annualLeaveEntitment || 0,
         token: localStorage.getItem("token") || "",
         profile: decodedData.profile
       }))
       const roles = { "17": "superAdmin", "1": "admin", "2": "hr", "3": "emp", "4": "manager", "5": "sys-admin" };
-      setWhoIs(roles[String(decodedData.Account)] || "");
+      setWhoIs(roles[String(decodedData?.Account)] || "");
 
       if (window.location.pathname !== "/login" || window.location.pathname !== `/${whoIs}`) {
-        if (roles[String(decodedData.Account)]) {
-          console.log("go to place");
+        if (roles[String(decodedData?.Account)]) {
           replaceMiddleSegment()
         }
       }
@@ -282,7 +286,7 @@ const App = () => {
         isStartActivity,
         whoIs,
         setIsStartActivity,
-        socket,
+        // socket,
         handleUpdateAnnouncements,
         isChangeAnnouncements
       }}

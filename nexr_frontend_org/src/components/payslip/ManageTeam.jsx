@@ -12,7 +12,9 @@ import { jwtDecode } from "jwt-decode";
 
 const ManageTeam = () => {
     const url = process.env.REACT_APP_API_URL;
-    const { data, whoIs, socket } = useContext(EssentialValues);
+    const { data, whoIs, 
+        // socket
+     } = useContext(EssentialValues);
     const { token, _id } = data;
     const [teamObj, setTeamObj] = useState({});
     const [isLoading, setIsLoading] = useState(false);
@@ -25,6 +27,8 @@ const ManageTeam = () => {
     const [leads, setLeads] = useState([]);
     const [heads, setHeads] = useState([]);
     const [managers, setManagers] = useState([]);
+    const [admins, setAdmins] = useState([]);
+    const [hrs, setHrs] = useState([]);
     const [isChangingTeam, setIsChangingTeam] = useState(false);
     const { isTeamHead, isTeamLead, isTeamManager } = jwtDecode(token);
 
@@ -111,7 +115,7 @@ const ManageTeam = () => {
 
             // toggleAssignEmp();
             toast.success(response.data.message);
-            socket.emit("sent_notification_for_team", teamObj);
+            // socket.emit("sent_notification_for_team", teamObj);
             toggleAddTeam();
             setTeamObj({})
             reloadUI();
@@ -137,7 +141,7 @@ const ManageTeam = () => {
             toast.success(res.data.message);
         } catch (err) {
             console.log(err);
-            toast.error(err.message);
+            toast.error(err.response.data.error);
         } finally {
             setIsChangingTeam(false);
         }
@@ -184,6 +188,56 @@ const ManageTeam = () => {
                 }
             })
             setManagers(res.data.map((emp) => ({
+                label: emp.FirstName + " " + emp.LastName,
+                value: emp._id
+            })));
+        } catch (error) {
+            console.log(error.response.data.error);
+        }
+    }
+    async function fetchManagers() {
+        try {
+            const res = await axios.get(`${url}/api/employee/team/manager`, {
+                headers: {
+                    Authorization: token || ""
+                }
+            })
+
+            setManagers(res.data.map((emp) => ({
+                label: emp.FirstName + " " + emp.LastName,
+                value: emp._id
+            })));
+        } catch (error) {
+            console.log(error.response.data.error);
+        }
+    }
+    async function fetchHr() {
+        try {
+            const res = await axios.get(`${url}/api/employee/team/hr`, {
+                headers: {
+                    Authorization: token || ""
+                }
+            })
+            console.log(res.data);
+
+            setHrs(res.data.map((emp) => ({
+                label: emp.FirstName + " " + emp.LastName,
+                value: emp._id
+            })));
+        } catch (error) {
+            console.log(error.response.data.error);
+        }
+    }
+
+    async function fetchAdmins() {
+        try {
+            const res = await axios.get(`${url}/api/employee/team/admin`, {
+                headers: {
+                    Authorization: token || ""
+                }
+            })
+            console.log(res.data);
+            setAdmins(res.data.map((emp) => ({
                 label: emp.FirstName + " " + emp.LastName,
                 value: emp._id
             })));
@@ -247,6 +301,8 @@ const ManageTeam = () => {
         fetchHeads();
         fetchLeads();
         fetchManagers();
+        fetchAdmins();
+        fetchHr();
     }, [])
 
     return (
@@ -268,14 +324,17 @@ const ManageTeam = () => {
                 </div>
 
                 {addTeam && (
-                    <CommonModel type="Team" leads={leads}
+                    <CommonModel type="Team"
                         isAddData={addTeam}
                         changeData={changeTeamObj}
                         editData={handleSubmitEdit}
+                        leads={leads}
                         heads={heads}
+                        managers={managers}
+                        admins={admins}
+                        hrs={hrs}
                         addData={handleSubmit}
                         dataObj={teamObj}
-                        managers={managers}
                         modifyData={toggleAddTeam}
                         employees={employees}
                         isWorkingApi={isChangingTeam}
