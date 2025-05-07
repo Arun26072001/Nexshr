@@ -33,7 +33,6 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
     const [openModal, setOpenModal] = useState(false);
     const [modelData, setModelData] = useState({});
     const params = useParams();
-    console.log(whoIs);
 
     const handleChangePage = (event, newPage) => {
         setPage(newPage);

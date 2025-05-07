@@ -24,6 +24,8 @@ export default function LeaveRequest() {
     const navigate = useNavigate()
 
     async function replyToLeave(leave, response) {
+        console.log("repinse", response);
+        
         try {
             let updatedLeaveRequest;
             if (isTeamHead) {

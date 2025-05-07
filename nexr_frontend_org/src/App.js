@@ -11,10 +11,12 @@ import "./App.css";
 import 'rsuite/dist/rsuite.min.css';
 import "react-datepicker/dist/react-datepicker.css";
 // import io from "socket.io-client";
-import { Notification, toaster } from "rsuite";
-import companyLogo from "./imgs/webnexs_logo.webp";
+// import { Notification, toaster } from "rsuite";
+// import companyLogo from "./imgs/webnexs_logo.webp";
+// import { triggerToaster } from "./components/ReuseableAPI.jsx";
 import AdminDashboard from "./components/superAdmin/AdminDashboard.js";
-import { triggerToaster } from "./components/ReuseableAPI.jsx";
+import { getToken, onMessage } from "firebase/messaging";
+import { messaging } from "./firebase/firebase.js";
 
 export const EssentialValues = createContext(null);
 
@@ -41,6 +43,8 @@ const App = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [isChangeAnnouncements, setIschangeAnnouncements] = useState(false);
+  const [notification, setNotification] = useState("");
+  const [fcmToken, setFcmToken] = useState("");
 
   function handleUpdateAnnouncements() {
     setIschangeAnnouncements(!isChangeAnnouncements)
@@ -176,30 +180,90 @@ const App = () => {
   //   }
   // }, [socket, isLogin, data?._id]);
 
+  async function saveFcmToken(empId, fcmToken) {
+    try {
+      const res = await axios.post(`${url}/api/employee/add-fcm-token`, { empId, fcmToken }, {
+        headers: {
+          Authorization: data.token || ""
+        }
+      })
+      console.log(res.data.message);
+    } catch (error) {
+      console.log("error in save fcm token", error);
+    }
+  }
+
+  // function triggerNotification() {
+  //   try {
+  //     const trigger = axios.post(`${url}/push-notification`, { userId: data._id, title: "Hey", body: "how are you" });
+  //     console.log("triggered");
+  //   } catch (error) {
+  //     console.log("error in trigger notification", error);
+  //   }
+  // }
+  // triggerNotification();
+
+  useEffect(() => {
+    const requestPermission = async () => {
+      try {
+        // ask permission from employee
+        const permission = await Notification.requestPermission();
+        console.log("Notification permission", permission)
+        if (permission === "granted") {
+          const currentToken = await getToken(messaging, {
+            vapidKey: "BLmSTq4TWV1Z7V2NgYclknMXlVrC35Ol4CwTBoykLkGH8ikvKOO4caS9XuWjqgI3rEm04mRrX2HfybEal6qUrVg",
+          });
+          if (currentToken) {
+            setFcmToken(currentToken);
+            if (data?._id) {
+              saveFcmToken(data._id, currentToken);
+            }
+          } else {
+            console.log("No FCM token received.");
+          }
+        } else {
+          console.log("Notification permission denied.");
+        }
+      } catch (error) {
+        console.error("Error getting permission for notifications", error);
+      }
+    };
+
+    requestPermission();
+
+    // Listen for incoming messages when the app is in the foreground
+    const unsubscribe = onMessage(messaging, (payload) => {
+      console.log("Message received:", payload);
+      setNotification(payload.notification);
+    });
+
+    return () => unsubscribe();
+  }, [data._id]);
+
   useEffect(() => {
     localStorage.setItem("isStartLogin", isStartLogin);
     localStorage.setItem("isStartActivity", isStartActivity);
   }, []);
 
-  useEffect(() => {
-    if (!isStartLogin && isLogin) {
-      toaster.push(
-        <Notification
-          header={
-            <div style={{ display: 'flex', alignItems: 'center' }}>
-              <img src={companyLogo} alt="Company Logo" style={{ width: 50, height: 50, marginRight: 10 }} />
-              <span style={{ fontWeight: 'bold', fontSize: '16px' }}>Webnexs</span>
-            </div>
-          }
-          closable
-        >
-          <strong className="text-danger">Important notice</strong>
-          <p className="my-2"> The timer will stop when you close the tab or browser.</p>
-        </Notification>,
-        { placement: 'topCenter' }
-      );
-    }
-  }, [])
+  // useEffect(() => {
+  //   if (!isStartLogin && isLogin) {
+  //     toaster.push(
+  //       <Notification
+  //         header={
+  //           <div style={{ display: 'flex', alignItems: 'center' }}>
+  //             <img src={companyLogo} alt="Company Logo" style={{ width: 50, height: 50, marginRight: 10 }} />
+  //             <span style={{ fontWeight: 'bold', fontSize: '16px' }}>Webnexs</span>
+  //           </div>
+  //         }
+  //         closable
+  //       >
+  //         <strong className="text-danger">Important notice</strong>
+  //         <p className="my-2"> The timer will stop when you close the tab or browser.</p>
+  //       </Notification>,
+  //       { placement: 'topCenter' }
+  //     );
+  //   }
+  // }, [])
 
   useEffect(() => {
     function fetchEssentialData() {

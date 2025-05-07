@@ -730,6 +730,7 @@ leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("pre
     const today = new Date();
     const tomorrow = new Date(today);
     tomorrow.setDate(today.getDate() + 1);
+    let mailList = [];
 
     // 1. If applying on behalf, ensure target employee isn't already working those days
     if (applyFor) {
@@ -850,10 +851,10 @@ leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("pre
 
     // 10. Approvers setup
     const approvers = {};
-    const teamRoles = ["lead", "head", "manager", "admin", "hr"];
+    const teamRoles = ["lead", "head", "manager", "hr", "admin"];
 
     for (const role of teamRoles) {
-      if (emp?.team?.[role]) {
+      if (emp?.team?.[role] && role !== "admin") {
         approvers[role] = ![undefined, "undefined"].includes(applyFor) ? "approved" : "pending";
       }
     }
@@ -890,7 +891,7 @@ leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("pre
 
     // 13. Send Notification (only for self-application)
     if (!applyFor) {
-      const mailList = teamRoles.flatMap(role => {
+      mailList = teamRoles.flatMap(role => {
         const data = emp?.team?.[role];
         if (Array.isArray(data)) {
           return data.map(person => person?.Email).filter(Boolean);
@@ -926,9 +927,10 @@ leaveApp.put('/:id', verifyAdminHREmployeeManagerNetwork, async (req, res) => {
 
     const allApproved = Object.values(approvers).every(status => status === "approved");
     const anyRejected = Object.values(approvers).some(status => status === "rejected");
-    const allPending = Object.values(approvers).some(status => status === "pending");
+    const allPending = Object.values(approvers).every(status => status === "pending");
 
     let members = [];
+    console.log("allpending", approvers);
 
     if (!allPending) {
       const emp = await Employee.findById(employee)
