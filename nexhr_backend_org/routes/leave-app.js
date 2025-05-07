@@ -59,8 +59,13 @@ function generateLeaveEmail(empData, fromDateValue, toDateValue, reasonForLeave,
       <!-- Content -->
       <div style="margin: 20px 0; padding: 10px;">
         <p style="font-size: 14px; margin: 10px 0;"><strong>Reason for Leave:</strong> ${reasonForLeave}</p>
-        <p style="font-size: 14px; margin: 10px 0;">Kindly review and respond accordingly.</p>
-        <p style="font-size: 14px; margin: 10px 0;">Thank you!</p>
+        <p style="font-size: 14px; margin: 10px 0;">
+          Please let me know if any further information is required. 
+          I kindly request you to consider and approve this request.
+        </p>
+        <p style="font-size: 14px; margin: 10px 0;">
+          Thank you for your time and support.
+        </p>
       </div>
 
       <!-- Footer -->
@@ -348,7 +353,7 @@ leaveApp.get("/hr", verifyHR, async (req, res) => {
     let empLeaveReqs = leaveReqs
       .map((req) => req.leaveApplication)
       .flat()
-      .sort((a, b) => new Date(b.fromDate) - new Date(a.fromDate)); // Sort by fromDate
+      .sort((a, b) => new Date(b.fromDate) - new Date(a.fromDate)); 
     empLeaveReqs = empLeaveReqs.map(formatLeaveData)
     res.send(empLeaveReqs);
   } catch (err) {

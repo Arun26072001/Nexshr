@@ -73,9 +73,10 @@ function mailContent(type, fromDateValue, toDateValue, emp, leaveType, actionBy,
             ${new Date(toDateValue).toLocaleString("default", { month: "long" })} ${new Date(toDateValue).getDate()}, ${new Date(toDateValue).getFullYear()}
           </p>
           <a href="${process.env.FRONTEND_URL}" style="font-weight: bold; padding: 12px 24px; border-radius: 30px; background-color: ${isRejected ? "red" : "green"}; color: white; text-decoration: none; display: inline-block; margin: 15px 0; border: none;">View Leave Details</a>
-          <p>
-            Your request for ${leaveType} on ${fromDateValue} has been not approved due to [team workload].
-          </p>
+        <p>
+           Your request for ${leaveType} on ${fromDateValue} has been ${isApproved ? "approved" : "not approved due to " + (reason || "Team Workload")}.
+        </p>
+
           <p>Regards,</p>
           <p>Kavya</p>
           <p>HR Department</p>
