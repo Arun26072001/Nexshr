@@ -72,7 +72,7 @@ router.post("/:id", verifySuperAdmin, async (req, res) => {
               <p><strong>Email:</strong> ${addEmployee.Email}</p>
               <p><strong>Password:</strong> ${addEmployee.Password}</p>
               <p>You are now the admin for <strong>${orgData.orgName}</strong>. Please use the link below to log in:</p>
-              <a href="${process.env.FRONTEND_URL}" 
+              <a href="${process.env.REACT_APP_API_URL}" 
                  style="display: inline-block; padding: 10px 20px; background-color: #28a745; color: #fff; text-decoration: none; border-radius: 5px; margin-top: 10px;">
                  Confirm Email
               </a>
