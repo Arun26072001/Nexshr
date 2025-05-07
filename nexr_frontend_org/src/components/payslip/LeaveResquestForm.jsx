@@ -128,7 +128,6 @@ const LeaveRequestForm = ({ type }) => {
         formData.append("applyFor", formik.values.applyFor);
 
         if (leaveRequestObj._id) {
-          console.log("aksjdksalkdajskdh");
           console.log(values);
 
           updateLeave(values, resetForm)
@@ -475,9 +474,9 @@ const LeaveRequestForm = ({ type }) => {
                     </button>
                   </div>
                   <div className="col-12 col-lg-5 my-2 col-md-5">
-                    <button type="submit" className="btn btn-dark w-100">
+                    {/* <button type="submit" className="btn btn-dark w-100">
                       {isWorkingApi ? <Loading size={20} color="white" /> : leaveRequestObj._id ? "Update" : "Submit"}
-                    </button>
+                    </button> */}
                   </div>
                 </div> : <button
                   type="button"
