@@ -13,9 +13,9 @@ export default function WFHRequestForm({ type }) {
     const navigate = useNavigate();
     const [isLoading, setIsLoading] = useState(false);
     const url = process.env.REACT_APP_API_URL;
-    const { whoIs, data, 
+    const { whoIs, data,
         // socket
-     } = useContext(EssentialValues);
+    } = useContext(EssentialValues);
     const now = new Date();
     const [wfhRequestObj, setwfhRequestObj] = useState({
         fromDate: null,
@@ -47,10 +47,10 @@ export default function WFHRequestForm({ type }) {
 
     async function handleSubmit(e) {
         e.preventDefault();
-        setwfhRequestObj((pre) => ({
-            ...pre,
+        const updatedRequest = {
+            ...wfhRequestObj,
             numOfDays: getDayDifference(wfhRequestObj)
-        }))
+        }
         if (!validateForm()) {
             toast.error("Please fix the errors.");
             return;
@@ -58,18 +58,15 @@ export default function WFHRequestForm({ type }) {
 
         try {
             setIsWorkingApi(true);
-            const updatedRequest = {
-                ...wfhRequestObj,
-                numOfDays: getDayDifference(wfhRequestObj)
-            }
             if (wfhRequestObj._id) {
+                console.log(updatedRequest);
                 const res = await axios.put(`${url}/api/wfh-application/${wfhRequestObj._id}`, updatedRequest, {
                     headers: {
                         Authorization: data.token || ""
                     }
                 });
                 toast.success(res.data?.message);
-                navigate(`/${whoIs}`);
+                navigate(-1);
             } else {
                 const res = await axios.post(`${url}/api/wfh-application/${data._id}`, updatedRequest, {
                     headers: {
@@ -78,8 +75,7 @@ export default function WFHRequestForm({ type }) {
                 });
                 toast.success(res.data?.message);
                 // socket.emit("send_notification_for_wfh", wfhRequestObj, data._id);
-                setwfhRequestObj({});
-                navigate(`/${whoIs}`);
+                navigate(-1);
             }
             setwfhRequestObj({});
         } catch (error) {
@@ -135,8 +131,6 @@ export default function WFHRequestForm({ type }) {
                             <div className="col-12 col-lg-6 col-md-6">
                                 <span className="inputLabel">Start Date</span>
                                 <DatePicker
-                                    // showTimeSelect
-                                    // dateFormat="Pp"
                                     disabled={type === "view"}
                                     className={`inputField ${errors.fromDate ? "error" : ""} w-100`}
                                     selected={wfhRequestObj.fromDate ? new Date(wfhRequestObj.fromDate) : null}
@@ -150,8 +144,6 @@ export default function WFHRequestForm({ type }) {
                             <div className="col-12 col-lg-6 col-md-6">
                                 <span className="inputLabel">End Date</span>
                                 <DatePicker
-                                    // showTimeSelect
-                                    // dateFormat="Pp"
                                     disabled={type === "view"}
                                     className={`inputField ${errors.toDate ? "error" : ""} w-100`}
                                     selected={wfhRequestObj.toDate ? new Date(wfhRequestObj.toDate) : null}

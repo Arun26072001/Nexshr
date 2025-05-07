@@ -15,9 +15,9 @@ import Loading from "../Loader";
 const LeaveRequestForm = ({ type }) => {
   const { id } = useParams();
   const url = process.env.REACT_APP_API_URL;
-  const { whoIs, data, 
+  const { whoIs, data,
     // socket
-   } = useContext(EssentialValues);
+  } = useContext(EssentialValues);
   const { _id, token } = data;
   const [error, setError] = useState("");
   const [isShowPeriodOfLeave, setIsShowPeriodOfLeave] = useState(false);
@@ -128,13 +128,18 @@ const LeaveRequestForm = ({ type }) => {
         formData.append("applyFor", formik.values.applyFor);
 
         if (leaveRequestObj._id) {
-          updateLeave(formData, resetForm)
+          console.log("aksjdksalkdajskdh");
+          console.log(values);
+
+          updateLeave(values, resetForm)
         } else {
           applyLeave(formData, resetForm)
         }
       }
     },
   });
+
+  // console.log(formik.values);
 
   async function applyLeave(formData, resetForm) {
     try {
@@ -160,6 +165,7 @@ const LeaveRequestForm = ({ type }) => {
   }
 
   async function updateLeave(formData, resetForm) {
+    // console.log(formData);
     const leaveData = {
       ...formData,
       employee: _id
