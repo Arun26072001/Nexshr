@@ -770,10 +770,6 @@ leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("pre
 
     const emp = await Employee.findById(personId, "FirstName LastName monthlyPermissions permissionHour typesOfLeaveRemainingDays typesOfLeaveCount leaveApplication company")
       .populate([
-        // {
-        //   path: "admin",
-        //   select: "FirstName LastName Email",
-        // },
         {
           path: "leaveApplication",
           match: { leaveType: "Permission Leave", fromDate: { $gte: monthStart, $lte: monthEnd } },
@@ -849,15 +845,13 @@ leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("pre
 
     // 10. Approvers setup
     const approvers = {};
-    const teamRoles = ["lead", "head", "manager"];
+    const teamRoles = ["lead", "head", "manager", "admin", "hr"];
 
     for (const role of teamRoles) {
       if (emp?.team?.[role]) {
         approvers[role] = ![undefined, "undefined"].includes(applyFor) ? "approved" : "pending";
       }
     }
-
-    approvers.hr = ![undefined, "undefined"].includes(applyFor) ? "approved" : "pending";
 
     // 11. Create leave request
     const leaveRequest = {
@@ -891,13 +885,13 @@ leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("pre
 
     // 13. Send Notification (only for self-application)
     if (!applyFor) {
-      const mailList = [
-        ...(Array.isArray(emp?.team?.lead) ? emp.team.lead.map(emp => emp.Email) : []),
-        emp?.team?.head?.Email,
-        emp?.team?.manager?.Email,
-        emp?.team?.hr?.Email,
-        emp?.team?.admin?.Email,
-      ].filter(Boolean); // removes undefined, null, or false
+      const mailList = teamRoles.flatMap(role => {
+        const data = emp?.team?.[role];
+        if (Array.isArray(data)) {
+          return data.map(person => person?.Email).filter(Boolean);
+        }
+        return data?.Email ? [data.Email] : [];
+      });// removes undefined, null, or false
 
       sendMail({
         From: process.env.FROM_MAIL,
@@ -907,7 +901,7 @@ leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("pre
       });
     }
 
-    return res.status(201).json({ message: "Leave request submitted successfully.", newLeaveApp });
+    return res.status(201).json({ message: "Leave request submitted successfully.", newLeaveApp, notifiedMembers: mailList });
 
   } catch (err) {
     console.error(err);
@@ -921,65 +915,98 @@ leaveApp.put('/:id', verifyAdminHREmployeeManagerNetwork, async (req, res) => {
 
     const fromDateValue = new Date(fromDate);
     const toDateValue = new Date(toDate);
-
     const today = new Date();
     const leaveHour = fromDateValue.getHours() || 0;
     const startOfDay = new Date(today.setHours(leaveHour - 2, 0, 0, 0));
 
-    const allApproved = Object.values(approvers).every((status) => status === "approved");
-    const anyRejected = Object.values(approvers).some((status) => status === "rejected");
+    const allApproved = Object.values(approvers).every(status => status === "approved");
+    const anyRejected = Object.values(approvers).some(status => status === "rejected");
+    const allPending = Object.values(approvers).some(status => status === "pending");
 
-    const emp = await Employee.findById(employee)
-      .populate([{
-        path: "team",
-        populate: [
-          { path: "lead", select: "FirstName LastName Email" },
-          { path: "head", select: "FirstName LastName Email" },
-          { path: "manager", select: "FirstName LastName Email" },
-          { path: "admin", select: "FirstName LastName Email" },
-          { path: "hr", select: "FirstName LastName Email" }
-        ]
-      },
-      { path: "company", select: "logo CompanyName" },
-      { path: "company", select: "CompanyName logo" },
-      { path: "admin", select: "FirstName LastName Email" }
-      ]).lean().exec();
+    let members = [];
 
-    if (!emp) return res.status(404).send({ error: 'Employee not found.' });
-    if (!emp.team) return res.status(404).send({ error: `${emp.FirstName} is not assigned to a team.` });
+    if (!allPending) {
+      const emp = await Employee.findById(employee)
+        .populate([
+          {
+            path: "team",
+            populate: [
+              { path: "lead", select: "FirstName LastName Email" },
+              { path: "head", select: "FirstName LastName Email" },
+              { path: "manager", select: "FirstName LastName Email" },
+              { path: "admin", select: "FirstName LastName Email" },
+              { path: "hr", select: "FirstName LastName Email" }
+            ]
+          },
+          { path: "company", select: "CompanyName logo" },
+          { path: "admin", select: "FirstName LastName Email" }
+        ])
+        .lean();
 
-    if (allApproved) {
-      const leaveDaysTaken = Math.max(getDayDifference({ fromDate, toDate }), 1);
-      const leaveBalance = emp.typesOfLeaveRemainingDays?.[leaveType] ?? 0;
+      if (!emp) return res.status(404).send({ error: 'Employee not found.' });
+      if (!emp.team) return res.status(404).send({ error: `${emp.FirstName} is not assigned to a team.` });
 
-      if (leaveBalance < leaveDaysTaken) {
-        return res.status(400).send({ error: 'Insufficient leave balance for the requested leave type.' });
+      // Deduct leave if approved
+      if (allApproved) {
+        const leaveDaysTaken = Math.max(getDayDifference({ fromDate, toDate }), 1);
+        const leaveBalance = emp.typesOfLeaveRemainingDays?.[leaveType] ?? 0;
+
+        if (leaveBalance < leaveDaysTaken) {
+          return res.status(400).send({ error: 'Insufficient leave balance for the requested leave type.' });
+        }
+
+        await Employee.findByIdAndUpdate(emp._id, {
+          $inc: { [`typesOfLeaveRemainingDays.${leaveType}`]: -leaveDaysTaken }
+        });
       }
 
-      emp.typesOfLeaveRemainingDays[leaveType] -= leaveDaysTaken;
-      await emp.save();
+      // Safely extract team members
+      const normalize = (arr, type) =>
+        Array.isArray(arr)
+          ? arr.map(item => ({
+            type,
+            Email: item.Email,
+            name: `${item.FirstName} ${item.LastName}`
+          }))
+          : [];
+
+      const leads = normalize(emp.team.lead, "lead");
+      const heads = normalize(emp.team.head, "head");
+      const managers = normalize(emp.team.manager, "manager");
+      const hrs = normalize(emp.team.hr, "hr");
+      const admins = normalize(emp.team.admin, "admin");
+
+      members = [
+        emp.Email && {
+          type: "emp",
+          Email: emp.Email,
+          name: `${emp.FirstName} ${emp.LastName}`
+        },
+        ...leads,
+        ...heads,
+        ...managers,
+        ...admins,
+        ...hrs
+      ].filter(Boolean);
+
+      // Who took action?
+      const actionBy =
+        Object.entries(approvers).find(([_, value]) => value === "approved" || value === "rejected")?.[0] || "unknown";
+
+      const emailType = allApproved ? "approved" : anyRejected ? "rejected" : "pending";
+
+      // Notify all involved
+      for (const member of members) {
+        await sendMail({
+          From: process.env.FROM_MAIL,
+          To: member.Email,
+          Subject: "Leave Application Response Notification",
+          HtmlBody: mailContent(emailType, fromDateValue, toDateValue, emp, leaveType, actionBy, member)
+        });
+      }
     }
-    const leads = emp.team.lead.map((item) => ({
-      type: "lead", Email: item.Email, name: `${item.FirstName} ${item.LastName}`
-    }));
-    const heads = emp.team.head.map((item) => ({
-      type: "head", Email: item.Email, name: `${item.FirstName} ${item.LastName}`
-    }));
-    const managers = emp.team.manager.map((item) => ({
-      type: "manager", Email: item.Email, name: `${item.FirstName} ${item.LastName}`
-    }));
-    const hrs = emp.team.hr.map((item) => ({
-      type: "hr", Email: item.Email, name: `${item.FirstName} ${item.LastName}`
-    }));
-    const admins = emp.team.admin.map((item) => ({
-      type: "manager", Email: item.Email, name: `${item.FirstName} ${item.LastName}`
-    }));
 
-    const members = [
-      emp.Email && { type: "emp", Email: emp.Email, name: `${emp.FirstName} ${emp.LastName}` },
-      ...leads, ...heads, ...managers, ...admins, ...hrs
-    ].filter(Boolean);
-
+    // Update leave application
     const updatedLeaveApp = {
       ...restBody,
       approvers,
@@ -996,22 +1023,10 @@ leaveApp.put('/:id', verifyAdminHREmployeeManagerNetwork, async (req, res) => {
       return res.status(400).send({ error: 'Leave request has expired or already started.' });
     }
 
-    // Determine who approved or rejected
-    const actionBy = Object.entries(approvers).find(([_, value]) => value === "approved" || value === "rejected")?.[0] || "unknown";
-    const emailType = allApproved ? "approved" : anyRejected ? "rejected" : "pending";
-
-    members.forEach(member => {
-      sendMail({
-        From: process.env.FROM_MAIL,
-        To: member.Email,
-        Subject: "Leave Application Response",
-        HtmlBody: mailContent(emailType, fromDateValue, toDateValue, emp, leaveType, actionBy, member)
-      });
-    });
-
     return res.send({
       message: 'You have responded to the leave application.',
-      data: updatedRequest
+      data: updatedRequest,
+      notifiedMembers: members
     });
 
   } catch (err) {

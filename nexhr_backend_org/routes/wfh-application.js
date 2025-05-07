@@ -118,7 +118,7 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
                 ...([].concat(emp?.team?.manager || []).map(emp => emp?.Email)),
                 ...([].concat(emp?.team?.hr || []).map(emp => emp?.Email)),
                 ...([].concat(emp?.team?.admin || []).map(emp => emp?.Email)),
-              ].filter(Boolean); // removes null/undefined/false              
+            ].filter(Boolean); // removes null/undefined/false              
 
             sendMail({
                 From: process.env.FROM_MAIL,
@@ -277,19 +277,105 @@ router.get("/team/:id", verifyTeamHigherAuthority, async (req, res) => {
     }
 })
 
-
 router.put("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
     try {
-        // const { error } = WFHAppValidation.validate(req.body);
-        // if (error) {
-        //     return res.status(400).send({ error: error.details[0].message })
-        // }
-        const updatedData = await WFHApplication.findByIdAndUpdate(req.body, { new: true });
-        return res.send({ message: "WFH Request has been updated successfully", updatedData })
+      const { approvers, fromDate, toDate, leaveType, ...restBody } = req.body;
+  
+      const allApproved = Object.values(approvers).every(status => status === "approved");
+      const anyRejected = Object.values(approvers).some(status => status === "rejected");
+      const allPending = Object.values(approvers).every(status => status === "pending");
+  
+      let members = [];
+      let updatedLeaveStatus = restBody.status;
+  
+      if (!allPending) {
+        updatedLeaveStatus = allApproved
+          ? "approved"
+          : anyRejected
+            ? "rejected"
+            : restBody.status;
+  
+        const wfhApp = await WFHApplication.findById(req.params.id);
+        if (!wfhApp) return res.status(404).send({ error: "WFH application not found." });
+  
+        const employeeId = wfhApp.employee;
+  
+        const emp = await Employee.findById(employeeId)
+          .populate([
+            {
+              path: "team",
+              populate: [
+                { path: "lead", select: "FirstName LastName Email" },
+                { path: "head", select: "FirstName LastName Email" },
+                { path: "manager", select: "FirstName LastName Email" },
+                { path: "admin", select: "FirstName LastName Email" },
+                { path: "hr", select: "FirstName LastName Email" },
+              ]
+            },
+            { path: "company", select: "CompanyName logo" },
+            { path: "admin", select: "FirstName LastName Email" }
+          ])
+          .lean();
+  
+        if (!emp) return res.status(404).send({ error: "Employee not found." });
+  
+        // Helper to normalize members
+        const getMembers = (data, type) =>
+          Array.isArray(data)
+            ? data.map(item => ({
+                type,
+                Email: item?.Email,
+                name: `${item?.FirstName ?? ""} ${item?.LastName ?? ""}`.trim()
+              }))
+            : data?.Email
+              ? [{
+                  type,
+                  Email: data.Email,
+                  name: `${data.FirstName ?? ""} ${data.LastName ?? ""}`.trim()
+                }]
+              : [];
+  
+        // Collect all relevant members
+        members = [
+          emp.Email && { type: "emp", Email: emp.Email, name: `${emp.FirstName} ${emp.LastName}` },
+          ...getMembers(emp.team?.lead, "lead"),
+          ...getMembers(emp.team?.head, "head"),
+          ...getMembers(emp.team?.manager, "manager"),
+          ...getMembers(emp.team?.hr, "hr"),
+          ...getMembers(emp.team?.admin, "admin")
+        ]
+          .filter(Boolean)
+          .filter((v, i, self) => self.findIndex(t => t.Email === v.Email) === i); // Deduplicate
+  
+        const mailList = members.map(m => m.Email).filter(Boolean);
+  
+        if (mailList.length > 0) {
+          await sendMail({
+            From: process.env.FROM_MAIL,
+            To: mailList.join(","),
+            Subject: "Work From Home Response Notification",
+            HtmlBody: generateWfhEmail(emp, fromDate, toDate, restBody.reason),
+          });
+        }
+      }
+  
+      // Update WFH application
+      const updatedData = await WFHApplication.findByIdAndUpdate(
+        req.params.id,
+        { ...restBody, approvers, status: updatedLeaveStatus },
+        { new: true }
+      );
+  
+      return res.send({
+        message: "WFH Request has been updated successfully",
+        updatedData,
+        notifiedMembers: members
+      });
     } catch (error) {
-        return res.status(500).send({ error: error.message })
+      return res.status(500).send({ error: error.message });
     }
-})
+  });
+  
 
 router.delete("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
     try {

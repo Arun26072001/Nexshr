@@ -72,10 +72,10 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
                 );
             }
         },
-        { id: 'periodOfLeave', label: 'Period Of Leave', align: "left", minWidth: 120, getter: (row) => row.periodOfLeave },
+        { id: 'periodOfLeave', label: 'Period Of Leave', align: "left", minWidth: 150, getter: (row) => row.periodOfLeave },
         { id: 'fromDate', label: 'Start Date', minWidth: 120, align: 'left', getter: (row) => row.fromDate ? row.fromDate.split("T")[0] : 'N/A' },
         { id: 'toDate', label: 'End Date', minWidth: 120, align: 'left', getter: (row) => row.toDate ? row.toDate.split("T")[0] : 'N/A' },
-        { id: 'leaveType', label: 'Type', minWidth: 100, align: 'left', getter: (row) => row.leaveType },
+        { id: 'leaveType', label: 'Type', minWidth: 130, align: 'left', getter: (row) => row.leaveType },
         { id: '', label: 'Reason', minWidth: 100, align: 'left', getter: (row) => <div dangerouslySetInnerHTML={{ __html: row.reasonForLeave.slice(0, 20) }} /> },
         {
             id: 'status',
@@ -294,7 +294,7 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
         {
             id: 'type',
             label: 'Type',
-            minWidth: 130,
+            minWidth: 150,
             align: 'left',
             getter: (row) => row.type || "login"
         },
@@ -483,7 +483,7 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
         { id: 'periodOfLeave', label: 'Period Of Leave', align: "left", minWidth: 150, getter: (row) => row.periodOfLeave },
         { id: 'fromDate', label: 'Start Date', minWidth: 130, align: 'left', getter: (row) => row.fromDate ? row.fromDate.split("T")[0] : 'N/A' },
         { id: 'toDate', label: 'End Date', minWidth: 130, align: 'left', getter: (row) => row.toDate ? row.toDate.split("T")[0] : 'N/A' },
-        { id: 'leaveType', label: 'Type', minWidth: 130, align: 'left', getter: (row) => row.leaveType },
+        { id: 'leaveType', label: 'Type', minWidth: 150, align: 'left', getter: (row) => row.leaveType },
         { id: 'reasonForLeave', label: 'Reason', minWidth: 100, align: 'left', getter: (row) => row.reasonForLeave },
         { id: 'status', label: 'Status', minWidth: 100, align: 'left', getter: (row) => row.status },
     ];
