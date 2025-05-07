@@ -19,7 +19,9 @@ import { Skeleton } from '@mui/material';
 
 export default function Projects() {
     const navigator = useNavigate();
-    const { whoIs, data, socket } = useContext(EssentialValues);
+    const { whoIs, data, 
+        // socket 
+    } = useContext(EssentialValues);
     const { isTeamLead, isTeamHead, isTeamManager } = jwtDecode(data.token);
     const { handleAddTask, employees } = useContext(TimerStates);
     const [teams, setTeams] = useState([]);
@@ -147,7 +149,7 @@ export default function Projects() {
                 }
             })
             toast.success(res.data.message);
-            socket.emit("send_notification_for_project", newProjectObj)
+            // socket.emit("send_notification_for_project", newProjectObj)
             setProjectObj({});
             handleAddProject();
         } catch (error) {
@@ -328,8 +330,8 @@ export default function Projects() {
                                 </div>
                                 <div className="container">
                                     <div className="row mx-2">
-                                        {isLoading ? [...Array(3)].map(((project) => {
-                                            return <Skeleton variant='rounded' width={280} height={250} className='m-2' />
+                                        {isLoading ? [...Array(3)].map(((_, index) => {
+                                            return <Skeleton variant='rounded' key={index} width={280} height={250} className='m-2' />
                                         })) :
                                             projects?.length > 0 ? (
                                                 projects?.map((project) => (

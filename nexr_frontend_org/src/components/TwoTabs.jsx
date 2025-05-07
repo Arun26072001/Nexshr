@@ -217,8 +217,8 @@ export default function Twotabs() {
           </div>
 
           {
-            isLoading ? [...Array(5)].map((item) => {
-              return <Skeleton variant='rounded' width={"100%"} className='my-1' height={30} />
+            isLoading ? [...Array(5)].map((item, index) => {
+              return <Skeleton variant='rounded' key={index} width={"100%"} className='my-1' height={30} />
             }) :
               leaveRequests?.map((req, index) => {
                 // debugger;

@@ -54,7 +54,6 @@ export default function Home({ peopleOnLeave, peopleOnWorkFromHome, isFetchPeopl
     const [isLoading, setLoading] = useState(true); // Track loading state
     const { data } = useContext(EssentialValues);
     const now = new Date();
-    console.log("isLoading", isFetchPeopleOnLeave);
 
     const staticData = {
         startingTime: "00:00",
@@ -154,9 +153,11 @@ export default function Home({ peopleOnLeave, peopleOnWorkFromHome, isFetchPeopl
                                 workTimeTracker?.[timeOption]?.startingTime?.length === workTimeTracker[timeOption]?.endingTime?.length &&
                                 isLoading ?
                                 <>
-                                    <Skeleton varient="text" />
-                                    <Skeleton varient="text" />
-                                    <Skeleton varient="text" />
+                                    {
+                                        [...Array(3)].map((_, index) => {
+                                            return <Skeleton varient="text" key={index} />
+                                        })
+                                    }
                                     <Skeleton varient="circular" width={150} height={150} />
                                 </> :
                                 <>
@@ -175,12 +176,15 @@ export default function Home({ peopleOnLeave, peopleOnWorkFromHome, isFetchPeopl
                             </div>
                             {
                                 isFetchPeopleOnLeave ? <div className="gap-1">
-                                    <Skeleton variant="rounded" height={110} className="my-3" />
-                                    <Skeleton variant="rounded" height={110} className="my-3" />
+                                    {
+                                        [...Array(2)].map((_, index) => {
+                                            return <Skeleton variant="rounded" key={index} height={110} className="my-3" />
+                                        })
+                                    }
                                 </div> :
                                     peopleOnLeave.length ?
-                                        peopleOnLeave.map((leave) => {
-                                            return <div className='box-content d-flex align-items-center justify-content-around my-1' style={{ boxShadow: 'none', background: "white" }}>
+                                        peopleOnLeave.map((leave, index) => {
+                                            return <div key={index} className='box-content d-flex align-items-center justify-content-around my-1' style={{ boxShadow: 'none', background: "white" }}>
                                                 <img src={leave?.employee?.profile || profile} alt="profile" className='imgContainer' />
                                                 <div className="d-block">
                                                     <p style={{ fontSize: "13px" }}><b>{leave?.employee?.FirstName[0].toUpperCase() + leave?.employee?.FirstName.slice(1) + " " + leave?.employee?.LastName}</b>({leave?.employee?.team?.teamName || "TeamName"})</p>
@@ -199,12 +203,15 @@ export default function Home({ peopleOnLeave, peopleOnWorkFromHome, isFetchPeopl
                             </div>
                             {
                                 isFetchpeopleOnWfh ? <div className="gap-1">
-                                    <Skeleton variant="rounded" height={110} className="my-3" />
-                                    <Skeleton variant="rounded" height={110} className="my-3" />
+                                    {
+                                        [...Array(2)].map((_, index) => {
+                                            return <Skeleton variant="rounded" key={index} height={110} className="my-3" />
+                                        })
+                                    }
                                 </div> :
                                     peopleOnWorkFromHome.length ?
-                                        peopleOnWorkFromHome.map((wfh) => {
-                                            return <div className='box-content d-flex align-items-center justify-content-around my-1' style={{ boxShadow: 'none', background: "white" }}>
+                                        peopleOnWorkFromHome.map((wfh, index) => {
+                                            return <div key={index} className='box-content d-flex align-items-center justify-content-around my-1' style={{ boxShadow: 'none', background: "white" }}>
                                                 <img src={wfh?.employee?.profile || profile} alt="profile" className='imgContainer' />
                                                 <div className="d-block">
                                                     <p style={{ fontSize: "13px" }}><b>{wfh?.employee?.FirstName[0].toUpperCase() + wfh?.employee?.FirstName.slice(1) + " " + wfh?.employee?.LastName}</b>({wfh?.employee?.team?.teamName || "TeamName"})</p>

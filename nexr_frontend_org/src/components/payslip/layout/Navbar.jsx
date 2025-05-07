@@ -15,7 +15,9 @@ import useHandleTabClose from '../../../handleCloseTab';
 import Loading from '../../Loader';
 
 export default function Navbar({ handleSideBar }) {
-    const { handleLogout, data, handleUpdateAnnouncements, isChangeAnnouncements, whoIs, socket } = useContext(EssentialValues)
+    const { handleLogout, data, handleUpdateAnnouncements, isChangeAnnouncements, whoIs, 
+        // socket
+     } = useContext(EssentialValues)
     const { startLoginTimer, stopLoginTimer, workTimeTracker, isStartLogin, trackTimer, changeReasonForEarly, isWorkingLoginTimerApi } = useContext(TimerStates);
     const [sec, setSec] = useState(workTimeTracker?.login?.timeHolder?.split(':')[2])
     const [min, setMin] = useState(workTimeTracker?.login?.timeHolder?.split(':')[1])
@@ -37,7 +39,6 @@ export default function Navbar({ handleSideBar }) {
     const incrementTime = () => {
         setSec((prevSec) => {
             let newSec = prevSec + 1;
-
             if (newSec > 59) {
                 newSec = 0;
                 setMin((prevMin) => {
@@ -166,7 +167,7 @@ export default function Navbar({ handleSideBar }) {
                 timeHolder: `${String(hour).padStart(2, '0')}:${String(min).padStart(2, '0')}:${String(sec).padStart(2, '0')}`,
             },
         };
-        socket.emit("verify_completed_workinghour", updatedState);
+        // socket.emit("verify_completed_workinghour", updatedState);
     }
 
     async function updateEmpNotifications(updatedValues) {
@@ -264,44 +265,15 @@ export default function Navbar({ handleSideBar }) {
     }, [latitude, longitude])
 
     // useEffect(() => {
-    //     const getAddressFromCoords = async (lat, lon) => {
-    //         try {
-    //             const res = await axios.get("https://nominatim.openstreetmap.org/reverse", {
-    //                 params: {
-    //                     lat,
-    //                     lon,
-    //                     format: "json",
-    //                 },
-    //             });
-
-    //             if (res.data && res.data.display_name) {
-    //                 console.log(res.data);
-    //                 setHamlet(res.data.address.hamlet);
-    //             } else {
-    //                 setHamlet("Address not found.");
-    //             }
-    //         } catch (err) {
-    //             console.error(err);
-    //             setHamlet("Failed to get address.");
+    //     socket.on("early_logout", ({ isCompleteworkingHours }) => {
+    //         if (isCompleteworkingHours) {
+    //             stopTimer()
+    //         } else {
+    //             changeViewReasonForEarlyLogout()
     //         }
-    //     };
-    //     if (lat && long) {
-    //         console.log(lat, long);
-    //         getAddressFromCoords(lat, long)
-    //     }
-    // }, [lat, long])
 
-    useEffect(() => {
-        socket.connect();
-        socket.on("early_logout", ({ isCompleteworkingHours }) => {
-            if (isCompleteworkingHours) {
-                stopTimer()
-            } else {
-                changeViewReasonForEarlyLogout()
-            }
-
-        })
-    }, [socket])
+    //     })
+    // }, [socket])
 
     useEffect(() => {
         const startLength = workTimeTracker?.login?.startingTime?.length || 0;
@@ -377,7 +349,7 @@ export default function Navbar({ handleSideBar }) {
                             src={Webnexs}
                             width={30}
                             height={30}
-                            hstartLoginTimer style={{ objectFit: "cover" }}
+                            style={{ objectFit: "cover" }}
                             alt="Webnexs Company Logo"
                         />
                         <span style={{ fontSize: "16px", fontWeight: "700" }}>NexHR</span>
@@ -420,7 +392,7 @@ export default function Navbar({ handleSideBar }) {
                                     <div className="punchBtnParent">
                                         <button
                                             className='punchBtn'
-                                            onClick={() => checkIsCompletedWorkingHour()}
+                                            onClick={stopTimer}
                                             disabled={isWorkingLoginTimerApi ? true : !isDisabled}
                                             style={{ backgroundColor: "#FFD6DB" }}
                                         >
@@ -480,7 +452,7 @@ export default function Navbar({ handleSideBar }) {
                             <img src={data?.profile || logo} className='imgContainer' style={{ width: "40px", height: "40px" }} alt='emp_img' />
                         </Whisper>
                         {/* Messages Section */}
-                        <div className="offcanvas offcanvas-end" tabindex="-1" id="offcanvasRight" aria-labelledby="offcanvasRightLabel">
+                        <div className="offcanvas offcanvas-end" tabIndex="-1" id="offcanvasRight" aria-labelledby="offcanvasRightLabel">
                             <div className="offcanvas-header">
                                 <h5 id="offcanvasRightLabel">Notifications</h5>
                                 <button type="button" className="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
@@ -488,7 +460,7 @@ export default function Navbar({ handleSideBar }) {
                             <div className="offcanvas-body">
                                 {
                                     notifications.map((notification, index) => {
-                                        return <div key={notification._id} className={`box-content my-2 ${isRemove[index] ? "remove" : ""} box-content my-2 d-flex justfy-content-center align-items-center position-relative`}>
+                                        return <div key={notification._id || index} className={`box-content my-2 ${isRemove[index] ? "remove" : ""} box-content my-2 d-flex justfy-content-center align-items-center position-relative`}>
                                             <span className="closeBtn" title='close' onClick={() => removeMessage(notification, index)}>
                                                 <CloseRoundedIcon fontSize='md' />
                                             </span>

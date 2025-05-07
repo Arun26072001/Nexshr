@@ -225,8 +225,6 @@ const AddEmployee = () => {
         LastName: empData?.LastName || "",
         Email: empData?.Email || "",
         Password: empData?.Password || "",
-        // teamLead: empData?.teamLead || "", // Safely access first element or set to empty string
-        // managerId: empData?.managerId || "", // Safely access first element or set to empty string
         countryCode: empData?.countryCode || "",
         phone: empData?.phone || "",
         company: Array.isArray(empData?.company) ? empData.company[0] : empData?.company || "",
@@ -256,7 +254,8 @@ const AddEmployee = () => {
         accountNo: empData?.accountNo || "",
         accountHolderName: empData?.accountHolderName || "",
         IFSCcode: empData?.IFSCcode || "",
-        taxDeduction: empData?.taxDeduction || ""
+        taxDeduction: empData?.taxDeduction || "",
+        isPermanentWFH: empData.isPermanentWFH || false
       });
 
     } catch (error) {

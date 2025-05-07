@@ -209,8 +209,7 @@ const Dashboard = () => {
                                 <>
                                     <p className='leaveIndicatorTxt'>This month</p>
                                     <div className='row'>
-
-                                        <div className='col-lg-6 col-md-6 col-12'>
+                                        <div className='col-lg-6 col-md-5 col-12'>
                                             <div className='space row'>
                                                 <p className='col-lg-6 col-md-6 col-sm-6 col-6 text-start'><span className='text_gap '>Total</span></p>
                                                 <p className='col-lg-6 col-md-6 col-sm-6 col-6 text-end'><span className='value'>{monthlyLoginData?.companyTotalWorkingHour || 0} hour</span></p>
@@ -228,12 +227,11 @@ const Dashboard = () => {
                                             </div>
                                         </div>
 
-                                        <div className='col-lg-6 col-md-6 col-sm-6 col-12'>
+                                        <div className='col-lg-6 col-md-5 col-12'>
                                             <div className='space row'>
                                                 <div className='col-lg-6 col-md-6 col-sm-6 col-6 text-start'><span className='text_gap'>Worked time</span></div>
                                                 <div className='col-lg-6 col-md-6 col-sm-6 col-6 text-end'><span className='value'>{monthlyLoginData?.totalEmpWorkingHours?.toFixed(2) || 0} hour</span></div>
                                             </div>
-
                                             <div className="progress">
                                                 <div
                                                     className="progress-bar progress-bar-striped"
@@ -247,7 +245,7 @@ const Dashboard = () => {
                                             </div>
                                         </div>
 
-                                        <div className='col-lg-6 col-md-6 col-sm-6 col-12'>
+                                        <div className='col-lg-6 col-md-5 col-12'>
                                             <div className='space row'>
                                                 <div className='col-lg-6 col-md-6 col-sm-6 col-6 text-start'><span className='text_gap'>Shortage time</span></div>
                                                 <div className='col-lg-6 col-md-6 col-sm-6 col-6 text-end'><span className='value'>{(monthlyLoginData?.companyTotalWorkingHour - monthlyLoginData?.totalEmpWorkingHours || 0)?.toFixed(2)} hour</span></div>
@@ -257,7 +255,7 @@ const Dashboard = () => {
                                             </div>
                                         </div>
 
-                                        <div className='col-lg-6 col-md-6 col-sm-6 col-12'>
+                                        <div className='col-lg-6 col-md-5 col-12'>
                                             <div className='space row'>
                                                 <div className='col-lg-6 col-md-6 col-sm-6 col-6 text-start'><span className='text_gap'>Over time</span></div>
                                                 <div className='col-lg-6 col-md-6 col-sm-6 col-6 text-end'><span className='value'>{getOverTime(monthlyLoginData?.companyTotalWorkingHour, monthlyLoginData?.totalEmpWorkingHours)} hour</span></div>

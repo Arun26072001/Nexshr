@@ -6,9 +6,9 @@ const mongoose = require("mongoose");
 const app = express();
 require("dotenv").config();
 const cors = require("cors");
-const http = require("http");
+// const http = require("http");
+// const { Server } = require("socket.io");
 const path = require("path");
-const { Server } = require("socket.io");
 
 // models or schema
 const { TimePattern } = require("./models/TimePatternModel");
@@ -57,7 +57,6 @@ const mailSettings = require("./routes/mail-settings");
 const { Employee } = require("./models/EmpModel");
 const wfhRouter = require("./routes/wfh-application");
 const { timeToMinutes, getCurrentTimeInMinutes, getTotalWorkingHourPerDay, formatDate } = require("./Reuseable_functions/reusableFunction");
-const e = require("express");
 
 // MongoDB Connection
 const mongoURI = process.env.DATABASEURL;
@@ -157,402 +156,429 @@ app.use("/api/mail-settings", mailSettings);
 app.use("/api/wfh-application", wfhRouter);
 
 // Create HTTP Server and Socket.IO
-const server = http.createServer(app);
-const io = new Server(server, {
-  cors: {
-    origin: "*",
-    methods: ["GET", "POST"]
-  },
-});
+// const server = http.createServer(app);
+// const io = new Server(server, {
+//   cors: {
+//     origin: "*",
+//     methods: ["GET", "POST"]
+//   },
+// });
 
-let onlineUsers = {}; // Store online users { employeeId: socketId }
+// let onlineUsers = {}; // Store online users { employeeId: socketId }
 
 // Socket.IO Connection
-io.on("connection", (socket) => {
-  // Employee joins a room
-  socket.on("join_room", (employeeId) => {
-    onlineUsers[employeeId] = socket.id; // ✅ Map employee ID to socket ID
-  });
+// io.on("connection", (socket) => {
+//   // Employee joins a room
+//   socket.on("join_room", (employeeId) => {
+//     onlineUsers[employeeId] = socket.id; // ✅ Map employee ID to socket ID
+//   });
 
-  // Sending a delayed notification
-  socket.on("send_notification", (data) => {
+//   // Sending a delayed notification
+//   socket.on("send_notification", (data) => {
 
-    // Ensure `time` is valid
-    const delay = Number(data.time) * 60000;
-    if (isNaN(delay) || delay <= 0) {
-      console.error("Invalid delay time:", data.time);
-      return;
-    }
+//     // Ensure `time` is valid
+//     const delay = Number(data.time) * 60000;
+//     if (isNaN(delay) || delay <= 0) {
+//       console.error("Invalid delay time:", data.time);
+//       return;
+//     }
 
-    setTimeout(async () => {
-      const timer = await axios.get(`${process.env.REACT_APP_API_URL}/api/clock-ins/item/${data.timerId}`, {
-        headers: { Authorization: data.token }
-      })
+//     setTimeout(async () => {
+//       const timer = await axios.get(`${process.env.REACT_APP_API_URL}/api/clock-ins/item/${data.timerId}`, {
+//         headers: { Authorization: data.token }
+//       })
 
-      let startingTimes = timer.data.timeData[data.timeOption]?.startingTime;
-      let endingTimes = timer.data.timeData[data.timeOption]?.endingTime;
+//       let startingTimes = timer.data.timeData[data.timeOption]?.startingTime;
+//       let endingTimes = timer.data.timeData[data.timeOption]?.endingTime;
 
-      const values = startingTimes?.map((startTime, index) => {
-        if (!startTime) return 0; // No start time means no value
+//       const values = startingTimes?.map((startTime, index) => {
+//         if (!startTime) return 0; // No start time means no value
 
-        let endTimeInMin = 0;
-        if (endingTimes[index]) {
-          // Calculate time difference with an ending time
-          endTimeInMin = timeToMinutes(endingTimes[index]);
-        } else {
-          // Calculate time difference with the current time
-          endTimeInMin = getCurrentTimeInMinutes();
-        }
-        const startTimeInMin = timeToMinutes(startTime);
-        return Math.abs(endTimeInMin - startTimeInMin);
-      });
+//         let endTimeInMin = 0;
+//         if (endingTimes[index]) {
+//           // Calculate time difference with an ending time
+//           endTimeInMin = timeToMinutes(endingTimes[index]);
+//         } else {
+//           // Calculate time difference with the current time
+//           endTimeInMin = getCurrentTimeInMinutes();
+//         }
+//         const startTimeInMin = timeToMinutes(startTime);
+//         return Math.abs(endTimeInMin - startTimeInMin);
+//       });
 
-      if (timer.data.timeData[data.timeOption].startingTime.length !== timer.data.timeData[data.timeOption].endingTime.length && values.at(-1) > data.time) {
-        try {
-          const res = await axios.post(
-            `${process.env.REACT_APP_API_URL}/api/clock-ins/remainder/${data.employee}/${data.timeOption}`
-          );
-          const employeeSocketID = onlineUsers[data.employee]; // ✅ Get correct socket ID
-          if (employeeSocketID) {
-            io.to(employeeSocketID).emit("Ask_reason_for_late", {
-              message: "Why were you late?"
-            });
-            // console.log(`Sent Ask_reason_for_late to Employee ${data.employee}`);
-          } else {
-            console.log(`User ${data.employee} is offline, skipping emit.`);
-          }
-        } catch (error) {
-          console.error("Error sending remainder request:", error.message);
-        }
-      }
-    }, delay);
-  });
+//       if (timer.data.timeData[data.timeOption].startingTime.length !== timer.data.timeData[data.timeOption].endingTime.length && values.at(-1) > data.time) {
+//         try {
+//           const res = await axios.post(
+//             `${process.env.REACT_APP_API_URL}/api/clock-ins/remainder/${data.employee}/${data.timeOption}`
+//           );
+//           const employeeSocketID = onlineUsers[data.employee]; // ✅ Get correct socket ID
+//           if (employeeSocketID) {
+//             io.to(employeeSocketID).emit("Ask_reason_for_late", {
+//               message: "Why were you late?"
+//             });
+//             // console.log(`Sent Ask_reason_for_late to Employee ${data.employee}`);
+//           } else {
+//             console.log(`User ${data.employee} is offline, skipping emit.`);
+//           }
+//         } catch (error) {
+//           console.error("Error sending remainder request:", error.message);
+//         }
+//       }
+//     }, delay);
+//   });
 
-  // Sending a delayed remainder
-  socket.on("remainder_notification", (data) => {
+//   // Sending a delayed remainder
+//   socket.on("remainder_notification", (data) => {
 
-    // Ensure `time` is valid
-    const delay = Number(data.time) * (1000 * 60 * 60);
-    if (isNaN(delay) || delay <= 0) {
-      console.error("Invalid delay time:", data.time);
-      return;
-    }
+//     // Ensure `time` is valid
+//     const delay = Number(data.time) * (1000 * 60 * 60);
+//     if (isNaN(delay) || delay <= 0) {
+//       console.error("Invalid delay time:", data.time);
+//       return;
+//     }
 
-    setTimeout(async () => {
-      try {
-        const res = await axios.get(
-          `${process.env.REACT_APP_API_URL}/api/clock-ins/sendmail/${data.employee}/${data.clockinsId}`
-        );
+//     setTimeout(async () => {
+//       try {
+//         const res = await axios.get(
+//           `${process.env.REACT_APP_API_URL}/api/clock-ins/sendmail/${data.employee}/${data.clockinsId}`
+//         );
 
-      } catch (error) {
-        console.log(error);
-        console.error("Error sending remainder request:", error.message);
-      }
-    }, delay);
-  });
+//       } catch (error) {
+//         console.log(error);
+//         console.error("Error sending remainder request:", error.message);
+//       }
+//     }, delay);
+//   });
 
-  //verify is completed today workinghour
-  socket.on("verify_completed_workinghour", async (data) => {
-    const empData = await Employee.findById(data.employee, "workingTimePattern")
-      .populate("workingTimePattern").exec();
+//   //verify is completed today workinghour
+//   socket.on("verify_completed_workinghour", async (data) => {
+//     const empData = await Employee.findById(data.employee, "workingTimePattern")
+//       .populate("workingTimePattern").exec();
 
-    let startingTimes = data.login?.startingTime;
-    let endingTimes = data.login?.endingTime;
+//     let startingTimes = data.login?.startingTime;
+//     let endingTimes = data.login?.endingTime;
 
-    const values = startingTimes?.map((startTime, index) => {
-      if (!startTime) return 0; // No start time means no value
+//     const values = startingTimes?.map((startTime, index) => {
+//       if (!startTime) return 0; // No start time means no value
 
-      let endTimeInMin = 0;
-      if (endingTimes[index]) {
-        // Calculate time difference with an ending time
-        endTimeInMin = timeToMinutes(endingTimes[index]);
-      } else {
-        // Calculate time difference with the current time
-        endTimeInMin = getCurrentTimeInMinutes();
-      }
-      const startTimeInMin = timeToMinutes(startTime);
-      return Math.abs(endTimeInMin - startTimeInMin);
-    });
+//       let endTimeInMin = 0;
+//       if (endingTimes[index]) {
+//         // Calculate time difference with an ending time
+//         endTimeInMin = timeToMinutes(endingTimes[index]);
+//       } else {
+//         // Calculate time difference with the current time
+//         endTimeInMin = getCurrentTimeInMinutes();
+//       }
+//       const startTimeInMin = timeToMinutes(startTime);
+//       return Math.abs(endTimeInMin - startTimeInMin);
+//     });
 
-    const totalValue = values?.reduce((acc, value) => acc + value, 0) / 60;
-    const scheduleWorkingHours = getTotalWorkingHourPerDay(
-      empData.workingTimePattern.StartingTime,
-      empData.workingTimePattern.FinishingTime
-    )
-    let isCompleteworkingHours = true;
+//     const totalValue = values?.reduce((acc, value) => acc + value, 0) / 60;
+//     const scheduleWorkingHours = getTotalWorkingHourPerDay(
+//       empData.workingTimePattern.StartingTime,
+//       empData.workingTimePattern.FinishingTime
+//     )
+//     let isCompleteworkingHours = true;
 
-    if (scheduleWorkingHours > totalValue && !data.login.reasonForEarlyLogout) {
-      isCompleteworkingHours = false;
-      const employeeSocketID = onlineUsers[empData._id]; // ✅ Get correct socket ID
-      if (employeeSocketID) {
-        io.to(employeeSocketID).emit("early_logout", {
-          message: "Why are you logout early?",
-          isCompleteworkingHours
-        });
-        console.log(`Sent early_logout to Employee ${empData._id}`);
-      } else {
-        console.log(`User ${data.employee} is offline, skipping emit.`);
-      }
-    } else {
-      const employeeSocketID = onlineUsers[empData._id]; // ✅ Get correct socket ID
-      if (employeeSocketID) {
-        io.to(employeeSocketID).emit("early_logout", {
-          message: "Why are you logout early?",
-          isCompleteworkingHours
-        });
-        console.log(`Sent early_logout to Employee ${empData._id}`);
-      }
-    }
-  })
+//     if (scheduleWorkingHours > totalValue && !data.login.reasonForEarlyLogout) {
+//       isCompleteworkingHours = false;
+//       const employeeSocketID = onlineUsers[empData._id]; // ✅ Get correct socket ID
+//       if (employeeSocketID) {
+//         io.to(employeeSocketID).emit("early_logout", {
+//           message: "Why are you logout early?",
+//           isCompleteworkingHours
+//         });
+//         console.log(`Sent early_logout to Employee ${empData._id}`);
+//       } else {
+//         console.log(`User ${data.employee} is offline, skipping emit.`);
+//       }
+//     } else {
+//       const employeeSocketID = onlineUsers[empData._id]; // ✅ Get correct socket ID
+//       if (employeeSocketID) {
+//         io.to(employeeSocketID).emit("early_logout", {
+//           message: "Why are you logout early?",
+//           isCompleteworkingHours
+//         });
+//         console.log(`Sent early_logout to Employee ${empData._id}`);
+//       }
+//     }
+//   })
 
-  // update task in Comments(CURD operation with socket)
-  socket.on("updatedTask_In_AddComment", async (data, empId, token) => {
-    try {
-      const updateTask = await axios.put(`${process.env.REACT_APP_API_URL}/api/task/${empId}/${data._id}`, data, {
-        headers: {
-          Authorization: token || ""
-        }
-      });
+//   // update task in Comments(CURD operation with socket)
+//   socket.on("updatedTask_In_AddComment", async (data, empId, token) => {
+//     try {
+//       const updateTask = await axios.put(`${process.env.REACT_APP_API_URL}/api/task/${empId}/${data._id}`, data, {
+//         headers: {
+//           Authorization: token || ""
+//         }
+//       });
 
-      const res = await axios.get(`${process.env.REACT_APP_API_URL}/api/task/${data._id}`, {
-        params: {
-          withComments: true
-        },
-        headers: {
-          Authorization: token || ""
-        }
-      })
+//       const res = await axios.get(`${process.env.REACT_APP_API_URL}/api/task/${data._id}`, {
+//         params: {
+//           withComments: true
+//         },
+//         headers: {
+//           Authorization: token || ""
+//         }
+//       })
 
-      res.data.assignedTo.map((emp) => {
-        const employeeSocketID = onlineUsers[emp._id];
-        io.to(employeeSocketID).emit("send_updated_task", res.data)
-      })
-    } catch (error) {
-      console.log(error);
+//       res.data.assignedTo.map((emp) => {
+//         const employeeSocketID = onlineUsers[emp._id];
+//         io.to(employeeSocketID).emit("send_updated_task", res.data)
+//       })
+//     } catch (error) {
+//       console.log(error.response.data.error);
+//     }
+//   })
 
-      console.log(error.response.data.error);
-    }
-  })
+//   // HR sends an announcement
+//   socket.on("send_announcement", async (data) => {
+//     const emps = await Employee.find({ _id: { $in: data.selectTeamMembers } }, "FirstName LastName company notifications")
+//       .populate("company", "CompanyName logo")
+//       .exec();
 
-  // HR sends an announcement
-  socket.on("send_announcement", async (data) => {
-    const emps = await Employee.find({ _id: { $in: data.selectTeamMembers } }, "FirstName LastName company notifications")
-      .populate("company", "CompanyName logo")
-      .exec();
+//     emps.forEach(async (emp) => {
+//       const notification = {
+//         company: emp.company._id,
+//         title: data.title,
+//         message: data.message.replace(/<\/?[^>]+(>|$)/g, '')
+//       }
+//       emp.notifications.push(notification);
+//       await emp.save();
+//       const employeeSocketID = onlineUsers[emp]; // Get employee's socket ID
+//       if (employeeSocketID) {
+//         io.to(employeeSocketID).emit("receive_announcement", {
+//           company: empData.company,
+//           title: notification.title,
+//           message: notification.message
+//         });
+//       } else {
+//         console.log(`Employee ${emp.FirstName} is offline, skipping.`);
+//       }
+//     })
+//   });
 
-    emps.forEach(async (emp) => {
-      const notification = {
-        company: emp.company,
-        title: data.title,
-        message: data.message.replace(/<\/?[^>]+(>|$)/g, '')
-      }
-      emp.notifications.push(notification);
-      await emp.save();
-      const employeeSocketID = onlineUsers[emp]; // Get employee's socket ID
-      if (employeeSocketID) {
-        io.to(employeeSocketID).emit("receive_announcement", notification);
-      } else {
-        console.log(`Employee ${emp.FirstName} is offline, skipping.`);
-      }
-    })
-  });
+//   //send notification for leave application involved employees
+//   socket.on("send_notification_for_leave", async (data, empId) => {
+//     try {
+//       const empData = await Employee.findById(empId, "FirstName LastName team")
+//         .populate([
+//           {
+//             path: "admin",
+//             select: "FirstName LastName Email"
+//           },
+//           { path: "company", select: "CompanyName logo" },
+//           {
+//             path: "team",
+//             populate: [
+//               { path: "lead", select: "Email company" },
+//               { path: "head", select: "Email company" },
+//               { path: "manager", select: "Email company" }
+//             ]
+//           }
+//         ]);
 
-  //send notification for leave application involved employees
-  socket.on("send_notification_for_leave", async (data, empId) => {
-    try {
-      const empData = await Employee.findById(empId, "FirstName LastName team")
-        .populate([
-          {
-            path: "admin",
-            select: "FirstName LastName Email"
-          },
-          {
-            path: "team",
-            populate: [
-              { path: "lead", select: "Email company", populate: { path: "company", select: "CompanyName logo" } },
-              { path: "head", select: "Email company" },
-              { path: "manager", select: "Email company" }
-            ]
-          }
-        ]);
+//       const message = `${empData.FirstName} ${empData.LastName} has applied for leave from ${formatDate(data.fromDate)} to ${formatDate(data.toDate)}.`;
 
-      const message = `${empData.FirstName} ${empData.LastName} has applied for leave from ${formatDate(data.fromDate)} to ${formatDate(data.toDate)}.`;
+//       const teamData = empData.team?.toObject?.() || {};
 
-      const teamData = empData.team?.toObject?.() || {};
+//       for (const [key, value] of Object.entries(teamData)) {
+//         if (Array.isArray(value) && key !== "employees") {
+//           for (const emp of value) {
+//             if (emp && emp.company) {
+//               const notification = {
+//                 company: empData.company._id,
+//                 title: "Leave Application Notification",
+//                 message
+//               };
 
-      for (const [key, value] of Object.entries(teamData)) {
-        if (Array.isArray(value) && key !== "employees") {
-          for (const emp of value) {
-            if (emp && emp.company) {
-              const notification = {
-                company: emp.company._id,
-                title: "Leave Application Notification",
-                message
-              };
+//               const fullEmp = await Employee.findById(emp._id, "notifications"); // Fetch fresh document to update notifications
+//               fullEmp.notifications.push(notification);
+//               await fullEmp.save();
 
-              const fullEmp = await Employee.findById(emp._id, "notifications"); // Fetch fresh document to update notifications
-              fullEmp.notifications.push(notification);
-              await fullEmp.save();
+//               const employeeSocketID = onlineUsers[emp._id.toString()];
+//               if (employeeSocketID) {
+//                 io.to(employeeSocketID).emit("send_leave_notification", {
+//                   company: empData.company,
+//                   title: notification.title,
+//                   message: notification.message
+//                 });
+//               }
+//             }
+//           }
+//         }
+//       }
+//     } catch (error) {
+//       console.error("Error in send_notification_for_leave:", error);
+//     }
+//   });
 
-              const employeeSocketID = onlineUsers[emp._id.toString()];
-              if (employeeSocketID) {
-                io.to(employeeSocketID).emit("send_leave_notification", {
-                  company: emp.company,
-                  title: notification.title,
-                  message: notification.message
-                });
-              }
-            }
-          }
-        }
-      }
-    } catch (error) {
-      console.error("Error in send_notification_for_leave:", error);
-    }
-  });
+//   socket.on("send_notification_for_project", async (project) => {
+//     try {
+//       const emps = await Employee.find(
+//         { _id: { $in: project.employees } },
+//         "FirstName LastName Email company notifications"
+//       )
+//         .populate({ path: "company", select: "CompanyName logo" })
+//         .exec();
 
-  socket.on("send_notification_for_project", async (project) => {
-    try {
-      const emps = await Employee.find(
-        { _id: { $in: project.employees } },
-        "FirstName LastName Email company notifications"
-      )
-        .populate({ path: "company", select: "CompanyName logo" })
-        .exec();
+//       if (emps.length) {
+//         for (const emp of emps) {
+//           const notification = {
+//             company: emp.company,
+//             title: "You've Been Assigned to a New Project",
+//             message: `We're excited to let you know that you've been officially assigned to the project "${project.name}".`
+//           };
 
-      if (emps.length) {
-        for (const emp of emps) {
-          const notification = {
-            company: emp.company,
-            title: "You've Been Assigned to a New Project",
-            message: `We're excited to let you know that you've been officially assigned to the project "${project.name}".`
-          };
+//           // Save notification to employee's notifications array
+//           emp.notifications.push(notification);
+//           await emp.save();
 
-          // Save notification to employee's notifications array
-          emp.notifications.push(notification);
-          await emp.save();
+//           // Send real-time notification via socket if online
+//           const employeeSocketID = onlineUsers[emp._id.toString()];
+//           if (employeeSocketID) {
+//             io.to(employeeSocketID).emit("send_project_notification", notification);
+//           }
+//         }
+//       }
+//     } catch (error) {
+//       console.error("Error in send notification for project:", error);
+//     }
+//   });
 
-          // Send real-time notification via socket if online
-          const employeeSocketID = onlineUsers[emp._id.toString()];
-          if (employeeSocketID) {
-            io.to(employeeSocketID).emit("send_project_notification", notification);
-          }
-        }
-      }
-    } catch (error) {
-      console.error("Error in send notification for project:", error);
-    }
-  });
+//   socket.on("send_notification_for_wfh", async (wfhRequest, empId) => {
+//     try {
+//       const empData = await Employee.findById(
+//         empId,
+//         "FirstName LastName Email company notifications team admin"
+//       )
+//         .populate([
+//           { path: "company", select: "CompanyName logo" },
+//           {
+//             path: "admin",
+//             select: "FirstName LastName Email"
+//           },
+//           {
+//             path: "team",
+//             populate: [
+//               { path: "lead", select: "Email company" },
+//               { path: "head", select: "Email company" },
+//               { path: "manager", select: "Email company" }
+//             ]
+//           }
+//         ])
+//         .exec();
 
-  socket.on("send_notification_for_wfh", async (project) => {
-    try {
-      const emps = await Employee.find(
-        { _id: { $in: project.employees } },
-        "FirstName LastName Email company notifications"
-      )
-        .populate({ path: "company", select: "CompanyName logo" })
-        .exec();
+//       const message = `${empData.FirstName} ${empData.LastName} has applied for WFH request from ${formatDate(wfhRequest.fromDate)} to ${formatDate(wfhRequest.toDate)}.`;
 
-      if (emps.length) {
-        for (const emp of emps) {
-          const notification = {
-            company: emp.company,
-            title: "You've Been Assigned to a New Project",
-            message: `We're excited to let you know that you've been officially assigned to the project "${project.name}".`
-          };
+//       const teamData = empData.team?.toObject?.() || {};
+//       for (const [key, value] of Object.entries(teamData)) {
+//         if (Array.isArray(value) && key !== "employees") {
+//           for (const emp of value) {
+//             if (emp) {
+//               const notification = {
+//                 company: empData.company._id,
+//                 title: "Work From Home Request Notification",
+//                 message
+//               };
 
-          // Save notification to employee's notifications array
-          emp.notifications.push(notification);
-          await emp.save();
+//               const fullEmp = await Employee.findById(emp._id, "notifications"); // Fetch fresh document to update notifications
+//               fullEmp.notifications.push(notification);
+//               await fullEmp.save();
 
-          // Send real-time notification via socket if online
-          const employeeSocketID = onlineUsers[emp._id.toString()];
-          if (employeeSocketID) {
-            io.to(employeeSocketID).emit("send_project_notification", notification);
-          }
-        }
-      }
-    } catch (error) {
-      console.error("Error in send notification for project:", error);
-    }
-  });
+//               const employeeSocketID = onlineUsers[emp._id.toString()];
+//               if (employeeSocketID) {
+//                 io.to(employeeSocketID).emit("send_wfh_notification", {
+//                   company: emp.company,
+//                   title: notification.title,
+//                   message: notification.message
+//                 });
+//               }
+//             }
+//           }
+//         }
+//       }
+//     } catch (error) {
+//       console.error("Error in sending WFH notification:", error);
+//     }
+//   });
 
-  socket.on("send_notification_for_task", async (task) => {
-    try {
-      const emps = await Employee.find({ _id: { $in: task.assignedTo } }, "_id FirstName LastName notifications")
-        .populate({ path: "company", select: "CompanyName logo" })
-        .exec();
+//   socket.on("send_notification_for_task", async (task) => {
+//     try {
+//       const emps = await Employee.find({ _id: { $in: task.assignedTo } }, "_id FirstName LastName notifications")
+//         .populate({ path: "company", select: "CompanyName logo" })
+//         .exec();
 
-      if (emps.length) {
-        emps.forEach(async (emp) => {
-          const notification = {
-            company: emp.company,
-            title: "You've Been Assigned a New Task",
-            message: `You've been assigned a new task: "${task.title}". Please review the details and get started!`
-          }
-          emp.notifications.push(notification);
-          await emp.save();
-          const employeeSocketID = onlineUsers[emp._id.toString()];
-          if (employeeSocketID) {
-            io.to(employeeSocketID).emit("send_task_notification", notification);
-          }
-        });
-      }
-    } catch (error) {
-      console.error("Error in sending task notification:", error);
-    }
-  });
+//       if (emps.length) {
+//         emps.forEach(async (emp) => {
+//           const notification = {
+//             company: emp.company,
+//             title: "You've Been Assigned a New Task",
+//             message: `You've been assigned a new task: "${task.title}". Please review the details and get started!`
+//           }
+//           emp.notifications.push(notification);
+//           await emp.save();
+//           const employeeSocketID = onlineUsers[emp._id.toString()];
+//           if (employeeSocketID) {
+//             io.to(employeeSocketID).emit("send_task_notification", notification);
+//           }
+//         });
+//       }
+//     } catch (error) {
+//       console.error("Error in sending task notification:", error);
+//     }
+//   });
 
-  socket.on("sent_notification_for_team", async (team) => {
-    try {
-      const emps = await Employee.find(
-        { _id: { $in: team.employees } },
-        "FirstName LastName Email company notifications"
-      )
-        .populate({ path: "company", select: "CompanyName logo" })
-        .exec();
+//   socket.on("sent_notification_for_team", async (team) => {
+//     try {
+//       const emps = await Employee.find(
+//         { _id: { $in: team.employees } },
+//         "FirstName LastName Email company notifications"
+//       )
+//         .populate({ path: "company", select: "CompanyName logo" })
+//         .exec();
 
-      if (emps.length) {
-        for (const emp of emps) {
-          const notification = {
-            company: emp.company,
-            title: "You've Been Added to a Team",
-            message: `You've been successfully added to the team "${team.teamName}". Welcome aboard and get ready to collaborate!`
-          };          
+//       if (emps.length) {
+//         for (const emp of emps) {
+//           const notification = {
+//             company: emp.company,
+//             title: "You've Been Added to a Team",
+//             message: `You've been successfully added to the team "${team.teamName}". Welcome aboard and get ready to collaborate!`
+//           };
 
-          // Save notification to employee's notifications array
-          emp.notifications.push(notification);
-          await emp.save();
+//           // Save notification to employee's notifications array
+//           emp.notifications.push(notification);
+//           await emp.save();
 
-          // Send real-time notification via socket if online
-          const employeeSocketID = onlineUsers[emp._id.toString()];
-          if (employeeSocketID) {
-            io.to(employeeSocketID).emit("send_team_notification", notification);
-          }
-        }
-      }
-    } catch (error) {
-      console.error("Error in send notification for project:", error);
-    }
-  })
+//           // Send real-time notification via socket if online
+//           const employeeSocketID = onlineUsers[emp._id.toString()];
+//           if (employeeSocketID) {
+//             io.to(employeeSocketID).emit("send_team_notification", notification);
+//           }
+//         }
+//       }
+//     } catch (error) {
+//       console.error("Error in send notification for project:", error);
+//     }
+//   })
 
-  // Handle user disconnection
-  socket.on("disconnect", () => {
-    let disconnectedEmployee = null;
+//   // Handle user disconnection
+//   socket.on("disconnect", () => {
+//     let disconnectedEmployee = null;
 
-    for (const [employeeID, socketID] of Object.entries(onlineUsers)) {
-      if (socketID === socket.id) {
-        disconnectedEmployee = employeeID;
-        delete onlineUsers[employeeID]; // ✅ Remove user from online list
-        break;
-      }
-    }
+//     for (const [employeeID, socketID] of Object.entries(onlineUsers)) {
+//       if (socketID === socket.id) {
+//         disconnectedEmployee = employeeID;
+//         delete onlineUsers[employeeID]; // ✅ Remove user from online list
+//         break;
+//       }
+//     }
 
-    if (disconnectedEmployee) {
-      console.log(`Employee ${disconnectedEmployee} disconnected.`);
-    }
-  });
-});
+//     if (disconnectedEmployee) {
+//       console.log(`Employee ${disconnectedEmployee} disconnected.`);
+//     }
+//   });
+// });
 
 schedule.scheduleJob("0 0 11 8 * *", async function () {
   try {
@@ -630,7 +656,7 @@ schedule.scheduleJob("0 7 * * 1-5", async () => {
 // Start Server
 const port = process.env.PORT;
 
-server.listen(port, () => console.log(`Server listening on port ${port}!`));
+app.listen(port, () => console.log(`Server listening on port ${port}!`));
 process.on("uncaughtException", (err) => {
   console.log(err);
 });

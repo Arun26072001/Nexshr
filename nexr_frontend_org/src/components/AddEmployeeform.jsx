@@ -6,7 +6,7 @@ import { toast } from "react-toastify";
 import "./leaveForm.css";
 import { fetchPayslipInfo, fileUploadInServer } from "./ReuseableAPI";
 import { useNavigate } from "react-router-dom";
-import { SelectPicker, TagPicker } from "rsuite";
+import { SelectPicker, TagPicker, Toggle } from "rsuite";
 import Loading from "./Loader";
 import NoDataFound from "./payslip/NoDataFound";
 import { EssentialValues } from "../App";
@@ -45,8 +45,6 @@ const AddEmployeeForm = ({ details, handleScroll, handlePersonal, handleFinancia
         Email: Yup.string().email('Invalid email format').required('Email is required'),
         Password: Yup.string().min(6, 'Password must be at least 6 characters').required('Password is required'),
         company: Yup.string().optional(),
-        // teamLead: Yup.string().nullable().optional(), // assuming it's an ObjectId or string
-        // managerId: Yup.string().nullable().optional(),
         countryCode: Yup.string().optional(),
         phone: Yup.string().optional(), // can add phone validation if needed
         dateOfBirth: Yup.string().optional(),
@@ -80,8 +78,8 @@ const AddEmployeeForm = ({ details, handleScroll, handlePersonal, handleFinancia
         // IFSCcode: Yup.string().min(11, "IFSC code must be 11 characters").max(11, "IFSC code must be 11 characters").required("IFSC code is required"),
         IFSCcode: Yup.string().optional(),
         // taxDeduction: Yup.string().min(2, "invalid value").required("Tax deduction is required"),
-        taxDeduction: Yup.string().optional()
-
+        taxDeduction: Yup.string().optional(),
+        isPermanentWFH: Yup.boolean().optional()
     });
 
     const formik = useFormik({
@@ -542,7 +540,7 @@ const AddEmployeeForm = ({ details, handleScroll, handlePersonal, handleFinancia
                                 <div className="titleText col-lg-12">
                                     Employment Details
                                 </div>
-                                <div className="col-lg-6">
+                                <div className="col-lg-12">
                                     <div className="inputLabel">WorkingTime Pattern</div>
                                     <select
                                         className={`selectInput ${formik.touched.workingTimePattern && formik.errors.workingTimePattern ? "error" : ""}`}
@@ -562,6 +560,9 @@ const AddEmployeeForm = ({ details, handleScroll, handlePersonal, handleFinancia
                                         <div className="text-center text-danger">{formik.errors.workingTimePattern}</div>
                                     ) : null}
                                 </div>
+                            </div>
+
+                            <div className="row d-flex justify-content-center">
                                 <div className="col-lg-6">
                                     <div className="inputLabel">Company</div>
                                     <select
@@ -579,6 +580,10 @@ const AddEmployeeForm = ({ details, handleScroll, handlePersonal, handleFinancia
                                     {formik.touched.company && formik.errors.company ? (
                                         <div className="text-center text-danger">{formik.errors.company}</div>
                                     ) : null}
+                                </div>
+                                <div className="col-lg-6">
+                                    <div className="inputLabel">isPermanentWFH</div>
+                                    <Toggle size={"lg"} defaultChecked={formik.values.isPermanentWFH || false} onChange={(e) => formik.setFieldValue("isPermanentWFH", e)} />
                                 </div>
                             </div>
 

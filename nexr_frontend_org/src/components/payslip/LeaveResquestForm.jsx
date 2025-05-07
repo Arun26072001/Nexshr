@@ -15,7 +15,9 @@ import Loading from "../Loader";
 const LeaveRequestForm = ({ type }) => {
   const { id } = useParams();
   const url = process.env.REACT_APP_API_URL;
-  const { whoIs, data, socket } = useContext(EssentialValues);
+  const { whoIs, data, 
+    // socket
+   } = useContext(EssentialValues);
   const { _id, token } = data;
   const [error, setError] = useState("");
   const [isShowPeriodOfLeave, setIsShowPeriodOfLeave] = useState(false);
@@ -109,8 +111,6 @@ const LeaveRequestForm = ({ type }) => {
     applyFor: Yup.string().notRequired()
   });
 
-  console.log("exclude", typeof new Date());
-
   const formik = useFormik({
     initialValues: leaveRequestObj,
     validationSchema: leaveObjValidation,
@@ -148,7 +148,7 @@ const LeaveRequestForm = ({ type }) => {
       });
       toast.success(res.data.message);
       //send notification for higher authority
-      socket.emit("send_notification_for_leave", formik.values, _id)
+      // socket.emit("send_notification_for_leave", formik.values, _id)
       resetForm();
       navigate(`/${whoIs}`); // Navigate back
     } catch (err) {

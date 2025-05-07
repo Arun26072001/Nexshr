@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useState } from "react";
-import { SelectPicker, TagPicker } from "rsuite";
+import { SelectPicker, TagPicker, Toggle } from "rsuite";
 import { useFormik } from "formik";
 import * as Yup from "yup";
 import axios from "axios";
@@ -72,7 +72,6 @@ const EditEmployeeform = ({ details, empData, handleScroll, handlePersonal, prev
         IFSCcode: Yup.string().optional(),
         // taxDeduction: Yup.string().min(2, "invalid value").required("Tax deduction is required"),
         taxDeduction: Yup.string().optional()
-
     });
 
     const formik = useFormik({
@@ -136,7 +135,6 @@ const EditEmployeeform = ({ details, empData, handleScroll, handlePersonal, prev
         formik.setFieldValue("typesOfLeaveCount", leaveTypeCount)
         setSelectedLeavetypes(value);
     }
-    // console.log(formik.values);
 
     function navToError() {
         if (formik.errors.FirstName
@@ -583,7 +581,7 @@ const EditEmployeeform = ({ details, empData, handleScroll, handlePersonal, prev
                                     <div className="titleText col-lg-12">
                                         Employment Details
                                     </div>
-                                    <div className="col-lg-6">
+                                    <div className="col-lg-12">
                                         <div className="inputLabel">WorkingTime Pattern</div>
                                         <select
                                             className={`selectInput ${formik.touched.workingTimePattern && formik.errors.workingTimePattern ? "error" : ""}`}
@@ -606,7 +604,7 @@ const EditEmployeeform = ({ details, empData, handleScroll, handlePersonal, prev
                                             <div className="text-center text-danger">{formik.errors.workingTimePattern}</div>
                                         ) : null}
                                     </div>
-                                    <div className="col-lg-6">
+                                    {/* <div className="col-lg-6">
                                         <div className="inputLabel">Company</div>
                                         <select
                                             className={`selectInput ${formik.touched.company && formik.errors.company ? "error" : ""}`}
@@ -624,6 +622,31 @@ const EditEmployeeform = ({ details, empData, handleScroll, handlePersonal, prev
                                         {formik.touched.company && formik.errors.company ? (
                                             <div className="text-center text-danger">{formik.errors.company}</div>
                                         ) : null}
+                                    </div> */}
+                                </div>
+
+                                <div className="row d-flex justify-content-center">
+                                    <div className="col-lg-6">
+                                        <div className="inputLabel">Company</div>
+                                        <select
+                                            className={`selectInput ${formik.touched.company && formik.errors.company ? "error" : ""}`}
+                                            name="company"
+                                            onChange={formik.handleChange}
+                                            value={formik.values.company} >
+                                            <option>Select Company</option>
+                                            {
+                                                companies.map((company) => (
+                                                    <option key={company._id} value={company._id}>{company.CompanyName}</option>
+                                                ))
+                                            }
+                                        </select>
+                                        {formik.touched.company && formik.errors.company ? (
+                                            <div className="text-center text-danger">{formik.errors.company}</div>
+                                        ) : null}
+                                    </div>
+                                    <div className="col-lg-6">
+                                        <div className="inputLabel">isPermanentWFH</div>
+                                        <Toggle size="lg" defaultChecked={formik.values.isPermanentWFH || false} disabled={whoIs === "emp" ? true : false} onChange={(e) => formik.setFieldValue("isPermanentWFH", e)} />
                                     </div>
                                 </div>
 

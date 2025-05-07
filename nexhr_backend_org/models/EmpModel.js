@@ -45,6 +45,7 @@ var employeeSchema = new mongoose.Schema({
   dateOfJoining: { type: String },
   employmentType: { type: String },
   benefits: [{ type: String }],
+  isPermanentWFH: { type: Boolean },
   emergencyContacts: [
     {
       name: { type: String },

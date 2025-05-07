@@ -63,7 +63,9 @@ export const TimerStates = createContext(null);
 
 export default function HRMDashboard() {
     const url = process.env.REACT_APP_API_URL;
-    const { data, setData, isStartLogin, isStartActivity, setIsStartLogin, setIsStartActivity, whoIs, socket } = useContext(EssentialValues);
+    const { data, setData, isStartLogin, isStartActivity, setIsStartLogin, setIsStartActivity, whoIs, 
+        // socket 
+    } = useContext(EssentialValues);
     const { token, Account, _id } = data;
     const { isTeamLead, isTeamHead, isTeamManager } = jwtDecode(token);
     const [attendanceData, setAttendanceData] = useState([]);
@@ -183,13 +185,13 @@ export default function HRMDashboard() {
                 const clockinsData = await addDataAPI(updatedState, worklocation, location);
                 const totalWorkingHour = await getTotalWorkingHourPerDay(workingTimePattern.StartingTime, workingTimePattern.FinishingTime)
                 if (clockinsData !== "undefined" && clockinsData._id) {
-                    if (!workTimeTracker.login.startingTime.length) {
-                        socket.emit("remainder_notification", {
-                            employee: data._id,
-                            time: totalWorkingHour,
-                            clockinsId: clockinsData?._id
-                        })
-                    }
+                    // if (!workTimeTracker.login.startingTime.length) {
+                    //     socket.emit("remainder_notification", {
+                    //         employee: data._id,
+                    //         time: totalWorkingHour,
+                    //         clockinsId: clockinsData?._id
+                    //     })
+                    // }
                     setWorkTimeTracker(clockinsData);
                     setIsStartLogin(true);
                     localStorage.setItem("isStartLogin", true);
@@ -424,7 +426,6 @@ export default function HRMDashboard() {
                     authorization: token || ""
                 }
             })
-            console.log("leaveDate:", leaveData.data);
             setLeaveRequests(leaveData.data);
             setFullLeaveRequests(leaveData.data);
         } catch (err) {
@@ -435,18 +436,16 @@ export default function HRMDashboard() {
     useEffect(() => {
         if (whoIs && [isTeamHead, isTeamLead, isTeamManager].includes(true)) {
             getLeaveDataFromTeam()
-        } else {
+        } else if(["admin","hr"].includes(whoIs)){
             getLeaveData();
         }
     }, [daterangeValue, _id, whoIs, isUpdatedRequest]);
 
     // to view attendance data for admin and hr
     useEffect(() => {
-        console.log("call on change");
-
         if ([isTeamHead, isTeamLead, isTeamManager].includes(true)) {
             getTeamAttendance();
-        } else {
+        } else if(["admin","hr"].includes(whoIs)) {
             getAttendanceData()
         }
         getClocknsData();

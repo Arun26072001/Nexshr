@@ -23,7 +23,9 @@ export default function Comments() {
     const [taskObj, setTaskObj] = useState({});
     const [commentObj, setCommentObj] = useState({});
     const { id } = useParams();
-    const { data, whoIs, socket } = useContext(EssentialValues);
+    const { data, whoIs, 
+        // socket 
+    } = useContext(EssentialValues);
     const {employees} = useContext(TimerStates);
     const url = process.env.REACT_APP_API_URL;
     const [previewList, setPreviewList] = useState([]);
@@ -150,7 +152,7 @@ export default function Comments() {
             // Update the comment in the task object if taskData is not provided
             taskObj.comments[taskObj.comments.length] = updatedCommentObj;
 
-            socket.emit("updatedTask_In_AddComment", taskObj, data._id, data.token);
+            // socket.emit("updatedTask_In_AddComment", taskObj, data._id, data.token);
             setIsAddComment(false);
             setPreviewList([]);
             setCommentObj({});
@@ -159,16 +161,16 @@ export default function Comments() {
         }
     }
 
-    socket.on("send_updated_task", (updatedData) => {
-        setIschecked(updatedData.status === "Completed")
-        setTaskObj({
-            ...updatedData,
-            spend: {
-                ...updatedData?.spend,
-                timeHolder: getTimeFromHour(updatedData?.spend?.timeHolder || 0)
-            }
-        });
-    })
+    // socket.on("send_updated_task", (updatedData) => {
+    //     setIschecked(updatedData.status === "Completed")
+    //     setTaskObj({
+    //         ...updatedData,
+    //         spend: {
+    //             ...updatedData?.spend,
+    //             timeHolder: getTimeFromHour(updatedData?.spend?.timeHolder || 0)
+    //         }
+    //     });
+    // })
 
     async function editCommitTask() {
         setIsChangingComment(true);
@@ -195,7 +197,7 @@ export default function Comments() {
             // Update the comment in the task object if taskData is not provided
             taskObj.comments[editCommentIndex] = updatedCommentObj;
 
-            socket.emit("updatedTask_In_AddComment", taskObj, data._id, data.token);
+            // socket.emit("updatedTask_In_AddComment", taskObj, data._id, data.token);
             // socket.on("send_updated_task", (updatedData) => {
             //     setIschecked(updatedData.status === "Completed")
             //     setTaskObj({
@@ -227,17 +229,17 @@ export default function Comments() {
             }
             taskObj.comments[index] = updatedCommit;
             try {
-                socket.emit("updatedTask_In_AddComment", taskObj, data._id, data.token);
-                socket.on("send_updated_task", (updatedData) => {
-                    setIschecked(updatedData.status === "Completed")
-                    setTaskObj({
-                        ...updatedData,
-                        spend: {
-                            ...updatedData?.spend,
-                            timeHolder: getTimeFromHour(updatedData?.spend?.timeHolder || 0)
-                        }
-                    });
-                })
+                // socket.emit("updatedTask_In_AddComment", taskObj, data._id, data.token);
+                // socket.on("send_updated_task", (updatedData) => {
+                //     setIschecked(updatedData.status === "Completed")
+                //     setTaskObj({
+                //         ...updatedData,
+                //         spend: {
+                //             ...updatedData?.spend,
+                //             timeHolder: getTimeFromHour(updatedData?.spend?.timeHolder || 0)
+                //         }
+                //     });
+                // })
                 toast.success("Commit has been move trash")
             } catch (error) {
                 console.log(error);
@@ -505,10 +507,9 @@ export default function Comments() {
 
                         {
                             taskObj?.comments?.map((comment, index) => {
-                                console.log(comment);
                                 const commentCreator = comment?.createdBy?.FirstName?.[0]?.toUpperCase() + comment?.createdBy?.FirstName?.slice(1) + " " + comment?.createdBy?.LastName || "Arun Kumar";
                                 return (
-                                    <div className="d-flex justify-content-center">
+                                    <div className="d-flex justify-content-center" key={index}>
                                         <div className="col-lg-10 col-md-10 col-12">
                                             <div className='text-align-center'>
                                                 <hr width="100%" size="2" color='gray' style={{ borderTop: "1px solid gray" }}></hr>

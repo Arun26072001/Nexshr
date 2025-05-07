@@ -39,7 +39,7 @@ const AdminOrgMembers = ({ organizations }) => {
                     <tbody>
                         {currentUsers.length > 0 ? (
                             currentUsers.map((member, index) => (
-                                <tr key={member.user._id} className="border-bottom">
+                                <tr key={member.user._id} className="border-bottom" >
                                     <td className="p-3">{indexOfFirstUser + index + 1}</td>
                                     <td className="p-3">{member.user._id}</td>
                                     <td className="p-3">{member.user.username}</td>

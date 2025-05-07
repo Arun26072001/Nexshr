@@ -24,6 +24,7 @@ const CommonModel = ({
     leads,
     heads,
     managers,
+    hrs, admins,
     previewList,
     modifyData,
     projects,
@@ -74,19 +75,6 @@ const CommonModel = ({
                                         onChange={!["Report View", "Project View", "View WorkPlace"].includes(type) ? (e) =>
                                             changeData(e, type === "Department" ? "DepartmentName" : type === "Position" ? "PositionName" : type === "Team" ? "teamName" : type === "Organization" ? "orgName" : type === "LeaveType" ? "LeaveName" : type === "TimePattern" ? "PatternName" : ["WorkPlace", "View WorkPlace"].includes(type) ? "CompanyName" : "name") : null}
                                     />
-                                    {/* {
-                                        [
-                                            "DepartmentName",
-                                            "PositionName",
-                                            "teamName",
-                                            "orgName",
-                                            "LeaveName",
-                                            "PatternName",
-                                            "CompanyName", // for both "WorkPlace" and "View WorkPlace"
-                                            "name"         // default
-                                          ].includes()
-                                    }
-                                    <p>{}</p> */}
                                 </div>
                             </div>
                         }
@@ -261,7 +249,7 @@ const CommonModel = ({
                                             :
                                             previewList?.length &&
                                             previewList?.map((imgFile, index) => (
-                                                <div className="col-lg-4 p-2">
+                                                <div className="col-lg-4 p-2" key={index}>
                                                     <div className="position-relative">
                                                         {(dataObj?.attachments?.length === previewList?.length && dataObj?.attachments[index]?.type === "video/mp4" || imgFile.includes(".mp4")) ?
                                                             <video className="w-100 h-auto" controls>
@@ -916,14 +904,14 @@ const CommonModel = ({
                 }
                 {
                     type === "Team" &&
-                    ["Manager", "Lead", "Head"].map((emp) => {
+                    ["Manager", "Lead", "Head", "Admin", "Hr"].map((emp) => {
                         return <div className="modelInput" key={emp}>
                             <p className="modelLabel">
                                 {emp}
                             </p>
 
                             <TagPicker
-                                data={emp === "Manager" ? managers : emp === "Lead" ? leads : heads}
+                                data={emp === "Manager" ? managers : emp === "Lead" ? leads : emp === "Admin" ? admins : emp === "Hr" ? hrs : heads}
                                 required
                                 size="lg"
                                 appearance="default"

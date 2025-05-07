@@ -166,22 +166,25 @@ router.get("/team/:higher", verifyAdminHRTeamHigherAuth, async (req, res) => {
     else if (higher === "head") keyword = "Head";
     else keyword = "Manager";
 
-    const employees = await Employee.find({}, "FirstName LastName position profile")
+    const employees = await Employee.find({}, "FirstName LastName position profile role")
       .populate("position", "PositionName") // Populate only PositionName
+      .populate("role", "RoleName")
       .exec();
 
     // Filter employees based on position name containing the keyword
     const filtered = employees.filter(emp => {
       const positionName = emp?.position?.PositionName;
+      const roleName = emp?.role.RoleName;
+      if (["admin", "hr"].includes(higher.toLowerCase())) {
+        return roleName && roleName.toLowerCase().includes(higher)
+      }
       return positionName && positionName.includes(keyword);
     });
-
     res.send(filtered);
   } catch (err) {
     res.status(500).send({ error: err.message });
   }
 });
-
 
 router.get("/team/members/:id", verifyTeamHigherAuthority, async (req, res) => {
   try {
@@ -291,13 +294,12 @@ router.post("/:id", verifyAdminHR, async (req, res) => {
 
     const employeeData = {
       ...req.body,
-      role: req.body.role || "679b31dba453436edb1b27a3",
-      // teamLead: teamLead,
-      // managerId: managerId,
-      workingTimePattern: req.body.workingTimePattern || "679ca37c9ac5c938538f18ba",
-      company: company || "679b5ee55eb2dc34115be175",
+      role: req.body.role,
+      workingTimePattern: req.body.workingTimePattern,
+      company: company || inviter.company._id,
       position: null,
       department: null,
+      isPermanentWFH: req.body.isPermanentWFH || false,
       annualLeaveEntitlement: annualLeaveEntitlement || 14,
       employementType: employementType || "Full-time",
       typesOfLeaveCount: { ...typesOfLeaveCount, Permission: 2 },

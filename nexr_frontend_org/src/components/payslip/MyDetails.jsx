@@ -34,10 +34,11 @@ const MyDetails = () => {
                 {
                     isLoading ?
                         <>
-                            <Skeleton varient="text" height={50} width={250} />
-                            <Skeleton varient="text" height={30} width={200} />
-                            <Skeleton varient="text" height={30} width={200} />
-                            <Skeleton varient="text" height={30} width={200} />
+                            {
+                                [...Array(4)].map((_, index) => {
+                                    return <Skeleton varient="text" key={index} height={50} width={index === 0 ? 250 : 200} />
+                                })
+                            }
                         </> :
                         empObj?.FirstName && empObj?.LastName && (
                             <>
@@ -59,10 +60,11 @@ const MyDetails = () => {
 
                 {isLoading ?
                     <div className="my-2">
-                        <Skeleton varient="text" height={50} width={250} />
-                        <Skeleton varient="text" height={30} width={200} />
-                        <Skeleton varient="text" height={30} width={200} />
-                        <Skeleton varient="text" height={30} width={200} />
+                        {
+                            [...Array(4)].map((_, index) => {
+                                return <Skeleton varient="text" key={index} height={50} width={index === 0 ? 250 : 200} />
+                            })
+                        }
                     </div> :
                     empObj?.role && empObj?.position && empObj?.department && (
                         <>
@@ -79,10 +81,11 @@ const MyDetails = () => {
 
                 {isLoading ?
                     <div className="my-2">
-                        <Skeleton varient="text" height={50} width={250} />
-                        <Skeleton varient="text" height={30} width={200} />
-                        <Skeleton varient="text" height={30} width={200} />
-                        <Skeleton varient="text" height={30} width={200} />
+                        {
+                            [...Array(4)].map((_, index) => {
+                                return <Skeleton varient="text" key={index} height={50} width={index === 0 ? 250 : 200} />
+                            })
+                        }
                     </div> :
                     empObj?.workingTimePattern && (
                         <>
@@ -125,10 +128,11 @@ const MyDetails = () => {
 
                 {isLoading ?
                     <div className="my-2">
-                        <Skeleton varient="text" height={50} width={250} />
-                        <Skeleton varient="text" height={30} width={200} />
-                        <Skeleton varient="text" height={30} width={200} />
-                        <Skeleton varient="text" height={30} width={200} />
+                        {
+                            [...Array(4)].map((_, index) => {
+                                return <Skeleton varient="text" key={index} height={50} width={index === 0 ? 250 : 200} />
+                            })
+                        }
                     </div> :
                     empObj?.typesOfLeaveCount && Object.keys(empObj.typesOfLeaveCount).length > 0 && (
                         <>
@@ -143,10 +147,11 @@ const MyDetails = () => {
 
                 {isLoading ?
                     <div className="my-2">
-                        <Skeleton varient="text" height={50} width={250} />
-                        <Skeleton varient="text" height={30} width={200} />
-                        <Skeleton varient="text" height={30} width={200} />
-                        <Skeleton varient="text" height={30} width={200} />
+                        {
+                            [...Array(4)].map((_, index) => {
+                                return <Skeleton varient="text" key={index} height={50} width={index === 0 ? 250 : 200} />
+                            })
+                        }
                     </div> : empObj?.basicSalary && empObj?.accountNo && empObj?.bankName && empObj?.IFSCcode && (
                         <>
                             <p className="sub_title">Bank Details</p>
@@ -161,10 +166,11 @@ const MyDetails = () => {
 
                 {isLoading ?
                     <div className="my-2">
-                        <Skeleton varient="text" height={50} width={250} />
-                        <Skeleton varient="text" height={30} width={200} />
-                        <Skeleton varient="text" height={30} width={200} />
-                        <Skeleton varient="text" height={30} width={200} />
+                        {
+                            [...Array(4)].map((_, index) => {
+                                return <Skeleton varient="text" key={index} height={50} width={index === 0 ? 250 : 200} />
+                            })
+                        }
                     </div> :
                     empObj?.payslipFields && Object.keys(empObj.payslipFields).length > 0 && (
                         <>

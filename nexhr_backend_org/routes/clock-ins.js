@@ -137,12 +137,12 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
         if (!worklocation || !location.latitude) {
             return res.status(400).send({ error: "Please select your work location" })
         }
-        let isWfh;
-        if (worklocation === "WFH") {
-            isWfh = await WFHApplication.findOne({ fromDate: { $gte: today }, status: "approved" })
-        }
+        // let isWfh;
+        // if (worklocation === "WFH") {
+        //     isWfh = await WFHApplication.findOne({ fromDate: { $gte: today }, status: "approved" })
+        // }
         // Fetch employee details with required fields
-        const emp = await Employee.findById(req.params.id)
+        const emp = await Employee.findById(req.params.id, "FirstName LastName Email profile company clockIns leaveApplication isPermanentWFH")
             .populate("workingTimePattern")
             .populate("company", "location CompanyName")
             .populate({ path: "clockIns", match: { date: { $gte: startOfDay, $lte: endOfDay } } })
@@ -150,26 +150,28 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
                 path: "leaveApplication",
                 match: { fromDate: { $gte: startOfDay, $lte: endOfDay }, status: "approved", leaveType: "Permission Leave" }
             })
+        console.log(emp.FirstName);
 
         if (!emp) return res.status(404).send({ error: "Employee not found!" });
         if (emp?.clockIns?.length > 0) return res.status(409).send({ message: "You have already Punch-In!" });
 
         // verify emp is in office
-        if (worklocation === "WFH" && !isWfh) {
-            return res.status(400).send({ error: "You have no permission for WFH, Please reach office and start timer" })
-
-        } if (worklocation === "WFO") {
-            const userLocation = req.query.location;
-            const companyLocation = emp.company.location;
-            if (userLocation && companyLocation) {
-                const distance = getDistance(userLocation, companyLocation);
-                if (distance > 100) {
-                    return res.status(400).send({ error: "Please reach your office location and start the timer" })
-                }
-            } else {
-                return res.status(400).send({ error: `location not found in your ${emp.company.CompanyName}` })
-            }
-        }
+        // if (worklocation === "WFH" && (!isWfh && !emp.isPermanentWFH)) {
+        //     console.log(isWfh, emp.isPermanentWFH);
+        //     return res.status(400).send({ error: "You have no permission for WFH, Please reach office and start timer" })
+        // } if (worklocation === "WFO") {
+        //     const userLocation = req.query.location;
+        //     const companyLocation = emp.company.location;
+        //     if (userLocation && companyLocation) {
+        //         const distance = getDistance(userLocation, companyLocation);
+        //         console.log("distance", distance);
+        //         if (distance > 100) {
+        //             return res.status(400).send({ error: "Please reach your office location and start the timer" })
+        //         }
+        //     } else {
+        //         return res.status(400).send({ error: `location not found in your ${emp.company.CompanyName}` })
+        //     }
+        // }
         // Office login time & employee login time
         const officeLoginTime = emp?.workingTimePattern?.StartingTime || "9:00";
         const loginTimeRaw = req.body?.login?.startingTime?.[0];
