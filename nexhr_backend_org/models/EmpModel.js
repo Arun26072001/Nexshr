@@ -83,7 +83,8 @@ var employeeSchema = new mongoose.Schema({
   typesOfLeaveCount: { type: Object },
   typesOfLeaveRemainingDays: { type: Object },
   payslipFields: { type: Object },
-  payslip: [{ type: mongoose.Schema.Types.ObjectId, ref: "payslip" }]
+  payslip: [{ type: mongoose.Schema.Types.ObjectId, ref: "payslip" }],
+  fcmToken: {type: String}
 }, { timestamps: true });
 
 var Employee = mongoose.model("Employee", employeeSchema);

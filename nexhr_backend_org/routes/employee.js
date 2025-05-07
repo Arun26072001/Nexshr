@@ -276,6 +276,17 @@ router.get('/:id', verifyAdminHREmployeeManagerNetwork, async (req, res) => {
   }
 });
 
+// save fcm token for employee
+router.post("/add-fcm-token", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
+  try {
+    const addFcmTokenEmp = await Employee.findByIdAndUpdate(req.body.empId, { $set: { fcmToken: req.body.fcmToken } }, { new: true });
+    return res.send({ message: `FCM token has been saved for ${addFcmTokenEmp.FirstName}`, addFcmTokenEmp })
+  } catch (error) {
+    console.log("erorr in add fcm token", error);
+    return res.status(500).send({ error: error.message })
+  }
+})
+
 router.post("/:id", verifyAdminHR, async (req, res) => {
   try {
     const inviter = await Employee.findById(req.params.id, "FirstName LastName")
@@ -379,6 +390,7 @@ router.post("/:id", verifyAdminHR, async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+
 
 router.put("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
   try {

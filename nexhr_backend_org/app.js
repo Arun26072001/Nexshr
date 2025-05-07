@@ -57,6 +57,7 @@ const mailSettings = require("./routes/mail-settings");
 const { Employee } = require("./models/EmpModel");
 const wfhRouter = require("./routes/wfh-application");
 const { timeToMinutes, getCurrentTimeInMinutes, getTotalWorkingHourPerDay, formatDate } = require("./Reuseable_functions/reusableFunction");
+const { sendPushNotification } = require("./auth/PushNotification");
 
 // MongoDB Connection
 const mongoURI = process.env.DATABASEURL;
@@ -154,6 +155,7 @@ app.use("/api/report", report)
 app.use("/api/google-sheet/upload", fileData);
 app.use("/api/mail-settings", mailSettings);
 app.use("/api/wfh-application", wfhRouter);
+app.post("/push-notification", sendPushNotification);
 
 // Create HTTP Server and Socket.IO
 // const server = http.createServer(app);
