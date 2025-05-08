@@ -128,9 +128,6 @@ const LeaveRequestForm = ({ type }) => {
         formData.append("applyFor", formik.values.applyFor);
 
         if (leaveRequestObj._id) {
-          console.log("aksjdksalkdajskdh");
-          console.log(values);
-
           updateLeave(values, resetForm)
         } else {
           applyLeave(formData, resetForm)
@@ -152,7 +149,7 @@ const LeaveRequestForm = ({ type }) => {
       });
       toast.success(res.data.message);
       //send notification for higher authority
-      triggerNotification()
+      // triggerNotification()
       // socket.emit("send_notification_for_leave", formik.values, _id)
       resetForm();
       navigate(`/${whoIs}`); // Navigate back

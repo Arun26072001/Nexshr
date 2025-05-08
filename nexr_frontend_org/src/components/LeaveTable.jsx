@@ -964,6 +964,7 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
                                                 if (column.id === "reasonForLeave") {
                                                 } else if (column.id === "Action") {
                                                     if (["leave-request", "wfh-request"].includes(params['*'])) {
+                                                        console.log(isTeamLead, row?.approvers?.lead === "pending");
                                                         return (
                                                             <Dropdown placement='leftStart' title={<EditRoundedIcon style={{ cursor: "pointer" }} />} noCaret>
                                                                 <Dropdown.Item style={{ minWidth: 120 }} onClick={() => navigate(params['*'] === "leave-request" ? `/${whoIs}/leave-request/view/${row._id}` : `/${whoIs}/wfh-request/view/${row._id}`)}>View</Dropdown.Item>

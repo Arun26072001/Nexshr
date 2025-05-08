@@ -78,7 +78,8 @@ router.get("/emp/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => 
 router.post("/:id", verifyAdminHRTeamHigherAuth, async (req, res) => {
   try {
     const assignees = await Employee.find({ _id: req.body.employees }, "FirstName LastName Email");
-    const creator = await Employee.findById(req.params.id, "FirstName LastName Email").populate({ path: "company" })
+    const creator = await Employee.findById(req.params.id, "FirstName LastName Email").populate({ path: "company" });
+    const message = `${req.body.name} Project is created by ${FirstName}`;
     const newProject = {
       ...req.body,
       status: req.body.status || "Not Started",
@@ -86,7 +87,7 @@ router.post("/:id", verifyAdminHRTeamHigherAuth, async (req, res) => {
       createdby: req?.body?.createdby || req?.params?.id,
       tracker: [{
         date: new Date(),
-        message: `${req.body.name} Project is created by ${FirstName}`,
+        message,
         who: req.params.id
       }]
     }
@@ -100,14 +101,30 @@ router.post("/:id", verifyAdminHRTeamHigherAuth, async (req, res) => {
     }
     const project = await Project.create(newProject);
 
-    // send mail for assignees
-    assignees.map((emp) => {
-      return sendMail({
+    assignees.forEach(async (emp) => {
+      const Subject = `Welcome to ${req.body.name} project by ${creator.FirstName}`;
+      // send mail for assignees
+      sendMail({
         From: process.env.FROM_MAIL,
         To: emp.Email,
-        Subject: `Welcome to ${req.body.name} project by ${creator.FirstName}`,
+        Subject,
         HtmlBody: projectMailContent(emp, creator, emp.company, req.body, "project")
       })
+
+      // send notifications for assigned peoples
+      const notification = {
+        company: emp.company._id,
+        title: Subject,
+        message,
+      };
+      const fullEmp = await Employee.findById(member._id, "notifications");
+      fullEmp.notifications.push(notification);
+      await fullEmp.save();
+      await sendPushNotification({
+        token: emp.fcmToken,
+        title: notification.title,
+        body: message,
+      });
     })
     return res.status(201).send({ message: "Project is created Successfully", project })
   } catch (error) {
@@ -129,15 +146,15 @@ router.put("/:empId/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) 
     }
 
     const { FirstName, LastName } = employee;
+    const message =  `Project field "${req.body[name]}" updated by ${FirstName} ${LastName}`
     const projectChanges = Object.entries(projectData.toObject()).flatMap(([name, value]) => {
       const oldValue = convertToString(value);
       const newValue = convertToString(req.body[name]);
       const valueOfType = typeof oldValue;
       if (req.body[name] !== undefined && (valueOfType === "object" ? oldValue.length !== newValue.length : oldValue !== newValue) && !["createdAt", "createdby", "tracker", "updatedAt"].includes(name)) {
-
         return {
           date: new Date(),
-          message: `Project field "${req.body[name]}" updated by ${FirstName} ${LastName}`,
+          message,
           who: req.params.empId
         };
       }
@@ -166,14 +183,30 @@ router.put("/:empId/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) 
       updatedProject,
       { new: true } // Return the updated document
     );
-    // send mail for assignees
-    emps.map((emp) => {
-      return sendMail({
+    emps.forEach(async (emp) => {
+      // send mail for assignees
+      const Subject = `Welcome to ${req.body.name} project by ${assignedPerson.FirstName}`;
+      sendMail({
         From: assignedPerson.Email,
         To: emp.Email,
-        Subject: `Welcome to ${req.body.name} project by ${assignedPerson.FirstName}`,
+        Subject,
         HtmlBody: projectMailContent(emp, assignedPerson, emp.company, req.body, "project")
       })
+
+      // send notifications for assigned peoples
+      const notification = {
+        company: emp.company._id,
+        title: Subject,
+        message,
+      };
+      // const fullEmp = await Employee.findById(member._id, "notifications");
+      emp.notifications.push(notification);
+      await emp.save();
+      await sendPushNotification({
+        token: emp.fcmToken,
+        title: Subject,
+        body: message,
+      });
     })
     if (!project) {
       return res.status(404).send("Project not found");

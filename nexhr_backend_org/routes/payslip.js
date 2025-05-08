@@ -45,7 +45,10 @@ router.post("/", async (req, res) => {
       }
     }).exec();
     const response = await Holiday.findOne({ currentYear: startOfMonth.getFullYear() }).exec();
-    const currentMonthOfLeaveDays = response.holidays.filter((holiday) => new Date(holiday.date).getMonth() === startOfMonth.getMonth()).map((item) => new Date(item.date).getDate())
+    let currentMonthOfLeaveDays = [];
+    if (response.holidays.length) {
+      currentMonthOfLeaveDays = response.holidays.filter((holiday) => new Date(holiday.date).getMonth() === startOfMonth.getMonth()).map((item) => new Date(item.date).getDate())
+    }
 
     if (!employees.length) {
       return res.status(404).json({ message: "No employees found" });

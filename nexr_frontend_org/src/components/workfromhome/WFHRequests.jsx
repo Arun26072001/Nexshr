@@ -21,14 +21,17 @@ export default function WFHRequests() {
     async function fetchTeamWfhRequests() {
         setIsLoading(true)
         try {
-            const res = await axios.get(`${url}/api/wfh-application/employee/${data._id}`, {
+            const res = await axios.get(`${url}/api/wfh-application/team/${data._id}`, {
                 params: {
-                    dateRangeValue
+                    dateRangeValue,
+                    who: isTeamLead ? "lead" : isTeamHead ? "head" : "manager"
                 },
                 headers: {
                     Authorization: data.token || ""
                 }
             })
+            console.log("wfh requests", res.data);
+
             setRequests(res.data);
         } catch (error) {
             console.log("error in fetch wfhRequests", error);
@@ -174,7 +177,7 @@ export default function WFHRequests() {
                             height={"50vh"}
                         /> :
                         requests?.correctRequests?.length > 0 ?
-                            <LeaveTable data={requests.correctRequests} replyToLeave={replyToRequest} />
+                            <LeaveTable data={requests.correctRequests} replyToLeave={replyToRequest} isTeamHead={isTeamHead} isTeamLead={isTeamLead} isTeamManager={isTeamManager} />
                             : <NoDataFound message={"WFH Requests not for this month!"} />
                 }
             </div>

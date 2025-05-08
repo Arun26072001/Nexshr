@@ -157,6 +157,88 @@ app.use("/api/mail-settings", mailSettings);
 app.use("/api/wfh-application", wfhRouter);
 app.post("/push-notification", sendPushNotification);
 
+schedule.scheduleJob("0 0 11 8 * *", async function () {
+  try {
+    const response = await axios.post(`${process.env.REACT_APP_API_URL}/api/payslip/`, {});
+    console.log("Payslip generation response:", response.data);
+  } catch (err) {
+    console.error("Error while generating payslips:", err);
+  }
+});
+
+async function fetchTimePatterns() {
+  try {
+    const timePatterns = await TimePattern.find();
+
+    timePatterns.forEach((pattern) => {
+      const [startingHour, startingMin] = pattern.StartingTime.split(":").map(Number);
+      const [finishingHour, finishingMin] = pattern.FinishingTime.split(":").map(Number);
+
+      // Schedule job for login
+      schedule.scheduleJob(`0 ${startingMin} ${startingHour} * * 1-5`, async function () {
+        try {
+          const response = await axios.post(`${process.env.REACT_APP_API_URL}/api/clock-ins/ontime/login`);
+          console.log("Login Triggered:", response.data.message);
+        } catch (error) {
+          console.error("Login Error:", error.message);
+        }
+      });
+
+      // send mail and apply fullday leave
+      schedule.scheduleJob(`0 ${finishingMin - 5} ${finishingHour} * * 1-5`, async function () {
+        try {
+          const response = await axios.post(`${process.env.REACT_APP_API_URL}/api/clock-ins/not-login/apply-leave/${pattern._id}`);
+          console.log("Apply Leave for Not-login Triggered:", response.data.message);
+        } catch (error) {
+          console.error("Logout Error:", error);
+        }
+      })
+
+      // Schedule job for logout
+      // schedule.scheduleJob(`0 ${finishingMin} ${finishingHour} * * 1-5`, async function () {
+      //   try {
+      //     const response = await axios.post(`${process.env.REACT_APP_API_URL}/api/clock-ins/ontime/logout`);
+      //     console.log("Logout Triggered:", response.data.message);
+      //   } catch (error) {
+      //     console.error("Logout Error:", error);
+      //   }
+      // });
+    });
+  } catch (error) {
+    console.error("Error fetching time patterns:", error);
+  }
+}
+
+// Call function to schedule jobs
+fetchTimePatterns();
+
+schedule.scheduleJob("0 10 * * 1-5", async () => {
+  try {
+    const response = await axios.get(`${process.env.REACT_APP_API_URL}/api/leave-application/make-know`);
+    console.log(response.data);
+  } catch (error) {
+    console.log(error.response.data.error);
+  }
+});
+
+schedule.scheduleJob("0 7 * * 1-5", async () => {
+  try {
+    const res = await axios.put(`${process.env.REACT_APP_API_URL}/api/leave-application/reject-leave`);
+    console.log(res.data);
+  } catch (error) {
+    console.log(error);
+  }
+})
+
+// Start Server
+const port = process.env.PORT;
+
+app.listen(port, () => console.log(`Server listening on port ${port}!`));
+process.on("uncaughtException", (err) => {
+  console.log(err);
+});
+
+
 // Create HTTP Server and Socket.IO
 // const server = http.createServer(app);
 // const io = new Server(server, {
@@ -581,84 +663,3 @@ app.post("/push-notification", sendPushNotification);
 //     }
 //   });
 // });
-
-schedule.scheduleJob("0 0 11 8 * *", async function () {
-  try {
-    const response = await axios.post(`${process.env.REACT_APP_API_URL}/api/payslip/`, {});
-    console.log("Payslip generation response:", response.data);
-  } catch (err) {
-    console.error("Error while generating payslips:", err);
-  }
-});
-
-async function fetchTimePatterns() {
-  try {
-    const timePatterns = await TimePattern.find();
-
-    timePatterns.forEach((pattern) => {
-      const [startingHour, startingMin] = pattern.StartingTime.split(":").map(Number);
-      const [finishingHour, finishingMin] = pattern.FinishingTime.split(":").map(Number);
-
-      // Schedule job for login
-      schedule.scheduleJob(`0 ${startingMin} ${startingHour} * * 1-5`, async function () {
-        try {
-          const response = await axios.post(`${process.env.REACT_APP_API_URL}/api/clock-ins/ontime/login`);
-          console.log("Login Triggered:", response.data.message);
-        } catch (error) {
-          console.error("Login Error:", error.message);
-        }
-      });
-
-      // send mail and apply fullday leave
-      schedule.scheduleJob(`0 ${finishingMin - 5} ${finishingHour} * * 1-5`, async function () {
-        try {
-          const response = await axios.post(`${process.env.REACT_APP_API_URL}/api/clock-ins/not-login/apply-leave/${pattern._id}`);
-          console.log("Apply Leave for Not-login Triggered:", response.data.message);
-        } catch (error) {
-          console.error("Logout Error:", error);
-        }
-      })
-
-      // Schedule job for logout
-      schedule.scheduleJob(`0 ${finishingMin} ${finishingHour} * * 1-5`, async function () {
-        try {
-          const response = await axios.post(`${process.env.REACT_APP_API_URL}/api/clock-ins/ontime/logout`);
-          console.log("Logout Triggered:", response.data.message);
-        } catch (error) {
-          console.error("Logout Error:", error);
-        }
-      });
-    });
-  } catch (error) {
-    console.error("Error fetching time patterns:", error);
-  }
-}
-
-// Call function to schedule jobs
-fetchTimePatterns();
-
-schedule.scheduleJob("0 10 * * 1-5", async () => {
-  try {
-    const response = await axios.get(`${process.env.REACT_APP_API_URL}/api/leave-application/make-know`);
-    console.log(response.data);
-  } catch (error) {
-    console.log(error.response.data.error);
-  }
-});
-
-schedule.scheduleJob("0 7 * * 1-5", async () => {
-  try {
-    const res = await axios.put(`${process.env.REACT_APP_API_URL}/api/leave-application/reject-leave`);
-    console.log(res.data);
-  } catch (error) {
-    console.log(error);
-  }
-})
-
-// Start Server
-const port = process.env.PORT;
-
-app.listen(port, () => console.log(`Server listening on port ${port}!`));
-process.on("uncaughtException", (err) => {
-  console.log(err);
-});

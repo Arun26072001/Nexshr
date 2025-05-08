@@ -251,13 +251,23 @@ export default function Navbar({ handleSideBar }) {
     }
     
     function getAddress() {
+        function roundCoord(coord, precision = 4) {
+            return parseFloat(coord).toFixed(precision);
+          }
+          
         navigator.geolocation.getCurrentPosition(
             (pos) => {
-                setLatitude(pos.coords.latitude);
-                setLongitude(pos.coords.longitude)
+                console.log("location", pos.coords);
+                
+                setLatitude(roundCoord(pos.coords.latitude));
+                setLongitude(roundCoord(pos.coords.longitude))
             },
             (err) => console.error(err),
-            { enableHighAccuracy: true }
+            {
+                enableHighAccuracy: true,
+                timeout: 10000,
+                maximumAge: 0
+            }
         );
     }
     useEffect(() => {
@@ -370,7 +380,7 @@ export default function Navbar({ handleSideBar }) {
                                     <div className="punchBtnParent">
                                         <button
                                             className='punchBtn'
-                                            disabled={isWorkingLoginTimerApi ? true : isDisabled}
+                                            disabled={isWorkingLoginTimerApi || !workLocation ? true : isDisabled}
                                             onClick={() => startTimer()}
                                             style={{ backgroundColor: "#CEE5D3" }}
                                         >
