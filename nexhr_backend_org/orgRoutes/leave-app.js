@@ -428,7 +428,7 @@ leaveApp.post("/:orgId/:empId", verifyAdminHREmployeeManagerNetwork, async (req,
       <body>
         <div class="container">
           <div class="header">
-            <img src="https://imagedelivery.net/r89jzjNfZziPHJz5JXGOCw/1dd59d6a-7b64-49d7-ea24-1366e2f48300/public" alt="Logo" />
+            <img src="https://imagedelivery.net/r89jzjNfZziPHJz5JXGOCw/1dd59d6a-7b" alt="comapany logo" />
             <h1>Welcome to NexsHR</h1>
           </div>
           <div class="content">
@@ -437,7 +437,7 @@ leaveApp.post("/:orgId/:empId", verifyAdminHREmployeeManagerNetwork, async (req,
             <p><b>Email</b>: ${Email}</p><br />
             <p><b>Password</b>: ${Password}</p><br />
             <p>Thank you for registering! Please confirm your email by clicking the button below.</p>
-            <a href="${process.env.FRONTEND_URL}" class="button">Confirm Email</a>
+            <a href="${process.env.REACT_APP_API_URL}" class="button">Confirm Email</a>
           </div>
           <div class="footer">
             <p>Have questions? Need help? <a href="mailto:webnexs29@gmail.com">Contact our support team</a>.</p>

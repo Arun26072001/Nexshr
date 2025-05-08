@@ -8,7 +8,7 @@ const { verifyHR, verifyEmployee, verifyAdmin, verifyAdminHREmployeeManagerNetwo
 const { Team } = require('../models/TeamModel');
 const { upload } = require('./imgUpload');
 const sendMail = require("./mailSender");
-const { getDayDifference, mailContent, formatLeaveData } = require('../Reuseable_functions/reusableFunction');
+const { getDayDifference, mailContent, formatLeaveData, formatDate } = require('../Reuseable_functions/reusableFunction');
 const { Task } = require('../models/TaskModel');
 
 // Helper function to generate leave request email content
@@ -731,6 +731,7 @@ leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("pre
     const tomorrow = new Date(today);
     tomorrow.setDate(today.getDate() + 1);
     let mailList = [];
+    let fcmList = [];
 
     // 1. If applying on behalf, ensure target employee isn't already working those days
     if (applyFor) {
@@ -787,11 +788,11 @@ leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("pre
         {
           path: "team",
           populate: [
-            { path: "lead", select: "FirstName LastName Email" },
-            { path: "head", select: "FirstName LastName Email" },
-            { path: "manager", select: "FirstName LastName Email" },
-            { path: "admin", select: "FirstName LastName Email" },
-            { path: "hr", select: "FirstName LastName Email" }
+            { path: "lead", select: "FirstName LastName Email fcmToken" },
+            { path: "head", select: "FirstName LastName Email fcmToken" },
+            { path: "manager", select: "FirstName LastName Email fcmToken" },
+            { path: "admin", select: "FirstName LastName Email fcmToken" },
+            { path: "hr", select: "FirstName LastName Email fcmToken" }
           ],
         },
       ]);
@@ -898,13 +899,42 @@ leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("pre
         }
         return data?.Email ? [data.Email] : [];
       });// removes undefined, null, or false
-
+      fcmList = teamRoles.flatMap(role => {
+        const data = emp?.team?.[role];
+        if (Array.isArray(data)) {
+          return data.map(person => person?.fcmToken).filter(Boolean);
+        }
+        return data?.Email ? [data.Email] : [];
+      });
       sendMail({
         From: process.env.FROM_MAIL,
         To: mailList.join(","),
         Subject: "Leave Application Notification",
         HtmlBody: generateLeaveEmail(emp, fromDate, toDate, reasonForLeave, leaveType, deadlineTasks),
       });
+
+      // send notification for client 
+      const message = `${empData.FirstName} ${empData.LastName} has applied for leave from ${formatDate(fromDate)} to ${formatDate(toDate)}.`;
+      const teamData = empData.team?.toObject?.() || {};
+      for (const [key, value] of Object.entries(teamData)) {
+        if (Array.isArray(value) && key !== "employees") {
+          for (const emp of value) {
+            if (emp && emp.company) {
+              const notification = {
+                company: empData.company._id,
+                title: "Leave Application Notification",
+                message
+              };
+
+              const fullEmp = await Employee.findById(emp._id, "notifications"); // Fetch fresh document to update notifications
+              fullEmp.notifications.push(notification);
+              await fullEmp.save();
+              
+
+            }
+          }
+        }
+      }
     }
 
     return res.status(201).json({ message: "Leave request submitted successfully.", newLeaveApp, notifiedMembers: mailList });

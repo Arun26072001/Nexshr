@@ -342,7 +342,7 @@ router.post("/:id", verifyAdminHR, async (req, res) => {
       <p style="margin: 5px 0;"><strong>Password:</strong> ${Password}</p>
 
       <p style="margin-top: 20px;">Please click the button below to confirm your email and get started:</p>
-      <a href="${process.env.FRONTEND_URL}" style="
+      <a href="${process.env.REACT_APP_API_URL}" style="
         display: inline-block;
         padding: 12px 24px;
         background-color: #28a745;
@@ -354,7 +354,7 @@ router.post("/:id", verifyAdminHR, async (req, res) => {
       ">Confirm Email</a>
 
       <p>If the button doesn't work, you can also copy and paste this link into your browser:</p>
-      <p><a href="${process.env.FRONTEND_URL}" style="color: #28a745;">${process.env.FRONTEND_URL}</a></p>
+      <p><a href="${process.env.REACT_APP_API_URL}" style="color: #28a745;">${process.env.REACT_APP_API_URL}</a></p>
 
       <p style="margin-top: 30px;">Cheers,<br/>The ${inviter.company.CompanyName} Team</p>
     </div>
@@ -458,7 +458,7 @@ router.put("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
       
             <p style="margin-top: 20px;">Please use these updated credentials from now on to log in to your account.</p>
       
-            <a href="${process.env.FRONTEND_URL}" style="
+            <a href="${process.env.REACT_APP_API_URL}" style="
               display: inline-block;
               padding: 12px 24px;
               background-color: #4CAF50;
@@ -470,7 +470,7 @@ router.put("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
             ">Go to Login</a>
       
             <p>If the button doesn’t work, you can copy and paste this link into your browser:</p>
-            <p><a href="${process.env.FRONTEND_URL}" style="color: #28a745;">${process.env.FRONTEND_URL}</a></p>
+            <p><a href="${process.env.REACT_APP_API_URL}" style="color: #28a745;">${process.env.REACT_APP_API_URL}</a></p>
       
             <p style="margin-top: 30px;">Thanks,<br/>The ${empData.company.CompanyName} Team</p>
           </div>
