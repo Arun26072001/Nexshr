@@ -6,6 +6,7 @@ import { saveAs } from "file-saver";
 const url = process.env.REACT_APP_API_URL;
 const token = localStorage.getItem('token');
 const _id = localStorage.getItem("_id");
+console.log(_id);
 
 const updateDataAPI = async (body) => {
     try {

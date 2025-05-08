@@ -12,7 +12,6 @@ import 'rsuite/dist/rsuite.min.css';
 import "react-datepicker/dist/react-datepicker.css";
 // import io from "socket.io-client";
 // import { Notification, toaster } from "rsuite";
-// import companyLogo from "./imgs/webnexs_logo.webp";
 // import { triggerToaster } from "./components/ReuseableAPI.jsx";
 import AdminDashboard from "./components/superAdmin/AdminDashboard.js";
 import { getToken, onMessage } from "firebase/messaging";
@@ -235,6 +234,7 @@ const App = () => {
     const unsubscribe = onMessage(messaging, (payload) => {
       console.log("Message received:", payload);
       setNotification(payload.notification);
+      handleUpdateAnnouncements()
     });
 
     return () => unsubscribe();
@@ -245,25 +245,7 @@ const App = () => {
     localStorage.setItem("isStartActivity", isStartActivity);
   }, []);
 
-  // useEffect(() => {
-  //   if (!isStartLogin && isLogin) {
-  //     toaster.push(
-  //       <Notification
-  //         header={
-  //           <div style={{ display: 'flex', alignItems: 'center' }}>
-  //             <img src={companyLogo} alt="Company Logo" style={{ width: 50, height: 50, marginRight: 10 }} />
-  //             <span style={{ fontWeight: 'bold', fontSize: '16px' }}>Webnexs</span>
-  //           </div>
-  //         }
-  //         closable
-  //       >
-  //         <strong className="text-danger">Important notice</strong>
-  //         <p className="my-2"> The timer will stop when you close the tab or browser.</p>
-  //       </Notification>,
-  //       { placement: 'topCenter' }
-  //     );
-  //   }
-  // }, [])
+
 
   useEffect(() => {
     function fetchEssentialData() {

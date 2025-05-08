@@ -164,7 +164,8 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
         }
 
         // Fetch Assigned Employees
-        const assignedEmps = await Employee.find({ _id: { $in: req.body.assignedTo } }, "FirstName LastName Email");
+        const assignedEmps = await Employee.find({ _id: { $in: req.body.assignedTo } }, "FirstName LastName Email fcmToken")
+            .populate("company", "CompanyName logo");
 
         // Create Task Tracking Logs
         const trackers = [
@@ -193,9 +194,25 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
         await project.save();
 
         // Send Emails to Assigned Employees
-        assignedEmps.forEach(emp => {
+        assignedEmps.forEach(async emp => {
+            const message = "Please review the task and complete it as per the given instructions."
             const createdPersonName = `${empData.FirstName.charAt(0).toUpperCase()}${empData.FirstName.slice(1)} ${empData.LastName}`;
+            // send notifications for assigned peoples
+            const notification = {
+                company: emp.company._id,
+                title: "You has Assigned a Task to You",
+                message,
+            };
+            const fullEmp = await Employee.findById(emp._id, "notifications");
+            fullEmp.notifications.push(notification);
+            await fullEmp.save();
+            await sendPushNotification({
+                token: emp.fcmToken,
+                title: notification.title,
+                body: message,
+            });
 
+            // send mail for assign peoples
             sendMail({
                 From: process.env.FROM_MAIL,
                 To: emp.Email,
@@ -223,7 +240,7 @@ router.put("/:empId/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) 
         // Fetch Assigned Person & Employee Data
         const [assignedPerson, empData, emps] = await Promise.all([
             await Employee.findById(req.body.createdby)
-                .populate({ path: "company", select: "CompanyName" }),
+                .populate({ path: "company", select: "CompanyName logo" }),
             await Employee.findById(req.params.empId),
             await Employee.find({ _id: { $in: newAssignees } }, "FirstName LastName Email")
         ])
@@ -290,8 +307,24 @@ router.put("/:empId/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) 
 
         // Send Emails for Task Completion
         if (req.body.status === "Completed") {
-            emps.forEach(emp => {
+            emps.forEach(async emp => {
                 const empName = `${emp.FirstName.charAt(0).toUpperCase()}${emp.FirstName.slice(1)} ${emp.LastName}`;
+
+                // send notifications for assigned peoples
+                const notification = {
+                    company: emp.company._id,
+                    title: `Your assigned task (${req.body.title}) is completed`,
+                    message,
+                };
+                const fullEmp = await Employee.findById(member._id, "notifications");
+                fullEmp.notifications.push(notification);
+                await fullEmp.save();
+                await sendPushNotification({
+                    token: emp.fcmToken,
+                    title: notification.title,
+                    body: message,
+                });
+
                 sendMail({
                     From: emp.Email,
                     To: assignedPerson.Email,
@@ -340,7 +373,7 @@ router.put("/:empId/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) 
 
         // Send Emails for Newly Assigned Employees
         emps.forEach(emp => {
-            const empName = `${emp.FirstName.charAt(0).toUpperCase()}${emp.FirstName.slice(1)} ${emp.LastName}`;
+            // const empName = `${emp.FirstName.charAt(0).toUpperCase()}${emp.FirstName.slice(1)} ${emp.LastName}`;
             sendMail({
                 From: assignedPerson.Email,
                 To: emp.Email,

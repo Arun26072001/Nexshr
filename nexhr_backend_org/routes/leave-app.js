@@ -10,6 +10,7 @@ const { upload } = require('./imgUpload');
 const sendMail = require("./mailSender");
 const { getDayDifference, mailContent, formatLeaveData, formatDate } = require('../Reuseable_functions/reusableFunction');
 const { Task } = require('../models/TaskModel');
+const { sendPushNotification } = require('../auth/PushNotification');
 
 // Helper function to generate leave request email content
 function generateLeaveEmail(empData, fromDateValue, toDateValue, reasonForLeave, leaveType, deadLineTask = []) {
@@ -734,7 +735,7 @@ leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("pre
     let fcmList = [];
 
     // 1. If applying on behalf, ensure target employee isn't already working those days
-    if (applyFor) {
+    if (![undefined, "undefined"].includes(applyFor)) {
       const emp = await Employee.findById(personId, "clockIns").populate({
         path: "clockIns",
         match: { date: { $gte: fromDateObj, $lte: toDateObj } },
@@ -891,21 +892,18 @@ leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("pre
     await emp.save();
 
     // 13. Send Notification (only for self-application)
-    if (!applyFor) {
-      mailList = teamRoles.flatMap(role => {
-        const data = emp?.team?.[role];
-        if (Array.isArray(data)) {
-          return data.map(person => person?.Email).filter(Boolean);
+    if ([undefined, "undefined"].includes(applyFor)) {
+      ["lead", "head", "manager", "hr", "admin"].forEach(role => {
+        const teamMember = emp.team?.[role];
+        if (Array.isArray(teamMember)) {
+          teamMember.forEach(m => m?.Email && mailList.push(m.Email));
+          teamMember.forEach(m => m?.fcmToken && fcmList.push(m.fcmToken));
+        } else if (teamMember?.Email) {
+          mailList.push(teamMember.Email);
+          fcmList.push(teamMember.fcmToken);
         }
-        return data?.Email ? [data.Email] : [];
-      });// removes undefined, null, or false
-      fcmList = teamRoles.flatMap(role => {
-        const data = emp?.team?.[role];
-        if (Array.isArray(data)) {
-          return data.map(person => person?.fcmToken).filter(Boolean);
-        }
-        return data?.Email ? [data.Email] : [];
       });
+
       sendMail({
         From: process.env.FROM_MAIL,
         To: mailList.join(","),
@@ -913,24 +911,26 @@ leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("pre
         HtmlBody: generateLeaveEmail(emp, fromDate, toDate, reasonForLeave, leaveType, deadlineTasks),
       });
 
-      // send notification for client 
-      const message = `${empData.FirstName} ${empData.LastName} has applied for leave from ${formatDate(fromDate)} to ${formatDate(toDate)}.`;
-      const teamData = empData.team?.toObject?.() || {};
-      for (const [key, value] of Object.entries(teamData)) {
-        if (Array.isArray(value) && key !== "employees") {
-          for (const emp of value) {
-            if (emp && emp.company) {
-              const notification = {
-                company: empData.company._id,
-                title: "Leave Application Notification",
-                message
-              };
+      const message = `${emp.FirstName} ${emp.LastName} has applied for leave from ${formatDate(fromDate)} to ${formatDate(toDate)}.`;
+      const teamData = emp.team || {};
 
-              const fullEmp = await Employee.findById(emp._id, "notifications"); // Fetch fresh document to update notifications
+      for (const [key, members] of Object.entries(teamData)) {
+        if (Array.isArray(members) && key !== "employees") {
+          for (const member of members) {
+            if (member) {
+              const notification = {
+                company: emp.company._id,
+                title: "Leave Application Notification",
+                message,
+              };
+              const fullEmp = await Employee.findById(member._id, "notifications");
               fullEmp.notifications.push(notification);
               await fullEmp.save();
-              
-
+              await sendPushNotification({
+                token: member.fcmToken,
+                title: notification.title,
+                body: message,
+              });
             }
           }
         }
@@ -959,24 +959,23 @@ leaveApp.put('/:id', verifyAdminHREmployeeManagerNetwork, async (req, res) => {
     const anyRejected = Object.values(approvers).some(status => status === "rejected");
     const allPending = Object.values(approvers).every(status => status === "pending");
 
-    let members = [];
-    console.log("allpending", approvers);
+    let mailList = [];
+    // let fcmList = [];
 
     if (!allPending) {
-      const emp = await Employee.findById(employee)
+      const emp = await Employee.findById(employee, "team FirstName LastName Email company")
         .populate([
           {
             path: "team",
             populate: [
-              { path: "lead", select: "FirstName LastName Email" },
-              { path: "head", select: "FirstName LastName Email" },
-              { path: "manager", select: "FirstName LastName Email" },
-              { path: "admin", select: "FirstName LastName Email" },
-              { path: "hr", select: "FirstName LastName Email" }
+              { path: "lead", select: "FirstName LastName Email fcmToken" },
+              { path: "head", select: "FirstName LastName Email fcmToken" },
+              { path: "manager", select: "FirstName LastName Email fcmToken" },
+              { path: "admin", select: "FirstName LastName Email fcmToken" },
+              { path: "hr", select: "FirstName LastName Email fcmToken" }
             ]
           },
           { path: "company", select: "CompanyName logo" },
-          { path: "admin", select: "FirstName LastName Email" }
         ])
         .lean();
 
@@ -997,55 +996,65 @@ leaveApp.put('/:id', verifyAdminHREmployeeManagerNetwork, async (req, res) => {
         });
       }
 
-      // Safely extract team members
-      const normalize = (arr, type) =>
-        Array.isArray(arr)
-          ? arr.map(item => ({
-            type,
-            Email: item.Email,
-            name: `${item.FirstName} ${item.LastName}`
-          }))
-          : [];
-
-      const leads = normalize(emp.team.lead, "lead");
-      const heads = normalize(emp.team.head, "head");
-      const managers = normalize(emp.team.manager, "manager");
-      const hrs = normalize(emp.team.hr, "hr");
-      const admins = normalize(emp.team.admin, "admin");
-
-      members = [
-        emp.Email && {
-          type: "emp",
-          Email: emp.Email,
-          name: `${emp.FirstName} ${emp.LastName}`
-        },
-        ...leads,
-        ...heads,
-        ...managers,
-        ...admins,
-        ...hrs
-      ].filter(Boolean);
-
-      // Who took action?
-      const actionBy =
-        Object.entries(approvers).find(([_, value]) => value === "approved" || value === "rejected")?.[0] || "unknown";
+      // Who took action? from client
+      const actionBy = req?.query?.actionBy;
 
       const emailType = allApproved ? "approved" : anyRejected ? "rejected" : "pending";
+      // Safely extract team members
+      ["lead", "head", "manager", "hr", "admin"].forEach(role => {
+        const teamMember = emp.team?.[role];
+        if (Array.isArray(teamMember)) {
+          teamMember.forEach(m => m?.Email && mailList.push(m.Email));
+          // teamMember.forEach(m => m?.fcmToken && fcmList.push(m.fcmToken));
+        } else if (teamMember?.Email) {
+          mailList.push(teamMember.Email);
+          // fcmList.push(teamMember.fcmToken);
+        }
+      });
+      
+      if (mailList.length) {
+        const Subject = "Leave Application response Notification";
+        for (const member of mailList) {
+          sendMail({
+            From: process.env.FROM_MAIL,
+            To: member.Email,
+            Subject,
+            HtmlBody: mailContent(emailType, fromDateValue, toDateValue, emp, leaveType, actionBy, member),
+          });
+        }
+        const message = anyRejected
+          ? `${emp.FirstName}'s WFH request has been rejected by ${actionBy}`
+          : `${emp.FirstName}'s WFH request has been approved by ${actionBy}`;
+        const teamData = emp.team || {};
 
-      // Notify all involved
-      for (const member of members) {
-        await sendMail({
-          From: process.env.FROM_MAIL,
-          To: member.Email,
-          Subject: "Leave Application Response Notification",
-          HtmlBody: mailContent(emailType, fromDateValue, toDateValue, emp, leaveType, actionBy, member)
-        });
+        // send notification on firebase and add notification invoved people
+        for (const [key, members] of Object.entries(teamData)) {
+          if (Array.isArray(members) && key !== "employees") {
+            for (const member of members) {
+              if (member) {
+                const notification = {
+                  company: emp.company._id,
+                  title: Subject,
+                  message,
+                };
+                const fullEmp = await Employee.findById(member._id, "notifications");
+                fullEmp.notifications.push(notification);
+                await fullEmp.save();
+                await sendPushNotification({
+                  token: member.fcmToken,
+                  title: Subject,
+                  body: message,
+                });
+              }
+            }
+          }
+        }
       }
     }
 
     // Update leave application
     const updatedLeaveApp = {
-      ...restBody,
+      ...req.body,
       approvers,
       status: allApproved ? "approved" : anyRejected ? "rejected" : restBody.status
     };
@@ -1054,16 +1063,12 @@ leaveApp.put('/:id', verifyAdminHREmployeeManagerNetwork, async (req, res) => {
       { _id: req.params.id, fromDate: { $gt: startOfDay } },
       updatedLeaveApp,
       { new: true }
-    );
-
-    if (!updatedRequest) {
-      return res.status(400).send({ error: 'Leave request has expired or already started.' });
-    }
+    )
 
     return res.send({
       message: 'You have responded to the leave application.',
       data: updatedRequest,
-      notifiedMembers: members
+      notifiedMembers: mailList
     });
 
   } catch (err) {

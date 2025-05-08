@@ -32,7 +32,8 @@ export default function Company() {
     function changeCompanyOperation(type) {
         if (type === "Edit") {
             if (modifyCompany.isEdit) {
-                setLogoPreView("")
+                setLogoPreView("");
+                setCompanyObj({});
             }
             setModifyCompany((pre) => ({
                 ...pre,
@@ -46,6 +47,7 @@ export default function Company() {
         } else if (type === "Add") {
             if (modifyCompany.isAdd) {
                 setLogoPreView("")
+                setCompanyObj({})
             }
             setModifyCompany((pre) => ({
                 ...pre,

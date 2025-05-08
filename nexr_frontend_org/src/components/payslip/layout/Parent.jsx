@@ -7,11 +7,13 @@ import { EssentialValues } from "../../../App";
 import Sidebar from "./Sidebar";
 import Navbar from "./Navbar";
 import Loading from "../../Loader";
+import { Notification, toaster } from "rsuite";
+import companyLogo from "../../../imgs/webnexs_logo.webp";
 
 export const WorkTimeTrackerContext = createContext(null);
 
 const Parent = () => {
-    const { handleLogout } = useContext(EssentialValues);
+    const { handleLogout, isStartLogin, isLogin } = useContext(EssentialValues);
     const [sideBar, setSideBar] = useState(screen.width > 1000 ? true : false);
 
     function handleSideBar() {
@@ -34,6 +36,27 @@ const Parent = () => {
             window.removeEventListener("resize", handleResize);
         };
     }, []);
+
+    useEffect(() => {
+        if (!isStartLogin && isLogin) {
+            toaster.push(
+                <Notification
+                    header={
+                        <div style={{ display: 'flex', alignItems: 'center' }}>
+                            <img src={companyLogo} alt="Company Logo" style={{ width: 50, height: 50, marginRight: 10 }} />
+                            <span style={{ fontWeight: 'bold', fontSize: '16px' }}>Webnexs</span>
+                        </div>
+                    }
+                    closable
+                >
+                    <strong className="text-danger">Important notice</strong>
+                    <p className="my-1">We won't allow to start timer, until select work location</p>
+                    <p className="my-1"> The timer will stop when you close the tab or browser.</p>
+                </Notification>,
+                { placement: 'topCenter' }
+            );
+        }
+    }, [])
 
     return (
         <div>

@@ -24,11 +24,12 @@ export default function LeaveRequest() {
     const navigate = useNavigate()
 
     async function replyToLeave(leave, response) {
-        console.log("repinse", response);
         
         try {
+            let actionBy;
             let updatedLeaveRequest;
             if (isTeamHead) {
+                actionBy = "Head"
                 updatedLeaveRequest = {
                     ...leave,
                     approvers: {
@@ -37,6 +38,7 @@ export default function LeaveRequest() {
                     }
                 }
             } else if (isTeamLead) {
+                 actionBy = "Lead"
                 updatedLeaveRequest = {
                     ...leave,
                     approvers: {
@@ -45,6 +47,7 @@ export default function LeaveRequest() {
                     }
                 }
             } else if (isTeamManager) {
+                 actionBy = "Manager"
                 updatedLeaveRequest = {
                     ...leave,
                     approvers: {
@@ -54,6 +57,7 @@ export default function LeaveRequest() {
                 }
             }
             else if (String(data.Account) === "2") {
+                 actionBy = "Hr"
                 updatedLeaveRequest = {
                     ...leave,
                     approvers: {
@@ -67,6 +71,9 @@ export default function LeaveRequest() {
             }
 
             const res = await axios.put(`${url}/api/leave-application/${leave._id}`, updatedLeaveRequest, {
+                params: {
+                    actionBy
+                },
                 headers: {
                     Authorization: token || ""
                 }
