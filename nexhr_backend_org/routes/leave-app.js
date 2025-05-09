@@ -1043,7 +1043,7 @@ leaveApp.put('/:id', verifyAdminHREmployeeManagerNetwork, async (req, res) => {
           // Send Email
           await sendMail({
             From: process.env.FROM_MAIL,
-            To: member,
+            To: member.Email,
             Subject,
             HtmlBody: mailContent(emailType, fromDateValue, toDateValue, emp, leaveType, actionBy, member),
           });
