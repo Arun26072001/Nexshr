@@ -32,12 +32,6 @@ export default function WFHRequests() {
                     Authorization: data.token || ""
                 }
             })
-<<<<<<< HEAD
-=======
-            console.log(res.data);
-            
-            console.log("wfh requests", res.data);
->>>>>>> 076beb5487a16e417b05da0a71146b11a64c9062
 
             setRequests(res.data);
         } catch (error) {
