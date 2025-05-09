@@ -20,6 +20,8 @@ export default function WFHRequests() {
 
     async function fetchTeamWfhRequests() {
         setIsLoading(true)
+        console.log("dsfkldkfksdkl");
+        
         try {
             const res = await axios.get(`${url}/api/wfh-application/team/${data._id}`, {
                 params: {
@@ -30,6 +32,12 @@ export default function WFHRequests() {
                     Authorization: data.token || ""
                 }
             })
+<<<<<<< HEAD
+=======
+            console.log(res.data);
+            
+            console.log("wfh requests", res.data);
+>>>>>>> 076beb5487a16e417b05da0a71146b11a64c9062
 
             setRequests(res.data);
         } catch (error) {

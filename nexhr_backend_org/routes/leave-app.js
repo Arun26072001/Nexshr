@@ -60,8 +60,13 @@ function generateLeaveEmail(empData, fromDateValue, toDateValue, reasonForLeave,
       <!-- Content -->
       <div style="margin: 20px 0; padding: 10px;">
         <p style="font-size: 14px; margin: 10px 0;"><strong>Reason for Leave:</strong> ${reasonForLeave}</p>
-        <p style="font-size: 14px; margin: 10px 0;">Kindly review and respond accordingly.</p>
-        <p style="font-size: 14px; margin: 10px 0;">Thank you!</p>
+        <p style="font-size: 14px; margin: 10px 0;">
+          Please let me know if any further information is required. 
+          I kindly request you to consider and approve this request.
+        </p>
+        <p style="font-size: 14px; margin: 10px 0;">
+          Thank you for your time and support.
+        </p>
       </div>
 
       <!-- Footer -->
@@ -349,7 +354,7 @@ leaveApp.get("/hr", verifyHR, async (req, res) => {
     let empLeaveReqs = leaveReqs
       .map((req) => req.leaveApplication)
       .flat()
-      .sort((a, b) => new Date(b.fromDate) - new Date(a.fromDate)); // Sort by fromDate
+      .sort((a, b) => new Date(b.fromDate) - new Date(a.fromDate));
     empLeaveReqs = empLeaveReqs.map(formatLeaveData)
     res.send(empLeaveReqs);
   } catch (err) {
@@ -954,6 +959,7 @@ leaveApp.put('/:id', verifyAdminHREmployeeManagerNetwork, async (req, res) => {
     const anyRejected = Object.values(approvers).some(status => status === "rejected");
     const allPending = Object.values(approvers).every(status => status === "pending");
 
+<<<<<<< HEAD
     const emp = await Employee.findById(employee)
       .populate([
         {
@@ -975,6 +981,9 @@ leaveApp.put('/:id', verifyAdminHREmployeeManagerNetwork, async (req, res) => {
 
     const actionBy = req.query.actionBy;
     const emailType = allApproved ? "approved" : anyRejected ? "rejected" : "pending";
+=======
+    // let fcmList = [];
+>>>>>>> 076beb5487a16e417b05da0a71146b11a64c9062
     let mailList = [];
 
     // Deduct leave if approved
@@ -982,13 +991,32 @@ leaveApp.put('/:id', verifyAdminHREmployeeManagerNetwork, async (req, res) => {
       const leaveDaysTaken = Math.max(getDayDifference({ fromDate, toDate }), 1);
       const leaveBalance = emp.typesOfLeaveRemainingDays?.[leaveType] ?? 0;
 
+<<<<<<< HEAD
       if (leaveBalance < leaveDaysTaken) {
         return res.status(400).send({ error: 'Insufficient leave balance for the requested leave type.' });
+=======
+      if (!emp) return res.status(404).send({ error: 'Employee not found.' });
+      if (!emp.team) return res.status(404).send({ error: `${emp.FirstName} is not assigned to a team.` });
+      mailList.push(emp)
+      // Deduct leave if approved
+      if (allApproved) {
+        const leaveDaysTaken = Math.max(getDayDifference({ fromDate, toDate }), 1);
+        const leaveBalance = emp.typesOfLeaveRemainingDays?.[leaveType] ?? 0;
+
+        if (leaveBalance < leaveDaysTaken) {
+          return res.status(400).send({ error: 'Insufficient leave balance for the requested leave type.' });
+        }
+
+        await Employee.findByIdAndUpdate(emp._id, {
+          $inc: { [`typesOfLeaveRemainingDays.${leaveType}`]: -leaveDaysTaken }
+        });
+>>>>>>> 076beb5487a16e417b05da0a71146b11a64c9062
       }
 
       await Employee.findByIdAndUpdate(emp._id, {
         $inc: { [`typesOfLeaveRemainingDays.${leaveType}`]: -leaveDaysTaken }
       });
+<<<<<<< HEAD
     }
 
     // Notify members if status changed
@@ -1037,8 +1065,18 @@ leaveApp.put('/:id', verifyAdminHREmployeeManagerNetwork, async (req, res) => {
 
           // Send Email
           await sendMail({
+=======
+console.log(mailList);
+  
+      if (mailList.length) {
+        const Subject = "Leave Application response Notification";
+        for (const member of mailList) {
+          console.log(member);
+
+          sendMail({
+>>>>>>> 076beb5487a16e417b05da0a71146b11a64c9062
             From: process.env.FROM_MAIL,
-            To: member.Email,
+            To: member,
             Subject,
             HtmlBody: mailContent(emailType, fromDateValue, toDateValue, emp, leaveType, actionBy, member),
           });

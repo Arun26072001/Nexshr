@@ -13,6 +13,7 @@ const TextEditor = ({ handleChange, content, isDisabled, isAllowFile, changeComm
         if (quillRef.current) {
             const editor = quillRef.current.getEditor();
             editor.history.undo();
+            console.log(editor,"editor")
         }
     };
 
@@ -21,8 +22,11 @@ const TextEditor = ({ handleChange, content, isDisabled, isAllowFile, changeComm
         if (quillRef.current) {
             const editor = quillRef.current.getEditor();
             editor.history.redo();
+            console.log()
         }
     };
+
+
 
     const handleFileUpload = () => {
         const fileInput = document.getElementById("fileUploader");
