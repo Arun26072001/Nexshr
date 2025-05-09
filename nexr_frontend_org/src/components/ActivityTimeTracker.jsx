@@ -9,6 +9,7 @@ import { Modal, Button } from "rsuite";
 import { EssentialValues } from "../App";
 import Loading from "./Loader";
 import { getTimeFromHour } from "./ReuseableAPI";
+import axios from "axios";
 
 const ActivityTimeTracker = () => {
     const {
@@ -21,12 +22,10 @@ const ActivityTimeTracker = () => {
         changeReasonForLate,
         isworkingActivityTimerApi
     } = useContext(TimerStates);
-    const { data, 
-        // socket 
-    } = useContext(EssentialValues);
+    const url = process.env.REACT_APP_API_URL;
+    const { data, changeViewReasonForTaketime, isViewTakeTime } = useContext(EssentialValues);
     const [isDisabled, setIsDisabled] = useState(false);
     const EmpName = data.Name;
-    const [isViewTakeTime, setIsTaketime] = useState(localStorage.getItem("isViewTakeTime") ? true : false);
     const [isHover, setIsHover] = useState(false);
 
     const [sec, setSec] = useState(
@@ -85,28 +84,40 @@ const ActivityTimeTracker = () => {
                     trackTimer()
                     timerRef.current = setInterval(incrementTime, 1000);
                     if (["morningBreak", "eveningBreak", "lunch"].includes(timeOption)) {
-                        // socket.emit("send_notification", {
-                        //     employee: data._id,
-                        //     timerId: workTimeTracker._id,
-                        //     timeOption,
-                        //     time: timeOption === "lunch" ? 30 : 1,
-                        //     token: data.token
-                        // })
+                        try {
+                            const res = await axios.post(`${url}/ask-reason-for-delay`, {
+                                employee: data._id,
+                                timerId: workTimeTracker._id,
+                                timeOption,
+                                time: timeOption === "lunch" ? 30 - Number(getTimeFromHour(workTimeTracker[timeOption].timeHolder, true)) : 15 - Number(getTimeFromHour(workTimeTracker[timeOption].timeHolder, true)),
+                                token: data.token
+                            });
+                            console.log(res.data);
+                        } catch (error) {
+                            console.log("error in enable ask reason for late", error);
+
+                        }
                     }
                 }
-            } else if (["morningBreak", "eveningBreak"].includes(timeOption) && timeData < 15) {
+            } else if (["morningBreak", "eveningBreak"].includes(timeOption) && timeData < 1) {
                 if (!timerRef.current) {
                     await startActivityTimer();
                     trackTimer()
                     timerRef.current = setInterval(incrementTime, 1000);
                     if (["morningBreak", "eveningBreak", "lunch"].includes(timeOption)) {
-                        // socket.emit("send_notification", {
-                        //     employee: data._id,
-                        //     timerId: workTimeTracker._id,
-                        //     timeOption,
-                        //     time: timeOption === "lunch" ? 30 - Number(getTimeFromHour(workTimeTracker[timeOption].timeHolder, true)) : 15 - Number(getTimeFromHour(workTimeTracker[timeOption].timeHolder, true)),
-                        //     token: data.token
-                        // })
+                        //enable ask the reason for late
+                        try {
+                            const res = await axios.post(`${url}/ask-reason-for-delay`, {
+                                employee: data._id,
+                                timerId: workTimeTracker._id,
+                                timeOption,
+                                time: 1 - Number(getTimeFromHour(workTimeTracker[timeOption].timeHolder, true)),
+                                token: data.token
+                            });
+                            console.log(res.data.message);
+                        } catch (error) {
+                            console.log("error in enable ask reason for late", error);
+                        }
                     }
                 }
             } else {
@@ -130,12 +141,6 @@ const ActivityTimeTracker = () => {
         }
     };
 
-    function changeViewReasonForTaketime() {
-        if (!isViewTakeTime) {
-            localStorage.setItem("isViewTakeTime", true)
-        }
-        setIsTaketime(!isViewTakeTime)
-    }
     // Display warning if no punch-in
     const warnPunchIn = () => {
         toast.warning("Please Punch In!")
@@ -209,6 +214,7 @@ const ActivityTimeTracker = () => {
                                 placeholder={`Please enter late reason`}
                             />
                         </div>
+
                     </Modal.Body>
 
                     <Modal.Footer>

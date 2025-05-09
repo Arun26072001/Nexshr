@@ -43,12 +43,20 @@ const App = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [isChangeAnnouncements, setIschangeAnnouncements] = useState(false);
-  // const [notification, setNotification] = useState("");
-  // const [fcmToken, setFcmToken] = useState("");
+  const [isViewTakeTime, setIsTaketime] = useState(localStorage.getItem("isViewTakeTime") ? true : false);
 
   function handleUpdateAnnouncements() {
     setIschangeAnnouncements(!isChangeAnnouncements)
   }
+
+  // change ask the reason late in breaks and lunch activity
+  function changeViewReasonForTaketime() {
+    if (!isViewTakeTime) {
+        localStorage.setItem("isViewTakeTime", true)
+    }
+    setIsTaketime(!isViewTakeTime)
+}
+
   // Helper Functions
   const handleLogout = () => {
     if (isStartLogin || isStartActivity) {
@@ -128,58 +136,7 @@ const App = () => {
     event.target.reset();
   };
 
-  // useEffect(() => {
-  //   if (!socket.connected && isLogin) {
-  //     socket.connect();
-  //   }
-
-  //   if (isLogin && data?._id) {
-  //     socket.emit("join_room", data._id);
-
-  //     const handlers = {
-  //       receive_announcement: (response) => {
-  //         console.log("responseData", response);
-  //         triggerToaster(response);
-  //         handleUpdateAnnouncements();
-  //       },
-  //       send_leave_notification: (response) => {
-  //         console.log(response);
-  //         triggerToaster(response);
-  //         handleUpdateAnnouncements();
-  //       },
-  //       send_project_notification: (response) => {
-  //         triggerToaster(response);
-  //         handleUpdateAnnouncements();
-  //       },
-  //       send_task_notification: (response) => {
-  //         triggerToaster(response);
-  //         handleUpdateAnnouncements();
-  //       },
-  //       send_team_notification: (response) => {
-  //         triggerToaster(response);
-  //         handleUpdateAnnouncements();
-  //       },
-  //       send_wfh_notification: (response) => {
-  //         console.log(response);
-  //         triggerToaster(response);
-  //         handleUpdateAnnouncements();
-  //       },
-  //     };
-
-  //     // Attach all handlers
-  //     Object.entries(handlers).forEach(([event, handler]) => {
-  //       socket.on(event, handler);
-  //     });
-
-  //     return () => {
-  //       // Detach all handlers
-  //       Object.keys(handlers).forEach((event) => {
-  //         socket.off(event);
-  //       });
-  //     };
-  //   }
-  // }, [socket, isLogin, data?._id]);
-
+  
   async function saveFcmToken(empId, fcmToken) {
     try {
       const res = await axios.post(`${url}/api/employee/add-fcm-token`, { empId, fcmToken }, {
@@ -193,19 +150,6 @@ const App = () => {
     }
   }
 
-  // function triggerNotification() {
-  //   try {
-  //     const trigger = axios.post(`${url}/push-notification`, { userId: data._id, title: "Hey", body: "how are you" });
-  //     console.log("triggered");
-  //   } catch (error) {
-  //     console.log("error in trigger notification", error);
-  //   }
-  // }
-  // useEffect(() => {
-  //   if (data._id) {
-  //     triggerNotification();
-  //   }
-  // }, [data._id])
 
   useEffect(() => {
     const requestPermission = async () => {
@@ -240,7 +184,11 @@ const App = () => {
       console.log("Message received:", payload);
       const company = JSON.parse(payload.data.companyData)
       triggerToaster({ company, title: payload.notification.title, message: payload.notification.body })
+      if(payload.data.type === "late reason"){
+        changeViewReasonForTaketime();
+      }
       handleUpdateAnnouncements()
+
       // setNotification(payload.notification);
     });
 
@@ -251,8 +199,6 @@ const App = () => {
     localStorage.setItem("isStartLogin", isStartLogin);
     localStorage.setItem("isStartActivity", isStartActivity);
   }, []);
-
-
 
   useEffect(() => {
     function fetchEssentialData() {
@@ -280,7 +226,7 @@ const App = () => {
     }
   }, []);
 
-
+// detech browser is online or offline
   useEffect(() => {
     const handleOnline = () => {
       setIsOnline(true);
@@ -304,6 +250,7 @@ const App = () => {
       window.removeEventListener('offline', handleOffline);
     };
   }, []);
+
   // Check actual internet access
   const checkInternetAccess = async () => {
     try {
@@ -338,8 +285,9 @@ const App = () => {
         setIsStartLogin,
         isStartActivity,
         whoIs,
+        isViewTakeTime,
         setIsStartActivity,
-        // socket,
+        changeViewReasonForTaketime,
         handleUpdateAnnouncements,
         isChangeAnnouncements
       }}
@@ -363,3 +311,68 @@ const App = () => {
 };
 
 export default App;
+
+    // useEffect(() => {
+    //   if (!socket.connected && isLogin) {
+    //     socket.connect();
+    //   }
+  
+    //   if (isLogin && data?._id) {
+    //     socket.emit("join_room", data._id);
+  
+    //     const handlers = {
+    //       receive_announcement: (response) => {
+    //         console.log("responseData", response);
+    //         triggerToaster(response);
+    //         handleUpdateAnnouncements();
+    //       },
+    //       send_leave_notification: (response) => {
+    //         console.log(response);
+    //         triggerToaster(response);
+    //         handleUpdateAnnouncements();
+    //       },
+    //       send_project_notification: (response) => {
+    //         triggerToaster(response);
+    //         handleUpdateAnnouncements();
+    //       },
+    //       send_task_notification: (response) => {
+    //         triggerToaster(response);
+    //         handleUpdateAnnouncements();
+    //       },
+    //       send_team_notification: (response) => {
+    //         triggerToaster(response);
+    //         handleUpdateAnnouncements();
+    //       },
+    //       send_wfh_notification: (response) => {
+    //         console.log(response);
+    //         triggerToaster(response);
+    //         handleUpdateAnnouncements();
+    //       },
+    //     };
+  
+    //     // Attach all handlers
+    //     Object.entries(handlers).forEach(([event, handler]) => {
+    //       socket.on(event, handler);
+    //     });
+  
+    //     return () => {
+      //       // Detach all handlers
+    //       Object.keys(handlers).forEach((event) => {
+    //         socket.off(event);
+    //       });
+    //     };
+    //   }
+    // }, [socket, isLogin, data?._id]);
+    // function triggerNotification() {
+    //   try {
+    //     const trigger = axios.post(`${url}/push-notification`, { userId: data._id, title: "Hey", body: "how are you" });
+    //     console.log("triggered");
+    //   } catch (error) {
+    //     console.log("error in trigger notification", error);
+    //   }
+    // }
+    // useEffect(() => {
+    //   if (data._id) {
+    //     triggerNotification();
+    //   }
+    // }, [data._id])

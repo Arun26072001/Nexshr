@@ -57,7 +57,7 @@ const mailSettings = require("./routes/mail-settings");
 const { Employee } = require("./models/EmpModel");
 const wfhRouter = require("./routes/wfh-application");
 const { timeToMinutes, getCurrentTimeInMinutes, getTotalWorkingHourPerDay, formatDate } = require("./Reuseable_functions/reusableFunction");
-const { sendPushNotification } = require("./auth/PushNotification");
+const { sendPushNotification, verifyWorkingTimeCompleted, askReasonForDelay } = require("./auth/PushNotification");
 
 // MongoDB Connection
 const mongoURI = process.env.DATABASEURL;
@@ -156,6 +156,8 @@ app.use("/api/google-sheet/upload", fileData);
 app.use("/api/mail-settings", mailSettings);
 app.use("/api/wfh-application", wfhRouter);
 app.post("/push-notification", sendPushNotification);
+app.post("/verify_completed_workinghour", verifyWorkingTimeCompleted);
+app.post("/ask-reason-for-delay", askReasonForDelay);
 
 schedule.scheduleJob("0 0 11 8 * *", async function () {
   try {
@@ -258,58 +260,7 @@ process.on("uncaughtException", (err) => {
 //   });
 
 //   // Sending a delayed notification
-//   socket.on("send_notification", (data) => {
-
-//     // Ensure `time` is valid
-//     const delay = Number(data.time) * 60000;
-//     if (isNaN(delay) || delay <= 0) {
-//       console.error("Invalid delay time:", data.time);
-//       return;
-//     }
-
-//     setTimeout(async () => {
-//       const timer = await axios.get(`${process.env.REACT_APP_API_URL}/api/clock-ins/item/${data.timerId}`, {
-//         headers: { Authorization: data.token }
-//       })
-
-//       let startingTimes = timer.data.timeData[data.timeOption]?.startingTime;
-//       let endingTimes = timer.data.timeData[data.timeOption]?.endingTime;
-
-//       const values = startingTimes?.map((startTime, index) => {
-//         if (!startTime) return 0; // No start time means no value
-
-//         let endTimeInMin = 0;
-//         if (endingTimes[index]) {
-//           // Calculate time difference with an ending time
-//           endTimeInMin = timeToMinutes(endingTimes[index]);
-//         } else {
-//           // Calculate time difference with the current time
-//           endTimeInMin = getCurrentTimeInMinutes();
-//         }
-//         const startTimeInMin = timeToMinutes(startTime);
-//         return Math.abs(endTimeInMin - startTimeInMin);
-//       });
-
-//       if (timer.data.timeData[data.timeOption].startingTime.length !== timer.data.timeData[data.timeOption].endingTime.length && values.at(-1) > data.time) {
-//         try {
-//           const res = await axios.post(
-//             `${process.env.REACT_APP_API_URL}/api/clock-ins/remainder/${data.employee}/${data.timeOption}`
-//           );
-//           const employeeSocketID = onlineUsers[data.employee]; // ✅ Get correct socket ID
-//           if (employeeSocketID) {
-//             io.to(employeeSocketID).emit("Ask_reason_for_late", {
-//               message: "Why were you late?"
-//             });
-//             // console.log(`Sent Ask_reason_for_late to Employee ${data.employee}`);
-//           } else {
-//             console.log(`User ${data.employee} is offline, skipping emit.`);
-//           }
-//         } catch (error) {
-//           console.error("Error sending remainder request:", error.message);
-//         }
-//       }
-//     }, delay);
-//   });
+  // socket.on("send_notification",);
 
 //   // Sending a delayed remainder
 //   socket.on("remainder_notification", (data) => {
@@ -334,59 +285,8 @@ process.on("uncaughtException", (err) => {
 //     }, delay);
 //   });
 
-//   //verify is completed today workinghour
-//   socket.on("verify_completed_workinghour", async (data) => {
-//     const empData = await Employee.findById(data.employee, "workingTimePattern")
-//       .populate("workingTimePattern").exec();
-
-//     let startingTimes = data.login?.startingTime;
-//     let endingTimes = data.login?.endingTime;
-
-//     const values = startingTimes?.map((startTime, index) => {
-//       if (!startTime) return 0; // No start time means no value
-
-//       let endTimeInMin = 0;
-//       if (endingTimes[index]) {
-//         // Calculate time difference with an ending time
-//         endTimeInMin = timeToMinutes(endingTimes[index]);
-//       } else {
-//         // Calculate time difference with the current time
-//         endTimeInMin = getCurrentTimeInMinutes();
-//       }
-//       const startTimeInMin = timeToMinutes(startTime);
-//       return Math.abs(endTimeInMin - startTimeInMin);
-//     });
-
-//     const totalValue = values?.reduce((acc, value) => acc + value, 0) / 60;
-//     const scheduleWorkingHours = getTotalWorkingHourPerDay(
-//       empData.workingTimePattern.StartingTime,
-//       empData.workingTimePattern.FinishingTime
-//     )
-//     let isCompleteworkingHours = true;
-
-//     if (scheduleWorkingHours > totalValue && !data.login.reasonForEarlyLogout) {
-//       isCompleteworkingHours = false;
-//       const employeeSocketID = onlineUsers[empData._id]; // ✅ Get correct socket ID
-//       if (employeeSocketID) {
-//         io.to(employeeSocketID).emit("early_logout", {
-//           message: "Why are you logout early?",
-//           isCompleteworkingHours
-//         });
-//         console.log(`Sent early_logout to Employee ${empData._id}`);
-//       } else {
-//         console.log(`User ${data.employee} is offline, skipping emit.`);
-//       }
-//     } else {
-//       const employeeSocketID = onlineUsers[empData._id]; // ✅ Get correct socket ID
-//       if (employeeSocketID) {
-//         io.to(employeeSocketID).emit("early_logout", {
-//           message: "Why are you logout early?",
-//           isCompleteworkingHours
-//         });
-//         console.log(`Sent early_logout to Employee ${empData._id}`);
-//       }
-//     }
-//   })
+  //verify is completed today workinghour
+  // socket.on("verify_completed_workinghour", )
 
 //   // update task in Comments(CURD operation with socket)
 //   socket.on("updatedTask_In_AddComment", async (data, empId, token) => {

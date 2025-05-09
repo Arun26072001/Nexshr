@@ -20,7 +20,6 @@ export default function WFHRequests() {
 
     async function fetchTeamWfhRequests() {
         setIsLoading(true)
-        console.log("dsfkldkfksdkl");
         
         try {
             const res = await axios.get(`${url}/api/wfh-application/team/${data._id}`, {
