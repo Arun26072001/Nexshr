@@ -5,7 +5,7 @@ import { useFormik } from "formik";
 import * as Yup from "yup";
 import axios from "axios";
 import { toast } from "react-toastify";
-import { fetchAllEmployees, fetchLeaveRequests, getHoliday, triggerNotification } from "../ReuseableAPI";
+import { fetchAllEmployees, fetchLeaveRequests, getHoliday } from "../ReuseableAPI";
 import "react-datepicker/dist/react-datepicker.css";
 import DatePicker from "react-datepicker";
 import TextEditor from "./TextEditor";
@@ -136,6 +136,7 @@ const LeaveRequestForm = ({ type }) => {
     },
   });
 
+  // console.log(formik.values);
 
   async function applyLeave(formData, resetForm) {
     try {

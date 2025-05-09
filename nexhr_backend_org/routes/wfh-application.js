@@ -8,9 +8,11 @@ const { formatDate } = require("../Reuseable_functions/reusableFunction");
 const { sendPushNotification } = require("../auth/PushNotification");
 const router = express.Router();
 
-function generateWfhEmail(empData, fromDateValue, toDateValue, reason) {
+function generateWfhEmail(empData, fromDateValue, toDateValue, reason, type) {
     const fromDate = new Date(fromDateValue);
     const toDate = new Date(toDateValue);
+    const isRejected = type === "rejected";
+
 
     const formattedFromDate = `${fromDate.toLocaleString("default", { month: "long" })} ${fromDate.getDate()}, ${fromDate.getFullYear()}`;
     const formattedToDate = `${toDate.toLocaleString("default", { month: "long" })} ${toDate.getDate()}, ${toDate.getFullYear()}`;
@@ -42,7 +44,27 @@ function generateWfhEmail(empData, fromDateValue, toDateValue, reason) {
               <!-- Content -->
               <div style="margin: 20px 0; padding: 10px;">
                 <p style="font-size: 14px; margin: 10px 0;"><strong>Reason for WFH:</strong> ${reason}</p>
-                <p style="font-size: 14px; margin: 10px 0;">Thank you for your attention!</p>
+                <p style="font-size: 14px; margin: 10px 0;">
+                 Your request for Work From Home on ${new Date(fromDateValue).toLocaleString("default", { month: "long" })} ${new Date(fromDateValue).getDate()}, ${new Date(fromDateValue).getFullYear()}  has been 
+                    ${isRejected
+            ? "not approved due to Team Workload."
+            : "approved."
+        }
+                </p>
+                <p>
+
+                    ${isRejected
+            ? "Please connect with your reporting manager or HR if you need further clarification."
+            : "Please ensure proper handover of tasks (if applicable) and adhere to any required guidelines during your time off or remote work."
+        }
+                </p>
+                <p>
+                    Regards,<br />
+                    Kavya<br />
+                    HR Department
+                </p>
+
+         
               </div>
         
               <!-- Footer -->
@@ -122,11 +144,13 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
                 ...([].concat(emp?.team?.admin || []).map(emp => emp?.Email)),
             ].filter(Boolean); // removes null/undefined/false              
 
+            // check approve or rejected
+            const emailType = allApproved ? "approved" : anyRejected ? "rejected" : "pending";
             sendMail({
                 From: process.env.FROM_MAIL,
                 To: mailList.join(","),
                 Subject: "Work From Home Request Notification",
-                HtmlBody: generateWfhEmail(emp, req.body.fromDate, req.body.toDate, req.body.reason),
+                HtmlBody: mailContent(emailType, fromDateValue, toDateValue, emp, leaveType, actionBy, member)
             });
             // send notification for client 
             const message = `${emp.FirstName} ${emp.LastName} has applied for leave from ${formatDate(req.body.fromDate)} to ${formatDate(req.body.toDate)}.`;
@@ -336,6 +360,11 @@ router.put("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
                     {
                         path: "team",
                         populate: [
+                            { path: "lead", select: "FirstName LastName Email" },
+                            { path: "head", select: "FirstName LastName Email" },
+                            { path: "manager", select: "FirstName LastName Email" },
+                            { path: "admin", select: "FirstName LastName Email" },
+                            { path: "hr", select: "FirstName LastName Email" },
                             { path: "lead", select: "FirstName LastName Email fcmToken" },
                             { path: "head", select: "FirstName LastName Email fcmToken" },
                             { path: "manager", select: "FirstName LastName Email fcmToken" },
@@ -381,6 +410,12 @@ router.put("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
             const mailList = members.map(m => m.Email).filter(Boolean);
 
             if (mailList.length > 0) {
+                await sendMail({
+                    From: process.env.FROM_MAIL,
+                    To: mailList.join(","),
+                    Subject: "Work From Home Response Notification",
+                    HtmlBody: generateWfhEmail(emp, fromDate, toDate, restBody.reason),
+                });
                 const Subject = "Work From Home Response Notification"
                 await sendMail({
                     From: process.env.FROM_MAIL,
