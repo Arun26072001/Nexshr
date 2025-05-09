@@ -30,7 +30,6 @@ export default function WFHRequests() {
                     Authorization: data.token || ""
                 }
             })
-            console.log("wfh requests", res.data);
 
             setRequests(res.data);
         } catch (error) {
@@ -62,7 +61,9 @@ export default function WFHRequests() {
     async function replyToRequest(request, response) {
         try {
             let updatedWFHRequest;
+            let actionBy;
             if (isTeamHead) {
+                actionBy = "Head"
                 updatedWFHRequest = {
                     ...request,
                     approvers: {
@@ -71,6 +72,7 @@ export default function WFHRequests() {
                     }
                 }
             } else if (isTeamLead) {
+                actionBy = "Lead"
                 updatedWFHRequest = {
                     ...request,
                     approvers: {
@@ -79,6 +81,7 @@ export default function WFHRequests() {
                     }
                 }
             } else if (isTeamManager) {
+                actionBy = "Manager"
                 updatedWFHRequest = {
                     ...request,
                     approvers: {
@@ -88,6 +91,7 @@ export default function WFHRequests() {
                 }
             }
             else if (whoIs === "hr") {
+                actionBy = "Hr"
                 updatedWFHRequest = {
                     ...request,
                     approvers: {
@@ -101,6 +105,7 @@ export default function WFHRequests() {
             }
 
             const res = await axios.put(`${url}/api/wfh-application/${request._id}`, updatedWFHRequest, {
+                params: { actionBy },
                 headers: {
                     Authorization: data.token || ""
                 }

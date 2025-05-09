@@ -1,37 +1,69 @@
 const express = require('express');
 const { Announcement, announcementValidation } = require('../models/AnnouncementModel');
 const { verifyAdminHREmployeeManagerNetwork } = require('../auth/authMiddleware');
+const { Employee } = require('../models/EmpModel');
+const { sendPushNotification } = require('../auth/PushNotification');
 const router = express.Router();
 
 router.post('/:id', async (req, res) => {
   try {
+    // Validate Request Body
     const { error } = announcementValidation.validate(req.body);
     if (error) {
       return res.status(400).send({ error: error.details[0].message });
     }
 
-    const whoViewed = req.body.selectTeamMembers.reduce((acc, emp) => {
-      acc[emp] = "not viewed";
-      return acc;
-    }, {});
+    // Fetch Tagged Employees (await added)
+    const employees = await Employee.find(
+      { _id: { $in: req.body.selectTeamMembers } },
+      "FirstName LastName Email fcmToken company notifications"
+    ).populate("company", "logo CompanyName");
 
+    // Create New Announcement
     const newAnnouncement = {
       ...req.body,
-      whoViewed,
       createdBy: req.params.id
     };
 
     const announcement = await Announcement.create(newAnnouncement);
 
+    // Send Notifications (in parallel)
+    if (employees?.length > 0) {
+      await Promise.all(
+        employees.map(async (emp) => {
+          // Add Notification
+          emp.notifications.push({
+            company: emp.company._id,
+            title: req.body.title,
+            message: req.body.message
+          });
+
+          await emp.save();
+
+          // Send Push Notification
+          if (emp.fcmToken) {
+            await sendPushNotification({
+              token: emp.fcmToken,
+              company: emp.company,
+              title: req.body.title,
+              body: req.body.message
+            });
+          }
+        })
+      );
+    }
+
     res.status(201).json({
       message: 'Announcement created successfully!',
       data: announcement
     });
+
   } catch (error) {
     console.error("Error creating announcement:", error);
     res.status(500).json({ error: error.message });
   }
 });
+
 
 router.get('/', verifyAdminHREmployeeManagerNetwork, async (req, res) => {
   try {

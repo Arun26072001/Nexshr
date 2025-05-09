@@ -954,100 +954,114 @@ leaveApp.put('/:id', verifyAdminHREmployeeManagerNetwork, async (req, res) => {
     const anyRejected = Object.values(approvers).some(status => status === "rejected");
     const allPending = Object.values(approvers).every(status => status === "pending");
 
+    const emp = await Employee.findById(employee)
+      .populate([
+        {
+          path: "team",
+          populate: [
+            { path: "lead", select: "FirstName LastName Email fcmToken notifications" },
+            { path: "head", select: "FirstName LastName Email fcmToken notifications" },
+            { path: "manager", select: "FirstName LastName Email fcmToken notifications" },
+            { path: "admin", select: "FirstName LastName Email fcmToken notifications" },
+            { path: "hr", select: "FirstName LastName Email fcmToken notifications" }
+          ]
+        },
+        { path: "company", select: "CompanyName logo" }
+      ])
+      .lean();
+
+    if (!emp) return res.status(404).send({ error: 'Employee not found.' });
+    if (!emp.team) return res.status(404).send({ error: `${emp.FirstName} is not assigned to a team.` });
+
+    const actionBy = req.query.actionBy;
+    const emailType = allApproved ? "approved" : anyRejected ? "rejected" : "pending";
     let mailList = [];
-    // let fcmList = [];
 
-    if (!allPending) {
-      const emp = await Employee.findById(employee, "team FirstName LastName Email company")
-        .populate([
-          {
-            path: "team",
-            populate: [
-              { path: "lead", select: "FirstName LastName Email fcmToken" },
-              { path: "head", select: "FirstName LastName Email fcmToken" },
-              { path: "manager", select: "FirstName LastName Email fcmToken" },
-              { path: "admin", select: "FirstName LastName Email fcmToken" },
-              { path: "hr", select: "FirstName LastName Email fcmToken" }
-            ]
-          },
-          { path: "company", select: "CompanyName logo" },
-        ])
-        .lean();
+    // Deduct leave if approved
+    if (!allPending && allApproved) {
+      const leaveDaysTaken = Math.max(getDayDifference({ fromDate, toDate }), 1);
+      const leaveBalance = emp.typesOfLeaveRemainingDays?.[leaveType] ?? 0;
 
-      if (!emp) return res.status(404).send({ error: 'Employee not found.' });
-      if (!emp.team) return res.status(404).send({ error: `${emp.FirstName} is not assigned to a team.` });
-
-      // Deduct leave if approved
-      if (allApproved) {
-        const leaveDaysTaken = Math.max(getDayDifference({ fromDate, toDate }), 1);
-        const leaveBalance = emp.typesOfLeaveRemainingDays?.[leaveType] ?? 0;
-
-        if (leaveBalance < leaveDaysTaken) {
-          return res.status(400).send({ error: 'Insufficient leave balance for the requested leave type.' });
-        }
-
-        await Employee.findByIdAndUpdate(emp._id, {
-          $inc: { [`typesOfLeaveRemainingDays.${leaveType}`]: -leaveDaysTaken }
-        });
+      if (leaveBalance < leaveDaysTaken) {
+        return res.status(400).send({ error: 'Insufficient leave balance for the requested leave type.' });
       }
 
-      // Who took action? from client
-      const actionBy = req?.query?.actionBy;
-
-      const emailType = allApproved ? "approved" : anyRejected ? "rejected" : "pending";
-      // Safely extract team members
-      ["lead", "head", "manager", "hr", "admin"].forEach(role => {
-        const teamMember = emp.team?.[role];
-        if (Array.isArray(teamMember)) {
-          teamMember.forEach(m => m?.Email && mailList.push(m.Email));
-          // teamMember.forEach(m => m?.fcmToken && fcmList.push(m.fcmToken));
-        } else if (teamMember?.Email) {
-          mailList.push(teamMember.Email);
-          // fcmList.push(teamMember.fcmToken);
-        }
+      await Employee.findByIdAndUpdate(emp._id, {
+        $inc: { [`typesOfLeaveRemainingDays.${leaveType}`]: -leaveDaysTaken }
       });
-      
-      if (mailList.length) {
-        const Subject = "Leave Application response Notification";
-        for (const member of mailList) {
-          sendMail({
+    }
+
+    // Notify members if status changed
+    if (!allPending) {
+      const Subject = "Leave Application Response Notification";
+      const message = anyRejected
+        ? `${emp.FirstName}'s leave application has been rejected by ${actionBy}`
+        : `${emp.FirstName}'s leave application has been approved by ${actionBy}`;
+
+      const getMembers = (data, type) =>
+        Array.isArray(data)
+          ? data.map(item => ({
+              type,
+              Email: item?.Email,
+              name: `${item?.FirstName ?? ""} ${item?.LastName ?? ""}`.trim(),
+              fcmToken: item?.fcmToken,
+              _id: item?._id
+            }))
+          : data?.Email
+          ? [{
+              type,
+              Email: data.Email,
+              name: `${data.FirstName ?? ""} ${data.LastName ?? ""}`.trim(),
+              fcmToken: data?.fcmToken,
+              _id: data?._id
+            }]
+          : [];
+
+      const members = [
+        emp.Email && { type: "emp", Email: emp.Email, name: `${emp.FirstName} ${emp.LastName}` },
+        ...getMembers(emp.team?.lead, "lead"),
+        ...getMembers(emp.team?.head, "head"),
+        ...getMembers(emp.team?.manager, "manager"),
+        ...getMembers(emp.team?.hr, "hr"),
+        ...getMembers(emp.team?.admin, "admin")
+      ].filter(Boolean);
+
+      const uniqueEmails = new Set();
+      const notifiedMembers = [];
+
+      for (const member of members) {
+        if (!uniqueEmails.has(member.Email)) {
+          uniqueEmails.add(member.Email);
+          mailList.push(member.Email);
+          notifiedMembers.push(member);
+
+          // Send Email
+          await sendMail({
             From: process.env.FROM_MAIL,
             To: member.Email,
             Subject,
             HtmlBody: mailContent(emailType, fromDateValue, toDateValue, emp, leaveType, actionBy, member),
           });
-        }
-        const message = anyRejected
-          ? `${emp.FirstName}'s WFH request has been rejected by ${actionBy}`
-          : `${emp.FirstName}'s WFH request has been approved by ${actionBy}`;
-        const teamData = emp.team || {};
 
-        // send notification on firebase and add notification invoved people
-        for (const [key, members] of Object.entries(teamData)) {
-          if (Array.isArray(members) && key !== "employees") {
-            for (const member of members) {
-              if (member) {
-                const notification = {
-                  company: emp.company._id,
-                  title: Subject,
-                  message,
-                };
-                const fullEmp = await Employee.findById(member._id, "notifications");
-                fullEmp.notifications.push(notification);
-                await fullEmp.save();
-                await sendPushNotification({
-                  token: member.fcmToken,
-                  title: Subject,
-                  body: message,
-                });
-              }
-            }
+          // Send Push + Add to Notifications
+          const fullEmp = await Employee.findById(member._id);
+          if (fullEmp) {
+            fullEmp.notifications.push({ company: emp.company._id, title: Subject, message });
+            await fullEmp.save();
+            console.log(member);
+            
+            await sendPushNotification({
+              token: member.fcmToken,
+              company: emp.company,
+              title: Subject,
+              body: message
+            });
           }
         }
       }
     }
 
-    // Update leave application
+    // Update Leave Application
     const updatedLeaveApp = {
       ...req.body,
       approvers,
@@ -1058,7 +1072,7 @@ leaveApp.put('/:id', verifyAdminHREmployeeManagerNetwork, async (req, res) => {
       { _id: req.params.id, fromDate: { $gt: startOfDay } },
       updatedLeaveApp,
       { new: true }
-    )
+    );
 
     return res.send({
       message: 'You have responded to the leave application.',
@@ -1071,6 +1085,7 @@ leaveApp.put('/:id', verifyAdminHREmployeeManagerNetwork, async (req, res) => {
     return res.status(500).send({ error: 'An error occurred while processing the request.' });
   }
 });
+
 
 leaveApp.delete("/:id/:leaveId", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
   try {

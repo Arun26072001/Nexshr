@@ -5,6 +5,7 @@ const { Project } = require("../models/ProjectModel");
 const { Employee } = require("../models/EmpModel");
 const sendMail = require("./mailSender");
 const { convertToString, getCurrentTimeInMinutes, timeToMinutes, formatTimeFromMinutes, projectMailContent } = require("../Reuseable_functions/reusableFunction");
+const { sendPushNotification } = require("../auth/PushNotification");
 const router = express.Router();
 
 router.get("/project/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
@@ -138,20 +139,23 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
 
         // Validate Task Uniqueness
         if (await Task.exists({ title: req.body.title })) {
-            return res.status(400).send({ error: "Task already exists" });
+            return res.status(400).send({ error: "Task with this title already exists." });
         }
 
-        // Fetch Employee Data
-        const empData = await Employee.findById(req.params.id).populate("company");
-        if (!empData) {
+        // Fetch Creator (Employee)
+        const creator = await Employee.findById(req.params.id).populate("company", "logo CompanyName");
+        if (!creator) {
             return res.status(404).send({ error: "Employee not found." });
         }
+
+        // Ensure no duplicates in assignedTo
+        const assignedTo = Array.from(new Set([...req.body.assignedTo, req.params.id]));
 
         // Prepare Task Object
         const newTask = {
             ...req.body,
             createdby: req.params.id,
-            assignedTo: [...req.body.assignedTo, req.params.id],
+            assignedTo,
             status: req.body.status || "On Hold",
             tracker: [],
             spend: req.body.spend || {}
@@ -164,14 +168,14 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
         }
 
         // Fetch Assigned Employees
-        const assignedEmps = await Employee.find({ _id: { $in: req.body.assignedTo } }, "FirstName LastName Email fcmToken")
+        const assignedEmps = await Employee.find({ _id: { $in: assignedTo } }, "FirstName LastName Email fcmToken notifications company")
             .populate("company", "CompanyName logo");
 
-        // Create Task Tracking Logs
+        // Create Task Trackers
         const trackers = [
             {
                 date: new Date(),
-                message: `New Task (${req.body.title}) created by ${empData.FirstName} ${empData.LastName}`,
+                message: `New Task (${req.body.title}) created by ${creator.FirstName} ${creator.LastName}`,
                 who: req.params.id
             }
         ];
@@ -179,7 +183,7 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
         if (assignedEmps.length > 0) {
             trackers.push({
                 date: new Date(),
-                message: `${assignedEmps.map(emp => emp.FirstName + " " + emp.LastName).join(", ")} Assigned in this task by ${empData.FirstName} ${empData.LastName}`,
+                message: `${assignedEmps.map(emp => `${emp.FirstName} ${emp.LastName}`).join(", ")} assigned to this task by ${creator.FirstName} ${creator.LastName}`,
                 who: req.params.id
             });
         }
@@ -189,44 +193,52 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
         // Create Task
         const task = await Task.create(newTask);
 
-        // Update Project with New Task
+        // Update Project
         project.tasks.push(task._id);
         await project.save();
 
-        // Send Emails to Assigned Employees
-        assignedEmps.forEach(async emp => {
-            const message = "Please review the task and complete it as per the given instructions."
-            const createdPersonName = `${empData.FirstName.charAt(0).toUpperCase()}${empData.FirstName.slice(1)} ${empData.LastName}`;
-            // send notifications for assigned peoples
+        // Prepare notifications and emails
+        const messageBody = "Please review the task and complete it as per the given instructions.";
+        const createdPersonName = `${creator.FirstName} ${creator.LastName}`;
+
+        await Promise.all(assignedEmps.map(async (emp) => {
+            // Add Notification
             const notification = {
                 company: emp.company._id,
-                title: "You has Assigned a Task to You",
-                message,
+                title: "You have been assigned a task",
+                message: messageBody
             };
-            const fullEmp = await Employee.findById(emp._id, "notifications");
-            fullEmp.notifications.push(notification);
-            await fullEmp.save();
-            await sendPushNotification({
-                token: emp.fcmToken,
-                title: notification.title,
-                body: message,
-            });
 
-            // send mail for assign peoples
-            sendMail({
+            emp.notifications.push(notification);
+            await emp.save();
+
+            // Push Notification
+            if (emp.fcmToken) {
+                await sendPushNotification({
+                    token: emp.fcmToken,
+                    title: notification.title,
+                    body: messageBody,
+                    company: creator.company
+                });
+            }
+
+            // Send Email
+            await sendMail({
                 From: process.env.FROM_MAIL,
                 To: emp.Email,
-                Subject: `${createdPersonName} has Assigned a Task to You`,
-                HtmlBody: projectMailContent(emp, empData, empData.company, req.body, "task")
+                Subject: `${createdPersonName} has assigned a task to you`,
+                HtmlBody: projectMailContent(emp, creator, creator.company, req.body, "task")
             });
-        });
+        }));
 
-        return res.send({ message: "Task is created successfully.", task });
+        return res.status(201).send({ message: "Task created successfully.", task });
 
     } catch (error) {
-        res.status(500).send({ error: error.message });
+        console.error(error);
+        return res.status(500).send({ error: error.message || "Internal server error" });
     }
 });
+
 
 router.put("/:empId/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
     try {
@@ -237,20 +249,16 @@ router.put("/:empId/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) 
         // Identify Newly Assigned Employees
         const newAssignees = req.body?.assignedTo?.filter(emp => !taskData?.assignedTo?.includes(emp)) || [];
 
-        // Fetch Assigned Person & Employee Data
+        // Fetch Required Employees in Parallel
         const [assignedPerson, empData, emps] = await Promise.all([
-            await Employee.findById(req.body.createdby)
-                .populate({ path: "company", select: "CompanyName logo" }),
-            await Employee.findById(req.params.empId),
-            await Employee.find({ _id: { $in: newAssignees } }, "FirstName LastName Email")
-        ])
-        // const assignedPerson = await Employee.findById(req.body.createdby)
-        //     .populate({ path: "company", select: "CompanyName" });
-        // const empData = await Employee.findById(req.params.empId);
-        // const emps = await Employee.find({ _id: { $in: newAssignees } }, "FirstName LastName Email");
+            Employee.findById(req.body.createdby).populate("company", "CompanyName logo"),
+            Employee.findById(req.params.empId),
+            Employee.find({ _id: { $in: newAssignees } }, "FirstName LastName Email fcmToken company notifications")
+                .populate("company", "CompanyName logo")
+        ]);
+
         if (!assignedPerson) return res.status(404).send({ error: "Assigned person not found" });
         if (!empData) return res.status(404).send({ error: "Employee not found" });
-
 
         // Generate Task Change Logs
         const taskChanges = Object.entries(taskData.toObject()).flatMap(([key, value]) => {
@@ -258,7 +266,7 @@ router.put("/:empId/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) 
             const oldValue = convertToString(value);
             if (
                 newValue !== undefined &&
-                !["createdAt", "createdby", "tracker", "updatedAt", "_id", "tracker", "__v", "spend", "from", "to"]?.includes(key) &&
+                !["createdAt", "createdby", "tracker", "updatedAt", "_id", "__v", "spend", "from", "to"].includes(key) &&
                 (Array.isArray(oldValue) ? oldValue.length !== newValue.length : oldValue !== newValue)
             ) {
                 return {
@@ -270,8 +278,8 @@ router.put("/:empId/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) 
             return [];
         });
 
+        // Prepare optional comment update
         let updatedComment = null;
-        // for add from task with only one comment
         if (req.query.changeComments && req.body.comments && req.body.comments.length > 0) {
             updatedComment = {
                 ...req.body.comments[0],
@@ -280,15 +288,13 @@ router.put("/:empId/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) 
             };
         }
 
-        // Ensure `createdby` is stored correctly as an ObjectId or string
+        // Ensure proper formatting of creator ID and comments
         const createdById = typeof req.body.createdby === "object" ? req.body.createdby._id : req.body.createdby;
-
-        // Ensure `comments` is an array and properly updated
         const updatedComments = req.body.comments?.length === 1 && updatedComment
             ? [...taskData.comments, updatedComment]
             : req.body.comments || taskData.comments;
 
-        // Prepare Updated Task Data
+        // Prepare updated task
         const updatedTask = {
             ...req.body,
             tracker: [...taskData.tracker, ...taskChanges],
@@ -296,96 +302,79 @@ router.put("/:empId/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) 
             comments: updatedComments
         };
 
-        // Update Task in Database
+        // Update Task in DB
         const task = await Task.findByIdAndUpdate(req.params.id, updatedTask, { new: true });
-
-        // Ensure Task Exists After Update
         if (!task) return res.status(404).send({ error: "Failed to update task" });
 
-        // Prepare Assigned Person's Name
-        const assignedPersonName = `${assignedPerson.FirstName.charAt(0).toUpperCase()}${assignedPerson.FirstName.slice(1)} ${assignedPerson.LastName}`;
+        const assignedPersonName = `${assignedPerson.FirstName} ${assignedPerson.LastName}`;
 
-        // Send Emails for Task Completion
+        // Send completion emails & notifications if task marked as "Completed"
         if (req.body.status === "Completed") {
-            emps.forEach(async emp => {
-                const empName = `${emp.FirstName.charAt(0).toUpperCase()}${emp.FirstName.slice(1)} ${emp.LastName}`;
+            const message = `The task titled "${req.body.title}" has been marked as completed.`;
 
-                // send notifications for assigned peoples
-                const notification = {
-                    company: emp.company._id,
-                    title: `Your assigned task (${req.body.title}) is completed`,
-                    message,
-                };
-                const fullEmp = await Employee.findById(member._id, "notifications");
-                fullEmp.notifications.push(notification);
-                await fullEmp.save();
-                await sendPushNotification({
-                    token: emp.fcmToken,
-                    title: notification.title,
-                    body: message,
-                });
+            await Promise.all(
+                emps.map(async emp => {
+                    const empName = `${emp.FirstName} ${emp.LastName}`;
+                    const notification = {
+                        company: emp.company._id,
+                        title: `Your assigned task (${req.body.title}) is completed`,
+                        message
+                    };
 
-                sendMail({
-                    From: emp.Email,
-                    To: assignedPerson.Email,
-                    Subject: `Your assigned task (${req.body.title}) is completed`,
-                    HtmlBody: `
-                    <!DOCTYPE html>
-                    <html lang="en">
-                    <head>
-                      <meta charset="UTF-8" />
-                      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-                      <title>${assignedPerson.company.CompanyName}</title>
-                    </head>
-                    <body style="font-family: Arial, sans-serif; background-color: #f6f9fc; color: #333; margin: 0; padding: 0;">
-                      <div style="text-align: center; padding-top: 30px;">
-                        <img src="${assignedPerson.company.logo}" alt="Company Logo" style="width: 100px; height: 100px; object-fit: cover; margin-bottom: 10px;" />
-                      </div>
-                  
-                      <div style="display: flex; max-width: 600px; margin: 0 auto; padding: 20px;">
-                        <div style="background-color: #ffffff; border-radius: 12px; padding: 30px; width: 100%; box-shadow: 0 2px 8px rgba(0,0,0,0.05); text-align: left;">
-                          <h2 style="font-size: 22px; font-weight: 600; margin-bottom: 10px;">Task Completed Successfully</h2>
-                          <div style="border-bottom: 3px solid #28a745; width: 30px; margin-bottom: 20px;"></div>
-                  
-                          <p style="font-size: 15px; margin-bottom: 15px;">Hey ${assignedPersonName} 👋,</p>
-                          <p style="font-size: 15px; margin-bottom: 10px;">
-                            <strong>${empName}</strong> has successfully completed the task titled "<strong>${req.body.title}</strong>".
-                          </p>
-                          <p style="font-size: 15px; margin-bottom: 10px;">
-                            Please review the completed task and take any necessary actions.
-                          </p>
-                  
-                          <p style="margin-top: 20px;">Thank you!</p>
-                        </div>
-                      </div>
-                  
-                      <div style="text-align: center; font-size: 13px; color: #777; margin-top: 20px; padding-bottom: 20px;">
-                        <p>
-                          Have questions? <a href="mailto:${emp.Email}" style="color: #007BFF; text-decoration: none;">Contact ${empName}</a>.
-                        </p>
-                      </div>
-                    </body>
-                    </html>
-                `
-                });
-            });
+                    emp.notifications.push(notification);
+                    await emp.save();
+
+                    if (emp.fcmToken) {
+                        await sendPushNotification({
+                            token: emp.fcmToken,
+                            title: notification.title,
+                            body: message,
+                            company: emp.company
+                        });
+                    }
+
+                    await sendMail({
+                        From: process.env.FROM_MAIL,
+                        To: assignedPerson.Email,
+                        Subject: `Your assigned task (${req.body.title}) is completed`,
+                        HtmlBody: `
+                <!DOCTYPE html>
+                <html>
+                <head><meta charset="UTF-8" /></head>
+                <body style="font-family: Arial, sans-serif; background-color: #f6f9fc; color: #333;">
+                  <div style="text-align: center; padding-top: 30px;">
+                    <img src="${assignedPerson.company.logo}" style="width: 100px; height: 100px;" />
+                  </div>
+                  <div style="max-width: 600px; margin: 20px auto; background: #fff; padding: 30px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
+                    <h2 style="color: #28a745;">Task Completed</h2>
+                    <p>Hi ${assignedPersonName},</p>
+                    <p><strong>${empName}</strong> has successfully completed the task "<strong>${req.body.title}</strong>".</p>
+                    <p>Please review it at your earliest convenience.</p>
+                    <p style="margin-top: 20px;">Thank you!</p>
+                  </div>
+                </body>
+                </html>
+              `
+                    });
+                })
+            );
         }
 
-        // Send Emails for Newly Assigned Employees
-        emps.forEach(emp => {
-            // const empName = `${emp.FirstName.charAt(0).toUpperCase()}${emp.FirstName.slice(1)} ${emp.LastName}`;
-            sendMail({
+        // Send email notifications to newly assigned employees
+        await Promise.all(emps.map(emp => {
+            const empName = `${emp.FirstName} ${emp.LastName}`;
+            return sendMail({
                 From: assignedPerson.Email,
                 To: emp.Email,
                 Subject: `${assignedPersonName} has assigned a task to you`,
-                HtmlBody: projectMailContent(emp, assignedPerson, assignedPerson.comapany, req.body, "task")
+                HtmlBody: projectMailContent(emp, assignedPerson, assignedPerson.company, req.body, "task")
             });
-        });
+        }));
 
         return res.status(200).send({ message: "Task updated successfully", task });
 
     } catch (error) {
-        console.error(error.message);
+        console.error("Task Update Error:", error);
         return res.status(500).send({ error: error.message });
     }
 });

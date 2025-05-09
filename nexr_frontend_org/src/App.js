@@ -16,6 +16,7 @@ import "react-datepicker/dist/react-datepicker.css";
 import AdminDashboard from "./components/superAdmin/AdminDashboard.js";
 import { getToken, onMessage } from "firebase/messaging";
 import { messaging } from "./firebase/firebase.js";
+import { triggerToaster } from "./components/ReuseableAPI.jsx";
 
 export const EssentialValues = createContext(null);
 
@@ -42,8 +43,8 @@ const App = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [isChangeAnnouncements, setIschangeAnnouncements] = useState(false);
-  const [notification, setNotification] = useState("");
-  const [fcmToken, setFcmToken] = useState("");
+  // const [notification, setNotification] = useState("");
+  // const [fcmToken, setFcmToken] = useState("");
 
   function handleUpdateAnnouncements() {
     setIschangeAnnouncements(!isChangeAnnouncements)
@@ -200,7 +201,11 @@ const App = () => {
   //     console.log("error in trigger notification", error);
   //   }
   // }
-  // triggerNotification();
+  // useEffect(() => {
+  //   if (data._id) {
+  //     triggerNotification();
+  //   }
+  // }, [data._id])
 
   useEffect(() => {
     const requestPermission = async () => {
@@ -213,7 +218,7 @@ const App = () => {
             vapidKey: "BLmSTq4TWV1Z7V2NgYclknMXlVrC35Ol4CwTBoykLkGH8ikvKOO4caS9XuWjqgI3rEm04mRrX2HfybEal6qUrVg",
           });
           if (currentToken) {
-            setFcmToken(currentToken);
+            // setFcmToken(currentToken);
             if (data?._id) {
               saveFcmToken(data._id, currentToken);
             }
@@ -233,8 +238,10 @@ const App = () => {
     // Listen for incoming messages when the app is in the foreground
     const unsubscribe = onMessage(messaging, (payload) => {
       console.log("Message received:", payload);
-      setNotification(payload.notification);
+      const company = JSON.parse(payload.data.companyData)
+      triggerToaster({ company, title: payload.notification.title, message: payload.notification.body })
       handleUpdateAnnouncements()
+      // setNotification(payload.notification);
     });
 
     return () => unsubscribe();

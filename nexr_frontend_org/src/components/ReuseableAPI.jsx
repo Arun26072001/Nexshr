@@ -6,7 +6,6 @@ import { saveAs } from "file-saver";
 const url = process.env.REACT_APP_API_URL;
 const token = localStorage.getItem('token');
 const _id = localStorage.getItem("_id");
-console.log(_id);
 
 const updateDataAPI = async (body) => {
     try {
@@ -477,13 +476,25 @@ function calculateTimePattern(timePatternObj) {
     }
 }
 
-async function triggerNotification(msgObj, type, employees){
-    try {
-        const res = await axios.post(`${url}/notify-higher-auth/${_id}/${type}`, {msgObj, employees});
-        console.log(res.data.message);
-    } catch (error) {
-        console.log("error in trigger notification");
-    }
+function triggerToaster(response) {
+    return (
+        toaster.push(
+            <Notification
+                header={
+                    <div style={{ display: 'flex', alignItems: 'center' }}>
+                        <img src={response.company.logo} alt="Company Logo" style={{ width: 50, height: 50, marginRight: 10 }} />
+                        <span style={{ fontWeight: 'bold', fontSize: '16px' }}>{response.company.CompanyName}</span>
+                    </div>
+                }
+                closable
+            >
+                <strong>{response.title}</strong>
+                <br />
+                <p>{response.message}</p>
+            </Notification>,
+            { placement: 'bottomEnd' }
+        )
+    )
 }
 
 // Format milliseconds to HH:mm:ss
@@ -542,7 +553,7 @@ function exportAttendanceToExcel(attendanceData) {
 }
 
 export {
-    triggerNotification,
+    triggerToaster,
     calculateTimePattern,
     getTimeFromHour,
     getHoliday,
