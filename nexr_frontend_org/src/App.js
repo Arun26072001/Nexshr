@@ -10,9 +10,6 @@ import { jwtDecode } from "jwt-decode";
 import "./App.css";
 import 'rsuite/dist/rsuite.min.css';
 import "react-datepicker/dist/react-datepicker.css";
-// import io from "socket.io-client";
-// import { Notification, toaster } from "rsuite";
-// import { triggerToaster } from "./components/ReuseableAPI.jsx";
 import AdminDashboard from "./components/superAdmin/AdminDashboard.js";
 import { getToken, onMessage } from "firebase/messaging";
 import { messaging } from "./firebase/firebase.js";
@@ -22,8 +19,6 @@ export const EssentialValues = createContext(null);
 
 const App = () => {
   const url = process.env.REACT_APP_API_URL;
-  // State Variables
-  // const socket = io(`${url}`, { autoConnect: false });
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [showOfflineAlert, setShowOfflineAlert] = useState(false);
   const [hasInternet, setHasInternet] = useState(true);
@@ -44,6 +39,7 @@ const App = () => {
   const location = useLocation();
   const [isChangeAnnouncements, setIschangeAnnouncements] = useState(false);
   const [isViewTakeTime, setIsTaketime] = useState(localStorage.getItem("isViewTakeTime") ? true : false);
+  const [isViewEarlyLogout, setIsViewEarlyLogout] = useState(JSON.parse(localStorage.getItem("isViewEarlyLogout")) ? true : false);
 
   function handleUpdateAnnouncements() {
     setIschangeAnnouncements(!isChangeAnnouncements)
@@ -55,6 +51,14 @@ const App = () => {
         localStorage.setItem("isViewTakeTime", true)
     }
     setIsTaketime(!isViewTakeTime)
+}
+
+// change ask the reason for early logout
+function changeViewReasonForEarlyLogout() {
+  if (!isViewEarlyLogout) {
+      localStorage.setItem("isViewEarlyLogout", true)
+  }
+  setIsViewEarlyLogout(!isViewEarlyLogout)
 }
 
   // Helper Functions
@@ -183,13 +187,14 @@ const App = () => {
     const unsubscribe = onMessage(messaging, (payload) => {
       console.log("Message received:", payload);
       const company = JSON.parse(payload.data.companyData)
+      const type = payload.data.type;
       triggerToaster({ company, title: payload.notification.title, message: payload.notification.body })
-      if(payload.data.type === "late reason"){
+      if(type === "late reason"){
         changeViewReasonForTaketime();
+      } if(type === "early reason"){
+        changeViewReasonForEarlyLogout()
       }
       handleUpdateAnnouncements()
-
-      // setNotification(payload.notification);
     });
 
     return () => unsubscribe();
@@ -286,6 +291,8 @@ const App = () => {
         isStartActivity,
         whoIs,
         isViewTakeTime,
+        changeViewReasonForEarlyLogout,
+        isViewEarlyLogout,
         setIsStartActivity,
         changeViewReasonForTaketime,
         handleUpdateAnnouncements,

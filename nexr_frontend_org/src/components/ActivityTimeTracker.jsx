@@ -214,7 +214,6 @@ const ActivityTimeTracker = () => {
                                 placeholder={`Please enter late reason`}
                             />
                         </div>
-
                     </Modal.Body>
 
                     <Modal.Footer>

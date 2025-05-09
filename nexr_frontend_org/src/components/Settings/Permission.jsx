@@ -49,14 +49,16 @@ const Permission = () => {
         fetchEmpRoles();
     }, [])
 
-    function filterEmps(e) {
-        setEmpName(e)
-        if (e === "") {
-            setEmployees(fullEmployees);
-        } else if (e !== "") {
-            setEmployees(fullEmployees.filter((emp) => emp.FirstName.includes(e)));
+    useEffect(() => {
+        function filterEmps() {
+            if (empName === "") {
+                setEmployees(fullEmployees);
+            } else if (empName !== "") {
+                setEmployees(fullEmployees.filter((emp) => emp.FirstName.toLowerCase().includes(empName?.toLowerCase())));
+            }
         }
-    }
+        filterEmps()
+    }, [empName])
 
     return (
         <div className="container">
@@ -66,7 +68,7 @@ const Permission = () => {
                 <div className="col-lg-4 mt-2">
                     <InputGroup inside style={{ width: 300, marginBottom: 10 }}>
                         <InputGroup.Addon><SearchIcon /></InputGroup.Addon>
-                        <Input placeholder="Search user's names" value={empName} onChange={filterEmps} style={{ marginTop: "0", width: "100%", padding: "-8px" }} />
+                        <Input placeholder="Search user's names" value={empName} onChange={setEmpName} style={{ marginTop: "0", width: "100%", padding: "-8px" }} />
                         <InputGroup.Addon style={{ cursor: "pointer" }} >
                             <span onClick={() => setEmpName("")}>
                                 <CloseIcon />
@@ -99,7 +101,7 @@ const Permission = () => {
                                         </td>
                                         <td>
                                             <select name="" id="" className="form-control">
-                                                <option value={emp?.role[0]?._id} >{emp?.role[0]?.RoleName}</option>
+                                                <option value={emp?.role?._id} >{emp?.role?.RoleName}</option>
                                                 {roles.map((role) => (
                                                     <option key={role._id} value={role._id}> {/* Added key */}
                                                         {role.RoleName}
@@ -110,12 +112,12 @@ const Permission = () => {
                                         </td>
                                         <td>
                                             <div className='td-parent gap-2 d-flex justify-content-center text-secondary'>
-                                                {emp?.role[0]?.RoleName === "Admin" ? "everyone" : emp?.role[0]?.RoleName === "Human Resource" ? "Select People" : null}
+                                                {emp?.role?.RoleName === "Admin" ? "everyone" : emp?.role?.RoleName === "Human Resource" ? "Select People" : null}
                                             </div>
                                         </td>
                                         <td>
                                             <div className='td-parent gap-2' title='People with this additional permission level can access the payroll navigator in order to view and amend payroll information including salary and run payroll reports for the entire company.'>
-                                                <input type="checkbox" className="styleRadio" checked={emp?.role[0]?.RoleName === "Admin" ? true : false} />
+                                                <input type="checkbox" className="styleRadio" checked={emp?.role?.RoleName === "Admin" ? true : false} />
                                                 Payroll
                                             </div>
                                         </td>

@@ -714,20 +714,23 @@ router.get("/", verifyAdminHrNetworkAdmin, async (req, res) => {
 })
 
 router.put("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
-    let body = req.body;
+    try {
+        const updatedClockIn = await ClockIns.findByIdAndUpdate(req.params.id, req.body, {
+            new: true
+        });
 
-    ClockIns.findByIdAndUpdate(req.params.id, body, {
-        new: true
-    }, (err, data) => {
-        if (err) {
-            console.log("error in update colockins", error);
-            res.status(500).send({ message: "Internal server Error", details: err.details })
-        } else {
-            // delete data._id;
-            res.send(data);
+        if (!updatedClockIn) {
+            return res.status(404).send({ message: "Clock-in entry not found" });
         }
-    })
-})
+        // check user is late login and early logout
+        
+        res.send(updatedClockIn);
+    } catch (error) {
+        console.error("Error updating ClockIns:", error);
+        res.status(500).send({ message: "Internal server error", details: error.message });
+    }
+});
+
 
 router.post("/ontime/:type", async (req, res) => {
     try {
@@ -843,8 +846,6 @@ router.post("/remainder/:id/:timeOption", async (req, res) => {
             body: `Your ${timeOption[0].toUpperCase() + timeOption.slice(1)} time has ended. Please resume your work.`,
             type: "late reason"
         });
-        console.log("api called");
-
         res.send({ message: "Sent mail to employee successfully." })
     } catch (error) {
         console.log(error);

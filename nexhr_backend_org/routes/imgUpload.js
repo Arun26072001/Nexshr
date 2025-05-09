@@ -15,16 +15,27 @@ const storage = multer.diskStorage({
 });
 // File filter to allow only JPG, PNG, and WEBP files
 const fileFilter = (req, file, callback) => {
-  const allowedTypes = /jpeg|jpg|png|webp/;
-  const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
-  const mimetype = allowedTypes.test(file.mimetype);
+  const allowedExtensions = /jpeg|jpg|png|webp|xlsx|xls|xlsm/;
+  const allowedMimes = [
+    'image/jpeg',
+    'image/jpg',
+    'image/png',
+    'image/webp',
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', // .xlsx
+    'application/vnd.ms-excel', // .xls
+    'application/vnd.ms-excel.sheet.macroEnabled.12' // .xlsm
+  ];
+
+  const extname = allowedExtensions.test(path.extname(file.originalname).toLowerCase());
+  const mimetype = allowedMimes.includes(file.mimetype);
 
   if (extname && mimetype) {
     callback(null, true);
   } else {
-    callback(new Error('Only .jpg, .png, and .webp files are allowed!'));
+    callback(new Error('Only .jpg, .png, .webp, .xlsx, .xls, and .xlsm files are allowed!'));
   }
 };
+
 const upload = multer({
   storage,
   limits: { fileSize: 10 * 1024 * 1024 }, // Limit file size to 10MB
