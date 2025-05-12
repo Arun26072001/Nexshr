@@ -49,7 +49,7 @@ const AnnouncementComponent = ({ handleChangeAnnouncement }) => {
             ...pre,
             [name]: value
         }))
-    }
+    }                                                                                                                       
 
     const handleSubmit = async () => {
         setIschangingAnnouncement(true);

@@ -33,7 +33,7 @@ router.post('/:id', async (req, res) => {
         employees.map(async (emp) => {
           // Add Notification
           emp.notifications.push({
-            company: emp.company._id,
+            company: emp?.company?._id,
             title: req.body.title,
             message: req.body.message
           });

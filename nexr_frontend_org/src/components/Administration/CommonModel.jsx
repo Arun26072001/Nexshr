@@ -48,6 +48,58 @@ const CommonModel = ({
     const [isDisabled, setIsDisabled] = useState(true);
     const [isShowPassword, setIsShowPassword] = useState(false);
 
+
+
+    const getAllMemberIds = (data) => {
+        let result = [];
+        data.forEach(item => {
+            if (item.children) {
+                result = result.concat(getAllMemberIds(item.children));
+            } else if (typeof item.value === 'string') {
+                result.push(item.value);
+            }
+        });
+        return result;
+    };
+
+
+    const handleTeamChange = (selectedValues) => {
+        const selectedSet = new Set(selectedValues);
+        let result = [];
+
+        const collectSelectedIds = (nodes) => {
+            nodes.forEach(node => {
+                if (node.children) {
+                    // If this group or select-all is selected, include all children
+                    if (selectedSet.has(node.value)) {
+                        result = result.concat(getAllMemberIds([node]));
+                    } else {
+                        // Otherwise check children
+                        collectSelectedIds(node.children);
+                    }
+                } else {
+                    // Leaf node selected
+                    if (selectedSet.has(node.value)) {
+                        result.push(node.value);
+                    }
+                }
+            });
+        };
+
+        collectSelectedIds(team_member);
+
+        const uniqueIds = [...new Set(result)];
+
+        console.log("Selected IDs to send:", uniqueIds);
+
+        changeData(uniqueIds, "selectTeamMembers");
+    };
+
+
+
+
+
+
     return (
         <Modal open={isAddData} size="sm" backdrop="static">
             <Modal.Header>
@@ -555,12 +607,16 @@ const CommonModel = ({
                                             <MultiCascader
                                                 className="pt-2"
                                                 data={team_member}
-                                                onChange={(id) => changeData(id, "selectTeamMembers")}
+                                                onChange={handleTeamChange}
+                                                valueType="all" // 🔥 makes 'select-all' and group values appear in selection
                                                 style={{ width: '100%' }}
                                                 placeholder="Select team members"
                                                 searchable
                                                 checkAll
                                             />
+
+
+
                                         </VStack>
                                     </div>
                                 </div>
