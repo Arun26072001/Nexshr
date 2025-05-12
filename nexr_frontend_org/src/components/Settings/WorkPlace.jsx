@@ -165,11 +165,14 @@ const WorkPlaceTab = () => {
   useEffect(() => {
     fetchWorkPlaces();
     fetchCountries();
+    if(workPlaceObj.Country){
+      fetchStateData();
+    }
   }, []);
 
   useEffect(() => {
     if (workPlaceObj?.Country) {
-      fetchStateData()
+      fetchStateData(workPlaceObj?.Country)
     }
   }, [changeWorkplace.isEdit])
 

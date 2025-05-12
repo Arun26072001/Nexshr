@@ -10,6 +10,7 @@ const { LeaveApplication } = require("../models/LeaveAppModel");
 const { Team } = require("../models/TeamModel");
 const { getCurrentTimeInMinutes, formatTimeFromMinutes, timeToMinutes, getTotalWorkingHourPerDay } = require("../Reuseable_functions/reusableFunction");
 const { WFHApplication } = require("../models/WFHApplicationModel");
+const { sendPushNotification } = require("../auth/PushNotification");
 
 async function checkLoginForOfficeTime(scheduledTime, actualTime, permissionTime) {
 
@@ -137,10 +138,10 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
         if (!worklocation || !location.latitude) {
             return res.status(400).send({ error: "Please select your work location" })
         }
-        let isWfh;
-        if (worklocation === "WFH") {
-            isWfh = await WFHApplication.findOne({ fromDate: { $gte: today }, status: "approved" })
-        }
+        // let isWfh;
+        // if (worklocation === "WFH") {
+        //     isWfh = await WFHApplication.findOne({ fromDate: { $gte: today }, status: "approved" })
+        // }
         // Fetch employee details with required fields
         const emp = await Employee.findById(req.params.id, "FirstName LastName Email profile company clockIns leaveApplication isPermanentWFH")
             .populate("workingTimePattern")
@@ -150,29 +151,28 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
                 path: "leaveApplication",
                 match: { fromDate: { $gte: startOfDay, $lte: endOfDay }, status: "approved", leaveType: "Permission Leave" }
             })
-        console.log(emp.FirstName, req.params.id);
 
         if (!emp) return res.status(404).send({ error: "Employee not found!" });
         if (emp?.clockIns?.length > 0) return res.status(409).send({ message: "You have already Punch-In!" });
 
         // verify emp is in office
-        if (worklocation === "WFH" && (!isWfh && !emp.isPermanentWFH)) {
-            console.log(isWfh, emp.isPermanentWFH);
-            return res.status(400).send({ error: "You have no permission for WFH, Please reach office and start timer" })
-        } if (worklocation === "WFO") {
-            const userLocation = req.query.location;
-            const companyLocation = emp.company.location;
-            if (userLocation && companyLocation) {
-                console.log("userLocation", userLocation, "officeLocation", companyLocation);
-                const distance = getDistance(userLocation, companyLocation, accuracy = 1);
-                console.log("distance", distance);
-                if (distance > 100) {
-                    return res.status(400).send({ error: "Please reach your office location and start the timer" })
-                }
-            } else {
-                return res.status(400).send({ error: `location not found in your ${emp.company.CompanyName}` })
-            }
-        }
+        // if (worklocation === "WFH" && (!isWfh && !emp.isPermanentWFH)) {
+        //     console.log(isWfh, emp.isPermanentWFH);
+        //     return res.status(400).send({ error: "You have no permission for WFH, Please reach office and start timer" })
+        // } if (worklocation === "WFO") {
+        //     const userLocation = req.query.location;
+        //     const companyLocation = emp.company.location;
+        //     if (userLocation && companyLocation) {
+        //         console.log("userLocation", userLocation, "officeLocation", companyLocation);
+        //         const distance = getDistance(userLocation, companyLocation, accuracy = 1);
+        //         console.log("distance", distance);
+        //         if (distance > 100) {
+        //             return res.status(400).send({ error: "Please reach your office location and start the timer" })
+        //         }
+        //     } else {
+        //         return res.status(400).send({ error: `location not found in your ${emp.company.CompanyName}` })
+        //     }
+        // }
         // Office login time & employee login time
         const officeLoginTime = emp?.workingTimePattern?.StartingTime || "9:00";
         const loginTimeRaw = req.body?.login?.startingTime?.[0];
@@ -714,19 +714,23 @@ router.get("/", verifyAdminHrNetworkAdmin, async (req, res) => {
 })
 
 router.put("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
-    let body = req.body;
+    try {
+        const updatedClockIn = await ClockIns.findByIdAndUpdate(req.params.id, req.body, {
+            new: true
+        });
 
-    ClockIns.findByIdAndUpdate(req.params.id, body, {
-        new: true
-    }, (err, data) => {
-        if (err) {
-            res.status(500).send({ message: "Internal server Error", details: err.details })
-        } else {
-            delete data._id;
-            res.send(data);
+        if (!updatedClockIn) {
+            return res.status(404).send({ message: "Clock-in entry not found" });
         }
-    })
-})
+        // check user is late login and early logout
+        
+        res.send(updatedClockIn);
+    } catch (error) {
+        console.error("Error updating ClockIns:", error);
+        res.status(500).send({ message: "Internal server error", details: error.message });
+    }
+});
+
 
 router.post("/ontime/:type", async (req, res) => {
     try {
@@ -804,32 +808,43 @@ router.post("/remainder/:id/:timeOption", async (req, res) => {
     try {
         const { id, timeOption } = req.params;
 
-        const emp = await Employee.findById({ _id: id }).populate("company");
+        const emp = await Employee.findById(id, "FirstName LastName Email fcmToken company").populate("company");
+        // send email notification
+        const Subject = `Your ${timeOption[0].toUpperCase() + timeOption.slice(1)} time has ended`;
         sendMail({
             From: process.env.FROM_MAIL,
             To: emp.Email,
-            Subject: `Your ${timeOption[0].toUpperCase() + timeOption.slice(1)} time has ended`,
-            HtmlBody: `  <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>${emp.company.CompanyName}</title>
-</head>
-<body style="font-family: Arial, sans-serif; background-color: #f6f9fc; color: #333; margin: 0; padding: 0;">
-    <div style="max-width: 600px; margin: auto; padding: 20px; background-color: #fff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);">
-        <div style="margin: 20px 0;">
-            <p>Dear ${emp.FirstName} ${emp.LastName},</p>
-            <p>Your ${timeOption[0].toUpperCase() + timeOption.slice(1)} time has ended. Please resume your work.</p>
-            <p>If you encounter any issues, please contact HR.</p>
-            <p>Kindly adhere to the necessary guidelines.</p><br />
-            <p>Thank you!</p>
-        </div>
-        <div style="text-align: center; font-size: 14px; margin-top: 20px; color: #777;">
-            <p>Have questions or need assistance? <a href="mailto:${process.env.FROM_MAIL}">Contact us</a>.</p>
-        </div>
-    </div>
-</body>
-</html> `
+            Subject,
+            HtmlBody: `<html lang="en">
+                <head>
+                    <meta charset="UTF-8">
+                        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                            <title>${emp.company.CompanyName}</title>
+                        </head>
+                        <body style="font-family: Arial, sans-serif; background-color: #f6f9fc; color: #333; margin: 0; padding: 0;">
+                            <div style="max-width: 600px; margin: auto; padding: 20px; background-color: #fff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);">
+                                <div style="margin: 20px 0;">
+                                    <p>Dear ${emp.FirstName} ${emp.LastName},</p>
+                                    <p>Your ${timeOption[0].toUpperCase() + timeOption.slice(1)} time has ended. Please resume your work.</p>
+                                    <p>If you encounter any issues, please contact HR.</p>
+                                    <p>Kindly adhere to the necessary guidelines.</p><br />
+                                    <p>Thank you!</p>
+                                </div>
+                                <div style="text-align: center; font-size: 14px; margin-top: 20px; color: #777;">
+                                    <p>Have questions or need assistance? <a href="mailto:${process.env.FROM_MAIL}">Contact us</a>.</p>
+                                </div>
+                            </div>
+                        </body>
+                    </html> `
+        });
+
+        // send notification even ask the reason for late
+        await sendPushNotification({
+            token: emp.fcmToken,
+            company: emp.company,
+            title: Subject,
+            body: `Your ${timeOption[0].toUpperCase() + timeOption.slice(1)} time has ended. Please resume your work.`,
+            type: "late reason"
         });
         res.send({ message: "Sent mail to employee successfully." })
     } catch (error) {

@@ -16,7 +16,7 @@ import Loading from '../../Loader';
 
 export default function Navbar({ handleSideBar }) {
     const { handleLogout, data, handleUpdateAnnouncements, isChangeAnnouncements, whoIs, 
-        // socket
+        changeViewReasonForEarlyLogout,isViewEarlyLogout 
      } = useContext(EssentialValues)
     const { startLoginTimer, stopLoginTimer, workTimeTracker, isStartLogin, trackTimer, changeReasonForEarly, isWorkingLoginTimerApi } = useContext(TimerStates);
     const [sec, setSec] = useState(workTimeTracker?.login?.timeHolder?.split(':')[2])
@@ -28,7 +28,6 @@ export default function Navbar({ handleSideBar }) {
     const [announcements, setAnnouncements] = useState([]);
     const [notifications, setNotifications] = useState([]);
     const [isRemove, setIsRemove] = useState([]);
-    const [isViewEarlyLogout, setIsViewEarlyLogout] = useState(JSON.parse(localStorage.getItem("isViewEarlyLogout")) ? true : false);
     const [latitude, setLatitude] = useState("");
     const [longitude, setLongitude] = useState("");
     // const [hamlet, setHamlet] = useState("");
@@ -157,7 +156,7 @@ export default function Navbar({ handleSideBar }) {
         fetchNotifications();
     }, [isChangeAnnouncements])
 
-    function checkIsCompletedWorkingHour() {
+    async function checkIsCompletedWorkingHour() {
         const currentTime = new Date().toTimeString().split(' ')[0];
         const updatedState = {
             ...workTimeTracker,
@@ -167,7 +166,17 @@ export default function Navbar({ handleSideBar }) {
                 timeHolder: `${String(hour).padStart(2, '0')}:${String(min).padStart(2, '0')}:${String(sec).padStart(2, '0')}`,
             },
         };
-        // socket.emit("verify_completed_workinghour", updatedState);
+        // check user is completed working hour
+        try {
+            const res = await axios.post(`${url}/verify_completed_workinghour`, updatedState);
+            if(!res.data.isCompleteworkingHours){
+                checkIsEnterReasonforEarly()
+            }else{
+                stopTimer()
+            }
+        } catch (error) {
+            console.log("error in check working hour is complated", error);
+        }
     }
 
     async function updateEmpNotifications(updatedValues) {
@@ -237,12 +246,6 @@ export default function Navbar({ handleSideBar }) {
     }
 
     useHandleTabClose(isStartLogin, workTimeTracker, data.token);
-    function changeViewReasonForEarlyLogout() {
-        if (!isViewEarlyLogout) {
-            localStorage.setItem("isViewEarlyLogout", true)
-        }
-        setIsViewEarlyLogout(!isViewEarlyLogout)
-    }
 
     function checkIsEnterReasonforEarly() {
         changeViewReasonForEarlyLogout()
@@ -256,9 +259,7 @@ export default function Navbar({ handleSideBar }) {
           }
           
         navigator.geolocation.getCurrentPosition(
-            (pos) => {
-                console.log("location", pos.coords);
-                
+            (pos) => {                
                 setLatitude(roundCoord(pos.coords.latitude));
                 setLongitude(roundCoord(pos.coords.longitude))
             },
@@ -381,7 +382,7 @@ export default function Navbar({ handleSideBar }) {
                                         <button
                                             className='punchBtn'
                                             disabled={isWorkingLoginTimerApi || !workLocation ? true : isDisabled}
-                                            onClick={() => startTimer()}
+                                            onClick={startTimer}
                                             style={{ backgroundColor: "#CEE5D3" }}
                                         >
                                             {
@@ -402,7 +403,7 @@ export default function Navbar({ handleSideBar }) {
                                     <div className="punchBtnParent">
                                         <button
                                             className='punchBtn'
-                                            onClick={stopTimer}
+                                            onClick={checkIsCompletedWorkingHour}
                                             disabled={isWorkingLoginTimerApi ? true : !isDisabled}
                                             style={{ backgroundColor: "#FFD6DB" }}
                                         >
@@ -491,7 +492,6 @@ export default function Navbar({ handleSideBar }) {
                     </div>
                 </div>
             </div >
-
     );
 }
 

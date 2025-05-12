@@ -73,6 +73,7 @@ const EditEmployeeform = ({ details, empData, handleScroll, handlePersonal, prev
         // taxDeduction: Yup.string().min(2, "invalid value").required("Tax deduction is required"),
         taxDeduction: Yup.string().optional()
     });
+    console.log("timeDiff", timeDifference);
 
     const formik = useFormik({
         initialValues: employeeObj,
@@ -182,7 +183,7 @@ const EditEmployeeform = ({ details, empData, handleScroll, handlePersonal, prev
         // Create a new object with the updated value for the specific leave type
         const updatedTypesOfLeaveCount = {
             ...formik.values.typesOfLeaveCount,
-            [name]: Number(value),
+            [name]: Number(value)
         };
 
         // Calculate the total using the updated `typesOfLeaveCount`
@@ -208,8 +209,11 @@ const EditEmployeeform = ({ details, empData, handleScroll, handlePersonal, prev
             if (timePatterns.length > 0) {
                 const selectedPattern = timePatterns.find(pattern => pattern._id === formik.values.workingTimePattern);
                 if (selectedPattern && selectedPattern.StartingTime && selectedPattern.FinishingTime) {
-                    const [startHour, startMinute] = selectedPattern.StartingTime.split(":").map(num => parseInt(num, 10));
-                    const [endHour, endMinute] = selectedPattern.FinishingTime.split(":").map(num => parseInt(num, 10));
+                    const [startHour, startMinute] = selectedPattern.StartingTime.split(".").map(num => parseInt(num, 10));
+                    const [endHour, endMinute] = selectedPattern.FinishingTime.split(".").map(num => parseInt(num, 10));
+                    console.log("startingHour", startHour, startMinute);
+                    console.log("ending", endHour, endMinute);
+                    console.log(selectedPattern.WeeklyDays.length);
 
                     const startDate = new Date();
                     startDate.setHours(startHour);
@@ -223,7 +227,7 @@ const EditEmployeeform = ({ details, empData, handleScroll, handlePersonal, prev
                     const hoursDiff = Math.floor(timeDiff / (1000 * 60 * 60));
                     const minutesDiff = Math.floor((timeDiff % (1000 * 60 * 60)) / (1000 * 60));
 
-                    setTimeDifference((((hoursDiff * 60) + minutesDiff) / 60) * selectedPattern.WeeklyDays);
+                    setTimeDifference((((hoursDiff * 60) + minutesDiff) / 60) * selectedPattern.WeeklyDays.length);
                 }
             }
         };
@@ -348,42 +352,16 @@ const EditEmployeeform = ({ details, empData, handleScroll, handlePersonal, prev
                                         ) : null}
                                     </div>
                                     <div className="col-lg-6">
-                                        <div className="inputLabel">Department</div>
-                                        <select name="department"
-                                            className={`selectInput ${formik.touched.department && formik.errors.department ? "error" : ""}`}
-                                            disabled={whoIs === "emp" ? true : false}
-                                            onChange={whoIs === "emp" ? null : formik.handleChange}
-                                            value={formik.values.department}
-                                        >
-                                            <option >Select Department</option>
-                                            {
-                                                departments.map((department) => (
-                                                    <option key={department._id} value={department._id}>{department.DepartmentName}</option>
-                                                ))
-                                            }
-                                        </select>
-                                        {formik.touched.department && formik.errors.department ? (
-                                            <div className="text-center text-danger">{formik.errors.department}</div>
-                                        ) : null}
-                                    </div>
-                                </div>
-
-                                <div className="row d-flex justify-content-center">
-                                    <div className="col-lg-12">
-                                        <div className="inputLabel">Position</div>
-                                        <select name="position" className={`selectInput ${formik.touched.position && formik.errors.position ? "error" : ""}`}
-                                            disabled={whoIs === "emp" ? true : false}
-                                            onChange={whoIs === "emp" ? null : formik.handleChange}
-                                            value={formik?.values?.position || empData?.position || ""}>
-                                            <option >Select Position</option>
-                                            {
-                                                positions.map((position) => (
-                                                    <option key={position._id} value={position._id}>{position.PositionName}</option>
-                                                ))
-                                            }
-                                        </select>
-                                        {formik.touched.position && formik.errors.position ? (
-                                            <div className="text-center text-danger">{formik.errors.position}</div>
+                                        <div className="inputLabel">Date Of Birth</div>
+                                        <input
+                                            type="date"
+                                            className={`inputField ${formik.touched.dateOfBirth && formik.errors.dateOfBirth ? "error" : ""}`}
+                                            name="dateOfBirth"
+                                            onChange={formik.handleChange}
+                                            value={formik.values.dateOfBirth}
+                                        />
+                                        {formik.touched.dateOfBirth && formik.errors.dateOfBirth ? (
+                                            <div className="text-center text-danger">{formik.errors.dateOfBirth}</div>
                                         ) : null}
                                     </div>
                                 </div>
