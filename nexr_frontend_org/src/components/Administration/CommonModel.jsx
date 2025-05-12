@@ -1,6 +1,6 @@
 import React, { useContext, useState } from 'react';
 import "../Settings/SettingsStyle.css";
-import { Modal, Button, SelectPicker, TagPicker, Input, InputNumber, InputGroup, Toggle, TimePicker } from 'rsuite';
+import { Modal, Button, SelectPicker, TagPicker, Input, InputNumber, InputGroup, Toggle } from 'rsuite';
 import TextEditor from '../payslip/TextEditor';
 import ErrorOutlineRoundedIcon from '@mui/icons-material/ErrorOutlineRounded';
 import DatePicker from "react-datepicker";
@@ -163,8 +163,7 @@ const CommonModel = ({
 
                 <>
                     <div className="d-flex justify-content-between">
-
-                        {["Task", "Task View", "Announcement", "Add Comments"].includes(type) && <div className={type === "Announcement" ? "col-full" : "col-half"}>
+                        {["Task", "Task View", "Announcement", "Add Comments", "Email Template"].includes(type) && <div className={["Announcement"].includes(type) ? "col-full" : "col-half"}>
                             <div className="modelInput">
                                 <p className='modelLabel important'>Title: </p>
                                 <Input required
@@ -174,9 +173,19 @@ const CommonModel = ({
                                     value={dataObj?.[`title`] || ""}
                                     onChange={type !== "Task View" ? (e) => changeData(e, "title") : null}
                                 />
-                                {errorMsg.includes("title") && <p className='text-danger'>{errorMsg}</p>}
+                                {errorMsg?.includes("title") && <p className='text-danger'>{errorMsg}</p>}
                             </div>
                         </div>}
+
+                        {
+                            ["Email Template"].includes(type) &&
+                            <div className="col-half">
+                                <div className="modelInput">
+                                    <p className='modelLabel important'>Status:</p>
+                                    <Toggle checked={dataObj?.status} onChange={(e) => changeData(e, "status")} />
+                                </div>
+                            </div>
+                        }
 
                         {
                             ["Add Comments"].includes(type) &&
@@ -584,14 +593,27 @@ const CommonModel = ({
                 }
 
                 {
-                    ["Project", "Task", "Task View", "Project View"].includes(type) &&
+
+                    ["Email Template"].includes(type) &&
                     <>
                         <div className="col-full">
                             <div className="modelInput">
-                                <p className='modelLabel'>Description:</p>
+                                <p className='modelLabel'>Subject:</p>
+                                <Input type='text' size='lg' onChange={(e) => changeData(e, "subject")} value={dataObj?.subject} />
+                            </div>
+                        </div>
+                    </>
+                }
+
+                {
+                    ["Project", "Task", "Task View", "Project View", "Email Template"].includes(type) &&
+                    <>
+                        <div className="col-full">
+                            <div className="modelInput">
+                                <p className='modelLabel'>{type === "Email Template" ? "Content" : "Descripttion"}:</p>
                                 <TextEditor
-                                    handleChange={!["Task View", "Project View"].includes(type) ? (e) => changeData(e, "description") : null}
-                                    content={dataObj?.["description"]}
+                                    handleChange={!["Task View", "Project View"].includes(type) ? (e) => changeData(e, type === "Email Template" ? "content" : "description") : null}
+                                    content={dataObj?.[type === "Email Template" ? "content" : "description"]}
                                     isDisabled={["Task View", "Project View"].includes(type) ? true : false}
                                 />
                             </div>
@@ -831,76 +853,82 @@ const CommonModel = ({
                 }
                 {
                     ["Country", "Edit Country"].includes(type) &&
-                    <>
-                        <div className="d-flex justify-content-between gap-2">
-                            <div className="col-half">
-                                <div className="modelInput">
-                                    <p className='modelLabel'>Abbriviation:</p>
-                                    <Input
-                                        required
-                                        size="lg"
-                                        style={{ width: "100%", height: 45 }}
-                                        type={"text"}
-                                        name={`abbr`}
-                                        // disabled={ ? true : false}
-                                        value={dataObj?.[`abbr`] || ""}
-                                        appearance='default'
-                                        onChange={(e) => changeData(e, "abbr")}
-                                    />
-                                </div>
-                            </div>
-                            <div className="col-half">
-                                <div className="modelInput">
-                                    <p className='modelLabel'>Code:</p>
-                                    <Input
-                                        required
-                                        size="lg"
-                                        style={{ width: "100%", height: 45 }}
-                                        type={"text"}
-                                        max={3}
-                                        value={dataObj?.[`code`] || ""}
-                                        appearance='default'
-                                        onChange={(e) => changeData(e, "code")}
-                                    />
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="col-full">
-                            <div className="modelInput position-relative">
-                                <p className="modelLabel">
-                                    State:
-                                </p>
-
+                    <div className="d-flex justify-content-between gap-2">
+                        <div className="col-half">
+                            <div className="modelInput">
+                                <p className='modelLabel'>Abbriviation:</p>
                                 <Input
                                     required
                                     size="lg"
                                     style={{ width: "100%", height: 45 }}
                                     type={"text"}
-                                    id="stateInput"
-                                    name={`state`}
+                                    name={`abbr`}
+                                    // disabled={ ? true : false}
+                                    value={dataObj?.[`abbr`] || ""}
                                     appearance='default'
-                                    onChange={(e) => e !== "" ? setIsDisabled(false) : setIsDisabled(true)}
+                                    onChange={(e) => changeData(e, "abbr")}
                                 />
-                                <button className='btn btn-primary addBtn' disabled={isDisabled} onClick={() => {
-                                    changeState('state', document.getElementById("stateInput").value)
-                                    document.getElementById("stateInput").value = ""
-                                    setIsDisabled(true)
-                                }}>Add</button>
-                                <div className="inputContent">
-                                    {
-                                        dataObj?.state?.length > 0 &&
-                                        dataObj?.state?.map((item) => {
-                                            return <span key={item} onClick={() => removeState(item)}>
-                                                {item} <CloseRoundedIcon />
-                                            </span>
-                                        })
-
-                                    }
-                                </div>
                             </div>
                         </div>
-                    </>
+                        <div className="col-half">
+                            <div className="modelInput">
+                                <p className='modelLabel'>Code:</p>
+                                <Input
+                                    required
+                                    size="lg"
+                                    style={{ width: "100%", height: 45 }}
+                                    type={"text"}
+                                    max={3}
+                                    value={dataObj?.[`code`] || ""}
+                                    appearance='default'
+                                    onChange={(e) => changeData(e, "code")}
+                                />
+                            </div>
+                        </div>
+                    </div>}
+                {
+                    ["Country", "Edit Country", "Email Template"].includes(type) &&
+                    <div className="col-full">
+                        <div className="modelInput position-relative">
+                            <p className="modelLabel">
+                                {type === "Email Template" ? "Short Tags" : "State"}:
+                            </p>
+
+                            <Input
+                                required
+                                size="lg"
+                                style={{ width: "100%", height: 45 }}
+                                type={"text"}
+                                id="stateInput"
+                                name={`state`}
+                                appearance='default'
+                                onChange={(e) => e !== "" ? setIsDisabled(false) : setIsDisabled(true)}
+                            />
+                            <button className='btn btn-primary addBtn' disabled={isDisabled} onClick={() => {
+                                changeState(type === "Email Template" ? "shortTags" : 'state', document.getElementById("stateInput").value)
+                                document.getElementById("stateInput").value = ""
+                                setIsDisabled(true)
+                            }}>Add</button>
+                            <div className="inputContent">
+                                {
+                                    dataObj?.shortTags && dataObj.shortTags.length > 0 ? (
+                                        dataObj.shortTags?.map((item) => (
+                                            <span key={item} onClick={() => removeState(item)}>
+                                                {item} <CloseRoundedIcon />
+                                            </span>
+                                        ))
+                                    ) : (
+                                        dataObj?.state?.map((item) => (
+                                            <span key={item} onClick={() => removeState(item)}>
+                                                {item} <CloseRoundedIcon />
+                                            </span>
+                                        ))
+                                    )
+                                }
+
+                            </div>
+                        </div>
+                    </div>
                 }
                 {
                     type === "Team" &&
@@ -1319,8 +1347,8 @@ const CommonModel = ({
                         <>
                             <Button
                                 onClick={() => {
-                                    if (["Company", "Country", "Edit Country", "Organization"].includes(type)) {
-                                        modifyData(dataObj._id || type === "Edit Country" ? "Edit" : "Add");
+                                    if (["Company", "Country", "Edit Country", "Organization", "Email Template"].includes(type)) {
+                                        modifyData(dataObj?._id || type === "Edit Country" ? "Edit" : "Add");
                                     } else if (type === "Report View") {
                                         modifyData(dataObj._id, "Cancel");
                                     } else if (dataObj._id && type === "Organization") {
@@ -1331,7 +1359,7 @@ const CommonModel = ({
                                         modifyData("Edit")
                                     } else if (["TimePattern", "WorkPlace"].includes(type) && dataObj._id) {
                                         modifyData("Edit")
-                                    } else if (["TimePattern", "WorkPlace"].includes(type) && !dataObj._id) {
+                                    } else if (["TimePattern", "WorkPlace", "Email Template"].includes(type) && !dataObj._id) {
                                         modifyData("Add")
                                     } else if (["View TimePattern", "View WorkPlace"].includes(type) && dataObj._id) {
                                         modifyData("View")
@@ -1351,7 +1379,7 @@ const CommonModel = ({
                                         onClick={() => ((type === "Add Comments" && dataObj._id) ? editData(dataObj, true) : dataObj?._id || type === "Edit Country" ? editData(dataObj) : type === "Edit Comments" ? editData() : addData())}
                                         appearance="primary"
                                         disabled={
-                                            ["Project", "Assign", "Task", "Task Assign", "Report", "Company", "Country", "Edit Country", "Announcement", "Team", "Add Comments", "TimePattern", "Edit Comments", "Organization", "MailSettings postmark", "MailSettings nodemailer", "LeaveType", "WorkPlace"].includes(type)
+                                            ["Project", "Assign", "Task", "Task Assign", "Report", "Company", "Country", "Edit Country", "Announcement", "Team", "Add Comments", "TimePattern", "Edit Comments", "Organization", "MailSettings postmark", "MailSettings nodemailer", "LeaveType", "WorkPlace","Email Template"].includes(type)
                                                 ? false : (["Department", "Position"].includes(type) && dataObj?.company ? false : true)
                                         }
                                     >

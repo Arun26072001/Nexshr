@@ -819,6 +819,45 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
         }
     ];
 
+    const column21 = [
+        {
+            id: 'title',
+            label: 'Title',
+            minWidth: 180,
+            align: 'left',
+            getter: (row) => row?.title || 'Untitled'
+        },
+        {
+            id: 'subject',
+            label: 'Subject',
+            minWidth: 200,
+            align: 'left',
+            getter: (row) => row?.subject || 'No Subject'
+        },
+        {
+            id: 'recipient',
+            label: 'Recipient',
+            minWidth: 180,
+            align: 'center',
+            getter: (row) => Array.isArray(row?.recipient)
+                ? row.recipient.join(', ')
+                : row?.recipient || 'N/A'
+        },
+        {
+            id: 'status',
+            label: 'Status',
+            minWidth: 120,
+            align: 'center',
+            getter: (row) => row?.status || 'Draft'
+        },
+        {
+            id: "action",
+            label: "Action",
+            minWidth: 100,
+            align: "center"
+        }
+    ];
+
     function toggleView() {
         setOpenModal(!openModal);
     }

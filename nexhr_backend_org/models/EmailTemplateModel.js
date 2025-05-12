@@ -7,7 +7,7 @@ const EmailTempSchema = new mongoose.Schema({
     recipient: [{ type: String }],
     content: { type: String },
     shortTags: [{ type: String }],
-    status: { type: String },
+    status: { type: Boolean },
     createdBy: {type: mongoose.Schema.Types.ObjectId, ref: "Employee"}
 })
 
