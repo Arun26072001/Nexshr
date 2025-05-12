@@ -23,6 +23,7 @@ import Comments from '../Comments';
 import LeaveDetails from '../Administration/LeaveDetails';
 import WFHRequestForm from './WFHRequestForm';
 import WFHRequests from '../workfromhome/WFHRequests';
+import EmailTemplates from './EmailTemplates';
 
 // Lazy loading components
 const Dashboard = React.lazy(() => import('./Dashboard'));
@@ -63,7 +64,7 @@ export const TimerStates = createContext(null);
 
 export default function HRMDashboard() {
     const url = process.env.REACT_APP_API_URL;
-    const { data, setData, isStartLogin, isStartActivity, setIsStartLogin, setIsStartActivity, whoIs, 
+    const { data, setData, isStartLogin, isStartActivity, setIsStartLogin, setIsStartActivity, whoIs,
         // socket 
     } = useContext(EssentialValues);
     const { token, Account, _id } = data;
@@ -436,7 +437,7 @@ export default function HRMDashboard() {
     useEffect(() => {
         if (whoIs && [isTeamHead, isTeamLead, isTeamManager].includes(true)) {
             getLeaveDataFromTeam()
-        } else if(["admin","hr"].includes(whoIs)){
+        } else if (["admin", "hr"].includes(whoIs)) {
             getLeaveData();
         }
     }, [daterangeValue, _id, whoIs, isUpdatedRequest]);
@@ -445,7 +446,7 @@ export default function HRMDashboard() {
     useEffect(() => {
         if ([isTeamHead, isTeamLead, isTeamManager].includes(true)) {
             getTeamAttendance();
-        } else if(["admin","hr"].includes(whoIs)) {
+        } else if (["admin", "hr"].includes(whoIs)) {
             getAttendanceData()
         }
         getClocknsData();
@@ -509,6 +510,9 @@ export default function HRMDashboard() {
                     } />
 
                     <Route path="reports" element={<Reports />} />
+                    <Route path="/holiday" element={<Holiday />} />
+                    <Route path="/announcement" element={<Announce />} />
+                    <Route path="/email-templates" element={<EmailTemplates />} />
                     <Route path="employee" element={<Employee />} />
                     <Route path="employee/add" element={<Employees />} />
                     <Route path="employee/edit/:id" element={<AddEmployee />} />
@@ -556,8 +560,6 @@ export default function HRMDashboard() {
                             <Route path="/company" element={<Company companies={companies} />} />
                             <Route path="/department" element={<Department companies={companies} />} />
                             <Route path="/position" element={<Position companies={companies} />} />
-                            <Route path="/holiday" element={<Holiday />} />
-                            <Route path="/announcement" element={<Announce />} />
                             <Route path="/country" element={<Country />} />
                             <Route path="/team" element={<ManageTeam />} />
                             <Route path="/leave-details" element={<LeaveDetails />} />

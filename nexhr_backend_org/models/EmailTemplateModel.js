@@ -14,11 +14,11 @@ const EmailTempSchema = new mongoose.Schema({
 const EmailTemplate = mongoose.model("EmailTemplate", EmailTempSchema);
 
 const EmailtempValidation = Joi.object().keys({
-    title: Joi.email().required(),
+    title: Joi.string().required(),
     subject: Joi.string().required(),
-    recipient: Joi.array(Joi.items().email()).required(),
+    recipient: Joi.array().items(Joi.string().email()).required(),
     content: Joi.string().required(),
-    shortTags: Joi.array(Joi.items().string()).required(),
+    shortTags: Joi.array().items(Joi.string()).required(),
     status: Joi.string().required(),
     createdBy: Joi.any().optional()
 })

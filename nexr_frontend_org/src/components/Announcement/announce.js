@@ -68,10 +68,6 @@ const Announce = () => {
             <div className="d-flex justify-content-between px-2">
                 <h5 className='text-daily'>Announcement</h5>
                 <Announcementalert handleChangeAnnouncement={handleChangeAnnouncement} />
-                {/* <div>
-                    </div>
-                    <div className='d-flex'>
-                    </div> */}
             </div>
             <div className='tabline mt-3 p-4'>
                 <div className='profiles mt-3'>
