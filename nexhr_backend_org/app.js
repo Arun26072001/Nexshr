@@ -54,9 +54,8 @@ const holidays = require("./routes/holidays");
 const report = require("./routes/reports");
 const fileData = require("./routes/file-data");
 const mailSettings = require("./routes/mail-settings");
-const { Employee } = require("./models/EmpModel");
+const emailTemplate = require("./routes/email-template");
 const wfhRouter = require("./routes/wfh-application");
-const { timeToMinutes, getCurrentTimeInMinutes, getTotalWorkingHourPerDay, formatDate } = require("./Reuseable_functions/reusableFunction");
 const { sendPushNotification, verifyWorkingTimeCompleted, askReasonForDelay } = require("./auth/PushNotification");
 
 // MongoDB Connection
@@ -155,6 +154,7 @@ app.use("/api/report", report)
 app.use("/api/google-sheet/upload", fileData);
 app.use("/api/mail-settings", mailSettings);
 app.use("/api/wfh-application", wfhRouter);
+app.use("/api/email-template", emailTemplate);
 app.post("/push-notification", sendPushNotification);
 app.post("/verify_completed_workinghour", verifyWorkingTimeCompleted);
 app.post("/ask-reason-for-delay", askReasonForDelay);
