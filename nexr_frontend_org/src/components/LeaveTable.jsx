@@ -835,23 +835,23 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
             getter: (row) => row?.subject || 'No Subject'
         },
         {
-            id: 'recipient',
-            label: 'Recipient',
+            id: 'shortTags',
+            label: 'ShortTags',
             minWidth: 180,
             align: 'center',
-            getter: (row) => Array.isArray(row?.recipient)
-                ? row.recipient.join(', ')
-                : row?.recipient || 'N/A'
+            getter: (row) => Array.isArray(row?.shortTags)
+                ? row.shortTags.join(', ')
+                : row?.shortTags || 'N/A'
         },
         {
             id: 'status',
             label: 'Status',
             minWidth: 120,
             align: 'center',
-            getter: (row) => row?.status || 'Draft'
+            getter: (row) => row?.status ? "true" : 'false'
         },
         {
-            id: "action",
+            id: "Action",
             label: "Action",
             minWidth: 100,
             align: "center"
@@ -926,7 +926,7 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
                 return setColumns(column9)
             } else if (item?.PositionName) {
                 return setColumns(column10)
-            } else if (item?.title) {
+            } else if (item?.title && params["*"] === "tasks") {
                 return setColumns(column11)
             } else if (item?.createdby) {
                 return setColumns(column12)
@@ -946,8 +946,9 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
                 return setColumns(column19)
             } else if (item.reason) {
                 return setColumns(column20);
-            }
-            else {
+            } else if (params["*"] === "email-templates") {
+                return setColumns(column21)
+            } else {
                 return setColumns(column2)
             }
         })
@@ -1154,6 +1155,16 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
                                                                 </b>
                                                             </Dropdown.Item>
                                                         </Dropdown>)
+                                                    } else if (["email-templates"].includes(params["*"])) {
+                                                        return (
+                                                            <Dropdown title={<EditRoundedIcon style={{ cursor: "pointer" }} />} placement='leftStart' noCaret>
+                                                                <Dropdown.Item style={{ minWidth: 120 }} onClick={() => handleChangeData("Edit", row)}>
+                                                                    <b>
+                                                                        <BorderColorRoundedIcon sx={{ color: "#FFD65A" }} /> Edit
+                                                                    </b>
+                                                                </Dropdown.Item>
+                                                            </Dropdown>
+                                                        );
                                                     }
                                                 } else if (column.id === "auth") {
                                                     return (
@@ -1180,7 +1191,6 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
                                                         </Dropdown>
                                                     );
                                                 }
-
                                                 return <p>sjdjkh</p>;
                                             };
 
