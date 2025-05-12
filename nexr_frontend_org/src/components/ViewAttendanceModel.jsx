@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Button, Dialog, DialogActions, DialogContent, DialogTitle } from '@mui/material';
 import Table from '@mui/material/Table';
 import TableBody from '@mui/material/TableBody';
@@ -6,17 +6,9 @@ import TableCell from '@mui/material/TableCell';
 import TableContainer from '@mui/material/TableContainer';
 import TableRow from '@mui/material/TableRow';
 import Loading from './Loader';
-import "./ParentStyle.css";
-import PayslipUI from './payslip/PayslipUI';
-import { useParams } from 'react-router-dom';
+import "./payslip/layout/ParentStyle.css";
 
 export default function ViewAttendanceModel({ modelData, toggleView, openModal }) {
-    const params = useParams();
-
-    const [viewPayslip, setViewPayslip] = useState(false);
-    function handleViewPayslip() {
-        setViewPayslip(!viewPayslip)
-    }
     const renderAttendanceRows = () => {
         return Object.keys(modelData).map((key) => {
             // Exclude keys like "title", "__v", "employee", and "_id"
@@ -31,8 +23,8 @@ export default function ViewAttendanceModel({ modelData, toggleView, openModal }
                         <TableCell>{key.replace(/([A-Z])/g, ' $1').trim().charAt(0).toUpperCase() + key.replace(/([A-Z])/g, ' $1').trim().slice(1)}</TableCell>
                         {/* Check if the object has 'startingTime' and 'endingTime' */}
                         <TableCell>
-                            {modelData[key].startingTime && modelData[key].endingTime
-                                ? `${modelData[key].startingTime} - ${modelData[key].endingTime}`
+                            {modelData[key]?.startingTime?.length && modelData[key]?.endingTime?.length
+                                ? `${modelData[key]?.startingTime[0]} - ${modelData[key]?.endingTime.at(-1)}`
                                 : 'N/A'}
                         </TableCell>
                     </TableRow>
@@ -50,15 +42,10 @@ export default function ViewAttendanceModel({ modelData, toggleView, openModal }
     };
 
     return (
-        viewPayslip ? <PayslipUI payslipId={modelData._id} handleViewPayslip={handleViewPayslip} /> : (modelData ? (
+        (modelData ? (
             <Dialog open={openModal} onClose={toggleView} className='aa'>
                 <DialogTitle className='text-center'>{modelData?.title}</DialogTitle>
-                {
-                    params['*'] === 'payslip' &&
-                    <div className="d-flex justify-content-end px-2">
-                        <button className='btn btn-primary' onClick={handleViewPayslip} >View Payslip</button>
-                    </div>
-                }
+
                 <DialogContent > {/* Use ref here */}
                     <TableContainer>
                         <Table>
@@ -72,6 +59,6 @@ export default function ViewAttendanceModel({ modelData, toggleView, openModal }
                     <Button onClick={toggleView}>Close</Button>
                 </DialogActions>
             </Dialog>
-        ) : <Loading />)
+        ) : <Loading height="80vh" />)
     );
 }

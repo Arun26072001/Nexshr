@@ -4,14 +4,38 @@
   justify-content: center;
 }
 
-/* width: 100%;
-      text-align: center;
-      background: #f4f4f4;
-      position: fixed;
-      height: 50px;
-      bottom: 0px;
-      display: flex;
-      /* align-items: center; */
+/* NoInternet style */
+.noConnectionImg {
+  width: 100px;
+  height: 100px;
+  object-fit: cover;
+}
+
+.searchInputIcon {
+  display: flex;
+  justify-content: flex-start;
+  padding: 16px;
+  margin-left: -6px;
+}
+
+.btnBackground {
+  width: 100%;
+  text-align: center;
+  background: #f4f4f4;
+  position: fixed;
+  height: 50px;
+  bottom: 0px;
+  display: flex;
+  justify-content: center;
+}
+
+.fixedPositionBtns {
+  display: flex;
+  align-items: center;
+  /* justify-content: center; */
+  width: 20%;
+  gap: 15px;
+}
 
 .leaveFormParent {
   background-color: white;
@@ -27,16 +51,17 @@
   margin: 10px 0px;
 }
 
-.rsuite_selector > *  {
+.rsuite_selector > * {
   background-color: #f4f4f4;
   border-radius: 15px;
+  margin-top: 0px;
   /* height: 50px; */
   padding: 7px;
   z-index: 0 !important;
 }
 
-.rsuite_selector_disabled > *{
-  background-color: #F7F7FA;
+.rsuite_selector_disabled > * {
+  background-color: #f7f7fa;
   border-radius: 15px;
   height: 50px !important;
   padding: 7px;
@@ -53,18 +78,37 @@
   height: 50px;
 }
 
+.react-datepicker-wrapper {
+  width: 100%;
+}
+
+.selectInput > * {
+  width: 250px !important;
+  appearance: none;
+  background-color: #f4f4f4 !important;
+  border: none;
+  border-radius: 15px !important;
+  height: 50px;
+  border: none;
+  margin-top: 10px;
+  display: flex;
+  align-items: center;
+  z-index: 1 !important;
+}
+
+.selectInput > .rs-picker-toggle {
+  margin-top: 0px;
+}
+
 .selectInput,
 .inputField {
   padding: 0 15px;
+  appearance: none;
 }
 
 .error {
   border: 2px solid #ec8282;
 }
-
-/* .selectInput, .inputField{
-      padding: 7px;
-  } */
 
 input[type="file"]::file-selector-button {
   background-color: black;
@@ -76,14 +120,14 @@ input[type="file"]::file-selector-button {
   cursor: pointer;
 }
 
+.rs-picker-toggle.rs-btn {
+  width: 100% !important;
+}
+
 .inputLabel {
   margin: 10px;
   font-size: 14px;
   font-weight: 400;
-}
-
-.robotoFont {
-  font-family: "Roboto";
 }
 
 /* Twotabs styles */

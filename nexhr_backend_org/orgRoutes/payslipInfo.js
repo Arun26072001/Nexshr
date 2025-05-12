@@ -1,10 +1,10 @@
 const express = require("express");
-const { verifyAdminHREmployee, verifyAdmin } = require("../auth/authMiddleware");
+const { verifyAdminHREmployeeManagerNetwork, verifyAdmin } = require("../auth/authMiddleware");
 const { Org } = require("../OrgModels/OrganizationModel");
 const { getPayslipInfoModel } = require("../OrgModels/OrgPayslipInfo");
 const router = express.Router();
 
-router.get("/:orgId", verifyAdminHREmployee, async (req, res) => {
+router.get("/:orgId", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
     try {
         const { orgName } = await Org.findById({ _id: req.params.orgId });
         const PaySlipInfo = getPayslipInfoModel(orgName)

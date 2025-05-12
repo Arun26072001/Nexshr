@@ -1,0 +1,47 @@
+const express = require("express");
+const { verifyAdminHR, verifyAdminHREmployeeManagerNetwork } = require("../auth/authMiddleware");
+const { Holiday, HolidayValidation } = require("../models/HolidayModel");
+const router = express.Router();
+
+router.post("/", verifyAdminHR, async (req, res) => {
+    try {
+        const body = {
+            currentYear: new Date().getFullYear(),
+            holidays: req.body.holidays
+        }
+        
+        const isExist = await Holiday.findOne({ currentYear: body.currentYear });
+        if (isExist) {
+            return res.status(400).send({ error: "Already updated this year of holidays!" })
+        }
+
+        const validation = HolidayValidation.validate(body);
+        const { error } = validation;
+        if (error) {
+            console.log(error);
+            
+            return res.status(400).send({ error: error.details[0].message })
+        }
+        const response = await Holiday.create(body);
+        return res.send({ message: "holiday has been added.", data: response.data });
+    } catch (error) {
+        console.log(error);
+        
+        return res.status(500).send({ error: error.message })
+    }
+})
+
+router.get("/:year", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
+    try {
+        const response = await Holiday.findOne({ currentYear: req.params.year }).exec();
+        if (!response) {
+            return res.status(200).send({ message: `Please add ${req.params.year} year of holidays!` })
+        } else {
+            return res.send(response);
+        }
+    } catch (error) {
+        return res.status(500).send({ error: error.message })
+    }
+})
+
+module.exports = router;

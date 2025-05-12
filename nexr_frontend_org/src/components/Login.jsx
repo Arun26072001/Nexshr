@@ -1,112 +1,70 @@
-import React, { useEffect, useContext } from "react";
-import Logo from "../imgs/webnexs_logo.png";
-import { css } from "@emotion/react"; // Update the import for emotion
+import React, { useContext, useEffect, useState } from "react";
 import { ScaleLoader } from "react-spinners";
-import { Navigate, useNavigate, useParams } from "react-router-dom";
 import { EssentialValues } from "../App";
 import "./Login.css";
-
-const override = css`
-  display: block;
-  margin: 0 auto;
-  border-color: red;
-`;
+import Logo from "../imgs/webnexs_logo.webp";
+import { useNavigate } from "react-router-dom";
+// icons
+import VisibilityRoundedIcon from '@mui/icons-material/VisibilityRounded';
+import VisibilityOffRoundedIcon from '@mui/icons-material/VisibilityOffRounded';
+import { Input, InputGroup } from "rsuite";
 
 const Login = () => {
+  const { handleSubmit, loading, pass, whoIs } = useContext(EssentialValues);
+  const isLogin = localStorage.getItem("isLogin");
   const navigate = useNavigate();
-  const { handleSubmit, loading, pass, data } = useContext(EssentialValues);
-  console.log(typeof data.Account);
+  const [isView, setIsView] = useState(false);
 
-  // const { id } = useParams();
-
-  // useEffect(() => {
-  //   // localStorage.setItem("orgId", id)
-  //   if (Account === "1") {
-  //     navigate("/admin")
-  //   }
-  //   else if (Account === "2") {
-  //     navigate("/hr")
-  //   } else if (Account === "3") {
-  //     navigate("/emp")
-  //   }
-  // }, []);
-
-  // useEffect(() => {
-  //   async function checkNetworkConnection() {
-  //     try {
-  //       const connectionMsg = await axios.get(`${url}/`);
-  //       console.log(connectionMsg?.data?.message);
-  //       console.log(isLogin && window.location.pathname);
-  //       if (isLogin && window.location.pathname === "/") {
-
-  //         if (account === '1') {
-  //           navigate("/admin")
-  //         } else if (account === '2') {
-  //           navigate("/hr")
-  //         } else if (account === '3') {
-  //           navigate("/emp")
-  //         }
-  //       }
-  //     } catch (error) {
-  //       navigate("/no-internet-connection");
-  //     }
-  //   }
-  //   checkNetworkConnection();
-  // }, []);
+  useEffect(() => {
+    if (isLogin === "true") return navigate(`/${whoIs}`)
+  }, [])
 
   return (
-    <div>
-      {data.Account === '1'
-        ? <Navigate to={"/admin"} />
-        : data.Account === '2' ? <Navigate to={"/hr"} />
-          : data.Account === '3' ? <Navigate to={"/emp"} />
-            : ""}
-      <div className="container">
-        <div id="main-outer-div">
-          <div id="logo-div">
-            <img id="logo-img" src={Logo} alt="Webnexs Logo" />
-          </div>
-          <div id="title-div">
-            <h4 className="title">Sign in</h4>
-          </div>
-          <div id="outer-login-form-div">
-            <form action="" method="" onSubmit={handleSubmit}>
-              <input
-                className="login-form-input"
-                type="text"
-                placeholder="Email"
-                required="required"
-                name="email"
-              />
-              <input
-                className="login-form-input"
-                type="password"
-                name="password"
-                placeholder="Password"
-                required="required"
-              />
-              <input
-                className="login-form-input"
-                type="submit"
-                value="Sign in"
-                id="submitBtn"
-              />
-              {!pass ? (
-                <p className="alert">Invalid UserName or Password</p>
-              ) : (
-                ""
-              )}
-            </form>
-          </div>
-          <div className="loading">
-            <ScaleLoader
-              css={override}
-              size={150}
-              color={"#123abc"}
-              loading={loading}
-            />
-          </div>
+    <div className="container center-box">
+      <div id="main-outer-div">
+        {/* If you decide to include the logo later, uncomment the following div */}
+
+        <div id="logo-div">
+          <img
+            id="logo-img"
+            src={Logo}
+            width={80}
+            height={80}
+            alt="Webnexs Logo"
+            style={{ objectFit: "cover" }}
+          />
         </div>
+
+        <p className="title">Sign in</p>
+
+        <div id="outer-login-form-div">
+          <form onSubmit={handleSubmit}>
+            <Input type="email" style={{ background: "#e8f0fe" }} className="my-2 border-0" size="lg" placeholder="Email" />
+            <InputGroup size="lg" style={{ background: "#e8f0fe" }} inside className="my-2 border-0">
+              <Input
+                type={isView ? "text" : "password"}
+                placeholder="Password"
+                style={{ background: "#e8f0fe" }}
+              />
+              <InputGroup.Button onClick={() => setIsView(!isView)}>
+                {isView ? <VisibilityRoundedIcon /> : <VisibilityOffRoundedIcon />}
+              </InputGroup.Button>
+            </InputGroup>
+            <input
+              className="login-form-input text-light"
+              style={{ padding: "0px" }}
+              type="submit"
+              value="Sign in"
+              id="submitBtn"
+            />
+            {!pass && <p className="alert">Invalid Username or Password</p>}
+          </form>
+        </div>
+        {loading && (
+          <div className="loading">
+            <ScaleLoader size={150} color="#123abc" />
+          </div>
+        )}
       </div>
     </div>
   );

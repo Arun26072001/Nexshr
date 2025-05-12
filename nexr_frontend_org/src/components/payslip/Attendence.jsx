@@ -1,17 +1,19 @@
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import "./payslip.css";
 import axios from "axios";
 import LeaveTable from "../LeaveTable";
-import { DateRangePicker } from "rsuite";
+import { DateRangePicker, TagPicker } from "rsuite";
 import Loading from "../Loader";
-import { formatTime } from "../ReuseableAPI";
+import { exportAttendanceToExcel, formatTime } from "../ReuseableAPI";
 import NoDataFound from "./NoDataFound";
 import { toast } from "react-toastify";
+import { EssentialValues } from "../../App";
+import FileDownloadRoundedIcon from '@mui/icons-material/FileDownloadRounded';
 
-const Attendence = (props) => {
+const Attendence = () => {
   const url = process.env.REACT_APP_API_URL;
-  const empId = localStorage.getItem("_id")
-  const token = localStorage.getItem("token");
+  const { data } = useContext(EssentialValues);
+  const { _id, token } = data;
   const [clockInsData, setclockInsData] = useState({});
   const [regularHeight, setRegularHeight] = useState(0);
   const [lateHeight, setLateHeight] = useState(0);
@@ -19,7 +21,39 @@ const Attendence = (props) => {
   const [tableData, setTableData] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [daterangeValue, setDaterangeValue] = useState("");
+  const timeOptions = [
+    "login",
+    "morningBreak",
+    "eveningBreak",
+    "lunch",
+    "meeting",
+    "event"
+  ].map(item => ({ label: item, value: item }));
+  const [selectedTimeOption, setSelectedTimeOption] = useState(["login", "morningBreak", "eveningBreak", "lunch"]);
+  const [filteredTabledata, setFilteredTableData] = useState([]);
 
+  useEffect(() => {
+    if (selectedTimeOption.length > 0) {
+      const updateTableData = filteredTabledata.flatMap((item) =>
+        selectedTimeOption.map((option) => {
+          const timeOptionKey = option; // Get the corresponding key
+          const timeData = item[timeOptionKey] || {}; // Safely access time data
+
+          return {
+            Name: `${item.employee.FirstName} ${item.employee.LastName}`,
+            date: item.date.split("T")[0],
+            type: timeOptionKey,
+            punchIn: timeData.startingTime?.[0] || "00:00:00", // Avoid errors if empty
+            punchOut: timeData.endingTime?.[timeData.endingTime.length - 1] || "00:00:00",
+            totalHour: timeData.timeHolder || "00:00:00",
+            behaviour: timeOptionKey === "login" ? item.behaviour : timeData.reasonForLate || "N/A"
+          };
+        })
+      );
+
+      setTableData(updateTableData); // Set table data once after processing all items
+    }
+  }, [selectedTimeOption, filteredTabledata]);
 
   function calculateOverallBehavior(regularCount, lateCount, earlyCount) {
     const totalCount = regularCount + lateCount + earlyCount;
@@ -44,205 +78,150 @@ const Attendence = (props) => {
 
   function calculateWorkAvailablity(empWorkHour, companyWorkHour) {
     if (empWorkHour !== 0) {
-      return ((empWorkHour / companyWorkHour) * 100).toFixed(2)
+      return ((empWorkHour / companyWorkHour) * 100).toFixed(1)
     } else {
       return 0;
     }
   }
 
-  useEffect(() => {
-    const getClockins = async () => {
-      setIsLoading(true);
-      if (empId) {
-        const dashboard = await axios.get(`${url}/api/clock-ins/employee/${empId}`, {
-          params: {
-            daterangeValue
-          },
-          headers: {
-            authorization: token || ""
-          }
-        });
-        setclockInsData(dashboard.data);
-        setTableData(dashboard.data.clockIns);
-        const { totalEarlyLogins, totalLateLogins, totalRegularLogins } = dashboard.data;
-        const totalLogins = totalEarlyLogins + totalLateLogins + totalRegularLogins
-
-        // Calculate height percentages
-        if (totalLogins > 0) {
-          setRegularHeight((totalRegularLogins / totalLogins) * 100);
-          setLateHeight((totalLateLogins / totalLogins) * 100);
-          setEarlyHeight((totalEarlyLogins / totalLogins) * 100);
+  const getClockins = async () => {
+    setIsLoading(true);
+    try {
+      const dashboard = await axios.get(`${url}/api/clock-ins/employee/${_id}`, {
+        params: {
+          daterangeValue
+        },
+        headers: {
+          authorization: token || ""
         }
-        setIsLoading(false);
-      } else {
-        setIsLoading(false);
-        toast.error("Employee Id not found!")
+      });
+
+      setclockInsData(dashboard.data);
+      setTableData(dashboard.data.clockIns);
+      setFilteredTableData(dashboard.data.clockIns)
+      const { totalEarlyLogins, totalLateLogins, totalRegularLogins } = dashboard.data;
+      const totalLogins = totalEarlyLogins + totalLateLogins + totalRegularLogins
+
+      // Calculate height percentages
+      if (totalLogins > 0) {
+        setRegularHeight((totalRegularLogins / totalLogins) * 100);
+        setLateHeight((totalLateLogins / totalLogins) * 100);
+        setEarlyHeight((totalEarlyLogins / totalLogins) * 100);
       }
+    } catch (error) {
+      console.log(error);
     }
-    getClockins()
-  }, [empId, daterangeValue])
+    setIsLoading(false);
+  }
 
-  //   useEffect(() => {
-  //     const getLeaveData = async () => {
-  //         try {
-  //             const leaveData = await axios.get(`${url}/api/leave-application/date-range/${empId}`, {
-  //                 params: {
-  //                     daterangeValue
-  //                 },
-  //                 headers: {
-  //                     authorization: token || ""
-  //                 }
-  //             })
-  //             console.log(leaveData.data);
-
-  //             setLeaveRequests(leaveData.data);
-  //             setFullLeaveRequests(leaveData.data);
-  //         } catch (err) {
-  //             toast.error(err?.response?.data?.message)
-  //         }
-  //     }
-
-  //     getLeaveData();
-  // }, [daterangeValue, empId])
-
+  useEffect(() => {
+    if (_id) {
+      getClockins()
+    } else {
+      setIsLoading(false);
+      toast.error("Employee Id not found!")
+    }
+  }, [_id, daterangeValue])
+  console.log(clockInsData);
   return (
     <div>
-      {/* <PayslipRouter /> */}
-
       <div className="leaveDateParent">
-        <div className="payslipTitle">
-          Attendance
-        </div>
-        <div>
-          <DateRangePicker value={daterangeValue} placeholder="Select Date" onChange={setDaterangeValue} />
-        </div>
+        <div className="payslipTitle">Attendance</div>
       </div>
 
-      {/* <div className="container"> */}
-      {isLoading ? <Loading />
-        : Object.keys(clockInsData).length > 0 ? <>
+      {isLoading ? (
+        <Loading height="80vh" />
+      ) : Object.keys(clockInsData).length > 0 ? (
+        <>
+          {/* Attendance Chart */}
           <div className="row w-100 mx-auto">
             <div className="chartParent">
-              <div className="col-lg-3 regular" style={{ height: `${regularHeight}%` }}>
-                {
-                  clockInsData.totalRegularLogins == 0 ?
-                    <div className="d-flex justify-content-center emtChart">
-                      <p className="payslipTitle" style={{ color: "#146ADC" }}>{clockInsData.totalRegularLogins} Days</p>
-                      <p className="leaveDays text-center" style={{ color: "#146ADC" }}>(Regular)</p>
-                    </div>
-                    : <div className="d-flex justify-content-center">
-                      <p className="payslipTitle" style={{ color: "#146ADC" }}>{clockInsData.totalRegularLogins} Days</p>
-                      <p className="leaveDays text-center" style={{ color: "#146ADC" }}>(Regular)</p>
-                    </div>
-                }
-              </div>
-              <div className="col-lg-3 early" style={{ height: `${earlyHeight}%` }}>
-                {
-                  clockInsData.totalEarlyLogins == 0 ?
-                    <div className="d-flex justify-content-center emtChart">
-                      <p className="payslipTitle" style={{ color: "#146ADC" }}>{clockInsData.totalEarlyLogins} Days</p>
-                      <p className="leaveDays text-center" style={{ color: "#146ADC" }}>(Early)</p>
-                    </div> : <div className="d-flex justify-content-center">
-                      <p className="payslipTitle" style={{ color: "#146ADC" }}>{clockInsData.totalEarlyLogins} Days</p>
-                      <p className="leaveDays text-center" style={{ color: "#146ADC" }}>(Early)</p>
-                    </div>
-                }
-              </div>
-              <div className="col-lg-3 late" style={{ height: `${lateHeight}%` }}>
-                {
-                  clockInsData.totalLateLogins == 0 ?
-                    <div className="d-flex justify-content-center emtChart">
-                      <p className="payslipTitle" style={{ color: "#146ADC" }}>{clockInsData.totalLateLogins} Days</p>
-                      <p className="leaveDays text-center" style={{ color: "#146ADC" }}>(Late)</p>
-                    </div> : <div className="d-flex justify-content-center">
-                      <p className="payslipTitle" style={{ color: "#146ADC" }}>{clockInsData.totalLateLogins} Days</p>
-                      <p className="leaveDays text-center" style={{ color: "#146ADC" }}>(Late)</p>
-                    </div>
-                }
-              </div>
-              <div className="col-lg-3 leave" style={{ height: `${clockInsData.totalLeaveDays * 10}%` }}>
-                {
-                  clockInsData.totalLeaveDays == 0 ?
-                    <div className="d-flex justify-content-center emtChart">
-                      <p className="payslipTitle" style={{ color: "#146ADC" }}>{clockInsData.totalLeaveDays} Days</p>
-                      <p className="leaveDays text-center" style={{ color: "#146ADC" }}>(Leave)</p>
-                    </div> : <div className="d-flex justify-content-center">
-                      <p className="payslipTitle" style={{ color: "#146ADC" }}>{clockInsData.totalLeaveDays} Days</p>
-                      <p className="leaveDays text-center" style={{ color: "#146ADC" }}>(Leave)</p>
-                    </div>
-                }
-              </div>
+              {[
+                { key: "totalRegularLogins", label: "Regular", height: regularHeight },
+                { key: "totalEarlyLogins", label: "Early", height: earlyHeight },
+                { key: "totalLateLogins", label: "Late", height: lateHeight },
+                { key: "totalLeaveDays", label: "Leave", height: clockInsData.totalLeaveDays * 10 },
+              ].map(({ key, label, height }) => {
+                return (<div
+                  key={key}
+                  className={`col-lg-3 col-3 ${label.toLowerCase()}`}
+                  style={{ height: `${height}%` }}>
+                  <div className={`${screen.width < 720 ? "d-block" : "d-flex"}  justify-content-center ${clockInsData[key] === 0 ? "emtChart" : ""}`}>
+                    <p className="payslipTitle" style={{ color: "#146ADC" }}>
+                      {clockInsData[key].toFixed(1)} Days
+                    </p>
+                    <p className="leaveDays text-center" style={{ color: "#146ADC" }}>({label})</p>
+                  </div>
+                </div>)
+              })}
             </div>
           </div>
 
-          <div className="leaveBoard">
-            <div className="leaveData">
-              <div className="d-flex flex-column">
-                <div className="leaveDays">
-                  {formatTime(clockInsData.companyTotalWorkingHour)}
-                </div>
-                <div className="leaveDaysDesc">
-                  Total schedule hour
-                </div>
-              </div>
-            </div>
-            <div className="leaveData">
-              <div className="d-flex flex-column">
-                <div className="leaveDays">
-                  {formatTime(clockInsData.totalLeaveDays * 9)}
-                </div>
-                <div className="leaveDaysDesc">
-                  Leave hour
-                </div>
-              </div>
-            </div>
-            <div className="leaveData">
-              <div className="d-flex flex-column">
-                <div className="leaveDays" style={{ color: "#146ADC" }}>
-                  %{calculateWorkAvailablity(Number(clockInsData.totalEmpWorkingHours), clockInsData.companyTotalWorkingHour)}
-                </div>
-                <div className="leaveDaysDesc" >
-                  Total work availability
-                </div>
-              </div>
-            </div>
-            <div className="leaveData">
-              <div className="d-flex flex-column">
-                <div className="leaveDays text-success">
-                  {formatTime(clockInsData.totalEmpWorkingHours)}
-                </div>
-                <div className="leaveDaysDesc">
-                  Total active hour
+          {/* Attendance Summary Board */}
+          <div className="leaveBoard gap-2">
+            {[
+              { value: formatTime(clockInsData.companyTotalWorkingHour), label: "Total schedule hour" },
+              { value: formatTime(clockInsData.totalLeaveDays * 9), label: "Leave hour" },
+              {
+                value: `%${calculateWorkAvailablity(Number(clockInsData.totalEmpWorkingHours), clockInsData.companyTotalWorkingHour)}`,
+                label: "Total work availability",
+                className: "text-primary",
+              },
+              { value: formatTime(clockInsData.totalEmpWorkingHours), label: "Total active hour", className: "text-success" },
+              {
+                value: `${(clockInsData.companyTotalWorkingHour - Number(clockInsData.totalEmpWorkingHours)).toFixed(0)} hour`,
+                label: "Balance",
+                className: "text-danger",
+              },
+              {
+                value: calculateOverallBehavior(clockInsData.totalRegularLogins, clockInsData.totalLateLogins, clockInsData.totalEarlyLogins),
+                label: "Average Behaviour",
+              },
+            ].map(({ value, label, className }, index) => (
+              <div
+                key={index}
+                className="timeLogBox"
+              >
+                <div className="d-flex flex-column">
+                  <div className={`leaveDays col-12 ${className || ""}`}>{value}</div>
+                  <div className="leaveDaysDesc">{label}</div>
                 </div>
               </div>
-            </div>
-            <div className="leaveData">
-              <div className="d-flex flex-column">
-                <div className="leaveDays text-danger">
-                  {(clockInsData.companyTotalWorkingHour - Number(clockInsData.totalEmpWorkingHours)).toFixed(0)} hour
-                </div>
-                <div className="leaveDaysDesc">
-                  Balance
-                </div>
-              </div>
-            </div>
-            <div style={{ width: "30%", margin: "10px" }} >
-              <div className="d-flex flex-column">
-                <div className="leaveDays">
-                  {calculateOverallBehavior(clockInsData.totalRegularLogins, clockInsData.totalLateLogins, clockInsData.totalEarlyLogins)}
-                </div>
-                <div className="leaveDaysDesc">
-                  Average Behaviour
-                </div>
-              </div>
-            </div>
+            ))}
           </div>
-
-          <LeaveTable data={tableData} />
-        </> : <NoDataFound message={"Attendance data not found!"} />
+          {/* Table or No Data Message */}
+          <>
+            {/* Filters: Date Picker & Time Selector */}
+            <div className="d-flex justify-content-between align-items-center gap-2 flex-wrap my-2 px-2">
+              <div className="col-lg-5 col-12">
+                <DateRangePicker value={daterangeValue} size="lg" placeholder="Select Date" onChange={setDaterangeValue} />
+              </div>
+              {tableData.length > 0 &&
+                <div className="col-lg-5 col-12 ">
+                  <TagPicker
+                    data={timeOptions}
+                    required
+                    size="lg"
+                    appearance="default"
+                    style={{ width: "100%" }}
+                    placeholder="Select time options"
+                    value={selectedTimeOption}
+                    onChange={(e) => setSelectedTimeOption(e)}
+                  />
+                </div>
+              }
+              <button className="button" onClick={() => exportAttendanceToExcel(clockInsData.clockIns)} ><FileDownloadRoundedIcon /> Export</button>
+            </div>
+            {
+              tableData.length > 0 ?
+                <LeaveTable data={tableData} />
+                : <NoDataFound message="Attendance data not found!" />
+            }
+          </>
+        </>
+      ) : null
       }
-
-    </div>
+    </div >
   )
 };
 

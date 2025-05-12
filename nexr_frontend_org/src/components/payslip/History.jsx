@@ -1,29 +1,67 @@
-import React from "react"
+import React, { useContext } from "react";
+import { EssentialValues } from "../../App";
+import RequestPageIcon from '@mui/icons-material/RequestPage';
+import { useNavigate } from "react-router-dom";
+import NoDataFound from "./NoDataFound";
+import { Skeleton } from "@mui/material";
 
-const History = (props) => {
-    const historyData = [
-        { salary: "$8800", name: "Arun Kumar", date: "6/10/2024", code: "B-10D21" },
-        { salary: "$9000", name: "John Doe", date: "7/10/2024", code: "B-10D22" },
-        { salary: "$8500", name: "Jane Smith", date: "8/10/2024", code: "B-10D23" },
-        { salary: "$8700", name: "Alice Brown", date: "9/10/2024", code: "B-10D24" }
-    ];
+const History = ({ payslips, isLoading }) => {
+    const { data, whoIs } = useContext(EssentialValues);
+    const navigate = useNavigate();
+
+    if (isLoading) {
+        return <div className="gap-1">
+            {
+                [Array(3).length].map((_, index) => {
+                    return <Skeleton variant="rounded" key={index} height={130} className="my-3" />
+                })
+            }
+        </div>;
+    }
+
     return (
         <div className="container-fluid">
-            <div className="payslipTitle">
-                History
-            </div>
-            {historyData.map((item, index) => (
-                <div className="historyCard" key={index}>
-                    <div className="salaryFont">{item.salary}</div>
-                    <div className="d-flex">
-                        <div className="historyCardText" style={{borderRight: "2px solid gray" }}>{item.name}</div>
-                        <div className="historyCardText" style={{borderRight: "2px solid gray" }}>{item.date}</div>
-                        <div className="historyCardText">{item.code}</div>
+            <p className="payslipTitle">History</p>
+            {payslips.arrangedPayslips.length > 0 ? payslips.arrangedPayslips.map((item, index) => {
+                const {
+                    ESI = 0, LossOfPay = 0, ProfessionalTax = 0, ProvidentFund = 0,
+                    bonusAllowance = 0, conveyanceAllowance = 0,
+                    houseRentAllowance = 0, incomeTax = 0, othersAllowance = 0
+                } = item.payslip;
+                const basicSalary = Number(item.employee.basicSalary) || 0;
+
+                const Salary =
+                    (basicSalary + bonusAllowance + conveyanceAllowance + houseRentAllowance + othersAllowance) -
+                    (ESI + LossOfPay + ProfessionalTax + ProvidentFund + incomeTax);
+
+                const employeeName = data.Name[0].toUpperCase() + data.Name.slice(1);
+
+                return (
+                    <div className="historyCard" key={index}>
+                        <div className="salaryFont">{Salary.toFixed(2)} &#8377;</div>
+                        <div className="d-flex justify-content-between">
+                            <div className="d-flex align-items-center gap-3 flex-wrap">
+                                <div className="timeLogBox " >
+                                    {employeeName || "N/A"}
+                                </div>
+                                <div className="timeLogBox" >
+                                    {item.payslip.period || "N/A"}
+                                </div>
+                                <div className="timeLogBox">
+                                    {item.payslip.status || "N/A"}
+                                </div>
+                            </div>
+                            <div onClick={() => navigate(`/${whoIs}/payslip/${item._id}`)}>
+                                <RequestPageIcon color="primary" fontSize="large" style={{ cursor: "pointer" }} />
+                            </div>
+                        </div>
                     </div>
-                </div>
-            ))}
+                );
+            }) :
+                <NoDataFound message="No payslip data found" />
+            }
         </div>
-    )
+    );
 };
 
 export default History;

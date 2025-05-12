@@ -114,7 +114,7 @@ router.post("/:id", async (req, res) => {
               <p><b>Email</b>: ${addEmp.Email}</p><br />
               <p><b>Password</b>: ${addEmp.Password}</p><br />
               <p>This is the Admin credentials for ${orgData.orgName}, Please Login below Link.</p>
-              <a href="${process.env.FRONTEND_URL}/${orgData._id}" class="button">Confirm Email</a>
+              <a href="${process.env.REACT_APP_API_URL}/${orgData._id}" class="button">Confirm Email</a>
             </div>
             <div class="footer">
               <p>Have questions? Need help? <a href="mailto:${userAccountData.email}">Contact our support team</a>.</p>

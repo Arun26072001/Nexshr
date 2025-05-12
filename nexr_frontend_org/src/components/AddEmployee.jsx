@@ -3,16 +3,18 @@ import { useState, useRef, useEffect } from "react";
 import "./leaveForm.css";
 import axios from "axios";
 import AddEmployeeForm from "./AddEmployeeform";
-import { fetchAllEmployees, fetchEmployeeData, fetchEmployees, fetchRoles, getDepartments } from "./ReuseableAPI";
+import { fetchAllEmployees, fetchEmployeeData, fetchRoles, getDepartments } from "./ReuseableAPI";
 import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "react-toastify";
 import EditEmployeeform from "./EditEmployeeform";
 import { TimerStates } from "./payslip/HRMDashboard";
 import Loading from "./Loader";
+import { EssentialValues } from "../App";
 
 const AddEmployee = () => {
   const { id } = useParams();
   const { isEditEmp } = useContext(TimerStates);
+  const { whoIs, data } = useContext(EssentialValues);
   const [details, setDetails] = useState("personal");
   const [departments, setDepartments] = useState([]);
   const [roles, setRoles] = useState([]);
@@ -31,9 +33,10 @@ const AddEmployee = () => {
   const jobRef = useRef(null);
   const financialRef = useRef(null);
   const url = process.env.REACT_APP_API_URL;
-  const token = localStorage.getItem("token");
+  const { token } = data;
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
+  const [preview, setPreview] = useState("");
 
   function handlePersonal() {
     if (personalRef.current) {
@@ -64,7 +67,7 @@ const AddEmployee = () => {
       })
     }
   }
-  
+
   function handleEmployment() {
     if (employmentRef.current) {
       const scrollDown = employmentRef.current.getBoundingClientRect().top + window.scrollY;
@@ -99,7 +102,7 @@ const AddEmployee = () => {
     setScrolledHeight(window.scrollY || window.pageYOffset);
   }
   window.addEventListener("scroll", getScrollPx);
-  
+
   function handleScroll(value) {
     setDetails(value);
     if (value === "personal") {
@@ -144,7 +147,7 @@ const AddEmployee = () => {
       console.log(err.data);
     }
   }
-  
+
   const fetchCompanies = async () => {
     try {
       const company = await axios.get(url + "/api/company", {
@@ -155,16 +158,16 @@ const AddEmployee = () => {
       setCompanies(company.data);
 
     } catch (err) {
-      console.log(err.data);
+      console.log(err);
     }
   }
 
   const fetchTeamLead = async () => {
     try {
       const employees = await fetchAllEmployees()
-      
-      let filterTL = employees.filter(emp => emp.position.some((pos) => pos.PositionName === "TL")).map(emp => emp);
-      
+
+      let filterTL = employees.filter(emp => emp?.position?.PositionName === "Team Lead").map(emp => emp);
+
       setLeads(filterTL);
 
     } catch (err) {
@@ -176,10 +179,8 @@ const AddEmployee = () => {
     try {
       const employees = await fetchAllEmployees();
 
-      let filterManager = employees.filter(emp => emp.position.some((pos) => pos.PositionName === "Manager")).map(emp => emp);;
-
+      let filterManager = employees.filter(emp => emp?.position?.PositionName === "Manager").map(emp => emp);
       setManagers(filterManager);
-
     } catch (err) {
       console.error(err);
     }
@@ -188,7 +189,11 @@ const AddEmployee = () => {
   async function gettingRoleData() {
     try {
       const roleData = await fetchRoles();
-      setRoles(roleData)
+      if (["emp", "hr", "manager"].includes(whoIs)) {
+        setRoles(roleData.filter((role) => ["Assosiate", "HR", "Manager"].includes(role.RoleName)))
+      } else {
+        setRoles(roleData)
+      }
     } catch (err) {
       console.log(err);
     }
@@ -204,26 +209,25 @@ const AddEmployee = () => {
       setCountries(res.data)
     } catch (err) {
       toast.error(err.message)
-      if (err.status == 401) {
-        navigate("/admin/unauthorize")
+      if (err.status === 401) {
+        navigate(`/${whoIs}/unauthorize`)
       }
     }
   }
 
   async function fetchEmployee() {
+    setIsLoading(true);
     try {
       const empData = await fetchEmployeeData(id);
-      console.log(empData);
-      
+      setPreview(empData.profile);
       setEmployeeObj({
         FirstName: empData?.FirstName || "",
         LastName: empData?.LastName || "",
         Email: empData?.Email || "",
         Password: empData?.Password || "",
-        teamLead: empData?.teamLead?.[0] || "", // Safely access first element or set to empty string
-        managerId: empData?.managerId?.[0] || "", // Safely access first element or set to empty string
+        countryCode: empData?.countryCode || "",
         phone: empData?.phone || "",
-        company: empData?.company?.[0] || "", // Safely access first element or set to empty string
+        company: Array.isArray(empData?.company) ? empData.company[0] : empData?.company || "",
         dateOfBirth: empData?.dateOfBirth || "",
         gender: empData?.gender || "",
         address: {
@@ -232,9 +236,9 @@ const AddEmployee = () => {
           country: empData?.address?.country || "",
           zipCode: empData?.address?.zipCode || ""
         },
-        position: empData?.position?.[0] || "", // Safely access first element's _id or set to empty string
-        department: empData?.department[0] || "",
-        role: empData?.role[0]?._id || "",
+        position: empData?.position?._id || "", // Safely access first element's _id or set to empty string
+        department: empData?.department?._id || "",
+        role: empData?.role._id || "",
         description: empData?.description || "",
         dateOfJoining: empData?.dateOfJoining || "",
         employmentType: empData?.employmentType || "",
@@ -242,26 +246,29 @@ const AddEmployee = () => {
         annualLeaveYearStart: empData?.annualLeaveYearStart || "",
         companyWorkingHourPerWeek: empData?.companyWorkingHourPerWeek || "",
         publicHoliday: empData?.publicHoliday || "",
-        entitlement: empData?.entitlement || "",
-        fullTimeAnnualLeave: empData?.fullTimeAnnualLeave || "",
+        monthlyPermissions: empData?.monthlyPermissions || 2,
+        typesOfLeaveCount: empData?.typesOfLeaveCount || {},
         annualLeaveEntitlement: empData?.annualLeaveEntitlement || "",
         basicSalary: empData?.basicSalary || "",
         bankName: empData?.bankName || "",
         accountNo: empData?.accountNo || "",
         accountHolderName: empData?.accountHolderName || "",
         IFSCcode: empData?.IFSCcode || "",
-        taxDeduction: empData?.taxDeduction || ""
+        taxDeduction: empData?.taxDeduction || "",
+        isPermanentWFH: empData.isPermanentWFH || false
       });
-      
+
     } catch (error) {
       console.log(error);
       toast.error(error.message);
     }
+    setIsLoading(false);
   }
-  
-  useEffect(() => {
 
-    if (scrolledHeight > 2400) {
+  useEffect(() => {
+    if (scrolledHeight > 3000) {
+      setDetails("payslip")
+    } else if (scrolledHeight > 2400) {
       setDetails("financial")
     } else if (scrolledHeight > 1850) {
       setDetails("job");
@@ -275,7 +282,6 @@ const AddEmployee = () => {
   }, [scrolledHeight])
 
   useEffect(() => {
-    setIsLoading(true);
     async function fetchDepartments() {
       try {
         const departments = await getDepartments()
@@ -298,15 +304,13 @@ const AddEmployee = () => {
     fetchtimePatterns();
     fetchTeamLead();
     fetchManagers();
-    setIsLoading(false);
   }, []);
 
-  // console.log(employeeObj);
-  
+
   return (
     <>
       {isLoading ? (
-        <Loading />
+        <Loading height="80vh" />
       ) : isEditEmp && employeeObj?.FirstName ? (
         <EditEmployeeform
           details={details}
@@ -331,8 +335,10 @@ const AddEmployee = () => {
           positions={positions}
           managers={managers}
           timePatterns={timePatterns}
-          />
-        ) : (
+          preview={preview}
+          setPreview={setPreview}
+        />
+      ) : (
         <AddEmployeeForm
           details={details}
           companies={companies}
@@ -355,57 +361,10 @@ const AddEmployee = () => {
           positions={positions}
           managers={managers}
           timePatterns={timePatterns}
-          />
-        )}
+        />
+      )}
     </>
-
-)
+  )
 };
 
 export default AddEmployee;
-// function onChangeEmp(e) {
-//   console.log(e.target);
-
-//   const { name, value } = e.target;
-//   setEmployeeObj((prev) => ({
-//     ...prev,
-//     [name]: value
-//   }))
-// }
-
-// if(employeeObj.dateOfJoining !== ""){
-//   const dojGetTime = new Date(employeeObj.dateOfJoining).getTime();
-//   setEmployeeObj((prev)=>({
-//     ...prev,
-//     annualLeaveEntitlement: Math.ceil(new Date().getTime - dojGetTime/(1000*60*60*60*24*365))
-//   }))
-// }
-// console.log(employeeObj);
-        
-          // useEffect(() => {
-          //   const calculateTimeDifference = () => {
-          //     if (timePatterns.length > 0) {
-          //       const selectedPattern = timePatterns.find(pattern => pattern._id === employeeObj.workingTimePattern);
-          //       if (selectedPattern && selectedPattern.StartingTime && selectedPattern.FinishingTime) {
-          //         const [startHour, startMinute] = selectedPattern.StartingTime.split(":").map(num => parseInt(num, 10));
-          //         const [endHour, endMinute] = selectedPattern.FinishingTime.split(":").map(num => parseInt(num, 10));
-        
-          //         const startDate = new Date();
-          //         startDate.setHours(startHour);
-          //         startDate.setMinutes(startMinute);
-        
-          //         const endDate = new Date();
-          //         endDate.setHours(endHour);
-          //         endDate.setMinutes(endMinute);
-        
-          //         const timeDiff = endDate.getTime() - startDate.getTime();
-          //         const hoursDiff = Math.floor(timeDiff / (1000 * 60 * 60));
-          //         const minutesDiff = Math.floor((timeDiff % (1000 * 60 * 60)) / (1000 * 60));
-        
-          //         setTimeDifference((hoursDiff * 60) + minutesDiff);
-          //       }
-          //     }
-          //   };
-        
-          //   calculateTimeDifference();
-          // }, [timePatterns, employeeObj.workingTimePattern]);

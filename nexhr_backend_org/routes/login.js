@@ -4,6 +4,7 @@ const Joi = require('joi');
 const { Employee } = require('../models/EmpModel');
 const jwt = require('jsonwebtoken');
 const dotenv = require("dotenv");
+const { Team } = require('../models/TeamModel');
 dotenv.config();
 
 const jwtKey = process.env.ACCCESS_SECRET_KEY;
@@ -20,17 +21,20 @@ router.post("/", async (req, res) => {
             console.log("Validation error: " + error);
             return res.status(400).send(error.details[0].message);
         } else {
-            console.log(req.body);
-            
-            const emp = await Employee.findOne({ Email: req.body.Email.toLowerCase(), Password: req.body.Password })
-                .populate({
-                    path: "role",
-                    populate: [
-                        { path: "userPermissions" },
-                        { path: "pageAuth" }
-                    ]
-                })
+            const emp = await Employee.findOne({
+                Email: { $regex: new RegExp('^' + req.body.Email, 'i') },
+                Password: req.body.Password
+            }).populate({
+                path: "role",
+                populate: [
+                    { path: "userPermissions" },
+                    { path: "pageAuth" }
+                ]
+            })
+
             if (!emp) {
+                console.log("no emp");
+
                 return res.status(400).send({ message: "Invalid Credentials" })
             } else {
                 const empDataWithEmailVerified = {
@@ -38,6 +42,24 @@ router.post("/", async (req, res) => {
                     isVerifyEmail: true,
                     isLogin: true
                 };
+                // check to emp is team lead
+                let isTeamLead = false;
+                const teamlead = await Team.findOne({ lead: emp._id });
+                if (teamlead) {
+                    isTeamLead = true;
+                }
+                // check to emp is team lead
+                let isTeamHead = false;
+                const teamhead = await Team.findOne({ head: emp._id });
+                if (teamhead) {
+                    isTeamHead = true;
+                }
+                // check to emp is team manager
+                let isTeamManager = false;
+                const teamManager = await Team.findOne({ manager: emp._id });
+                if (teamManager) {
+                    isTeamManager = true;
+                }
 
                 const updateIsEmailVerify = await Employee.findByIdAndUpdate(emp._id, empDataWithEmailVerified, { new: true });
                 const empData = {
@@ -46,10 +68,15 @@ router.post("/", async (req, res) => {
                     profile: emp.profile,
                     FirstName: emp.FirstName,
                     LastName: emp.LastName,
+                    organizations: emp.company,
                     annualLeaveEntitlement: emp.annualLeaveEntitlement,
-                    roleData: emp?.role[0],
-                    isLogin: updateIsEmailVerify.isLogin
+                    roleData: emp?.role,
+                    isLogin: updateIsEmailVerify.isLogin,
+                    isTeamLead,
+                    isTeamHead,
+                    isTeamManager
                 };
+
                 const token = jwt.sign(empData, jwtKey);
                 return res.send(token);
             }

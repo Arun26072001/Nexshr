@@ -9,12 +9,6 @@ var workExperienceSchema = new mongoose.Schema({
     toDate: { type: Date, required: true }
   });
   
-  // autoIncrement.initialize(mongoose.connection);
-  // workExperienceSchema.plugin(autoIncrement.plugin, {
-  //   model: "WorkExperience",
-  //   field: "WorkExperienceID"
-  // });
-  
   var WorkExperience = mongoose.model("WorkExperience", workExperienceSchema);
   
   const WorkExperienceValidation = Joi.object().keys({
@@ -30,5 +24,6 @@ var workExperienceSchema = new mongoose.Schema({
 
   module.exports = {
     WorkExperience,
-    WorkExperienceValidation
+    WorkExperienceValidation,
+    workExperienceSchema
   }

@@ -1,6 +1,6 @@
 import React, { useContext, useEffect } from "react";
 import "./org_list.css";
-import Logo from "../imgs/webnexs_logo.png";
+import Logo from "../imgs/webnexs_logo.webp";
 import Cookies from "universal-cookie";
 import { useNavigate } from "react-router-dom";
 import { EssentialValues } from "../App";

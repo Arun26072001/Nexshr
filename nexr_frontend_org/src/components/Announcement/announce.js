@@ -1,35 +1,91 @@
-import React from 'react';
-// import '../Attendence/Attendence.css';
+import React, { useContext, useEffect, useState } from 'react';
 import Announcementalert from './announcementalert';
-import Announcementable from './announcementable';
+import axios from 'axios';
+import { toast } from 'react-toastify';
+import LeaveTable from '../LeaveTable';
+import Loading from '../Loader';
+import { EssentialValues } from '../../App';
+import NoDataFound from '../payslip/NoDataFound';
+import { Skeleton } from '@mui/material';
 
 const Announce = () => {
+    const url = process.env.REACT_APP_API_URL;
+    const [announcements, setAnnouncements] = useState([]);
+    const [changeAnnouncement, setChangeAnnouncement] = useState(false);
+    const { data } = useContext(EssentialValues);
+    const [isLoading, setIsLoading] = useState(false);
+
+    function handleChangeAnnouncement() {
+        setChangeAnnouncement(!changeAnnouncement)
+    }
+
+    // Function to handle delete
+    const handleDelete = async (announcementId) => {
+        if (announcementId) {
+            try {
+                const response = await axios.delete(`${url}/api/announcements/${announcementId}`, {
+                    headers: {
+                        Authorization: `${data.token}`
+                    }
+                });
+
+                if (response.status !== 200) {
+                    throw new Error('Failed to delete announcement');
+                }
+
+                // Remove the deleted announcement from the state
+                setAnnouncements(announcements.filter(announcement => announcement.announcementId !== announcementId));
+                // Show success notification
+                toast.success('Announcement deleted successfully!');
+            } catch (error) {
+                console.error('Error deleting announcement:', error);
+                toast.error('Failed to delete announcement!');
+            }
+        }
+    };
+
+    useEffect(() => {
+        const fetchAnnouncements = async () => {
+            setIsLoading(true);
+            try {
+                const response = await axios.get(`${url}/api/announcements`, {
+                    headers: {
+                        Authorization: data.token || ""
+                    }
+                });
+                setAnnouncements(response.data.Team || response.data); // Adjust based on your API response structure
+            } catch (error) {
+                console.error('Error fetching announcements:', error);
+            }
+            setIsLoading(false);
+        };
+
+        fetchAnnouncements();
+    }, [changeAnnouncement]);
+
     return (
         <div className='dashboard-parent py-4'>
-            <div className="d-flex  justify-content-between align-items-center">
-                <div>
-                    <h5 className='text-daily'>Announcement</h5>
-                </div>
-                <div className='d-flex'>
-
-                    <Announcementalert />
-
-                </div>
-            </div>
-
-
-
-
-            <div className='tabline mt-3 p-4'>
-
-                {/* <div class="row"><div class="col-lg-6 searchInputIcon">
-                    <input type="text" class="payrunInput" placeholder="Search" />
+            <div className="d-flex justify-content-between px-2">
+                <h5 className='text-daily'>Announcement</h5>
+                <Announcementalert handleChangeAnnouncement={handleChangeAnnouncement} />
+                {/* <div>
+                    </div>
+                    <div className='d-flex'>
                     </div> */}
-                    {/* </div> */}
-
+            </div>
+            <div className='tabline mt-3 p-4'>
                 <div className='profiles mt-3'>
-
-                    <Announcementable />
+                    {
+                        isLoading ? <Skeleton
+                            sx={{ bgcolor: 'grey.500' }}
+                            variant="rectangular"
+                            width={"100%"}
+                            height={"50vh"}
+                        /> :
+                            announcements.length > 0 ?
+                                <LeaveTable handleDelete={handleDelete} data={announcements} /> :
+                                <NoDataFound message={"Announcement data not found"} />
+                    }
                 </div>
             </div>
         </div>

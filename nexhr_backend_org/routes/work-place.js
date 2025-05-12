@@ -1,80 +1,78 @@
 const express = require('express');
 const router = express.Router();
-const Joi = require('joi');
 const { WorkPlace, WorkPlaceValidation } = require('../models/WorkPlaceModel');
-const { verifyHR, verifyAdminHR } = require('../auth/authMiddleware');
-
+const { verifyAdminHR } = require('../auth/authMiddleware');
 
 router.get("/", verifyAdminHR, async (req, res) => {
   try {
-    const workPlaces = await WorkPlace.find().populate("country").exec();
-    if (!workPlaces) {
-      res.status(204).send({ message: "Work place data not found!" })
+    const workPlaces = await WorkPlace.find().populate("employees", "FirstName LastName").exec();
+    if (workPlaces.length > 0) {
+      return res.send(workPlaces);
+    } else {
+      return res.status(200).send([])
     }
-    res.send(workPlaces);
   } catch (err) {
-    res.status(500).send({ message: "Internal server error", details: err.message })
+    res.status(500).send({ error: err.message })
   }
 })
 
 router.get("/:id", verifyAdminHR, async (req, res) => {
   try {
-    const workPlace = await WorkPlace.findById(req.params.id)
-      .populate("Country")
-      .populate("State")
-      .exec();
-
+    const workPlace = await WorkPlace.findById(req.params.id);
     if (!workPlace) {
-      return res.status(204).send({ message: "No work place found!" });
+      return res.status(404).send({ message: "No work place found!" });
     }
-
     res.send(workPlace);
   } catch (err) {
-    res.status(500).send({ message: "Internal server error", details: err.message });
+    res.status(500).send({ error: err.message });
   }
 });
 
 
 router.post("/", verifyAdminHR, async (req, res) => {
-  await Joi.validate(req.body, WorkPlaceValidation, (err, result) => {
-    if (err) {
-      console.log(err.details);
-      return res.status(400).send({ message: "Validation error", details: err.details });
-    } else {
-      const newWorkPlace = req.body;
-      WorkPlace.create(newWorkPlace, (err, data) => {
-        if (err) {
-          console.log(err);
-          return res.status(500).send({ message: "Error", deatils: err.deatils });
-        } else {
-          return res.status(201).send({ message: "New Work Place Saved!" });
-        }
-      });
+  try {
+    // check is already exists
+    if (await WorkPlace.exists({ CompanyName: req.body.CompanyName })) {
+      return res.status(400).send({ error: `${req.body.CompanyName} workplace is already exists` })
     }
-  });
+    //validation workplace data
+    const { error } = WorkPlaceValidation.validate(req.body);
+    if (error) {
+      return res.status(400).send({ error: error.details[0].message })
+    } else {
+      const workPlace = await WorkPlace.create(req.body);
+      return res.send({ message: `${req.body.CompanyName} workplace has been created successfully`, workPlace })
+    }
+  } catch (error) {
+    return res.status(500).send({ error: error.message })
+  }
 });
 
-router.put("/:id", verifyAdminHR, (req, res) => {
-  WorkPlace.findByIdAndUpdate(req.params.id, {
-    $set: req.body
-  }, (err, data) => {
-    if (err) {
-      res.status(403).send("validation error")
+router.put("/:id", verifyAdminHR, async (req, res) => {
+  try {
+    const { error } = WorkPlaceValidation.validate(req.body);
+    if (error) {
+      return res.status(400).send({ error: error.details[0].message })
     } else {
-      res.send("work place has been updated!")
+      const updatedData = await WorkPlace.findByIdAndUpdate(req.params.id, req.body, { new: true });
+      return res.send({ message: `${updatedData.CompanyName} workplace has been updated successfully` })
     }
-  })
+  } catch (error) {
+    return res.status(500).send({ error: error.message })
+  }
 })
 
-router.delete("/:id", verifyHR, (req, res) => {
-
-  WorkPlace.findOneAndDelete(req.params.id, (err, result) => {
-    if (err) {
-      res.status(403).send(`${req.params.id} not found`)
-    } else {
-      res.send("working place has been deleted successfully!")
+router.delete("/:id", verifyAdminHR, async (req, res) => {
+  try {
+    const { employees } = await WorkPlace.findById(req.params.id);
+    if (employees.length > 0) {
+      return res.status(400).send({ error: `${employees.length} employees using this workplace, Please remove them to delete` })
     }
-  })
+    const deleteData = await WorkPlace.findByIdAndDelete(req.params.id);
+    return res.send({ message: `${deleteData.CompanyName} workplace has been delete successfully` })
+  } catch (error) {
+    return res.status(500).send({ error: error.message })
+  }
 })
 
 module.exports = router;

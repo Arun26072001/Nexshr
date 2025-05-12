@@ -1,13 +1,26 @@
 .sidebar {
   background-color: #f4f4f4;
   color: #b7b7b7;
-  height: calc(100vh - var(--header-height));
-  top: var(--header-height);
+  height: calc(100vh);
+  top: 57px;
   left: 0;
   overflow: auto;
   position: fixed;
+  z-index: 999;
   box-shadow: rgba(0, 0, 0, 0.1) 0px 1px 3px 0px,
     rgba(0, 0, 0, 0.06) 0px 1px 2px 0px;
+}
+
+@media (max-width: 768px) {
+  .sidebar {
+    top: 72px;
+  }
+}
+
+@media (max-width: 480px) {
+  .sidebar {
+    top: 127px;
+  }
 }
 
 .sideBarTxt {
@@ -42,7 +55,7 @@
   transition: all 0.5s;
 }
 
-.activess {
+.actives {
   background: rgba(224, 224, 224, 1);
   color: #000;
 }
@@ -60,11 +73,10 @@
 }
 
 .log_out {
-  padding: 6px 16px 6px 16px;
-  border-radius: 6px 0px 0px 0px;
-  border: 1px 0px 0px 0px;
+  padding: 6px 16px;
+  border-radius: 5px;
+  border: 1px;
   opacity: 0px;
-  border-radius: 20px;
   background-color: #000;
   color: white;
 }
@@ -76,6 +88,7 @@
 .KeyboardArrowDownSharpIcon {
   position: absolute;
   right: 10px;
+  transition-duration: .5s;
 }
 
 li {
@@ -85,7 +98,6 @@ li {
 .sidebar_hrm li.nav-item {
   color: #000000;
   gap: 15px;
-  /* padding: 10px 15px 0 0; */
   transition: all 0.5s;
 }
 
@@ -94,6 +106,28 @@ li {
   background: rgba(224, 224, 224, 1);
   color: #000;
   transition: all 0.5s;
+}
+
+.nav-link {
+  display: flex;
+  align-items: center;
+  padding: 10px;
+  color: white;
+  text-decoration: none;
+}
+
+.nav-link i {
+  margin-right: 10px;
+}
+/* Small adjustments for icons and text on smaller screens */
+@media (max-width: 400px) {
+  .nav-link i {
+    display: none;
+  }
+
+  .nav-link p {
+    margin: 0;
+  }
 }
 
 .sidebar::-webkit-scrollbar {
@@ -118,12 +152,6 @@ li {
   background: #e9ecef;
 }
 
-
 .sidebar_hrm a {
   color: #000;
-}
-
-.login {
-  font-size: 16px;
-  line-height: 22px;
 }

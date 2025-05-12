@@ -1,4 +1,4 @@
-import React, { useContext, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import GroupsRoundedIcon from '@mui/icons-material/GroupsRounded';
 import FreeBreakfastRoundedIcon from '@mui/icons-material/FreeBreakfastRounded';
 import RestaurantIcon from '@mui/icons-material/Restaurant';
@@ -7,11 +7,11 @@ import KeyboardArrowDownRoundedIcon from '@mui/icons-material/KeyboardArrowDownR
 import "./ClockInsStyle.css";
 import { TimerStates } from './payslip/HRMDashboard';
 
-const CustomDropdown = () => {
-  const {timeOption, updateWorkTracker, isStartActivity} = useContext(TimerStates);
+const CustomDropdown = ({isDisabled}) => {
+  const { timeOption, updateWorkTracker } = useContext(TimerStates);
   const [isOpen, setIsOpen] = useState(false);
   const [selectedOption, setSelectedOption] = useState(timeOption);
-  
+
   const options = [
     { value: 'meeting', label: 'Meeting', icon: <GroupsRoundedIcon /> },
     { value: 'morningBreak', label: 'Morning Break', icon: <FreeBreakfastRoundedIcon /> },
@@ -21,19 +21,20 @@ const CustomDropdown = () => {
   ];
 
   const handleOptionClick = (option) => {
-    setSelectedOption(option.value);
-    updateWorkTracker(option.value);
+    setSelectedOption(option?.value);
+    updateWorkTracker(option?.value);
     setIsOpen(false);
   };
 
+
   return (
-    <div className={`ms-auto col-lg-6 custom-dropdown ${isStartActivity ? 'disabled' : ''}`}>
-      <div className="dropdown-header" onClick={() => !isStartActivity && setIsOpen(!isOpen)}>
+    <div className={`ms-auto col-lg-6 custom-dropdown ${isDisabled ? 'disabled' : ''}`}>
+      <div className="dropdown-header" onClick={() => !isDisabled && setIsOpen(!isOpen)}>
         <div className="dropdown-header-content">
           {options?.find(opt => opt?.value === selectedOption).icon}
           <span>{options?.find(opt => opt?.value === selectedOption).label || 'Select an option'}</span>
         </div>
-        <KeyboardArrowDownRoundedIcon className="dropdown-arrow" fontSize='large' /> 
+        <KeyboardArrowDownRoundedIcon className="dropdown-arrow" fontSize='large' />
       </div>
       {isOpen && (
         <ul className="dropdown-list">

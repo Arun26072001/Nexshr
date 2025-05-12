@@ -2,13 +2,11 @@ import CloseIcon from '@mui/icons-material/Close';
 import SearchIcon from '@mui/icons-material/Search';
 import React, { useEffect, useState } from 'react';
 import './SettingsStyle.css';
-import axios from 'axios';
 import Loading from '../Loader';
 import { Input, InputGroup } from 'rsuite';
 import { fetchAllEmployees, fetchRoles } from '../ReuseableAPI';
 import { toast } from 'react-toastify';
 import NoDataFound from '../payslip/NoDataFound';
-
 
 const Permission = () => {
     const [employees, setEmployees] = useState([]);
@@ -17,6 +15,7 @@ const Permission = () => {
     const [roles, setRoles] = useState([]);
     const [empName, setEmpName] = useState("");
     const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState("");
 
     useEffect(() => {
         const getEmployees = async () => {
@@ -27,7 +26,7 @@ const Permission = () => {
                 setFullemployees(emps);
 
             } catch (err) {
-                toast.error(err)
+                setError(err);
             }
             setIsLoading(false);
         }
@@ -77,8 +76,8 @@ const Permission = () => {
                 </div>
             </div>
             {
-                isLoading ? <Loading /> :
-                    employees.length > 0 ? (
+                isLoading ? <Loading height="80vh" /> :
+                    error ? <NoDataFound message={error} /> :
                         <table className="table table-striped my-4">
                             <thead>
                                 <tr className='text-center'>
@@ -107,9 +106,7 @@ const Permission = () => {
                                                     </option>
                                                 ))}
                                             </select>
-                                            {/* <div className='d-flex justify-content-center align-items-center'>
-                                        <button className='button m-0'>Edit accessing Permissions</button>
-                                    </div> */}
+
                                         </td>
                                         <td>
                                             <div className='td-parent gap-2 d-flex justify-content-center text-secondary'>
@@ -126,11 +123,7 @@ const Permission = () => {
                                 ))}
                             </tbody>
                         </table>
-                    ) : (
-                        <NoDataFound message={"Employees of role and permission Data not found!"} />
-                    )
             }
-
         </div>
 
 

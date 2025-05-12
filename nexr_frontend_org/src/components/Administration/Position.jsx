@@ -1,32 +1,35 @@
-import React, { useEffect, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import NoDataFound from '../payslip/NoDataFound';
 import Loading from '../Loader';
-import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import axios from 'axios';
 import CommonModel from './CommonModel';
 import LeaveTable from '../LeaveTable';
+import { EssentialValues } from '../../App';
+import { Skeleton } from '@mui/material';
 
-export default function Position() {
+export default function Position({ companies }) {
     const url = process.env.REACT_APP_API_URL;
-    const token = localStorage.getItem("token");
+    const { data } = useContext(EssentialValues);
     const [positionObj, setPositionObj] = useState({});
     const [positions, setPositions] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
     const [isPositionsDataUpdate, setIsPositionsDataUpdate] = useState(false);
     const [isAddPosition, setIsAddPosition] = useState(false);
-    const navigate = useNavigate();
+    const [isChangingPosition, setIschangingPosition] = useState(false);
 
     function reloadPositionPage() {
         setIsPositionsDataUpdate(!isPositionsDataUpdate);
     }
 
     function modifyPositions() {
+        if (isAddPosition) {
+            setPositionObj({});
+        }
         setIsAddPosition(!isAddPosition);
     }
 
-    function changePosition(e) {
-        const { name, value } = e.target;
+    function changePosition(value, name) {
         setPositionObj((prev) => ({
             ...prev,
             [name]: value,
@@ -34,43 +37,48 @@ export default function Position() {
     }
 
     async function addPosition() {
+        setIschangingPosition(true);
         try {
             const msg = await axios.post(url + "/api/position", positionObj, {
                 headers: {
-                    Authorization: token || ""
+                    Authorization: data.token || ""
                 }
             });
             toast.success(msg?.data?.message);
+            setPositionObj({});
             modifyPositions();
             reloadPositionPage();
         } catch (error) {
             toast.error(error?.response?.data?.message || "Failed to add position");
         }
+        setIschangingPosition(false);
     }
 
     async function deletePosition(id) {
         try {
             const deletePos = await axios.delete(`${url}/api/position/${id}`, {
                 headers: {
-                    Authorization: token || ""
+                    Authorization: data.token || ""
                 }
             });
             toast.success(deletePos?.data?.message);
             reloadPositionPage();
         } catch (error) {
             console.error("Error deleting position:", error);
-            toast.error(error?.response?.data?.message || "Failed to delete position");
+            toast.error(error?.response?.data?.error || "Failed to delete position");
         }
     }
 
     async function editPosition() {
+        setIschangingPosition(true);
         try {
             const response = await axios.put(`${url}/api/position/${positionObj._id}`, positionObj, {
                 headers: {
-                    Authorization: token || ""
+                    Authorization: data.token || ""
                 }
             });
             toast.success(response?.data?.message);
+            setPositionObj({});
             modifyPositions();
             reloadPositionPage();
         } catch (error) {
@@ -78,13 +86,14 @@ export default function Position() {
             const errorMessage = error?.response?.data?.message || error.message || "Something went wrong";
             toast.error(errorMessage);
         }
+        setIschangingPosition(false);
     }
 
     async function getEditPositionId(id) {
         try {
             const position = await axios.get(`${url}/api/position/${id}`, {
                 headers: {
-                    Authorization: token || ""
+                    Authorization: data.token || ""
                 }
             });
             setPositionObj(position.data);
@@ -101,7 +110,7 @@ export default function Position() {
             try {
                 const response = await axios.get(url + "/api/position", {
                     headers: {
-                        Authorization: token || ""
+                        Authorization: data.token || ""
                     }
                 });
                 setPositions(response.data);
@@ -116,33 +125,37 @@ export default function Position() {
     }, [isPositionsDataUpdate]);
 
     return (
-        isLoading ? <Loading /> :
-            isAddPosition ? (
-                <CommonModel
-                    dataObj={positionObj}
-                    editData={editPosition}
-                    changeData={changePosition}
-                    isAddData={isAddPosition}
-                    addData={addPosition}
-                    modifyData={modifyPositions}
-                    type="Position"
-                />
-            ) : (
-                <div className='dashboard-parent pt-4'>
-                    <div className="row">
-                        <div className='col-lg-6 col-6'>
-                            <h5 className='text-daily'>Position</h5>
-                        </div>
-                        <div className='col-lg-6 col-6 d-flex gap-2 justify-content-end'>
-                            <button className='button m-0' onClick={modifyPositions}>+ Add Position</button>
-                        </div>
-                    </div>
-                    {
-                        positions.length > 0 ?
-                            <LeaveTable data={positions} deletePosition={deletePosition} getEditPositionId={getEditPositionId} />
-                            : <NoDataFound message={"Position data not found"} />
-                    }
+        isAddPosition ? (
+            <CommonModel
+                dataObj={positionObj}
+                editData={editPosition}
+                changeData={changePosition}
+                isAddData={isAddPosition}
+                addData={addPosition}
+                comps={companies}
+                modifyData={modifyPositions}
+                type="Position"
+                isWorkingApi={isChangingPosition}
+            />
+        ) : (
+            <div className='dashboard-parent pt-4'>
+                <div className="d-flex justify-content-between px-2">
+                    <h5 className='text-daily'>Position</h5>
+                    <button className='button m-0' onClick={modifyPositions}>+ Add Position</button>
+
                 </div>
-            )
+                {
+                    isLoading ? <Skeleton
+                        sx={{ bgcolor: 'grey.500' }}
+                        variant="rectangular"
+                        width={"100%"}
+                        height={"50vh"}
+                    /> :
+                        positions.length > 0 ?
+                            <LeaveTable data={positions} deleteData={deletePosition} fetchData={getEditPositionId} />
+                            : <NoDataFound message={"Position data not found"} />
+                }
+            </div>
+        )
     );
 }

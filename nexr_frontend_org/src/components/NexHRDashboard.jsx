@@ -2,44 +2,46 @@ import { Card } from "@mui/material";
 import Home from "./Home";
 import React, { useContext } from "react";
 import CircleProgressBar from "./CircleProgressBar";
-import { NavLink } from "react-router-dom";
 import Twotabs from "./TwoTabs";
 import "./NexHRDashboard.css";
-import { TimerStates } from "./payslip/HRMDashboard";
+import { EssentialValues } from "../App";
+import { jwtDecode } from "jwt-decode";
 
-const NexHRDashboard = ({ updateClockins }) => {
-  const { whoIs } = useContext(TimerStates);
-  const account = localStorage.getItem("Account");
-
+const NexHRDashboard = ({ peopleOnLeave, peopleOnWorkFromHome, isFetchPeopleOnLeave, isFetchpeopleOnWfh }) => {
+  const { data } = useContext(EssentialValues);
+  const { token, Account, _id } = data;
+  const { isTeamLead, isTeamHead, isTeamManager } = jwtDecode(token);
   return (
-
-
-    (<div className="row">
-      {/* <ClockIns /> */}
-      <div className="col-lg-8 col-md-8 col-12" >
+    <div className="row">
+      <div className="col-lg-8 col-md-12 col-12" >
         {/* Left card */}
-        <Card style={{ border: '2px solid rgb(208 210 210)', height: '100%' }}>
-          {account === '2' &&
+        <Card style={{ height: '100%', boxShadow: "none" }} >
+          {(Account === '2' || [isTeamLead, isTeamHead, isTeamManager].includes(true)) &&
             <>
               <div className="d-flex align-items-center justify-content-between m-2">
                 <span className="bold m-2">
                   OVERVIEW
                 </span>
-                <NavLink to={`/${whoIs}/leave-request`}>
-                  <button className="button">+ Add Time of</button>
-                </NavLink>
+                {/* <button className="button" onClick={() => navigate(`/${whoIs}/wfh-request`)}>
+                  <AddHomeWorkRoundedIcon /> Apply WFH
+                </button> */}
               </div>
-              <CircleProgressBar />
+              <CircleProgressBar token={token} isTeamLead={isTeamLead} isTeamManager={isTeamManager} account={Account} id={_id} isTeamHead={isTeamHead} />
             </>
           }
-          <Home updateClockins={updateClockins} />
+          {/* <div className="d-flex align-items-center justify-content-end m-2">
+            <button className="button" onClick={() => navigate(`/${whoIs}/wfh-request`)}>
+              <AddHomeWorkRoundedIcon /> Apply WFH
+            </button>
+          </div> */}
+          <Home peopleOnLeave={peopleOnLeave} peopleOnWorkFromHome={peopleOnWorkFromHome} isFetchPeopleOnLeave={isFetchPeopleOnLeave} isFetchpeopleOnWfh={isFetchpeopleOnWfh} />
         </Card>
       </div>
-      <div className="col-lg-4 col-md-4 col-12">
+      <div className="col-lg-4 col-md-8 col-12 d-flex jsutify-content-center">
         {/* right Card */}
         <Twotabs />
       </div>
-    </div>)
+    </div>
   )
 };
 

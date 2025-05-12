@@ -13,6 +13,54 @@ const pageAuthSchema = new mongoose.Schema({
 
 const PageAuth = mongoose.model("PageAuth", pageAuthSchema);
 
+// const staticPageAuths = [{
+//     "_id": {
+//         "$oid": "6721fcb7a3ed9a4ec05918b6"
+//     },
+//     "Administration": "allow",
+//     "Attendance": "allow",
+//     "Dashboard": "allow",
+//     "Employee": "allow",
+//     "JobDesk": "allow",
+//     "Leave": "allow",
+//     "Settings": "allow"
+// },
+// {
+//     "_id": {
+//         "$oid": "6721fcb7a3ed9a4ec05918c7"
+//     },
+//     "Administration": "not allow",
+//     "Attendance": "allow",
+//     "Dashboard": "allow",
+//     "Employee": "allow",
+//     "JobDesk": "allow",
+//     "Leave": "not allow",
+//     "Settings": "not allow"
+// },
+// {
+//     "_id": {
+//         "$oid": "6721fcb7a3ed9a4ec05918d8"
+//     },
+//     "Administration": "not allow",
+//     "Attendance": "not allow",
+//     "Dashboard": "allow",
+//     "Employee": "allow",
+//     "JobDesk": "allow",
+//     "Leave": "not allow",
+//     "Settings": "not allow"
+// }
+// ]
+
+// PageAuth.countDocuments().then(count => {
+//     if (count === 0) {
+//         PageAuth.insertMany(staticPageAuths)
+//             .then(() => console.log("Static users inserted!"))
+//             .catch(err => console.error("Error inserting users:", err));
+//     } else {
+//         console.log("Users already exist. Skipping static data insertion.");
+//     }
+// });
+
 const pageAuthValidation = Joi.object({
     Administration: Joi.string().optional(),
     Attendance: Joi.string().optional(),
@@ -23,4 +71,4 @@ const pageAuthValidation = Joi.object({
     Settings: Joi.string().optional(),
 });
 
-module.exports = { PageAuth, pageAuthValidation }
+module.exports = { PageAuth, pageAuthValidation, pageAuthSchema }

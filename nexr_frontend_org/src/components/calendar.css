@@ -1,0 +1,27 @@
+.calendar-style {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 15px;
+}
+
+.calendar-style > .dotIcon {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+}
+
+.inputs {
+  z-index: 10;
+  background-color: #ffffff;
+  box-shadow: rgba(0, 0, 0, 0.24) 0px 0px 8px -1px;
+  padding: 10px;
+  position: absolute;
+  top: 30%;
+  right: 30%;
+  border-radius: 4px;
+}
+
+.inputs > * {
+  margin-top: 5px;
+}

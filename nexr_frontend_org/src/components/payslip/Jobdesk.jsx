@@ -1,45 +1,81 @@
-import React, { useContext } from "react"
+import React, { useContext, useEffect, useState } from "react"
 import Attendence from "./Attendence";
 import Leave from "./Leave";
-import Folder from "./Folder";
-import Assets from "./Assets";
-// import Payrun from "./Payrun";
 import Payslip from "./Payslip";
 import Address from "./Address";
 import Contact from "./Contact";
 import Social from "./Social";
 import History from "./History";
-import Salary from "./Salary";
 import { Route, Routes } from "react-router-dom";
-import PayslipRouter from "./PayslipRouter";
+import PayslipRouter from "../unwanted/PayslipRouter";
+import { fetchEmployeeData, fetchPayslipFromEmp } from "../ReuseableAPI";
+import { EssentialValues } from "../../App";
+import { toast } from "react-toastify";
+import MyDetails from "./MyDetails";
+import "../../components/landinPage.css";
+import WorkFromHome from "./WorkFromHome";
 
 const JobDesk = () => {
-    // const { whoIs } = useContext(TimerStates);
+    const [empObj, setEmpObj] = useState({});
+    const [error, setError] = useState("");
+    const { data } = useContext(EssentialValues);
+    const [isLoading, setIsLoading] = useState(false);
+    const [refetch, setRefetch] = useState(false);
+    const [payslipData, setPayslipData] = useState({});
     const jobDeskFiles = [
-        'attendance', 'leave', "folder", "history",
-        'salary', 'payslip', 'contact', 'social',
-        'assets', 'address'
+        'my-details',
+        'attendance', 'leave', "workFromHome", 'payslip', 'history',
+        'contact', 'social', 'address'
     ];
 
-    return (
+    function changeFetching() {
+        setRefetch(!refetch)
+    }
 
-        <Routes >
+    useEffect(() => {
+        async function fetchPayslips() {
+            setIsLoading(true);
+            try {
+                const slips = await fetchPayslipFromEmp(data._id);
+                setPayslipData(slips);
+            } catch (err) {
+                toast.error(err?.response?.data?.error)
+            }
+            setIsLoading(false);
+        }
+
+        fetchPayslips();
+    }, [data._id])
+
+    useEffect(() => {
+        async function getEmp() {
+            try {
+                const empData = await fetchEmployeeData(data._id);
+                setEmpObj(empData);
+            } catch (error) {
+                setError(error.response.data.error);
+            }
+        }
+        getEmp();
+    }, [refetch])
+
+
+    return (
+        <Routes>
             <Route path="/" element={<PayslipRouter files={jobDeskFiles} />}>
-                <Route index path="attendance" element={<Attendence />} />
+                <Route index element={<MyDetails empObj={empObj} />} /> {/* Default route */}
+                <Route path="my-details" element={<MyDetails empObj={empObj} />} />
+                <Route path="attendance" element={<Attendence />} />
                 <Route path="leave" element={<Leave />} />
-                <Route path="folder" element={<Folder />} />
-                <Route path="history" element={<History />} />
-                <Route path="salary" element={<Salary />} />
-                <Route path="payslip" element={<Payslip />} />
-                <Route path="contact" element={<Contact />} />
-                <Route path="social" element={<Social />} />
-                <Route path="assets" element={<Assets />} />
-                <Route path="address" element={<Address />} />
+                <Route path="workFromHome" element={<WorkFromHome />} />
+                <Route path="history" element={<History payslips={payslipData} isLoading={isLoading} />} />
+                <Route path="payslip" element={<Payslip payslips={payslipData} isLoading={isLoading} />} />
+                <Route path="contact" element={<Contact empObj={empObj} error={error} />} />
+                <Route path="social" element={<Social empObj={empObj} changeFetching={changeFetching} error={error} />} />
+                <Route path="address" element={<Address empData={empObj} error={error} />} />
                 <Route path="*" element={<h1>404</h1>} />
             </Route>
         </Routes>
-
-
     )
 };
 

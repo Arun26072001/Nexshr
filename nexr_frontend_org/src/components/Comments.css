@@ -1,0 +1,62 @@
+.commentsParent {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+}
+
+.comments {
+  box-shadow: rgba(0, 0, 0, 0.16) 0px 1px 4px;
+  width: 100%;
+  height: 100%;
+  padding: 20px;
+  border-radius: 10px;
+  position: relative;
+}
+.commentsHeader {
+  font-size: 2em;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+input[type="checkbox"] {
+  width: 30px; /*Desired width*/
+  height: 30px; /*Desired height*/
+}
+
+.timeBox {
+  position: absolute;
+  top: 0px;
+  left: 15px;
+  background-color: rgb(206, 229, 211);
+  color: green;
+  padding: 10px;
+  font-weight: bold;
+  border: 1px solid #a3dca3;
+  border-radius: 2px;
+}
+
+.circleEditIcon {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: 1px solid gray;
+}
+
+.userProfile{
+    width: 30px;
+    height: 30px;
+    object-fit: cover;
+    border-radius: 50%;
+    margin-right: 3px;
+}
+
+.imgsContainer{
+  gap: 10px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+}

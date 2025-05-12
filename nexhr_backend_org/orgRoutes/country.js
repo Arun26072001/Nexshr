@@ -1,11 +1,11 @@
 const express = require('express');
 const router = express.Router();
 const Joi = require('joi');
-const { verifyHR, verifyAdminHR } = require('../auth/authMiddleware');
+const { verifyHR, verifyAdminHR, verifyAdminHREmployeeManagerNetwork } = require('../auth/authMiddleware');
 const { Country } = require('../OrgModels/CountryModel');
 
-router.get("/", verifyAdminHR, (req, res) => {
-    Country.find()
+router.get("/", verifyAdminHREmployeeManagerNetwork, (req, res) => {
+    Country.find().lean()
       .exec(function (err, country) {
         if(err){
           res.status(500).send(err);
@@ -18,6 +18,7 @@ router.get("/", verifyAdminHR, (req, res) => {
   router.get("/:id", verifyAdminHR, (req, res) => {
     Country.findById(req.params.id)
       .populate("states")
+      .lean()
       .exec((err, country) => {
         if (err) {
           res.status(500).send(err);
@@ -26,7 +27,6 @@ router.get("/", verifyAdminHR, (req, res) => {
         }
       });
   });
-  
   
   
   router.post("/", verifyHR, (req, res) => {

@@ -14,7 +14,7 @@ export default function Payroll() {
   return (
     <>
       <div>
-        <div className="payslipTitle">PAYROLL</div>
+        <p className="payslipTitle">PAYROLL</p>
         {isShowPayrun && (<DefinitionToggle title="Payroll" handleShowNotification={handleShowNotification} instructions={instructions} />)}
 
         <div className='p-3'>

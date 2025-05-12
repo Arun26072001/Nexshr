@@ -1,8 +1,11 @@
 import axios from 'axios';
 import { toast } from 'react-toastify';
+import { Notification, toaster } from "rsuite";
+import * as XLSX from "xlsx";
+import { saveAs } from "file-saver";
 const url = process.env.REACT_APP_API_URL;
-const empId = localStorage.getItem('_id');
 const token = localStorage.getItem('token');
+const _id = localStorage.getItem("_id");
 
 const updateDataAPI = async (body) => {
     try {
@@ -10,7 +13,7 @@ const updateDataAPI = async (body) => {
             const response = await axios.put(`${url}/api/clock-ins/${body._id}`, body, {
                 headers: { authorization: token || '' },
             });
-            console.log('Updated successfully:', response.data);
+
             return response.data;
         } else {
             toast.error("You did't Login properly!")
@@ -32,9 +35,10 @@ async function getTotalWorkingHourPerDay(start, end) {
     return diffHrs > 0 ? diffHrs : 0; // Ensure non-negative value
 }
 
-const getDataAPI = async (empId) => {
+const getDataAPI = async (_id) => {
     try {
-        const response = await axios.get(`${url}/api/clock-ins/${empId}`, {
+
+        const response = await axios.get(`${url}/api/clock-ins/${_id}`, {
             params: { date: new Date().toISOString() },
             headers: { authorization: token || '' },
         });
@@ -42,8 +46,11 @@ const getDataAPI = async (empId) => {
         const data = response.data;
 
         return data;
+
     } catch (error) {
-        return error?.response?.data?.message;
+        console.log(error?.response?.data?.error);
+
+        // return error?.response?.data?.error;
     }
 };
 
@@ -61,16 +68,21 @@ const getclockinsDataById = async (id) => {
     }
 };
 
-const addDataAPI = async (body) => {
+const addDataAPI = async (body, worklocation, location) => {
     try {
-        const response = await axios.post(`${url}/api/clock-ins/${empId}`, body, {
+        const response = await axios.post(`${url}/api/clock-ins/${_id}`, body, {
+            params: {
+                worklocation,
+                location
+            },
             headers: { authorization: token || '' },
         });
-        // localStorage.setItem('clockinsId', response.data._id);
-        console.log('Added successfully:', response.data);
-        return response?.data;
+        toast.success(response.data.message);
+        return response?.data?.clockIns;
     } catch (error) {
-        return error?.response?.data?.message;
+        toast.error(error?.response?.data?.error)
+
+        return error?.response?.data?.error;
     }
 };
 
@@ -83,8 +95,6 @@ function removeClockinsData() {
 
 const fetchEmpLeaveRequests = async () => {
     try {
-        console.log(token);
-        
         const res = await axios.get(`${url}/api/leave-application/hr`, {
             headers: {
                 authorization: token || ""
@@ -100,9 +110,9 @@ const fetchEmpLeaveRequests = async () => {
     }
 }
 
-const fetchLeaveRequests = async (empId) => {
+const fetchLeaveRequests = async (_id) => {
     try {
-        const res = await axios.get(`${url}/api/leave-application/emp/${empId}`, {
+        const res = await axios.get(`${url}/api/leave-application/emp/${_id}`, {
             headers: {
                 authorization: token || ""
             }
@@ -115,10 +125,27 @@ const fetchLeaveRequests = async (empId) => {
     }
 };
 
+function getDayDifference(leave) {
+    if (leave?.leaveType === "half day") {
+        return 0.5;
+    }
+
+    let toDate = new Date(leave.toDate);
+    let fromDate = new Date(leave.fromDate);
+
+    let timeDifference = toDate - fromDate;
+    let dayDifference = timeDifference / (1000 * 60 * 60 * 24); // Convert milliseconds to days
+
+    if (dayDifference < 1) {
+        return 1; // Minimum one day for a leave if it's less than a full day
+    }
+
+    return dayDifference;
+}
 
 async function deleteLeave(id) {
     try {
-        let deletedMsg = await axios.delete(`${url}/api/leave-application/${empId}/${id}`, {
+        let deletedMsg = await axios.delete(`${url}/api/leave-application/${_id}/${id}`, {
             headers: {
                 authorization: token || ""
             }
@@ -134,18 +161,15 @@ async function deleteLeave(id) {
 
 const fetchEmployeeData = async (id) => {
     try {
-        if (!token) {
-            window.location.reload();
-        }
         const response = await axios.get(`${url}/api/employee/${id}`, {
             headers: {
                 authorization: token || ""
             }
         });
-        console.log(response.data)
         return response.data;
 
     } catch (error) {
+
         if (error.response && error.response.data && error.response.data.message) {
             toast.error(error?.response?.data?.details)
             return error;
@@ -162,12 +186,7 @@ const fetchEmployees = async () => {
         });
         return res.data;
     } catch (err) {
-        console.log(err);
-        if (err.response && err.response.data && err.response.data.message) {
-            return err.response.data.message;
-        } else {
-            return err;
-        }
+        return err
     }
 }
 
@@ -180,18 +199,17 @@ const fetchAllEmployees = async () => {
         });
         return res.data;
     } catch (err) {
-        console.log(err);
-        if (err.response && err.response.data && err.response.data.message) {
-            return err.response.data.message;
-        } else {
-            return err;
-        }
+        return err.response.data.message
     }
 }
 
-const gettingClockinsData = async (empId) => {
+const gettingClockinsData = async (_id) => {
+    if (!token) {
+        window.location.reload();
+        return;
+    }
     try {
-        const dashboard = await axios.get(`${url}/api/clock-ins/employee/${empId}`, {
+        const dashboard = await axios.get(`${url}/api/clock-ins/employee/${_id}`, {
             headers: {
                 authorization: token || ""
             }
@@ -242,9 +260,9 @@ const fetchPayslipInfo = async () => {
     }
 }
 
-const fetchPayslipFromEmp = async (empId) => {
+const fetchPayslipFromEmp = async (_id) => {
     try {
-        const payslip = await axios.get(`${url}/api/payslip/emp/${empId}`);
+        const payslip = await axios.get(`${url}/api/payslip/emp/${_id}`);
         return payslip.data;
     } catch (error) {
         return error?.response?.data?.message
@@ -255,12 +273,25 @@ const fetchRoles = async () => {
     try {
         const roles = await axios.get(url + "/api/role", {
             headers: {
-                authorization: localStorage.getItem("token") || ""
+                authorization: token || ""
             }
         });
         return roles.data;
     } catch (error) {
         return error?.response?.data?.message
+    }
+}
+
+const fetchTeams = async () => {
+    try {
+        const teams = await axios.get(`${url}/api/team`, {
+            headers: {
+                Authorization: token || ""
+            }
+        });
+        return teams.data;
+    } catch (error) {
+        toast.error(error.response.data.error);
     }
 }
 
@@ -286,6 +317,49 @@ const getDepartments = async () => {
     }
 }
 
+const updateEmp = async (data, id) => {
+    try {
+        const res = await axios.put(`${url}/api/employee/${id || data._id}`, data, {
+            headers: {
+                authorization: token || ""
+            }
+        })
+        return res.data.message;
+    } catch (error) {
+        toast.error(error.response.data.error);
+    }
+}
+
+async function getUserLocation(lat, lng) {
+    const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`;
+
+    try {
+        const response = await fetch(url);
+        const data = await response.json();
+
+        if (data && data.display_name) {
+            return data.display_name;
+        } else {
+            console.error("Geocoding failed:", data);
+            return null;
+        }
+    } catch (error) {
+        console.error("Error fetching location:", error);
+        return null;
+    }
+}
+
+function formatTimeFromHour(hour) {
+    if (!hour) {
+        return `00:00:00`;
+    }
+
+    const hours = Math.floor(hour);
+    const minutes = Math.floor(hour % 60);
+    const seconds = Math.floor((hour * 60) % 60); // Convert remaining fraction to seconds
+
+    return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+}
 
 const addSecondsToTime = (timeString, secondsToAdd) => {
     // Validate and normalize the timeString format
@@ -312,14 +386,187 @@ const addSecondsToTime = (timeString, secondsToAdd) => {
     };
 };
 
+async function getHoliday() {
+    try {
+        const res = await axios.get(`${url}/api/holidays/${new Date().getFullYear()}`, {
+            headers: {
+                Authorization: token || ""
+            }
+        });
+        return res.data
+    } catch (error) {
+        console.log(error?.response?.data?.error);
+    }
+}
+
+async function fetchCompanies() {
+    try {
+        const res = await axios.get(`${url}/api/company`, {
+            headers: {
+                Authorization: token
+            }
+        })
+        return res.data;
+    } catch (error) {
+        console.log("error in fetch companies", error);
+        toast.error(error.response.data.error)
+    }
+}
+
+function getTimeFromHour(timeStr, min = false) {
+    if (timeStr) {
+        const [hours, minutes, seconds] = timeStr.split(":").map(Number);
+        if (min) {
+            return ((hours * 60) + minutes + (seconds / 60))?.toFixed(2);
+        } else {
+            return (((hours * 60) + minutes + (seconds / 60)) / 60)?.toFixed(2);
+        }
+    } else {
+        return 0;
+    }
+}
+
+async function fileUploadInServer(files) {
+    const formData = new FormData();
+
+    // Append each file to FormData
+    files.forEach((file) => {
+        formData.append("documents", file); // Ensure correct field name
+    });
+
+    // Upload the files
+    const response = await axios.post(`${url}/api/upload`, formData, {
+        headers: {
+            'Content-Type': 'multipart/form-data'
+        },
+    });
+    if (response) {
+        return response.data
+    }
+
+    // Check if upload was successful
+    if (!response.data || !response.data.files) {
+        console.error("Upload failed:", response);
+        return;
+    }
+
+}
+
+function calculateTimePattern(timePatternObj) {
+    if (timePatternObj.StartingTime && timePatternObj.FinishingTime) {
+
+        const [startHour, startMinute] = timePatternObj.StartingTime.split(".").map(num => parseInt(num, 10));
+        const [endHour, endMinute] = timePatternObj.FinishingTime.split(".").map(num => parseInt(num, 10));
+        console.log("startingTime: ", startHour, startMinute);
+        console.log("finishingtime: ", endHour, endMinute);
+
+        const startDate = new Date();
+        startDate.setHours(startHour);
+        startDate.setMinutes(startMinute);
+
+        const endDate = new Date();
+        endDate.setHours(endHour);
+        endDate.setMinutes(endMinute);
+
+        const timeDiff = endDate.getTime() - startDate.getTime();
+        const hoursDiff = Math.floor(timeDiff / (1000 * 60 * 60));
+        console.log(hoursDiff);
+
+        return hoursDiff
+    }
+}
+
+function triggerToaster(response) {
+    return (
+        toaster.push(
+            <Notification
+                header={
+                    <div style={{ display: 'flex', alignItems: 'center' }}>
+                        <img src={response.company.logo} alt="Company Logo" style={{ width: 50, height: 50, marginRight: 10 }} />
+                        <span style={{ fontWeight: 'bold', fontSize: '16px' }}>{response.company.CompanyName}</span>
+                    </div>
+                }
+                closable
+            >
+                <strong>{response.title}</strong>
+                <br />
+                <p>{response.message}</p>
+            </Notification>,
+            { placement: 'bottomEnd' }
+        )
+    )
+}
+
+// Format milliseconds to HH:mm:ss
+const formatMs = (ms) => {
+    if (!ms || isNaN(ms)) return "00:00:00";
+    return new Date(ms).toISOString().substr(11, 8);
+};
+
+function exportAttendanceToExcel(attendanceData) {
+    if (!attendanceData.length) return;
+
+    const formattedData = attendanceData.map((item) => ({
+        Date: item.date.split("T")[0],
+        Behaviour: item.behaviour,
+        EmployeeName: item.employee.FirstName + " " + item.employee.LastName,
+
+        // Login
+        LoginStart: item.login?.startingTime[0] || "00:00",
+        LoginEnd: item.login?.endingTime.at(-1) || "00:00",
+        LoginTaken: formatMs(item.login?.takenTime || 0),
+
+        // Meeting
+        MeetingStart: item.meeting?.startingTime[0] || "00:00",
+        MeetingEnd: item.meeting?.endingTime.at(-1) || "00:00",
+        MeetingTaken: formatMs(item.meeting?.takenTime || 0),
+
+        // Morning Break
+        MorningBreakStart: item.morningBreak?.startingTime[0] || "00:00",
+        MorningBreakEnd: item.morningBreak?.endingTime.at(-1) || "00:00",
+        MorningBreakTaken: formatMs(item.morningBreak?.takenTime || 0),
+
+        // Lunch
+        LunchStart: item.lunch?.startingTime[0] || "00:00",
+        LunchEnd: item.lunch?.endingTime.at(-1) || "00:00",
+        LunchTaken: formatMs(item.lunch?.takenTime || 0),
+
+        // Evening Break
+        EveningBreakStart: item.eveningBreak?.startingTime[0] || "00:00",
+        EveningBreakEnd: item.eveningBreak?.endingTime.at(-1) || "00:00",
+        EveningBreakTaken: formatMs(item.eveningBreak?.takenTime || 0),
+
+        // Event
+        EventStart: item.event?.startingTime[0] || "00:00",
+        EventEnd: item.event?.endingTime.at(-1) || "00:00",
+        EventTaken: formatMs(item.event?.takenTime || 0),
+    }));
+
+    const ws = XLSX.utils.json_to_sheet(formattedData);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Attendance");
+
+    const wbout = XLSX.write(wb, { bookType: "xlsx", type: "array" });
+    const blob = new Blob([wbout], { type: "application/octet-stream" });
+
+    saveAs(blob, "Attendance.xlsx");
+}
 
 export {
+    triggerToaster,
+    calculateTimePattern,
+    getTimeFromHour,
+    getHoliday,
     addDataAPI,
+    fetchCompanies,
+    fetchTeams,
     getDataAPI,
+    updateEmp,
     getDepartments,
     updateDataAPI,
     fetchPayslipFromEmp,
     fetchPayslipInfo,
+    getUserLocation,
     fetchPayslip,
     removeClockinsData,
     fetchLeaveRequests,
@@ -334,5 +581,9 @@ export {
     fetchAllEmployees,
     formatTime,
     fetchWorkplace,
-    fetchRoles
+    fetchRoles,
+    formatTimeFromHour,
+    fileUploadInServer,
+    getDayDifference,
+    exportAttendanceToExcel
 };

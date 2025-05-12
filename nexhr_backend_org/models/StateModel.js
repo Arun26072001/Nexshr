@@ -9,11 +9,6 @@ var stateSchema = new mongoose.Schema({
   });
   
   var State = mongoose.model("State", stateSchema);
-  autoIncrement.initialize(mongoose.connection);
-  stateSchema.plugin(autoIncrement.plugin, {
-    model: "State",
-    field: "StateID"
-  });
   
   const StateValidation = Joi.object().keys({
     _id: Joi.optional(),

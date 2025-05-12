@@ -5,14 +5,13 @@ import Tabs from '@mui/material/Tabs';
 import Tab from '@mui/material/Tab';
 import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
-import CoronavirusIcon from '@mui/icons-material/Coronavirus';
-import WatchLaterIcon from '@mui/icons-material/WatchLater';
-import { fetchLeaveRequests } from './ReuseableAPI';
+import { fetchLeaveRequests, getDayDifference } from './ReuseableAPI';
 import CircleBar from './CircleProcess';
-import { NavLink, useNavigate } from 'react-router-dom';
-import { TimerStates } from './payslip/HRMDashboard';
+import { useNavigate } from 'react-router-dom';
 import { EssentialValues } from '../App';
-
+import { Badge, Calendar, Dropdown, HStack, Popover, Whisper } from 'rsuite';
+import { Skeleton } from '@mui/material';
+import AddHomeWorkRoundedIcon from '@mui/icons-material/AddHomeWorkRounded';
 
 function CustomTabPanel(props) {
   const { children, value, index, ...other } = props;
@@ -47,73 +46,47 @@ function a11yProps(index) {
   };
 }
 
-// const [todayLeaveCount, setTodayLeaveCount] = useState(0);
-// const [tomarrowLeaveCount, setTomarrowLeaveCount] = useState(0);
-// const [yesterDayleaveCount, setYesterDayLeaveCount] = useState(0);
-// const tomarrow = new Date(today.setDate(today.getDate() + 1)).toISOString().split("T")[0];
-// const yesterday = new Date(today.setDate(today.getDate() - 1)).toISOString().split("T")[0];
-// const [emps, setEmps] = useState([]);
 export default function Twotabs() {
-  const { whoIs } = useContext(TimerStates);
+  const { whoIs } = useContext(EssentialValues);
   const navigate = useNavigate();
   const { data } = useContext(EssentialValues);
-  const { token, annualLeave, _id } = data;
+  
+  const { annualLeave, _id } = data;
   const [value, setValue] = useState(0);
   const [takenLeave, setTakenLeave] = useState(0);
   const today = new Date();
   const [leaveRequests, setLeaveRequests] = useState([]);
-  const [upComingHoliday, setupComingHoliday] = useState("");
-
-  const dateArray = [
-    `${new Date().getFullYear()}-01-01`,
-    `${new Date().getFullYear()}-01-15`,
-    `${new Date().getFullYear()}-01-26`,
-    `${new Date().getFullYear()}-03-29`,
-    `${new Date().getFullYear()}-05-01`,
-    `${new Date().getFullYear()}-08-15`,
-    `${new Date().getFullYear()}-10-02`,
-    `${new Date().getFullYear()}-10-11`,
-    `${new Date().getFullYear()}-10-31`,
-    `${new Date().getFullYear()}-12-25`
-  ];
+  const [isLoading, setIsLoading] = useState(false);
+  const [selectedDate, setSelectedDate] = useState("");
+  const [leaveData, setLeaveData] = useState([]);
 
   const handleChange = (event, newValue) => {
     setValue(newValue);
   };
 
-
-  useEffect(() => {
-    for (let i = 0; i < dateArray.length; i++) {
-      const holidayDate = new Date(dateArray[i]);
-      if (holidayDate > today) {
-        const options = { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' };
-        setupComingHoliday(new Intl.DateTimeFormat('default', options).format(holidayDate).replace(",", ""))
-        break;
-      }
-    }
-    // return (() => { })
-  }, []);
-
   useEffect(() => {
     // debugger;
     const gettingLeaveRequests = async () => {
+
+      setIsLoading(true)
       if (_id) {
         const leaveReqs = await fetchLeaveRequests(_id);
-        if (leaveReqs?.requests?.leaveApplication?.length > 0) {
-          setLeaveRequests(leaveReqs.requests.leaveApplication);
 
-          leaveReqs.requests.leaveApplication.forEach((req) => {
-            let toDate = new Date(req.toDate);
-            let fromDate = new Date(req.fromDate);
-            let timeDifference = toDate - fromDate;
-            const dayDifference = timeDifference / (1000 * 60 * 60 * 24);
+        if (leaveReqs?.leaveApplications?.length > 0) {
+          setLeaveRequests(leaveReqs.leaveApplications);
 
-            setTakenLeave(prev => prev + dayDifference);  // Set this to the correct unit (e.g., days)
+          leaveReqs.leaveApplications.forEach((req) => {
+            // if (req.status === "pending" || req.status === "approved") {
+            if (req.status === "approved" && !["Permission Leave", "Unpaid Leave (LWP)"].includes(req.leaveType)) {
+              const dayDifference = Math.ceil(getDayDifference(req));
+              setTakenLeave(prev => prev + Number(dayDifference.toFixed(2)));  // Set this to the correct unit (e.g., days)
+            }
           });
         } else {
           setTakenLeave(0);
         }
       }
+      setIsLoading(false);
     }
 
     gettingLeaveRequests();
@@ -123,75 +96,157 @@ export default function Twotabs() {
     }
   }, []);
 
+  useEffect(() => {
+    async function getAllEmpLeaveData() {
+      setIsLoading(true);
+      try {
+        const res = await fetchLeaveRequests(data._id);
+        setLeaveData(res.leaveApplications.map((leave) => ({
+          title: `${leave.employee.FirstName[0].toUpperCase() + leave.employee.FirstName.slice(1)} ${leave.employee.LastName} (${leave.leaveType[0].toUpperCase() + leave.leaveType.slice(1)} - ${leave.status})`,
+          start: new Date(leave.fromDate),
+          end: new Date(leave.toDate),
+          status: leave.status
+        })))
+      } catch (error) {
+        console.log(error);
+      }
+      setIsLoading(false)
+    }
+    // if (["2", "3"].includes(data.Account)) {
+    getAllEmpLeaveData();
+    // }
+  }, [])
+
+  function getTodoList(date) {
+    if (!date) {
+      return [];
+    }
+
+    return leaveData.filter((leave) => {
+      return leave.start.toDateString() === date.toDateString();
+    });
+  }
+
+  const renderMenu = (date) => ({ onClose, right, top, className }, ref) => {
+    const list = getTodoList(date);
+    if (!list.length) {
+      return null; // Return null instead of []
+    }
+
+    const handleSelect = (eventKey) => {
+      if (eventKey === 1) {
+        // Handle selection
+      }
+      onClose();
+    };
+
+    return (
+      <Popover ref={ref} className={className} style={{ right, top }} full>
+        <Dropdown.Menu onSelect={handleSelect} title="Personal Settings">
+          {list.map((item) => (
+            <Dropdown.Item key={item.start}>{item.title}</Dropdown.Item>
+          ))}
+        </Dropdown.Menu>
+      </Popover>
+    );
+  };
+
+  function highlightToLeave(date) {
+    if (!leaveData || !leaveData.length) return null; // Ensure leaveData exists
+
+    // Filter leaveData based on date comparison
+    const isLeave = leaveData.filter((leave) => {
+      const leaveDate = new Date(leave.start); // Ensure `leave.start` is a Date object
+      return leaveDate.toDateString() === date.toDateString();
+    });
+
+    if (isLeave.length > 0) {
+      const leaveStatus = isLeave[0].status; // Get status from the first matched leave
+
+      return (
+        <Whisper placement="bottomEnd" trigger="click" speaker={renderMenu(date)}>
+          <div style={{ width: "20px", height: "20px" }}>
+            <Badge className={`calendar-todo-item-badge ${leaveStatus === "pending" ? "bg-warning" : leaveStatus === "approved" ? "bg-success" : ""}`} />
+          </div>
+        </Whisper>
+      );
+    }
+
+    return null; // Return null if no leave is found
+  }
 
   return (
-    <Box sx={{ width: '100%', border: '2px solid rgb(208 210 210)', borderRadius: '5px', height: "100%" }}>
+    <Box sx={{ width: '100%', borderRadius: '5px', height: "100%", backgroundColor: 'white' }} >
       <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
-        <Tabs value={value} onChange={handleChange} aria-label="basic tabs example" style={{ backgroundColor: 'rgb(238, 247, 255)' }}>
+        <Tabs value={value} onChange={handleChange} aria-label="basic tabs example">
           <Tab label="Absence" {...a11yProps(0)} />
-          <Tab label="Overtime" {...a11yProps(1)} />
+          {/* <Tab label="Overtime" {...a11yProps(1)} /> */}
         </Tabs>
       </Box>
-      <CustomTabPanel value={value} index={0} className="bg-light tabParent">
+      <CustomTabPanel value={value} index={0} className="tabParent">
         <div className='empActivies'>
           <div className="d-flex justify-content-between w-100" style={{ fontSize: "12px", fontWeight: 600 }}>
             <div className=''>
-              <button className='button' onClick={() => navigate(`/${whoIs}/leave-request`)}>Request time off</button>
+              <button className='button' onClick={() => navigate(`/${whoIs}/leave-request`)}>Apply Leave</button>
             </div>
-            <div className=''>
-              <button className="outline-btn">Absence history</button>
-            </div>
+            <button className="button" onClick={() => navigate(`/${whoIs}/wfh-request`)}>
+              <AddHomeWorkRoundedIcon /> Apply WFH
+            </button>
           </div>
           <div className="row" >
             <div className="leaveCircle col-lg-6 col-sm-12 col-md-12 p-0" >
-              <CircleBar annualLeave={Number(annualLeave || 0)} takenLeave={takenLeave || 0} />
+              {
+                isLoading ? <Skeleton variant="circular" width={120} height={120} className="m-2" /> :
+                  <CircleBar annualLeave={Number(annualLeave).toFixed(1) || 0} takenLeave={takenLeave.toFixed(2) || 0} />
+              }
             </div>
 
             <div className='text-center col-lg-6 col-sm-12 col-md-12 p-0 m-auto' style={{ fontSize: "13px" }} >
-              {/* <div className='d-flex text-center'> */}
-              <p><b>{(Number(annualLeave) - takenLeave) || 0} Days</b> Remaining</p>
-              {/* </div> */}
-              {/* <div className='d-flex text-center'> */}
-              <p><b>{annualLeave || 0} Days</b> Allowance</p>
-              {/* </div> */}
+              {
+                isLoading ?
+                  <>
+                    <Skeleton variant='text' />
+                    <Skeleton variant='text' />
+                  </> :
+                  <>
+                    <p><b>{(Number(annualLeave) - takenLeave).toFixed(2) || 0} Days</b> Remaining</p>
+                    <p><b>{annualLeave || 0} Days</b> Allowance</p>
+                  </>
+              }
             </div>
           </div>
 
           {
-            leaveRequests.map((req) => {
-              // debugger;
-              let todayDate = today.getTime()
-              let leaveDate = new Date(req.fromDate).getTime()
-              if (todayDate < leaveDate) {
-                return (<div className={`leaveReq ${req.status === "pending" ? "bg-warning"
-                  : req.status === "rejected" ? "bg-danger" : "bg-success"}`}>
-                  {req.leaveType + " "}
-                  {new Date(req.fromDate).toLocaleString("default", { month: "short" })} {new Date(req.fromDate).getDate()}th{" to "}{new Date(req.toDate).getDate()}th
-                </div>)
-              }
-            })
+            isLoading ? [...Array(5)].map((item, index) => {
+              return <Skeleton variant='rounded' key={index} width={"100%"} className='my-1' height={30} />
+            }) :
+              leaveRequests?.map((req, index) => {
+                // debugger;
+                let todayDate = today.getTime()
+                let leaveDate = new Date(req.fromDate).getTime()
+                if (todayDate < leaveDate) {
+                  return (<div key={index} className={`leaveReq ${req.status === "pending" ? "bg-warning"
+                    : req.status === "rejected" ? "bg-danger" : "bg-success"}`}>
+                    {req.leaveType[0].toUpperCase() + req.leaveType.slice(1) + " "}
+                    {new Date(req.fromDate).toLocaleString("default", { month: "short" })} {new Date(req.fromDate).getDate()}th{" to "}{new Date(req.toDate).getDate()}th
+                  </div>)
+                }
+              })
           }
 
-          <div className="text-dark">
-            <p className='text-start'>Next up - Public Holiday</p>
-            <p className='text-primary text-start'><b>{upComingHoliday}</b></p>
-            <p className='mt-3 text-start'>You've also taken</p>
-          </div>
-          <div className='text-center'>
-            <div className='w-100'>
-              <button className='btn btn-outline-warning w-100 my-2'><WatchLaterIcon /> 0 Lateness</button>
-            </div>
-            <div className='w-100'>
-              <button className='btn btn-outline-danger w-100'><CoronavirusIcon />0 Sickness</button>
-            </div>
-          </div>
+          <HStack spacing={10} style={{ height: 320 }} alignItems="flex-start" wrap className='position-relative'>
+            {
+              isLoading ? <Skeleton variant='rounded' width={"100%"} height={300} />
+                : <Calendar compact style={{ width: 320, paddingTop: "0px" }} renderCell={highlightToLeave} onChange={(value) => setSelectedDate(value)} bordered />
+            }
+          </HStack>
+
         </div>
       </CustomTabPanel>
 
       <CustomTabPanel value={value} index={1}>
-        Overtime
+        Under Development
       </CustomTabPanel>
     </Box>
   );
 }
-

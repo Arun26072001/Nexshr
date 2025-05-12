@@ -1,37 +1,40 @@
 import React from "react"
+import NoDataFound from "./NoDataFound";
 
-const Address = (props) => {
+const Address = ({ empData, error }) => {
+
     return (
-        <div>
-            <div className="payslipTitle">
-                Address
-            </div>
+        error ? <NoDataFound message={error} /> :
+            <div>
+                <p className="payslipTitle">
+                    Address
+                </p>
 
-            <div className="px-3">
-                <div className="my-3">
-                    <div className="my-2">
-                        Permanent Address
+                <div className="px-3">
+                    <div className="my-3">
+                        <div className="my-2">
+                            Permanent Address
+                        </div>
+                        <input type="text" className="payrunInput" value={`${empData?.address?.street || "street"}, ${empData?.address?.city || "city"}, ${empData?.address?.state || "state"}, ${empData?.address?.country || "country"}`} />
                     </div>
-                    <input type="text" className="payrunInput" placeholder="4140 Parker Rd. Allentown, New Mexico 31134" />
-                </div>
 
-                <div className="my-3">
-                    <div className="my-2">
-                        Current Address
-                    </div>
-                    <input type="text" className="payrunInput" placeholder="3517 W. Gray St. Utica, Pennsylvania 57867" />
-                </div>
-            </div>
-
-            <div className="row">
-                <div className="col-lg-3 col-12">
-                    <div className="btnParent mx-auto">
-                        <button className="outline-btn" style={{ background: "#e0e0e0", border: "none" }}>Cancel</button>
-                        <button className="button">Save</button>
+                    <div className="my-3">
+                        <div className="my-2">
+                            Current Address
+                        </div>
+                        <input type="text" className="payrunInput" value={`${empData?.address?.street || "street"}, ${empData?.address?.city || "city"}, ${empData?.address?.state || "state"}, ${empData?.address?.country || "country"}`} />
                     </div>
                 </div>
+
+                {/* <div className="row">
+                    <div className="col-lg-3 col-12">
+                        <div className="btnParent mx-auto">
+                            <button className="outline-btn" style={{ background: "#e0e0e0", border: "none" }}>Cancel</button>
+                            <button className="button">Save</button>
+                        </div>
+                    </div>
+                </div> */}
             </div>
-        </div>
     )
 };
 
