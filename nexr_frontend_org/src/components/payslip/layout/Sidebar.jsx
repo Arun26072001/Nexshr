@@ -176,6 +176,32 @@ const Sidebar = ({ sideBar }) => {
           'Calendar',
           'calendar'
         )}
+        {/* Email template */}
+        {renderNavLink(
+          ['hr', "admin"].includes(whoIs),
+          `/${whoIs}/email-templates`,
+          calendarIcon,
+          'Email-Template',
+          'email-template'
+        )}
+
+        {/* Announcements */}
+        {renderNavLink(
+          ['hr', "admin"].includes(whoIs),
+          `/${whoIs}/announcement`,
+          calendarIcon,
+          'Announcement',
+          'announcement'
+        )}
+
+        {/* holiday */}
+        {renderNavLink(
+          ['hr', "admin"].includes(whoIs),
+          `/${whoIs}/holiday`,
+          calendarIcon,
+          'Holiday',
+          'holiday'
+        )}
 
         {Leave === 'allow' && ["admin", "sys-admin", "hr"].includes(whoIs) &&
           renderSubMenu(
@@ -250,8 +276,8 @@ const Sidebar = ({ sideBar }) => {
               { key: 'country', path: `/${whoIs}/administration/country`, label: 'Country' },
               { key: 'department', path: `/${whoIs}/administration/department`, label: 'Department' },
               { key: 'position', path: `/${whoIs}/administration/position`, label: 'Position' },
-              { key: 'holiday', path: `/${whoIs}/administration/holiday`, label: 'Holiday' },
-              { key: 'announcement', path: `/${whoIs}/administration/announcement`, label: 'Announcement' },
+              // { key: 'holiday', path: `/${whoIs}/administration/holiday`, label: 'Holiday' },
+              // { key: 'announcement', path: `/${whoIs}/administration/announcement`, label: 'Announcement' },
               { key: 'team', path: `/${whoIs}/administration/team`, label: 'Team' },
               { key: 'leave-details', path: `/${whoIs}/administration/leave-details`, label: 'Leave Details' },
             ],

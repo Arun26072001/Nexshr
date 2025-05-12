@@ -6,8 +6,6 @@ const mongoose = require("mongoose");
 const app = express();
 require("dotenv").config();
 const cors = require("cors");
-// const http = require("http");
-// const { Server } = require("socket.io");
 const path = require("path");
 
 // models or schema
@@ -240,8 +238,6 @@ process.on("uncaughtException", (err) => {
   console.log(err);
 });
 
-
-// Create HTTP Server and Socket.IO
 // const server = http.createServer(app);
 // const io = new Server(server, {
 //   cors: {
