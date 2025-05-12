@@ -14,6 +14,9 @@ import fileIcon from "../../../asserts/file.svg";
 import folderIcon from "../../../asserts/folder.svg";
 import taskIcon from "../../../asserts/task.svg";
 import workFromHomeIcon from "../../../asserts/workfromhome.svg";
+import emailTempIcon from "../../../asserts/env.svg";
+import holidayIcon from "../../../asserts/beach.svg";
+import announcementIcon from "../../../asserts/announcement.svg";
 import { EssentialValues } from '../../../App';
 import { jwtDecode } from 'jwt-decode';
 import { TimerStates } from '../HRMDashboard';
@@ -180,7 +183,7 @@ const Sidebar = ({ sideBar }) => {
         {renderNavLink(
           ['hr', "admin"].includes(whoIs),
           `/${whoIs}/email-templates`,
-          calendarIcon,
+          emailTempIcon,
           'Email-Template',
           'email-template'
         )}
@@ -189,7 +192,7 @@ const Sidebar = ({ sideBar }) => {
         {renderNavLink(
           ['hr', "admin"].includes(whoIs),
           `/${whoIs}/announcement`,
-          calendarIcon,
+          announcementIcon,
           'Announcement',
           'announcement'
         )}
@@ -198,7 +201,7 @@ const Sidebar = ({ sideBar }) => {
         {renderNavLink(
           ['hr', "admin"].includes(whoIs),
           `/${whoIs}/holiday`,
-          calendarIcon,
+          holidayIcon,
           'Holiday',
           'holiday'
         )}
