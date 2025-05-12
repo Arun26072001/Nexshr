@@ -46,8 +46,8 @@ function getWeekdaysOfCurrentMonth(year, month, holidays) {// 0-based index (0 =
 function mailContent(type, fromDateValue, toDateValue, emp, leaveType, actionBy, member) {
   const isRejected = type === "rejected";
   const subject = isRejected
-    ? `${emp.FirstName}'s Leave Application has been rejected by ${actionBy}`
-    : `${emp.FirstName}'s Leave Application has been approved by ${actionBy}`;
+    ? `${emp.FirstName}'s ${leaveType === "wfh" ? "WFH Request" : leaveType.toLowerCase() === "permission" ? "Permission" : "Leave Application"} has been rejected by ${actionBy}`
+    : `${emp.FirstName}'s ${leaveType === "wfh" ? "WFH Request" : leaveType.toLowerCase() === "permission" ? "Permission" : "Leave Application"} has been approved by ${actionBy}`;
 
   return `
     <!DOCTYPE html>
@@ -69,7 +69,7 @@ function mailContent(type, fromDateValue, toDateValue, emp, leaveType, actionBy,
           <p style="font-size: 14px; color: #686D76; margin: 10px 0;">
             ${leaveType} from 
             ${new Date(fromDateValue).toLocaleString("default", { month: "long" })} ${new Date(fromDateValue).getDate()}, ${new Date(fromDateValue).getFullYear()} 
-            to 
+            to  
             ${new Date(toDateValue).toLocaleString("default", { month: "long" })} ${new Date(toDateValue).getDate()}, ${new Date(toDateValue).getFullYear()}
           </p>
          
@@ -92,9 +92,6 @@ function mailContent(type, fromDateValue, toDateValue, emp, leaveType, actionBy,
   Kavya<br />
   HR Department
 </p>
-
-
-
           <a href="${process.env.REACT_APP_API_URL}" style="font-weight: bold; padding: 12px 24px; border-radius: 30px; background-color: ${isRejected ? "red" : "green"}; color: white; text-decoration: none; display: inline-block; margin: 15px 0; border: none;">View Leave Details</a>
           <p style="font-size: 14px; color: #B4B4B8; margin: 10px 0;">Why did you receive this mail?</p>
           <p style="font-size: 14px; color: #B4B4B8; margin: 10px 0;">
