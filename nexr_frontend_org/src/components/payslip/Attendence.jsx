@@ -1,3 +1,4 @@
+/* eslint-disable no-restricted-globals */
 import React, { useContext, useEffect, useState } from "react";
 import "./payslip.css";
 import axios from "axios";
