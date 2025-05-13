@@ -95,11 +95,6 @@ const CommonModel = ({
         changeData(uniqueIds, "selectTeamMembers");
     };
 
-
-
-
-
-
     return (
         <Modal open={isAddData} size="sm" backdrop="static">
             <Modal.Header>

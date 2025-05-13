@@ -8,9 +8,9 @@ import AddRoundedIcon from '@mui/icons-material/AddRounded';
 
 const AnnouncementComponent = ({ handleChangeAnnouncement }) => {
     const url = process.env.REACT_APP_API_URL;
-    const { data, 
+    const { data,
         // socket
-     } = useContext(EssentialValues);
+    } = useContext(EssentialValues);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [team_member, setTeam_member] = useState([]);
     const [announcementObj, setAnnouncementObj] = useState({})
@@ -49,9 +49,14 @@ const AnnouncementComponent = ({ handleChangeAnnouncement }) => {
             ...pre,
             [name]: value
         }))
-    }                                                                                                                       
+    }
 
     const handleSubmit = async () => {
+        if (!announcementObj.selectTeamMembers || announcementObj.selectTeamMembers.length === 0) {
+            toast.error("Please select at least one employee");
+            return;
+        }
+
         setIschangingAnnouncement(true);
         try {
             const addAnnounce = await axios.post(`${url}/api/announcements/${data._id}`, announcementObj,
