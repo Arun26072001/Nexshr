@@ -15,7 +15,6 @@ import { jwtDecode } from 'jwt-decode';
 import axios from 'axios';
 import { EssentialValues } from '../../App';
 import Company from '../Administration/Company';
-import Holiday from '../Administration/Holiday';
 import Country from '../Administration/Country';
 import ManageTeam from './ManageTeam';
 import TimeLog from '../TimeLog';
@@ -24,6 +23,8 @@ import LeaveDetails from '../Administration/LeaveDetails';
 import WFHRequestForm from './WFHRequestForm';
 import WFHRequests from '../workfromhome/WFHRequests';
 import EmailTemplates from './EmailTemplates';
+import UnpaidRequest from '../leave/UnpaidRequest';
+import Holiday from '../HolidaysPicker';
 
 // Lazy loading components
 const Dashboard = React.lazy(() => import('./Dashboard'));
@@ -521,6 +522,7 @@ export default function HRMDashboard() {
                             <Routes>
                                 <Route index path='status' element={<Status />} />
                                 <Route path='leave-request' element={<LeaveRequest />} />
+                                <Route path="unpaid-request" element={<UnpaidRequest />} />
                                 <Route path='calendar' element={<LeaveCalender />} />
                                 <Route path='leave-summary' element={<LeaveSummary />} />
                             </Routes>

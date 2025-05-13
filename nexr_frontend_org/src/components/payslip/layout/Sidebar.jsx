@@ -199,7 +199,7 @@ const Sidebar = ({ sideBar }) => {
 
         {/* holiday */}
         {renderNavLink(
-          ['hr', "admin"].includes(whoIs),
+          ['hr', "admin", "emp"].includes(whoIs),
           `/${whoIs}/holiday`,
           holidayIcon,
           'Holiday',
@@ -211,6 +211,7 @@ const Sidebar = ({ sideBar }) => {
             'leave',
             [
               { key: 'status', path: `/${whoIs}/leave/status`, label: 'Status' },
+              { key: 'unpaid-request', path: `/${whoIs}/leave/unpaid-request`, label: 'Unpaid Request' },
               { key: 'leave-request', path: `/${whoIs}/leave/leave-request`, label: 'Leave Request' },
               { key: 'calendar', path: `/${whoIs}/leave/calendar`, label: 'Calendar' },
               { key: 'leave-summary', path: `/${whoIs}/leave/leave-summary`, label: 'Leave Summary' }

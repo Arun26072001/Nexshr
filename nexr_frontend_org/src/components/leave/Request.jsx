@@ -23,8 +23,7 @@ export default function LeaveRequest() {
     const { isTeamHead, isTeamLead, isTeamManager } = jwtDecode(token);
     const navigate = useNavigate()
 
-    async function replyToLeave(leave, response) {
-        
+    async function replyToLeave(leave, response) {     
         try {
             let actionBy;
             let updatedLeaveRequest;
