@@ -284,7 +284,7 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
                     };
 
                     subject = "Half-day Leave Applied (Unpaid Leave)";
-                    htmlContent =`
+                    htmlContent = `
                         < html >
                             <body>
                                 <h2>You have exceeded your permission limit.</h2>
@@ -699,19 +699,19 @@ router.get("/sendmail/:id/:clockinId", async (req, res) => {
                                                     </thead>
                                                     <tbody>
                                                         ${activitiesData && activitiesData.length > 0
-                                                            ? activitiesData
-                                                                .map(
-                                                                    (data) => `
+                ? activitiesData
+                    .map(
+                        (data) => `
                           <tr style="background-color: ${data.index % 2 === 0 ? '#f2f2f2' : '#fff'};">
                             <td style="padding: 12px 15px; border: 1px solid #ddd;">${data.activity}</td>
                             <td style="padding: 12px 15px; border: 1px solid #ddd;">${data.startingTime}</td>
                             <td style="padding: 12px 15px; border: 1px solid #ddd;">${data.endingTime}</td>
                           </tr>
                         `
-                                                                )
-                                                                .join("")
-                                                            : `<tr><td colspan="3" style="text-align: center; padding: 12px 15px; border: 1px solid #ddd;">No activity data available</td></tr>`
-                                                        }
+                    )
+                    .join("")
+                : `<tr><td colspan="3" style="text-align: center; padding: 12px 15px; border: 1px solid #ddd;">No activity data available</td></tr>`
+            }
                                                     </tbody>
                                                 </table>
                                                 <p style="font-size: 18px;">Happy working!</p>
@@ -720,54 +720,55 @@ router.get("/sendmail/:id/:clockinId", async (req, res) => {
                                     </body>
                                 </html>`
 
-                                sendMail({
-                                    From: process.env.FROM_MAIL,
-                                To: emp.Email,
-                                Subject: `You have punched in for the ${emp.clockIns[0].date}`,
-                                HtmlBody: htmlContent,
+        sendMail({
+            From: process.env.FROM_MAIL,
+            To: emp.Email,
+            Subject: `You have punched in for the ${emp.clockIns[0].date}`,
+            HtmlBody: htmlContent,
         });
-                                return res.send({message: "We have send mail for you have completed 8 working hours." })
+        return res.send({ message: "We have send mail for you have completed 8 working hours." })
     } catch (error) {
-        return res.status(500).send({error: error.message })
+        return res.status(500).send({ error: error.message })
     }
 })
 
 router.get("/", verifyAdminHrNetworkAdmin, async (req, res) => {
     try {
-                                    let filterObj = { };
-                                if (req.query.daterangeValue) {
+        let filterObj = {};
+
+        if (req.query.daterangeValue) {
             const startDate = new Date(req.query.daterangeValue[0]);
-                                const endDate = new Date(req.query.daterangeValue[1])
-                                filterObj = {
-                                    date: {$gte: startDate, $lte: endDate }
+            const endDate = new Date(req.query.daterangeValue[1])
+            filterObj = {
+                date: { $gte: startDate, $lte: endDate }
             }
         }
-                                let attendanceData = await ClockIns.find(filterObj)
-                                .populate({path: "employee", select: "FirstName LastName" })
-                                .sort({date: -1 });
+        let attendanceData = await ClockIns.find(filterObj)
+            .populate({ path: "employee", select: "FirstName LastName" })
+            .sort({ date: -1 });
 
-                                res.send(attendanceData);
+        return res.send(attendanceData);
     } catch (error) {
-                                    console.error("Error fetching attendance data:", error);
-                                res.status(500).send({message: error.message })
+        console.error("Error fetching attendance data:", error);
+        res.status(500).send({ message: error.message })
     }
 })
 
 router.put("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
     try {
         const updatedClockIn = await ClockIns.findByIdAndUpdate(req.params.id, req.body, {
-                                    new: true
+            new: true
         });
 
-                                if (!updatedClockIn) {
-            return res.status(404).send({message: "Clock-in entry not found" });
+        if (!updatedClockIn) {
+            return res.status(404).send({ message: "Clock-in entry not found" });
         }
-                                // check user is late login and early logout
+        // check user is late login and early logout
 
-                                res.send(updatedClockIn);
+        res.send(updatedClockIn);
     } catch (error) {
-                                    console.error("Error updating ClockIns:", error);
-                                res.status(500).send({message: "Internal server error", details: error.message });
+        console.error("Error updating ClockIns:", error);
+        res.status(500).send({ message: "Internal server error", details: error.message });
     }
 });
 
@@ -775,22 +776,22 @@ router.put("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
 router.post("/ontime/:type", async (req, res) => {
     try {
         const date = new Date();
-                                const hour = date.getHours();
-                                const min = date.getMinutes();
-                                const {type} = req.params;
-                                let emps;
-                                if (type === "logout") {
+        const hour = date.getHours();
+        const min = date.getMinutes();
+        const { type } = req.params;
+        let emps;
+        if (type === "logout") {
             const today = new Date();
-                                const startOfDay = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate(), 0, 0, 0));
-                                const endOfDay = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate(), 23, 59, 59));
-                                emps = await Employee.find({ }, "FirstName LastName Email")
-                                .populate("company")
-                                .populate("workingTimePattern")
-                                .populate({path: "clockIns", match: {date: {$gte: startOfDay, $lte: endOfDay } } })
+            const startOfDay = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate(), 0, 0, 0));
+            const endOfDay = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate(), 23, 59, 59));
+            emps = await Employee.find({}, "FirstName LastName Email")
+                .populate("company")
+                .populate("workingTimePattern")
+                .populate({ path: "clockIns", match: { date: { $gte: startOfDay, $lte: endOfDay } } })
         } else {
-                                    emps = await Employee.find({}, "FirstName LastName Email")
-                                        .populate("company")
-                                        .populate("workingTimePattern");
+            emps = await Employee.find({}, "FirstName LastName Email")
+                .populate("company")
+                .populate("workingTimePattern");
         }
 
         const activeEmps = emps.filter((emp) => {
@@ -802,11 +803,11 @@ router.post("/ontime/:type", async (req, res) => {
         })
 
         activeEmps.map((emp) => {
-                                    sendMail({
-                                        From: process.env.FROM_MAIL,
-                                        To: emp.Email,
-                                        Subject: type === "login" ? "Login Remainder" : "Logout Remainder",
-                                        HtmlBody: `
+            sendMail({
+                From: process.env.FROM_MAIL,
+                To: emp.Email,
+                Subject: type === "login" ? "Login Remainder" : "Logout Remainder",
+                HtmlBody: `
                 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -833,29 +834,29 @@ router.post("/ontime/:type", async (req, res) => {
 </body>
 </html>
 `  })
-                                })
-                                console.log("sent successfully!");
+        })
+        console.log("sent successfully!");
 
-                                return res.send({message: "Email sent successfully for all employees." })
+        return res.send({ message: "Email sent successfully for all employees." })
 
     } catch (error) {
-                                    console.log(error);
-                                return res.status(500).send({error: error.message })
+        console.log(error);
+        return res.status(500).send({ error: error.message })
     }
 })
 
 router.post("/remainder/:id/:timeOption", async (req, res) => {
     try {
-        const {id, timeOption} = req.params;
+        const { id, timeOption } = req.params;
 
-                                const emp = await Employee.findById(id, "FirstName LastName Email fcmToken company").populate("company");
-                                // send email notification
-                                const Subject = `Your ${timeOption[0].toUpperCase() + timeOption.slice(1)} time has ended`;
-                                sendMail({
-                                    From: process.env.FROM_MAIL,
-                                To: emp.Email,
-                                Subject,
-                                HtmlBody: `<html lang="en">
+        const emp = await Employee.findById(id, "FirstName LastName Email fcmToken company").populate("company");
+        // send email notification
+        const Subject = `Your ${timeOption[0].toUpperCase() + timeOption.slice(1)} time has ended`;
+        sendMail({
+            From: process.env.FROM_MAIL,
+            To: emp.Email,
+            Subject,
+            HtmlBody: `<html lang="en">
                                     <head>
                                         <meta charset="UTF-8">
                                             <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -878,20 +879,20 @@ router.post("/remainder/:id/:timeOption", async (req, res) => {
                                         </html> `
         });
 
-                                        // send notification even ask the reason for late
-                                        await sendPushNotification({
-                                            token: emp.fcmToken,
-                                        company: emp.company,
-                                        title: Subject,
-                                        body: `Your ${timeOption[0].toUpperCase() + timeOption.slice(1)} time has ended. Please resume your work.`,
-                                        type: "late reason"
+        // send notification even ask the reason for late
+        await sendPushNotification({
+            token: emp.fcmToken,
+            company: emp.company,
+            title: Subject,
+            body: `Your ${timeOption[0].toUpperCase() + timeOption.slice(1)} time has ended. Please resume your work.`,
+            type: "late reason"
         });
-                                        res.send({message: "Sent mail to employee successfully." })
+        res.send({ message: "Sent mail to employee successfully." })
     } catch (error) {
-                                            console.log(error);
-                                        return res.status(500).send({error: error.message })
+        console.log(error);
+        return res.status(500).send({ error: error.message })
     }
 })
 
 
-                                        module.exports = router;
+module.exports = router;

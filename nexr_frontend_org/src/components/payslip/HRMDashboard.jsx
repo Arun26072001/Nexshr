@@ -346,12 +346,15 @@ export default function HRMDashboard() {
         try {
             const empOfAttendances = await axios.get(`${url}/api/clock-ins/`, {
                 params: {
-                    daterangeValue
+                    daterangeValue,
+                    // page: 0,
+                    // rowsPerPage: 10
                 },
                 headers: {
                     Authorization: token || ""
                 }
             });
+            console.log("empAttendance", empOfAttendances.data.length);
             setAttendanceData(empOfAttendances.data);
         } catch (error) {
             console.error(error);
@@ -412,8 +415,9 @@ export default function HRMDashboard() {
             setFullLeaveRequests(leaveData.data);
         } catch (err) {
             toast.error(err?.response?.data?.message);
+        } finally {
+            setIsLoading(false);
         }
-        setIsLoading(false);
     }
 
     const getLeaveDataFromTeam = async () => {
@@ -432,8 +436,9 @@ export default function HRMDashboard() {
             setFullLeaveRequests(leaveData.data);
         } catch (err) {
             toast.error(err?.response?.data?.message);
+        } finally {
+            setIsLoading(false);
         }
-        setIsLoading(false);
     }
     useEffect(() => {
         if (whoIs && [isTeamHead, isTeamLead, isTeamManager].includes(true)) {
