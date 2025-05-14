@@ -3,7 +3,6 @@ import Announcementalert from './announcementalert';
 import axios from 'axios';
 import { toast } from 'react-toastify';
 import LeaveTable from '../LeaveTable';
-import Loading from '../Loader';
 import { EssentialValues } from '../../App';
 import NoDataFound from '../payslip/NoDataFound';
 import { Skeleton } from '@mui/material';
@@ -65,11 +64,10 @@ const Announce = () => {
 
     return (
         <div className='dashboard-parent py-4'>
-            <div className="d-flex justify-content-between px-2">
+            <div className="d-flex justify-content-between align-items-center px-3">
                 <h5 className='text-daily'>Announcement</h5>
                 <Announcementalert handleChangeAnnouncement={handleChangeAnnouncement} />
             </div>
-            <div className='tabline mt-3 p-4'>
                 <div className='profiles mt-3'>
                     {
                         isLoading ? <Skeleton
@@ -83,7 +81,6 @@ const Announce = () => {
                                 <NoDataFound message={"Announcement data not found"} />
                     }
                 </div>
-            </div>
         </div>
 
     );

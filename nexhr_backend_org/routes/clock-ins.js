@@ -43,25 +43,38 @@ router.post("/not-login/apply-leave/:workPatternId", async (req, res) => {
         const startOfDay = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 0, 0, 0));
         const endOfDay = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 23, 59, 59));
 
-        // 1. Fetch all employees
-        const allEmployees = await Employee.find({ workingTimePattern: req.params.workPatternId }, "_id workingTimePattern FirstName LastName Email").populate("leaveApplication");
+        const allEmployees = await Employee.find(
+            { workingTimePattern: req.params.workPatternId },
+            "_id workingTimePattern FirstName LastName Email team leaveApplication company"
+        )
+            .populate("leaveApplication")
+            .populate("company", "CompanyName logo")
+            .populate({
+                path: "team",
+                populate: { path: "hr", select: "Email fcmToken" },
+            });
 
         const notLoginEmps = [];
 
         for (const emp of allEmployees) {
-            // 2. Check if employee has clock-in today
-            const hasClockIn = await ClockIns.exists({ employee: emp._id, date: { $gte: startOfDay, $lt: endOfDay } });
+            // Skip if employee has already clocked in today
+            const hasClockIn = await ClockIns.exists({
+                employee: emp._id,
+                date: { $gte: startOfDay, $lt: endOfDay },
+            });
             if (hasClockIn) continue;
 
-            // 3. Check if they already have a valid leave
+            // Skip if employee already has an approved full-day leave today
             const leaveExists = await LeaveApplication.exists({
                 employee: emp._id,
                 fromDate: { $gte: startOfDay, $lt: endOfDay },
                 status: "approved",
-                leaveType: { $ne: "Permission Leave" }
+                leaveType: { $ne: "Permission Leave" },
             });
 
-            if (!leaveExists) notLoginEmps.push(emp);
+            if (!leaveExists) {
+                notLoginEmps.push(emp);
+            }
         }
 
         if (!notLoginEmps.length) {
@@ -78,7 +91,8 @@ router.post("/not-login/apply-leave/:workPatternId", async (req, res) => {
                 emp.workingTimePattern.StartingTime,
                 emp.workingTimePattern.FinishingTime
             );
-            const fromDate = new Date(now.getTime() - ((workingHours || 9.30) * 60 * 60 * 1000));
+
+            const fromDate = new Date(now.getTime() - ((workingHours || 9.5) * 60 * 60 * 1000));
 
             const leaveData = {
                 leaveType: "Unpaid Leave (LWP)",
@@ -87,43 +101,70 @@ router.post("/not-login/apply-leave/:workPatternId", async (req, res) => {
                 periodOfLeave: "full day",
                 reasonForLeave: "Didn't punch in until EOD",
                 employee: emp._id,
-                status: "approved",
+                status: "pending",
                 approvers: {
                     TeamLead: "approved",
                     TeamHead: "approved",
                     Hr: "approved",
-                    Manager: "approved"
-                }
+                    Manager: "approved",
+                },
             };
 
-            const leave = await LeaveApplication.create(leaveData, { new: true });
+            const leave = await LeaveApplication.create(leaveData);
             leaveApplications.push(leave);
 
-            await Employee.findByIdAndUpdate(emp._id, { $set: { leaveApplication: [leave._id] } });
+            await Employee.findByIdAndUpdate(emp._id, {
+                $set: { leaveApplication: [leave._id] },
+            });
 
             const htmlContent = `
                 <html>
                     <body>
-                        <h2>You didn't punch in on HRM until the end of the day.</h2>
-                        <p>As a result, we are marking you as on full-day leave, which will be deducted from your salary. Please adhere to the company's policies.</p>
+                        <p>Dear HR,</p>
+                        <h2>${emp.FirstName} ${emp.LastName} did not punch in on the HRM system by the end of the day.</h2>
+                        <p>As a result, the HRM system has automatically applied a leave. Please confirm this action.</p>
                     </body>
-                </html>`;
+                </html>
+            `;
 
-            emailPromises.push(sendMail({
-                From: process.env.FROM_MAIL,
-                To: emp.Email,
-                Subject: "Full-day Leave Applied (Unpaid Leave)",
-                HtmlBody: htmlContent
-            }));
+            const Subject = "Full-day Leave Applied (Unpaid Leave)";
+
+            // Extract HR emails
+            const hrEmails = (emp.team?.hr || []).map(hr => hr.Email).filter(Boolean);
+
+            if (hrEmails.length > 0) {
+                emailPromises.push(
+                    sendMail({
+                        From: process.env.FROM_MAIL,
+                        To: hrEmails.join(", "),
+                        Subject,
+                        HtmlBody: htmlContent,
+                    })
+                );
+
+                // Send push notifications
+                emp.team.hr.forEach(hr => {
+                    if (hr.fcmToken) {
+                        sendPushNotification({
+                            token: hr.fcmToken,
+                            title: Subject,
+                            body: `${emp.FirstName} ${emp.LastName} did not punch in on the HRM system by the end of the day.`,
+                            company: emp.company,
+                        });
+                    }
+                });
+            }
         }
 
         await Promise.all(emailPromises);
 
-        res.send({ message: `${leaveApplications.length} employees for Leave applied and notifications sent.` });
+        res.send({
+            message: `${leaveApplications.length} employee(s) had leave applied and notifications sent.`,
+        });
 
     } catch (error) {
-        console.error("Error:", error);
-        res.status(500).send({ error: error.message });
+        console.error("Error in apply-leave route:", error);
+        res.status(500).send({ error: error.message || "Server error." });
     }
 });
 
@@ -170,7 +211,7 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
         //             return res.status(400).send({ error: "Please reach your office location and start the timer" })
         //         }
         //     } else {
-        //         return res.status(400).send({ error: `location not found in your ${emp.company.CompanyName}` })
+        //         return res.status(400).send({ error: `location not found in your ${ emp.company.CompanyName } ` })
         //     }
         // }
         // Office login time & employee login time
@@ -195,12 +236,12 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
                     prescription: "",
                     employee: emp._id,
                     coverBy: null,
-                    status: "approved",
+                    status: "pending",
                     approvers: {
-                        TeamLead: "approved",
-                        TeamHead: "approved",
-                        Hr: "approved",
-                        Manager: "approved"
+                        TeamLead: "pending",
+                        TeamHead: "pending",
+                        Hr: "pending",
+                        Manager: "pending"
                     },
                     approvedOn: null,
                     approverId: []
@@ -231,7 +272,7 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
                         prescription: "",
                         employee: emp._id,
                         coverBy: null,
-                        status: "approved",
+                        status: "pending",
                         approvers: {
                             TeamLead: "approved",
                             TeamHead: "approved",
@@ -244,15 +285,15 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
 
                     subject = "Half-day Leave Applied (Unpaid Leave)";
                     htmlContent = `
-                        <html>
-                           <body>
+                        < html >
+                            <body>
                                 <h2>You have exceeded your permission limit.</h2>
                                 <p>
-                                    This is to inform you that your punch-in on ${today} was recorded beyond the acceptable grace period. 
+                                    This is to inform you that your punch-in on ${today} was recorded beyond the acceptable grace period.
                                     As per company policy, this will be considered a half-day Loss of Pay (LOP).
                                 </p>
                                 <p>
-                                    We request you to adhere to the official working hours to avoid further attendance-related deductions. 
+                                    We request you to adhere to the official working hours to avoid further attendance-related deductions.
                                     If there is a valid reason for the delay, please raise a request through the HRM portal or contact the HR team.
                                 </p>
                                 <p>Thank you for your understanding.</p>
@@ -260,8 +301,7 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
                                 <p>Kavya</p>
                                 <p>HR Department</p>
                             </body>
-
-                        </html>`;
+                        </ html> `;
                 } else {
                     // Allow Permission Leave (1st or 2nd)
                     const toDateTime = new Date(today.getTime() + 2 * 60 * 60 * 1000);
@@ -283,12 +323,12 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
 
                     subject = empPermissions.length === 1 ? "2nd Permission Applied" : "1st Permission Applied";
                     htmlContent = `
-                        <html>
+                            < html >
                             <body>
                                 <h2>${empPermissions.length === 1 ? "Second" : "First"} permission applied.</h2>
                                 <p>You have arrived late and have been granted a 2-hour permission. Ensure timely arrival.</p>
                             </body>
-                        </html>`;
+                        </ > `;
                 }
 
                 // Save Leave Application
@@ -637,28 +677,28 @@ router.get("/sendmail/:id/:clockinId", async (req, res) => {
             };
         })
 
-        const htmlContent = `<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>${emp.company.CompanyName}</title>
-</head>
-<body style="font-family: Arial, sans-serif; background-color: #f6f9fc; color: #333; margin: 0; padding: 20px;">
-  <div style="display: flex; justify-content: center; margin: 20px;">
-    <div style="flex: 1; max-width: 80%; margin: 0 auto;">
-      <p style="font-size: 18px;">Hi ${emp.FirstName},</p>
-      <p style="font-size: 18px;">Your timing details for today are here:</p>
-      <table style="width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 16px; text-align: left; background-color: #fff; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);">
-        <thead>
-          <tr>
-            <th style="padding: 12px 15px; border: 1px solid #ddd; background-color: #4CAF50; color: white; font-weight: bold; text-transform: uppercase;">Activity</th>
-            <th style="padding: 12px 15px; border: 1px solid #ddd; background-color: #4CAF50; color: white; font-weight: bold; text-transform: uppercase;">Starting Time</th>
-            <th style="padding: 12px 15px; border: 1px solid #ddd; background-color: #4CAF50; color: white; font-weight: bold; text-transform: uppercase;">Ending Time</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${activitiesData && activitiesData.length > 0
+        const htmlContent = `< !DOCTYPE html >
+                        <html lang="en">
+                            <head>
+                                <meta charset="UTF-8">
+                                    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                                        <title>${emp.company.CompanyName}</title>
+                                    </head>
+                                    <body style="font-family: Arial, sans-serif; background-color: #f6f9fc; color: #333; margin: 0; padding: 20px;">
+                                        <div style="display: flex; justify-content: center; margin: 20px;">
+                                            <div style="flex: 1; max-width: 80%; margin: 0 auto;">
+                                                <p style="font-size: 18px;">Hi ${emp.FirstName},</p>
+                                                <p style="font-size: 18px;">Your timing details for today are here:</p>
+                                                <table style="width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 16px; text-align: left; background-color: #fff; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);">
+                                                    <thead>
+                                                        <tr>
+                                                            <th style="padding: 12px 15px; border: 1px solid #ddd; background-color: #4CAF50; color: white; font-weight: bold; text-transform: uppercase;">Activity</th>
+                                                            <th style="padding: 12px 15px; border: 1px solid #ddd; background-color: #4CAF50; color: white; font-weight: bold; text-transform: uppercase;">Starting Time</th>
+                                                            <th style="padding: 12px 15px; border: 1px solid #ddd; background-color: #4CAF50; color: white; font-weight: bold; text-transform: uppercase;">Ending Time</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        ${activitiesData && activitiesData.length > 0
                 ? activitiesData
                     .map(
                         (data) => `
@@ -672,13 +712,13 @@ router.get("/sendmail/:id/:clockinId", async (req, res) => {
                     .join("")
                 : `<tr><td colspan="3" style="text-align: center; padding: 12px 15px; border: 1px solid #ddd;">No activity data available</td></tr>`
             }
-        </tbody>
-      </table>
-      <p style="font-size: 18px;">Happy working!</p>
-    </div>
-  </div>
-</body>
-</html>`
+                                                    </tbody>
+                                                </table>
+                                                <p style="font-size: 18px;">Happy working!</p>
+                                            </div>
+                                        </div>
+                                    </body>
+                                </html>`
 
         sendMail({
             From: process.env.FROM_MAIL,
@@ -695,6 +735,7 @@ router.get("/sendmail/:id/:clockinId", async (req, res) => {
 router.get("/", verifyAdminHrNetworkAdmin, async (req, res) => {
     try {
         let filterObj = {};
+
         if (req.query.daterangeValue) {
             const startDate = new Date(req.query.daterangeValue[0]);
             const endDate = new Date(req.query.daterangeValue[1])
@@ -706,7 +747,7 @@ router.get("/", verifyAdminHrNetworkAdmin, async (req, res) => {
             .populate({ path: "employee", select: "FirstName LastName" })
             .sort({ date: -1 });
 
-        res.send(attendanceData);
+        return res.send(attendanceData);
     } catch (error) {
         console.error("Error fetching attendance data:", error);
         res.status(500).send({ message: error.message })
@@ -723,7 +764,7 @@ router.put("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
             return res.status(404).send({ message: "Clock-in entry not found" });
         }
         // check user is late login and early logout
-        
+
         res.send(updatedClockIn);
     } catch (error) {
         console.error("Error updating ClockIns:", error);
@@ -816,26 +857,26 @@ router.post("/remainder/:id/:timeOption", async (req, res) => {
             To: emp.Email,
             Subject,
             HtmlBody: `<html lang="en">
-                <head>
-                    <meta charset="UTF-8">
-                        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                            <title>${emp.company.CompanyName}</title>
-                        </head>
-                        <body style="font-family: Arial, sans-serif; background-color: #f6f9fc; color: #333; margin: 0; padding: 0;">
-                            <div style="max-width: 600px; margin: auto; padding: 20px; background-color: #fff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);">
-                                <div style="margin: 20px 0;">
-                                    <p>Dear ${emp.FirstName} ${emp.LastName},</p>
-                                    <p>Your ${timeOption[0].toUpperCase() + timeOption.slice(1)} time has ended. Please resume your work.</p>
-                                    <p>If you encounter any issues, please contact HR.</p>
-                                    <p>Kindly adhere to the necessary guidelines.</p><br />
-                                    <p>Thank you!</p>
-                                </div>
-                                <div style="text-align: center; font-size: 14px; margin-top: 20px; color: #777;">
-                                    <p>Have questions or need assistance? <a href="mailto:${process.env.FROM_MAIL}">Contact us</a>.</p>
-                                </div>
-                            </div>
-                        </body>
-                    </html> `
+                                    <head>
+                                        <meta charset="UTF-8">
+                                            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                                                <title>${emp.company.CompanyName}</title>
+                                            </head>
+                                            <body style="font-family: Arial, sans-serif; background-color: #f6f9fc; color: #333; margin: 0; padding: 0;">
+                                                <div style="max-width: 600px; margin: auto; padding: 20px; background-color: #fff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);">
+                                                    <div style="margin: 20px 0;">
+                                                        <p>Dear ${emp.FirstName} ${emp.LastName},</p>
+                                                        <p>Your ${timeOption[0].toUpperCase() + timeOption.slice(1)} time has ended. Please resume your work.</p>
+                                                        <p>If you encounter any issues, please contact HR.</p>
+                                                        <p>Kindly adhere to the necessary guidelines.</p><br />
+                                                        <p>Thank you!</p>
+                                                    </div>
+                                                    <div style="text-align: center; font-size: 14px; margin-top: 20px; color: #777;">
+                                                        <p>Have questions or need assistance? <a href="mailto:${process.env.FROM_MAIL}">Contact us</a>.</p>
+                                                    </div>
+                                                </div>
+                                            </body>
+                                        </html> `
         });
 
         // send notification even ask the reason for late

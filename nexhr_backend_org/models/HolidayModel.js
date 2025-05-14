@@ -11,6 +11,8 @@ const HolidaySchema = new mongoose.Schema({
 const Holiday = mongoose.model("holidays", HolidaySchema);
 
 const HolidayValidation = Joi.object().keys({
+    _id: Joi.any().optional(),
+    __v: Joi.any().optional(),
     currentYear: Joi.number().required().label("currentYear"),
     holidays: Joi.array().items(Joi.object()).min(2).required("Holidays")
 })
