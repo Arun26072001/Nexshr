@@ -394,109 +394,96 @@ router.post("/:id", verifyAdminHR, async (req, res) => {
 
 router.put("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
   try {
-    let roleName;
-    if (req?.body?.role) {
-      const roleData = await RoleAndPermission.findById(req.body.role, "RoleName")
-      roleName = roleData.RoleName;
-    }
-    // check previous profile and current are same
-    const empData = await Employee.findById(req.params.id, "profile company").populate("company", "logo CompanyName");
+    const { id } = req.params;
+    const { role, Email, Password, hour, mins, profile: newProfile, FirstName, LastName } = req.body;
 
-    if (empData?.profile && empData.profile !== req.body.profile) {
-      const filename = empData.profile.split("/").pop();
-      const filePath = path.join(__dirname, "..", "uploads", filename);
-      try {
-        if (fs.existsSync(filePath)) {
-          fs.unlinkSync(filePath);
-          console.log(`Deleted old profile image: ${filename}`);
-        }
-      } catch (error) {
-        console.error("Error deleting profile image:", error.message);
+    // Determine role name and account level
+    let accountLevel = 3;
+    if (role) {
+      const roleData = await RoleAndPermission.findById(role, "RoleName");
+      const roleName = roleData?.RoleName?.toLowerCase();
+      accountLevel =
+        roleName === "admin"
+          ? 1
+          : roleName === "hr"
+          ? 2
+          : roleName === "manager"
+          ? 4
+          : roleName === "network admin"
+          ? 5
+          : 3;
+    }
+
+    // Get employee data with profile and company
+    const employeeData = await Employee.findById(id, "profile company Email Password FirstName LastName")
+      .populate("company", "logo CompanyName");
+
+    if (!employeeData) return res.status(404).send({ error: "Employee not found" });
+
+    // Delete old profile image if changed
+    if (employeeData.profile && employeeData.profile !== newProfile) {
+      const oldFile = employeeData.profile.split("/").pop();
+      const oldFilePath = path.join(__dirname, "..", "uploads", oldFile);
+      if (fs.existsSync(oldFilePath)) {
+        fs.unlinkSync(oldFilePath);
+        console.log(`Deleted old profile image: ${oldFile}`);
       }
     }
-    let newEmployee = {
+
+    // Prepare update payload
+    const updatedData = {
       ...req.body,
-      company: req?.body?.company || null,
-      position: req?.body?.position || null,
-      department: req?.body?.department || null,
-      // teamLead: req?.body?.teamLead || "665601de20a3c61c646a135f",
-      // managerId: req?.body?.managerId || "6651e4a810994f1d24cf3a19",
-      Account: roleName === "Admin" ? 1 : roleName === "HR" ? 2 : roleName?.toLowerCase() === "manager" ? 4 : roleName.toLowerCase() === "network admin" ? 5 : 3
+      company: req.body.company || null,
+      position: req.body.position || null,
+      department: req.body.department || null,
+      Account: accountLevel,
     };
 
-    if (req.body.hour && req.body.mins) {
-      newEmployee = {
-        ...req.body,
-        ['companyWorkingHourPerWeek']: `${req.body.hour}.${req.body.mins}`
-      };
+    // Set working hours if available
+    if (hour && mins) {
+      updatedData.companyWorkingHourPerWeek = `${hour}.${mins}`;
     }
-    const { Email, Password } = await Employee.findById(req.params.id, "Email Password").exec();
-    if (Email !== req.body.Email || Password !== req.body.Password) {
-      // send mail for update their credentials
 
+    // Check for credentials update
+    if (Email !== employeeData.Email || Password !== employeeData.Password) {
       const htmlContent = `
-      <!DOCTYPE html>
-      <html lang="en">
-      <head>
-        <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-        <title>${empData.company.CompanyName}</title>
-      </head>
-      <body style="font-family: Arial, sans-serif; background-color: #f6f9fc; margin: 0; padding: 0;">
-        <div style="text-align: center; padding-top: 30px;">
-          <img src="${empData.company.logo}" alt="Company Logo" style="width: 100px; height: 100px; object-fit: cover; margin-bottom: 10px;" />
-        </div>
-        <div style="display: flex; padding: 20px;">
-          <div style="background-color: #ffffff; border-radius: 12px; padding: 30px;max-width:600px; margin: 0px auto; box-shadow: 0 2px 8px rgba(0,0,0,0.05); text-align: left;">
-            <h2 style="font-size: 22px; font-weight: 600; margin-bottom: 10px;">Hi ${FirstName} ${LastName} 👋,</h2>
-            <div style="border-bottom: 3px solid #28a745; width: 30px; margin-bottom: 20px;"></div>
-            <p style="font-size: 15px; margin-bottom: 10px;">Your credentials have been <strong>updated successfully</strong>.</p>
-      
-            <p style="font-size: 15px; margin: 20px 0 10px;"><strong>New credentials:</strong></p>
-            <p style="margin: 5px 0;"><strong>Email:</strong> ${req.body.Email}</p>
-            <p style="margin: 5px 0;"><strong>Password:</strong> ${req.body.Password}</p>
-      
-            <p style="margin-top: 20px;">Please use these updated credentials from now on to log in to your account.</p>
-      
-            <a href="${process.env.REACT_APP_API_URL}" style="
-              display: inline-block;
-              padding: 12px 24px;
-              background-color: #4CAF50;
-              color: white;
-              border-radius: 30px;
-              text-decoration: none;
-              font-weight: bold;
-              margin: 20px 0;
-            ">Go to Login</a>
-      
-            <p>If the button doesn’t work, you can copy and paste this link into your browser:</p>
-            <p><a href="${process.env.REACT_APP_API_URL}" style="color: #28a745;">${process.env.REACT_APP_API_URL}</a></p>
-      
-            <p style="margin-top: 30px;">Thanks,<br/>The ${empData.company.CompanyName} Team</p>
+        <!DOCTYPE html>
+        <html>
+        <head><title>${employeeData.company.CompanyName}</title></head>
+        <body style="font-family: Arial; background: #f6f9fc; padding: 0; margin: 0;">
+          <div style="text-align: center; padding-top: 30px;">
+            <img src="${employeeData.company.logo}" alt="Company Logo" style="width: 100px; height: 100px;" />
           </div>
-        </div>
-      
-        <div style="text-align: center; font-size: 13px; color: #777; margin-top: 20px; padding-bottom: 20px;">
-          <p>Need help? <a href="mailto:${process.env.FROM_MAIL}" style="color: #777;">Contact support</a>.</p>
-        </div>
-      </body>
-      </html>
+          <div style="max-width: 600px; margin: 20px auto; background: #fff; padding: 30px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
+            <h2>Hi ${FirstName} ${LastName} 👋,</h2>
+            <p>Your credentials have been <strong>updated successfully</strong>.</p>
+            <p><strong>Email:</strong> ${Email}<br/><strong>Password:</strong> ${Password}</p>
+            <a href="${process.env.REACT_APP_API_URL}" style="display: inline-block; padding: 12px 24px; background-color: #4CAF50; color: white; border-radius: 30px; text-decoration: none;">Go to Login</a>
+            <p>If the button doesn’t work, use this link: <a href="${process.env.REACT_APP_API_URL}">${process.env.REACT_APP_API_URL}</a></p>
+            <p>Thanks,<br/>The ${employeeData.company.CompanyName} Team</p>
+          </div>
+          <div style="text-align: center; font-size: 13px; color: #777;">
+            <p>Need help? <a href="mailto:${process.env.FROM_MAIL}" style="color: #777;">Contact support</a>.</p>
+          </div>
+        </body>
+        </html>
       `;
 
-
-      sendMail({
+      await sendMail({
         From: process.env.FROM_MAIL,
-        To: Email,
+        To: employeeData.Email,
         Subject: "Your Credentials are updated",
         HtmlBody: htmlContent,
       });
-
     }
-    const updatedEmp = await Employee.findByIdAndUpdate({ _id: req.params.id }, newEmployee, { new: true })
-    res.send({ message: `${updatedEmp.FirstName} data has been updated!` });
+
+    // Update employee
+    const updatedEmp = await Employee.findByIdAndUpdate(id, updatedData, { new: true });
+    res.send({ message: `${updatedEmp.FirstName}'s data has been updated!` });
+
   } catch (err) {
-    console.log(err);
-    res.status(500).send({ error: err.message })
+    console.error("Error in employee update:", err);
+    res.status(500).send({ error: err.message });
   }
 });
 
