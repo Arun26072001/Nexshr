@@ -238,10 +238,10 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
                     coverBy: null,
                     status: "pending",
                     approvers: {
-                        TeamLead: "approved",
-                        TeamHead: "approved",
-                        Hr: "approved",
-                        Manager: "approved"
+                        TeamLead: "pending",
+                        TeamHead: "pending",
+                        Hr: "pending",
+                        Manager: "pending"
                     },
                     approvedOn: null,
                     approverId: []
