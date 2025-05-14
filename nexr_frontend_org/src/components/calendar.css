@@ -18,10 +18,14 @@
   padding: 10px;
   position: absolute;
   top: 30%;
-  right: 30%;
+  right: 12%;
   border-radius: 4px;
 }
 
 .inputs > * {
   margin-top: 5px;
+}
+
+.rmdp-input{
+  border: 1px solid #e5e5ea
 }
