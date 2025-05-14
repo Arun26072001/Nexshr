@@ -13,6 +13,14 @@ const Social = ({ empObj, error, changeFetching }) => {
       [name]: value
     }))
   }
+  function handleCancel() {
+    setSocial({
+      facebook: empObj?.social?.facebook || "",
+      twitter: empObj?.social?.twitter || "",
+      instagram: empObj?.social?.instagram || ""
+    });
+  }
+
   useEffect(() => {
     setIsDisabled(Object.entries(social).every(
       ([key, value]) => value === "" || value === empObj?.social?.[key]
@@ -90,7 +98,14 @@ const Social = ({ empObj, error, changeFetching }) => {
           <div className="row mt-2">
             <div className="col-lg-3 col-12">
               <div className="btnParent mx-auto">
-                <button className="outline-btn" style={{ background: "#e0e0e0", border: "none" }}>Cancel</button>
+                <button
+                  className="outline-btn"
+                  style={{ background: "#e0e0e0", border: "none" }}
+                  onClick={handleCancel}
+                >
+                  Cancel
+                </button>
+
                 <button className="button" disabled={isDisabled} onClick={updateSocialEmp}>Save</button>
               </div>
             </div>
