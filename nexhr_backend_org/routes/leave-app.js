@@ -363,11 +363,34 @@ leaveApp.get("/hr", verifyHR, async (req, res) => {
   }
 });
 
+leaveApp.get("/unpaid", verifyAdminHR, async (req, res) => {
+  try {
+    const daterangeValue = req.query?.daterangeValue;
+    const now = new Date();
+    // get dateRange value or current month range value
+    const [startOfMonth, endOfMonth] = daterangeValue
+      ? [new Date(daterangeValue[0]), new Date(daterangeValue[1])]
+      : [new Date(now.getFullYear(), now.getMonth(), 1), new Date(now.getFullYear(), now.getMonth() + 1, 0)];
+    // fetching unpaid leave applications
+    const unpaidRequests = await LeaveApplication.find({
+      leavetype: "Unpaid Leave (LWP)",
+      fromDate: { $lte: endOfMonth },
+      toDate: { $gte: startOfMonth },
+      status: "pending"
+    }).populate("employee", "FirstName LastName profile").exec();
+    const arrangeLeave = unpaidRequests.sort((a, b) => new Date(b.fromDate) - new Date(a.fromDate));
+    return res.send(arrangeLeave)
+  } catch (error) {
+    console.log("error in fetch unpaid leave", error);
+    return res.status(500).send({ error: error.message })
+  }
+})
+
 leaveApp.get("/team/:id", verifyTeamHigherAuthority, async (req, res) => {
   try {
     const now = new Date(); // added missing `now`
     const { daterangeValue, who } = req.query;
-
+    // get dateRange value or current month range value
     const [startOfMonth, endOfMonth] = daterangeValue
       ? [new Date(daterangeValue[0]), new Date(daterangeValue[1])]
       : [new Date(now.getFullYear(), now.getMonth(), 1), new Date(now.getFullYear(), now.getMonth() + 2, 0)];
@@ -959,7 +982,7 @@ leaveApp.put('/:id', verifyAdminHREmployeeManagerNetwork, async (req, res) => {
     const anyRejected = Object.values(approvers).some(status => status === "rejected");
     const allPending = Object.values(approvers).every(status => status === "pending");
 
-    const emp = await Employee.findById(employee)
+    const emp = await Employee.findById(employee, "FirstName LastName Email typesOfLeaveRemainingDays team company")
       .populate([
         {
           path: "team",
@@ -982,8 +1005,8 @@ leaveApp.put('/:id', verifyAdminHREmployeeManagerNetwork, async (req, res) => {
     const emailType = allApproved ? "approved" : anyRejected ? "rejected" : "pending";
     let mailList = [];
 
-    // Deduct leave if approved
-    if (!allPending && allApproved) {
+    // Deduct leave if approved and check unpaid leave
+    if (!allPending && allApproved && !leaveType.toLowerCase().includes("unpaid")) {
       const leaveDaysTaken = Math.max(getDayDifference({ fromDate, toDate }), 1);
       const leaveBalance = emp.typesOfLeaveRemainingDays?.[leaveType] ?? 0;
 
@@ -997,7 +1020,7 @@ leaveApp.put('/:id', verifyAdminHREmployeeManagerNetwork, async (req, res) => {
     }
 
     // Notify members if status changed
-    if (!allPending) {
+    if (!allPending && !leaveType.toLowerCase().includes("unpaid")) {
       const Subject = "Leave Application Response Notification";
       const message = anyRejected
         ? `${emp.FirstName}'s leave application has been rejected by ${actionBy}`
@@ -1006,21 +1029,21 @@ leaveApp.put('/:id', verifyAdminHREmployeeManagerNetwork, async (req, res) => {
       const getMembers = (data, type) =>
         Array.isArray(data)
           ? data.map(item => ({
-              type,
-              Email: item?.Email,
-              name: `${item?.FirstName ?? ""} ${item?.LastName ?? ""}`.trim(),
-              fcmToken: item?.fcmToken,
-              _id: item?._id
-            }))
+            type,
+            Email: item?.Email,
+            name: `${item?.FirstName ?? ""} ${item?.LastName ?? ""}`.trim(),
+            fcmToken: item?.fcmToken,
+            _id: item?._id
+          }))
           : data?.Email
-          ? [{
+            ? [{
               type,
               Email: data.Email,
               name: `${data.FirstName ?? ""} ${data.LastName ?? ""}`.trim(),
               fcmToken: data?.fcmToken,
               _id: data?._id
             }]
-          : [];
+            : [];
 
       const members = [
         emp.Email && { type: "emp", Email: emp.Email, name: `${emp.FirstName} ${emp.LastName}` },
@@ -1054,7 +1077,7 @@ leaveApp.put('/:id', verifyAdminHREmployeeManagerNetwork, async (req, res) => {
             fullEmp.notifications.push({ company: emp.company._id, title: Subject, message });
             await fullEmp.save();
             console.log(member);
-            
+
             await sendPushNotification({
               token: member.fcmToken,
               company: emp.company,
@@ -1065,6 +1088,14 @@ leaveApp.put('/:id', verifyAdminHREmployeeManagerNetwork, async (req, res) => {
         }
       }
     }
+    //  else if(leaveType.toLowerCase().includes("unpaid")){
+    //   // send email and notification
+    //   sendMail({
+    //     From: process.env.FROM_MAIL,
+    //     To: emp.Email,
+    //     Subject: `Your Leave app`
+    //   })
+    // }
 
     // Update Leave Application
     const updatedLeaveApp = {

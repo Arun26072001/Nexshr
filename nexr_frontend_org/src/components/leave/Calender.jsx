@@ -65,7 +65,7 @@ export default function LeaveCalender() {
                             <div style={{ width: "30%", margin: "10px" }} className='col-12 col-lg-3'>
                                 <div className="d-flex flex-column">
                                     <div className="leaveDays">
-                                        {leaveRequests?.peoplesOnLeave?.length} <PersonRoundedIcon />
+                                        {leaveRequests?.peoplesOnLeave?.length || 0} <PersonRoundedIcon />
                                     </div>
                                     <div className="leaveDaysDesc">
                                         On Leave
@@ -74,7 +74,6 @@ export default function LeaveCalender() {
                             </div>
                         </div>
                     </div>
-
 
                     {/* Leave Table */}
                     {

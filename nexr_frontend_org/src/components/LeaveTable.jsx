@@ -71,7 +71,7 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
                 );
             }
         },
-        { id: 'periodOfLeave', label: 'Period Of Leave', align: "left", minWidth: 150, getter: (row) => row.periodOfLeave },
+        { id: 'periodOfLeave', label: 'Period Of Leave', align: "left", minWidth: 100, getter: (row) => row.periodOfLeave },
         { id: 'fromDate', label: 'Start Date', minWidth: 120, align: 'left', getter: (row) => row.fromDate ? row.fromDate.split("T")[0] : 'N/A' },
         { id: 'toDate', label: 'End Date', minWidth: 120, align: 'left', getter: (row) => row.toDate ? row.toDate.split("T")[0] : 'N/A' },
         { id: 'leaveType', label: 'Type', minWidth: 130, align: 'left', getter: (row) => row.leaveType },
@@ -858,6 +858,12 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
         }
     ];
 
+    const column22 = [
+        { id: 'currentYear', label: 'Year', minWidth: 100, align: 'left', getter: (row) => row.currentYear || "N/A" },
+        { id: 'holidays', label: 'Holidays', minWidth: 400, align: 'center', getter: (row) => row.holidays.length ? row.holidays?.map((holiday) => holiday.date + ", ") : "N/A" },
+        { id: "Action", label: "Action", minWidth: 100, align: "center" }
+    ]
+
     function toggleView() {
         setOpenModal(!openModal);
     }
@@ -902,7 +908,7 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
     useEffect(() => {
         setRows(data || []);
         data?.map((item) => {
-            if (item?.fromDate && (params['*'] === "leave-request" || params['*'] === "leave")) {
+            if (item?.fromDate && ["leave-request", "leave", "unpaid-request"].includes(params['*'])) {
                 return setColumns(column1);
             } else if (item?.FirstName && params["*"] === "employee") {
                 return setColumns(column3);
@@ -926,7 +932,7 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
                 return setColumns(column9)
             } else if (item?.PositionName) {
                 return setColumns(column10)
-            } else if (item?.title && params["*"] === "tasks") {
+            } else if (item?.title && params["*"] === "announcement") {
                 return setColumns(column11)
             } else if (item?.createdby) {
                 return setColumns(column12)
@@ -948,6 +954,8 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
                 return setColumns(column20);
             } else if (params["*"] === "email-templates") {
                 return setColumns(column21)
+            } else if (params["*"] === "holiday") {
+                setColumns(column22);
             } else {
                 return setColumns(column2)
             }
@@ -1022,7 +1030,13 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
 
                                                             </Dropdown>
                                                         );
-                                                    } else if (["payslip", "daily-log", "attendance-request"].includes(params["*"])) {
+                                                    } else if (params["*"] === "unpaid-request") {
+                                                        return (<Dropdown placement='leftStart' title={<EditRoundedIcon style={{ cursor: "pointer" }} />} noCaret>
+                                                            <Dropdown.Item style={{ minWidth: 120 }} onClick={() => replyToLeave(row, "approved")}>Approve</Dropdown.Item>
+                                                            <Dropdown.Item style={{ minWidth: 120 }} onClick={() => replyToLeave(row, "rejected")}>Reject</Dropdown.Item>
+                                                        </Dropdown>)
+                                                    }
+                                                    else if (["payslip", "daily-log", "attendance-request"].includes(params["*"])) {
                                                         return (
                                                             <Dropdown title={<RemoveRedEyeRoundedIcon style={{ cursor: "pointer" }} />} noCaret onClick={() => getValueForView([row._id, params['*']])}>
                                                             </Dropdown>
@@ -1137,13 +1151,16 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
                                                                 </b>
                                                             </Dropdown.Item>
                                                         </Dropdown>);
-                                                    } else if (params["*"] === "profile") { // for time pattern
+                                                    } else if (["profile", "holiday"].includes(params["*"])) { // for time pattern
                                                         return (<Dropdown title={"Action"} placement='leftStart' noCaret>
-                                                            <Dropdown.Item style={{ minWidth: 80 }} onClick={() => handleChangeData("View", row)}>
-                                                                <b>
-                                                                    <RemoveRedEyeRoundedIcon sx={{ color: "#80C4E9" }} /> View
-                                                                </b>
-                                                            </Dropdown.Item>
+                                                            {
+                                                                params["*"] === "profile" &&
+                                                                <Dropdown.Item style={{ minWidth: 80 }} onClick={() => handleChangeData("View", row)}>
+                                                                    <b>
+                                                                        <RemoveRedEyeRoundedIcon sx={{ color: "#80C4E9" }} /> View
+                                                                    </b>
+                                                                </Dropdown.Item>
+                                                            }
                                                             <Dropdown.Item style={{ minWidth: 80 }} onClick={() => handleChangeData("Edit", row)}>
                                                                 <b>
                                                                     <BorderColorRoundedIcon sx={{ color: "#FFD65A" }} /> Edit
