@@ -1,11 +1,12 @@
 const express = require("express");
 const router = express.Router();
 const mongoose = require("mongoose");
-const { verifyAdminHREmployee, verifyAdminHR } = require("../auth/authMiddleware");
+const { verifyAdminHREmployeeManagerNetwork, verifyAdminHR } = require("../auth/authMiddleware");
 const { getDayDifference } = require("./leave-app");
 const { getClockinModel, clockInsValidation } = require("../OrgModels/OrgClockinsModel");
 const { getEmployeeModel } = require("../OrgModels/OrgEmpModel");
 const { Org } = require("../OrgModels/OrganizationModel");
+const { timeToMinutes } = require("../Reuseable_functions/reusableFunction");
 
 async function checkLoginForOfficeTime(scheduledTime, actualTime) {
     // Parse scheduled and actual time into hours and minutes
@@ -59,7 +60,7 @@ function getTotalWorkingHourPerDay(startingTime, endingTime) {
     }
 }
 
-router.post("/:orgId/:id", verifyAdminHREmployee, async (req, res) => {
+router.post("/:orgId/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
     // const { orgName } = jwt.decode(req.headers['authorization']);
     const { orgName } = await Org.findById({ _id: req.params.orgId });
     const OrgEmployee = getEmployeeModel(orgName);
@@ -130,15 +131,8 @@ router.post("/:orgId/:id", verifyAdminHREmployee, async (req, res) => {
     }
 });
 
-router.get("/:orgId/:id", verifyAdminHREmployee, async (req, res) => {
+router.get("/:orgId/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
     const { orgName } = await Org.findById({ _id: req.params.orgId });
-    function timeToMinutes(timeStr) {
-        // Split the time string into hours, minutes, and seconds
-        const [hours, minutes, seconds] = timeStr?.split(':').map(Number);
-        // Calculate total minutes
-        const totalMinutes = (hours * 60) + minutes;
-        return totalMinutes || 0;
-    }
 
     try {
         const queryDate = new Date(req.query.date); // Parse the query date
@@ -221,7 +215,7 @@ router.get("/:orgId/:id", verifyAdminHREmployee, async (req, res) => {
     }
 });
 
-router.get("/item/:orgId/:id", verifyAdminHREmployee, async (req, res) => {
+router.get("/item/:orgId/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
     const convertToMinutes = (start, end) => {
         const [endHour, endMin] = end.split(":").map(Number);
         const [startHour, startMin] = start.split(":").map(Number);
@@ -277,7 +271,7 @@ router.get("/item/:orgId/:id", verifyAdminHREmployee, async (req, res) => {
 });
 
 // get login and logout data from employee
-router.get("/employee/:orgId/:id", verifyAdminHREmployee, async (req, res) => {
+router.get("/employee/:orgId/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
 
     let totalEmpWorkingHours = 0; // Track total working hours for the employee
     let totalLeaveDays = 0;
@@ -427,7 +421,7 @@ router.get("/:orgId/", verifyAdminHR, async (req, res) => {
     }
 })
 
-router.put("/:orgId/:id", verifyAdminHREmployee, async (req, res) => {
+router.put("/:orgId/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
     // const { orgName } = jwt.decode(req.headers['authorization']);
     const { orgName } = await Org.findById({ _id: req.params.orgId });
     const OrgClockIns = getClockinModel(orgName);

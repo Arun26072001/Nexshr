@@ -14,14 +14,7 @@ const Notification = () => {
     SpecialOccansionsAccess: 0
   })
 
-  // Step 2: Handle button click events
-  const handleRadioOption = (e) => {
-    let { name, value } = e.target;
-    if (value === 0) {
-      value = 1;
-    } else if (value === 1) {
-      value = 0;
-    }
+  const handleRadioOption = (name, value) => {
     setRadioOption({
       ...RadioOption,
       [name]: Number(value)
@@ -38,7 +31,7 @@ const Notification = () => {
         NOTIFICATIONS </h5>
       <div className="row mt-4">
         <div className="col-lg-12">
-          <div className="box active"
+          <div className="box-content active"
             style={{ border: "none", boxShadow: "0px 5px 15px rgba(0, 0, 0, 0.20), 0px 10px 30px rgba(0, 0, 0, 0.15)" }}>
             <form action="">
               {/* Informative Paragraphs */}
@@ -140,7 +133,7 @@ const Notification = () => {
             <RadioButtons
               RadioOption={RadioOption.DocFollowUpAccess}
               name={"DocFollowUpAccess"}
-              
+              handleRadioOption={handleRadioOption}
             />
           </div>
         </div>
@@ -158,7 +151,7 @@ const Notification = () => {
               RadioOption={RadioOption.PersonalInfoAccess}
               name={"PersonalInfoAccess"}
               handleRadioOption={handleRadioOption}
-              
+
             />
           </div>
         </div>

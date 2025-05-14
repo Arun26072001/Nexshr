@@ -1,20 +1,19 @@
 import React from 'react';
 import './Attendence.css';
-import Popup from './Popup';
 import LeaveTable from '../LeaveTable';
 import NoDataFound from '../payslip/NoDataFound';
 import Loading from '../Loader';
 
 const Details = ({ attendanceData, isLoading }) => {
     return (
-        isLoading ? <Loading /> :
+        isLoading ? <Loading height="80vh" /> :
             <div className='dashboard-parent pt-4'>
                 <div className="row p-3">
                     <div className='col-lg-6 col-6'>
                         <h5 className='text-daily'>Attendance Details</h5>
                     </div>
                     <div className='col-lg-6 col-6 d-flex gap-2 justify-content-end'>
-                        <Popup />
+                        {/* <Popup /> */}
                         {/* <div className='ms-2'> */}
                         <button className="btn attends btn-light" type="button" id="dropdownMenuButton1">
                             <svg width="16" height="17" viewBox="0 0 16 17" fill="none" xmlns="http://www.w3.org/2000/svg">

@@ -10,7 +10,6 @@ import TimePattern from './TimePattern';
 import Notification from './Notification';
 import WorkPlaceTab from './WorkPlace';
 
-
 function CustomTabPanel(props) {
   const { children, value, index, ...other } = props;
 

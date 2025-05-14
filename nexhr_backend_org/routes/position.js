@@ -1,22 +1,12 @@
 const express = require('express');
 const router = express.Router();
-const { Position, PositionValidation, positionSchema } = require('../models/PositionModel');
+const { Position, PositionValidation } = require('../models/PositionModel');
 const { Employee } = require('../models/EmpModel');
 const Joi = require('joi');
-const { verifyAdminHR } = require('../auth/authMiddleware');
-const mongoose = require("mongoose");
+const { verifyAdminHR, verifyAdminHREmployeeManagerNetwork } = require('../auth/authMiddleware');
 
-// const positionModel = {};
-// function getPositionModel(orgName) {
-//   // If model already exists in the object, return it; otherwise, create it
-//   if (!positionModel[orgName]) {
-//     positionModel[orgName] = mongoose.model(`${orgName}Position`, positionSchema);
-//   }
-
-//   return positionModel[orgName];
-// }
-
-router.get("/", verifyAdminHR, (req, res) => {
+// router.get("/", verifyAdminHR, (req, res) => {
+router.get("/", verifyAdminHREmployeeManagerNetwork, (req, res) => {
   // const { orgName } = jwt.decode(req.headers['authorization']);
   // const Position = getPositionModel(orgName)
   Position.find()
@@ -30,10 +20,8 @@ router.get("/", verifyAdminHR, (req, res) => {
 });
 
 router.get("/:id", verifyAdminHR, (req, res) => {
-  // const { orgName } = jwt.decode(req.headers['authorization']);
-  // const Position = getPositionModel(orgName)
   Position.findById({ _id: req.params.id })
-    .populate("company")
+    // .populate("company")
     .exec(function (err, position) {
       if (err) {
         res.status(500).send({ Error: err })
@@ -42,47 +30,20 @@ router.get("/:id", verifyAdminHR, (req, res) => {
     });
 });
 
-// router.post("/:id", async (req, res) => {
-//   try {
-//     // Fetch organization data
-//     const orgData = await Org.findById(req.params.id, "orgName");
-
-//     if (!orgData) {
-//       return res.status(404).send({ error: "Organization data not found!" });
-//     }
-
-//     const { orgName } = orgData;
-//     console.log("Organization Name:", orgName);
-
-//     // Get or create the model for this organization
-//     const Position = getPositionModel(orgName);
-//     console.log(Position);
-
-//     // Now you can use OrgEmployeeModel to add or query employees for this org
-//     // Example: adding a new employee
-//     const newPosition = new Position(req.body);
-//     await newPosition.save();
-
-//     res.status(201).send({ message: "Employee added successfully", position: newPosition });
-//   } catch (error) {
-//     console.error("Error:", error);
-//     res.status(500).send({ error: "Internal Server Error" });
-//   }
-// });
-
 router.post("/", verifyAdminHR, (req, res) => {
-  Joi.validate(req.body, PositionValidation, (err, result) => {
+  Joi.validate(req.body, PositionValidation, async (err, result) => {
     if (err) {
       console.log(err);
       res.status(400).send({ message: err.details[0].message });
     } else {
-      // const { orgName } = jwt.decode(req.headers['authorization']);
-      // const Position = getPositionModel(orgName)
+      if (await Position.exists({ PositionName: req.body.PositionName })) {
+        return res.status(400).send({ error: `${req.body.PositionName} Position is already exists` })
+      }
       Position.create(req.body, function (err, position) {
         if (err) {
           res.status(500).send({ message: err.message });
         } else {
-          res.send("new Position Added!");
+          res.send({ message: `${position.PositionName} Position Added!` });
           // console.log("new Role Saved");
         }
       });
@@ -101,8 +62,6 @@ router.put("/:id", verifyAdminHR, (req, res) => {
       console.log(err);
       res.status(400).send({ message: err.details[0].message });
     } else {
-      // const { orgName } = jwt.decode(req.headers['authorization']);
-      // const Position = getPositionModel(orgName)
       Position.findByIdAndUpdate(req.params.id, updatedPosition, function (
         err,
         position
@@ -117,38 +76,18 @@ router.put("/:id", verifyAdminHR, (req, res) => {
   });
 });
 
-router.delete("/:id", verifyAdminHR, (req, res) => {
-  // const { orgName } = jwt.decode(req.headers['authorization']);
-  // const OrgEmployeeModel = getEmployeeModel(orgName);
-  Position.find({ position: req.params.id }, function (err, p) {
-    if (err) {
-      console.log(err);
-      res.send(err);
+router.delete("/:id", async (req, res) => {
+  try {
+    const isEmpInPosition = await Employee.find({ position: req.params.id }).exec();
+    if (isEmpInPosition.length > 0) {
+      return res.status(400).send({ error: "In this position has some Employee, Please change them to position" })
     } else {
-      if (p.length == 0) {
-        const { orgName } = jwt.decode(req.headers['authorization']);
-        const Position = getPositionModel(orgName)
-        Position.findByIdAndRemove(req.params.id, function (
-          err,
-          position
-        ) {
-          if (!err) {
-            res.send("position has been deleted!");
-          } else {
-            res.status(403).send(err);
-          }
-        });
-        console.log("delete");
-        console.log(req.params.id);
-      } else {
-        res
-          .status(403)
-          .send(
-            "This Position is associated with Employee so you can not delete this"
-          );
-      }
+      const deletePos = await Position.findByIdAndRemove({ _id: req.params.id });
+      return res.send({ message: `${deletePos.PositionName} Position has been deleted successfully` })
     }
-  });
-});
+  } catch (error) {
+    res.status(500).send({ error: error.message })
+  }
+})
 
 module.exports = router

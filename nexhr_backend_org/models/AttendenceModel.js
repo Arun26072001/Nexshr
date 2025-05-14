@@ -1,5 +1,4 @@
 const mongoose = require('mongoose');
-// const autoIncrement = require('mongoose-auto-increment')
 const Joi = require('joi');
 
 const attendanceSchema = new mongoose.Schema({

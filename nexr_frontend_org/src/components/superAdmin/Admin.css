@@ -1,0 +1,125 @@
+.admin-navbar {
+  display: flex;
+  background-color: #fcf8f3;
+  justify-content: space-between;
+  padding: 10px;
+  align-items: center;
+  background-color: white;
+  position: fixed;
+  width: 100%;
+  top: 0px;
+  z-index: 1000;
+}
+
+:root {
+  --sidebar-width: 80px; /* Adjust dynamically if needed */
+  --navbar-height: 50px;
+}
+
+.admin-dropdown {
+  background-color: #fff !important;
+}
+a:hover {
+  text-decoration: none;
+}
+.dropdown-toggle:active {
+  border: none;
+}
+.dropdown-item:hover {
+  background-color: gray;
+}
+.admin-dashboard-container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+/* for desktop */
+.main-content-container {
+  height: calc(100% - var(--navbar-height));
+  margin-top: auto;
+}
+
+.main-content-container > .sidebar {
+  width: 180px;
+  transition: width 0.3s;
+  background-color: #f4f4f4;
+  display: flex;
+  flex-direction: column;
+  font-size: 14px;
+  font-weight: 500;
+  height: calc(100vh);
+  top: 57px;
+  left: 0;
+  overflow: auto;
+  position: fixed;
+  z-index: 999;
+  box-shadow: rgba(0, 0, 0, 0.16) 0px 1px 4px;
+}
+
+.sidebar.collapsed {
+  width: 80px;
+}
+.sidebar.collapsed .nav-link {
+  justify-content: center;
+}
+.sidebar.collapsed .nav-link span {
+  display: none;
+}
+
+.right-side.active{
+  width: calc(100% - 180px);
+}
+.right-side.in-active{
+  width: calc(100% - 80px);
+}
+.nav-link {
+  display: flex;
+  align-items: center;
+  white-space: nowrap;
+  overflow: hidden;
+  transition: background-color 0.3s, color 0.3s;
+  padding: 10px;
+  margin: 5px 0px;
+  border-radius: 5px;
+}
+.nav-link:hover,
+.activeLink {
+  background: rgba(224, 224, 224, 1);
+  color: #000;
+  text-decoration: none;
+  outline: none;
+}
+.backBtn {
+  background: none;
+  border: none;
+  color: black;
+  font-size: 24px;
+  cursor: pointer;
+  transition: transform 0.3s;
+}
+.faEye {
+  cursor: pointer;
+}
+.edirOrgBtn {
+  transition: 0.4s;
+}
+.edirOrgBtn:hover {
+  background-color: #369fff;
+}
+.edirOrgBtn:active {
+  background-color: transparent;
+}
+.valitity-btn:hover {
+  background-color: green !important;
+  color: white;
+}
+.valitity-btn:active {
+  background-color: green !important;
+  color: white;
+}
+
+.positioning {
+  position: absolute;
+  right: 10px;
+  bottom: 10px;
+}

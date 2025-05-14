@@ -1,176 +1,385 @@
 import React, { useState, createContext, useEffect } from "react";
-import "./App.css";
 import axios from "axios";
-import Layout from "./components/Layout";
 import Login from "./components/Login.jsx";
 import HRMDashboard from "./components/payslip/HRMDashboard.jsx";
-import { Routes, Route, useNavigate, Navigate } from "react-router-dom";
+import { Routes, Route, useNavigate, Navigate, useLocation } from "react-router-dom";
 import { toast, ToastContainer } from "react-toastify";
-import { jwtDecode } from "jwt-decode";
 import "react-toastify/dist/ReactToastify.css";
 import NoInternet from "./components/NoInternet.jsx";
+import { jwtDecode } from "jwt-decode";
+import "./App.css";
+import 'rsuite/dist/rsuite.min.css';
+import "react-datepicker/dist/react-datepicker.css";
+import AdminDashboard from "./components/superAdmin/AdminDashboard.js";
+import { getToken, onMessage } from "firebase/messaging";
+import { messaging } from "./firebase/firebase.js";
+import { triggerToaster } from "./components/ReuseableAPI.jsx";
 
-// check to update
 export const EssentialValues = createContext(null);
+
 const App = () => {
   const url = process.env.REACT_APP_API_URL;
-  const [isStartLogin, setIsStartLogin] = useState(localStorage.getItem("isStartLogin") === "false" ? false : localStorage.getItem("isStartLogin") === "true" ? true : false);
-  const [isStartActivity, setIsStartActivity] = useState(localStorage.getItem("isStartActivity") === "false" ? false : localStorage.getItem("isStartActivity") === "true" ? true : false);
+  const [isOnline, setIsOnline] = useState(navigator.onLine);
+  const [showOfflineAlert, setShowOfflineAlert] = useState(false);
+  const [hasInternet, setHasInternet] = useState(true);
+  const [whoIs, setWhoIs] = useState("");
+  const [isStartLogin, setIsStartLogin] = useState([null, "false"].includes(localStorage.getItem("isStartLogin")) ? false : true);
+  const [isStartActivity, setIsStartActivity] = useState([null, "false"].includes(localStorage.getItem("isStartActivity")) ? false : true);
   const [data, setData] = useState({
-    _id: localStorage.getItem("_id") || "",
-    Account: localStorage.getItem("Account") || "",
-    Name: localStorage.getItem("Name") || "",
-    token: localStorage.getItem("token") || "",
-    annualLeave: localStorage.getItem("annualLeaveEntitment") || 0
+    _id: null,
+    Account: null,
+    Name: null,
+    token: null,
+    annualLeave: null,
   });
-  const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [pass, setPass] = useState(true);
   const [isLogin, setIsLogin] = useState(localStorage.getItem("isLogin") === "true");
+  const navigate = useNavigate();
+  const location = useLocation();
+  const [isChangeAnnouncements, setIschangeAnnouncements] = useState(false);
+  const [isViewTakeTime, setIsTaketime] = useState(localStorage.getItem("isViewTakeTime") ? true : false);
+  const [isViewEarlyLogout, setIsViewEarlyLogout] = useState(JSON.parse(localStorage.getItem("isViewEarlyLogout")) ? true : false);
 
-  const handleSubmit = async (event) => {
+  function handleUpdateAnnouncements() {
+    setIschangeAnnouncements(!isChangeAnnouncements)
+  }
+
+  // change ask the reason late in breaks and lunch activity
+  function changeViewReasonForTaketime() {
+    if (!isViewTakeTime) {
+        localStorage.setItem("isViewTakeTime", true)
+    }
+    setIsTaketime(!isViewTakeTime)
+}
+
+// change ask the reason for early logout
+function changeViewReasonForEarlyLogout() {
+  if (!isViewEarlyLogout) {
+      localStorage.setItem("isViewEarlyLogout", true)
+  }
+  setIsViewEarlyLogout(!isViewEarlyLogout)
+}
+
+  // Helper Functions
+  const handleLogout = () => {
+    if (isStartLogin || isStartActivity) {
+      toast.warn("You can't logout until the timer stops.");
+      return;
+    } else if (localStorage.getItem("isAddReasonForLate") === "false") {
+      toast.warn("We won't allow you to logout without a reason for being late.");
+      return;
+    }
+
+    localStorage.clear();
+    setData({ _id: "", Account: "", Name: "", token: "", annualLeave: 0, profile: "" });
+    setWhoIs("");
+
+    setIsLogin(false);
+    navigate("/login");
+  };
+
+  const replaceMiddleSegment = () => {
+    navigate(location.pathname, { replace: true });
+  };
+
+  async function sendEmpIdtoExtension(empId, token) {
+    window.postMessage({ type: "FROM_REACT", payload: { empId, token } }, "*");
+  }
+
+  const login = async (email, password) => {
+    setLoading(true);
+    try {
+      const response = await axios.post(`${url}/api/login`, { Email: email, Password: password });
+      const decodedData = jwtDecode(response.data);
+
+      if (!decodedData?.Account || !["17", "1", "2", "3", "4", "5"].includes(String(decodedData?.Account))) {
+        throw new Error("Invalid account type.");
+      }
+
+      const accountType = decodedData?.Account;
+      setData({
+        _id: decodedData._id,
+        Account: String(accountType),
+        Name: `${decodedData.FirstName} ${decodedData.LastName}`,
+        token: response.data,
+        annualLeave: decodedData.annualLeaveEntitlement || 0,
+        profile: decodedData.profile
+      });
+
+      // Update local storage
+      localStorage.setItem("isLogin", true);
+      localStorage.setItem("_id", decodedData._id);
+      localStorage.setItem("token", response.data);
+
+      setPass(true);
+      setLoading(false);
+      setIsLogin(true);
+      // send emp id for extension
+      sendEmpIdtoExtension(decodedData._id, response.data);
+      const roles = { "17": "superAdmin", "1": "admin", "2": "hr", "3": "emp", "4": "manager", "5": "sys-admin" };
+      setWhoIs(roles[String(accountType)] || "");
+      navigate(`/${roles[String(accountType)]}`);
+    } catch (error) {
+      console.log(error);
+
+      setPass(false);
+      setLoading(false);
+      if (error?.response?.data?.details?.includes("buffering timed out after 10000ms")) {
+        navigate("/no-internet-connection");
+      } else {
+        toast.error("Login failed. Please check your credentials.");
+      }
+    }
+  };
+
+  const handleSubmit = (event) => {
     event.preventDefault();
     setPass(true);
-    setLoading(true);
-    await login(event.target[0].value, event.target[1].value);
+    login(event.target[0].value, event.target[1].value);
     event.target.reset();
   };
 
-  const handleLogout = () => {
-    // console.log(isStartLogin, isStartActivity);
-    // // if (localStorage.getItem('empId')) {
-    // //   toast.warn(`Please Enter full details for this employee`);
-    // //   console.log(isStartLogin, isStartActivity);
-    // // }
-    // //  else
-    if (isStartLogin || isStartActivity) {
-      toast.warn("you can't logout until timer stop.")
-    } else {
-      localStorage.clear();
-      setData({
-        _id: "",
-        Account: "",
-        Name: "",
-        token: "",
-        annualLeave: ""
-      });
-      setIsLogin(false);
-      navigate("/login")
+  
+  async function saveFcmToken(empId, fcmToken) {
+    try {
+      const res = await axios.post(`${url}/api/employee/add-fcm-token`, { empId, fcmToken }, {
+        headers: {
+          Authorization: data.token || ""
+        }
+      })
+      console.log(res.data.message);
+    } catch (error) {
+      console.log("error in save fcm token", error);
     }
+  }
 
-  };
-  const login = async (email, pass) => {
-    let bodyLogin = {
-      Email: email,
-      Password: pass
+
+  useEffect(() => {
+    const requestPermission = async () => {
+      try {
+        // ask permission from employee
+        const permission = await Notification.requestPermission();
+        console.log("Notification permission", permission)
+        if (permission === "granted") {
+          const currentToken = await getToken(messaging, {
+            vapidKey: "BLmSTq4TWV1Z7V2NgYclknMXlVrC35Ol4CwTBoykLkGH8ikvKOO4caS9XuWjqgI3rEm04mRrX2HfybEal6qUrVg",
+          });
+          if (currentToken) {
+            // setFcmToken(currentToken);
+            if (data?._id) {
+              saveFcmToken(data._id, currentToken);
+            }
+          } else {
+            console.log("No FCM token received.");
+          }
+        } else {
+          console.log("Notification permission denied.");
+        }
+      } catch (error) {
+        console.error("Error getting permission for notifications", error);
+      }
     };
 
-    try {
-      const login = await axios.post(process.env.REACT_APP_API_URL + `/api/login`, bodyLogin)
-      let decodedData = jwtDecode(login.data);
-      localStorage.setItem("token", login.data);
-      if ((login === undefined || login === null ||
-        decodedData.Account === undefined ||
-        decodedData.Account === null) &&
-        !(
-          decodedData.Account === 1 ||
-          decodedData.Account === 2 ||
-          decodedData.Account === 3
-        )
-      ) {
-        setPass(false);
-        setLoading(false);
-      } else {
-        const accountType = decodedData.Account;
-        setData({
-          _id: decodedData._id,
-          Account: accountType,
-          Name: `${decodedData.FirstName} ${decodedData.LastName}`,
-          token: login.data,
-          annualLeave: decodedData.annualLeaveEntitlement
-        });
+    requestPermission();
 
-        setPass(true);
-        setLoading(false);
-        setIsLogin(true);
-
-        localStorage.setItem("isLogin", true);
-        localStorage.setItem("Account", accountType);
-        localStorage.setItem("_id", decodedData._id);
-        localStorage.setItem("Name", `${decodedData.FirstName} ${decodedData.LastName}`);
-        localStorage.setItem("annualLeaveEntitment", decodedData.annualLeaveEntitlement || 0);
-        // localStorage.setItem("userPermissions", JSON.stringify(decodedData.roleData.userPermissions))
-
-        // Object.entries(decodedData.roleData.pageAuth).forEach(([key, value]) => {
-        //   if (key !== '_id' && key !== "__v") {
-        //     return localStorage.setItem(`${key}`, value)
-        //   }
-        // })
-        // if (!localStorage.getItem("token")) {
-        //   window.location.reload();
-        // }
-
-        if (accountType === 1) {
-          navigate("/admin");
-        } else if (accountType === 2) {
-          navigate("/hr");
-        } else if (accountType === 3) {
-          navigate("/emp");
-        }
+    // Listen for incoming messages when the app is in the foreground
+    const unsubscribe = onMessage(messaging, (payload) => {
+      console.log("Message received:", payload);
+      const company = JSON.parse(payload.data.companyData)
+      const type = payload.data.type;
+      triggerToaster({ company, title: payload.notification.title, message: payload.notification.body })
+      if(type === "late reason"){
+        changeViewReasonForTaketime();
+      } if(type === "early reason"){
+        changeViewReasonForEarlyLogout()
       }
-    } catch (error) {
-      if (error?.response?.data?.details?.includes("buffering timed out after 10000ms")) {
-        navigate("/no-internet-connection")
-      }
-      setPass(false);
-      setLoading(false);
-    }
-  };
+      handleUpdateAnnouncements()
+    });
+
+    return () => unsubscribe();
+  }, [data._id]);
 
   useEffect(() => {
     localStorage.setItem("isStartLogin", isStartLogin);
     localStorage.setItem("isStartActivity", isStartActivity);
-  }, [isStartLogin, isStartActivity]);
+  }, []);
 
   useEffect(() => {
-    async function checkNetworkConnection() {
-      try {
-        const connectionMsg = await axios.get(`${url}/`);
-        if (isLogin && window.location.pathname === "/") {
-          console.log(data.Account);
+    function fetchEssentialData() {
+      const decodedData = jwtDecode(localStorage.getItem("token"));
+      setData((prev) => ({
+        ...prev,
+        _id: decodedData._id || "",
+        Account: decodedData?.Account || "",
+        Name: `${decodedData.FirstName} ${decodedData.LastName}` || "",
+        annualLeave: decodedData.annualLeaveEntitment || 0,
+        token: localStorage.getItem("token") || "",
+        profile: decodedData.profile
+      }))
+      const roles = { "17": "superAdmin", "1": "admin", "2": "hr", "3": "emp", "4": "manager", "5": "sys-admin" };
+      setWhoIs(roles[String(decodedData?.Account)] || "");
 
-          if (data.Account === '1') {
-            navigate("/admin")
-          } else if (data.Account === '2') {
-            navigate("/hr")
-          } else if (data.Account === '3') {
-            navigate("/emp")
-          }
-        }
-      } catch (error) {
-        if (error) {
-          navigate("/no-internet-connection");
+      if (window.location.pathname !== "/login" || window.location.pathname !== `/${whoIs}`) {
+        if (roles[String(decodedData?.Account)]) {
+          replaceMiddleSegment()
         }
       }
     }
-    checkNetworkConnection();
-  }, [data]);
+    if (localStorage.getItem("token")) {
+      fetchEssentialData()
+    }
+  }, []);
 
+// detech browser is online or offline
+  useEffect(() => {
+    const handleOnline = () => {
+      setIsOnline(true);
+      setShowOfflineAlert(true);
+      setTimeout(() => {
+        setShowOfflineAlert(false);
+      }, 5000);
+    };
+
+    const handleOffline = () => {
+      setIsOnline(false);
+      setShowOfflineAlert(true);
+    };
+
+
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
+
+  // Check actual internet access
+  const checkInternetAccess = async () => {
+    try {
+      const response = await fetch("https://www.google.com", { mode: "no-cors" });
+      setHasInternet(true);
+    } catch (error) {
+      setHasInternet(false);
+    }
+  };
+
+  useEffect(() => {
+    if (!isOnline && showOfflineAlert) {
+      navigate("/no-internet-connection")
+    } else if (isOnline && !showOfflineAlert && location.pathname === "/no-internet-connection") {
+      checkInternetAccess();
+      navigate(`/${whoIs}`)
+    }
+  }, [isLogin, showOfflineAlert, hasInternet])
+
+  // Component Rendering
   return (
-    <EssentialValues.Provider value={{ data, handleLogout, handleSubmit, loading, pass, isLogin, isStartLogin, setIsStartLogin, isStartActivity, setIsStartActivity }}>
+    <EssentialValues.Provider
+      value={{
+        data,
+        setData,
+        handleLogout,
+        handleSubmit,
+        loading,
+        pass,
+        isLogin,
+        isStartLogin,
+        setIsStartLogin,
+        isStartActivity,
+        whoIs,
+        isViewTakeTime,
+        changeViewReasonForEarlyLogout,
+        isViewEarlyLogout,
+        setIsStartActivity,
+        changeViewReasonForTaketime,
+        handleUpdateAnnouncements,
+        isChangeAnnouncements
+      }}
+    >
       <ToastContainer />
       <Routes>
-        <Route path="login/" element={<Login />} />
-        <Route path="/" element={isLogin ? <Layout /> : <Navigate to={"/login"} />} >
-          <Route path="*" element={<Layout />} />
-        </Route>
-        <Route path="admin/*" element={isLogin && data.token && data.Account === '1' ? <HRMDashboard /> : <Navigate to={"/login"} />} />
-        <Route path="hr/*" element={isLogin && data.token && data.Account === '2' ? <HRMDashboard /> : <Navigate to={"/login"} />} />
-        <Route path="emp/*" element={isLogin && data.token && data.Account === '3' ? <HRMDashboard /> : <Navigate to={"/login"} />} />
+        <Route path="login" element={<Login />} />
+        <Route path="/" element={isLogin && whoIs && data.token ? <Navigate to={`/${whoIs}`} /> : <Navigate to="/login" />} />
+        <Route
+          path={`${whoIs}/*`}
+          element={isLogin && whoIs && data.token ? whoIs === "superAdmin" ? <AdminDashboard /> : <HRMDashboard /> : <Navigate to="/login" />}
+        />
         <Route path="no-internet-connection" element={<NoInternet />} />
+        <Route path="*" element=
+          {<div className='d-flex align-items-center justify-content-center' style={{ height: "100vh" }}>
+            <h1 >404</h1>
+          </div>} />
       </Routes>
     </EssentialValues.Provider>
   );
 };
 
 export default App;
+
+    // useEffect(() => {
+    //   if (!socket.connected && isLogin) {
+    //     socket.connect();
+    //   }
+  
+    //   if (isLogin && data?._id) {
+    //     socket.emit("join_room", data._id);
+  
+    //     const handlers = {
+    //       receive_announcement: (response) => {
+    //         console.log("responseData", response);
+    //         triggerToaster(response);
+    //         handleUpdateAnnouncements();
+    //       },
+    //       send_leave_notification: (response) => {
+    //         console.log(response);
+    //         triggerToaster(response);
+    //         handleUpdateAnnouncements();
+    //       },
+    //       send_project_notification: (response) => {
+    //         triggerToaster(response);
+    //         handleUpdateAnnouncements();
+    //       },
+    //       send_task_notification: (response) => {
+    //         triggerToaster(response);
+    //         handleUpdateAnnouncements();
+    //       },
+    //       send_team_notification: (response) => {
+    //         triggerToaster(response);
+    //         handleUpdateAnnouncements();
+    //       },
+    //       send_wfh_notification: (response) => {
+    //         console.log(response);
+    //         triggerToaster(response);
+    //         handleUpdateAnnouncements();
+    //       },
+    //     };
+  
+    //     // Attach all handlers
+    //     Object.entries(handlers).forEach(([event, handler]) => {
+    //       socket.on(event, handler);
+    //     });
+  
+    //     return () => {
+      //       // Detach all handlers
+    //       Object.keys(handlers).forEach((event) => {
+    //         socket.off(event);
+    //       });
+    //     };
+    //   }
+    // }, [socket, isLogin, data?._id]);
+    // function triggerNotification() {
+    //   try {
+    //     const trigger = axios.post(`${url}/push-notification`, { userId: data._id, title: "Hey", body: "how are you" });
+    //     console.log("triggered");
+    //   } catch (error) {
+    //     console.log("error in trigger notification", error);
+    //   }
+    // }
+    // useEffect(() => {
+    //   if (data._id) {
+    //     triggerNotification();
+    //   }
+    // }, [data._id])

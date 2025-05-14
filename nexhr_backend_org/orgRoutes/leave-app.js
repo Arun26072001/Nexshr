@@ -1,6 +1,6 @@
 const express = require('express');
 const leaveApp = express.Router();
-const { verifyHR, verifyHREmployee, verifyEmployee, verifyAdmin, verifyAdminHREmployee } = require('../auth/authMiddleware');
+const { verifyHR, verifyHREmployee, verifyEmployee, verifyAdmin, verifyAdminHREmployeeManagerNetwork } = require('../auth/authMiddleware');
 const { getEmployeeModel } = require('../OrgModels/OrgEmpModel');
 const { getRoleAndPermissionModel } = require('../OrgModels/OrgRoleAndPermissionModel');
 const { getLeaveApplicationModel, LeaveApplicationValidation } = require('../OrgModels/OrgLeaveApplicationModel');
@@ -14,7 +14,7 @@ function getDayDifference(leave) {
   return timeDifference / (1000 * 60 * 60 * 24);
 }
 
-leaveApp.get("/emp/:orgId/:empId", verifyAdminHREmployee, async (req, res) => {
+leaveApp.get("/emp/:orgId/:empId", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
   try { //verifyHREmployee this API is use for emp and Hr to fetch their leave reqs
     const { orgName } = await Org.findById({ _id: req.params.orgId });
     const OrgEmployee = getEmployeeModel(orgName)
@@ -231,7 +231,7 @@ leaveApp.get("/date-range/:orgId/admin", verifyAdmin, async (req, res) => {
 })
 
 // to get leave range date of data
-leaveApp.get("/date-range/:orgId/:empId", verifyAdminHREmployee, async (req, res) => {
+leaveApp.get("/date-range/:orgId/:empId", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
   const now = new Date();
   let startOfMonth;
   let endOfMonth;
@@ -309,7 +309,7 @@ leaveApp.get("/:orgId", verifyAdmin, async (req, res) => {
   }
 });
 
-leaveApp.post("/:orgId/:empId", verifyAdminHREmployee, async (req, res) => {
+leaveApp.post("/:orgId/:empId", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
   try {
     // Handle empty `coverBy` value
     if (req.body.coverBy === "") {
@@ -428,7 +428,7 @@ leaveApp.post("/:orgId/:empId", verifyAdminHREmployee, async (req, res) => {
       <body>
         <div class="container">
           <div class="header">
-            <img src="https://imagedelivery.net/r89jzjNfZziPHJz5JXGOCw/1dd59d6a-7b64-49d7-ea24-1366e2f48300/public" alt="Logo" />
+            <img src="https://imagedelivery.net/r89jzjNfZziPHJz5JXGOCw/1dd59d6a-7b" alt="comapany logo" />
             <h1>Welcome to NexsHR</h1>
           </div>
           <div class="content">
@@ -437,7 +437,7 @@ leaveApp.post("/:orgId/:empId", verifyAdminHREmployee, async (req, res) => {
             <p><b>Email</b>: ${Email}</p><br />
             <p><b>Password</b>: ${Password}</p><br />
             <p>Thank you for registering! Please confirm your email by clicking the button below.</p>
-            <a href="${process.env.FRONTEND_URL}" class="button">Confirm Email</a>
+            <a href="${process.env.REACT_APP_API_URL}" class="button">Confirm Email</a>
           </div>
           <div class="footer">
             <p>Have questions? Need help? <a href="mailto:webnexs29@gmail.com">Contact our support team</a>.</p>
@@ -455,10 +455,10 @@ leaveApp.post("/:orgId/:empId", verifyAdminHREmployee, async (req, res) => {
               });
 
               await transporter.sendMail({
-                from: process.env.FROM_MAIL,
-                to: Email,
-                subject: "Welcome to NexsHR",
-                html: htmlContent,
+                From: process.env.FROM_MAIL,
+                To: Email,
+                Subject: "Welcome to NexsHR",
+                HtmlBody: htmlContent,
               });
 
               return res.status(201).send({ message: "Leave Request has been sent to Higher Authority." });

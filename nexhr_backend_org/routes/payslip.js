@@ -1,16 +1,9 @@
 const express = require("express");
 const { Employee } = require("../models/EmpModel");
-// const { LeaveApplication } = require("../models/LeaveAppModel");
-// const { PaySlipInfo } = require("../models/PaySlipInfoModel");
 const { Payslip } = require("../models/PaySlipModel");
+const { getDayDifference, getWeekdaysOfCurrentMonth } = require("../Reuseable_functions/reusableFunction");
+const { Holiday } = require("../models/HolidayModel");
 const router = express.Router();
-
-function getDayDifference(leave) {
-  let toDate = new Date(leave.toDate);
-  let fromDate = new Date(leave.fromDate);
-  let timeDifference = toDate - fromDate;
-  return timeDifference / (1000 * 60 * 60 * 24);
-}
 
 router.get("/:id", async (req, res) => {
   try {
@@ -35,80 +28,83 @@ router.get("/:id", async (req, res) => {
 
 router.post("/", async (req, res) => {
   const now = new Date();
-  let startOfMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-  let endOfMonth = new Date(now.getFullYear(), now.getMonth(), 0); // End of the current month
+  const startOfMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+  const endOfMonth = new Date(startOfMonth.getFullYear(), startOfMonth.getMonth() + 1, 0);
 
   try {
-    const employees = await Employee.find().populate({
+    // Fetch employees with unpaid leave in the current month
+    const employees = await Employee.find({}, "basicSalary payslipFields payslip leaveApplication").populate({
       path: "leaveApplication",
       match: {
-        fromDate: {
-          $gte: startOfMonth,
-          $lte: endOfMonth
-        },
-        toDate: {
-          $gte: startOfMonth,
-          $lte: endOfMonth
-        }
+        $or: [
+          { fromDate: { $gte: startOfMonth, $lte: endOfMonth } },
+          { toDate: { $gte: startOfMonth, $lte: endOfMonth } }
+        ],
+        leaveType: "Unpaid Leave (LWP)",
+        status: "approved"
       }
     }).exec();
-
-    if (!employees || employees.length === 0) {
-      return res.status(404).send({ message: "No one took leave this month" });
+    const response = await Holiday.findOne({ currentYear: startOfMonth.getFullYear() }).exec();
+    let currentMonthOfLeaveDays = [];
+    if (response.holidays.length) {
+      currentMonthOfLeaveDays = response.holidays.filter((holiday) => new Date(holiday.date).getMonth() === startOfMonth.getMonth()).map((item) => new Date(item.date).getDate())
     }
 
+    if (!employees.length) {
+      return res.status(404).json({ message: "No employees found" });
+    }
+    let unPayslipFieldsEmps = [];
+    let payslipGendratedEmps = [];
+
     const payslipPromises = employees.map(async (emp) => {
-      const perDayOfSalary = emp.basicSalary ? Number(emp.basicSalary) / 22 : 0;
-      let leaveDays = 0;
 
-      // Calculate the total leave days taken in the month
-      if (emp.leaveApplication.length > 0) {
-        emp.leaveApplication.forEach((leave) => {
-          leaveDays += getDayDifference(leave);
-        });
+      if (emp.basicSalary && emp.payslipFields) {
+        const perDayOfSalary = emp.basicSalary ? Number(emp.basicSalary) / getWeekdaysOfCurrentMonth(startOfMonth.getFullYear(), startOfMonth.getMonth(), currentMonthOfLeaveDays) : 0;
+        const leaveDays = emp.leaveApplication.reduce((total, leave) => total + getDayDifference(leave), 0);
+
+        const payslip = {
+          payslip: {
+            ...emp.payslipFields,
+            LossOfPay: Number((leaveDays * perDayOfSalary).toFixed(2)),
+            status: "pending",
+            period: `${startOfMonth.toLocaleString("default", { month: "long" })} ${startOfMonth.getFullYear()}`,
+            paidDays: `${getWeekdaysOfCurrentMonth(startOfMonth.getFullYear(), startOfMonth.getMonth(), currentMonthOfLeaveDays)}`
+          },
+          employee: emp._id
+        };
+
+        const payslipData = await Payslip.create(payslip);
+        emp.payslip.push(payslipData._id);
+        await emp.save();
+        payslipGendratedEmps.push(emp._id)
+      } else {
+        unPayslipFieldsEmps.push(emp._id);
       }
-
-      // Create payslip object
-      let payslip = {};
-      const { payslipFields } = emp;
-
-      Object.entries(payslipFields).forEach(([field, value]) => {
-        if (field === "LossOfPay") {
-          payslip[field] = Number((leaveDays * perDayOfSalary).toFixed(2));  // Add each field to the payslip object
-        } else {
-          payslip[field] = value
-        }
-      });
-
-      payslip['status'] = "pending"
-      payslip['period'] = `${startOfMonth.getDate()}-${startOfMonth.getMonth() + 1}-${startOfMonth.getFullYear()} to ${endOfMonth.getDate()}-${endOfMonth.getMonth() + 1}-${endOfMonth.getFullYear()}`;
-
-
-      const body = {
-        employee: emp._id,
-        payslip
-      };
-
-      const payslipData = await Payslip.create(body); // Generate payslip and return the promise
-
-      emp.payslip.push(payslipData._id);
-      await emp.save();
     });
 
-    // Wait for all payslip creations to complete
-    const generatedPayslips = await Promise.all(payslipPromises);
-    res.send({ message: "payslip has been generated for " })
+    await Promise.all(payslipPromises);
+    res.json({ message: `Payslips have been generated for ${payslipGendratedEmps.length} and ${unPayslipFieldsEmps.length} for not assign PayslipFields` });
 
   } catch (err) {
-    console.error("Error:", err);
-    res.status(500).send({ message: "An error occurred while generating payslips", error: err.message });
+    console.error("Error generating payslips:", err);
+    res.status(500).json({ message: "An error occurred while generating payslips", error: err.message });
   }
 });
 
+
 router.get("/emp/:empId", async (req, res) => {
   try {
-    const payslips = await Payslip.find({ employee: req.params.empId }).populate("employee").exec();
-    res.send(payslips);
+    let payslips = await Payslip.find({ employee: req.params.empId }).populate("employee", "FirstName LastName payslip basicSalary profile").exec();
+    const arrangedPayslips = payslips.sort((a, b) => new Date(String(a.payslip.period)) - new Date(String(b.payslip.period)))
+    const pendingPayslips = arrangedPayslips.filter((slip) => slip.payslip.status === "pending");
+    const conflitPayslips = arrangedPayslips.filter((slip) => slip.payslip.status === "conflict");
+    const successPayslips = arrangedPayslips.filter((slip) => slip.payslip.status === "success");
+    return res.send({
+      arrangedPayslips,
+      pendingPayslips,
+      conflitPayslips,
+      successPayslips
+    })
   } catch (err) {
     res.status(500).send({ error: err.message })
   }

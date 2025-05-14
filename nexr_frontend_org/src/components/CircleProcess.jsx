@@ -30,7 +30,7 @@ const CircleBar = ({ empLength, leaveCount, annualLeave, takenLeave }) => {
           cy="60"
           style={{
             strokeDasharray: `${circumference} ${circumference}`,
-            strokeDashoffset: offset,
+            strokeDashoffset: offset || 0,
             transition: 'stroke-dashoffset 0.35s ease',
           }}
         />

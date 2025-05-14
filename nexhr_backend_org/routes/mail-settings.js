@@ -1,0 +1,26 @@
+const express = require("express");
+const { verifySuperAdmin } = require("../auth/authMiddleware");
+const EmailConfig = require("../models/EmailConfigModel");
+const router = express.Router();
+
+// get mail settings data
+router.get("/", verifySuperAdmin, async (req, res) => {
+    try {
+        const settings = await EmailConfig.find().exec();
+        return res.status(200).send(settings)
+    } catch (error) {
+        return res.status(500).send({ error: error.messaeg })
+    }
+})
+
+router.put("/:id", verifySuperAdmin, async (req, res) => {
+    try {
+        const settings = await EmailConfig.updateMany({ _id: { $nin: req.params.id } }, { $set: { isActive: false } });
+        const updatedSetting = await EmailConfig.findByIdAndUpdate(req.params.id, req.body, { new: true });
+        return res.send({ message: "Email settings updated successfully", updatedSetting })
+    } catch (error) {
+        return res.status(500).send({ error: error.message })
+    }
+})
+
+module.exports = router;

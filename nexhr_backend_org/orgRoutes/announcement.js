@@ -109,7 +109,7 @@ router.post('/', async (req, res) => {
   // Validate the request body
   const { error, value } = announcementValidationSchema.validate(req.body);
   if (error) {
-    return res.status(400).json({ error: error.details[0].message });
+    return res.status(400).json({ error: error.details[0].message.replace(/["\\]/g, '') });
   }
 
   try {
@@ -160,7 +160,7 @@ router.get('/', async (req, res) => {
   try {
     // Use .find() to get all announcements from the database
     const announcements = await Announcement.find();
-    
+
     // Send the announcements with custom response structure
     res.status(200).json({
       status: true,

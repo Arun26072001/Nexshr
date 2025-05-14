@@ -4,23 +4,46 @@ import CustomDropdown from "./CustomDropDown";
 import PowerSettingsNewRoundedIcon from "@mui/icons-material/PowerSettingsNewRounded";
 import { TimerStates } from "./payslip/HRMDashboard";
 import { toast } from "react-toastify";
-import { addSecondsToTime } from "./ReuseableAPI";
+import WavingHandRoundedIcon from '@mui/icons-material/WavingHandRounded';
+import { Modal, Button } from "rsuite";
+import { EssentialValues } from "../App";
+import Loading from "./Loader";
+import { getTimeFromHour } from "./ReuseableAPI";
+import axios from "axios";
 
 const ActivityTimeTracker = () => {
-    const { startActivityTimer, stopActivityTimer, workTimeTracker, isStartActivity, timeOption } = useContext(TimerStates);
-    const EmpName = localStorage.getItem("Name") || "Employee";
-    // Timer states
-    const [sec, setSec] = useState(() => parseInt(localStorage.getItem("activityTimer")?.split(":")[2]) || 0);
-    const [min, setMin] = useState(() => parseInt(localStorage.getItem("activityTimer")?.split(":")[1]) || 0);
-    const [hour, setHour] = useState(() => parseInt(localStorage.getItem("activityTimer")?.split(":")[0]) || 0);
-    const timerRef = useRef(null);
-    const lastCheckTimeRef = useRef(Date.now());
+    const {
+        startActivityTimer,
+        stopActivityTimer,
+        workTimeTracker,
+        isStartActivity,
+        timeOption,
+        trackTimer,
+        changeReasonForLate,
+        isworkingActivityTimerApi
+    } = useContext(TimerStates);
+    const url = process.env.REACT_APP_API_URL;
+    const { data, changeViewReasonForTaketime, isViewTakeTime } = useContext(EssentialValues);
+    const [isDisabled, setIsDisabled] = useState(false);
+    const EmpName = data.Name;
+    const [isHover, setIsHover] = useState(false);
 
-    // Timer logic to increment time
+    const [sec, setSec] = useState(
+        Number(workTimeTracker?.[timeOption]?.timeHolder?.split(':')[2] || 0)
+    );
+    const [min, setMin] = useState(
+        Number(workTimeTracker?.[timeOption]?.timeHolder?.split(':')[1] || 0)
+    );
+    const [hour, setHour] = useState(
+        Number(workTimeTracker?.[timeOption]?.timeHolder?.split(':')[0] || 0)
+    );
+
+    const timerRef = useRef(null);
+
+    // Timer increment logic
     const incrementTime = () => {
         setSec((prevSec) => {
             let newSec = prevSec + 1;
-
             if (newSec > 59) {
                 newSec = 0;
                 setMin((prevMin) => {
@@ -36,107 +59,125 @@ const ActivityTimeTracker = () => {
         });
     };
 
-    // start and stop timer only
-    function stopOnlyTimer() {
+    // Start the timer
+    const startOnlyTimer = () => {
+        if (!timerRef.current) {
+            timerRef.current = setInterval(incrementTime, 1000);
+        }
+    };
 
-        if (timerRef.current && isStartActivity) {
+    // Stop the timer
+    const stopOnlyTimer = () => {
+        if (timerRef.current) {
             clearInterval(timerRef.current);
             timerRef.current = null;
         }
-    }
+    };
 
-    function startOnlyTimer() {
-        // console.log("call timer only fun: ", workTimeTracker._id, isStartActivity);
-        console.log(isStartActivity);
-
-        if (!timerRef.current) {
-            if (isStartActivity) {
-                timerRef.current = setInterval(incrementTime, 1000);
-            }
-        }
-    }
-
-    // Function to start the timer
+    // Start the timer with activity
     const startTimer = async () => {
-        console.log("call to start in startTimer");
+        const timeData = getTimeFromHour(workTimeTracker[timeOption].timeHolder, true);
+        if (["morningBreak", "eveningBreak", "lunch"].includes(timeOption)) {
+            if (timeOption === "lunch" && timeData < 30) {
+                if (!timerRef.current) {
+                    await startActivityTimer();
+                    trackTimer()
+                    timerRef.current = setInterval(incrementTime, 1000);
+                    if (["morningBreak", "eveningBreak", "lunch"].includes(timeOption)) {
+                        try {
+                            const res = await axios.post(`${url}/ask-reason-for-delay`, {
+                                employee: data._id,
+                                timerId: workTimeTracker._id,
+                                timeOption,
+                                time: timeOption === "lunch" ? 30 - Number(getTimeFromHour(workTimeTracker[timeOption].timeHolder, true)) : 15 - Number(getTimeFromHour(workTimeTracker[timeOption].timeHolder, true)),
+                                token: data.token
+                            });
+                            console.log(res.data);
+                        } catch (error) {
+                            console.log("error in enable ask reason for late", error);
 
-        if (!timerRef.current) {
-            await startActivityTimer();
-            if (isStartActivity) {
+                        }
+                    }
+                }
+            } else if (["morningBreak", "eveningBreak"].includes(timeOption) && timeData < 1) {
+                if (!timerRef.current) {
+                    await startActivityTimer();
+                    trackTimer()
+                    timerRef.current = setInterval(incrementTime, 1000);
+                    if (["morningBreak", "eveningBreak", "lunch"].includes(timeOption)) {
+                        //enable ask the reason for late
+                        try {
+                            const res = await axios.post(`${url}/ask-reason-for-delay`, {
+                                employee: data._id,
+                                timerId: workTimeTracker._id,
+                                timeOption,
+                                time: 1 - Number(getTimeFromHour(workTimeTracker[timeOption].timeHolder, true)),
+                                token: data.token
+                            });
+                            console.log(res.data.message);
+                        } catch (error) {
+                            console.log("error in enable ask reason for late", error);
+                        }
+                    }
+                }
+            } else {
+                toast.warning(`${timeOption[0].toUpperCase() + timeOption.slice(1)} time has been reached`)
+            }
+        } else {
+            if (!timerRef.current) {
+                await startActivityTimer();
+                trackTimer()
                 timerRef.current = setInterval(incrementTime, 1000);
             }
         }
     };
 
-    // Function to stop the timer
+    // Stop the timer with activity
     const stopTimer = async () => {
-        if (timerRef.current && isStartActivity) {
+        if (timerRef.current) {
             await stopActivityTimer();
             clearInterval(timerRef.current);
             timerRef.current = null;
         }
     };
 
-    const syncTimerAfterPause = () => {
-        console.log("call to start in sync");
-
-        const now = Date.now();
-        const diff = now - lastCheckTimeRef.current;
-        // console.log("Wakeup called.");
-        // console.log("Time difference since last check (ms):", diff);
-
-        if (diff > 3000 && isStartActivity && workTimeTracker._id) {
-            const secondsToAdd = Math.floor(diff / 1000);
-            // console.log("Seconds to add:", secondsToAdd);
-
-            const updatedTime = addSecondsToTime(`${parseInt(localStorage.getItem("activityTimer")?.split(":")[0])}:${parseInt(localStorage.getItem("activityTimer")?.split(":")[1])}:${parseInt(localStorage.getItem("activityTimer")?.split(":")[2])}`, secondsToAdd);
-            // console.log("Updated time:", updatedTime);
-
-            // Combine updates into a single state update
-            setHour(Number(updatedTime.hours));
-            setMin(Number(updatedTime.minutes));
-            setSec(Number(updatedTime.seconds));
-        }
-
-        startOnlyTimer();
-        lastCheckTimeRef.current = now; // Reset last check time
+    // Display warning if no punch-in
+    const warnPunchIn = () => {
+        toast.warning("Please Punch In!")
     };
 
-    // Display warning if no punch-in
-    const warnPunchIn = () => toast.warning("Please Punch In!");
+    function checkIsEnterReasonforLate() {
+        changeViewReasonForTaketime();
+        localStorage.removeItem("isViewTakeTime");
+        stopTimer();
+    }
 
-    // Start/Stop timer based on activity state
+    // useEffect(() => {
+    //     socket.connect();
+    //     socket.on("Ask_reason_for_late", (data) => {
+    //         changeViewReasonForTaketime()
+    //     })
+    // }, [socket])
+
+    // Manage timer state based on startingTime and endingTime
     useEffect(() => {
-        if (isStartActivity) {
-            startTimer();
+        const startLength = workTimeTracker?.[timeOption]?.startingTime?.length || 0;
+        const endLength = workTimeTracker?.[timeOption]?.endingTime?.length || 0;
+
+        if (startLength !== endLength) {
+            setIsDisabled(true)
+            startOnlyTimer();
         } else {
-            stopTimer();
+            setIsDisabled(false);
+            stopOnlyTimer();
         }
-        return () => stopTimer(); // Cleanup on unmount
-    }, [isStartActivity]);
 
-    // Sync timer with inactivity
+        return () => stopOnlyTimer(); // Cleanup on unmount
+    }, [workTimeTracker, timeOption, isStartActivity]);
+
+    // Sync state with workTimeTracker
     useEffect(() => {
-        const handleVisibilityChange = () => {
-            if (!document.hidden && isStartActivity) {
-                syncTimerAfterPause();
-            } else {
-                stopOnlyTimer();
-            }
-        };
-
-        document.addEventListener("visibilitychange", handleVisibilityChange);
-        return () => document.removeEventListener("visibilitychange", handleVisibilityChange);
-    }, []);
-
-    // Sync state with localStorage
-    useEffect(() => {
-        localStorage.setItem("activityTimer", `${hour}:${min}:${sec}`);
-    }, [hour, min, sec]);
-
-    // Initialize timer with workTimeTracker
-    useEffect(() => {
-        if (!isStartActivity && workTimeTracker?.[timeOption]?.timeHolder) {
+        if (workTimeTracker?.[timeOption]?.timeHolder) {
             const [newHour, newMin, newSec] = workTimeTracker[timeOption].timeHolder
                 .split(":")
                 .map(Number);
@@ -144,37 +185,99 @@ const ActivityTimeTracker = () => {
             setMin(newMin);
             setSec(newSec);
         }
-    }, [timeOption, workTimeTracker, isStartActivity]);
+    }, [timeOption, workTimeTracker]);
 
+    const formattedName = EmpName
+        ? EmpName.charAt(0).toUpperCase() + EmpName.slice(1)
+        : '';
 
     return (
         <>
+            {
+                isViewTakeTime &&
+                <Modal open={isViewTakeTime} size="sm" backdrop="static">
+                    <Modal.Header >
+                        <Modal.Title>
+                            {timeOption[0]?.toUpperCase() + timeOption?.slice(1)} Reason For Late
+                        </Modal.Title>
+                    </Modal.Header >
+
+                    <Modal.Body>
+                        <div className="modelInput">
+                            <p>{timeOption[0].toUpperCase() + timeOption.slice(1)} Reason For Late</p>
+                            <input
+                                className='form-control'
+                                type="text"
+                                name={`reasonForLate`}
+                                value={workTimeTracker[timeOption]?.reasonForLate}
+                                onChange={(e) => changeReasonForLate(e)}
+                                placeholder={`Please enter late reason`}
+                            />
+                        </div>
+                    </Modal.Body>
+
+                    <Modal.Footer>
+                        <Button
+                            onClick={checkIsEnterReasonforLate}
+                            appearance="primary"
+                            disabled={workTimeTracker[timeOption].reasonForLate ? false : true}
+                        >
+                            Add
+                        </Button>
+                    </Modal.Footer>
+                </Modal >
+            }
             <div className="clockins">
-                <div className='payslipTitle'>Dashboard</div>
-                <CustomDropdown />
+                <span className='payslipTitle'>Dashboard</span>
+                <CustomDropdown isDisabled={isDisabled} />
             </div>
-            <div className='good container-fluid row mx-auto'>
-                <div className="col-lg-6 col-md-4 col-12">
-                    <div><h6>Good to see you, {EmpName[0].toUpperCase() + EmpName.slice(1)} 👋</h6></div>
+            <div className='good flex-wrap justify-content-between'>
+                <div className="col-lg-4 col-md-4 col-12">
+                    <span style={{ fontSize: '15px', fontWeight: 600 }}>
+                        Good to see you,
+                        {formattedName}
+                        <WavingHandRoundedIcon style={{ color: '#FCC737', marginLeft: '4px' }} />
+                    </span>
                     <div className='sub_text'>
                         {workTimeTracker?.punchInMsg || "Waiting for Login"}
                     </div>
                 </div>
-                <div className="col-lg-6 d-flex justify-content-end gap-2 align-items-center">
-                    <div className={`timer text-light ${isStartActivity ? "bg-success" : "bg-danger"}`}>
+                <div className="col-lg-6 col-md-4 col-12 d-flex justify-content-end gap-2 align-items-center">
+
+                    <div className={`timer text-light ${isDisabled ? "bg-success" : "bg-danger"}`}>
                         <span>{hour.toString().padStart(2, '0')}</span> :
                         <span>{min.toString().padStart(2, '0')}</span> :
                         <span>{sec.toString().padStart(2, '0')}</span>
                     </div>
                     <div className='leaveIndicator'>
                         <button
-                            className={`btn btn-outline-${isStartActivity ? "success" : "danger"}`}
-                            style={{ padding: "15px 15px" }}
+                            className={`btn btn-outline-${isDisabled ? "success" : "danger"}`}
+                            style={{
+                                padding: "15px",
+                                color: !isHover
+                                    ? isDisabled
+                                        ? "green"
+                                        : "red"
+                                    : "white"
+                            }}
+                            onMouseOver={() => setIsHover(true)}
+                            onMouseOut={() => setIsHover(false)}
                             title={isStartActivity ? "Stop" : "Start"}
-                            onClick={workTimeTracker?._id ? (isStartActivity ? stopTimer : startTimer) : (warnPunchIn)}
+                            onClick={
+                                workTimeTracker?._id
+                                    ? (isDisabled
+                                        ? stopTimer
+                                        : (!isDisabled
+                                            ? startTimer
+                                            : warnPunchIn))
+                                    : warnPunchIn
+                            }
                             id="startActivityTimerBtn"
                         >
-                            <PowerSettingsNewRoundedIcon />
+                            {
+                                isworkingActivityTimerApi ? <Loading size={20} color={!isHover ? isDisabled ? "green" : "red" : "white"} /> :
+                                    <PowerSettingsNewRoundedIcon />
+                            }
                         </button>
                     </div>
                 </div>

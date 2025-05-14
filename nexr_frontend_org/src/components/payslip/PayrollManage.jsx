@@ -4,10 +4,10 @@ import { MultiCascader } from 'rsuite';
 import { NavLink } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { getDepartments } from '../ReuseableAPI';
-import { TimerStates } from './HRMDashboard';
+import { EssentialValues } from '../../App';
 
 export default function PayrollManage() {
-    const { whoIs } = useContext(TimerStates);
+    const { whoIs } = useContext(EssentialValues);
     const [isShowInstructions, setShowInstruction] = useState(true);
     const [departments, setDepartments] = useState([]);
     function handleShowNotification() {
@@ -18,7 +18,7 @@ export default function PayrollManage() {
         <>
             <p>
                 By default, all users are eligible for Payrun and{' '}
-                <NavLink to={`${whoIs}/add-benifits`}>Beneficiary badges</NavLink>.
+                <NavLink to={`/${whoIs}/add-benifits`}>Beneficiary badges</NavLink>.
             </p>
             <p>
                 If you want to restrict some users for the default payrun settings, then
@@ -74,7 +74,7 @@ export default function PayrollManage() {
     }, [])
     return (
         <div>
-            <div className='payslipTitle'>MANAGE AUDIENCE</div>
+            <p className='payslipTitle'>MANAGE AUDIENCE</p>
             {
                 isShowInstructions &&
                 <DefinitionToggle title="Restriction Note" instructions={instructions} handleShowNotification={handleShowNotification} />

@@ -1,5 +1,4 @@
 const mongoose = require('mongoose');
-const autoIncrement = require('mongoose-auto-increment');
 const Joi = require('joi');
 
 var portalSchema = new mongoose.Schema({
@@ -12,12 +11,6 @@ var portalSchema = new mongoose.Schema({
     Status: { type: Number, required: true }
   });
   var Portal = mongoose.model("Portal", portalSchema);
-  
-  portalSchema.plugin(autoIncrement.plugin, {
-    model: "Portal",
-    field: "PortalID"
-  });
-  
   
   const PortalValidation = Joi.object().keys({
     _id: Joi.optional(),

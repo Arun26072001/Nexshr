@@ -1,140 +1,82 @@
 const express = require('express');
 const router = express.Router();
-const {Country, CountryValidation} = require('../models/CountryModel');
-const {State} = require('../models/StateModel');
-const {City} = require('../models/CityModel');
-const jwt = require('jsonwebtoken');
-const Joi = require('joi');
-const { verifyHR, verifyAdminHR } = require('../auth/authMiddleware');
-const jwtKey = process.env.ACCCESS_SECRET_KEY;
+const fs = require('fs');
+const path = require('path');
+const { verifyAdminHREmployeeManagerNetwork, verifyAdmin } = require('../auth/authMiddleware');
+const configPath = path.join(__dirname, '../countriesData/countryCode.json');
 
+// Read JSON file
+const readData = () => {
+    const rawData = fs.readFileSync(configPath);
+    return JSON.parse(rawData);
+};
 
-router.get("/", verifyAdminHR, (req, res) => {
-    Country.find()
-      .exec(function (err, country) {
-        if(err){
-          res.status(500).send(err);
-        }else{
-          res.send(country);
-        }
-      });
-  });
+// Write to JSON file
+const writeData = (data) => {
+    fs.writeFileSync(configPath, JSON.stringify(data, null, 2));
+};
 
-  router.get("/:id", verifyAdminHR, (req, res) => {
-    Country.findById(req.params.id)
-      .populate("states")
-      .exec((err, country) => {
-        if (err) {
-          res.status(500).send(err);
+router.get("/", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
+    try {
+        const rawData = readData();
+        return res.send(rawData);
+    } catch (error) {
+        res.status(500).send({ error: error.message })
+    }
+})
+
+// get state data
+router.get("/:name", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
+    try {
+        const rawData = readData();
+        const states = rawData.filter((item) => item.name === item[req.params.name]).states;
+        if (states.length > 0) {
+            return res.send(states)
         } else {
-          res.send(country);
+            return res.status(404).send({ error: `States data not found in ${req.params.name}` })
         }
-      });
-  });
-  
-  
-  
-  router.post("/", verifyHR, (req, res) => {
-    Joi.validate(req.body, CountryValidation, (err, result) => {
-      if (err) {
-        console.log(err);
-        res.status(400).send(err.details[0].message);
-      } else {
-        let newCountry;
-  
-        newCountry = {
-          CountryName: req.body.CountryName
-        };
-  
-        Country.create(newCountry, function (err, country) {
-          if (err) {
-            res.status(500).send(err, "check url and data");
-          } else {
-            res.send("New country has been added!");
-            // console.log("new country Saved");
-          }
-        });
-        console.log(req.body);
-      }
-    });
-  });
-  
-  router.put("/:id", verifyHR, (req, res) => {
-    Joi.validate(req.body, CountryValidation, (err, result) => {
-      if (err) {
-        console.log(err);
-        res.status(400).send(err.details[0].message);
-      } else {
-        let newCountry;
-  
-        newCountry = {
-          CountryName: req.body.CountryName
-        };
-        Country.findByIdAndUpdate(req.params.id, {
-          $set: newCountry
-        }, function (
-          err,
-          country
-        ) {
-          if (err) {
-            res.status(500).send("check url and data");
-          } else {
-            res.send("country has been updated!");
-          }
-        });
-      }
-  
-      console.log("put");
-      console.log(req.body);
-    });
-  });
-  
-  router.delete("/:id", verifyHR, (req, res) => {
-    Country.findById(req.params.id, function (err, foundCountry) {
-      if (err) {
-        res.send(err);
-      } else {
-        console.log("kkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk", foundCountry);
-        if (!foundCountry.states.length == 0) {
-          res
-            .status(403)
-            .send(
-              "First Delete All The states in this country before deleting this country"
-            );
-        } else {
-          Country.findByIdAndRemove({ _id: req.params.id }, function (
-            err,
-            country
-          ) {
-            if (!err) {
-              State.deleteMany({ CountryID: { _id: req.params.id } }, function (
-                err
-              ) {
-                if (err) {
-                  console.log(err);
-                  res.send("error");
-                } else {
-                  City.deleteMany(
-                    { state: { CountryID: { _id: req.params.id } } },
-                    function (err) {
-                      if (err) {
-                        console.log(err);
-                        res.send("error");
-                      } else {
-                        res.send("Country has been deleted!");
-                      }
-                    }
-                  );
-                }
-              });
-            } else {
-              console.log(err);
-              res.send("error");
-            }
-          });
-        }
-      }
-    });
-  });
+    } catch (error) {
+        return res.status(500).send({ error: error.message })
+    }
+})
 
-  module.exports = router;
+// Create a Country or state
+router.post("/", verifyAdmin, async (req, res) => {
+    try {
+        const countries = readData();
+        console.log(countries);
+
+        const isExists = countries.filter((item) => item.code === req.body.code);
+        // const stateExists = countries.filter((item)=> item)
+        // if()
+        if (isExists.length > 0) {
+            return res.status(400).send({ error: "Country already Exists" })
+        } else {
+            countries.push(req.body);
+            writeData(countries);
+            res.status(201).send({ message: "New country is Add successfully" });
+        }
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+})
+
+router.put("/:code", verifyAdmin, async (req, res) => {
+    try {
+        const countries = readData();
+        const index = countries.findIndex(country => country.code === req.params.code);
+        if (index === -1) return res.status(404).json({ message: "Country not found" });
+        const country = countries[index];
+        country.state.push(req.body.state)
+        countries[index] = { ...country, ...req.body };
+        // Save changes
+        writeData(countries);
+        return res.json({ message: "Country is updated successfully", data: countries[index] });
+
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ error: error.message });
+    }
+});
+
+module.exports = router;

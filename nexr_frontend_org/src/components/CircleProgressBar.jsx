@@ -1,19 +1,20 @@
 import React, { useContext, useEffect, useState } from 'react';
-
 import axios from 'axios';
 import { toast } from 'react-toastify';
 import CircleBar from './CircleProcess';
+import { Skeleton } from '@mui/material';
 import { EssentialValues } from '../App';
 
-const CircleProgressBar = () => {
-  const {data} = useContext(EssentialValues);
-  const {token} = data;
+const CircleProgressBar = ({ isTeamLead, isTeamHead, isTeamManager }) => {
   const url = process.env.REACT_APP_API_URL;
   const [todayLeaveCount, setTodayLeaveCount] = useState(0);
   const [tomorrowLeaveCount, setTomorrowLeaveCount] = useState(0);
   const [yesterdayLeaveCount, setYesterdayLeaveCount] = useState(0);
   const [leaveRequests, setLeaveRequests] = useState([]);
   const [emps, setEmps] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const { data } = useContext(EssentialValues);
+  const { token, Account, _id } = data;
 
   // Calculate dates for today, tomorrow, and yesterday, skipping weekends
   let today = new Date();
@@ -41,6 +42,7 @@ const CircleProgressBar = () => {
 
   useEffect(() => {
     async function fetchData() {
+      setIsLoading(true)
       try {
         // Fetch leave requests
         const leaveRes = await axios.get(`${url}/api/leave-application/hr`, {
@@ -63,13 +65,50 @@ const CircleProgressBar = () => {
           toast.error(err.response.data.message);
         }
       }
+      setIsLoading(false);
     }
 
-    fetchData();
+    async function fetchDataInTeam() {
+      setIsLoading(true)
+      try {
+        // Fetch leave requests
+        const leaveRes = await axios.get(`${url}/api/leave-application/team/${_id}`, {
+          params: {
+            who: isTeamHead ? "head" : isTeamLead ? "lead" : "manager"
+          },
+          headers: {
+            authorization: token || "",
+          },
+        });
+
+        setLeaveRequests(leaveRes.data.leaveData);
+
+        // Fetch employees
+        const empRes = await axios.get(`${url}/api/team/members/${_id}`, {
+          params: {
+            who: isTeamLead ? "lead" : isTeamHead ? "head" : isTeamManager ? "manager" : "employees",
+          },
+          headers: {
+            authorization: token || "",
+          },
+        });
+        setEmps(empRes.data.employees);
+
+      } catch (err) {
+        console.log(err);
+      }
+      setIsLoading(false)
+    }
+
+    if (Account === "2") {
+      fetchData();
+    } else if ([isTeamLead, isTeamHead, isTeamManager].includes(true)) {
+      fetchDataInTeam();
+    }
   }, [url, token]);
 
   useEffect(() => {
-    const getLeaveCounts = async()=> {
+    const getLeaveCounts = async () => {
       setTodayLeaveCount(0);
       setTomorrowLeaveCount(0);
       setYesterdayLeaveCount(0);
@@ -79,7 +118,7 @@ const CircleProgressBar = () => {
       const yesterdayDate = yesterday.toISOString().split("T")[0];
 
       leaveRequests.forEach((request) => {
-        const appliedDate = new Date(request.appliedOn).toISOString().split("T")[0];
+        const appliedDate = new Date(request.fromDate).toISOString().split("T")[0];
 
         if (appliedDate === todayDate) {
           setTodayLeaveCount((prev) => prev + 1);
@@ -96,17 +135,26 @@ const CircleProgressBar = () => {
 
   return (
     <div className='row d-flex justify-content-center'>
-      <div className='col-lg-4 col-md-4 col-6'>
+      <div className='col-lg-4 col-md-4 col-12'>
         <p className='text-center'>{formatDate(yesterday).replace(",", "")}</p>
-        <CircleBar empLength={emps.length} leaveCount={yesterdayLeaveCount} />
+        {
+          isLoading ? <Skeleton variant="circular" width={120} height={120} style={{ margin: "20px auto" }} /> :
+            <CircleBar empLength={emps?.length} leaveCount={yesterdayLeaveCount} />
+        }
       </div>
-      <div className='col-lg-4 col-md-4 col-6'>
+      <div className='col-lg-4 col-md-4 col-12'>
         <p className='text-center text-primary'>{formatDate(today).replace(",", "")}</p>
-        <CircleBar empLength={emps.length} leaveCount={todayLeaveCount} />
+        {
+          isLoading ? <Skeleton variant="circular" width={120} height={120} style={{ margin: "20px auto" }} /> :
+            <CircleBar empLength={emps?.length} leaveCount={todayLeaveCount} />
+        }
       </div>
-      <div className='col-lg-4 col-md-4 col-6'>
+      <div className='col-lg-4 col-md-4 col-12'>
         <p className='text-center'>{formatDate(tomorrow).replace(",", "")}</p>
-        <CircleBar empLength={emps.length} leaveCount={tomorrowLeaveCount} />
+        {
+          isLoading ? <Skeleton variant="circular" width={120} height={120} style={{ margin: "20px auto" }} /> :
+            <CircleBar empLength={emps?.length} leaveCount={tomorrowLeaveCount} />
+        }
       </div>
     </div>
   );

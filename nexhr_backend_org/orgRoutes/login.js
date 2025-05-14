@@ -1,4 +1,4 @@
-const express = require('express');
+// const express = require('express');
 const router = express.Router();
 const Joi = require('joi');
 const jwt = require('jsonwebtoken');
@@ -20,30 +20,30 @@ router.post("/:orgId", async (req, res) => {
 
     try {
         const orgData = await Org.findById({ _id: req.params.orgId })
-        
+
         const { orgName } = orgData;
-        console.log(orgName);
-        
+
         const OrgEmployee = getEmployeeModel(orgName);
         const emp = await OrgEmployee.findOne({ Email: req.body.Email.toLowerCase(), Password: req.body.Password })
-        // .populate({
-        //     path: `role`,
-        //     populate: [
-        //         { path: `userPermissions` },
-        //         { path: `pageAuth` }
-        //     ]
-        // })
-        console.log(emp);
-            
+            .populate({
+                path: `role`,
+                populate: [
+                    { path: `userPermissions` },
+                    { path: `pageAuth` }
+                ]
+            })
+
         if (!emp) {
             return res.status(400).send({ message: "Invalid Credentials" })
         } else {
-            const empDataWithEmailVerified = {
-                ...emp,
-                isVerifyEmail: true
-            };
+            // const empDataWithEmailVerified = {
+            //     ...emp,
+            //     isVerifyEmail: true
+            // };
 
-            const updateIsEmailVerify = await OrgEmployee.findByIdAndUpdate(emp._id, empDataWithEmailVerified, { new: true });
+            // const updateIsEmailVerify = await OrgEmployee.findByIdAndUpdate(emp._id, empDataWithEmailVerified, { new: true });
+            emp.isVerifyEmail = true;
+            await emp.save();
             const empData = {
                 _id: emp._id,
                 Account: emp.Account,
