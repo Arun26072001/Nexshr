@@ -26,6 +26,10 @@
   margin-top: 5px;
 }
 
-.rmdp-input{
-  border: 1px solid #e5e5ea
+.rmdp-input {
+  border: 1px solid #e5e5ea;
+}
+
+.rmdp-container {
+  width: 100%;
 }

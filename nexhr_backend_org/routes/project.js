@@ -123,7 +123,7 @@ router.post("/:id", verifyAdminHRTeamHigherAuth, async (req, res) => {
       assignees.map(async (emp) => {
         // Send Email
         await sendMail({
-          From: process.env.FROM_MAIL,
+          From: creator.Email,
           To: emp.Email,
           Subject,
           HtmlBody: projectMailContent(emp, creator, creator.company, req.body, "project")
