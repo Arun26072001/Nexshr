@@ -30,7 +30,7 @@ const sendInvitationEmail = async (emp, roleLabel, team, creator) => {
     `;
 
     await sendMail({
-        From: process.env.FROM_MAIL,
+        From: creator.Email,
         To: emp.Email,
         Subject: `You're invited to join the ${team.teamName} team at ${CompanyName}`,
         HtmlBody: emailContent
@@ -136,7 +136,7 @@ router.post("/:id", verifyAdminHR, async (req, res) => {
     try {
         const { error } = TeamValidation.validate(req.body);
         if (error) return res.status(400).send({ error: error.details[0].message });
-        const creator = await Employee.findById(req.params.id, "FirstName LastName company").populate("company", "logo CompanyName");
+        const creator = await Employee.findById(req.params.id, "FirstName LastName company Email").populate("company", "logo CompanyName");
         const { teamName, lead = [], head = [], manager = [], employees = [] } = req.body;
 
         const existingTeam = await Team.findOne({ teamName });

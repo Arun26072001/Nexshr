@@ -168,7 +168,7 @@ function Holiday() {
                                     format="YYYY-MM-DD"
                                     value={holidays}
                                     onChange={(dates) => setHolidays(dates.map(d => d.format("YYYY-MM-DD")))}
-                                    style={{ height: "40px" }}
+                                    style={{ height: "40px", width: "100%" }}
                                     plugins={[<DatePanel key="panel" />, weekends()]}
                                     placeholder="Select holidays"
                                 />

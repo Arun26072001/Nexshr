@@ -11,6 +11,7 @@ const sendMail = require("./mailSender");
 const { getDayDifference, mailContent, formatLeaveData, formatDate } = require('../Reuseable_functions/reusableFunction');
 const { Task } = require('../models/TaskModel');
 const { sendPushNotification } = require('../auth/PushNotification');
+const { EmailTemplate } = require('../models/EmailTemplateModel');
 
 // Helper function to generate leave request email content
 function generateLeaveEmail(empData, fromDateValue, toDateValue, reasonForLeave, leaveType, deadLineTask = []) {
@@ -91,16 +92,20 @@ leaveApp.get("/make-know", async (req, res) => {
           populate: [
             {
               path: "lead",
-              select: "Email",
+              select: "Email fcmToken",
             },
             {
               path: "head",
-              select: "Email",
+              select: "Email fcmToken",
             },
             {
               path: "manager",
-              select: "Email",
+              select: "Email fcmToken",
             },
+            {
+              path: "hr",
+              select: "Email fcmToken",
+            }
           ],
         },
       })
@@ -145,7 +150,7 @@ leaveApp.get("/make-know", async (req, res) => {
 
       try {
         sendMail({
-          From: process.env.FROM_MAIL,
+          From: leaveApps.employee.Email,
           To: mailList.join(","),
           Subject: "Leave Application Remember",
           HtmlBody: htmlContent,
@@ -203,7 +208,7 @@ leaveApp.put("/reject-leave", async (req, res) => {
 
       const htmlContent = `
         <p>Dear ${employee?.FirstName || "Employee"},</p>
-        <p>This is to inform you that your recent leave application(${leave.leaveType}/ (<b>${formatDate(leave.fromDate)} - ${formatDate(leave.toDate)}</b>)) has not been approved by the higher officials.</p>
+        <p>This is to inform you that your recent leave application(${leave.leaveType}/ (<b>${formatDate(leave.fromDate)} - ${formatDate(leave.toDate)}</b>)) has not been responsed by the higher officials.</p>
         <p style="color: red; font-weight: bold;">Kindly note that if you choose to proceed with the leave, it will be considered as unpaid and may result in a corresponding deduction from your salary.</p>
         <p>Thank you for your understanding.</p>
       `;
@@ -910,9 +915,9 @@ leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("pre
     const { error } = LeaveApplicationValidation.validate(leaveRequest);
     if (error) return res.status(400).json({ error: error.message });
 
-    const newLeaveApp = await LeaveApplication.create(leaveRequest);
-    emp.leaveApplication.push(newLeaveApp._id);
-    await emp.save();
+    // const newLeaveApp = await LeaveApplication.create(leaveRequest);
+    // emp.leaveApplication.push(newLeaveApp._id);
+    // await emp.save();
 
     // 13. Send Notification (only for self-application)
     if ([undefined, "undefined"].includes(applyFor)) {
@@ -927,40 +932,44 @@ leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("pre
         }
       });
 
-      sendMail({
-        From: process.env.FROM_MAIL,
-        To: mailList.join(","),
-        Subject: "Leave Application Notification",
-        HtmlBody: generateLeaveEmail(emp, fromDate, toDate, reasonForLeave, leaveType, deadlineTasks),
-      });
-
       const message = `${emp.FirstName} ${emp.LastName} has applied for leave from ${formatDate(fromDate)} to ${formatDate(toDate)}.`;
       const teamData = emp.team || {};
 
-      for (const [key, members] of Object.entries(teamData)) {
-        if (Array.isArray(members) && key !== "employees") {
-          for (const member of members) {
-            if (member) {
-              const notification = {
-                company: emp.company._id,
-                title: "Leave Application Notification",
-                message,
-              };
-              const fullEmp = await Employee.findById(member._id, "notifications");
-              fullEmp.notifications.push(notification);
-              await fullEmp.save();
-              await sendPushNotification({
-                token: member.fcmToken,
-                title: notification.title,
-                body: message,
-              });
-            }
-          }
-        }
-      }
+      const leaveApplyTemp = await EmailTemplate.findOne({ title: "Apply Leave" })
+      console.log("email Temp", leaveApplyTemp);
+
+
+      // for (const [key, members] of Object.entries(teamData)) {
+      //   if (Array.isArray(members) && key !== "employees") {
+      //     for (const member of members) {
+      //       if (member) {
+      //         const notification = {
+      //           company: emp.company._id,
+      //           title: leaveApplyTemp.title,
+      //           message,
+      //         };
+      //         // send email
+      //         sendMail({
+      //           From: emp.Email,
+      //           To: member.Email,
+      //           Subject: "Leave Application Notification",
+      //           HtmlBody: generateLeaveEmail(emp, fromDate, toDate, reasonForLeave, leaveType, deadlineTasks),
+      //         });
+      //         const fullEmp = await Employee.findById(member._id, "notifications");
+      //         fullEmp.notifications.push(notification);
+      //         await fullEmp.save();
+      //         await sendPushNotification({
+      //           token: member.fcmToken,
+      //           title: notification.title,
+      //           body: message,
+      //         });
+      //       }
+      //     }
+      //   }
+      // }
     }
 
-    return res.status(201).json({ message: "Leave request submitted successfully.", newLeaveApp, notifiedMembers: mailList });
+    // return res.status(201).json({ message: "Leave request submitted successfully.", newLeaveApp, notifiedMembers: mailList });
 
   } catch (err) {
     console.error(err);

@@ -224,7 +224,7 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
 
             // Send Email
             await sendMail({
-                From: process.env.FROM_MAIL,
+                From: creator.Email,
                 To: emp.Email,
                 Subject: `${createdPersonName} has assigned a task to you`,
                 HtmlBody: projectMailContent(emp, creator, creator.company, req.body, "task")
@@ -334,7 +334,7 @@ router.put("/:empId/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) 
                     }
 
                     await sendMail({
-                        From: process.env.FROM_MAIL,
+                        From: empData.Email,
                         To: assignedPerson.Email,
                         Subject: `Your assigned task (${req.body.title}) is completed`,
                         HtmlBody: `

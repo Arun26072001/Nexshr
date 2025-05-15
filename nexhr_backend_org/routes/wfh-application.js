@@ -90,7 +90,7 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
             return res.status(409).json({ error: "WFH request already exists for the given date range." });
         }
         // fetch team higher authorities
-        const emp = await Employee.findById(req.params.id, "FirstName LastName monthlyPermissions permissionHour typesOfLeaveRemainingDays typesOfLeaveCount leaveApplication company")
+        const emp = await Employee.findById(req.params.id, "FirstName LastName Email monthlyPermissions permissionHour typesOfLeaveRemainingDays typesOfLeaveCount leaveApplication company")
             .populate([
                 {
                     path: "company",
@@ -147,7 +147,7 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
             // check approve or rejected
             // const emailType = allApproved ? "approved" : anyRejected ? "rejected" : "pending";
             sendMail({
-                From: process.env.FROM_MAIL,
+                From: emp.Email,
                 To: mailList.join(","),
                 Subject: "Work From Home Request Notification",
                 HtmlBody: generateWfhEmail(emp, req.body.fromDate, req.body.toDate, req.body.reason),
@@ -365,11 +365,6 @@ router.put("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
                             { path: "manager", select: "FirstName LastName Email" },
                             { path: "admin", select: "FirstName LastName Email" },
                             { path: "hr", select: "FirstName LastName Email" },
-                            { path: "lead", select: "FirstName LastName Email fcmToken" },
-                            { path: "head", select: "FirstName LastName Email fcmToken" },
-                            { path: "manager", select: "FirstName LastName Email fcmToken" },
-                            { path: "admin", select: "FirstName LastName Email fcmToken" },
-                            { path: "hr", select: "FirstName LastName Email fcmToken" },
                         ]
                     },
                     { path: "company", select: "CompanyName logo" },

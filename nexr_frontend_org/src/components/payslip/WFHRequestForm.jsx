@@ -36,17 +36,30 @@ export default function WFHRequestForm({ type }) {
 
     function validateForm() {
         const newErrors = {};
-        if (!wfhRequestObj.fromDate) newErrors.fromDate = "Start date is required.";
-        if (!wfhRequestObj.toDate) newErrors.toDate = "End date is required.";
-        // if (!wfhRequestObj.numOfDays) newErrors.numOfDays = "Number of Days Required";
-        if (!wfhRequestObj.reason.trim()) newErrors.reason = "Reason is required.";
+        if (!wfhRequestObj.fromDate) {
+            newErrors.fromDate = "Start date is required.";
+        } else if (wfhRequestObj.fromDate) {
+            const day = new Date(wfhRequestObj.fromDate).getDay();
+            if (day === 0 || day === 6) {
+                newErrors.fromDate = "Weekend are not allowed"
+            }
+        }
+        if (!wfhRequestObj.toDate) {
+            newErrors.toDate = "Start date is required.";
+        } else if (wfhRequestObj.toDate) {
+            const day = new Date(wfhRequestObj.toDate).getDay();
+            if (day === 0 || day === 6) {
+                newErrors.toDate = "Weekend are not allowed"
+            }
+        }
+        if (!wfhRequestObj.reason.trimStart()) newErrors.reason = "Reason is required.";
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
     }
 
-
     async function handleSubmit(e) {
         e.preventDefault();
+        
         const updatedRequest = {
             ...wfhRequestObj,
             numOfDays: getDayDifference(wfhRequestObj)
@@ -74,7 +87,6 @@ export default function WFHRequestForm({ type }) {
                     }
                 });
                 toast.success(res.data?.message);
-                // socket.emit("send_notification_for_wfh", wfhRequestObj, data._id);
                 navigate(-1);
             }
             setwfhRequestObj({});
