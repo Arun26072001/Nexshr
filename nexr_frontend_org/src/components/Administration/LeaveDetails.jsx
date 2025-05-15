@@ -91,6 +91,9 @@ export default function LeaveDetails() {
         } else if (type === "Delete") {
             deleteLeaveType(value)
         } else {
+            if(isChangeLeavetype.isAdd){
+                setLeaveTypeObj({})
+            }
             setIsChangeLeaveType((pre) => ({
                 ...pre,
                 isAdd: !pre.isAdd
@@ -156,7 +159,7 @@ export default function LeaveDetails() {
                         /> :
                             leaveTypes.length > 0 ?
                                 <LeaveTable data={leaveTypes} handleChangeLeavetype={handleChangeLeavetype} />
-                                : <NoDataFound message={"Roles data not found"} />
+                                : <NoDataFound message={"Leave Type data not found"} />
                     }
                 </div>
     )
