@@ -22,7 +22,7 @@ const History = ({ payslips, isLoading }) => {
     return (
         <div className="container-fluid">
             <p className="payslipTitle">History</p>
-            {payslips.arrangedPayslips.length > 0 ? payslips.arrangedPayslips.map((item, index) => {
+            {payslips?.arrangedPayslips?.length > 0 ? payslips.arrangedPayslips.map((item, index) => {
                 const {
                     ESI = 0, LossOfPay = 0, ProfessionalTax = 0, ProvidentFund = 0,
                     bonusAllowance = 0, conveyanceAllowance = 0,
