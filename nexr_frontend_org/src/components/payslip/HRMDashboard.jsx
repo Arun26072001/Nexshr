@@ -55,7 +55,7 @@ const Department = React.lazy(() => import('../Administration/Department'));
 const Position = React.lazy(() => import('../Administration/Position'));
 const Parent = React.lazy(() => import('./layout/Parent'));
 const PayslipUI = React.lazy(() => import('./PayslipUI'));
-const AttendanceCalendar = React.lazy(() => import('./AttendanceCalendar'));
+// const AttendanceCalendar = React.lazy(() => import('./AttendanceCalendar'));
 const Projects = React.lazy(() => import("../Projects"));
 const Tasks = React.lazy(() => import("../Tasks"));
 const Reports = React.lazy(() => import("../Reports"));
@@ -503,7 +503,7 @@ export default function HRMDashboard() {
                 <Route path="/" element={<Parent />} >
                     <Route index element={<Dashboard data={data} />} />
                     <Route path="job-desk/*" element={<JobDesk />} />
-                    <Route path="calendar" element={<AttendanceCalendar />} />
+                    {/* <Route path="calendar" element={<AttendanceCalendar />} /> */}
                     <Route path="projects" element={<Projects />} />
                     <Route path="tasks/*" element={
                         <Routes>

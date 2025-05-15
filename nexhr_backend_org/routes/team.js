@@ -1,9 +1,10 @@
 const express = require("express");
 const router = express.Router();
-const { verifyAdminHR, verifyEmployee, verifyAdminHREmployeeManagerNetwork, verifyAdminHREmployee, verifyAdminHRTeamHigherAuth, verifyTeamHigherAuthority } = require("../auth/authMiddleware");
+const { verifyAdminHR, verifyAdminHREmployeeManagerNetwork, verifyAdminHREmployee, verifyAdminHRTeamHigherAuth, verifyTeamHigherAuthority } = require("../auth/authMiddleware");
 const { TeamValidation, Team } = require("../models/TeamModel");
 const { Employee } = require("../models/EmpModel");
 const sendMail = require("./mailSender");
+const { sendPushNotification } = require("../auth/PushNotification");
 
 const sendInvitationEmail = async (emp, roleLabel, team, creator) => {
     const frontendUrl = process.env.REACT_APP_API_URL;
@@ -175,14 +176,14 @@ router.post("/:id", verifyAdminHR, async (req, res) => {
         await Promise.all(
             higherAuth.flatMap((role) =>
                 (roles[role] || []).map(async (memberId) => {
-                    const emp = await Employee.findById(memberId).populate("company", "CompanyName logo");
+                    const emp = await Employee.findById(memberId, "FirstName LastName Email fcmToken").populate("company", "CompanyName logo");
                     if (!emp) return;
 
                     emp.team = newTeam._id;
                     await emp.save();
 
                     const roleLabel = role === "employees" ? "Employee" : role[0].toUpperCase() + role.slice(1);
-                    await sendInvitationEmail(emp, roleLabel, req.body, creator);
+                    await sendInvitationEmail(emp, roleLabel, req.body, creator)
                 })
             )
         );

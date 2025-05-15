@@ -102,9 +102,9 @@ function verifyHREmployee(req, res, next) {
 }
 
 async function verifyAdminHREmployeeManagerNetwork(req, res, next) {
+
   const token = req.headers['authorization'];
   if (typeof token !== "undefined") {
-
     jwt.verify(token, jwtKey, (err, authData) => {
       if (err) {
         console.log(err, "error in verify");
@@ -120,7 +120,7 @@ async function verifyAdminHREmployeeManagerNetwork(req, res, next) {
     });
   } else {
     // Forbidden
-    return res.send(401).send({ error: "token not not found" });
+    return res.status(401).send({ error: "token not not found" });
   }
 }
 

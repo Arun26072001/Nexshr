@@ -3,6 +3,7 @@ const router = express.Router();
 const fs = require('fs');
 const path = require('path');
 const { verifyAdminHREmployeeManagerNetwork, verifyAdmin } = require('../auth/authMiddleware');
+const { CountryValidation } = require('../models/CountryModel');
 const configPath = path.join(__dirname, '../countriesData/countryCode.json');
 
 // Read JSON file
@@ -44,18 +45,23 @@ router.get("/:name", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
 router.post("/", verifyAdmin, async (req, res) => {
     try {
         const countries = readData();
-        console.log(countries);
 
         const isExists = countries.filter((item) => item.code === req.body.code);
-        // const stateExists = countries.filter((item)=> item)
-        // if()
+
         if (isExists.length > 0) {
             return res.status(400).send({ error: "Country already Exists" })
-        } else {
-            countries.push(req.body);
-            writeData(countries);
-            res.status(201).send({ message: "New country is Add successfully" });
         }
+
+        // check validation for country
+        const { error } = CountryValidation.validate(req.body);
+        if (error) {
+            return res.status(400).send({ error: error.details[0].message })
+        }
+
+        countries.push(req.body);
+        writeData(countries);
+        res.status(201).send({ message: "New country is Add successfully" });
+
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
@@ -67,7 +73,7 @@ router.put("/:code", verifyAdmin, async (req, res) => {
         const index = countries.findIndex(country => country.code === req.params.code);
         if (index === -1) return res.status(404).json({ message: "Country not found" });
         const country = countries[index];
-        country.state.push(req.body.state)
+        country.states.push(req.body.states)
         countries[index] = { ...country, ...req.body };
         // Save changes
         writeData(countries);

@@ -111,7 +111,7 @@ const ActivityTimeTracker = () => {
                                 employee: data._id,
                                 timerId: workTimeTracker._id,
                                 timeOption,
-                                time: 1 - Number(getTimeFromHour(workTimeTracker[timeOption].timeHolder, true)),
+                                time: 15 - Number(getTimeFromHour(workTimeTracker[timeOption].timeHolder, true)),
                                 token: data.token
                             });
                             console.log(res.data.message);

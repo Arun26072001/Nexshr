@@ -111,8 +111,8 @@ export default function Country() {
             setcountryObj({});
             changeCountryOperation("Add");
         } catch (error) {
+            console.log("error in add country", error);
             toast.error(error.response.data.error)
-            console.log(error);
         }
         setIschangingCountry(false);
     }

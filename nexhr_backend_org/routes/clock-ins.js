@@ -176,13 +176,15 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
         const today = new Date();
         const startOfDay = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate(), 0, 0, 0));
         const endOfDay = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate(), 23, 59, 59));
-        if (!worklocation || !location.latitude) {
+        if (!worklocation
+            // || !location.latitude
+        ) {
             return res.status(400).send({ error: "Please select your work location" })
         }
-        // let isWfh;
-        // if (worklocation === "WFH") {
-        //     isWfh = await WFHApplication.findOne({ fromDate: { $gte: today }, status: "approved" })
-        // }
+        let isWfh;
+        if (worklocation === "WFH") {
+            isWfh = await WFHApplication.findOne({ fromDate: { $gte: today }, status: "approved" })
+        }
         // Fetch employee details with required fields
         const emp = await Employee.findById(req.params.id, "FirstName LastName Email profile company clockIns leaveApplication isPermanentWFH")
             .populate("workingTimePattern")
@@ -190,17 +192,23 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
             .populate({ path: "clockIns", match: { date: { $gte: startOfDay, $lte: endOfDay } } })
             .populate({
                 path: "leaveApplication",
-                match: { fromDate: { $gte: startOfDay, $lte: endOfDay }, status: "approved", leaveType: "Permission Leave" }
+                match: { fromDate: { $gte: startOfDay, $lte: endOfDay }, status: "approved" }
             })
 
         if (!emp) return res.status(404).send({ error: "Employee not found!" });
+
+        if (emp.leaveApplication.length) {
+            return res.status(400).send({ error: "You are in Leave today" })
+        }
         if (emp?.clockIns?.length > 0) return res.status(409).send({ message: "You have already Punch-In!" });
 
         // verify emp is in office
-        // if (worklocation === "WFH" && (!isWfh && !emp.isPermanentWFH)) {
-        //     console.log(isWfh, emp.isPermanentWFH);
-        //     return res.status(400).send({ error: "You have no permission for WFH, Please reach office and start timer" })
-        // } if (worklocation === "WFO") {
+        if (worklocation === "WFH" && (!isWfh && !emp.isPermanentWFH)) {
+            console.log(isWfh, emp.isPermanentWFH);
+            return res.status(400).send({ error: "You have no permission for WFH, Please reach office and start timer" })
+        }
+
+        //  if (worklocation === "WFO") {
         //     const userLocation = req.query.location;
         //     const companyLocation = emp.company.location;
         //     if (userLocation && companyLocation) {
@@ -214,6 +222,7 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
         //         return res.status(400).send({ error: `location not found in your ${ emp.company.CompanyName } ` })
         //     }
         // }
+
         // Office login time & employee login time
         const officeLoginTime = emp?.workingTimePattern?.StartingTime || "9:00";
         const loginTimeRaw = req.body?.login?.startingTime?.[0];
@@ -285,8 +294,8 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
 
                     subject = "Half-day Leave Applied (Unpaid Leave)";
                     htmlContent = `
-                        < html >
-                            <body>
+                   <html>
+                              <body>
                                 <h2>You have exceeded your permission limit.</h2>
                                 <p>
                                     This is to inform you that your punch-in on ${today} was recorded beyond the acceptable grace period.
@@ -301,7 +310,7 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
                                 <p>Kavya</p>
                                 <p>HR Department</p>
                             </body>
-                        </ html> `;
+                            </html> `;
                 } else {
                     // Allow Permission Leave (1st or 2nd)
                     const toDateTime = new Date(today.getTime() + 2 * 60 * 60 * 1000);
@@ -323,12 +332,12 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
 
                     subject = empPermissions.length === 1 ? "2nd Permission Applied" : "1st Permission Applied";
                     htmlContent = `
-                            < html >
+                            <html>
                             <body>
                                 <h2>${empPermissions.length === 1 ? "Second" : "First"} permission applied.</h2>
                                 <p>You have arrived late and have been granted a 2-hour permission. Ensure timely arrival.</p>
                             </body>
-                        </ > `;
+                        </html> `;
                 }
 
                 // Save Leave Application
@@ -678,27 +687,27 @@ router.get("/sendmail/:id/:clockinId", async (req, res) => {
         })
 
         const htmlContent = `< !DOCTYPE html >
-            <html lang="en">
-                <head>
-                    <meta charset="UTF-8">
-                        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                            <title>${emp.company.CompanyName}</title>
-                        </head>
-                        <body style="font-family: Arial, sans-serif; background-color: #f6f9fc; color: #333; margin: 0; padding: 20px;">
-                            <div style="display: flex; justify-content: center; margin: 20px;">
-                                <div style="flex: 1; max-width: 80%; margin: 0 auto;">
-                                    <p style="font-size: 18px;">Hi ${emp.FirstName},</p>
-                                    <p style="font-size: 18px;">Your timing details for today are here:</p>
-                                    <table style="width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 16px; text-align: left; background-color: #fff; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);">
-                                        <thead>
-                                            <tr>
-                                                <th style="padding: 12px 15px; border: 1px solid #ddd; background-color: #4CAF50; color: white; font-weight: bold; text-transform: uppercase;">Activity</th>
-                                                <th style="padding: 12px 15px; border: 1px solid #ddd; background-color: #4CAF50; color: white; font-weight: bold; text-transform: uppercase;">Starting Time</th>
-                                                <th style="padding: 12px 15px; border: 1px solid #ddd; background-color: #4CAF50; color: white; font-weight: bold; text-transform: uppercase;">Ending Time</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            ${activitiesData && activitiesData.length > 0
+                        <html lang="en">
+                            <head>
+                                <meta charset="UTF-8">
+                                    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                                        <title>${emp.company.CompanyName}</title>
+                                    </head>
+                                    <body style="font-family: Arial, sans-serif; background-color: #f6f9fc; color: #333; margin: 0; padding: 20px;">
+                                        <div style="display: flex; justify-content: center; margin: 20px;">
+                                            <div style="flex: 1; max-width: 80%; margin: 0 auto;">
+                                                <p style="font-size: 18px;">Hi ${emp.FirstName},</p>
+                                                <p style="font-size: 18px;">Your timing details for today are here:</p>
+                                                <table style="width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 16px; text-align: left; background-color: #fff; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);">
+                                                    <thead>
+                                                        <tr>
+                                                            <th style="padding: 12px 15px; border: 1px solid #ddd; background-color: #4CAF50; color: white; font-weight: bold; text-transform: uppercase;">Activity</th>
+                                                            <th style="padding: 12px 15px; border: 1px solid #ddd; background-color: #4CAF50; color: white; font-weight: bold; text-transform: uppercase;">Starting Time</th>
+                                                            <th style="padding: 12px 15px; border: 1px solid #ddd; background-color: #4CAF50; color: white; font-weight: bold; text-transform: uppercase;">Ending Time</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        ${activitiesData && activitiesData.length > 0
                 ? activitiesData
                     .map(
                         (data) => `
@@ -712,13 +721,13 @@ router.get("/sendmail/:id/:clockinId", async (req, res) => {
                     .join("")
                 : `<tr><td colspan="3" style="text-align: center; padding: 12px 15px; border: 1px solid #ddd;">No activity data available</td></tr>`
             }
-                                        </tbody>
-                                    </table>
-                                    <p style="font-size: 18px;">Happy working!</p>
-                                </div>
-                            </div>
-                        </body>
-                    </html>`
+                                                    </tbody>
+                                                </table>
+                                                <p style="font-size: 18px;">Happy working!</p>
+                                            </div>
+                                        </div>
+                                    </body>
+                                </html>`
 
         sendMail({
             From: process.env.FROM_MAIL,
@@ -857,26 +866,26 @@ router.post("/remainder/:id/:timeOption", async (req, res) => {
             To: emp.Email,
             Subject,
             HtmlBody: `<html lang="en">
-                        <head>
-                            <meta charset="UTF-8">
-                                <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                                    <title>${emp.company.CompanyName}</title>
-                                </head>
-                                <body style="font-family: Arial, sans-serif; background-color: #f6f9fc; color: #333; margin: 0; padding: 0;">
-                                    <div style="max-width: 600px; margin: auto; padding: 20px; background-color: #fff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);">
-                                        <div style="margin: 20px 0;">
-                                            <p>Dear ${emp.FirstName} ${emp.LastName},</p>
-                                            <p>Your ${timeOption[0].toUpperCase() + timeOption.slice(1)} time has ended. Please resume your work.</p>
-                                            <p>If you encounter any issues, please contact HR.</p>
-                                            <p>Kindly adhere to the necessary guidelines.</p><br />
-                                            <p>Thank you!</p>
-                                        </div>
-                                        <div style="text-align: center; font-size: 14px; margin-top: 20px; color: #777;">
-                                            <p>Have questions or need assistance? <a href="mailto:${process.env.FROM_MAIL}">Contact us</a>.</p>
-                                        </div>
-                                    </div>
-                                </body>
-                            </html> `
+                                    <head>
+                                        <meta charset="UTF-8">
+                                            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                                                <title>${emp.company.CompanyName}</title>
+                                            </head>
+                                            <body style="font-family: Arial, sans-serif; background-color: #f6f9fc; color: #333; margin: 0; padding: 0;">
+                                                <div style="max-width: 600px; margin: auto; padding: 20px; background-color: #fff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);">
+                                                    <div style="margin: 20px 0;">
+                                                        <p>Dear ${emp.FirstName} ${emp.LastName},</p>
+                                                        <p>Your ${timeOption[0].toUpperCase() + timeOption.slice(1)} time has ended. Please resume your work.</p>
+                                                        <p>If you encounter any issues, please contact HR.</p>
+                                                        <p>Kindly adhere to the necessary guidelines.</p><br />
+                                                        <p>Thank you!</p>
+                                                    </div>
+                                                    <div style="text-align: center; font-size: 14px; margin-top: 20px; color: #777;">
+                                                        <p>Have questions or need assistance? <a href="mailto:${process.env.FROM_MAIL}">Contact us</a>.</p>
+                                                    </div>
+                                                </div>
+                                            </body>
+                                        </html> `
         });
 
         // send notification even ask the reason for late

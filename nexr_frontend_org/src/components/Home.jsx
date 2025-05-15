@@ -75,10 +75,8 @@ export default function Home({ peopleOnLeave, peopleOnWorkFromHome, isFetchPeopl
     };
 
     function formatDate(date) {
-        const actualDate = new Date(date)
-        const dateValue = actualDate.getDate();
-        const monthString = actualDate.toLocaleString("default", { month: "short" })
-        return `${dateValue + " " + monthString + " " + String(actualDate.getHours()).padStart(2, "0") + ":" + String(actualDate.getMinutes()).padStart(2, "0")}`
+        const actualDate = new Date(date).toUTCString().split(" ");
+        return `${actualDate.slice(1, 3)} ${actualDate[4]?.split(":")[0]}:${actualDate[4]?.split(":")[1]}`
     }
 
     useEffect(() => {
@@ -211,6 +209,7 @@ export default function Home({ peopleOnLeave, peopleOnWorkFromHome, isFetchPeopl
                                 </div> :
                                     peopleOnWorkFromHome.length ?
                                         peopleOnWorkFromHome.map((wfh, index) => {
+                                            console.log("fromdate", wfh.fromDate, formatDate(wfh.fromData));
                                             return <div key={index} className='box-content d-flex align-items-center justify-content-around my-1' style={{ boxShadow: 'none', background: "white" }}>
                                                 <img src={wfh?.employee?.profile || profile} alt="profile" className='imgContainer' />
                                                 <div className="d-block">
