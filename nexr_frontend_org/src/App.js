@@ -42,6 +42,7 @@ const App = () => {
   const [isViewEarlyLogout, setIsViewEarlyLogout] = useState(JSON.parse(localStorage.getItem("isViewEarlyLogout")) ? true : false);
 
   function handleUpdateAnnouncements() {
+    console.log("callodn");
     setIschangeAnnouncements(!isChangeAnnouncements)
   }
 

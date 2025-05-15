@@ -4,7 +4,7 @@ const nitificationSchema = new mongoose.Schema({
   company: { type: mongoose.Schema.Types.ObjectId, ref: "Company", default: null },
   title: { type: String },
   message: { type: String },
-  isViewed: { type: Boolean, default: false }
+  // isViewed: { type: Boolean, default: false }
 }, { _id: false })
 
 var employeeSchema = new mongoose.Schema({
@@ -84,7 +84,7 @@ var employeeSchema = new mongoose.Schema({
   typesOfLeaveRemainingDays: { type: Object },
   payslipFields: { type: Object },
   payslip: [{ type: mongoose.Schema.Types.ObjectId, ref: "payslip" }],
-  fcmToken: {type: String}
+  fcmToken: { type: String }
 }, { timestamps: true });
 
 var Employee = mongoose.model("Employee", employeeSchema);

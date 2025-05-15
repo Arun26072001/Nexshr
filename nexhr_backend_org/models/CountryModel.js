@@ -3,20 +3,20 @@ const autoIncrement = require('mongoose-auto-increment');
 const Joi = require('joi');
 
 var countrySchema = new mongoose.Schema({
-    CountryName: { type: String, required: true },
-    states: [{ type: mongoose.Schema.Types.ObjectId, ref: "State" }]
-  });
-  
-  var Country = mongoose.model("Country", countrySchema);
+  CountryName: { type: String, required: true },
+  states: [{ type: mongoose.Schema.Types.ObjectId, ref: "State" }]
+});
 
-  const CountryValidation = Joi.object().keys({
-    _id: Joi.optional(),
-    CountryName: Joi.string()
-      .max(200)
-      .required(),
-      states: Joi.array().items(Joi.string()).min(2).required()
-  });
+var Country = mongoose.model("Country", countrySchema);
 
-  module.exports = {
-    Country, CountryValidation
-  }
+const CountryValidation = Joi.object().keys({
+  name: Joi.string().required(),
+  icon: Joi.string().optional(),
+  abbr: Joi.string().required(),
+  code: Joi.string().required(),
+  states: Joi.array().items(Joi.string()).optional()
+});
+
+module.exports = {
+  Country, CountryValidation
+}

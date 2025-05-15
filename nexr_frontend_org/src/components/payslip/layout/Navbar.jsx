@@ -25,12 +25,11 @@ export default function Navbar({ handleSideBar }) {
     const [isDisabled, setIsDisabled] = useState(false);
     const workRef = useRef(null);  // Use ref to store interval ID
     const url = process.env.REACT_APP_API_URL;
-    const [announcements, setAnnouncements] = useState([]);
+    // const [announcements, setAnnouncements] = useState([]);
     const [notifications, setNotifications] = useState([]);
     const [isRemove, setIsRemove] = useState([]);
     const [latitude, setLatitude] = useState("");
     const [longitude, setLongitude] = useState("");
-    // const [hamlet, setHamlet] = useState("");
     const [workLocation, setWorklocation] = useState(localStorage.getItem("workLocation") || "");
     const worklocationType = ["WFH", "WFO"].map((item) => ({ label: item, value: item }))
 
@@ -110,27 +109,27 @@ export default function Navbar({ handleSideBar }) {
         );
     };
 
-    async function fetchAnnouncements() {
-        try {
-            const res = await axios.get(`${url}/api/announcements/emp/${data._id}`, {
-                headers: {
-                    Authorization: data.token || ""
-                }
-            })
-            res.data.forEach((item, index) => {
-                setIsRemove((pre) => {
-                    const updated = [...pre];
-                    updated[index] = false;
-                    return updated;
-                })
-            });
+    // async function fetchAnnouncements() {
+    //     try {
+    //         const res = await axios.get(`${url}/api/announcements/emp/${data._id}`, {
+    //             headers: {
+    //                 Authorization: data.token || ""
+    //             }
+    //         })
+    //         res.data.forEach((item, index) => {
+    //             setIsRemove((pre) => {
+    //                 const updated = [...pre];
+    //                 updated[index] = false;
+    //                 return updated;
+    //             })
+    //         });
 
-            setAnnouncements(res.data);
-        } catch (error) {
-            setAnnouncements([]);
-            // console.log(error.response.data.error);
-        }
-    }
+    //         setAnnouncements(res.data);
+    //     } catch (error) {
+    //         setAnnouncements([]);
+    //         // console.log(error.response.data.error);
+    //     }
+    // }
 
     async function fetchNotifications() {
         try {
@@ -144,6 +143,8 @@ export default function Navbar({ handleSideBar }) {
                 totalRemovables.push(false);
             });
             setIsRemove(totalRemovables);
+            console.log("notifications", res.data);
+            
             setNotifications(res.data);
         } catch (error) {
             console.log("error in fetch notifications", error);
@@ -187,7 +188,7 @@ export default function Navbar({ handleSideBar }) {
                 }
             })
             console.log("updated notifications", res.data.message);
-
+            handleUpdateAnnouncements();
         } catch (error) {
             console.log("Error in update notifications", error);
         }
@@ -208,7 +209,6 @@ export default function Navbar({ handleSideBar }) {
             }));
 
             await updateEmpNotifications(viewedNotifications); // Await if it's async
-            handleUpdateAnnouncements();
         } catch (error) {
             console.log("Error clearing messages:", error);
         }
@@ -274,17 +274,6 @@ export default function Navbar({ handleSideBar }) {
     useEffect(() => {
         getAddress();
     }, [latitude, longitude])
-
-    // useEffect(() => {
-    //     socket.on("early_logout", ({ isCompleteworkingHours }) => {
-    //         if (isCompleteworkingHours) {
-    //             stopTimer()
-    //         } else {
-    //             changeViewReasonForEarlyLogout()
-    //         }
-
-    //     })
-    // }, [socket])
 
     useEffect(() => {
         const startLength = workTimeTracker?.login?.startingTime?.length || 0;
@@ -470,15 +459,16 @@ export default function Navbar({ handleSideBar }) {
                             </div>
                             <div className="offcanvas-body">
                                 {
+                                    notifications.length > 0 &&
                                     notifications.map((notification, index) => {
                                         return <div key={notification._id || index} className={`box-content my-2 ${isRemove[index] ? "remove" : ""} box-content my-2 d-flex justfy-content-center align-items-center position-relative`}>
                                             <span className="closeBtn" title='close' onClick={() => removeMessage(notification, index)}>
                                                 <CloseRoundedIcon fontSize='md' />
                                             </span>
-                                            <img src={notification.company.logo} alt={"companyLogo"} width={50} height={"auto"} />
+                                            <img src={notification?.company?.logo} alt={"companyLogo"} width={50} height={"auto"} />
                                             <Accordion>
                                                 <Accordion.Panel header={<p>{notification.title}</p>} eventKey={1} caretAs={KeyboardArrowDownRoundedIcon}>
-                                                    <p className='sub_text' style={{ fontSize: "13px" }}>{notification.message.replace(/<[^>]*>/g, "")}</p>
+                                                    <p className='sub_text' style={{ fontSize: "13px" }}>{notification?.message?.replace(/<[^>]*>/g, "")}</p>
                                                 </Accordion.Panel>
                                             </Accordion>
                                         </div>

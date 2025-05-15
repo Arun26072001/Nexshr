@@ -72,7 +72,6 @@ export default function WFHRequestForm({ type }) {
         try {
             setIsWorkingApi(true);
             if (wfhRequestObj._id) {
-                console.log(updatedRequest);
                 const res = await axios.put(`${url}/api/wfh-application/${wfhRequestObj._id}`, updatedRequest, {
                     headers: {
                         Authorization: data.token || ""

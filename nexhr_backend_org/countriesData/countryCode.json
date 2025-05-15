@@ -7,7 +7,10 @@
     "icon": "🇦🇽",
     "name": "Alland Islands",
     "abbr": "AX",
-    "code": "358"
+    "code": "358",
+    "state": [
+      "lkjdlsad"
+    ]
   },
   {
     "states": [
@@ -1790,7 +1793,9 @@
   },
   {
     "name": "Afganishtan",
-    "states": "Kabul",
+    "states": [
+      "Kabul"
+    ],
     "icon": "AF",
     "abbr": "af",
     "code": "93"
