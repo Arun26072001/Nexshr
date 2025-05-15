@@ -56,11 +56,9 @@ export default function WFHRequestForm({ type }) {
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
     }
-    console.log("errors Obj", errors);
 
     async function handleSubmit(e) {
         e.preventDefault();
-        console.log("sadjaskjd");
         
         const updatedRequest = {
             ...wfhRequestObj,
@@ -89,7 +87,6 @@ export default function WFHRequestForm({ type }) {
                     }
                 });
                 toast.success(res.data?.message);
-                // socket.emit("send_notification_for_wfh", wfhRequestObj, data._id);
                 navigate(-1);
             }
             setwfhRequestObj({});
