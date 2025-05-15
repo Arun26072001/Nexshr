@@ -85,88 +85,108 @@ leaveApp.get("/make-know", async (req, res) => {
     const leaveApps = await LeaveApplication.find({ status: "pending" })
       .populate({
         path: "employee",
-        select: "FirstName LastName Email",
-        populate: { path: "company", select: "logo CompanyName" },
-        populate: {
-          path: "team",
-          populate: [
-            {
-              path: "lead",
-              select: "Email fcmToken",
-            },
-            {
-              path: "head",
-              select: "Email fcmToken",
-            },
-            {
-              path: "manager",
-              select: "Email fcmToken",
-            },
-            {
-              path: "hr",
-              select: "Email fcmToken",
-            }
-          ],
-        },
+        select: "FirstName LastName Email company",
+        populate: [
+          {
+            path: "team",
+            populate: [
+              { path: "lead", select: "Email fcmToken" },
+              { path: "head", select: "Email fcmToken" },
+              { path: "manager", select: "Email fcmToken" },
+              { path: "hr", select: "Email fcmToken" }
+            ],
+          },
+          { path: "company", select: "logo CompanyName" }
+        ],
       })
       .exec();
 
-    // const {fromDate, toDate, reasonForLeave} = req.body; // Destructure request body
+    for (const leave of leaveApps) {
+      const emp = leave.employee;
+      const teamData = emp?.team;
 
-    for (const empData of leaveApps) {
-      if (!empData.employee?.team) continue; // Skip if team data is missing
-      let members = [];
-      Object.entries(empData?.employee?.team).filter(([key, value]) => {
-        if (!["teamName", "employees", "_id", "__v", "createdAt", "updatedAt"].includes(key)) {
-          Array.isArray(value) && value.map((item) => item.map((person) => members.push(person)))
+      if (!teamData) continue;
+
+      const Subject = "Leave Application Reminder";
+      const message = `${emp.FirstName} has applied for leave from ${new Date(leave.fromDate).toLocaleDateString()} to ${new Date(leave.toDate).toLocaleDateString()} due to ${leave.reasonForLeave.replace(/<\/?[^>]+(>|$)/g, '')}. Please respond to this request.`;
+
+      const members = [];
+
+      for (const role of ["lead", "head", "manager", "hr"]) {
+        for (const member of teamData[role]) {
+          if (member) {
+            members.push(member);
+            // html content
+            const htmlContent = `
+        <!DOCTYPE html>
+        <html lang="en">
+          <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>${leave?.employee?.company?.CompanyName || "Webnexs"}</title>
+          </head>
+          <body style="font-family: Arial, sans-serif; background-color: #f6f9fc; color: #333; margin: 0; padding: 0;">
+            <div style="max-width: 600px; margin: auto; padding: 20px; background-color: #fff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);">
+              <div style="text-align: center; padding: 20px;">
+                <img src="${leave?.employee?.company?.logo}" alt="Logo" style="max-width: 100px;" />
+                <h1 style="margin: 0;">${leave.employee.FirstName} ${leave.employee.LastName} has applied for leave From ${leave.fromDate} To ${leave.toDate}</h1>
+              </div>
+              <div style="margin: 20px 0;">
+                <p>Hi all,</p>
+                <p>I have applied for leave from ${leave.fromDate} to ${leave.toDate} due to ${leave.reasonForLeave}. Please respond to this request.</p>
+                <p>Thank you!</p>
+              </div>
+            </div>
+          </body>
+        </html>
+      `;
+
+            // Email
+            await sendMail({
+              From: emp.Email,
+              To: member.Email,
+              Subject,
+              HtmlBody: htmlContent,
+            });
+
+            // Notification
+            const notification = {
+              company: emp.company._id,
+              title: Subject,
+              message,
+            };
+
+            const fullMember = await Employee.findById(member._id, "notifications");
+            if (fullMember) {
+              fullMember.notifications.push(notification);
+              await fullMember.save();
+            }
+
+            // Push notification
+            if (member.fcmToken) {
+              await sendPushNotification({
+                token: member.fcmToken,
+                title: notification.title,
+                body: notification.message,
+                company: emp.company
+              });
+            }
+          }
         }
-      })
-
-      const htmlContent = `
-      <!DOCTYPE html>
-      <html lang="en">
-        <head>
-          <meta charset="UTF-8">
-          <meta name="viewport" content="width=device-width, initial-scale=1.0">
-          <title>${empData?.employee?.company?.CompanyName || "Webnexs"}</title>
-        </head>
-        <body style="font-family: Arial, sans-serif; background-color: #f6f9fc; color: #333; margin: 0; padding: 0;">
-          <div style="max-width: 600px; margin: auto; padding: 20px; background-color: #fff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);">
-            <div style="text-align: center; padding: 20px;">
-              <img src="${empData?.employee?.company?.logo}" alt="Logo" style="max-width: 100px;" />
-              <h1 style="margin: 0;">${empData.employee.FirstName} ${empData.employee.LastName} has applied for leave From ${empData.fromDate} To ${empData.toDate}</h1>
-            </div>
-            <div style="margin: 20px 0;">
-              <p>Hi all,</p>
-              <p>I have applied for leave from ${empData.fromDate} to ${empData.toDate} due to ${empData.reasonForLeave}. Please respond to this request.</p>
-              <p>Thank you!</p>
-            </div>
-          </div>
-        </body>
-      </html>
-    `;
-
-      const mailList = members;
-
-      try {
-        sendMail({
-          From: leaveApps.employee.Email,
-          To: mailList.join(","),
-          Subject: "Leave Application Remember",
-          HtmlBody: htmlContent,
-        })
-        console.log(`Email sent To: ${mailList.join(", ")}`);
-      } catch (mailError) {
-        console.error(`Failed To send email To ${mailList.join(", ")}:`, mailError);
       }
+
+      // Logging
+      const mailList = members.map(m => m.Email);
+      console.log(`Notifications sent to: ${mailList.join(", ")}`);
     }
 
-    res.status(200).json({ message: "Emails sent successfully!" });
+    res.status(200).json({ message: "Notifications sent successfully!" });
   } catch (error) {
-    console.error(error);
+    console.error("Error in /make-know:", error);
     res.status(500).json({ error: "An error occurred while processing leave applications." });
   }
 });
+
 
 // need to update this api
 leaveApp.put("/reject-leave", async (req, res) => {
@@ -276,6 +296,7 @@ leaveApp.get("/emp/:empId", verifyAdminHREmployeeManagerNetwork, async (req, res
     // change reason for leave as actual string
     leaveApplications = leaveApplications.map((leave) => ({
       ...leave,
+      // tag replacer
       reasonForLeave: leave.reasonForLeave.replace(/<\/?[^>]+(>|$)/g, '')
     }))
 

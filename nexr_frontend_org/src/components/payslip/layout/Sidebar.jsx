@@ -172,13 +172,13 @@ const Sidebar = ({ sideBar }) => {
           'reports'
         )}
 
-        {renderNavLink(
+        {/* {renderNavLink(
           ['hr', "emp"].includes(whoIs),
           `/${whoIs}/calendar`,
           calendarIcon,
           'Calendar',
           'calendar'
-        )}
+        )} */}
         {/* Email template */}
         {renderNavLink(
           ['hr', "admin"].includes(whoIs),

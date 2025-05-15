@@ -40,11 +40,11 @@ router.get("/", verifyAdminHRTeamHigherAuth, async (req, res) => {
 
 router.get("/notifications/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
   try {
-    const emp = await Employee.findById(req.params.id, "notifications profile")
+    const { notifications } = await Employee.findById(req.params.id, "notifications profile")
       .populate("notifications.company", "logo CompanyName")
       .exec();
 
-    const notifications = emp.notifications.filter((item) => item.isViewed === false);
+    // const notifications = emp.notifications.filter((item) => item.isViewed === false);
     return res.send(notifications);
   } catch (error) {
     console.log(error);
@@ -55,23 +55,23 @@ router.get("/notifications/:id", verifyAdminHREmployeeManagerNetwork, async (req
 router.put("/notifications/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
   try {
     const emp = await Employee.findById(req.params.id, "notifications").exec();
-    const updatedNotifications = emp.notifications.map((item) => {
-      const match = req.body.find((data) => data.title === item.title);
-      return match ? match : item
-    })
+    if (!emp) return res.status(404).send({ error: "Employee not found" });
 
-    const updatedEmpWithNotifications = {
-      ...emp.toObject(),
-      notifications: updatedNotifications
-    }
+    const titlesToRemove = req.body.map(n => n.title);
+    
+    emp.notifications = emp.notifications.filter(notification => 
+      !titlesToRemove.includes(notification.title)
+    );
 
-    const updated = await Employee.findByIdAndUpdate(req.params.id, updatedEmpWithNotifications, { new: true })
-    return res.send({ message: "Notifications has been updated successfully", updated })
+    await emp.save();
+
+    return res.send({ message: "Notifications have been deleted successfully" });
   } catch (error) {
-    console.log("error in update notifications", error);
-    return res.status(500).send({ error: error.message })
+    console.error("Error in updating notifications:", error);
+    return res.status(500).send({ error: error.message });
   }
-})
+});
+
 
 router.get("/user", verifyAdminHR, async (req, res) => {
   try {
@@ -122,7 +122,6 @@ router.get("/user", verifyAdminHR, async (req, res) => {
     res.status(500).send({ error: err.message });
   }
 });
-
 
 router.get("/all", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
   try {
@@ -406,12 +405,12 @@ router.put("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
         roleName === "admin"
           ? 1
           : roleName === "hr"
-          ? 2
-          : roleName === "manager"
-          ? 4
-          : roleName === "network admin"
-          ? 5
-          : 3;
+            ? 2
+            : roleName === "manager"
+              ? 4
+              : roleName === "network admin"
+                ? 5
+                : 3;
     }
 
     // Get employee data with profile and company

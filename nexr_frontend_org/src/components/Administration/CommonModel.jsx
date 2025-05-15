@@ -90,13 +90,11 @@ const CommonModel = ({
 
         const uniqueIds = [...new Set(result)];
 
-        console.log("Selected IDs to send:", uniqueIds);
-
         changeData(uniqueIds, "selectTeamMembers");
     };
 
     return (
-        <Modal open={isAddData} size="sm" backdrop="static">
+        <Modal open={isAddData} size="sm" backdrop="static" >
             <Modal.Header>
                 <Modal.Title>
                     {type === "Assign" ? `Edit ${type}` :
@@ -685,7 +683,6 @@ const CommonModel = ({
                                         style={{ width: "100%", height: 45 }}
                                         type={"text"}
                                         name={`name`}
-                                        // disabled={ ? true : false}
                                         value={dataObj?.[`CompanyName`] || ""}
                                         appearance='default'
                                         onChange={(e) => changeData(e, "CompanyName")}
@@ -724,41 +721,6 @@ const CommonModel = ({
                                     appearance='default'
                                     onChange={(e) => changeData(e, "Address")}
                                 />
-                            </div>
-                        </div>
-
-                        <div className="d-flex justify-content-between gap-2">
-                            <div className="col-half">
-                                <div className="modelInput important">
-                                    <p className='modelLabel'>Company Name:</p>
-                                    <Input
-                                        required
-                                        size="lg"
-                                        style={{ width: "100%", height: 45 }}
-                                        type={"text"}
-                                        name={`name`}
-                                        // disabled={ ? true : false}
-                                        value={dataObj?.[`CompanyName`] || ""}
-                                        appearance='default'
-                                        onChange={(e) => changeData(e, "CompanyName")}
-                                    />
-                                </div>
-                            </div>
-                            <div className="col-half">
-                                <div className="modelInput">
-                                    <p className='modelLabel'>Postal Code:</p>
-                                    <Input
-                                        required
-                                        size="lg"
-                                        style={{ width: "100%", height: 45 }}
-                                        type={"number"}
-                                        name={`PostalCode`}
-                                        // disabled={ ? true : false}
-                                        value={dataObj?.[`PostalCode`] || ""}
-                                        appearance='default'
-                                        onChange={(e) => changeData(e, "PostalCode")}
-                                    />
-                                </div>
                             </div>
                         </div>
 
@@ -907,7 +869,7 @@ const CommonModel = ({
                     <div className="d-flex justify-content-between gap-2">
                         <div className="col-half">
                             <div className="modelInput">
-                                <p className='modelLabel'>Abbriviation:</p>
+                                <p className='modelLabel Abbriviation'>Abbriviation:</p>
                                 <Input
                                     required
                                     size="lg"
@@ -923,12 +885,11 @@ const CommonModel = ({
                         </div>
                         <div className="col-half">
                             <div className="modelInput">
-                                <p className='modelLabel'>Code:</p>
-                                <Input
+                                <p className='modelLabel important'>Code:</p>
+                                <InputNumber
                                     required
                                     size="lg"
                                     style={{ width: "100%", height: 45 }}
-                                    type={"text"}
                                     max={3}
                                     value={dataObj?.[`code`] || ""}
                                     appearance='default'

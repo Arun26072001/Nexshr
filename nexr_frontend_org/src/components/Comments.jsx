@@ -91,7 +91,6 @@ export default function Comments() {
             const files = taskData?.attachments?.filter((file) => file.type === "image/png") || [];
             if (files.length) {
                 const responseData = await fileUploadInServer(files);
-                console.log(responseData);
 
                 // Get previously uploaded attachments (excluding PNGs)
                 const uploadedImgPath = taskData.attachments.filter((file) => file.type !== "image/png")
@@ -152,7 +151,6 @@ export default function Comments() {
             // Update the comment in the task object if taskData is not provided
             taskObj.comments[taskObj.comments.length] = updatedCommentObj;
 
-            // socket.emit("updatedTask_In_AddComment", taskObj, data._id, data.token);
             setIsAddComment(false);
             setPreviewList([]);
             setCommentObj({});
@@ -160,17 +158,6 @@ export default function Comments() {
             console.log(error);
         }
     }
-
-    // socket.on("send_updated_task", (updatedData) => {
-    //     setIschecked(updatedData.status === "Completed")
-    //     setTaskObj({
-    //         ...updatedData,
-    //         spend: {
-    //             ...updatedData?.spend,
-    //             timeHolder: getTimeFromHour(updatedData?.spend?.timeHolder || 0)
-    //         }
-    //     });
-    // })
 
     async function editCommitTask() {
         setIsChangingComment(true);
@@ -197,17 +184,6 @@ export default function Comments() {
             // Update the comment in the task object if taskData is not provided
             taskObj.comments[editCommentIndex] = updatedCommentObj;
 
-            // socket.emit("updatedTask_In_AddComment", taskObj, data._id, data.token);
-            // socket.on("send_updated_task", (updatedData) => {
-            //     setIschecked(updatedData.status === "Completed")
-            //     setTaskObj({
-            //         ...updatedData,
-            //         spend: {
-            //             ...updatedData?.spend,
-            //             timeHolder: getTimeFromHour(updatedData?.spend?.timeHolder || 0)
-            //         }
-            //     });
-            // })
             setIsEditCommit(false);
             setPreviewList([]);
             setCommentObj({});

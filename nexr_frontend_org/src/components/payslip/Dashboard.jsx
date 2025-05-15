@@ -111,6 +111,8 @@ const Dashboard = () => {
                     Authorization: data.token || ""
                 }
             })
+            console.log("today wfh", res.data);
+            
             setPeopleOnWorkFromHome(res.data);
         } catch (error) {
             console.log("error in fetch work from home emps", error);
