@@ -106,7 +106,7 @@ label {
 }
 
 .notFoundText {
-  height: 60vh;
+  height: 100%;
   font-weight: 500;
   font-size: 20px;
   color: red;

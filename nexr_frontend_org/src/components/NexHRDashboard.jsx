@@ -22,18 +22,10 @@ const NexHRDashboard = ({ peopleOnLeave, peopleOnWorkFromHome, isFetchPeopleOnLe
                 <span className="bold m-2">
                   OVERVIEW
                 </span>
-                {/* <button className="button" onClick={() => navigate(`/${whoIs}/wfh-request`)}>
-                  <AddHomeWorkRoundedIcon /> Apply WFH
-                </button> */}
               </div>
               <CircleProgressBar token={token} isTeamLead={isTeamLead} isTeamManager={isTeamManager} account={Account} id={_id} isTeamHead={isTeamHead} />
             </>
           }
-          {/* <div className="d-flex align-items-center justify-content-end m-2">
-            <button className="button" onClick={() => navigate(`/${whoIs}/wfh-request`)}>
-              <AddHomeWorkRoundedIcon /> Apply WFH
-            </button>
-          </div> */}
           <Home peopleOnLeave={peopleOnLeave} peopleOnWorkFromHome={peopleOnWorkFromHome} isFetchPeopleOnLeave={isFetchPeopleOnLeave} isFetchpeopleOnWfh={isFetchpeopleOnWfh} />
         </Card>
       </div>

@@ -346,9 +346,7 @@ export default function HRMDashboard() {
         try {
             const empOfAttendances = await axios.get(`${url}/api/clock-ins/`, {
                 params: {
-                    daterangeValue,
-                    // page: 0,
-                    // rowsPerPage: 10
+                    daterangeValue
                 },
                 headers: {
                     Authorization: token || ""

@@ -238,10 +238,10 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
                     coverBy: null,
                     status: "pending",
                     approvers: {
-                        TeamLead: "approved",
-                        TeamHead: "approved",
-                        Hr: "approved",
-                        Manager: "approved"
+                        TeamLead: "pending",
+                        TeamHead: "pending",
+                        Hr: "pending",
+                        Manager: "pending"
                     },
                     approvedOn: null,
                     approverId: []
@@ -678,27 +678,27 @@ router.get("/sendmail/:id/:clockinId", async (req, res) => {
         })
 
         const htmlContent = `< !DOCTYPE html >
-                        <html lang="en">
-                            <head>
-                                <meta charset="UTF-8">
-                                    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                                        <title>${emp.company.CompanyName}</title>
-                                    </head>
-                                    <body style="font-family: Arial, sans-serif; background-color: #f6f9fc; color: #333; margin: 0; padding: 20px;">
-                                        <div style="display: flex; justify-content: center; margin: 20px;">
-                                            <div style="flex: 1; max-width: 80%; margin: 0 auto;">
-                                                <p style="font-size: 18px;">Hi ${emp.FirstName},</p>
-                                                <p style="font-size: 18px;">Your timing details for today are here:</p>
-                                                <table style="width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 16px; text-align: left; background-color: #fff; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);">
-                                                    <thead>
-                                                        <tr>
-                                                            <th style="padding: 12px 15px; border: 1px solid #ddd; background-color: #4CAF50; color: white; font-weight: bold; text-transform: uppercase;">Activity</th>
-                                                            <th style="padding: 12px 15px; border: 1px solid #ddd; background-color: #4CAF50; color: white; font-weight: bold; text-transform: uppercase;">Starting Time</th>
-                                                            <th style="padding: 12px 15px; border: 1px solid #ddd; background-color: #4CAF50; color: white; font-weight: bold; text-transform: uppercase;">Ending Time</th>
-                                                        </tr>
-                                                    </thead>
-                                                    <tbody>
-                                                        ${activitiesData && activitiesData.length > 0
+            <html lang="en">
+                <head>
+                    <meta charset="UTF-8">
+                        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                            <title>${emp.company.CompanyName}</title>
+                        </head>
+                        <body style="font-family: Arial, sans-serif; background-color: #f6f9fc; color: #333; margin: 0; padding: 20px;">
+                            <div style="display: flex; justify-content: center; margin: 20px;">
+                                <div style="flex: 1; max-width: 80%; margin: 0 auto;">
+                                    <p style="font-size: 18px;">Hi ${emp.FirstName},</p>
+                                    <p style="font-size: 18px;">Your timing details for today are here:</p>
+                                    <table style="width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 16px; text-align: left; background-color: #fff; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);">
+                                        <thead>
+                                            <tr>
+                                                <th style="padding: 12px 15px; border: 1px solid #ddd; background-color: #4CAF50; color: white; font-weight: bold; text-transform: uppercase;">Activity</th>
+                                                <th style="padding: 12px 15px; border: 1px solid #ddd; background-color: #4CAF50; color: white; font-weight: bold; text-transform: uppercase;">Starting Time</th>
+                                                <th style="padding: 12px 15px; border: 1px solid #ddd; background-color: #4CAF50; color: white; font-weight: bold; text-transform: uppercase;">Ending Time</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            ${activitiesData && activitiesData.length > 0
                 ? activitiesData
                     .map(
                         (data) => `
@@ -712,13 +712,13 @@ router.get("/sendmail/:id/:clockinId", async (req, res) => {
                     .join("")
                 : `<tr><td colspan="3" style="text-align: center; padding: 12px 15px; border: 1px solid #ddd;">No activity data available</td></tr>`
             }
-                                                    </tbody>
-                                                </table>
-                                                <p style="font-size: 18px;">Happy working!</p>
-                                            </div>
-                                        </div>
-                                    </body>
-                                </html>`
+                                        </tbody>
+                                    </table>
+                                    <p style="font-size: 18px;">Happy working!</p>
+                                </div>
+                            </div>
+                        </body>
+                    </html>`
 
         sendMail({
             From: process.env.FROM_MAIL,
@@ -857,26 +857,26 @@ router.post("/remainder/:id/:timeOption", async (req, res) => {
             To: emp.Email,
             Subject,
             HtmlBody: `<html lang="en">
-                                    <head>
-                                        <meta charset="UTF-8">
-                                            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                                                <title>${emp.company.CompanyName}</title>
-                                            </head>
-                                            <body style="font-family: Arial, sans-serif; background-color: #f6f9fc; color: #333; margin: 0; padding: 0;">
-                                                <div style="max-width: 600px; margin: auto; padding: 20px; background-color: #fff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);">
-                                                    <div style="margin: 20px 0;">
-                                                        <p>Dear ${emp.FirstName} ${emp.LastName},</p>
-                                                        <p>Your ${timeOption[0].toUpperCase() + timeOption.slice(1)} time has ended. Please resume your work.</p>
-                                                        <p>If you encounter any issues, please contact HR.</p>
-                                                        <p>Kindly adhere to the necessary guidelines.</p><br />
-                                                        <p>Thank you!</p>
-                                                    </div>
-                                                    <div style="text-align: center; font-size: 14px; margin-top: 20px; color: #777;">
-                                                        <p>Have questions or need assistance? <a href="mailto:${process.env.FROM_MAIL}">Contact us</a>.</p>
-                                                    </div>
-                                                </div>
-                                            </body>
-                                        </html> `
+                        <head>
+                            <meta charset="UTF-8">
+                                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                                    <title>${emp.company.CompanyName}</title>
+                                </head>
+                                <body style="font-family: Arial, sans-serif; background-color: #f6f9fc; color: #333; margin: 0; padding: 0;">
+                                    <div style="max-width: 600px; margin: auto; padding: 20px; background-color: #fff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);">
+                                        <div style="margin: 20px 0;">
+                                            <p>Dear ${emp.FirstName} ${emp.LastName},</p>
+                                            <p>Your ${timeOption[0].toUpperCase() + timeOption.slice(1)} time has ended. Please resume your work.</p>
+                                            <p>If you encounter any issues, please contact HR.</p>
+                                            <p>Kindly adhere to the necessary guidelines.</p><br />
+                                            <p>Thank you!</p>
+                                        </div>
+                                        <div style="text-align: center; font-size: 14px; margin-top: 20px; color: #777;">
+                                            <p>Have questions or need assistance? <a href="mailto:${process.env.FROM_MAIL}">Contact us</a>.</p>
+                                        </div>
+                                    </div>
+                                </body>
+                            </html> `
         });
 
         // send notification even ask the reason for late

@@ -82,16 +82,19 @@ router.post("/attendance", upload.single("documents"), verifyAdminHrNetworkAdmin
                             const halfDayLeaveApp = {
                                 leaveType: "Unpaid Leave (LWP)",
                                 fromDate: today,
-                                toDate: today,
+                                toDate: new Date(today.getTime() + (4 * 1000 * 60 * 60)),
                                 periodOfLeave: "half day",
                                 reasonForLeave: "Came too late",
                                 prescription: "",
                                 employee: emp._id,
                                 coverBy: null,
-                                status: "rejected",
-                                TeamLead: "rejected",
-                                TeamHead: "rejected",
-                                Hr: "rejected",
+                                status: "approved",
+                                approvers: {
+                                    Manager: "approved",
+                                    TeamLead: "approved",
+                                    TeamHead: "approved",
+                                    Hr: "approved",
+                                },
                                 approvedOn: null,
                                 approverId: []
                             };
@@ -143,10 +146,13 @@ router.post("/attendance", upload.single("documents"), verifyAdminHrNetworkAdmin
                                 prescription: "",
                                 employee: emp._id.toString(),
                                 coverBy: null,
-                                status: "rejected",
-                                TeamLead: "rejected",
-                                TeamHead: "rejected",
-                                Hr: "rejected",
+                                status: "approved",
+                                approvers: {
+                                    Manager: "approverd",
+                                    TeamLead: "approved",
+                                    TeamHead: "approved",
+                                    Hr: "approved",
+                                }
                             };
                             const { error } = LeaveApplicationValidation.validate(halfDayLeaveApp);
                             if (error) {
@@ -350,7 +356,7 @@ router.post("/employees/:id", upload.single("documents"), verifyAdminHR, async (
                     sendMail({
                         From: process.env.FROM_MAIL,
                         To: addEmp.Email,
-                        Subject: "Welcome To NexsHR",
+                        Subject: `Welcome To ${inviter.company.CompanyName}`,
                         HtmlBody: htmlContent,
                     });
                 } catch (error) {
