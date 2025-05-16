@@ -524,7 +524,7 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
         { id: 'startDate', label: 'Start Date', minWidth: 130, align: 'left', getter: (row) => row.startDate ? row.startDate.split("T")[0] : 'N/A' },
         { id: 'endDate', label: 'End Date', minWidth: 130, align: 'left', getter: (row) => row.endDate ? row.endDate.split("T")[0] : 'N/A' },
         { id: 'message', label: 'Message', minWidth: 200, align: 'left', getter: (row) => row.message.replace(/<[^>]*>/g, "") || 'No message' },
-        { id: 'action', label: 'Action', minWidth: 100, align: 'center', getter: (row) => row.action || 'No action' },
+        { id: 'Action', label: 'Action', minWidth: 100, align: 'center' },
     ];
 
     const column12 = [
@@ -1012,7 +1012,6 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
                                                 if (column.id === "reasonForLeave") {
                                                 } else if (column.id === "Action") {
                                                     if (["leave-request", "wfh-request"].includes(params['*'])) {
-                                                        console.log(isTeamLead, row?.approvers?.lead === "pending");
                                                         return (
                                                             <Dropdown placement='leftStart' title={<EditRoundedIcon style={{ cursor: "pointer" }} />} noCaret>
                                                                 <Dropdown.Item style={{ minWidth: 120 }} onClick={() => navigate(params['*'] === "leave-request" ? `/${whoIs}/leave-request/view/${row._id}` : `/${whoIs}/wfh-request/view/${row._id}`)}>View</Dropdown.Item>
@@ -1138,18 +1137,24 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
                                                                 </>
                                                             }
                                                         </Dropdown>)
-                                                    } else if (["organizations", "users"].includes(params["*"])) {
+                                                    } else if (["organizations", "users", "announcement"].includes(params["*"])) {
                                                         return (<Dropdown title={"Action"} placement='leftStart' noCaret>
-                                                            <Dropdown.Item style={{ minWidth: 80 }} onClick={() => fetchOrgData(row._id, "Edit")}>
-                                                                <b>
-                                                                    <BorderColorRoundedIcon sx={{ color: "#FFD65A" }} /> Edit
-                                                                </b>
-                                                            </Dropdown.Item>
-                                                            <Dropdown.Item style={{ minWidth: 80 }} onClick={() => handleDelete(row)}>
-                                                                <b>
-                                                                    <DeleteRoundedIcon sx={{ color: "#F93827" }} /> Delete
-                                                                </b>
-                                                            </Dropdown.Item>
+                                                            {["organizations", "users"].includes(params["*"])
+                                                                &&
+                                                                <Dropdown.Item style={{ minWidth: 80 }} onClick={() => fetchOrgData(row._id, "Edit")}>
+                                                                    <b>
+                                                                        <BorderColorRoundedIcon sx={{ color: "#FFD65A" }} /> Edit
+                                                                    </b>
+                                                                </Dropdown.Item>
+                                                            }
+                                                            {
+                                                                ["organizations", "users", "announcement"].includes(params["*"]) &&
+                                                                <Dropdown.Item style={{ minWidth: 80 }} onClick={() => handleDelete(row)}>
+                                                                    <b>
+                                                                        <DeleteRoundedIcon sx={{ color: "#F93827" }} /> Delete
+                                                                    </b>
+                                                                </Dropdown.Item>
+                                                            }
                                                         </Dropdown>);
                                                     } else if (["profile", "holiday"].includes(params["*"])) { // for time pattern
                                                         return (<Dropdown title={"Action"} placement='leftStart' noCaret>

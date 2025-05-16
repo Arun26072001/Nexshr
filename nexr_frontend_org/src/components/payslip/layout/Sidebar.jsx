@@ -246,17 +246,6 @@ const Sidebar = ({ sideBar }) => {
             'Attendance'
           )}
 
-        {
-          // WorkFromHome === 'allow' &&
-          ["admin", "hr"].includes(whoIs) || [decodedData.isTeamManager, decodedData?.isTeamHead, decodedData?.isTeamLead].includes(true) ?
-            renderSubMenu(
-              'workfromhome',
-              [
-                { key: 'wfh-request', path: `/${whoIs}/workfromhome/wfh-request`, label: 'WFH Requests' },
-              ],
-              workFromHomeIcon,
-              'WorkFromHome'
-            ) : null}
 
         {Attendance === 'allow' && ["admin", "sys-admin", "hr"].includes(whoIs) &&
           renderSubMenu(
@@ -280,8 +269,6 @@ const Sidebar = ({ sideBar }) => {
               { key: 'country', path: `/${whoIs}/administration/country`, label: 'Country' },
               { key: 'department', path: `/${whoIs}/administration/department`, label: 'Department' },
               { key: 'position', path: `/${whoIs}/administration/position`, label: 'Position' },
-              // { key: 'holiday', path: `/${whoIs}/administration/holiday`, label: 'Holiday' },
-              // { key: 'announcement', path: `/${whoIs}/administration/announcement`, label: 'Announcement' },
               { key: 'team', path: `/${whoIs}/administration/team`, label: 'Team' },
               { key: 'leave-details', path: `/${whoIs}/administration/leave-details`, label: 'Leave Details' },
             ],
@@ -300,6 +287,19 @@ const Sidebar = ({ sideBar }) => {
             settingsIcon,
             'Settings'
           )}
+
+        {
+          // WorkFromHome === 'allow' &&
+          ["admin", "hr"].includes(whoIs) || [decodedData.isTeamManager, decodedData?.isTeamHead, decodedData?.isTeamLead].includes(true) ?
+            renderSubMenu(
+              'workfromhome',
+              [
+                { key: 'wfh-request', path: `/${whoIs}/workfromhome/wfh-request`, label: 'WFH Requests' },
+              ],
+              workFromHomeIcon,
+              'WorkFromHome'
+            ) : null}
+
       </ul>
     </div>
   );

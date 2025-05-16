@@ -113,9 +113,7 @@ export default function Department({ companies }) {
             setIsLoading(true);
             try {
                 const departmentsData = await getDepartments();
-                console.log(departmentsData);
                 setDepartments(departmentsData);
-
             } catch (error) {
                 toast.error(error);
             }
@@ -138,7 +136,7 @@ export default function Department({ companies }) {
             isWorkingApi={isChangingDepartment}
         /> :
             <div className='dashboard-parent pt-4'>
-                <div className="d-flex justify-content-between px-2">
+                <div className="d-flex justify-content-between px-2 mb-2">
                     <h5 className='text-daily'>Department</h5>
                     <button className='button m-0' onClick={modifyDepartments}>+ Add Department</button>
                 </div>

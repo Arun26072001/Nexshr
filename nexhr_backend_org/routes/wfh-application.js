@@ -460,8 +460,7 @@ router.put("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
             notifiedMembers: members
         });
     } catch (error) {
-        console.log(error);
-
+        console.log("error in update wfh", error);
         return res.status(500).send({ error: error.message });
     }
 });
@@ -469,12 +468,17 @@ router.put("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
 
 router.delete("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
     try {
-        if (await WFHApplication.exists({ _id: req.params.id })) {
-            const deletedRequest = await WFHApplication.findByIdAndDelete(req.params.id);
-            return res.send({ message: `WFH request has been deleted successfully` })
-        } else {
+        const wfhRequest = await WFHApplication.findById(req.params.id);
+        if (!wfhRequest) {
             return res.status(404).send({ error: "Request not found" })
         }
+        // check is any one responsed
+        if (wfhRequest.status !== "pending") {
+            return res.status(400).send({ error: "You can't delete reponsed request." })
+        }
+        const deletedRequest = await WFHApplication.findByIdAndDelete(req.params.id);
+        return res.send({ message: `WFH request has been deleted successfully` })
+
     } catch (error) {
         return res.status(500).send({ error: error.message })
     }
