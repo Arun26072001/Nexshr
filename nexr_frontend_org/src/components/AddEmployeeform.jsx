@@ -131,12 +131,12 @@ const AddEmployeeForm = ({
     const hourAndMin = timeDifference.toString().split(".");
     const [hour = 0, min = 0] = hourAndMin;
 
-    const updateEmployee = async () => {
+    const updateEmployee = async (empData) => {
         try {
             setIsWorkingApi(true);
             const res = await axios.put(
-                `${url}/api/employee/${data._id}`,
-                employeeObj,
+                `${url}/api/employee/${empData._id}`,
+                empData,
                 {
                     headers: {
                         Authorization: data.token || ""
@@ -158,12 +158,12 @@ const AddEmployeeForm = ({
         }
     };
 
-    const addEmployee = async () => {
+    const addEmployee = async (empData) => {
         try {
             setIsWorkingApi(true);
             const res = await axios.post(
                 `${url}/api/employee/${data._id}`,
-                employeeObj,
+                empData,
                 {
                     headers: {
                         Authorization: data.token || ""
@@ -316,10 +316,34 @@ const AddEmployeeForm = ({
         }
 
         try {
+            let updatedEmp = {
+                ...employeeObj
+            }
+            // Check if profile is a File (new upload), and has image type
+            if (employeeObj?.profile instanceof File && employeeObj.profile.type?.includes("image")) {
+                const formData = new FormData();
+                formData.append("documents", employeeObj.profile);
+
+                const uploadRes = await axios.post(
+                    `${process.env.REACT_APP_API_URL}/api/upload`,
+                    formData,
+                    {
+                        headers: {
+                            'Content-Type': 'multipart/form-data'
+                        }
+                    }
+                );
+
+                const uploadedFile = uploadRes?.data?.files?.[0]?.originalFile;
+                updatedEmp = {
+                    ...updatedEmp,
+                    "profile": uploadedFile
+                }
+            }
             if (employeeObj._id) {
-                await updateEmployee();
+                await updateEmployee(updatedEmp);
             } else {
-                await addEmployee();
+                await addEmployee(updatedEmp);
             }
         } catch (error) {
             console.error("Form submission error:", error);
@@ -442,12 +466,9 @@ const AddEmployeeForm = ({
                             <span className="inputLabel">
                                 Attach Employee profile (recommended for JPG)
                             </span>
-                            <input
-                                type="file"
-                                name="profile"
-                                className="fileInput"
-                                onChange={changeImg}
-                                accept="image/*"
+                            <input type="file" name="profile" className="fileInput"
+                                accept=".jpeg,.png,.jpg,.webp"
+                                onChange={(e) => changeImg(e)}
                             />
                         </div>
                         {preview && (
