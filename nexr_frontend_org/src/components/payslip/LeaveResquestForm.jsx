@@ -29,7 +29,8 @@ const LeaveRequestForm = ({ type }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [employees, setEmployees] = useState([]);
   const [isWorkingApi, setIsWorkingApi] = useState(false);
-  const now = new Date()
+  const now = new Date();
+  const [touchedObj, setTouchedObj] = useState({});
   const [leaveRequestObj, setLeaveRequestObj] = useState({});
 
   let leaveObjValidation = Yup.object().shape({
@@ -311,7 +312,9 @@ const LeaveRequestForm = ({ type }) => {
     gettingEmps();
   }, []);
 
-  console.log(formik.touched.leaveType && formik.errors.leaveType);
+  function handleTouched(value, name){
+    console.log(name, value);
+  }
 
   return (
     isLoading ? <Loading height="80vh" /> :
@@ -358,7 +361,7 @@ const LeaveRequestForm = ({ type }) => {
                 className={`selectInput ${formik.touched.leaveType && formik.errors.leaveType ? "error" : ""}`}
                 onChange={(e) => type === "view" ? null : handleLeaveType(e)}
                 value={formik.values.leaveType}
-                onBlur={formik.handleBlur("leaveType")} // <-- required
+                onBlur={(e) =>handleTouched(e.target.value, "leaveType")} // <-- required
                 disabled={type === "view" ? true : false}
               >
                 <option>Select Leave type</option>
