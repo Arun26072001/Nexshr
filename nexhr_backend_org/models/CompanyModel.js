@@ -61,6 +61,7 @@ const CompanyValidation = Joi.object().keys({
   CINNo: Joi.string()
     .max(200)
     .optional(),
+  placeId: Joi.any().optional(),
   State: Joi.string().required(),
   Country: Joi.string().required(),
   location: Joi.any().optional()

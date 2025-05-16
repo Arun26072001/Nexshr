@@ -35,7 +35,7 @@ router.post('/:id', async (req, res) => {
           emp.notifications.push({
             company: emp?.company?._id,
             title: req.body.title,
-            message: req.body.message
+            message: req.body.message.replace(/<\/?[^>]+(>|$)/g, '')
           });
 
           await emp.save();
@@ -46,7 +46,7 @@ router.post('/:id', async (req, res) => {
               token: emp.fcmToken,
               company: emp.company,
               title: req.body.title,
-              body: req.body.message
+              body: req.body.message.replace(/<\/?[^>]+(>|$)/g, '')
             });
           }
         })

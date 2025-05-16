@@ -116,6 +116,8 @@ const AddEmployee = () => {
     } else if (value === "payslip") {
       return handlePayslip();
     } else {
+      console.log("call for fina");
+      
       return handleFinancial();
     }
   }

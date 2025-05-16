@@ -19,23 +19,17 @@ const Announce = () => {
     }
 
     // Function to handle delete
-    const handleDelete = async (announcementId) => {
-        if (announcementId) {
+    const handleDelete = async (announcement) => {
+        if (announcement) {
             try {
-                const response = await axios.delete(`${url}/api/announcements/${announcementId}`, {
+                const response = await axios.delete(`${url}/api/announcements/${announcement._id}`, {
                     headers: {
                         Authorization: `${data.token}`
                     }
                 });
-
-                if (response.status !== 200) {
-                    throw new Error('Failed to delete announcement');
-                }
-
-                // Remove the deleted announcement from the state
-                setAnnouncements(announcements.filter(announcement => announcement.announcementId !== announcementId));
                 // Show success notification
-                toast.success('Announcement deleted successfully!');
+                toast.success(response.data.message);
+                handleChangeAnnouncement()
             } catch (error) {
                 console.error('Error deleting announcement:', error);
                 toast.error('Failed to delete announcement!');
@@ -68,19 +62,19 @@ const Announce = () => {
                 <h5 className='text-daily'>Announcement</h5>
                 <Announcementalert handleChangeAnnouncement={handleChangeAnnouncement} />
             </div>
-                <div className='profiles mt-3'>
-                    {
-                        isLoading ? <Skeleton
-                            sx={{ bgcolor: 'grey.500' }}
-                            variant="rectangular"
-                            width={"100%"}
-                            height={"50vh"}
-                        /> :
-                            announcements.length > 0 ?
-                                <LeaveTable handleDelete={handleDelete} data={announcements} /> :
-                                <NoDataFound message={"Announcement data not found"} />
-                    }
-                </div>
+            <div className='profiles mt-3'>
+                {
+                    isLoading ? <Skeleton
+                        sx={{ bgcolor: 'grey.500' }}
+                        variant="rectangular"
+                        width={"100%"}
+                        height={"50vh"}
+                    /> :
+                        announcements.length > 0 ?
+                            <LeaveTable handleDelete={handleDelete} data={announcements} /> :
+                            <NoDataFound message={"Announcement data not found"} />
+                }
+            </div>
         </div>
 
     );
