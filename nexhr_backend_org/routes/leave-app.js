@@ -936,9 +936,9 @@ leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("pre
     const { error } = LeaveApplicationValidation.validate(leaveRequest);
     if (error) return res.status(400).json({ error: error.message });
 
-    // const newLeaveApp = await LeaveApplication.create(leaveRequest);
-    // emp.leaveApplication.push(newLeaveApp._id);
-    // await emp.save();
+    const newLeaveApp = await LeaveApplication.create(leaveRequest);
+    emp.leaveApplication.push(newLeaveApp._id);
+    await emp.save();
 
     // 13. Send Notification (only for self-application)
     if ([undefined, "undefined"].includes(applyFor)) {
@@ -960,37 +960,37 @@ leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("pre
       console.log("email Temp", leaveApplyTemp);
 
 
-      // for (const [key, members] of Object.entries(teamData)) {
-      //   if (Array.isArray(members) && key !== "employees") {
-      //     for (const member of members) {
-      //       if (member) {
-      //         const notification = {
-      //           company: emp.company._id,
-      //           title: leaveApplyTemp.title,
-      //           message,
-      //         };
-      //         // send email
-      //         sendMail({
-      //           From: emp.Email,
-      //           To: member.Email,
-      //           Subject: "Leave Application Notification",
-      //           HtmlBody: generateLeaveEmail(emp, fromDate, toDate, reasonForLeave, leaveType, deadlineTasks),
-      //         });
-      //         const fullEmp = await Employee.findById(member._id, "notifications");
-      //         fullEmp.notifications.push(notification);
-      //         await fullEmp.save();
-      //         await sendPushNotification({
-      //           token: member.fcmToken,
-      //           title: notification.title,
-      //           body: message,
-      //         });
-      //       }
-      //     }
-      //   }
-      // }
+      for (const [key, members] of Object.entries(teamData)) {
+        if (Array.isArray(members) && key !== "employees") {
+          for (const member of members) {
+            if (member) {
+              const notification = {
+                company: emp.company._id,
+                title: leaveApplyTemp.title,
+                message,
+              };
+              // send email
+              sendMail({
+                From: emp.Email,
+                To: member.Email,
+                Subject: "Leave Application Notification",
+                HtmlBody: generateLeaveEmail(emp, fromDate, toDate, reasonForLeave, leaveType, deadlineTasks),
+              });
+              const fullEmp = await Employee.findById(member._id, "notifications");
+              fullEmp.notifications.push(notification);
+              await fullEmp.save();
+              await sendPushNotification({
+                token: member.fcmToken,
+                title: notification.title,
+                body: message,
+              });
+            }
+          }
+        }
+      }
     }
 
-    // return res.status(201).json({ message: "Leave request submitted successfully.", newLeaveApp, notifiedMembers: mailList });
+    return res.status(201).json({ message: "Leave request submitted successfully.", newLeaveApp, notifiedMembers: mailList });
 
   } catch (err) {
     console.error(err);

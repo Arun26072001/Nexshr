@@ -984,7 +984,7 @@ const AddEmployeeForm = ({
                     <div className="w-50">
                         <button
                             type="submit"
-                            className="button"
+                            className="btn btn-dark"
                             style={{
                                 padding: "12px",
                                 cursor: isWorkingApi ? "progress" : "pointer"

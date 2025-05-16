@@ -114,7 +114,7 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
 
         // 10. Approvers setup
         const approvers = {};
-        const teamRoles = ["lead", "head", "manager", "hr", "admin"];
+        const teamRoles = ["lead", "head", "manager", "hr"];
 
         for (const role of teamRoles) {
             if (emp?.team?.[role]) {
@@ -360,11 +360,11 @@ router.put("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
                     {
                         path: "team",
                         populate: [
-                            { path: "lead", select: "FirstName LastName Email" },
-                            { path: "head", select: "FirstName LastName Email" },
-                            { path: "manager", select: "FirstName LastName Email" },
-                            { path: "admin", select: "FirstName LastName Email" },
-                            { path: "hr", select: "FirstName LastName Email" },
+                            { path: "lead", select: "FirstName LastName Email fcmToken" },
+                            { path: "head", select: "FirstName LastName Email fcmToken" },
+                            { path: "manager", select: "FirstName LastName Email fcmToken" },
+                            { path: "admin", select: "FirstName LastName Email fcmToken" },
+                            { path: "hr", select: "FirstName LastName Email fcmToken" },
                         ]
                     },
                     { path: "company", select: "CompanyName logo" },
@@ -379,14 +379,18 @@ router.put("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
                 Array.isArray(data)
                     ? data.map(item => ({
                         type,
+                        _id: item._id,
                         Email: item?.Email,
-                        name: `${item?.FirstName ?? ""} ${item?.LastName ?? ""}`.trim()
+                        name: `${item?.FirstName ?? ""} ${item?.LastName ?? ""}`.trim(),
+                        fcmToken: item.fcmToken
                     }))
                     : data?.Email
                         ? [{
                             type,
+                            _id: item._id,
                             Email: data.Email,
-                            name: `${data.FirstName ?? ""} ${data.LastName ?? ""}`.trim()
+                            name: `${data.FirstName ?? ""} ${data.LastName ?? ""}`.trim(),
+                            fcmToken: item.fcmToken
                         }]
                         : [];
 
@@ -402,7 +406,8 @@ router.put("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
                 .filter(Boolean)
                 .filter((v, i, self) => self.findIndex(t => t.Email === v.Email) === i); // Deduplicate
 
-            // const mailList = members.map(m => m.Email).filter(Boolean);
+            console.log("members", members);
+
             // check approve or rejected
             const emailType = allApproved ? "approved" : anyRejected ? "rejected" : "pending";
             if (members.length > 0) {
@@ -420,28 +425,22 @@ router.put("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
                         ? `${emp.FirstName}'s WFH request has been rejected by ${actionBy}`
                         : `${emp.FirstName}'s WFH request has been approved by ${actionBy}`;
 
-                    const teamData = emp.team || {};
-                    for (const [key, value] of Object.entries(teamData)) {
-                        if (Array.isArray(value) && key !== "employees") {
-                            for (const member of value) {
-                                if (member) {
-                                    const notification = {
-                                        company: emp.company._id,
-                                        title: Subject,
-                                        message
-                                    };
+                    if (member) {
+                        const notification = {
+                            company: emp.company._id,
+                            title: Subject,
+                            message
+                        };
 
-                                    const fullEmp = await Employee.findById(member._id, "notifications"); // Fetch fresh document to update notifications
-                                    fullEmp.notifications.push(notification);
-                                    await fullEmp.save();
-                                    await sendPushNotification({
-                                        token: member.fcmToken,
-                                        title: Subject,
-                                        body: message
-                                    })
-                                }
-                            }
-                        }
+                        const fullEmp = await Employee.findById(member._id, "notifications"); // Fetch fresh document to update notifications
+                        fullEmp.notifications.push(notification);
+                        await fullEmp.save();
+                        await sendPushNotification({
+                            token: member.fcmToken,
+                            title: Subject,
+                            body: message,
+                            company: emp.company
+                        })
                     }
                 })
             }
