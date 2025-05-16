@@ -23,7 +23,7 @@ export default function LeaveRequest() {
     const { isTeamHead, isTeamLead, isTeamManager } = jwtDecode(token);
     const navigate = useNavigate()
 
-    async function replyToLeave(leave, response) {     
+    async function replyToLeave(leave, response) {
         try {
             let actionBy;
             let updatedLeaveRequest;
@@ -37,7 +37,7 @@ export default function LeaveRequest() {
                     }
                 }
             } else if (isTeamLead) {
-                 actionBy = "Lead"
+                actionBy = "Lead"
                 updatedLeaveRequest = {
                     ...leave,
                     approvers: {
@@ -46,7 +46,7 @@ export default function LeaveRequest() {
                     }
                 }
             } else if (isTeamManager) {
-                 actionBy = "Manager"
+                actionBy = "Manager"
                 updatedLeaveRequest = {
                     ...leave,
                     approvers: {
@@ -56,13 +56,19 @@ export default function LeaveRequest() {
                 }
             }
             else if (String(data.Account) === "2") {
-                 actionBy = "Hr"
+                actionBy = "Hr"
                 updatedLeaveRequest = {
                     ...leave,
                     approvers: {
                         ...leave.approvers,
                         hr: response
                     }
+                }
+            } else if (String(data.Account) === "1") {
+                actionBy = "Admin"
+                updatedLeaveRequest = {
+                    ...leave,
+                    status: response
                 }
             } else {
                 toast.error("You are not approver for this leave")

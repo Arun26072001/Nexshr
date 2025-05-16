@@ -1019,7 +1019,8 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
                                                                     (isTeamLead && row?.approvers?.lead === "pending") ||
                                                                         (isTeamHead && row?.approvers?.head === "pending") ||
                                                                         (whoIs === "manager" && row?.approvers?.manager === "pending") ||
-                                                                        (whoIs === "hr" && row?.approvers?.hr === "pending") ? (
+                                                                        (whoIs === "hr" && row?.approvers?.hr === "pending") ||
+                                                                        (whoIs === "admin" && row?.status === "pending") ? (
                                                                         <>
                                                                             <Dropdown.Item style={{ minWidth: 120 }} onClick={() => replyToLeave(row, "approved")}>Approve</Dropdown.Item>
                                                                             <Dropdown.Item style={{ minWidth: 120 }} onClick={() => replyToLeave(row, "rejected")}>Reject</Dropdown.Item>
