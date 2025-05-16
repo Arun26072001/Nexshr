@@ -10,7 +10,6 @@ exports.sendPushNotification = async (msgObj) => {
             console.log("No FCM tokens found for this user");
             return;
         }
-
         const message = {
             token,
             notification: { title, body },

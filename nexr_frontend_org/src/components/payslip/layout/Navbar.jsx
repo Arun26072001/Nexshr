@@ -109,28 +109,6 @@ export default function Navbar({ handleSideBar }) {
         );
     };
 
-    // async function fetchAnnouncements() {
-    //     try {
-    //         const res = await axios.get(`${url}/api/announcements/emp/${data._id}`, {
-    //             headers: {
-    //                 Authorization: data.token || ""
-    //             }
-    //         })
-    //         res.data.forEach((item, index) => {
-    //             setIsRemove((pre) => {
-    //                 const updated = [...pre];
-    //                 updated[index] = false;
-    //                 return updated;
-    //             })
-    //         });
-
-    //         setAnnouncements(res.data);
-    //     } catch (error) {
-    //         setAnnouncements([]);
-    //         // console.log(error.response.data.error);
-    //     }
-    // }
-
     async function fetchNotifications() {
         try {
             const res = await axios.get(`${url}/api/employee/notifications/${data._id}`, {
@@ -153,7 +131,8 @@ export default function Navbar({ handleSideBar }) {
     }
 
     useEffect(() => {
-        // fetchAnnouncements();
+        console.log("clling");
+        
         fetchNotifications();
     }, [isChangeAnnouncements])
 
