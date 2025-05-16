@@ -10,6 +10,7 @@ const sendInvitationEmail = async (emp, roleLabel, team, creator) => {
     const frontendUrl = process.env.REACT_APP_API_URL;
     const empName = `${emp.FirstName[0].toUpperCase() + emp.FirstName.slice(1)} ${emp.LastName}`;
     const CompanyName = creator.company.CompanyName;
+    console.log(creator.company);
 
     const emailContent = `
         <div style="text-align: center;">
@@ -203,8 +204,8 @@ router.put("/:id", verifyAdminHRTeamHigherAuth, async (req, res) => {
         const { lead = [], head = [], manager = [], employees = [] } = req.body;
         const teamId = req.params.id;
         // creator data
-        const creator = await Employee.findById(req.body.createdBy, "FirstName LastName company").populate("company","CompanyName logo")
-        
+        const creator = await Employee.findById(req.body.createdBy, "FirstName LastName company").populate("company", "CompanyName logo")
+
         // team data (old)
         const oldTeam = await Team.findById(teamId).populate("lead head manager employees", "FirstName LastName Email company team");
         if (!oldTeam) return res.status(404).send({ error: "Team not found!" });

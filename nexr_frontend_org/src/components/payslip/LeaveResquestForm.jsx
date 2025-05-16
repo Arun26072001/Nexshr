@@ -136,8 +136,6 @@ const LeaveRequestForm = ({ type }) => {
     },
   });
 
-  // console.log(formik.values);
-
   async function applyLeave(formData, resetForm) {
     try {
       setIsWorkingApi(true);
@@ -149,9 +147,6 @@ const LeaveRequestForm = ({ type }) => {
         },
       });
       toast.success(res.data.message);
-      //send notification for higher authority
-      // triggerNotification()
-      // socket.emit("send_notification_for_leave", formik.values, _id)
       resetForm();
       navigate(`/${whoIs}`); // Navigate back
     } catch (err) {
@@ -163,7 +158,6 @@ const LeaveRequestForm = ({ type }) => {
   }
 
   async function updateLeave(formData, resetForm) {
-    // console.log(formData);
     const leaveData = {
       ...formData,
       employee: _id
@@ -198,9 +192,6 @@ const LeaveRequestForm = ({ type }) => {
       setLeaveRequestObj(response.data);
       Object.entries(response.data).map(([key, value]) => {
         if (!["employee", "coverBy", "status", "TeamLead", "TeamHead", "Hr", "Manager", "appliedOn", "approverId", "appliedBy"].includes(key)) {
-          // if (["fromDate", "toDate"].includes(key)) {
-          //   formik.setFieldValue(key, new Date(value))
-          // }
           formik.setFieldValue(key, value)
         }
       })
@@ -209,20 +200,6 @@ const LeaveRequestForm = ({ type }) => {
     }
   };
 
-  useEffect(() => {
-    if (formik.values.fromDate && formik.values.toDate) {
-      let fromDateTime = new Date(formik.values.fromDate).getTime();
-      let toDateTime = new Date(formik.values.toDate).getTime();
-      if (fromDateTime > toDateTime) {
-        return setError("Please select next start date");
-      } else if (new Date(formik.values.fromDate).getTime() === new Date(formik.values.toDate).getTime()) {
-        return setIsShowPeriodOfLeave(true);
-      } else {
-        setIsShowPeriodOfLeave(false)
-        setError("");
-      }
-    }
-  }, [formik.values.fromDate, formik.values.toDate]);
 
   const gettingLeaveRequests = async () => {
     setIsLoading(true)
@@ -263,17 +240,10 @@ const LeaveRequestForm = ({ type }) => {
     } catch (error) {
       console.error("Error fetching leave requests:", error);
       toast.error("Failed to fetch leave requests. Please try again.");
+    } finally {
+      setIsLoading(false);
     }
-    setIsLoading(false);
   };
-
-  useEffect(() => {
-    gettingLeaveRequests();
-
-    if (id) {
-      fetchLeaveRequest()
-    }
-  }, [_id, formik.values.applyFor]);
 
   function handleLeaveType(e) {
     const { name, value } = e.target;
@@ -315,9 +285,33 @@ const LeaveRequestForm = ({ type }) => {
     }
   }
   useEffect(() => {
+    gettingLeaveRequests();
+
+    if (id) {
+      fetchLeaveRequest()
+    }
+  }, [_id, formik.values.applyFor]);
+
+  useEffect(() => {
+    if (formik.values.fromDate && formik.values.toDate) {
+      let fromDateTime = new Date(formik.values.fromDate).getTime();
+      let toDateTime = new Date(formik.values.toDate).getTime();
+      if (fromDateTime > toDateTime) {
+        return setError("Please select next start date");
+      } else if (new Date(formik.values.fromDate).getTime() === new Date(formik.values.toDate).getTime()) {
+        return setIsShowPeriodOfLeave(true);
+      } else {
+        setIsShowPeriodOfLeave(false)
+        setError("");
+      }
+    }
+  }, [formik.values.fromDate, formik.values.toDate]);
+  useEffect(() => {
     fetchHolidays();
     gettingEmps();
-  }, [])
+  }, []);
+
+  console.log(formik.touched.leaveType && formik.errors.leaveType);
 
   return (
     isLoading ? <Loading height="80vh" /> :
@@ -364,6 +358,7 @@ const LeaveRequestForm = ({ type }) => {
                 className={`selectInput ${formik.touched.leaveType && formik.errors.leaveType ? "error" : ""}`}
                 onChange={(e) => type === "view" ? null : handleLeaveType(e)}
                 value={formik.values.leaveType}
+                onBlur={formik.handleBlur("leaveType")} // <-- required
                 disabled={type === "view" ? true : false}
               >
                 <option>Select Leave type</option>
@@ -385,6 +380,7 @@ const LeaveRequestForm = ({ type }) => {
                 <DatePicker
                   showTimeSelect
                   dateFormat="Pp"
+                  onBlur={formik.handleBlur}
                   disabled={type === "view" ? true : false}
                   className={`inputField ${formik.touched.fromDate && formik.errors.fromDate ? "error" : ""} w-100`}
                   selected={formik.values.fromDate ? new Date(formik.values.fromDate) : null}
@@ -403,6 +399,7 @@ const LeaveRequestForm = ({ type }) => {
                 <span className="inputLabel">End Date</span>
                 <DatePicker
                   showTimeSelect
+                  onBlur={formik.handleBlur}
                   dateFormat="Pp"
                   disabled={type === "view" ? true : false}
                   className={`inputField ${formik.touched.toDate && formik.errors.toDate ? "error" : ""}`}

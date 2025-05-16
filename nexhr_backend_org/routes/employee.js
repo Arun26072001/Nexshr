@@ -58,8 +58,8 @@ router.put("/notifications/:id", verifyAdminHREmployeeManagerNetwork, async (req
     if (!emp) return res.status(404).send({ error: "Employee not found" });
 
     const titlesToRemove = req.body.map(n => n.title);
-    
-    emp.notifications = emp.notifications.filter(notification => 
+
+    emp.notifications = emp.notifications.filter(notification =>
       !titlesToRemove.includes(notification.title)
     );
 
@@ -297,9 +297,10 @@ router.post("/:id", verifyAdminHR, async (req, res) => {
     if (await Employee.exists({ Email })) {
       return res.status(400).json({ error: "Email already exists" });
     }
-
-    if (await Employee.exists({ phone })) {
-      return res.status(400).json({ error: "Phone number already exists" });
+    if (phone) {
+      if (await Employee.exists({ phone })) {
+        return res.status(400).json({ error: "Phone number already exists" });
+      }
     }
 
     const employeeData = {
@@ -366,7 +367,6 @@ router.post("/:id", verifyAdminHR, async (req, res) => {
 </html>
 `;
 
-
     sendMail({
       From: process.env.FROM_MAIL,
       To: Email,
@@ -379,14 +379,14 @@ router.post("/:id", verifyAdminHR, async (req, res) => {
     console.error("Error:", err);
 
     if (err.isJoi) {
-      return res.status(400).json({ error: err.details });
+      return res.status(400).send({ error: err.details });
     }
 
     if (err.status === 404) {
-      return res.status(404).json({ error: err.message });
+      return res.status(404).send({ error: err.message });
     }
 
-    res.status(500).json({ error: err.message });
+    res.status(500).send({ error: err.message });
   }
 });
 
