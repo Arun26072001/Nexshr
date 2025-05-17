@@ -942,7 +942,7 @@ const EditEmployeeform = ({ details, empData, handleScroll, handlePersonal, prev
                                     onClick={navToError}
                                     disabled={splitError ? true : false}
                                 >
-                                    {isWorkingApi ? <Loading size={20} color='white' /> : "Update"}
+                                    {isWorkingApi ? <Loading size={20} /> : "Update"}
                                 </button>
                             </div>
                         </div>
