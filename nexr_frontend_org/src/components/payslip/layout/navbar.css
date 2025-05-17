@@ -42,3 +42,11 @@
   right: 10px;
   top: 10px;
 }
+.remove {
+    animation: fadeOut 0.3s forwards;
+}
+
+@keyframes fadeOut {
+    from { opacity: 1; }
+    to { opacity: 0; height: 0; padding: 0; margin: 0; }
+}

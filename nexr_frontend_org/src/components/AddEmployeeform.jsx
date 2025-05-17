@@ -133,7 +133,7 @@ const AddEmployeeForm = ({
 
     const updateEmployee = async (empData) => {
         try {
-            setIsWorkingApi(true);
+            // setIsWorkingApi(true);
             const res = await axios.put(
                 `${url}/api/employee/${empData._id}`,
                 empData,
@@ -153,14 +153,12 @@ const AddEmployeeForm = ({
         } catch (error) {
             console.error("Error updating employee:", error);
             toast.error(error.response?.data?.error || "Failed to update employee");
-        } finally {
-            setIsWorkingApi(false);
-        }
+        } 
     };
 
     const addEmployee = async (empData) => {
         try {
-            setIsWorkingApi(true);
+            // setIsWorkingApi(true);
             const res = await axios.post(
                 `${url}/api/employee/${data._id}`,
                 empData,
@@ -180,9 +178,7 @@ const AddEmployeeForm = ({
         } catch (error) {
             console.error("Error adding employee:", error);
             toast.error(error?.response?.data?.error || "Failed to add employee");
-        } finally {
-            setIsWorkingApi(false);
-        }
+        } 
     };
 
     const changeImg = event => {
@@ -316,6 +312,7 @@ const AddEmployeeForm = ({
         }
 
         try {
+            setIsWorkingApi(true)
             let updatedEmp = {
                 ...employeeObj
             }
@@ -347,6 +344,8 @@ const AddEmployeeForm = ({
             }
         } catch (error) {
             console.error("Form submission error:", error);
+        } finally {
+            setIsWorkingApi(false);
         }
     };
 

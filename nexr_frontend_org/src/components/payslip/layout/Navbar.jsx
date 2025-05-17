@@ -195,34 +195,62 @@ export default function Navbar({ handleSideBar }) {
 
     // Call this on tab/browser close or refresh (you can add event listener if needed)
 
+    // async function removeMessage(value, index) {
+    //     try {
+    //         setIsRemove((prev) => {
+    //             const updated = [...prev];
+    //             updated[index] = true;
+    //             return updated;
+    //         });
+
+    //         const updatedNotifications = notifications.map((item) =>
+    //             item.title === value.title
+    //                 ? { ...item, isViewed: true }
+    //                 : item
+    //         );
+
+    //         setNotifications(updatedNotifications);
+
+    //         setTimeout(async () => {
+    //             try {
+    //                 await updateEmpNotifications(updatedNotifications); // Await if it's async
+    //                 handleUpdateAnnouncements();
+    //             } catch (err) {
+    //                 console.log("Error updating notifications:", err);
+    //             }
+    //         }, 300);
+    //     } catch (error) {
+    //         console.log("Error removing message:", error);
+    //     }
+    // }
     async function removeMessage(value, index) {
-        try {
-            setIsRemove((prev) => {
-                const updated = [...prev];
-                updated[index] = true;
-                return updated;
-            });
+    try {
+        setIsRemove((prev) => {
+            const updated = [...prev];
+            updated[index] = true;
+            return updated;
+        });
+        const updatedNotifications = notifications.map((item) =>
+            item._id === value._id ? { ...item, isViewed: true } : item
+        );
+        setNotifications(updatedNotifications);
 
-            const updatedNotifications = notifications.map((item) =>
-                item.title === value.title
-                    ? { ...item, isViewed: true }
-                    : item
-            );
-
-            setNotifications(updatedNotifications);
-
-            setTimeout(async () => {
-                try {
-                    await updateEmpNotifications(updatedNotifications); // Await if it's async
-                    handleUpdateAnnouncements();
-                } catch (err) {
-                    console.log("Error updating notifications:", err);
-                }
-            }, 300);
-        } catch (error) {
-            console.log("Error removing message:", error);
-        }
+        setTimeout(async () => {
+            try {
+                // Update only this notification on the backend
+                await updateEmpNotifications(value._id); // Pass only the ID of the notification to update
+                
+                // Optional: If you need to refresh the list, make sure the API only returns non-viewed notifications
+                // handleUpdateAnnouncements(); // This might be the culprit - remove or modify it
+            } catch (err) {
+                console.log("Error updating notifications:", err);
+                setNotifications(notifications);
+            }
+        }, 300);
+    } catch (error) {
+        console.log("Error removing message:", error);
     }
+}
 
     useHandleTabClose(isStartLogin, workTimeTracker, data.token);
 
