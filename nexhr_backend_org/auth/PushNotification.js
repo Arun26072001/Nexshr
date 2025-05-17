@@ -2,6 +2,7 @@ const admin = require("./firebase-admin");
 const { Employee } = require("../models/EmpModel");
 const axios = require("axios");
 const { getCurrentTimeInMinutes, timeToMinutes, getTotalWorkingHourPerDay } = require("../Reuseable_functions/reusableFunction");
+const { Task } = require("../models/TaskModel");
 
 exports.sendPushNotification = async (msgObj) => {
     const { token, title, body, company } = msgObj;
@@ -10,7 +11,6 @@ exports.sendPushNotification = async (msgObj) => {
             console.log("No FCM tokens found for this user");
             return;
         }
-
         const message = {
             token,
             notification: { title, body },
@@ -76,7 +76,6 @@ exports.askReasonForDelay = (req, res) => {
             console.error("Invalid delay time:", time);
             return res.status(400).send({ error: "Invalid delay time" });
         }
-        console.log(delay);
 
         setTimeout(async () => {
 

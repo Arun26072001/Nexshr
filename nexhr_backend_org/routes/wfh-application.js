@@ -422,8 +422,8 @@ router.put("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
 
                     // send notification for client 
                     const message = anyRejected
-                        ? `${emp.FirstName}'s WFH request has been rejected by ${actionBy}`
-                        : `${emp.FirstName}'s WFH request has been approved by ${actionBy}`;
+                        ? `${emp.FirstName}'s WFH request ${new Date(fromDate).toLocaleDateString() - new Date(toDate).toLocaleDateString()} has been rejected by ${actionBy}`
+                        : `${emp.FirstName}'s WFH request ${new Date(fromDate).toLocaleDateString() - new Date(toDate).toLocaleDateString()} has been approved by ${actionBy}`;
 
                     if (member) {
                         const notification = {
