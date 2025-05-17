@@ -36,8 +36,6 @@ const EditEmployeeform = ({ details, empData, handleScroll, handlePersonal, prev
         Email: Yup.string().email('Invalid email format').required('Email is required'),
         Password: Yup.string().min(6, 'Password must be at least 6 characters').required('Password is required'),
         company: Yup.string().optional(),
-        // teamLead: Yup.string().optional(), // assuming it's an ObjectId or string
-        // managerId: Yup.string().optional(),
         countryCode: Yup.string().optional(),
         phone: Yup.string().optional(), // can add phone validation if needed
         dateOfBirth: Yup.string().optional(),
@@ -51,7 +49,6 @@ const EditEmployeeform = ({ details, empData, handleScroll, handlePersonal, prev
         position: Yup.string().optional(),
         department: Yup.string().optional(),
         role: Yup.string().optional(),
-        // description: Yup.string().min(10, "mininum 10 characters must be in description").required("Description is required"),
         description: Yup.string().optional(),
         dateOfJoining: Yup.string().optional(),
         employmentType: Yup.string().optional(),
@@ -60,17 +57,11 @@ const EditEmployeeform = ({ details, empData, handleScroll, handlePersonal, prev
         publicHoliday: Yup.string().optional(),
         monthlyPermissions: Yup.number().required("Monthly permissions is required"),
         annualLeaveEntitlement: Yup.number().optional(),
-        // basicSalary: Yup.string().min(4, "invalid Salary").max(10).required("Salary is required"),
         basicSalary: Yup.string().optional(),
-        // bankName: Yup.string().min(2, "invalid Bank name").max(200).required("Bank name is required"),
         bankName: Yup.string().optional(),
-        // accountNo: Yup.string().min(10, "Account No digits must be between 10 to 14").max(14, "Account No digits must be between 10 to 14").required("Account No is required"),
         accountNo: Yup.string().optional(),
-        // accountHolderName: Yup.string().min(2, "invalid Holder Name").max(50).required("Holder name is Required"),
         accountHolderName: Yup.string().optional(),
-        // IFSCcode: Yup.string().min(11, "IFSC code must be 11 characters").max(11, "IFSC code must be 11 characters").required("IFSC code is required"),
         IFSCcode: Yup.string().optional(),
-        // taxDeduction: Yup.string().min(2, "invalid value").required("Tax deduction is required"),
         taxDeduction: Yup.string().optional()
     });
     console.log("timeDiff", timeDifference);

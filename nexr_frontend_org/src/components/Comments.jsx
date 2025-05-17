@@ -23,10 +23,8 @@ export default function Comments() {
     const [taskObj, setTaskObj] = useState({});
     const [commentObj, setCommentObj] = useState({});
     const { id } = useParams();
-    const { data, whoIs, 
-        // socket 
-    } = useContext(EssentialValues);
-    const {employees} = useContext(TimerStates);
+    const { data, whoIs } = useContext(EssentialValues);
+    const { employees } = useContext(TimerStates);
     const url = process.env.REACT_APP_API_URL;
     const [previewList, setPreviewList] = useState([]);
     const [projects, setProjects] = useState([]);
@@ -130,9 +128,24 @@ export default function Comments() {
         setIsChangingComment(false);
     }
 
+    async function updateCommentsInObj() {
+        try {
+            const res = await axios.post(`${url}/api/task/updatedTaskComment/${data._id}`, taskObj, {
+                headers: {
+                    Authorization: data.token
+                }
+            })
+            console.log(res.data.message);
+            
+        } catch (error) {
+            console.log("error in update task in comments");
+        }
+    }
+
     async function addComment() {
         try {
             let updatedCommentObj = { ...commentObj, createdBy: data._id };
+            console.log(updatedCommentObj);
 
             // Filter out PNG files for upload
             const files = commentObj?.attachments;
@@ -150,7 +163,8 @@ export default function Comments() {
 
             // Update the comment in the task object if taskData is not provided
             taskObj.comments[taskObj.comments.length] = updatedCommentObj;
-
+            updateCommentsInObj()
+            // socket.emit("updatedTask_In_AddComment", taskObj, data._id, data.token);
             setIsAddComment(false);
             setPreviewList([]);
             setCommentObj({});
@@ -183,7 +197,7 @@ export default function Comments() {
 
             // Update the comment in the task object if taskData is not provided
             taskObj.comments[editCommentIndex] = updatedCommentObj;
-
+            
             setIsEditCommit(false);
             setPreviewList([]);
             setCommentObj({});

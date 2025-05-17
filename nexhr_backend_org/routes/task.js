@@ -239,6 +239,39 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
     }
 });
 
+router.post("/updatedTaskComment/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
+    const { taskObj } = req.body;
+    try {
+        // get employee data for company data
+        const emps = await Employee.findById(taskObj.assignedTo, "FirstName LastName Email fcmToken profile")
+            .exec();
+        const currentCmt = taskObj.comments.at(-1)
+        const commentCreator = await Employee.findById(currentCmt.createdBy, "FirstName LastName")
+        // update task with updated comments
+        const updatedTask = await Task.findByIdAndUpdate(taskObj._id, taskObj, { new: true });
+        if (emps.length) {
+            emps.forEach((emp) => {
+                const title = `${commentCreator.FirstName + " " + commentCreator.LastName} has commented in ${taskObj.title}`;
+                const message = currentCmt.comment
+                // send mail 
+                sendMail({
+                    From: process.env.FROM_MAIL,
+                    To: emp.Email,
+                    Subject: title,
+                    text: message
+                })
+                // send notification
+                sendPushNotification({
+                    token: emp.fcmToken,
+                    title,
+                    body: message
+                })
+            });
+        }
+    } catch (error) {
+
+    }
+})
 
 router.put("/:empId/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
     try {
