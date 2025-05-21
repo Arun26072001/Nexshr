@@ -119,8 +119,6 @@ const LeaveRequestForm = ({ type }) => {
       if (error === "") {
         const formData = new FormData();
         formData.append("leaveType", formik.values.leaveType);
-        // formData.append("fromDate", new Date(formik.values.fromDate).toLocaleString());
-        // formData.append("toDate", new Date(formik.values.toDate).toLocaleString());
         formData.append("fromDate", new Date(formik.values.fromDate).toISOString());
         formData.append("toDate", new Date(formik.values.toDate).toISOString());
         formData.append("periodOfLeave", formik.values.periodOfLeave || formik?.values?.leaveType?.toLowerCase()?.includes("permission") ? "half day" : "full day");
