@@ -181,7 +181,6 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
         }
     } catch (error) {
         console.log(error);
-
         return res.status(500).send({ error: error.message })
     }
 })
@@ -206,6 +205,28 @@ router.get("/on-wfh", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
         return res.send(data);
     } catch (error) {
         console.log(error);
+        return res.status(500).send({ error: error.message })
+    }
+})
+
+router.get("/check-wfh/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
+    try {
+        const today = new Date();
+        const startOfDay = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate(), 0, 0, 0));
+        const endOfDay = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate(), 23, 59, 59));
+        let wfhEmp = false;
+        const emp = await Employee.findById(req.params.id, "isPermanentWFH")
+        const isWFH = await WFHApplication.findOne({
+            employee: req.params.id,
+            fromDate: { $gte: startOfDay, $lte: endOfDay },
+            status: "approved"
+        })
+        
+        if (isWFH || emp.isPermanentWFH) {
+            wfhEmp = true;
+        }
+        return res.send(wfhEmp);
+    } catch (error) {
         return res.status(500).send({ error: error.message })
     }
 })
@@ -463,7 +484,6 @@ router.put("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
         return res.status(500).send({ error: error.message });
     }
 });
-
 
 router.delete("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
     try {

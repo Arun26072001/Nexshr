@@ -209,7 +209,6 @@ export default function Home({ peopleOnLeave, peopleOnWorkFromHome, isFetchPeopl
                                 </div> :
                                     peopleOnWorkFromHome.length ?
                                         peopleOnWorkFromHome.map((wfh, index) => {
-                                            console.log("fromdate", wfh.fromDate, formatDate(wfh.fromData));
                                             return <div key={index} className='box-content d-flex align-items-center justify-content-around my-1' style={{ boxShadow: 'none', background: "white" }}>
                                                 <img src={wfh?.employee?.profile || profile} alt="profile" className='imgContainer' />
                                                 <div className="d-block">

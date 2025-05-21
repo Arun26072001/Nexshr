@@ -6,7 +6,7 @@ const wfhSchema = new mongoose.Schema({
     fromDate: { type: Date },
     toDate: { type: Date },
     numOfDays: { type: Number },
-    createdBy: { type: mongoose.Schema.Types.ObjectId, ref: "Employee" },
+    // createdBy: { type: mongoose.Schema.Types.ObjectId, ref: "Employee" },
     reason: { type: String },
     rejectionReason: { type: String },
     status: { type: String },

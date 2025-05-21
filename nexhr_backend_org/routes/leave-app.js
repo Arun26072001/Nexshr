@@ -11,7 +11,6 @@ const sendMail = require("./mailSender");
 const { getDayDifference, mailContent, formatLeaveData, formatDate } = require('../Reuseable_functions/reusableFunction');
 const { Task } = require('../models/TaskModel');
 const { sendPushNotification } = require('../auth/PushNotification');
-const { EmailTemplate } = require('../models/EmailTemplateModel');
 
 // Helper function to generate leave request email content
 function generateLeaveEmail(empData, fromDateValue, toDateValue, reasonForLeave, leaveType, accountLevel, deadLineTask = []) {
@@ -907,26 +906,8 @@ leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("pre
     const leaveBalance = emp.typesOfLeaveRemainingDays?.[leaveType] || 0;
 
     if (!leaveType.toLowerCase().includes("permission") && leaveBalance < takenLeaveCount) {
-      console.log(leaveBalance, takenLeaveCount);
       return res.status(400).json({ error: `${leaveType} limit has been reached.` });
     }
-
-    // 8. Optional: CoverBy logic (currently commented out)
-    // if (coverByValue) {
-    //   const reliever = await Employee.findById(coverByValue, "FirstName LastName leaveApplication")
-    //     .populate({
-    //       path: "leaveApplication",
-    //       match: {
-    //         fromDate: { $lte: toDate },
-    //         toDate: { $gte: fromDate },
-    //         leaveType: { $ne: "Permission Leave" },
-    //       },
-    //     });
-
-    //   if (reliever?.leaveApplication?.length) {
-    //     return res.status(400).json({ error: ${reliever.FirstName} is on leave during the selected dates. });
-    //   }
-    // }
 
     // 9. Task Conflict
     const deadlineTasks = await Task.find({
@@ -988,17 +969,21 @@ leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("pre
       });
 
       const message = `${emp.FirstName} ${emp.LastName} has applied for leave from ${formatDate(fromDate)} to ${formatDate(toDate)}.`;
+      const title = "Leave apply Notification"
       const teamData = emp.team || {};
 
-      const leaveApplyTemp = await EmailTemplate.findOne({ title: "Apply Leave" })
+      // const leaveApplyTemp = await EmailTemplate.findOne({ title: "Apply Leave" })
 
       for (const [key, members] of Object.entries(teamData)) {
+        // console.log("check-1");
         if (Array.isArray(members) && key !== "employees") {
+          // console.log("check 2");
           for (const member of members) {
+            // console.log("chech 3");
             if (member) {
               const notification = {
                 company: emp.company._id,
-                title: leaveApplyTemp.title,
+                title,
                 message,
               };
               // send email
