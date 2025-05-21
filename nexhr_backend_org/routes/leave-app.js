@@ -751,7 +751,6 @@ leaveApp.get("/", verifyAdminHR, async (req, res) => {
             : null
         }
       })
-
       res.send(requests);
     }
   } catch (err) {
@@ -759,256 +758,160 @@ leaveApp.get("/", verifyAdminHR, async (req, res) => {
   }
 });
 
+// Optimized and cleaned leave application route
 leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("prescription"), async (req, res) => {
   try {
     const { empId } = req.params;
     const {
-      leaveType,
-      fromDate,
-      toDate,
-      periodOfLeave,
-      reasonForLeave,
-      coverBy,
-      applyFor,
-      role,
+      leaveType, fromDate, toDate, periodOfLeave, reasonForLeave,
+      coverBy, applyFor, role
     } = req.body;
 
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-
     const fromDateObj = new Date(fromDate);
     fromDateObj.setHours(0, 0, 0, 0);
+    const toDateObj = new Date(toDate);
+    const prescription = req.file?.filename || null;
+    const coverByValue = [undefined, "undefined"].includes(coverBy) ? null : coverBy;
+    const personId = [undefined, "undefined"].includes(applyFor) ? empId : applyFor;
 
     // Determine account level
     let accountLevel = 3;
     if (role) {
       const roleData = await RoleAndPermission.findById(role, "RoleName");
       const roleName = roleData?.RoleName?.toLowerCase();
-      accountLevel =
-        roleName === "admin"
-          ? 1
-          : roleName === "hr"
-            ? 2
-            : roleName === "manager"
-              ? 4
-              : roleName === "network admin"
-                ? 5
-                : 3;
+      const roleLevels = { admin: 1, hr: 2, manager: 4, "network admin": 5 };
+      accountLevel = roleLevels[roleName] || 3;
     }
 
-
-    const prescription = req.file?.filename || null;
-    const coverByValue = [undefined, "undefined"].includes(coverBy) ? null : coverBy;
-    const personId = [undefined, "undefined"].includes(applyFor) ? empId : applyFor;
-    // const fromDateObj = new Date(fromDate);
-    const toDateObj = new Date(toDate);
-    // const today = new Date();
-    const tomorrow = new Date(today);
-    tomorrow.setDate(today.getDate() + 1);
-    let mailList = [];
-    let fcmList = [];
-
-    // 1. If applying on behalf, ensure target employee isn't already working those days
-    if (![undefined, "undefined"].includes(applyFor)) {
+    // 1. Reject if employee was working on selected dates
+    if (applyFor && applyFor !== "undefined") {
       const emp = await Employee.findById(personId, "clockIns").populate({
         path: "clockIns",
         match: { date: { $gte: fromDateObj, $lte: toDateObj } },
       });
-
       if (emp?.clockIns?.length) {
         return res.status(400).json({ error: "The employee was working during the selected leave period." });
       }
     }
 
-    // 2. Check for duplicate leave
+    // 2. Duplicate leave check
     const existingRequest = await LeaveApplication.findOne({
       employee: personId,
       status: "approved",
       fromDate: { $gte: fromDate, $lte: toDate },
     });
-
     if (existingRequest) {
       return res.status(400).json({ error: "Leave request already exists for the given date range." });
     }
 
-    if ([undefined, "undefined"].includes(applyFor)) {
-      // 3. Sick/Medical leave must be for today or tomorrow
-      if (["Sick Leave", "Medical Leave"].includes(leaveType)) {
-        const formattedFrom = fromDateObj.toDateString();
-        if (![today.toDateString(), tomorrow.toDateString()].includes(formattedFrom)) {
-          return res.status(400).json({ error: "Sick leave is only applicable for today or tomorrow." });
-        }
+    // 3. Same day/tomorrow restriction for Sick/Medical Leave
+    const formattedFrom = fromDateObj.toDateString();
+    const tomorrow = new Date(today);
+    tomorrow.setDate(today.getDate() + 1);
+
+    if (!applyFor || applyFor === "undefined") {
+      if (["Sick Leave", "Medical Leave"].includes(leaveType) &&
+        ![today.toDateString(), tomorrow.toDateString()].includes(formattedFrom)) {
+        return res.status(400).json({ error: "Sick leave is only applicable for today or tomorrow." });
       }
 
-      // 4. Annual/Casual leave can't be for today
-      if (["Annual Leave", "Casual Leave"].includes(leaveType)) {
-        if ([3, 5].includes(accountLevel) && fromDateObj <= today) {
-          return res.status(400).json({
-            error: `${leaveType} is not allowed for same day or past dates for your role.`
-          });
-        }
+      if (["Annual Leave", "Casual Leave"].includes(leaveType) &&
+        [3, 5].includes(accountLevel) && fromDateObj <= today) {
+        return res.status(400).json({ error: `${leaveType} is not allowed for same day or past dates for your role.` });
       }
     }
 
-
-    // 5. Fetch employee info
-    const monthStart = new Date(fromDateObj.getFullYear(), fromDateObj.getMonth(), 1);
-    const monthEnd = new Date(fromDateObj.getFullYear(), fromDateObj.getMonth() + 1, 0);
-
-    const emp = await Employee.findById(personId, "FirstName LastName monthlyPermissions permissionHour typesOfLeaveRemainingDays typesOfLeaveCount leaveApplication company")
+    // 4. Fetch employee
+    const emp = await Employee.findById(personId, "FirstName LastName Email monthlyPermissions permissionHour typesOfLeaveRemainingDays leaveApplication company team")
       .populate([
-        {
-          path: "leaveApplication",
-          match: { leaveType: "Permission Leave", fromDate: { $gte: monthStart, $lte: monthEnd } },
-        },
-        {
-          path: "company",
-          select: "logo CompanyName"
-        },
-        {
-          path: "team",
-          populate: [
-            { path: "lead", select: "FirstName LastName Email fcmToken" },
-            { path: "head", select: "FirstName LastName Email fcmToken" },
-            { path: "manager", select: "FirstName LastName Email fcmToken" },
-            { path: "admin", select: "FirstName LastName Email fcmToken" },
-            { path: "hr", select: "FirstName LastName Email fcmToken" }
-          ],
-        },
+        { path: "leaveApplication", match: { leaveType: "Permission Leave", fromDate: { $gte: new Date(fromDateObj.getFullYear(), fromDateObj.getMonth(), 1), $lte: new Date(fromDateObj.getFullYear(), fromDateObj.getMonth() + 1, 0) } } },
+        { path: "company", select: "logo CompanyName" },
+        { path: "team", populate: ["lead", "head", "manager", "admin", "hr"].map(role => ({ path: role, select: "FirstName LastName Email fcmToken" })) }
       ]);
+    if (!emp) return res.status(400).json({ error: `No employee found for ID ${empId}` });
 
-    if (!emp) {
-      return res.status(400).json({ error: `No employee found for ID ${empId}` });
-    }
-
-    // 6. Permission Leave logic
-    if (leaveType?.toLowerCase().includes("permission")) {
-      const fromDateValue = new Date(fromDate).getTime();
-      const toDateTime = new Date(toDate).getTime();
-      const durationInMinutes = (toDateTime - fromDateValue) / 60000;
+    // 5. Permission Leave checks
+    if (leaveType.toLowerCase().includes("permission")) {
+      const durationInMinutes = (new Date(toDate) - new Date(fromDate)) / 60000;
       if (durationInMinutes > (emp.permissionHour || 120)) {
         return res.status(400).json({ error: `Permission is only allowed for less than ${emp.permissionHour || "2"} hours.` });
       }
-
       if ((emp.leaveApplication?.length || 0) >= (emp.monthlyPermissions || 2)) {
         return res.status(400).json({ error: `You have already used ${emp.monthlyPermissions} permissions this month.` });
       }
     }
 
-    // 7. Leave Balance Check
+    // 6. Leave balance check
     const approvedLeaves = await LeaveApplication.find({
       leaveType: new RegExp(`^${leaveType}`, "i"),
       status: "approved",
       employee: personId,
     });
-
     const takenLeaveCount = approvedLeaves.reduce((acc, leave) => acc + getDayDifference(leave), 0);
-    const leaveBalance = emp.typesOfLeaveRemainingDays?.[leaveType] || 0;
-
-    if (!leaveType.toLowerCase().includes("permission") && leaveBalance < takenLeaveCount) {
+    if (!leaveType.toLowerCase().includes("permission") && (emp.typesOfLeaveRemainingDays?.[leaveType] || 0) < takenLeaveCount) {
       return res.status(400).json({ error: `${leaveType} limit has been reached.` });
     }
 
-    // 9. Task Conflict
-    const deadlineTasks = await Task.find({
-      assignedTo: personId,
-      to: { $gte: fromDate, $lte: toDate },
+    // 7. Task conflict
+    const deadlineTasks = await Task.find({ assignedTo: personId, to: { $gte: fromDate, $lte: toDate } });
+
+    // 8. Setup approvers
+    const approvers = {};
+    ["lead", "head", "manager", "hr"].forEach(role => {
+      if (emp.team?.[role]) approvers[role] = applyFor && applyFor !== "undefined" ? "approved" : "pending";
     });
 
-    // 10. Approvers setup
-    const approvers = {};
-    const teamRoles = ["lead", "head", "manager", "hr", "admin"];
-
-    for (const role of teamRoles) {
-      if (emp?.team?.[role] && role !== "admin") {
-        approvers[role] = ![undefined, "undefined"].includes(applyFor) ? "approved" : "pending";
-      }
-    }
-
-    // 11. Create leave request
     const leaveRequest = {
-      leaveType,
-      fromDate,
-      toDate,
-      periodOfLeave,
-      reasonForLeave,
-      prescription,
-      approvers,
-      status: ![undefined, "undefined"].includes(applyFor) ? "approved" : "pending",
+      leaveType, fromDate, toDate, periodOfLeave, reasonForLeave,
+      prescription, approvers,
+      status: applyFor && applyFor !== "undefined" ? "approved" : "pending",
       coverBy: coverByValue,
       employee: personId,
       appliedBy: empId,
     };
 
-    // Deduct leave days if approved
-    if (![undefined, "undefined"].includes(applyFor) && !leaveType.toLowerCase().includes("permission")) {
-      const leaveDaysTaken = Math.max(getDayDifference(leaveRequest), 1);
-      emp.typesOfLeaveRemainingDays[leaveType] -= leaveDaysTaken;
+    // Deduct days if approved and not permission
+    if (applyFor && !leaveType.toLowerCase().includes("permission")) {
+      const days = Math.max(getDayDifference(leaveRequest), 1);
+      emp.typesOfLeaveRemainingDays[leaveType] -= days;
       await emp.save();
     }
-
-    // 12. Validate and Save
-    const { error } = LeaveApplicationValidation.validate(leaveRequest);
-    if (error) return res.status(400).json({ error: error.message });
 
     const newLeaveApp = await LeaveApplication.create(leaveRequest);
     emp.leaveApplication.push(newLeaveApp._id);
     await emp.save();
 
-    // 13. Send Notification (only for self-application)
-    if ([undefined, "undefined"].includes(applyFor)) {
+    // 9. Notify approvers (self-apply only)
+    const notify = [];
+    if (!applyFor || applyFor === "undefined") {
       ["lead", "head", "manager", "hr", "admin"].forEach(role => {
-        const teamMember = emp.team?.[role];
-        if (Array.isArray(teamMember)) {
-          teamMember.forEach(m => m?.Email && mailList.push(m.Email));
-          teamMember.forEach(m => m?.fcmToken && fcmList.push(m.fcmToken));
-        } else if (teamMember?.Email) {
-          mailList.push(teamMember.Email);
-          fcmList.push(teamMember.fcmToken);
-        }
+        const members = emp.team?.[role];
+        const recipients = Array.isArray(members) ? members : [members];
+        recipients.forEach(async member => {
+          if (!member?.Email) return;
+          const notification = {
+            company: emp.company._id,
+            title: "Leave apply Notification",
+            message: `${emp.FirstName} ${emp.LastName} has applied for leave from ${formatDate(fromDate)} to ${formatDate(toDate)}.`,
+          };
+          sendMail({
+            From: emp.Email,
+            To: member.Email,
+            Subject: "Leave Application Notification",
+            HtmlBody: generateLeaveEmail(emp, fromDate, toDate, reasonForLeave, leaveType, deadlineTasks),
+          });
+          const fullEmp = await Employee.findById(member._id, "notifications");
+          fullEmp.notifications.push(notification);
+          await fullEmp.save();
+          await sendPushNotification({ token: member.fcmToken, title: notification.title, body: notification.message, company: emp.company });
+          notify.push(member.Email);
+        });
       });
-
-      const message = `${emp.FirstName} ${emp.LastName} has applied for leave from ${formatDate(fromDate)} to ${formatDate(toDate)}.`;
-      const title = "Leave apply Notification"
-      const teamData = emp.team || {};
-
-      // const leaveApplyTemp = await EmailTemplate.findOne({ title: "Apply Leave" })
-
-      for (const [key, members] of Object.entries(teamData)) {
-        // console.log("check-1");
-        if (Array.isArray(members) && key !== "employees") {
-          // console.log("check 2");
-          for (const member of members) {
-            // console.log("chech 3");
-            if (member) {
-              const notification = {
-                company: emp.company._id,
-                title,
-                message,
-              };
-              // send email
-              sendMail({
-                From: emp.Email,
-                To: member.Email,
-                Subject: "Leave Application Notification",
-                HtmlBody: generateLeaveEmail(emp, fromDate, toDate, reasonForLeave, leaveType, deadlineTasks),
-              });
-              const fullEmp = await Employee.findById(member._id, "notifications");
-              fullEmp.notifications.push(notification);
-              await fullEmp.save();
-              await sendPushNotification({
-                token: member.fcmToken,
-                title: notification.title,
-                body: message,
-              });
-            }
-          }
-        }
-      }
     }
 
-    return res.status(201).json({ message: "Leave request submitted successfully.", newLeaveApp, notifiedMembers: mailList });
-
+    return res.status(201).json({ message: "Leave request submitted successfully.", newLeaveApp, notifiedMembers: notify });
   } catch (err) {
     console.error(err);
     return res.status(500).json({ error: err.message });
@@ -1123,7 +1026,6 @@ leaveApp.put('/:id', verifyAdminHREmployeeManagerNetwork, async (req, res) => {
           if (fullEmp) {
             fullEmp.notifications.push({ company: emp.company._id, title: Subject, message });
             await fullEmp.save();
-            console.log(member);
 
             await sendPushNotification({
               token: member.fcmToken,
