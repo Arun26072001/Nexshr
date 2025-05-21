@@ -30,6 +30,7 @@ export default function Navbar({ handleSideBar }) {
     const [isRemove, setIsRemove] = useState([]);
     const [latitude, setLatitude] = useState("");
     const [longitude, setLongitude] = useState("");
+    const [isLoading, setIsLoading] =  useState(false);
     const [workLocation, setWorklocation] = useState(localStorage.getItem("workLocation") || "");
     const worklocationType = ["WFH", "WFO"].map((item) => ({ label: item, value: item }))
 
@@ -111,6 +112,7 @@ export default function Navbar({ handleSideBar }) {
 
     async function fetchNotifications() {
         try {
+            setIsLoading(true);
             const res = await axios.get(`${url}/api/employee/notifications/${data._id}`, {
                 headers: {
                     Authorization: data.token || ""
@@ -121,12 +123,12 @@ export default function Navbar({ handleSideBar }) {
                 totalRemovables.push(false);
             });
             setIsRemove(totalRemovables);
-            console.log("notifications", res.data);
-            
             setNotifications(res.data);
         } catch (error) {
             console.log("error in fetch notifications", error);
 
+        }finally{
+            setIsLoading(false);
         }
     }
 
@@ -193,60 +195,28 @@ export default function Navbar({ handleSideBar }) {
         }
     }
 
-    // Call this on tab/browser close or refresh (you can add event listener if needed)
-
-    // async function removeMessage(value, index) {
-    //     try {
-    //         setIsRemove((prev) => {
-    //             const updated = [...prev];
-    //             updated[index] = true;
-    //             return updated;
-    //         });
-
-    //         const updatedNotifications = notifications.map((item) =>
-    //             item.title === value.title
-    //                 ? { ...item, isViewed: true }
-    //                 : item
-    //         );
-
-    //         setNotifications(updatedNotifications);
-
-    //         setTimeout(async () => {
-    //             try {
-    //                 await updateEmpNotifications(updatedNotifications); // Await if it's async
-    //                 handleUpdateAnnouncements();
-    //             } catch (err) {
-    //                 console.log("Error updating notifications:", err);
-    //             }
-    //         }, 300);
-    //     } catch (error) {
-    //         console.log("Error removing message:", error);
-    //     }
-    // }
-    async function removeMessage(value, index) {
-    try {
+    async function removeMessage(value, itemIndex) {
+        try {
         setIsRemove((prev) => {
             const updated = [...prev];
-            updated[index] = true;
+            updated[itemIndex] = true;
             return updated;
         });
-        const updatedNotifications = notifications.map((item) =>
-            item._id === value._id ? { ...item, isViewed: true } : item
+        const updatedNotifications = notifications.map((item, index) =>
+            index === itemIndex
         );
         setNotifications(updatedNotifications);
 
-        setTimeout(async () => {
-            try {
-                // Update only this notification on the backend
-                await updateEmpNotifications(value._id); // Pass only the ID of the notification to update
+        // setTimeout(async () => {
+        //     try {
+        //         // Update only this notification on the backend
+        //         await updateEmpNotifications([value]); // Pass only the ID of the notification to update
                 
-                // Optional: If you need to refresh the list, make sure the API only returns non-viewed notifications
-                // handleUpdateAnnouncements(); // This might be the culprit - remove or modify it
-            } catch (err) {
-                console.log("Error updating notifications:", err);
-                setNotifications(notifications);
-            }
-        }, 300);
+        //     } catch (err) {
+        //         console.log("Error updating notifications:", err);
+        //         setNotifications(notifications);
+        //     }
+        // }, 300);
     } catch (error) {
         console.log("Error removing message:", error);
     }
@@ -450,7 +420,7 @@ export default function Navbar({ handleSideBar }) {
                             {
                                 notifications.length > 0 &&
                                 <span className='messageCount'>
-                                    {notifications?.length}
+                                    {notifications.length <= 9 ? notifications.length : "9+"}
                                 </span>
                             }
                         </span>
@@ -597,3 +567,33 @@ export default function Navbar({ handleSideBar }) {
     //     }
     
     // }, [hamlet])
+        // Call this on tab/browser close or refresh (you can add event listener if needed)
+    
+        // async function removeMessage(value, index) {
+        //     try {
+        //         setIsRemove((prev) => {
+        //             const updated = [...prev];
+        //             updated[index] = true;
+        //             return updated;
+        //         });
+    
+        //         const updatedNotifications = notifications.map((item) =>
+        //             item.title === value.title
+        //                 ? { ...item, isViewed: true }
+        //                 : item
+        //         );
+    
+        //         setNotifications(updatedNotifications);
+    
+        //         setTimeout(async () => {
+        //             try {
+        //                 await updateEmpNotifications(updatedNotifications); // Await if it's async
+        //                 handleUpdateAnnouncements();
+        //             } catch (err) {
+        //                 console.log("Error updating notifications:", err);
+        //             }
+        //         }, 300);
+        //     } catch (error) {
+        //         console.log("Error removing message:", error);
+        //     }
+        // }

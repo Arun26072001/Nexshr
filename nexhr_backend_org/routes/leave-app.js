@@ -398,14 +398,14 @@ leaveApp.get("/unpaid", verifyAdminHR, async (req, res) => {
       ? [new Date(daterangeValue[0]), new Date(daterangeValue[1])]
       : [new Date(now.getFullYear(), now.getMonth(), 1), new Date(now.getFullYear(), now.getMonth() + 1, 0)];
     // fetching unpaid leave applications
-    const unpaidRequests = await LeaveApplication.find({
-      leavetype: "Unpaid Leave (LWP)",
+    const pendingRequests = await LeaveApplication.find({
       fromDate: { $lte: endOfMonth },
       toDate: { $gte: startOfMonth },
       status: "pending"
     }).populate("employee", "FirstName LastName profile").exec();
+    const unpaidRequests = pendingRequests.filter((leave) => leave?.leaveType?.toLowerCase().includes("unpaid"))
     const arrangeLeave = unpaidRequests.sort((a, b) => new Date(b.fromDate) - new Date(a.fromDate));
-    return res.send(arrangeLeave)
+    return res.send(arrangeLeave);
   } catch (error) {
     console.log("error in fetch unpaid leave", error);
     return res.status(500).send({ error: error.message })
@@ -874,6 +874,7 @@ leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("pre
     const leaveBalance = emp.typesOfLeaveRemainingDays?.[leaveType] || 0;
 
     if (!leaveType.toLowerCase().includes("permission") && leaveBalance < takenLeaveCount) {
+      console.log(leaveBalance, takenLeaveCount);
       return res.status(400).json({ error: `${leaveType} limit has been reached.` });
     }
 
@@ -957,8 +958,6 @@ leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("pre
       const teamData = emp.team || {};
 
       const leaveApplyTemp = await EmailTemplate.findOne({ title: "Apply Leave" })
-      console.log("email Temp", leaveApplyTemp);
-
 
       for (const [key, members] of Object.entries(teamData)) {
         if (Array.isArray(members) && key !== "employees") {
