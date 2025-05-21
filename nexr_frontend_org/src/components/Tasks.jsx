@@ -28,9 +28,7 @@ const Tasks = () => {
   const navigate = useNavigate();
   const url = process.env.REACT_APP_API_URL;
   const [employees, setEmployees] = useState([]);
-  const { data, whoIs,
-    // socket
-  } = useContext(EssentialValues);
+  const { data, whoIs} = useContext(EssentialValues);
   const { isAddTask, setIsAddTask, handleAddTask, selectedProject } = useContext(TimerStates);
   const { isTeamLead, isTeamHead } = jwtDecode(data.token)
   const [taskObj, setTaskObj] = useState({});

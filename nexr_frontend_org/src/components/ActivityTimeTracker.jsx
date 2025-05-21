@@ -152,13 +152,6 @@ const ActivityTimeTracker = () => {
         stopTimer();
     }
 
-    // useEffect(() => {
-    //     socket.connect();
-    //     socket.on("Ask_reason_for_late", (data) => {
-    //         changeViewReasonForTaketime()
-    //     })
-    // }, [socket])
-
     // Manage timer state based on startingTime and endingTime
     useEffect(() => {
         const startLength = workTimeTracker?.[timeOption]?.startingTime?.length || 0;
@@ -225,7 +218,7 @@ const ActivityTimeTracker = () => {
                             Add
                         </Button>
                     </Modal.Footer>
-                </Modal >
+                </Modal>
             }
             <div className="clockins">
                 <span className='payslipTitle'>Dashboard</span>
