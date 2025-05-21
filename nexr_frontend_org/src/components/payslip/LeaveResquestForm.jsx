@@ -30,7 +30,6 @@ const LeaveRequestForm = ({ type }) => {
   const [employees, setEmployees] = useState([]);
   const [isWorkingApi, setIsWorkingApi] = useState(false);
   const now = new Date();
-  const [touchedObj, setTouchedObj] = useState({});
   const [leaveRequestObj, setLeaveRequestObj] = useState({});
 
   let leaveObjValidation = Yup.object().shape({
