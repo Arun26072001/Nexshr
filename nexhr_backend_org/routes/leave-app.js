@@ -832,32 +832,24 @@ leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("pre
       return res.status(400).json({ error: "Leave request already exists for the given date range." });
     }
 
-    // 3. Sick/Medical leave must be for today or tomorrow
-    if (["Sick Leave", "Medical Leave"].includes(leaveType)) {
-      const formattedFrom = fromDateObj.toDateString();
-      if (![today.toDateString(), tomorrow.toDateString()].includes(formattedFrom)) {
-        return res.status(400).json({ error: "Sick leave is only applicable for today or tomorrow." });
+    if ([undefined, "undefined"].includes(applyFor)) {
+      // 3. Sick/Medical leave must be for today or tomorrow
+      if (["Sick Leave", "Medical Leave"].includes(leaveType)) {
+        const formattedFrom = fromDateObj.toDateString();
+        if (![today.toDateString(), tomorrow.toDateString()].includes(formattedFrom)) {
+          return res.status(400).json({ error: "Sick leave is only applicable for today or tomorrow." });
+        }
       }
-    }
 
-    // 4. Annual/Casual leave can't be for today
-    if (["Annual Leave", "Casual Leave"].includes(leaveType)) {
-      if ([3, 5].includes(accountLevel) && fromDateObj <= today) {
-        return res.status(400).json({
-          error: `${leaveType} is not allowed for same day or past dates for your role.`
-        });
+      // 4. Annual/Casual leave can't be for today
+      if (["Annual Leave", "Casual Leave"].includes(leaveType)) {
+        if ([3, 5].includes(accountLevel) && fromDateObj <= today) {
+          return res.status(400).json({
+            error: `${leaveType} is not allowed for same day or past dates for your role.`
+          });
+        }
       }
     }
-    // if (["Annual Leave", "Casual Leave"].includes(leaveType)) {
-    //       if (fromDateObj.toDateString() === today.toDateString()) {
-    //         return res.status(400).json({ error: `${leaveType} is not applicable for the same day.` });
-    //       }
-    //     }
-    // if (["Annual Leave", "Casual Leave"].includes(leaveType)) {
-    //   if (req.accountLevel === 3 && fromDateObj.toDateString() === today.toDateString()) {
-    //     return res.status(400).json({ error: `${leaveType} is not applicable for the same day.` });
-    //   }
-    // }
 
 
     // 5. Fetch employee info
@@ -895,7 +887,6 @@ leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("pre
       const fromDateValue = new Date(fromDate).getTime();
       const toDateTime = new Date(toDate).getTime();
       const durationInMinutes = (toDateTime - fromDateValue) / 60000;
-      console.log("from", fromDateValue, "to", toDateTime, durationInMinutes);
       if (durationInMinutes > (emp.permissionHour || 120)) {
         return res.status(400).json({ error: `Permission is only allowed for less than ${emp.permissionHour || "2"} hours.` });
       }
