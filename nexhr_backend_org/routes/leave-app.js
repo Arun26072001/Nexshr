@@ -13,7 +13,7 @@ const { Task } = require('../models/TaskModel');
 const { sendPushNotification } = require('../auth/PushNotification');
 
 // Helper function to generate leave request email content
-function generateLeaveEmail(empData, fromDateValue, toDateValue, reasonForLeave, leaveType, accountLevel, deadLineTask = []) {
+function generateLeaveEmail(empData, fromDateValue, toDateValue, reasonForLeave, leaveType, deadLineTask = []) {
   const fromDate = new Date(fromDateValue);
   const toDate = new Date(toDateValue);
 
@@ -26,7 +26,7 @@ function generateLeaveEmail(empData, fromDateValue, toDateValue, reasonForLeave,
       ${deadLineTask
       .map(
         (task) =>
-          `<p><b>${task.title}</b> (${task.status}): (${task.from} - ${task.to})</p>`
+          `<p><b>${task.title}</b> (${task.status}): (${formatDate(task.from)} - ${formatDate(task.to)})</p>`
       )
       .join("")}
     `

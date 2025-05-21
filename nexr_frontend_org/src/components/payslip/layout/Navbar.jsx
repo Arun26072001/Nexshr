@@ -183,12 +183,8 @@ export default function Navbar({ handleSideBar }) {
                     return updated;
                 })
             })
-            const viewedNotifications = notifications.map((item) => ({
-                ...item,
-                isViewed: true,
-            }));
 
-            await updateEmpNotifications(viewedNotifications); // Await if it's async
+            await updateEmpNotifications(notifications); // Await if it's async
         } catch (error) {
             console.log("Error clearing messages:", error);
         }
@@ -201,11 +197,6 @@ export default function Navbar({ handleSideBar }) {
                 updated[itemIndex] = true;
                 return updated;
             });
-            // const updatedNotifications = notifications.map((item, index) =>
-            //     index === itemIndex
-            // );
-            // console.log(notifications, updatedNotifications);
-            // setNotifications(updatedNotifications);
 
             setTimeout(async () => {
                 try {
