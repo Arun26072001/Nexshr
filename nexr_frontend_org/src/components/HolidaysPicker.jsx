@@ -227,7 +227,7 @@ function Holiday() {
                     <Tabs.Tab eventKey="1" title="TableView">
                         <>
                             <div className="leaveDateParent row px-2">
-                                <p className="payslipTitle col-6">Leave</p>
+                                <p className="payslipTitle col-6">Holidays</p>
                                 <div className="col-6 d-flex justify-content-end">
                                     <button className="button mx-1" onClick={() => toggleHolidayMode("Add")}>Add Holidays</button>
                                 </div>
