@@ -119,8 +119,10 @@ const LeaveRequestForm = ({ type }) => {
       if (error === "") {
         const formData = new FormData();
         formData.append("leaveType", formik.values.leaveType);
-        formData.append("fromDate", new Date(formik.values.fromDate).toLocaleString());
-        formData.append("toDate", new Date(formik.values.toDate).toLocaleString());
+        // formData.append("fromDate", new Date(formik.values.fromDate).toLocaleString());
+        // formData.append("toDate", new Date(formik.values.toDate).toLocaleString());
+        formData.append("fromDate", new Date(formik.values.fromDate).toISOString());
+        formData.append("toDate", new Date(formik.values.toDate).toISOString());
         formData.append("periodOfLeave", formik.values.periodOfLeave || formik?.values?.leaveType?.toLowerCase()?.includes("permission") ? "half day" : "full day");
         formData.append("reasonForLeave", formik.values.reasonForLeave);
         formData.append("prescription", prescriptionFile); // Assuming `file` is the file object
@@ -311,7 +313,7 @@ const LeaveRequestForm = ({ type }) => {
     gettingEmps();
   }, []);
 
-  function handleTouched(value, name){
+  function handleTouched(value, name) {
     console.log(name, value);
   }
 
@@ -360,7 +362,7 @@ const LeaveRequestForm = ({ type }) => {
                 className={`selectInput ${formik.touched.leaveType && formik.errors.leaveType ? "error" : ""}`}
                 onChange={(e) => type === "view" ? null : handleLeaveType(e)}
                 value={formik.values.leaveType}
-                onBlur={(e) =>handleTouched(e.target.value, "leaveType")} // <-- required
+                onBlur={(e) => handleTouched(e.target.value, "leaveType")} // <-- required
                 disabled={type === "view" ? true : false}
               >
                 <option>Select Leave type</option>
