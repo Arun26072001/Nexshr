@@ -854,6 +854,7 @@ leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("pre
     // 6. Permission Leave logic
     if (leaveType?.toLowerCase().includes("permission")) {
       const durationInMinutes = (toDateObj - fromDateObj) / 60000;
+      console.log(durationInMinutes, emp.permissionHour, 120);
       if (durationInMinutes > (emp.permissionHour || 120)) {
         return res.status(400).json({ error: `Permission is only allowed for less than ${emp.permissionHour || "2"} hours.` });
       }
