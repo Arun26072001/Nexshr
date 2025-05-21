@@ -54,6 +54,7 @@ router.get("/notifications/:id", verifyAdminHREmployeeManagerNetwork, async (req
 
 router.put("/notifications/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
   try {
+    console.log(req.body);
     const emp = await Employee.findById(req.params.id, "notifications").exec();
     if (!emp) return res.status(404).send({ error: "Employee not found" });
 
