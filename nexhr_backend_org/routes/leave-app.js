@@ -853,6 +853,7 @@ leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("pre
 
     // 6. Permission Leave logic
     if (leaveType?.toLowerCase().includes("permission")) {
+      console.log("to", toDateObj, "from", fromDateObj);
       const durationInMinutes = (toDateObj - fromDateObj) / 60000;
       console.log(durationInMinutes, emp.permissionHour, 120);
       if (durationInMinutes > (emp.permissionHour || 120)) {
