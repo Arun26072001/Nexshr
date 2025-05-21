@@ -30,12 +30,13 @@ export default function WFHRequestForm({ type }) {
     function handleInputChange(name, value) {
         setwfhRequestObj(prev => ({
             ...prev,
-            [name]: value
+            [name]: value === "<p><br></p>" ? "" : value
         }));
     }
-
     function validateForm() {
         const newErrors = {};
+        const strippedReason = wfhRequestObj.reason.replace(/<[^>]*>?/gm, '').trim();
+        if (!strippedReason) newErrors.reason = "Reason is required.";
         if (!wfhRequestObj.fromDate) {
             newErrors.fromDate = "Start date is required.";
         } else if (wfhRequestObj.fromDate) {
@@ -59,7 +60,7 @@ export default function WFHRequestForm({ type }) {
 
     async function handleSubmit(e) {
         e.preventDefault();
-        
+
         const updatedRequest = {
             ...wfhRequestObj,
             numOfDays: getDayDifference(wfhRequestObj)
