@@ -93,26 +93,49 @@ const LeaveRequestForm = ({ type }) => {
         function (value) {
           const { fromDate, leaveType } = this.parent;
           if (value && fromDate && leaveType === "Permission Leave") {
-
-            const fromTime = new Date(fromDate).getTime(); // Ensure timestamp conversion
-            const toTime = new Date(value).getTime(); // Ensure timestamp conversion
-
-            const twoHours = 2 * 60 * 60 * 1000; // ✅ Convert 2 hours to milliseconds
-            return toTime - fromTime <= twoHours; // ✅ Now properly checks for 2 hours
+            const fromTime = new Date(fromDate).getTime();
+            const toTime = new Date(value).getTime();
+            const twoHours = 2 * 60 * 60 * 1000;
+            return toTime > fromTime && (toTime - fromTime <= twoHours);
           }
-          return true; // Allow validation to pass for other leave types
+          return true;
         }
       )
+
       .required("ToDate is required"),
-    reasonForLeave: Yup.string().required("Reason for Leave is required"),
-    periodOfLeave: Yup.string().notRequired(),
+    leaveType: Yup.string().required("Leave type is required"),
+    fromDate: Yup.date().required("From date is required"),
+    toDate: Yup.date().required("To date is required"),
+    periodOfLeave: Yup.string(),  // optional
+   reasonForLeave: Yup.string()
+    .test(
+      "is-not-empty",
+      "Reason for Leave is required",
+      (value) => {
+        if (!value) return false;
+        const stripped = value.replace(/<[^>]*>/g, "").trim();
+        return stripped.length > 0;
+      }
+    )
+    .required("Reason for Leave is required"),
+
     prescription: Yup.string().notRequired(),
     coverBy: Yup.string().notRequired(),
     applyFor: Yup.string().notRequired()
   });
 
   const formik = useFormik({
-    initialValues: leaveRequestObj,
+    initialValues: {
+      leaveType: leaveRequestObj.leaveType || "",
+      fromDate: leaveRequestObj.fromDate || "",
+      toDate: leaveRequestObj.toDate || "",
+      periodOfLeave: leaveRequestObj.periodOfLeave || "",
+      reasonForLeave: leaveRequestObj.reasonForLeave || "",
+      prescription: leaveRequestObj.prescription || "",
+      coverBy: leaveRequestObj.coverBy || "",
+      applyFor: leaveRequestObj.applyFor || "",
+    },
+    enableReinitialize: true, // ✅ allows reinitialization when leaveRequestObj updates
     validationSchema: leaveObjValidation,
     validateOnChange: true,
     onSubmit: async (values, { resetForm }) => {
@@ -124,8 +147,14 @@ const LeaveRequestForm = ({ type }) => {
         formData.append("periodOfLeave", formik.values.periodOfLeave || formik?.values?.leaveType?.toLowerCase()?.includes("permission") ? "half day" : "full day");
         formData.append("reasonForLeave", formik.values.reasonForLeave);
         formData.append("prescription", prescriptionFile); // Assuming `file` is the file object
-        formData.append("coverBy", formik.values.coverBy);
-        formData.append("applyFor", formik.values.applyFor);
+        if (formik.values.coverBy) {
+          formData.append("coverBy", formik.values.coverBy);
+        }
+
+        if (formik.values.applyFor) {
+          formData.append("applyFor", formik.values.applyFor);
+        }
+
 
         if (leaveRequestObj._id) {
           updateLeave(values, resetForm)
@@ -160,7 +189,10 @@ const LeaveRequestForm = ({ type }) => {
   async function updateLeave(formData, resetForm) {
     const leaveData = {
       ...formData,
-      employee: _id
+      employee: _id,
+
+      coverBy: leaveRequestObj.coverBy || null,
+      applyFor: leaveRequestObj.applyFor || null,
     }
 
     try {
@@ -263,7 +295,8 @@ const LeaveRequestForm = ({ type }) => {
   }
 
   function handleChange(value) {
-    formik.setFieldValue("reasonForLeave", value)
+    formik.setFieldValue("reasonForLeave", value);
+    formik.setFieldTouched("reasonForLeave", true, false);
   }
 
   async function gettingEmps() {
@@ -279,11 +312,12 @@ const LeaveRequestForm = ({ type }) => {
   async function fetchHolidays() {
     try {
       const res = await getHoliday();
-      setExcludeDates(res.map((data) => new Date(data)))
+      setExcludeDates(res.map(holiday => new Date(holiday.date)));
     } catch (error) {
-      toast.error(error)
+      console.error("Failed to fetch holidays", error);
     }
   }
+
   useEffect(() => {
     gettingLeaveRequests();
 
@@ -293,23 +327,13 @@ const LeaveRequestForm = ({ type }) => {
   }, [_id, formik.values.applyFor]);
 
   useEffect(() => {
-    if (formik.values.fromDate && formik.values.toDate) {
-      let fromDateTime = new Date(formik.values.fromDate).getTime();
-      let toDateTime = new Date(formik.values.toDate).getTime();
-      if (fromDateTime > toDateTime) {
-        return setError("Please select next start date");
-      } else if (new Date(formik.values.fromDate).getTime() === new Date(formik.values.toDate).getTime()) {
-        return setIsShowPeriodOfLeave(true);
-      } else {
-        setIsShowPeriodOfLeave(false)
-        setError("");
-      }
+    const leaveType = formik.values.leaveType?.toLowerCase();
+    if (leaveType === "permission leave") {
+      setIsShowPeriodOfLeave(true);
+    } else {
+      setIsShowPeriodOfLeave(false);
     }
-  }, [formik.values.fromDate, formik.values.toDate]);
-  useEffect(() => {
-    fetchHolidays();
-    gettingEmps();
-  }, []);
+  }, [formik.values.leaveType]);
 
   function handleTouched(value, name) {
     console.log(name, value);
@@ -363,17 +387,20 @@ const LeaveRequestForm = ({ type }) => {
                 onBlur={(e) => handleTouched(e.target.value, "leaveType")} // <-- required
                 disabled={type === "view" ? true : false}
               >
-                <option>Select Leave type</option>
+                <option value="">Select Leave Type</option>
                 {typeOfLeave?.length > 0 &&
-                  typeOfLeave?.map((data) => {
-                    return <option value={`${data}`}>{data[0]?.toUpperCase() + data?.slice(1)}</option>;
-                  })
-                }
+                  typeOfLeave.map((data, index) => (
+                    <option key={index} value={data}>
+                      {data[0]?.toUpperCase() + data.slice(1)}
+                    </option>
+                  ))}
               </select>
-              {formik.touched.leaveType && formik.errors.leaveType ? (
+
+              {formik.touched.leaveType && formik.errors.leaveType && (
                 <div className="text-center text-danger">{formik.errors.leaveType}</div>
-              ) : null}
+              )}
             </div>
+
 
             {/* Date Picker */}
             <div className="row my-3">

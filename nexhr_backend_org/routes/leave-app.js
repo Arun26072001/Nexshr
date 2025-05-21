@@ -14,7 +14,7 @@ const { sendPushNotification } = require('../auth/PushNotification');
 const { EmailTemplate } = require('../models/EmailTemplateModel');
 
 // Helper function to generate leave request email content
-function generateLeaveEmail(empData, fromDateValue, toDateValue, reasonForLeave, leaveType, deadLineTask = []) {
+function generateLeaveEmail(empData, fromDateValue, toDateValue, reasonForLeave, leaveType, accountLevel, deadLineTask = []) {
   const fromDate = new Date(fromDateValue);
   const toDate = new Date(toDateValue);
 
@@ -467,6 +467,7 @@ leaveApp.get("/team/:id", verifyTeamHigherAuthority, async (req, res) => {
       const from = new Date(l.fromDate).setHours(0, 0, 0, 0);
       const today = new Date().setHours(0, 0, 0, 0);
       return from === today;
+      
     });
     const takenLeave = approvedLeave.filter(l => new Date(l.fromDate).getTime() < nowTime);
 
@@ -770,14 +771,39 @@ leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("pre
       reasonForLeave,
       coverBy,
       applyFor,
+      role, 
     } = req.body;
+
+const today = new Date();
+today.setHours(0, 0, 0, 0);
+
+const fromDateObj = new Date(fromDate);
+fromDateObj.setHours(0, 0, 0, 0);
+
+// Determine account level
+let accountLevel = 3;
+if (role) {
+  const roleData = await RoleAndPermission.findById(role, "RoleName");
+  const roleName = roleData?.RoleName?.toLowerCase();
+  accountLevel =
+    roleName === "admin"
+      ? 1
+      : roleName === "hr"
+        ? 2
+        : roleName === "manager"
+          ? 4
+          : roleName === "network admin"
+            ? 5
+            : 3;
+}
+
 
     const prescription = req.file?.filename || null;
     const coverByValue = [undefined, "undefined"].includes(coverBy) ? null : coverBy;
     const personId = [undefined, "undefined"].includes(applyFor) ? empId : applyFor;
-    const fromDateObj = new Date(fromDate);
+    // const fromDateObj = new Date(fromDate);
     const toDateObj = new Date(toDate);
-    const today = new Date();
+    // const today = new Date();
     const tomorrow = new Date(today);
     tomorrow.setDate(today.getDate() + 1);
     let mailList = [];
@@ -815,11 +841,24 @@ leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("pre
     }
 
     // 4. Annual/Casual leave can't be for today
-    if (["Annual Leave", "Casual Leave"].includes(leaveType)) {
-      if (fromDateObj.toDateString() === today.toDateString()) {
-        return res.status(400).json({ error: `${leaveType} is not applicable for the same day.` });
-      }
-    }
+  if (["Annual Leave", "Casual Leave"].includes(leaveType)) {
+  if ([3, 5].includes(accountLevel) && fromDateObj <= today) {
+    return res.status(400).json({ 
+      error: `${leaveType} is not allowed for same day or past dates for your role.` 
+    });
+  }
+}
+// if (["Annual Leave", "Casual Leave"].includes(leaveType)) {
+//       if (fromDateObj.toDateString() === today.toDateString()) {
+//         return res.status(400).json({ error: `${leaveType} is not applicable for the same day.` });
+//       }
+//     }
+    // if (["Annual Leave", "Casual Leave"].includes(leaveType)) {
+    //   if (req.accountLevel === 3 && fromDateObj.toDateString() === today.toDateString()) {
+    //     return res.status(400).json({ error: `${leaveType} is not applicable for the same day.` });
+    //   }
+    // }
+
 
     // 5. Fetch employee info
     const monthStart = new Date(fromDateObj.getFullYear(), fromDateObj.getMonth(), 1);
