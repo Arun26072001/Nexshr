@@ -467,7 +467,7 @@ leaveApp.get("/team/:id", verifyTeamHigherAuthority, async (req, res) => {
       const from = new Date(l.fromDate).setHours(0, 0, 0, 0);
       const today = new Date().setHours(0, 0, 0, 0);
       return from === today;
-      
+
     });
     const takenLeave = approvedLeave.filter(l => new Date(l.fromDate).getTime() < nowTime);
 
@@ -771,31 +771,31 @@ leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("pre
       reasonForLeave,
       coverBy,
       applyFor,
-      role, 
+      role,
     } = req.body;
 
-const today = new Date();
-today.setHours(0, 0, 0, 0);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
 
-const fromDateObj = new Date(fromDate);
-fromDateObj.setHours(0, 0, 0, 0);
+    const fromDateObj = new Date(fromDate);
+    fromDateObj.setHours(0, 0, 0, 0);
 
-// Determine account level
-let accountLevel = 3;
-if (role) {
-  const roleData = await RoleAndPermission.findById(role, "RoleName");
-  const roleName = roleData?.RoleName?.toLowerCase();
-  accountLevel =
-    roleName === "admin"
-      ? 1
-      : roleName === "hr"
-        ? 2
-        : roleName === "manager"
-          ? 4
-          : roleName === "network admin"
-            ? 5
-            : 3;
-}
+    // Determine account level
+    let accountLevel = 3;
+    if (role) {
+      const roleData = await RoleAndPermission.findById(role, "RoleName");
+      const roleName = roleData?.RoleName?.toLowerCase();
+      accountLevel =
+        roleName === "admin"
+          ? 1
+          : roleName === "hr"
+            ? 2
+            : roleName === "manager"
+              ? 4
+              : roleName === "network admin"
+                ? 5
+                : 3;
+    }
 
 
     const prescription = req.file?.filename || null;
@@ -841,18 +841,18 @@ if (role) {
     }
 
     // 4. Annual/Casual leave can't be for today
-  if (["Annual Leave", "Casual Leave"].includes(leaveType)) {
-  if ([3, 5].includes(accountLevel) && fromDateObj <= today) {
-    return res.status(400).json({ 
-      error: `${leaveType} is not allowed for same day or past dates for your role.` 
-    });
-  }
-}
-// if (["Annual Leave", "Casual Leave"].includes(leaveType)) {
-//       if (fromDateObj.toDateString() === today.toDateString()) {
-//         return res.status(400).json({ error: `${leaveType} is not applicable for the same day.` });
-//       }
-//     }
+    if (["Annual Leave", "Casual Leave"].includes(leaveType)) {
+      if ([3, 5].includes(accountLevel) && fromDateObj <= today) {
+        return res.status(400).json({
+          error: `${leaveType} is not allowed for same day or past dates for your role.`
+        });
+      }
+    }
+    // if (["Annual Leave", "Casual Leave"].includes(leaveType)) {
+    //       if (fromDateObj.toDateString() === today.toDateString()) {
+    //         return res.status(400).json({ error: `${leaveType} is not applicable for the same day.` });
+    //       }
+    //     }
     // if (["Annual Leave", "Casual Leave"].includes(leaveType)) {
     //   if (req.accountLevel === 3 && fromDateObj.toDateString() === today.toDateString()) {
     //     return res.status(400).json({ error: `${leaveType} is not applicable for the same day.` });
@@ -892,8 +892,8 @@ if (role) {
 
     // 6. Permission Leave logic
     if (leaveType?.toLowerCase().includes("permission")) {
-      const fromDateValue = fromDateObj.getTime();
-      const toDateTime = toDateObj.getTime();
+      const fromDateValue = new Date(fromDate).getTime();
+      const toDateTime = new Date(toDate).getTime();
       const durationInMinutes = (toDateTime - fromDateValue) / 60000;
       console.log("from", fromDateValue, "to", toDateTime, durationInMinutes);
       if (durationInMinutes > (emp.permissionHour || 120)) {
