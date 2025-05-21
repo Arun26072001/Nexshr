@@ -107,17 +107,17 @@ const LeaveRequestForm = ({ type }) => {
     fromDate: Yup.date().required("From date is required"),
     toDate: Yup.date().required("To date is required"),
     periodOfLeave: Yup.string(),  // optional
-   reasonForLeave: Yup.string()
-    .test(
-      "is-not-empty",
-      "Reason for Leave is required",
-      (value) => {
-        if (!value) return false;
-        const stripped = value.replace(/<[^>]*>/g, "").trim();
-        return stripped.length > 0;
-      }
-    )
-    .required("Reason for Leave is required"),
+    reasonForLeave: Yup.string()
+      .test(
+        "is-not-empty",
+        "Reason for Leave is required",
+        (value) => {
+          if (!value) return false;
+          const stripped = value.replace(/<[^>]*>/g, "").trim();
+          return stripped.length > 0;
+        }
+      )
+      .required("Reason for Leave is required"),
 
     prescription: Yup.string().notRequired(),
     coverBy: Yup.string().notRequired(),
@@ -335,9 +335,11 @@ const LeaveRequestForm = ({ type }) => {
     }
   }, [formik.values.leaveType]);
 
-  function handleTouched(value, name) {
-    console.log(name, value);
-  }
+  useEffect(() => {
+    if (whoIs !== "emp") {
+      gettingEmps()
+    }
+  }, [whoIs])
 
   return (
     isLoading ? <Loading height="80vh" /> :
@@ -384,7 +386,6 @@ const LeaveRequestForm = ({ type }) => {
                 className={`selectInput ${formik.touched.leaveType && formik.errors.leaveType ? "error" : ""}`}
                 onChange={(e) => type === "view" ? null : handleLeaveType(e)}
                 value={formik.values.leaveType}
-                onBlur={(e) => handleTouched(e.target.value, "leaveType")} // <-- required
                 disabled={type === "view" ? true : false}
               >
                 <option value="">Select Leave Type</option>

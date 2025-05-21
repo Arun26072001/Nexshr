@@ -5,7 +5,7 @@ import { toast } from "react-toastify";
 import DatePanel from "react-multi-date-picker/plugins/date_panel";
 import weekends from "react-multi-date-picker/plugins/highlight_weekends";
 import { Calendar, dayjsLocalizer } from "react-big-calendar";
-import { Button, Input, InputNumber, Modal } from "rsuite";
+import { Button, Input, InputNumber, Modal, Tabs } from "rsuite";
 import dayjs from "dayjs";
 import "react-big-calendar/lib/css/react-big-calendar.css";
 import "./calendar.css";
@@ -91,7 +91,6 @@ function Holiday() {
     const addOrUpdateHolidays = async () => {
         try {
             setIsWorkingApi(true);
-
             const isAllFilled = holidays.every(date => titles[date]);
             if (!isAllFilled) {
                 toast.warn("Please fill titles for all selected dates");
@@ -138,8 +137,9 @@ function Holiday() {
     }, [url, data.token, fetchAllYearHolidays]);
 
     useEffect(() => {
-        if (["admin", "hr"].includes(whoIs)) fetchAllYearHolidays();
-        else fetchHolidays();
+        if (whoIs !== "emp") {
+            fetchAllYearHolidays()
+        } fetchHolidays()
     }, [whoIs, fetchAllYearHolidays, fetchHolidays]);
 
     const eventPropGetter = () => ({
@@ -214,30 +214,38 @@ function Holiday() {
     }
 
     return (
-        <>
-            {isEditable ? renderHolidayForm() :
-                ["admin", "hr"].includes(whoIs) ? (
-                    <>
-                        <div className="leaveDateParent row px-2">
-                            <p className="payslipTitle col-6">Leave</p>
-                            <div className="col-6 d-flex justify-content-end">
-                                <button className="button mx-1" onClick={() => toggleHolidayMode("Add")}>Add Holidays</button>
+        isEditable ? renderHolidayForm() :
+            whoIs === "emp" ? <Calendar
+                localizer={localizer}
+                events={fetchedHolidays}
+                startAccessor="start"
+                endAccessor="end"
+                eventPropGetter={eventPropGetter}
+                style={{ height: 500 }}
+            /> :
+                <Tabs defaultActiveKey="1" appearance="pills">
+                    <Tabs.Tab eventKey="1" title="TableView">
+                        <>
+                            <div className="leaveDateParent row px-2">
+                                <p className="payslipTitle col-6">Leave</p>
+                                <div className="col-6 d-flex justify-content-end">
+                                    <button className="button mx-1" onClick={() => toggleHolidayMode("Add")}>Add Holidays</button>
+                                </div>
                             </div>
-                        </div>
-                        <LeaveTable data={allYearHoliday} deleteData={deleteHoliday} handleChangeData={toggleHolidayMode} />
-                    </>
-                ) : (
-                    <Calendar
-                        localizer={localizer}
-                        events={fetchedHolidays}
-                        startAccessor="start"
-                        endAccessor="end"
-                        eventPropGetter={eventPropGetter}
-                        style={{ height: 500 }}
-                    />
-                )
-            }
-        </>
+                            <LeaveTable data={allYearHoliday} deleteData={deleteHoliday} handleChangeData={toggleHolidayMode} />
+                        </>
+                    </Tabs.Tab>
+                    <Tabs.Tab eventKey="2" title="CalendarView">
+                        <Calendar
+                            localizer={localizer}
+                            events={fetchedHolidays}
+                            startAccessor="start"
+                            endAccessor="end"
+                            eventPropGetter={eventPropGetter}
+                            style={{ height: 500 }}
+                        />
+                    </Tabs.Tab>
+                </Tabs>
     );
 }
 
