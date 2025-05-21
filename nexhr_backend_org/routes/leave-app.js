@@ -855,7 +855,7 @@ leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("pre
     }
 
     // 7. Task conflict
-    const deadlineTasks = await Task.find({ assignedTo: personId, to: { $gte: fromDate, $lte: toDate } });
+    const deadlineTasks = await Task.find({ assignedTo: personId, to: { $gte: fromDateObj, $lte: toDate } });
 
     // 8. Setup approvers
     const approvers = {};
