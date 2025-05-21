@@ -256,7 +256,6 @@ export default function Navbar({ handleSideBar }) {
                     Authorization: data.token || ""
                 }
             })
-            console.log("chech wfh", res.data);
             setWorklocation(res.data ? "WFH" : "WFO")
         } catch (error) {
             console.log("error in check wfh", error);
