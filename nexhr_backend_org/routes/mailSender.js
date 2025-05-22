@@ -45,7 +45,7 @@ const sendMail = async (mailOptions) => {
         const client = new postmark.ServerClient(activeConfig.apiToken);
 
         try {
-            console.log(mailOptions);
+            // console.log(mailOptions);
             await client.sendEmail(mailOptions);
             console.log(`📧 Email sent via Postmark successfully`);
         } catch (error) {

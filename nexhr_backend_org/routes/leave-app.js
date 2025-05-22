@@ -823,12 +823,13 @@ leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("pre
       }
     }
 
+    const higherOfficals = ["lead", "head", "manager", "admin", "hr"];
     // 4. Fetch employee
     const emp = await Employee.findById(personId, "FirstName LastName Email monthlyPermissions permissionHour typesOfLeaveRemainingDays leaveApplication company team")
       .populate([
         { path: "leaveApplication", match: { leaveType: "Permission Leave", fromDate: { $gte: new Date(fromDateObj.getFullYear(), fromDateObj.getMonth(), 1), $lte: new Date(fromDateObj.getFullYear(), fromDateObj.getMonth() + 1, 0) } } },
         { path: "company", select: "logo CompanyName" },
-        { path: "team", populate: ["lead", "head", "manager", "admin", "hr"].map(role => ({ path: role, select: "FirstName LastName Email fcmToken" })) }
+        { path: "team", populate: higherOfficals.map(role => ({ path: role, select: "FirstName LastName Email fcmToken" })) }
       ]);
     if (!emp) return res.status(400).json({ error: `No employee found for ID ${empId}` });
 
@@ -855,7 +856,7 @@ leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("pre
     }
 
     // 7. Task conflict
-    const deadlineTasks = await Task.find({ assignedTo: personId, to: { $gte: fromDate, $lte: toDate } });
+    const deadlineTasks = await Task.find({ assignedTo: personId, to: { $gte: fromDateObj, $lte: toDate } });
 
     // 8. Setup approvers
     const approvers = {};
@@ -886,9 +887,12 @@ leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("pre
     // 9. Notify approvers (self-apply only)
     const notify = [];
     if (!applyFor || applyFor === "undefined") {
-      ["lead", "head", "manager", "hr", "admin"].forEach(role => {
+      console.log("ok", emp.team);
+      higherOfficals.forEach(role => {
         const members = emp.team?.[role];
+        // console.log("members", members);
         const recipients = Array.isArray(members) ? members : [members];
+        // console.log(recipients);
         recipients.forEach(async member => {
           if (!member?.Email) return;
           const notification = {

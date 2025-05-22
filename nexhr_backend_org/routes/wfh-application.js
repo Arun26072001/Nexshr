@@ -140,7 +140,7 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
         // 7. Send notifications and emails
         const message = `${emp.FirstName} ${emp.LastName} has applied for WFH from ${formatDate(fromDate)} to ${formatDate(toDate)}.`;
         const title = "Work From Home Request Notification";
-
+        const notify = [];
         for (const role of teamRoles) {
             const members = emp.team?.[role];
             const recipients = Array.isArray(members) ? members : [members];
@@ -171,10 +171,11 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
                     body: notification.message,
                     company: emp.company,
                 });
+                notify.push(member.Email);
             }
         }
 
-        return res.status(201).json({ message: "WFH request has been sent to higher authority", application });
+        return res.status(201).json({ message: "WFH request has been sent to higher authority", application, notifiedMembers: notify });
     } catch (error) {
         console.error(error);
         return res.status(500).json({ error: error.message });
