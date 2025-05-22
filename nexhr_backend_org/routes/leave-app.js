@@ -887,12 +887,9 @@ leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("pre
     // 9. Notify approvers (self-apply only)
     const notify = [];
     if (!applyFor || applyFor === "undefined") {
-      console.log("ok", emp.team);
       higherOfficals.forEach(role => {
         const members = emp.team?.[role];
-        // console.log("members", members);
         const recipients = Array.isArray(members) ? members : [members];
-        // console.log(recipients);
         recipients.forEach(async member => {
           if (!member?.Email) return;
           const notification = {
@@ -909,7 +906,9 @@ leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("pre
           const fullEmp = await Employee.findById(member._id, "notifications");
           fullEmp.notifications.push(notification);
           await fullEmp.save();
-          await sendPushNotification({ token: member.fcmToken, title: notification.title, body: notification.message, company: emp.company });
+          await sendPushNotification({ token: member.fcmToken, title: notification.title, body: notification.message,
+             company: emp.company
+             });
           notify.push(member.Email);
         });
       });

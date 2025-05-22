@@ -42,7 +42,6 @@ const App = () => {
   const [isViewEarlyLogout, setIsViewEarlyLogout] = useState(JSON.parse(localStorage.getItem("isViewEarlyLogout")) ? true : false);
 
   function handleUpdateAnnouncements() {
-    console.log("callodn");
     setIschangeAnnouncements(!isChangeAnnouncements)
   }
 
@@ -189,7 +188,8 @@ function changeViewReasonForEarlyLogout() {
       console.log("Message received:", payload);
       const company = JSON.parse(payload.data.companyData)
       const type = payload.data.type;
-      triggerToaster({ company, title: payload.notification.title, message: payload.notification.body })
+      triggerToaster({ 
+        company,  title: payload.notification.title, message: payload.notification.body })
       if(type === "late reason"){
         changeViewReasonForTaketime();
       } if(type === "early reason"){
