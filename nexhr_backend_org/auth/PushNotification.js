@@ -5,7 +5,8 @@ const { getCurrentTimeInMinutes, timeToMinutes, getTotalWorkingHourPerDay } = re
 const { Task } = require("../models/TaskModel");
 
 exports.sendPushNotification = async (msgObj) => {
-    const { token, title, body, company } = msgObj;
+    const { token, title, body, company
+    } = msgObj;
     try {
         if (!token) {
             console.log("No FCM tokens found for this user");

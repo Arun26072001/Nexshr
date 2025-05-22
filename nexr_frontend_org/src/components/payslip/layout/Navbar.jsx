@@ -123,17 +123,15 @@ export default function Navbar({ handleSideBar }) {
             });
             setIsRemove(totalRemovables);
             setNotifications(res.data);
+            console.log(res.data);
         } catch (error) {
             console.log("error in fetch notifications", error);
-
         } finally {
             setIsLoading(false);
         }
     }
 
     useEffect(() => {
-        console.log("clling");
-
         fetchNotifications();
     }, [isChangeAnnouncements])
 
@@ -445,20 +443,21 @@ export default function Navbar({ handleSideBar }) {
                             </div>
                             <div className="offcanvas-body">
                                 {
-                                    notifications.length > 0 &&
-                                    notifications.map((notification, index) => {
-                                        return <div key={notification._id || index} className={`box-content my-2 ${isRemove[index] ? "remove" : ""} box-content my-2 d-flex justfy-content-center align-items-center position-relative`}>
-                                            <span className="closeBtn" title='close' onClick={() => removeMessage(notification, index)}>
-                                                <CloseRoundedIcon fontSize='md' />
-                                            </span>
-                                            <img src={notification?.company?.logo} alt={"companyLogo"} width={50} height={"auto"} />
-                                            <Accordion>
-                                                <Accordion.Panel header={<p>{notification.title}</p>} eventKey={1} caretAs={KeyboardArrowDownRoundedIcon}>
-                                                    <p className='sub_text' style={{ fontSize: "13px" }}>{notification?.message?.replace(/<[^>]*>/g, "")}</p>
-                                                </Accordion.Panel>
-                                            </Accordion>
-                                        </div>
-                                    })
+                                    isLoading ? <Loading /> :
+                                        notifications.length > 0 &&
+                                        notifications.map((notification, index) => {
+                                            return <div key={notification._id || index} className={`box-content my-2 ${isRemove[index] ? "remove" : ""} box-content my-2 d-flex justfy-content-center align-items-center position-relative`}>
+                                                <span className="closeBtn" title='close' onClick={() => removeMessage(notification, index)}>
+                                                    <CloseRoundedIcon fontSize='md' />
+                                                </span>
+                                                <img src={notification?.company?.logo} alt={"companyLogo"} width={50} height={"auto"} />
+                                                <Accordion>
+                                                    <Accordion.Panel header={<p>{notification.title}</p>} eventKey={1} caretAs={KeyboardArrowDownRoundedIcon}>
+                                                        <p className='sub_text' style={{ fontSize: "13px" }}>{notification?.message?.replace(/<[^>]*>/g, "")}</p>
+                                                    </Accordion.Panel>
+                                                </Accordion>
+                                            </div>
+                                        })
                                 }
                             </div>
                             <div className='text-align-center m-2' >
