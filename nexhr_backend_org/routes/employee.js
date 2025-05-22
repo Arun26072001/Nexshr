@@ -173,14 +173,16 @@ router.get("/team/:higher", verifyAdminHRTeamHigherAuth, async (req, res) => {
     // Filter employees based on position name containing the keyword
     const filtered = employees.filter(emp => {
       const positionName = emp?.position?.PositionName;
-      const roleName = emp?.role.RoleName;
+      const roleName = emp?.role?.RoleName;
       if (["admin", "hr"].includes(higher.toLowerCase())) {
         return roleName && roleName.toLowerCase().includes(higher)
       }
       return positionName && positionName.includes(keyword);
     });
-    res.send(filtered);
+    return res.send(filtered);
   } catch (err) {
+    console.log("error in fetch highers", err);
+
     res.status(500).send({ error: err.message });
   }
 });
