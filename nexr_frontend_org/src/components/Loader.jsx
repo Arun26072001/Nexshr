@@ -1,4 +1,3 @@
-import * as React from 'react';
 import Box from '@mui/material/Box';
 
 export default function Loading({ height = "fit-content", size = 40, color = "blue" }) {

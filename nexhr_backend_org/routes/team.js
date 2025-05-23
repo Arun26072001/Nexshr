@@ -137,120 +137,97 @@ router.get("/:id", verifyAdminHRTeamHigherAuth, async (req, res) => {
 router.post("/:id", verifyAdminHR, async (req, res) => {
     try {
         const { error } = TeamValidation.validate(req.body);
-        if (error) return res.status(400).send({ error: error.details[0].message });
+        if (error) return res.status(400).json({ error: error.details[0].message });
+
         const creator = await Employee.findById(req.params.id, "FirstName LastName company Email").populate("company", "logo CompanyName");
-        const { teamName, lead = [], head = [], manager = [], employees = [] } = req.body;
+        if (!creator) return res.status(404).json({ error: "Creator not found!" });
 
+        const { teamName, lead, head, manager, employees, admin, hr } = req.body;
         const existingTeam = await Team.findOne({ teamName });
-        if (existingTeam) {
-            return res.status(400).send({ error: `"${teamName}" already exists!` });
-        }
+        if (existingTeam) return res.status(400).json({ error: `Team "${teamName}" already exists!` });
 
-        const roles = { lead, head, manager, employees };
-        const higherAuth = ["lead", "head", "manager", "employees"];
+        const roles = { lead, head, manager, employees, hr, admin };
+        const allMemberIds = [...new Set(Object.values(roles).flat())];
 
-        // Check if members already belong to a team
-        // for (const role of higherAuth) {
-        //     const members = roles[role];
-        //     if (Array.isArray(members) && members.length) {
-        //         for (const memberId of members) {
-        //             const exists = await Team.exists({ [role]: memberId });
-        //             if (exists) {
-        //                 const emp = await Employee.findById(memberId, "FirstName LastName team")
-        //                     .populate("team", "teamName");
-        //                 console.log(emp);
+        const newTeam = await Team.create({
+            ...req.body,
+            employees: allMemberIds,
+            createdBy: req.params.id,
+        });
 
-        //                 return res.status(400).send({
-        //                     error: `${emp.FirstName} ${emp.LastName} is already in ${emp.team.teamName} team`
-        //                 });
-        //             }
-        //         }
-        //     }
-        // }
-
-        // Merge all roles into a unique employee list
-        const mergedEmployeeIds = [...new Set([...employees, ...lead, ...head, ...manager])];
-        const newTeamData = { ...req.body, employees: mergedEmployeeIds, createdBy: req.params.id };
-        const newTeam = await Team.create(newTeamData);
-
-        // Assign team to each member and send invitation
         await Promise.all(
-            higherAuth.flatMap((role) =>
-                (roles[role] || []).map(async (memberId) => {
+            Object.entries(roles).flatMap(([role, ids]) =>
+                ids.map(async (memberId) => {
                     const emp = await Employee.findById(memberId, "FirstName LastName Email fcmToken").populate("company", "CompanyName logo");
                     if (!emp) return;
 
                     emp.team = newTeam._id;
                     await emp.save();
 
-                    const roleLabel = role === "employees" ? "Employee" : role[0].toUpperCase() + role.slice(1);
-                    await sendInvitationEmail(emp, roleLabel, req.body, creator)
+                    const roleLabel = role === "employees" ? "Employee" : role.charAt(0).toUpperCase() + role.slice(1);
+                    await sendInvitationEmail(emp, roleLabel, req.body, creator);
                 })
             )
         );
 
-        return res.send({ message: `New team "${newTeam.teamName}" has been added!`, newTeam });
+        res.json({ message: `New team "${newTeam.teamName}" has been added!`, newTeam });
+
     } catch (error) {
-        console.error(error);
-        return res.status(500).send({ error: error.message });
+        console.error("POST /:id error:", error);
+        res.status(500).json({ error: error.message });
     }
 });
 
 router.put("/:id", verifyAdminHRTeamHigherAuth, async (req, res) => {
     try {
         const { error } = TeamValidation.validate(req.body);
-        if (error) return res.status(400).send({ error: error.details[0].message });
+        if (error) return res.status(400).json({ error: error.details[0].message });
 
-        const { lead = [], head = [], manager = [], employees = [] } = req.body;
         const teamId = req.params.id;
-        // creator data
-        const creator = await Employee.findById(req.body.createdBy, "FirstName LastName company").populate("company", "CompanyName logo")
+        const { lead, head, manager, employees, admin, hr, createdBy } = req.body;
+        const roles = { lead, head, manager, employees, hr, admin };
 
-        // team data (old)
-        const oldTeam = await Team.findById(teamId).populate("lead head manager employees", "FirstName LastName Email company team");
-        if (!oldTeam) return res.status(404).send({ error: "Team not found!" });
+        const creator = await Employee.findById(createdBy, "FirstName LastName company").populate("company", "CompanyName logo");
+        if (!creator) return res.status(404).json({ error: "Creator not found!" });
 
-        const roles = { lead, head, manager, employees };
-        const roleKeys = Object.keys(roles);
+        const oldTeam = await Team.findById(teamId).populate("lead head manager employees hr admin", "_id");
+        if (!oldTeam) return res.status(404).json({ error: "Team not found!" });
 
-        for (const roleKey of roleKeys) {
+        for (const [roleKey, newIdsRaw] of Object.entries(roles)) {
             const oldIds = (oldTeam[roleKey] || []).map(e => e._id.toString());
-            const newIds = (req.body[roleKey] || []).map(String);
+            const newIds = newIdsRaw.map(String);
 
             const addedIds = newIds.filter(id => !oldIds.includes(id));
             const removedIds = oldIds.filter(id => !newIds.includes(id));
 
-            // Handle added employees
-            if (addedIds.length) {
-                await Promise.all(addedIds.map(async (empId) => {
-                    const emp = await Employee.findById(empId).populate("company", "CompanyName logo");
-                    if (!emp) return;
+            // Add members
+            await Promise.all(addedIds.map(async (empId) => {
+                const emp = await Employee.findById(empId).populate("company", "CompanyName logo");
+                if (!emp) return;
 
-                    emp.team = teamId;
-                    await emp.save();
+                emp.team = teamId;
+                await emp.save();
 
-                    const roleLabel = roleKey === "employees" ? "Employee" : roleKey[0].toUpperCase() + roleKey.slice(1);
-                    await sendInvitationEmail(emp, roleLabel, oldTeam.teamName, creator);
-                }));
-            }
+                const roleLabel = roleKey === "employees" ? "Employee" : roleKey.charAt(0).toUpperCase() + roleKey.slice(1);
+                await sendInvitationEmail(emp, roleLabel, oldTeam.teamName, creator);
+            }));
 
-            // Handle removed employees
-            if (removedIds.length) {
-                await Promise.all(removedIds.map(async (empId) => {
-                    const emp = await Employee.findById(empId);
-                    if (!emp) return;
+            // Remove members
+            await Promise.all(removedIds.map(async (empId) => {
+                const emp = await Employee.findById(empId);
+                if (!emp) return;
 
-                    emp.team = null;
-                    await emp.save();
-                }));
-            }
+                emp.team = null;
+                await emp.save();
+            }));
         }
 
-        await Team.findByIdAndUpdate(teamId, req.body, { new: true });
-        return res.send({ message: "Team has been updated!" });
+        const updatedTeam = await Team.findByIdAndUpdate(teamId, req.body, { new: true });
+        res.json({ message: `Team "${updatedTeam.teamName}" has been updated!`, updatedTeam });
+
     } catch (err) {
-        console.error(err);
-        return res.status(500).send({ error: err.message });
+        console.error("PUT /:id error:", err);
+        res.status(500).json({ error: err.message });
     }
 });
 
@@ -274,3 +251,22 @@ router.delete("/:id", verifyAdminHR, async (req, res) => {
 
 
 module.exports = router;
+        
+                // Check if members already belong to a team
+                // for (const role of higherAuth) {
+                //     const members = roles[role];
+                //     if (Array.isArray(members) && members.length) {
+                //         for (const memberId of members) {
+                //             const exists = await Team.exists({ [role]: memberId });
+                //             if (exists) {
+                //                 const emp = await Employee.findById(memberId, "FirstName LastName team")
+                //                     .populate("team", "teamName");
+                //                 console.log(emp);
+        
+                //                 return res.status(400).send({
+                //                     error: `${emp.FirstName} ${emp.LastName} is already in ${emp.team.teamName} team`
+                //                 });
+                //             }
+                //         }
+                //     }
+                // }

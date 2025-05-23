@@ -30,7 +30,6 @@ const LeaveRequestForm = ({ type }) => {
   const [employees, setEmployees] = useState([]);
   const [isWorkingApi, setIsWorkingApi] = useState(false);
   const now = new Date();
-  const [touchedObj, setTouchedObj] = useState({});
   const [leaveRequestObj, setLeaveRequestObj] = useState({});
 
   let leaveObjValidation = Yup.object().shape({
@@ -108,17 +107,17 @@ const LeaveRequestForm = ({ type }) => {
     fromDate: Yup.date().required("From date is required"),
     toDate: Yup.date().required("To date is required"),
     periodOfLeave: Yup.string(),  // optional
-   reasonForLeave: Yup.string()
-    .test(
-      "is-not-empty",
-      "Reason for Leave is required",
-      (value) => {
-        if (!value) return false;
-        const stripped = value.replace(/<[^>]*>/g, "").trim();
-        return stripped.length > 0;
-      }
-    )
-    .required("Reason for Leave is required"),
+    reasonForLeave: Yup.string()
+      .test(
+        "is-not-empty",
+        "Reason for Leave is required",
+        (value) => {
+          if (!value) return false;
+          const stripped = value.replace(/<[^>]*>/g, "").trim();
+          return stripped.length > 0;
+        }
+      )
+      .required("Reason for Leave is required"),
 
     prescription: Yup.string().notRequired(),
     coverBy: Yup.string().notRequired(),
@@ -143,8 +142,8 @@ const LeaveRequestForm = ({ type }) => {
       if (error === "") {
         const formData = new FormData();
         formData.append("leaveType", formik.values.leaveType);
-        formData.append("fromDate", new Date(formik.values.fromDate).toLocaleString());
-        formData.append("toDate", new Date(formik.values.toDate).toLocaleString());
+        formData.append("fromDate", new Date(formik.values.fromDate).toISOString());
+        formData.append("toDate", new Date(formik.values.toDate).toISOString());
         formData.append("periodOfLeave", formik.values.periodOfLeave || formik?.values?.leaveType?.toLowerCase()?.includes("permission") ? "half day" : "full day");
         formData.append("reasonForLeave", formik.values.reasonForLeave);
         formData.append("prescription", prescriptionFile); // Assuming `file` is the file object
@@ -337,24 +336,10 @@ const LeaveRequestForm = ({ type }) => {
   }, [formik.values.leaveType]);
 
   useEffect(() => {
-    gettingEmps();
-    fetchHolidays();
-
-    if (id) {
-      fetchLeaveRequest();
+    if (whoIs !== "emp") {
+      gettingEmps()
     }
-  }, [id]);
-
-  useEffect(() => {
-    if (_id || formik.values.applyFor) {
-      gettingLeaveRequests();
-    }
-  }, [_id, formik.values.applyFor]);
-
-
-  function handleTouched(value, name) {
-    console.log(name, value);
-  }
+  }, [whoIs])
 
   return (
     isLoading ? <Loading height="80vh" /> :
@@ -399,14 +384,9 @@ const LeaveRequestForm = ({ type }) => {
               <select
                 name="leaveType"
                 className={`selectInput ${formik.touched.leaveType && formik.errors.leaveType ? "error" : ""}`}
-                value={formik.values.leaveType || ""}
-                onChange={(e) => {
-                  if (type !== "view") {
-                    handleLeaveType(e);
-                  }
-                }}
-                onBlur={(e) => handleTouched(e.target.value, "leaveType")}
-                disabled={type === "view"}
+                onChange={(e) => type === "view" ? null : handleLeaveType(e)}
+                value={formik.values.leaveType}
+                disabled={type === "view" ? true : false}
               >
                 <option value="">Select Leave Type</option>
                 {typeOfLeave?.length > 0 &&

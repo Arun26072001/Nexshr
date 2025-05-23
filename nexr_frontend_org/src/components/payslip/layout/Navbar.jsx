@@ -11,13 +11,13 @@ import { EssentialValues } from '../../../App';
 import axios from "axios";
 import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
 import KeyboardArrowDownRoundedIcon from '@mui/icons-material/KeyboardArrowDownRounded';
-import useHandleTabClose from '../../../handleCloseTab';
+// import useHandleTabClose from '../../../handleCloseTab';
 import Loading from '../../Loader';
 
 export default function Navbar({ handleSideBar }) {
-    const { handleLogout, data, handleUpdateAnnouncements, isChangeAnnouncements, whoIs, 
-        changeViewReasonForEarlyLogout,isViewEarlyLogout 
-     } = useContext(EssentialValues)
+    const { handleLogout, data, handleUpdateAnnouncements, isChangeAnnouncements, whoIs,
+        changeViewReasonForEarlyLogout, isViewEarlyLogout
+    } = useContext(EssentialValues)
     const { startLoginTimer, stopLoginTimer, workTimeTracker, isStartLogin, trackTimer, changeReasonForEarly, isWorkingLoginTimerApi } = useContext(TimerStates);
     const [sec, setSec] = useState(workTimeTracker?.login?.timeHolder?.split(':')[2])
     const [min, setMin] = useState(workTimeTracker?.login?.timeHolder?.split(':')[1])
@@ -25,12 +25,11 @@ export default function Navbar({ handleSideBar }) {
     const [isDisabled, setIsDisabled] = useState(false);
     const workRef = useRef(null);  // Use ref to store interval ID
     const url = process.env.REACT_APP_API_URL;
-    // const [announcements, setAnnouncements] = useState([]);
     const [notifications, setNotifications] = useState([]);
     const [isRemove, setIsRemove] = useState([]);
     const [latitude, setLatitude] = useState("");
     const [longitude, setLongitude] = useState("");
-    const [isLoading, setIsLoading] =  useState(false);
+    const [isLoading, setIsLoading] = useState(false);
     const [workLocation, setWorklocation] = useState(localStorage.getItem("workLocation") || "");
     const worklocationType = ["WFH", "WFO"].map((item) => ({ label: item, value: item }))
 
@@ -73,7 +72,7 @@ export default function Navbar({ handleSideBar }) {
     // Function to start the timer
     const startTimer = async () => {
         if (!workRef.current) {
-            await startLoginTimer(workLocation, {latitude, longitude});
+            await startLoginTimer(workLocation, { latitude, longitude });
             if (isStartLogin) {
                 workRef.current = setInterval(incrementTime, 1000);
             }
@@ -124,17 +123,15 @@ export default function Navbar({ handleSideBar }) {
             });
             setIsRemove(totalRemovables);
             setNotifications(res.data);
+            console.log(res.data);
         } catch (error) {
             console.log("error in fetch notifications", error);
-
-        }finally{
+        } finally {
             setIsLoading(false);
         }
     }
 
     useEffect(() => {
-        console.log("clling");
-        
         fetchNotifications();
     }, [isChangeAnnouncements])
 
@@ -151,9 +148,9 @@ export default function Navbar({ handleSideBar }) {
         // check user is completed working hour
         try {
             const res = await axios.post(`${url}/verify_completed_workinghour`, updatedState);
-            if(!res.data.isCompleteworkingHours){
+            if (!res.data.isCompleteworkingHours) {
                 checkIsEnterReasonforEarly()
-            }else{
+            } else {
                 stopTimer()
             }
         } catch (error) {
@@ -184,12 +181,8 @@ export default function Navbar({ handleSideBar }) {
                     return updated;
                 })
             })
-            const viewedNotifications = notifications.map((item) => ({
-                ...item,
-                isViewed: true,
-            }));
 
-            await updateEmpNotifications(viewedNotifications); // Await if it's async
+            await updateEmpNotifications(notifications); // Await if it's async
         } catch (error) {
             console.log("Error clearing messages:", error);
         }
@@ -197,46 +190,42 @@ export default function Navbar({ handleSideBar }) {
 
     async function removeMessage(value, itemIndex) {
         try {
-        setIsRemove((prev) => {
-            const updated = [...prev];
-            updated[itemIndex] = true;
-            return updated;
-        });
-        const updatedNotifications = notifications.map((item, index) =>
-            index === itemIndex
-        );
-        setNotifications(updatedNotifications);
+            setIsRemove((prev) => {
+                const updated = [...prev];
+                updated[itemIndex] = true;
+                return updated;
+            });
 
-        // setTimeout(async () => {
-        //     try {
-        //         // Update only this notification on the backend
-        //         await updateEmpNotifications([value]); // Pass only the ID of the notification to update
-                
-        //     } catch (err) {
-        //         console.log("Error updating notifications:", err);
-        //         setNotifications(notifications);
-        //     }
-        // }, 300);
-    } catch (error) {
-        console.log("Error removing message:", error);
+            setTimeout(async () => {
+                try {
+                    // Update only this notification on the backend
+                    await updateEmpNotifications([value]); // Pass only the ID of the notification to update
+
+                } catch (err) {
+                    console.log("Error updating notifications:", err);
+                    setNotifications(notifications);
+                }
+            }, 300);
+        } catch (error) {
+            console.log("Error removing message:", error);
+        }
     }
-}
 
-    useHandleTabClose(isStartLogin, workTimeTracker, data.token);
+    // useHandleTabClose(isStartLogin, workTimeTracker, data.token);
 
     function checkIsEnterReasonforEarly() {
         changeViewReasonForEarlyLogout()
         localStorage.removeItem("isViewEarlyLogout");
         stopTimer();
     }
-    
+
     function getAddress() {
         function roundCoord(coord, precision = 4) {
             return parseFloat(coord).toFixed(precision);
-          }
-          
+        }
+
         navigator.geolocation.getCurrentPosition(
-            (pos) => {                
+            (pos) => {
                 setLatitude(roundCoord(pos.coords.latitude));
                 setLongitude(roundCoord(pos.coords.longitude))
             },
@@ -248,9 +237,27 @@ export default function Navbar({ handleSideBar }) {
             }
         );
     }
+
+    async function verifyWfh() {
+        try {
+            const res = await axios.get(`${url}/api/wfh-application/check-wfh/${data._id}`, {
+                headers: {
+                    Authorization: data.token || ""
+                }
+            })
+            setWorklocation(res.data ? "WFH" : "WFO")
+        } catch (error) {
+            console.log("error in check wfh", error);
+        }
+    }
+
     useEffect(() => {
         getAddress();
     }, [latitude, longitude])
+
+    useEffect(() => {
+        verifyWfh()
+    }, [])
 
     useEffect(() => {
         const startLength = workTimeTracker?.login?.startingTime?.length || 0;
@@ -436,20 +443,21 @@ export default function Navbar({ handleSideBar }) {
                             </div>
                             <div className="offcanvas-body">
                                 {
-                                    notifications.length > 0 &&
-                                    notifications.map((notification, index) => {
-                                        return <div key={notification._id || index} className={`box-content my-2 ${isRemove[index] ? "remove" : ""} box-content my-2 d-flex justfy-content-center align-items-center position-relative`}>
-                                            <span className="closeBtn" title='close' onClick={() => removeMessage(notification, index)}>
-                                                <CloseRoundedIcon fontSize='md' />
-                                            </span>
-                                            <img src={notification?.company?.logo} alt={"companyLogo"} width={50} height={"auto"} />
-                                            <Accordion>
-                                                <Accordion.Panel header={<p>{notification.title}</p>} eventKey={1} caretAs={KeyboardArrowDownRoundedIcon}>
-                                                    <p className='sub_text' style={{ fontSize: "13px" }}>{notification?.message?.replace(/<[^>]*>/g, "")}</p>
-                                                </Accordion.Panel>
-                                            </Accordion>
-                                        </div>
-                                    })
+                                    isLoading ? <Loading /> :
+                                        notifications.length > 0 &&
+                                        notifications.map((notification, index) => {
+                                            return <div key={notification._id || index} className={`box-content my-2 ${isRemove[index] ? "remove" : ""} box-content my-2 d-flex justfy-content-center align-items-center position-relative`}>
+                                                <span className="closeBtn" title='close' onClick={() => removeMessage(notification, index)}>
+                                                    <CloseRoundedIcon fontSize='md' />
+                                                </span>
+                                                <img src={notification?.company?.logo} alt={"companyLogo"} width={50} height={"auto"} />
+                                                <Accordion>
+                                                    <Accordion.Panel header={<p>{notification.title}</p>} eventKey={1} caretAs={KeyboardArrowDownRoundedIcon}>
+                                                        <p className='sub_text' style={{ fontSize: "13px" }}>{notification?.message?.replace(/<[^>]*>/g, "")}</p>
+                                                    </Accordion.Panel>
+                                                </Accordion>
+                                            </div>
+                                        })
                                 }
                             </div>
                             <div className='text-align-center m-2' >
@@ -461,139 +469,3 @@ export default function Navbar({ handleSideBar }) {
             </div >
     );
 }
-
-// {/* <SelectPicker
-// data={worklocationType}
-// searchable={false}
-// onChange={setWorklocation}
-// value={workLocation}
-
-// appearance="default"
-// placeholder="Choose your work place"
-// /> */}
-// {/* <span className="lg ms-5">
-// <svg width="16" height="17" viewBox="0 0 16 17" fill="none" xmlns="http://www.w3.org/2000/svg">
-//     <g clipPath="url(#clip0_2046_6893)">
-//         <path d="M14 8C14 11.5899 11.0899 14.5 7.5 14.5M14 8C14 4.41015 11.0899 1.5 7.5 1.5M14 8H1M7.5 14.5C3.91015 14.5 1 11.5899 1 8M7.5 14.5C8.91418 14.5 10.0606 11.5899 10.0606 8C10.0606 4.41015 8.91418 1.5 7.5 1.5M7.5 14.5C6.08582 14.5 4.93939 11.5899 4.93939 8C4.93939 4.41015 6.08582 1.5 7.5 1.5M1 8C1 4.41015 3.91015 1.5 7.5 1.5" stroke="#212143" strokeWidth="1.20741" strokeLinejoin="round" />
-//     </g>
-//     <defs>
-//         <clipPath id="clip0_2046_6893">
-//             <rect width="16" height="16" fill="white" transform="translate(0 0.5)" />
-//         </clipPath>
-//     </defs>
-// </svg>
-// </span> */}
-// {/* <span className="lang ms-2">
-// <svg width="17" height="11" viewBox="0 0 17 11" fill="none" xmlns="http://www.w3.org/2000/svg">
-//     <path d="M0.118608 11V0.818182H6.50213V2.14062H1.65483V5.2429H6.16903V6.56037H1.65483V9.67756H6.56179V11H0.118608ZM16.6882 0.818182V11H15.2763L10.1008 3.53267H10.0064V11H8.47016V0.818182H9.89203L15.0724 8.29545H15.1669V0.818182H16.6882Z" fill="#212143" />
-// </svg>
-// </span> */}
-// get user current location
-//  async function getAddress(lat, lng) {
-    //     const API_KEY = process.env.REACT_APP_MAPKEY;  // Replace with a secured API key (keep it secret)
-    //     const url = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat.toFixed(7)},${lng.toFixed(7)}&result_type=street_address|locality|postal_code&key=${API_KEY}`;
-
-//     try {
-//         const response = await fetch(url);
-//         const data = await response.json();
-
-//         if (data.status === "OK" && data.results.length > 0) {
-//             const address = data.results[0].formatted_address;
-//             const hamlet = data.results[0].place_id;
-
-//             console.log("Address:", address);
-//             console.log("Place ID:", hamlet);
-
-//             return { address, hamlet };
-//         } else {
-//             console.error("Geocoding failed:", data.status, data.error_message);
-//         }
-//     } catch (error) {
-//         console.error("Error fetching location:", error);
-//     }
-// }
-
-// useEffect(() => {
-    //     if (navigator.geolocation) {
-//         navigator.geolocation.getCurrentPosition(
-//             (position) => {
-//                 const { latitude, longitude } = position.coords;
-//                 getAddress(latitude, longitude);
-//             },
-//             (error) => console.error("Error getting location:", error),
-//             { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
-//         );
-//     } else {
-    //         console.log("Geolocation is not supported by this browser.");
-    //     }
-    
-    // }, [hamlet])
-    // async function getAddress(lat, lng) {
-    //     const API_KEY = process.env.REACT_APP_MAPKEY;  // Replace with a secured API key (keep it secret)
-    //     const url = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat.toFixed(7)},${lng.toFixed(7)}&result_type=street_address|locality|postal_code&key=${API_KEY}`;
-    
-    //     try {
-    //         const response = await fetch(url);
-    //         const data = await response.json();
-    
-    //         if (data.status === "OK" && data.results.length > 0) {
-    //             const address = data.results[0].formatted_address;
-    //             const hamlet = data.results[0].place_id;
-    
-    //             console.log("Address:", address);
-    //             console.log("Place ID:", hamlet);
-    
-    //             return { address, hamlet };
-    //         } else {
-    //             console.error("Geocoding failed:", data.status, data.error_message);
-    //         }
-    //     } catch (error) {
-    //         console.error("Error fetching location:", error);
-    //     }
-    // }
-    
-    // useEffect(() => {
-    //     if (navigator.geolocation) {
-    //         navigator.geolocation.getCurrentPosition(
-    //             (position) => {
-    //                 const { latitude, longitude } = position.coords;
-    //                 getAddress(latitude, longitude);
-    //             },
-    //             (error) => console.error("Error getting location:", error),
-    //             { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
-    //         );
-    //     } else {
-    //         console.log("Geolocation is not supported by this browser.");
-    //     }
-    
-    // }, [hamlet])
-        // Call this on tab/browser close or refresh (you can add event listener if needed)
-    
-        // async function removeMessage(value, index) {
-        //     try {
-        //         setIsRemove((prev) => {
-        //             const updated = [...prev];
-        //             updated[index] = true;
-        //             return updated;
-        //         });
-    
-        //         const updatedNotifications = notifications.map((item) =>
-        //             item.title === value.title
-        //                 ? { ...item, isViewed: true }
-        //                 : item
-        //         );
-    
-        //         setNotifications(updatedNotifications);
-    
-        //         setTimeout(async () => {
-        //             try {
-        //                 await updateEmpNotifications(updatedNotifications); // Await if it's async
-        //                 handleUpdateAnnouncements();
-        //             } catch (err) {
-        //                 console.log("Error updating notifications:", err);
-        //             }
-        //         }, 300);
-        //     } catch (error) {
-        //         console.log("Error removing message:", error);
-        //     }
-        // }

@@ -239,12 +239,17 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
     }
 });
 
-router.post("/updatedTaskComment/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
-    const { taskObj } = req.body;
+router.put("/updatedTaskComment/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
+    const { type } = req.query;
+    const taskObj = req.body;
     try {
+        const assignessId = taskObj.assignedTo.map((member) => member._id);
+        const exceptSender = assignessId.filter((emp) => emp !== req.params.id);
         // get employee data for company data
-        const emps = await Employee.findById(taskObj.assignedTo, "FirstName LastName Email fcmToken profile")
+        const emps = await Employee.find({ _id: { $in: exceptSender } }, "FirstName LastName Email fcmToken profile company")
+            .populate("company", "CompanyName logo")
             .exec();
+
         const currentCmt = taskObj.comments.at(-1)
         const commentCreator = await Employee.findById(currentCmt.createdBy, "FirstName LastName")
         // update task with updated comments
@@ -252,24 +257,28 @@ router.post("/updatedTaskComment/:id", verifyAdminHREmployeeManagerNetwork, asyn
         if (emps.length) {
             emps.forEach((emp) => {
                 const title = `${commentCreator.FirstName + " " + commentCreator.LastName} has commented in ${taskObj.title}`;
-                const message = currentCmt.comment
+                const message = currentCmt.comment.replace(/<\/?[^>]+(>|$)/g, '')
                 // send mail 
                 sendMail({
                     From: process.env.FROM_MAIL,
                     To: emp.Email,
                     Subject: title,
-                    text: message
+                    TextBody: message
                 })
                 // send notification
                 sendPushNotification({
                     token: emp.fcmToken,
                     title,
-                    body: message
+                    body: message,
+                    company: emp.company,
+                    type
                 })
             });
         }
+        return res.send({ message: "task comments updated successfully", updatedTask })
     } catch (error) {
-
+        console.log("error in update taskComments", error);
+        return res.status(500).send({ error: error.message })
     }
 })
 
@@ -299,7 +308,7 @@ router.put("/:empId/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) 
             const oldValue = convertToString(value);
             if (
                 newValue !== undefined &&
-                !["createdAt", "createdby", "tracker", "updatedAt", "_id", "__v", "spend", "from", "to"].includes(key) &&
+                !["createdAt", "createdby", "tracker", "updatedAt", "_id", "__v", "spend", "from", "to", "comments"].includes(key) &&
                 (Array.isArray(oldValue) ? oldValue.length !== newValue.length : oldValue !== newValue)
             ) {
                 return {

@@ -46,8 +46,8 @@ function getWeekdaysOfCurrentMonth(year, month, holidays) {// 0-based index (0 =
 function mailContent(type, fromDateValue, toDateValue, emp, leaveType, actionBy, member) {
   const isRejected = type === "rejected";
   const subject = isRejected
-    ? `${emp.FirstName}'s ${leaveType === "wfh" ? "WFH Request" : leaveType.toLowerCase() === "permission" ? "Permission" : "Leave Application"} has been rejected by ${actionBy}`
-    : `${emp.FirstName}'s ${leaveType === "wfh" ? "WFH Request" : leaveType.toLowerCase() === "permission" ? "Permission" : "Leave Application"} has been approved by ${actionBy}`;
+    ? `${emp.FirstName}'s ${leaveType === "WFH" ? "WFH Request" : leaveType.toLowerCase() === "permission" ? "Permission" : "Leave Application"} has been rejected by ${actionBy}`
+    : `${emp.FirstName}'s ${leaveType === "WFH" ? "WFH Request" : leaveType.toLowerCase() === "permission" ? "Permission" : "Leave Application"} has been approved by ${actionBy}`;
 
   return `
     <!DOCTYPE html>
@@ -71,9 +71,7 @@ function mailContent(type, fromDateValue, toDateValue, emp, leaveType, actionBy,
             ${new Date(fromDateValue).toLocaleString("default", { month: "long" })} ${new Date(fromDateValue).getDate()}, ${new Date(fromDateValue).getFullYear()} 
             to  
             ${new Date(toDateValue).toLocaleString("default", { month: "long" })} ${new Date(toDateValue).getDate()}, ${new Date(toDateValue).getFullYear()}
-          </p>
-         
-          
+          </p> 
      <p>
   Your request for ${leaveType} on  ${new Date(fromDateValue).toLocaleString("default", { month: "long" })} ${new Date(fromDateValue).getDate()}, ${new Date(fromDateValue).getFullYear()}  has been 
   ${isRejected

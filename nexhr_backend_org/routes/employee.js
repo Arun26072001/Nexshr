@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { Employee } = require('../models/EmpModel');
-const { verifyAdminHREmployeeManagerNetwork, verifyAdminHR, verifyAdmin, verifyTeamHigherAuthority, verifyAdminHRTeamHigherAuth, verifyAdminHREmployee } = require('../auth/authMiddleware');
+const { verifyAdminHREmployeeManagerNetwork, verifyAdminHR, verifyTeamHigherAuthority, verifyAdminHRTeamHigherAuth } = require('../auth/authMiddleware');
 const { getDayDifference } = require('./leave-app');
 const sendMail = require("./mailSender");
 const { RoleAndPermission } = require('../models/RoleModel');
@@ -13,7 +13,6 @@ const { LeaveApplication } = require('../models/LeaveAppModel');
 router.get("/", verifyAdminHRTeamHigherAuth, async (req, res) => {
   try {
     const { onlyEmps } = req.query;
-
     let employees = await Employee.find({}, "FirstName LastName profile Account employmentType dateOfJoining gender working code docType serialNo position department workingTimePattern role")
       .populate({
         path: "position"
@@ -54,7 +53,6 @@ router.get("/notifications/:id", verifyAdminHREmployeeManagerNetwork, async (req
 
 router.put("/notifications/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
   try {
-    console.log(req.body);
     const emp = await Employee.findById(req.params.id, "notifications").exec();
     if (!emp) return res.status(404).send({ error: "Employee not found" });
 
@@ -72,7 +70,6 @@ router.put("/notifications/:id", verifyAdminHREmployeeManagerNetwork, async (req
     return res.status(500).send({ error: error.message });
   }
 });
-
 
 router.get("/user", verifyAdminHR, async (req, res) => {
   try {
@@ -140,14 +137,7 @@ router.get("/all", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
           path: "workingTimePattern",
         }, {
           path: "role"
-        },
-        // {
-        //   path: 'teamLead',
-        //   select: "_id FirstName LastName",
-        //   populate: {
-        //     path: "department"
-        //   }
-        // }
+        }
       ]).lean().exec();
     res.send(employees)
   } catch (err) {
@@ -174,14 +164,16 @@ router.get("/team/:higher", verifyAdminHRTeamHigherAuth, async (req, res) => {
     // Filter employees based on position name containing the keyword
     const filtered = employees.filter(emp => {
       const positionName = emp?.position?.PositionName;
-      const roleName = emp?.role.RoleName;
+      const roleName = emp?.role?.RoleName;
       if (["admin", "hr"].includes(higher.toLowerCase())) {
         return roleName && roleName.toLowerCase().includes(higher)
       }
       return positionName && positionName.includes(keyword);
     });
-    res.send(filtered);
+    return res.send(filtered);
   } catch (err) {
+    console.log("error in fetch highers", err);
+
     res.status(500).send({ error: err.message });
   }
 });

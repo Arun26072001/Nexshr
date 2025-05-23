@@ -3,9 +3,8 @@ const mongoose = require('mongoose');
 const nitificationSchema = new mongoose.Schema({
   company: { type: mongoose.Schema.Types.ObjectId, ref: "Company", default: null },
   title: { type: String },
-  message: { type: String },
-  // isViewed: { type: Boolean, default: false }
-}, { _id: false })
+  message: { type: String }
+})
 
 var employeeSchema = new mongoose.Schema({
   FirstName: { type: String },

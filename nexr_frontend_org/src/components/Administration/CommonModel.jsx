@@ -94,7 +94,28 @@ const CommonModel = ({
     };
 
     return (
-        <Modal open={isAddData} size="sm" backdrop="static" >
+        <Modal open={isAddData} size="sm" backdrop="static" onClose={() => {
+            if (["Company", "Country", "Edit Country", "Organization", "Email Template"].includes(type)) {
+                modifyData(dataObj?._id || type === "Edit Country" ? "Edit" : "Add");
+            } else if (type === "Report View") {
+                modifyData(dataObj._id, "Cancel");
+            } else if (dataObj._id && type === "Organization") {
+                modifyData("Edit")
+            } else if (["MailSettings postmark", "MailSettings nodemailer"].includes(type)) {
+                modifyData(dataObj)
+            } else if (dataObj._id && type === "LeaveType") {
+                modifyData("Edit")
+            } else if (["TimePattern", "WorkPlace"].includes(type) && dataObj._id) {
+                modifyData("Edit")
+            } else if (["TimePattern", "WorkPlace", "Email Template"].includes(type) && !dataObj._id) {
+                modifyData("Add")
+            } else if (["View TimePattern", "View WorkPlace"].includes(type) && dataObj._id) {
+                modifyData("View")
+            }
+            else {
+                modifyData();
+            }
+        }}>
             <Modal.Header>
                 <Modal.Title>
                     {type === "Assign" ? `Edit ${type}` :
@@ -1391,7 +1412,7 @@ const CommonModel = ({
                                         onClick={() => ((type === "Add Comments" && dataObj._id) ? editData(dataObj, true) : dataObj?._id || type === "Edit Country" ? editData(dataObj) : type === "Edit Comments" ? editData() : addData())}
                                         appearance="primary"
                                         disabled={
-                                            ["Project", "Assign", "Task", "Task Assign", "Report", "Company", "Country", "Edit Country", "Announcement", "Team", "Add Comments", "TimePattern", "Edit Comments", "Organization", "MailSettings postmark", "MailSettings nodemailer", "LeaveType", "WorkPlace","Email Template"].includes(type)
+                                            ["Project", "Assign", "Task", "Task Assign", "Report", "Company", "Country", "Edit Country", "Announcement", "Team", "Add Comments", "TimePattern", "Edit Comments", "Organization", "MailSettings postmark", "MailSettings nodemailer", "LeaveType", "WorkPlace", "Email Template"].includes(type)
                                                 ? false : (["Department", "Position"].includes(type) && dataObj?.company ? false : true)
                                         }
                                     >
