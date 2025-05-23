@@ -11,7 +11,7 @@ import { EssentialValues } from '../../../App';
 import axios from "axios";
 import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
 import KeyboardArrowDownRoundedIcon from '@mui/icons-material/KeyboardArrowDownRounded';
-import useHandleTabClose from '../../../handleCloseTab';
+// import useHandleTabClose from '../../../handleCloseTab';
 import Loading from '../../Loader';
 
 export default function Navbar({ handleSideBar }) {
@@ -211,7 +211,7 @@ export default function Navbar({ handleSideBar }) {
         }
     }
 
-    useHandleTabClose(isStartLogin, workTimeTracker, data.token);
+    // useHandleTabClose(isStartLogin, workTimeTracker, data.token);
 
     function checkIsEnterReasonforEarly() {
         changeViewReasonForEarlyLogout()

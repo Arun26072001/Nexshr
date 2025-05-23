@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import EmpCard from "./EmpCard";
 import axios from "axios";
 import { toast } from "react-toastify";
@@ -51,8 +51,6 @@ const ManageTeam = () => {
     };
 
     const changeTeamObj = (value, name) => {
-        console.log(value, name);
-
         setTeamObj((prev) => ({
             ...prev,
             [name]: value
@@ -64,9 +62,6 @@ const ManageTeam = () => {
         const fetchEmployees = async () => {
             try {
                 const res = await axios.get(`${url}/api/employee/all`, {
-                    // params: {
-                    //     onlyEmps: true
-                    // },
                     headers: {
                         Authorization: token
                     }
@@ -149,8 +144,6 @@ const ManageTeam = () => {
                     Authorization: token || ""
                 }
             })
-            console.log("leads", res.data);
-
             setLeads(res.data.map((emp) => ({
                 label: emp.FirstName + " " + emp.LastName,
                 value: emp._id
@@ -167,8 +160,6 @@ const ManageTeam = () => {
                     Authorization: token || ""
                 }
             })
-            console.log("heads", res.data);
-
             setHeads(res.data.map((emp) => ({
                 label: emp.FirstName + " " + emp.LastName,
                 value: emp._id
@@ -185,8 +176,6 @@ const ManageTeam = () => {
                     Authorization: token || ""
                 }
             })
-            console.log("managers", res.data);
-
             setManagers(res.data.map((emp) => ({
                 label: emp.FirstName + " " + emp.LastName,
                 value: emp._id
@@ -203,8 +192,6 @@ const ManageTeam = () => {
                     Authorization: token || ""
                 }
             })
-            console.log("hrs", res.data);
-
             setHrs(res.data.map((emp) => ({
                 label: emp.FirstName + " " + emp.LastName,
                 value: emp._id
@@ -221,7 +208,6 @@ const ManageTeam = () => {
                     Authorization: token || ""
                 }
             })
-            console.log(res.data);
             setAdmins(res.data.map((emp) => ({
                 label: emp.FirstName + " " + emp.LastName,
                 value: emp._id

@@ -38,11 +38,16 @@ const App = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [isChangeAnnouncements, setIschangeAnnouncements] = useState(false);
+  const [isChangeComments, setIsChangeComments] = useState(false);
   const [isViewTakeTime, setIsTaketime] = useState(localStorage.getItem("isViewTakeTime") ? true : false);
   const [isViewEarlyLogout, setIsViewEarlyLogout] = useState(JSON.parse(localStorage.getItem("isViewEarlyLogout")) ? true : false);
 
   function handleUpdateAnnouncements() {
     setIschangeAnnouncements(!isChangeAnnouncements)
+  }
+
+  async function handleUpdateComments(){
+    setIsChangeComments(!isChangeComments)
   }
 
   // change ask the reason late in breaks and lunch activity
@@ -122,7 +127,6 @@ function changeViewReasonForEarlyLogout() {
       navigate(`/${roles[String(accountType)]}`);
     } catch (error) {
       console.log(error);
-
       setPass(false);
       setLoading(false);
       if (error?.response?.data?.details?.includes("buffering timed out after 10000ms")) {
@@ -160,7 +164,6 @@ function changeViewReasonForEarlyLogout() {
       try {
         // ask permission from employee
         const permission = await Notification.requestPermission();
-        console.log("Notification permission", permission)
         if (permission === "granted") {
           const currentToken = await getToken(messaging, {
             vapidKey: "BLmSTq4TWV1Z7V2NgYclknMXlVrC35Ol4CwTBoykLkGH8ikvKOO4caS9XuWjqgI3rEm04mRrX2HfybEal6qUrVg",
@@ -188,8 +191,12 @@ function changeViewReasonForEarlyLogout() {
       console.log("Message received:", payload);
       const company = JSON.parse(payload.data.companyData)
       const type = payload.data.type;
-      triggerToaster({ 
-        company,  title: payload.notification.title, message: payload.notification.body })
+      if(!["edit comment","delete comment"].includes(type)){
+        triggerToaster({company, title: payload.notification.title, message: payload.notification.body })
+      }
+      if(type.toLowerCase().includes("comment")){
+       setIsChangeComments(payload?.messageId)
+      }
       if(type === "late reason"){
         changeViewReasonForTaketime();
       } if(type === "early reason"){
@@ -297,6 +304,8 @@ function changeViewReasonForEarlyLogout() {
         setIsStartActivity,
         changeViewReasonForTaketime,
         handleUpdateAnnouncements,
+        isChangeComments,
+        handleUpdateComments,
         isChangeAnnouncements
       }}
     >

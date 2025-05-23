@@ -49,7 +49,7 @@ function a11yProps(index) {
 }
 
 export default function Home({ peopleOnLeave, peopleOnWorkFromHome, isFetchPeopleOnLeave, isFetchpeopleOnWfh }) {
-    const { isStartLogin, isStartActivity, workTimeTracker, timeOption, updateClockins } = useContext(TimerStates);
+    const { isStartLogin, isStartActivity, workTimeTracker, timeOption, checkClockins } = useContext(TimerStates);
     const [value, setValue] = useState(0);
     const [isLoading, setLoading] = useState(true); // Track loading state
     const { data } = useContext(EssentialValues);
@@ -81,6 +81,7 @@ export default function Home({ peopleOnLeave, peopleOnWorkFromHome, isFetchPeopl
 
     useEffect(() => {
         const getClockInsData = async () => {
+            console.log("calling");
             try {
                 setLoading(true);
                 if (!isStartLogin && !isStartActivity && data._id) {
@@ -98,7 +99,7 @@ export default function Home({ peopleOnLeave, peopleOnWorkFromHome, isFetchPeopl
             }
         };
         getClockInsData();
-    }, [updateClockins]);
+    }, [checkClockins]);
 
     return (
         <Box sx={{ width: '100%' }}>

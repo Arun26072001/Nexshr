@@ -65,9 +65,7 @@ export const TimerStates = createContext(null);
 
 export default function HRMDashboard() {
     const url = process.env.REACT_APP_API_URL;
-    const { data, setData, isStartLogin, isStartActivity, setIsStartLogin, setIsStartActivity, whoIs,
-        // socket 
-    } = useContext(EssentialValues);
+    const { data, setData, isStartLogin, isStartActivity, setIsStartLogin, setIsStartActivity, whoIs} = useContext(EssentialValues);
     const { token, Account, _id } = data;
     const { isTeamLead, isTeamHead, isTeamManager } = jwtDecode(token);
     const [attendanceData, setAttendanceData] = useState([]);
@@ -92,6 +90,7 @@ export default function HRMDashboard() {
     const [isWorkingLoginTimerApi, setIsWorkingLoginTimerApi] = useState(false);
     const [isworkingActivityTimerApi, setISWorkingActivityTimerApi] = useState(false);
     const [selectedProject, setSelectedProject] = useState("");
+    const [checkClockins, setCheckClockins] = useState(false);
 
     // files for payroll
     const files = ['payroll', 'value', 'manage', 'payslip'];
@@ -117,7 +116,6 @@ export default function HRMDashboard() {
         event: { ...startAndEndTime }
     });
 
-    const [checkClockins, setCheckClockins] = useState(false);
     function updateClockins() {
         setCheckClockins(!checkClockins);
     }
@@ -187,13 +185,6 @@ export default function HRMDashboard() {
                 const clockinsData = await addDataAPI(updatedState, worklocation, location);
                 const totalWorkingHour = await getTotalWorkingHourPerDay(workingTimePattern.StartingTime, workingTimePattern.FinishingTime)
                 if (clockinsData !== "undefined" && clockinsData._id) {
-                    // if (!workTimeTracker.login.startingTime.length) {
-                    //     socket.emit("remainder_notification", {
-                    //         employee: data._id,
-                    //         time: totalWorkingHour,
-                    //         clockinsId: clockinsData?._id
-                    //     })
-                    // }
                     setWorkTimeTracker(clockinsData);
                     setIsStartLogin(true);
                     localStorage.setItem("isStartLogin", true);
@@ -438,6 +429,7 @@ export default function HRMDashboard() {
             setIsLoading(false);
         }
     }
+
     useEffect(() => {
         if (whoIs && [isTeamHead, isTeamLead, isTeamManager].includes(true)) {
             getLeaveDataFromTeam()
@@ -498,7 +490,7 @@ export default function HRMDashboard() {
     }, [isEditEmp])
 
     return (
-        <TimerStates.Provider value={{ workTimeTracker, reloadRolePage, setIsEditEmp, employees, updateWorkTracker, isWorkingLoginTimerApi, isworkingActivityTimerApi, trackTimer, startLoginTimer, stopLoginTimer, changeReasonForLate, changeReasonForEarly, startActivityTimer, stopActivityTimer, setWorkTimeTracker, updateClockins, timeOption, isStartLogin, isStartActivity, handleAddTask, changeEmpEditForm, isEditEmp, isAddTask, setIsAddTask, handleAddTask, selectedProject, daterangeValue, setDaterangeValue }}>
+        <TimerStates.Provider value={{ workTimeTracker, reloadRolePage, setIsEditEmp, employees, updateWorkTracker, isWorkingLoginTimerApi, isworkingActivityTimerApi, trackTimer, startLoginTimer, stopLoginTimer, changeReasonForLate, changeReasonForEarly, startActivityTimer, stopActivityTimer, setWorkTimeTracker, updateClockins, checkClockins, timeOption, isStartLogin, isStartActivity, handleAddTask, changeEmpEditForm, isEditEmp, isAddTask, setIsAddTask, handleAddTask, selectedProject, daterangeValue, setDaterangeValue }}>
             <Routes >
                 <Route path="/" element={<Parent />} >
                     <Route index element={<Dashboard data={data} />} />
