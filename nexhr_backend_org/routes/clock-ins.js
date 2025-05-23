@@ -15,7 +15,7 @@ const { sendPushNotification } = require("../auth/PushNotification");
 async function checkLoginForOfficeTime(scheduledTime, actualTime, permissionTime) {
 
     // Parse scheduled and actual time into hours and minutes
-    const [scheduledHours, scheduledMinutes] = scheduledTime.split(':').map(Number);
+    const [scheduledHours, scheduledMinutes] = scheduledTime.split('.').map(Number);
     const [actualHours, actualMinutes] = actualTime.split(':').map(Number);
 
     // Create Date objects for both scheduled and actual times
@@ -176,9 +176,7 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
         const today = new Date();
         const startOfDay = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate(), 0, 0, 0));
         const endOfDay = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate(), 23, 59, 59));
-        if (!worklocation
-            // || !location.latitude
-        ) {
+        if (!worklocation) {
             return res.status(400).send({ error: "Please select your work location" })
         }
         let isWfh;
@@ -192,10 +190,15 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
             .populate({ path: "clockIns", match: { date: { $gte: startOfDay, $lte: endOfDay } } })
             .populate({
                 path: "leaveApplication",
-                match: { fromDate: { $gte: startOfDay, $lte: endOfDay }, status: "approved" }
+                match: {
+                    fromDate: { $gte: startOfDay, $lte: endOfDay },
+                    status: "approved",
+                    leaveType: { $nin: "Permission Leave" }
+                }
             })
 
         if (!emp) return res.status(404).send({ error: "Employee not found!" });
+        console.log("leaves", emp.leaveApplication);
 
         if (emp.leaveApplication.length) {
             return res.status(400).send({ error: "You are in Leave today" })
@@ -234,7 +237,7 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
             const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
             const endOfMonth = new Date();
 
-            if (timeDiff > 120 && timeDiff < 240) {
+            if (timeDiff > 120 && timeDiff >= 240) {
                 // Half-day leave due to late arrival
                 const halfDayLeaveApp = {
                     leaveType: "Unpaid Leave (LWP)",
