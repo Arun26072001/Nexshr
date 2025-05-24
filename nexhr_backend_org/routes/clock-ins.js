@@ -232,12 +232,17 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
         if (!loginTimeRaw) return res.status(400).send({ error: "You must start Punch-in Timer" });
         const companyLoginMinutes = timeToMinutes(officeLoginTime) + Number(emp?.workingTimePattern?.WaitingTime);
         const empLoginMinutes = timeToMinutes(loginTimeRaw);
+        console.log("company, Emp", companyLoginMinutes, empLoginMinutes);
+
         if (companyLoginMinutes < empLoginMinutes) {
             const timeDiff = empLoginMinutes - companyLoginMinutes;
             const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
             const endOfMonth = new Date();
+            console.log("timeDif", timeDiff, companyLoginMinutes, empLoginMinutes);
 
             if (timeDiff > 120 && timeDiff >= 240) {
+                console.log("enter halfday leave");
+
                 // Half-day leave due to late arrival
                 const halfDayLeaveApp = {
                     leaveType: "Unpaid Leave (LWP)",
@@ -274,6 +279,8 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
                 let leaveAppData, subject, htmlContent;
 
                 if (empPermissions.length === 2) {
+                    console.log("appling permission finished");
+                    
                     // Exceeded permission limit → Convert to Half-Day Leave
                     leaveAppData = {
                         leaveType: "Unpaid Leave (LWP)",
