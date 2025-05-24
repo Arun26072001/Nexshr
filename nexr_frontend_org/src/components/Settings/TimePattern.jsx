@@ -6,7 +6,7 @@ import LeaveTable from "../LeaveTable";
 import NoDataFound from "../payslip/NoDataFound";
 import CommonModel from "../Administration/CommonModel";
 import { EssentialValues } from "../../App";
-import Loading from "../Loader";
+// import Loading from "../Loader";
 import { Skeleton } from "@mui/material";
 
 const TimePattern = () => {

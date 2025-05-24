@@ -155,16 +155,13 @@ function projectMailContent(emp, creator, company, dataObj, type) {
   `;
 }
 
-function teamMailContent() {
-
-}
 
 function timeToMinutes(timeStr) {
-  if (timeStr.split(":").length === 3) {
-    const [hours, minutes, seconds] = timeStr.split(":").map(Number);
+  if (timeStr.split(/[:.]+/).length === 3) {
+    const [hours, minutes, seconds] = timeStr.split(/[:.]+/).map(Number);
     return Number(((hours * 60) + minutes + (seconds / 60)).toFixed(2)) || 0; // Defaults to 0 if input is invalid
   } else {
-    const [hours, minutes] = timeStr.split(":").map(Number);
+    const [hours, minutes] = timeStr.split(/[:.]+/).map(Number);
     return Number(((hours * 60) + minutes).toFixed(2)) || 0;
   }
 }
