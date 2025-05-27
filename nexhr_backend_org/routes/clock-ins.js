@@ -8,19 +8,18 @@ const { getDayDifference } = require("./leave-app");
 const sendMail = require("./mailSender");
 const { LeaveApplication } = require("../models/LeaveAppModel");
 const { Team } = require("../models/TeamModel");
-const { getCurrentTimeInMinutes, formatTimeFromMinutes, timeToMinutes, getTotalWorkingHourPerDay, processActivityDurations } = require("../Reuseable_functions/reusableFunction");
+const { timeToMinutes, getTotalWorkingHourPerDay, processActivityDurations } = require("../Reuseable_functions/reusableFunction");
 const { WFHApplication } = require("../models/WFHApplicationModel");
 const { sendPushNotification } = require("../auth/PushNotification");
 
-async function checkLoginForOfficeTime(scheduledTime, actualTime, permissionTime) {
-    console.log("in behaviour", scheduledTime, actualTime, permissionTime);
+async function checkLoginForOfficeTime(scheduledTime, actualTime, permissionTime = 0) {
 
     // Parse scheduled and actual time into hours and minutes
-    const [scheduledHours, scheduledMinutes] = scheduledTime.split('.').map(Number);
-    const [actualHours, actualMinutes] = actualTime.split(':').map(Number);
+    const [scheduledHours, scheduledMinutes] = scheduledTime.split(/[:.]+/).map(Number);
+    const [actualHours, actualMinutes] = actualTime.split(/[:.]+/).map(Number);
 
     // Create Date objects for both scheduled and actual times
-    const scheduledDate = new Date(2000, 0, 1, scheduledHours + (permissionTime || 0), scheduledMinutes);
+    const scheduledDate = new Date(2000, 0, 1, scheduledHours + (permissionTime), scheduledMinutes);
     const actualDate = new Date(2000, 0, 1, actualHours, actualMinutes);
 
     // Calculate the difference in milliseconds
@@ -194,9 +193,10 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
             .populate({
                 path: "leaveApplication",
                 match: {
-                    fromDate: { $gte: startOfDay, $lte: endOfDay },
+                    fromDate: { $lte: endOfDay },
+                    toDate: { $gte: startOfDay },
                     status: "approved",
-                    leaveType: { $nin: "Permission Leave" }
+                    leaveType: { $nin: ["Permission Leave"] }
                 }
             })
 
@@ -233,7 +233,6 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
         if (!loginTimeRaw) return res.status(400).send({ error: "You must start Punch-in Timer" });
         const companyLoginMinutes = timeToMinutes(officeLoginTime) + Number(emp?.workingTimePattern?.WaitingTime);
         const empLoginMinutes = timeToMinutes(loginTimeRaw);
-        console.log(companyLoginMinutes, empLoginMinutes, officeLoginTime, loginTimeRaw);
 
         if (companyLoginMinutes < empLoginMinutes) {
             const timeDiff = empLoginMinutes - companyLoginMinutes;
@@ -241,7 +240,6 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
             const endOfMonth = new Date();
 
             if (timeDiff > 120 && timeDiff >= 240) {
-                console.log("enter halfday leave", timeDiff);
 
                 // Half-day leave due to late arrival
                 const halfDayLeaveApp = {
@@ -279,7 +277,6 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
                 let leaveAppData, subject, htmlContent;
 
                 if (empPermissions.length === 2) {
-                    console.log("apply permission");
 
                     // Exceeded permission limit → Convert to Half-Day Leave
                     leaveAppData = {
@@ -372,7 +369,6 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
         // Function to check login status
         const checkLoginStatus = (scheduledTime, actualTime, permissionTime = 0) => {
             if (!scheduledTime || !actualTime) return null;
-            console.log("in status", scheduledTime, actualTime,);
 
             const scheduledMinutes = timeToMinutes(scheduledTime);
             const actualMinutes = timeToMinutes(actualTime);
@@ -391,12 +387,13 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
 
         // Determine employee behavior (Late, Early, On Time)
         const loginTime = loginTimeRaw;
-        const permissionMinutes = emp?.leaveApplication?.length
-            ? ((new Date(emp.leaveApplication[0].toDate).getTime() - new Date(emp.leaveApplication[0].fromDate).getTime()) / 60000) / 60
-            : 0;
+        // const permissionMinutes = emp?.leaveApplication?.length
+        //     ? ((new Date(emp.leaveApplication[0].toDate).getTime() - new Date(emp.leaveApplication[0].fromDate).getTime()) / 60000) / 60
+        //     : 0;
+        // console.log(emp?.leaveApplication[0]);
 
-        const behaviour = checkLoginStatus(officeLoginTime, loginTime, permissionMinutes);
-        const punchInMsg = await checkLoginForOfficeTime(officeLoginTime, loginTime, permissionMinutes);
+        const behaviour = checkLoginStatus(officeLoginTime, loginTime);
+        const punchInMsg = await checkLoginForOfficeTime(officeLoginTime, loginTime);
 
         // Create clock-in entry
         const newClockIns = await ClockIns.create({
@@ -436,8 +433,6 @@ router.get("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
         });
 
         if (prevClockIn && prevClockIn.login?.startingTime?.length !== prevClockIn.login?.endingTime?.length) {
-            console.log("checking");
-
             const activitiesData = processActivityDurations(prevClockIn);
             const totalMinutes = activitiesData.reduce((sum, a) => sum + a.timeCalMins, 0);
             const empTotalWorkingHours = (totalMinutes / 60).toFixed(2);
@@ -505,8 +500,8 @@ router.get("/team/:id", verifyTeamHigherAuthority, async (req, res) => {
 
 router.get("/item/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
     const convertToMinutes = (start, end) => {
-        const [endHour, endMin] = end.split(":").map(Number);
-        const [startHour, startMin] = start.split(":").map(Number);
+        const [endHour, endMin] = end.split(/[:.]+/).map(Number);
+        const [startHour, startMin] = start.split(/[:.]+/).map(Number);
 
         const startTime = new Date(2000, 0, 1, startHour, startMin);
         const endTime = new Date(2000, 0, 1, endHour, endMin);
@@ -812,8 +807,6 @@ router.post("/ontime/:type", async (req, res) => {
 </html>
 `  })
         })
-        console.log("sent successfully!");
-
         return res.send({ message: "Email sent successfully for all employees." })
 
     } catch (error) {

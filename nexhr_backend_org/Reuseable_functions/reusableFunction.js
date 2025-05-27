@@ -182,7 +182,6 @@ function processActivityDurations(record) {
 }
 
 function timeToMinutes(timeStr) {
-    console.log(typeof timeStr, timeStr);
     if (typeof timeStr === 'object') {
         const timeData = new Date(timeStr).toTimeString().split(' ')[0]
         console.log(timeData);
@@ -201,7 +200,7 @@ function timeToMinutes(timeStr) {
 const getCurrentTimeInMinutes = () => {
   const now = new Date().toLocaleTimeString('en-US', { timeZone: process.env.TIMEZONE, hourCycle: 'h23' });
   const timeWithoutSuffix = now.replace(/ AM| PM/, ""); // Remove AM/PM
-  const [hour, min, sec] = timeWithoutSuffix.split(":").map(Number);
+  const [hour, min, sec] = timeWithoutSuffix.split(/[:.]+/).map(Number);
   return timeToMinutes(`${hour}:${min}:${sec}`);
 };
 

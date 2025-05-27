@@ -162,12 +162,10 @@ leaveApp.get("/date-range/:orgId/hr", verifyHR, async (req, res) => {
         path: "leaveApplication",
         match: {
           fromDate: {
-            $gte: startOfMonth,
             $lte: endOfMonth
           },
           toDate: {
-            $gte: startOfMonth,
-            $lte: endOfMonth
+            $gte: startOfMonth
           }
         },
         populate: { path: "employee", select: "FirstName LastName" }

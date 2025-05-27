@@ -24,8 +24,8 @@ const updateDataAPI = async (body) => {
 };
 
 async function getTotalWorkingHourPerDay(start, end) {
-    const [startHour, startMin] = start.split(":").map(Number);
-    const [endHour, endMin] = end.split(":").map(Number);
+    const [startHour, startMin] = start.split(/[:.]+/).map(Number);
+    const [endHour, endMin] = end.split(/[:.]+/).map(Number);
 
     const startTime = new Date(2000, 0, 1, startHour, startMin);
     const endTime = new Date(2000, 0, 1, endHour, endMin);
@@ -127,7 +127,7 @@ function timeToMinutes(timeStr) {
 const getCurrentTimeInMinutes = () => {
     const now = new Date().toLocaleTimeString('en-US', { timeZone: process.env.TIMEZONE, hourCycle: 'h23' });
     const timeWithoutSuffix = now.replace(/ AM| PM/, ""); // Remove AM/PM
-    const [hour, min, sec] = timeWithoutSuffix.split(":").map(Number);
+    const [hour, min, sec] = timeWithoutSuffix.split(/[:.]+/).map(Number);
     return timeToMinutes(`${hour}:${min}:${sec}`);
 };
 
@@ -150,7 +150,7 @@ function formatTimeFromMinutes(minutes) {
 }
 
 function convertTimeStringToDate(timeStr) {
-    const [hours, minutes, seconds] = timeStr.split(":").map(Number);
+    const [hours, minutes, seconds] = timeStr.split(/[:.]+/).map(Number);
 
     if (
         [hours, minutes, seconds].some(
@@ -446,7 +446,7 @@ const addSecondsToTime = (timeString, secondsToAdd) => {
     }
 
     // Split and convert to numbers
-    const [hours, minutes, seconds] = timeString.split(":").map(Number);
+    const [hours, minutes, seconds] = timeString.split(/[:.]+/).map(Number);
 
     // Ensure totalSeconds is non-negative
     const totalSeconds = Math.max(0, hours * 3600 + minutes * 60 + seconds + secondsToAdd);
@@ -492,7 +492,7 @@ async function fetchCompanies() {
 
 function getTimeFromHour(timeStr, min = false) {
     if (timeStr) {
-        const [hours, minutes, seconds] = timeStr.split(":").map(Number);
+        const [hours, minutes, seconds] = timeStr.split(/[:.]+/).map(Number);
         if (min) {
             return ((hours * 60) + minutes + (seconds / 60))?.toFixed(2);
         } else {

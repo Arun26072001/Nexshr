@@ -37,8 +37,8 @@ router.post("/", async (req, res) => {
       path: "leaveApplication",
       match: {
         $or: [
-          { fromDate: { $gte: startOfMonth, $lte: endOfMonth } },
-          { toDate: { $gte: startOfMonth, $lte: endOfMonth } }
+          { fromDate: { $lte: endOfMonth } },
+          { toDate: { $gte: startOfMonth } }
         ],
         leaveType: "Unpaid Leave (LWP)",
         status: "approved"

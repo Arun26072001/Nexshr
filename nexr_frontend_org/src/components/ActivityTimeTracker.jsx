@@ -172,7 +172,7 @@ const ActivityTimeTracker = () => {
     useEffect(() => {
         if (workTimeTracker?.[timeOption]?.timeHolder) {
             const [newHour, newMin, newSec] = workTimeTracker[timeOption].timeHolder
-                .split(":")
+                .split(/[:.]+/)
                 .map(Number);
             setHour(newHour);
             setMin(newMin);

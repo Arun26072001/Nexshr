@@ -31,7 +31,7 @@ router.get("/project/:id", verifyAdminHREmployeeManagerNetwork, async (req, res)
                     ...task.toObject(),
                     spend: {
                         ...(task.spend ? task.spend.toObject() : {}), // Ensure spend exists
-                        timeHolder: task?.spend?.timeHolder?.split(":")?.length === 2 && ["00:00:00"].includes(task.spend?.timeHolder) ? formatTimeFromMinutes(
+                        timeHolder: task?.spend?.timeHolder?.split(/[:.]+/)?.length === 2 && ["00:00:00"].includes(task.spend?.timeHolder) ? formatTimeFromMinutes(
                             (Number(task.spend?.timeHolder) + totalCommentSpendTime) * 60
                         ) : task.spend.timeHolder
                     }
@@ -120,7 +120,7 @@ router.post("/members", verifyAdminHREmployeeManagerNetwork, async (req, res) =>
         const fromDate = new Date(dateRange[0]);
         const toDate = new Date(dateRange[1]);
 
-        const taskData = await Task.find({ assignedTo: { $in: collegues }, from: { $gte: fromDate, $lte: toDate } });
+        const taskData = await Task.find({ assignedTo: { $in: collegues }, from: { $lte: toDate }, to: { $gte: fromDate } });
         return res.send(taskData)
 
     } catch (error) {

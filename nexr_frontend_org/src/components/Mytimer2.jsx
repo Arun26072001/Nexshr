@@ -11,16 +11,16 @@ export default function Mytimer2({ task, updatedTimerInTask }) {
     const [sec, setSec] = useState(0);
 
     useEffect(() => {
-        if (task?.spend?.timeHolder && task?.spend?.timeHolder.split(":").length > 2) {
-            const [newHour, newMin, newSec] = task.spend.timeHolder.split(":").map(Number);
+        if (task?.spend?.timeHolder && task?.spend?.timeHolder.split(/[:.]+/).length > 2) {
+            const [newHour, newMin, newSec] = task.spend.timeHolder.split(/[:.]+/).map(Number);
             setHour(newHour || 0);
             setMin(newMin || 0);
             setSec(newSec || 0);
         } else {
             const hourMinSec = formatTimeFromHour(Number(task?.spend?.timeHolder));
-            setHour(hourMinSec.split(":")[0])
-            setMin(hourMinSec.split(":")[1])
-            setSec(hourMinSec.split(":")[2])
+            setHour(hourMinSec.split(/[:.]+/)[0])
+            setMin(hourMinSec.split(/[:.]+/)[1])
+            setSec(hourMinSec.split(/[:.]+/)[2])
         }
     }, [task]);
 

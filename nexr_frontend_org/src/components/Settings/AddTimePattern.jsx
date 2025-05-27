@@ -31,8 +31,8 @@ const AddTimePattern = ({ handleAddWorkingTime, reload }) => {
         if (timePattern.FinishingTime !== "" && timePattern.StartingTime !== "") {
             if (timePattern.StartingTime && timePattern.FinishingTime) {
 
-                const [startHour, startMinute] = timePattern.StartingTime.split(":").map(num => parseInt(num, 10));
-                const [endHour, endMinute] = timePattern.FinishingTime.split(":").map(num => parseInt(num, 10));
+                const [startHour, startMinute] = timePattern.StartingTime.split(/[:.]+/).map(num => parseInt(num, 10));
+                const [endHour, endMinute] = timePattern.FinishingTime.split(/[:.]+/).map(num => parseInt(num, 10));
 
                 const startDate = new Date();
                 startDate.setHours(startHour);
@@ -52,8 +52,8 @@ const AddTimePattern = ({ handleAddWorkingTime, reload }) => {
         }
     }, [timePattern.FinishingTime, timePattern.StartingTime])
 
-    let startTimeVal = timePattern.StartingTime.split(":").reduce((acc, val) => acc + val);
-    let endTimeVal = timePattern.FinishingTime.split(":").reduce((acc, val) => acc + val);
+    let startTimeVal = timePattern.StartingTime.split(/[:.]+/).reduce((acc, val) => acc + val);
+    let endTimeVal = timePattern.FinishingTime.split(/[:.]+/).reduce((acc, val) => acc + val);
 
     function makeActive(e) {
         setTimePattern({

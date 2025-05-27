@@ -46,12 +46,10 @@ router.post("/:orgId", async (req, res) => {
       path: "leaveApplication",
       match: {
         fromDate: {
-          $gte: startOfMonth,
           $lte: endOfMonth
         },
         toDate: {
-          $gte: startOfMonth,
-          $lte: endOfMonth
+          $gte: startOfMonth
         }
       }
     }).exec();

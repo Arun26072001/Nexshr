@@ -56,20 +56,15 @@ export default function Navbar({ handleSideBar }) {
 
     // start and stop timer only
     function stopOnlyTimer() {
-        console.log(workRef.current, isStartLogin);
         if (workRef.current && isStartLogin) {
-            console.log("try to stop");
             clearInterval(workRef.current);
             workRef.current = null;
         }
     }
 
     function startOnlyTimer() {
-        // console.log("call timer only fun: ", workTimeTracker._id, isStartLogin);
         if (!workRef.current) {
-            // if (isStartLogin) {
             workRef.current = setInterval(incrementTime, 1000);
-            // }
         }
     }
 
@@ -254,7 +249,7 @@ export default function Navbar({ handleSideBar }) {
             console.log("error in check wfh", error);
         }
     }
-    
+
     async function clockOut() {
         try {
             setIsWorkingLoginTimerApi(true)
@@ -316,7 +311,7 @@ export default function Navbar({ handleSideBar }) {
     // Initialize time based on selected workTimeTracker and timeOption
     useEffect(() => {
         if (workTimeTracker?.login?.timeHolder) {
-            const [newHour, newMin, newSec] = workTimeTracker?.login?.timeHolder?.split(":").map(Number);
+            const [newHour, newMin, newSec] = workTimeTracker?.login?.timeHolder?.split(/[:.]+/).map(Number);
             setHour(newHour);
             setMin(newMin);
             setSec(newSec);
@@ -341,7 +336,7 @@ export default function Navbar({ handleSideBar }) {
                 </div>
                 <div className="modelInput">
                     <p className='modelLabel'>Checkout Time:</p>
-                    <DatePicker value={workTimeTracker?.login?.endingTime?.at(-1) ? convertTimeStringToDate(workTimeTracker?.login?.endingTime?.at(-1)) : null} size='lg' style={{ width: "100%" }} format="HH:mm:ss" onChange={(e) => updateCheckoutTime(e)} />
+                    <DatePicker value={workTimeTracker?.login?.endingTime[workTimeTracker?.login?.startingTime.length - 1] ? convertTimeStringToDate(workTimeTracker?.login?.endingTime?.[workTimeTracker?.login?.startingTime?.length - 1]) : null} size='lg' style={{ width: "100%" }} format="HH:mm:ss" onChange={(e) => updateCheckoutTime(e)} />
                 </div>
             </Modal.Body>
 
@@ -349,7 +344,7 @@ export default function Navbar({ handleSideBar }) {
                 <Button
                     onClick={clockOut}
                     appearance="primary"
-                    disabled={workTimeTracker.forgetToLogout && workTimeTracker?.login?.endingTime?.length === workTimeTracker?.login?.startingTime?.length  ? false : true}
+                    disabled={workTimeTracker.forgetToLogout && workTimeTracker?.login?.endingTime?.length === workTimeTracker?.login?.startingTime?.length ? false : true}
                 >
                     Add
                 </Button>

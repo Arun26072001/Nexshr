@@ -114,8 +114,6 @@ export default function HRMDashboard() {
         event: { ...startAndEndTime }
     });
 
-    console.log("org", workTimeTracker);
-
     function updateClockins() {
         setCheckClockins(!checkClockins);
     }

@@ -514,7 +514,8 @@ leaveApp.get("/people-on-leave", verifyAdminHREmployeeManagerNetwork, async (req
 
   try {
     const leaveData = await LeaveApplication.find({
-      fromDate: { $gte: startOfDay, $lte: endOfDay },
+      fromDate: { $lte: endOfDay },
+      toDate: { $gte: startOfDay },
       leaveType: { $nin: ["Permission", "Permission Leave"] },
       status: "approved"
     }, "fromDate toDate status leaveType")
@@ -614,8 +615,8 @@ leaveApp.get("/date-range/management/:whoIs", verifyAdminHrNetworkAdmin, async (
       .populate({
         path: "leaveApplication",
         match: {
-          fromDate: { $gte: startOfMonth, $lte: endOfMonth },
-          toDate: { $gte: startOfMonth, $lte: endOfMonth }
+          fromDate: { $lte: endOfMonth },
+          toDate: { $gte: startOfMonth }
         },
         populate: [
           { path: "employee", select: "FirstName LastName Email profile" },
@@ -677,8 +678,8 @@ leaveApp.get("/date-range/:empId", verifyAdminHREmployeeManagerNetwork, async (r
       .populate({
         path: "leaveApplication",
         match: {
-          fromDate: { $gte: startOfMonth, $lte: endOfMonth },
-          toDate: { $gte: startOfMonth, $lte: endOfMonth }
+          fromDate: { $lte: endOfMonth },
+          toDate: { $gte: startOfMonth }
         },
         populate: [
           { path: "employee", select: "FirstName LastName Email profile" },
@@ -798,7 +799,8 @@ leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("pre
     const existingRequest = await LeaveApplication.findOne({
       employee: personId,
       status: "approved",
-      fromDate: { $gte: fromDate, $lte: toDate },
+      fromDate: { $lte: toDate },
+      toDate: { $gte: fromDate }
     });
     if (existingRequest) {
       return res.status(400).json({ error: "Leave request already exists for the given date range." });
@@ -1083,9 +1085,9 @@ leaveApp.delete("/:id/:leaveId", verifyAdminHREmployeeManagerNetwork, async (req
     else {
       const leave = await LeaveApplication.findById(req.params.leaveId);
       // check leave is unpaid leave
-      if (leave.leaveType.toLowerCase().includes("unpaid")) {
-        return res.status(400).send({ error: "You can't delete unpaid leave request" })
-      }
+      // if (leave.leaveType.toLowerCase().includes("unpaid")) {
+      //   return res.status(400).send({ error: "You can't delete unpaid leave request" })
+      // }
       if (leave.status === "pending") {
         const dltLeave = await LeaveApplication.findByIdAndRemove(req.params.leaveId)
         if (!dltLeave) {

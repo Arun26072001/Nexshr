@@ -217,8 +217,8 @@ router.get("/:orgId/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) 
 
 router.get("/item/:orgId/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
     const convertToMinutes = (start, end) => {
-        const [endHour, endMin] = end.split(":").map(Number);
-        const [startHour, startMin] = start.split(":").map(Number);
+        const [endHour, endMin] = end.split(/[:.]+/).map(Number);
+        const [startHour, startMin] = start.split(/[:.]+/).map(Number);
 
         const startTime = new Date(2000, 0, 1, startHour, startMin);
         const endTime = new Date(2000, 0, 1, endHour, endMin);

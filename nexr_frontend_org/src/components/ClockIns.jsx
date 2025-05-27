@@ -9,9 +9,9 @@ import { EssentialValues } from '../App';
 const ClockIns = () => {
     const { startActivityTimer, stopActivityTimer, workTimeTracker, isStartActivity, timeOption } = useContext(TimerStates);
     const {data} = useContext(EssentialValues);
-    const [sec, setSec] = useState(() => parseInt(localStorage.getItem("activityTimer")?.split(":")[2]) || 0);
-    const [min, setMin] = useState(() => parseInt(localStorage.getItem("activityTimer")?.split(":")[1]) || 0);
-    const [hour, setHour] = useState(() => parseInt(localStorage.getItem("activityTimer")?.split(":")[0]) || 0);
+    const [sec, setSec] = useState(() => parseInt(localStorage.getItem("activityTimer")?.split(/[:.]+/)[2]) || 0);
+    const [min, setMin] = useState(() => parseInt(localStorage.getItem("activityTimer")?.split(/[:.]+/)[1]) || 0);
+    const [hour, setHour] = useState(() => parseInt(localStorage.getItem("activityTimer")?.split(/[:.]+/)[0]) || 0);
     const timerRef = useRef(null);
 
     // Sync sec, min, hour with localStorage
@@ -76,7 +76,7 @@ const ClockIns = () => {
     // Initialize time based on selected workTimeTracker and timeOption
     useEffect(() => {
         if (!isStartActivity && workTimeTracker?.[timeOption]?.timeHolder) {
-            const [newHour, newMin, newSec] = workTimeTracker[timeOption].timeHolder.split(":").map(Number);
+            const [newHour, newMin, newSec] = workTimeTracker[timeOption].timeHolder.split(/[:.]+/).map(Number);
             setHour(newHour);
             setMin(newMin);
             setSec(newSec);

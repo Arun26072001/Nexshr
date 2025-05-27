@@ -368,7 +368,7 @@ const Tasks = () => {
     // Ensure `spend.timeHolder` is correctly formatted
     if (
       typeof updatedTask?.spend?.timeHolder === "string" &&
-      updatedTask.spend.timeHolder.split(":").length <= 2
+      updatedTask.spend.timeHolder.split(/[:.]+/).length <= 2
     ) {
       taskToUpdate.spend = {
         ...updatedTask.spend,

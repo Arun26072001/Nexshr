@@ -11,7 +11,7 @@ const { LeaveApplication, LeaveApplicationValidation } = require("../models/Leav
 
 const timeToMinutes = (timeStr) => {
     if (!timeStr) return 0;
-    const [hours, minutes] = timeStr.split(":").map(Number);
+    const [hours, minutes] = timeStr.split(/[:.]+/).map(Number);
     return hours * 60 + minutes;
 };
 

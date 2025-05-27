@@ -86,7 +86,8 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
         const existingRequest = await WFHApplication.findOne({
             employee: id,
             status: "approved",
-            fromDate: { $gte: fromDate, $lte: toDate },
+            fromDate: { $lte: toDate },
+            toDate: { $gte: fromDate }
         });
 
         if (existingRequest) {
@@ -188,7 +189,8 @@ router.get("/on-wfh", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
         const startOfDay = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate(), 0, 0, 0));
         const endOfDay = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate(), 23, 59, 59));
         const data = await WFHApplication.find({
-            fromDate: { $gte: startOfDay, $lte: endOfDay },
+            fromDate: { $lte: endOfDay },
+            toDate: { $gte: startOfDay },
             status: "approved"
         }, "fromDate toDate status leaveType")
             .populate({
@@ -215,7 +217,8 @@ router.get("/check-wfh/:id", verifyAdminHREmployeeManagerNetwork, async (req, re
         const emp = await Employee.findById(req.params.id, "isPermanentWFH")
         const isWFH = await WFHApplication.findOne({
             employee: req.params.id,
-            fromDate: { $gte: startOfDay, $lte: endOfDay },
+            fromDate: { $lte: endOfDay },
+            toDate: { $gte: startOfDay },
             status: "approved"
         })
 
@@ -237,7 +240,8 @@ router.get("/", verifyAdminHR, async (req, res) => {
             const startDate = new Date(req.query.dateRangeValue[0]);
             const endDate = new Date(req.query.dateRangeValue[1]);
             filterObj = {
-                fromDate: { $gte: startDate, $lte: endDate }
+                fromDate: { $lte: endDate },
+                toDate: { $gte: startDate }
             }
         }
         const applications = await WFHApplication.find(filterObj)
@@ -282,7 +286,8 @@ router.get("/employee/:id", verifyAdminHREmployeeManagerNetwork, async (req, res
             const endDate = new Date(req.query.dateRangeValue[1]);
             filterObj = {
                 ...filterObj,
-                fromDate: { $gte: startDate, $lte: endDate }
+                fromDate: { $lte: endDate },
+                toDate: { $gte: startDate }
             }
         }
         const requests = await WFHApplication.find(filterObj)
@@ -325,7 +330,8 @@ router.get("/team/:id/", verifyTeamHigherAuthority, async (req, res) => {
             const endDate = new Date(req.query.dateRangeValue[1]);
             filterObj = {
                 ...filterObj,
-                fromDate: { $gte: startDate, $lte: endDate }
+                fromDate: { $lte: endDate },
+                toDate: { $gte: startDate }
             }
         }
         const data = await WFHApplication.find(filterObj).populate("employee", "FirstName LastName profile").lean().exec();
