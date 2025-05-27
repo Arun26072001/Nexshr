@@ -13,6 +13,7 @@ const { WFHApplication } = require("../models/WFHApplicationModel");
 const { sendPushNotification } = require("../auth/PushNotification");
 
 async function checkLoginForOfficeTime(scheduledTime, actualTime, permissionTime) {
+    console.log("in behaviour", scheduledTime, actualTime, permissionTime);
 
     // Parse scheduled and actual time into hours and minutes
     const [scheduledHours, scheduledMinutes] = scheduledTime.split('.').map(Number);
@@ -232,7 +233,7 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
         if (!loginTimeRaw) return res.status(400).send({ error: "You must start Punch-in Timer" });
         const companyLoginMinutes = timeToMinutes(officeLoginTime) + Number(emp?.workingTimePattern?.WaitingTime);
         const empLoginMinutes = timeToMinutes(loginTimeRaw);
-        console.log(companyLoginMinutes, empLoginMinutes);
+        console.log(companyLoginMinutes, empLoginMinutes, officeLoginTime, loginTimeRaw);
 
         if (companyLoginMinutes < empLoginMinutes) {
             const timeDiff = empLoginMinutes - companyLoginMinutes;
@@ -371,6 +372,7 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
         // Function to check login status
         const checkLoginStatus = (scheduledTime, actualTime, permissionTime = 0) => {
             if (!scheduledTime || !actualTime) return null;
+            console.log("in status", scheduledTime, actualTime,);
 
             const scheduledMinutes = timeToMinutes(scheduledTime);
             const actualMinutes = timeToMinutes(actualTime);
