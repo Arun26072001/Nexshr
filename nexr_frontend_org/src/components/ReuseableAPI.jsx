@@ -426,6 +426,11 @@ async function getUserLocation(lat, lng) {
     }
 }
 
+function formatDate(date) {
+    const actualDate = new Date(date).toUTCString().split(" ");
+    return `${actualDate.slice(1, 3)} ${actualDate[4]?.split(/[:.]+/)[0]}:${actualDate[4]?.split(/[:.]+/)[1]}`
+}
+
 function formatTimeFromHour(hour) {
     if (!hour) {
         return `00:00:00`;
@@ -619,6 +624,7 @@ function exportAttendanceToExcel(attendanceData) {
 export {
     triggerToaster,
     calculateTimePattern,
+    formatDate,
     processActivityDurations,
     getTimeFromHour,
     getHoliday,

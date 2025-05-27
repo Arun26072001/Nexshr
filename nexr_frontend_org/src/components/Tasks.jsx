@@ -226,15 +226,19 @@ const Tasks = () => {
     });
   }
 
-  function addReminder(remindObj){
-    setTaskObj((pre)=>({
+  function addReminder(remindObj) {
+    setTaskObj((pre) => ({
       ...pre,
-      "remind": [...pre.remind, remindObj]
+      "remind": [...(pre?.remind || []), remindObj]
     }))
   }
 
-  function removeReminder(item){
-    
+  function removeReminder(index) {
+    const filteredReminders = taskObj?.remind.filter((item, i) => i !== index);
+    setTaskObj((pre) => ({
+      ...pre,
+      "remind": filteredReminders
+    }))
   }
 
   function handleEditTask() {
@@ -646,6 +650,7 @@ const Tasks = () => {
             editData={editTask}
             addReminder={addReminder}
             changeData={changeTask}
+            removeReminder={removeReminder}
             projects={projects}
             addData={addTask}
             removeAttachment={removeAttachment}

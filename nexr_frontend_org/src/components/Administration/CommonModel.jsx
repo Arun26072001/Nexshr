@@ -12,17 +12,14 @@ import Loading from '../Loader';
 import { EssentialValues } from '../../App';
 import VisibilityOffOutlinedIcon from '@mui/icons-material/VisibilityOffOutlined';
 import RemoveRedEyeOutlinedIcon from '@mui/icons-material/RemoveRedEyeOutlined';
-import { calculateTimePattern } from '../ReuseableAPI';
+import { calculateTimePattern, formatDate } from '../ReuseableAPI';
 
 const CommonModel = ({
     dataObj,
     editData,
     team_member,
     changeData,
-    isAddData,
-    addData,
-    leads,
-    heads, addReminder, managers,
+    isAddData, addData, leads, heads, addReminder, removeReminder, managers,
     hrs, admins, previewList, modifyData, notCompletedTasks,
     projects, departments, employees, deleteData, removeState,
     comps, changeState, removeAttachment, isWorkingApi, removePreview,
@@ -32,6 +29,16 @@ const CommonModel = ({
     const [confirmationTxt, setConfirmationTxt] = useState("");
     const [isDisabled, setIsDisabled] = useState(true);
     const [isShowPassword, setIsShowPassword] = useState(false);
+    const [remindOn, setRemindOn] = useState(dataObj?.remind?.on ? new Date(dataObj.remind.on) : null);
+    const [remindFor, setRemindFor] = useState(dataObj?.remind?.for || "");
+
+    const isButtonDisabled = !(remindOn && remindFor);
+
+    const handleAddReminder = () => {
+        addReminder({ on: remindOn, for: remindFor });
+        setRemindOn(null);
+        setRemindFor("");
+    };
 
     const getAllMemberIds = (data) => {
         let result = [];
@@ -1350,36 +1357,61 @@ const CommonModel = ({
                                 </div>
                             </div>
                         </div>
-                        <div className="d-flex justify-content-between">
+                        <div className="d-flex gap-2">
                             <div className="col-half">
                                 <div className="modelInput">
-                                    <p className="modelLabel">
-                                        Remind about task
-                                    </p>
-                                    <DatePicker value={new Date(dataObj?.remind?.on)} size='lg' style={{ width: "100%" }} format="yyyy-MM-dd HH:mm" id='remindOn'
-                                        //  onChange={(e) => changeData(e, "remind.on")} 
-                                        disabled={type === "View TimePattern"} editable={false} />
+                                    <p className="modelLabel">Remind about task</p>
+                                    <DatePicker
+                                        value={remindOn}
+                                        onChange={setRemindOn}
+                                        size="lg"
+                                        style={{ width: "100%" }}
+                                        format="yyyy-MM-dd HH:mm"
+                                        disabled={type === "View TimePattern"}
+                                        editable={false}
+                                        id="remindOn"
+                                    />
                                 </div>
                             </div>
+
                             <div className="col-half">
                                 <div className="modelInput">
-                                    <p className="modelLabel">
-                                        Remind For
-                                    </p>
-
+                                    <p className="modelLabel">Remind For</p>
                                     <SelectPicker
-                                        appearance='default'
+                                        appearance="default"
                                         style={{ width: "100%" }}
                                         size="lg"
                                         data={["Assignees", "Creator", "Self"].map((item) => ({ label: item, value: item }))}
                                         disabled={type === "View Task"}
                                         id="remindFor"
-                                    // value={dataObj?.remind?.for}
-                                    // onChange={(value) => changeData(value, "remind.for")}
+                                        value={remindFor}
+                                        onChange={setRemindFor}
                                     />
                                 </div>
-                                <Button onClick={() => addReminder({ "on": document.getElementById("remindOn").value, "for": document.getElementById("remindFor").value })} disabled={document.getElementById("remindOn").value && document.getElementById("remindFor").value ? false : true} >Add</Button>
                             </div>
+
+                            <div className="col-quat">
+                                <button
+                                    className="btn btn-primary"
+                                    style={{ height: "fit-content", marginTop: "37px" }}
+                                    onClick={handleAddReminder}
+                                    disabled={isButtonDisabled}
+                                >
+                                    Add
+                                </button>
+                            </div>
+                        </div>
+                        <div className="inputContent">
+                            {
+                                dataObj?.remind && dataObj?.remind?.length > 0 && (
+                                    dataObj?.remind?.map((item, index) => (
+                                        <span key={index} onClick={() => removeReminder(index)}>
+                                            {item.for} {formatDate(new Date(item.on))} <CloseRoundedIcon />
+                                        </span>
+                                    ))
+                                )
+                            }
+
                         </div>
                         <div className="d-flex justify-content-between">
                             <div className="col-half">

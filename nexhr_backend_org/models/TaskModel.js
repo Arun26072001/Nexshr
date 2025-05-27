@@ -61,7 +61,7 @@ const taskValidation = Joi.object({
         .required()
         .label('Priority'),
     subTask: Joi.any().optional(),
-    remindOn: Joi.any().optional(),
+    remind: Joi.any().optional(),
     dependantTasks: Joi.any().optional(),
     observers: Joi.any().optional(),
     participants: Joi.any().optional(),

@@ -4,6 +4,7 @@ import { toast } from 'react-toastify';
 import CircleBar from './CircleProcess';
 import { Skeleton } from '@mui/material';
 import { EssentialValues } from '../App';
+import { formatDate } from './ReuseableAPI';
 
 const CircleProgressBar = ({ isTeamLead, isTeamHead, isTeamManager }) => {
   const url = process.env.REACT_APP_API_URL;
@@ -34,11 +35,6 @@ const CircleProgressBar = ({ isTeamLead, isTeamHead, isTeamManager }) => {
       break;
     }
   }
-
-  const formatDate = (date) => {
-    const options = { weekday: 'short', day: 'numeric', month: 'short' };
-    return new Intl.DateTimeFormat('en-GB', options).format(date);
-  };
 
   useEffect(() => {
     async function fetchData() {

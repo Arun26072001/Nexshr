@@ -4,7 +4,7 @@ import Tabs from '@mui/material/Tabs';
 import Tab from '@mui/material/Tab';
 import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
-import { getDataAPI } from './ReuseableAPI';
+import { formatDate, getDataAPI } from './ReuseableAPI';
 import ApexChart from './ApexChart';
 import { TimerStates } from './payslip/HRMDashboard';
 import { Skeleton } from '@mui/material';
@@ -73,11 +73,6 @@ export default function Home({ peopleOnLeave, peopleOnWorkFromHome, isFetchPeopl
     const handleChange = (event, newValue) => {
         setValue(newValue);
     };
-
-    function formatDate(date) {
-        const actualDate = new Date(date).toUTCString().split(" ");
-        return `${actualDate.slice(1, 3)} ${actualDate[4]?.split(/[:.]+/)[0]}:${actualDate[4]?.split(/[:.]+/)[1]}`
-    }
 
     useEffect(() => {
         const getClockInsData = async () => {
