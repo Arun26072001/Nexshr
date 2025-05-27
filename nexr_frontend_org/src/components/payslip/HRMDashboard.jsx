@@ -114,6 +114,8 @@ export default function HRMDashboard() {
         event: { ...startAndEndTime }
     });
 
+    console.log("org", workTimeTracker);
+
     function updateClockins() {
         setCheckClockins(!checkClockins);
     }
@@ -460,16 +462,20 @@ export default function HRMDashboard() {
     // get workTimeTracker from DB in Initially
     useEffect(() => {
         const getClockInsData = async () => {
+            console.log("calling");
             try {
                 if (_id) {
                     const { timeData } = await getDataAPI(_id);
                     if (timeData) {
-                        if (new Date(timeData.date).toLocaleDateString() === new Date().toLocaleDateString()) {
-                            setWorkTimeTracker(timeData)
-                        } else {
+                        if (new Date(timeData.date).toLocaleDateString() !== new Date().toLocaleDateString()) {
+                            localStorage.setItem('isStartLogin', true);
+                            setIsStartLogin(true);
                             setIsForgetToPunchOut(true)
                         }
+                        setWorkTimeTracker(timeData)
+                        console.log("has timeData");
                     } else {
+                        console.log("no time data");
                         setWorkTimeTracker({ ...workTimeTracker });
                         removeClockinsData();
                     }

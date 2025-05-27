@@ -1082,7 +1082,11 @@ leaveApp.delete("/:id/:leaveId", verifyAdminHREmployeeManagerNetwork, async (req
     }
     else {
       const leave = await LeaveApplication.findById(req.params.leaveId);
-      if (leave.status === "pending" || !leave.leaveType.toLowerCase().includes("unpaid")) {
+      // check leave is unpaid leave
+      if (leave.leaveType.toLowerCase().includes("unpaid")) {
+        return res.status(400).send({ error: "You can't delete unpaid leave request" })
+      }
+      if (leave.status === "pending") {
         const dltLeave = await LeaveApplication.findByIdAndRemove(req.params.leaveId)
         if (!dltLeave) {
           return res.status(409).send({ message: "Error in deleting leave or leave not found" })

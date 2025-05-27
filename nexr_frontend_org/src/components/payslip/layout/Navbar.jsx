@@ -12,16 +12,15 @@ import axios from "axios";
 import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
 import KeyboardArrowDownRoundedIcon from '@mui/icons-material/KeyboardArrowDownRounded';
 import Loading from '../../Loader';
-import { processActivityDurations, updateDataAPI } from '../../ReuseableAPI';
+import { convertTimeStringToDate, processActivityDurations, updateDataAPI } from '../../ReuseableAPI';
 
 export default function Navbar({ handleSideBar }) {
     const { handleLogout, data, handleUpdateAnnouncements, isChangeAnnouncements, whoIs,
-        changeViewReasonForEarlyLogout, isViewEarlyLogout, isForgetToPunchOut, setIsForgetToPunchOut,
-        setIsStartLogin
-    } = useContext(EssentialValues)
+        changeViewReasonForEarlyLogout, isViewEarlyLogout, setIsStartLogin } = useContext(EssentialValues)
     const { startLoginTimer, stopLoginTimer, workTimeTracker, isStartLogin,
         trackTimer, changeReasonForEarly, setWorkTimeTracker, updateClockins,
-        isWorkingLoginTimerApi, setIsWorkingLoginTimerApi } = useContext(TimerStates);
+        isWorkingLoginTimerApi, setIsWorkingLoginTimerApi, isForgetToPunchOut,
+        setIsForgetToPunchOut } = useContext(TimerStates);
     const [sec, setSec] = useState(workTimeTracker?.login?.timeHolder?.split(':')[2])
     const [min, setMin] = useState(workTimeTracker?.login?.timeHolder?.split(':')[1])
     const [hour, setHour] = useState(workTimeTracker?.login?.timeHolder?.split(':')[0])
@@ -57,7 +56,9 @@ export default function Navbar({ handleSideBar }) {
 
     // start and stop timer only
     function stopOnlyTimer() {
+        console.log(workRef.current, isStartLogin);
         if (workRef.current && isStartLogin) {
+            console.log("try to stop");
             clearInterval(workRef.current);
             workRef.current = null;
         }
@@ -253,17 +254,14 @@ export default function Navbar({ handleSideBar }) {
             console.log("error in check wfh", error);
         }
     }
-
+    
     async function clockOut() {
         try {
             setIsWorkingLoginTimerApi(true)
             const updatedState = processActivityDurations(workTimeTracker, "login")
             const updatedData = await updateDataAPI(updatedState);
-            setWorkTimeTracker(updatedData);
-            localStorage.setItem('isStartLogin', false);
-            setIsStartLogin(false);
-            updateClockins();
-            setIsForgetToPunchOut(false);
+            // eslint-disable-next-line no-restricted-globals
+            location.reload()
         } catch (err) {
             console.error(err);
         } finally {
@@ -326,7 +324,7 @@ export default function Navbar({ handleSideBar }) {
     }, [workTimeTracker, isStartLogin]);
 
     return (
-        isForgetToPunchOut ? <Modal open={isViewEarlyLogout} size="sm" backdrop="static">
+        isForgetToPunchOut ? <Modal open={isForgetToPunchOut} size="sm" backdrop="static">
             <Modal.Header >
                 <Modal.Title>
                     Reason for forget to stop timer
@@ -343,7 +341,7 @@ export default function Navbar({ handleSideBar }) {
                 </div>
                 <div className="modelInput">
                     <p className='modelLabel'>Checkout Time:</p>
-                    <DatePicker value={new Date()} size='lg' style={{ width: "100%" }} format="HH:mm" onChange={(e) => updateCheckoutTime(e)} />
+                    <DatePicker value={workTimeTracker?.login?.endingTime?.at(-1) ? convertTimeStringToDate(workTimeTracker?.login?.endingTime?.at(-1)) : null} size='lg' style={{ width: "100%" }} format="HH:mm:ss" onChange={(e) => updateCheckoutTime(e)} />
                 </div>
             </Modal.Body>
 
@@ -351,7 +349,7 @@ export default function Navbar({ handleSideBar }) {
                 <Button
                     onClick={clockOut}
                     appearance="primary"
-                    disabled={workTimeTracker.forgetToLogout ? false : true}
+                    disabled={workTimeTracker.forgetToLogout && workTimeTracker?.login?.endingTime?.length === workTimeTracker?.login?.startingTime?.length  ? false : true}
                 >
                     Add
                 </Button>
