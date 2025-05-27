@@ -473,9 +473,7 @@ export default function HRMDashboard() {
                             setIsForgetToPunchOut(true)
                         }
                         setWorkTimeTracker(timeData)
-                        console.log("has timeData");
                     } else {
-                        console.log("no time data");
                         setWorkTimeTracker({ ...workTimeTracker });
                         removeClockinsData();
                     }
