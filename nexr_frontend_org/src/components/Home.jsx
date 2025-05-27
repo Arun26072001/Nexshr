@@ -81,7 +81,6 @@ export default function Home({ peopleOnLeave, peopleOnWorkFromHome, isFetchPeopl
 
     useEffect(() => {
         const getClockInsData = async () => {
-            console.log("calling");
             try {
                 setLoading(true);
                 if (!isStartLogin && !isStartActivity && data._id) {
@@ -210,7 +209,7 @@ export default function Home({ peopleOnLeave, peopleOnWorkFromHome, isFetchPeopl
                                 </div> :
                                     peopleOnWorkFromHome.length ?
                                         peopleOnWorkFromHome.map((wfh, index) => {
-                                            return <div key={index} className='box-content d-flex align-items-center justify-content-around my-1' style={{ boxShadow: 'none', background: "white" }}>
+                                            return <div key={index} className='box-content d-flex align-items-center justify-content-around my-1' style={{ boxShadow: 'none', background: "white", height: "fit-content" }}>
                                                 <img src={wfh?.employee?.profile || profile} alt="profile" className='imgContainer' />
                                                 <div className="d-block">
                                                     <p style={{ fontSize: "13px" }}><b>{wfh?.employee?.FirstName[0].toUpperCase() + wfh?.employee?.FirstName.slice(1) + " " + wfh?.employee?.LastName}</b>({wfh?.employee?.team?.teamName || "TeamName"})</p>

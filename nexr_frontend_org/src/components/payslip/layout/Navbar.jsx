@@ -5,20 +5,23 @@ import TableRowsRoundedIcon from '@mui/icons-material/TableRowsRounded';
 import PunchIn from "../../../asserts/PunchIn.svg";
 import PunchOut from "../../../asserts/punchOut.svg";
 import { TimerStates } from '../HRMDashboard';
-import { Accordion, Button, Dropdown, Input, Modal, Popover, SelectPicker, Whisper } from 'rsuite';
+import { Accordion, Button, DatePicker, Dropdown, Input, Modal, Popover, SelectPicker, Whisper } from 'rsuite';
 import logo from "../../../imgs/male_avatar.webp";
 import { EssentialValues } from '../../../App';
 import axios from "axios";
 import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
 import KeyboardArrowDownRoundedIcon from '@mui/icons-material/KeyboardArrowDownRounded';
-// import useHandleTabClose from '../../../handleCloseTab';
 import Loading from '../../Loader';
+import { processActivityDurations, updateDataAPI } from '../../ReuseableAPI';
 
 export default function Navbar({ handleSideBar }) {
     const { handleLogout, data, handleUpdateAnnouncements, isChangeAnnouncements, whoIs,
-        changeViewReasonForEarlyLogout, isViewEarlyLogout
+        changeViewReasonForEarlyLogout, isViewEarlyLogout, isForgetToPunchOut, setIsForgetToPunchOut,
+        setIsStartLogin
     } = useContext(EssentialValues)
-    const { startLoginTimer, stopLoginTimer, workTimeTracker, isStartLogin, trackTimer, changeReasonForEarly, isWorkingLoginTimerApi } = useContext(TimerStates);
+    const { startLoginTimer, stopLoginTimer, workTimeTracker, isStartLogin,
+        trackTimer, changeReasonForEarly, setWorkTimeTracker, updateClockins,
+        isWorkingLoginTimerApi, setIsWorkingLoginTimerApi } = useContext(TimerStates);
     const [sec, setSec] = useState(workTimeTracker?.login?.timeHolder?.split(':')[2])
     const [min, setMin] = useState(workTimeTracker?.login?.timeHolder?.split(':')[1])
     const [hour, setHour] = useState(workTimeTracker?.login?.timeHolder?.split(':')[0])
@@ -251,6 +254,34 @@ export default function Navbar({ handleSideBar }) {
         }
     }
 
+    async function clockOut() {
+        try {
+            setIsWorkingLoginTimerApi(true)
+            const updatedState = processActivityDurations(workTimeTracker, "login")
+            const updatedData = await updateDataAPI(updatedState);
+            setWorkTimeTracker(updatedData);
+            localStorage.setItem('isStartLogin', false);
+            setIsStartLogin(false);
+            updateClockins();
+            setIsForgetToPunchOut(false);
+        } catch (err) {
+            console.error(err);
+        } finally {
+            setIsWorkingLoginTimerApi(false);
+        }
+    }
+
+    function updateCheckoutTime(time) {
+        const actualTime = new Date(time).toTimeString().split(" ")[0]
+        setWorkTimeTracker((pre) => ({
+            ...pre,
+            "login": {
+                ...pre?.login,
+                endingTime: [...(workTimeTracker?.login?.endingTime || []), actualTime],
+            }
+        }))
+    }
+
     useEffect(() => {
         getAddress();
     }, [latitude, longitude])
@@ -295,177 +326,208 @@ export default function Navbar({ handleSideBar }) {
     }, [workTimeTracker, isStartLogin]);
 
     return (
-        isViewEarlyLogout ?
-            <Modal open={isViewEarlyLogout} size="sm" backdrop="static">
-                <Modal.Header >
-                    <Modal.Title>
-                        Reason for early logout
-                    </Modal.Title>
-                </Modal.Header >
+        isForgetToPunchOut ? <Modal open={isViewEarlyLogout} size="sm" backdrop="static">
+            <Modal.Header >
+                <Modal.Title>
+                    Reason for forget to stop timer
+                </Modal.Title>
+            </Modal.Header>
 
-                <Modal.Body>
-                    <div className="modelInput">
-                        <p>Please Enter reason for early logout</p>
-                        <Input size='lg'
-                            type='text'
-                            onChange={(e) => changeReasonForEarly(e, "reasonForEarlyLogout")}
-                            value={workTimeTracker?.login?.reasonForEarlyLogout} />
-                    </div>
-                </Modal.Body>
-
-                <Modal.Footer>
-                    <Button
-                        onClick={checkIsEnterReasonforEarly}
-                        appearance="primary"
-                        disabled={workTimeTracker.login.reasonForEarlyLogout ? false : true}
-                    >
-                        Add
-                    </Button>
-                </Modal.Footer>
-            </Modal > :
-            <div className="webnxs">
-                <div className="row mx-auto justify-content-between" >
-                    <div className="col-lg-3 col-md-3 col-6 d-flex align-items-center">
-                        <div className={`sidebarIcon`} onClick={handleSideBar}>
-                            <TableRowsRoundedIcon />
-                        </div>
-                        <img
-                            src={Webnexs}
-                            width={30}
-                            height={30}
-                            style={{ objectFit: "cover" }}
-                            alt="Webnexs Company Logo"
-                        />
-                        <span style={{ fontSize: "16px", fontWeight: "700" }}>NexHR</span>
-                    </div>
-                    {
-                        whoIs !== "superAdmin" &&
-                        <>
-                            <div className='col-lg-1 col-md-3  col-6 d-flex align-items-center justify-content-center'>
-                                <div className='d-flex align-items-center gap-1 timerTxt' >
-                                    <span>{hour.toString().padStart(2, '0')}</span> :
-                                    <span>{min.toString().padStart(2, '0')}</span> :
-                                    <span>{sec.toString().padStart(2, '0')}</span>
-                                </div>
-                            </div>
-
-                            <div className='col-lg-3 col-md-3 col-12 d-flex align-items-center justify-content-center'>
-                                <div className='d-flex'>
-                                    <div className="punchBtnParent">
-                                        <button
-                                            className='punchBtn'
-                                            disabled={isWorkingLoginTimerApi || !workLocation ? true : isDisabled}
-                                            onClick={startTimer}
-                                            style={{ backgroundColor: "#CEE5D3" }}
-                                        >
-                                            {
-                                                !isDisabled && isWorkingLoginTimerApi ? <Loading size={20} color="#0a7e22" /> :
-                                                    <img src={PunchIn} width="25" height="25" alt="startTimer_btn" />
-                                            }
-                                        </button>
-                                        <div className="">
-                                            <p className='timerText'>
-                                                {workTimeTracker?.login?.startingTime.length > 0
-                                                    ? workTimeTracker?.login?.startingTime[0]
-                                                    : "00:00"}
-                                            </p>
-                                            <div className='sub_text'>Punch In</div>
-                                        </div>
-                                    </div>
-
-                                    <div className="punchBtnParent">
-                                        <button
-                                            className='punchBtn'
-                                            onClick={checkIsCompletedWorkingHour}
-                                            disabled={isWorkingLoginTimerApi ? true : !isDisabled}
-                                            style={{ backgroundColor: "#FFD6DB" }}
-                                        >
-                                            {
-                                                isDisabled && isWorkingLoginTimerApi ? <Loading size={20} color="#fd314d" /> :
-                                                    <img src={PunchOut} width="25" height="25" alt="stoptimer_btn" />
-                                            }
-                                        </button>
-                                        <div className="">
-                                            <p className='timerText'>
-                                                {workTimeTracker?.login?.endingTime?.length > 0
-                                                    ? workTimeTracker?.login?.endingTime[workTimeTracker?.login?.endingTime.length - 1]
-                                                    : "00:00"}
-                                            </p>
-                                            <p className='sub_text'>Punch Out</p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </>
-                    }
-
-                    <div className='gap-2 col-lg-4 col-md-3 d-flex align-items-center justify-content-end'>
-                        <SelectPicker
-                            data={worklocationType}
-                            searchable={false}
-                            onChange={(e) => {
-                                setWorklocation(e)
-                                localStorage.setItem("workLocation", e)
-                            }}
-                            style={{ width: 200 }}
-                            value={workLocation}
-                            appearance="default"
-                            placeholder="Choose work place"
-                        />
-                        <span className="bell mx-2 position-relative" data-bs-toggle="offcanvas" data-bs-target="#offcanvasRight" aria-controls="offcanvasRight">
-                            <svg width="16" height="17" viewBox="0 0 16 17" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <g clipPath="url(#clip0_2046_6896)">
-                                    <path d="M4.11584 4.25758C4.28455 2.64323 5.73825 1.5 7.47569 1.5H8.52431C10.2618 1.5 11.7155 2.64323 11.8842 4.25758L12.2348 7.80303C12.3619 9.01954 12.9113 10.2534 13.7994 11.1515C14.2434 11.6005 13.9022 12.5303 13.2477 12.5303H2.75233C2.09777 12.5303 1.75663 11.6005 2.20061 11.1515C3.08866 10.2534 3.63806 9.01954 3.76519 7.80303L4.11584 4.25758Z" stroke="#212143" strokeWidth="1.20741" strokeLinejoin="round" />
-                                    <path d="M6.13794 12.5303H9.86207V12.7273C9.86207 13.7063 9.0284 14.5 8.00001 14.5C6.97161 14.5 6.13794 13.7063 6.13794 12.7273V12.5303Z" stroke="#212143" strokeWidth="1.20741" strokeLinejoin="round" />
-                                </g>
-                                <defs>
-                                    <clipPath id="clip0_2046_6896">
-                                        <rect width="16" height="16" fill="white" transform="translate(0 0.5)" />
-                                    </clipPath>
-                                </defs>
-                            </svg>
-                            {
-                                notifications.length > 0 &&
-                                <span className='messageCount'>
-                                    {notifications.length <= 9 ? notifications.length : "9+"}
-                                </span>
-                            }
-                        </span>
-                        {/* Profile Section */}
-                        <Whisper placement="bottomEnd" trigger="click" speaker={renderMenu}>
-                            <img src={data?.profile || logo} className='imgContainer' style={{ width: "40px", height: "40px" }} alt='emp_img' />
-                        </Whisper>
-                        {/* Messages Section */}
-                        <div className="offcanvas offcanvas-end" tabIndex="-1" id="offcanvasRight" aria-labelledby="offcanvasRightLabel">
-                            <div className="offcanvas-header">
-                                <h5 id="offcanvasRightLabel">Notifications</h5>
-                                <button type="button" className="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
-                            </div>
-                            <div className="offcanvas-body">
-                                {
-                                    isLoading ? <Loading /> :
-                                        notifications.length > 0 &&
-                                        notifications.map((notification, index) => {
-                                            return <div key={notification._id || index} className={`box-content my-2 ${isRemove[index] ? "remove" : ""} box-content my-2 d-flex justfy-content-center align-items-center position-relative`}>
-                                                <span className="closeBtn" title='close' onClick={() => removeMessage(notification, index)}>
-                                                    <CloseRoundedIcon fontSize='md' />
-                                                </span>
-                                                <img src={notification?.company?.logo} alt={"companyLogo"} width={50} height={"auto"} />
-                                                <Accordion>
-                                                    <Accordion.Panel header={<p>{notification.title}</p>} eventKey={1} caretAs={KeyboardArrowDownRoundedIcon}>
-                                                        <p className='sub_text' style={{ fontSize: "13px" }}>{notification?.message?.replace(/<[^>]*>/g, "")}</p>
-                                                    </Accordion.Panel>
-                                                </Accordion>
-                                            </div>
-                                        })
-                                }
-                            </div>
-                            <div className='text-align-center m-2' >
-                                <button className='button w-100' onClick={clearMsgs}>Clear all</button>
-                            </div>
-                        </div>
-                    </div>
+            <Modal.Body>
+                <div className="modelInput">
+                    <p className='modelLabel'>Please Enter the reason</p>
+                    <Input size='lg'
+                        type='text'
+                        onChange={(e) => changeReasonForEarly(e, "forgetToLogout")}
+                        value={workTimeTracker?.forgetToLogout} />
                 </div>
-            </div >
+                <div className="modelInput">
+                    <p className='modelLabel'>Checkout Time:</p>
+                    <DatePicker value={new Date()} size='lg' style={{ width: "100%" }} format="HH:mm" onChange={(e) => updateCheckoutTime(e)} />
+                </div>
+            </Modal.Body>
+
+            <Modal.Footer>
+                <Button
+                    onClick={clockOut}
+                    appearance="primary"
+                    disabled={workTimeTracker.forgetToLogout ? false : true}
+                >
+                    Add
+                </Button>
+            </Modal.Footer>
+        </Modal > :
+            isViewEarlyLogout ?
+                <Modal open={isViewEarlyLogout} size="sm" backdrop="static">
+                    <Modal.Header >
+                        <Modal.Title>
+                            Reason for early logout
+                        </Modal.Title>
+                    </Modal.Header >
+
+                    <Modal.Body>
+                        <div className="modelInput">
+                            <p>Please Enter reason for early logout</p>
+                            <Input size='lg'
+                                type='text'
+                                onChange={(e) => changeReasonForEarly(e, "reasonForEarlyLogout")}
+                                value={workTimeTracker?.login?.reasonForEarlyLogout} />
+                        </div>
+                    </Modal.Body>
+
+                    <Modal.Footer>
+                        <Button
+                            onClick={checkIsEnterReasonforEarly}
+                            appearance="primary"
+                            disabled={workTimeTracker.login.reasonForEarlyLogout ? false : true}
+                        >
+                            Add
+                        </Button>
+                    </Modal.Footer>
+                </Modal > :
+                <div className="webnxs">
+                    <div className="row mx-auto justify-content-between" >
+                        <div className="col-lg-3 col-md-3 col-6 d-flex align-items-center">
+                            <div className={`sidebarIcon`} onClick={handleSideBar}>
+                                <TableRowsRoundedIcon />
+                            </div>
+                            <img
+                                src={Webnexs}
+                                width={30}
+                                height={30}
+                                style={{ objectFit: "cover" }}
+                                alt="Webnexs Company Logo"
+                            />
+                            <span style={{ fontSize: "16px", fontWeight: "700" }}>NexHR</span>
+                        </div>
+                        {
+                            whoIs !== "superAdmin" &&
+                            <>
+                                <div className='col-lg-1 col-md-3  col-6 d-flex align-items-center justify-content-center'>
+                                    <div className='d-flex align-items-center gap-1 timerTxt' >
+                                        <span>{hour.toString().padStart(2, '0')}</span> :
+                                        <span>{min.toString().padStart(2, '0')}</span> :
+                                        <span>{sec.toString().padStart(2, '0')}</span>
+                                    </div>
+                                </div>
+
+                                <div className='col-lg-3 col-md-3 col-12 d-flex align-items-center justify-content-center'>
+                                    <div className='d-flex'>
+                                        <div className="punchBtnParent">
+                                            <button
+                                                className='punchBtn'
+                                                disabled={isWorkingLoginTimerApi || !workLocation ? true : isDisabled}
+                                                onClick={startTimer}
+                                                style={{ backgroundColor: "#CEE5D3" }}
+                                            >
+                                                {
+                                                    !isDisabled && isWorkingLoginTimerApi ? <Loading size={20} color="#0a7e22" /> :
+                                                        <img src={PunchIn} width="25" height="25" alt="startTimer_btn" />
+                                                }
+                                            </button>
+                                            <div className="">
+                                                <p className='timerText'>
+                                                    {workTimeTracker?.login?.startingTime.length > 0
+                                                        ? workTimeTracker?.login?.startingTime[0]
+                                                        : "00:00"}
+                                                </p>
+                                                <div className='sub_text'>Punch In</div>
+                                            </div>
+                                        </div>
+
+                                        <div className="punchBtnParent">
+                                            <button
+                                                className='punchBtn'
+                                                onClick={checkIsCompletedWorkingHour}
+                                                disabled={isWorkingLoginTimerApi ? true : !isDisabled}
+                                                style={{ backgroundColor: "#FFD6DB" }}
+                                            >
+                                                {
+                                                    isDisabled && isWorkingLoginTimerApi ? <Loading size={20} color="#fd314d" /> :
+                                                        <img src={PunchOut} width="25" height="25" alt="stoptimer_btn" />
+                                                }
+                                            </button>
+                                            <div className="">
+                                                <p className='timerText'>
+                                                    {workTimeTracker?.login?.endingTime?.length > 0
+                                                        ? workTimeTracker?.login?.endingTime[workTimeTracker?.login?.endingTime.length - 1]
+                                                        : "00:00"}
+                                                </p>
+                                                <p className='sub_text'>Punch Out</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </>
+                        }
+
+                        <div className='gap-2 col-lg-4 col-md-3 d-flex align-items-center justify-content-end'>
+                            <SelectPicker
+                                data={worklocationType}
+                                searchable={false}
+                                onChange={(e) => {
+                                    setWorklocation(e)
+                                    localStorage.setItem("workLocation", e)
+                                }}
+                                style={{ width: 200 }}
+                                value={workLocation}
+                                appearance="default"
+                                placeholder="Choose work place"
+                            />
+                            <span className="bell mx-2 position-relative" data-bs-toggle="offcanvas" data-bs-target="#offcanvasRight" aria-controls="offcanvasRight">
+                                <svg width="16" height="17" viewBox="0 0 16 17" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <g clipPath="url(#clip0_2046_6896)">
+                                        <path d="M4.11584 4.25758C4.28455 2.64323 5.73825 1.5 7.47569 1.5H8.52431C10.2618 1.5 11.7155 2.64323 11.8842 4.25758L12.2348 7.80303C12.3619 9.01954 12.9113 10.2534 13.7994 11.1515C14.2434 11.6005 13.9022 12.5303 13.2477 12.5303H2.75233C2.09777 12.5303 1.75663 11.6005 2.20061 11.1515C3.08866 10.2534 3.63806 9.01954 3.76519 7.80303L4.11584 4.25758Z" stroke="#212143" strokeWidth="1.20741" strokeLinejoin="round" />
+                                        <path d="M6.13794 12.5303H9.86207V12.7273C9.86207 13.7063 9.0284 14.5 8.00001 14.5C6.97161 14.5 6.13794 13.7063 6.13794 12.7273V12.5303Z" stroke="#212143" strokeWidth="1.20741" strokeLinejoin="round" />
+                                    </g>
+                                    <defs>
+                                        <clipPath id="clip0_2046_6896">
+                                            <rect width="16" height="16" fill="white" transform="translate(0 0.5)" />
+                                        </clipPath>
+                                    </defs>
+                                </svg>
+                                {
+                                    notifications.length > 0 &&
+                                    <span className='messageCount'>
+                                        {notifications.length <= 9 ? notifications.length : "9+"}
+                                    </span>
+                                }
+                            </span>
+                            {/* Profile Section */}
+                            <Whisper placement="bottomEnd" trigger="click" speaker={renderMenu}>
+                                <img src={data?.profile || logo} className='imgContainer' style={{ width: "40px", height: "40px" }} alt='emp_img' />
+                            </Whisper>
+                            {/* Messages Section */}
+                            <div className="offcanvas offcanvas-end" tabIndex="-1" id="offcanvasRight" aria-labelledby="offcanvasRightLabel">
+                                <div className="offcanvas-header">
+                                    <h5 id="offcanvasRightLabel">Notifications</h5>
+                                    <button type="button" className="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+                                </div>
+                                <div className="offcanvas-body">
+                                    {
+                                        isLoading ? <Loading /> :
+                                            notifications.length > 0 &&
+                                            notifications.map((notification, index) => {
+                                                return <div key={notification._id || index} className={`box-content my-2 ${isRemove[index] ? "remove" : ""} box-content my-2 d-flex justfy-content-center align-items-center position-relative`}>
+                                                    <span className="closeBtn" title='close' onClick={() => removeMessage(notification, index)}>
+                                                        <CloseRoundedIcon fontSize='md' />
+                                                    </span>
+                                                    <img src={notification?.company?.logo} alt={"companyLogo"} width={50} height={"auto"} />
+                                                    <Accordion>
+                                                        <Accordion.Panel header={<p>{notification.title}</p>} eventKey={1} caretAs={KeyboardArrowDownRoundedIcon}>
+                                                            <p className='sub_text' style={{ fontSize: "13px" }}>{notification?.message?.replace(/<[^>]*>/g, "")}</p>
+                                                        </Accordion.Panel>
+                                                    </Accordion>
+                                                </div>
+                                            })
+                                    }
+                                </div>
+                                <div className='text-align-center m-2' >
+                                    <button className='button w-100' onClick={clearMsgs}>Clear all</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div >
     );
 }

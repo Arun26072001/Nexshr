@@ -42,7 +42,7 @@ const LeaveApplicationValidation = Joi.object({
 });
 
 const LeaveApplicationHRValidation = Joi.object().keys({
-  status: Joi.string().valid(["pending", "rejected", "approved"]).required()
+  status: Joi.string().valid("pending", "rejected", "approved").required()
 });
 
 module.exports = {

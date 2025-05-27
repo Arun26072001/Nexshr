@@ -96,7 +96,7 @@ const MyDetails = () => {
                                     empObj.workingTimePattern?.FinishingTime && (
                                         <li>
                                             Worktime Pattern: {empObj.workingTimePattern.PatternName} (
-                                            {empObj.workingTimePattern.StartingTime} - {empObj.workingTimePattern.FinishingTime})
+                                            {new Date(empObj.workingTimePattern.StartingTime).toLocaleTimeString()} - {new Date(empObj.workingTimePattern.FinishingTime).toLocaleTimeString()})
                                         </li>
                                     )}
                                 {empObj?.team && empObj?.team.manager.length && (

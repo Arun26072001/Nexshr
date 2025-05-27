@@ -1,10 +1,9 @@
 const express = require("express");
 const router = express.Router();
-const { verifyAdminHR, verifyAdminHREmployeeManagerNetwork, verifyAdminHREmployee, verifyAdminHRTeamHigherAuth, verifyTeamHigherAuthority } = require("../auth/authMiddleware");
+const { verifyAdminHR, verifyAdminHREmployeeManagerNetwork, verifyAdminHREmployee, verifyAdminHRTeamHigherAuth, verifyTeamHigherAuthority, verifyTeamHigherAuthorityEmp } = require("../auth/authMiddleware");
 const { TeamValidation, Team } = require("../models/TeamModel");
 const { Employee } = require("../models/EmpModel");
 const sendMail = require("./mailSender");
-const { sendPushNotification } = require("../auth/PushNotification");
 
 const sendInvitationEmail = async (emp, roleLabel, team, creator) => {
     const frontendUrl = process.env.REACT_APP_API_URL;
@@ -49,7 +48,7 @@ router.get("/", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
     }
 });
 
-router.get("/members/:id", verifyTeamHigherAuthority, async (req, res) => {
+router.get("/members/:id", verifyTeamHigherAuthorityEmp, async (req, res) => {
     try {
         const who = req.params.who ? "lead" : req.params.who ? "head" : req.params.who ? "manager" : "employees"
         const response = await Team.findOne({ [who]: req.params.id })

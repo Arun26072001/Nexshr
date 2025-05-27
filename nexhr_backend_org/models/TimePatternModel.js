@@ -4,15 +4,59 @@ var Joi = require("joi");
 var timePatternSchema = new mongoose.Schema({
     PatternName: { type: String },
     DefaultPattern: { type: Boolean },
-    StartingTime: { type: String },
+    StartingTime: { type: Date },
     WaitingTime: { type: String },
-    FinishingTime: { type: String },
+    FinishingTime: { type: Date },
     BreakTime: { type: String },
     WeeklyDays: [{ type: String }],
     PublicHoliday: { type: String }
 }, { timestamps: true })
 
 var TimePattern = mongoose.model("TimePattern", timePatternSchema);
+
+const TimePatternValidation = Joi.object({
+    _id: Joi.string().allow("").optional(),
+    TimePatternID: Joi.optional(),
+    PatternName: Joi.string()
+        .max(200)
+        .required(),
+    DefaultPattern: Joi.boolean()
+        .optional(),
+    StartingTime: Joi.string()
+        .required(),
+    FinishingTime: Joi.string()
+        .required(),
+    BreakTime: Joi.string()
+        .required(),
+    WaitingTime: Joi.string()
+        .required(),
+    WeeklyDays: Joi.array()
+        .items(Joi.string())
+        .required(),
+    PublicHoliday: Joi.string()
+        .required(),
+    createdAt: Joi.string().allow('').label('createdAt'),
+    updatedAt: Joi.string().allow('').label('updatedAt'),
+    __v: Joi.string().allow(0).label('__v')
+}).custom((value, helpers) => {
+    const start = new Date(value.StartingTime);
+    const end = new Date(value.FinishingTime);
+
+    if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+        return helpers.message('StartingTime or FinishingTime is not a valid time');
+    }
+
+    if (start >= end) {
+        return helpers.message('StartingTime must be earlier than FinishingTime');
+    }
+
+    return value;
+});
+
+
+module.exports = {
+    TimePattern, TimePatternValidation, timePatternSchema
+};
 // const staticPatterns = [
 //     {
 //         "PatternName": "MON - FRI",
@@ -43,34 +87,3 @@ var TimePattern = mongoose.model("TimePattern", timePatternSchema);
 //         console.log("Users already exist. Skipping static data insertion.");
 //     }
 // });
-
-var TimePatternValidation = Joi.object().keys({
-    _id: Joi.optional(),
-    TimePatternID: Joi.optional(),
-    PatternName: Joi.string()
-        .max(200)
-        .required(),
-    DefaultPattern: Joi.boolean()
-        .optional(),
-    StartingTime: Joi.string()
-        .required(),
-    FinishingTime: Joi.string()
-        .required(),
-    BreakTime: Joi.string()
-        .required(),
-    WaitingTime: Joi.string()
-        .required(),
-    WeeklyDays: Joi.array()
-        .items(Joi.string())
-        .required(),
-    PublicHoliday: Joi.string()
-        .required(),
-    createdAt: Joi.string().allow('').label('createdAt'),
-    updatedAt: Joi.string().allow('').label('updatedAt'),
-    _id: Joi.string().allow("").label('_id'),
-    __v: Joi.string().allow(0).label('__v')
-});
-
-module.exports = {
-    TimePattern, TimePatternValidation, timePatternSchema
-};

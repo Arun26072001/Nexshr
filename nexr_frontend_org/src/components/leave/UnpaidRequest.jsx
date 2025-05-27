@@ -21,10 +21,7 @@ export default function UnpaidRequest() {
             let updatedLeaveRequest;
             updatedLeaveRequest = {
                 ...leave,
-                approvers: {
-                    ...leave.approvers,
-                    status: response
-                }
+                status: response
             }
 
             const res = await axios.put(`${url}/api/leave-application/${leave._id}`, updatedLeaveRequest, {

@@ -200,8 +200,8 @@ const EditEmployeeform = ({ details, empData, handleScroll, handlePersonal, prev
             if (timePatterns.length > 0) {
                 const selectedPattern = timePatterns.find(pattern => pattern._id === formik.values.workingTimePattern);
                 if (selectedPattern && selectedPattern.StartingTime && selectedPattern.FinishingTime) {
-                    const [startHour, startMinute] = selectedPattern.StartingTime.split(".").map(num => parseInt(num, 10));
-                    const [endHour, endMinute] = selectedPattern.FinishingTime.split(".").map(num => parseInt(num, 10));
+                    const [startHour, startMinute] = selectedPattern.StartingTime.split(/[:.]+/).map(num => parseInt(num, 10));
+                    const [endHour, endMinute] = selectedPattern.FinishingTime.split(/[:.]+/).map(num => parseInt(num, 10));
                     console.log("startingHour", startHour, startMinute);
                     console.log("ending", endHour, endMinute);
                     console.log(selectedPattern.WeeklyDays.length);
@@ -253,7 +253,7 @@ const EditEmployeeform = ({ details, empData, handleScroll, handlePersonal, prev
         setStateData(countryFullData?.states);
     }, []);
 
-    const hourAndMin = timeDifference.toString().split(".");
+    const hourAndMin = timeDifference.toString().split(/[:.]+/);
     const [hour, min] = hourAndMin;
 
     function changeCountry(value, name) {

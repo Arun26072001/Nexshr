@@ -45,6 +45,7 @@ const clockInsSchema = new mongoose.Schema({
   event: {
     type: timeRangeSchema
   },
+  forgetToLogout: { type: String },
   behaviour: { type: String },
   punchInMsg: { type: String },
   employee: { type: mongoose.Types.ObjectId, ref: "Employee" },

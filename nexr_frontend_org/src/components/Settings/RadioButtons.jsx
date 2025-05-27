@@ -12,7 +12,7 @@ const RadioButtons = ({ RadioOption, handleRadioOption, names, title, name }) =>
         value={RadioOption}
         style={names && names[0] === "Everyone" ? { fontSize: "13px" } : undefined}
       >
-        <div className="d-flex">
+        <div className="d-flex align-items-center">
           <input
             className='form-check-input'
             type="radio"
@@ -20,7 +20,6 @@ const RadioButtons = ({ RadioOption, handleRadioOption, names, title, name }) =>
             readOnly
           />
           <div className="ms-1">
-
             {(names && names.length >= 1 ? names[0] : "Enable")}
           </div>
         </div>
@@ -31,7 +30,7 @@ const RadioButtons = ({ RadioOption, handleRadioOption, names, title, name }) =>
         value={RadioOption}
         style={names && names[1] === "Managers" ? { fontSize: "13px" } : undefined}
       >
-        <div className="d-flex">
+        <div className="d-flex align-items-center">
           <input
             className='form-check-input'
             type="radio"

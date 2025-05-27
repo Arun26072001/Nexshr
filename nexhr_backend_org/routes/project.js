@@ -5,7 +5,6 @@ const { verifyAdminHREmployeeManagerNetwork, verifyAdminHRTeamHigherAuth } = req
 const { Task } = require('../models/TaskModel');
 const sendMail = require('./mailSender');
 const { Employee } = require('../models/EmpModel');
-const { error } = require('joi/lib/types/lazy');
 const { Report } = require('../models/ReportModel');
 const { convertToString, projectMailContent } = require('../Reuseable_functions/reusableFunction');
 const { sendPushNotification } = require('../auth/PushNotification');

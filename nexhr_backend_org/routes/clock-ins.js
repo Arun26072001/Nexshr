@@ -8,7 +8,7 @@ const { getDayDifference } = require("./leave-app");
 const sendMail = require("./mailSender");
 const { LeaveApplication } = require("../models/LeaveAppModel");
 const { Team } = require("../models/TeamModel");
-const { getCurrentTimeInMinutes, formatTimeFromMinutes, timeToMinutes, getTotalWorkingHourPerDay } = require("../Reuseable_functions/reusableFunction");
+const { getCurrentTimeInMinutes, formatTimeFromMinutes, timeToMinutes, getTotalWorkingHourPerDay, processActivityDurations } = require("../Reuseable_functions/reusableFunction");
 const { WFHApplication } = require("../models/WFHApplicationModel");
 const { sendPushNotification } = require("../auth/PushNotification");
 
@@ -87,9 +87,11 @@ router.post("/not-login/apply-leave/:workPatternId", async (req, res) => {
         for (const emp of notLoginEmps) {
             if (!emp.workingTimePattern) continue;
 
+            const officeStartingTime = `${new Date(emp.workingTimePattern.StartingTime).getHours()}:${new Date(empData.workingTimePattern.StartingTime).getMinutes()}`;
+            const officeFinishingTime = `${new Date(emp.workingTimePattern.FinishingTime).getHours()}:${new Date(empData.workingTimePattern.FinishingTime).getMinutes()}`;
             const workingHours = getTotalWorkingHourPerDay(
-                emp.workingTimePattern.StartingTime,
-                emp.workingTimePattern.FinishingTime
+                officeStartingTime,
+                officeFinishingTime
             );
 
             const fromDate = new Date(now.getTime() - ((workingHours || 9.5) * 60 * 60 * 1000));
@@ -198,7 +200,6 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
             })
 
         if (!emp) return res.status(404).send({ error: "Employee not found!" });
-        console.log("leaves", emp.leaveApplication);
 
         if (emp.leaveApplication.length) {
             return res.status(400).send({ error: "You are in Leave today" })
@@ -207,7 +208,6 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
 
         // verify emp is in office
         if (worklocation === "WFH" && (!isWfh && !emp.isPermanentWFH)) {
-            console.log(isWfh, emp.isPermanentWFH);
             return res.status(400).send({ error: "You have no permission for WFH, Please reach office and start timer" })
         }
 
@@ -227,18 +227,16 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
         // }
 
         // Office login time & employee login time
-        const officeLoginTime = emp?.workingTimePattern?.StartingTime || "9:00";
+        const officeLoginTime = `${new Date(emp?.workingTimePattern?.StartingTime).getHours()}:${new Date(emp?.workingTimePattern?.StartingTime).getMinutes()}` || "9:00";
         const loginTimeRaw = req.body?.login?.startingTime?.[0];
         if (!loginTimeRaw) return res.status(400).send({ error: "You must start Punch-in Timer" });
         const companyLoginMinutes = timeToMinutes(officeLoginTime) + Number(emp?.workingTimePattern?.WaitingTime);
         const empLoginMinutes = timeToMinutes(loginTimeRaw);
-        console.log("company, Emp", companyLoginMinutes, empLoginMinutes);
 
         if (companyLoginMinutes < empLoginMinutes) {
             const timeDiff = empLoginMinutes - companyLoginMinutes;
             const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
             const endOfMonth = new Date();
-            console.log("timeDif", timeDiff, companyLoginMinutes, empLoginMinutes);
 
             if (timeDiff > 120 && timeDiff >= 240) {
                 console.log("enter halfday leave");
@@ -255,10 +253,10 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
                     coverBy: null,
                     status: "pending",
                     approvers: {
-                        TeamLead: "pending",
-                        TeamHead: "pending",
-                        Hr: "pending",
-                        Manager: "pending"
+                        TeamLead: "approved",
+                        TeamHead: "approved",
+                        Hr: "approved",
+                        Manager: "approved"
                     },
                     approvedOn: null,
                     approverId: []
@@ -279,8 +277,7 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
                 let leaveAppData, subject, htmlContent;
 
                 if (empPermissions.length === 2) {
-                    console.log("appling permission finished");
-                    
+
                     // Exceeded permission limit → Convert to Half-Day Leave
                     leaveAppData = {
                         leaveType: "Unpaid Leave (LWP)",
@@ -417,98 +414,53 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
 });
 
 router.get("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
-    // Helper function to convert time in HH:MM:SS format to total minutes
     try {
+        const employeeId = req.params.id;
         const queryDate = new Date(req.query.date);
+        if (isNaN(queryDate)) return res.status(400).send({ error: "Invalid date format." });
 
-        // Create start and end of the day in UTC
-        const startOfDay = new Date(Date.UTC(
-            queryDate.getUTCFullYear(),
-            queryDate.getUTCMonth(),
-            queryDate.getUTCDate(),
-            0, 0, 0, 0
-        ));
+        // --- Handle previous day's incomplete login
+        const prevDate = new Date(Date.UTC(queryDate.getUTCFullYear(), queryDate.getUTCMonth(), queryDate.getUTCDate() - 1));
+        const prevStart = new Date(prevDate);
+        const prevEnd = new Date(prevDate);
+        prevStart.setUTCHours(0, 0, 0, 0);
+        prevEnd.setUTCHours(23, 59, 59, 999);
 
-        const endOfDay = new Date(Date.UTC(
-            queryDate.getUTCFullYear(),
-            queryDate.getUTCMonth(),
-            queryDate.getUTCDate(),
-            23, 59, 59, 999
-        ));
+        const prevClockIn = await ClockIns.findOne({
+            employee: employeeId,
+            date: { $gte: prevStart, $lt: prevEnd },
+        });
 
-        // Fetch employee's clock-ins for the given date
-        const timeData = await Employee.findById(req.params.id)
-            .populate({
-                path: "clockIns",
-                match: {
-                    date: {
-                        $gte: startOfDay,
-                        $lt: endOfDay,
-                    },
-                },
-                populate: { path: "employee", select: "_id FirstName LastName" },
-            });
+        if (prevClockIn && prevClockIn.login?.startingTime?.length !== prevClockIn.login?.endingTime?.length) {
+            const activitiesData = processActivityDurations(prevClockIn);
+            const totalMinutes = activitiesData.reduce((sum, a) => sum + a.timeCalMins, 0);
+            const empTotalWorkingHours = (totalMinutes / 60).toFixed(2);
+            return res.send({ timeData: prevClockIn, activitiesData, empTotalWorkingHours });
+        }
 
-        if (!timeData || timeData.clockIns.length === 0) {
+        // --- Handle current day's clock-ins
+        const dayStart = new Date(Date.UTC(queryDate.getUTCFullYear(), queryDate.getUTCMonth(), queryDate.getUTCDate(), 0, 0, 0));
+        const dayEnd = new Date(Date.UTC(queryDate.getUTCFullYear(), queryDate.getUTCMonth(), queryDate.getUTCDate(), 23, 59, 59, 999));
+
+        const employeeData = await Employee.findById(employeeId).populate({
+            path: "clockIns",
+            match: { date: { $gte: dayStart, $lt: dayEnd } },
+            populate: { path: "employee", select: "_id FirstName LastName" },
+        });
+
+        const clockIn = employeeData?.clockIns?.[0];
+        if (!clockIn) {
             return res.status(200).send({ status: false, message: "No clock-ins found for the given date." });
         }
 
-        // Define activities and calculate times
-        const activities = ["login", "meeting", "morningBreak", "lunch", "eveningBreak", "event"];
-        const clockIn = timeData.clockIns[0]; // Assuming the first clock-in for the day
+        const activitiesData = processActivityDurations(clockIn);
+        const totalMinutes = activitiesData.reduce((sum, a) => sum + a.timeCalMins, 0);
+        const empTotalWorkingHours = (totalMinutes / 60).toFixed(2);
 
-        activities.map((activity) => {
-            let startingTimes = clockIn[activity]?.startingTime;
-            let endingTimes = clockIn[activity]?.endingTime;
-
-            const values = startingTimes?.map((startTime, index) => {
-                if (!startTime) return 0; // No start time means no value
-
-                let endTimeInMin = 0;
-                if (endingTimes[index]) {
-                    // Calculate time difference with an ending time
-                    endTimeInMin = timeToMinutes(endingTimes[index]);
-                } else {
-                    // Calculate time difference with the current time
-                    endTimeInMin = getCurrentTimeInMinutes();
-                }
-                const startTimeInMin = timeToMinutes(startTime);
-                return Math.abs(endTimeInMin - startTimeInMin);
-            });
-
-            const totalValue = values?.reduce((acc, value) => acc + value, 0)
-            const timeHolder = formatTimeFromMinutes(totalValue);
-            clockIn[activity].timeHolder = timeHolder;
-        })
-
-        const activitiesData = activities.map((activity) => {
-            const startingTime = clockIn[activity]?.startingTime[0] || "00:00";
-            const endingTime = clockIn[activity]?.endingTime[clockIn[activity]?.endingTime.length - 1] || "00:00";
-            const timeCalMins = timeToMinutes(clockIn[activity]?.timeHolder || "00:00:00");
-
-            return {
-                activity,
-                startingTime,
-                endingTime,
-                timeCalMins,
-            };
-        });
-
-        // Calculate total working minutes
-        const totalEmpWorkingMinutes = activitiesData.reduce((total, activity) => total + activity.timeCalMins, 0);
-
-        // Convert total minutes to hours and minutes
-        const hours = Math.floor(totalEmpWorkingMinutes / 60);
-        const minutes = totalEmpWorkingMinutes % 60;
-        // Respond with calculated data
-        return res.send({
-            timeData,
-            activitiesData,
-            empTotalWorkingHours: (hours + minutes / 60).toFixed(2), // Rounded to 2 decimal places
-        });
+        return res.send({ timeData: clockIn, activitiesData, empTotalWorkingHours });
 
     } catch (err) {
-        console.error(err);
+        console.error("Error in GET /:id", err);
         return res.status(500).send({ error: err.message });
     }
 });

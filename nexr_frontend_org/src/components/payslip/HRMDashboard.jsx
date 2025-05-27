@@ -4,10 +4,8 @@ import { toast } from 'react-toastify';
 import {
     addDataAPI,
     fetchAllEmployees,
-    fetchEmployeeData,
     getDataAPI,
     gettingClockinsData,
-    getTotalWorkingHourPerDay,
     removeClockinsData,
     updateDataAPI
 } from '../ReuseableAPI';
@@ -65,7 +63,7 @@ export const TimerStates = createContext(null);
 
 export default function HRMDashboard() {
     const url = process.env.REACT_APP_API_URL;
-    const { data, setData, isStartLogin, isStartActivity, setIsStartLogin, setIsStartActivity, whoIs} = useContext(EssentialValues);
+    const { data, isStartLogin, isStartActivity, setIsStartLogin, setIsStartActivity, whoIs } = useContext(EssentialValues);
     const { token, Account, _id } = data;
     const { isTeamLead, isTeamHead, isTeamManager } = jwtDecode(token);
     const [attendanceData, setAttendanceData] = useState([]);
@@ -84,13 +82,13 @@ export default function HRMDashboard() {
     const [isUpdatedRequest, setIsUpdatedReqests] = useState(false);
     const [employees, setEmployees] = useState([]);
     const [companies, setCompanies] = useState([]);
-    const [workingTimePattern, setWorkingTimePattern] = useState({});
     // for handle task modal
     const [isAddTask, setIsAddTask] = useState(false);
     const [isWorkingLoginTimerApi, setIsWorkingLoginTimerApi] = useState(false);
     const [isworkingActivityTimerApi, setISWorkingActivityTimerApi] = useState(false);
     const [selectedProject, setSelectedProject] = useState("");
     const [checkClockins, setCheckClockins] = useState(false);
+    const [isForgetToPunchOut, setIsForgetToPunchOut] = useState(false);
 
     // files for payroll
     const files = ['payroll', 'value', 'manage', 'payslip'];
@@ -160,14 +158,24 @@ export default function HRMDashboard() {
 
     //change reason for early(login) input field
     function changeReasonForEarly(value, name) {
-        setWorkTimeTracker((pre) => ({
-            ...pre,
-            "login": {
-                ...pre?.["login"],
-                [name]: value.trimStart()
+        setWorkTimeTracker((pre) => {
+            if (name === "reasonForEarlyLogout") {
+                return {
+                    ...pre,
+                    login: {
+                        ...pre.login,
+                        [name]: value.trimStart(),
+                    },
+                };
+            } else {
+                return {
+                    ...pre,
+                    [name]: value.trimStart(),
+                };
             }
-        }))
+        });
     }
+
 
     const startLoginTimer = async (worklocation, location) => {
         const currentTime = new Date().toTimeString().split(' ')[0];
@@ -183,7 +191,7 @@ export default function HRMDashboard() {
             if (!updatedState?._id) {
                 // Add new clock-ins data
                 const clockinsData = await addDataAPI(updatedState, worklocation, location);
-                const totalWorkingHour = await getTotalWorkingHourPerDay(workingTimePattern.StartingTime, workingTimePattern.FinishingTime)
+                // const totalWorkingHour = await getTotalWorkingHourPerDay(workingTimePattern.StartingTime, workingTimePattern.FinishingTime)
                 if (clockinsData !== "undefined" && clockinsData._id) {
                     setWorkTimeTracker(clockinsData);
                     setIsStartLogin(true);
@@ -455,8 +463,12 @@ export default function HRMDashboard() {
             try {
                 if (_id) {
                     const { timeData } = await getDataAPI(_id);
-                    if (timeData?.clockIns[0]?._id) {
-                        setWorkTimeTracker(timeData.clockIns[0])
+                    if (timeData) {
+                        if (new Date(timeData.date).toLocaleDateString() === new Date().toLocaleDateString()) {
+                            setWorkTimeTracker(timeData)
+                        } else {
+                            setIsForgetToPunchOut(true)
+                        }
                     } else {
                         setWorkTimeTracker({ ...workTimeTracker });
                         removeClockinsData();
@@ -470,32 +482,12 @@ export default function HRMDashboard() {
         getClockInsData()
     }, [syncTimer]);
 
-    useEffect(() => {
-        async function fetchworktimePattern() {
-            try {
-                const empData = await fetchEmployeeData(_id);
-                setData((pre) => ({
-                    ...pre,
-                    Name: empData?.FirstName + " " + empData?.LastName,
-                    annualLeave: empData?.annualLeaveEntitlement,
-                    profile: empData?.profile,
-                    Account: String(empData?.Account)
-                }))
-                setWorkingTimePattern(empData.workingTimePattern);
-            } catch (error) {
-                console.log("Error in fetch workingtimepattern: ", error);
-            }
-        }
-        fetchworktimePattern()
-    }, [isEditEmp])
-
     return (
-        <TimerStates.Provider value={{ workTimeTracker, reloadRolePage, setIsEditEmp, employees, updateWorkTracker, isWorkingLoginTimerApi, isworkingActivityTimerApi, trackTimer, startLoginTimer, stopLoginTimer, changeReasonForLate, changeReasonForEarly, startActivityTimer, stopActivityTimer, setWorkTimeTracker, updateClockins, checkClockins, timeOption, isStartLogin, isStartActivity, handleAddTask, changeEmpEditForm, isEditEmp, isAddTask, setIsAddTask, handleAddTask, selectedProject, daterangeValue, setDaterangeValue }}>
+        <TimerStates.Provider value={{ workTimeTracker, reloadRolePage, setIsWorkingLoginTimerApi, setIsEditEmp, employees, isForgetToPunchOut, setIsForgetToPunchOut, updateWorkTracker, isWorkingLoginTimerApi, isworkingActivityTimerApi, trackTimer, startLoginTimer, stopLoginTimer, changeReasonForLate, changeReasonForEarly, startActivityTimer, stopActivityTimer, setWorkTimeTracker, updateClockins, checkClockins, timeOption, isStartLogin, isStartActivity, handleAddTask, changeEmpEditForm, isEditEmp, isAddTask, setIsAddTask, handleAddTask, selectedProject, daterangeValue, setDaterangeValue }}>
             <Routes >
                 <Route path="/" element={<Parent />} >
                     <Route index element={<Dashboard data={data} />} />
                     <Route path="job-desk/*" element={<JobDesk />} />
-                    {/* <Route path="calendar" element={<AttendanceCalendar />} /> */}
                     <Route path="projects" element={<Projects />} />
                     <Route path="tasks/*" element={
                         <Routes>

@@ -29,6 +29,13 @@ const taskSchema = new mongoose.Schema({
     attachments: [{ type: String }],
     description: { type: String },
     assignedTo: [{ type: mongoose.Schema.Types.ObjectId, ref: "Employee" }],
+    participants: [{ type: mongoose.Schema.Types.ObjectId, ref: "Employee" }],
+    observers: [{ type: mongoose.Schema.Types.ObjectId, ref: "Employee" }],
+    dependantTasks: [{ type: mongoose.Schema.Types.ObjectId, ref: "Task" }],
+    remind: [{ type: mongoose.Schema.Types.Mixed, default: {} }],
+    subTask: { type: mongoose.Schema.Types.ObjectId, ref: "Task" },
+    crm: { type: String },
+    tags: [{ type: String }],
     from: { type: Date },
     to: { type: Date },
     spend: { type: spendTimeSchema, default: () => ({}) },
@@ -53,6 +60,11 @@ const taskValidation = Joi.object({
         .valid('Low', 'Medium', 'High', 'Critical')
         .required()
         .label('Priority'),
+    subTask: Joi.any().optional(),
+    remindOn: Joi.any().optional(),
+    dependantTasks: Joi.any().optional(),
+    observers: Joi.any().optional(),
+    participants: Joi.any().optional(),
     attachments: Joi.array()
         .items(Joi.string().label('Attachment URL'))
         .label('Attachments'),
