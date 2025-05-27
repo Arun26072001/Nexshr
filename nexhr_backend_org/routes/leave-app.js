@@ -81,7 +81,7 @@ function generateLeaveEmail(empData, fromDateValue, toDateValue, reasonForLeave,
 
 leaveApp.get("/make-know", async (req, res) => {
   try {
-    const leaveApps = await LeaveApplication.find({ status: "pending" })
+    const leaveApps = await LeaveApplication.find({ status: "pending", leaveType: { $nin: ["Unpaid Leave (LWP)"] } })
       .populate({
         path: "employee",
         select: "FirstName LastName Email company",
@@ -105,9 +105,10 @@ leaveApp.get("/make-know", async (req, res) => {
       const teamData = emp?.team;
 
       if (!teamData) continue;
-
+      const formatFromDate = new Date(leave.fromDate).toLocaleString();
+      const formatToDate = new Date(leave.toDate).toLocaleString();
       const Subject = "Leave Application Reminder";
-      const message = `${emp.FirstName} has applied for leave from ${new Date(leave.fromDate).toLocaleDateString()} to ${new Date(leave.toDate).toLocaleDateString()} due to ${leave.reasonForLeave.replace(/<\/?[^>]+(>|$)/g, '')}. Please respond to this request.`;
+      const message = `${emp.FirstName} has applied for leave from ${formatFromDate} to ${formatToDate} due to ${leave.reasonForLeave.replace(/<\/?[^>]+(>|$)/g, '')}. Please respond to this request.`;
 
       const members = [];
 
@@ -128,11 +129,11 @@ leaveApp.get("/make-know", async (req, res) => {
             <div style="max-width: 600px; margin: auto; padding: 20px; background-color: #fff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);">
               <div style="text-align: center; padding: 20px;">
                 <img src="${leave?.employee?.company?.logo}" alt="Logo" style="max-width: 100px;" />
-                <h1 style="margin: 0;">${leave.employee.FirstName} ${leave.employee.LastName} has applied for leave From ${leave.fromDate} To ${leave.toDate}</h1>
+                <h1 style="margin: 0;">${leave.employee.FirstName} ${leave.employee.LastName} has applied for leave From ${formatFromDate} To ${formatToDate}</h1>
               </div>
               <div style="margin: 20px 0;">
                 <p>Hi all,</p>
-                <p>I have applied for leave from ${leave.fromDate} to ${leave.toDate} due to ${leave.reasonForLeave}. Please respond to this request.</p>
+                <p>I have applied for leave from ${formatFromDate} to ${formatToDate} due to ${leave.reasonForLeave}. Please respond to this request.</p>
                 <p>Thank you!</p>
               </div>
             </div>
@@ -150,7 +151,7 @@ leaveApp.get("/make-know", async (req, res) => {
 
             // Notification
             const notification = {
-              company: emp.company._id,
+              company: emp?.company?._id,
               title: Subject,
               message,
             };
@@ -191,11 +192,12 @@ leaveApp.get("/make-know", async (req, res) => {
 leaveApp.put("/reject-leave", async (req, res) => {
   try {
     const today = new Date();
-    const startOfDay = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate(), 0, 0, 0));
+    // const startOfDay = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate(), 0, 0, 0));
     const endOfDay = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate(), 23, 59, 59));
 
     const leaves = await LeaveApplication.find({
-      fromDate: { $gte: startOfDay, $lte: endOfDay },
+      fromDate: { $lte: endOfDay },
+      leaveType: { $nin: ["Unpaid Leave (LWP)"] },
       status: "pending"
     }).populate("employee", "FirstName LastName Email").exec();
 
