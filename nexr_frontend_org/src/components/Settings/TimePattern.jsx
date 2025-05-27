@@ -6,7 +6,6 @@ import LeaveTable from "../LeaveTable";
 import NoDataFound from "../payslip/NoDataFound";
 import CommonModel from "../Administration/CommonModel";
 import { EssentialValues } from "../../App";
-// import Loading from "../Loader";
 import { Skeleton } from "@mui/material";
 
 const TimePattern = () => {
@@ -52,10 +51,10 @@ const TimePattern = () => {
     function fillPatternData(value, name) {
         setTimePatternObj({
             ...timePatternObj,
-            [name]: value
+            [name]: ["StartingTime", "FinishingTime"].includes(name) ? new Date(value).toISOString() : value
         })
     }
-
+    
     async function updateTimePattern() {
         try {
             setIsWorkingApi(true);
@@ -67,7 +66,7 @@ const TimePattern = () => {
             toast.success(res.data.message);
             handleChangeTimePattern("Edit");
             setTimePatternObj({})
-            reload();
+            reload(!dom);
         } catch (error) {
             console.log(error);
         } finally {
@@ -86,7 +85,7 @@ const TimePattern = () => {
             setTimePatternObj({});
             toast.success(res.data.message);
             handleChangeTimePattern("Add");
-            reload();
+            reload(!dom);
         } catch (error) {
             toast.error(error.response.data.error);
             console.log("error in add timepattern", error);
@@ -96,7 +95,6 @@ const TimePattern = () => {
     }
 
     async function deletePattern(pattern) {
-        console.log(pattern);
 
         try {
             const res = await axios.delete(`${url}/api/time-pattern/${pattern}`, {
@@ -106,8 +104,9 @@ const TimePattern = () => {
             })
 
             toast.success(res.data.message);
-            reload();
+            reload(!dom);
         } catch (error) {
+            toast.error(error.response.data.error)
             console.log("error in delete timePatternObj:", error);
         }
     }

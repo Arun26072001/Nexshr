@@ -155,6 +155,31 @@ function projectMailContent(emp, creator, company, dataObj, type) {
   `;
 }
 
+// Process activity data: calculates total duration and adds timeHolder
+const activities = ["login", "meeting", "morningBreak", "lunch", "eveningBreak", "event"];
+function processActivityDurations(record) {
+  activities.forEach((activity) => {
+    const startingTimes = record[activity]?.startingTime || [];
+    const endingTimes = record[activity]?.endingTime || [];
+
+    const durations = startingTimes.map((startTime, i) => {
+      const start = timeToMinutes(startTime);
+      const end = endingTimes[i] ? timeToMinutes(endingTimes[i]) : getCurrentTimeInMinutes();
+      return Math.abs(end - start);
+    });
+
+    const total = durations.reduce((sum, mins) => sum + mins, 0);
+    if (!record[activity]) record[activity] = {};
+    record[activity].timeHolder = formatTimeFromMinutes(total);
+  });
+
+  return activities.map((activity) => {
+    const start = record[activity]?.startingTime?.[0] || "00:00";
+    const end = record[activity]?.endingTime?.slice(-1)?.[0] || "00:00";
+    const timeCalMins = timeToMinutes(record[activity]?.timeHolder || "00:00:00");
+    return { activity, startingTime: start, endingTime: end, timeCalMins };
+  });
+}
 
 function timeToMinutes(timeStr) {
   if (timeStr.split(/[:.]+/).length === 3) {
@@ -325,4 +350,4 @@ function generateCoverByEmail(empData, relievingOffData) {
         `;
 }
 
-module.exports = { convertToString, projectMailContent, getTotalWorkingHourPerDay, formatLeaveData, getDayDifference, getOrgDB, formatDate, getWeekdaysOfCurrentMonth, mailContent, checkLogin, getTotalWorkingHoursExcludingWeekends, getCurrentTimeInMinutes, timeToMinutes, formatTimeFromMinutes };
+module.exports = { convertToString, projectMailContent, processActivityDurations, getTotalWorkingHourPerDay, formatLeaveData, getDayDifference, getOrgDB, formatDate, getWeekdaysOfCurrentMonth, mailContent, checkLogin, getTotalWorkingHoursExcludingWeekends, getCurrentTimeInMinutes, timeToMinutes, formatTimeFromMinutes };

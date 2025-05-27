@@ -5,7 +5,7 @@ const { getCurrentTimeInMinutes, timeToMinutes, getTotalWorkingHourPerDay } = re
 const { Task } = require("../models/TaskModel");
 
 exports.sendPushNotification = async (msgObj) => {
-    const { token, title, body, company} = msgObj;
+    const { token, title, body, company } = msgObj;
     try {
         if (!token) {
             console.log("No FCM tokens found for this user");
@@ -53,9 +53,11 @@ exports.verifyWorkingTimeCompleted = async (req, res) => {
         });
 
         const totalValue = values?.reduce((acc, value) => acc + value, 0) / 60;
+        const officeStartingTime = `${new Date(empData.workingTimePattern.StartingTime).getHours()}:${new Date(empData.workingTimePattern.StartingTime).getMinutes()}`;
+        const officeFinishingTime = `${new Date(empData.workingTimePattern.FinishingTime).getHours()}:${new Date(empData.workingTimePattern.FinishingTime).getMinutes()}`;
         const scheduleWorkingHours = getTotalWorkingHourPerDay(
-            empData.workingTimePattern.StartingTime,
-            empData.workingTimePattern.FinishingTime
+            officeStartingTime,
+            officeFinishingTime
         )
         let isCompleteworkingHours = true;
         if (scheduleWorkingHours > totalValue && !login.reasonForEarlyLogout) {

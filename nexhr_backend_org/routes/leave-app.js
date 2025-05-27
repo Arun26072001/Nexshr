@@ -273,8 +273,6 @@ leaveApp.get("/emp/:empId", verifyAdminHREmployeeManagerNetwork, async (req, res
     }
 
     const today = new Date();
-    // const startOfDay = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate(), 0, 0, 0));
-    // const endOfDay = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate(), 23, 59, 59));
     const filterLeaves = { fromDate: { $lte: today }, toDate: { $gte: today }, status: "approved" };
 
     // **Parallel Data Fetching**
@@ -906,9 +904,10 @@ leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("pre
           const fullEmp = await Employee.findById(member._id, "notifications");
           fullEmp.notifications.push(notification);
           await fullEmp.save();
-          await sendPushNotification({ token: member.fcmToken, title: notification.title, body: notification.message,
-             company: emp.company
-             });
+          await sendPushNotification({
+            token: member.fcmToken, title: notification.title, body: notification.message,
+            company: emp.company
+          });
           notify.push(member.Email);
         });
       });

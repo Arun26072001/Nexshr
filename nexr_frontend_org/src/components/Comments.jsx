@@ -346,7 +346,7 @@ export default function Comments() {
 
         setTaskObj((prev) => {
             if (name.startsWith("spend.")) {
-                const spendChild = name.split(".")[1];
+                const spendChild = name.split(/[:.]+/)[1];
 
                 return {
                     ...prev,
@@ -356,7 +356,7 @@ export default function Comments() {
                     },
                 };
             } else if (name.startsWith("comments.")) {
-                const commentChild = name.split(".")[1];
+                const commentChild = name.split(/[:.]+/)[1];
                 return {
                     ...prev,
                     comments: prev.comments.length > 0

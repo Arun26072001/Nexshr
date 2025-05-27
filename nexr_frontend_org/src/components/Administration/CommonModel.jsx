@@ -3,8 +3,8 @@ import "../Settings/SettingsStyle.css";
 import { Modal, Button, SelectPicker, TagPicker, Input, InputNumber, InputGroup, Toggle } from 'rsuite';
 import TextEditor from '../payslip/TextEditor';
 import ErrorOutlineRoundedIcon from '@mui/icons-material/ErrorOutlineRounded';
-import DatePicker from "react-datepicker";
-import "react-datepicker/dist/react-datepicker.css";
+// import DatePicker from "react-datepicker";
+import { DatePicker } from "rsuite";
 import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
 import "../projectndTask.css";
 import { MultiCascader, VStack } from 'rsuite';
@@ -22,33 +22,16 @@ const CommonModel = ({
     isAddData,
     addData,
     leads,
-    heads,
-    managers,
-    hrs, admins,
-    previewList,
-    modifyData,
-    projects,
-    departments,
-    employees,
-    deleteData,
-    removeState,
-    comps,
-    changeState,
-    removeAttachment,
-    isWorkingApi,
-    removePreview,
-    preview,
-    countries,
-    states,
-    errorMsg,
-    type // New prop to determine if it's for "department" or "position"
+    heads, addReminder, managers,
+    hrs, admins, previewList, modifyData, notCompletedTasks,
+    projects, departments, employees, deleteData, removeState,
+    comps, changeState, removeAttachment, isWorkingApi, removePreview,
+    preview, countries, states, errorMsg, tasks, type // New prop to determine if it's for "department" or "position"
 }) => {
     const { data } = useContext(EssentialValues);
     const [confirmationTxt, setConfirmationTxt] = useState("");
     const [isDisabled, setIsDisabled] = useState(true);
     const [isShowPassword, setIsShowPassword] = useState(false);
-
-
 
     const getAllMemberIds = (data) => {
         let result = [];
@@ -98,18 +81,18 @@ const CommonModel = ({
             if (["Company", "Country", "Edit Country", "Organization", "Email Template"].includes(type)) {
                 modifyData(dataObj?._id || type === "Edit Country" ? "Edit" : "Add");
             } else if (type === "Report View") {
-                modifyData(dataObj._id, "Cancel");
-            } else if (dataObj._id && type === "Organization") {
+                modifyData(dataObj?._id, "Cancel");
+            } else if (dataObj?._id && type === "Organization") {
                 modifyData("Edit")
             } else if (["MailSettings postmark", "MailSettings nodemailer"].includes(type)) {
                 modifyData(dataObj)
-            } else if (dataObj._id && type === "LeaveType") {
+            } else if (dataObj?._id && type === "LeaveType") {
                 modifyData("Edit")
-            } else if (["TimePattern", "WorkPlace"].includes(type) && dataObj._id) {
+            } else if (["TimePattern", "WorkPlace"].includes(type) && dataObj?._id) {
                 modifyData("Edit")
-            } else if (["TimePattern", "WorkPlace", "Email Template"].includes(type) && !dataObj._id) {
+            } else if (["TimePattern", "WorkPlace", "Email Template"].includes(type) && !dataObj?._id) {
                 modifyData("Add")
-            } else if (["View TimePattern", "View WorkPlace"].includes(type) && dataObj._id) {
+            } else if (["View TimePattern", "View WorkPlace"].includes(type) && dataObj?._id) {
                 modifyData("View")
             }
             else {
@@ -211,7 +194,7 @@ const CommonModel = ({
                             <div className="col-half">
                                 <div className="modelInput">
                                     <p className='modelLabel important'>Default Pattern:</p>
-                                    <Toggle checked={dataObj.DefaultPattern} onChange={(e) => changeData(e, "DefaultPattern")} />
+                                    <Toggle checked={dataObj?.DefaultPattern} onChange={(e) => changeData(e, "DefaultPattern")} />
                                 </div>
                             </div>
                         }
@@ -387,18 +370,17 @@ const CommonModel = ({
                             <div className="modelInput">
                                 <p className="modelLabel important">{type === "Task" ? "From" : "Start Date"}</p>
                                 <DatePicker
+                                    size={"lg"}
                                     showTimeSelect={["Announcement", "Task", "Report"].includes(type)}
-                                    dateFormat={["Announcement", "Task", "Report"].includes(type) ? "yyyy-MM-dd HH:mm" : "yyyy-MM-dd"} // Added valid default format
-                                    timeFormat='HH:mm'
-                                    className="rsuite_input"
+                                    format={["Announcement", "Task", "Report"].includes(type) ? "yyyy-MM-dd HH:mm" : "yyyy-MM-dd"} // Added valid default format
                                     style={{ width: "100%" }}
                                     disabled={["Report View", "Task View"].includes(type)}
                                     placeholder={`Select ${type === "Task" ? "From Date" : "Start Date"}`}
                                     selected={
                                         dataObj?.from
-                                            ? new Date(dataObj.from)
+                                            ? new Date(dataObj?.from)
                                             : dataObj?.startDate
-                                                ? new Date(dataObj.startDate)
+                                                ? new Date(dataObj?.startDate)
                                                 : null
                                     }
                                     minDate={new Date()}
@@ -416,19 +398,18 @@ const CommonModel = ({
                             <div className="modelInput">
                                 <p className="modelLabel important">To:</p>
                                 <DatePicker
+                                    size={"lg"}
                                     showTimeSelect={["Announcement", "Task", "Report"].includes(type)}
-                                    className="rsuite_input"
                                     style={{ width: "100%" }}
-                                    dateFormat={["Announcement", "Task", "Report"].includes(type) ? "yyyy-MM-dd HH:mm" : "yyyy-MM-dd"}
-                                    timeFormat='HH:mm'
+                                    format={["Announcement", "Task", "Report"].includes(type) ? "yyyy-MM-dd HH:mm" : "yyyy-MM-dd"}
                                     disabled={["Report View", "Task View"].includes(type)}
                                     minDate={new Date()}
                                     placeholder="Select Due Date"
                                     selected={
                                         dataObj?.to
-                                            ? new Date(dataObj.to)
+                                            ? new Date(dataObj?.to)
                                             : dataObj?.endDate
-                                                ? new Date(dataObj.endDate)
+                                                ? new Date(dataObj?.endDate)
                                                 : null
                                     }
                                     onChange={
@@ -520,7 +501,7 @@ const CommonModel = ({
                             </div>
                         }
                         {
-                            ["Task"].includes(type) && !dataObj._id &&
+                            ["Task"].includes(type) && !dataObj?._id &&
                             <div className="col-half">
                                 <div className="modelInput">
                                     <p className='modelLabel important'>Est Time:</p>
@@ -559,7 +540,7 @@ const CommonModel = ({
                 </div>
 
                 {
-                    ["Task"].includes(type) && dataObj._id &&
+                    ["Task"].includes(type) && dataObj?._id &&
                     <div className='d-flex justify-content-between gap-2'>
                         <div className="col-half">
                             <div className="modelInput">
@@ -584,12 +565,12 @@ const CommonModel = ({
                 }
 
                 {
-                    ["Project", "Project View", "Assign", "Task", "Task View", "Task Assign", "Report", "Report View", "Team", "WorkPlace", "View WorkPlace"].includes(type) && (
+                    ["Project", "Project View", "Assign", "Task Assign", "Report", "Report View", "Team", "WorkPlace", "View WorkPlace"].includes(type) && (
                         <div className="d-flex justify-content-between">
                             <div className="col-full">
                                 <div className="modelInput">
                                     <p className="modelLabel important">
-                                        {["Task", "Task Assign"].includes(type) ? "Assign To" : type === "Team" ? "Team Members" : "Employee"}:
+                                        {type === "Team" ? "Team Members" : "Employee"}:
                                     </p>
 
                                     <TagPicker
@@ -603,10 +584,7 @@ const CommonModel = ({
                                         placeholder="Select Employees"
                                         value={type.includes("Task") ? dataObj?.assignedTo : dataObj?.employees}
                                         onChange={["Report View", "Task View", "Project View"].includes(type) ? null : (e) =>
-                                            changeData(
-                                                e,
-                                                type.includes("Task") ? "assignedTo" : "employees"
-                                            )
+                                            changeData(e, "employees")
                                         }
                                     />
                                 </div>
@@ -614,6 +592,36 @@ const CommonModel = ({
                         </div>
                     )
                 }
+
+                {
+                    ["Task", "Task View"].includes(type) &&
+                    ["assignedTo", "participants", "observers"].map((field) => (
+                        <div className="d-flex justify-content-between" key={field}>
+                            <div className="col-full">
+                                <div className="modelInput">
+                                    <p className={`modelLabel ${field === "assignedTo" ? "important" : ""}`}>
+                                        {field[0].toUpperCase() + field.slice(1)}
+                                    </p>
+
+                                    <TagPicker
+                                        data={employees}
+                                        required
+                                        size="lg"
+                                        defaultValue={field === "assignedTo" ? [data._id] : []}
+                                        appearance="default"
+                                        disabled={["Task View"].includes(type)}
+                                        style={{ width: "100%" }}
+                                        value={dataObj?.[field]}
+                                        onChange={
+                                            ["Task View"].includes(type) ? null : (e) => changeData(e, field)
+                                        }
+                                    />
+                                </div>
+                            </div>
+                        </div>
+                    ))
+                }
+
                 {
                     ["Announcement", "Add Comments", "Edit Comments"].includes(type) &&
                     <>
@@ -680,7 +688,7 @@ const CommonModel = ({
                     <>
                         <div className="col-full">
                             <div className="modelInput">
-                                <p className='modelLabel'>{type === "Email Template" ? "Content" : "Descripttion"}:</p>
+                                <p className='modelLabel'>{type === "Email Template" ? "Content" : "Description"}:</p>
                                 <TextEditor
                                     handleChange={!["Task View", "Project View"].includes(type) ? (e) => changeData(e, type === "Email Template" ? "content" : "description") : null}
                                     content={dataObj?.[type === "Email Template" ? "content" : "description"]}
@@ -944,8 +952,8 @@ const CommonModel = ({
                             }}>Add</button>
                             <div className="inputContent">
                                 {
-                                    dataObj?.shortTags && dataObj.shortTags.length > 0 ? (
-                                        dataObj.shortTags?.map((item) => (
+                                    dataObj?.shortTags && dataObj?.shortTags.length > 0 ? (
+                                        dataObj?.shortTags?.map((item) => (
                                             <span key={item} onClick={() => removeState(item)}>
                                                 {item} <CloseRoundedIcon />
                                             </span>
@@ -1194,13 +1202,13 @@ const CommonModel = ({
                             <div className="col-half">
                                 <div className="modelInput">
                                     <p className='modelLabel'>Starting Time:</p>
-                                    <InputNumber size='lg' step={0.01} onChange={(e) => changeData(e, "StartingTime")} disabled={type === "View TimePattern"} value={dataObj?.StartingTime} />
+                                    <DatePicker value={new Date(dataObj?.StartingTime)} size='lg' style={{ width: "100%" }} format="HH:mm" onChange={(e) => changeData(e, "StartingTime")} disabled={type === "View TimePattern"} editable={false} />
                                 </div>
                             </div>
                             <div className="col-half">
                                 <div className="modelInput">
                                     <p className='modelLabel'>Finishing Time:</p>
-                                    <InputNumber size='lg' step={0.01} onChange={(e) => changeData(e, "FinishingTime")} disabled={type === "View TimePattern"} value={dataObj?.FinishingTime} />
+                                    <DatePicker value={new Date(dataObj?.FinishingTime)} size='lg' style={{ width: "100%" }} format="HH:mm" onChange={(e) => changeData(e, "FinishingTime")} disabled={type === "View TimePattern"} editable={false} />
                                 </div>
                             </div>
                         </div>
@@ -1208,13 +1216,13 @@ const CommonModel = ({
                             <div className="col-half">
                                 <div className="modelInput">
                                     <p className='modelLabel'>Waiting Time:</p>
-                                    <InputNumber size='lg' step={0.01} onChange={(e) => changeData(e, "WaitingTime")} disabled={type === "View TimePattern"} value={dataObj?.WaitingTime} />
+                                    <InputNumber size='lg' placeholder='Enter in Minutes' step={0.01} onChange={(e) => changeData(e, "WaitingTime")} disabled={type === "View TimePattern"} value={dataObj?.WaitingTime} />
                                 </div>
                             </div>
                             <div className="col-half">
                                 <div className="modelInput">
                                     <p className='modelLabel'>Break Time:</p>
-                                    <InputNumber size='lg' step={0.01} onChange={(e) => changeData(e, "BreakTime")} disabled={type === "View TimePattern"} value={dataObj?.BreakTime} />
+                                    <InputNumber size='lg' placeholder='Enter in Minutes' step={0.01} onChange={(e) => changeData(e, "BreakTime")} disabled={type === "View TimePattern"} value={dataObj?.BreakTime} />
                                 </div>
                             </div>
                         </div>
@@ -1234,17 +1242,20 @@ const CommonModel = ({
                             </div>
                         </div>
                         {
-                            dataObj.StartingTime && dataObj.FinishingTime && dataObj.BreakTime &&
+                            dataObj?.StartingTime && dataObj?.FinishingTime && dataObj?.BreakTime &&
                             <p className="my-2 styleText">
                                 <b>{dataObj?.WeeklyDays?.length} working days </b>
-                                Selected totalling <b>{(dataObj?.WeeklyDays?.length * (calculateTimePattern(dataObj) - Number(dataObj?.BreakTime))).toFixed(2)} hrs</b>. excluding breaks
+                                Selected totalling <b>{(
+                                    (dataObj?.WeeklyDays?.length || 0) *
+                                    ((calculateTimePattern(dataObj) || 0) - (Number(dataObj?.BreakTime) || 0) / 60)
+                                ).toFixed(2)} hrs</b>. excluding breaks
                             </p>
                         }
                         <div className="modelInput d-flex">
                             <p className='modelLabel'>PublicHoliday:</p>
                         </div>
-                        <div className="row">
-                            <div className="col-lg-4 d-flex">
+                        <div style={{ display: "flex", alignItems: "stretch", gap: "5px" }}>
+                            <div style={{ flex: 1 }}>
                                 <div className={`position-relative ${dataObj?.PublicHoliday === "Deducated" ? 'box-content active' : 'box-content'}`} onClick={() => type !== "View TimePattern" ? changeData("Deducated", "PublicHoliday") : null}>
                                     <span className="RadioPosition">
                                         <input type="radio" name="timePattern.PublicHoliday" checked={dataObj?.PublicHoliday === "Deducated"} className="styleRadio" />
@@ -1263,7 +1274,7 @@ const CommonModel = ({
                                 </div>
                             </div>
 
-                            <div className="col-lg-4 d-flex">
+                            <div style={{ flex: 1 }}>
                                 <div className={`position-relative ${dataObj?.PublicHoliday === "Not deducated" ? 'box-content active' : 'box-content'}`} onClick={() => type !== "View TimePattern" ? changeData("Not deducated", "PublicHoliday") : null}>
                                     <span className="RadioPosition">
                                         <input type="radio" name="timePattern.PublicHoliday" checked={dataObj?.PublicHoliday === "Not deducated"} className="styleRadio" />
@@ -1282,8 +1293,8 @@ const CommonModel = ({
                                 </div>
                             </div>
 
-                            <div className="col-lg-4 d-flex">
-                                <div className={`position-relative ${dataObj?.PublicHoliday === "works public holidays" ? 'box-content active' : 'box-content'}`} onClick={() => type !== "View TimePattern" ? changeData("works public holidays", "PublicHoliday") : null}>
+                            <div style={{ flex: 1 }}>
+                                <div className={`position-relative ${dataObj?.PublicHoliday === "works public holidays" ? 'box-content active' : 'box-content'}`} style={{ height: "100%" }} onClick={() => type !== "View TimePattern" ? changeData("works public holidays", "PublicHoliday") : null}>
                                     <span className="RadioPosition">
                                         <input type="radio" name="timePattern.PublicHoliday" checked={dataObj?.PublicHoliday === "works public holidays"} className="styleRadio" />
                                     </span>
@@ -1296,7 +1307,132 @@ const CommonModel = ({
                                         and they won't have the day off.
                                     </p>
                                 </div>
+                            </div>
+                        </div>
+                    </>
+                }
+                {
+                    ["Task"].includes(type) &&
+                    <>
+                        <div className="d-flex justify-content-between">
+                            <div className="col-half">
+                                <div className="modelInput">
+                                    <p className="modelLabel">
+                                        SubTasks Of
+                                    </p>
 
+                                    <SelectPicker
+                                        appearance='default'
+                                        style={{ width: "100%" }}
+                                        size="lg"
+                                        data={tasks.map((task) => ({ label: task.title + " " + task.status, value: task._id }))}
+                                        disabled={type === "View Task"}
+                                        value={dataObj?.subTask}
+                                        onChange={(value) => changeData(value, "subTask")}
+                                    />
+                                </div>
+                            </div>
+                            <div className="col-half">
+                                <div className="modelInput">
+                                    <p className="modelLabel">
+                                        Gantt
+                                    </p>
+
+                                    <SelectPicker
+                                        appearance='default'
+                                        style={{ width: "100%" }}
+                                        size="lg"
+                                        data={notCompletedTasks.map((task) => ({ label: task.title, value: task._id }))}
+                                        disabled={type === "View Task"}
+                                        value={dataObj?.gantt}
+                                        onChange={(value) => changeData(value, "gantt")}
+                                    />
+                                </div>
+                            </div>
+                        </div>
+                        <div className="d-flex justify-content-between">
+                            <div className="col-half">
+                                <div className="modelInput">
+                                    <p className="modelLabel">
+                                        Remind about task
+                                    </p>
+                                    <DatePicker value={new Date(dataObj?.remind?.on)} size='lg' style={{ width: "100%" }} format="yyyy-MM-dd HH:mm" id='remindOn'
+                                        //  onChange={(e) => changeData(e, "remind.on")} 
+                                        disabled={type === "View TimePattern"} editable={false} />
+                                </div>
+                            </div>
+                            <div className="col-half">
+                                <div className="modelInput">
+                                    <p className="modelLabel">
+                                        Remind For
+                                    </p>
+
+                                    <SelectPicker
+                                        appearance='default'
+                                        style={{ width: "100%" }}
+                                        size="lg"
+                                        data={["Assignees", "Creator", "Self"].map((item) => ({ label: item, value: item }))}
+                                        disabled={type === "View Task"}
+                                        id="remindFor"
+                                    // value={dataObj?.remind?.for}
+                                    // onChange={(value) => changeData(value, "remind.for")}
+                                    />
+                                </div>
+                                <Button onClick={() => addReminder({ "on": document.getElementById("remindOn").value, "for": document.getElementById("remindFor").value })} disabled={document.getElementById("remindOn").value && document.getElementById("remindFor").value ? false : true} >Add</Button>
+                            </div>
+                        </div>
+                        <div className="d-flex justify-content-between">
+                            <div className="col-half">
+                                <div className="modelInput">
+                                    <p className="modelLabel">
+                                        CRM
+                                    </p>
+
+                                    <SelectPicker
+                                        appearance='default'
+                                        style={{ width: "100%" }}
+                                        size="lg"
+                                        data={[]}
+                                        disabled={type === "View Task"}
+                                        value={dataObj?.crm}
+                                        onChange={(value) => changeData(value, "crm")}
+                                    />
+                                </div>
+                            </div>
+                            <div className="col-half">
+                                <div className="modelInput">
+                                    <p className="modelLabel ">
+                                        Tags
+                                    </p>
+
+                                    <TagPicker
+                                        data={[]}
+                                        size="lg"
+                                        defaultValue={[data._id]}
+                                        appearance="default"
+                                        disabled={["Task View"].includes(type) ? true : false}
+                                        style={{ width: "100%" }}
+                                        value={dataObj?.tags}
+                                        onChange={["Task View"].includes(type) ? null : (e) => changeData(e, "tags")}
+                                    />
+                                </div>
+                            </div>
+                        </div>
+                        <div className="col-full">
+                            <div className="modelInput">
+                                <p className="modelLabel ">
+                                    Dependant Tasks
+                                </p>
+                                <TagPicker
+                                    data={tasks.map((task) => ({ label: task.title + " " + task.status, value: task._id }))}
+                                    size="lg"
+                                    defaultValue={[data._id]}
+                                    appearance="default"
+                                    disabled={["Task View"].includes(type) ? true : false}
+                                    style={{ width: "100%" }}
+                                    value={dataObj?.dependantTasks}
+                                    onChange={["Task View"].includes(type) ? null : (e) => changeData(e, "dependantTasks")}
+                                />
                             </div>
                         </div>
                     </>
@@ -1383,18 +1519,18 @@ const CommonModel = ({
                                     if (["Company", "Country", "Edit Country", "Organization", "Email Template"].includes(type)) {
                                         modifyData(dataObj?._id || type === "Edit Country" ? "Edit" : "Add");
                                     } else if (type === "Report View") {
-                                        modifyData(dataObj._id, "Cancel");
-                                    } else if (dataObj._id && type === "Organization") {
+                                        modifyData(dataObj?._id, "Cancel");
+                                    } else if (dataObj?._id && type === "Organization") {
                                         modifyData("Edit")
                                     } else if (["MailSettings postmark", "MailSettings nodemailer"].includes(type)) {
                                         modifyData(dataObj)
-                                    } else if (dataObj._id && type === "LeaveType") {
+                                    } else if (dataObj?._id && type === "LeaveType") {
                                         modifyData("Edit")
-                                    } else if (["TimePattern", "WorkPlace"].includes(type) && dataObj._id) {
+                                    } else if (["TimePattern", "WorkPlace"].includes(type) && dataObj?._id) {
                                         modifyData("Edit")
-                                    } else if (["TimePattern", "WorkPlace", "Email Template"].includes(type) && !dataObj._id) {
+                                    } else if (["TimePattern", "WorkPlace", "Email Template"].includes(type) && !dataObj?._id) {
                                         modifyData("Add")
-                                    } else if (["View TimePattern", "View WorkPlace"].includes(type) && dataObj._id) {
+                                    } else if (["View TimePattern", "View WorkPlace"].includes(type) && dataObj?._id) {
                                         modifyData("View")
                                     }
                                     else {
@@ -1409,7 +1545,7 @@ const CommonModel = ({
                             {
                                 !["Report View", "Task View", "Project View", "View TimePattern"].includes(type) && (
                                     <Button
-                                        onClick={() => ((type === "Add Comments" && dataObj._id) ? editData(dataObj, true) : dataObj?._id || type === "Edit Country" ? editData(dataObj) : type === "Edit Comments" ? editData() : addData())}
+                                        onClick={() => ((type === "Add Comments" && dataObj?._id) ? editData(dataObj, true) : dataObj?._id || type === "Edit Country" ? editData(dataObj) : type === "Edit Comments" ? editData() : addData())}
                                         appearance="primary"
                                         disabled={
                                             ["Project", "Assign", "Task", "Task Assign", "Report", "Company", "Country", "Edit Country", "Announcement", "Team", "Add Comments", "TimePattern", "Edit Comments", "Organization", "MailSettings postmark", "MailSettings nodemailer", "LeaveType", "WorkPlace", "Email Template"].includes(type)

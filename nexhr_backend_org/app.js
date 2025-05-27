@@ -157,7 +157,7 @@ app.post("/push-notification", sendPushNotification);
 app.post("/verify_completed_workinghour", verifyWorkingTimeCompleted);
 app.post("/ask-reason-for-delay", askReasonForDelay);
 
-schedule.scheduleJob("0 0 11 8 * *", async function () {
+schedule.scheduleJob("0 0 10 4 * *", async function () {
   try {
     const response = await axios.post(`${process.env.REACT_APP_API_URL}/api/payslip/`, {});
     console.log("Payslip generation response:", response.data);
@@ -171,8 +171,8 @@ async function fetchTimePatterns() {
     const timePatterns = await TimePattern.find();
 
     timePatterns.forEach((pattern) => {
-      const [startingHour, startingMin] = pattern.StartingTime.split(":").map(Number);
-      const [finishingHour, finishingMin] = pattern.FinishingTime.split(":").map(Number);
+      const [startingHour, startingMin] = [new Date(pattern.StartingTime).getHours(), new Date(pattern.StartingTime).getMinutes()];
+      const [finishingHour, finishingMin] = [new Date(pattern.FinishingTime).getHours(), new Date(pattern.FinishingTime).getMinutes()];
 
       // Schedule job for login
       schedule.scheduleJob(`0 ${startingMin} ${startingHour} * * 1-5`, async function () {
@@ -221,12 +221,12 @@ schedule.scheduleJob("0 10 * * 1-5", async () => {
   }
 });
 
-schedule.scheduleJob("0 7 * * 1-5", async () => {
+schedule.scheduleJob("0 7 * * *", async () => {
   try {
     const res = await axios.put(`${process.env.REACT_APP_API_URL}/api/leave-application/reject-leave`);
     console.log(res.data);
   } catch (error) {
-    console.log(error);
+    console.log("error in reject leave", error);
   }
 })
 

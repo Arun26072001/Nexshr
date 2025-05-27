@@ -97,9 +97,10 @@
 .card-parent {
   display: flex;
   justify-content: center;
-  align-items: center;
+  align-items: stretch;
   flex-wrap: wrap;
-  gap: 20px;
+  gap: 15px;
+  align-items: stretch;
 }
 
 .card-parent > .cardContent {

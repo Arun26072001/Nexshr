@@ -78,6 +78,30 @@ function verifyTeamHigherAuthority(req, res, next) {
   // next()
 }
 
+function verifyTeamHigherAuthorityEmp(req, res, next) {
+  const token = req.headers['authorization'];
+
+  if (typeof token !== "undefined") {
+    jwt.verify(token, jwtKey, (err, authData) => {
+      const { isTeamLead, isTeamHead, isTeamManager, Account } = authData;
+      if (err) {
+        console.log(err);
+        res.sendStatus(401);
+      } else {
+        if ([isTeamLead, isTeamHead, isTeamManager].includes(true) || Account === 3) {
+          next();
+        } else {
+          res.status(401).send({ error: "No permission for this Action" });
+        }
+      }
+    });
+  } else {
+    // Forbidden
+    res.sendStatus(401);
+  }
+  // next()
+}
+
 function verifyHREmployee(req, res, next) {
   const token = req.headers['authorization'];
   if (typeof token !== "undefined") {
@@ -210,6 +234,8 @@ function verifyAdminHREmployee(req, res, next) {
   }
 }
 
+
+
 function verifyAdmin(req, res, next) {
   const token = req.headers['authorization'];
 
@@ -338,6 +364,7 @@ module.exports = {
   verifyHR,
   verifyEmployee,
   verifyHREmployee,
+  verifyTeamHigherAuthorityEmp,
   verifyAdminHR,
   verifyAdminHrNetworkAdmin,
   verifyAdminHREmployee,

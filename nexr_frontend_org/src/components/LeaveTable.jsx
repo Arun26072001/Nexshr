@@ -707,8 +707,8 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
 
     const column18 = [
         { id: 'PatternName', label: 'Pattern Name', minWidth: 120, align: 'center', getter: (row) => row?.PatternName || 'N/A' },
-        { id: 'StartingTime', label: 'Start Time', minWidth: 100, align: 'center', getter: (row) => row?.StartingTime || 'N/A' },
-        { id: 'FinishingTime', label: 'End Time', minWidth: 100, align: 'center', getter: (row) => row?.FinishingTime || 'N/A' },
+        { id: 'StartingTime', label: 'Start Time', minWidth: 100, align: 'center', getter: (row) => new Date(row?.StartingTime).toLocaleTimeString() || 'N/A' },
+        { id: 'FinishingTime', label: 'End Time', minWidth: 100, align: 'center', getter: (row) => new Date(row?.FinishingTime).toLocaleTimeString() || 'N/A' },
         { id: 'BreakTime', label: 'Break Time', minWidth: 100, align: 'center', getter: (row) => row?.BreakTime || 'N/A' },
         { id: 'WaitingTime', label: 'Waiting Time', minWidth: 100, align: 'center', getter: (row) => row?.WaitingTime || 'N/A' },
         { id: 'WeeklyDays', label: 'Weekly Days', minWidth: 150, align: 'center', getter: (row) => row.WeeklyDays.length ? row.WeeklyDays.join(", ") : 'N/A' },

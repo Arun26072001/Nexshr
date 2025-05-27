@@ -115,7 +115,7 @@ router.post("/attendance", upload.single("documents"), verifyAdminHrNetworkAdmin
                                                 <h2 style="text-align: center;">You came much later than your permitted time.</h2>
                                                 <p>
                                                     So, we are marking you as taking a half-day leave.<br />
-                                                    Hereafter, please come early or by (${emp.workingTimePattern.StartingTime}).<br />
+                                                    Hereafter, please come early or by (${new Date(emp.workingTimePattern.StartingTime).toLocaleTimeString()}).<br />
                                                     Please follow the company instructions.<br />
                                                     Thank you!
                                                 </p>
@@ -175,7 +175,7 @@ router.post("/attendance", upload.single("documents"), verifyAdminHrNetworkAdmin
                                     <h2 style="text-align: center;">You came much later than your permitted time.</h2>
                                     <p>
                                       So, we are marking you as taking a half-day leave.<br />
-                                      Hereafter, please come early or by (${emp.workingTimePattern.StartingTime}).<br />
+                                      Hereafter, please come early or by (${new Date(emp.workingTimePattern.StartingTime).toLocaleTimeString()}).<br />
                                       Please follow the company instructions.<br />
                                       Thank you!
                                     </p>

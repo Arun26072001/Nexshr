@@ -70,6 +70,7 @@
 }
 
 .box-content {
+  /* height: 100%; */
   border-radius: 10px;
   padding: 20px;
   box-shadow: rgba(60, 64, 67, 0.3) 0px 1px 2px 0px,

@@ -37,14 +37,11 @@ async function getTotalWorkingHourPerDay(start, end) {
 
 const getDataAPI = async (_id) => {
     try {
-
         const response = await axios.get(`${url}/api/clock-ins/${_id}`, {
             params: { date: new Date().toISOString() },
             headers: { authorization: token || '' },
         });
-
         const data = response.data;
-
         return data;
 
     } catch (error) {
@@ -108,6 +105,57 @@ const fetchEmpLeaveRequests = async () => {
             return err.response.data.message;
         }
     }
+}
+
+function timeToMinutes(timeStr) {
+    if (timeStr.split(/[:.]+/).length === 3) {
+        const [hours, minutes, seconds] = timeStr.split(/[:.]+/).map(Number);
+        return Number(((hours * 60) + minutes + (seconds / 60)).toFixed(2)) || 0; // Defaults to 0 if input is invalid
+    } else {
+        const [hours, minutes] = timeStr.split(/[:.]+/).map(Number);
+        return Number(((hours * 60) + minutes).toFixed(2)) || 0;
+    }
+}
+
+const getCurrentTimeInMinutes = () => {
+    const now = new Date().toLocaleTimeString('en-US', { timeZone: process.env.TIMEZONE, hourCycle: 'h23' });
+    const timeWithoutSuffix = now.replace(/ AM| PM/, ""); // Remove AM/PM
+    const [hour, min, sec] = timeWithoutSuffix.split(":").map(Number);
+    return timeToMinutes(`${hour}:${min}:${sec}`);
+};
+
+function formatTimeFromMinutes(minutes) {
+  if ([NaN, 0].includes(minutes)) {
+    return `00:00:00`;
+  } else {
+    const hours = Math.floor(minutes / 60); // Get the number of hours
+    const mins = Math.floor(minutes % 60); // Get the remaining whole minutes
+    const fractionalPart = minutes % 1; // Get the fractional part of the minutes
+    const secs = Math.round(fractionalPart * 60); // Convert the fractional part to seconds
+
+    // Format each part to ensure two digits (e.g., "04" instead of "4")
+    const formattedHours = String(hours).padStart(2, '0');
+    const formattedMinutes = String(mins).padStart(2, '0');
+    const formattedSeconds = String(secs).padStart(2, '0');
+
+    return `${formattedHours}:${formattedMinutes}:${formattedSeconds}`;
+  }
+}
+
+function processActivityDurations(record, activity) {
+    const startingTimes = record[activity]?.startingTime || [];
+    const endingTimes = record[activity]?.endingTime || [];
+
+    const durations = startingTimes.map((startTime, i) => {
+        const start = timeToMinutes(startTime);
+        const end = endingTimes[i] ? timeToMinutes(endingTimes[i]) : getCurrentTimeInMinutes();
+        return Math.abs(end - start);
+    });
+
+    const total = durations.reduce((sum, mins) => sum + mins, 0);
+    if (!record[activity]) record[activity] = {};
+    record[activity].timeHolder = formatTimeFromMinutes(total);
+    return record;
 }
 
 const fetchLeaveRequests = async (_id) => {
@@ -454,24 +502,11 @@ async function fileUploadInServer(files) {
 
 function calculateTimePattern(timePatternObj) {
     if (timePatternObj.StartingTime && timePatternObj.FinishingTime) {
-
-        const [startHour, startMinute] = timePatternObj.StartingTime.split(".").map(num => parseInt(num, 10));
-        const [endHour, endMinute] = timePatternObj.FinishingTime.split(".").map(num => parseInt(num, 10));
-        console.log("startingTime: ", startHour, startMinute);
-        console.log("finishingtime: ", endHour, endMinute);
-
-        const startDate = new Date();
-        startDate.setHours(startHour);
-        startDate.setMinutes(startMinute);
-
-        const endDate = new Date();
-        endDate.setHours(endHour);
-        endDate.setMinutes(endMinute);
-
-        const timeDiff = endDate.getTime() - startDate.getTime();
+        const startingTime = new Date(timePatternObj.StartingTime).getTime()
+        const endingTime = new Date(timePatternObj.FinishingTime).getTime()
+        const timeDiff = endingTime - startingTime;
+        console.log(startingTime, endingTime, timeDiff);
         const hoursDiff = Math.floor(timeDiff / (1000 * 60 * 60));
-        console.log(hoursDiff);
-
         return hoursDiff
     }
 }
@@ -555,6 +590,7 @@ function exportAttendanceToExcel(attendanceData) {
 export {
     triggerToaster,
     calculateTimePattern,
+    processActivityDurations,
     getTimeFromHour,
     getHoliday,
     addDataAPI,

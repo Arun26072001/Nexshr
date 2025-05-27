@@ -50,7 +50,7 @@ export default function Twotabs() {
   const { whoIs } = useContext(EssentialValues);
   const navigate = useNavigate();
   const { data } = useContext(EssentialValues);
-  
+
   const { annualLeave, _id } = data;
   const [value, setValue] = useState(0);
   const [takenLeave, setTakenLeave] = useState(0);
@@ -59,6 +59,7 @@ export default function Twotabs() {
   const [isLoading, setIsLoading] = useState(false);
   const [selectedDate, setSelectedDate] = useState("");
   const [leaveData, setLeaveData] = useState([]);
+  console.log("reqs", leaveRequests);
 
   const handleChange = (event, newValue) => {
     setValue(newValue);
@@ -71,6 +72,7 @@ export default function Twotabs() {
       setIsLoading(true)
       if (_id) {
         const leaveReqs = await fetchLeaveRequests(_id);
+        console.log(leaveReqs);
 
         if (leaveReqs?.leaveApplications?.length > 0) {
           setLeaveRequests(leaveReqs.leaveApplications);
@@ -180,7 +182,6 @@ export default function Twotabs() {
       <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
         <Tabs value={value} onChange={handleChange} aria-label="basic tabs example">
           <Tab label="Absence" {...a11yProps(0)} />
-          {/* <Tab label="Overtime" {...a11yProps(1)} /> */}
         </Tabs>
       </Box>
       <CustomTabPanel value={value} index={0} className="tabParent">
@@ -221,7 +222,6 @@ export default function Twotabs() {
               return <Skeleton variant='rounded' key={index} width={"100%"} className='my-1' height={30} />
             }) :
               leaveRequests?.map((req, index) => {
-                // debugger;
                 let todayDate = today.getTime()
                 let leaveDate = new Date(req.fromDate).getTime()
                 if (todayDate < leaveDate) {

@@ -28,13 +28,14 @@ const Tasks = () => {
   const navigate = useNavigate();
   const url = process.env.REACT_APP_API_URL;
   const [employees, setEmployees] = useState([]);
-  const { data, whoIs} = useContext(EssentialValues);
+  const { data, whoIs } = useContext(EssentialValues);
   const { isAddTask, setIsAddTask, handleAddTask, selectedProject } = useContext(TimerStates);
-  const { isTeamLead, isTeamHead } = jwtDecode(data.token)
+  const { isTeamLead, isTeamHead, isTeamManager } = jwtDecode(data.token)
   const [taskObj, setTaskObj] = useState({});
   const [projects, setProjects] = useState([]);
   const [projectId, setProjectId] = useState(localStorage.getItem("selectedProject") || "");
   const [allTasks, setAllTask] = useState([]);
+  const [notCompletedTasks, setNotCompletedTasks] = useState([]);
   const [pendingTasks, setPendingTasks] = useState([]);
   const [progressTasks, setProgressTasks] = useState([]);
   const [completedTasks, setCompletedTask] = useState([]);
@@ -77,9 +78,27 @@ const Tasks = () => {
           Authorization: data.token || ""
         }
       })
+
       setEmployees(res.data.map((emp) => ({ label: emp.FirstName + " " + emp.LastName, value: emp._id })))
     } catch (error) {
       console.log("error in fetch employess", error);
+    }
+  }
+
+  async function fetchTeamEmps() {
+    try {
+      const res = await axios.get(`${url}/api/team/members/${data._id}`, {
+        params: {
+          who: isTeamLead ? "lead" : isTeamHead ? "head" : isTeamManager ? "manager" : "employees"
+        },
+        headers: {
+          Authorization: data.token || ""
+        }
+      })
+      setEmployees(res.data.employees.map((emp) => ({ label: emp.FirstName + " " + emp.LastName, value: emp._id })))
+    } catch (error) {
+      console.log("error in fetch team emps", error);
+
     }
   }
 
@@ -87,6 +106,9 @@ const Tasks = () => {
   useEffect(() => {
     if (taskObj?.project) {
       fetchProjectEmps()
+    } else {
+      // fetch team employees
+      fetchTeamEmps()
     }
   }, [taskObj?.project])
 
@@ -156,8 +178,18 @@ const Tasks = () => {
     }
 
     setTaskObj((prev) => {
-      if (name.startsWith("spend.")) {
-        const spendChild = name.split(".")[1];
+      if (name.startsWith("remind.")) {
+        const childName = name.split(/[:.]+/)[1];
+        return {
+          ...prev,
+          "remind": [...prev.remind, {
+            ...prev?.remind,
+            [childName]: value, // Store correctly
+          }],
+        }
+      }
+      else if (name.startsWith("spend.")) {
+        const spendChild = name.split(/[:.]+/)[1];
 
         return {
           ...prev,
@@ -167,7 +199,7 @@ const Tasks = () => {
           },
         };
       } else if (name.startsWith("comments.")) {
-        const commentChild = name.split(".")[1];
+        const commentChild = name.split(/[:.]+/)[1];
 
         return {
           ...prev,
@@ -194,6 +226,17 @@ const Tasks = () => {
     });
   }
 
+  function addReminder(remindObj){
+    setTaskObj((pre)=>({
+      ...pre,
+      "remind": [...pre.remind, remindObj]
+    }))
+  }
+
+  function removeReminder(item){
+    
+  }
+
   function handleEditTask() {
     if (isEditTask) {
       setTaskObj({});
@@ -208,8 +251,8 @@ const Tasks = () => {
     }
     handleAddTask()
   }
-  function removeAttachment(value, fileIndex) {
 
+  function removeAttachment(value, fileIndex) {
     const updatedPrevireList = previewList.filter((imgFile) => imgFile !== value);
     setPreviewList(updatedPrevireList);
     const updatedAttachments = taskObj.attachments.filter((file, index) => index !== fileIndex);
@@ -225,13 +268,14 @@ const Tasks = () => {
         }
       })
       setAllTask(res.data.tasks);
-      console.log(res.data.tasks);
-      // getSelectStatusTasks();
+      setNotCompletedTasks(res.data.tasks.filter((task) => task.status !== "Completed"))
     } catch (error) {
       setAllTask([])
+      setNotCompletedTasks([]);
       console.log(error);
+    } finally {
+      setIsLoading(false)
     }
-    setIsLoading(false)
   }
 
   function handleViewTask() {
@@ -585,6 +629,7 @@ const Tasks = () => {
     }
     editTask(updatedTask)
   }
+  console.log(taskObj);
 
   return (
 
@@ -594,9 +639,12 @@ const Tasks = () => {
           isAddTask ? <CommonModel
             isWorkingApi={isTaskChanging}
             dataObj={taskObj}
+            tasks={allTasks}
+            notCompletedTasks={notCompletedTasks}
             previewList={previewList}
             isAddData={isAddTask}
             editData={editTask}
+            addReminder={addReminder}
             changeData={changeTask}
             projects={projects}
             addData={addTask}

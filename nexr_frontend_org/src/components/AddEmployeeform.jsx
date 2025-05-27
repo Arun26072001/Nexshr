@@ -79,8 +79,8 @@ const AddEmployeeForm = ({
             );
 
             if (selectedPattern?.StartingTime && selectedPattern?.FinishingTime) {
-                const [startHour, startMinute] = selectedPattern.StartingTime.split(".").map(Number);
-                const [endHour, endMinute] = selectedPattern.FinishingTime.split(".").map(Number);
+                const [startHour, startMinute] = selectedPattern.StartingTime.split(/[:.]+/).map(Number);
+                const [endHour, endMinute] = selectedPattern.FinishingTime.split(/[:.]+/).map(Number);
 
                 const startDate = new Date();
                 startDate.setHours(startHour, startMinute);
@@ -128,7 +128,7 @@ const AddEmployeeForm = ({
         gettingLeaveTypes();
     }, [url, data.token]);
 
-    const hourAndMin = timeDifference.toString().split(".");
+    const hourAndMin = timeDifference.toString().split(/[:.]+/);
     const [hour = 0, min = 0] = hourAndMin;
 
     const updateEmployee = async (empData) => {
