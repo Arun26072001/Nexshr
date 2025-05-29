@@ -1,0 +1,14 @@
+.content-template {
+  /* display: ; */
+  padding: 10px;
+}
+
+.dateContainer {
+  border: 1px solid gray;
+  border-radius: 10px;
+  width: fit-content;
+  padding: 0px 5px;
+  margin: 8px 0px;
+  color: black;
+  font-weight: 500;
+}

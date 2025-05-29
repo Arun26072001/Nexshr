@@ -40,6 +40,8 @@ const AddEmployee = () => {
 
   function handlePersonal() {
     if (personalRef.current) {
+      console.log("height in ref", personalRef.current.getBoundingClientRect().top);
+      console.log(window.scrollY);
       const scrollDown = personalRef.current.getBoundingClientRect().top + window.scrollY;
       window.scrollTo({
         top: scrollDown,
@@ -117,7 +119,7 @@ const AddEmployee = () => {
       return handlePayslip();
     } else {
       console.log("call for fina");
-      
+
       return handleFinancial();
     }
   }

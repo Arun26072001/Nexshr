@@ -124,6 +124,28 @@ function timeToMinutes(timeStr) {
     }
 }
 
+async function createTask(task) {
+        try {
+            let newTaskObj = {
+                ...task,
+                assignedTo: Array.isArray(task?.assignedTo) && task.assignedTo.includes(_id)
+                    ? task.assignedTo
+                    : [...(task?.assignedTo || []), _id]
+            }
+            const res = await axios.post(`${url}/api/task/${_id}`, newTaskObj, {
+                headers: { Authorization: token || "" }
+            });
+
+            toast.success(res.data.message);
+            // socket.emit("send_notification_for_task", newTaskObj)
+            // setTaskObj({});
+            // toggleTaskMode("Add");
+        } catch (error) {
+            console.error("Task creation error:", error);
+            toast.error(error.response?.data?.error || "Task creation failed");
+        }
+    }
+
 const getCurrentTimeInMinutes = () => {
     const now = new Date().toLocaleTimeString('en-US', { timeZone: process.env.TIMEZONE, hourCycle: 'h23' });
     const timeWithoutSuffix = now.replace(/ AM| PM/, ""); // Remove AM/PM
@@ -629,6 +651,7 @@ export {
     getTimeFromHour,
     getHoliday,
     addDataAPI,
+    createTask,
     fetchCompanies,
     fetchTeams,
     getDataAPI,

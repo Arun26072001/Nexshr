@@ -7,6 +7,7 @@ import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import NoInternet from "./components/NoInternet.jsx";
 import { jwtDecode } from "jwt-decode";
+import { registerLicense } from '@syncfusion/ej2-base';
 import "./App.css";
 import 'rsuite/dist/rsuite.min.css';
 import "react-datepicker/dist/react-datepicker.css";
@@ -16,7 +17,7 @@ import { messaging } from "./firebase/firebase.js";
 import { triggerToaster } from "./components/ReuseableAPI.jsx";
 
 export const EssentialValues = createContext(null);
-
+registerLicense("Ngo9BigBOggjHTQxAR8/V1NNaF1cWWhPYVF+WmFZfVtgd19DZVZVRWYuP1ZhSXxWdkBhUH9ddXFRQmhbU0V9XUs=")
 const App = () => {
   const url = process.env.REACT_APP_API_URL;
   const [isOnline, setIsOnline] = useState(navigator.onLine);
@@ -68,6 +69,7 @@ function changeViewReasonForEarlyLogout() {
 
   // Helper Functions
   const handleLogout = () => {
+    console.log(isStartLogin, isStartActivity);
     if (isStartLogin || isStartActivity) {
       toast.warn("You can't logout until the timer stops.");
       return;

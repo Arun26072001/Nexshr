@@ -2,7 +2,6 @@ const admin = require("./firebase-admin");
 const { Employee } = require("../models/EmpModel");
 const axios = require("axios");
 const { getCurrentTimeInMinutes, timeToMinutes, getTotalWorkingHourPerDay } = require("../Reuseable_functions/reusableFunction");
-const { Task } = require("../models/TaskModel");
 
 exports.sendPushNotification = async (msgObj) => {
     const { token, title, body, company } = msgObj;

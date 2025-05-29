@@ -24,6 +24,7 @@ import profile from "../imgs/male_avatar.webp";
 export default function LeaveTable({ data, Account, getCheckedValue, handleDelete, handleChangeData, fetchReportById, fetchOrgData, fetchData, roleObj, getCheckAll, deleteData, replyToLeave, handleChangeLeavetype, isTeamHead, isTeamLead, isTeamManager }) {
     const navigate = useNavigate();
     const { whoIs } = useContext(EssentialValues);
+    const empId = localStorage.getItem("_id")
     const timerStateData = useContext(TimerStates)
     const [page, setPage] = useState(0);
     const [rowsPerPage, setRowsPerPage] = useState(+localStorage.getItem("rowsPerPage") || 10);
@@ -864,6 +865,72 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
         { id: "Action", label: "Action", minWidth: 100, align: "center" }
     ]
 
+    const column23 = [
+        {
+            id: 'title',
+            label: 'Task Name',
+            minWidth: 150,
+            align: 'center',
+            getter: (row) => row?.title || 'N/A'
+        },
+        {
+            id: 'from',
+            label: 'Active',
+            minWidth: 80,
+            align: 'center',
+            getter: (row) => row?.from ? new Date(row.from).toLocaleDateString() : 'N/A'
+        },
+        {
+            id: 'to',
+            label: 'Deadline',
+            minWidth: 120,
+            align: 'center',
+            getter: (row) => row?.to ? new Date(row.to).toLocaleDateString() : 'N/A'
+        },
+        {
+            id: 'createdby',
+            label: 'Created By',
+            minWidth: 150,
+            align: 'center',
+            getter: (row) => {
+                const creator = row?.createdby;
+                return creator?.FirstName ? `${creator.FirstName} ${creator.LastName || ''}`.trim() : 'N/A';
+            }
+        },
+        {
+            id: 'assignedTo',
+            label: 'Assignee(s)',
+            minWidth: 180,
+            align: 'center',
+            getter: (row) => {
+                const assignees = row?.assignedTo || [];
+                if (!assignees.length) return 'N/A';
+                return assignees.map(emp => `${emp.FirstName} ${emp.LastName || ''}`.trim()).join(', ');
+            }
+        },
+        {
+            id: 'project',
+            label: 'Project',
+            minWidth: 150,
+            align: 'center',
+            getter: (row) => row?.project?.name || 'N/A'
+        },
+        {
+            id: 'tags',
+            label: 'Tags',
+            minWidth: 150,
+            align: 'center',
+            getter: (row) => Array.isArray(row.tags) && row.tags.length ? row.tags.join(', ') : 'N/A'
+        },
+        {
+            id: 'Action',
+            label: 'Action',
+            minWidth: 100,
+            align: 'center'
+        }
+    ];
+
+
     function toggleView() {
         setOpenModal(!openModal);
     }
@@ -874,10 +941,10 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
         if (['daily-log', "attendance-request"].includes(page)) {
             async function fetchAttendanceData() {
                 try {
-                    const data = await getclockinsDataById(id);
+                    const res = await getclockinsDataById(id);
 
                     setModelData({
-                        ...data.timeData,
+                        ...res.timeData,
                         title: "Attendance Details"
                     });
                     toggleView();
@@ -934,9 +1001,10 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
                 return setColumns(column10)
             } else if (item?.title && params["*"] === "announcement") {
                 return setColumns(column11)
-            } else if (item?.createdby) {
-                return setColumns(column12)
-            } else if (item?.CompanyName && params["*"] === "company") {
+            } else if (params["*"] === "" && item.title) {
+                setColumns(column23)
+            }
+            else if (item?.CompanyName && params["*"] === "company") {
                 return setColumns(column13)
             } else if (item?.icon) {
                 return setColumns(column14)
@@ -956,7 +1024,10 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
                 return setColumns(column21)
             } else if (params["*"] === "holiday") {
                 setColumns(column22);
-            } else {
+            } else if (item?.createdby && params["*"] === "reports") {
+                return setColumns(column12)
+            }
+            else {
                 return setColumns(column2)
             }
         })
@@ -1188,6 +1259,31 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
                                                                 </Dropdown.Item>
                                                             </Dropdown>
                                                         );
+                                                    } else if (params["*"] === "") {
+                                                        return (
+                                                            <Dropdown title={"Action"} placement='leftStart' noCaret>
+                                                                <Dropdown.Item style={{ minWidth: 80 }} onClick={() => handleChangeData("View", row._id)}>
+                                                                    <b>
+                                                                        <RemoveRedEyeRoundedIcon sx={{ color: "#80C4E9" }} /> View
+                                                                    </b>
+                                                                </Dropdown.Item>
+                                                                {
+                                                                    empId === row.createdby._id &&
+                                                                    <>
+                                                                        <Dropdown.Item style={{ minWidth: 80 }} onClick={() => handleChangeData("Edit", row._id)}>
+                                                                            <b>
+                                                                                <BorderColorRoundedIcon sx={{ color: "#FFD65A" }} /> Edit
+                                                                            </b>
+                                                                        </Dropdown.Item>
+                                                                        <Dropdown.Item style={{ minWidth: 80 }} onClick={() => deleteData(row._id)}>
+                                                                            <b>
+                                                                                <DeleteRoundedIcon sx={{ color: "#F93827" }} /> Delete
+                                                                            </b>
+                                                                        </Dropdown.Item>
+                                                                    </>
+                                                                }
+                                                            </Dropdown>
+                                                        )
                                                     }
                                                 } else if (column.id === "auth") {
                                                     return (

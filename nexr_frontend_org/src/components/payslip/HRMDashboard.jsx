@@ -460,7 +460,6 @@ export default function HRMDashboard() {
     // get workTimeTracker from DB in Initially
     useEffect(() => {
         const getClockInsData = async () => {
-            console.log("calling");
             try {
                 if (_id) {
                     const { timeData } = await getDataAPI(_id);
@@ -470,6 +469,7 @@ export default function HRMDashboard() {
                             setIsStartLogin(true);
                             setIsForgetToPunchOut(true)
                         }
+                    
                         setWorkTimeTracker(timeData)
                     } else {
                         setWorkTimeTracker({ ...workTimeTracker });

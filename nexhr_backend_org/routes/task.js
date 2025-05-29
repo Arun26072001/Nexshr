@@ -67,6 +67,66 @@ router.get("/project/:id", verifyAdminHREmployeeManagerNetwork, async (req, res)
     }
 })
 
+router.get("/assigned/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
+    try {
+        let tasks = await Task.find({ assignedTo: { $in: [req.params.id] } }, "-tracker")
+            .populate({ path: "project", select: "name color" })
+            .populate({ path: "assignedTo", select: "FirstName LastName" })
+            .populate({ path: "createdby", select: "FirstName LastName" })
+            .exec();
+        if (tasks.length === 0) {
+            return res.status(200).send({ tasks: [] })
+        }
+        const timeUpdatedTasks = tasks.map((task) => {
+            if (!task?.spend) return task; // Ensure spend exists
+
+            let { startingTime: startingTimes, endingTime: endingTimes } = task.spend;
+
+            if (!Array.isArray(startingTimes) || startingTimes.length === 0) {
+
+                let totalCommentSpendTime = 0;
+                task?.comments?.map((comment) => totalCommentSpendTime += Number(comment.spend));
+
+                return {
+                    ...task.toObject(),
+                    spend: {
+                        ...(task.spend ? task.spend.toObject() : {}), // Ensure spend exists
+                        timeHolder: task?.spend?.timeHolder?.split(/[:.]+/)?.length === 2 && ["00:00:00"].includes(task.spend?.timeHolder) ? formatTimeFromMinutes(
+                            (Number(task.spend?.timeHolder) + totalCommentSpendTime) * 60
+                        ) : task.spend.timeHolder
+                    }
+                };
+            }
+
+            const values = startingTimes.map((startTime, index) => {
+                if (!startTime) return 0; // No start time means no value
+
+                const startTimeInMin = timeToMinutes(startTime);
+                const endTimeInMin = (endingTimes?.[index]) ? timeToMinutes(endingTimes[index]) : getCurrentTimeInMinutes();
+
+                return Math.abs(endTimeInMin - startTimeInMin);
+            });
+
+            const totalMinutes = values.reduce((acc, value) => acc + value, 0);
+            const timeHolder = formatTimeFromMinutes(totalMinutes);
+
+            return {
+                ...task.toObject(),
+                spend: {
+                    ...task.spend.toObject(),
+                    timeHolder
+                }
+            };
+        }).filter(Boolean);
+
+        return res.send({ tasks: timeUpdatedTasks });
+    } catch (error) {
+        console.log(error);
+
+        res.status(500).send({ error: error.message })
+    }
+})
+
 router.get("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
     const { withComments } = req.query;
     try {
@@ -191,7 +251,8 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
         newTask.tracker = trackers;
 
         // Create Task
-        const task = await Task.create(newTask);
+        const task = new Task(newTask);
+        await task.save();
 
         // Update Project
         project.tasks.push(task._id);
@@ -404,7 +465,7 @@ router.put("/:empId/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) 
 
         // Send email notifications to newly assigned employees
         await Promise.all(emps.map(emp => {
-            const empName = `${emp.FirstName} ${emp.LastName}`;
+            // const empName = `${emp.FirstName} ${emp.LastName}`;
             return sendMail({
                 From: assignedPerson.Email,
                 To: emp.Email,
@@ -423,15 +484,19 @@ router.put("/:empId/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) 
 
 router.delete("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
     try {
-        const project = await Project.findOne({ tasks: { $in: req.params.id } })
         const task = await Task.findByIdAndDelete(req.params.id);
         if (!task) {
             return res.status(404).send({ error: "Task not found" });
         }
-        project.tasks.pop(req.params.id);
-        await project.save();
+        if (task.project) {
+            const project = await Project.findOne({ tasks: req.params.id }, "tasks");
+            const removedTaskList = project?.tasks?.filter((item) => item !== req.params.id)
+            project.tasks = removedTaskList;
+            await project.save();
+        }
         return res.send({ message: "Task was delete successfully" })
     } catch (error) {
+        console.log("error in delte task", error);
         return res.status(500).send({ error: error.message })
     }
 })

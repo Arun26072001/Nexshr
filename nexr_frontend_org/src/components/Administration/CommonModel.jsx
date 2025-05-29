@@ -77,9 +77,7 @@ const CommonModel = ({
         };
 
         collectSelectedIds(team_member);
-
         const uniqueIds = [...new Set(result)];
-
         changeData(uniqueIds, "selectTeamMembers");
     };
 
@@ -283,7 +281,7 @@ const CommonModel = ({
                     {["Task", "Task View", "Add Comments", "Edit Comments", "Organization", "Company"].includes(type) && (
                         <div className="col-full">
                             <div className="modelInput">
-                                <p className="modelLabel important">{type === "Organization" ? "OrgImage" : type === "Company" ? "Logo" : "Attachments"}: </p>
+                                <p className={`modelLabel ${!["Task", "Task View", "Add Comments", "Edit Comments"].includes(type) ? "important" : ""}`}>{type === "Organization" ? "OrgImage" : type === "Company" ? "Logo" : "Attachments"}: </p>
                                 <input
                                     type="file"
                                     disabled={type === "Task View"}
@@ -343,11 +341,11 @@ const CommonModel = ({
                                                 <div key={index} className="col-lg-4 p-2" >
                                                     <div className="position-relative">
                                                         {
-                                                            (dataObj?.comments?.[0]?.attachments.length === previewList.length && dataObj?.comments?.[0]?.attachments[index].type === "video/mp4") ?
+                                                            (dataObj?.comments?.[0]?.attachments?.length === previewList?.length && dataObj?.comments?.[0]?.attachments[index].type === "video/mp4") ?
                                                                 <video
                                                                     className="w-100 h-auto"
                                                                     controls>
-                                                                    <source src={imgFile} type={dataObj?.attachments[index].type} />
+                                                                    <source src={imgFile} type={dataObj?.attachments[index]?.type} />
                                                                 </video> :
                                                                 <img
                                                                     className="w-100 h-auto"
@@ -383,7 +381,7 @@ const CommonModel = ({
                                     style={{ width: "100%" }}
                                     disabled={["Report View", "Task View"].includes(type)}
                                     placeholder={`Select ${type === "Task" ? "From Date" : "Start Date"}`}
-                                    selected={
+                                    value={
                                         dataObj?.from
                                             ? new Date(dataObj?.from)
                                             : dataObj?.startDate
@@ -412,7 +410,7 @@ const CommonModel = ({
                                     disabled={["Report View", "Task View"].includes(type)}
                                     minDate={new Date()}
                                     placeholder="Select Due Date"
-                                    selected={
+                                    value={
                                         dataObj?.to
                                             ? new Date(dataObj?.to)
                                             : dataObj?.endDate
@@ -1319,7 +1317,7 @@ const CommonModel = ({
                     </>
                 }
                 {
-                    ["Task"].includes(type) &&
+                    ["Task", "Task View"].includes(type) &&
                     <>
                         <div className="d-flex justify-content-between">
                             <div className="col-half">
@@ -1332,8 +1330,8 @@ const CommonModel = ({
                                         appearance='default'
                                         style={{ width: "100%" }}
                                         size="lg"
-                                        data={tasks.map((task) => ({ label: task.title + " " + task.status, value: task._id }))}
-                                        disabled={type === "View Task"}
+                                        data={tasks?.map((task) => ({ label: task.title + " " + task.status, value: task._id }))}
+                                        disabled={type === "Task View"}
                                         value={dataObj?.subTask}
                                         onChange={(value) => changeData(value, "subTask")}
                                     />
@@ -1350,7 +1348,7 @@ const CommonModel = ({
                                         style={{ width: "100%" }}
                                         size="lg"
                                         data={notCompletedTasks.map((task) => ({ label: task.title, value: task._id }))}
-                                        disabled={type === "View Task"}
+                                        disabled={type === "Task View"}
                                         value={dataObj?.gantt}
                                         onChange={(value) => changeData(value, "gantt")}
                                     />
@@ -1367,7 +1365,7 @@ const CommonModel = ({
                                         size="lg"
                                         style={{ width: "100%" }}
                                         format="yyyy-MM-dd HH:mm"
-                                        disabled={type === "View TimePattern"}
+                                        disabled={type === "Task View"}
                                         editable={false}
                                         id="remindOn"
                                     />
@@ -1382,7 +1380,7 @@ const CommonModel = ({
                                         style={{ width: "100%" }}
                                         size="lg"
                                         data={["Assignees", "Creator", "Self"].map((item) => ({ label: item, value: item }))}
-                                        disabled={type === "View Task"}
+                                        disabled={type === "Task View"}
                                         id="remindFor"
                                         value={remindFor}
                                         onChange={setRemindFor}
@@ -1425,7 +1423,7 @@ const CommonModel = ({
                                         style={{ width: "100%" }}
                                         size="lg"
                                         data={[]}
-                                        disabled={type === "View Task"}
+                                        disabled={type === "Task View"}
                                         value={dataObj?.crm}
                                         onChange={(value) => changeData(value, "crm")}
                                     />
@@ -1562,7 +1560,7 @@ const CommonModel = ({
                                         modifyData("Edit")
                                     } else if (["TimePattern", "WorkPlace", "Email Template"].includes(type) && !dataObj?._id) {
                                         modifyData("Add")
-                                    } else if (["View TimePattern", "View WorkPlace"].includes(type) && dataObj?._id) {
+                                    } else if (["View TimePattern", "View WorkPlace", "Task View"].includes(type) && dataObj?._id) {
                                         modifyData("View")
                                     }
                                     else {

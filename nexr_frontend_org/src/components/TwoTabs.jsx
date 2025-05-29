@@ -59,7 +59,6 @@ export default function Twotabs() {
   const [isLoading, setIsLoading] = useState(false);
   const [selectedDate, setSelectedDate] = useState("");
   const [leaveData, setLeaveData] = useState([]);
-  console.log(data);
 
   const handleChange = (event, newValue) => {
     setValue(newValue);

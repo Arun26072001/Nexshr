@@ -1,25 +1,147 @@
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useContext, useEffect, useRef, useState } from 'react';
 import './dashboard.css';
-import { fetchEmployeeData, formatTime, getDataAPI, gettingClockinsData, getTotalWorkingHourPerDay } from '../ReuseableAPI';
+import { createTask, fetchEmployeeData, fileUploadInServer, formatTime, formatTimeFromHour, getDataAPI, gettingClockinsData, getTotalWorkingHourPerDay } from '../ReuseableAPI';
 import ActivityTimeTracker from '../ActivityTimeTracker';
 import NexHRDashboard from '../NexHRDashboard';
 import { EssentialValues } from '../../App';
 import { TimerStates } from './HRMDashboard';
 import ContentLoader from './ContentLoader';
 import axios from 'axios';
+import { Tabs } from 'rsuite';
+import LeaveTable from '../LeaveTable';
+import Loading from '../Loader';
+import NoDataFound from './NoDataFound';
+import CommonModel from '../Administration/CommonModel';
+import { jwtDecode } from 'jwt-decode';
+import { toast } from 'react-toastify';
+import DeadlineTask from './DeadlineTask';
 
 const Dashboard = () => {
     const url = process.env.REACT_APP_API_URL;
+    const myTaskRef = useRef();
     const { updateClockins, isEditEmp } = useContext(TimerStates)
     const { handleLogout, data } = useContext(EssentialValues);
+    const { isTeamLead, isTeamHead, isTeamManager } = jwtDecode(data.token)
     const [leaveData, setLeaveData] = useState({});
+    const [isWorkingApi, setIsWorkingApi] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
+    const [isLoadingForTask, setIsLoadingForTask] = useState(false);
     const [dailyLogindata, setDailyLoginData] = useState({})
     const [monthlyLoginData, setMonthlyLoginData] = useState({});
+    const [tasks, setTasks] = useState([]);
+    const [notCompletedTasks, setNotCompletedTasks] = useState([]);
+    const [projects, setProjects] = useState([]);
+    const [teamEmps, setTeamEmps] = useState([]);
+    const [previewList, setPreviewList] = useState([]);
+    const [employees, setEmployees] = useState([]);
+    const [selectedEmp, setSelectedEmp] = useState(data._id);
     const [peopleOnLeave, setPeopleOnLeave] = useState([]);
     const [peopleOnWorkFromHome, setPeopleOnWorkFromHome] = useState([]);
     const [isFetchPeopleOnLeave, setIsFetchPeopleOnLeave] = useState(false);
     const [isFetchpeopleOnWfh, setIsFetchPeopleOnWfh] = useState(false);
+    const [taskObj, setTaskObj] = useState({});
+    const [toggleTask, setToggleTask] = useState({ isAdd: false, isEdit: false, isView: false })
+
+    function navigateToMyTask() {
+        const scrollDown = myTaskRef?.current?.getBoundingClientRect()?.top + window.scrollY
+        window.scrollTo({
+            top: scrollDown,
+            behavior: "smooth"
+        })
+    }
+
+    function toggleTaskMode(type, id) {
+        if (type === "Edit") {
+            if (id) {
+                fetchTaskById(id)
+            } else {
+                setTaskObj({})
+            }
+
+        } if (type === "View") {
+            console.log(type);
+            if (id) {
+                fetchTaskById(id)
+            } else {
+                console.log("calling.....");
+                setTaskObj({})
+            }
+        } if (type === "Add" && toggleTask.isAdd) {
+            setTaskObj({})
+        }
+        setToggleTask((prev) => {
+            return {
+                ...prev,
+                isAdd: type === "Add" ? !prev.isAdd : false,
+                isEdit: type === "Edit" && id ? true : false,
+                isView: type === "View" ? !prev.isView : false
+            };
+        });
+    }
+
+    useEffect(() => {
+        navigateToMyTask()
+    }, [toggleTask])
+
+    // remove task of attachments
+    function removeAttachment(value, fileIndex) {
+        const updatedPrevireList = previewList.filter((imgFile) => imgFile !== value);
+        setPreviewList(updatedPrevireList);
+        const updatedAttachments = taskObj.attachments.filter((file, index) => index !== fileIndex);
+        setTaskObj({ ...taskObj, attachments: updatedAttachments })
+    }
+
+    // project of emps
+    async function fetchProjectEmps() {
+        try {
+            const res = await axios.get(`${url}/api/project/employees/${taskObj?.project}`, {
+                headers: {
+                    Authorization: data.token || ""
+                }
+            })
+
+            setEmployees(res.data.map((emp) => ({ label: emp.FirstName + " " + emp.LastName, value: emp._id })))
+        } catch (error) {
+            console.log("error in fetch employess", error);
+        }
+    }
+
+    useEffect(() => {
+        if (taskObj?.project) {
+            fetchProjectEmps()
+        }
+    }, [taskObj?.project])
+
+    // fetch team emps
+    async function fetchTeamEmps() {
+        try {
+            const res = await axios.get(`${url}/api/team/members/${data._id}`, {
+                params: {
+                    who: isTeamLead ? "lead" : isTeamHead ? "head" : isTeamManager ? "manager" : "employees"
+                },
+                headers: {
+                    Authorization: data.token || ""
+                }
+            })
+            setTeamEmps(res.data.employees.map((emp) => ({ label: emp.FirstName + " " + emp.LastName, value: emp._id })))
+        } catch (error) {
+            console.log("error in fetch team emps", error);
+
+        }
+    }
+
+    async function fetchTaskById(id) {
+        try {
+            const res = await axios.get(`${url}/api/task/${id}`, {
+                headers: {
+                    Authorization: data.token || ""
+                }
+            })
+            setTaskObj(res.data);
+        } catch (error) {
+            console.log(error);
+        }
+    }
 
     const gettingEmpdata = async () => {
         try {
@@ -82,9 +204,21 @@ const Dashboard = () => {
         return 0;
     }
 
-    useEffect(() => {
-        gettingEmpdata();
-    }, [isEditEmp]);
+    // add reminder
+    function addReminder(remindObj) {
+        setTaskObj((pre) => ({
+            ...pre,
+            "remind": [...(pre?.remind || []), remindObj]
+        }))
+    }
+    // remove reminder
+    function removeReminder(index) {
+        const filteredReminders = taskObj?.remind.filter((item, i) => i !== index);
+        setTaskObj((pre) => ({
+            ...pre,
+            "remind": filteredReminders
+        }))
+    }
 
     async function fetchPeopleOnLeave() {
         try {
@@ -103,6 +237,238 @@ const Dashboard = () => {
         }
     }
 
+    async function updatedTimerInTask(taskData, timerType) {
+        // const taskData = await fetchTaskById(id);
+        let updatedTask;
+        const currentTime = new Date().toTimeString().split(' ')[0];
+        if (timerType === "startTime") {
+            updatedTask = {
+                ...taskData,
+                spend: {
+                    ...taskData?.spend,
+                    startingTime: [...(taskData?.spend?.startingTime || []), currentTime]
+                }
+            }
+        } else {
+            updatedTask = {
+                ...taskData,
+                spend: {
+                    ...taskData?.spend,
+                    endingTime: [...(taskData?.spend?.endingTime || []), currentTime],
+                }
+            }
+        }
+        editTask(updatedTask)
+    }
+
+    // fill task data
+    function changeTask(event, name) {
+
+        const files = event?.target?.files; // Extract files correctly
+        const value = event; // Extract value properly
+
+        if (name === "attachments" || name.includes("attachments")) {
+            const imgUrls = [];
+
+            for (let index = 0; index < files.length; index++) {
+                imgUrls.push(URL.createObjectURL(files[index]));
+            }
+
+            // Update state once with all images
+            setPreviewList((prev = []) => [...prev, ...imgUrls]);
+        }
+
+        setTaskObj((prev) => {
+            if (name.startsWith("remind.")) {
+                const childName = name.split(/[:.]+/)[1];
+                return {
+                    ...prev,
+                    "remind": [...prev.remind, {
+                        ...prev?.remind,
+                        [childName]: value, // Store correctly
+                    }],
+                }
+            }
+            else if (name.startsWith("spend.")) {
+                const spendChild = name.split(/[:.]+/)[1];
+
+                return {
+                    ...prev,
+                    spend: {
+                        ...prev.spend,
+                        [spendChild]: files || value, // Store correctly
+                    },
+                };
+            } else if (name.startsWith("comments.")) {
+                const commentChild = name.split(/[:.]+/)[1];
+
+                return {
+                    ...prev,
+                    comments: prev.comments.length > 0
+                        ? [
+                            ...prev.comments.slice(0, -1), // Keep all except the last one
+                            {
+                                ...prev.comments[prev.comments.length - 1], // Modify last comment
+                                [commentChild]: name.includes("attachments")
+                                    ? [...(prev?.comments?.[prev.comments.length - 1]?.[commentChild] || []), ...files]
+                                    : value,
+                            },
+                        ]
+                        : [{ [commentChild]: name.includes("attachments") ? [...files] : value }],
+                };
+            } else {
+                return {
+                    ...prev,
+                    [name]: name === "attachments"
+                        ? [...(prev[name] || []), ...files] // Spread FileList properly
+                        : value, // Update other fields directly
+                };
+            }
+        });
+    }
+
+    // add task
+    async function addTask() {
+        let newTask;
+        setIsWorkingApi(true);
+
+        if (taskObj?.attachments?.length > 0) {
+            try {
+                const files = taskObj.attachments;
+                const responseData = await fileUploadInServer(files)
+
+                newTask = {
+                    ...taskObj,
+                    estTime: (new Date(taskObj.to) - new Date(taskObj.from)) / (1000 * 60 * 60),
+                    attachments: responseData.files.map(file => file.originalFile)
+                };
+
+                // After successful upload, create the task
+                await createTask(newTask);
+                setTaskObj({});
+                toggleTaskMode("Add");
+                navigateToMyTask()
+                fetchEmpAssignedTasks();
+            } catch (error) {
+                console.error("Upload error:", error);
+                toast.error("File upload failed");
+            } finally {
+                setIsLoading(false);
+            }
+        } else {
+            newTask = {
+                ...taskObj,
+                estTime: (new Date(taskObj.to) - new Date(taskObj.from)) / (1000 * 60 * 60)
+            };
+
+            await createTask(newTask);
+            setTaskObj({});
+            toggleTaskMode("Add");
+            navigateToMyTask()
+        }
+        setIsWorkingApi(false);
+    }
+
+    // edit task
+    async function editTask(updatedTask) {
+        if (!updatedTask?._id) {
+            toast.error("Invalid task. Please try again.");
+            return;
+        }
+
+        let taskToUpdate = { ...updatedTask };
+
+        // Ensure `spend.timeHolder` is correctly formatted
+        if (
+            typeof updatedTask?.spend?.timeHolder === "string" &&
+            updatedTask.spend.timeHolder.split(/[:.]+/).length <= 2
+        ) {
+            taskToUpdate.spend = {
+                ...updatedTask.spend,
+                timeHolder: formatTimeFromHour(updatedTask.spend.timeHolder) || "00:00:00",
+            };
+        }
+
+
+        let files = [];
+
+        try {
+            // Ensure attachments exist before filtering
+            if (taskToUpdate?.comments?.[0]?.attachments?.length) {
+                files = taskToUpdate.comments[0].attachments.filter((file) => file.type === "image/png");
+            } else {
+                files = taskToUpdate?.attachments?.filter((file) => file.type === "image/png") || [];
+            }
+
+            let updatedTaskData = { ...taskToUpdate };
+
+            if (files.length > 0) {
+                // Upload files if any exist
+                const responseData = await fileUploadInServer(files);
+
+                if (taskToUpdate?.comments?.[0]?.attachments?.length > 0) {
+                    updatedTaskData = {
+                        ...taskToUpdate,
+                        comments: [
+                            {
+                                ...taskToUpdate.comments[0],
+                                attachments: responseData.files.map((file) => file.originalFile),
+                            },
+                        ],
+                    };
+                } else {
+                    const uploadedImgPath = taskToUpdate.attachments?.filter((file) => file.type !== "image/png" && file.type !== "video/mp4") || [];
+
+                    updatedTaskData = {
+                        ...taskToUpdate,
+                        attachments: [...uploadedImgPath, ...responseData.files.map((file) => file.originalFile)],
+                    };
+                }
+            }
+            // set loader true task is updating
+            setIsWorkingApi(true);
+            // Send updated task
+            const res = await axios.put(
+                `${url}/api/task/${data._id}/${taskToUpdate._id}`, // Ensure correct projectId
+                updatedTaskData,
+                {
+                    headers: { Authorization: data?.token || "" },
+                }
+            );
+
+            toast.success(res.data.message);
+            setTaskObj({});
+            toggleTaskMode("Edit");
+            navigateToMyTask();
+            fetchEmpAssignedTasks()
+        } catch (error) {
+            console.error("Error updating task:", error);
+            const errorMessage = error?.response?.data?.error || "An error occurred while updating the task.";
+            toast.error(errorMessage);
+        } finally {
+            setIsWorkingApi(false);
+        }
+    }
+
+    async function fetchEmpAssignedTasks() {
+        setIsLoadingForTask(true);
+        try {
+            const res = await axios.get(`${url}/api/task/assigned/${selectedEmp}`, {
+                headers: {
+                    Authorization: data.token || ""
+                }
+            })
+            setTasks(res.data.tasks);
+            setNotCompletedTasks(res.data.tasks.filter((task) => task.status !== "Completed"))
+        } catch (error) {
+            setTasks([])
+            console.log(error);
+        }
+        finally {
+            setIsLoadingForTask(false)
+        }
+    }
+
     async function fetchWorkFromHomeEmps() {
         try {
             setIsFetchPeopleOnWfh(true);
@@ -111,8 +477,6 @@ const Dashboard = () => {
                     Authorization: data.token || ""
                 }
             })
-            console.log("today wfh", res.data);
-            
             setPeopleOnWorkFromHome(res.data);
         } catch (error) {
             console.log("error in fetch work from home emps", error);
@@ -120,10 +484,105 @@ const Dashboard = () => {
             setIsFetchPeopleOnWfh(false)
         }
     }
+
+    async function deleteTask(id) {
+        try {
+            const res = await axios.delete(`${url}/api/task/${id}`, {
+                headers: {
+                    Authorization: data.token || ""
+                }
+            })
+            toast.success(res.data.message);
+            fetchEmpAssignedTasks()
+        } catch (error) {
+            toast.error(error.response.data.error)
+        }
+    }
+
+    async function getValue(task) {
+        // const taskData = await fetchTaskById(task._id);
+        const updatedTask = {
+            ...task,
+            "status": task.status === "Completed" ? "Pending" : "Completed"
+        }
+        editTask(updatedTask)
+    }
+
+    async function fetchEmpsProjects() {
+        setIsLoading(true)
+        try {
+            const res = await axios.get(`${url}/api/project/emp/${data._id}`, {
+                headers: {
+                    Authorization: data.token || ""
+                }
+            })
+
+            setProjects(res.data.map((project) => ({ label: project.name, value: project._id })));
+        } catch (error) {
+            toast.error(error.response.data.error)
+        }
+        setIsLoading(false)
+    }
     useEffect(() => {
         fetchWorkFromHomeEmps();
         fetchPeopleOnLeave();
+        fetchTeamEmps();
+        fetchEmpsProjects()
     }, [])
+
+    useEffect(() => {
+        fetchEmpAssignedTasks()
+    }, [selectedEmp])
+
+    useEffect(() => {
+        gettingEmpdata();
+    }, [isEditEmp]);
+
+    if (toggleTask.isView) {
+        return (
+            <CommonModel type="Task View" tasks={tasks} isAddData={toggleTask.isView} modifyData={toggleTaskMode} notCompletedTasks={notCompletedTasks} dataObj={taskObj} projects={projects} removeAttachment={removeAttachment} employees={employees} />
+        )
+    } if (toggleTask.isEdit) {
+        return (
+            <CommonModel
+                isWorkingApi={isWorkingApi}
+                dataObj={taskObj}
+                tasks={tasks}
+                notCompletedTasks={notCompletedTasks}
+                previewList={previewList}
+                isAddData={toggleTask.isEdit}
+                editData={editTask}
+                addReminder={addReminder}
+                changeData={changeTask}
+                removeReminder={removeReminder}
+                projects={projects}
+                addData={addTask}
+                removeAttachment={removeAttachment}
+                employees={employees}
+                type="Task"
+                modifyData={toggleTaskMode} />
+        )
+    } if (toggleTask.isAdd) {
+        return (
+            <CommonModel
+                isWorkingApi={isWorkingApi}
+                dataObj={taskObj}
+                tasks={tasks}
+                notCompletedTasks={notCompletedTasks}
+                previewList={previewList}
+                isAddData={toggleTask.isAdd}
+                editData={editTask}
+                addReminder={addReminder}
+                changeData={changeTask}
+                removeReminder={removeReminder}
+                projects={projects}
+                addData={addTask}
+                removeAttachment={removeAttachment}
+                employees={employees}
+                type="Task"
+                modifyData={toggleTaskMode} />
+        )
+    }
 
     return (
         <div className='dashboard-parent'>
@@ -271,6 +730,33 @@ const Dashboard = () => {
                                 </>
                         }
 
+                    </div>
+                </div>
+                <div className='time justify-content-start flex-wrap' >
+                    <h6 className='col-lg-12 col-12' >My Task</h6>
+                    <div className="col-lg-12 col-md-12 col-12" ref={myTaskRef} >
+                        <Tabs defaultActiveKey="1" className='mt-2' appearance="pills">
+                            <Tabs.Tab eventKey="1" title="List" >
+                                {
+                                    isLoadingForTask ? <Loading /> :
+                                        tasks.length ?
+                                            <LeaveTable data={tasks} handleChangeData={toggleTaskMode} deleteData={deleteTask} />
+                                            : <NoDataFound message={"Tasks data not found"} />
+                                }
+                            </Tabs.Tab>
+                            <Tabs.Tab eventKey="2" title="Deadline">
+                                <DeadlineTask tasks={tasks} updateTaskStatus={getValue} updatedTimerInTask={updatedTimerInTask} isLoading={isLoadingForTask} />
+                            </Tabs.Tab>
+                            <Tabs.Tab eventKey="3" title="Planner">
+                                <h2 className='text-center'>Under Development</h2>
+                            </Tabs.Tab>
+                            <Tabs.Tab eventKey="4" title="Calendar">
+                                <h2 className='text-center'>Under Development</h2>
+                            </Tabs.Tab>
+                            <Tabs.Tab eventKey="5" title="Gantt">
+                                <h2 className='text-center'>Under Development</h2>
+                            </Tabs.Tab>
+                        </Tabs>
                     </div>
                 </div>
                 <NexHRDashboard updateClockins={updateClockins} peopleOnLeave={peopleOnLeave} peopleOnWorkFromHome={peopleOnWorkFromHome} isFetchpeopleOnWfh={isFetchpeopleOnWfh} isFetchPeopleOnLeave={isFetchPeopleOnLeave} />

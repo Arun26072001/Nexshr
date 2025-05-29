@@ -255,6 +255,8 @@ export default function Navbar({ handleSideBar }) {
             setIsWorkingLoginTimerApi(true)
             const updatedState = processActivityDurations(workTimeTracker, "login")
             const updatedData = await updateDataAPI(updatedState);
+            setIsStartLogin(false);
+            localStorage.setItem("isStartLogin", false)
             // eslint-disable-next-line no-restricted-globals
             location.reload()
         } catch (err) {

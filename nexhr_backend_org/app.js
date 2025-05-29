@@ -193,23 +193,12 @@ async function fetchTimePatterns() {
           console.error("Logout Error:", error);
         }
       })
-
-      // Schedule job for logout
-      // schedule.scheduleJob(`0 ${finishingMin} ${finishingHour} * * 1-5`, async function () {
-      //   try {
-      //     const response = await axios.post(`${process.env.REACT_APP_API_URL}/api/clock-ins/ontime/logout`);
-      //     console.log("Logout Triggered:", response.data.message);
-      //   } catch (error) {
-      //     console.error("Logout Error:", error);
-      //   }
-      // });
     });
   } catch (error) {
     console.error("Error fetching time patterns:", error);
   }
 }
 
-// Call function to schedule jobs
 fetchTimePatterns();
 
 schedule.scheduleJob("0 10 * * 1-5", async () => {

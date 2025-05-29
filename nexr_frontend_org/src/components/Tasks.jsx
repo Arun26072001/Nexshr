@@ -35,6 +35,7 @@ const Tasks = () => {
   const [projects, setProjects] = useState([]);
   const [projectId, setProjectId] = useState(localStorage.getItem("selectedProject") || "");
   const [allTasks, setAllTask] = useState([]);
+  const [projectAllTasks, setProjectAllTasks] = useState([]);
   const [notCompletedTasks, setNotCompletedTasks] = useState([]);
   const [pendingTasks, setPendingTasks] = useState([]);
   const [progressTasks, setProgressTasks] = useState([]);
@@ -271,6 +272,23 @@ const Tasks = () => {
           Authorization: data.token || ""
         }
       })
+      setProjectAllTasks(res.data.tasks);
+    } catch (error) {
+      setAllTask([])
+      console.log(error);
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  async function fetchEmpAssignedTasks() {
+    setIsLoading(true);
+    try {
+      const res = await axios.get(`${url}/api/task/assigned/${data._id}`, {
+        headers: {
+          Authorization: data.token || ""
+        }
+      })
       setAllTask(res.data.tasks);
       setNotCompletedTasks(res.data.tasks.filter((task) => task.status !== "Completed"))
     } catch (error) {
@@ -343,7 +361,7 @@ const Tasks = () => {
   function getSelectStatusTasks() {
     const statusTypes = ["Pending", "Completed", "In Progress"];
     statusTypes.map((type) => {
-      const filterValue = allTasks.filter((task) => task?.status === type);
+      const filterValue = projectAllTasks.filter((task) => task?.status === type);
       if (type === "Pending") {
         setPendingTasks(filterValue);
         setPendingFilterTasks(filterValue);
@@ -359,7 +377,7 @@ const Tasks = () => {
 
   useEffect(() => {
     getSelectStatusTasks()
-  }, [status, allTasks]);
+  }, [status, projectAllTasks]);
 
   async function editTask(updatedTask, changeComments) {
     if (!updatedTask?._id) {
@@ -534,7 +552,6 @@ const Tasks = () => {
     }
   }
 
-
   async function fetchEmpsProjects() {
     setIsLoading(true)
     try {
@@ -557,6 +574,7 @@ const Tasks = () => {
     } else {
       setAllTask([]);
     }
+    fetchEmpAssignedTasks()
   }, [projectId, isDelete.type, isAddTask, isEditTask])
 
   useEffect(() => {
@@ -601,9 +619,9 @@ const Tasks = () => {
   }, [])
 
   async function getValue(task) {
-    const taskData = await fetchTaskById(task._id);
+    // const taskData = await fetchTaskById(task._id);
     const updatedTask = {
-      ...taskData,
+      ...task,
       "status": task.status === "Completed" ? "Pending" : "Completed"
     }
     editTask(updatedTask)
@@ -633,7 +651,6 @@ const Tasks = () => {
     }
     editTask(updatedTask)
   }
-  console.log(taskObj);
 
   return (
 
