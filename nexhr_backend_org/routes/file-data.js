@@ -277,7 +277,7 @@ router.post("/employees/:id", upload.single("documents"), verifyAdminHR, async (
         const workbook = XLSX.readFile(filePath);
         const sheet = workbook.Sheets[workbook.SheetNames[0]];
         // Convert to JSON while trimming empty rows
-        const excelData = XLSX.utils.sheet_to_json(sheet, { header: 1 }).filter(row => row.some(cell => cell !== null && cell !== ""));
+        const excelData = XLSX.utils.sheet_to_json(sheet, { header: 1, raw: false, dateNF: "yyyy-mm-dd" }).filter(row => row.some(cell => cell !== null && cell !== ""));
 
         const defaultRole = await RoleAndPermission.findOne({ RoleName: "Assosiate" }, "_id").lean().exec();
         const defaultTimePattern = await TimePattern.findOne({ DefaultPattern: true }, "_id").lean().exec();
@@ -286,9 +286,13 @@ router.post("/employees/:id", upload.single("documents"), verifyAdminHR, async (
         let existsEmps = [];
         for (let i = 1; i < excelData.length; i++) {
             const row = excelData[i];
+            console.log(row);
 
             const employeeExists = await Employee.exists({ code: row[9] });
             if (!employeeExists && row[0]?.trim()) {
+                // console.log("value:",row[7],"dateValue: ", new Date(row[7]));
+                // console.log("value:",row[11],"dateValue: ", new Date(row[11]));
+
                 const newEmp = {
                     FirstName: row[0],
                     LastName: row[1],
@@ -413,7 +417,7 @@ router.post("/leave", upload.single("documents"), verifyAdminHR, async (req, res
         }
 
         const sheet = workbook.Sheets[sheetName];
-        const excelData = XLSX.utils.sheet_to_json(sheet, { header: 0 });
+        const excelData = XLSX.utils.sheet_to_json(sheet, { header: 0 , raw: false, dateNF: "yyyy-mm-dd hh-mm-ss"});
 
         let leaveApps = [];
         let existsApps = [];

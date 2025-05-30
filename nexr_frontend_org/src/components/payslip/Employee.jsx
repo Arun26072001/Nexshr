@@ -181,7 +181,7 @@ export default function Employee() {
                             <button className="button" onClick={() => navigate(`/${whoIs}/employee/add`)}>
                                 <AddRoundedIcon /> Add Employee
                             </button>
-                            <button className="button " onClick={() => document.getElementById("fileUploader").click()} >
+                            <button className="button" style={{cursor: `${processing ? "progress": "pointer"}`}} onClick={() => document.getElementById("fileUploader").click()} >
                                 <AddRoundedIcon />Import
                             </button>
                         </>

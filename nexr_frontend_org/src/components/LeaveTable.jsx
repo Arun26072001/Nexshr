@@ -185,9 +185,9 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
         {
             id: 'StratingTime',
             label: 'Shift',
-            minWidth: 100,
+            minWidth: 120,
             align: 'center',
-            getter: (row) => row?.workingTimePattern.PatternName || 'N/A'
+            getter: (row) => row?.workingTimePattern?.PatternName || 'N/A'
         },
         {
             id: 'dateOfJoining',

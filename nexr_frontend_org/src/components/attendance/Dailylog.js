@@ -56,21 +56,11 @@ const Dailylog = ({ attendanceData, isLoading }) => {
         return (
             <Popover ref={ref} className={className} style={{ right, top }}>
                 <Dropdown.Menu onSelect={handleSelect}>
-                    {/* <Dropdown.Item eventKey={1}>
-                        <b>
-                            <FileUploadRoundedIcon /> Import
-                        </b>
-                    </Dropdown.Item> */}
                      <Dropdown.Item eventKey={3}>
                         <b>
                             <FileDownloadRoundedIcon /> Export
                         </b>
                     </Dropdown.Item>
-                    {/* <Dropdown.Item eventKey={2}>
-                        <b>
-                            <FileDownloadRoundedIcon /> Download
-                        </b>
-                    </Dropdown.Item> */}
                    
                 </Dropdown.Menu>
             </Popover>
