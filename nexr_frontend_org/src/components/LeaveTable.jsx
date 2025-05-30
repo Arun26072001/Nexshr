@@ -187,12 +187,12 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
             label: 'Shift',
             minWidth: 100,
             align: 'center',
-            getter: (row) => row?.workingTimePattern?.StartingTime || 'N/A'
+            getter: (row) => row?.workingTimePattern.PatternName || 'N/A'
         },
         {
             id: 'dateOfJoining',
             label: 'Joining Date',
-            minWidth: 100,
+            minWidth: 130,
             align: 'center',
             getter: (row) => row?.dateOfJoining || 'N/A'
         },
