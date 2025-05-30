@@ -79,9 +79,9 @@ const Dashboard = () => {
         });
     }
 
-    // useEffect(() => {
-    //     navigateToMyTask()
-    // }, [toggleTask])
+    useEffect(() => {
+        navigateToMyTask()
+    }, [toggleTask])
 
     // remove task of attachments
     function removeAttachment(value, fileIndex) {
@@ -732,9 +732,9 @@ const Dashboard = () => {
 
                     </div>
                 </div>
-                {/* <div className='time justify-content-start flex-wrap' >
-                    <h6 className='col-lg-12 col-12' >My Task</h6>
-                    <div className="col-lg-12 col-md-12 col-12" ref={myTaskRef} >
+                <div className='time justify-content-start flex-wrap' >
+                    <h6 className='col-lg-12 col-12' ref={myTaskRef} >My Task</h6>
+                    <div className="col-lg-12 col-md-12 col-12"  >
                         <Tabs defaultActiveKey="1" className='mt-2' appearance="pills">
                             <Tabs.Tab eventKey="1" title="List" >
                                 {
@@ -758,7 +758,7 @@ const Dashboard = () => {
                             </Tabs.Tab>
                         </Tabs>
                     </div>
-                </div> */}
+                </div>
                 <NexHRDashboard updateClockins={updateClockins} peopleOnLeave={peopleOnLeave} peopleOnWorkFromHome={peopleOnWorkFromHome} isFetchpeopleOnWfh={isFetchpeopleOnWfh} isFetchPeopleOnLeave={isFetchPeopleOnLeave} />
             </>
         </div>

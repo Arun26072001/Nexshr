@@ -15,6 +15,7 @@ export default function DeadlineTask({ tasks, isLoading, updateTaskStatus, updat
     const [isWorkingTask, setIsWorkingTask] = useState("");
     const { data } = useContext(EssentialValues);
     let items = extend([], tasks, null, true);
+    console.log(tasks);
 
     function dateFormat(date) {
         const actualDate = new Date(date);
@@ -32,15 +33,16 @@ export default function DeadlineTask({ tasks, isLoading, updateTaskStatus, updat
     }
 
     function contentTemplate(task) {
+        const creator = task.createdby ? task?.createdby?.FirstName + " " + task?.createdby?.LastName : data.Name
         return (
-            <div className='content-template' onMouseEnter={() => setIsHovering(task._id)} onMouseLeave={() => setIsHovering("")} >
+            <div className='p-2' onMouseEnter={() => setIsHovering(task._id)} onMouseLeave={() => setIsHovering("")} >
                 <div className="sub_text" style={{ fontWeight: 600 }}>{task.title}</div>
                 <p className="sub_text dateContainer" >{task.status !== "Completed" ? dateFormat(task.to) : "Completed"}</p>
                 <div className="d-flex justify-content-between">
                     <div>
-                        <AccountCircleRoundedIcon color="disabled" sx={{ cursor: "pointer" }} titleAccess={data.Name+" "+"(assignee)"} />
+                        <AccountCircleRoundedIcon color="disabled" sx={{ cursor: "pointer" }} titleAccess={data.Name + " " + "(assignee)"} />
                         <ChevronRightRoundedIcon sx={{ cursor: "pointer" }} />
-                        <AccountCircleRoundedIcon color="disabled" titleAccess={task.createdby.FirstName + " " + task.createdby.LastName+" "+"(creator)"} sx={{ cursor: "pointer" }} />
+                        <AccountCircleRoundedIcon color="disabled" titleAccess={creator + " " + "(creator)"} sx={{ cursor: "pointer" }} />
                     </div>
                     {task.status !== "Completed" ?
                         task._id === isHovering &&
@@ -55,9 +57,6 @@ export default function DeadlineTask({ tasks, isLoading, updateTaskStatus, updat
                 </div>
             </div>
         );
-    }
-    function handleKanbanAction(args) {
-        console.log("args", args);
     }
 
     return (
@@ -85,13 +84,12 @@ export default function DeadlineTask({ tasks, isLoading, updateTaskStatus, updat
                     dataSource={items}
                     cardSettings={{ headerField: "title", template: contentTemplate }}
                     enableTooltip={true}
-                    actionComplete={handleKanbanAction}
                 >
                     <ColumnsDirective>
-                        <ColumnDirective headerText="Pending" keyField="Pending" allowToggle={true} showAddButton={true}  />
-                        <ColumnDirective headerText="In Progress" keyField="In Progress" allowToggle={true} showAddButton={true}  />
-                        <ColumnDirective headerText="On Hold" keyField="On Hold" allowToggle={true} showAddButton={true}  />
-                        <ColumnDirective headerText="Completed" keyField="Completed" allowToggle={true} showAddButton={true}  />
+                        <ColumnDirective headerText="Pending" keyField="Pending" allowToggle={true} />
+                        <ColumnDirective headerText="In Progress" keyField="In Progress" allowToggle={true} />
+                        <ColumnDirective headerText="On Hold" keyField="On Hold" allowToggle={true} />
+                        <ColumnDirective headerText="Completed" keyField="Completed" allowToggle={true} />
                     </ColumnsDirective>
                 </KanbanComponent>
             </div>

@@ -8,6 +8,8 @@ const sendMail = require("./mailSender");
 const { Employee } = require("../models/EmpModel");
 const { ClockIns } = require("../models/ClockInsModel");
 const { LeaveApplication, LeaveApplicationValidation } = require("../models/LeaveAppModel");
+const { RoleAndPermission } = require("../models/RoleModel");
+const { TimePattern } = require("../models/TimePatternModel");
 
 const timeToMinutes = (timeStr) => {
     if (!timeStr) return 0;
@@ -277,6 +279,8 @@ router.post("/employees/:id", upload.single("documents"), verifyAdminHR, async (
         // Convert to JSON while trimming empty rows
         const excelData = XLSX.utils.sheet_to_json(sheet, { header: 1 }).filter(row => row.some(cell => cell !== null && cell !== ""));
 
+        const defaultRole = await RoleAndPermission.findOne({ RoleName: "Assosiate" }, "_id").lean().exec();
+        const defaultTimePattern = await TimePattern.findOne({ DefaultPattern: true }, "_id").lean().exec();
 
         let employees = [];
         let existsEmps = [];
@@ -293,11 +297,11 @@ router.post("/employees/:id", upload.single("documents"), verifyAdminHR, async (
                     countryCode: row[4],
                     phone: row[5],
                     panNumber: row[6],
-                    dateOfBirth: row[7],
+                    dateOfBirth: new Date(row[7]),
                     gender: row[8],
                     code: row[9],
                     working: row[10],
-                    dateOfJoining: row[11],
+                    dateOfJoining: new Date(row[11]),
                     employmentType: row[12],
                     description: row[13],
                     bloodGroup: row[14],
@@ -312,8 +316,8 @@ router.post("/employees/:id", upload.single("documents"), verifyAdminHR, async (
                         "Annual Leave": row[12] === "Intern" ? "1" : "7",
                         "Sick Leave": row[12] === "Intern" ? "2" : "7"
                     },
-                    role: "679b31dba453436edb1b27a3",
-                    workingTimePattern: "679ca37c9ac5c938538f18ba",
+                    role: defaultRole._id,
+                    workingTimePattern: defaultTimePattern._id,
                     emergencyContacts: row[15] ? [{
                         name: row[15]?.split(" ")[0] || "",
                         phone: row[15]?.split(" ")[1] || ""
