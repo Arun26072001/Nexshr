@@ -335,7 +335,7 @@ router.post("/:id", verifyAdminHR, async (req, res) => {
       <p style="margin: 5px 0;"><strong>Password:</strong> ${Password}</p>
 
       <p style="margin-top: 20px;">Please click the button below to confirm your email and get started:</p>
-      <a href="${process.env.REACT_APP_API_URL}" style="
+      <a href="${process.env.FRONTEND_BASE_URL}" style="
         display: inline-block;
         padding: 12px 24px;
         background-color: #28a745;
@@ -347,7 +347,7 @@ router.post("/:id", verifyAdminHR, async (req, res) => {
       ">Confirm Email</a>
 
       <p>If the button doesn't work, you can also copy and paste this link into your browser:</p>
-      <p><a href="${process.env.REACT_APP_API_URL}" style="color: #28a745;">${process.env.REACT_APP_API_URL}</a></p>
+      <p><a href="${process.env.FRONTEND_BASE_URL}" style="color: #28a745;">${process.env.FRONTEND_BASE_URL}</a></p>
 
       <p style="margin-top: 30px;">Cheers,<br/>The ${inviter.company.CompanyName} Team</p>
     </div>
@@ -450,8 +450,8 @@ router.put("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
             <h2>Hi ${FirstName} ${LastName} 👋,</h2>
             <p>Your credentials have been <strong>updated successfully</strong>.</p>
             <p><strong>Email:</strong> ${Email}<br/><strong>Password:</strong> ${Password}</p>
-            <a href="${process.env.REACT_APP_API_URL}" style="display: inline-block; padding: 12px 24px; background-color: #4CAF50; color: white; border-radius: 30px; text-decoration: none;">Go to Login</a>
-            <p>If the button doesn’t work, use this link: <a href="${process.env.REACT_APP_API_URL}">${process.env.REACT_APP_API_URL}</a></p>
+            <a href="${process.env.FRONTEND_BASE_URL}" style="display: inline-block; padding: 12px 24px; background-color: #4CAF50; color: white; border-radius: 30px; text-decoration: none;">Go to Login</a>
+            <p>If the button doesn’t work, use this link: <a href="${process.env.FRONTEND_BASE_URL}">${process.env.FRONTEND_BASE_URL}</a></p>
             <p>Thanks,<br/>The ${employeeData.company.CompanyName} Team</p>
           </div>
           <div style="text-align: center; font-size: 13px; color: #777;">

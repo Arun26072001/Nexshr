@@ -9,7 +9,6 @@ const sendInvitationEmail = async (emp, roleLabel, team, creator) => {
     const frontendUrl = process.env.REACT_APP_API_URL;
     const empName = `${emp.FirstName[0].toUpperCase() + emp.FirstName.slice(1)} ${emp.LastName}`;
     const CompanyName = creator.company.CompanyName;
-    console.log(creator.company);
 
     const emailContent = `
         <div style="text-align: center;">

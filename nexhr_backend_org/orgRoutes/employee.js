@@ -192,7 +192,7 @@ router.post("/:orgId", verifyAdminHR, async (req, res) => {
             <p><b>Email</b>: ${Email}</p><br />
             <p><b>Password</b>: ${Password}</p><br />
             <p>Thank you for registering! Please confirm your email by clicking the button below.</p>
-            <a href="${process.env.REACT_APP_API_URL}" class="button">Confirm Email</a>
+            <a href="${process.env.FRONTEND_BASE_URL}" class="button">Confirm Email</a>
           </div>
           <div class="footer">
             <p>Have questions? Need help? <a href="mailto:webnexs29@gmail.com">Contact our support team</a>.</p>

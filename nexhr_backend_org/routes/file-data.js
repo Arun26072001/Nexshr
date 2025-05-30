@@ -347,7 +347,7 @@ router.post("/employees/:id", upload.single("documents"), verifyAdminHR, async (
                             <p><b>Email</b>: ${addEmp.Email}</p><br />
                             <p><b>Password</b>: ${addEmp.Password}</p><br />
                             <p>Your details have been registered! Please confirm your email by clicking the button below.</p>
-                            <a href="${process.env.REACT_APP_API_URL}" style="display: inline-block; padding: 10px 20px; background-color: #28a745; color: #fff !important; text-decoration: none; border-radius: 5px; margin-top: 10px;">Confirm Email</a>
+                            <a href="${process.env.FRONTEND_BASE_URL}" style="display: inline-block; padding: 10px 20px; background-color: #28a745; color: #fff !important; text-decoration: none; border-radius: 5px; margin-top: 10px;">Confirm Email</a>
                           </div>
                           <div style="text-align: center; font-size: 14px; margin-top: 20px; color: #777;">
                             <p>Have questions? Need help? <a href="mailto:${process.env.FROM_MAIL}" style="color: #777;">Contact our support team</a>.</p>
