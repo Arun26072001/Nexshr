@@ -194,7 +194,7 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
             label: 'Joining Date',
             minWidth: 130,
             align: 'center',
-            getter: (row) => row?.dateOfJoining || 'N/A'
+            getter: (row) => new Date(row?.dateOfJoining).toLocaleDateString() || 'N/A'
         },
         {
             id: 'RoleName',
