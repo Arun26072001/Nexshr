@@ -1,5 +1,4 @@
-import { Skeleton } from '@mui/material'
-import React from 'react'
+import { Skeleton } from '@mui/material';
 
 export default function ContentLoader() {
     return (

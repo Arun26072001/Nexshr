@@ -38,9 +38,9 @@ export default function DeadlineTask({ tasks, isLoading, updateTaskStatus, updat
                 <p className="sub_text dateContainer" >{task.status !== "Completed" ? dateFormat(task.to) : "Completed"}</p>
                 <div className="d-flex justify-content-between">
                     <div>
-                        <AccountCircleRoundedIcon color="disabled" sx={{ cursor: "pointer" }} titleAccess={data.Name} />
+                        <AccountCircleRoundedIcon color="disabled" sx={{ cursor: "pointer" }} titleAccess={data.Name+" "+"(assignee)"} />
                         <ChevronRightRoundedIcon sx={{ cursor: "pointer" }} />
-                        <AccountCircleRoundedIcon color="disabled" titleAccess={task.createdby.FirstName + " " + task.createdby.LastName} sx={{ cursor: "pointer" }} />
+                        <AccountCircleRoundedIcon color="disabled" titleAccess={task.createdby.FirstName + " " + task.createdby.LastName+" "+"(creator)"} sx={{ cursor: "pointer" }} />
                     </div>
                     {task.status !== "Completed" ?
                         task._id === isHovering &&
@@ -56,22 +56,25 @@ export default function DeadlineTask({ tasks, isLoading, updateTaskStatus, updat
             </div>
         );
     }
-    function handleKanbanAction() {
-        console.log("args");
+    function handleKanbanAction(args) {
+        console.log("args", args);
     }
 
     return (
         isLoading ? (
             <>
-                {/* Skeleton headers */}
-                {[...Array(4)].map((_, index) => (
-                    <Skeleton key={`header-${index}`} variant="wave" />
-                ))}
-
-                {/* Skeleton content */}
-                {[...Array(4)].map((_, index) => (
-                    <Skeleton key={`content-${index}`} height={300} variant="wave" />
-                ))}
+                <div className="d-flex align-content-stretch flex-wrap w-100">
+                    {/* Skeleton headers */}
+                    {[...Array(4)].map((_, index) => (
+                        <Skeleton key={index} style={{ margin: "2px", flex: 1, height: "50px" }} variant="wave" />
+                    ))}
+                </div>
+                <div className="d-flex align-content-stretch flex-wrap w-100">
+                    {/* Skeleton content */}
+                    {[...Array(4)].map((_, index) => (
+                        <Skeleton key={index} style={{ margin: "2px", flex: 1, height: "250px" }} variant="wave" />
+                    ))}
+                </div>
             </>
         ) :
             <div className="App">
@@ -82,12 +85,13 @@ export default function DeadlineTask({ tasks, isLoading, updateTaskStatus, updat
                     dataSource={items}
                     cardSettings={{ headerField: "title", template: contentTemplate }}
                     enableTooltip={true}
+                    actionComplete={handleKanbanAction}
                 >
                     <ColumnsDirective>
-                        <ColumnDirective headerText="Pending" keyField="Pending" allowToggle={true} showAddButton={true} actionComplete={handleKanbanAction} />
-                        <ColumnDirective headerText="In Progress" keyField="In Progress" allowToggle={true} showAddButton={true} />
-                        <ColumnDirective headerText="On Hold" keyField="On Hold" allowToggle={true} showAddButton={true} />
-                        <ColumnDirective headerText="Completed" keyField="Completed" allowToggle={true} showAddButton={true} />
+                        <ColumnDirective headerText="Pending" keyField="Pending" allowToggle={true} showAddButton={true}  />
+                        <ColumnDirective headerText="In Progress" keyField="In Progress" allowToggle={true} showAddButton={true}  />
+                        <ColumnDirective headerText="On Hold" keyField="On Hold" allowToggle={true} showAddButton={true}  />
+                        <ColumnDirective headerText="Completed" keyField="Completed" allowToggle={true} showAddButton={true}  />
                     </ColumnsDirective>
                 </KanbanComponent>
             </div>
