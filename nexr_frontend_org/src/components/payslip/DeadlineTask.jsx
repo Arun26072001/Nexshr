@@ -1,22 +1,22 @@
-import { KanbanComponent, ColumnsDirective, ColumnDirective } from "@syncfusion/ej2-react-kanban";
 import "./kanbanboardTemplate.css";
-import { extend } from '@syncfusion/ej2-base';
 import CheckCircleRoundedIcon from '@mui/icons-material/CheckCircleRounded';
 import PauseCircleFilledRoundedIcon from '@mui/icons-material/PauseCircleFilledRounded';
 import AccountCircleRoundedIcon from '@mui/icons-material/AccountCircleRounded';
 import ChevronRightRoundedIcon from '@mui/icons-material/ChevronRightRounded';
 import PlayCircleFilledRoundedIcon from '@mui/icons-material/PlayCircleFilledRounded';
-import { useContext, useState } from "react";
+import { useContext, useEffect, useState } from "react";
+import AddRoundedIcon from '@mui/icons-material/AddRounded';
 import { EssentialValues } from "../../App";
 import { Skeleton } from "@mui/material";
+import { SelectPicker } from "rsuite";
 
 export default function DeadlineTask({ tasks, isLoading, updateTaskStatus, updatedTimerInTask }) {
     const [isHovering, setIsHovering] = useState("");
     const [isWorkingTask, setIsWorkingTask] = useState("");
     const { data } = useContext(EssentialValues);
-    let items = extend([], tasks, null, true);
-    console.log(tasks);
-
+    // useEffect(() => {    
+    //     setItems(extend([], tasks, null, true))
+    // }, [tasks])
     function dateFormat(date) {
         const actualDate = new Date(date);
         return `${actualDate.toLocaleString("default", { month: "long" })} ${actualDate.getDate()} ${actualDate.toLocaleTimeString()}`
@@ -59,6 +59,8 @@ export default function DeadlineTask({ tasks, isLoading, updateTaskStatus, updat
         );
     }
 
+    console.log(isLoading);
+
     return (
         isLoading ? (
             <>
@@ -76,8 +78,8 @@ export default function DeadlineTask({ tasks, isLoading, updateTaskStatus, updat
                 </div>
             </>
         ) :
-            <div className="App">
-                <KanbanComponent
+            <div className="App flex-wrap">
+                {/* <KanbanComponent
                     height={"400px"}
                     id="kanban"
                     keyField="status"
@@ -85,13 +87,13 @@ export default function DeadlineTask({ tasks, isLoading, updateTaskStatus, updat
                     cardSettings={{ headerField: "title", template: contentTemplate }}
                     enableTooltip={true}
                 >
-                    <ColumnsDirective>
+                    <ColumnsDirective >
                         <ColumnDirective headerText="Pending" keyField="Pending" allowToggle={true} />
                         <ColumnDirective headerText="In Progress" keyField="In Progress" allowToggle={true} />
                         <ColumnDirective headerText="On Hold" keyField="On Hold" allowToggle={true} />
                         <ColumnDirective headerText="Completed" keyField="Completed" allowToggle={true} />
                     </ColumnsDirective>
-                </KanbanComponent>
+                </KanbanComponent> */}
             </div>
     );
 }

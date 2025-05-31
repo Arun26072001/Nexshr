@@ -163,7 +163,7 @@ export default function Home({ peopleOnLeave, peopleOnWorkFromHome, isFetchPeopl
                     <div className="d-flex flex-wrap gap-2 align-items-center justify-content-center my-2">
                         {/* people on leave container */}
                         <div className="boxContainer-parent">
-                            <div className="d-flex justify-content-between align-items-center py-2" style={{ position: "sticky", top: "0px", background: "rgba(245, 245, 245, 1)" }} >
+                            <div className="d-flex flex-wrap justify-content-between align-items-center py-2" style={{ position: "sticky", top: "0px", background: "rgba(245, 245, 245, 1)" }} >
                                 <p className='sub_text text-dark' style={{ fontWeight: "bold" }}>PeopleOnLeave</p>
                                 <p className='timeLogBox' style={{ background: "white" }}><img src={calendarIcon} alt='dateIcon' width={15} height={"auto"} /> <span className='sub_text text-dark'>{now.getDate() + " " + now.toLocaleString("default", { "month": "short" }) + " " + now.getFullYear()}</span></p>
                             </div>
@@ -190,7 +190,7 @@ export default function Home({ peopleOnLeave, peopleOnWorkFromHome, isFetchPeopl
                         </div>
                         {/* work from home employees container */}
                         <div className="boxContainer-parent">
-                            <div className="d-flex justify-content-between align-items-center py-2" style={{ position: "sticky", top: "0px", background: "rgba(245, 245, 245, 1)" }} >
+                            <div className="d-flex flex-wrap justify-content-between align-items-center py-2" style={{ position: "sticky", top: "0px", background: "rgba(245, 245, 245, 1)" }} >
                                 <p className='sub_text text-dark' style={{ fontWeight: "bold" }}>WFH Employees</p>
                                 <p className='timeLogBox' style={{ background: "white" }}><img src={calendarIcon} alt='dateIcon' width={15} height={"auto"} /> <span className='sub_text text-dark'>{now.getDate() + " " + now.toLocaleString("default", { "month": "short" }) + " " + now.getFullYear()}</span></p>
                             </div>

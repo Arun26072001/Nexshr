@@ -208,8 +208,6 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
             return res.status(404).send({ error: "Employee not found." });
         }
 
-        // Ensure no duplicates in assignedTo
-        const assignedTo = Array.from(new Set([...req.body.assignedTo, req.params.id]));
 
         // Prepare Task Object
         const newTask = {
@@ -220,16 +218,26 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
             tracker: [],
             spend: req.body.spend || {}
         };
-
         // Validate Task Data
         const { error } = taskValidation.validate(newTask);
         if (error) {
             return res.status(400).send({ error: error.details[0].message });
         }
 
+        const { participants = [], observers = [] } = req.body
+
+        // Ensure no duplicates in assignedTo
+        const assignedTo = Array.from(new Set([...req.body.assignedTo, req.params.id]));
         // Fetch Assigned Employees
-        const assignedEmps = await Employee.find({ _id: { $in: assignedTo } }, "FirstName LastName Email fcmToken notifications company")
-            .populate("company", "CompanyName logo");
+        const empRequiredFields = "FirstName LastName Email fcmToken notifications company";
+        const companyRequiredFields = "CompanyName logo";
+        const [assignedEmps, Participants, Observers] = await Promise.all([
+            Employee.find({ _id: { $in: assignedTo } }, empRequiredFields)
+                .populate("company", empRequiredFields),
+            Employee.find({ _id: { $in: participants } }, empRequiredFields)
+                .populate("company", empRequiredFields),
+            Employee.find({ _id: { $in: observers } }, empRequiredFields)
+                .populate("company", empRequiredFields)])
 
         // Create Task Trackers
         const trackers = [

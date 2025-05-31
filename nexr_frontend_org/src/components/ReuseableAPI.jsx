@@ -111,7 +111,6 @@ function timeToMinutes(timeStr) {
     console.log(typeof timeStr, timeStr);
     if (typeof timeStr === 'object') {
         const timeData = new Date(timeStr).toTimeString().split(' ')[0]
-        console.log(timeData);
         const [hours, minutes, seconds] = timeData.split(/[:.]+/).map(Number)
         return Number(((hours * 60) + minutes + (seconds / 60)).toFixed(2)) || 0;
     }
@@ -556,15 +555,15 @@ async function fileUploadInServer(files) {
 
 }
 
-function calculateTimePattern(timePatternObj) {
-    if (timePatternObj.StartingTime && timePatternObj.FinishingTime) {
-        const startingTime = new Date(timePatternObj.StartingTime).getTime()
-        const endingTime = new Date(timePatternObj.FinishingTime).getTime()
+function calculateTimePattern(start, end) {
+    // if (timePatternObj.StartingTime && timePatternObj.FinishingTime) {
+        const startingTime = new Date(start).getTime()
+        const endingTime = new Date(end).getTime()
         const timeDiff = endingTime - startingTime;
-        console.log(startingTime, endingTime, timeDiff);
+        // console.log(startingTime, endingTime, timeDiff);
         const hoursDiff = Math.floor(timeDiff / (1000 * 60 * 60));
         return hoursDiff
-    }
+    // }
 }
 
 function triggerToaster(response) {
@@ -677,6 +676,7 @@ export {
     fetchWorkplace,
     fetchRoles,
     formatTimeFromHour,
+    timeToMinutes,
     fileUploadInServer,
     convertTimeStringToDate,
     getDayDifference,

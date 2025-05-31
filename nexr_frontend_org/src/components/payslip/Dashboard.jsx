@@ -3,11 +3,12 @@ import './dashboard.css';
 import { createTask, fetchEmployeeData, fileUploadInServer, formatTime, formatTimeFromHour, getDataAPI, gettingClockinsData, getTotalWorkingHourPerDay } from '../ReuseableAPI';
 import ActivityTimeTracker from '../ActivityTimeTracker';
 import NexHRDashboard from '../NexHRDashboard';
+import AddRoundedIcon from '@mui/icons-material/AddRounded';
 import { EssentialValues } from '../../App';
 import { TimerStates } from './HRMDashboard';
 import ContentLoader from './ContentLoader';
 import axios from 'axios';
-import { Tabs } from 'rsuite';
+import { SelectPicker, Tabs } from 'rsuite';
 import LeaveTable from '../LeaveTable';
 import Loading from '../Loader';
 import NoDataFound from './NoDataFound';
@@ -15,6 +16,8 @@ import CommonModel from '../Administration/CommonModel';
 import { jwtDecode } from 'jwt-decode';
 import { toast } from 'react-toastify';
 import DeadlineTask from './DeadlineTask';
+import CalendarViewTasks from './CalendarViewTasks';
+import GanttView from './GanttView';
 
 const Dashboard = () => {
     const url = process.env.REACT_APP_API_URL;
@@ -25,6 +28,7 @@ const Dashboard = () => {
     const [leaveData, setLeaveData] = useState({});
     const [isWorkingApi, setIsWorkingApi] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
+    const [taskOption, setTaskOption] = useState("List");
     const [isLoadingForTask, setIsLoadingForTask] = useState(false);
     const [dailyLogindata, setDailyLoginData] = useState({})
     const [monthlyLoginData, setMonthlyLoginData] = useState({});
@@ -79,9 +83,9 @@ const Dashboard = () => {
         });
     }
 
-    // useEffect(() => {
-    //     navigateToMyTask()
-    // }, [toggleTask])
+    useEffect(() => {
+        navigateToMyTask()
+    }, [toggleTask])
 
     // remove task of attachments
     function removeAttachment(value, fileIndex) {
@@ -537,6 +541,7 @@ const Dashboard = () => {
     useEffect(() => {
         gettingEmpdata();
     }, [isEditEmp]);
+    console.log("tasks", tasks);
 
     if (toggleTask.isView) {
         return (
@@ -732,33 +737,56 @@ const Dashboard = () => {
 
                     </div>
                 </div>
-                {/* <div className='time justify-content-start flex-wrap' >
-                    <h6 className='col-lg-12 col-12' ref={myTaskRef} >My Task</h6>
-                    <div className="col-lg-12 col-md-12 col-12"  >
-                        <Tabs defaultActiveKey="1" className='mt-2' appearance="pills">
-                            <Tabs.Tab eventKey="1" title="List" >
-                                {
+                <div className='time justify-content-start flex-wrap' >
+                    <h6 ref={myTaskRef}>My Task</h6>
+
+                    <div className="col-lg-12 col-md-12 col-12">
+                        <div className="d-flex justify-content-between align-items-start flex-wrap my-2 px-2">
+                            <div className='d-flex align-items-center gap-3 timeLogBox'>
+                                {["List", "DeadLine", "Planner", "Calendar", "Gantt"].map((label) => (
+                                    <span
+                                        key={label}
+                                        onClick={() => setTaskOption(label)}
+                                        className={taskOption === label ? "active" : ""}
+                                        style={{ cursor: "pointer" }}
+                                    >
+                                        {label}
+                                    </span>
+                                ))}
+                            </div>
+
+                            {/* Right Side: Controls */}
+                            <div className="d-flex gap-2" style={{ minWidth: "200px" }}>
+                                <SelectPicker
+                                    size="lg"
+                                    appearance="default"
+                                    data={teamEmps}
+                                    value={selectedEmp}
+                                    onChange={(e) => setSelectedEmp(e)}
+                                    placeholder="Select Team Employee"
+                                    block
+                                />
+                                <button className="button w-100" onClick={() => toggleTaskMode("Add")} >
+                                    <AddRoundedIcon /> New Task
+                                </button>
+                            </div>
+                        </div>
+                        <div >
+                            {
+                                taskOption === "List" ?
                                     isLoadingForTask ? <Loading /> :
                                         tasks.length ?
                                             <LeaveTable data={tasks} handleChangeData={toggleTaskMode} deleteData={deleteTask} />
-                                            : <NoDataFound message={"Tasks data not found"} />
-                                }
-                            </Tabs.Tab>
-                            <Tabs.Tab eventKey="2" title="Deadline">
-                                <DeadlineTask tasks={tasks} updateTaskStatus={getValue} updatedTimerInTask={updatedTimerInTask} isLoading={isLoadingForTask} />
-                            </Tabs.Tab>
-                            <Tabs.Tab eventKey="3" title="Planner">
-                                <h2 className='text-center'>Under Development</h2>
-                            </Tabs.Tab>
-                            <Tabs.Tab eventKey="4" title="Calendar">
-                                <h2 className='text-center'>Under Development</h2>
-                            </Tabs.Tab>
-                            <Tabs.Tab eventKey="5" title="Gantt">
-                                <h2 className='text-center'>Under Development</h2>
-                            </Tabs.Tab>
-                        </Tabs>
+                                            : <NoDataFound message={"Tasks data not found"} /> :
+                                    taskOption === "DeadLine" ? <h2 className='text-center'>Under Development</h2> :
+                                        ["Planner"].includes(taskOption) ? <h2 className='text-center'>Under Development</h2>
+                                            : taskOption === "Calendar" ? <CalendarViewTasks tasks={tasks} />
+                                                : taskOption === "Gantt" ? <GanttView tasks={tasks} isLoading={isLoadingForTask} /> : null
+                            }
+                        </div>
                     </div>
-                </div> */}
+
+                </div>
                 <NexHRDashboard updateClockins={updateClockins} peopleOnLeave={peopleOnLeave} peopleOnWorkFromHome={peopleOnWorkFromHome} isFetchpeopleOnWfh={isFetchpeopleOnWfh} isFetchPeopleOnLeave={isFetchPeopleOnLeave} />
             </>
         </div>

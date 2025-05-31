@@ -1061,18 +1061,18 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
                                             // Apply conditional styling for employee type
                                             const cellStyle =
                                                 column.id === "employmentType" && ["contract", "intern"].includes(value) ? {
-                                                    color: "#AFDDFF", background: "#3A59D1",
+                                                    color: "white", background: "#3A59D1",
                                                     padding: "0px",
                                                     fontWeight: "bold"
                                                 } :
                                                     column.id === "employmentType" && value?.toLowerCase() === "part-time" ? {
-                                                        color: "#FFEFC8", background: "#FFB22C",
+                                                        color: "white", background: "#FFB22C",
                                                         padding: "0px",
                                                         fontWeight: "bold",
                                                         borderRadius: "4px"
                                                     } :
                                                         column.id === "employmentType" && value?.toLowerCase() === "full-time" ? {
-                                                            color: "rgb(206, 229, 211)", background: "#0A7E22",
+                                                            color: "white", background: "#0A7E22",
                                                             padding: "0px",
                                                             fontWeight: "bold",
                                                             borderRadius: "4px"
