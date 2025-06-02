@@ -8,7 +8,7 @@ import { EssentialValues } from '../../App';
 import { TimerStates } from './HRMDashboard';
 import ContentLoader from './ContentLoader';
 import axios from 'axios';
-import { SelectPicker, Tabs } from 'rsuite';
+import Select from "react-select";
 import LeaveTable from '../LeaveTable';
 import Loading from '../Loader';
 import NoDataFound from './NoDataFound';
@@ -38,13 +38,14 @@ const Dashboard = () => {
     const [teamEmps, setTeamEmps] = useState([]);
     const [previewList, setPreviewList] = useState([]);
     const [employees, setEmployees] = useState([]);
-    const [selectedEmp, setSelectedEmp] = useState(data._id);
+    const [selectedEmp, setSelectedEmp] = useState({ value: data._id, label: data.Name });
     const [peopleOnLeave, setPeopleOnLeave] = useState([]);
     const [peopleOnWorkFromHome, setPeopleOnWorkFromHome] = useState([]);
     const [isFetchPeopleOnLeave, setIsFetchPeopleOnLeave] = useState(false);
     const [isFetchpeopleOnWfh, setIsFetchPeopleOnWfh] = useState(false);
     const [taskObj, setTaskObj] = useState({});
     const [toggleTask, setToggleTask] = useState({ isAdd: false, isEdit: false, isView: false })
+    console.log("selectEmp", selectedEmp);
 
     function navigateToMyTask() {
         const scrollDown = myTaskRef?.current?.getBoundingClientRect()?.top + window.scrollY
@@ -457,7 +458,7 @@ const Dashboard = () => {
     async function fetchEmpAssignedTasks() {
         setIsLoadingForTask(true);
         try {
-            const res = await axios.get(`${url}/api/task/assigned/${selectedEmp}`, {
+            const res = await axios.get(`${url}/api/task/assigned/${selectedEmp.value}`, {
                 headers: {
                     Authorization: data.token || ""
                 }
@@ -541,7 +542,6 @@ const Dashboard = () => {
     useEffect(() => {
         gettingEmpdata();
     }, [isEditEmp]);
-    console.log("tasks", tasks);
 
     if (toggleTask.isView) {
         return (
@@ -757,16 +757,11 @@ const Dashboard = () => {
 
                             {/* Right Side: Controls */}
                             <div className="d-flex gap-2" style={{ minWidth: "200px" }}>
-                                <SelectPicker
-                                    size="lg"
-                                    appearance="default"
-                                    data={teamEmps}
-                                    value={selectedEmp}
-                                    onChange={(e) => setSelectedEmp(e)}
-                                    placeholder="Select Team Employee"
-                                    block
-                                />
-                                <button className="button w-100" onClick={() => toggleTaskMode("Add")} >
+                                <Select options={teamEmps} styles={{
+                                    menuPortal: (base) => ({ ...base, zIndex: 9999 }),
+                                    menu: (base) => ({ ...base, zIndex: 9999 })
+                                }} onChange={(e) => setSelectedEmp(e)} value={selectedEmp} placeholder="Select Team Employee" />
+                                <button className="button" onClick={() => toggleTaskMode("Add")} >
                                     <AddRoundedIcon /> New Task
                                 </button>
                             </div>
