@@ -4,7 +4,7 @@ const { Task, taskValidation } = require("../models/TaskModel");
 const { Project } = require("../models/ProjectModel");
 const { Employee } = require("../models/EmpModel");
 const sendMail = require("./mailSender");
-const { convertToString, getCurrentTimeInMinutes, timeToMinutes, formatTimeFromMinutes, projectMailContent } = require("../Reuseable_functions/reusableFunction");
+const { convertToString, getCurrentTimeInMinutes, timeToMinutes, formatTimeFromMinutes, projectMailContent, categorizeTasks } = require("../Reuseable_functions/reusableFunction");
 const { sendPushNotification } = require("../auth/PushNotification");
 const router = express.Router();
 
@@ -118,8 +118,9 @@ router.get("/assigned/:id", verifyAdminHREmployeeManagerNetwork, async (req, res
                 }
             };
         }).filter(Boolean);
+        const result = categorizeTasks(timeUpdatedTasks);
 
-        return res.send({ tasks: timeUpdatedTasks });
+        return res.send({ tasks: timeUpdatedTasks, categorizeTasks: result });
     } catch (error) {
         console.log(error);
 

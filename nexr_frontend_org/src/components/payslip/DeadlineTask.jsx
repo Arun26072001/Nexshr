@@ -4,19 +4,66 @@ import PauseCircleFilledRoundedIcon from '@mui/icons-material/PauseCircleFilledR
 import AccountCircleRoundedIcon from '@mui/icons-material/AccountCircleRounded';
 import ChevronRightRoundedIcon from '@mui/icons-material/ChevronRightRounded';
 import PlayCircleFilledRoundedIcon from '@mui/icons-material/PlayCircleFilledRounded';
-import { useContext, useEffect, useState } from "react";
 import AddRoundedIcon from '@mui/icons-material/AddRounded';
+import { useContext, useEffect, useState } from "react";
 import { EssentialValues } from "../../App";
 import { Skeleton } from "@mui/material";
-import { SelectPicker } from "rsuite";
+import { getDueDateByType } from "../ReuseableAPI";
 
-export default function DeadlineTask({ tasks, isLoading, updateTaskStatus, updatedTimerInTask }) {
+export default function DeadlineTask({ isLoading, updateTaskStatus, updatedTimerInTask, categorizeTasks, setCategorizeTasks, updateTask }) {
+    // for task 
     const [isHovering, setIsHovering] = useState("");
+    // for list of task
+    const [onHover, setOnHover] = useState("");
+    const [taskObj, setTaskObj] = useState({});
     const [isWorkingTask, setIsWorkingTask] = useState("");
     const { data } = useContext(EssentialValues);
-    // useEffect(() => {    
-    //     setItems(extend([], tasks, null, true))
-    // }, [tasks])
+    const [addTaskFor, setAddTaskFor] = useState("");
+    const [draggedOver, setDraggedOver] = useState("");
+    const typeOfTasks = [
+        { name: "Overdue" },
+        { name: "Due Today" },
+        { name: "Due This Week" },
+        { name: "Due Next Week" },
+        { name: "Due Over Two Weeks" },
+        { name: "No Deadline" },
+        { name: "Completed" }
+    ];
+
+    const handleDragStart = (e, task, taskType) => {
+        e.dataTransfer.setData('application/json', JSON.stringify([task, taskType]));
+    };
+
+    const handleDragOver = (e, type) => {
+        e.preventDefault(); // Required to allow drop
+        setDraggedOver(type);
+    };
+
+    function mergeToSpecifyArray(type, task, taskType) {
+        if (type !== "Completed" && taskType !== type) {
+            let updatedTask = { ...task };
+
+            const toDate = getDueDateByType(type)
+            updatedTask.to = toDate;
+
+            const removeFromType = categorizeTasks[taskType].filter((taskData) => taskData._id !== task._id);
+
+            setCategorizeTasks((prev) => ({
+                ...prev,
+                [taskType]: removeFromType,
+                [type]: [...prev[type], updatedTask],
+            }));
+            updateTask(updatedTask)
+        }
+    }
+
+    const handleDrop = (e) => {
+        e.preventDefault();
+        const [taskData, type] = JSON.parse(e.dataTransfer.getData("application/json"))
+        mergeToSpecifyArray(draggedOver, taskData, type)
+        setDraggedOver("");
+    };
+
     function dateFormat(date) {
         const actualDate = new Date(date);
         return `${actualDate.toLocaleString("default", { month: "long" })} ${actualDate.getDate()} ${actualDate.toLocaleTimeString()}`
@@ -32,12 +79,23 @@ export default function DeadlineTask({ tasks, isLoading, updateTaskStatus, updat
         updatedTimerInTask(task, "stopTime")
     }
 
-    function contentTemplate(task) {
+    function fillTaskObj(title, type) {
+        setTaskObj((pre) => ({
+            title,
+            from: new Date(),
+            to: type === "",
+            createdby: data._id,
+            assignedTo: [data._id]
+        }))
+    }
+
+    function contentTemplate(task, type) {
         const creator = task.createdby ? task?.createdby?.FirstName + " " + task?.createdby?.LastName : data.Name
+
         return (
-            <div className='p-2' onMouseEnter={() => setIsHovering(task._id)} onMouseLeave={() => setIsHovering("")} >
+            <div className='p-2 my-1 timeLogBox' draggable={type !== "Completed"} onDragStart={(e) => handleDragStart(e, task, type)} style={{ borderLeft: "3px solid black" }} onMouseEnter={() => setIsHovering(task._id)} onMouseLeave={() => setIsHovering("")} >
                 <div className="sub_text" style={{ fontWeight: 600 }}>{task.title}</div>
-                <p className="sub_text dateContainer" >{task.status !== "Completed" ? dateFormat(task.to) : "Completed"}</p>
+                <p className="sub_text dateContainer" >{task.status === "Completed" ? "Completed" : task.to ? dateFormat(task.to) : "No DeadLine"}</p>
                 <div className="d-flex justify-content-between">
                     <div>
                         <AccountCircleRoundedIcon color="disabled" sx={{ cursor: "pointer" }} titleAccess={data.Name + " " + "(assignee)"} />
@@ -59,8 +117,6 @@ export default function DeadlineTask({ tasks, isLoading, updateTaskStatus, updat
         );
     }
 
-    console.log(isLoading);
-
     return (
         isLoading ? (
             <>
@@ -78,22 +134,86 @@ export default function DeadlineTask({ tasks, isLoading, updateTaskStatus, updat
                 </div>
             </>
         ) :
-            <div className="App flex-wrap">
-                {/* <KanbanComponent
-                    height={"400px"}
-                    id="kanban"
-                    keyField="status"
-                    dataSource={items}
-                    cardSettings={{ headerField: "title", template: contentTemplate }}
-                    enableTooltip={true}
-                >
-                    <ColumnsDirective >
-                        <ColumnDirective headerText="Pending" keyField="Pending" allowToggle={true} />
-                        <ColumnDirective headerText="In Progress" keyField="In Progress" allowToggle={true} />
-                        <ColumnDirective headerText="On Hold" keyField="On Hold" allowToggle={true} />
-                        <ColumnDirective headerText="Completed" keyField="Completed" allowToggle={true} />
-                    </ColumnsDirective>
-                </KanbanComponent> */}
+            <div className="kanbanboard-parent" >
+                {
+                    typeOfTasks?.map((type) => {
+                        return <div key={type} className="kanbanboard-child" style={{ opacity: draggedOver === type.name ? 0.6 : null }}
+                            onDragOver={(e) => handleDragOver(e, type.name)} onDragLeave={() => setDraggedOver("")}
+                            onDrop={handleDrop} onMouseEnter={() => setOnHover(type.name)} onMouseLeave={() => setOnHover("")} >
+                            <div className="kanbanboard-child-heading" style={{ backgroundColor: "black", color: "white", borderLeft: type.name === "Overdue" ? "1px dotted black" : null }}>
+                                {type.name}({categorizeTasks[type.name].length})
+                            </div>
+                            {!["Completed", "Overdue"].includes(type.name) &&
+                                <div className="addTask-btn" style={{ background: onHover === type.name ? "#DDDDDD" : null, cursor: "pointer" }}><AddRoundedIcon /> {onHover === type.name ? "Quick Task" : ""}</div>
+                            }
+                            {
+                                addTaskFor === type &&
+                                <div id="taskName" className="timeLogBox" >
+                                    <input value={taskObj?.title} onChange={(e) => fillTaskObj(e.target.value, type)} />
+                                </div>
+                            }
+                            {
+                                categorizeTasks[type.name]?.map((task) => {
+                                    return contentTemplate(task, type.name)
+                                })
+                            }
+                        </div>
+                    })
+                }
             </div>
     );
 }
+
+// <div style={{ padding: '40px' }}>
+//     <div
+//         draggable
+//         onDragStart={handleDragStart}
+//         style={{
+//             width: '150px',
+//             height: '150px',
+//             backgroundColor: 'skyblue',
+//             marginBottom: '20px',
+//             textAlign: 'center',
+//             lineHeight: '150px',
+//             border: '2px solid black',
+//             cursor: 'grab'
+//         }}
+//     >
+//         Drag me
+//     </div>
+
+//     <div
+//         onDragOver={handleDragOver}
+//         onDragLeave={handleDragLeave}
+//         onDrop={handleDrop}
+//         style={{
+//             width: '300px',
+//             height: '200px',
+//             border: `4px dashed ${draggedOver ? 'green' : 'gray'}`,
+//             backgroundColor: dropped ? '#d4edda' : '#f8f9fa',
+//             display: 'flex',
+//             alignItems: 'center',
+//             justifyContent: 'center',
+//         }}
+//     >
+//         {dropped ? 'Dropped!' : 'Drop here'}
+//     </div>
+// </div>
+// const handleDragStart = (e) => {
+//     e.dataTransfer.setData('text/plain', 'This is the dragged div');
+// };
+
+// const handleDragOver = (e) => {
+//     e.preventDefault(); // Required to allow drop
+//     setDraggedOver(true);
+// };
+
+// const handleDragLeave = () => {
+//     setDraggedOver(false);
+// };
+
+// const handleDrop = (e) => {
+//     e.preventDefault();
+//     setDropped(true);
+//     setDraggedOver(false);
+// };

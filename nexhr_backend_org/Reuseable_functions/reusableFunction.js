@@ -1,5 +1,56 @@
 const mongoose = require("mongoose");
+const dayjs = require('dayjs');
+const isSameOrBefore = require('dayjs/plugin/isSameOrBefore');
+const isSameOrAfter = require('dayjs/plugin/isSameOrAfter');
+const isoWeek = require('dayjs/plugin/isoWeek');
+const isBetween = require('dayjs/plugin/isBetween');
 
+dayjs.extend(isSameOrBefore);
+dayjs.extend(isSameOrAfter);
+dayjs.extend(isoWeek);
+dayjs.extend(isBetween);
+
+function categorizeTasks(tasks) {
+  const today = dayjs().startOf('day');
+  const endOfWeek = dayjs().endOf('week');
+  const startOfNextWeek = dayjs().add(1, 'week').startOf('week');
+  const endOfNextWeek = dayjs().add(1, 'week').endOf('week');
+  const twoWeeksLater = dayjs().add(2, 'week').endOf('week');
+
+  const result = {
+    "Overdue": [],
+    "Due Today": [],
+    "Due This Week": [],
+    "Due Next Week": [],
+    "Due Over Two Weeks": [],
+    "No Deadline": [],
+    "Completed": []
+  };
+
+  tasks.forEach(task => {
+    if (task.status === "Completed") {
+      result["Completed"].push(task);
+    } else if (!task.to) {
+      console.log("null", task.to);
+      result["No Deadline"].push(task);
+    } else {
+      const due = dayjs(task.to).startOf('day');
+      if (due?.isBefore(today)) {
+        result["Overdue"].push(task);
+      } else if (due?.isSame(today)) {
+        result["Due Today"].push(task);
+      } else if (due?.isBefore(endOfWeek)) {
+        result["Due This Week"].push(task);
+      } else if (due.isBetween(startOfNextWeek, endOfNextWeek, null, '[]')) {
+        result["Due Next Week"].push(task);
+      } else if (due?.isAfter(endOfNextWeek)) {
+        result["Due Over Two Weeks"].push(task);
+      }
+    }
+  });
+
+  return result;
+}
 
 const convertToString = (value) => {
   if (Array.isArray(value)) {
@@ -182,19 +233,19 @@ function processActivityDurations(record) {
 }
 
 function timeToMinutes(timeStr) {
-    if (typeof timeStr === 'object') {
-        const timeData = new Date(timeStr).toTimeString().split(' ')[0]
-        console.log(timeData);
-        const [hours, minutes, seconds] = timeData.split(/[:.]+/).map(Number)
-        return Number(((hours * 60) + minutes + (seconds / 60)).toFixed(2)) || 0;
-    }
-    if (timeStr.split(/[:.]+/).length === 3) {
-        const [hours, minutes, seconds] = timeStr.split(/[:.]+/).map(Number);
-        return Number(((hours * 60) + minutes + (seconds / 60)).toFixed(2)) || 0; // Defaults to 0 if input is invalid
-    } else {
-        const [hours, minutes] = timeStr.split(/[:.]+/).map(Number);
-        return Number(((hours * 60) + minutes).toFixed(2)) || 0;
-    }
+  if (typeof timeStr === 'object') {
+    const timeData = new Date(timeStr).toTimeString().split(' ')[0]
+    console.log(timeData);
+    const [hours, minutes, seconds] = timeData.split(/[:.]+/).map(Number)
+    return Number(((hours * 60) + minutes + (seconds / 60)).toFixed(2)) || 0;
+  }
+  if (timeStr.split(/[:.]+/).length === 3) {
+    const [hours, minutes, seconds] = timeStr.split(/[:.]+/).map(Number);
+    return Number(((hours * 60) + minutes + (seconds / 60)).toFixed(2)) || 0; // Defaults to 0 if input is invalid
+  } else {
+    const [hours, minutes] = timeStr.split(/[:.]+/).map(Number);
+    return Number(((hours * 60) + minutes).toFixed(2)) || 0;
+  }
 }
 
 const getCurrentTimeInMinutes = () => {
@@ -356,4 +407,4 @@ function generateCoverByEmail(empData, relievingOffData) {
         `;
 }
 
-module.exports = { convertToString, projectMailContent, processActivityDurations, getTotalWorkingHourPerDay, formatLeaveData, getDayDifference, getOrgDB, formatDate, getWeekdaysOfCurrentMonth, mailContent, checkLogin, getTotalWorkingHoursExcludingWeekends, getCurrentTimeInMinutes, timeToMinutes, formatTimeFromMinutes };
+module.exports = { convertToString, categorizeTasks, projectMailContent, processActivityDurations, getTotalWorkingHourPerDay, formatLeaveData, getDayDifference, getOrgDB, formatDate, getWeekdaysOfCurrentMonth, mailContent, checkLogin, getTotalWorkingHoursExcludingWeekends, getCurrentTimeInMinutes, timeToMinutes, formatTimeFromMinutes };

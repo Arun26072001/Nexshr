@@ -33,6 +33,7 @@ const Dashboard = () => {
     const [dailyLogindata, setDailyLoginData] = useState({})
     const [monthlyLoginData, setMonthlyLoginData] = useState({});
     const [tasks, setTasks] = useState([]);
+    const [categorizeTasks, setCategorizeTasks] = useState({});
     const [notCompletedTasks, setNotCompletedTasks] = useState([]);
     const [projects, setProjects] = useState([]);
     const [teamEmps, setTeamEmps] = useState([]);
@@ -45,7 +46,6 @@ const Dashboard = () => {
     const [isFetchpeopleOnWfh, setIsFetchPeopleOnWfh] = useState(false);
     const [taskObj, setTaskObj] = useState({});
     const [toggleTask, setToggleTask] = useState({ isAdd: false, isEdit: false, isView: false })
-    console.log("selectEmp", selectedEmp);
 
     function navigateToMyTask() {
         const scrollDown = myTaskRef?.current?.getBoundingClientRect()?.top + window.scrollY
@@ -464,6 +464,7 @@ const Dashboard = () => {
                 }
             })
             setTasks(res.data.tasks);
+            setCategorizeTasks(res.data.categorizeTasks);
             setNotCompletedTasks(res.data.tasks.filter((task) => task.status !== "Completed"))
         } catch (error) {
             setTasks([])
@@ -740,7 +741,7 @@ const Dashboard = () => {
                 <div className='time justify-content-start flex-wrap' >
                     <h6 ref={myTaskRef}>My Task</h6>
 
-                    <div className="col-lg-12 col-md-12 col-12">
+                    <div className="col-lg-12 col-md-12 col-12"  >
                         <div className="d-flex justify-content-between align-items-start flex-wrap my-2 px-2">
                             <div className='d-flex align-items-center gap-3 timeLogBox'>
                                 {["List", "DeadLine", "Planner", "Calendar", "Gantt"].map((label) => (
@@ -773,7 +774,7 @@ const Dashboard = () => {
                                         tasks.length ?
                                             <LeaveTable data={tasks} handleChangeData={toggleTaskMode} deleteData={deleteTask} />
                                             : <NoDataFound message={"Tasks data not found"} /> :
-                                    taskOption === "DeadLine" ? <h2 className='text-center'>Under Development</h2> :
+                                    taskOption === "DeadLine" ? <DeadlineTask updateTask={editTask} categorizeTasks={categorizeTasks} updateTaskStatus={getValue} setCategorizeTasks={setCategorizeTasks} /> :
                                         ["Planner"].includes(taskOption) ? <h2 className='text-center'>Under Development</h2>
                                             : taskOption === "Calendar" ? <CalendarViewTasks tasks={tasks} />
                                                 : taskOption === "Gantt" ? <GanttView tasks={tasks} isLoading={isLoadingForTask} /> : null

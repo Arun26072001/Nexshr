@@ -122,7 +122,6 @@ export default function Navbar({ handleSideBar }) {
             });
             setIsRemove(totalRemovables);
             setNotifications(res.data);
-            console.log(res.data);
         } catch (error) {
             console.log("error in fetch notifications", error);
         } finally {

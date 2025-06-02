@@ -566,6 +566,40 @@ function calculateTimePattern(start, end) {
     // }
 }
 
+function getDueDateByType(type) {
+  const today = new Date();
+  const startOfToday = new Date(today.setHours(0, 0, 0, 0));
+
+  switch (type) {
+    case "Due Today":
+      return startOfToday;
+
+    case "Due This Week":
+      const endOfWeek = new Date();
+      endOfWeek.setDate(endOfWeek.getDate() + (6 - endOfWeek.getDay()));
+      return new Date(endOfWeek.setHours(23, 59, 59, 999));
+
+    case "Due Next Week":
+      const nextWeek = new Date();
+      const day = nextWeek.getDay();
+      const diff = 7 - day + 1; // Next Monday
+      nextWeek.setDate(nextWeek.getDate() + diff);
+      return new Date(nextWeek.setHours(9, 0, 0, 0));
+
+    case "Due Over Two Weeks":
+      const overTwoWeeks = new Date();
+      overTwoWeeks.setDate(overTwoWeeks.getDate() + 15);
+      return new Date(overTwoWeeks.setHours(9, 0, 0, 0));
+
+    case "No Deadline":
+      return null;
+
+    default:
+      return null;
+  }
+}
+
+
 function triggerToaster(response) {
     return (
         toaster.push(
@@ -664,6 +698,7 @@ export {
     removeClockinsData,
     fetchLeaveRequests,
     deleteLeave,
+    getDueDateByType,
     getclockinsDataById,
     fetchEmployeeData,
     fetchEmployees,
