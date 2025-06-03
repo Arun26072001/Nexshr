@@ -12,7 +12,7 @@ import { Skeleton } from "@mui/material";
 import { calculateTimePattern, createTask, getDueDateByType } from "../ReuseableAPI";
 import { prefix } from "rsuite/esm/internals/utils";
 
-export default function DeadlineTask({ isLoading, updateTaskStatus, fetchEmpAssignedTasks,updatedTimerInTask, categorizeTasks, setCategorizeTasks, updateTask }) {
+export default function DeadlineTask({ isLoading, updateTaskStatus, fetchEmpAssignedTasks, updatedTimerInTask, categorizeTasks, setCategorizeTasks, updateTask }) {
     // for task 
     const [isHovering, setIsHovering] = useState("");
     // for list of task
@@ -134,7 +134,7 @@ export default function DeadlineTask({ isLoading, updateTaskStatus, fetchEmpAssi
                     priority: "Low",
                     estTime: calculateTimePattern(from, to),
                 };
-            
+
                 await createTask(updatedTaskObj);
                 setAddTaskFor("");
                 setTaskObj({});
@@ -174,7 +174,7 @@ export default function DeadlineTask({ isLoading, updateTaskStatus, fetchEmpAssi
                             onDragOver={(e) => handleDragOver(e, type.name)} onDragLeave={() => setDraggedOver("")}
                             onDrop={handleDrop} onMouseEnter={() => setOnHover(type.name)} onMouseLeave={() => setOnHover("")} >
                             <div className="kanbanboard-child-heading" style={{ backgroundColor: "black", color: "white", borderLeft: type.name === "Overdue" ? "1px dotted black" : null }}>
-                                {type.name}({categorizeTasks[type.name].length})
+                                {type?.name}({categorizeTasks[type.name]?.length || 0})
                             </div>
                             {!["Completed", "Overdue"].includes(type.name) &&
                                 <div className="addTask-btn" onClick={() => setAddTaskFor(type.name)} style={{ background: onHover === type.name ? "#DDDDDD" : null, cursor: "pointer" }}><AddRoundedIcon /> {onHover === type.name ? "Quick Task" : ""}</div>
@@ -187,6 +187,7 @@ export default function DeadlineTask({ isLoading, updateTaskStatus, fetchEmpAssi
                                 </div>
                             }
                             {
+                                categorizeTasks[type.name].length &&
                                 categorizeTasks[type.name]?.map((task) => {
                                     return contentTemplate(task, type.name)
                                 })
