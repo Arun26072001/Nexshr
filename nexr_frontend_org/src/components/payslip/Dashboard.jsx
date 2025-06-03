@@ -532,7 +532,7 @@ const Dashboard = () => {
     useEffect(() => {
         fetchWorkFromHomeEmps();
         fetchPeopleOnLeave();
-        if (whoIs !== "emp") {
+        if ([isTeamLead, isTeamHead, isTeamManager].includes(true)) {
             fetchTeamEmps();
         }
         fetchEmpsProjects()

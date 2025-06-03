@@ -469,7 +469,7 @@ export default function HRMDashboard() {
                             setIsStartLogin(true);
                             setIsForgetToPunchOut(true)
                         }
-                    
+
                         setWorkTimeTracker(timeData)
                     } else {
                         setWorkTimeTracker({ ...workTimeTracker });
@@ -514,6 +514,7 @@ export default function HRMDashboard() {
                                 <Route path="unpaid-request" element={<UnpaidRequest />} />
                                 <Route path='calendar' element={<LeaveCalender />} />
                                 <Route path='leave-summary' element={<LeaveSummary />} />
+                                <Route path="leave-details" element={<LeaveDetails />} />
                             </Routes>
                         </LeaveStates.Provider>
                     } />
@@ -553,7 +554,6 @@ export default function HRMDashboard() {
                             <Route path="/position" element={<Position companies={companies} />} />
                             <Route path="/country" element={<Country />} />
                             <Route path="/team" element={<ManageTeam />} />
-                            <Route path="/leave-details" element={<LeaveDetails />} />
                         </Routes>
                     } />
                     <Route path="settings/*" element={

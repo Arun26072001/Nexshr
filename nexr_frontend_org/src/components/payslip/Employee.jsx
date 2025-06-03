@@ -20,13 +20,11 @@ export default function Employee() {
     const { isTeamHead, isTeamLead, isTeamManager } = decodedData;
     const [employees, setEmployees] = useState([]);
     const [empName, setEmpName] = useState("");
-    const [allEmployees, setAllEmployees] = useState([]);
+    const [filteredEmps, setFilteredEmps] = useState([]);
     const [isModifyEmps, setIsModifyEmps] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [processing, setProcessing] = useState(false);
     const navigate = useNavigate();
-    console.log(isTeamHead, isTeamLead, isTeamManager);
-
 
     function handleModifyEmps() {
         setIsModifyEmps(!isModifyEmps)
@@ -72,13 +70,7 @@ export default function Employee() {
         try {
             const empData = await fetchEmployees();
             setEmployees(empData);
-            setAllEmployees(empData);
-            // const withoutMyData = empData?.filter((emp) => emp._id !== data._id)
-            // if (["admin", "hr"].includes(whoIs)) {
-            // } else {
-            //     setEmployees(withoutMyData);
-            //     setAllEmployees(withoutMyData);
-            // }
+            setFilteredEmps(empData);
         } catch (error) {
             setEmployees([]);
             console.log("error: ", error);
@@ -93,8 +85,7 @@ export default function Employee() {
         try {
             const empData = await fetchAllEmployees();
             setEmployees(empData);
-            setAllEmployees(empData);
-            // const withoutMyData = empData.filter((emp) => emp._id !== data._id)
+            setFilteredEmps(empData);
         } catch (error) {
             console.log("error: ", error);
             // toast.error("Failed to fetch employees");
@@ -117,7 +108,7 @@ export default function Employee() {
             console.log("team emps", res.data);
 
             setEmployees(res.data)
-            setAllEmployees(res.data)
+            setFilteredEmps(res.data)
         } catch (error) {
             setEmployees([]);
             console.log(error);
@@ -127,17 +118,12 @@ export default function Employee() {
     }
 
     useEffect(() => {
-        if (data.Account === "1") {
+        if (["admin"].includes(whoIs)) {
             fetchAllEmployeeData()
         } else if ([isTeamLead, isTeamHead, isTeamManager].includes(true)) {
-            console.log("akjshdkjas");
-
             fetchTeamEmps();
         }
-        // else if (data.Account === "3") {
-        //     navigate(`/${whoIs}/unauthorize`)
-        // } 
-        else {
+        else if (["hr"].includes(whoIs)) {
             fetchEmployeeData();
         }
     }, [isModifyEmps]);
@@ -147,9 +133,9 @@ export default function Employee() {
     useEffect(() => {
         function filterEmployees() {
             if (empName === "") {
-                setEmployees(allEmployees);
+                setEmployees(filteredEmps);
             } else {
-                setEmployees(allEmployees?.filter((emp) => emp?.FirstName?.toLowerCase()?.includes(empName.toLowerCase())));
+                setEmployees(filteredEmps?.filter((emp) => emp?.FirstName?.toLowerCase()?.includes(empName.toLowerCase())));
             }
         }
         filterEmployees();
@@ -181,7 +167,7 @@ export default function Employee() {
                             <button className="button" onClick={() => navigate(`/${whoIs}/employee/add`)}>
                                 <AddRoundedIcon /> Add Employee
                             </button>
-                            <button className="button" style={{cursor: `${processing ? "wait": "pointer"}`}} onClick={() => document.getElementById("fileUploader").click()} >
+                            <button className="button" style={{ cursor: `${processing ? "wait" : "pointer"}` }} onClick={() => document.getElementById("fileUploader").click()} >
                                 <AddRoundedIcon />Import
                             </button>
                         </>

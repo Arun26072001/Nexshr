@@ -14,7 +14,7 @@ const { sendPushNotification } = require("../auth/PushNotification");
 
 async function checkLoginForOfficeTime(scheduledTime, actualTime, permissionTime = 0) {
 
-    // Parse scheduled and actual time into hours and minutes
+    // Parse scheduled andl actual time into hours and minutes
     const [scheduledHours, scheduledMinutes] = scheduledTime.split(/[:.]+/).map(Number);
     const [actualHours, actualMinutes] = actualTime.split(/[:.]+/).map(Number);
 
@@ -230,6 +230,7 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
         // Office login time & employee login time
         const officeLoginTime = `${new Date(emp?.workingTimePattern?.StartingTime).getHours()}:${new Date(emp?.workingTimePattern?.StartingTime).getMinutes()}` || "9:00";
         const loginTimeRaw = req.body?.login?.startingTime?.[0];
+        console.log("office", officeLoginTime, "login", loginTimeRaw);
         if (!loginTimeRaw) return res.status(400).send({ error: "You must start Punch-in Timer" });
         const companyLoginMinutes = timeToMinutes(officeLoginTime) + Number(emp?.workingTimePattern?.WaitingTime);
         const empLoginMinutes = timeToMinutes(loginTimeRaw);

@@ -151,6 +151,7 @@ export default function Twotabs() {
       </Popover>
     );
   };
+  console.log("annual leave", annualLeave);
 
   function highlightToLeave(date) {
     if (!leaveData || !leaveData.length) return null; // Ensure leaveData exists

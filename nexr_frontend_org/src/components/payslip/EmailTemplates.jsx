@@ -168,7 +168,7 @@ export default function EmailTemplates() {
     return (
         isChangeTemp.isAdd ? <CommonModel isAddData={isChangeTemp.isAdd} isWorkingApi={isWorkingApi} changeData={fillTemplateObj} removeState={removeState} dataObj={templateObj} type={"Email Template"} changeState={changeShortTags} modifyData={handleChangeTemp} errorMsg={errorMsg} addData={addTemplate} /> :
             isChangeTemp.isEdit ? <CommonModel isAddData={isChangeTemp.isEdit} isWorkingApi={isWorkingApi} changeData={fillTemplateObj} removeState={removeState} dataObj={templateObj} type={"Email Template"} changeState={changeShortTags} modifyData={handleChangeTemp} errorMsg={errorMsg} editData={updateTemplate} /> :
-                isLoading ? <Loading /> :
+                isLoading ? <Loading height='80vh' /> :
                     <div className='dashboard-parent py-4'>
                         <div className="d-flex justify-content-between px-2">
                             <p className="payslipTitle col-6">

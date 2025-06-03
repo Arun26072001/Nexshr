@@ -41,7 +41,7 @@ const Default = ({ tasks, isLoading }) => {
     };
 
     return (
-        isLoading ? <Loading /> : 
+        isLoading ? <Loading height='80vh' /> : 
         <div className='control-pane'>
             <div className='control-section'>
                 <GanttComponent

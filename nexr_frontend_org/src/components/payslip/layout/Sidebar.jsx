@@ -8,7 +8,6 @@ import homeIcon from '../../../asserts/homeIcon.svg';
 import userIcon from '../../../asserts/userIcon.svg';
 import leaveIcon from '../../../asserts/leaveIcon.svg';
 import attendanceIcon from '../../../asserts/attendanceIcon.svg';
-import calendarIcon from "../../../asserts/calendar.svg";
 import adminIcon from '../../../asserts/adminIcon.svg';
 import fileIcon from "../../../asserts/file.svg";
 import folderIcon from "../../../asserts/folder.svg";
@@ -172,13 +171,6 @@ const Sidebar = ({ sideBar }) => {
           'reports'
         )}
 
-        {/* {renderNavLink(
-          ['hr', "emp"].includes(whoIs),
-          `/${whoIs}/calendar`,
-          calendarIcon,
-          'Calendar',
-          'calendar'
-        )} */}
         {/* Email template */}
         {renderNavLink(
           ['hr', "admin"].includes(whoIs),
@@ -214,10 +206,11 @@ const Sidebar = ({ sideBar }) => {
               { key: 'unpaid-request', path: `/${whoIs}/leave/unpaid-request`, label: 'Unpaid Request' },
               { key: 'leave-request', path: `/${whoIs}/leave/leave-request`, label: 'Leave Request' },
               { key: 'calendar', path: `/${whoIs}/leave/calendar`, label: 'Calendar' },
-              { key: 'leave-summary', path: `/${whoIs}/leave/leave-summary`, label: 'Leave Summary' }
+              { key: 'leave-summary', path: `/${whoIs}/leave/leave-summary`, label: 'Leave Summary' },
+              { key: 'leave-details', path: `/${whoIs}/leave/leave-details`, label: 'Leave Details' },
             ],
             leaveIcon,
-            'Leave'
+            'Leave'     
           )}
 
         {(
@@ -269,8 +262,7 @@ const Sidebar = ({ sideBar }) => {
               { key: 'country', path: `/${whoIs}/administration/country`, label: 'Country' },
               { key: 'department', path: `/${whoIs}/administration/department`, label: 'Department' },
               { key: 'position', path: `/${whoIs}/administration/position`, label: 'Position' },
-              { key: 'team', path: `/${whoIs}/administration/team`, label: 'Team' },
-              { key: 'leave-details', path: `/${whoIs}/administration/leave-details`, label: 'Leave Details' },
+              { key: 'team', path: `/${whoIs}/administration/team`, label: 'Team' }
             ],
             adminIcon,
             'Administration'
