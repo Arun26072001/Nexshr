@@ -51,6 +51,31 @@ function categorizeTasks(tasks) {
   return result;
 }
 
+async function checkLoginForOfficeTime(scheduledTime, actualTime, permissionTime = 0) {
+
+  // Parse scheduled andl actual time into hours and minutes
+  const [scheduledHours, scheduledMinutes] = scheduledTime.split(/[:.]+/).map(Number);
+  const [actualHours, actualMinutes] = actualTime.split(/[:.]+/).map(Number);
+
+  // Create Date objects for both scheduled and actual times
+  const scheduledDate = new Date(2000, 0, 1, scheduledHours + (permissionTime), scheduledMinutes);
+  const actualDate = new Date(2000, 0, 1, actualHours, actualMinutes);
+
+  // Calculate the difference in milliseconds
+  const timeDifference = actualDate - scheduledDate;
+
+  // Convert milliseconds to minutes
+  const differenceInMinutes = Math.abs(Math.floor(timeDifference / (1000 * 60)));
+
+  if (timeDifference > 0) {
+    return `You came ${differenceInMinutes} minutes late today.`;
+  } else if (timeDifference < 0) {
+    return `You came ${differenceInMinutes} minutes early today.`;
+  } else {
+    return `You came on time today.`;
+  }
+}
+
 const convertToString = (value) => {
   if (Array.isArray(value)) {
     return value.map((v) => (mongoose.isValidObjectId(v) ? v.toString() : v));
@@ -254,6 +279,13 @@ const getCurrentTimeInMinutes = () => {
   return timeToMinutes(`${hour}:${min}:${sec}`);
 };
 
+const getCurrentTime = (date) => {
+  const now = new Date(date).toLocaleTimeString('en-US', { timeZone: process.env.TIMEZONE, hourCycle: 'h23' });
+  // const timeWithoutSuffix = now.replace(/ AM| PM/, ""); // Remove AM/PM
+  const [hour, min, sec] = now.split(/[:.]+/).map(Number);
+  return `${hour}:${min}`
+}
+
 function formatTimeFromMinutes(minutes) {
   if ([NaN, 0].includes(minutes)) {
     return `00:00:00`;
@@ -406,4 +438,4 @@ function generateCoverByEmail(empData, relievingOffData) {
         `;
 }
 
-module.exports = { convertToString, categorizeTasks, projectMailContent, processActivityDurations, getTotalWorkingHourPerDay, formatLeaveData, getDayDifference, getOrgDB, formatDate, getWeekdaysOfCurrentMonth, mailContent, checkLogin, getTotalWorkingHoursExcludingWeekends, getCurrentTimeInMinutes, timeToMinutes, formatTimeFromMinutes };
+module.exports = { convertToString, getCurrentTime,checkLoginForOfficeTime, categorizeTasks, projectMailContent, processActivityDurations, getTotalWorkingHourPerDay, formatLeaveData, getDayDifference, getOrgDB, formatDate, getWeekdaysOfCurrentMonth, mailContent, checkLogin, getTotalWorkingHoursExcludingWeekends, getCurrentTimeInMinutes, timeToMinutes, formatTimeFromMinutes };

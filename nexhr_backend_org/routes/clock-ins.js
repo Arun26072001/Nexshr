@@ -8,34 +8,9 @@ const { getDayDifference } = require("./leave-app");
 const sendMail = require("./mailSender");
 const { LeaveApplication } = require("../models/LeaveAppModel");
 const { Team } = require("../models/TeamModel");
-const { timeToMinutes, getTotalWorkingHourPerDay, processActivityDurations } = require("../Reuseable_functions/reusableFunction");
+const { timeToMinutes, getTotalWorkingHourPerDay, processActivityDurations, checkLoginForOfficeTime, getCurrentTime } = require("../Reuseable_functions/reusableFunction");
 const { WFHApplication } = require("../models/WFHApplicationModel");
 const { sendPushNotification } = require("../auth/PushNotification");
-
-async function checkLoginForOfficeTime(scheduledTime, actualTime, permissionTime = 0) {
-
-    // Parse scheduled andl actual time into hours and minutes
-    const [scheduledHours, scheduledMinutes] = scheduledTime.split(/[:.]+/).map(Number);
-    const [actualHours, actualMinutes] = actualTime.split(/[:.]+/).map(Number);
-
-    // Create Date objects for both scheduled and actual times
-    const scheduledDate = new Date(2000, 0, 1, scheduledHours + (permissionTime), scheduledMinutes);
-    const actualDate = new Date(2000, 0, 1, actualHours, actualMinutes);
-
-    // Calculate the difference in milliseconds
-    const timeDifference = actualDate - scheduledDate;
-
-    // Convert milliseconds to minutes
-    const differenceInMinutes = Math.abs(Math.floor(timeDifference / (1000 * 60)));
-
-    if (timeDifference > 0) {
-        return `You came ${differenceInMinutes} minutes late today.`;
-    } else if (timeDifference < 0) {
-        return `You came ${differenceInMinutes} minutes early today.`;
-    } else {
-        return `You came on time today.`;
-    }
-}
 
 router.post("/not-login/apply-leave/:workPatternId", async (req, res) => {
     try {
@@ -227,9 +202,8 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
         //     }
         // }
 
-        // Office login time & employee login time
-        console.log("date", new Date(emp?.workingTimePattern?.StartingTime));
-        const officeLoginTime = `${new Date(emp?.workingTimePattern?.StartingTime).getHours()}:${new Date(emp?.workingTimePattern?.StartingTime).getMinutes()}` || "9:00";
+        // Office login time & employee login time 
+        const officeLoginTime = getCurrentTime(emp?.workingTimePattern?.StartingTime) || "9:00";
         const loginTimeRaw = req.body?.login?.startingTime?.[0];
         console.log("office", officeLoginTime, "login", loginTimeRaw);
         if (!loginTimeRaw) return res.status(400).send({ error: "You must start Punch-in Timer" });
