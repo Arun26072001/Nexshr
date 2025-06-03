@@ -228,6 +228,7 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
         // }
 
         // Office login time & employee login time
+        console.log("date", new Date(emp?.workingTimePattern?.StartingTime));
         const officeLoginTime = `${new Date(emp?.workingTimePattern?.StartingTime).getHours()}:${new Date(emp?.workingTimePattern?.StartingTime).getMinutes()}` || "9:00";
         const loginTimeRaw = req.body?.login?.startingTime?.[0];
         console.log("office", officeLoginTime, "login", loginTimeRaw);
