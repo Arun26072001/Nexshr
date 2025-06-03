@@ -124,26 +124,24 @@ function timeToMinutes(timeStr) {
 }
 
 async function createTask(task) {
-        try {
-            let newTaskObj = {
-                ...task,
-                assignedTo: Array.isArray(task?.assignedTo) && task.assignedTo.includes(_id)
-                    ? task.assignedTo
-                    : [...(task?.assignedTo || []), _id]
-            }
-            const res = await axios.post(`${url}/api/task/${_id}`, newTaskObj, {
-                headers: { Authorization: token || "" }
-            });
-
-            toast.success(res.data.message);
-            // socket.emit("send_notification_for_task", newTaskObj)
-            // setTaskObj({});
-            // toggleTaskMode("Add");
-        } catch (error) {
-            console.error("Task creation error:", error);
-            toast.error(error.response?.data?.error || "Task creation failed");
+    try {
+        let newTaskObj = {
+            ...task,
+            assignedTo: Array.isArray(task?.assignedTo) && task.assignedTo.includes(_id)
+                ? task.assignedTo
+                : [...(task?.assignedTo || []), _id]
         }
+        const res = await axios.post(`${url}/api/task/${_id}`, newTaskObj, {
+            headers: { Authorization: token || "" }
+        });
+
+        toast.success(res.data.message);
+    } catch (error) {
+        console.error("Task creation error:", error);
+        toast.error(error.response?.data?.error || "Task creation failed");
+        return;
     }
+}
 
 const getCurrentTimeInMinutes = () => {
     const now = new Date().toLocaleTimeString('en-US', { timeZone: process.env.TIMEZONE, hourCycle: 'h23' });
@@ -284,7 +282,7 @@ const fetchEmployees = async () => {
         });
         return res.data;
     } catch (err) {
-        return err
+        return err;
     }
 }
 
@@ -556,47 +554,44 @@ async function fileUploadInServer(files) {
 }
 
 function calculateTimePattern(start, end) {
-    // if (timePatternObj.StartingTime && timePatternObj.FinishingTime) {
-        const startingTime = new Date(start).getTime()
-        const endingTime = new Date(end).getTime()
-        const timeDiff = endingTime - startingTime;
-        // console.log(startingTime, endingTime, timeDiff);
-        const hoursDiff = Math.floor(timeDiff / (1000 * 60 * 60));
-        return hoursDiff
-    // }
+    const startingTime = new Date(start).getTime()
+    const endingTime = new Date(end).getTime()
+    const timeDiff = endingTime - startingTime;
+    const hoursDiff = Math.floor(timeDiff / (1000 * 60 * 60));
+    return hoursDiff
 }
 
 function getDueDateByType(type) {
-  const today = new Date();
-  const startOfToday = new Date(today.setHours(0, 0, 0, 0));
+    const today = new Date();
+    const startOfToday = new Date(today.setHours(23, 59, 59, 999));
 
-  switch (type) {
-    case "Due Today":
-      return startOfToday;
+    switch (type) {
+        case "Due Today":
+            return startOfToday;
 
-    case "Due This Week":
-      const endOfWeek = new Date();
-      endOfWeek.setDate(endOfWeek.getDate() + (6 - endOfWeek.getDay()));
-      return new Date(endOfWeek.setHours(23, 59, 59, 999));
+        case "Due This Week":
+            const endOfWeek = new Date();
+            endOfWeek.setDate(endOfWeek.getDate() + (6 - endOfWeek.getDay()));
+            return new Date(endOfWeek.setHours(23, 59, 59, 999));
 
-    case "Due Next Week":
-      const nextWeek = new Date();
-      const day = nextWeek.getDay();
-      const diff = 7 - day + 1; // Next Monday
-      nextWeek.setDate(nextWeek.getDate() + diff);
-      return new Date(nextWeek.setHours(9, 0, 0, 0));
+        case "Due Next Week":
+            const nextWeek = new Date();
+            const day = nextWeek.getDay();
+            const diff = 7 - day + 1; // Next Monday
+            nextWeek.setDate(nextWeek.getDate() + diff);
+            return new Date(nextWeek.setHours(9, 0, 0, 0));
 
-    case "Due Over Two Weeks":
-      const overTwoWeeks = new Date();
-      overTwoWeeks.setDate(overTwoWeeks.getDate() + 15);
-      return new Date(overTwoWeeks.setHours(9, 0, 0, 0));
+        case "Due Over Two Weeks":
+            const overTwoWeeks = new Date();
+            overTwoWeeks.setDate(overTwoWeeks.getDate() + 15);
+            return new Date(overTwoWeeks.setHours(9, 0, 0, 0));
 
-    case "No Deadline":
-      return null;
+        case "No Deadline":
+            return null;
 
-    default:
-      return null;
-  }
+        default:
+            return null;
+    }
 }
 
 

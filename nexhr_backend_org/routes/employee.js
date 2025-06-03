@@ -55,13 +55,15 @@ router.put("/notifications/:id", verifyAdminHREmployeeManagerNetwork, async (req
   try {
     const emp = await Employee.findById(req.params.id, "notifications").exec();
     if (!emp) return res.status(404).send({ error: "Employee not found" });
-
-    const titlesToRemove = req.body.map(n => n.title);
-
-    emp.notifications = emp.notifications.filter(notification =>
-      !titlesToRemove.includes(notification.title)
+    // console.log("removed", req.body);
+    const idsToRemove = req.body.map(n => n._id);
+    const filteredNotifications = emp.notifications.filter(notification => {
+      const notification_id = String(notification._id);
+      return !idsToRemove.includes(notification_id)
+    }
     );
-
+    // console.log("notifications", filteredNotifications);
+    emp.notifications = filteredNotifications;
     await emp.save();
 
     return res.send({ message: "Notifications have been deleted successfully" });

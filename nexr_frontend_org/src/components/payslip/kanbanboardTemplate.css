@@ -14,6 +14,16 @@
   border-right: 1px dotted black;
 }
 
+.timeLogBox > #taskNameInput {
+  border: none;
+  background: none;
+}
+
+.timeLogBox > #taskNameInput:focus {
+  border: none;
+  outline: none;
+}
+
 .addTask-btn {
   width: 100%;
   border-radius: 20px;

@@ -155,7 +155,7 @@ router.post("/:id", verifyAdminHR, async (req, res) => {
 
         await Promise.all(
             Object.entries(roles).flatMap(([role, ids]) =>
-                ids.map(async (memberId) => {
+                Array.isArray(ids) ?? ids.map(async (memberId) => {
                     const emp = await Employee.findById(memberId, "FirstName LastName Email fcmToken").populate("company", "CompanyName logo");
                     if (!emp) return;
 

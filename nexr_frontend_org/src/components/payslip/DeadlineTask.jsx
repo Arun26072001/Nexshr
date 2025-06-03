@@ -4,13 +4,15 @@ import PauseCircleFilledRoundedIcon from '@mui/icons-material/PauseCircleFilledR
 import AccountCircleRoundedIcon from '@mui/icons-material/AccountCircleRounded';
 import ChevronRightRoundedIcon from '@mui/icons-material/ChevronRightRounded';
 import PlayCircleFilledRoundedIcon from '@mui/icons-material/PlayCircleFilledRounded';
+import SubdirectoryArrowLeftRoundedIcon from '@mui/icons-material/SubdirectoryArrowLeftRounded';
 import AddRoundedIcon from '@mui/icons-material/AddRounded';
 import { useContext, useEffect, useState } from "react";
 import { EssentialValues } from "../../App";
 import { Skeleton } from "@mui/material";
-import { getDueDateByType } from "../ReuseableAPI";
+import { calculateTimePattern, createTask, getDueDateByType } from "../ReuseableAPI";
+import { prefix } from "rsuite/esm/internals/utils";
 
-export default function DeadlineTask({ isLoading, updateTaskStatus, updatedTimerInTask, categorizeTasks, setCategorizeTasks, updateTask }) {
+export default function DeadlineTask({ isLoading, updateTaskStatus, fetchEmpAssignedTasks,updatedTimerInTask, categorizeTasks, setCategorizeTasks, updateTask }) {
     // for task 
     const [isHovering, setIsHovering] = useState("");
     // for list of task
@@ -80,13 +82,10 @@ export default function DeadlineTask({ isLoading, updateTaskStatus, updatedTimer
     }
 
     function fillTaskObj(title, type) {
-        setTaskObj((pre) => ({
-            title,
-            from: new Date(),
-            to: type === "",
-            createdby: data._id,
-            assignedTo: [data._id]
-        }))
+        setTaskObj({
+            ...prefix,
+            title: title,
+        })
     }
 
     function contentTemplate(task, type) {
@@ -117,6 +116,40 @@ export default function DeadlineTask({ isLoading, updateTaskStatus, updatedTimer
         );
     }
 
+    useEffect(() => {
+        const inputElement = document.getElementById("taskNameInput");
+        if (!inputElement) return;
+
+        const handleKeyPress = async (e) => {
+            if (e.key === "Enter") {
+                const from = new Date();
+                const to = getDueDateByType(addTaskFor);
+                const updatedTaskObj = {
+                    ...taskObj,
+                    createdby: data._id,
+                    assignedTo: [data._id],
+                    from,
+                    to,
+                    status: "Pending",
+                    priority: "Low",
+                    estTime: calculateTimePattern(from, to),
+                };
+            
+                await createTask(updatedTaskObj);
+                setAddTaskFor("");
+                setTaskObj({});
+                fetchEmpAssignedTasks();
+            }
+        };
+
+        inputElement.addEventListener("keypress", handleKeyPress);
+
+        // cleanup
+        return () => {
+            inputElement.removeEventListener("keypress", handleKeyPress);
+        };
+    }, [addTaskFor, taskObj, data]);
+
     return (
         isLoading ? (
             <>
@@ -144,12 +177,13 @@ export default function DeadlineTask({ isLoading, updateTaskStatus, updatedTimer
                                 {type.name}({categorizeTasks[type.name].length})
                             </div>
                             {!["Completed", "Overdue"].includes(type.name) &&
-                                <div className="addTask-btn" style={{ background: onHover === type.name ? "#DDDDDD" : null, cursor: "pointer" }}><AddRoundedIcon /> {onHover === type.name ? "Quick Task" : ""}</div>
+                                <div className="addTask-btn" onClick={() => setAddTaskFor(type.name)} style={{ background: onHover === type.name ? "#DDDDDD" : null, cursor: "pointer" }}><AddRoundedIcon /> {onHover === type.name ? "Quick Task" : ""}</div>
                             }
                             {
-                                addTaskFor === type &&
-                                <div id="taskName" className="timeLogBox" >
-                                    <input value={taskObj?.title} onChange={(e) => fillTaskObj(e.target.value, type)} />
+                                addTaskFor === type.name &&
+                                <div className="timeLogBox" >
+                                    <input className="mb-3" id="taskNameInput" value={taskObj?.title} placeholder="Name #tag" onChange={(e) => fillTaskObj(e.target.value, type)} />
+                                    <p>Press <SubdirectoryArrowLeftRoundedIcon /> to create</p>
                                 </div>
                             }
                             {

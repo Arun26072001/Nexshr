@@ -31,7 +31,6 @@ function categorizeTasks(tasks) {
     if (task.status === "Completed") {
       result["Completed"].push(task);
     } else if (!task.to) {
-      console.log("null", task.to);
       result["No Deadline"].push(task);
     } else {
       const due = dayjs(task.to).startOf('day');

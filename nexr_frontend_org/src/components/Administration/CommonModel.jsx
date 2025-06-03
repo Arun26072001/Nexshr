@@ -1252,7 +1252,7 @@ const CommonModel = ({
                                 <b>{dataObj?.WeeklyDays?.length} working days </b>
                                 Selected totalling <b>{(
                                     (dataObj?.WeeklyDays?.length || 0) *
-                                    ((calculateTimePattern(dataObj) || 0) - (Number(dataObj?.BreakTime) || 0) / 60)
+                                    ((calculateTimePattern(dataObj?.StartingTime, dataObj?.FinishingTime) || 0) - (Number(dataObj?.BreakTime) || 0) / 60)
                                 ).toFixed(2)} hrs</b>. excluding breaks
                             </p>
                         }
