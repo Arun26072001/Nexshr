@@ -11,12 +11,13 @@ const NexHRDashboard = ({ peopleOnLeave, peopleOnWorkFromHome, isFetchPeopleOnLe
   const { data } = useContext(EssentialValues);
   const { token, Account, _id } = data;
   const { isTeamLead, isTeamHead, isTeamManager } = jwtDecode(token);
+  
   return (
     <div className="row">
       <div className="col-lg-8 col-md-12 col-12" >
         {/* Left card */}
         <Card style={{ height: '100%', boxShadow: "none" }} >
-          {(Account === '2' || [isTeamLead, isTeamHead, isTeamManager].includes(true)) &&
+          {(Account == '2' || [isTeamLead, isTeamHead, isTeamManager].includes(true)) &&
             <>
               <div className="d-flex align-items-center justify-content-between m-2">
                 <span className="bold m-2">

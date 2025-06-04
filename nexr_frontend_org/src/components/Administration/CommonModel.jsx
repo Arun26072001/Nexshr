@@ -709,8 +709,8 @@ const CommonModel = ({
                     <>
                         <div className="d-flex justify-content-between gap-2">
                             <div className="col-half">
-                                <div className="modelInput important">
-                                    <p className='modelLabel'>Company Name:</p>
+                                <div className="modelInput ">
+                                    <p className='modelLabel important'>Company Name:</p>
                                     <Input
                                         required
                                         size="lg"

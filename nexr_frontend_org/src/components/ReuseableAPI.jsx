@@ -4,11 +4,20 @@ import { Notification, toaster } from "rsuite";
 import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
 const url = process.env.REACT_APP_API_URL;
-const token = localStorage.getItem('token');
-const _id = localStorage.getItem("_id");
+
+function getToken() {
+    const token = localStorage.getItem('token');
+    return token;
+}
+
+function getId() {
+    const empId = localStorage.getItem("_id");
+    return empId;
+}
 
 const updateDataAPI = async (body) => {
     try {
+        const token = getToken()
         if (body._id) {
             const response = await axios.put(`${url}/api/clock-ins/${body._id}`, body, {
                 headers: { authorization: token || '' },
@@ -37,7 +46,9 @@ async function getTotalWorkingHourPerDay(start, end) {
 
 const getDataAPI = async (_id) => {
     try {
-        const response = await axios.get(`${url}/api/clock-ins/${_id}`, {
+        const token = getToken();
+        const empId = getId();
+        const response = await axios.get(`${url}/api/clock-ins/${empId}`, {
             params: { date: new Date().toISOString() },
             headers: { authorization: token || '' },
         });
@@ -54,6 +65,7 @@ const getDataAPI = async (_id) => {
 
 const getclockinsDataById = async (id) => {
     try {
+        const token = getToken()
         const response = await axios.get(`${url}/api/clock-ins/item/${id}`, {
             headers: { authorization: token || '' },
         });
@@ -67,7 +79,9 @@ const getclockinsDataById = async (id) => {
 
 const addDataAPI = async (body, worklocation, location) => {
     try {
-        const response = await axios.post(`${url}/api/clock-ins/${_id}`, body, {
+        const token = getToken();
+        const empId = getId();
+        const response = await axios.post(`${url}/api/clock-ins/${empId}`, body, {
             params: {
                 worklocation,
                 location
@@ -92,6 +106,7 @@ function removeClockinsData() {
 
 const fetchEmpLeaveRequests = async () => {
     try {
+        const token = getToken()
         const res = await axios.get(`${url}/api/leave-application/hr`, {
             headers: {
                 authorization: token || ""
@@ -108,7 +123,6 @@ const fetchEmpLeaveRequests = async () => {
 }
 
 function timeToMinutes(timeStr) {
-    console.log(typeof timeStr, timeStr);
     if (typeof timeStr === 'object') {
         const timeData = new Date(timeStr).toTimeString().split(' ')[0]
         const [hours, minutes, seconds] = timeData.split(/[:.]+/).map(Number)
@@ -125,13 +139,15 @@ function timeToMinutes(timeStr) {
 
 async function createTask(task) {
     try {
+        const token = getToken();
+        const empId = getId();
         let newTaskObj = {
             ...task,
-            assignedTo: Array.isArray(task?.assignedTo) && task.assignedTo.includes(_id)
+            assignedTo: Array.isArray(task?.assignedTo) && task.assignedTo.includes(empId)
                 ? task.assignedTo
-                : [...(task?.assignedTo || []), _id]
+                : [...(task?.assignedTo || []), empId]
         }
-        const res = await axios.post(`${url}/api/task/${_id}`, newTaskObj, {
+        const res = await axios.post(`${url}/api/task/${empId}`, newTaskObj, {
             headers: { Authorization: token || "" }
         });
 
@@ -208,6 +224,7 @@ function processActivityDurations(record, activity) {
 
 const fetchLeaveRequests = async (_id) => {
     try {
+        const token = getToken()
         const res = await axios.get(`${url}/api/leave-application/emp/${_id}`, {
             headers: {
                 authorization: token || ""
@@ -241,7 +258,9 @@ function getDayDifference(leave) {
 
 async function deleteLeave(id) {
     try {
-        let deletedMsg = await axios.delete(`${url}/api/leave-application/${_id}/${id}`, {
+        const token = getToken();
+        const empId = getId();
+        let deletedMsg = await axios.delete(`${url}/api/leave-application/${empId}/${id}`, {
             headers: {
                 authorization: token || ""
             }
@@ -257,6 +276,7 @@ async function deleteLeave(id) {
 
 const fetchEmployeeData = async (id) => {
     try {
+        const token = getToken()
         const response = await axios.get(`${url}/api/employee/${id}`, {
             headers: {
                 authorization: token || ""
@@ -275,6 +295,7 @@ const fetchEmployeeData = async (id) => {
 
 const fetchEmployees = async () => {
     try {
+        const token = getToken()
         const res = await axios.get(`${url}/api/employee`, {
             headers: {
                 authorization: token || ""
@@ -288,6 +309,7 @@ const fetchEmployees = async () => {
 
 const fetchAllEmployees = async () => {
     try {
+        const token = getToken()
         const res = await axios.get(`${url}/api/employee/all`, {
             headers: {
                 authorization: token || ""
@@ -300,6 +322,7 @@ const fetchAllEmployees = async () => {
 }
 
 const gettingClockinsData = async (_id) => {
+    const token = getToken();
     if (!token) {
         window.location.reload();
         return;
@@ -332,6 +355,7 @@ function formatTime(fractionalHours) {
 
 const fetchWorkplace = async () => {
     try {
+        const token = getToken()
         const workPlaces = await axios.get(url + "/api/work-place", {
             headers: {
                 authorization: token || ""
@@ -345,6 +369,7 @@ const fetchWorkplace = async () => {
 
 const fetchPayslipInfo = async () => {
     try {
+        const token = getToken()
         const payslipInfo = await axios.get(`${url}/api/payslip-info`, {
             headers: {
                 authorization: token || ""
@@ -367,6 +392,7 @@ const fetchPayslipFromEmp = async (_id) => {
 
 const fetchRoles = async () => {
     try {
+        const token = getToken()
         const roles = await axios.get(url + "/api/role", {
             headers: {
                 authorization: token || ""
@@ -380,6 +406,7 @@ const fetchRoles = async () => {
 
 const fetchTeams = async () => {
     try {
+        const token = getToken()
         const teams = await axios.get(`${url}/api/team`, {
             headers: {
                 Authorization: token || ""
@@ -402,6 +429,7 @@ const fetchPayslip = async (id) => {
 
 const getDepartments = async () => {
     try {
+        const token = getToken()
         const departments = await axios.get(url + "/api/department", {
             headers: {
                 authorization: token || ""
@@ -415,6 +443,7 @@ const getDepartments = async () => {
 
 const updateEmp = async (data, id) => {
     try {
+        const token = getToken()
         const res = await axios.put(`${url}/api/employee/${id || data._id}`, data, {
             headers: {
                 authorization: token || ""
@@ -447,7 +476,7 @@ async function getUserLocation(lat, lng) {
 
 function formatDate(date) {
     const actualDate = new Date(date).toUTCString().split(" ");
-    return `${actualDate.slice(1, 3)} ${actualDate[4]?.split(/[:.]+/)[0]}:${actualDate[4]?.split(/[:.]+/)[1]}`
+    return `${actualDate[1]}, ${actualDate[2]}`
 }
 
 function formatTimeFromHour(hour) {
@@ -489,6 +518,7 @@ const addSecondsToTime = (timeString, secondsToAdd) => {
 
 async function getHoliday() {
     try {
+        const token = getToken()
         const res = await axios.get(`${url}/api/holidays/${new Date().getFullYear()}`, {
             headers: {
                 Authorization: token || ""
@@ -502,6 +532,7 @@ async function getHoliday() {
 
 async function fetchCompanies() {
     try {
+        const token = getToken()
         const res = await axios.get(`${url}/api/company`, {
             headers: {
                 Authorization: token

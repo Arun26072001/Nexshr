@@ -197,7 +197,6 @@ async function verifyAdminHRTeamHigherAuth(req, res, next) {
         console.log("error in verify");
         res.sendStatus(401);
       } else {
-        console.log(authData);
         if ([1, 2, 4].includes(authData.Account) || [isTeamLead, isTeamHead, isTeamManager].includes(true)) {
           next();
         }

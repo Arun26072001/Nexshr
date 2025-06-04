@@ -174,10 +174,10 @@ export default function DeadlineTask({ isLoading, updateTaskStatus, fetchEmpAssi
                             onDragOver={(e) => handleDragOver(e, type.name)} onDragLeave={() => setDraggedOver("")}
                             onDrop={handleDrop} onMouseEnter={() => setOnHover(type.name)} onMouseLeave={() => setOnHover("")} >
                             <div className="kanbanboard-child-heading" style={{ backgroundColor: "black", color: "white", borderLeft: type.name === "Overdue" ? "1px dotted black" : null }}>
-                                {type?.name}({categorizeTasks[type.name]?.length || 0})
+                                {type?.name}({categorizeTasks[type.name]?.length})
                             </div>
-                            {!["Completed", "Overdue"].includes(type.name) &&
-                                <div className="addTask-btn" onClick={() => setAddTaskFor(type.name)} style={{ background: onHover === type.name ? "#DDDDDD" : null, cursor: "pointer" }}><AddRoundedIcon /> {onHover === type.name ? "Quick Task" : ""}</div>
+                            {!["Completed", "Overdue"].includes(type.name) ?
+                                <div className="addTask-btn" onClick={() => setAddTaskFor(type.name)} style={{ background: onHover === type.name ? "#DDDDDD" : null, cursor: "pointer" }}><AddRoundedIcon /> {onHover === type.name ? "Quick Task" : ""}</div> : null
                             }
                             {
                                 addTaskFor === type.name &&
@@ -187,10 +187,10 @@ export default function DeadlineTask({ isLoading, updateTaskStatus, fetchEmpAssi
                                 </div>
                             }
                             {
-                                categorizeTasks[type.name].length &&
-                                categorizeTasks[type.name]?.map((task) => {
-                                    return contentTemplate(task, type.name)
-                                })
+                                categorizeTasks[type.name].length ?
+                                    categorizeTasks[type.name]?.map((task) => {
+                                        return contentTemplate(task, type.name)
+                                    }) : null
                             }
                         </div>
                     })

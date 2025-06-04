@@ -440,13 +440,14 @@ router.put("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
 
     // Check for credentials update
     if (Email !== employeeData.Email || Password !== employeeData.Password) {
+      const companyName = employeeData?.company?.CompanyName;
       const htmlContent = `
         <!DOCTYPE html>
         <html>
-        <head><title>${employeeData.company.CompanyName}</title></head>
+        <head><title>${companyName}</title></head>
         <body style="font-family: Arial; background: #f6f9fc; padding: 0; margin: 0;">
           <div style="text-align: center; padding-top: 30px;">
-            <img src="${employeeData.company.logo}" alt="Company Logo" style="width: 100px; height: 100px;" />
+            <img src="${employeeData?.company?.logo}" alt="Company Logo" style="width: 100px; height: 100px;" />
           </div>
           <div style="max-width: 600px; margin: 20px auto; background: #fff; padding: 30px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
             <h2>Hi ${FirstName} ${LastName} 👋,</h2>
@@ -454,7 +455,7 @@ router.put("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
             <p><strong>Email:</strong> ${Email}<br/><strong>Password:</strong> ${Password}</p>
             <a href="${process.env.FRONTEND_BASE_URL}" style="display: inline-block; padding: 12px 24px; background-color: #4CAF50; color: white; border-radius: 30px; text-decoration: none;">Go to Login</a>
             <p>If the button doesn’t work, use this link: <a href="${process.env.FRONTEND_BASE_URL}">${process.env.FRONTEND_BASE_URL}</a></p>
-            <p>Thanks,<br/>The ${employeeData.company.CompanyName} Team</p>
+            <p>Thanks,<br/>The ${companyName} Team</p>
           </div>
           <div style="text-align: center; font-size: 13px; color: #777;">
             <p>Need help? <a href="mailto:${process.env.FROM_MAIL}" style="color: #777;">Contact support</a>.</p>

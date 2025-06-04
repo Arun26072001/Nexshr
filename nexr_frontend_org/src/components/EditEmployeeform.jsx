@@ -564,7 +564,7 @@ const EditEmployeeform = ({ details, empData, handleScroll, handlePersonal, prev
                                                 <option key={pattern._id} value={pattern._id}
                                                     selected={pattern._id === formik.values.workingTimePattern._id}
                                                 >
-                                                    {pattern.PatternName} ({pattern.StartingTime} - {pattern.FinishingTime})
+                                                    {pattern.PatternName} ({new Date(pattern.StartingTime).toLocaleTimeString()} - {new Date(pattern.FinishingTime).toLocaleTimeString()})
                                                 </option>
                                             ))}
                                         </select>

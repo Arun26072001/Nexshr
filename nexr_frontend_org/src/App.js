@@ -222,9 +222,9 @@ function changeViewReasonForEarlyLogout() {
       setData((prev) => ({
         ...prev,
         _id: decodedData._id || "",
-        Account: decodedData?.Account || "",
+        Account: String(decodedData?.Account) || "",
         Name: `${decodedData.FirstName} ${decodedData.LastName}` || "",
-        annualLeave: decodedData.annualLeaveEntitment || 0,
+        annualLeave: decodedData.annualLeaveEntitlement || 0,
         token: localStorage.getItem("token") || "",
         profile: decodedData.profile
       }))

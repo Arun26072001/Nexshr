@@ -173,7 +173,7 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
                     status: "approved",
                     leaveType: { $nin: ["Permission Leave"] }
                 }
-            })
+            }).exec();
 
         if (!emp) return res.status(404).send({ error: "Employee not found!" });
 
@@ -205,7 +205,6 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
         // Office login time & employee login time 
         const officeLoginTime = getCurrentTime(emp?.workingTimePattern?.StartingTime) || "9:00";
         const loginTimeRaw = req.body?.login?.startingTime?.[0];
-        console.log("office", officeLoginTime, "login", loginTimeRaw);
         if (!loginTimeRaw) return res.status(400).send({ error: "You must start Punch-in Timer" });
         const companyLoginMinutes = timeToMinutes(officeLoginTime) + Number(emp?.workingTimePattern?.WaitingTime);
         const empLoginMinutes = timeToMinutes(loginTimeRaw);

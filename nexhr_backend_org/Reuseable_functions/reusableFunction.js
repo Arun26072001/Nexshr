@@ -281,8 +281,7 @@ const getCurrentTimeInMinutes = () => {
 
 const getCurrentTime = (date) => {
   const now = new Date(date).toLocaleTimeString('en-US', { timeZone: process.env.TIMEZONE, hourCycle: 'h23' });
-  // const timeWithoutSuffix = now.replace(/ AM| PM/, ""); // Remove AM/PM
-  const [hour, min, sec] = now.split(/[:.]+/).map(Number);
+  const [hour, min] = now.split(/[:.]+/).map(Number);
   return `${hour}:${min}`
 }
 

@@ -151,31 +151,72 @@ export default function Twotabs() {
       </Popover>
     );
   };
-  console.log("annual leave", annualLeave);
+
+  // function highlightToLeave(date) {
+  //   if (!leaveData || !leaveData.length) return null; // Ensure leaveData exists
+
+  //   // Filter leaveData based on date comparison
+  //   const isLeave = leaveData.filter((leave) => {
+  //     console.log(leave.start);
+  //     const leaveDate = new Date(leave.start); // Ensure `leave.start` is a Date object
+  //     return leaveDate.toDateString() === date.toDateString();
+  //   });
+
+  //   if (isLeave.length > 0) {
+  //     const leaveStatus = isLeave[0].status; // Get status from the first matched leave
+
+  //     return (
+  //       <Whisper placement="bottomEnd" trigger="click" speaker={renderMenu(date)}>
+  //         <div style={{ width: "20px", height: "20px" }}>
+  //           <Badge className={`calendar-todo-item-badge ${leaveStatus === "pending" ? "bg-warning" : leaveStatus === "approved" ? "bg-success" : ""}`} />
+  //         </div>
+  //       </Whisper>
+  //     );
+  //   }
+
+  //   return null; // Return null if no leave is found
+  // }
 
   function highlightToLeave(date) {
-    if (!leaveData || !leaveData.length) return null; // Ensure leaveData exists
+  if (!leaveData || !leaveData.length) return null;
 
-    // Filter leaveData based on date comparison
-    const isLeave = leaveData.filter((leave) => {
-      const leaveDate = new Date(leave.start); // Ensure `leave.start` is a Date object
-      return leaveDate.toDateString() === date.toDateString();
-    });
+  // Find if the given date falls within any leave range
+  const matchedLeave = leaveData.find((leave) => {
+    const start = new Date(leave.start);
+    const end = new Date(leave.end || leave.start); // fallback if no end
 
-    if (isLeave.length > 0) {
-      const leaveStatus = isLeave[0].status; // Get status from the first matched leave
+    // Normalize time to 00:00:00 for comparison
+    start.setHours(0, 0, 0, 0);
+    end.setHours(0, 0, 0, 0);
+    const current = new Date(date);
+    current.setHours(0, 0, 0, 0);
 
-      return (
-        <Whisper placement="bottomEnd" trigger="click" speaker={renderMenu(date)}>
-          <div style={{ width: "20px", height: "20px" }}>
-            <Badge className={`calendar-todo-item-badge ${leaveStatus === "pending" ? "bg-warning" : leaveStatus === "approved" ? "bg-success" : ""}`} />
-          </div>
-        </Whisper>
-      );
-    }
+    return current >= start && current <= end;
+  });
 
-    return null; // Return null if no leave is found
+  if (matchedLeave) {
+    const leaveStatus = matchedLeave.status;
+
+    return (
+      <Whisper placement="bottomEnd" trigger="click" speaker={renderMenu(date)}>
+        <div style={{ width: "20px", height: "20px" }}>
+          <Badge
+            className={`calendar-todo-item-badge ${
+              leaveStatus === "pending"
+                ? "bg-warning"
+                : leaveStatus === "approved"
+                ? "bg-success"
+                : ""
+            }`}
+          />
+        </div>
+      </Whisper>
+    );
   }
+
+  return null;
+}
+
 
   return (
     <Box sx={{ width: '100%', borderRadius: '5px', height: "100%", backgroundColor: 'white' }} >

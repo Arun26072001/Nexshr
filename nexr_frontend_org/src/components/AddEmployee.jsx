@@ -315,7 +315,7 @@ const AddEmployee = () => {
     <>
       {isLoading ? (
         <Loading height="80vh" />
-      ) : isEditEmp && employeeObj?.FirstName ? (
+      ) : isEditEmp && employeeObj?.Email ? (
         <EditEmployeeform
           details={details}
           empData={employeeObj}

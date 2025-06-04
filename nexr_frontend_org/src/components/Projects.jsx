@@ -46,7 +46,7 @@ export default function Projects() {
                     authorization: data.token || ""
                 }
             });
-            setCompanies(response.data.map((data) => ({ label: data.CompanyName, value: data._id })));
+            setCompanies(response.data.map((company) => ({ label: company.CompanyName, value: company._id })));
         } catch (err) {
             console.error("Error fetching companies:", err.message || err);
         }
