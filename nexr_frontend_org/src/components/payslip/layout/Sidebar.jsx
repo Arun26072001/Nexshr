@@ -197,6 +197,14 @@ const Sidebar = ({ sideBar }) => {
           'Holiday',
           'holiday'
         )}
+        {/* Bug sheet */}
+        {renderNavLink(
+          ['hr', "admin", "emp"].includes(whoIs),
+          `/${whoIs}/raise-bugs`,
+          holidayIcon,
+          'Bugs',
+          'raise-bugs'
+        )}
 
         {Leave === 'allow' && ["admin", "sys-admin", "hr"].includes(whoIs) &&
           renderSubMenu(
@@ -210,7 +218,7 @@ const Sidebar = ({ sideBar }) => {
               { key: 'leave-details', path: `/${whoIs}/leave/leave-details`, label: 'Leave Details' },
             ],
             leaveIcon,
-            'Leave'     
+            'Leave'
           )}
 
         {(

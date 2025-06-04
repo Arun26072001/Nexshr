@@ -351,7 +351,6 @@ export default function HRMDashboard() {
                     Authorization: token || ""
                 }
             });
-            console.log("empAttendance", empOfAttendances.data.length);
             setAttendanceData(empOfAttendances.data);
         } catch (error) {
             console.error(error);
@@ -501,6 +500,14 @@ export default function HRMDashboard() {
 
                     <Route path="reports" element={<Reports />} />
                     <Route path="/holiday" element={<Holiday />} />
+                    <Route path="/raise-bugs" element={<>
+                        <h2 className='text-center'>This is a temprory page For resolve users facing bugs</h2>
+                        <button className='button'>
+                            <a href={"https://docs.google.com/spreadsheets/d/1BXfw57J6w9HL2LzsTfu5d9WrxT6L55jdlqoG09XqON0/edit?gid=263793447#gid=263793447"}>
+                                Raise your bug
+                            </a>
+                        </button>
+                    </>} />
                     <Route path="/announcement" element={<Announce />} />
                     <Route path="/email-templates" element={<EmailTemplates />} />
                     <Route path="employee" element={<Employee />} />

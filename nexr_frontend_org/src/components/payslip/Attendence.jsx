@@ -123,7 +123,7 @@ const Attendence = () => {
       toast.error("Employee Id not found!")
     }
   }, [_id, daterangeValue])
-  console.log(clockInsData);
+  console.log("tableData", tableData);
   return (
     <div>
       <div className="leaveDateParent">
@@ -195,7 +195,7 @@ const Attendence = () => {
             {/* Filters: Date Picker & Time Selector */}
             <div className="d-flex justify-content-between align-items-center gap-2 flex-wrap my-2 px-2">
               <div className="col-lg-5 col-12">
-                <DateRangePicker value={daterangeValue} size="lg" placeholder="Select Date" onChange={setDaterangeValue} />
+                <DateRangePicker value={daterangeValue} size="lg" placeholder="Filter Range of Date" onChange={setDaterangeValue} />
               </div>
               {tableData.length > 0 &&
                 <div className="col-lg-5 col-12 ">

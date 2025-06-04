@@ -52,7 +52,7 @@ const Roles = () => {
 
     return (
         <div className='dashboard-parent pt-4'>
-            <div className="d-flex justify-content-between px-2">
+            <div className="d-flex justify-content-between px-2 mb-2">
                 <h5 className='text-daily'>Roles</h5>
                 <button className='button m-0' onClick={() => navigate(`add`)}>+ Add Role</button>
             </div>

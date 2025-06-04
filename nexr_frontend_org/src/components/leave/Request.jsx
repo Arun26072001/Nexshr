@@ -181,7 +181,7 @@ export default function LeaveRequest() {
                             showOneCalendar
                             placement="bottomEnd"
                             value={daterangeValue}
-                            placeholder="Select Date"
+                            placeholder="Filter Range of Date"
                             onChange={setDaterangeValue}
                         />
                     </div>

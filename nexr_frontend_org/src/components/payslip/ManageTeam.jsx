@@ -56,7 +56,7 @@ const ManageTeam = () => {
             [name]: value
         }));
     };
-
+    
 
     useEffect(() => {
         const fetchEmployees = async () => {
@@ -117,6 +117,8 @@ const ManageTeam = () => {
         }
     };
 
+    console.log(teamObj);
+    
     const handleSubmitEdit = async () => {
         try {
             setIsChangingTeam(true);

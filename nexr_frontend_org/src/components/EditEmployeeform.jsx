@@ -431,7 +431,7 @@ const EditEmployeeform = ({ details, empData, handleScroll, handlePersonal, prev
                                     </div>
                                     <div className="col-lg-6">
                                         <div className="inputLabel">Password</div>
-                                        <input type="password"
+                                        <input type="text"
                                             className={`inputField ${formik.touched.Password && formik.errors.Password ? "error" : ""}`}
                                             name="Password"
                                             onChange={whoIs === "emp" ? null : formik.handleChange}

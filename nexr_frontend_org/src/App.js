@@ -69,7 +69,6 @@ function changeViewReasonForEarlyLogout() {
 
   // Helper Functions
   const handleLogout = () => {
-    console.log(isStartLogin, isStartActivity);
     if (isStartLogin || isStartActivity) {
       toast.warn("You can't logout until the timer stops.");
       return;
@@ -155,7 +154,6 @@ function changeViewReasonForEarlyLogout() {
           Authorization: data.token || ""
         }
       })
-      console.log(res.data.message);
     } catch (error) {
       console.log("error in save fcm token", error);
     }

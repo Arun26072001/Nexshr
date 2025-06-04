@@ -60,7 +60,7 @@ export default function WorkFromHome() {
           WFH Requests
         </p>
         <div className="col-6 d-flex justify-content-end">
-          <DateRangePicker size="lg" className="ml-1" showOneCalendar placement="bottomEnd" value={dateRangeValue} placeholder="Select Date" onChange={setDaterangeValue} />
+          <DateRangePicker size="lg" className="ml-1" showOneCalendar placement="bottomEnd" value={dateRangeValue} placeholder="Filter Range of Date" onChange={setDaterangeValue} />
           <button className="button mx-1" onClick={() => navigate(`/${whoIs}/wfh-request`)}>
             Apply WFH
           </button>

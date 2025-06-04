@@ -80,7 +80,7 @@ const Dailylog = ({ attendanceData, isLoading }) => {
                         showOneCalendar
                         placement="bottomEnd"
                         value={daterangeValue}
-                        placeholder="Select Date Range"
+                        placeholder="Filter Range of Date Range"
                         onChange={setDaterangeValue}
                     />
                     {
