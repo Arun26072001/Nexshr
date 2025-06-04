@@ -45,7 +45,7 @@ export default function Employee() {
             handleModifyEmps();
         } catch (error) {
             console.error('File upload failed:', error);
-            toast.error(error.response.data.error);
+            toast.error(error?.response?.data?.error);
         } finally {
             setProcessing(false);
         }

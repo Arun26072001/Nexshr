@@ -109,7 +109,7 @@ const WorkPlaceTab = () => {
       handleChangeWorkPlace("Add");
     } catch (error) {
       console.log("error in add workplace:", error);
-      toast.error(error.response.data.error)
+      toast.error(error?.response?.data?.error)
     } finally {
       setIsWorkingApi(false);
     }
@@ -129,7 +129,7 @@ const WorkPlaceTab = () => {
       fetchWorkPlaces();
     } catch (error) {
       console.log("error in add workplace:", error);
-      toast.error(error.response.data.error)
+      toast.error(error?.response?.data?.error)
     } finally {
       setIsWorkingApi(false);
     }
@@ -146,7 +146,7 @@ const WorkPlaceTab = () => {
       fetchWorkPlaces();
     } catch (error) {
       console.log("error in delete workplace", error);
-      toast.error(error.response.data.error)
+      toast.error(error?.response?.data?.error)
     }
   }
 

@@ -5,7 +5,6 @@ import HRMDashboard from "./components/payslip/HRMDashboard.jsx";
 import { Routes, Route, useNavigate, Navigate, useLocation } from "react-router-dom";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import NoInternet from "./components/NoInternet.jsx";
 import { jwtDecode } from "jwt-decode";
 import { registerLicense } from '@syncfusion/ej2-base';
 import "./App.css";
@@ -15,6 +14,9 @@ import AdminDashboard from "./components/superAdmin/AdminDashboard.js";
 import { getToken, onMessage } from "firebase/messaging";
 import { messaging } from "./firebase/firebase.js";
 import { triggerToaster } from "./components/ReuseableAPI.jsx";
+import ErrorUI from "./components/ErrorUI.jsx";
+import noInternetImg from "./imgs/no_internet.webp";
+import networkImg from "./imgs/no_internet.webp";
 
 export const EssentialValues = createContext(null);
 registerLicense("Ngo9BigBOggjHTQxAR8/V1NNaF1cWWhPYVF+WmFZfVtgd19DZVZVRWYuP1ZhSXxWdkBhUH9ddXFRQmhbU0V9XUs=")
@@ -318,7 +320,8 @@ function changeViewReasonForEarlyLogout() {
           path={`${whoIs}/*`}
           element={isLogin && whoIs && data.token ? whoIs === "superAdmin" ? <AdminDashboard /> : <HRMDashboard /> : <Navigate to="/login" />}
         />
-        <Route path="no-internet-connection" element={<NoInternet />} />
+        <Route path="network-issue" element={<ErrorUI image={networkImg} title={"Network Error"} description={"Please check your network and server connection!"} />} />
+        <Route path="no-internet-connection" element={<ErrorUI image={noInternetImg} title={"Network Disconnected"} description={"Please check your network connection!"} />} />
         <Route path="*" element=
           {<div className='d-flex align-items-center justify-content-center' style={{ height: "100vh" }}>
             <h1 >404</h1>

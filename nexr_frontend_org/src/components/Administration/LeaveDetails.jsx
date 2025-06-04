@@ -51,7 +51,7 @@ export default function LeaveDetails() {
             handleChangeLeavetype("Edit")
         } catch (error) {
             console.log(error);
-            toast.error(error.response.data.error)
+            toast.error(error?.response?.data?.error)
         } finally {
             setIsworkingApi(false);
         }
@@ -71,7 +71,7 @@ export default function LeaveDetails() {
             toast.success(res.data.message)
         } catch (error) {
             console.log(error);
-            toast.error(error.response.data.error)
+            toast.error(error?.response?.data?.error)
         } finally {
             setIsworkingApi(false);
         }

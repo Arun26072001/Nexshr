@@ -56,6 +56,8 @@ const getDataAPI = async (_id) => {
         return data;
 
     } catch (error) {
+        console.log(error);
+        
         console.log(error?.response?.data?.error);
 
         // return error?.response?.data?.error;
@@ -414,7 +416,7 @@ const fetchTeams = async () => {
         });
         return teams.data;
     } catch (error) {
-        toast.error(error.response.data.error);
+        toast.error(error?.response?.data?.error);
     }
 }
 
@@ -451,7 +453,7 @@ const updateEmp = async (data, id) => {
         })
         return res.data.message;
     } catch (error) {
-        toast.error(error.response.data.error);
+        toast.error(error?.response?.data?.error);
     }
 }
 
@@ -541,7 +543,7 @@ async function fetchCompanies() {
         return res.data;
     } catch (error) {
         console.log("error in fetch companies", error);
-        toast.error(error.response.data.error)
+        toast.error(error?.response?.data?.error)
     }
 }
 

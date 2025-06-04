@@ -65,7 +65,7 @@ export default function TimeLog() {
             })
             setTaskObj(res.data);
         } catch (error) {
-            toast.error(error.response.data.error)
+            toast.error(error?.response?.data?.error)
         }
         setIsLoading(false);
     }

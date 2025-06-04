@@ -33,7 +33,7 @@ export default function UnpaidRequest() {
             fetchUnpaidLeave();
         } catch (error) {
             console.log("error in reply to leave", error);
-            toast.error(error.response.data.error)
+            toast.error(error?.response?.data?.error)
         }
     }
 

@@ -94,7 +94,7 @@ export default function Country() {
             changeCountryOperation("Edit");
             setcountryObj({})
         } catch (error) {
-            toast.error(error.response.data.error)
+            toast.error(error?.response?.data?.error)
         }
         setIschangingCountry(false);
     }
@@ -112,7 +112,7 @@ export default function Country() {
             changeCountryOperation("Add");
         } catch (error) {
             console.log("error in add country", error);
-            toast.error(error.response.data.error)
+            toast.error(error?.response?.data?.error)
         }
         setIschangingCountry(false);
     }

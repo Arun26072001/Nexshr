@@ -76,7 +76,7 @@ export default function EmailTemplates() {
             fetchTemplates();
         } catch (error) {
             console.log("error in add template", error);
-            toast.error(error.response.data.error);
+            toast.error(error?.response?.data?.error);
         } finally {
             setIsWorkingApi(false)
         }
@@ -96,7 +96,7 @@ export default function EmailTemplates() {
             fetchTemplates();
         } catch (error) {
             console.log("error in update template", error);
-            toast.error(error.response.data.error)
+            toast.error(error?.response?.data?.error)
         } finally {
             setIsWorkingApi(false)
         }

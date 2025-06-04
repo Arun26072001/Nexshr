@@ -79,7 +79,7 @@ export default function Projects() {
             })
             setProjectObj(res.data);
         } catch (error) {
-            toast.error(error.response.data.error)
+            toast.error(error?.response?.data?.error)
         }
     }
 
@@ -94,7 +94,7 @@ export default function Projects() {
             setProjects(res.data);
             setFilterProjects(res.data);
         } catch (error) {
-            toast.error(error.response.data.error)
+            toast.error(error?.response?.data?.error)
         }
         setIsLoading(false)
     }
@@ -111,7 +111,7 @@ export default function Projects() {
             setProjects(res.data);
             setFilterProjects(res.data);
         } catch (error) {
-            toast.error(error.response.data.error)
+            toast.error(error?.response?.data?.error)
         }
         setIsLoading(false)
     }
@@ -153,7 +153,7 @@ export default function Projects() {
             setProjectObj({});
             handleAddProject();
         } catch (error) {
-            toast.error(error.response.data.error)
+            toast.error(error?.response?.data?.error)
         }
         setIsWorkingApi(false);
     }
@@ -190,7 +190,7 @@ export default function Projects() {
             toast.success(res.data.message);
             handleDeleteProject()
         } catch (error) {
-            toast.error(error.response.data.error)
+            toast.error(error?.response?.data?.error)
         }
     }
 

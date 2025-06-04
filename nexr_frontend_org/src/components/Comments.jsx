@@ -311,7 +311,7 @@ export default function Comments() {
             });
         } catch (error) {
             console.log(error)
-            toast.error(error.response.data.error)
+            toast.error(error?.response?.data?.error)
         }
     }
 
@@ -325,7 +325,7 @@ export default function Comments() {
             toast.success(res.data.message);
             navigate(`/${whoIs}/tasks`);
         } catch (error) {
-            toast.error(error.response.data.error)
+            toast.error(error?.response?.data?.error)
         }
     }
 
@@ -398,7 +398,7 @@ export default function Comments() {
             })
             setProjects(res.data.map((project) => ({ label: project.name, value: project._id })));
         } catch (error) {
-            toast.error(error.response.data.error)
+            toast.error(error?.response?.data?.error)
         }
     }
 

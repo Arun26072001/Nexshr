@@ -490,7 +490,7 @@ const Tasks = () => {
       handleDeleteTask();
       fetchTaskByProjectId(projectId);
     } catch (error) {
-      toast.error(error.response.data.error)
+      toast.error(error?.response?.data?.error)
     }
   }
 
@@ -563,7 +563,7 @@ const Tasks = () => {
 
       setProjects(res.data.map((project) => ({ label: project.name, value: project._id })));
     } catch (error) {
-      toast.error(error.response.data.error)
+      toast.error(error?.response?.data?.error)
     }
     setIsLoading(false)
   }
@@ -607,7 +607,7 @@ const Tasks = () => {
 
         setProjects(res.data.map((project) => ({ label: project.name, value: project._id })));
       } catch (error) {
-        toast.error(error.response.data.error)
+        toast.error(error?.response?.data?.error)
       }
       setIsLoading(false)
     }

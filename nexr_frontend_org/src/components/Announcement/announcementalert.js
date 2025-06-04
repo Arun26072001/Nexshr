@@ -68,7 +68,7 @@ const AnnouncementComponent = ({ handleChangeAnnouncement }) => {
             // socket.emit("send_announcement", addAnnounce.data.data);
         } catch (error) {
             setErrorMsg(error.response.data.error)
-            toast.error(error.response.data.error)
+            toast.error(error?.response?.data?.error)
             console.error('Error creating the announcement or sending notification:', error);
         }
         setIschangingAnnouncement(false);

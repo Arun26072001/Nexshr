@@ -94,7 +94,7 @@ const AddTimePattern = ({ handleAddWorkingTime, reload }) => {
             reload();
             handleAddWorkingTime();
         } catch (error) {
-            toast.error(error.response.data.error);
+            toast.error(error?.response?.data?.error);
             console.log(error);
         } finally {
             setIsWorkingApi(false);

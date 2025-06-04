@@ -37,7 +37,7 @@ export default function Reports() {
             })
             setProjects(res.data.map((project) => ({ label: project.name, value: project._id })));
         } catch (error) {
-            toast.error(error.response.data.error)
+            toast.error(error?.response?.data?.error)
         }
     }
 
@@ -131,7 +131,7 @@ export default function Reports() {
         } catch (error) {
             console.log(error);
 
-            // toast.error(error.response.data.error);
+            // toast.error(error?.response?.data?.error);
         } finally {
             setIsWorkingApi(false);
         }
@@ -151,7 +151,7 @@ export default function Reports() {
             setReportObj({});
             toast.success(res.data.message);
         } catch (error) {
-            toast.error(error.response.data.error)
+            toast.error(error?.response?.data?.error)
         }
         setIsWorkingApi(false);
     }

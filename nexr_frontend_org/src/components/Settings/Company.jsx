@@ -123,7 +123,7 @@ export default function CompanyTab() {
         setRadioOption(res.data)
       } catch (error) {
         console.log(error);
-        toast.error(error.response.data.error)
+        toast.error(error?.response?.data?.error)
       }
     }
     // checkAllValue();

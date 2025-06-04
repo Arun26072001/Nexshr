@@ -123,7 +123,6 @@ router.get("/assigned/:id", verifyAdminHREmployeeManagerNetwork, async (req, res
         return res.send({ tasks: timeUpdatedTasks, categorizeTasks: result });
     } catch (error) {
         console.log(error);
-
         res.status(500).send({ error: error.message })
     }
 })

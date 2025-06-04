@@ -45,7 +45,7 @@ const Leave = () => {
             toast.success(res.data.message);
             getLeaveData();
         } catch (error) {
-            toast.error(error.response.data.error)
+            toast.error(error?.response?.data?.error)
         }
     }
 

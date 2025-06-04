@@ -6,6 +6,7 @@ const { Employee } = require("../models/EmpModel");
 const sendMail = require("./mailSender");
 
 const sendInvitationEmail = async (emp, roleLabel, team, creator) => {
+    console.log("emp",emp, "creator",creator);
     const frontendUrl = process.env.REACT_APP_API_URL;
     const empName = `${emp.FirstName[0].toUpperCase() + emp.FirstName.slice(1)} ${emp.LastName}`;
     const CompanyName = creator.company.CompanyName;
@@ -152,22 +153,24 @@ router.post("/:id", verifyAdminHR, async (req, res) => {
             employees: allMemberIds,
             createdBy: req.params.id,
         });
+        
+      await Promise.all(
+  Object.entries(roles).flatMap(([role, ids]) => {
+    if (!Array.isArray(ids) || ids.length === 0) return [];
 
-        await Promise.all(
-            Object.entries(roles).flatMap(([role, ids]) =>
-                Array.isArray(ids) ?? ids.map(async (memberId) => {
-                    const emp = await Employee.findById(memberId, "FirstName LastName Email fcmToken").populate("company", "CompanyName logo");
-                    if (!emp) return;
+    return ids.map(async (memberId) => {
 
-                    emp.team = newTeam._id;
-                    await emp.save();
+      const emp = await Employee.findById(memberId, "FirstName LastName Email fcmToken").populate("company", "CompanyName logo");
+      if (!emp) return;
 
-                    const roleLabel = role === "employees" ? "Employee" : role.charAt(0).toUpperCase() + role.slice(1);
-                    await sendInvitationEmail(emp, roleLabel, req.body, creator);
-                })
-            )
-        );
+      emp.team = newTeam._id;
+      await emp.save();
 
+      const roleLabel = role === "employees" ? "Employee" : role.charAt(0).toUpperCase() + role.slice(1);
+      await sendInvitationEmail(emp, roleLabel, req.body, creator);
+    });
+  })
+);
         res.json({ message: `New team "${newTeam.teamName}" has been added!`, newTeam });
 
     } catch (error) {

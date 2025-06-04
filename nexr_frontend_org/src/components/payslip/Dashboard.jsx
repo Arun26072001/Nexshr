@@ -501,7 +501,7 @@ const Dashboard = () => {
             toast.success(res.data.message);
             fetchEmpAssignedTasks()
         } catch (error) {
-            toast.error(error.response.data.error)
+            toast.error(error?.response?.data?.error)
         }
     }
 
@@ -525,7 +525,9 @@ const Dashboard = () => {
 
             setProjects(res.data.map((project) => ({ label: project.name, value: project._id })));
         } catch (error) {
-            toast.error(error.response.data.error)
+            console.log("error in fetch emp project", error);
+
+            // toast.error(error?.response?.data?.error)
         }
         setIsLoading(false)
     }
@@ -741,55 +743,55 @@ const Dashboard = () => {
                     </div>
                 </div>
                 {
-                    // !["admin", "hr"].includes(whoIs) &&
-                    // <div className='time justify-content-start flex-wrap' >
-                    //     <h6 ref={myTaskRef}>My Task</h6>
+                    !["admin", "hr"].includes(whoIs) &&
+                    <div className='time justify-content-start flex-wrap' >
+                        <h6 ref={myTaskRef}>My Task</h6>
 
-                    //     <div className="col-lg-12 col-md-12 col-12"  >
-                    //         <div className="d-flex justify-content-between align-items-start flex-wrap my-2 px-2">
-                    //             <div className='d-flex align-items-center gap-3 timeLogBox'>
-                    //                 {["List", "DeadLine", "Planner", "Calendar", "Gantt"].map((label) => (
-                    //                     <span
-                    //                         key={label}
-                    //                         onClick={() => setTaskOption(label)}
-                    //                         className={taskOption === label ? "active" : ""}
-                    //                         style={{ cursor: "pointer" }}
-                    //                     >
-                    //                         {label}
-                    //                     </span>
-                    //                 ))}
-                    //             </div>
+                        <div className="col-lg-12 col-md-12 col-12"  >
+                            <div className="d-flex justify-content-between align-items-start flex-wrap my-2 px-2">
+                                <div className='d-flex align-items-center gap-3 timeLogBox'>
+                                    {["List", "DeadLine", "Planner", "Calendar", "Gantt"].map((label) => (
+                                        <span
+                                            key={label}
+                                            onClick={() => setTaskOption(label)}
+                                            className={taskOption === label ? "active" : ""}
+                                            style={{ cursor: "pointer" }}
+                                        >
+                                            {label}
+                                        </span>
+                                    ))}
+                                </div>
 
-                    //             {/* Right Side: Controls */}
-                    //             <div className="d-flex gap-2 justify-content-end" style={{ minWidth: "200px" }}>
-                    //                 {
-                    //                     [isTeamManager, isTeamLead, isTeamHead].includes(true) &&
-                    //                     <Select options={teamEmps} styles={{
-                    //                         menuPortal: (base) => ({ ...base, zIndex: 9999 }),
-                    //                         menu: (base) => ({ ...base, zIndex: 9999 })
-                    //                     }} onChange={(e) => setSelectedEmp(e)} value={selectedEmp} placeholder="Select Team Employee" />
-                    //                 }
-                    //                 <button className="button" onClick={() => toggleTaskMode("Add")} >
-                    //                     <AddRoundedIcon /> New Task
-                    //                 </button>
-                    //             </div>
-                    //         </div>
-                    //         <div >
-                    //             {
-                    //                 taskOption === "List" ?
-                    //                     isLoadingForTask ? <Loading /> :
-                    //                         tasks.length ?
-                    //                             <LeaveTable data={tasks} handleChangeData={toggleTaskMode} deleteData={deleteTask} />
-                    //                             : <NoDataFound message={"Tasks data not found"} /> :
-                    //                     taskOption === "DeadLine" ? <DeadlineTask updateTask={editTask} categorizeTasks={categorizeTasks} fetchEmpAssignedTasks={fetchEmpAssignedTasks} updateTaskStatus={getValue} setCategorizeTasks={setCategorizeTasks} /> :
-                    //                         ["Planner"].includes(taskOption) ? <h2 className='text-center'>Under Development</h2>
-                    //                             : taskOption === "Calendar" ? <CalendarViewTasks tasks={tasks} />
-                    //                                 : taskOption === "Gantt" ? <GanttView tasks={tasks} isLoading={isLoadingForTask} /> : null
-                    //             }
-                    //         </div>
-                    //     </div>
+                                {/* Right Side: Controls */}
+                                <div className="d-flex gap-2 justify-content-end" style={{ minWidth: "200px" }}>
+                                    {
+                                        [isTeamManager, isTeamLead, isTeamHead].includes(true) &&
+                                        <Select options={teamEmps} styles={{
+                                            menuPortal: (base) => ({ ...base, zIndex: 9999 }),
+                                            menu: (base) => ({ ...base, zIndex: 9999 })
+                                        }} onChange={(e) => setSelectedEmp(e)} value={selectedEmp} placeholder="Select Team Employee" />
+                                    }
+                                    <button className="button" onClick={() => toggleTaskMode("Add")} >
+                                        <AddRoundedIcon /> New Task
+                                    </button>
+                                </div>
+                            </div>
+                            <div >
+                                {
+                                    taskOption === "List" ?
+                                        isLoadingForTask ? <Loading /> :
+                                            tasks.length ?
+                                                <LeaveTable data={tasks} handleChangeData={toggleTaskMode} deleteData={deleteTask} />
+                                                : <NoDataFound message={"Tasks data not found"} /> :
+                                        taskOption === "DeadLine" ? <DeadlineTask updateTask={editTask} categorizeTasks={categorizeTasks} fetchEmpAssignedTasks={fetchEmpAssignedTasks} updateTaskStatus={getValue} setCategorizeTasks={setCategorizeTasks} /> :
+                                            ["Planner"].includes(taskOption) ? <h2 className='text-center'>Under Development</h2>
+                                                : taskOption === "Calendar" ? <CalendarViewTasks tasks={tasks} />
+                                                    : taskOption === "Gantt" ? <GanttView tasks={tasks} isLoading={isLoadingForTask} /> : null
+                                }
+                            </div>
+                        </div>
 
-                    // </div>
+                    </div>
                 }
                 <NexHRDashboard updateClockins={updateClockins} peopleOnLeave={peopleOnLeave} peopleOnWorkFromHome={peopleOnWorkFromHome} isFetchpeopleOnWfh={isFetchpeopleOnWfh} isFetchPeopleOnLeave={isFetchPeopleOnLeave} />
             </>

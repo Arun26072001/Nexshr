@@ -174,7 +174,7 @@ a {
 
 .button:hover {
   background-color: white;
-  color: black;
+  color: black !important;
 }
 
 ::-webkit-scrollbar {

@@ -87,7 +87,7 @@ export default function LeaveRequest() {
             changeRequests();
 
         } catch (error) {
-            toast.error(error.response.data.error)
+            toast.error(error?.response?.data?.error)
         }
     }
 
@@ -112,7 +112,7 @@ export default function LeaveRequest() {
             changeRequests();
         } catch (error) {
             console.error('File upload failed:', error);
-            toast.error(error.response.data.error);
+            toast.error(error?.response?.data?.error);
         }
     };
 

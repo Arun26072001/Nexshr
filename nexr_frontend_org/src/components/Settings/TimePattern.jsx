@@ -87,7 +87,7 @@ const TimePattern = () => {
             handleChangeTimePattern("Add");
             reload(!dom);
         } catch (error) {
-            toast.error(error.response.data.error);
+            toast.error(error?.response?.data?.error);
             console.log("error in add timepattern", error);
         } finally {
             setIsWorkingApi(false)
@@ -106,7 +106,7 @@ const TimePattern = () => {
             toast.success(res.data.message);
             reload(!dom);
         } catch (error) {
-            toast.error(error.response.data.error)
+            toast.error(error?.response?.data?.error)
             console.log("error in delete timePatternObj:", error);
         }
     }

@@ -114,7 +114,7 @@ export default function WFHRequests() {
             toast.success(res.data.message);
             setDaterangeValue([]);
         } catch (error) {
-            toast.error(error.response.data.error)
+            toast.error(error?.response?.data?.error)
         }
     }
 

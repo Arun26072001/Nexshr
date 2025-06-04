@@ -13,6 +13,7 @@ import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
 import KeyboardArrowDownRoundedIcon from '@mui/icons-material/KeyboardArrowDownRounded';
 import Loading from '../../Loader';
 import { convertTimeStringToDate, processActivityDurations, updateDataAPI } from '../../ReuseableAPI';
+import { useNavigate } from 'react-router-dom';
 
 export default function Navbar({ handleSideBar }) {
     const { handleLogout, data, handleUpdateAnnouncements, isChangeAnnouncements, whoIs,
@@ -32,6 +33,7 @@ export default function Navbar({ handleSideBar }) {
     const [latitude, setLatitude] = useState("");
     const [longitude, setLongitude] = useState("");
     const [isLoading, setIsLoading] = useState(false);
+    const navigate  = useNavigate();
     const [workLocation, setWorklocation] = useState(localStorage.getItem("workLocation") || "");
     const worklocationType = ["WFH", "WFO"].map((item) => ({ label: item, value: item }))
 
@@ -123,7 +125,10 @@ export default function Navbar({ handleSideBar }) {
             setIsRemove(totalRemovables);
             setNotifications(res.data);
         } catch (error) {
-            console.log("error in fetch notifications", error);
+            if (error?.message === "Network Error") {
+                navigate("/network-issue")
+            }
+            console.log("error in fetch notifications", error.message);
         } finally {
             setIsLoading(false);
         }

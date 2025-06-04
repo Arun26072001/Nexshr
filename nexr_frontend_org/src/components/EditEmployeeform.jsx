@@ -95,7 +95,7 @@ const EditEmployeeform = ({ details, empData, handleScroll, handlePersonal, prev
                     }
                 } catch (error) {
                     console.log("error in update file", error);
-                    toast.error(error.response.data.error)
+                    toast.error(error?.response?.data?.error)
                 }
 
                 const res = await updateEmp(values, id);

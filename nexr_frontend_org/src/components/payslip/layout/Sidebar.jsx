@@ -2,6 +2,10 @@ import React, { useContext, useState } from 'react';
 import { NavLink, useParams } from 'react-router-dom';
 import './sidebar.css';
 import KeyboardArrowDownSharpIcon from '@mui/icons-material/KeyboardArrowDownSharp';
+import { EssentialValues } from '../../../App';
+import { jwtDecode } from 'jwt-decode';
+import { TimerStates } from '../HRMDashboard';
+// icons
 import jobDeskIcon from '../../../asserts/jobDeskIcon.svg';
 import settingsIcon from '../../../asserts/settingsIcon.svg';
 import homeIcon from '../../../asserts/homeIcon.svg';
@@ -16,9 +20,7 @@ import workFromHomeIcon from "../../../asserts/workfromhome.svg";
 import emailTempIcon from "../../../asserts/env.svg";
 import holidayIcon from "../../../asserts/beach.svg";
 import announcementIcon from "../../../asserts/announcement.svg";
-import { EssentialValues } from '../../../App';
-import { jwtDecode } from 'jwt-decode';
-import { TimerStates } from '../HRMDashboard';
+import bugIcon from "../../../asserts/bugIcon.svg"; 
 
 const Sidebar = ({ sideBar }) => {
   const { data, whoIs } = useContext(EssentialValues);
@@ -201,8 +203,8 @@ const Sidebar = ({ sideBar }) => {
         {renderNavLink(
           ['hr', "admin", "emp"].includes(whoIs),
           `/${whoIs}/raise-bugs`,
-          holidayIcon,
-          'Bugs',
+          bugIcon,
+          'Raise Bugs',
           'raise-bugs'
         )}
 
