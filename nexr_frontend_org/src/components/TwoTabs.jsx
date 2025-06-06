@@ -96,7 +96,7 @@ export default function Twotabs() {
   }, []);
 
   useEffect(() => {
-    async function getAllEmpLeaveData() {
+    async function getEmpAllLeaveData() {
       setIsLoading(true);
       try {
         const res = await fetchLeaveRequests(data._id);
@@ -112,22 +112,32 @@ export default function Twotabs() {
       setIsLoading(false)
     }
     // if (["2", "3"].includes(data.Account)) {
-    getAllEmpLeaveData();
+    getEmpAllLeaveData();
     // }
   }, [])
 
   function getTodoList(date) {
-    if (!date) {
-      return [];
-    }
+    if (!date) return [];
 
-    return leaveData.filter((leave) => {
-      return leave.start.toDateString() === date.toDateString();
+    const current = new Date(date);
+    current.setHours(0, 0, 0, 0); // Normalize time
+
+    return leaveData?.filter((leave) => {
+      const start = new Date(leave.start);
+      const end = new Date(leave.end || leave.start); // fallback to start if no end
+
+      // Normalize time for comparison
+      start.setHours(0, 0, 0, 0);
+      end.setHours(0, 0, 0, 0);
+
+      return current >= start && current <= end;
     });
   }
 
+
   const renderMenu = (date) => ({ onClose, right, top, className }, ref) => {
     const list = getTodoList(date);
+
     if (!list.length) {
       return null; // Return null instead of []
     }
@@ -142,7 +152,7 @@ export default function Twotabs() {
     return (
       <Popover ref={ref} className={className} style={{ right, top }} full>
         <Dropdown.Menu onSelect={handleSelect} title="Personal Settings">
-          {list.map((item) => (
+          {list?.map((item) => (
             <Dropdown.Item key={item.start}>{item.title}</Dropdown.Item>
           ))}
         </Dropdown.Menu>
@@ -150,70 +160,44 @@ export default function Twotabs() {
     );
   };
 
-  // function highlightToLeave(date) {
-  //   if (!leaveData || !leaveData.length) return null; // Ensure leaveData exists
-
-  //   // Filter leaveData based on date comparison
-  //   const isLeave = leaveData.filter((leave) => {
-  //     console.log(leave.start);
-  //     const leaveDate = new Date(leave.start); // Ensure `leave.start` is a Date object
-  //     return leaveDate.toDateString() === date.toDateString();
-  //   });
-
-  //   if (isLeave.length > 0) {
-  //     const leaveStatus = isLeave[0].status; // Get status from the first matched leave
-
-  //     return (
-  //       <Whisper placement="bottomEnd" trigger="click" speaker={renderMenu(date)}>
-  //         <div style={{ width: "20px", height: "20px" }}>
-  //           <Badge className={`calendar-todo-item-badge ${leaveStatus === "pending" ? "bg-warning" : leaveStatus === "approved" ? "bg-success" : ""}`} />
-  //         </div>
-  //       </Whisper>
-  //     );
-  //   }
-
-  //   return null; // Return null if no leave is found
-  // }
-
   function highlightToLeave(date) {
-  if (!leaveData || !leaveData.length) return null;
+    if (!leaveData || !leaveData.length) return null;
 
-  // Find if the given date falls within any leave range
-  const matchedLeave = leaveData.find((leave) => {
-    const start = new Date(leave.start);
-    const end = new Date(leave.end || leave.start); // fallback if no end
+    // Find if the given date falls within any leave range
+    const matchedLeave = leaveData.find((leave) => {
+      const start = new Date(leave.start);
+      const end = new Date(leave.end || leave.start); // fallback if no end
 
-    // Normalize time to 00:00:00 for comparison
-    start.setHours(0, 0, 0, 0);
-    end.setHours(0, 0, 0, 0);
-    const current = new Date(date);
-    current.setHours(0, 0, 0, 0);
+      // Normalize time to 00:00:00 for comparison
+      start.setHours(start.getHours(), start.getMinutes(), start.getSeconds(), 0);
+      end.setHours(end.getHours(), end.getMinutes(), end.getSeconds(), 0);
+      const current = new Date(date);
+      current.setHours(0, 0, 0, 0);
 
-    return current >= start && current <= end;
-  });
+      return current >= start && current <= end;
+    });
 
-  if (matchedLeave) {
-    const leaveStatus = matchedLeave.status;
+    if (matchedLeave) {
+      const leaveStatus = matchedLeave.status;
 
-    return (
-      <Whisper placement="bottomEnd" trigger="click" speaker={renderMenu(date)}>
-        <div style={{ width: "20px", height: "20px" }}>
-          <Badge
-            className={`calendar-todo-item-badge ${
-              leaveStatus === "pending"
+      return (
+        <Whisper placement="bottomEnd" trigger="click" speaker={renderMenu(date)}>
+          <div style={{ width: "20px", height: "20px" }}>
+            <Badge
+              className={`calendar-todo-item-badge ${leaveStatus === "pending"
                 ? "bg-warning"
                 : leaveStatus === "approved"
-                ? "bg-success"
-                : ""
-            }`}
-          />
-        </div>
-      </Whisper>
-    );
-  }
+                  ? "bg-success"
+                  : ""
+                }`}
+            />
+          </div>
+        </Whisper>
+      );
+    }
 
-  return null;
-}
+    return null;
+  }
 
 
   return (

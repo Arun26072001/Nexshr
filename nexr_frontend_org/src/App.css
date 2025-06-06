@@ -1,16 +1,16 @@
-@import '../node_modules/@syncfusion/ej2-base/styles/material.css';
-@import '../node_modules/@syncfusion/ej2-buttons/styles/material.css';
-@import '../node_modules/@syncfusion/ej2-calendars/styles/material.css';
-@import '../node_modules/@syncfusion/ej2-dropdowns/styles/material.css';
-@import '../node_modules/@syncfusion/ej2-inputs/styles/material.css';
-@import '../node_modules/@syncfusion/ej2-lists/styles/material.css';
-@import '../node_modules/@syncfusion/ej2-layouts/styles/material.css';
-@import '../node_modules/@syncfusion/ej2-navigations/styles/material.css';
-@import '../node_modules/@syncfusion/ej2-popups/styles/material.css';
-@import '../node_modules/@syncfusion/ej2-splitbuttons/styles/material.css';
-@import '../node_modules/@syncfusion/ej2-grids/styles/material.css';
-@import '../node_modules/@syncfusion/ej2-treegrid/styles/material.css';
-@import '../node_modules/@syncfusion/ej2-react-gantt/styles/material.css';
+@import "../node_modules/@syncfusion/ej2-base/styles/material.css";
+@import "../node_modules/@syncfusion/ej2-buttons/styles/material.css";
+@import "../node_modules/@syncfusion/ej2-calendars/styles/material.css";
+@import "../node_modules/@syncfusion/ej2-dropdowns/styles/material.css";
+@import "../node_modules/@syncfusion/ej2-inputs/styles/material.css";
+@import "../node_modules/@syncfusion/ej2-lists/styles/material.css";
+@import "../node_modules/@syncfusion/ej2-layouts/styles/material.css";
+@import "../node_modules/@syncfusion/ej2-navigations/styles/material.css";
+@import "../node_modules/@syncfusion/ej2-popups/styles/material.css";
+@import "../node_modules/@syncfusion/ej2-splitbuttons/styles/material.css";
+@import "../node_modules/@syncfusion/ej2-grids/styles/material.css";
+@import "../node_modules/@syncfusion/ej2-treegrid/styles/material.css";
+@import "../node_modules/@syncfusion/ej2-react-gantt/styles/material.css";
 
 * {
   font-family: "Inter", sans-serif;
@@ -120,7 +120,7 @@ label {
 }
 
 .notFoundText {
-  height: 100%;
+  /* height: 100%; */
   font-weight: 500;
   font-size: 20px;
   color: red;
@@ -197,6 +197,10 @@ a {
   border-radius: 8px;
   margin-top: 24px;
   font-size: small;
+}
+
+.leaveContainer {
+  height: 100vh;
 }
 
 .chartTitle {
@@ -676,4 +680,3 @@ textarea.form-control {
   width: 300px;
   font-size: 16px;
 }
-  

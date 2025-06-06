@@ -4,6 +4,7 @@ const isSameOrBefore = require('dayjs/plugin/isSameOrBefore');
 const isSameOrAfter = require('dayjs/plugin/isSameOrAfter');
 const isoWeek = require('dayjs/plugin/isoWeek');
 const isBetween = require('dayjs/plugin/isBetween');
+const { PlannerCategory } = require("../models/PlannerCategoryModel");
 
 dayjs.extend(isSameOrBefore);
 dayjs.extend(isSameOrAfter);
@@ -256,6 +257,17 @@ function processActivityDurations(record) {
   });
 }
 
+async function fetchFirstTwoItems() {
+  try {
+    const items = await PlannerCategory.find().limit(2);
+    const itemsId = items.map((item) => item._id)
+    return itemsId;
+  } catch (error) {
+    console.error('Error fetching items:', error);
+    throw error;
+  }
+}
+
 function timeToMinutes(timeStr) {
   if (typeof timeStr === 'object') {
     const timeData = new Date(timeStr).toTimeString().split(' ')[0]
@@ -437,4 +449,4 @@ function generateCoverByEmail(empData, relievingOffData) {
         `;
 }
 
-module.exports = { convertToString, getCurrentTime,checkLoginForOfficeTime, categorizeTasks, projectMailContent, processActivityDurations, getTotalWorkingHourPerDay, formatLeaveData, getDayDifference, getOrgDB, formatDate, getWeekdaysOfCurrentMonth, mailContent, checkLogin, getTotalWorkingHoursExcludingWeekends, getCurrentTimeInMinutes, timeToMinutes, formatTimeFromMinutes };
+module.exports = { convertToString, fetchFirstTwoItems, getCurrentTime, checkLoginForOfficeTime, categorizeTasks, projectMailContent, processActivityDurations, getTotalWorkingHourPerDay, formatLeaveData, getDayDifference, getOrgDB, formatDate, getWeekdaysOfCurrentMonth, mailContent, checkLogin, getTotalWorkingHoursExcludingWeekends, getCurrentTimeInMinutes, timeToMinutes, formatTimeFromMinutes };

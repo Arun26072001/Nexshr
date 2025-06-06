@@ -6,6 +6,8 @@ const { Employee } = require("../models/EmpModel");
 const sendMail = require("./mailSender");
 const { convertToString, getCurrentTimeInMinutes, timeToMinutes, formatTimeFromMinutes, projectMailContent, categorizeTasks } = require("../Reuseable_functions/reusableFunction");
 const { sendPushNotification } = require("../auth/PushNotification");
+const { PlannerCategory } = require("../models/PlannerCategoryModel");
+const { PlannerType } = require("../models/PlannerTypeModel");
 const router = express.Router();
 
 router.get("/project/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
@@ -119,8 +121,22 @@ router.get("/assigned/:id", verifyAdminHREmployeeManagerNetwork, async (req, res
             };
         }).filter(Boolean);
         const result = categorizeTasks(timeUpdatedTasks);
+        const planner = {};
+        const plannerType = await PlannerType.findOne({ employee: req.params.id }).lean().exec();
 
-        return res.send({ tasks: timeUpdatedTasks, categorizeTasks: result });
+        if (plannerType && plannerType._id) {
+            tasks.forEach((task) => {
+                // Check if task matches the plannerType (based on category or lack of one)
+                if (!task.category || (task.category && task.category === plannerType._id.toString())) {
+                    if (!planner[plannerType._id]) {
+                        planner[plannerType._id] = [];
+                    }
+                    planner[plannerType._id].push(task);
+                }
+            });
+        }
+
+        return res.send({ tasks: timeUpdatedTasks, categorizeTasks: result, planner });
     } catch (error) {
         console.log(error);
         res.status(500).send({ error: error.message })
@@ -226,6 +242,7 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
             Employee.find({ _id: { $in: observers } }).populate("company", companyFields).select(empFields)
         ]);
 
+        const defaultCategory = await PlannerCategory.findOne().exec();
         // Create Task
         const task = new Task({
             ...req.body,
@@ -235,7 +252,8 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
             observers,
             status: status || "On Hold",
             spend: spend || {},
-            tracker: []
+            tracker: [],
+            category: defaultCategory._id
         });
 
         // Trackers
@@ -284,6 +302,7 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
         const createdPersonName = fullName;
 
         for (const { emps, role } of notifyGroups) {
+
             for (const emp of emps) {
                 const notification = {
                     company: emp.company._id,

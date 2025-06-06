@@ -9,6 +9,8 @@ const { Team } = require('../models/TeamModel');
 const fs = require("fs");
 const path = require("path");
 const { LeaveApplication } = require('../models/LeaveAppModel');
+const { fetchFirstTwoItems } = require('../Reuseable_functions/reusableFunction');
+const { PlannerType } = require('../models/PlannerTypeModel');
 
 router.get("/", verifyAdminHRTeamHigherAuth, async (req, res) => {
   try {
@@ -36,6 +38,23 @@ router.get("/", verifyAdminHRTeamHigherAuth, async (req, res) => {
     res.status(500).send({ error: err.message })
   }
 });
+
+// router.post("/add-planner", async (req, res) => {
+//   try {
+//     const emps = await Employee.find({}, "_id").exec();
+//     emps.forEach(async emp => {
+//       // add planner type 
+//       const defaultCategories = await fetchFirstTwoItems();
+//       const plannerTypeData = {
+//         employee: emp,
+//         categories: [...(defaultCategories || [])]
+//       }
+//       await PlannerType.create(plannerTypeData);
+//     })
+//   } catch (error) {
+//     console.log("error in add-planner");
+//   }
+// })
 
 router.get("/notifications/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
   try {
@@ -314,6 +333,14 @@ router.post("/:id", verifyAdminHR, async (req, res) => {
 
     const employee = await Employee.create(employeeData);
 
+    // add planner type 
+    const defaultCategories = await fetchFirstTwoItems();
+    const plannerTypeData = {
+      employee: employee._id,
+      categories: [...(defaultCategories || [])]
+    }
+    await PlannerType.create(plannerTypeData);
+
     const htmlContent = `
 <!DOCTYPE html>
 <html lang="en">
@@ -384,7 +411,6 @@ router.post("/:id", verifyAdminHR, async (req, res) => {
     res.status(500).send({ error: err.message });
   }
 });
-
 
 router.put("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
   try {

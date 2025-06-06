@@ -1264,15 +1264,15 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
                                                     } else if (params["*"] === "") {
                                                         return (
                                                             <Dropdown title={"Action"} placement='leftStart' noCaret>
-                                                                <Dropdown.Item style={{ minWidth: 80 }} onClick={() => handleChangeData("View", row._id)}>
+                                                                <Dropdown.Item style={{ minWidth: 80 }} onClick={() => handleChangeData("View", row?._id)}>
                                                                     <b>
                                                                         <RemoveRedEyeRoundedIcon sx={{ color: "#80C4E9" }} /> View
                                                                     </b>
                                                                 </Dropdown.Item>
                                                                 {
-                                                                    empId === row.createdby._id &&
+                                                                    empId === row?.createdby?._id &&
                                                                     <>
-                                                                        <Dropdown.Item style={{ minWidth: 80 }} onClick={() => handleChangeData("Edit", row._id)}>
+                                                                        <Dropdown.Item style={{ minWidth: 80 }} onClick={() => handleChangeData("Edit", row?._id)}>
                                                                             <b>
                                                                                 <BorderColorRoundedIcon sx={{ color: "#FFD65A" }} /> Edit
                                                                             </b>

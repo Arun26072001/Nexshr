@@ -47,6 +47,7 @@ const userPermission = require("./routes/user-permission");
 const pageAuth = require("./routes/page-auth");
 const organization = require("./routes/organization");
 const userAccount = require("./routes/user-account");
+const plannerType = require("./routes/planner-type");
 const { imgUpload } = require('./routes/imgUpload');
 const holidays = require("./routes/holidays");
 const report = require("./routes/reports");
@@ -153,6 +154,7 @@ app.use("/api/google-sheet/upload", fileData);
 app.use("/api/mail-settings", mailSettings);
 app.use("/api/wfh-application", wfhRouter);
 app.use("/api/email-template", emailTemplate);
+app.use("/api/planner", plannerType)
 app.post("/push-notification", sendPushNotification);
 app.post("/verify_completed_workinghour", verifyWorkingTimeCompleted);
 app.post("/ask-reason-for-delay", askReasonForDelay);

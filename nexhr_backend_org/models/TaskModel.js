@@ -49,7 +49,8 @@ const taskSchema = new mongoose.Schema({
     comments: [{ type: commentSchema, default: null }],
     estTime: { type: Number },
     createdby: { type: mongoose.Schema.Types.ObjectId, ref: "Employee" },
-    project: { type: mongoose.Schema.Types.ObjectId, ref: "Project" }
+    project: { type: mongoose.Schema.Types.ObjectId, ref: "Project" },
+    category: {type: mongoose.Schema.Types.ObjectId, ref: "PlannerCategory"}
 }, { timestamps: true })
 
 taskSchema.post("save", async function (doc) {

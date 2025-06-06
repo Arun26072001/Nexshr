@@ -14,6 +14,7 @@ import { EssentialValues } from "../App";
 import LeaveTable from "./LeaveTable";
 import { Skeleton } from "@mui/material";
 import Loading from "./Loader";
+import NoDataFound from "./payslip/NoDataFound";
 
 const localizer = dayjsLocalizer(dayjs);
 
@@ -215,14 +216,16 @@ function Holiday() {
 
     return (
         isEditable ? renderHolidayForm() :
-            whoIs === "emp" ? <Calendar
-                localizer={localizer}
-                events={fetchedHolidays}
-                startAccessor="start"
-                endAccessor="end"
-                eventPropGetter={eventPropGetter}
-                style={{ height: 500 }}
-            /> :
+            whoIs === "emp" ?
+                (fetchedHolidays.length > 0 ?
+                    <Calendar
+                        localizer={localizer}
+                        events={fetchedHolidays}
+                        startAccessor="start"
+                        endAccessor="end"
+                        eventPropGetter={eventPropGetter}
+                        style={{ height: 500 }}
+                    /> : <h3 className="notFoundText" style={{ height: "100vh" }}>The current year's holidays have not been added yet.</h3>) :
                 <Tabs defaultActiveKey="1" appearance="pills">
                     <Tabs.Tab eventKey="1" title="TableView">
                         <>
@@ -232,7 +235,11 @@ function Holiday() {
                                     <button className="button mx-1" onClick={() => toggleHolidayMode("Add")}>Add Holidays</button>
                                 </div>
                             </div>
-                            <LeaveTable data={allYearHoliday} deleteData={deleteHoliday} handleChangeData={toggleHolidayMode} />
+                            {
+                                allYearHoliday.length > 0 ?
+                                    <LeaveTable data={allYearHoliday} deleteData={deleteHoliday} handleChangeData={toggleHolidayMode} /> :
+                                    <h3 className="notFoundText" style={{ height: "60vh" }}>Data not found</h3>
+                            }
                         </>
                     </Tabs.Tab>
                     <Tabs.Tab eventKey="2" title="CalendarView">
