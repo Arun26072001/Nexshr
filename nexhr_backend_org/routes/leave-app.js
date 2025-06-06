@@ -770,7 +770,7 @@ leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("pre
     const { empId } = req.params;
     const {
       leaveType, fromDate, toDate, periodOfLeave,
-       reasonForLeave, coverBy, applyFor, role
+      reasonForLeave, coverBy, applyFor, role
     } = req.body;
 
     const today = new Date();
@@ -835,6 +835,7 @@ leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("pre
     if (!applyFor || applyFor === "undefined") {
       if (["Sick Leave", "Medical Leave"].includes(leaveType) &&
         ![today.toDateString(), tomorrow.toDateString()].includes(formattedFrom)) {
+        console.log(today.toDateString(), tomorrow.toDateString(), formattedFrom);
         return res.status(400).json({ error: "Sick leave is only applicable for today or tomorrow." });
       }
 
