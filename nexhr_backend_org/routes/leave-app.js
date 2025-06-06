@@ -638,23 +638,28 @@ leaveApp.get("/date-range/management/:whoIs", verifyAdminHrNetworkAdmin, async (
       }));
 
     const approvedLeave = leaveData.filter(leave => leave.status === "approved");
+    let approvedLeaveDays = 0
+    approvedLeave.map((data) => approvedLeaveDays += getDayDifference(data));
     const leaveInHours = approvedLeave.reduce(
       (total, leave) => total + getDayDifference(leave) * 9, 0
     );
-
     const pendingLeave = leaveData.filter(leave => leave.status === "pending");
+    let pendingLeaveDays = 0;
+    pendingLeave.map((data) => pendingLeaveDays += getDayDifference(data));
     const upcomingLeave = leaveData.filter(leave => new Date(leave.fromDate) > now);
+    let upComingLeaveDays = 0;
+    upcomingLeave.map((data) => upComingLeaveDays += getDayDifference(data));
     const peopleOnLeave = approvedLeave.filter(leave =>
       new Date(leave.fromDate).toDateString() === now.toDateString()
     );
 
     res.send({
       leaveData,
-      approvedLeave,
+      approvedLeave: approvedLeaveDays,
       leaveInHours,
       peopleOnLeave,
-      pendingLeave,
-      upcomingLeave
+      pendingLeave: pendingLeaveDays,
+      upcomingLeave: upComingLeaveDays
     });
   } catch (error) {
     console.error("Error fetching leave data:", error);
@@ -764,8 +769,8 @@ leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("pre
   try {
     const { empId } = req.params;
     const {
-      leaveType, fromDate, toDate, periodOfLeave, reasonForLeave,
-      coverBy, applyFor, role
+      leaveType, fromDate, toDate, periodOfLeave,
+       reasonForLeave, coverBy, applyFor, role
     } = req.body;
 
     const today = new Date();
@@ -786,6 +791,21 @@ leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("pre
       accountLevel = roleLevels[roleName] || 3;
     }
 
+    // ✅ Check team leave count
+    const team = await Team.findOne({ employees: empId }, "employees");
+    if (team?.employees?.length) {
+      const overlappingleaveApps = await LeaveApplication.find({
+        employee: { $in: team.employees },
+        status: "approved",
+        fromDate: { $lte: toDate },
+        toDate: { $gte: fromDate },
+      });
+
+      if (overlappingleaveApps.length >= 2) {
+        return res.status(400).json({ error: "Already two members are approved for leave in this time period." });
+      }
+    }
+
     // 1. Reject if employee was working on selected dates
     if (applyFor && applyFor !== "undefined") {
       const emp = await Employee.findById(personId, "clockIns").populate({
@@ -800,7 +820,6 @@ leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("pre
     // 2. Duplicate leave check
     const existingRequest = await LeaveApplication.findOne({
       employee: personId,
-      status: "approved",
       fromDate: { $lte: toDate },
       toDate: { $gte: fromDate }
     });
@@ -926,17 +945,13 @@ leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("pre
 
 leaveApp.put('/:id', verifyAdminHREmployeeManagerNetwork, async (req, res) => {
   try {
-    const { approvers, employee, leaveType, fromDate, toDate, ...restBody } = req.body;
+    const { approvers, employee, leaveType, fromDate, toDate, status, ...restBody } = req.body;
 
     const fromDateValue = new Date(fromDate);
     const toDateValue = new Date(toDate);
-    const today = new Date();
     const leaveHour = fromDateValue.getHours() || 0;
-    const startOfDay = new Date(today.setHours(leaveHour - 2, 0, 0, 0));
-
-    const allApproved = Object.values(approvers).every(status => status === "approved");
-    const anyRejected = Object.values(approvers).some(status => status === "rejected");
-    const allPending = Object.values(approvers).every(status => status === "pending");
+    const startOfDay = new Date();
+    startOfDay.setHours(leaveHour - 2, 0, 0, 0);
 
     const emp = await Employee.findById(employee, "FirstName LastName Email typesOfLeaveRemainingDays team company")
       .populate([
@@ -957,12 +972,44 @@ leaveApp.put('/:id', verifyAdminHREmployeeManagerNetwork, async (req, res) => {
     if (!emp) return res.status(404).send({ error: 'Employee not found.' });
     if (!emp.team) return res.status(404).send({ error: `${emp.FirstName} is not assigned to a team.` });
 
+    let updatedStatus = status;
+    let updatedApprovers = approvers;
+
+    if (status === "approved" || status === "rejected") {
+      const newStatus = status;
+      updatedApprovers = Object.fromEntries(
+        Object.entries(approvers).map(([key]) => [key, newStatus])
+      );
+
+      if (status === "approved") {
+        const team = await Team.findOne({ employees: employee }, "employees");
+
+        if (team?.employees?.length) {
+          const overlappingLeaves = await LeaveApplication.find({
+            employee: { $in: team.employees },
+            status: "approved",
+            fromDate: { $lte: toDate },
+            toDate: { $gte: fromDate },
+          });
+
+          if (overlappingLeaves.length >= 2) {
+            return res.status(400).json({ error: "Already two members are approved for leave in this time period." });
+          }
+        }
+      }
+    }
+
+    const approverStatuses = Object.values(updatedApprovers);
+    const allApproved = approverStatuses.every(status => status === "approved");
+    const anyRejected = approverStatuses.some(status => status === "rejected");
+    const allPending = approverStatuses.every(status => status === "pending");
+
     const actionBy = req.query.actionBy;
     const emailType = allApproved ? "approved" : anyRejected ? "rejected" : "pending";
-    let mailList = [];
+    const mailList = [];
 
-    // Deduct leave if approved and check unpaid leave
-    if (!allPending && allApproved && !leaveType.toLowerCase().includes("unpaid")) {
+    // Deduct leave if approved and not unpaid
+    if (allApproved && !leaveType.toLowerCase().includes("unpaid")) {
       const leaveDaysTaken = Math.max(getDayDifference({ fromDate, toDate }), 1);
       const leaveBalance = emp.typesOfLeaveRemainingDays?.[leaveType] ?? 0;
 
@@ -975,51 +1022,34 @@ leaveApp.put('/:id', verifyAdminHREmployeeManagerNetwork, async (req, res) => {
       });
     }
 
-    // Notify members if status changed
-    if (!allPending && !leaveType.toLowerCase().includes("unpaid")) {
+    // Send notifications if status changed
+    if (!allPending) {
       const Subject = "Leave Application Response Notification";
-      const message = anyRejected
-        ? `${emp.FirstName}'s leave application has been rejected by ${actionBy}`
-        : `${emp.FirstName}'s leave application has been approved by ${actionBy}`;
+      const message = `${emp.FirstName}'s leave application has been ${emailType} by ${actionBy}`;
 
       const getMembers = (data, type) =>
-        Array.isArray(data)
-          ? data.map(item => ({
-            type,
+        Array.isArray(data) ? data : data ? [data] : [];
+
+      const members = [
+        { type: "emp", Email: emp.Email, name: `${emp.FirstName} ${emp.LastName}`, _id: emp._id, fcmToken: null },
+        ...["lead", "head", "manager", "admin", "hr"].flatMap(role =>
+          getMembers(emp.team?.[role]).map(item => ({
+            type: role,
             Email: item?.Email,
             name: `${item?.FirstName ?? ""} ${item?.LastName ?? ""}`.trim(),
             fcmToken: item?.fcmToken,
             _id: item?._id
           }))
-          : data?.Email
-            ? [{
-              type,
-              Email: data.Email,
-              name: `${data.FirstName ?? ""} ${data.LastName ?? ""}`.trim(),
-              fcmToken: data?.fcmToken,
-              _id: data?._id
-            }]
-            : [];
-
-      const members = [
-        emp.Email && { type: "emp", Email: emp.Email, name: `${emp.FirstName} ${emp.LastName}` },
-        ...getMembers(emp.team?.lead, "lead"),
-        ...getMembers(emp.team?.head, "head"),
-        ...getMembers(emp.team?.manager, "manager"),
-        ...getMembers(emp.team?.hr, "hr"),
-        ...getMembers(emp.team?.admin, "admin")
-      ].filter(Boolean);
+        )
+      ].filter(m => m?.Email);
 
       const uniqueEmails = new Set();
-      const notifiedMembers = [];
 
       for (const member of members) {
         if (!uniqueEmails.has(member.Email)) {
           uniqueEmails.add(member.Email);
           mailList.push(member.Email);
-          notifiedMembers.push(member);
 
-          // Send Email
           await sendMail({
             From: process.env.FROM_MAIL,
             To: member.Email,
@@ -1027,7 +1057,6 @@ leaveApp.put('/:id', verifyAdminHREmployeeManagerNetwork, async (req, res) => {
             HtmlBody: mailContent(emailType, fromDateValue, toDateValue, emp, leaveType, actionBy, member),
           });
 
-          // Send Push + Add to Notifications
           const fullEmp = await Employee.findById(member._id);
           if (fullEmp) {
             fullEmp.notifications.push({ company: emp.company._id, title: Subject, message });
@@ -1043,20 +1072,12 @@ leaveApp.put('/:id', verifyAdminHREmployeeManagerNetwork, async (req, res) => {
         }
       }
     }
-    //  else if(leaveType.toLowerCase().includes("unpaid")){
-    //   // send email and notification
-    //   sendMail({
-    //     From: process.env.FROM_MAIL,
-    //     To: emp.Email,
-    //     Subject: `Your Leave app`
-    //   })
-    // }
 
-    // Update Leave Application
+    // Update leave application
     const updatedLeaveApp = {
       ...req.body,
-      approvers,
-      status: allApproved ? "approved" : anyRejected ? "rejected" : restBody.status
+      approvers: updatedApprovers,
+      status: updatedStatus
     };
 
     const updatedRequest = await LeaveApplication.findOneAndUpdate(
@@ -1076,7 +1097,6 @@ leaveApp.put('/:id', verifyAdminHREmployeeManagerNetwork, async (req, res) => {
     return res.status(500).send({ error: 'An error occurred while processing the request.' });
   }
 });
-
 
 leaveApp.delete("/:id/:leaveId", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
   try {

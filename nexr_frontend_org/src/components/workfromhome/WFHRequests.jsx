@@ -20,7 +20,7 @@ export default function WFHRequests() {
 
     async function fetchTeamWfhRequests() {
         setIsLoading(true)
-        
+
         try {
             const res = await axios.get(`${url}/api/wfh-application/team/${data._id}`, {
                 params: {
@@ -39,6 +39,7 @@ export default function WFHRequests() {
             setIsLoading(false)
         }
     }
+    console.log("requests", requests);
 
     async function fetchAllWfhRequests() {
         setIsLoading(true);
@@ -100,6 +101,12 @@ export default function WFHRequests() {
                         hr: response
                     }
                 }
+            } else if (String(data.Account) === "1") {
+                actionBy = "Admin"
+                updatedWFHRequest = {
+                    ...request,
+                    status: response
+                }
             } else {
                 toast.error("You are not approver for this requests")
                 return;
@@ -146,7 +153,7 @@ export default function WFHRequests() {
                         <div className="leaveData col-12 col-lg-3">
                             <div className="d-flex flex-column">
                                 <div className="leaveDays">
-                                    {requests?.approvedRequests?.length || 0} Days
+                                    {requests?.approvedRequests || 0} Days
                                 </div>
                                 <div className="leaveDaysDesc">
                                     Taken requests
@@ -156,7 +163,7 @@ export default function WFHRequests() {
                         <div className="leaveData col-12 col-lg-3">
                             <div className="d-flex flex-column">
                                 <div className="leaveDays">
-                                    {requests?.upcommingRequests?.length || 0} Days
+                                    {requests?.upcommingRequests || 0} Days
                                 </div>
                                 <div className="leaveDaysDesc">
                                     Upcoming requests
@@ -166,7 +173,7 @@ export default function WFHRequests() {
                         <div className="leaveData col-lg-3 col-12" style={{ borderRight: "none" }} >
                             <div className="d-flex flex-column">
                                 <div className="leaveDays">
-                                    {requests?.pendingRequests?.length || 0} Days
+                                    {requests?.pendingRequests || 0} Days
                                 </div>
                                 <div className="leaveDaysDesc">
                                     Pending request

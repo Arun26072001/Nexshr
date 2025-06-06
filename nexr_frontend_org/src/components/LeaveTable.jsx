@@ -727,9 +727,7 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
             minWidth: 200,
             align: 'center',
             getter: (row) =>
-                Array.isArray(row?.employees) && row.employees.length
-                    ? row.employees.map(emp => emp?.FirstName[0].toUpperCase() + emp?.FirstName.slice(1)).join(', ')
-                    : 'N/A'
+                Array.isArray(row?.employees) && row.employees.length ? row.employees.length : 'N/A'
         },
         { id: 'Action', label: 'Action', minWidth: 100, align: 'center' }
     ];

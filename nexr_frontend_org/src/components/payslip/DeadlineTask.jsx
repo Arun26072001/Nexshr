@@ -10,7 +10,6 @@ import { useContext, useEffect, useState } from "react";
 import { EssentialValues } from "../../App";
 import { Skeleton } from "@mui/material";
 import { calculateTimePattern, createTask, getDueDateByType } from "../ReuseableAPI";
-import { prefix } from "rsuite/esm/internals/utils";
 
 export default function DeadlineTask({ isLoading, updateTaskStatus, fetchEmpAssignedTasks, updatedTimerInTask, categorizeTasks, setCategorizeTasks, updateTask }) {
     // for task 
@@ -82,10 +81,10 @@ export default function DeadlineTask({ isLoading, updateTaskStatus, fetchEmpAssi
     }
 
     function fillTaskObj(title, type) {
-        setTaskObj({
-            ...prefix,
+        setTaskObj((pre) => ({
+            ...pre,
             title: title,
-        })
+        }))
     }
 
     function contentTemplate(task, type) {

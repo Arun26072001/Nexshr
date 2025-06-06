@@ -45,7 +45,7 @@ export default function LeaveCalender() {
                             <div className="leaveData col-12 col-lg-3">
                                 <div className="d-flex flex-column">
                                     <div className="leaveDays">
-                                        {leaveRequests?.approvedLeave?.length} <PersonRoundedIcon />
+                                        {leaveRequests?.approvedLeave} <PersonRoundedIcon />
                                     </div>
                                     <div className="leaveDaysDesc">
                                         Leave Employees
@@ -58,7 +58,7 @@ export default function LeaveCalender() {
                                         {leaveRequests?.leaveInHours} hr
                                     </div>
                                     <div className="leaveDaysDesc">
-                                        Total Leave Hours
+                                        Total Leave
                                     </div>
                                 </div>
                             </div>

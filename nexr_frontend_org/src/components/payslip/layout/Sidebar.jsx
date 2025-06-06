@@ -20,7 +20,7 @@ import workFromHomeIcon from "../../../asserts/workfromhome.svg";
 import emailTempIcon from "../../../asserts/env.svg";
 import holidayIcon from "../../../asserts/beach.svg";
 import announcementIcon from "../../../asserts/announcement.svg";
-import bugIcon from "../../../asserts/bugIcon.svg"; 
+import bugIcon from "../../../asserts/bugIcon.svg";
 
 const Sidebar = ({ sideBar }) => {
   const { data, whoIs } = useContext(EssentialValues);
@@ -199,14 +199,6 @@ const Sidebar = ({ sideBar }) => {
           'Holiday',
           'holiday'
         )}
-        {/* Bug sheet */}
-        {renderNavLink(
-          ['hr', "admin", "emp"].includes(whoIs),
-          `/${whoIs}/raise-bugs`,
-          bugIcon,
-          'Raise Bugs',
-          'raise-bugs'
-        )}
 
         {Leave === 'allow' && ["admin", "sys-admin", "hr"].includes(whoIs) &&
           renderSubMenu(
@@ -249,7 +241,6 @@ const Sidebar = ({ sideBar }) => {
             'Attendance'
           )}
 
-
         {Attendance === 'allow' && ["admin", "sys-admin", "hr"].includes(whoIs) &&
           renderSubMenu(
             'attendance',
@@ -283,7 +274,7 @@ const Sidebar = ({ sideBar }) => {
             'settings',
             [
               { key: 'profile', path: `/${whoIs}/settings/profile`, label: 'Profile' },
-              { key: 'account', path: `/${whoIs}/settings/account`, label: 'Account' },
+              // { key: 'account', path: `/${whoIs}/settings/account`, label: 'Account' },
               { key: 'payroll', path: `/${whoIs}/settings/payroll`, label: 'Payroll' }
             ],
             settingsIcon,
@@ -301,6 +292,15 @@ const Sidebar = ({ sideBar }) => {
               workFromHomeIcon,
               'WorkFromHome'
             ) : null}
+
+        {/* Bug sheet */}
+        {renderNavLink(
+          ['hr', "admin", "emp"].includes(whoIs),
+          `/${whoIs}/raise-bugs`,
+          bugIcon,
+          'Raise Bugs',
+          'raise-bugs'
+        )}
 
       </ul>
     </div>

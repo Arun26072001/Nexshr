@@ -171,14 +171,33 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
                     fromDate: { $lte: endOfDay },
                     toDate: { $gte: startOfDay },
                     status: "approved",
-                    leaveType: { $nin: ["Permission Leave"] }
+                    // leaveType: { $nin: ["Permission Leave"] }
                 }
             }).exec();
 
         if (!emp) return res.status(404).send({ error: "Employee not found!" });
+        // Office login time & employee login time 
+        const officeLoginTime = getCurrentTime(emp?.workingTimePattern?.StartingTime) || "9:00";
+        const loginTimeRaw = req.body?.login?.startingTime?.[0];
 
         if (emp.leaveApplication.length) {
-            return res.status(400).send({ error: "You are in Leave today" })
+            const permissionLeave = emp.leaveApplication.find((leave) => leave.leaveType.toLowerCase().includes("permission"));
+            if (permissionLeave) {
+                const [hour, min, sec] = loginTimeRaw.split(":").map(Number);
+                const current = new Date().setHours(hour, min, sec, 0)
+                const start = new Date(permissionLeave.fromDate);
+                const end = new Date(permissionLeave.toDate); // fallback to start if no end
+
+                // Normalize time for comparison
+                start.setHours(start.getHours(), start.getMinutes(), start.getSeconds(), 0);
+                end.setHours(end.getHours(), end.getMinutes(), end.getSeconds(), 0);
+
+                if (current >= start && current <= end) {
+                    return res.status(400).send({ error: "You have permission. Once finished, start the timer." })
+                }
+            } else {
+                return res.status(400).send({ error: "You are in Leave today" })
+            }
         }
         if (emp?.clockIns?.length > 0) return res.status(409).send({ message: "You have already Punch-In!" });
 
@@ -202,9 +221,6 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
         //     }
         // }
 
-        // Office login time & employee login time 
-        const officeLoginTime = getCurrentTime(emp?.workingTimePattern?.StartingTime) || "9:00";
-        const loginTimeRaw = req.body?.login?.startingTime?.[0];
         if (!loginTimeRaw) return res.status(400).send({ error: "You must start Punch-in Timer" });
         const companyLoginMinutes = timeToMinutes(officeLoginTime) + Number(emp?.workingTimePattern?.WaitingTime);
         const empLoginMinutes = timeToMinutes(loginTimeRaw);

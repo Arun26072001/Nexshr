@@ -192,7 +192,7 @@ export default function LeaveRequest() {
                         <div className="leaveData leaveData col-12 col-lg-3">
                             <div className="d-flex flex-column">
                                 <div className="leaveDays">
-                                    {leaveRequests?.takenLeave?.length || 0} Days
+                                    {leaveRequests?.takenLeave || 0} Days
                                 </div>
                                 <div className="leaveDaysDesc">
                                     Leave taken
@@ -204,7 +204,7 @@ export default function LeaveRequest() {
                         <div className="leaveData leaveData col-12 col-lg-3">
                             <div className="d-flex flex-column">
                                 <div className="leaveDays">
-                                    {leaveRequests?.upComingLeave?.length || 0} Days
+                                    {leaveRequests?.upComingLeave || 0} Days
                                 </div>
                                 <div className="leaveDaysDesc">
                                     Upcoming leave
@@ -216,7 +216,7 @@ export default function LeaveRequest() {
                         <div style={{ width: "30%", margin: "10px" }} className='leaveData col-12 col-lg-3' >
                             <div className="d-flex flex-column">
                                 <div className="leaveDays">
-                                    {leaveRequests?.pendingLeave?.length || 0} Days
+                                    {leaveRequests?.pendingLeave || 0} Days
                                 </div>
                                 <div className="leaveDaysDesc">
                                     Pending request

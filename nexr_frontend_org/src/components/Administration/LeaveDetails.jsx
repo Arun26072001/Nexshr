@@ -1,5 +1,4 @@
 import React, { useContext, useEffect, useState } from 'react'
-import Loading from '../Loader';
 import LeaveTable from '../LeaveTable';
 import axios from "axios";
 import { EssentialValues } from '../../App';

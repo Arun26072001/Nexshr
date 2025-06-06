@@ -121,22 +121,23 @@ router.get("/assigned/:id", verifyAdminHREmployeeManagerNetwork, async (req, res
             };
         }).filter(Boolean);
         const result = categorizeTasks(timeUpdatedTasks);
-        const planner = {};
-        const plannerType = await PlannerType.findOne({ employee: req.params.id }).lean().exec();
+        // const planner = {};
+        // const plannerType = await PlannerType.findOne({ employee: req.params.id }).lean().exec();
 
-        if (plannerType && plannerType._id) {
-            tasks.forEach((task) => {
-                // Check if task matches the plannerType (based on category or lack of one)
-                if (!task.category || (task.category && task.category === plannerType._id.toString())) {
-                    if (!planner[plannerType._id]) {
-                        planner[plannerType._id] = [];
-                    }
-                    planner[plannerType._id].push(task);
-                }
-            });
-        }
+        // if (plannerType && plannerType._id) {
+        //     cate
+        //     tasks.forEach((task) => {
+        //         // Check if task matches the plannerType (based on category or lack of one)
+        //         if (!task.category || (task.category && task.category === plannerType._id.toString())) {
+        //             if (!planner[plannerType._id]) {
+        //                 planner[plannerType._id] = [];
+        //             }
+        //             planner[plannerType._id].push(task);
+        //         }
+        //     });
+        // }
 
-        return res.send({ tasks: timeUpdatedTasks, categorizeTasks: result, planner });
+        return res.send({ tasks: timeUpdatedTasks, categorizeTasks: result });
     } catch (error) {
         console.log(error);
         res.status(500).send({ error: error.message })

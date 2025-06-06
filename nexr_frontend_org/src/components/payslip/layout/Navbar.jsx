@@ -337,6 +337,7 @@ export default function Navbar({ handleSideBar }) {
                     <p className='modelLabel'>Please Enter the reason</p>
                     <Input size='lg'
                         type='text'
+                        autoComplete='off'
                         onChange={(e) => changeReasonForEarly(e, "forgetToLogout")}
                         value={workTimeTracker?.forgetToLogout} />
                 </div>
@@ -369,6 +370,7 @@ export default function Navbar({ handleSideBar }) {
                             <p>Please Enter reason for early logout</p>
                             <Input size='lg'
                                 type='text'
+                                autoComplete='off'
                                 onChange={(e) => changeReasonForEarly(e, "reasonForEarlyLogout")}
                                 value={workTimeTracker?.login?.reasonForEarlyLogout} />
                         </div>

@@ -4,7 +4,7 @@ const { WFHAppValidation, WFHApplication } = require("../models/WFHApplicationMo
 const { Employee } = require("../models/EmpModel");
 const sendMail = require("./mailSender");
 const { Team } = require("../models/TeamModel");
-const { formatDate, mailContent } = require("../Reuseable_functions/reusableFunction");
+const { formatDate, mailContent, getDayDifference } = require("../Reuseable_functions/reusableFunction");
 const { sendPushNotification } = require("../auth/PushNotification");
 const router = express.Router();
 
@@ -12,7 +12,6 @@ function generateWfhEmail(empData, fromDateValue, toDateValue, reason, type) {
     const fromDate = new Date(fromDateValue);
     const toDate = new Date(toDateValue);
     const isRejected = type === "rejected";
-
 
     const formattedFromDate = `${fromDate.toLocaleString("default", { month: "long" })} ${fromDate.getDate()}, ${fromDate.getFullYear()}`;
     const formattedToDate = `${toDate.toLocaleString("default", { month: "long" })} ${toDate.getDate()}, ${toDate.getFullYear()}`;
@@ -85,13 +84,27 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
         // 1. Check if a WFH request already exists
         const existingRequest = await WFHApplication.findOne({
             employee: id,
-            status: "approved",
+            // status: "approved",
             fromDate: { $lte: toDate },
             toDate: { $gte: fromDate }
         });
 
         if (existingRequest) {
             return res.status(409).json({ error: "WFH request already exists for the given date range." });
+        }
+
+        // check has more than two team members in wfh
+        const team = await Team.findOne({ employees: id }, "employees").exec();
+
+        const wfhEmps = await WFHApplication.find({
+            employee: { $in: team.employees },
+            status: "approved",
+            fromDate: { $lte: toDate },
+            toDate: { $gte: fromDate }
+        })
+
+        if (wfhEmps.length === 2) {
+            return res.status(400).send({ error: "Already two members are approved for WFH in this time period." })
         }
 
         // 2. Fetch employee and team information
@@ -253,14 +266,23 @@ router.get("/", verifyAdminHR, async (req, res) => {
             reason: item.reason.replace(/<\/?[^>]+(>|$)/g, '')
         })).sort((a, b) => new Date(b.fromDate) - new Date(a.fromDate))
 
+        // pending wfh request days
         const pendingRequests = correctRequests.filter((item) => item.status === "pending");
+        let pendingrequestDays = 0;
+        pendingRequests.map((wfh) => pendingrequestDays += getDayDifference(wfh));
+        // approved wfh request days
         const approvedRequests = correctRequests.filter((item) => item.status === "approved");
-        const upcommingRequests = correctRequests.filter(request => new Date(request.fromDate) > now);
+        let approvedrequestDays = 0;
+        approvedRequests.map((wfh) => approvedrequestDays += getDayDifference(wfh))
+        // upcoming wfh request days
+        const upcomingRequests = correctRequests.filter(request => new Date(request.fromDate) > now);
+        let upcomingrequestDays = 0;
+        upcomingRequests.map((wfh) => upcomingrequestDays += getDayDifference(wfh))
         return res.send({
             correctRequests,
-            pendingRequests,
-            approvedRequests,
-            upcommingRequests
+            "pendingRequests": pendingrequestDays,
+            "approvedRequests": approvedrequestDays,
+            "upcommingRequests": upcomingrequestDays
         });
     } catch (error) {
         return res.status(500).send({ error: error.message })
@@ -314,7 +336,7 @@ router.get("/employee/:id", verifyAdminHREmployeeManagerNetwork, async (req, res
 })
 
 // get team of all employee requests
-router.get("/team/:id/", verifyTeamHigherAuthority, async (req, res) => {
+router.get("/team/:id", verifyTeamHigherAuthority, async (req, res) => {
     try {
         const now = new Date()
         const who = req.query.who;
@@ -335,19 +357,29 @@ router.get("/team/:id/", verifyTeamHigherAuthority, async (req, res) => {
             }
         }
         const data = await WFHApplication.find(filterObj).populate("employee", "FirstName LastName profile").lean().exec();
-        const correctRequests = data.map((item) => ({
+
+        const withoutHisData = data.filter((item) => String(item.employee._id) !== req.params.id);
+        const correctRequests = withoutHisData.map((item) => ({
             ...item,
             reason: item.reason.replace(/<\/?[^>]+(>|$)/g, '')
         })).sort((a, b) => new Date(b.fromDate) - new Date(a.fromDate))
-
+        // pending wfh request days
         const pendingRequests = correctRequests.filter((item) => item.status === "pending");
+        let pendingrequestDays = 0;
+        pendingRequests.map((wfh) => pendingrequestDays += getDayDifference(wfh));
+        // approved wfh request days
         const approvedRequests = correctRequests.filter((item) => item.status === "approved");
-        const upcommingRequests = correctRequests.filter(request => new Date(request.fromDate) > now);
+        let approvedrequestDays = 0;
+        approvedRequests.map((wfh) => approvedrequestDays += getDayDifference(wfh))
+        // upcoming wfh request days
+        const upcomingRequests = correctRequests.filter(request => new Date(request.fromDate) > now);
+        let upcomingrequestDays = 0;
+        upcomingRequests.map((wfh) => upcomingrequestDays += getDayDifference(wfh))
         return res.send({
             correctRequests,
-            pendingRequests,
-            approvedRequests,
-            upcommingRequests
+            "pendingRequests": pendingrequestDays,
+            "approvedRequests": approvedrequestDays,
+            "upcommingRequests": upcomingrequestDays
         });
     } catch (error) {
         return res.status(500).send({ error: error.message })
@@ -356,29 +388,71 @@ router.get("/team/:id/", verifyTeamHigherAuthority, async (req, res) => {
 
 router.put("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
     try {
-        const { approvers, fromDate, toDate, ...restBody } = req.body;
+        const { approvers, fromDate, toDate, status, employee, ...restBody } = req.body;
+        let updatedApprovers = approvers;
+        if (status === "approved") {
+            // ✅ Check team WFH count
+            const team = await Team.findOne({ employees: employee }, "employees");
+            if (team?.employees?.length) {
+                const overlappingWFHs = await WFHApplication.find({
+                    employee: { $in: team.employees },
+                    status: "approved",
+                    fromDate: { $lte: toDate },
+                    toDate: { $gte: fromDate },
+                });
 
+                if (overlappingWFHs.length >= 2) {
+                    return res.status(400).json({ error: "Already two members are approved for WFH in this time period." });
+                }
+            }
+            let approverData = {}
+            Object.entries(approvers).map(([key, value]) => {
+                approverData[key] = "approved"
+            })
+            updatedApprovers = approverData;
+        } if (status === "rejected") {
+            approverData = {}
+            Object.entries(approvers).map(([key, value]) => {
+                approverData[key] = "rejected"
+            })
+            updatedApprovers = approverData;
+        }
         const allApproved = Object.values(approvers).every(status => status === "approved");
         const anyRejected = Object.values(approvers).some(status => status === "rejected");
         const allPending = Object.values(approvers).every(status => status === "pending");
 
+        const wfhApp = await WFHApplication.findById(req.params.id);
+        if (!wfhApp) return res.status(404).json({ error: "WFH application not found." });
+
+        let updatedLeaveStatus = status;
         let members = [];
-        let updatedLeaveStatus = restBody.status;
 
         if (!allPending) {
+            const employeeId = wfhApp.employee;
+
+            // ✅ Check team WFH count
+            const team = await Team.findOne({ employees: employeeId }, "employees");
+            if (team?.employees?.length) {
+                const overlappingWFHs = await WFHApplication.find({
+                    employee: { $in: team.employees },
+                    status: "approved",
+                    fromDate: { $lte: toDate },
+                    toDate: { $gte: fromDate },
+                });
+
+                if (overlappingWFHs.length >= 2) {
+                    return res.status(400).json({ error: "Already two members are approved for WFH in this time period." });
+                }
+            }
+
+            // ✅ Determine updated status
             updatedLeaveStatus = allApproved
                 ? "approved"
                 : anyRejected
                     ? "rejected"
-                    : restBody.status;
-            // Who took action?
+                    : status;
+
             const actionBy = req.query.actionBy;
-
-            const wfhApp = await WFHApplication.findById(req.params.id);
-            if (!wfhApp) return res.status(404).send({ error: "WFH application not found." });
-
-            const employeeId = wfhApp.employee;
-
             const emp = await Employee.findById(employeeId)
                 .populate([
                     {
@@ -396,29 +470,29 @@ router.put("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
                 ])
                 .lean();
 
-            if (!emp) return res.status(404).send({ error: "Employee not found." });
+            if (!emp) return res.status(404).json({ error: "Employee not found." });
 
-            // Helper to normalize members
+            // ✅ Helper to normalize members
             const getMembers = (data, type) =>
                 Array.isArray(data)
                     ? data.map(item => ({
                         type,
                         _id: item._id,
-                        Email: item?.Email,
-                        name: `${item?.FirstName ?? ""} ${item?.LastName ?? ""}`.trim(),
+                        Email: item.Email,
+                        name: `${item.FirstName ?? ""} ${item.LastName ?? ""}`.trim(),
                         fcmToken: item.fcmToken
                     }))
                     : data?.Email
                         ? [{
                             type,
-                            _id: item._id,
+                            _id: data._id,
                             Email: data.Email,
                             name: `${data.FirstName ?? ""} ${data.LastName ?? ""}`.trim(),
-                            fcmToken: item.fcmToken
+                            fcmToken: data.fcmToken
                         }]
                         : [];
 
-            // Collect all relevant members
+            // ✅ Collect members and deduplicate by Email
             members = [
                 emp.Email && { type: "emp", Email: emp.Email, name: `${emp.FirstName} ${emp.LastName}` },
                 ...getMembers(emp.team?.lead, "lead"),
@@ -428,13 +502,19 @@ router.put("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
                 ...getMembers(emp.team?.admin, "admin")
             ]
                 .filter(Boolean)
-                .filter((v, i, self) => self.findIndex(t => t.Email === v.Email) === i); // Deduplicate
+                .filter((v, i, arr) => arr.findIndex(t => t.Email === v.Email) === i);
 
-            // check approve or rejected
             const emailType = allApproved ? "approved" : anyRejected ? "rejected" : "pending";
+
+            // ✅ Notify each member
             if (members.length > 0) {
-                members.forEach(async (member) => {
-                    const Subject = "Work From Home Response Notification"
+                const Subject = "Work From Home Response Notification";
+                const fromStr = new Date(fromDate).toLocaleDateString();
+                const toStr = new Date(toDate).toLocaleDateString();
+                const statusText = anyRejected ? "rejected" : "approved";
+
+                await Promise.all(members.map(async (member) => {
+                    // Email
                     await sendMail({
                         From: process.env.FROM_MAIL,
                         To: member.Email,
@@ -442,49 +522,48 @@ router.put("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
                         HtmlBody: mailContent(emailType, fromDate, toDate, emp, "WFH", actionBy, member)
                     });
 
-                    // send notification for client 
-                    const message = anyRejected
-                        ? `${emp.FirstName}'s WFH request ${new Date(fromDate).toLocaleDateString() - new Date(toDate).toLocaleDateString()} has been rejected by ${actionBy}`
-                        : `${emp.FirstName}'s WFH request ${new Date(fromDate).toLocaleDateString() - new Date(toDate).toLocaleDateString()} has been approved by ${actionBy}`;
+                    // Notification
+                    const message = `${emp.FirstName}'s WFH request from ${fromStr} to ${toStr} has been ${statusText} by ${actionBy}`;
+                    const notification = {
+                        company: emp.company._id,
+                        title: Subject,
+                        message
+                    };
 
-                    if (member) {
-                        const notification = {
-                            company: emp.company._id,
-                            title: Subject,
-                            message
-                        };
-
-                        const fullEmp = await Employee.findById(member._id, "notifications"); // Fetch fresh document to update notifications
+                    const fullEmp = await Employee.findById(member._id, "notifications");
+                    if (fullEmp) {
                         fullEmp.notifications.push(notification);
                         await fullEmp.save();
+
                         await sendPushNotification({
                             token: member.fcmToken,
                             title: Subject,
                             body: message,
                             company: emp.company
-                        })
+                        });
                     }
-                })
+                }));
             }
         }
 
-        // Update WFH application
+        // ✅ Update WFH application
         const updatedData = await WFHApplication.findByIdAndUpdate(
             req.params.id,
-            { ...restBody, approvers, status: updatedLeaveStatus },
+            { ...restBody, approvers: updatedApprovers, status: updatedLeaveStatus },
             { new: true }
         );
 
-        return res.send({
+        res.send({
             message: "WFH Request has been updated successfully",
             updatedData,
             notifiedMembers: members
         });
     } catch (error) {
-        console.log("error in update wfh", error);
-        return res.status(500).send({ error: error.message });
+        console.error("Error in update WFH:", error);
+        res.status(500).json({ error: error.message });
     }
 });
+
 
 router.delete("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
     try {

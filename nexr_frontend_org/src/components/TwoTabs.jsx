@@ -134,7 +134,6 @@ export default function Twotabs() {
     });
   }
 
-
   const renderMenu = (date) => ({ onClose, right, top, className }, ref) => {
     const list = getTodoList(date);
 
@@ -174,7 +173,7 @@ export default function Twotabs() {
       const current = new Date(date);
       current.setHours(0, 0, 0, 0);
 
-      return current >= start && current <= end;
+      return current.toLocaleDateString() === start.toLocaleDateString() || (current >= start && current <= end);
     });
 
     if (matchedLeave) {
