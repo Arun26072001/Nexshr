@@ -85,7 +85,6 @@ const convertToString = (value) => {
 };
 
 function getDayDifference(leave) {
-
   if (leave?.periodOfLeave === "half day") {
     return 0.5;
   }

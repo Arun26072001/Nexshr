@@ -1236,7 +1236,7 @@ const CommonModel = ({
                                 <p className='modelLabel'>Weekly Days:</p>
                                 <TagPicker
                                     required
-                                    data={["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((data) => ({ label: data, value: data }))}
+                                    data={["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"].map((data) => ({ label: data, value: data }))}
                                     size="lg"
                                     disabled={type === "View TimePattern"}
                                     appearance='default'

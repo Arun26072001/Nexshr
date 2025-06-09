@@ -738,7 +738,6 @@ const Dashboard = () => {
                                                 <div className="progress-bar progress-bar-striped" role="progressbar" style={{ width: `${getOverTime(monthlyLoginData?.companyTotalWorkingHour, monthlyLoginData?.totalEmpWorkingHours)}%` }} aria-valuenow="10" aria-valuemin="0" aria-valuemax="100"></div>
                                             </div>
                                         </div>
-
                                     </div>
                                 </>
                         }

@@ -62,8 +62,8 @@ router.post("/not-login/apply-leave/:workPatternId", async (req, res) => {
         for (const emp of notLoginEmps) {
             if (!emp.workingTimePattern) continue;
 
-            const officeStartingTime = `${new Date(emp.workingTimePattern.StartingTime).getHours()}:${new Date(empData.workingTimePattern.StartingTime).getMinutes()}`;
-            const officeFinishingTime = `${new Date(emp.workingTimePattern.FinishingTime).getHours()}:${new Date(empData.workingTimePattern.FinishingTime).getMinutes()}`;
+            const officeStartingTime = `${new Date(emp.workingTimePattern.StartingTime).getHours()}:${new Date(emp.workingTimePattern.StartingTime).getMinutes()}`;
+            const officeFinishingTime = `${new Date(emp.workingTimePattern.FinishingTime).getHours()}:${new Date(emp.workingTimePattern.FinishingTime).getMinutes()}`;
             const workingHours = getTotalWorkingHourPerDay(
                 officeStartingTime,
                 officeFinishingTime

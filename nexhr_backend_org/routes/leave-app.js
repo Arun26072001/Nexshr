@@ -11,6 +11,8 @@ const sendMail = require("./mailSender");
 const { getDayDifference, mailContent, formatLeaveData, formatDate } = require('../Reuseable_functions/reusableFunction');
 const { Task } = require('../models/TaskModel');
 const { sendPushNotification } = require('../auth/PushNotification');
+const { Holiday } = require('../models/HolidayModel');
+const { TimePattern } = require('../models/TimePatternModel');
 
 // Helper function to generate leave request email content
 function generateLeaveEmail(empData, fromDateValue, toDateValue, reasonForLeave, leaveType, deadLineTask = []) {
@@ -114,7 +116,7 @@ leaveApp.get("/make-know", async (req, res) => {
 
       for (const role of ["lead", "head", "manager", "hr"]) {
         for (const member of teamData[role]) {
-          if (member) {
+          if (member && leave.approvers[role] === "pending") {
             members.push(member);
             // html content
             const htmlContent = `
@@ -438,6 +440,7 @@ leaveApp.get("/team/:id", verifyTeamHigherAuthority, async (req, res) => {
     // Fetch leave applications within the date range
     let teamLeaves = await LeaveApplication.find({
       employee: { $in: employees },
+      leaveType: { $nin: ["Unpaid Leave (LWP)"] },
       $or: [
         {
           fromDate: { $lte: endOfMonth },
@@ -618,7 +621,8 @@ leaveApp.get("/date-range/management/:whoIs", verifyAdminHrNetworkAdmin, async (
         path: "leaveApplication",
         match: {
           fromDate: { $lte: endOfMonth },
-          toDate: { $gte: startOfMonth }
+          toDate: { $gte: startOfMonth },
+          leaveType: { $nin: ["Unpaid Leave (LWP)"] }
         },
         populate: [
           { path: "employee", select: "FirstName LastName Email profile" },
@@ -768,6 +772,12 @@ leaveApp.get("/", verifyAdminHR, async (req, res) => {
 leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("prescription"), async (req, res) => {
   try {
     const { empId } = req.params;
+
+    // check leave form validation
+    const { error } = LeaveApplicationValidation.validate(req.body);
+    if (error) {
+      return res.status(400).send({ error: error.details[0].message })
+    }
     const {
       leaveType, fromDate, toDate, periodOfLeave,
       reasonForLeave, coverBy, applyFor, role
@@ -840,20 +850,44 @@ leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("pre
       }
 
       if (["Annual Leave", "Casual Leave"].includes(leaveType) &&
-        [3, 5].includes(accountLevel) && fromDateObj <= today) {
-        return res.status(400).json({ error: `${leaveType} is not allowed for same day or past dates for your role.` });
+        [3, 5].includes(accountLevel) && [today.toDateString(), tomorrow.toDateString()].includes(formattedFrom)) {
+        return res.status(400).json({ error: `${leaveType} is not allowed for same day and next dates for your role.` });
       }
     }
 
     const higherOfficals = ["lead", "head", "manager", "admin", "hr"];
     // 4. Fetch employee
-    const emp = await Employee.findById(personId, "FirstName LastName Email monthlyPermissions permissionHour typesOfLeaveRemainingDays leaveApplication company team")
+    const emp = await Employee.findById(personId, "FirstName LastName Email monthlyPermissions permissionHour typesOfLeaveRemainingDays leaveApplication company team workingTimePattern")
       .populate([
         { path: "leaveApplication", match: { leaveType: "Permission Leave", fromDate: { $gte: new Date(fromDateObj.getFullYear(), fromDateObj.getMonth(), 1), $lte: new Date(fromDateObj.getFullYear(), fromDateObj.getMonth() + 1, 0) } } },
         { path: "company", select: "logo CompanyName" },
         { path: "team", populate: higherOfficals.map(role => ({ path: role, select: "FirstName LastName Email fcmToken" })) }
       ]);
     if (!emp) return res.status(400).json({ error: `No employee found for ID ${empId}` });
+
+    // check leave request is weekend or holiday
+    function checkDateIsHoliday(dateList, target) {
+      return dateList.some((date) => new Date(date).toLocaleDateString() === new Date(target).toLocaleDateString());
+    }
+    const holiday = await Holiday.findOne({ year: new Date().getFullYear() });
+    const isFromDateHoliday = checkDateIsHoliday(holiday.holidays, fromDate);
+    const isToDateHoliday = checkDateIsHoliday(holiday.holidays, fromDate);
+    if (isFromDateHoliday) {
+      return res.status(400).send("holiday are not allowed for fromDate")
+    } if (isToDateHoliday) {
+      return res.status(400).send("holiday are not allowed for toDate")
+    }
+    async function checkDateIsWeekend(date) {
+      const timePattern = await TimePattern.findById(emp.workingTimePattern, "WeeklyDays").lean().exec();
+      const isWeekend = !timePattern?.WeeklyDays.includes(new Date(date).toLocaleDateString(undefined, { weekday: 'long' }));
+      return isWeekend;
+    }
+    const [fromDateIsWeekend, toDateIsWeekend] = await Promise.all([checkDateIsWeekend(fromDate), checkDateIsWeekend(toDate)])
+    if (fromDateIsWeekend) {
+      return res.status(400).send({ error: "Weekend are not allowed in fromDate" })
+    } if (toDateIsWeekend) {
+      return res.status(400).send({ error: "Weekend are not allowed in toDate" })
+    }
 
     // 5. Permission Leave checks
     if (leaveType.toLowerCase().includes("permission")) {
@@ -972,6 +1006,30 @@ leaveApp.put('/:id', verifyAdminHREmployeeManagerNetwork, async (req, res) => {
 
     if (!emp) return res.status(404).send({ error: 'Employee not found.' });
     if (!emp.team) return res.status(404).send({ error: `${emp.FirstName} is not assigned to a team.` });
+
+    // check leave request is weekend or holiday
+    function checkDateIsHoliday(dateList, target) {
+      return dateList.some((date) => new Date(date).toLocaleDateString() === new Date(target).toLocaleDateString());
+    }
+    const holiday = await Holiday.findOne({ year: new Date().getFullYear() });
+    const isFromDateHoliday = checkDateIsHoliday(holiday.holidays, fromDate);
+    const isToDateHoliday = checkDateIsHoliday(holiday.holidays, fromDate);
+    if (isFromDateHoliday) {
+      return res.status(400).send("holiday are not allowed for fromDate")
+    } if (isToDateHoliday) {
+      return res.status(400).send("holiday are not allowed for toDate")
+    }
+    async function checkDateIsWeekend(date) {
+      const timePattern = await TimePattern.findById(emp.workingTimePattern, "WeeklyDays").lean().exec();
+      const isWeekend = !timePattern.WeeklyDays.includes(new Date(date).toLocaleDateString(undefined, { weekday: 'long' }));
+      return isWeekend;
+    }
+    const [fromDateIsWeekend, toDateIsWeekend] = await Promise.all([checkDateIsWeekend(fromDate), checkDateIsWeekend(toDate)])
+    if (fromDateIsWeekend) {
+      return res.status(400).send({ error: "Weekend are not allowed in fromDate" })
+    } if (toDateIsWeekend) {
+      return res.status(400).send({ error: "Weekend are not allowed in toDate" })
+    }
 
     let updatedStatus = status;
     let updatedApprovers = approvers;
@@ -1108,9 +1166,9 @@ leaveApp.delete("/:id/:leaveId", verifyAdminHREmployeeManagerNetwork, async (req
     else {
       const leave = await LeaveApplication.findById(req.params.leaveId);
       // check leave is unpaid leave
-      // if (leave.leaveType.toLowerCase().includes("unpaid")) {
-      //   return res.status(400).send({ error: "You can't delete unpaid leave request" })
-      // }
+      if (leave.leaveType.toLowerCase().includes("unpaid")) {
+        return res.status(400).send({ error: "You can't delete unpaid leave request" })
+      }
       if (leave.status === "pending") {
         const dltLeave = await LeaveApplication.findByIdAndRemove(req.params.leaveId)
         if (!dltLeave) {

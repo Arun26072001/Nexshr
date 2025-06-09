@@ -187,7 +187,7 @@ async function fetchTimePatterns() {
       });
 
       // send mail and apply fullday leave
-      schedule.scheduleJob(`0 ${finishingMin - 5} ${finishingHour} * * 1-5`, async function () {
+      schedule.scheduleJob(`0 ${finishingMin - 5} ${finishingHour} * * 1-6`, async function () {
         try {
           const response = await axios.post(`${process.env.REACT_APP_API_URL}/api/clock-ins/not-login/apply-leave/${pattern._id}`);
           console.log("Apply Leave for Not-login Triggered:", response.data.message);

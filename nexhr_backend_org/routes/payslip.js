@@ -68,6 +68,7 @@ router.post("/", async (req, res) => {
             LossOfPay: Number((leaveDays * perDayOfSalary).toFixed(2)),
             status: "pending",
             period: `${startOfMonth.toLocaleString("default", { month: "long" })} ${startOfMonth.getFullYear()}`,
+            lopDays: leaveDays,
             paidDays: `${getWeekdaysOfCurrentMonth(startOfMonth.getFullYear(), startOfMonth.getMonth(), currentMonthOfLeaveDays)}`
           },
           employee: emp._id
@@ -83,7 +84,7 @@ router.post("/", async (req, res) => {
     });
 
     await Promise.all(payslipPromises);
-    res.json({ message: `Payslips have been generated for ${payslipGendratedEmps.length} and ${unPayslipFieldsEmps.length} for not assign PayslipFields` });
+    res.json({ message: `Payslips have been generated for ${payslipGendratedEmps.length} people and ${unPayslipFieldsEmps.length} people for not assign PayslipFields` });
 
   } catch (err) {
     console.error("Error generating payslips:", err);

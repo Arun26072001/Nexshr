@@ -75,7 +75,7 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
         { id: 'periodOfLeave', label: 'Period Of Leave', align: "left", minWidth: 100, getter: (row) => row.periodOfLeave },
         { id: 'fromDate', label: 'Start Date', minWidth: 120, align: 'left', getter: (row) => row.fromDate ? row.fromDate.split("T")[0] : 'N/A' },
         { id: 'toDate', label: 'End Date', minWidth: 120, align: 'left', getter: (row) => row.toDate ? row.toDate.split("T")[0] : 'N/A' },
-        { id: 'leaveType', label: 'Type', minWidth: 130, align: 'left', getter: (row) => row.leaveType },
+        { id: 'leaveType', label: 'Type', minWidth: 170, align: 'left', getter: (row) => row.leaveType },
         { id: '', label: 'Reason', minWidth: 100, align: 'left', getter: (row) => <div dangerouslySetInnerHTML={{ __html: row.reasonForLeave.slice(0, 20) }} /> },
         {
             id: 'status',
@@ -485,7 +485,7 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
         { id: 'periodOfLeave', label: 'Period Of Leave', align: "left", minWidth: 150, getter: (row) => row.periodOfLeave },
         { id: 'fromDate', label: 'Start Date', minWidth: 130, align: 'left', getter: (row) => row.fromDate ? row.fromDate.split("T")[0] : 'N/A' },
         { id: 'toDate', label: 'End Date', minWidth: 130, align: 'left', getter: (row) => row.toDate ? row.toDate.split("T")[0] : 'N/A' },
-        { id: 'leaveType', label: 'Type', minWidth: 150, align: 'left', getter: (row) => row.leaveType },
+        { id: 'leaveType', label: 'Type', minWidth: 100, align: 'left', getter: (row) => row.leaveType },
         { id: 'reasonForLeave', label: 'Reason', minWidth: 100, align: 'left', getter: (row) => row.reasonForLeave },
         { id: 'status', label: 'Status', minWidth: 100, align: 'left', getter: (row) => row.status },
     ];
@@ -714,7 +714,7 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
         { id: 'FinishingTime', label: 'End Time', minWidth: 100, align: 'center', getter: (row) => new Date(row?.FinishingTime).toLocaleTimeString() || 'N/A' },
         { id: 'BreakTime', label: 'Break Time', minWidth: 100, align: 'center', getter: (row) => row?.BreakTime || 'N/A' },
         { id: 'WaitingTime', label: 'Waiting Time', minWidth: 100, align: 'center', getter: (row) => row?.WaitingTime || 'N/A' },
-        { id: 'WeeklyDays', label: 'Weekly Days', minWidth: 150, align: 'center', getter: (row) => row.WeeklyDays.length ? row.WeeklyDays.join(", ") : 'N/A' },
+        { id: 'WeeklyDays', label: 'Weekly Days', minWidth: 150, align: 'center', getter: (row) => row.WeeklyDays.length ? row.WeeklyDays.slice(0, 3).join(", ") + (row.WeeklyDays.length > 3 ? "..." : "") : 'N/A' },
         { id: 'Action', label: 'Action', minWidth: 100, align: 'center' }
     ];
     const column19 = [
@@ -841,7 +841,7 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
             minWidth: 180,
             align: 'center',
             getter: (row) => Array.isArray(row?.shortTags)
-                ? row.shortTags.join(', ')
+                ? row.shortTags.slice(0, 3).join(', ') + (row.shortTags.length > 3 ? "..." : "")
                 : row?.shortTags || 'N/A'
         },
         {
@@ -861,7 +861,7 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
 
     const column22 = [
         { id: 'currentYear', label: 'Year', minWidth: 100, align: 'left', getter: (row) => row.currentYear || "N/A" },
-        { id: 'holidays', label: 'Holidays', minWidth: 400, align: 'center', getter: (row) => row.holidays.length ? row.holidays?.map((holiday) => holiday.date + ", ") : "N/A" },
+        { id: 'holidays', label: 'Holidays', minWidth: 400, align: 'center', getter: (row) => row.holidays.length ? row.holidays?.slice(0, 3).map((holiday) => holiday.date + ", ") + (row.holidays.length > 3 ? "..." : "") : "N/A" },
         { id: "Action", label: "Action", minWidth: 100, align: "center" }
     ]
 

@@ -6,6 +6,8 @@ const sendMail = require("./mailSender");
 const { Team } = require("../models/TeamModel");
 const { formatDate, mailContent, getDayDifference } = require("../Reuseable_functions/reusableFunction");
 const { sendPushNotification } = require("../auth/PushNotification");
+const { Holiday } = require("../models/HolidayModel");
+const { TimePattern } = require("../models/TimePatternModel");
 const router = express.Router();
 
 function generateWfhEmail(empData, fromDateValue, toDateValue, reason, type) {
@@ -84,7 +86,6 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
         // 1. Check if a WFH request already exists
         const existingRequest = await WFHApplication.findOne({
             employee: id,
-            // status: "approved",
             fromDate: { $lte: toDate },
             toDate: { $gte: fromDate }
         });
@@ -108,7 +109,7 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
         }
 
         // 2. Fetch employee and team information
-        const emp = await Employee.findById(id, "FirstName LastName Email company")
+        const emp = await Employee.findById(id, "FirstName LastName Email company workingTimePattern")
             .populate([
                 { path: "company", select: "logo CompanyName" },
                 {
@@ -141,6 +142,30 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
             approvers,
             status: "pending"
         };
+
+        // check whf request is weekend or holiday
+        function checkDateIsHoliday(dateList, target) {
+            return dateList.some((date) => new Date(date).toLocaleDateString() === new Date(target).toLocaleDateString());
+        }
+        const holiday = await Holiday.findOne({ year: new Date().getFullYear() });
+        const isFromDateHoliday = checkDateIsHoliday(holiday.holidays, fromDate);
+        const isToDateHoliday = checkDateIsHoliday(holiday.holidays, fromDate);
+        if (isFromDateHoliday) {
+            return res.status(400).send("holiday are not allowed for fromDate")
+        } if (isToDateHoliday) {
+            return res.status(400).send("holiday are not allowed for toDate")
+        }
+        async function checkDateIsWeekend(date) {
+            const timePattern = await TimePattern.findById(emp.workingTimePattern, "WeeklyDays").lean().exec();
+            const isWeekend = !timePattern.WeeklyDays.includes(new Date(date).toLocaleDateString(undefined, { weekday: 'long' }));
+            return isWeekend;
+        }
+        const [fromDateIsWeekend, toDateIsWeekend] = await Promise.all([checkDateIsWeekend(fromDate), checkDateIsWeekend(toDate)])
+        if (fromDateIsWeekend) {
+            return res.status(400).send({ error: "Weekend are not allowed in fromDate" })
+        } if (toDateIsWeekend) {
+            return res.status(400).send({ error: "Weekend are not allowed in toDate" })
+        }
 
         // 5. Validate application
         const { error } = WFHAppValidation.validate(newApplication);
@@ -471,6 +496,30 @@ router.put("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
                 .lean();
 
             if (!emp) return res.status(404).json({ error: "Employee not found." });
+
+            // check whf request is weekend or holiday
+            function checkDateIsHoliday(dateList, target) {
+                return dateList.some((date) => new Date(date).toLocaleDateString() === new Date(target).toLocaleDateString());
+            }
+            const holiday = await Holiday.findOne({ year: new Date().getFullYear() });
+            const isFromDateHoliday = checkDateIsHoliday(holiday.holidays, fromDate);
+            const isToDateHoliday = checkDateIsHoliday(holiday.holidays, fromDate);
+            if (isFromDateHoliday) {
+                return res.status(400).send("holiday are not allowed for fromDate")
+            } if (isToDateHoliday) {
+                return res.status(400).send("holiday are not allowed for toDate")
+            }
+            async function checkDateIsWeekend(date) {
+                const timePattern = await TimePattern.findById(emp.workingTimePattern, "WeeklyDays").lean().exec();
+                const isWeekend = !timePattern.WeeklyDays.includes(new Date(date).toLocaleDateString(undefined, { weekday: 'long' }));
+                return isWeekend;
+            }
+            const [fromDateIsWeekend, toDateIsWeekend] = await Promise.all([checkDateIsWeekend(fromDate), checkDateIsWeekend(toDate)])
+            if (fromDateIsWeekend) {
+                return res.status(400).send({ error: "Weekend are not allowed in fromDate" })
+            } if (toDateIsWeekend) {
+                return res.status(400).send({ error: "Weekend are not allowed in toDate" })
+            }
 
             // ✅ Helper to normalize members
             const getMembers = (data, type) =>

@@ -96,7 +96,6 @@ export default function PayslipUI() {
                         totalEarnings += fieldValue;
                     }
                 } else {
-
                     totalDeductions += fieldValue;
                 }
             }
@@ -176,7 +175,7 @@ export default function PayslipUI() {
                                     </div>
                                     <div className=''>
                                         <p className='payslipTxt'>Paid Days: {payslips?.payslip?.paidDays}</p>
-                                        <p className='payslipTxt'>LOP Days: {payslips?.payslip?.LossOfPay || 0}</p>
+                                        <p className='payslipTxt'>LOP Days: {payslips?.payslip?.lopDays || 0}</p>
                                     </div>
                                 </div>
                             </div>

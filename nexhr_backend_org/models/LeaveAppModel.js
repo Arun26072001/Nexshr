@@ -27,11 +27,13 @@ var LeaveApplication = mongoose.model(
 );
 
 const LeaveApplicationValidation = Joi.object({
-  employee: Joi.string().required().regex(/^[0-9a-fA-F]{24}$/).label('employee'),
-  leaveType: Joi.string().required().label('leaveType'),
+  leaveType: Joi.string().required().disallow(null, '', 'none', 'undefined').label('leaveType'),
   fromDate: Joi.date().required().label('fromDate'),
-  toDate: Joi.date().required().label('toDate'),
-  reasonForLeave: Joi.string().required().label('reasonForLeave'),
+  toDate: Joi.date().greater(Joi.ref('fromDate')).required().label('toDate').messages({
+    'date.greater': '"toDate" must be greater than "fromDate"',
+  }),
+  employee: Joi.string().regex(/^[0-9a-fA-F]{24}$/).optional().label('employee'),
+  reasonForLeave: Joi.string().required().disallow(null, '', 'none', 'undefined').label('reasonForLeave'),
   periodOfLeave: Joi.string().label('periodOfLeave'),
   prescription: Joi.string().allow("", null).optional().label('prescription'),
   coverBy: Joi.any().label('coverBy').allow("", null),
