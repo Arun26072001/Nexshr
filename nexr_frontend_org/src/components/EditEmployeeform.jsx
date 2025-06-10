@@ -64,7 +64,6 @@ const EditEmployeeform = ({ details, empData, handleScroll, handlePersonal, prev
         IFSCcode: Yup.string().optional(),
         taxDeduction: Yup.string().optional()
     });
-    console.log("timeDiff", timeDifference);
 
     const formik = useFormik({
         initialValues: employeeObj,
@@ -94,6 +93,9 @@ const EditEmployeeform = ({ details, empData, handleScroll, handlePersonal, prev
 
                     }
                 } catch (error) {
+                    if (error?.message === "Network Error") {
+                        navigate("/network-issue")
+                    }
                     console.log("error in update file", error);
                     toast.error(error?.response?.data?.error)
                 }
@@ -202,9 +204,6 @@ const EditEmployeeform = ({ details, empData, handleScroll, handlePersonal, prev
                 if (selectedPattern && selectedPattern.StartingTime && selectedPattern.FinishingTime) {
                     const [startHour, startMinute] = selectedPattern.StartingTime.split(/[:.]+/).map(num => parseInt(num, 10));
                     const [endHour, endMinute] = selectedPattern.FinishingTime.split(/[:.]+/).map(num => parseInt(num, 10));
-                    console.log("startingHour", startHour, startMinute);
-                    console.log("ending", endHour, endMinute);
-                    console.log(selectedPattern.WeeklyDays.length);
 
                     const startDate = new Date();
                     startDate.setHours(startHour);
@@ -241,6 +240,9 @@ const EditEmployeeform = ({ details, empData, handleScroll, handlePersonal, prev
                 });
                 setLeaveTypes(leaveTypes.data.map((leave) => ({ label: `${leave.LeaveName} ${leave.limitDays}`, value: `${leave.LeaveName} ${leave.limitDays}` })));
             } catch (error) {
+                if (error?.message === "Network Error") {
+                    navigate("/network-issue")
+                }
                 setErrorData(error.response.data.error)
             }
         }

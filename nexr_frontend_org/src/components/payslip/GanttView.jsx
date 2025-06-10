@@ -1,8 +1,6 @@
 import { useEffect, useState } from 'react';
 import {
     GanttComponent,
-    //   Inject,
-    //   Selection,
     ColumnsDirective,
     ColumnDirective
 } from '@syncfusion/ej2-react-gantt';

@@ -7,6 +7,7 @@ import { toast, ToastContainer } from "react-toastify";
 import VisibilityOutlinedIcon from "@mui/icons-material/VisibilityOutlined";
 import VisibilityOffOutlinedIcon from "@mui/icons-material/VisibilityOffOutlined";
 import Cookies from "universal-cookie";
+import { useNavigate } from "react-router-dom";
 
 export default function LandingPage() {
     const [registerData, setRegisterData] = useState({
@@ -16,6 +17,7 @@ export default function LandingPage() {
         countryCode: "",
         phone: "",
     });
+    const navigate = useNavigate();
     const [countries, setCountries] = useState([]);
     const [errorData, setErrorData] = useState({});
     const [visible, setVisible] = useState(false);
@@ -78,7 +80,10 @@ export default function LandingPage() {
                 countryCode: "",
                 phone: "",
             });
-        } catch (error) {
+       } catch (error) {
+         if (error?.message === "Network Error") {
+                navigate("/network-issue")
+            }
             setErrorData((prev) => ({
                 ...prev,
                 general: error.response?.data?.error || "An error occurred.",

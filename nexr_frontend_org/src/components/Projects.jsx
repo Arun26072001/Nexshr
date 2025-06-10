@@ -18,7 +18,7 @@ import { useNavigate } from 'react-router-dom';
 import { Skeleton } from '@mui/material';
 
 export default function Projects() {
-    const navigator = useNavigate();
+    const navigate = useNavigate();
     const { whoIs, data, 
         // socket 
     } = useContext(EssentialValues);
@@ -78,7 +78,10 @@ export default function Projects() {
                 }
             })
             setProjectObj(res.data);
-        } catch (error) {
+       } catch (error) {
+         if (error?.message === "Network Error") {
+                navigate("/network-issue")
+            }
             toast.error(error?.response?.data?.error)
         }
     }
@@ -93,7 +96,10 @@ export default function Projects() {
             })
             setProjects(res.data);
             setFilterProjects(res.data);
-        } catch (error) {
+       } catch (error) {
+         if (error?.message === "Network Error") {
+                navigate("/network-issue")
+            }
             toast.error(error?.response?.data?.error)
         }
         setIsLoading(false)
@@ -110,7 +116,10 @@ export default function Projects() {
 
             setProjects(res.data);
             setFilterProjects(res.data);
-        } catch (error) {
+       } catch (error) {
+         if (error?.message === "Network Error") {
+                navigate("/network-issue")
+            }
             toast.error(error?.response?.data?.error)
         }
         setIsLoading(false)
@@ -128,7 +137,10 @@ export default function Projects() {
             setIsEdit(false)
             setIsAddProject(false)
             setProjectObj({})
-        } catch (error) {
+       } catch (error) {
+         if (error?.message === "Network Error") {
+                navigate("/network-issue")
+            }
             toast.error(error?.response?.data?.error)
         }
         setIsWorkingApi(false);
@@ -152,7 +164,10 @@ export default function Projects() {
             // socket.emit("send_notification_for_project", newProjectObj)
             setProjectObj({});
             handleAddProject();
-        } catch (error) {
+       } catch (error) {
+         if (error?.message === "Network Error") {
+                navigate("/network-issue")
+            }
             toast.error(error?.response?.data?.error)
         }
         setIsWorkingApi(false);
@@ -189,7 +204,10 @@ export default function Projects() {
             })
             toast.success(res.data.message);
             handleDeleteProject()
-        } catch (error) {
+       } catch (error) {
+         if (error?.message === "Network Error") {
+                navigate("/network-issue")
+            }
             toast.error(error?.response?.data?.error)
         }
     }
@@ -383,7 +401,7 @@ export default function Projects() {
                                                             </div>
 
                                                             <div className='w-100' onClick={() => {
-                                                                navigator(`/${whoIs}/tasks`)
+                                                                navigate(`/${whoIs}/tasks`)
                                                                 handleAddTask(project._id)
                                                             }} >
                                                                 <button className='button' style={{ background: "#4b70f5", width: "100%", padding: "6px" }}>Add Task</button>

@@ -13,9 +13,7 @@ import Loading from "../Loader";
 const LeaveRequestForm = ({ type }) => {
   const { id } = useParams();
   const url = process.env.REACT_APP_API_URL;
-  const { whoIs, data,
-    // socket
-  } = useContext(EssentialValues);
+  const { whoIs, data} = useContext(EssentialValues);
   const { _id, token } = data;
   const [errorData, setErrorData] = useState("");
   const [isShowPeriodOfLeave, setIsShowPeriodOfLeave] = useState(false);
@@ -30,146 +28,13 @@ const LeaveRequestForm = ({ type }) => {
   const now = new Date();
   const [leaveRequestObj, setLeaveRequestObj] = useState({});
 
-  // let leaveObjValidation = Yup.object().shape({
-  //   leaveType: Yup.string().required("Leave type is required!"),
-  //   fromDate: Yup.date()
-  //     .test(
-  //       "min-date",
-  //       "You can select a date from tomorrow",
-  //       function (value) {
-  //         if (["admin", "hr"].includes(whoIs)) {
-  //           return true;
-  //         }
-  //         const { leaveType } = this.parent;
-  //         // Accessing another field
-  //         if (!["Permission Leave", "Sick Leave", "Medical Leave"].includes(leaveType) && value) {
-  //           return value >= now; // Ensure the date is in the future
-  //         }
-  //         return true;
-  //       }
-  //     )
-  //     .required("From Date is required")
-  //     .test(
-  //       "weekend check",
-  //       "Weekends are not allowed",
-  //       (value) => {
-  //         if (value) {
-  //           const day = new Date(value).getDay();
-  //           return day !== 0 && day !== 6;
-  //         }
-  //         return true;
-  //       }
-  //     ),
-  //   toDate: Yup.date()
-  //     .test(
-  //       "min-date",
-  //       "To Date must be after From Date",
-  //       function (value) {
-  //         if (["admin", "hr"].includes(whoIs)) {
-  //           return true;
-  //         }
-  //         const { fromDate } = this.parent; // Accessing another field
-  //         if (value && fromDate) {
-  //           return value >= fromDate; // Ensure `toDate` is not before `fromDate`
-  //         }
-  //         return true;
-  //       }
-  //     )
-  //     .test("check weekend",
-  //       "Weekend is not allowed",
-  //       (date) => {
-  //         if (date) {
-  //           const day = new Date(date).getDay();
-  //           return day !== 0 && day !== 6;
-  //         }
-  //         return true;
-  //       }
-  //     )
-  //     .test(
-  //       "max-2-hours",
-  //       "Leave cannot be more than 2 hours",
-  //       function (value) {
-  //         const { fromDate, leaveType } = this.parent;
-  //         if (value && fromDate && leaveType === "Permission Leave") {
-  //           const fromTime = new Date(fromDate).getTime();
-  //           const toTime = new Date(value).getTime();
-  //           const twoHours = 2 * 60 * 60 * 1000;
-  //           return toTime > fromTime && (toTime - fromTime <= twoHours);
-  //         }
-  //         return true;
-  //       }
-  //     )
-
-  //     .required("ToDate is required"),
-  //   leaveType: Yup.string().required("Leave type is required"),
-  //   fromDate: Yup.date().required("From date is required"),
-  //   toDate: Yup.date().required("To date is required"),
-  //   periodOfLeave: Yup.string(),  // optional
-  //   reasonForLeave: Yup.string()
-  //     .test(
-  //       "is-not-empty",
-  //       "Reason for Leave is required",
-  //       (value) => {
-  //         if (!value) return false;
-  //         const stripped = value.replace(/<[^>]*>/g, "").trim();
-  //         return stripped.length > 0;
-  //       }
-  //     )
-  //     .required("Reason for Leave is required"),
-
-  //   prescription: Yup.string().notRequired(),
-  //   coverBy: Yup.string().notRequired(),
-  //   applyFor: Yup.string().notRequired()
-  // });
-
-  // const formik = useFormik({
-  //   initialValues: {
-  //     leaveType: leaveRequestObj.leaveType || "",
-  //     fromDate: leaveRequestObj.fromDate || "",
-  //     toDate: leaveRequestObj.toDate || "",
-  //     periodOfLeave: leaveRequestObj.periodOfLeave || "",
-  //     reasonForLeave: leaveRequestObj.reasonForLeave || "",
-  //     prescription: leaveRequestObj.prescription || "",
-  //     coverBy: leaveRequestObj.coverBy || "",
-  //     applyFor: leaveRequestObj.applyFor || "",
-  //   },
-  //   enableReinitialize: true, // ✅ allows reinitialization when leaveRequestObj updates
-  //   validationSchema: leaveObjValidation,
-  //   validateOnChange: true,
-  //   onSubmit: async (values, { resetForm }) => {
-  //     if (error === "") {
-  //       const formData = new FormData();
-  //       formData.append("leaveType", leaveRequestObj.leaveType);
-  //       formData.append("fromDate", new Date(leaveRequestObj.fromDate).toISOString());
-  //       formData.append("toDate", new Date(leaveRequestObj.toDate).toISOString());
-  //       formData.append("periodOfLeave", leaveRequestObj.periodOfLeave || formik?.values?.leaveType?.toLowerCase()?.includes("permission") ? "half day" : "full day");
-  //       formData.append("reasonForLeave", leaveRequestObj.reasonForLeave);
-  //       formData.append("prescription", prescriptionFile); // Assuming `file` is the file object
-  //       if (leaveRequestObj.coverBy) {
-  //         formData.append("coverBy", leaveRequestObj.coverBy);
-  //       }
-
-  //       if (leaveRequestObj.applyFor) {
-  //         formData.append("applyFor", leaveRequestObj.applyFor);
-  //       }
-
-
-  //       if (leaveRequestObj._id) {
-  //         updateLeave(values, resetForm)
-  //       } else {
-  //         applyLeave(formData, resetForm)
-  //       }
-  //     }
-  //   },
-  // });
-
   function handleSubmit(e) {
     e.preventDefault();
     setErrorData("");
     const formData = new FormData();
     formData.append("leaveType", leaveRequestObj.leaveType);
-    formData.append("fromDate", leaveRequestObj.fromDate ? new Date(leaveRequestObj.fromDate).toISOString() : null);
-    formData.append("toDate", leaveRequestObj.toDate ? new Date(leaveRequestObj.toDate).toISOString() : null);
+    formData.append("fromDate", new Date(leaveRequestObj.fromDate).toLocaleDateString());
+    formData.append("toDate", new Date(leaveRequestObj.toDate).toLocaleDateString());
     formData.append("periodOfLeave", leaveRequestObj.periodOfLeave || leaveRequestObj?.leaveType?.toLowerCase()?.includes("permission") ? "half day" : "full day");
     formData.append("reasonForLeave", leaveRequestObj.reasonForLeave);
     formData.append("prescription", prescriptionFile); // Assuming `file` is the file object
@@ -229,7 +94,10 @@ const LeaveRequestForm = ({ type }) => {
       toast.success(res.data.message);
       setLeaveRequestObj({});
       navigate(`/${whoIs}`); // Navigate back
-    } catch (error) {
+   } catch (error) {
+         if (error?.message === "Network Error") {
+                navigate("/network-issue")
+            }
       console.log("error in update leave", error);
       toast.error(error?.response?.data?.error);
       setErrorData(error?.response?.data?.error)
@@ -246,7 +114,10 @@ const LeaveRequestForm = ({ type }) => {
         }
       });
       setLeaveRequestObj(response.data);
-    } catch (error) {
+   } catch (error) {
+         if (error?.message === "Network Error") {
+                navigate("/network-issue")
+            }
       toast.error("Failed to fetch leave request data.");
     }
   };
@@ -288,7 +159,10 @@ const LeaveRequestForm = ({ type }) => {
       } else {
         toast.error("_id is not loaded in the app.");
       }
-    } catch (error) {
+   } catch (error) {
+         if (error?.message === "Network Error") {
+                navigate("/network-issue")
+            }
       console.error("Error fetching leave requests:", error);
       toast.error("Failed to fetch leave requests. Please try again.");
     } finally {
@@ -318,19 +192,22 @@ const LeaveRequestForm = ({ type }) => {
       const emps = await fetchAllEmployees();
       const filterEmps = emps.filter((emp) => emp._id !== _id)
       setEmployees(filterEmps.map((emp) => ({ label: emp.FirstName + " " + emp.LastName, value: emp._id })))
-    } catch (error) {
+   } catch (error) {
+         if (error?.message === "Network Error") {
+                navigate("/network-issue")
+            }
       console.log(error);
     }
   }
 
-  console.log("leaveObj", leaveRequestObj);
-
   async function fetchHolidays() {
     try {
       const res = await getHoliday();
-      console.log("holidays", res);
       setExcludeDates(res.holidays.map(holiday => new Date(holiday.date)));
-    } catch (error) {
+   } catch (error) {
+         if (error?.message === "Network Error") {
+                navigate("/network-issue")
+            }
       console.error("Failed to fetch holidays", error);
     }
   }
@@ -364,7 +241,6 @@ const LeaveRequestForm = ({ type }) => {
     }
   }, [whoIs])
 
-  console.log("errorMsg", errorData);
   return (
     isLoading ? <Loading height="80vh" /> :
       <form onSubmit={handleSubmit}>

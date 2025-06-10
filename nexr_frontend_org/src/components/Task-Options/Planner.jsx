@@ -10,9 +10,11 @@ import ChevronRightRoundedIcon from '@mui/icons-material/ChevronRightRounded';
 import PlayCircleFilledRoundedIcon from '@mui/icons-material/PlayCircleFilledRounded';
 import SubdirectoryArrowLeftRoundedIcon from '@mui/icons-material/SubdirectoryArrowLeftRounded';
 import AddRoundedIcon from '@mui/icons-material/AddRounded';
+import { useNavigate } from 'react-router-dom';
 
 export default function Planner({ isLoading, updateTaskStatus, fetchEmpAssignedTasks, updatedTimerInTask, plannerTasks }) {
     const url = process.env.REACT_APP_API_URL;
+    const navigate = useNavigate();
     const { data } = useContext(EssentialValues);
     const [categories, setCategories] = useState([]);
     // for task 
@@ -149,7 +151,10 @@ export default function Planner({ isLoading, updateTaskStatus, fetchEmpAssignedT
             console.log("categories", res.data.categories);
 
             setCategories(res.data.categories);
-        } catch (error) {
+       } catch (error) {
+         if (error?.message === "Network Error") {
+                navigate("/network-issue")
+            }
             console.log("error in fetch categories", error);
 
         }

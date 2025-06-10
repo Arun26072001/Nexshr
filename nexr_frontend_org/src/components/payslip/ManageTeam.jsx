@@ -9,8 +9,10 @@ import Loading from "../Loader";
 import { EssentialValues } from "../../App";
 import CommonModel from "../Administration/CommonModel";
 import { jwtDecode } from "jwt-decode";
+import { useNavigate } from "react-router-dom";
 
 const ManageTeam = () => {
+    const navigate = useNavigate();
     const url = process.env.REACT_APP_API_URL;
     const { data, whoIs } = useContext(EssentialValues);
     const { token, _id } = data;
@@ -148,7 +150,10 @@ const ManageTeam = () => {
                 label: emp.FirstName + " " + emp.LastName,
                 value: emp._id
             })));
-        } catch (error) {
+       } catch (error) {
+         if (error?.message === "Network Error") {
+                navigate("/network-issue")
+            }
             console.log(error.response.data.error);
         }
     }
@@ -164,7 +169,10 @@ const ManageTeam = () => {
                 label: emp.FirstName + " " + emp.LastName,
                 value: emp._id
             })));
-        } catch (error) {
+       } catch (error) {
+         if (error?.message === "Network Error") {
+                navigate("/network-issue")
+            }
             console.log(error.response.data.error);
         }
     }
@@ -180,7 +188,10 @@ const ManageTeam = () => {
                 label: emp.FirstName + " " + emp.LastName,
                 value: emp._id
             })));
-        } catch (error) {
+       } catch (error) {
+         if (error?.message === "Network Error") {
+                navigate("/network-issue")
+            }
             console.log(error.response.data.error);
         }
     }
@@ -196,7 +207,10 @@ const ManageTeam = () => {
                 label: emp.FirstName + " " + emp.LastName,
                 value: emp._id
             })));
-        } catch (error) {
+       } catch (error) {
+         if (error?.message === "Network Error") {
+                navigate("/network-issue")
+            }
             console.log(error.response.data.error);
         }
     }
@@ -212,7 +226,10 @@ const ManageTeam = () => {
                 label: emp.FirstName + " " + emp.LastName,
                 value: emp._id
             })));
-        } catch (error) {
+       } catch (error) {
+         if (error?.message === "Network Error") {
+                navigate("/network-issue")
+            }
             console.log(error.response.data.error);
         }
     }

@@ -19,9 +19,8 @@ export default function Navbar({ handleSideBar }) {
     const { handleLogout, data, handleUpdateAnnouncements, isChangeAnnouncements, whoIs,
         changeViewReasonForEarlyLogout, isViewEarlyLogout, setIsStartLogin } = useContext(EssentialValues)
     const { startLoginTimer, stopLoginTimer, workTimeTracker, isStartLogin,
-        trackTimer, changeReasonForEarly, setWorkTimeTracker, updateClockins,
-        isWorkingLoginTimerApi, setIsWorkingLoginTimerApi, isForgetToPunchOut,
-        setIsForgetToPunchOut } = useContext(TimerStates);
+        trackTimer, changeReasonForEarly, setWorkTimeTracker, isWorkingLoginTimerApi,
+        setIsWorkingLoginTimerApi, isForgetToPunchOut } = useContext(TimerStates);
     const [sec, setSec] = useState(workTimeTracker?.login?.timeHolder?.split(':')[2])
     const [min, setMin] = useState(workTimeTracker?.login?.timeHolder?.split(':')[1])
     const [hour, setHour] = useState(workTimeTracker?.login?.timeHolder?.split(':')[0])
@@ -33,7 +32,7 @@ export default function Navbar({ handleSideBar }) {
     const [latitude, setLatitude] = useState("");
     const [longitude, setLongitude] = useState("");
     const [isLoading, setIsLoading] = useState(false);
-    const navigate  = useNavigate();
+    const navigate = useNavigate();
     const [workLocation, setWorklocation] = useState(localStorage.getItem("workLocation") || "");
     const worklocationType = ["WFH", "WFO"].map((item) => ({ label: item, value: item }))
 
@@ -128,6 +127,9 @@ export default function Navbar({ handleSideBar }) {
             if (error?.message === "Network Error") {
                 navigate("/network-issue")
             }
+            if (error?.message === "Network Error") {
+                navigate("/network-issue")
+            }
             console.log("error in fetch notifications", error.message);
         } finally {
             setIsLoading(false);
@@ -157,6 +159,9 @@ export default function Navbar({ handleSideBar }) {
                 stopTimer()
             }
         } catch (error) {
+            if (error?.message === "Network Error") {
+                navigate("/network-issue")
+            }
             console.log("error in check working hour is complated", error);
         }
     }
@@ -171,6 +176,9 @@ export default function Navbar({ handleSideBar }) {
             console.log("updated notifications", res.data.message);
             handleUpdateAnnouncements();
         } catch (error) {
+            if (error?.message === "Network Error") {
+                navigate("/network-issue")
+            }
             console.log("Error in update notifications", error);
         }
     }
@@ -187,6 +195,9 @@ export default function Navbar({ handleSideBar }) {
 
             await updateEmpNotifications(notifications); // Await if it's async
         } catch (error) {
+            if (error?.message === "Network Error") {
+                navigate("/network-issue")
+            }
             console.log("Error clearing messages:", error);
         }
     }
@@ -210,6 +221,9 @@ export default function Navbar({ handleSideBar }) {
                 }
             }, 300);
         } catch (error) {
+            if (error?.message === "Network Error") {
+                navigate("/network-issue")
+            }
             console.log("Error removing message:", error);
         }
     }
@@ -250,6 +264,9 @@ export default function Navbar({ handleSideBar }) {
             })
             setWorklocation(res.data ? "WFH" : "WFO")
         } catch (error) {
+            if (error?.message === "Network Error") {
+                navigate("/network-issue")
+            }
             console.log("error in check wfh", error);
         }
     }

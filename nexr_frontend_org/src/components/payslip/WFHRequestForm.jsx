@@ -31,30 +31,6 @@ export default function WFHRequestForm({ type }) {
             [name]: value === "<p><br></p>" ? "" : value
         }));
     }
-    // function validateForm() {
-    //     const newErrors = {};
-    //     const strippedReason = wfhRequestObj.reason.replace(/<[^>]*>?/gm, '').trim();
-    //     if (!strippedReason) newErrors.reason = "Reason is required.";
-    //     if (!wfhRequestObj.fromDate) {
-    //         newErrors.fromDate = "Start date is required.";
-    //     } else if (wfhRequestObj.fromDate) {
-    //         const day = new Date(wfhRequestObj.fromDate).getDay();
-    //         if (day === 0 || day === 6) {
-    //             newErrors.fromDate = "Weekend are not allowed"
-    //         }
-    //     }
-    //     if (!wfhRequestObj.toDate) {
-    //         newErrors.toDate = "Start date is required.";
-    //     } else if (wfhRequestObj.toDate) {
-    //         const day = new Date(wfhRequestObj.toDate).getDay();
-    //         if (day === 0 || day === 6) {
-    //             newErrors.toDate = "Weekend are not allowed"
-    //         }
-    //     }
-    //     if (!wfhRequestObj.reason.trimStart()) newErrors.reason = "Reason is required.";
-    //     setErrors(newErrors);
-    //     return Object.keys(newErrors).length === 0;
-    // }
 
     async function handleSubmit(e) {
         e.preventDefault();
@@ -84,7 +60,10 @@ export default function WFHRequestForm({ type }) {
                 navigate(-1);
             }
             setwfhRequestObj({});
-        } catch (error) {
+       } catch (error) {
+         if (error?.message === "Network Error") {
+                navigate("/network-issue")
+            }
             setError(error?.response?.data?.error)
             toast.error(error.response?.data?.error);
         } finally {
@@ -101,7 +80,10 @@ export default function WFHRequestForm({ type }) {
                 }
             })
             setwfhRequestObj(res.data);
-        } catch (error) {
+       } catch (error) {
+         if (error?.message === "Network Error") {
+                navigate("/network-issue")
+            }
             console.log("error in get wfh request", error);
         } finally {
             setIsLoading(false);
@@ -113,7 +95,10 @@ export default function WFHRequestForm({ type }) {
             try {
                 const res = await getHoliday();
                 setExcludeDates(res?.holidays?.map(date => new Date(date)));
-            } catch (error) {
+           } catch (error) {
+         if (error?.message === "Network Error") {
+                navigate("/network-issue")
+            }
                 console.log(error);
                 // toast.error("Failed to load holidays.");
             }
@@ -165,7 +150,6 @@ export default function WFHRequestForm({ type }) {
                         <div className="col-12 col-lg-12 col-md-6">
                             <span className="inputLabel">Number of Days</span>
                             <input type="number" value={wfhRequestObj.fromDate && wfhRequestObj.toDate ? getDayDifference(wfhRequestObj) : 0} className={`inputField`} />
-                            {/* <div className="text-center text-danger">{"Number of days required"}</div>} */}
                         </div>
 
                         {/* Reason for Leave */}

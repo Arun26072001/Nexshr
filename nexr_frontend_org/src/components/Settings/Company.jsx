@@ -14,6 +14,7 @@ import EventNoteOutlinedIcon from '@mui/icons-material/EventNoteOutlined';
 import axios from 'axios';
 import { toast } from 'react-toastify';
 import { EssentialValues } from '../../App';
+import { useNavigate } from 'react-router-dom';
 
 function TabPanel(props) {
   const { children, value, index, ...other } = props;
@@ -49,6 +50,7 @@ function a11yProps(index) {
 }
 
 export default function CompanyTab() {
+  const navigate = useNavigate();
   const [value, setValue] = useState(0);
   const names = ["Show", "Hide"];
   const url = process.env.REACT_APP_API_URL;
@@ -121,7 +123,10 @@ export default function CompanyTab() {
           }
         })
         setRadioOption(res.data)
-      } catch (error) {
+     } catch (error) {
+         if (error?.message === "Network Error") {
+                navigate("/network-issue")
+            }
         console.log(error);
         toast.error(error?.response?.data?.error)
       }

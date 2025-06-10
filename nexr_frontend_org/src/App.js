@@ -46,28 +46,28 @@ const App = () => {
   const [isViewEarlyLogout, setIsViewEarlyLogout] = useState(JSON.parse(localStorage.getItem("isViewEarlyLogout")) ? true : false);
 
   function handleUpdateAnnouncements() {
-    setIschangeAnnouncements(!isChangeAnnouncements)
+    setIschangeAnnouncements(!isChangeAnnouncements);
   }
 
-  async function handleUpdateComments(){
+  async function handleUpdateComments() {
     setIsChangeComments(!isChangeComments)
   }
 
   // change ask the reason late in breaks and lunch activity
   function changeViewReasonForTaketime() {
     if (!isViewTakeTime) {
-        localStorage.setItem("isViewTakeTime", true)
+      localStorage.setItem("isViewTakeTime", true)
     }
     setIsTaketime(!isViewTakeTime)
-}
-
-// change ask the reason for early logout
-function changeViewReasonForEarlyLogout() {
-  if (!isViewEarlyLogout) {
-      localStorage.setItem("isViewEarlyLogout", true)
   }
-  setIsViewEarlyLogout(!isViewEarlyLogout)
-}
+
+  // change ask the reason for early logout
+  function changeViewReasonForEarlyLogout() {
+    if (!isViewEarlyLogout) {
+      localStorage.setItem("isViewEarlyLogout", true)
+    }
+    setIsViewEarlyLogout(!isViewEarlyLogout)
+  }
 
   // Helper Functions
   const handleLogout = () => {
@@ -100,11 +100,11 @@ function changeViewReasonForEarlyLogout() {
     try {
       const response = await axios.post(`${url}/api/login`, { Email: email, Password: password });
       const decodedData = jwtDecode(response.data);
+      console.log("decodedData", decodedData);
 
       if (!decodedData?.Account || !["17", "1", "2", "3", "4", "5"].includes(String(decodedData?.Account))) {
         throw new Error("Invalid account type.");
       }
-      console.log(decodedData);
 
       const accountType = decodedData?.Account;
       setData({
@@ -130,7 +130,12 @@ function changeViewReasonForEarlyLogout() {
       setWhoIs(roles[String(accountType)] || "");
       navigate(`/${roles[String(accountType)]}`);
     } catch (error) {
-      console.log(error);
+      if (error?.message === "Network Error") {
+        navigate("/network-issue")
+      }
+      if (error?.message === "Network Error") {
+        navigate("/network-issue")
+      }
       setPass(false);
       setLoading(false);
       if (error?.response?.data?.details?.includes("buffering timed out after 10000ms")) {
@@ -148,7 +153,7 @@ function changeViewReasonForEarlyLogout() {
     event.target.reset();
   };
 
-  
+
   async function saveFcmToken(empId, fcmToken) {
     try {
       const res = await axios.post(`${url}/api/employee/add-fcm-token`, { empId, fcmToken }, {
@@ -157,6 +162,12 @@ function changeViewReasonForEarlyLogout() {
         }
       })
     } catch (error) {
+      if (error?.message === "Network Error") {
+        navigate("/network-issue")
+      }
+      if (error?.message === "Network Error") {
+        navigate("/network-issue")
+      }
       console.log("error in save fcm token", error);
     }
   }
@@ -183,29 +194,32 @@ function changeViewReasonForEarlyLogout() {
           console.log("Notification permission denied.");
         }
       } catch (error) {
+        if (error?.message === "Network Error") {
+          navigate("/network-issue")
+        }
         console.error("Error getting permission for notifications", error);
       }
     };
-
+    
     requestPermission();
 
     // Listen for incoming messages when the app is in the foreground
     const unsubscribe = onMessage(messaging, (payload) => {
       console.log("Message received:", payload);
-      const company = JSON.parse(payload.data.companyData)
-      const type = payload.data.type;
-      if(!["edit comment","delete comment"].includes(type)){
-        triggerToaster({company, title: payload.notification.title, message: payload.notification.body })
+      const decodedData = jwtDecode(localStorage.getItem("token"));
+      const type = payload?.data?.type;
+      if (!["edit comment", "delete comment"].includes(type)) {
+        triggerToaster({ company: decodedData.company, title: payload.notification.title, message: payload.notification.body })
       }
-      if(type.toLowerCase().includes("comment")){
-       setIsChangeComments(payload?.messageId)
+      if (type.toLowerCase().includes("comment")) {
+        setIsChangeComments(payload?.messageId)
       }
-      if(type === "late reason"){
+      if (type === "late reason") {
         changeViewReasonForTaketime();
-      } if(type === "early reason"){
+      } if (type === "early reason") {
         changeViewReasonForEarlyLogout()
       }
-      handleUpdateAnnouncements()
+      setIschangeAnnouncements(payload.messageId);
     });
 
     return () => unsubscribe();
@@ -242,7 +256,7 @@ function changeViewReasonForEarlyLogout() {
     }
   }, []);
 
-// detech browser is online or offline
+  // detech browser is online or offline
   useEffect(() => {
     const handleOnline = () => {
       setIsOnline(true);
@@ -273,6 +287,9 @@ function changeViewReasonForEarlyLogout() {
       const response = await fetch("https://www.google.com", { mode: "no-cors" });
       setHasInternet(true);
     } catch (error) {
+      if (error?.message === "Network Error") {
+        navigate("/network-issue")
+      }
       setHasInternet(false);
     }
   };
@@ -332,68 +349,3 @@ function changeViewReasonForEarlyLogout() {
 };
 
 export default App;
-
-    // useEffect(() => {
-    //   if (!socket.connected && isLogin) {
-    //     socket.connect();
-    //   }
-  
-    //   if (isLogin && data?._id) {
-    //     socket.emit("join_room", data._id);
-  
-    //     const handlers = {
-    //       receive_announcement: (response) => {
-    //         console.log("responseData", response);
-    //         triggerToaster(response);
-    //         handleUpdateAnnouncements();
-    //       },
-    //       send_leave_notification: (response) => {
-    //         console.log(response);
-    //         triggerToaster(response);
-    //         handleUpdateAnnouncements();
-    //       },
-    //       send_project_notification: (response) => {
-    //         triggerToaster(response);
-    //         handleUpdateAnnouncements();
-    //       },
-    //       send_task_notification: (response) => {
-    //         triggerToaster(response);
-    //         handleUpdateAnnouncements();
-    //       },
-    //       send_team_notification: (response) => {
-    //         triggerToaster(response);
-    //         handleUpdateAnnouncements();
-    //       },
-    //       send_wfh_notification: (response) => {
-    //         console.log(response);
-    //         triggerToaster(response);
-    //         handleUpdateAnnouncements();
-    //       },
-    //     };
-  
-    //     // Attach all handlers
-    //     Object.entries(handlers).forEach(([event, handler]) => {
-    //       socket.on(event, handler);
-    //     });
-  
-    //     return () => {
-      //       // Detach all handlers
-    //       Object.keys(handlers).forEach((event) => {
-    //         socket.off(event);
-    //       });
-    //     };
-    //   }
-    // }, [socket, isLogin, data?._id]);
-    // function triggerNotification() {
-    //   try {
-    //     const trigger = axios.post(`${url}/push-notification`, { userId: data._id, title: "Hey", body: "how are you" });
-    //     console.log("triggered");
-    //   } catch (error) {
-    //     console.log("error in trigger notification", error);
-    //   }
-    // }
-    // useEffect(() => {
-    //   if (data._id) {
-    //     triggerNotification();
-    //   }
-    // }, [data._id])

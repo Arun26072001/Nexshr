@@ -46,9 +46,10 @@ const Sidebar = ({ sideBar }) => {
   };
 
   const renderNavLink = (condition, path, icon, text, key) => {
-    if (path.includes("/employee/edit/")) {
-      setIsEditEmp(true)
-    }
+    // if (path.includes("/employee/edit/")) {
+    //   console.log("aadksalkd");
+    //   setIsEditEmp(true)
+    // }
 
     return (
       condition && (
@@ -87,9 +88,10 @@ const Sidebar = ({ sideBar }) => {
         {activeNavLink === menuKey && (
           <ul className="nav-content p-2">
             {submenuItems.map((item) => {
-              if (item.path.includes("/employee/edit/")) {
-                setIsEditEmp(true)
-              }
+              // if (item.path.includes("/employee/edit/")) {
+              //   console.log("kasdkjwqlk");
+              //   setIsEditEmp(true)
+              // }
               return (
                 <li
                   key={item.key}

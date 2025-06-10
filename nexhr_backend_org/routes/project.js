@@ -145,7 +145,7 @@ router.post("/:id", verifyAdminHRTeamHigherAuth, async (req, res) => {
               token: fullEmp.fcmToken,
               title: Subject,
               body: message,
-              company: creator.company
+              // company: creator.company
             });
           }
         }
@@ -256,7 +256,7 @@ router.put("/:empId/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) 
             token: fullEmp.fcmToken,
             title: subject,
             body: notifyMessage,
-            company: assignedPerson.company
+            // company: assignedPerson.company
           });
         }
       }

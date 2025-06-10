@@ -7,8 +7,10 @@ import CommonModel from './CommonModel';
 import { toast } from 'react-toastify';
 import { Input } from 'rsuite';
 import { Skeleton } from '@mui/material';
+import { useNavigate } from 'react-router-dom';
 
 export default function LeaveDetails() {
+    const navigate = useNavigate();
     const [isLoading, setIsLoading] = useState(false);
     const [leaveTypes, setLeavetypes] = useState([]);
     const url = process.env.REACT_APP_API_URL;
@@ -31,7 +33,10 @@ export default function LeaveDetails() {
             })
             toast.success(res.data.message);
             fetchLeavetypes();
-        } catch (error) {
+       } catch (error) {
+         if (error?.message === "Network Error") {
+                navigate("/network-issue")
+            }
 
         }
     }
@@ -48,7 +53,10 @@ export default function LeaveDetails() {
             fetchLeavetypes();
             toast.success(res.data.message);
             handleChangeLeavetype("Edit")
-        } catch (error) {
+       } catch (error) {
+         if (error?.message === "Network Error") {
+                navigate("/network-issue")
+            }
             console.log(error);
             toast.error(error?.response?.data?.error)
         } finally {
@@ -68,7 +76,10 @@ export default function LeaveDetails() {
             fetchLeavetypes();
             handleChangeLeavetype("Add")
             toast.success(res.data.message)
-        } catch (error) {
+       } catch (error) {
+         if (error?.message === "Network Error") {
+                navigate("/network-issue")
+            }
             console.log(error);
             toast.error(error?.response?.data?.error)
         } finally {
@@ -126,7 +137,10 @@ export default function LeaveDetails() {
             })
             setLeavetypes(res.data);
             setFullLeavetypes(res.data);
-        } catch (error) {
+       } catch (error) {
+         if (error?.message === "Network Error") {
+                navigate("/network-issue")
+            }
             setLeavetypes([])
             console.log(error);
         } finally {

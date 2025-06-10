@@ -6,8 +6,10 @@ import EditRoundedIcon from "@mui/icons-material/EditRounded";
 import DeleteRoundedIcon from "@mui/icons-material/DeleteRounded";
 import { EssentialValues } from "../../App";
 import Loading from "../Loader";
+import { useNavigate } from "react-router-dom";
 
 export default function PayslipInfo() {
+    const navigate = useNavigate();
     const url = process.env.REACT_APP_API_URL;
     const { data } = useContext(EssentialValues);
     const [payslipInfos, setPayslipInfos] = useState({ payslipFields: [] });
@@ -23,6 +25,9 @@ export default function PayslipInfo() {
                 const payslipInfo = await fetchPayslipInfo();
                 setPayslipInfos(payslipInfo?.payslipFields ? payslipInfo : { payslipFields: [] });
             } catch (error) {
+                if (error?.message === "Network Error") {
+                    navigate("/network-issue")
+                }
                 console.error("Error fetching payslip data:", error);
                 toast.error("Failed to load payslip data.");
             } finally {
@@ -47,6 +52,9 @@ export default function PayslipInfo() {
             });
             toast.success(response.data.message);
         } catch (error) {
+            if (error?.message === "Network Error") {
+                navigate("/network-issue")
+            }
             console.error("Error updating payslip info:", error);
             toast.error(error.response?.data?.error || "Failed to update payslip info.");
         }
@@ -117,6 +125,9 @@ export default function PayslipInfo() {
             });
             toast.success(response.data.message);
         } catch (error) {
+            if (error?.message === "Network Error") {
+                navigate("/network-issue")
+            }
             console.error("Error updating payslip info:", error);
             toast.error(error.response?.data?.error || "Failed to update payslip info.");
         }

@@ -6,7 +6,7 @@ import Address from "./Address";
 import Contact from "./Contact";
 import Social from "./Social";
 import History from "./History";
-import { Route, Routes } from "react-router-dom";
+import { Route, Routes, useNavigate } from "react-router-dom";
 import PayslipRouter from "../unwanted/PayslipRouter";
 import { fetchEmployeeData, fetchPayslipFromEmp } from "../ReuseableAPI";
 import { EssentialValues } from "../../App";
@@ -16,6 +16,7 @@ import "../../components/landinPage.css";
 import WorkFromHome from "./WorkFromHome";
 
 const JobDesk = () => {
+    const navigate = useNavigate();
     const [empObj, setEmpObj] = useState({});
     const [error, setError] = useState("");
     const { data } = useContext(EssentialValues);
@@ -52,7 +53,10 @@ const JobDesk = () => {
             try {
                 const empData = await fetchEmployeeData(data._id);
                 setEmpObj(empData);
-            } catch (error) {
+           } catch (error) {
+         if (error?.message === "Network Error") {
+                navigate("/network-issue")
+            }
                 setError(error.response.data.error);
             }
         }

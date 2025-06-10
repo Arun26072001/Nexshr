@@ -7,8 +7,10 @@ import NoDataFound from "../payslip/NoDataFound";
 import CommonModel from "../Administration/CommonModel";
 import { EssentialValues } from "../../App";
 import { Skeleton } from "@mui/material";
+import { useNavigate } from "react-router-dom";
 
 const TimePattern = () => {
+    const navigate = useNavigate();
     const url = process.env.REACT_APP_API_URL;
     const { data } = useContext(EssentialValues);
     const { token } = data;
@@ -67,7 +69,10 @@ const TimePattern = () => {
             handleChangeTimePattern("Edit");
             setTimePatternObj({})
             reload(!dom);
-        } catch (error) {
+       } catch (error) {
+         if (error?.message === "Network Error") {
+                navigate("/network-issue")
+            }
             console.log(error);
         } finally {
             setIsWorkingApi(false)
@@ -86,7 +91,10 @@ const TimePattern = () => {
             toast.success(res.data.message);
             handleChangeTimePattern("Add");
             reload(!dom);
-        } catch (error) {
+       } catch (error) {
+         if (error?.message === "Network Error") {
+                navigate("/network-issue")
+            }
             toast.error(error?.response?.data?.error);
             console.log("error in add timepattern", error);
         } finally {
@@ -105,7 +113,10 @@ const TimePattern = () => {
 
             toast.success(res.data.message);
             reload(!dom);
-        } catch (error) {
+       } catch (error) {
+         if (error?.message === "Network Error") {
+                navigate("/network-issue")
+            }
             toast.error(error?.response?.data?.error)
             console.log("error in delete timePatternObj:", error);
         }
@@ -121,7 +132,10 @@ const TimePattern = () => {
                     }
                 })
                 setTimePatterns(res.data);
-            } catch (error) {
+           } catch (error) {
+         if (error?.message === "Network Error") {
+                navigate("/network-issue")
+            }
                 console.log(error);
                 setTimePatterns([]);
             } finally {

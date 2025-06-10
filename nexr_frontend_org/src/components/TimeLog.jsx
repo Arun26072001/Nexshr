@@ -1,6 +1,6 @@
 import axios from 'axios';
 import React, { useContext, useEffect, useState } from 'react'
-import { useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { EssentialValues } from '../App';
 import { Checkbox } from 'rsuite';
 import profile from "../imgs/male_avatar.webp";
@@ -8,6 +8,7 @@ import { toast } from 'react-toastify';
 import Loading from './Loader';
 
 export default function TimeLog() {
+    const navigate = useNavigate();
     const [taskObj, setTaskObj] = useState([]);
     const { id } = useParams();
     const { data } = useContext(EssentialValues);
@@ -39,7 +40,10 @@ export default function TimeLog() {
 
             toast.success(res.data.message);
             fetchTaskOfTimeLogs();
-        } catch (error) {
+       } catch (error) {
+         if (error?.message === "Network Error") {
+                navigate("/network-issue")
+            }
             console.error("Error updating task:", error);
             const errorMessage = error?.response?.data?.error || "An error occurred while updating the task.";
             toast.error(errorMessage);
@@ -64,7 +68,10 @@ export default function TimeLog() {
                 headers: { Authorization: data.token || "" }
             })
             setTaskObj(res.data);
-        } catch (error) {
+       } catch (error) {
+         if (error?.message === "Network Error") {
+                navigate("/network-issue")
+            }
             toast.error(error?.response?.data?.error)
         }
         setIsLoading(false);

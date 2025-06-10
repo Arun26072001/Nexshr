@@ -72,7 +72,10 @@ export default function PayslipUI() {
                 if (payslipInfo?.payslipFields) {
                     setPayslipFields(payslipInfo?.payslipFields);
                 }
-            } catch (error) {
+           } catch (error) {
+         if (error?.message === "Network Error") {
+                navigate("/network-issue")
+            }
                 console.log(error);
                 toast.error(error);
             }

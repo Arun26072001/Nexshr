@@ -86,7 +86,10 @@ export default function LeaveRequest() {
             toast.success(res.data.message);
             changeRequests();
 
-        } catch (error) {
+       } catch (error) {
+         if (error?.message === "Network Error") {
+                navigate("/network-issue")
+            }
             toast.error(error?.response?.data?.error)
         }
     }
@@ -110,12 +113,14 @@ export default function LeaveRequest() {
             });
             toast.success(response.data.message);
             changeRequests();
-        } catch (error) {
+       } catch (error) {
+         if (error?.message === "Network Error") {
+                navigate("/network-issue")
+            }
             console.error('File upload failed:', error);
             toast.error(error?.response?.data?.error);
         }
     };
-
     const renderMenu = ({ onClose, right, top, className }, ref) => {
         const handleSelect = (eventKey) => {
             if (eventKey === 1) {
@@ -149,7 +154,7 @@ export default function LeaveRequest() {
         );
     };
     return (
-
+        // <p>dsadsad</p>
         <>
             <input
                 type="file"
@@ -165,7 +170,7 @@ export default function LeaveRequest() {
 
                     <button className='button' onClick={() => navigate(`/${whoIs}/leave-request`)}>Apply Leave</button>
                     <button className='button' style={{ cursor: 'pointer' }}>
-                        <Whisper placement="bottomEnd" trigger="click" speaker={renderMenu}>
+                        <Whisper placement="bottomEnd" trigger="click" speaker={renderMenu} >
                             Action <ArrowDropDownRoundedIcon />
                         </Whisper>
                     </button>

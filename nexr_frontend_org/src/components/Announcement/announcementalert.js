@@ -5,12 +5,12 @@ import { toast } from 'react-toastify';
 import CommonModel from '../Administration/CommonModel';
 import { EssentialValues } from '../../App';
 import AddRoundedIcon from '@mui/icons-material/AddRounded';
+import { useNavigate } from 'react-router-dom';
 
 const AnnouncementComponent = ({ handleChangeAnnouncement }) => {
+    const navigate = useNavigate();
     const url = process.env.REACT_APP_API_URL;
-    const { data,
-        // socket
-    } = useContext(EssentialValues);
+    const { data } = useContext(EssentialValues);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [team_member, setTeam_member] = useState([]);
     const [announcementObj, setAnnouncementObj] = useState({})
@@ -30,7 +30,10 @@ const AnnouncementComponent = ({ handleChangeAnnouncement }) => {
                     { headers },
                 );
                 setTeam_member(response?.data?.Team || []);
-            } catch (error) {
+           } catch (error) {
+         if (error?.message === "Network Error") {
+                navigate("/network-issue")
+            }
                 console.error('Error fetching team members:', error);
             }
         };
@@ -66,7 +69,10 @@ const AnnouncementComponent = ({ handleChangeAnnouncement }) => {
             handleModel();
             toast.success(addAnnounce.data.message);
             // socket.emit("send_announcement", addAnnounce.data.data);
-        } catch (error) {
+       } catch (error) {
+         if (error?.message === "Network Error") {
+                navigate("/network-issue")
+            }
             setErrorMsg(error.response.data.error)
             toast.error(error?.response?.data?.error)
             console.error('Error creating the announcement or sending notification:', error);

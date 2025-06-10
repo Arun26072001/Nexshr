@@ -7,7 +7,6 @@ const { Employee } = require('../models/EmpModel');
 const { sendPushNotification } = require('../auth/PushNotification');
 const sendMail = require('./mailSender');
 
-
 router.get("/", verifyAdminHREmployeeManagerNetwork, (req, res) => {
   TimePattern.find()
     .exec((err, pattern) => {
@@ -140,7 +139,7 @@ router.put("/:id", verifyAdminHR, async (req, res) => {
         token: member.fcmToken,
         title: notification.title,
         body: notification.message,
-        company: member.company
+        // company: member.company
       });
       notify.push(member.Email);
     });

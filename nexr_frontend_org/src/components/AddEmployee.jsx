@@ -2,18 +2,17 @@ import React, { useContext } from "react";
 import { useState, useRef, useEffect } from "react";
 import "./leaveForm.css";
 import axios from "axios";
-import AddEmployeeForm from "./AddEmployeeform";
+import AddEmployeeForm from "./EmployeeForm";
 import { fetchAllEmployees, fetchEmployeeData, fetchRoles, getDepartments } from "./ReuseableAPI";
 import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "react-toastify";
 import EditEmployeeform from "./EditEmployeeform";
-import { TimerStates } from "./payslip/HRMDashboard";
 import Loading from "./Loader";
 import { EssentialValues } from "../App";
+import EmployeeForm from "./EmployeeForm";
 
 const AddEmployee = () => {
   const { id } = useParams();
-  const { isEditEmp } = useContext(TimerStates);
   const { whoIs, data } = useContext(EssentialValues);
   const [details, setDetails] = useState("personal");
   const [departments, setDepartments] = useState([]);
@@ -224,49 +223,54 @@ const AddEmployee = () => {
     try {
       const empData = await fetchEmployeeData(id);
       setPreview(empData.profile);
-      setEmployeeObj({
-        FirstName: empData?.FirstName || "",
-        LastName: empData?.LastName || "",
-        Email: empData?.Email || "",
-        Password: empData?.Password || "",
-        countryCode: empData?.countryCode || "",
-        phone: empData?.phone || "",
-        company: Array.isArray(empData?.company) ? empData.company[0] : empData?.company || "",
-        dateOfBirth: empData?.dateOfBirth || "",
-        gender: empData?.gender || "",
-        address: {
-          city: empData?.address?.city || "",
-          state: empData?.address?.state || "",
-          country: empData?.address?.country || "",
-          zipCode: empData?.address?.zipCode || ""
-        },
-        position: empData?.position?._id || "", // Safely access first element's _id or set to empty string
-        department: empData?.department?._id || "",
-        role: empData?.role._id || "",
-        description: empData?.description || "",
-        dateOfJoining: empData?.dateOfJoining || "",
-        employmentType: empData?.employmentType || "",
-        workingTimePattern: empData?.workingTimePattern?._id || "",
-        annualLeaveYearStart: empData?.annualLeaveYearStart || "",
-        companyWorkingHourPerWeek: empData?.companyWorkingHourPerWeek || "",
-        publicHoliday: empData?.publicHoliday || "",
-        monthlyPermissions: empData?.monthlyPermissions || 2,
-        typesOfLeaveCount: empData?.typesOfLeaveCount || {},
-        annualLeaveEntitlement: empData?.annualLeaveEntitlement || "",
-        basicSalary: empData?.basicSalary || "",
-        bankName: empData?.bankName || "",
-        accountNo: empData?.accountNo || "",
-        accountHolderName: empData?.accountHolderName || "",
-        IFSCcode: empData?.IFSCcode || "",
-        taxDeduction: empData?.taxDeduction || "",
-        isPermanentWFH: empData.isPermanentWFH || false
-      });
+      setEmployeeObj(empData);
+      // setEmployeeObj({
+      //   FirstName: empData?.FirstName || "",
+      //   LastName: empData?.LastName || "",
+      //   Email: empData?.Email || "",
+      //   Password: empData?.Password || "",
+      //   countryCode: empData?.countryCode || "",
+      //   phone: empData?.phone || "",
+      //   company: Array.isArray(empData?.company) ? empData.company[0] : empData?.company || "",
+      //   dateOfBirth: empData?.dateOfBirth || "",
+      //   gender: empData?.gender || "",
+      //   address: {
+      //     city: empData?.address?.city || "",
+      //     state: empData?.address?.state || "",
+      //     country: empData?.address?.country || "",
+      //     zipCode: empData?.address?.zipCode || ""
+      //   },
+      //   position: empData?.position?._id || "", // Safely access first element's _id or set to empty string
+      //   department: empData?.department?._id || "",
+      //   role: empData?.role._id || "",
+      //   description: empData?.description || "",
+      //   dateOfJoining: empData?.dateOfJoining || "",
+      //   employmentType: empData?.employmentType || "",
+      //   workingTimePattern: empData?.workingTimePattern?._id || "",
+      //   annualLeaveYearStart: empData?.annualLeaveYearStart || "",
+      //   companyWorkingHourPerWeek: empData?.companyWorkingHourPerWeek || "",
+      //   publicHoliday: empData?.publicHoliday || "",
+      //   monthlyPermissions: empData?.monthlyPermissions || 2,
+      //   typesOfLeaveCount: empData?.typesOfLeaveCount || {},
+      //   annualLeaveEntitlement: empData?.annualLeaveEntitlement || "",
+      //   basicSalary: empData?.basicSalary || "",
+      //   bankName: empData?.bankName || "",
+      //   accountNo: empData?.accountNo || "",
+      //   accountHolderName: empData?.accountHolderName || "",
+      //   IFSCcode: empData?.IFSCcode || "",
+      //   taxDeduction: empData?.taxDeduction || "",
+      //   isPermanentWFH: empData.isPermanentWFH || false
+      // });
 
     } catch (error) {
+      if (error?.message === "Network Error") {
+        navigate("/network-issue")
+      }
       console.log(error);
       toast.error(error.message);
+    } finally {
+      setIsLoading(false);
     }
-    setIsLoading(false);
   }
 
   useEffect(() => {
@@ -315,8 +319,36 @@ const AddEmployee = () => {
     <>
       {isLoading ? (
         <Loading height="80vh" />
-      ) : isEditEmp && employeeObj?.Email ? (
-        <EditEmployeeform
+      ) :
+        // : employeeObj?.Email ? (
+        //   <EditEmployeeform
+        //     details={details}
+        //     empData={employeeObj}
+        //     companies={companies}
+        //     handleScroll={handleScroll}
+        //     countries={countries}
+        //     handlePersonal={handlePersonal}
+        //     handleContact={handleContact}
+        //     handleEmployment={handleEmployment}
+        //     handleJob={handleJob}
+        //     handleFinancial={handleFinancial}
+        //     roles={roles}
+        //     personalRef={personalRef}
+        //     payslipRef={payslipRef}
+        //     contactRef={contactRef}
+        //     employmentRef={employmentRef}
+        //     jobRef={jobRef}
+        //     financialRef={financialRef}
+        //     leads={leads}
+        //     departments={departments}
+        //     positions={positions}
+        //     managers={managers}
+        //     timePatterns={timePatterns}
+        //     preview={preview}
+        //     setPreview={setPreview}
+        //   />
+        // ) : (
+        <EmployeeForm
           details={details}
           empData={employeeObj}
           companies={companies}
@@ -342,31 +374,7 @@ const AddEmployee = () => {
           preview={preview}
           setPreview={setPreview}
         />
-      ) : (
-        <AddEmployeeForm
-          details={details}
-          companies={companies}
-          handleScroll={handleScroll}
-          countries={countries}
-          handlePersonal={handlePersonal}
-          handleContact={handleContact}
-          handleEmployment={handleEmployment}
-          handleJob={handleJob}
-          handleFinancial={handleFinancial}
-          roles={roles}
-          personalRef={personalRef}
-          payslipRef={payslipRef}
-          contactRef={contactRef}
-          employmentRef={employmentRef}
-          jobRef={jobRef}
-          financialRef={financialRef}
-          leads={leads}
-          departments={departments}
-          positions={positions}
-          managers={managers}
-          timePatterns={timePatterns}
-        />
-      )}
+      }
     </>
   )
 };

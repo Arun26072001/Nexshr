@@ -3,8 +3,10 @@ import { fetchEmployeeData } from "../ReuseableAPI";
 import { EssentialValues } from "../../App";
 import NoDataFound from "./NoDataFound";
 import { Skeleton } from "@mui/material";
+import { useNavigate } from "react-router-dom";
 
 const MyDetails = () => {
+    const navigate = useNavigate();
     const [empObj, setEmpObj] = useState({});
     const [error, setError] = useState("");
     const { data } = useContext(EssentialValues);
@@ -16,7 +18,10 @@ const MyDetails = () => {
             try {
                 const empData = await fetchEmployeeData(data._id);
                 setEmpObj(empData);
-            } catch (error) {
+           } catch (error) {
+         if (error?.message === "Network Error") {
+                navigate("/network-issue")
+            }
                 setError(error.response.data.error);
             }
             setIsLoading(false);

@@ -10,6 +10,7 @@ import { EssentialValues } from "../App";
 import Loading from "./Loader";
 import { getTimeFromHour } from "./ReuseableAPI";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
 
 const ActivityTimeTracker = () => {
     const {
@@ -22,6 +23,7 @@ const ActivityTimeTracker = () => {
         changeReasonForLate,
         isworkingActivityTimerApi
     } = useContext(TimerStates);
+    const navigate = useNavigate();
     const url = process.env.REACT_APP_API_URL;
     const { data, changeViewReasonForTaketime, isViewTakeTime } = useContext(EssentialValues);
     const [isDisabled, setIsDisabled] = useState(false);
@@ -93,7 +95,10 @@ const ActivityTimeTracker = () => {
                                 token: data.token
                             });
                             console.log(res.data);
-                        } catch (error) {
+                       } catch (error) {
+         if (error?.message === "Network Error") {
+                navigate("/network-issue")
+            }
                             console.log("error in enable ask reason for late", error);
 
                         }
@@ -115,7 +120,10 @@ const ActivityTimeTracker = () => {
                                 token: data.token
                             });
                             console.log(res.data.message);
-                        } catch (error) {
+                       } catch (error) {
+         if (error?.message === "Network Error") {
+                navigate("/network-issue")
+            }
                             console.log("error in enable ask reason for late", error);
                         }
                     }

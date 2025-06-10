@@ -7,8 +7,10 @@ import { getDepartments } from '../ReuseableAPI';
 import CommonModel from './CommonModel';
 import { EssentialValues } from '../../App';
 import { Skeleton } from '@mui/material';
+import { useNavigate } from 'react-router-dom';
 
 export default function Department({ companies }) {
+    const navigate = useNavigate();
     const url = process.env.REACT_APP_API_URL;
     const { data } = useContext(EssentialValues);
     const [departmentObj, setDepartmentObj] = useState({});
@@ -47,7 +49,10 @@ export default function Department({ companies }) {
             setDepartmentObj({});
             modifyDepartments();
             reloadDepartmentPage();
-        } catch (error) {
+       } catch (error) {
+         if (error?.message === "Network Error") {
+                navigate("/network-issue")
+            }
             return toast.error(error?.response?.data?.error)
         }
         setIsChangingDepartment(false);
@@ -62,7 +67,10 @@ export default function Department({ companies }) {
             });
             toast.success(deleteDep?.data?.message);
             reloadDepartmentPage();
-        } catch (error) {
+       } catch (error) {
+         if (error?.message === "Network Error") {
+                navigate("/network-issue")
+            }
             console.log(error);
             toast.error(error?.response?.data?.message)
         }
@@ -84,7 +92,10 @@ export default function Department({ companies }) {
             setDepartmentObj({});
             // Reload the department page (or trigger any necessary updates)
             reloadDepartmentPage();
-        } catch (error) {
+       } catch (error) {
+         if (error?.message === "Network Error") {
+                navigate("/network-issue")
+            }
             // Show an error toast with the message from the API (or a generic error message if not available)
             const errorMessage = error?.response?.data?.message || error.message || "Something went wrong";
             toast.error(errorMessage);
@@ -102,7 +113,10 @@ export default function Department({ companies }) {
             });
             setDepartmentObj(department.data);
             modifyDepartments();
-        } catch (error) {
+       } catch (error) {
+         if (error?.message === "Network Error") {
+                navigate("/network-issue")
+            }
             console.log(error);
             toast.error(error);
         }
@@ -114,7 +128,10 @@ export default function Department({ companies }) {
             try {
                 const departmentsData = await getDepartments();
                 setDepartments(departmentsData);
-            } catch (error) {
+           } catch (error) {
+         if (error?.message === "Network Error") {
+                navigate("/network-issue")
+            }
                 toast.error(error);
             }
             setIsLoading(false);

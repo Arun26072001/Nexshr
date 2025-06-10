@@ -7,9 +7,11 @@ import { toast } from "react-toastify";
 import WeekDay from "./WeekDays";
 import { EssentialValues } from "../../App";
 import Loading from "../Loader";
+import { useNavigate } from "react-router-dom";
 
 
 const AddTimePattern = ({ handleAddWorkingTime, reload }) => {
+    const navigate = useNavigate();
     const url = process.env.REACT_APP_API_URL;
     const { data } = useContext(EssentialValues);
     const days = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
@@ -93,7 +95,10 @@ const AddTimePattern = ({ handleAddWorkingTime, reload }) => {
             setTimePattern({});
             reload();
             handleAddWorkingTime();
-        } catch (error) {
+       } catch (error) {
+         if (error?.message === "Network Error") {
+                navigate("/network-issue")
+            }
             toast.error(error?.response?.data?.error);
             console.log(error);
         } finally {

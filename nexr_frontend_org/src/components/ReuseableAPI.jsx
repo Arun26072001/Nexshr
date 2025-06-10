@@ -3,6 +3,7 @@ import { toast } from 'react-toastify';
 import { Notification, toaster } from "rsuite";
 import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
+import { useNavigate } from 'react-router-dom';
 const url = process.env.REACT_APP_API_URL;
 
 function getToken() {
@@ -28,6 +29,9 @@ const updateDataAPI = async (body) => {
             toast.error("You did't Login properly!")
         }
     } catch (error) {
+        //  if (error?.message === "Network Error") {
+        //         navigate("/network-issue")
+        //     }
         console.error('Update error:', error);
     }
 };
@@ -56,11 +60,10 @@ const getDataAPI = async (_id) => {
         return data;
 
     } catch (error) {
-        console.log(error);
-        
+        //  if (error?.message === "Network Error") {
+        //         navigate("/network-issue")
+        //     }
         console.log(error?.response?.data?.error);
-
-        // return error?.response?.data?.error;
     }
 };
 
@@ -75,9 +78,27 @@ const getclockinsDataById = async (id) => {
         const data = response.data;
         return data;
     } catch (error) {
+        //  if (error?.message === "Network Error") {
+        //         navigate("/network-issue")
+        //     }
         return error?.response?.data?.message;
     }
 };
+
+function checkDateIsHoliday(dateList, target) {
+    return dateList.some((holiday) => new Date(holiday.date).toLocaleDateString() === new Date(target).toLocaleDateString());
+}
+
+function isValidLeaveDate(holidays, WeeklyDays, target) {
+    let date = new Date(target);
+    const dateStr = date.toLocaleString(undefined, { weekday: "long" })
+
+    if (WeeklyDays.includes(dateStr) && !checkDateIsHoliday(holidays, date)) {
+        return true;
+    } else {
+        return false;
+    }
+}
 
 const addDataAPI = async (body, worklocation, location) => {
     try {
@@ -93,6 +114,9 @@ const addDataAPI = async (body, worklocation, location) => {
         toast.success(response.data.message);
         return response?.data?.clockIns;
     } catch (error) {
+        //  if (error?.message === "Network Error") {
+        //         navigate("/network-issue")
+        //     }
         toast.error(error?.response?.data?.error)
 
         return error?.response?.data?.error;
@@ -155,6 +179,9 @@ async function createTask(task) {
 
         toast.success(res.data.message);
     } catch (error) {
+        //  if (error?.message === "Network Error") {
+        //         navigate("/network-issue")
+        //     }
         console.error("Task creation error:", error);
         toast.error(error.response?.data?.error || "Task creation failed");
         return;
@@ -287,6 +314,9 @@ const fetchEmployeeData = async (id) => {
         return response.data;
 
     } catch (error) {
+        //  if (error?.message === "Network Error") {
+        //         navigate("/network-issue")
+        //     }
 
         if (error.response && error.response.data && error.response.data.message) {
             toast.error(error?.response?.data?.details)
@@ -388,6 +418,9 @@ const fetchPayslipFromEmp = async (_id) => {
         const payslip = await axios.get(`${url}/api/payslip/emp/${_id}`);
         return payslip.data;
     } catch (error) {
+        //  if (error?.message === "Network Error") {
+        //         navigate("/network-issue")
+        //     }
         return error?.response?.data?.message
     }
 }
@@ -402,6 +435,9 @@ const fetchRoles = async () => {
         });
         return roles.data;
     } catch (error) {
+        //  if (error?.message === "Network Error") {
+        //         navigate("/network-issue")
+        //     }
         return error?.response?.data?.message
     }
 }
@@ -416,6 +452,9 @@ const fetchTeams = async () => {
         });
         return teams.data;
     } catch (error) {
+        //  if (error?.message === "Network Error") {
+        //         navigate("/network-issue")
+        //     }
         toast.error(error?.response?.data?.error);
     }
 }
@@ -425,6 +464,9 @@ const fetchPayslip = async (id) => {
         const payslip = await axios.get(`${url}/api/payslip/${id}`);
         return payslip.data;
     } catch (error) {
+        //  if (error?.message === "Network Error") {
+        //         navigate("/network-issue")
+        //     }
         return error?.response?.data?.message
     }
 }
@@ -439,6 +481,9 @@ const getDepartments = async () => {
         });
         return departments.data;
     } catch (error) {
+        //  if (error?.message === "Network Error") {
+        //         navigate("/network-issue")
+        //     }
         return error?.response?.data?.message
     }
 }
@@ -453,6 +498,9 @@ const updateEmp = async (data, id) => {
         })
         return res.data.message;
     } catch (error) {
+        //  if (error?.message === "Network Error") {
+        //         navigate("/network-issue")
+        //     }
         toast.error(error?.response?.data?.error);
     }
 }
@@ -471,6 +519,9 @@ async function getUserLocation(lat, lng) {
             return null;
         }
     } catch (error) {
+        //  if (error?.message === "Network Error") {
+        //         navigate("/network-issue")
+        //     }
         console.error("Error fetching location:", error);
         return null;
     }
@@ -528,6 +579,9 @@ async function getHoliday() {
         });
         return res.data
     } catch (error) {
+        //  if (error?.message === "Network Error") {
+        //         navigate("/network-issue")
+        //     }
         console.log(error?.response?.data?.error);
     }
 }
@@ -542,6 +596,9 @@ async function fetchCompanies() {
         })
         return res.data;
     } catch (error) {
+        // if (error?.message === "Network Error") {
+        //     navigate("/network-issue")
+        // }
         console.log("error in fetch companies", error);
         toast.error(error?.response?.data?.error)
     }
@@ -725,6 +782,7 @@ export {
     fetchPayslip,
     removeClockinsData,
     fetchLeaveRequests,
+    isValidLeaveDate,
     deleteLeave,
     getDueDateByType,
     getclockinsDataById,

@@ -179,7 +179,7 @@ router.post("/:id", verifyAdminHR, async (req, res) => {
     }
 });
 
-router.put("/:id", verifyAdminHRTeamHigherAuth, async (req, res) => {
+router.put("/:id", verifyAdminHR, async (req, res) => {
     try {
         const { error } = TeamValidation.validate(req.body);
         if (error) return res.status(400).json({ error: error.details[0].message });

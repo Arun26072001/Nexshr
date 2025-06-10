@@ -17,7 +17,7 @@ let empId = "";
     empId = fetchedEmpId;
     token = fetchedToken;
     console.log("Emp ID:", empId, "Token:", token);
-  } catch (error) {
+ } catch (error) {
     console.error("Error retrieving data:", error);
   }
 })();
@@ -61,7 +61,7 @@ async function getDataAPI() {
     const data = await response.json();
     workTimeTracker = data;
     console.log("Data fetched successfully:", workTimeTracker);
-  } catch (error) {
+ } catch (error) {
     console.error("Error in getDataAPI:", error.message);
     return error.message;
   }
@@ -87,7 +87,7 @@ async function addDataAPI(updatedTimer) {
       const data = await response.json();
       console.log("Data added successfully:", data);
     }
-  } catch (error) {
+ } catch (error) {
     console.error("Error in addDataAPI:", error.message);
     // alert(error.message);
   }
@@ -116,7 +116,7 @@ async function updateDataAPI(body) {
 
       const data = await response.json();
       console.log("Updated successfully:", data);
-    } catch (error) {
+   } catch (error) {
       console.error("Update error:", error.message);
       // alert(error.message);
     }
@@ -137,7 +137,7 @@ const startIt = async () => {
     // Add data if it doesn't exist
     try {
       await addDataAPI(updatedState);
-    } catch (error) {
+   } catch (error) {
       console.error("Error in add Clockins timer:", error.message);
       // alert(error.message);
     }
@@ -145,7 +145,7 @@ const startIt = async () => {
     // Update data if it exists
     try {
       await updateDataAPI(updatedState);
-    } catch (error) {
+   } catch (error) {
       console.error("Error updating data:", error.message);
       // alert(error.message);
     }
@@ -165,7 +165,7 @@ const stopIt = async () => {
 
   try {
     await updateDataAPI(updatedState);
-  } catch (error) {
+ } catch (error) {
     console.error("Error in stopIt:", error.message);
     // alert(error.message);
   }

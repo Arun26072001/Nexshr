@@ -1,5 +1,6 @@
 import axios from 'axios';
 import React, { useContext, useEffect, useState } from 'react'
+import { useNavigate } from "react-router-dom";
 import { EssentialValues } from '../../App';
 import LeaveTable from '../LeaveTable';
 import NoDataFound from '../payslip/NoDataFound';
@@ -10,6 +11,7 @@ import { Input } from 'rsuite';
 import { Skeleton } from '@mui/material';
 
 export default function Country() {
+    const navigate = useNavigate();
     const [countries, setCountries] = useState([]);
     const [filteredCountries, setFilteredContries] = useState([]);
     const [countryObj, setcountryObj] = useState({});
@@ -94,6 +96,9 @@ export default function Country() {
             changeCountryOperation("Edit");
             setcountryObj({})
         } catch (error) {
+            if (error?.message === "Network Error") {
+                navigate("/network-issue")
+            }
             toast.error(error?.response?.data?.error)
         }
         setIschangingCountry(false);
@@ -111,6 +116,9 @@ export default function Country() {
             setcountryObj({});
             changeCountryOperation("Add");
         } catch (error) {
+            if (error?.message === "Network Error") {
+                navigate("/network-issue")
+            }
             console.log("error in add country", error);
             toast.error(error?.response?.data?.error)
         }
@@ -146,6 +154,9 @@ export default function Country() {
                 setCountries(res.data);
                 setFilteredContries(res.data);
             } catch (error) {
+                if (error?.message === "Network Error") {
+                    navigate("/network-issue")
+                }
                 console.log(error);
             }
             setIsLoading(false);

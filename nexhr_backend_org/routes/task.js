@@ -320,7 +320,7 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
                         token: emp.fcmToken,
                         title: notification.title,
                         body: messageBody,
-                        company: creator.company
+                        // company: creator.company
                     });
                 }
 
@@ -374,7 +374,7 @@ router.put("/updatedTaskComment/:id", verifyAdminHREmployeeManagerNetwork, async
                     token: emp.fcmToken,
                     title,
                     body: message,
-                    company: emp.company,
+                    // company: emp.company,
                     type
                 })
             });
@@ -475,7 +475,7 @@ router.put("/:empId/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) 
                             token: emp.fcmToken,
                             title: notification.title,
                             body: message,
-                            company: emp.company
+                            // company: emp.company
                         });
                     }
 

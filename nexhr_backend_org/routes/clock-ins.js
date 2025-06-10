@@ -8,18 +8,40 @@ const { getDayDifference } = require("./leave-app");
 const sendMail = require("./mailSender");
 const { LeaveApplication } = require("../models/LeaveAppModel");
 const { Team } = require("../models/TeamModel");
-const { timeToMinutes, getTotalWorkingHourPerDay, processActivityDurations, checkLoginForOfficeTime, getCurrentTime } = require("../Reuseable_functions/reusableFunction");
+const { timeToMinutes, getTotalWorkingHourPerDay, processActivityDurations, checkLoginForOfficeTime, getCurrentTime, sumLeaveDays } = require("../Reuseable_functions/reusableFunction");
 const { WFHApplication } = require("../models/WFHApplicationModel");
 const { sendPushNotification } = require("../auth/PushNotification");
+const { Holiday } = require("../models/HolidayModel");
+const { TimePattern } = require("../models/TimePatternModel");
 
 router.post("/not-login/apply-leave/:workPatternId", async (req, res) => {
     try {
+        const timePatternId = req.params.workPatternId;
         const now = new Date();
         const startOfDay = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 0, 0, 0));
         const endOfDay = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 23, 59, 59));
 
+        // check whf request is weekend or holiday
+        function checkDateIsHoliday(dateList, target) {
+            return dateList.some((holiday) => new Date(holiday.date).toLocaleDateString() === new Date(target).toLocaleDateString());
+        }
+        const holiday = await Holiday.findOne({ year: new Date().getFullYear() });
+        const isTodayHoliday = checkDateIsHoliday(holiday.holidays, now);
+        if (isTodayHoliday) {
+            return res.status(200).send({ message: "No need to apply leave for holiday" })
+        }
+        async function checkDateIsWeekend(date) {
+            const timePattern = await TimePattern.findById(timePatternId, "WeeklyDays").lean().exec();
+            const isWeekend = !timePattern.WeeklyDays.includes(new Date(date).toLocaleDateString(undefined, { weekday: 'long' }));
+            return isWeekend;
+        }
+        const todayIsWeekend = await checkDateIsWeekend(now);
+        if (todayIsWeekend) {
+            return res.status(200).send({ message: "No need to apply leave for Weekend" })
+        }
+
         const allEmployees = await Employee.find(
-            { workingTimePattern: req.params.workPatternId },
+            { workingTimePattern: timePatternId },
             "_id workingTimePattern FirstName LastName Email team leaveApplication company"
         )
             .populate("leaveApplication")
@@ -126,7 +148,7 @@ router.post("/not-login/apply-leave/:workPatternId", async (req, res) => {
                             token: hr.fcmToken,
                             title: Subject,
                             body: `${emp.FirstName} ${emp.LastName} did not punch in on the HRM system by the end of the day.`,
-                            company: emp.company,
+                            // company: emp.company,
                         });
                     }
                 });
@@ -590,7 +612,7 @@ router.get("/employee/:empId", verifyAdminHREmployeeManagerNetwork, async (req, 
 
         if (!employee) return res.status(400).send({ message: "Employee not found." });
 
-        totalLeaveDays = Math.ceil(employee.leaveApplication.reduce((sum, leave) => sum + getDayDifference(leave), 0));
+        totalLeaveDays = Math.ceil(await sumLeaveDays(employee.leaveApplication));
 
         employee.clockIns.forEach(({ login }) => {
             const { startingTime, endingTime } = login;
@@ -843,7 +865,7 @@ router.post("/remainder/:id/:timeOption", async (req, res) => {
         // send notification even ask the reason for late
         await sendPushNotification({
             token: emp.fcmToken,
-            company: emp.company,
+            // company: emp.company,
             title: Subject,
             body: `Your ${timeOption[0].toUpperCase() + timeOption.slice(1)} time has ended. Please resume your work.`,
             type: "late reason"

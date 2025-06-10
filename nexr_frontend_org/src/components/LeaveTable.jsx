@@ -76,7 +76,7 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
         { id: 'fromDate', label: 'Start Date', minWidth: 120, align: 'left', getter: (row) => row.fromDate ? row.fromDate.split("T")[0] : 'N/A' },
         { id: 'toDate', label: 'End Date', minWidth: 120, align: 'left', getter: (row) => row.toDate ? row.toDate.split("T")[0] : 'N/A' },
         { id: 'leaveType', label: 'Type', minWidth: 170, align: 'left', getter: (row) => row.leaveType },
-        { id: '', label: 'Reason', minWidth: 100, align: 'left', getter: (row) => <div dangerouslySetInnerHTML={{ __html: row.reasonForLeave.slice(0, 20) }} /> },
+        { id: '', label: 'Reason', minWidth: 150, align: 'left', getter: (row) => <div dangerouslySetInnerHTML={{ __html: row.reasonForLeave.slice(0, 20) }} /> },
         {
             id: 'status',
             label: 'Status',
@@ -486,7 +486,7 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
         { id: 'fromDate', label: 'Start Date', minWidth: 130, align: 'left', getter: (row) => row.fromDate ? row.fromDate.split("T")[0] : 'N/A' },
         { id: 'toDate', label: 'End Date', minWidth: 130, align: 'left', getter: (row) => row.toDate ? row.toDate.split("T")[0] : 'N/A' },
         { id: 'leaveType', label: 'Type', minWidth: 100, align: 'left', getter: (row) => row.leaveType },
-        { id: 'reasonForLeave', label: 'Reason', minWidth: 100, align: 'left', getter: (row) => row.reasonForLeave },
+        { id: 'reasonForLeave', label: 'Reason', minWidth: 150, align: 'left', getter: (row) => row.reasonForLeave },
         { id: 'status', label: 'Status', minWidth: 100, align: 'left', getter: (row) => row.status },
     ];
 

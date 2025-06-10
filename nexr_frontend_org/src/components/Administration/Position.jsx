@@ -1,14 +1,15 @@
 import React, { useContext, useEffect, useState } from 'react';
 import NoDataFound from '../payslip/NoDataFound';
-import Loading from '../Loader';
 import { toast } from 'react-toastify';
 import axios from 'axios';
 import CommonModel from './CommonModel';
 import LeaveTable from '../LeaveTable';
 import { EssentialValues } from '../../App';
 import { Skeleton } from '@mui/material';
+import { useNavigate } from 'react-router-dom';
 
 export default function Position({ companies }) {
+    const navigate = useNavigate();
     const url = process.env.REACT_APP_API_URL;
     const { data } = useContext(EssentialValues);
     const [positionObj, setPositionObj] = useState({});
@@ -48,7 +49,10 @@ export default function Position({ companies }) {
             setPositionObj({});
             modifyPositions();
             reloadPositionPage();
-        } catch (error) {
+       } catch (error) {
+         if (error?.message === "Network Error") {
+                navigate("/network-issue")
+            }
             toast.error(error?.response?.data?.message || "Failed to add position");
         }
         setIschangingPosition(false);
@@ -63,7 +67,10 @@ export default function Position({ companies }) {
             });
             toast.success(deletePos?.data?.message);
             reloadPositionPage();
-        } catch (error) {
+       } catch (error) {
+         if (error?.message === "Network Error") {
+                navigate("/network-issue")
+            }
             console.error("Error deleting position:", error);
             toast.error(error?.response?.data?.error || "Failed to delete position");
         }
@@ -81,7 +88,10 @@ export default function Position({ companies }) {
             setPositionObj({});
             modifyPositions();
             reloadPositionPage();
-        } catch (error) {
+       } catch (error) {
+         if (error?.message === "Network Error") {
+                navigate("/network-issue")
+            }
             console.error("Error editing position:", error);
             const errorMessage = error?.response?.data?.message || error.message || "Something went wrong";
             toast.error(errorMessage);
@@ -98,7 +108,10 @@ export default function Position({ companies }) {
             });
             setPositionObj(position.data);
             modifyPositions();
-        } catch (error) {
+       } catch (error) {
+         if (error?.message === "Network Error") {
+                navigate("/network-issue")
+            }
             console.error("Error fetching position:", error);
             toast.error("Failed to load position data");
         }
@@ -114,7 +127,10 @@ export default function Position({ companies }) {
                     }
                 });
                 setPositions(response.data);
-            } catch (error) {
+           } catch (error) {
+         if (error?.message === "Network Error") {
+                navigate("/network-issue")
+            }
                 console.error("Error fetching positions:", error);
                 toast.error("Failed to load positions data");
             }

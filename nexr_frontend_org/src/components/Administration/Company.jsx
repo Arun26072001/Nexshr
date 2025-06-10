@@ -7,8 +7,10 @@ import { toast } from 'react-toastify';
 import CommonModel from './CommonModel';
 import { EssentialValues } from '../../App';
 import { Skeleton } from '@mui/material';
+import { useNavigate } from 'react-router-dom';
 
 export default function Company() {
+    const navigate = useNavigate();
     const url = process.env.REACT_APP_API_URL;
     const [companies, setCompanies] = useState([]);
     const [companyObj, setCompanyObj] = useState({});
@@ -66,7 +68,10 @@ export default function Company() {
             toast.success(deleteCom?.data?.message);
             handleCompanyChange();
             changeCompanyOperation("Delete");
-        } catch (error) {
+       } catch (error) {
+         if (error?.message === "Network Error") {
+                navigate("/network-issue")
+            }
             toast.error(error?.response?.data?.error)
         }
     }
@@ -95,7 +100,10 @@ export default function Company() {
             setLogoPreView("");
             handleCompanyChange();
             changeCompanyOperation("Add");
-        } catch (error) {
+       } catch (error) {
+         if (error?.message === "Network Error") {
+                navigate("/network-issue")
+            }
             return toast.error(error?.response?.data?.error)
         } finally {
             setIschangingCompany(false);
@@ -112,7 +120,10 @@ export default function Company() {
             setCompanyObj(company.data);
             setLogoPreView(company.data.logo);
             changeCompanyOperation("Edit");
-        } catch (error) {
+       } catch (error) {
+         if (error?.message === "Network Error") {
+                navigate("/network-issue")
+            }
             console.log(error);
             toast.error(error);
         }
@@ -160,7 +171,10 @@ export default function Company() {
             setLogoPreView("")
             handleCompanyChange()
             changeCompanyOperation("Edit");
-        } catch (error) {
+       } catch (error) {
+         if (error?.message === "Network Error") {
+                navigate("/network-issue")
+            }
             toast.error(error?.response?.data?.error);
         } finally {
             setIschangingCompany(false);
@@ -173,7 +187,10 @@ export default function Company() {
             try {
                 const companyData = await fetchCompanies();
                 setCompanies(companyData)
-            } catch (error) {
+           } catch (error) {
+         if (error?.message === "Network Error") {
+                navigate("/network-issue")
+            }
                 console.log(error);
 
             }

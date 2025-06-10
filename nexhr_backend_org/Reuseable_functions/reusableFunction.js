@@ -5,6 +5,8 @@ const isSameOrAfter = require('dayjs/plugin/isSameOrAfter');
 const isoWeek = require('dayjs/plugin/isoWeek');
 const isBetween = require('dayjs/plugin/isBetween');
 const { PlannerCategory } = require("../models/PlannerCategoryModel");
+const { Holiday } = require("../models/HolidayModel");
+const { Employee } = require("../models/EmpModel");
 
 dayjs.extend(isSameOrBefore);
 dayjs.extend(isSameOrAfter);
@@ -84,21 +86,72 @@ const convertToString = (value) => {
   return mongoose.isValidObjectId(value) ? value?.toString() : value;
 };
 
-function getDayDifference(leave) {
-  if (leave?.periodOfLeave === "half day") {
+function isValidLeaveDate(holidays, WeeklyDays, target) {
+  let date = new Date(target);
+  const dateStr = date.toLocaleString(undefined, { weekday: "long" })
+
+  if (WeeklyDays.includes(dateStr) && !checkDateIsHoliday(holidays, date)) {
+    return true;
+  } else {
+    return false;
+  }
+}
+
+async function rangeofDate(fromDate, toDate, empData) {
+  const from = new Date(fromDate);
+  const to = new Date(toDate);
+  const holiday = await Holiday.findOne({ year: new Date().getFullYear() }).lean().exec();
+
+  const emp = await Employee.findById(empData._id, "workingTimePattern")
+    .populate("workingTimePattern", "WeeklyDays").lean().exec();
+  let dayCount = 0;
+  while (from <= to) {
+    const date = new Date(from);
+    if (isValidLeaveDate(holiday.holidays, emp.workingTimePattern.WeeklyDays, date)) {
+      dayCount += 1
+    }
+    from.setDate(from.getDate() + 1); // <- Corrected here
+  }
+  return dayCount;
+}
+
+async function getDayDifference({ fromDate, toDate, employee, periodOfLeave }) {
+
+  let dayDifference = 0;
+  if (periodOfLeave === "half day") {
     return 0.5;
   }
 
-  let toDate = new Date(leave.toDate);
-  let fromDate = new Date(leave.fromDate);
-
-  let timeDifference = toDate - fromDate;
-  let dayDifference = timeDifference / (1000 * 60 * 60 * 24); // Convert milliseconds to days
-
-  if (dayDifference < 1) {
-    return 1; // Minimum one day for a leave if it's less than a full day
-  }
+  dayDifference = await rangeofDate(fromDate, toDate, employee)
   return dayDifference;
+}
+
+function checkDateIsHoliday(dateList, target) {
+  return dateList.some((holiday) => new Date(holiday.date).toLocaleDateString() === new Date(target).toLocaleDateString());
+}
+
+const sumLeaveDays = async (leaveArray) => {
+  const dayDiffs = await Promise.all(leaveArray.map(getDayDifference));
+  return dayDiffs.reduce((a, b) => a + b, 0);
+};
+
+function getValidLeaveDays(holidays, WeeklyDays, from, to) {
+  let date = new Date(from);
+  const endDate = new Date(to);
+  const validDays = [];
+
+  while (date <= endDate) {
+    const dateStr = date.toLocaleString("default", { weekday: "long" })
+
+    if (WeeklyDays.includes(dateStr) && !checkDateIsHoliday(holidays, date)) {
+      validDays.push(new Date(date).toLocaleDateString("en-GB"));
+    }
+
+    // Move to next day
+    date.setDate(date.getDate() + 1);
+  }
+
+  return validDays;
 }
 
 function getWeekdaysOfCurrentMonth(year, month, holidays) {// 0-based index (0 = January)
@@ -270,7 +323,6 @@ async function fetchFirstTwoItems() {
 function timeToMinutes(timeStr) {
   if (typeof timeStr === 'object') {
     const timeData = new Date(timeStr).toTimeString().split(' ')[0]
-    console.log(timeData);
     const [hours, minutes, seconds] = timeData.split(/[:.]+/).map(Number)
     return Number(((hours * 60) + minutes + (seconds / 60)).toFixed(2)) || 0;
   }
@@ -448,4 +500,4 @@ function generateCoverByEmail(empData, relievingOffData) {
         `;
 }
 
-module.exports = { convertToString, fetchFirstTwoItems, getCurrentTime, checkLoginForOfficeTime, categorizeTasks, projectMailContent, processActivityDurations, getTotalWorkingHourPerDay, formatLeaveData, getDayDifference, getOrgDB, formatDate, getWeekdaysOfCurrentMonth, mailContent, checkLogin, getTotalWorkingHoursExcludingWeekends, getCurrentTimeInMinutes, timeToMinutes, formatTimeFromMinutes };
+module.exports = { convertToString, sumLeaveDays, getValidLeaveDays, fetchFirstTwoItems, getCurrentTime, checkLoginForOfficeTime, categorizeTasks, projectMailContent, processActivityDurations, getTotalWorkingHourPerDay, formatLeaveData, getDayDifference, getOrgDB, formatDate, getWeekdaysOfCurrentMonth, mailContent, checkLogin, getTotalWorkingHoursExcludingWeekends, getCurrentTimeInMinutes, timeToMinutes, formatTimeFromMinutes };

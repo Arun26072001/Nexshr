@@ -17,6 +17,7 @@ import "./Admin.css";
 import { EssentialValues } from '../../App';
 
 const AdminDashboard = () => {
+    const navigate = useNavigate();
     const { whoIs, handleLogout } = useContext(EssentialValues);
     const token = localStorage.getItem('token');
     const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
@@ -42,7 +43,10 @@ const AdminDashboard = () => {
             })
             setOrganizations(response.data)
 
-        } catch (error) {
+       } catch (error) {
+         if (error?.message === "Network Error") {
+                navigate("/network-issue")
+            }
             console.error("Error fetching organizations:", error);
         }
         setIsLoading(false);
@@ -57,7 +61,10 @@ const AdminDashboard = () => {
                 }
             });
             setUsers(res.data)
-        } catch (error) {
+       } catch (error) {
+         if (error?.message === "Network Error") {
+                navigate("/network-issue")
+            }
             console.log(error);
         }
         setIsLoading(false);

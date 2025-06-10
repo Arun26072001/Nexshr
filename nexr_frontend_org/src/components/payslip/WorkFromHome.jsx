@@ -29,11 +29,15 @@ export default function WorkFromHome() {
       })
       setRequests(res.data);
     } catch (error) {
+      if (error?.message === "Network Error") {
+        navigate("/network-issue")
+      }
       console.log("error in fetch wfhRequests", error);
     } finally {
       setIsLoading(false)
     }
   }
+  console.log(requests);
 
   useEffect(() => {
     fetchWfhReuests();
@@ -49,6 +53,9 @@ export default function WorkFromHome() {
       toast.success(res.data.message);
       fetchWfhReuests();
     } catch (error) {
+      if (error?.message === "Network Error") {
+        navigate("/network-issue")
+      }
       console.log("error in delete wfh request", error);
     }
   }
@@ -73,7 +80,7 @@ export default function WorkFromHome() {
             <div className="leaveData col-12 col-lg-3">
               <div className="d-flex flex-column">
                 <div className="leaveDays">
-                  {requests?.approvedRequests?.length || 0} Days
+                  {requests?.approvedRequests || 0} Days
                 </div>
                 <div className="leaveDaysDesc">
                   Taken requests
@@ -83,7 +90,7 @@ export default function WorkFromHome() {
             <div className="leaveData col-12 col-lg-3">
               <div className="d-flex flex-column">
                 <div className="leaveDays">
-                  {requests?.upcommingRequests?.length || 0} Days
+                  {requests?.upcommingRequests || 0} Days
                 </div>
                 <div className="leaveDaysDesc">
                   Upcoming requests
@@ -93,7 +100,7 @@ export default function WorkFromHome() {
             <div className="leaveData col-lg-3 col-12" style={{ borderRight: "none" }} >
               <div className="d-flex flex-column">
                 <div className="leaveDays">
-                  {requests?.pendingRequests?.length || 0} Days
+                  {requests?.pendingRequests || 0} Days
                 </div>
                 <div className="leaveDaysDesc">
                   Pending request

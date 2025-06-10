@@ -1,5 +1,4 @@
 import React, { useContext, useEffect, useState } from 'react';
-import Loading from '../Loader';
 import { toast } from 'react-toastify';
 import { fetchRoles } from '../ReuseableAPI';
 import { useNavigate } from 'react-router-dom';
@@ -27,7 +26,10 @@ const Roles = () => {
             });
             toast.success(deleteRole?.data?.message);
             reloadRolePage();
-        } catch (error) {
+       } catch (error) {
+         if (error?.message === "Network Error") {
+                navigate("/network-issue")
+            }
             console.log(error);
             toast.error(error?.response?.data?.message)
         }

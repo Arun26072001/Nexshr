@@ -4,7 +4,6 @@ import LeaveTable from '../LeaveTable';
 import NoDataFound from '../payslip/NoDataFound';
 import { DateRangePicker, Dropdown, Popover, Whisper } from 'rsuite';
 import ArrowDropDownRoundedIcon from '@mui/icons-material/ArrowDropDownRounded';
-import FileUploadRoundedIcon from '@mui/icons-material/FileUploadRounded';
 import FileDownloadRoundedIcon from '@mui/icons-material/FileDownloadRounded';
 import axios from 'axios';
 import { toast } from 'react-toastify';
@@ -12,11 +11,13 @@ import { EssentialValues } from '../../App';
 import { TimerStates } from '../payslip/HRMDashboard';
 import { Skeleton } from '@mui/material';
 import { exportAttendanceToExcel } from '../ReuseableAPI';
+import { useNavigate } from 'react-router-dom';
 
 const Dailylog = ({ attendanceData, isLoading }) => {
     const { data, whoIs } = useContext(EssentialValues)
     const { daterangeValue, setDaterangeValue } = useContext(TimerStates);
     const url = process.env.REACT_APP_API_URL;
+    const navigate = useNavigate();
 
     // Handle file upload
     const handleUpload = async (file) => {
@@ -31,7 +32,10 @@ const Dailylog = ({ attendanceData, isLoading }) => {
                 },
             });
             toast.success(response.attendanceData.message)
-        } catch (error) {
+       } catch (error) {
+         if (error?.message === "Network Error") {
+                navigate("/network-issue")
+            }
             console.error('File upload failed:', error);
             toast.error(error.response.attendanceData.error);
         }

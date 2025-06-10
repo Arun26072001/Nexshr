@@ -79,7 +79,10 @@ export default function PageAndActionAuth() {
             });
 
             setRoleObj(role.data);
-        } catch (error) {
+       } catch (error) {
+         if (error?.message === "Network Error") {
+                navigate("/network-issue")
+            }
             console.log(error);
             toast.error(error?.response?.data?.error)
         }
@@ -95,7 +98,10 @@ export default function PageAndActionAuth() {
             });
             toast.success(roleData.data?.message);
             navigate(-1);
-        } catch (error) {
+       } catch (error) {
+         if (error?.message === "Network Error") {
+                navigate("/network-issue")
+            }
             toast.error(error?.response?.data?.error)
         }
         setIschangingRole(false);
@@ -112,7 +118,10 @@ export default function PageAndActionAuth() {
             console.log(updatedRole.data);
             toast.success(updatedRole?.data?.message)
             navigate(-1);
-        } catch (error) {
+       } catch (error) {
+         if (error?.message === "Network Error") {
+                navigate("/network-issue")
+            }
             toast.error(error?.response?.data?.error)
         }
         setIschangingRole(false);
@@ -130,7 +139,10 @@ export default function PageAndActionAuth() {
                 ...roleData.data,
                 RoleName: roleName || "Employee"
             })
-        } catch (error) {
+       } catch (error) {
+         if (error?.message === "Network Error") {
+                navigate("/network-issue")
+            }
             console.log(error);
             toast.error(error?.response?.data?.error)
         }

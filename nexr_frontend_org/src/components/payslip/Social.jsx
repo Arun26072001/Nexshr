@@ -2,8 +2,10 @@ import React, { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import NoDataFound from "./NoDataFound";
 import { updateEmp } from "../ReuseableAPI";
+import { useNavigate } from "react-router-dom";
 
 const Social = ({ empObj, error, changeFetching }) => {
+  const navigate = useNavigate();
   const [social, setSocial] = useState({});
   const [isDisabled, setIsDisabled] = useState(true);
   function addSocial(e) {
@@ -38,7 +40,10 @@ const Social = ({ empObj, error, changeFetching }) => {
       toast.success(updateEmpData);
       changeFetching();
 
-    } catch (error) {
+   } catch (error) {
+         if (error?.message === "Network Error") {
+                navigate("/network-issue")
+            }
       toast.error(error);
     }
   }

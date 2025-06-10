@@ -10,8 +10,10 @@ import { EssentialValues } from "../../App";
 import CommonModel from "../Administration/CommonModel";
 import { TimerStates } from "../payslip/HRMDashboard";
 import { Skeleton } from "@mui/material";
+import { useNavigate } from "react-router-dom";
 
 const WorkPlaceTab = () => {
+  const navigate = useNavigate();
   const url = process.env.REACT_APP_API_URL;
   const [workPlaces, setWorkPlaces] = useState([]);
   const { data } = useContext(EssentialValues);
@@ -107,7 +109,10 @@ const WorkPlaceTab = () => {
       fetchWorkPlaces();
       setWorkPlaceObj({});
       handleChangeWorkPlace("Add");
-    } catch (error) {
+   } catch (error) {
+         if (error?.message === "Network Error") {
+                navigate("/network-issue")
+            }
       console.log("error in add workplace:", error);
       toast.error(error?.response?.data?.error)
     } finally {
@@ -127,7 +132,10 @@ const WorkPlaceTab = () => {
       setWorkPlaceObj({})
       handleChangeWorkPlace("Edit");
       fetchWorkPlaces();
-    } catch (error) {
+   } catch (error) {
+         if (error?.message === "Network Error") {
+                navigate("/network-issue")
+            }
       console.log("error in add workplace:", error);
       toast.error(error?.response?.data?.error)
     } finally {
@@ -144,7 +152,10 @@ const WorkPlaceTab = () => {
       })
       toast.success(res.data.message);
       fetchWorkPlaces();
-    } catch (error) {
+   } catch (error) {
+         if (error?.message === "Network Error") {
+                navigate("/network-issue")
+            }
       console.log("error in delete workplace", error);
       toast.error(error?.response?.data?.error)
     }

@@ -80,7 +80,7 @@ taskSchema.post("save", async function (doc) {
                         token: creator.fcmToken,
                         title,
                         body: message,
-                        company: creator.company
+                        // company: creator.company
                     });
                 }
 
@@ -101,7 +101,7 @@ taskSchema.post("save", async function (doc) {
                             token: emp.fcmToken,
                             title,
                             body: message,
-                            company: emp.company || creator.company
+                            // company: emp.company || creator.company
                         });
                     }
 
@@ -144,7 +144,7 @@ taskSchema.post("findOneAndUpdate", async function (doc) {
                         token: creator.fcmToken,
                         title,
                         body: message,
-                        company: creator.company
+                        // company: creator.company
                     });
                 }
 
@@ -165,7 +165,7 @@ taskSchema.post("findOneAndUpdate", async function (doc) {
                             token: emp.fcmToken,
                             title,
                             body: message,
-                            company: emp.company || creator.company
+                            // company: emp.company || creator.company
                         });
                     }
 

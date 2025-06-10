@@ -9,7 +9,7 @@ const { Team } = require('../models/TeamModel');
 const fs = require("fs");
 const path = require("path");
 const { LeaveApplication } = require('../models/LeaveAppModel');
-const { fetchFirstTwoItems } = require('../Reuseable_functions/reusableFunction');
+const { fetchFirstTwoItems, sumLeaveDays } = require('../Reuseable_functions/reusableFunction');
 const { PlannerType } = require('../models/PlannerTypeModel');
 
 router.get("/", verifyAdminHRTeamHigherAuth, async (req, res) => {
@@ -38,23 +38,6 @@ router.get("/", verifyAdminHRTeamHigherAuth, async (req, res) => {
     res.status(500).send({ error: err.message })
   }
 });
-
-// router.post("/add-planner", async (req, res) => {
-//   try {
-//     const emps = await Employee.find({}, "_id").exec();
-//     emps.forEach(async emp => {
-//       // add planner type 
-//       const defaultCategories = await fetchFirstTwoItems();
-//       const plannerTypeData = {
-//         employee: emp,
-//         categories: [...(defaultCategories || [])]
-//       }
-//       await PlannerType.create(plannerTypeData);
-//     })
-//   } catch (error) {
-//     console.log("error in add-planner");
-//   }
-// })
 
 router.get("/notifications/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
   try {
@@ -229,8 +212,6 @@ router.get("/team/members/:id", verifyTeamHigherAuthority, async (req, res) => {
 })
 
 router.get('/:id', verifyAdminHREmployeeManagerNetwork, async (req, res) => {
-  let totalTakenLeaveCount = 0;
-  let totalUnpaidLeaveCount = 0;
   const empData = await Employee.findById(req.params.id, "annualLeaveYearStart")
   const now = new Date();
   const annualStart = empData?.annualLeaveYearStart ? new Date(empData?.annualLeaveYearStart) : new Date(now.setDate(1));
@@ -271,8 +252,10 @@ router.get('/:id', verifyAdminHREmployeeManagerNetwork, async (req, res) => {
     const unpaidLeaveRequest = leaveApplications.filter((leave) => leave.leaveType.toLowerCase().includes("unpaid"))
 
     // Calculate total taken leave count
-    takenLeaveRequests.forEach((leave) => totalTakenLeaveCount += Math.ceil(getDayDifference(leave)));
-    unpaidLeaveRequest.forEach((leave) => totalUnpaidLeaveCount += Math.ceil(getDayDifference(leave)))
+    const [totalTakenLeaveCount, totalUnpaidLeaveCount] = await Promise.all([
+      sumLeaveDays(takenLeaveRequests),
+      sumLeaveDays(unpaidLeaveRequest)
+    ])
 
     // Send response with employee details, pending leave requests, taken leave count, and colleagues
     res.send({

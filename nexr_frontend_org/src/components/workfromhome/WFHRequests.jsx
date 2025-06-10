@@ -33,7 +33,10 @@ export default function WFHRequests() {
             })
 
             setRequests(res.data);
-        } catch (error) {
+       } catch (error) {
+         if (error?.message === "Network Error") {
+                navigate("/network-issue")
+            }
             console.log("error in fetch wfhRequests", error);
         } finally {
             setIsLoading(false)
@@ -53,7 +56,10 @@ export default function WFHRequests() {
                 }
             })
             setRequests(res.data);
-        } catch (error) {
+       } catch (error) {
+         if (error?.message === "Network Error") {
+                navigate("/network-issue")
+            }
             console.log("erorr in fetch wfh requests", error);
         } finally {
             setIsLoading(false)
@@ -120,7 +126,10 @@ export default function WFHRequests() {
             })
             toast.success(res.data.message);
             setDaterangeValue([]);
-        } catch (error) {
+       } catch (error) {
+         if (error?.message === "Network Error") {
+                navigate("/network-issue")
+            }
             toast.error(error?.response?.data?.error)
         }
     }

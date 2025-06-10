@@ -44,6 +44,9 @@ export default function Employee() {
             toast.success(response.data.message);
             handleModifyEmps();
         } catch (error) {
+            if (error?.message === "Network Error") {
+                navigate("/network-issue")
+            }
             console.error('File upload failed:', error);
             toast.error(error?.response?.data?.error);
         } finally {
@@ -61,6 +64,10 @@ export default function Employee() {
             toast.success(res.data.message);
             handleModifyEmps();
         } catch (error) {
+            toast.error(error.response.data.error)
+            if (error?.message === "Network Error") {
+                navigate("/network-issue")
+            }
             console.log("error in delete emp", error);
         }
     }
@@ -72,6 +79,9 @@ export default function Employee() {
             setEmployees(empData);
             setFilteredEmps(empData);
         } catch (error) {
+            if (error?.message === "Network Error") {
+                navigate("/network-issue")
+            }
             setEmployees([]);
             console.log("error: ", error);
             toast.error("Failed to fetch employees");
@@ -87,6 +97,9 @@ export default function Employee() {
             setEmployees(empData);
             setFilteredEmps(empData);
         } catch (error) {
+            if (error?.message === "Network Error") {
+                navigate("/network-issue")
+            }
             console.log("error: ", error);
             // toast.error("Failed to fetch employees");
         } finally {
@@ -110,6 +123,9 @@ export default function Employee() {
             setEmployees(res.data)
             setFilteredEmps(res.data)
         } catch (error) {
+            if (error?.message === "Network Error") {
+                navigate("/network-issue")
+            }
             setEmployees([]);
             console.log(error);
         } finally {
@@ -180,11 +196,14 @@ export default function Employee() {
                     />
                 </div>
             </div>
-            <p className='text-end px-2 my-2'>
-                <a href={employeesData} download={employeesData}>
-                    Download Employee data model file
-                </a>
-            </p>
+            {
+                ["admin", "hr"].includes(whoIs) &&
+                <p className='text-end px-2 my-2'>
+                    <a href={employeesData} download={employeesData}>
+                        Download Employee data model file
+                    </a>
+                </p>
+            }
             <div className='employee d-block'>
                 {/* content */}
                 <div className='px-3'>

@@ -4,7 +4,7 @@ const axios = require("axios");
 const { getCurrentTimeInMinutes, timeToMinutes, getTotalWorkingHourPerDay } = require("../Reuseable_functions/reusableFunction");
 
 exports.sendPushNotification = async (msgObj) => {
-    const { token, title, body, company } = msgObj;
+    const { token, title, body } = msgObj;
     try {
         if (!token) {
             console.log("No FCM tokens found for this user");
@@ -14,7 +14,6 @@ exports.sendPushNotification = async (msgObj) => {
             token,
             notification: { title, body },
             data: {
-                companyData: JSON.stringify(company),
                 type: msgObj.type ? msgObj.type : ""
             }
         };

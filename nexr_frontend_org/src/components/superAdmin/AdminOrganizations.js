@@ -6,10 +6,11 @@ import { Input } from 'rsuite';
 import LeaveTable from '../LeaveTable';
 import NoDataFound from '../payslip/NoDataFound';
 import CommonModel from '../Administration/CommonModel';
-import Loading from '../Loader';
 import { Skeleton } from '@mui/material';
+import { useNavigate } from 'react-router-dom';
 
 const AdminOrganizations = ({ organizations, isLoading, handleChangeToRefetchOrgs }) => {
+    const navigate = useNavigate();
     const { data } = useContext(EssentialValues);
     const [orgName, setOrgName] = useState("")
     const [filterOrgs, setFilterOrgs] = useState([]);
@@ -65,7 +66,10 @@ const AdminOrganizations = ({ organizations, isLoading, handleChangeToRefetchOrg
             setOrgObj(res.data);
             setPreview(res.data.orgImg);
             handleChangeOrg(type);
-        } catch (error) {
+       } catch (error) {
+         if (error?.message === "Network Error") {
+                navigate("/network-issue")
+            }
             console.log(error);
         }
     }
@@ -98,7 +102,10 @@ const AdminOrganizations = ({ organizations, isLoading, handleChangeToRefetchOrg
             toast.success(response.data.message)
             handleChangeToRefetchOrgs();
             handleChangeOrg("Add");
-        } catch (error) {
+       } catch (error) {
+         if (error?.message === "Network Error") {
+                navigate("/network-issue")
+            }
             console.error('Error creating org:', error.response?.data?.message || error.message);
             // Handle error (show error message to the user)
             toast.error(error.response?.data?.message)
@@ -132,7 +139,10 @@ const AdminOrganizations = ({ organizations, isLoading, handleChangeToRefetchOrg
             toast.success(response.data.message)
             handleChangeOrg("Edit");
             handleChangeToRefetchOrgs();
-        } catch (error) {
+       } catch (error) {
+         if (error?.message === "Network Error") {
+                navigate("/network-issue")
+            }
             console.log(error);
             toast.error(error?.response?.data?.error)
         }

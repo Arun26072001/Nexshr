@@ -14,7 +14,6 @@ import { EssentialValues } from "../App";
 import LeaveTable from "./LeaveTable";
 import { Skeleton } from "@mui/material";
 import Loading from "./Loader";
-import NoDataFound from "./payslip/NoDataFound";
 
 const localizer = dayjsLocalizer(dayjs);
 

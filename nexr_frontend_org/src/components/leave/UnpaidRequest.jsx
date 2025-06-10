@@ -6,8 +6,10 @@ import NoDataFound from '../payslip/NoDataFound';
 import axios from 'axios';
 import { EssentialValues } from '../../App';
 import { toast } from 'react-toastify';
+import { useNavigate } from 'react-router-dom';
 
 export default function UnpaidRequest() {
+    const navigate = useNavigate();
     const url = process.env.REACT_APP_API_URL;
     const { data } = useContext(EssentialValues);
     const [isLoading, setIsLoading] = useState(false);
@@ -31,7 +33,10 @@ export default function UnpaidRequest() {
             })
             toast.success(res.data.message);
             fetchUnpaidLeave();
-        } catch (error) {
+       } catch (error) {
+         if (error?.message === "Network Error") {
+                navigate("/network-issue")
+            }
             console.log("error in reply to leave", error);
             toast.error(error?.response?.data?.error)
         }
@@ -59,7 +64,10 @@ export default function UnpaidRequest() {
             })
             setLeaveRequests(res.data);
             setFullLeaveRequests(res.data);
-        } catch (error) {
+       } catch (error) {
+         if (error?.message === "Network Error") {
+                navigate("/network-issue")
+            }
             setLeaveRequests([])
             console.log("error in fetch unpaidleave", error);
         } finally {

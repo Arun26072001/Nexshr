@@ -68,8 +68,8 @@ export default function HRMDashboard() {
     const { isTeamLead, isTeamHead, isTeamManager } = jwtDecode(token);
     const [attendanceData, setAttendanceData] = useState([]);
     const [attendanceForSummary, setAttendanceForSummary] = useState({});
-    const [leaveRequests, setLeaveRequests] = useState([]);
-    const [fullLeaveRequests, setFullLeaveRequests] = useState([]);
+    const [leaveRequests, setLeaveRequests] = useState({});
+    const [fullLeaveRequests, setFullLeaveRequests] = useState({});
     const [empName, setEmpName] = useState("");
     const [isLoading, setIsLoading] = useState(false);
     const [waitForAttendance, setWaitForAttendance] = useState(false);
@@ -131,6 +131,9 @@ export default function HRMDashboard() {
             })
             setCompanies(res.data.map((comp) => ({ label: comp.CompanyName, value: comp._id })));
         } catch (error) {
+            if (error?.message === "Network Error") {
+                navigate("/network-issue")
+            }
             console.log("error in fetch companies", error);
         }
     }
@@ -207,6 +210,9 @@ export default function HRMDashboard() {
                 localStorage.setItem("isStartLogin", true);
             }
         } catch (error) {
+            if (error?.message === "Network Error") {
+                navigate("/network-issue")
+            }
             setIsStartLogin(false);
             localStorage.setItem("isStartLogin", false);
             toast.error(error);
@@ -263,6 +269,9 @@ export default function HRMDashboard() {
                 localStorage.setItem("timeOption", timeOption);
                 toast.success(`${timeOption[0].toUpperCase() + timeOption.slice(1)} timer has been started!`);
             } catch (error) {
+                if (error?.message === "Network Error") {
+                    navigate("/network-issue")
+                }
                 console.error('Error updating data:', error);
                 toast.error('Please PunchIn');
             } finally {
@@ -298,6 +307,9 @@ export default function HRMDashboard() {
             setIsStartActivity(false);
             updateClockins();
         } catch (error) {
+            if (error?.message === "Network Error") {
+                navigate("/network-issue")
+            }
             toast.error(error.message);
         } finally {
             setISWorkingActivityTimerApi(false)
@@ -309,8 +321,9 @@ export default function HRMDashboard() {
             navigate(["manager", "admin", "hr"].includes(whoIs) ? `/${whoIs}/employee` : `/${whoIs}`);
             setIsEditEmp(false);
         } else {
-            navigate(`employee/edit/${id}`);
-            setIsEditEmp(true);
+            // console.log("calling...");
+            // setIsEditEmp(true);
+            navigate(`/${whoIs}/employee/edit/${id}`);
         }
     }
 
@@ -353,6 +366,9 @@ export default function HRMDashboard() {
             });
             setAttendanceData(empOfAttendances.data);
         } catch (error) {
+            if (error?.message === "Network Error") {
+                navigate("/network-issue")
+            }
             console.error(error);
         }
     }
@@ -370,6 +386,9 @@ export default function HRMDashboard() {
             });
             setAttendanceData(res.data);
         } catch (error) {
+            if (error?.message === "Network Error") {
+                navigate("/network-issue")
+            }
             console.error(error);
         }
     }
@@ -384,6 +403,9 @@ export default function HRMDashboard() {
             // const withoutMyData = emps.filter((emp)=> emp._id !== _id);
             setEmployees(emps.map((emp) => ({ label: emp?.FirstName + " " + emp?.LastName, value: emp._id })))
         } catch (error) {
+            if (error?.message === "Network Error") {
+                navigate("/network-issue")
+            }
             console.log(error);
         }
     }
@@ -406,7 +428,6 @@ export default function HRMDashboard() {
                     authorization: token || ""
                 }
             })
-
             setLeaveRequests(leaveData.data);
             setFullLeaveRequests(leaveData.data);
         } catch (err) {
@@ -428,6 +449,7 @@ export default function HRMDashboard() {
                     authorization: token || ""
                 }
             })
+            console.log("leaveData", leaveData.data);
             setLeaveRequests(leaveData.data);
             setFullLeaveRequests(leaveData.data);
         } catch (err) {
@@ -476,6 +498,9 @@ export default function HRMDashboard() {
                     }
                 }
             } catch (error) {
+                if (error?.message === "Network Error") {
+                    navigate("/network-issue")
+                }
                 console.warn(error);
             }
         }

@@ -10,8 +10,10 @@ import NoDataFound from "./NoDataFound";
 import { toast } from "react-toastify";
 import { EssentialValues } from "../../App";
 import FileDownloadRoundedIcon from '@mui/icons-material/FileDownloadRounded';
+import { useNavigate } from "react-router-dom";
 
 const Attendence = () => {
+  const navigate = useNavigate();
   const url = process.env.REACT_APP_API_URL;
   const { data } = useContext(EssentialValues);
   const { _id, token } = data;
@@ -109,7 +111,10 @@ const Attendence = () => {
         setLateHeight((totalLateLogins / totalLogins) * 100);
         setEarlyHeight((totalEarlyLogins / totalLogins) * 100);
       }
-    } catch (error) {
+   } catch (error) {
+         if (error?.message === "Network Error") {
+                navigate("/network-issue")
+            }
       console.log(error);
     }
     setIsLoading(false);

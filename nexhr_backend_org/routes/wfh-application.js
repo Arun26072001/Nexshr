@@ -4,10 +4,11 @@ const { WFHAppValidation, WFHApplication } = require("../models/WFHApplicationMo
 const { Employee } = require("../models/EmpModel");
 const sendMail = require("./mailSender");
 const { Team } = require("../models/TeamModel");
-const { formatDate, mailContent, getDayDifference } = require("../Reuseable_functions/reusableFunction");
+const { formatDate, mailContent, getDayDifference, sumLeaveDays } = require("../Reuseable_functions/reusableFunction");
 const { sendPushNotification } = require("../auth/PushNotification");
 const { Holiday } = require("../models/HolidayModel");
 const { TimePattern } = require("../models/TimePatternModel");
+const { LeaveApplication } = require("../models/LeaveAppModel");
 const router = express.Router();
 
 function generateWfhEmail(empData, fromDateValue, toDateValue, reason, type) {
@@ -94,6 +95,17 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
             return res.status(409).json({ error: "WFH request already exists for the given date range." });
         }
 
+        // check has leave application is approved in the range
+        const isLeave = await LeaveApplication.findOne({
+            employee: id,
+            fromDate: { $lte: toDate },
+            toDate: { $gte: fromDate },
+            status: "approved"
+        })
+        if(isLeave){
+            return res.status(400).send({error: "You can't apply because you already have leave during this period."})
+        }
+
         // check has more than two team members in wfh
         const team = await Team.findOne({ employees: id }, "employees").exec();
 
@@ -145,15 +157,15 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
 
         // check whf request is weekend or holiday
         function checkDateIsHoliday(dateList, target) {
-            return dateList.some((date) => new Date(date).toLocaleDateString() === new Date(target).toLocaleDateString());
+            return dateList.some((holiday) => new Date(holiday.date).toLocaleDateString() === new Date(target).toLocaleDateString());
         }
         const holiday = await Holiday.findOne({ year: new Date().getFullYear() });
         const isFromDateHoliday = checkDateIsHoliday(holiday.holidays, fromDate);
         const isToDateHoliday = checkDateIsHoliday(holiday.holidays, fromDate);
         if (isFromDateHoliday) {
-            return res.status(400).send("holiday are not allowed for fromDate")
+            return res.status(400).send({ error: "holiday are not allowed for fromDate" })
         } if (isToDateHoliday) {
-            return res.status(400).send("holiday are not allowed for toDate")
+            return res.status(400).send({ error: "holiday are not allowed for toDate" })
         }
         async function checkDateIsWeekend(date) {
             const timePattern = await TimePattern.findById(emp.workingTimePattern, "WeeklyDays").lean().exec();
@@ -208,7 +220,7 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
                     token: member.fcmToken,
                     title: notification.title,
                     body: notification.message,
-                    company: emp.company,
+                    // company: emp.company,
                 });
                 notify.push(member.Email);
             }
@@ -293,16 +305,14 @@ router.get("/", verifyAdminHR, async (req, res) => {
 
         // pending wfh request days
         const pendingRequests = correctRequests.filter((item) => item.status === "pending");
-        let pendingrequestDays = 0;
-        pendingRequests.map((wfh) => pendingrequestDays += getDayDifference(wfh));
-        // approved wfh request days
         const approvedRequests = correctRequests.filter((item) => item.status === "approved");
-        let approvedrequestDays = 0;
-        approvedRequests.map((wfh) => approvedrequestDays += getDayDifference(wfh))
-        // upcoming wfh request days
         const upcomingRequests = correctRequests.filter(request => new Date(request.fromDate) > now);
-        let upcomingrequestDays = 0;
-        upcomingRequests.map((wfh) => upcomingrequestDays += getDayDifference(wfh))
+        const [pendingrequestDays, approvedrequestDays, upcomingrequestDays] = await Promise.all([
+            sumLeaveDays(pendingRequests),
+            sumLeaveDays(approvedRequests),
+            sumLeaveDays(upcomingRequests)
+        ])
+
         return res.send({
             correctRequests,
             "pendingRequests": pendingrequestDays,
@@ -345,15 +355,21 @@ router.get("/employee/:id", verifyAdminHREmployeeManagerNetwork, async (req, res
             ...item,
             reason: item.reason.replace(/<\/?[^>]+(>|$)/g, '')
         })).sort((a, b) => new Date(b.fromDate) - new Date(a.fromDate))
-
         const pendingRequests = correctRequests.filter((item) => item.status === "pending");
         const approvedRequests = correctRequests.filter((item) => item.status === "approved");
         const upcommingRequests = correctRequests.filter(request => new Date(request.fromDate) > now);
+
+        const [pendingReqDays, upCommingReqDays, approvedReqDays] = await Promise.all([
+            sumLeaveDays(pendingRequests),
+            sumLeaveDays(approvedRequests),
+            sumLeaveDays(upcommingRequests)
+        ])
+
         return res.send({
             correctRequests,
-            pendingRequests,
-            approvedRequests,
-            upcommingRequests
+            pendingRequests: pendingReqDays,
+            approvedRequests: approvedReqDays,
+            upcommingRequests: upCommingReqDays
         });
     } catch (error) {
         return res.status(500).send({ error: error.message })
@@ -388,23 +404,18 @@ router.get("/team/:id", verifyTeamHigherAuthority, async (req, res) => {
             ...item,
             reason: item.reason.replace(/<\/?[^>]+(>|$)/g, '')
         })).sort((a, b) => new Date(b.fromDate) - new Date(a.fromDate))
-        // pending wfh request days
         const pendingRequests = correctRequests.filter((item) => item.status === "pending");
-        let pendingrequestDays = 0;
-        pendingRequests.map((wfh) => pendingrequestDays += getDayDifference(wfh));
-        // approved wfh request days
         const approvedRequests = correctRequests.filter((item) => item.status === "approved");
-        let approvedrequestDays = 0;
-        approvedRequests.map((wfh) => approvedrequestDays += getDayDifference(wfh))
-        // upcoming wfh request days
-        const upcomingRequests = correctRequests.filter(request => new Date(request.fromDate) > now);
-        let upcomingrequestDays = 0;
-        upcomingRequests.map((wfh) => upcomingrequestDays += getDayDifference(wfh))
+        const upcommingRequests = correctRequests.filter(request => new Date(request.fromDate) > now);
+
+        const pendingReqDays = pendingRequests.reduce((total, request) => total + request.numOfDays, 0);
+        const upCommingReqDays = upcommingRequests.reduce((total, request) => total + request.numOfDays, 0);
+        const approvedReqDays = approvedRequests.reduce((total, request) => total + request.numOfDays, 0);
         return res.send({
             correctRequests,
-            "pendingRequests": pendingrequestDays,
-            "approvedRequests": approvedrequestDays,
-            "upcommingRequests": upcomingrequestDays
+            "pendingRequests": pendingReqDays,
+            "approvedRequests": approvedReqDays,
+            "upcommingRequests": upCommingReqDays
         });
     } catch (error) {
         return res.status(500).send({ error: error.message })
@@ -431,6 +442,7 @@ router.put("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
                 }
             }
             let approverData = {}
+            console.log("approvers", approvers);
             Object.entries(approvers).map(([key, value]) => {
                 approverData[key] = "approved"
             })
@@ -499,7 +511,7 @@ router.put("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
 
             // check whf request is weekend or holiday
             function checkDateIsHoliday(dateList, target) {
-                return dateList.some((date) => new Date(date).toLocaleDateString() === new Date(target).toLocaleDateString());
+                return dateList.some((holiday) => new Date(holiday.date).toLocaleDateString() === new Date(target).toLocaleDateString());
             }
             const holiday = await Holiday.findOne({ year: new Date().getFullYear() });
             const isFromDateHoliday = checkDateIsHoliday(holiday.holidays, fromDate);
@@ -588,7 +600,7 @@ router.put("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
                             token: member.fcmToken,
                             title: Subject,
                             body: message,
-                            company: emp.company
+                            // company: emp.company
                         });
                     }
                 }));

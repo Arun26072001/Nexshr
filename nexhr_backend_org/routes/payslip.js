@@ -1,7 +1,7 @@
 const express = require("express");
 const { Employee } = require("../models/EmpModel");
 const { Payslip } = require("../models/PaySlipModel");
-const { getDayDifference, getWeekdaysOfCurrentMonth } = require("../Reuseable_functions/reusableFunction");
+const { getDayDifference, getWeekdaysOfCurrentMonth, sumLeaveDays } = require("../Reuseable_functions/reusableFunction");
 const { Holiday } = require("../models/HolidayModel");
 const router = express.Router();
 
@@ -60,7 +60,7 @@ router.post("/", async (req, res) => {
 
       if (emp.basicSalary && emp.payslipFields) {
         const perDayOfSalary = emp.basicSalary ? Number(emp.basicSalary) / getWeekdaysOfCurrentMonth(startOfMonth.getFullYear(), startOfMonth.getMonth(), currentMonthOfLeaveDays) : 0;
-        const leaveDays = emp.leaveApplication.reduce((total, leave) => total + getDayDifference(leave), 0);
+        const leaveDays = await sumLeaveDays(emp.leaveApplication);
 
         const payslip = {
           payslip: {
