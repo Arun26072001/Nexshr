@@ -317,6 +317,7 @@ router.post("/employees/:id", upload.single("documents"), verifyAdminHR, async (
                         "Annual Leave": row[12] === "Intern" ? "1" : "7",
                         "Sick Leave": row[12] === "Intern" ? "2" : "7"
                     },
+                    company: inviter.company._id,
                     role: defaultRole._id,
                     workingTimePattern: defaultTimePattern._id,
                     emergencyContacts: row[15] ? [{

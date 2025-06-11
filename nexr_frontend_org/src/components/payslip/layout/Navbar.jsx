@@ -153,8 +153,9 @@ export default function Navbar({ handleSideBar }) {
         // check user is completed working hour
         try {
             const res = await axios.post(`${url}/verify_completed_workinghour`, updatedState);
+            console.log("isCompleted", res.data.isCompleteworkingHours);
             if (!res.data.isCompleteworkingHours) {
-                checkIsEnterReasonforEarly()
+                changeViewReasonForEarlyLogout()
             } else {
                 stopTimer()
             }
@@ -228,8 +229,8 @@ export default function Navbar({ handleSideBar }) {
         }
     }
 
-    // useHandleTabClose(isStartLogin, workTimeTracker, data.token);
 
+    // trigger this function when add reason for early logout
     function checkIsEnterReasonforEarly() {
         changeViewReasonForEarlyLogout()
         localStorage.removeItem("isViewEarlyLogout");

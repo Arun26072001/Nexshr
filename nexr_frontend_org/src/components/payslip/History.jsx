@@ -24,11 +24,10 @@ const History = ({ payslips, isLoading }) => {
             <p className="payslipTitle">History</p>
             {payslips?.arrangedPayslips?.length > 0 ? payslips.arrangedPayslips.map((item, index) => {
                 const {
-                    ESI = 0, LossOfPay = 0, ProfessionalTax = 0, ProvidentFund = 0,
+                    basicSalary = 0, ESI = 0, LossOfPay = 0, ProfessionalTax = 0, ProvidentFund = 0,
                     bonusAllowance = 0, conveyanceAllowance = 0,
                     houseRentAllowance = 0, incomeTax = 0, othersAllowance = 0
                 } = item.payslip;
-                const basicSalary = Number(item.employee.basicSalary) || 0;
 
                 const Salary =
                     (basicSalary + bonusAllowance + conveyanceAllowance + houseRentAllowance + othersAllowance) -

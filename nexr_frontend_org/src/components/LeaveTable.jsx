@@ -126,7 +126,7 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
                 );
             }
         },
-        { id: 'basicSalary', label: 'Salary', minWidth: 120, align: 'center', getter: (row) => row?.employee?.basicSalary ? `₹${row.employee.basicSalary}` : 'N/A' },
+        { id: 'basicSalary', label: 'Salary', minWidth: 120, align: 'center', getter: (row) => row?.payslip?.basicSalary ? `₹${row.payslip.basicSalary}` : 'N/A' },
         { id: 'status', label: 'Status', minWidth: 120, align: 'center', getter: (row) => row?.payslip?.status ? row.payslip.status : 'N/A' },
         { id: 'period', label: 'Period', minWidth: 120, align: 'center', getter: (row) => row?.payslip?.period ? row.payslip.period : 'N/A' },
         { id: 'lossofpay', label: 'LOP', minWidth: 100, align: 'center', getter: (row) => row?.payslip?.LossOfPay },

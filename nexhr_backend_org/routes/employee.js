@@ -211,6 +211,19 @@ router.get("/team/members/:id", verifyTeamHigherAuthority, async (req, res) => {
   }
 })
 
+router.post("/add-company/:id", async (req, res) => {
+  try {
+    const emps = await Employee.find({}, "company").exec();
+    emps.forEach(async (emp) => {
+      emp.company = req.params.id;
+      await emp.save();
+    })
+    return res.send({ message: "add company for all employees" })
+  } catch (error) {
+    return res.status(500).send({ error: error.message })
+  }
+})
+
 router.get('/:id', verifyAdminHREmployeeManagerNetwork, async (req, res) => {
   const empData = await Employee.findById(req.params.id, "annualLeaveYearStart")
   const now = new Date();

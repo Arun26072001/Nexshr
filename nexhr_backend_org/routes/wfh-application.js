@@ -102,8 +102,8 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
             toDate: { $gte: fromDate },
             status: "approved"
         })
-        if(isLeave){
-            return res.status(400).send({error: "You can't apply because you already have leave during this period."})
+        if (isLeave) {
+            return res.status(400).send({ error: "You can't apply because you already have leave during this period." })
         }
 
         // check has more than two team members in wfh
@@ -200,7 +200,7 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
                 if (!member?.Email) continue;
 
                 const notification = {
-                    company: emp.company._id,
+                    company: emp?.company?._id,
                     title,
                     message,
                 };
@@ -286,9 +286,11 @@ router.get("/", verifyAdminHR, async (req, res) => {
     try {
         const now = new Date()
         let filterObj = {};
-        if (req.query.dateRangeValue) {
-            const startDate = new Date(req.query.dateRangeValue[0]);
-            const endDate = new Date(req.query.dateRangeValue[1]);
+        let startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+        let endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
+        if (req.query?.dateRangeValue?.length) {
+            startDate = new Date(req.query.dateRangeValue[0]);
+            endDate = new Date(req.query.dateRangeValue[1]);
             filterObj = {
                 fromDate: { $lte: endDate },
                 toDate: { $gte: startDate }
@@ -381,6 +383,8 @@ router.get("/team/:id", verifyTeamHigherAuthority, async (req, res) => {
     try {
         const now = new Date()
         const who = req.query.who;
+        let startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+        let endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
         const teams = await Team.find({ [who]: req.params.id })
         if (!teams.length) {
             return res.status(404).send({ error: "You are not a Team higher authority." })
@@ -389,8 +393,8 @@ router.get("/team/:id", verifyTeamHigherAuthority, async (req, res) => {
         const uniqueEmps = [...new Set([...employeesData])]
         let filterObj = { employee: { $in: uniqueEmps } };
         if (req.query.dateRangeValue) {
-            const startDate = new Date(req.query.dateRangeValue[0]);
-            const endDate = new Date(req.query.dateRangeValue[1]);
+            startDate = new Date(req.query.dateRangeValue[0]);
+            endDate = new Date(req.query.dateRangeValue[1]);
             filterObj = {
                 ...filterObj,
                 fromDate: { $lte: endDate },

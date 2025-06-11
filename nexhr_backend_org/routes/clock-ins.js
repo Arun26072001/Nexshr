@@ -748,8 +748,6 @@ router.put("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
         if (!updatedClockIn) {
             return res.status(404).send({ message: "Clock-in entry not found" });
         }
-        // check user is late login and early logout
-
         res.send(updatedClockIn);
     } catch (error) {
         console.error("Error updating ClockIns:", error);

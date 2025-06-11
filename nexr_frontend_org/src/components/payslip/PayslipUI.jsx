@@ -173,7 +173,7 @@ export default function PayslipUI() {
                             <div>
                                 <div className="boxBorder">
                                     <div style={{ background: "#D6EFD8" }}>
-                                        <p className='rupeeFont'>₹{payslips?.employee?.basicSalary || 0}</p>
+                                        <p className='rupeeFont'>₹{payslips?.payslip?.basicSalary || 0}</p>
                                         <p className='payslipTxt'>Employee Net Pay</p>
                                     </div>
                                     <div className=''>
@@ -182,7 +182,7 @@ export default function PayslipUI() {
                                     </div>
                                 </div>
                             </div>
-                        </div>
+                        </div>cam
 
                         {/* Employee Bank and Division */}
                         <div className='d-flex payslipHeader py-3'>

@@ -65,6 +65,7 @@ router.post("/", async (req, res) => {
         const payslip = {
           payslip: {
             ...emp.payslipFields,
+            basicSalary: emp.basicSalary,
             LossOfPay: Number((leaveDays * perDayOfSalary).toFixed(2)),
             status: "pending",
             period: `${startOfMonth.toLocaleString("default", { month: "long" })} ${startOfMonth.getFullYear()}`,

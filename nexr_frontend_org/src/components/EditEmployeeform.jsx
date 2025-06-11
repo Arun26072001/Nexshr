@@ -246,13 +246,11 @@ const EditEmployeeform = ({ details, empData, handleScroll, handlePersonal, prev
                 setErrorData(error.response.data.error)
             }
         }
-        setIsLoading(true);
         gettingLeaveTypes();
-        setIsLoading(false);
         const countryFullData = countries.find((country) => Object.values(country).includes(empData?.countryCode));
+        setStateData(countryFullData?.states);
         setselectedCountryCode(countryFullData?.abbr);
         setSelectedCountry(countryFullData?.name);
-        setStateData(countryFullData?.states);
     }, []);
 
     const hourAndMin = timeDifference.toString().split(/[:.]+/);
@@ -260,7 +258,6 @@ const EditEmployeeform = ({ details, empData, handleScroll, handlePersonal, prev
 
     function changeCountry(value, name) {
         const countryFullData = countries.find(country => Object.values(country).includes(value));
-
         if (name === "country") {
             setSelectedCountry(value || "");
             formik.setFieldValue(`address.${name}`, value || "");
@@ -279,8 +276,6 @@ const EditEmployeeform = ({ details, empData, handleScroll, handlePersonal, prev
 
     async function changeImg(event) {
         const { name, files } = event.target;
-        console.log(name);
-
         setPreview(URL.createObjectURL(files[0]));
         formik.setFieldValue(name, files[0])
     }
@@ -363,7 +358,7 @@ const EditEmployeeform = ({ details, empData, handleScroll, handlePersonal, prev
                                     <div className="col-lg-6">
                                         <div className="inputLabel">Role</div>
                                         <select name="role" className={`selectInput ${formik.touched.role && formik.errors.role ? "error" : ""}`}
-                                            disabled={whoIs === "emp" ? true : false}
+                                            disabled={["admin", "hr"].includes(whoIs) ? true : false}
                                             onChange={whoIs === "emp" ? null : formik.handleChange}
                                             value={formik.values.role || empData?.role || ""}>
                                             <option >Select Role</option>

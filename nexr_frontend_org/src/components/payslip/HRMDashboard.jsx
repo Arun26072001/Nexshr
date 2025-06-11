@@ -161,6 +161,8 @@ export default function HRMDashboard() {
 
     //change reason for early(login) input field
     function changeReasonForEarly(value, name) {
+        console.log(name, value);
+        
         setWorkTimeTracker((pre) => {
             if (name === "reasonForEarlyLogout") {
                 return {
@@ -535,7 +537,7 @@ export default function HRMDashboard() {
                     <Route path="/announcement" element={<Announce />} />
                     <Route path="/email-templates" element={<EmailTemplates />} />
                     <Route path="employee" element={<Employee />} />
-                    <Route path="employee/add" element={<Employees />} />
+                    <Route path="employee/add" element={<AddEmployee />} />
                     <Route path="employee/edit/:id" element={<AddEmployee />} />
                     <Route path="leave/*" element={
                         <LeaveStates.Provider value={{ isLoading, leaveRequests, filterLeaveRequests, empName, setEmpName, changeRequests }} >

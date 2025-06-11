@@ -33,8 +33,8 @@ const LeaveRequestForm = ({ type }) => {
     setErrorData("");
     const formData = new FormData();
     formData.append("leaveType", leaveRequestObj.leaveType);
-    formData.append("fromDate", new Date(leaveRequestObj.fromDate).toLocaleDateString());
-    formData.append("toDate", new Date(leaveRequestObj.toDate).toLocaleDateString());
+    formData.append("fromDate", new Date(leaveRequestObj.fromDate).toLocaleString());
+    formData.append("toDate", new Date(leaveRequestObj.toDate).toLocaleString());
     formData.append("periodOfLeave", leaveRequestObj.periodOfLeave || leaveRequestObj?.leaveType?.toLowerCase()?.includes("permission") ? "half day" : "full day");
     formData.append("reasonForLeave", leaveRequestObj.reasonForLeave);
     formData.append("prescription", prescriptionFile); // Assuming `file` is the file object

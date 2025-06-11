@@ -2,11 +2,9 @@ import React, { useContext } from "react";
 import { useState, useRef, useEffect } from "react";
 import "./leaveForm.css";
 import axios from "axios";
-import AddEmployeeForm from "./EmployeeForm";
 import { fetchAllEmployees, fetchEmployeeData, fetchRoles, getDepartments } from "./ReuseableAPI";
 import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "react-toastify";
-import EditEmployeeform from "./EditEmployeeform";
 import Loading from "./Loader";
 import { EssentialValues } from "../App";
 import EmployeeForm from "./EmployeeForm";
@@ -35,6 +33,7 @@ const AddEmployee = () => {
   const { token } = data;
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
+  const [selectedLeaveTypes, setSelectedLeavetypes] = useState([]);
   const [preview, setPreview] = useState("");
 
   function handlePersonal() {
@@ -48,6 +47,50 @@ const AddEmployee = () => {
       })
     }
   }
+  const [stateData, setStateData] = useState([]);
+
+  const fillEmpObj = (value, name) => {
+    let countryFullData;
+
+    if (name === "country") {
+      countryFullData = countries.find(country =>
+        Object.values(country).includes(value)
+      );
+      setStateData(countryFullData?.states || []);
+      setEmployeeObj(pre => ({
+        ...pre,
+        countryCode: countryFullData?.code || ""
+      }));
+    }
+
+    setEmployeeObj(prev => {
+      if (["country", "state", "city", "zipCode"].includes(name)) {
+        return {
+          ...prev,
+          address: {
+            ...prev.address,
+            [name]: name === "country" && countryFullData ? countryFullData.name : value
+          }
+        };
+      }
+
+      return {
+        ...prev,
+        [name]: value
+      };
+    });
+  };
+
+  function changeImg(event) {
+    const { name, files } = event.target;
+    if (files && files[0]) {
+      setPreview(URL.createObjectURL(files[0]));
+      setEmployeeObj(pre => ({
+        ...pre,
+        [name]: files[0]
+      }));
+    }
+  };
 
   function handlePayslip() {
     if (payslipRef.current) {
@@ -223,45 +266,18 @@ const AddEmployee = () => {
     try {
       const empData = await fetchEmployeeData(id);
       setPreview(empData.profile);
-      setEmployeeObj(empData);
-      // setEmployeeObj({
-      //   FirstName: empData?.FirstName || "",
-      //   LastName: empData?.LastName || "",
-      //   Email: empData?.Email || "",
-      //   Password: empData?.Password || "",
-      //   countryCode: empData?.countryCode || "",
-      //   phone: empData?.phone || "",
-      //   company: Array.isArray(empData?.company) ? empData.company[0] : empData?.company || "",
-      //   dateOfBirth: empData?.dateOfBirth || "",
-      //   gender: empData?.gender || "",
-      //   address: {
-      //     city: empData?.address?.city || "",
-      //     state: empData?.address?.state || "",
-      //     country: empData?.address?.country || "",
-      //     zipCode: empData?.address?.zipCode || ""
-      //   },
-      //   position: empData?.position?._id || "", // Safely access first element's _id or set to empty string
-      //   department: empData?.department?._id || "",
-      //   role: empData?.role._id || "",
-      //   description: empData?.description || "",
-      //   dateOfJoining: empData?.dateOfJoining || "",
-      //   employmentType: empData?.employmentType || "",
-      //   workingTimePattern: empData?.workingTimePattern?._id || "",
-      //   annualLeaveYearStart: empData?.annualLeaveYearStart || "",
-      //   companyWorkingHourPerWeek: empData?.companyWorkingHourPerWeek || "",
-      //   publicHoliday: empData?.publicHoliday || "",
-      //   monthlyPermissions: empData?.monthlyPermissions || 2,
-      //   typesOfLeaveCount: empData?.typesOfLeaveCount || {},
-      //   annualLeaveEntitlement: empData?.annualLeaveEntitlement || "",
-      //   basicSalary: empData?.basicSalary || "",
-      //   bankName: empData?.bankName || "",
-      //   accountNo: empData?.accountNo || "",
-      //   accountHolderName: empData?.accountHolderName || "",
-      //   IFSCcode: empData?.IFSCcode || "",
-      //   taxDeduction: empData?.taxDeduction || "",
-      //   isPermanentWFH: empData.isPermanentWFH || false
-      // });
 
+      setEmployeeObj({
+        ...empData,
+        company: Array.isArray(empData?.company) ? empData.company[0] : empData?.company || "",
+        department: empData?.department?._id || "",
+        workingTimePattern: empData?.workingTimePattern?._id || "",
+        position: empData?.position?._id || "", // Safely access first element's _id or set to empty string
+        role: empData?.role._id || "",
+      });
+      const countryFullData = countries.find((country) => Object.values(country).includes(empData?.countryCode));
+      setStateData(countryFullData?.states);
+      setSelectedLeavetypes(Object.entries(empData?.typesOfLeaveCount)?.map(([key, value]) => key + " " + value))
     } catch (error) {
       if (error?.message === "Network Error") {
         navigate("/network-issue")
@@ -271,6 +287,24 @@ const AddEmployee = () => {
     } finally {
       setIsLoading(false);
     }
+  }
+
+  const handleTagSelector = value => {
+    let leaveCount = 0;
+    const leaveTypeCount = {};
+
+    value.forEach(type => {
+      const key = type.split(" ").slice(0, 2).join(" ");
+      leaveTypeCount[key] = type.split(" ")[0];
+      leaveCount += Number(type.split(" ").at(-1));
+    });
+
+    setEmployeeObj(pre => ({
+      ...pre,
+      annualLeaveEntitlement: leaveCount,
+      typesOfLeaveCount: leaveTypeCount
+    }));
+    setSelectedLeavetypes(value);
   }
 
   useEffect(() => {
@@ -300,10 +334,6 @@ const AddEmployee = () => {
         console.log(err.data);
       }
     }
-
-    if (id) {
-      fetchEmployee();
-    }
     fetchDepartments();
     fetchPositions();
     gettingRoleData();
@@ -314,43 +344,25 @@ const AddEmployee = () => {
     fetchManagers();
   }, []);
 
-
+  useEffect(() => {
+    if (id) {
+      fetchEmployee();
+    }
+  }, [countries])
   return (
     <>
       {isLoading ? (
         <Loading height="80vh" />
       ) :
-        // : employeeObj?.Email ? (
-        //   <EditEmployeeform
-        //     details={details}
-        //     empData={employeeObj}
-        //     companies={companies}
-        //     handleScroll={handleScroll}
-        //     countries={countries}
-        //     handlePersonal={handlePersonal}
-        //     handleContact={handleContact}
-        //     handleEmployment={handleEmployment}
-        //     handleJob={handleJob}
-        //     handleFinancial={handleFinancial}
-        //     roles={roles}
-        //     personalRef={personalRef}
-        //     payslipRef={payslipRef}
-        //     contactRef={contactRef}
-        //     employmentRef={employmentRef}
-        //     jobRef={jobRef}
-        //     financialRef={financialRef}
-        //     leads={leads}
-        //     departments={departments}
-        //     positions={positions}
-        //     managers={managers}
-        //     timePatterns={timePatterns}
-        //     preview={preview}
-        //     setPreview={setPreview}
-        //   />
-        // ) : (
         <EmployeeForm
           details={details}
-          empData={employeeObj}
+          selectedLeaveTypes={selectedLeaveTypes}
+          handleTagSelector={handleTagSelector}
+          employeeObj={employeeObj}
+          setEmployeeObj={setEmployeeObj}
+          changeImg={changeImg}
+          fillEmpObj={fillEmpObj}
+          stateData={stateData}
           companies={companies}
           handleScroll={handleScroll}
           countries={countries}
@@ -372,7 +384,6 @@ const AddEmployee = () => {
           managers={managers}
           timePatterns={timePatterns}
           preview={preview}
-          setPreview={setPreview}
         />
       }
     </>

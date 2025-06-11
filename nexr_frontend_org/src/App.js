@@ -15,8 +15,6 @@ import { getToken, onMessage } from "firebase/messaging";
 import { messaging } from "./firebase/firebase.js";
 import { triggerToaster } from "./components/ReuseableAPI.jsx";
 import ErrorUI from "./components/ErrorUI.jsx";
-import noInternetImg from "./imgs/no_internet.webp";
-import networkImg from "./imgs/no_internet.webp";
 
 export const EssentialValues = createContext(null);
 registerLicense("Ngo9BigBOggjHTQxAR8/V1NNaF1cWWhPYVF+WmFZfVtgd19DZVZVRWYuP1ZhSXxWdkBhUH9ddXFRQmhbU0V9XUs=")
@@ -44,7 +42,7 @@ const App = () => {
   const [isChangeComments, setIsChangeComments] = useState(false);
   const [isViewTakeTime, setIsTaketime] = useState(localStorage.getItem("isViewTakeTime") ? true : false);
   const [isViewEarlyLogout, setIsViewEarlyLogout] = useState(JSON.parse(localStorage.getItem("isViewEarlyLogout")) ? true : false);
-
+  
   function handleUpdateAnnouncements() {
     setIschangeAnnouncements(!isChangeAnnouncements);
   }
@@ -200,7 +198,7 @@ const App = () => {
         console.error("Error getting permission for notifications", error);
       }
     };
-    
+
     requestPermission();
 
     // Listen for incoming messages when the app is in the foreground
@@ -337,8 +335,8 @@ const App = () => {
           path={`${whoIs}/*`}
           element={isLogin && whoIs && data.token ? whoIs === "superAdmin" ? <AdminDashboard /> : <HRMDashboard /> : <Navigate to="/login" />}
         />
-        <Route path="network-issue" element={<ErrorUI image={networkImg} title={"Network Error"} description={"Please check your network and server connection!"} />} />
-        <Route path="no-internet-connection" element={<ErrorUI image={noInternetImg} title={"Network Disconnected"} description={"Please check your network connection!"} />} />
+        <Route path="network-issue" element={<ErrorUI title={"Network Error"} description={"Please check your network and server connection!"} />} />
+        <Route path="no-internet-connection" element={<ErrorUI title={"Network Disconnected"} description={"Please check your network connection!"} />} />
         <Route path="*" element=
           {<div className='d-flex align-items-center justify-content-center' style={{ height: "100vh" }}>
             <h1 >404</h1>

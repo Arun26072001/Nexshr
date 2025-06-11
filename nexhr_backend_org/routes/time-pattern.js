@@ -105,7 +105,7 @@ router.put("/:id", verifyAdminHR, async (req, res) => {
           <li><strong>Break Time:</strong> ${updatedPattern.BreakTime}</li>
           <li><strong>Grace Period:</strong> ${updatedPattern.WaitingTime} minutes</li>
           <li><strong>Late Mark:</strong> Applies after ${new Date(new Date(workStartTime).getTime() + updatedPattern.WaitingTime * 60000).toLocaleTimeString()}</li>
-          <li><strong>Effective From:</strong> ${new Date(Date.now() + 24 * 60 * 60 * 1000).toLocaleDateString()}</li>
+          <li><strong>Effective From:</strong> ${new Date(Date.now() + 24 * 60 * 60 * 1000).toLocaleDateString("en-GB")}</li>
         </ul>
       </div>
 

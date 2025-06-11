@@ -5,7 +5,6 @@ const router = express.Router();
 
 router.post("/", verifyAdminHR, async (req, res) => {
     try {
-
         const isExist = await Holiday.findOne({ currentYear: req.body.currentYear });
         if (isExist) {
             return res.status(400).send({ error: "Already added this year of holidays!" })

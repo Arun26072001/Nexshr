@@ -884,12 +884,14 @@ leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("pre
       return dateList.some((holiday) => new Date(holiday.date).toLocaleDateString() === new Date(target).toLocaleDateString());
     }
     const holiday = await Holiday.findOne({ year: new Date().getFullYear() });
-    const isFromDateHoliday = checkDateIsHoliday(holiday.holidays, fromDate);
-    const isToDateHoliday = checkDateIsHoliday(holiday.holidays, fromDate);
-    if (isFromDateHoliday) {
-      return res.status(400).send("holiday are not allowed for fromDate")
-    } if (isToDateHoliday) {
-      return res.status(400).send("holiday are not allowed for toDate")
+    if (holiday.holidays.length) {
+      const isFromDateHoliday = checkDateIsHoliday(holiday.holidays, fromDate);
+      const isToDateHoliday = checkDateIsHoliday(holiday.holidays, fromDate);
+      if (isFromDateHoliday) {
+        return res.status(400).send("holiday are not allowed for fromDate")
+      } if (isToDateHoliday) {
+        return res.status(400).send("holiday are not allowed for toDate")
+      }
     }
     async function checkDateIsWeekend(date) {
       const timePattern = await TimePattern.findById(emp.workingTimePattern, "WeeklyDays").lean().exec();

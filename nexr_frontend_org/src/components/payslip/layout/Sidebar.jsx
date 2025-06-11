@@ -4,7 +4,6 @@ import './sidebar.css';
 import KeyboardArrowDownSharpIcon from '@mui/icons-material/KeyboardArrowDownSharp';
 import { EssentialValues } from '../../../App';
 import { jwtDecode } from 'jwt-decode';
-import { TimerStates } from '../HRMDashboard';
 // icons
 import jobDeskIcon from '../../../asserts/jobDeskIcon.svg';
 import settingsIcon from '../../../asserts/settingsIcon.svg';
@@ -24,7 +23,6 @@ import bugIcon from "../../../asserts/bugIcon.svg";
 
 const Sidebar = ({ sideBar }) => {
   const { data, whoIs } = useContext(EssentialValues);
-  const { setIsEditEmp } = useContext(TimerStates);
   const { token, _id } = data;
   const decodedData = jwtDecode(token);
   const { isTeamManager } = decodedData;
@@ -46,11 +44,7 @@ const Sidebar = ({ sideBar }) => {
   };
 
   const renderNavLink = (condition, path, icon, text, key) => {
-    // if (path.includes("/employee/edit/")) {
-    //   console.log("aadksalkd");
-    //   setIsEditEmp(true)
-    // }
-
+    // console.log(condition, path, icon, text, key);
     return (
       condition && (
         <li
@@ -88,10 +82,6 @@ const Sidebar = ({ sideBar }) => {
         {activeNavLink === menuKey && (
           <ul className="nav-content p-2">
             {submenuItems.map((item) => {
-              // if (item.path.includes("/employee/edit/")) {
-              //   console.log("kasdkjwqlk");
-              //   setIsEditEmp(true)
-              // }
               return (
                 <li
                   key={item.key}
