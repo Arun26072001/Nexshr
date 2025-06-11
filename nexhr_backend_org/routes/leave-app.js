@@ -3,7 +3,7 @@ const leaveApp = express.Router();
 const { LeaveApplication,
   LeaveApplicationValidation
 } = require('../models/LeaveAppModel');
-const { fromZonedTime } = require('date-fns-tz');
+const dfn = require('date-fns-tz');
 const { format } = require("date-fns");
 const { Employee } = require('../models/EmpModel');
 const { verifyHR, verifyEmployee, verifyAdminHREmployeeManagerNetwork, verifyAdminHR, verifyAdminHREmployee, verifyTeamHigherAuthority, verifyAdminHrNetworkAdmin } = require('../auth/authMiddleware');
@@ -896,13 +896,15 @@ leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("pre
       }
     }
     async function checkDateIsWeekend(date) {
+      console.log(Object.keys(dfn));      
       const timePattern = await TimePattern.findById(emp.workingTimePattern, "WeeklyDays").lean().exec();
-      const zonedDate = fromZonedTime(date, process.env.TIMEZONE);
+      console.log("before date", date);
+      const zonedDate = dfn.toZonedTime(date, process.env.TIMEZONE);
       console.log(zonedDate, format(zonedDate, "EEEE"));
       const isWeekend = !timePattern?.WeeklyDays.includes(format(zonedDate, "EEEE"));
       return isWeekend;
     }
-    const [fromDateIsWeekend, toDateIsWeekend] = await Promise.all([checkDateIsWeekend(fromDateObj.toISOString()), checkDateIsWeekend(toDateObj.toISOString())])
+    const [fromDateIsWeekend, toDateIsWeekend] = await Promise.all([checkDateIsWeekend(fromDateObj.toISOString()), checkDateIsWeekend(toDateObj)])
     if (fromDateIsWeekend) {
       return res.status(400).send({ error: "Weekend are not allowed in fromDate" })
     } if (toDateIsWeekend) {
