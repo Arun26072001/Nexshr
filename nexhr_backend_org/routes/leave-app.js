@@ -795,6 +795,7 @@ leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("pre
       leaveType, fromDate, toDate, periodOfLeave,
       reasonForLeave, coverBy, applyFor, role
     } = req.body;
+    console.log("orgFromDate", new Date(fromDate).toISOString());
 
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -900,7 +901,7 @@ leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("pre
       console.log(new Date(date), isWeekend);
       return isWeekend;
     }
-    const [fromDateIsWeekend, toDateIsWeekend] = await Promise.all([checkDateIsWeekend(fromDate.toISOString()), checkDateIsWeekend(toDate.toISOString())])
+    const [fromDateIsWeekend, toDateIsWeekend] = await Promise.all([checkDateIsWeekend(fromDateObj.toISOString()), checkDateIsWeekend(toDateObj.toISOString())])
     if (fromDateIsWeekend) {
       return res.status(400).send({ error: "Weekend are not allowed in fromDate" })
     } if (toDateIsWeekend) {
