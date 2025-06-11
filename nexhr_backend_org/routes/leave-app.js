@@ -3,7 +3,8 @@ const leaveApp = express.Router();
 const { LeaveApplication,
   LeaveApplicationValidation
 } = require('../models/LeaveAppModel');
-const { utcToZonedTime, getDay } = require('date-fns-tz');
+const { fromZonedTime } = require('date-fns-tz');
+const { format } = require("date-fns");
 const { Employee } = require('../models/EmpModel');
 const { verifyHR, verifyEmployee, verifyAdminHREmployeeManagerNetwork, verifyAdminHR, verifyAdminHREmployee, verifyTeamHigherAuthority, verifyAdminHrNetworkAdmin } = require('../auth/authMiddleware');
 const { Team } = require('../models/TeamModel');
@@ -896,8 +897,9 @@ leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("pre
     }
     async function checkDateIsWeekend(date) {
       const timePattern = await TimePattern.findById(emp.workingTimePattern, "WeeklyDays").lean().exec();
-      const zonedDate = utcToZonedTime(date, process.env.TIMEZONE)
-      const isWeekend = !timePattern?.WeeklyDays.includes(getDay(zonedDate));
+      const zonedDate = fromZonedTime(date, process.env.TIMEZONE);
+      console.log(zonedDate, format(zonedDate, "EEEE"));
+      const isWeekend = !timePattern?.WeeklyDays.includes(format(zonedDate, "EEEE"));
       return isWeekend;
     }
     const [fromDateIsWeekend, toDateIsWeekend] = await Promise.all([checkDateIsWeekend(fromDateObj.toISOString()), checkDateIsWeekend(toDateObj.toISOString())])
