@@ -3,7 +3,7 @@ const leaveApp = express.Router();
 const { LeaveApplication,
   LeaveApplicationValidation
 } = require('../models/LeaveAppModel');
-const dfn = require('date-fns-tz');
+const { toZonedTime } = require('date-fns-tz');
 const { format } = require("date-fns");
 const { Employee } = require('../models/EmpModel');
 const { verifyHR, verifyEmployee, verifyAdminHREmployeeManagerNetwork, verifyAdminHR, verifyAdminHREmployee, verifyTeamHigherAuthority, verifyAdminHrNetworkAdmin } = require('../auth/authMiddleware');
@@ -896,11 +896,8 @@ leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("pre
       }
     }
     async function checkDateIsWeekend(date) {
-      console.log(Object.keys(dfn));      
       const timePattern = await TimePattern.findById(emp.workingTimePattern, "WeeklyDays").lean().exec();
-      console.log("before date", date);
-      const zonedDate = dfn.toZonedTime(date, process.env.TIMEZONE);
-      console.log(zonedDate, format(zonedDate, "EEEE"));
+      const zonedDate = toZonedTime(date, process.env.TIMEZONE);
       const isWeekend = !timePattern?.WeeklyDays.includes(format(zonedDate, "EEEE"));
       return isWeekend;
     }
