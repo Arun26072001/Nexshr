@@ -899,7 +899,7 @@ leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("pre
       console.log(new Date(date), isWeekend);
       return isWeekend;
     }
-    const [fromDateIsWeekend, toDateIsWeekend] = await Promise.all([checkDateIsWeekend(fromDateObj), checkDateIsWeekend(toDateObj)])
+    const [fromDateIsWeekend, toDateIsWeekend] = await Promise.all([checkDateIsWeekend(fromDateObj.toISOString()), checkDateIsWeekend(toDateObj.toISOString())])
     if (fromDateIsWeekend) {
       return res.status(400).send({ error: "Weekend are not allowed in fromDate" })
     } if (toDateIsWeekend) {
