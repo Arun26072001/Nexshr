@@ -62,6 +62,10 @@ const AnnouncementComponent = ({ handleChangeAnnouncement }) => {
 
         setIschangingAnnouncement(true);
         try {
+            // const updatedAnnouncementObj  = {
+            //     ...announcementObj,
+            //     startDate: new Date(announcementObj.startDate
+            // }
             const addAnnounce = await axios.post(`${url}/api/announcements/${data._id}`, announcementObj,
                 { headers }
             );
