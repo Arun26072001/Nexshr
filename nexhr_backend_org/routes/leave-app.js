@@ -799,7 +799,7 @@ leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("pre
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const fromDateObj = new Date(fromDate);
-    fromDateObj.setHours(0, 0, 0, 0);
+    // fromDateObj.setHours(0, 0, 0, 0);
     const toDateObj = new Date(toDate);
     const prescription = req.file?.filename || null;
     const coverByValue = [undefined, "undefined"].includes(coverBy) ? null : coverBy;
@@ -899,7 +899,7 @@ leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("pre
       console.log(new Date(date), isWeekend);
       return isWeekend;
     }
-    const [fromDateIsWeekend, toDateIsWeekend] = await Promise.all([checkDateIsWeekend(fromDate), checkDateIsWeekend(toDate)])
+    const [fromDateIsWeekend, toDateIsWeekend] = await Promise.all([checkDateIsWeekend(fromDateObj), checkDateIsWeekend(toDateObj)])
     if (fromDateIsWeekend) {
       return res.status(400).send({ error: "Weekend are not allowed in fromDate" })
     } if (toDateIsWeekend) {
