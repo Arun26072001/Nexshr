@@ -896,6 +896,7 @@ leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("pre
     async function checkDateIsWeekend(date) {
       const timePattern = await TimePattern.findById(emp.workingTimePattern, "WeeklyDays").lean().exec();
       const isWeekend = !timePattern?.WeeklyDays.includes(new Date(date).toLocaleDateString(undefined, { weekday: 'long' }));
+      console.log(new Date(date).toLocaleDateString(undefined, { weekday: 'long' }), isWeekend);
       return isWeekend;
     }
     const [fromDateIsWeekend, toDateIsWeekend] = await Promise.all([checkDateIsWeekend(fromDate), checkDateIsWeekend(toDate)])
