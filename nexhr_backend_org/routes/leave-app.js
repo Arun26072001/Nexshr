@@ -894,12 +894,13 @@ leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("pre
       }
     }
     async function checkDateIsWeekend(date) {
+      console.log("normalDate", date);
       const timePattern = await TimePattern.findById(emp.workingTimePattern, "WeeklyDays").lean().exec();
       const isWeekend = !timePattern?.WeeklyDays.includes(new Date(date).toLocaleDateString(undefined, { weekday: 'long' }));
       console.log(new Date(date), isWeekend);
       return isWeekend;
     }
-    const [fromDateIsWeekend, toDateIsWeekend] = await Promise.all([checkDateIsWeekend(fromDateObj.toISOString()), checkDateIsWeekend(toDateObj.toISOString())])
+    const [fromDateIsWeekend, toDateIsWeekend] = await Promise.all([checkDateIsWeekend(fromDate.toISOString()), checkDateIsWeekend(toDate.toISOString())])
     if (fromDateIsWeekend) {
       return res.status(400).send({ error: "Weekend are not allowed in fromDate" })
     } if (toDateIsWeekend) {
