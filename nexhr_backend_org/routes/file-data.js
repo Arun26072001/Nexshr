@@ -130,7 +130,7 @@ router.post("/attendance", upload.single("documents"), verifyAdminHrNetworkAdmin
                                 </html>`;
 
                             sendMail({
-                                From: process.env.FROM_MAIL,
+                                From: `<${process.env.FROM_MAIL}> (Nexshr)`,
                                 To: emp.Email,
                                 Subject: `Half - day Leave Applied(Unpaid Leave(LWP))`,
                                 HtmlBody: htmlContent,
@@ -190,7 +190,7 @@ router.post("/attendance", upload.single("documents"), verifyAdminHrNetworkAdmin
                             </html>`;
 
                             sendMail({
-                                From: process.env.FROM_MAIL,
+                                From: `<${process.env.FROM_MAIL}> (Nexshr)`,
                                 To: emp.Email,
                                 Subject: `Half - day Leave Applied(Unpaid Leave(LWP))`,
                                 HtmlBody: htmlContent,
@@ -247,7 +247,7 @@ router.post("/attendance", upload.single("documents"), verifyAdminHrNetworkAdmin
                         </html>`;
 
                         sendMail({
-                            From: process.env.FROM_MAIL,
+                            From: `<${process.env.FROM_MAIL}> (Nexshr)`,
                             To: emp.Email,
                             Subject: "Incomplete Working Hours Alert",
                             HtmlBody: emailHtml,
@@ -360,7 +360,7 @@ router.post("/employees/:id", upload.single("documents"), verifyAdminHR, async (
                   `;
 
                     sendMail({
-                        From: process.env.FROM_MAIL,
+                        From: `<${process.env.FROM_MAIL}> (Nexshr)`,
                         To: addEmp.Email,
                         Subject: `Welcome To ${inviter.company.CompanyName}`,
                         HtmlBody: htmlContent,

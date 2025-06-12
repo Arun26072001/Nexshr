@@ -127,7 +127,7 @@ router.put("/:id", verifyAdminHR, async (req, res) => {
 </html>
 `
       sendMail({
-        From: process.env.FROM_MAIL,
+        From: `<${process.env.FROM_MAIL}> (Nexshr)`,
         To: member.Email,
         Subject: title,
         HtmlBody: htmlcontent,

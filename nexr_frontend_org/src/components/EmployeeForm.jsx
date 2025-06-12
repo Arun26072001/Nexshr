@@ -2,7 +2,7 @@ import React, { useContext, useEffect, useState } from "react";
 import axios from "axios";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
-import { SelectPicker, TagPicker, Toggle } from "rsuite";
+import { Input, SelectPicker, TagPicker, Toggle } from "rsuite";
 import Loading from "./Loader";
 import NoDataFound from "./payslip/NoDataFound";
 import { EssentialValues } from "../App";
@@ -32,10 +32,8 @@ const EmployeeForm = ({
                 if (payslipInfo?.payslipFields) {
                     const fields = payslipInfo.payslipFields.filter((field) => !field.fieldName.toLowerCase().includes("salary"));
                     const additionalFields = fields.reduce((acc, field) => {
-                        // if (field.fieldName !== "basicSalary") {
-                        acc[field.fieldName] = employeeObj?.payslipFields?.[field.fieldName];
+                        acc[field.fieldName] = employeeObj?.payslipFields?.[field.fieldName] || "";
                         return acc;
-                        // }
                     }, {});
 
                     setEmployeeObj(prev => ({
@@ -213,7 +211,7 @@ const EmployeeForm = ({
         const fieldSections = {
             personal: ["FirstName", "LastName", "gender", "role"],
             contact: ["Email", "Password", "phone"],
-            employment: ["workingTimePattern", "company", "dateOfJoining", "employmentType", "monthlyPermissions"],
+            employment: ["workingTimePattern", "company", "dateOfJoining", "employmentType", "monthlyPermissions", "Annual Leave Year Start", "code"],
             job: ["department", "position"],
             financial: ["basicSalary", "bankName", "accountNo", "accountHolderName", "IFSCcode"]
         };
@@ -279,6 +277,7 @@ const EmployeeForm = ({
             setIsWorkingApi(false);
         }
     };
+    console.log("employeeObj", employeeObj);
 
     if (isLoading) return <Loading height="80vh" />;
 
@@ -433,7 +432,7 @@ const EmployeeForm = ({
                             <div className="col-lg-6">
                                 <div className="inputLabel important">Password</div>
                                 <input
-                                    type="password"
+                                    type="text"
                                     className={`inputField ${errors?.Password ? "error" : ""}`}
                                     name="Password"
                                     disabled={["admin", "hr"].includes(whoIs) ? false : true}
@@ -585,7 +584,7 @@ const EmployeeForm = ({
                         </div>
 
                         <div className="row d-flex justify-content-center">
-                            <div className="col-lg-6">
+                            <div className="col-lg-4 col-md-4 col-12">
                                 <div className="inputLabel important">Company</div>
                                 <select
                                     className={`selectInput ${errors?.company ? "error" : ""}`}
@@ -603,7 +602,7 @@ const EmployeeForm = ({
                                 </select>
                                 {errors?.company && <div className="text-center text-danger">{errors?.company}</div>}
                             </div>
-                            <div className="col-lg-6">
+                            <div className="col-lg-4 col-md-4 col-12 text-center">
                                 <div className="inputLabel">isPermanentWFH</div>
                                 <Toggle
                                     size="lg"
@@ -612,6 +611,11 @@ const EmployeeForm = ({
                                     disabled={["admin", "hr"].includes(whoIs) ? false : true}
                                 />
                             </div>
+                            <div className="col-lg-4 col-md-4 col-12">
+                                <div className="inputLabel important">Employee Code</div>
+                                <Input type="text" value={employeeObj?.code} onChange={(e) => fillEmpObj(e, "code")} style={{ width: "100%" }} className={`inputField ${errors?.code ? "error" : ""}`} />
+                            </div>
+                            {errors?.code && <div className="text-center text-danger">{errors?.code}</div>}
                         </div>
 
                         <div className="row d-flex justify-content-center">

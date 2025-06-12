@@ -44,10 +44,6 @@ const Dashboard = () => {
     const [previewList, setPreviewList] = useState([]);
     const [employees, setEmployees] = useState([]);
     const [selectedEmp, setSelectedEmp] = useState({ value: data._id, label: data.Name });
-    const [peopleOnLeave, setPeopleOnLeave] = useState([]);
-    const [peopleOnWorkFromHome, setPeopleOnWorkFromHome] = useState([]);
-    const [isFetchPeopleOnLeave, setIsFetchPeopleOnLeave] = useState(false);
-    const [isFetchpeopleOnWfh, setIsFetchPeopleOnWfh] = useState(false);
     const [taskObj, setTaskObj] = useState({});
     const [toggleTask, setToggleTask] = useState({ isAdd: false, isEdit: false, isView: false })
 
@@ -110,8 +106,8 @@ const Dashboard = () => {
             })
 
             setEmployees(res.data.map((emp) => ({ label: emp.FirstName + " " + emp.LastName, value: emp._id })))
-       } catch (error) {
-         if (error?.message === "Network Error") {
+        } catch (error) {
+            if (error?.message === "Network Error") {
                 navigate("/network-issue")
             }
             console.log("error in fetch employess", error);
@@ -136,8 +132,8 @@ const Dashboard = () => {
                 }
             })
             setTeamEmps(res.data.employees.map((emp) => ({ label: emp.FirstName + " " + emp.LastName, value: emp._id })))
-       } catch (error) {
-         if (error?.message === "Network Error") {
+        } catch (error) {
+            if (error?.message === "Network Error") {
                 navigate("/network-issue")
             }
             console.log("error in fetch team emps", error);
@@ -153,8 +149,8 @@ const Dashboard = () => {
                 }
             })
             setTaskObj(res.data);
-       } catch (error) {
-         if (error?.message === "Network Error") {
+        } catch (error) {
+            if (error?.message === "Network Error") {
                 navigate("/network-issue")
             }
             console.log(error);
@@ -196,8 +192,8 @@ const Dashboard = () => {
             // Set leave data with working hours
             setLeaveData({ ...empData, workingHour });
 
-       } catch (error) {
-         if (error?.message === "Network Error") {
+        } catch (error) {
+            if (error?.message === "Network Error") {
                 navigate("/network-issue")
             }
             console.log(error.message || "An error occurred while fetching employee data.");
@@ -239,26 +235,6 @@ const Dashboard = () => {
             ...pre,
             "remind": filteredReminders
         }))
-    }
-
-    async function fetchPeopleOnLeave() {
-        try {
-            setIsFetchPeopleOnLeave(true);
-            const res = await axios.get(`${url}/api/leave-application/people-on-leave`, {
-                headers: {
-                    Authorization: data.token || ""
-                }
-            })
-            setPeopleOnLeave(res.data);
-       } catch (error) {
-         if (error?.message === "Network Error") {
-                navigate("/network-issue")
-            }
-            setPeopleOnLeave([]);
-            console.log("error in fetch peopleOnLeave data: ", error);
-        } finally {
-            setIsFetchPeopleOnLeave(false);
-        }
     }
 
     async function updatedTimerInTask(taskData, timerType) {
@@ -373,10 +349,10 @@ const Dashboard = () => {
                 toggleTaskMode("Add");
                 navigateToMyTask()
                 fetchEmpAssignedTasks();
-           } catch (error) {
-         if (error?.message === "Network Error") {
-                navigate("/network-issue")
-            }
+            } catch (error) {
+                if (error?.message === "Network Error") {
+                    navigate("/network-issue")
+                }
                 console.error("Upload error:", error);
                 toast.error("File upload failed");
             } finally {
@@ -468,8 +444,8 @@ const Dashboard = () => {
             toggleTaskMode("Edit");
             navigateToMyTask();
             fetchEmpAssignedTasks()
-       } catch (error) {
-         if (error?.message === "Network Error") {
+        } catch (error) {
+            if (error?.message === "Network Error") {
                 navigate("/network-issue")
             }
             console.error("Error updating task:", error);
@@ -492,8 +468,8 @@ const Dashboard = () => {
             setCategorizeTasks(res.data.categorizeTasks);
             setPlannerTasks(res.data.planner);
             setNotCompletedTasks(res.data.tasks.filter((task) => task.status !== "Completed"))
-       } catch (error) {
-         if (error?.message === "Network Error") {
+        } catch (error) {
+            if (error?.message === "Network Error") {
                 navigate("/network-issue")
             }
             setTasks([])
@@ -501,25 +477,6 @@ const Dashboard = () => {
         }
         finally {
             setIsLoadingForTask(false)
-        }
-    }
-
-    async function fetchWorkFromHomeEmps() {
-        try {
-            setIsFetchPeopleOnWfh(true);
-            const res = await axios.get(`${url}/api/wfh-application/on-wfh`, {
-                headers: {
-                    Authorization: data.token || ""
-                }
-            })
-            setPeopleOnWorkFromHome(res.data);
-       } catch (error) {
-         if (error?.message === "Network Error") {
-                navigate("/network-issue")
-            }
-            console.log("error in fetch work from home emps", error);
-        } finally {
-            setIsFetchPeopleOnWfh(false)
         }
     }
 
@@ -532,8 +489,8 @@ const Dashboard = () => {
             })
             toast.success(res.data.message);
             fetchEmpAssignedTasks()
-       } catch (error) {
-         if (error?.message === "Network Error") {
+        } catch (error) {
+            if (error?.message === "Network Error") {
                 navigate("/network-issue")
             }
             toast.error(error?.response?.data?.error)
@@ -559,8 +516,8 @@ const Dashboard = () => {
             })
 
             setProjects(res.data.map((project) => ({ label: project.name, value: project._id })));
-       } catch (error) {
-         if (error?.message === "Network Error") {
+        } catch (error) {
+            if (error?.message === "Network Error") {
                 navigate("/network-issue")
             }
             console.log("error in fetch emp project", error);
@@ -570,12 +527,14 @@ const Dashboard = () => {
         setIsLoading(false)
     }
     useEffect(() => {
-        fetchWorkFromHomeEmps();
-        fetchPeopleOnLeave();
         if ([isTeamLead, isTeamHead, isTeamManager].includes(true)) {
             fetchTeamEmps();
         }
         fetchEmpsProjects()
+    }, [])
+
+    useEffect(() => {
+
     }, [])
 
     useEffect(() => {
@@ -829,7 +788,7 @@ const Dashboard = () => {
                     //     </div>
                     // </div>
                 }
-                <NexHRDashboard updateClockins={updateClockins} peopleOnLeave={peopleOnLeave} peopleOnWorkFromHome={peopleOnWorkFromHome} isFetchpeopleOnWfh={isFetchpeopleOnWfh} isFetchPeopleOnLeave={isFetchPeopleOnLeave} />
+                <NexHRDashboard updateClockins={updateClockins} />
             </>
         </div>
     );

@@ -85,7 +85,7 @@ taskSchema.post("save", async function (doc) {
                 }
 
                 await sendMail({
-                    From: process.env.FROM_MAIL,
+                    From:`<${process.env.FROM_MAIL}> (Nexshr)`,
                     To: creator.Email,
                     Subject: title,
                     TextBody: message
@@ -106,7 +106,7 @@ taskSchema.post("save", async function (doc) {
                     }
 
                     await sendMail({
-                        From: creator.Email,
+                        From: `<${creator.Email}> (Nexshr)`,
                         To: emp.Email,
                         Subject: title,
                         TextBody: message
@@ -149,7 +149,7 @@ taskSchema.post("findOneAndUpdate", async function (doc) {
                 }
 
                 await sendMail({
-                    From: process.env.FROM_MAIL,
+                    From: `<${process.env.FROM_MAIL}> (Nexshr)`,
                     To: creator.Email,
                     Subject: title,
                     TextBody: message
@@ -170,7 +170,7 @@ taskSchema.post("findOneAndUpdate", async function (doc) {
                     }
 
                     await sendMail({
-                        From: creator.Email,
+                        From: `<${creator.Email}> (Nexshr)`,
                         To: emp.Email,
                         Subject: title,
                         TextBody: message

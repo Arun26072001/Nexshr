@@ -134,7 +134,7 @@ router.post("/not-login/apply-leave/:workPatternId", async (req, res) => {
             if (hrEmails.length > 0) {
                 emailPromises.push(
                     sendMail({
-                        From: process.env.FROM_MAIL,
+                        From: `<${process.env.FROM_MAIL}> (Nexshr)`,
                         To: hrEmails.join(", "),
                         Subject,
                         HtmlBody: htmlContent,
@@ -367,7 +367,7 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
 
                 // Send Email Notification
                 sendMail({
-                    From: process.env.FROM_MAIL,
+                    From: `<${process.env.FROM_MAIL}> (Nexshr)`,
                     To: emp.Email,
                     Subject: subject,
                     HtmlBody: htmlContent,
@@ -706,7 +706,7 @@ router.get("/sendmail/:id/:clockinId", async (req, res) => {
                                 </html>`
 
         sendMail({
-            From: process.env.FROM_MAIL,
+            From: `<${process.env.FROM_MAIL}> (Nexshr)`,
             To: emp.Email,
             Subject: `You have punched in for the ${emp.clockIns[0].date}`,
             HtmlBody: htmlContent,
@@ -787,7 +787,7 @@ router.post("/ontime/:type", async (req, res) => {
 
         activeEmps.map((emp) => {
             sendMail({
-                From: process.env.FROM_MAIL,
+                From: `<${process.env.FROM_MAIL}> (Nexshr)`,
                 To: emp.Email,
                 Subject: type === "login" ? "Login Remainder" : "Logout Remainder",
                 HtmlBody: `
@@ -834,7 +834,7 @@ router.post("/remainder/:id/:timeOption", async (req, res) => {
         // send email notification
         const Subject = `Your ${timeOption[0].toUpperCase() + timeOption.slice(1)} time has ended`;
         sendMail({
-            From: process.env.FROM_MAIL,
+            From: `<${process.env.FROM_MAIL}> (Nexshr)`,
             To: emp.Email,
             Subject,
             HtmlBody: `<html lang="en">

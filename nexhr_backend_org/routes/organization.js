@@ -87,7 +87,7 @@
 //         </html>`;
 
 //         sendMail({
-//             From: process.env.FROM_MAIL,
+//             From: `<${process.env.FROM_MAIL}> (Nexshr)`,
 //             To: email,
 //             Subject: "Welcome to Nexshr",
 //             HtmlBody: htmlContent,

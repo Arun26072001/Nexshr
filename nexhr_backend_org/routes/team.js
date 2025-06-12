@@ -6,7 +6,6 @@ const { Employee } = require("../models/EmpModel");
 const sendMail = require("./mailSender");
 
 const sendInvitationEmail = async (emp, roleLabel, team, creator) => {
-    console.log("emp",emp, "creator",creator);
     const frontendUrl = process.env.REACT_APP_API_URL;
     const empName = `${emp.FirstName[0].toUpperCase() + emp.FirstName.slice(1)} ${emp.LastName}`;
     const CompanyName = creator.company.CompanyName;
@@ -31,7 +30,7 @@ const sendInvitationEmail = async (emp, roleLabel, team, creator) => {
     `;
 
     await sendMail({
-        From: creator.Email,
+        From: `<${creator.Email}> (Nexshr)`,
         To: emp.Email,
         Subject: `You're invited to join the ${team.teamName} team at ${CompanyName}`,
         HtmlBody: emailContent

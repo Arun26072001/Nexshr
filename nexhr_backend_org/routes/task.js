@@ -326,7 +326,7 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
 
                 // Email Notification
                 await sendMail({
-                    From: creator.Email,
+                    From: `<${creator.Email}> (Nexshr)`,
                     To: emp.Email,
                     Subject: `${createdPersonName} has added you as a ${role} to a task`,
                     HtmlBody: projectMailContent(emp, creator, creator.company, req.body, "task")
@@ -364,7 +364,7 @@ router.put("/updatedTaskComment/:id", verifyAdminHREmployeeManagerNetwork, async
                 const message = currentCmt.comment.replace(/<\/?[^>]+(>|$)/g, '')
                 // send mail 
                 sendMail({
-                    From: process.env.FROM_MAIL,
+                    From: `<${process.env.FROM_MAIL}> (Nexshr)`,
                     To: emp.Email,
                     Subject: title,
                     TextBody: message
@@ -480,7 +480,7 @@ router.put("/:empId/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) 
                     }
 
                     await sendMail({
-                        From: empData.Email,
+                        From: `<${empData.Email}> (Nexshr)`,
                         To: assignedPerson.Email,
                         Subject: `Your assigned task (${req.body.title}) is completed`,
                         HtmlBody: `
@@ -510,7 +510,7 @@ router.put("/:empId/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) 
         await Promise.all(emps.map(emp => {
             // const empName = `${emp.FirstName} ${emp.LastName}`;
             return sendMail({
-                From: assignedPerson.Email,
+                From: `<${assignedPerson.Email}> (Nexshr)`,
                 To: emp.Email,
                 Subject: `${assignedPersonName} has assigned a task to you`,
                 HtmlBody: projectMailContent(emp, assignedPerson, assignedPerson.company, req.body, "task")

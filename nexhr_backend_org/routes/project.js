@@ -122,7 +122,7 @@ router.post("/:id", verifyAdminHRTeamHigherAuth, async (req, res) => {
       assignees.map(async (emp) => {
         // Send Email
         await sendMail({
-          From: creator.Email,
+          From: `<${creator.Email}> (Nexshr)`,
           To: emp.Email,
           Subject,
           HtmlBody: projectMailContent(emp, creator, creator.company, req.body, "project")
@@ -233,7 +233,7 @@ router.put("/:empId/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) 
     await Promise.all(newAssigneeDocs.map(async (emp) => {
       // Send mail
       await sendMail({
-        From: assignedPerson.Email,
+        From: `<${assignedPerson.Email}> (Nexshr)`,
         To: emp.Email,
         Subject: subject,
         HtmlBody: projectMailContent(emp, assignedPerson, assignedPerson.company, req.body, "project")

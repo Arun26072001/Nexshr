@@ -7,7 +7,7 @@ import "./NexHRDashboard.css";
 import { EssentialValues } from "../App";
 import { jwtDecode } from "jwt-decode";
 
-const NexHRDashboard = ({ peopleOnLeave, peopleOnWorkFromHome, isFetchPeopleOnLeave, isFetchpeopleOnWfh }) => {
+const NexHRDashboard = () => {
   const { data } = useContext(EssentialValues);
   const { token, Account, _id } = data;
   const { isTeamLead, isTeamHead, isTeamManager } = jwtDecode(token);
@@ -17,7 +17,7 @@ const NexHRDashboard = ({ peopleOnLeave, peopleOnWorkFromHome, isFetchPeopleOnLe
       <div className="col-lg-8 col-md-12 col-12" >
         {/* Left card */}
         <Card style={{ height: '100%', boxShadow: "none" }} >
-          {(Account == '2' || [isTeamLead, isTeamHead, isTeamManager].includes(true)) &&
+          {(Account === '2' || [isTeamLead, isTeamHead, isTeamManager].includes(true)) &&
             <>
               <div className="d-flex align-items-center justify-content-between m-2">
                 <span className="bold m-2">
@@ -27,7 +27,7 @@ const NexHRDashboard = ({ peopleOnLeave, peopleOnWorkFromHome, isFetchPeopleOnLe
               <CircleProgressBar token={token} isTeamLead={isTeamLead} isTeamManager={isTeamManager} account={Account} id={_id} isTeamHead={isTeamHead} />
             </>
           }
-          <Home peopleOnLeave={peopleOnLeave} peopleOnWorkFromHome={peopleOnWorkFromHome} isFetchPeopleOnLeave={isFetchPeopleOnLeave} isFetchpeopleOnWfh={isFetchpeopleOnWfh} />
+          <Home />
         </Card>
       </div>
       <div className="col-lg-4 col-md-8 col-12 d-flex jsutify-content-center">

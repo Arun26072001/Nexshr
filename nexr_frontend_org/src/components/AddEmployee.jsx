@@ -277,7 +277,9 @@ const AddEmployee = () => {
       });
       const countryFullData = countries.find((country) => Object.values(country).includes(empData?.countryCode));
       setStateData(countryFullData?.states);
-      setSelectedLeavetypes(Object.entries(empData?.typesOfLeaveCount)?.map(([key, value]) => key + " " + value))
+      if (empData?.typesOfLeaveCount && Object.values(empData?.typesOfLeaveCount).length) {
+        setSelectedLeavetypes(Object.entries(empData?.typesOfLeaveCount)?.map(([key, value]) => key + " " + value))
+      }
     } catch (error) {
       if (error?.message === "Network Error") {
         navigate("/network-issue")
@@ -295,7 +297,7 @@ const AddEmployee = () => {
 
     value.forEach(type => {
       const key = type.split(" ").slice(0, 2).join(" ");
-      leaveTypeCount[key] = type.split(" ")[0];
+      leaveTypeCount[key] = Number(type.split(" ").at(-1));
       leaveCount += Number(type.split(" ").at(-1));
     });
 

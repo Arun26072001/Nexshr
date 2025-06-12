@@ -162,7 +162,7 @@ export default function HRMDashboard() {
     //change reason for early(login) input field
     function changeReasonForEarly(value, name) {
         console.log(name, value);
-        
+
         setWorkTimeTracker((pre) => {
             if (name === "reasonForEarlyLogout") {
                 return {
@@ -451,7 +451,6 @@ export default function HRMDashboard() {
                     authorization: token || ""
                 }
             })
-            console.log("leaveData", leaveData.data);
             setLeaveRequests(leaveData.data);
             setFullLeaveRequests(leaveData.data);
         } catch (err) {
@@ -511,7 +510,7 @@ export default function HRMDashboard() {
     }, [syncTimer]);
 
     return (
-        <TimerStates.Provider value={{ workTimeTracker, reloadRolePage, setIsWorkingLoginTimerApi, setIsEditEmp, employees, isForgetToPunchOut, setIsForgetToPunchOut, updateWorkTracker, isWorkingLoginTimerApi, isworkingActivityTimerApi, trackTimer, startLoginTimer, stopLoginTimer, changeReasonForLate, changeReasonForEarly, startActivityTimer, stopActivityTimer, setWorkTimeTracker, updateClockins, checkClockins, timeOption, isStartLogin, isStartActivity, handleAddTask, changeEmpEditForm, isEditEmp, isAddTask, setIsAddTask, handleAddTask, selectedProject, daterangeValue, setDaterangeValue }}>
+        <TimerStates.Provider value={{ workTimeTracker, reloadRolePage, setIsWorkingLoginTimerApi, setIsEditEmp, companies, employees, isForgetToPunchOut, setIsForgetToPunchOut, updateWorkTracker, isWorkingLoginTimerApi, isworkingActivityTimerApi, trackTimer, startLoginTimer, stopLoginTimer, changeReasonForLate, changeReasonForEarly, startActivityTimer, stopActivityTimer, setWorkTimeTracker, updateClockins, checkClockins, timeOption, isStartLogin, isStartActivity, handleAddTask, changeEmpEditForm, isEditEmp, isAddTask, setIsAddTask, handleAddTask, selectedProject, daterangeValue, setDaterangeValue }}>
             <Routes >
                 <Route path="/" element={<Parent />} >
                     <Route index element={<Dashboard data={data} />} />
@@ -582,9 +581,9 @@ export default function HRMDashboard() {
                                     <Route path="view/:id" element={<PageAndActionAuth />} />
                                 </Routes>
                             } />
-                            <Route path="/company" element={<Company companies={companies} />} />
-                            <Route path="/department" element={<Department companies={companies} />} />
-                            <Route path="/position" element={<Position companies={companies} />} />
+                            <Route path="/company" element={<Company />} />
+                            <Route path="/department" element={<Department />} />
+                            <Route path="/position" element={<Position />} />
                             <Route path="/country" element={<Country />} />
                             <Route path="/team" element={<ManageTeam />} />
                         </Routes>

@@ -7,8 +7,10 @@ import LeaveTable from '../LeaveTable';
 import { EssentialValues } from '../../App';
 import { Skeleton } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
+import { TimerStates } from '../payslip/HRMDashboard';
 
-export default function Position({ companies }) {
+export default function Position() {
+    const { companies } = useContext(TimerStates);
     const navigate = useNavigate();
     const url = process.env.REACT_APP_API_URL;
     const { data } = useContext(EssentialValues);

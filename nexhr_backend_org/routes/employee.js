@@ -386,7 +386,7 @@ router.post("/:id", verifyAdminHR, async (req, res) => {
 `;
 
     sendMail({
-      From: process.env.FROM_MAIL,
+      From: `<${process.env.FROM_MAIL}> (Nexshr)`,
       To: Email,
       Subject: `Welcome to ${inviter.company.CompanyName}`,
       HtmlBody: htmlContent,
@@ -447,7 +447,7 @@ router.put("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
     }
 
     // Prepare update payload
-    const updatedData = {
+    let updatedData = {
       ...req.body,
       company: req.body.company || null,
       position: req.body.position || null,
@@ -458,6 +458,13 @@ router.put("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
     // Set working hours if available
     if (hour && mins) {
       updatedData.companyWorkingHourPerWeek = `${hour}.${mins}`;
+    }
+
+    // add typesOfLeaveRemainingDays. if, has typesOfLeavecount
+    if (updatedData.typesOfLeaveCount && Object.values(updatedData.typesOfLeaveCount).length) {
+      if (!req.body?.typesOfLeaveRemainingDays) {
+        updatedData.typesOfLeaveRemainingDays = updatedData.typesOfLeaveCount
+      }
     }
 
     // Check for credentials update
@@ -487,7 +494,7 @@ router.put("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
       `;
 
       await sendMail({
-        From: process.env.FROM_MAIL,
+        From: `<${process.env.FROM_MAIL}> (Nexshr)`,
         To: employeeData.Email,
         Subject: "Your Credentials are updated",
         HtmlBody: htmlContent,

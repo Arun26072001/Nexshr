@@ -206,7 +206,7 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
                 };
 
                 sendMail({
-                    From: emp.Email,
+                    From: `<${emp.Email}> (Nexshr)`,
                     To: member.Email,
                     Subject: title,
                     HtmlBody: generateWfhEmail(emp, fromDate, toDate, reason),
@@ -581,7 +581,7 @@ router.put("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
                 await Promise.all(members.map(async (member) => {
                     // Email
                     await sendMail({
-                        From: process.env.FROM_MAIL,
+                        From: `<${process.env.FROM_MAIL}> (Nexshr)`,
                         To: member.Email,
                         Subject,
                         HtmlBody: mailContent(emailType, fromDate, toDate, emp, "WFH", actionBy, member)
