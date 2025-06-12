@@ -18,10 +18,10 @@ const MyDetails = () => {
             try {
                 const empData = await fetchEmployeeData(data._id);
                 setEmpObj(empData);
-           } catch (error) {
-         if (error?.message === "Network Error") {
-                navigate("/network-issue")
-            }
+            } catch (error) {
+                if (error?.message === "Network Error") {
+                    navigate("/network-issue")
+                }
                 setError(error.response.data.error);
             }
             setIsLoading(false);
@@ -33,9 +33,7 @@ const MyDetails = () => {
 
     return (
         error ? <NoDataFound message={error} /> :
-            // isLoading ? <Loading height="80vh" /> :
             <div>
-
                 {
                     isLoading ?
                         <>
@@ -104,27 +102,27 @@ const MyDetails = () => {
                                             {new Date(empObj.workingTimePattern.StartingTime).toLocaleTimeString()} - {new Date(empObj.workingTimePattern.FinishingTime).toLocaleTimeString()})
                                         </li>
                                     )}
-                                {empObj?.team && empObj?.team.manager.length && (
+                                {empObj?.team && empObj?.team.manager.length ? (
                                     <li>
                                         Manager: {empObj?.team.manager.map((member) => (
                                             member.FirstName[0].toUpperCase() + member.FirstName.slice(1) + " ,"
                                         ))}
                                     </li>
-                                )}
-                                {empObj?.team && empObj?.team.lead.length && (
+                                ) : null}
+                                {empObj?.team && empObj?.team.lead.length ? (
                                     <li>
                                         Lead: {empObj?.team.lead.map((member) => (
                                             member.FirstName[0].toUpperCase() + member.FirstName.slice(1) + " ,"
                                         ))}
                                     </li>
-                                )}
-                                {empObj?.team && empObj?.team.head.length && (
+                                ) : null}
+                                {empObj?.team && empObj?.team.head.length ? (
                                     <li>
                                         Head: {empObj?.team.head.map((member) => (
                                             member.FirstName[0].toUpperCase() + member.FirstName.slice(1) + " ,"
                                         ))}
                                     </li>
-                                )}
+                                ) : null}
                                 {empObj?.description && <li>Description: {empObj.description}</li>}
                                 {empObj?.annualLeaveYearStart && <li>Annual Leave Year Start Date: {empObj.annualLeaveYearStart.split("T")[0]}</li>}
                             </ul>
@@ -181,9 +179,12 @@ const MyDetails = () => {
                         <>
                             <p className="sub_title">Payslip Details</p>
                             <ul className="my-3 list_style" style={{ listStyleType: "disc" }}>
-                                {Object.entries(empObj.payslipFields).map(([key, value]) => (
-                                    <li key={key}>{key[0].toUpperCase() + key.slice(1)}: {value}</li>
-                                ))}
+                                {Object.entries(empObj.payslipFields).map(([key, value]) => {
+                                    if (key !== "LossOfPay") {
+                                        return <li key={key}>{key[0].toUpperCase() + key.slice(1)}: {value}</li>
+                                    }
+                                }
+                                )}
                             </ul>
                         </>
                     )}

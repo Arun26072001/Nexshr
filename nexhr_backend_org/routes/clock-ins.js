@@ -597,18 +597,19 @@ router.get("/employee/:empId", verifyAdminHREmployeeManagerNetwork, async (req, 
             return totalHours;
         };
 
-        const employee = await Employee.findById(empId, "FirstName LastName clockIns leaveApplication")
-            .populate([{ path: "workingTimePattern" },
-            {
-                path: "clockIns",
-                match: { date: { $gte: startOfMonth, $lte: endOfMonth } },
-                populate: { path: "employee", select: "FirstName LastName" }
-            },
-            {
-                path: "leaveApplication",
-                match: { fromDate: { $lte: endOfMonth }, toDate: { $gte: startOfMonth }, status: "approved", leaveType: { $ne: "Permission Leave" } },
-                select: "fromDate toDate leaveType periodOfLeave"
-            }])
+        const employee = await Employee.findById(empId, "FirstName LastName clockIns leaveApplication workingTimePattern")
+            .populate([
+                { path: "workingTimePattern" },
+                {
+                    path: "clockIns",
+                    match: { date: { $gte: startOfMonth, $lte: endOfMonth } },
+                    populate: { path: "employee", select: "FirstName LastName" }
+                },
+                {
+                    path: "leaveApplication",
+                    match: { fromDate: { $lte: endOfMonth }, toDate: { $gte: startOfMonth }, status: "approved", leaveType: { $ne: "Permission Leave" } },
+                    select: "fromDate toDate leaveType periodOfLeave employee"
+                }])
 
         if (!employee) return res.status(400).send({ message: "Employee not found." });
 
@@ -632,7 +633,7 @@ router.get("/employee/:empId", verifyAdminHREmployeeManagerNetwork, async (req, 
         });
     } catch (error) {
         console.error("Error fetching employee data:", error);
-        res.status(500).send({ message: "Server error", details: error.message });
+        res.status(500).send({ error: error.message });
     }
 });
 

@@ -63,7 +63,6 @@ const Leave = () => {
                     authorization: token || ""
                 }
             })
-            console.log("leaveData", leaveData.data);
             setLeaveRequests(leaveData.data);
             setFullLeaveRequests(leaveData.data.leaveData);
         } catch (err) {

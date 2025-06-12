@@ -428,7 +428,6 @@ leaveApp.get("/team/:id", verifyTeamHigherAuthority, async (req, res) => {
   try {
     const now = new Date(); // added missing `now`
     const { daterangeValue, who } = req.query;
-    console.log("who", who);
 
     // get dateRange value or current month range value
     const [startOfMonth, endOfMonth] = daterangeValue
@@ -683,6 +682,8 @@ leaveApp.get("/date-range/management/:whoIs", verifyAdminHrNetworkAdmin, async (
       sumLeaveDays(approvedLeave)
     ])
 
+    console.log("leaveData", leaveData);
+
     res.send({
       leaveData,
       approvedLeave: approvedLeaveDays,
@@ -723,6 +724,7 @@ leaveApp.get("/date-range/:empId", verifyAdminHREmployeeManagerNetwork, async (r
           { path: "coverBy", select: "FirstName LastName Email profile" }
         ]
       });
+    console.log("employeeLeaveData", employeeLeaveData);
 
     if (!employeeLeaveData || !employeeLeaveData.leaveApplication.length) {
       return res.send({
@@ -752,7 +754,6 @@ leaveApp.get("/date-range/:empId", verifyAdminHREmployeeManagerNetwork, async (r
     res.send({
       leaveData,
       approvedLeave: approvedLeaveDays,
-      // peopleOnLeave,
       pendingLeave: pendingLeaveDays,
       upcomingLeave: upComingLeaveDays,
       leaveInHours: approvedLeave * 9
@@ -870,7 +871,6 @@ leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("pre
     if (!applyFor || applyFor === "undefined") {
       if (["Sick Leave"].includes(leaveType) &&
         ![today.toDateString(), tomorrow.toDateString()].includes(formattedFrom)) {
-        console.log(today.toDateString(), tomorrow.toDateString(), formattedFrom);
         return res.status(400).json({ error: "Sick leave is only applicable for today or tomorrow." });
       }
 
@@ -993,8 +993,7 @@ leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("pre
           await sendPushNotification({
             token: member.fcmToken,
             title: notification.title,
-            body: notification.message,
-            // company: emp.company
+            body: notification.message
           });
           notify.push(member.Email);
         });
