@@ -288,15 +288,33 @@ export default function Navbar({ handleSideBar }) {
         }
     }
 
-    function updateCheckoutTime(time) {
-        const actualTime = new Date(time).toTimeString().split(" ")[0]
+    function removeLastOneNdAddCurrent(actualTime) {
+        const updatedLoginEndTime = workTimeTracker.login.endingTime;
+        updatedLoginEndTime.pop();
+        updatedLoginEndTime.push(actualTime);
+
         setWorkTimeTracker((pre) => ({
             ...pre,
             "login": {
                 ...pre?.login,
-                endingTime: [...(workTimeTracker?.login?.endingTime || []), actualTime],
+                endingTime: updatedLoginEndTime,
             }
         }))
+    }
+
+    function updateCheckoutTime(time) {
+        const actualTime = new Date(time).toTimeString().split(" ")[0];
+        if (workTimeTracker.login.startingTime.length !== workTimeTracker.login.endingTime.length) {
+            setWorkTimeTracker((pre) => ({
+                ...pre,
+                "login": {
+                    ...pre?.login,
+                    endingTime: [...(workTimeTracker?.login?.endingTime || []), actualTime],
+                }
+            }))
+        } else {
+            removeLastOneNdAddCurrent(actualTime)
+        }
     }
 
     useEffect(() => {
@@ -342,6 +360,8 @@ export default function Navbar({ handleSideBar }) {
         }
     }, [workTimeTracker, isStartLogin]);
 
+    console.log("worktraker", workTimeTracker);
+
     return (
         isForgetToPunchOut ? <Modal open={isForgetToPunchOut} size="sm" backdrop="static">
             <Modal.Header >
@@ -361,7 +381,11 @@ export default function Navbar({ handleSideBar }) {
                 </div>
                 <div className="modelInput">
                     <p className='modelLabel'>Checkout Time:</p>
-                    <DatePicker value={workTimeTracker?.login?.endingTime[workTimeTracker?.login?.startingTime.length - 1] ? convertTimeStringToDate(workTimeTracker?.login?.endingTime?.[workTimeTracker?.login?.startingTime?.length - 1]) : null} size='lg' style={{ width: "100%" }} format="HH:mm:ss" onChange={(e) => updateCheckoutTime(e)} />
+                    <DatePicker value={workTimeTracker?.login?.endingTime[workTimeTracker?.login?.startingTime.length - 1] ? convertTimeStringToDate(workTimeTracker?.login?.endingTime?.[workTimeTracker?.login?.startingTime?.length - 1]) : null}
+                        size='lg'
+                        style={{ width: "100%" }}
+                        format="HH:mm:ss"
+                        onChange={(e) => updateCheckoutTime(e)} />
                 </div>
             </Modal.Body>
 
