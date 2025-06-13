@@ -3,14 +3,18 @@ const leaveApp = express.Router();
 const { LeaveApplication,
   LeaveApplicationValidation
 } = require('../models/LeaveAppModel');
+const { toZonedTime } = require('date-fns-tz');
+const { format } = require("date-fns");
 const { Employee } = require('../models/EmpModel');
-const { verifyHR, verifyEmployee, verifyAdmin, verifyAdminHREmployeeManagerNetwork, verifyAdminHR, verifyAdminHREmployee, verifyTeamHigherAuthority, verifyAdminHrNetworkAdmin } = require('../auth/authMiddleware');
+const { verifyHR, verifyEmployee, verifyAdminHREmployeeManagerNetwork, verifyAdminHR, verifyAdminHREmployee, verifyTeamHigherAuthority, verifyAdminHrNetworkAdmin } = require('../auth/authMiddleware');
 const { Team } = require('../models/TeamModel');
 const { upload } = require('./imgUpload');
 const sendMail = require("./mailSender");
-const { getDayDifference, mailContent, formatLeaveData, formatDate } = require('../Reuseable_functions/reusableFunction');
+const { getDayDifference, mailContent, formatLeaveData, formatDate, getValidLeaveDays, sumLeaveDays } = require('../Reuseable_functions/reusableFunction');
 const { Task } = require('../models/TaskModel');
 const { sendPushNotification } = require('../auth/PushNotification');
+const { Holiday } = require('../models/HolidayModel');
+const { TimePattern } = require('../models/TimePatternModel');
 
 // Helper function to generate leave request email content
 function generateLeaveEmail(empData, fromDateValue, toDateValue, reasonForLeave, leaveType, deadLineTask = []) {
@@ -81,7 +85,7 @@ function generateLeaveEmail(empData, fromDateValue, toDateValue, reasonForLeave,
 
 leaveApp.get("/make-know", async (req, res) => {
   try {
-    const leaveApps = await LeaveApplication.find({ status: "pending" })
+    const leaveApps = await LeaveApplication.find({ status: "pending", leaveType: { $nin: ["Unpaid Leave (LWP)"] } })
       .populate({
         path: "employee",
         select: "FirstName LastName Email company",
@@ -105,15 +109,16 @@ leaveApp.get("/make-know", async (req, res) => {
       const teamData = emp?.team;
 
       if (!teamData) continue;
-
+      const formatFromDate = new Date(leave.fromDate).toLocaleString();
+      const formatToDate = new Date(leave.toDate).toLocaleString();
       const Subject = "Leave Application Reminder";
-      const message = `${emp.FirstName} has applied for leave from ${new Date(leave.fromDate).toLocaleDateString()} to ${new Date(leave.toDate).toLocaleDateString()} due to ${leave.reasonForLeave.replace(/<\/?[^>]+(>|$)/g, '')}. Please respond to this request.`;
+      const message = `${emp.FirstName} has applied for leave from ${formatFromDate} to ${formatToDate} due to ${leave.reasonForLeave.replace(/<\/?[^>]+(>|$)/g, '')}. Please respond to this request.`;
 
       const members = [];
 
       for (const role of ["lead", "head", "manager", "hr"]) {
         for (const member of teamData[role]) {
-          if (member) {
+          if (member && leave.approvers[role] === "pending") {
             members.push(member);
             // html content
             const htmlContent = `
@@ -128,11 +133,11 @@ leaveApp.get("/make-know", async (req, res) => {
             <div style="max-width: 600px; margin: auto; padding: 20px; background-color: #fff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);">
               <div style="text-align: center; padding: 20px;">
                 <img src="${leave?.employee?.company?.logo}" alt="Logo" style="max-width: 100px;" />
-                <h1 style="margin: 0;">${leave.employee.FirstName} ${leave.employee.LastName} has applied for leave From ${leave.fromDate} To ${leave.toDate}</h1>
+                <h1 style="margin: 0;">${leave.employee.FirstName} ${leave.employee.LastName} has applied for leave From ${formatFromDate} To ${formatToDate}</h1>
               </div>
               <div style="margin: 20px 0;">
                 <p>Hi all,</p>
-                <p>I have applied for leave from ${leave.fromDate} to ${leave.toDate} due to ${leave.reasonForLeave}. Please respond to this request.</p>
+                <p>I have applied for leave from ${formatFromDate} to ${formatToDate} due to ${leave.reasonForLeave}. Please respond to this request.</p>
                 <p>Thank you!</p>
               </div>
             </div>
@@ -142,7 +147,7 @@ leaveApp.get("/make-know", async (req, res) => {
 
             // Email
             await sendMail({
-              From: emp.Email,
+              From: `<${emp.Email}> (Nexshr)`,
               To: member.Email,
               Subject,
               HtmlBody: htmlContent,
@@ -150,7 +155,7 @@ leaveApp.get("/make-know", async (req, res) => {
 
             // Notification
             const notification = {
-              company: emp.company._id,
+              company: emp?.company?._id,
               title: Subject,
               message,
             };
@@ -167,7 +172,7 @@ leaveApp.get("/make-know", async (req, res) => {
                 token: member.fcmToken,
                 title: notification.title,
                 body: notification.message,
-                company: emp.company
+                // company: emp.company
               });
             }
           }
@@ -191,11 +196,11 @@ leaveApp.get("/make-know", async (req, res) => {
 leaveApp.put("/reject-leave", async (req, res) => {
   try {
     const today = new Date();
-    const startOfDay = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate(), 0, 0, 0));
     const endOfDay = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate(), 23, 59, 59));
 
     const leaves = await LeaveApplication.find({
-      fromDate: { $gte: startOfDay, $lte: endOfDay },
+      fromDate: { $lte: endOfDay },
+      leaveType: { $nin: ["Unpaid Leave (LWP)"] },
       status: "pending"
     }).populate("employee", "FirstName LastName Email").exec();
 
@@ -233,7 +238,7 @@ leaveApp.put("/reject-leave", async (req, res) => {
       `;
 
       await sendMail({
-        From: process.env.FROM_MAIL,
+        From: `<${process.env.FROM_MAIL}> (Nexshr)`,
         To: employee?.Email,
         Subject: `Leave Application Rejected ${leave.leaveType}/ (${formatDate(leave.fromDate)} - ${formatDate(leave.toDate)})`,
         HtmlBody: htmlContent,
@@ -256,8 +261,12 @@ leaveApp.get("/emp/:empId", verifyAdminHREmployeeManagerNetwork, async (req, res
 
     // Fetch employee data with necessary fields
     let emp = await Employee.findById(empId,
-      "annualLeaveYearStart position FirstName LastName Email phone typesOfLeaveCount typesOfLeaveRemainingDays team profile"
-    ).populate([{ path: "position", select: "PositionName" }, { path: "team", populate: { path: "employees", select: "FirstName LastName Email phone" } }]).lean();
+      "annualLeaveYearStart position FirstName LastName Email phone typesOfLeaveCount typesOfLeaveRemainingDays team profile workingTimePattern"
+    ).populate([
+      { path: "workingTimePattern", select: "WeeklyDays" },
+      { path: "position", select: "PositionName" },
+      { path: "team", populate: { path: "employees", select: "FirstName LastName Email phone" } }
+    ]).lean();
 
     if (!emp) return res.status(404).json({ message: "Employee not found!" });
 
@@ -333,12 +342,18 @@ leaveApp.get("/emp/:empId", verifyAdminHREmployeeManagerNetwork, async (req, res
       ...leave,
       prescription: leave.prescription ? `${process.env.REACT_APP_API_URL}/uploads/${leave.prescription}` : null
     });
-    // const colleagues = emp.team.employees.filter((emp) => emp._id !== req.params.empId)
+    let actualLeaveApps = [];
+    const { holidays } = await Holiday.findOne({ year: new Date().getFullYear() });
+    leaveApplications.map((leave) => {
+      actualLeaveApps.push(...getValidLeaveDays(holidays, emp.workingTimePattern.WeeklyDays, leave.fromDate, leave.toDate))
+    })
+
     res.json({
       employee: emp,
       leaveApplications: leaveApplications.sort((a, b) => new Date(a.fromDate) - new Date(b.fromDate)).map(changeActualImgData),
       peopleOnLeave,
-      peopleLeaveOnMonth: peopleLeaveOnMonth.map(changeActualImgData)
+      peopleLeaveOnMonth: peopleLeaveOnMonth.map(changeActualImgData),
+      calendarLeaveApps: actualLeaveApps
     });
 
   } catch (err) {
@@ -413,29 +428,39 @@ leaveApp.get("/team/:id", verifyTeamHigherAuthority, async (req, res) => {
   try {
     const now = new Date(); // added missing `now`
     const { daterangeValue, who } = req.query;
+
     // get dateRange value or current month range value
     const [startOfMonth, endOfMonth] = daterangeValue
       ? [new Date(daterangeValue[0]), new Date(daterangeValue[1])]
       : [new Date(now.getFullYear(), now.getMonth(), 1), new Date(now.getFullYear(), now.getMonth() + 2, 0)];
 
     // Find team where the current user is a lead/head/etc.
-    const team = await Team.findOne({ [who]: req.params.id }).exec();
+    const teams = await Team.find({ [who]: req.params.id }).exec();
 
-    if (!team) {
+    if (!teams.length) {
       return res.status(404).json({ error: "You are not lead in any team" });
     }
 
-    const { employees } = team;
+    let employees = [];
+    teams.map((team) => employees.push(...team.employees))
+
+    function filterUniqeData(emps) {
+      const setValues = new Set();
+      emps.map((emp) => setValues.add(JSON.stringify(emp)))
+      return Array.from(setValues).map((emp) => JSON.parse(emp))
+    }
+    const uniqueEmps = filterUniqeData(employees);
 
     // Fetch team members' basic info
     const colleagues = await Employee.find(
-      { _id: { $in: employees } },
+      { _id: { $in: uniqueEmps } },
       "FirstName LastName Email phone profile"
     ).lean();
 
     // Fetch leave applications within the date range
     let teamLeaves = await LeaveApplication.find({
-      employee: { $in: employees },
+      employee: { $in: uniqueEmps },
+      leaveType: { $nin: ["Unpaid Leave (LWP)"] },
       $or: [
         {
           fromDate: { $lte: endOfMonth },
@@ -464,17 +489,28 @@ leaveApp.get("/team/:id", verifyTeamHigherAuthority, async (req, res) => {
       const from = new Date(l.fromDate).setHours(0, 0, 0, 0);
       const today = new Date().setHours(0, 0, 0, 0);
       return from === today;
-
     });
-    const takenLeave = approvedLeave.filter(l => new Date(l.fromDate).getTime() < nowTime);
+    const takenLeave = approvedLeave.filter(l => new Date(l.fromDate).getTime() < nowTime)
+
+    const [
+      approvedLeaveDays,
+      pendingLeaveDays,
+      upComingLeaveDays,
+      takenLeaveDays,
+    ] = await Promise.all([
+      sumLeaveDays(approvedLeave),
+      sumLeaveDays(pendingLeave),
+      sumLeaveDays(upComingLeave),
+      sumLeaveDays(takenLeave),
+    ]);
 
     res.json({
       leaveData: teamLeaves,
-      pendingLeave,
-      upComingLeave,
-      approvedLeave,
+      pendingLeave: pendingLeaveDays,
+      upComingLeave: upComingLeaveDays,
+      approvedLeave: approvedLeaveDays,
       peoplesOnLeave,
-      takenLeave,
+      takenLeave: takenLeaveDays,
       colleagues
     });
   } catch (error) {
@@ -514,7 +550,8 @@ leaveApp.get("/people-on-leave", verifyAdminHREmployeeManagerNetwork, async (req
 
   try {
     const leaveData = await LeaveApplication.find({
-      fromDate: { $gte: startOfDay, $lte: endOfDay },
+      fromDate: { $lte: endOfDay },
+      toDate: { $gte: startOfDay },
       leaveType: { $nin: ["Permission", "Permission Leave"] },
       status: "approved"
     }, "fromDate toDate status leaveType")
@@ -601,21 +638,20 @@ leaveApp.get("/date-range/management/:whoIs", verifyAdminHrNetworkAdmin, async (
     startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
     endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
   }
-
   try {
-
     let filterObj = {};
     if (req.params.whoIs === "hr") {
       filterObj = {
         Account: 3
       }
     }
-    const employeesLeaveData = await Employee.find(filterObj, "_id FirstName LastName profile")
+    const employeesLeaveData = await Employee.find(filterObj, "_id FirstName LastName profile leaveApplication")
       .populate({
         path: "leaveApplication",
         match: {
-          fromDate: { $gte: startOfMonth, $lte: endOfMonth },
-          toDate: { $gte: startOfMonth, $lte: endOfMonth }
+          fromDate: { $lte: endOfMonth },
+          toDate: { $gte: startOfMonth },
+          leaveType: { $nin: ["Unpaid Leave (LWP)"] }
         },
         populate: [
           { path: "employee", select: "FirstName LastName Email profile" },
@@ -635,23 +671,26 @@ leaveApp.get("/date-range/management/:whoIs", verifyAdminHrNetworkAdmin, async (
       }));
 
     const approvedLeave = leaveData.filter(leave => leave.status === "approved");
-    const leaveInHours = approvedLeave.reduce(
-      (total, leave) => total + getDayDifference(leave) * 9, 0
-    );
-
     const pendingLeave = leaveData.filter(leave => leave.status === "pending");
     const upcomingLeave = leaveData.filter(leave => new Date(leave.fromDate) > now);
     const peopleOnLeave = approvedLeave.filter(leave =>
       new Date(leave.fromDate).toDateString() === now.toDateString()
     );
+    const [upComingLeaveDays, pendingLeaveDays, approvedLeaveDays] = await Promise.all([
+      sumLeaveDays(upcomingLeave),
+      sumLeaveDays(pendingLeave),
+      sumLeaveDays(approvedLeave)
+    ])
+
+    console.log("leaveData", leaveData);
 
     res.send({
       leaveData,
-      approvedLeave,
-      leaveInHours,
+      approvedLeave: approvedLeaveDays,
+      leaveInHours: approvedLeaveDays * 9,
       peopleOnLeave,
-      pendingLeave,
-      upcomingLeave
+      pendingLeave: pendingLeaveDays,
+      upcomingLeave: upComingLeaveDays
     });
   } catch (error) {
     console.error("Error fetching leave data:", error);
@@ -673,12 +712,12 @@ leaveApp.get("/date-range/:empId", verifyAdminHREmployeeManagerNetwork, async (r
   }
 
   try {
-    const employeeLeaveData = await Employee.findById(req.params.empId, "_id FirstName LastName profile")
+    const employeeLeaveData = await Employee.findById(req.params.empId, "_id FirstName LastName profile leaveApplication")
       .populate({
         path: "leaveApplication",
         match: {
-          fromDate: { $gte: startOfMonth, $lte: endOfMonth },
-          toDate: { $gte: startOfMonth, $lte: endOfMonth }
+          fromDate: { $lte: endOfMonth },
+          toDate: { $gte: startOfMonth }
         },
         populate: [
           { path: "employee", select: "FirstName LastName Email profile" },
@@ -689,10 +728,10 @@ leaveApp.get("/date-range/:empId", verifyAdminHREmployeeManagerNetwork, async (r
     if (!employeeLeaveData || !employeeLeaveData.leaveApplication.length) {
       return res.send({
         leaveData: [],
-        approvedLeave: [],
-        peopleOnLeave: [],
-        pendingLeave: [],
-        upcomingLeave: [],
+        approvedLeave: 0,
+        peopleOnLeave: 0,
+        pendingLeave: 0,
+        upcomingLeave: 0,
         leaveInHours: 0
       });
     }
@@ -702,29 +741,26 @@ leaveApp.get("/date-range/:empId", verifyAdminHREmployeeManagerNetwork, async (r
       .map(formatLeaveData);
 
     const approvedLeave = leaveData.filter(leave => leave.status === "approved");
-    const leaveInHours = approvedLeave.reduce(
-      (total, leave) => total + getDayDifference(leave) * 9, 0
-    );
-
     const pendingLeave = leaveData.filter(leave => leave.status === "pending");
     const upcomingLeave = leaveData.filter(leave => new Date(leave.fromDate) > now);
-    const peopleOnLeave = approvedLeave.filter(leave =>
-      new Date(leave.fromDate).toDateString() === now.toDateString()
-    );
+
+    const [pendingLeaveDays, upComingLeaveDays, approvedLeaveDays] = await Promise.all([
+      sumLeaveDays(pendingLeave),
+      sumLeaveDays(upcomingLeave),
+      sumLeaveDays(approvedLeave)
+    ])
 
     res.send({
       leaveData,
-      approvedLeave,
-      peopleOnLeave,
-      pendingLeave,
-      upcomingLeave,
-      leaveInHours
+      approvedLeave: approvedLeaveDays,
+      pendingLeave: pendingLeaveDays,
+      upcomingLeave: upComingLeaveDays,
+      leaveInHours: approvedLeave * 9
     });
   } catch (error) {
     console.error("Error fetching leave data:", error);
     res.status(500).send({
-      message: "Error retrieving leave requests.",
-      details: error.message
+      error: error.message
     });
   }
 });
@@ -760,15 +796,21 @@ leaveApp.get("/", verifyAdminHR, async (req, res) => {
 leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("prescription"), async (req, res) => {
   try {
     const { empId } = req.params;
+
+    // check leave form validation
+    const { error } = LeaveApplicationValidation.validate(req.body);
+    if (error) {
+      return res.status(400).send({ error: error.details[0].message })
+    }
     const {
-      leaveType, fromDate, toDate, periodOfLeave, reasonForLeave,
-      coverBy, applyFor, role
+      leaveType, fromDate, toDate, periodOfLeave,
+      reasonForLeave, coverBy, applyFor, role
     } = req.body;
 
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const fromDateObj = new Date(fromDate);
-    fromDateObj.setHours(0, 0, 0, 0);
+    // fromDateObj.setHours(0, 0, 0, 0);
     const toDateObj = new Date(toDate);
     const prescription = req.file?.filename || null;
     const coverByValue = [undefined, "undefined"].includes(coverBy) ? null : coverBy;
@@ -781,6 +823,21 @@ leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("pre
       const roleName = roleData?.RoleName?.toLowerCase();
       const roleLevels = { admin: 1, hr: 2, manager: 4, "network admin": 5 };
       accountLevel = roleLevels[roleName] || 3;
+    }
+
+    // ✅ Check team leave count
+    const team = await Team.findOne({ employees: empId }, "employees");
+    if (team?.employees?.length) {
+      const overlappingleaveApps = await LeaveApplication.find({
+        employee: { $in: team.employees },
+        status: "approved",
+        fromDate: { $lte: toDate },
+        toDate: { $gte: fromDate },
+      });
+
+      if (overlappingleaveApps.length >= 2) {
+        return res.status(400).json({ error: "Already two members are approved for leave in this time period." });
+      }
     }
 
     // 1. Reject if employee was working on selected dates
@@ -797,9 +854,10 @@ leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("pre
     // 2. Duplicate leave check
     const existingRequest = await LeaveApplication.findOne({
       employee: personId,
-      status: "approved",
-      fromDate: { $gte: fromDate, $lte: toDate },
+      fromDate: { $lte: toDate },
+      toDate: { $gte: fromDate }
     });
+
     if (existingRequest) {
       return res.status(400).json({ error: "Leave request already exists for the given date range." });
     }
@@ -810,26 +868,53 @@ leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("pre
     tomorrow.setDate(today.getDate() + 1);
 
     if (!applyFor || applyFor === "undefined") {
-      if (["Sick Leave", "Medical Leave"].includes(leaveType) &&
+      if (["Sick Leave"].includes(leaveType) &&
         ![today.toDateString(), tomorrow.toDateString()].includes(formattedFrom)) {
         return res.status(400).json({ error: "Sick leave is only applicable for today or tomorrow." });
       }
 
       if (["Annual Leave", "Casual Leave"].includes(leaveType) &&
-        [3, 5].includes(accountLevel) && fromDateObj <= today) {
-        return res.status(400).json({ error: `${leaveType} is not allowed for same day or past dates for your role.` });
+        [3, 5].includes(accountLevel) && [today.toDateString(), tomorrow.toDateString()].includes(formattedFrom)) {
+        return res.status(400).json({ error: `${leaveType} is not allowed for same day and next dates for your role.` });
       }
     }
 
     const higherOfficals = ["lead", "head", "manager", "admin", "hr"];
     // 4. Fetch employee
-    const emp = await Employee.findById(personId, "FirstName LastName Email monthlyPermissions permissionHour typesOfLeaveRemainingDays leaveApplication company team")
+    const emp = await Employee.findById(personId, "FirstName LastName Email monthlyPermissions permissionHour typesOfLeaveRemainingDays leaveApplication company team workingTimePattern")
       .populate([
         { path: "leaveApplication", match: { leaveType: "Permission Leave", fromDate: { $gte: new Date(fromDateObj.getFullYear(), fromDateObj.getMonth(), 1), $lte: new Date(fromDateObj.getFullYear(), fromDateObj.getMonth() + 1, 0) } } },
         { path: "company", select: "logo CompanyName" },
         { path: "team", populate: higherOfficals.map(role => ({ path: role, select: "FirstName LastName Email fcmToken" })) }
       ]);
     if (!emp) return res.status(400).json({ error: `No employee found for ID ${empId}` });
+
+    // check leave request is weekend or holiday
+    function checkDateIsHoliday(dateList, target) {
+      return dateList.some((holiday) => new Date(holiday.date).toLocaleDateString() === new Date(target).toLocaleDateString());
+    }
+    const holiday = await Holiday.findOne({ year: new Date().getFullYear() });
+    if (holiday.holidays.length) {
+      const isFromDateHoliday = checkDateIsHoliday(holiday.holidays, fromDate);
+      const isToDateHoliday = checkDateIsHoliday(holiday.holidays, fromDate);
+      if (isFromDateHoliday) {
+        return res.status(400).send("holiday are not allowed for fromDate")
+      } if (isToDateHoliday) {
+        return res.status(400).send("holiday are not allowed for toDate")
+      }
+    }
+    async function checkDateIsWeekend(date) {
+      const timePattern = await TimePattern.findById(emp.workingTimePattern, "WeeklyDays").lean().exec();
+      const zonedDate = toZonedTime(date, process.env.TIMEZONE);
+      const isWeekend = !timePattern?.WeeklyDays.includes(format(zonedDate, "EEEE"));
+      return isWeekend;
+    }
+    const [fromDateIsWeekend, toDateIsWeekend] = await Promise.all([checkDateIsWeekend(fromDateObj.toISOString()), checkDateIsWeekend(toDateObj)])
+    if (fromDateIsWeekend) {
+      return res.status(400).send({ error: "Weekend are not allowed in fromDate" })
+    } if (toDateIsWeekend) {
+      return res.status(400).send({ error: "Weekend are not allowed in toDate" })
+    }
 
     // 5. Permission Leave checks
     if (leaveType.toLowerCase().includes("permission")) {
@@ -848,7 +933,7 @@ leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("pre
       status: "approved",
       employee: personId,
     });
-    const takenLeaveCount = approvedLeaves.reduce((acc, leave) => acc + getDayDifference(leave), 0);
+    const takenLeaveCount = await sumLeaveDays(approvedLeaves);
     if (!leaveType.toLowerCase().includes("permission") && (emp.typesOfLeaveRemainingDays?.[leaveType] || 0) < takenLeaveCount) {
       return res.status(400).json({ error: `${leaveType} limit has been reached.` });
     }
@@ -859,7 +944,7 @@ leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("pre
     // 8. Setup approvers
     const approvers = {};
     ["lead", "head", "manager", "hr"].forEach(role => {
-      if (emp.team?.[role]) approvers[role] = applyFor && applyFor !== "undefined" ? "approved" : "pending";
+      if (emp.team?.[role] && emp.team?.[role].length) approvers[role] = applyFor && applyFor !== "undefined" ? "approved" : "pending";
     });
 
     const leaveRequest = {
@@ -873,7 +958,7 @@ leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("pre
 
     // Deduct days if approved and not permission
     if (applyFor && !leaveType.toLowerCase().includes("permission")) {
-      const days = Math.max(getDayDifference(leaveRequest), 1);
+      const days = Math.max(await getDayDifference(leaveRequest), 1);
       emp.typesOfLeaveRemainingDays[leaveType] -= days;
       await emp.save();
     }
@@ -896,7 +981,7 @@ leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("pre
             message: `${emp.FirstName} ${emp.LastName} has applied for leave from ${formatDate(fromDate)} to ${formatDate(toDate)}.`,
           };
           sendMail({
-            From: emp.Email,
+            From: `<${emp.Email}> (Nexshr)`,
             To: member.Email,
             Subject: "Leave Application Notification",
             HtmlBody: generateLeaveEmail(emp, fromDate, toDate, reasonForLeave, leaveType, deadlineTasks),
@@ -905,8 +990,9 @@ leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("pre
           fullEmp.notifications.push(notification);
           await fullEmp.save();
           await sendPushNotification({
-            token: member.fcmToken, title: notification.title, body: notification.message,
-            company: emp.company
+            token: member.fcmToken,
+            title: notification.title,
+            body: notification.message
           });
           notify.push(member.Email);
         });
@@ -922,116 +1008,117 @@ leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("pre
 
 leaveApp.put('/:id', verifyAdminHREmployeeManagerNetwork, async (req, res) => {
   try {
-    const { approvers, employee, leaveType, fromDate, toDate, ...restBody } = req.body;
-
+    const { approvers, employee, leaveType, fromDate, toDate, status, ...restBody } = req.body;
+    let updatedStatus = status;
     const fromDateValue = new Date(fromDate);
     const toDateValue = new Date(toDate);
-    const today = new Date();
     const leaveHour = fromDateValue.getHours() || 0;
-    const startOfDay = new Date(today.setHours(leaveHour - 2, 0, 0, 0));
+    const startOfDay = new Date();
+    startOfDay.setHours(leaveHour - 2, 0, 0, 0);
 
-    const allApproved = Object.values(approvers).every(status => status === "approved");
-    const anyRejected = Object.values(approvers).some(status => status === "rejected");
-    const allPending = Object.values(approvers).every(status => status === "pending");
-
-    const emp = await Employee.findById(employee, "FirstName LastName Email typesOfLeaveRemainingDays team company")
+    const emp = await Employee.findById(employee, "FirstName LastName Email typesOfLeaveRemainingDays team company workingTimePattern")
       .populate([
         {
           path: "team",
-          populate: [
-            { path: "lead", select: "FirstName LastName Email fcmToken notifications" },
-            { path: "head", select: "FirstName LastName Email fcmToken notifications" },
-            { path: "manager", select: "FirstName LastName Email fcmToken notifications" },
-            { path: "admin", select: "FirstName LastName Email fcmToken notifications" },
-            { path: "hr", select: "FirstName LastName Email fcmToken notifications" }
-          ]
+          populate: ["lead", "head", "manager", "admin", "hr"].map(role => ({
+            path: role,
+            select: "FirstName LastName Email fcmToken notifications"
+          }))
         },
+        { path: "workingTimePattern", select: "WeeklyDays" },
         { path: "company", select: "CompanyName logo" }
-      ])
-      .lean();
+      ]).lean();
 
     if (!emp) return res.status(404).send({ error: 'Employee not found.' });
     if (!emp.team) return res.status(404).send({ error: `${emp.FirstName} is not assigned to a team.` });
 
+    const holiday = await Holiday.findOne({ year: new Date().getFullYear() });
+    const checkDateIsHoliday = (date) => holiday.holidays.some(h => new Date(h.date).toDateString() === new Date(date).toDateString());
+    const checkDateIsWeekend = (date) => !emp.workingTimePattern.WeeklyDays.includes(new Date(date).toLocaleDateString(undefined, { weekday: 'long' }));
+
+    if (checkDateIsHoliday(fromDate)) return res.status(400).send("Holiday is not allowed for fromDate");
+    if (checkDateIsHoliday(toDate)) return res.status(400).send("Holiday is not allowed for toDate");
+    if (await checkDateIsWeekend(fromDate)) return res.status(400).send({ error: "Weekend is not allowed in fromDate" });
+    if (await checkDateIsWeekend(toDate)) return res.status(400).send({ error: "Weekend is not allowed in toDate" });
+
+    let updatedApprovers = approvers;
+    if (["approved", "rejected"].includes(status)) {
+      updatedApprovers = Object.fromEntries(Object.keys(approvers).map(key => [key, status]));
+      if (status === "approved") {
+        const team = await Team.findOne({ employees: employee }, "employees");
+        const overlappingLeaves = await LeaveApplication.find({
+          employee: { $in: team?.employees || [] },
+          status: "approved",
+          fromDate: { $lte: toDate },
+          toDate: { $gte: fromDate },
+        });
+        if (overlappingLeaves.length >= 2) return res.status(400).json({ error: "Already two members are approved for leave in this time period." });
+      }
+    }
+
+    const approverStatuses = Object.values(updatedApprovers);
+    const allApproved = approverStatuses.every(s => s === "approved");
+    const anyRejected = approverStatuses.includes("rejected");
+    const allPending = approverStatuses.every(s => s === "pending");
+
     const actionBy = req.query.actionBy;
     const emailType = allApproved ? "approved" : anyRejected ? "rejected" : "pending";
-    let mailList = [];
+    updatedStatus = allApproved ? "approved" : anyRejected ? "rejected" : "pending";
+    const mailList = [];
 
-    // Deduct leave if approved and check unpaid leave
-    if (!allPending && allApproved && !leaveType.toLowerCase().includes("unpaid")) {
-      const leaveDaysTaken = Math.max(getDayDifference({ fromDate, toDate }), 1);
-      const leaveBalance = emp.typesOfLeaveRemainingDays?.[leaveType] ?? 0;
-
-      if (leaveBalance < leaveDaysTaken) {
-        return res.status(400).send({ error: 'Insufficient leave balance for the requested leave type.' });
-      }
-
+    if (allApproved && !leaveType.toLowerCase().includes("unpaid")) {
+      const leaveDaysTaken = Math.max(await getDayDifference(req.body), 1);
+      const balance = Number(emp.typesOfLeaveRemainingDays?.[leaveType]) || 0;
+      if (balance < leaveDaysTaken) return res.status(400).send({ error: 'Insufficient leave balance.' });
       await Employee.findByIdAndUpdate(emp._id, {
-        $inc: { [`typesOfLeaveRemainingDays.${leaveType}`]: -leaveDaysTaken }
+        $inc: { [`typesOfLeaveRemainingDays.${leaveType}`]: -Number(leaveDaysTaken) }
       });
     }
 
-    // Notify members if status changed
-    if (!allPending && !leaveType.toLowerCase().includes("unpaid")) {
+    if (!allPending) {
       const Subject = "Leave Application Response Notification";
-      const message = anyRejected
-        ? `${emp.FirstName}'s leave application has been rejected by ${actionBy}`
-        : `${emp.FirstName}'s leave application has been approved by ${actionBy}`;
-
-      const getMembers = (data, type) =>
-        Array.isArray(data)
-          ? data.map(item => ({
-            type,
-            Email: item?.Email,
-            name: `${item?.FirstName ?? ""} ${item?.LastName ?? ""}`.trim(),
-            fcmToken: item?.fcmToken,
-            _id: item?._id
-          }))
-          : data?.Email
-            ? [{
-              type,
-              Email: data.Email,
-              name: `${data.FirstName ?? ""} ${data.LastName ?? ""}`.trim(),
-              fcmToken: data?.fcmToken,
-              _id: data?._id
-            }]
-            : [];
+      const message = `${emp.FirstName}'s leave application has been ${emailType} by ${actionBy}`;
 
       const members = [
-        emp.Email && { type: "emp", Email: emp.Email, name: `${emp.FirstName} ${emp.LastName}` },
-        ...getMembers(emp.team?.lead, "lead"),
-        ...getMembers(emp.team?.head, "head"),
-        ...getMembers(emp.team?.manager, "manager"),
-        ...getMembers(emp.team?.hr, "hr"),
-        ...getMembers(emp.team?.admin, "admin")
-      ].filter(Boolean);
+        { type: "emp", Email: emp.Email, name: `${emp.FirstName} ${emp.LastName}`, _id: emp._id, fcmToken: null },
+        ...["lead", "head", "manager", "admin", "hr"].flatMap(role => {
+          const roleMembers = Array.isArray(emp.team[role]) ? emp.team[role] : [emp.team[role]].filter(Boolean);
+          return roleMembers.map(m => ({
+            type: role,
+            Email: m.Email,
+            name: `${m.FirstName} ${m.LastName}`.trim(),
+            fcmToken: m.fcmToken,
+            _id: m._id
+          }));
+        })
+      ];
 
-      const uniqueEmails = new Set();
-      const notifiedMembers = [];
-
+      const notified = new Set();
       for (const member of members) {
-        if (!uniqueEmails.has(member.Email)) {
-          uniqueEmails.add(member.Email);
+        if (!notified.has(member.Email)) {
+          notified.add(member.Email);
           mailList.push(member.Email);
-          notifiedMembers.push(member);
 
-          // Send Email
           await sendMail({
-            From: process.env.FROM_MAIL,
+            From: `< ${process.env.FROM_MAIL} > (Nexshr)`,
             To: member.Email,
             Subject,
-            HtmlBody: mailContent(emailType, fromDateValue, toDateValue, emp, leaveType, actionBy, member),
+            HtmlBody: mailContent(emailType, fromDateValue, toDateValue, emp, leaveType, actionBy, member)
           });
 
-          // Send Push + Add to Notifications
-          const fullEmp = await Employee.findById(member._id);
-          if (fullEmp) {
-            fullEmp.notifications.push({ company: emp.company._id, title: Subject, message });
-            await fullEmp.save();
+          await Employee.findByIdAndUpdate(member._id, {
+            $push: {
+              notifications: {
+                company: emp.company._id,
+                title: Subject,
+                message
+              }
+            }
+          });
 
+          if (member.fcmToken) {
             await sendPushNotification({
               token: member.fcmToken,
-              company: emp.company,
               title: Subject,
               body: message
             });
@@ -1039,40 +1126,24 @@ leaveApp.put('/:id', verifyAdminHREmployeeManagerNetwork, async (req, res) => {
         }
       }
     }
-    //  else if(leaveType.toLowerCase().includes("unpaid")){
-    //   // send email and notification
-    //   sendMail({
-    //     From: process.env.FROM_MAIL,
-    //     To: emp.Email,
-    //     Subject: `Your Leave app`
-    //   })
-    // }
 
-    // Update Leave Application
-    const updatedLeaveApp = {
-      ...req.body,
-      approvers,
-      status: allApproved ? "approved" : anyRejected ? "rejected" : restBody.status
-    };
-
+    const updatedLeaveApp = { ...req.body, approvers: updatedApprovers, status: updatedStatus };
     const updatedRequest = await LeaveApplication.findOneAndUpdate(
       { _id: req.params.id, fromDate: { $gt: startOfDay } },
       updatedLeaveApp,
       { new: true }
     );
 
-    return res.send({
+    res.send({
       message: 'You have responded to the leave application.',
       data: updatedRequest,
       notifiedMembers: mailList
     });
-
   } catch (err) {
     console.error(err);
-    return res.status(500).send({ error: 'An error occurred while processing the request.' });
+    res.status(500).send({ error: err.message });
   }
 });
-
 
 leaveApp.delete("/:id/:leaveId", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
   try {

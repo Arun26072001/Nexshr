@@ -7,9 +7,11 @@ import { toast } from "react-toastify";
 import WeekDay from "./WeekDays";
 import { EssentialValues } from "../../App";
 import Loading from "../Loader";
+import { useNavigate } from "react-router-dom";
 
 
 const AddTimePattern = ({ handleAddWorkingTime, reload }) => {
+    const navigate = useNavigate();
     const url = process.env.REACT_APP_API_URL;
     const { data } = useContext(EssentialValues);
     const days = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
@@ -31,8 +33,8 @@ const AddTimePattern = ({ handleAddWorkingTime, reload }) => {
         if (timePattern.FinishingTime !== "" && timePattern.StartingTime !== "") {
             if (timePattern.StartingTime && timePattern.FinishingTime) {
 
-                const [startHour, startMinute] = timePattern.StartingTime.split(":").map(num => parseInt(num, 10));
-                const [endHour, endMinute] = timePattern.FinishingTime.split(":").map(num => parseInt(num, 10));
+                const [startHour, startMinute] = timePattern.StartingTime.split(/[:.]+/).map(num => parseInt(num, 10));
+                const [endHour, endMinute] = timePattern.FinishingTime.split(/[:.]+/).map(num => parseInt(num, 10));
 
                 const startDate = new Date();
                 startDate.setHours(startHour);
@@ -52,8 +54,8 @@ const AddTimePattern = ({ handleAddWorkingTime, reload }) => {
         }
     }, [timePattern.FinishingTime, timePattern.StartingTime])
 
-    let startTimeVal = timePattern.StartingTime.split(":").reduce((acc, val) => acc + val);
-    let endTimeVal = timePattern.FinishingTime.split(":").reduce((acc, val) => acc + val);
+    let startTimeVal = timePattern.StartingTime.split(/[:.]+/).reduce((acc, val) => acc + val);
+    let endTimeVal = timePattern.FinishingTime.split(/[:.]+/).reduce((acc, val) => acc + val);
 
     function makeActive(e) {
         setTimePattern({
@@ -93,8 +95,11 @@ const AddTimePattern = ({ handleAddWorkingTime, reload }) => {
             setTimePattern({});
             reload();
             handleAddWorkingTime();
-        } catch (error) {
-            toast.error(error.response.data.error);
+       } catch (error) {
+         if (error?.message === "Network Error") {
+                navigate("/network-issue")
+            }
+            toast.error(error?.response?.data?.error);
             console.log(error);
         } finally {
             setIsWorkingApi(false);

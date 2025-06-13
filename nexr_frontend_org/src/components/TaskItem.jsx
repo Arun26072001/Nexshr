@@ -15,15 +15,15 @@ export default function TaskItem({ task, status, getValue, handleEditTask, handl
     const [remainingTime, setRemainingTime] = useState({ hour: 0, min: 0, sec: 0 });
 
     useEffect(() => {
-        const spendTime = task?.spend?.timeHolder?.split(":")?.length > 2 ? getTimeFromHour(task.spend.timeHolder) : Number(task.spend.timeHolder)
+        const spendTime = task?.spend?.timeHolder?.split(/[:.]+/)?.length > 2 ? getTimeFromHour(task.spend.timeHolder) : Number(task.spend.timeHolder)
 
         const calculatedValue = Number(task.estTime) - spendTime
         const hourMinSec = formatTimeFromHour(calculatedValue)
 
         setRemainingTime({
-            hour: hourMinSec.split(":")[0],
-            min: hourMinSec.split(":")[1],
-            sec: hourMinSec.split(":")[2]
+            hour: hourMinSec.split(/[:.]+/)[0],
+            min: hourMinSec.split(/[:.]+/)[1],
+            sec: hourMinSec.split(/[:.]+/)[2]
         });
     }, [task]);
 

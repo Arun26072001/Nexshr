@@ -68,8 +68,8 @@ export default function HRMDashboard() {
     const { isTeamLead, isTeamHead, isTeamManager } = jwtDecode(token);
     const [attendanceData, setAttendanceData] = useState([]);
     const [attendanceForSummary, setAttendanceForSummary] = useState({});
-    const [leaveRequests, setLeaveRequests] = useState([]);
-    const [fullLeaveRequests, setFullLeaveRequests] = useState([]);
+    const [leaveRequests, setLeaveRequests] = useState({});
+    const [fullLeaveRequests, setFullLeaveRequests] = useState({});
     const [empName, setEmpName] = useState("");
     const [isLoading, setIsLoading] = useState(false);
     const [waitForAttendance, setWaitForAttendance] = useState(false);
@@ -114,8 +114,6 @@ export default function HRMDashboard() {
         event: { ...startAndEndTime }
     });
 
-    console.log("org", workTimeTracker);
-
     function updateClockins() {
         setCheckClockins(!checkClockins);
     }
@@ -133,6 +131,9 @@ export default function HRMDashboard() {
             })
             setCompanies(res.data.map((comp) => ({ label: comp.CompanyName, value: comp._id })));
         } catch (error) {
+            if (error?.message === "Network Error") {
+                navigate("/network-issue")
+            }
             console.log("error in fetch companies", error);
         }
     }
@@ -160,6 +161,8 @@ export default function HRMDashboard() {
 
     //change reason for early(login) input field
     function changeReasonForEarly(value, name) {
+        console.log(name, value);
+
         setWorkTimeTracker((pre) => {
             if (name === "reasonForEarlyLogout") {
                 return {
@@ -209,6 +212,9 @@ export default function HRMDashboard() {
                 localStorage.setItem("isStartLogin", true);
             }
         } catch (error) {
+            if (error?.message === "Network Error") {
+                navigate("/network-issue")
+            }
             setIsStartLogin(false);
             localStorage.setItem("isStartLogin", false);
             toast.error(error);
@@ -265,6 +271,9 @@ export default function HRMDashboard() {
                 localStorage.setItem("timeOption", timeOption);
                 toast.success(`${timeOption[0].toUpperCase() + timeOption.slice(1)} timer has been started!`);
             } catch (error) {
+                if (error?.message === "Network Error") {
+                    navigate("/network-issue")
+                }
                 console.error('Error updating data:', error);
                 toast.error('Please PunchIn');
             } finally {
@@ -300,6 +309,9 @@ export default function HRMDashboard() {
             setIsStartActivity(false);
             updateClockins();
         } catch (error) {
+            if (error?.message === "Network Error") {
+                navigate("/network-issue")
+            }
             toast.error(error.message);
         } finally {
             setISWorkingActivityTimerApi(false)
@@ -311,8 +323,9 @@ export default function HRMDashboard() {
             navigate(["manager", "admin", "hr"].includes(whoIs) ? `/${whoIs}/employee` : `/${whoIs}`);
             setIsEditEmp(false);
         } else {
-            navigate(`employee/edit/${id}`);
-            setIsEditEmp(true);
+            // console.log("calling...");
+            // setIsEditEmp(true);
+            navigate(`/${whoIs}/employee/edit/${id}`);
         }
     }
 
@@ -353,9 +366,11 @@ export default function HRMDashboard() {
                     Authorization: token || ""
                 }
             });
-            console.log("empAttendance", empOfAttendances.data.length);
             setAttendanceData(empOfAttendances.data);
         } catch (error) {
+            if (error?.message === "Network Error") {
+                navigate("/network-issue")
+            }
             console.error(error);
         }
     }
@@ -373,6 +388,9 @@ export default function HRMDashboard() {
             });
             setAttendanceData(res.data);
         } catch (error) {
+            if (error?.message === "Network Error") {
+                navigate("/network-issue")
+            }
             console.error(error);
         }
     }
@@ -387,6 +405,9 @@ export default function HRMDashboard() {
             // const withoutMyData = emps.filter((emp)=> emp._id !== _id);
             setEmployees(emps.map((emp) => ({ label: emp?.FirstName + " " + emp?.LastName, value: emp._id })))
         } catch (error) {
+            if (error?.message === "Network Error") {
+                navigate("/network-issue")
+            }
             console.log(error);
         }
     }
@@ -409,7 +430,6 @@ export default function HRMDashboard() {
                     authorization: token || ""
                 }
             })
-
             setLeaveRequests(leaveData.data);
             setFullLeaveRequests(leaveData.data);
         } catch (err) {
@@ -462,7 +482,6 @@ export default function HRMDashboard() {
     // get workTimeTracker from DB in Initially
     useEffect(() => {
         const getClockInsData = async () => {
-            console.log("calling");
             try {
                 if (_id) {
                     const { timeData } = await getDataAPI(_id);
@@ -472,6 +491,7 @@ export default function HRMDashboard() {
                             setIsStartLogin(true);
                             setIsForgetToPunchOut(true)
                         }
+
                         setWorkTimeTracker(timeData)
                     } else {
                         setWorkTimeTracker({ ...workTimeTracker });
@@ -479,6 +499,9 @@ export default function HRMDashboard() {
                     }
                 }
             } catch (error) {
+                if (error?.message === "Network Error") {
+                    navigate("/network-issue")
+                }
                 console.warn(error);
             }
         }
@@ -487,7 +510,7 @@ export default function HRMDashboard() {
     }, [syncTimer]);
 
     return (
-        <TimerStates.Provider value={{ workTimeTracker, reloadRolePage, setIsWorkingLoginTimerApi, setIsEditEmp, employees, isForgetToPunchOut, setIsForgetToPunchOut, updateWorkTracker, isWorkingLoginTimerApi, isworkingActivityTimerApi, trackTimer, startLoginTimer, stopLoginTimer, changeReasonForLate, changeReasonForEarly, startActivityTimer, stopActivityTimer, setWorkTimeTracker, updateClockins, checkClockins, timeOption, isStartLogin, isStartActivity, handleAddTask, changeEmpEditForm, isEditEmp, isAddTask, setIsAddTask, handleAddTask, selectedProject, daterangeValue, setDaterangeValue }}>
+        <TimerStates.Provider value={{ workTimeTracker, reloadRolePage, setIsWorkingLoginTimerApi, setIsEditEmp, companies, employees, isForgetToPunchOut, setIsForgetToPunchOut, updateWorkTracker, isWorkingLoginTimerApi, isworkingActivityTimerApi, trackTimer, startLoginTimer, stopLoginTimer, changeReasonForLate, changeReasonForEarly, startActivityTimer, stopActivityTimer, setWorkTimeTracker, updateClockins, checkClockins, timeOption, isStartLogin, isStartActivity, handleAddTask, changeEmpEditForm, isEditEmp, isAddTask, setIsAddTask, handleAddTask, selectedProject, daterangeValue, setDaterangeValue }}>
             <Routes >
                 <Route path="/" element={<Parent />} >
                     <Route index element={<Dashboard data={data} />} />
@@ -500,13 +523,20 @@ export default function HRMDashboard() {
                             <Route path="comments/:id" element={<Comments />} />
                         </Routes>
                     } />
-
                     <Route path="reports" element={<Reports />} />
                     <Route path="/holiday" element={<Holiday />} />
+                    <Route path="/raise-bugs" element={<div className='text-center' style={{ justifyContent: "center", flexDirection: "row" }}>
+                        <h2>If you encounter any bugs, please report them using the sheet below.</h2>
+                        <button className='button' >
+                            <a href={"https://docs.google.com/spreadsheets/d/1BXfw57J6w9HL2LzsTfu5d9WrxT6L55jdlqoG09XqON0/edit?gid=263793447#gid=263793447"} target="_blank" rel="noreferrer noopener" >
+                                Raise your bug
+                            </a>
+                        </button>
+                    </div>} />
                     <Route path="/announcement" element={<Announce />} />
                     <Route path="/email-templates" element={<EmailTemplates />} />
                     <Route path="employee" element={<Employee />} />
-                    <Route path="employee/add" element={<Employees />} />
+                    <Route path="employee/add" element={<AddEmployee />} />
                     <Route path="employee/edit/:id" element={<AddEmployee />} />
                     <Route path="leave/*" element={
                         <LeaveStates.Provider value={{ isLoading, leaveRequests, filterLeaveRequests, empName, setEmpName, changeRequests }} >
@@ -516,6 +546,7 @@ export default function HRMDashboard() {
                                 <Route path="unpaid-request" element={<UnpaidRequest />} />
                                 <Route path='calendar' element={<LeaveCalender />} />
                                 <Route path='leave-summary' element={<LeaveSummary />} />
+                                <Route path="leave-details" element={<LeaveDetails />} />
                             </Routes>
                         </LeaveStates.Provider>
                     } />
@@ -550,12 +581,11 @@ export default function HRMDashboard() {
                                     <Route path="view/:id" element={<PageAndActionAuth />} />
                                 </Routes>
                             } />
-                            <Route path="/company" element={<Company companies={companies} />} />
-                            <Route path="/department" element={<Department companies={companies} />} />
-                            <Route path="/position" element={<Position companies={companies} />} />
+                            <Route path="/company" element={<Company />} />
+                            <Route path="/department" element={<Department />} />
+                            <Route path="/position" element={<Position />} />
                             <Route path="/country" element={<Country />} />
                             <Route path="/team" element={<ManageTeam />} />
-                            <Route path="/leave-details" element={<LeaveDetails />} />
                         </Routes>
                     } />
                     <Route path="settings/*" element={

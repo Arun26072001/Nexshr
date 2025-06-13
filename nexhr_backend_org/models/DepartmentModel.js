@@ -7,6 +7,16 @@ var departmentSchema = new mongoose.Schema({
 });
 
 var Department = mongoose.model("Department", departmentSchema);
+
+const DepartmentValidation = Joi.object().keys({
+  DepartmentName: Joi.string()
+    .max(200)
+    .required(),
+  company: Joi.required()
+});
+
+module.exports = { Department, DepartmentValidation, departmentSchema };
+
 // const staticDepartments = [
 //   {
 //     "company": {},
@@ -27,12 +37,3 @@ var Department = mongoose.model("Department", departmentSchema);
 //     console.log("Departments already exist. Skipping static data insertion.");
 //   }
 // });
-
-const DepartmentValidation = Joi.object().keys({
-  DepartmentName: Joi.string()
-    .max(200)
-    .required(),
-  company: Joi.required()
-});
-
-module.exports = { Department, DepartmentValidation, departmentSchema };

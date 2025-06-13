@@ -13,6 +13,7 @@ import FileUploadRoundedIcon from '@mui/icons-material/FileUploadRounded';
 import FileDownloadRoundedIcon from '@mui/icons-material/FileDownloadRounded';
 import { useNavigate } from 'react-router-dom';
 import { Skeleton } from '@mui/material';
+import { useState } from 'react';
 
 export default function LeaveRequest() {
     const url = process.env.REACT_APP_API_URL;
@@ -20,11 +21,13 @@ export default function LeaveRequest() {
     const { daterangeValue, setDaterangeValue } = useContext(TimerStates)
     const { data, whoIs } = useContext(EssentialValues);
     const { token } = data;
+    const { responsing, setResponsing } = useState("");
     const { isTeamHead, isTeamLead, isTeamManager } = jwtDecode(token);
     const navigate = useNavigate()
 
     async function replyToLeave(leave, response) {
         try {
+            setResponsing(leave._id)
             let actionBy;
             let updatedLeaveRequest;
             if (isTeamHead) {
@@ -87,7 +90,12 @@ export default function LeaveRequest() {
             changeRequests();
 
         } catch (error) {
-            toast.error(error.response.data.error)
+            if (error?.message === "Network Error") {
+                navigate("/network-issue")
+            }
+            toast.error(error?.response?.data?.error)
+        } finally {
+            setResponsing("")
         }
     }
 
@@ -111,11 +119,13 @@ export default function LeaveRequest() {
             toast.success(response.data.message);
             changeRequests();
         } catch (error) {
+            if (error?.message === "Network Error") {
+                navigate("/network-issue")
+            }
             console.error('File upload failed:', error);
-            toast.error(error.response.data.error);
+            toast.error(error?.response?.data?.error);
         }
     };
-
     const renderMenu = ({ onClose, right, top, className }, ref) => {
         const handleSelect = (eventKey) => {
             if (eventKey === 1) {
@@ -149,7 +159,7 @@ export default function LeaveRequest() {
         );
     };
     return (
-
+        // <p>dsadsad</p>
         <>
             <input
                 type="file"
@@ -165,7 +175,7 @@ export default function LeaveRequest() {
 
                     <button className='button' onClick={() => navigate(`/${whoIs}/leave-request`)}>Apply Leave</button>
                     <button className='button' style={{ cursor: 'pointer' }}>
-                        <Whisper placement="bottomEnd" trigger="click" speaker={renderMenu}>
+                        <Whisper placement="bottomEnd" trigger="click" speaker={renderMenu} >
                             Action <ArrowDropDownRoundedIcon />
                         </Whisper>
                     </button>
@@ -181,7 +191,7 @@ export default function LeaveRequest() {
                             showOneCalendar
                             placement="bottomEnd"
                             value={daterangeValue}
-                            placeholder="Select Date"
+                            placeholder="Filter Range of Date"
                             onChange={setDaterangeValue}
                         />
                     </div>
@@ -192,7 +202,7 @@ export default function LeaveRequest() {
                         <div className="leaveData leaveData col-12 col-lg-3">
                             <div className="d-flex flex-column">
                                 <div className="leaveDays">
-                                    {leaveRequests?.takenLeave?.length || 0} Days
+                                    {leaveRequests?.takenLeave || 0} Days
                                 </div>
                                 <div className="leaveDaysDesc">
                                     Leave taken
@@ -204,7 +214,7 @@ export default function LeaveRequest() {
                         <div className="leaveData leaveData col-12 col-lg-3">
                             <div className="d-flex flex-column">
                                 <div className="leaveDays">
-                                    {leaveRequests?.upComingLeave?.length || 0} Days
+                                    {leaveRequests?.upComingLeave || 0} Days
                                 </div>
                                 <div className="leaveDaysDesc">
                                     Upcoming leave
@@ -216,7 +226,7 @@ export default function LeaveRequest() {
                         <div style={{ width: "30%", margin: "10px" }} className='leaveData col-12 col-lg-3' >
                             <div className="d-flex flex-column">
                                 <div className="leaveDays">
-                                    {leaveRequests?.pendingLeave?.length || 0} Days
+                                    {leaveRequests?.pendingLeave || 0} Days
                                 </div>
                                 <div className="leaveDaysDesc">
                                     Pending request
@@ -235,7 +245,7 @@ export default function LeaveRequest() {
                         height={"50vh"}
                     /> :
                         leaveRequests?.leaveData?.length > 0 ?
-                            <LeaveTable Account={data?.Account} data={leaveRequests.leaveData} replyToLeave={replyToLeave} isTeamHead={isTeamHead} isTeamLead={isTeamLead} isTeamManager={isTeamManager} /> :
+                            <LeaveTable Account={data?.Account} data={leaveRequests.leaveData} isLoading={responsing} replyToLeave={replyToLeave} isTeamHead={isTeamHead} isTeamLead={isTeamLead} isTeamManager={isTeamManager} /> :
                             <NoDataFound message={"No Leave request in this month"} />
                 }
             </div>

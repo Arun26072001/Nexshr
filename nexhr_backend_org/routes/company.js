@@ -33,27 +33,29 @@ router.get("/:id", verifyAdminHR, async (req, res) => {
   }
 })
 
-router.post("/", verifyAdminHR, (req, res) => {
-  Joi.validate(req.body, CompanyValidation, async (err, result) => {
-    if (err) {
-      return res.status(400).send({ error: err.details[0].message });
-    } else {
-      if (await Company.exists({ CompanyName: req.body.CompanyName })) {
-        return res.status(400).send({ error: `${req.body.CompanyName} is already exists` })
-      }
+router.post("/", verifyAdminHR, async (req, res) => {
+  try {
+    // Validate request body
+    await CompanyValidation.validateAsync(req.body);
 
-      Company.create(req.body, { new: true }, function (err, company) {
-        if (err) {
-          console.log(err);
-
-          return res.status(500).send({ error: err.message })
-        } else {
-          res.send({ message: "New Company is add sucessfully", company });
-        }
-      });
-      console.log(req.body);
+    // Check if company already exists
+    const companyExists = await Company.exists({ CompanyName: req.body.CompanyName });
+    if (companyExists) {
+      return res.status(400).send({ error: `${req.body.CompanyName} already exists` });
     }
-  });
+
+    // Create company
+    const company = await Company.create(req.body);
+    return res.status(201).send({ message: "New company added successfully", company });
+
+  } catch (error) {
+    if (error.isJoi) {
+      return res.status(400).send({ error: error.details[0].message });
+    }
+
+    console.error(error);
+    return res.status(500).send({ error: error.message || "Internal server error" });
+  }
 });
 
 router.put("/:id", verifyAdminHR, async (req, res) => {
@@ -81,8 +83,7 @@ router.put("/:id", verifyAdminHR, async (req, res) => {
       return res.send({ message: `${updateCompany.CompanyName} company is updated successfully` })
     }
   } catch (error) {
-    console.log(error);
-
+    console.log("error in update company", error);
     return res.status(500).send({ erorr: error.message })
   }
 });
@@ -97,7 +98,7 @@ router.delete("/:id", verifyAdminHR, async (req, res) => {
       return res.status(400).send({ error: "Some Postions data are using this Comapany, Please remove them" })
     }
     const delte = await Company.findByIdAndDelete(req.params.id);
-    return res.send({ message: "Company has been deleted" })
+    return res.send({ message:`${delte?.CompanyName} Company has been deleted` })
   } catch (error) {
     return res.status(500).send({ error: error.message })
   }

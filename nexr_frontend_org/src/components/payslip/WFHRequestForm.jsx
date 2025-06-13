@@ -13,9 +13,7 @@ export default function WFHRequestForm({ type }) {
     const navigate = useNavigate();
     const [isLoading, setIsLoading] = useState(false);
     const url = process.env.REACT_APP_API_URL;
-    const { whoIs, data,
-        // socket
-    } = useContext(EssentialValues);
+    const { whoIs, data } = useContext(EssentialValues);
     const now = new Date();
     const [wfhRequestObj, setwfhRequestObj] = useState({
         fromDate: null,
@@ -25,7 +23,7 @@ export default function WFHRequestForm({ type }) {
     });
     const [excludedDates, setExcludeDates] = useState([]);
     const [isWorkingApi, setIsWorkingApi] = useState(false);
-    const [errors, setErrors] = useState({});
+    const [error, setError] = useState("");
 
     function handleInputChange(name, value) {
         setwfhRequestObj(prev => ({
@@ -33,41 +31,13 @@ export default function WFHRequestForm({ type }) {
             [name]: value === "<p><br></p>" ? "" : value
         }));
     }
-    function validateForm() {
-        const newErrors = {};
-        const strippedReason = wfhRequestObj.reason.replace(/<[^>]*>?/gm, '').trim();
-        if (!strippedReason) newErrors.reason = "Reason is required.";
-        if (!wfhRequestObj.fromDate) {
-            newErrors.fromDate = "Start date is required.";
-        } else if (wfhRequestObj.fromDate) {
-            const day = new Date(wfhRequestObj.fromDate).getDay();
-            if (day === 0 || day === 6) {
-                newErrors.fromDate = "Weekend are not allowed"
-            }
-        }
-        if (!wfhRequestObj.toDate) {
-            newErrors.toDate = "Start date is required.";
-        } else if (wfhRequestObj.toDate) {
-            const day = new Date(wfhRequestObj.toDate).getDay();
-            if (day === 0 || day === 6) {
-                newErrors.toDate = "Weekend are not allowed"
-            }
-        }
-        if (!wfhRequestObj.reason.trimStart()) newErrors.reason = "Reason is required.";
-        setErrors(newErrors);
-        return Object.keys(newErrors).length === 0;
-    }
 
     async function handleSubmit(e) {
         e.preventDefault();
-
+        setError("");
         const updatedRequest = {
             ...wfhRequestObj,
             numOfDays: getDayDifference(wfhRequestObj)
-        }
-        if (!validateForm()) {
-            toast.error("Please fix the errors.");
-            return;
         }
 
         try {
@@ -90,7 +60,11 @@ export default function WFHRequestForm({ type }) {
                 navigate(-1);
             }
             setwfhRequestObj({});
-        } catch (error) {
+       } catch (error) {
+         if (error?.message === "Network Error") {
+                navigate("/network-issue")
+            }
+            setError(error?.response?.data?.error)
             toast.error(error.response?.data?.error);
         } finally {
             setIsWorkingApi(false);
@@ -106,12 +80,14 @@ export default function WFHRequestForm({ type }) {
                 }
             })
             setwfhRequestObj(res.data);
-        } catch (error) {
+       } catch (error) {
+         if (error?.message === "Network Error") {
+                navigate("/network-issue")
+            }
             console.log("error in get wfh request", error);
         } finally {
             setIsLoading(false);
         }
-
     }
 
     useEffect(() => {
@@ -119,7 +95,10 @@ export default function WFHRequestForm({ type }) {
             try {
                 const res = await getHoliday();
                 setExcludeDates(res?.holidays?.map(date => new Date(date)));
-            } catch (error) {
+           } catch (error) {
+         if (error?.message === "Network Error") {
+                navigate("/network-issue")
+            }
                 console.log(error);
                 // toast.error("Failed to load holidays.");
             }
@@ -129,6 +108,7 @@ export default function WFHRequestForm({ type }) {
             fetchLeaveRequest()
         }
     }, []);
+
     return (
         isLoading ? <Loading height='80vh' /> :
             <form onSubmit={handleSubmit}>
@@ -141,36 +121,35 @@ export default function WFHRequestForm({ type }) {
                         {/* Date Picker */}
                         <div className="row my-3">
                             <div className="col-12 col-lg-6 col-md-6">
-                                <span className="inputLabel">Start Date</span>
+                                <span className="inputLabel">From Date</span>
                                 <DatePicker
                                     disabled={type === "view"}
-                                    className={`inputField ${errors.fromDate ? "error" : ""} w-100`}
+                                    className={`inputField ${error?.includes("fromDate") ? "error" : ""} w-100`}
                                     selected={wfhRequestObj.fromDate ? new Date(wfhRequestObj.fromDate) : null}
                                     minDate={now}
                                     onChange={(date) => handleInputChange("fromDate", date)}
                                     excludeDates={excludedDates}
                                 />
-                                {errors.fromDate && <div className="text-center text-danger">{errors.fromDate}</div>}
+                                {error?.includes("fromDate") && <div className="text-center text-danger">{error}</div>}
                             </div>
 
                             <div className="col-12 col-lg-6 col-md-6">
-                                <span className="inputLabel">End Date</span>
+                                <span className="inputLabel">To Date</span>
                                 <DatePicker
                                     disabled={type === "view"}
-                                    className={`inputField ${errors.toDate ? "error" : ""} w-100`}
+                                    className={`inputField ${error?.includes("toDate") ? "error" : ""} w-100`}
                                     selected={wfhRequestObj.toDate ? new Date(wfhRequestObj.toDate) : null}
                                     onChange={(date) => handleInputChange("toDate", date)}
                                     minDate={now}
                                     excludeDates={excludedDates}
                                 />
-                                {errors.toDate && <div className="text-center text-danger">{errors.toDate}</div>}
+                                {error?.includes("toDate") && <div className="text-center text-danger">{error}</div>}
                             </div>
                         </div>
 
                         <div className="col-12 col-lg-12 col-md-6">
                             <span className="inputLabel">Number of Days</span>
-                            <input type="number" value={wfhRequestObj.fromDate && wfhRequestObj.toDate ? getDayDifference(wfhRequestObj) : 0} className={`inputField ${errors.toDate ? "error" : ""}`} />
-                            {errors.fromDate && <div className="text-center text-danger">{errors.fromDate}</div>}
+                            <input type="number" value={wfhRequestObj.fromDate && wfhRequestObj.toDate ? getDayDifference(wfhRequestObj) : 0} className={`inputField`} />
                         </div>
 
                         {/* Reason for Leave */}
@@ -181,7 +160,7 @@ export default function WFHRequestForm({ type }) {
                                 content={wfhRequestObj.reason}
                                 isDisabled={type === "view"}
                             />
-                            {errors.reason && <div className="text-center text-danger">{errors.reason}</div>}
+                            {error?.includes("reason") && <div className="text-center text-danger">{error}</div>}
                         </div>
 
                         {/* Action Buttons */}

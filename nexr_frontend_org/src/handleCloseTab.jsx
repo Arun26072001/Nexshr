@@ -1,7 +1,9 @@
 import { useEffect } from "react";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
 
 const useHandleTabClose = (isStartLogin, workTimeTracker, token) => {
+    const navigate = useNavigate();
     useEffect(() => {
         // Mark the page as reloaded when refreshing
         sessionStorage.setItem("isReload", "false");
@@ -32,6 +34,9 @@ const useHandleTabClose = (isStartLogin, workTimeTracker, token) => {
                         headers: { authorization: token || '' },
                     });
                 } catch (error) {
+                    if (error?.message === "Network Error") {
+                        navigate("/network-issue")
+                    }
                     console.error("Error updating before closing:", error);
                 }
 

@@ -16,11 +16,11 @@ export default function WFHRequests() {
     const [dateRangeValue, setDaterangeValue] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
     const [requests, setRequests] = useState({});
+    const [isResponsing, setIsResponsing] = useState("");
     const navigate = useNavigate();
 
     async function fetchTeamWfhRequests() {
         setIsLoading(true)
-        
         try {
             const res = await axios.get(`${url}/api/wfh-application/team/${data._id}`, {
                 params: {
@@ -34,6 +34,9 @@ export default function WFHRequests() {
 
             setRequests(res.data);
         } catch (error) {
+            if (error?.message === "Network Error") {
+                navigate("/network-issue")
+            }
             console.log("error in fetch wfhRequests", error);
         } finally {
             setIsLoading(false)
@@ -53,6 +56,9 @@ export default function WFHRequests() {
             })
             setRequests(res.data);
         } catch (error) {
+            if (error?.message === "Network Error") {
+                navigate("/network-issue")
+            }
             console.log("erorr in fetch wfh requests", error);
         } finally {
             setIsLoading(false)
@@ -61,6 +67,7 @@ export default function WFHRequests() {
 
     async function replyToRequest(request, response) {
         try {
+            setIsResponsing(request._id)
             let updatedWFHRequest;
             let actionBy;
             if (isTeamHead) {
@@ -100,6 +107,12 @@ export default function WFHRequests() {
                         hr: response
                     }
                 }
+            } else if (String(data.Account) === "1") {
+                actionBy = "Admin"
+                updatedWFHRequest = {
+                    ...request,
+                    status: response
+                }
             } else {
                 toast.error("You are not approver for this requests")
                 return;
@@ -114,7 +127,12 @@ export default function WFHRequests() {
             toast.success(res.data.message);
             setDaterangeValue([]);
         } catch (error) {
-            toast.error(error.response.data.error)
+            if (error?.message === "Network Error") {
+                navigate("/network-issue")
+            }
+            toast.error(error?.response?.data?.error)
+        } finally {
+            setIsResponsing("")
         }
     }
 
@@ -133,7 +151,7 @@ export default function WFHRequests() {
                     WFH Requests
                 </p>
                 <div className="col-6 d-flex justify-content-end">
-                    <DateRangePicker size="lg" className="ml-1" showOneCalendar placement="bottomEnd" value={dateRangeValue} placeholder="Select Date" onChange={setDaterangeValue} />
+                    <DateRangePicker size="lg" className="ml-1" showOneCalendar placement="bottomEnd" value={dateRangeValue} placeholder="Filter Range of Date" onChange={setDaterangeValue} />
                     <button className="button mx-1" onClick={() => navigate(`/${whoIs}/wfh-request`)}>
                         Apply WFH
                     </button>
@@ -146,7 +164,7 @@ export default function WFHRequests() {
                         <div className="leaveData col-12 col-lg-3">
                             <div className="d-flex flex-column">
                                 <div className="leaveDays">
-                                    {requests?.approvedRequests?.length || 0} Days
+                                    {requests?.approvedRequests || 0} Days
                                 </div>
                                 <div className="leaveDaysDesc">
                                     Taken requests
@@ -156,7 +174,7 @@ export default function WFHRequests() {
                         <div className="leaveData col-12 col-lg-3">
                             <div className="d-flex flex-column">
                                 <div className="leaveDays">
-                                    {requests?.upcommingRequests?.length || 0} Days
+                                    {requests?.upcommingRequests || 0} Days
                                 </div>
                                 <div className="leaveDaysDesc">
                                     Upcoming requests
@@ -166,7 +184,7 @@ export default function WFHRequests() {
                         <div className="leaveData col-lg-3 col-12" style={{ borderRight: "none" }} >
                             <div className="d-flex flex-column">
                                 <div className="leaveDays">
-                                    {requests?.pendingRequests?.length || 0} Days
+                                    {requests?.pendingRequests || 0} Days
                                 </div>
                                 <div className="leaveDaysDesc">
                                     Pending request
@@ -183,7 +201,7 @@ export default function WFHRequests() {
                             height={"50vh"}
                         /> :
                         requests?.correctRequests?.length > 0 ?
-                            <LeaveTable data={requests.correctRequests} replyToLeave={replyToRequest} isTeamHead={isTeamHead} isTeamLead={isTeamLead} isTeamManager={isTeamManager} />
+                            <LeaveTable data={requests.correctRequests} isLoading={isResponsing} replyToLeave={replyToRequest} isTeamHead={isTeamHead} isTeamLead={isTeamLead} isTeamManager={isTeamManager} />
                             : <NoDataFound message={"WFH Requests not for this month!"} />
                 }
             </div>

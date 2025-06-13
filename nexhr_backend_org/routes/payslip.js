@@ -1,7 +1,7 @@
 const express = require("express");
 const { Employee } = require("../models/EmpModel");
 const { Payslip } = require("../models/PaySlipModel");
-const { getDayDifference, getWeekdaysOfCurrentMonth } = require("../Reuseable_functions/reusableFunction");
+const { getDayDifference, getWeekdaysOfCurrentMonth, sumLeaveDays } = require("../Reuseable_functions/reusableFunction");
 const { Holiday } = require("../models/HolidayModel");
 const router = express.Router();
 
@@ -37,8 +37,8 @@ router.post("/", async (req, res) => {
       path: "leaveApplication",
       match: {
         $or: [
-          { fromDate: { $gte: startOfMonth, $lte: endOfMonth } },
-          { toDate: { $gte: startOfMonth, $lte: endOfMonth } }
+          { fromDate: { $lte: endOfMonth } },
+          { toDate: { $gte: startOfMonth } }
         ],
         leaveType: "Unpaid Leave (LWP)",
         status: "approved"
@@ -60,14 +60,16 @@ router.post("/", async (req, res) => {
 
       if (emp.basicSalary && emp.payslipFields) {
         const perDayOfSalary = emp.basicSalary ? Number(emp.basicSalary) / getWeekdaysOfCurrentMonth(startOfMonth.getFullYear(), startOfMonth.getMonth(), currentMonthOfLeaveDays) : 0;
-        const leaveDays = emp.leaveApplication.reduce((total, leave) => total + getDayDifference(leave), 0);
+        const leaveDays = await sumLeaveDays(emp.leaveApplication);
 
         const payslip = {
           payslip: {
             ...emp.payslipFields,
+            basicSalary: emp.basicSalary,
             LossOfPay: Number((leaveDays * perDayOfSalary).toFixed(2)),
             status: "pending",
             period: `${startOfMonth.toLocaleString("default", { month: "long" })} ${startOfMonth.getFullYear()}`,
+            lopDays: leaveDays,
             paidDays: `${getWeekdaysOfCurrentMonth(startOfMonth.getFullYear(), startOfMonth.getMonth(), currentMonthOfLeaveDays)}`
           },
           employee: emp._id
@@ -83,7 +85,7 @@ router.post("/", async (req, res) => {
     });
 
     await Promise.all(payslipPromises);
-    res.json({ message: `Payslips have been generated for ${payslipGendratedEmps.length} and ${unPayslipFieldsEmps.length} for not assign PayslipFields` });
+    res.json({ message: `Payslips have been generated for ${payslipGendratedEmps.length} people and ${unPayslipFieldsEmps.length} people for not assign PayslipFields` });
 
   } catch (err) {
     console.error("Error generating payslips:", err);

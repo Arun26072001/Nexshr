@@ -9,8 +9,10 @@ import CommonModel from './Administration/CommonModel';
 import { toast } from 'react-toastify';
 import { getDepartments } from './ReuseableAPI';
 import { Skeleton } from '@mui/material';
+import { useNavigate } from 'react-router-dom';
 
 export default function Reports() {
+    const navigate = useNavigate();
     const url = process.env.REACT_APP_API_URL;
     const { data } = useContext(EssentialValues);
     const [employees, setEmployees] = useState([]);
@@ -36,8 +38,11 @@ export default function Reports() {
                 }
             })
             setProjects(res.data.map((project) => ({ label: project.name, value: project._id })));
-        } catch (error) {
-            toast.error(error.response.data.error)
+       } catch (error) {
+         if (error?.message === "Network Error") {
+                navigate("/network-issue")
+            }
+            toast.error(error?.response?.data?.error)
         }
     }
 
@@ -72,7 +77,10 @@ export default function Reports() {
             })
             toast.success(res.data.message);
             handleDeleteReport();
-        } catch (error) {
+       } catch (error) {
+         if (error?.message === "Network Error") {
+                navigate("/network-issue")
+            }
             console.log(error);
 
         }
@@ -128,10 +136,13 @@ export default function Reports() {
             handleAddReport();
             setReportObj({});
             toast.success(res.data.message);
-        } catch (error) {
+       } catch (error) {
+         if (error?.message === "Network Error") {
+                navigate("/network-issue")
+            }
             console.log(error);
 
-            // toast.error(error.response.data.error);
+            // toast.error(error?.response?.data?.error);
         } finally {
             setIsWorkingApi(false);
         }
@@ -150,8 +161,11 @@ export default function Reports() {
             setIsEditReport(false)
             setReportObj({});
             toast.success(res.data.message);
-        } catch (error) {
-            toast.error(error.response.data.error)
+       } catch (error) {
+         if (error?.message === "Network Error") {
+                navigate("/network-issue")
+            }
+            toast.error(error?.response?.data?.error)
         }
         setIsWorkingApi(false);
     }
@@ -160,7 +174,10 @@ export default function Reports() {
         try {
             const res = await getDepartments();
             setDepartments(res.map((dept) => ({ label: dept.DepartmentName, value: dept._id })));
-        } catch (error) {
+       } catch (error) {
+         if (error?.message === "Network Error") {
+                navigate("/network-issue")
+            }
             console.log(error);
         }
     }
@@ -187,7 +204,10 @@ export default function Reports() {
                 } else if (type === "View") {
                     handleViewReport()
                 }
-            } catch (error) {
+           } catch (error) {
+         if (error?.message === "Network Error") {
+                navigate("/network-issue")
+            }
                 console.log(error);
             }
         }
@@ -201,7 +221,10 @@ export default function Reports() {
                 }
             })
             setEmployees(res.data.map((emp) => ({ label: emp.FirstName + " " + emp.LastName, value: emp._id })))
-        } catch (error) {
+       } catch (error) {
+         if (error?.message === "Network Error") {
+                navigate("/network-issue")
+            }
             console.log("error in fetch employess", error);
         }
     }
@@ -224,7 +247,10 @@ export default function Reports() {
                 })
                 setReports(res.data.reports);
                 setFilterReports(res.data.reports);
-            } catch (error) {
+           } catch (error) {
+         if (error?.message === "Network Error") {
+                navigate("/network-issue")
+            }
                 console.log(error);
             }
             setIsLoading(false)

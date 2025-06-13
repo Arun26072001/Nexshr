@@ -7,8 +7,10 @@ import { toast } from 'react-toastify';
 import CommonModel from './CommonModel';
 import { EssentialValues } from '../../App';
 import { Skeleton } from '@mui/material';
+import { useNavigate } from 'react-router-dom';
 
 export default function Company() {
+    const navigate = useNavigate();
     const url = process.env.REACT_APP_API_URL;
     const [companies, setCompanies] = useState([]);
     const [companyObj, setCompanyObj] = useState({});
@@ -17,6 +19,7 @@ export default function Company() {
     const [countries, setCountries] = useState([]);
     const [states, setStates] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
+    const [isDeleting, setIsDeleting] = useState("");
     const [logoPreview, setLogoPreView] = useState("");
     const [isChangingCompany, setIschangingCompany] = useState(false);
     const [modifyCompany, setModifyCompany] = useState({
@@ -58,6 +61,7 @@ export default function Company() {
 
     async function deleteCompany(id) {
         try {
+            setIsDeleting(id)
             const deleteCom = await axios.delete(`${url}/api/company/${id}`, {
                 headers: {
                     Authorization: data.token || ""
@@ -67,7 +71,12 @@ export default function Company() {
             handleCompanyChange();
             changeCompanyOperation("Delete");
         } catch (error) {
+            if (error?.message === "Network Error") {
+                navigate("/network-issue")
+            }
             toast.error(error?.response?.data?.error)
+        } finally {
+            setIsDeleting("");
         }
     }
 
@@ -96,6 +105,9 @@ export default function Company() {
             handleCompanyChange();
             changeCompanyOperation("Add");
         } catch (error) {
+            if (error?.message === "Network Error") {
+                navigate("/network-issue")
+            }
             return toast.error(error?.response?.data?.error)
         } finally {
             setIschangingCompany(false);
@@ -113,6 +125,9 @@ export default function Company() {
             setLogoPreView(company.data.logo);
             changeCompanyOperation("Edit");
         } catch (error) {
+            if (error?.message === "Network Error") {
+                navigate("/network-issue")
+            }
             console.log(error);
             toast.error(error);
         }
@@ -161,6 +176,9 @@ export default function Company() {
             handleCompanyChange()
             changeCompanyOperation("Edit");
         } catch (error) {
+            if (error?.message === "Network Error") {
+                navigate("/network-issue")
+            }
             toast.error(error?.response?.data?.error);
         } finally {
             setIschangingCompany(false);
@@ -174,6 +192,9 @@ export default function Company() {
                 const companyData = await fetchCompanies();
                 setCompanies(companyData)
             } catch (error) {
+                if (error?.message === "Network Error") {
+                    navigate("/network-issue")
+                }
                 console.log(error);
 
             }
@@ -214,7 +235,7 @@ export default function Company() {
                             height={"50vh"}
                         /> :
                             companies?.length > 0 ?
-                                <LeaveTable data={companies} deleteData={deleteCompany} fetchData={fetchCompanyById} />
+                                <LeaveTable data={companies} deleteData={deleteCompany} isLoading={isDeleting} fetchData={fetchCompanyById} />
                                 : <NoDataFound message={"Companies data not found"} />
                     }
                 </div>

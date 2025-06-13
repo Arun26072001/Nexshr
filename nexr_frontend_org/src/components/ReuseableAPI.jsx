@@ -3,12 +3,22 @@ import { toast } from 'react-toastify';
 import { Notification, toaster } from "rsuite";
 import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
+import { useNavigate } from 'react-router-dom';
 const url = process.env.REACT_APP_API_URL;
-const token = localStorage.getItem('token');
-const _id = localStorage.getItem("_id");
+
+function getToken() {
+    const token = localStorage.getItem('token');
+    return token;
+}
+
+function getId() {
+    const empId = localStorage.getItem("_id");
+    return empId;
+}
 
 const updateDataAPI = async (body) => {
     try {
+        const token = getToken()
         if (body._id) {
             const response = await axios.put(`${url}/api/clock-ins/${body._id}`, body, {
                 headers: { authorization: token || '' },
@@ -19,13 +29,16 @@ const updateDataAPI = async (body) => {
             toast.error("You did't Login properly!")
         }
     } catch (error) {
+        //  if (error?.message === "Network Error") {
+        //         navigate("/network-issue")
+        //     }
         console.error('Update error:', error);
     }
 };
 
 async function getTotalWorkingHourPerDay(start, end) {
-    const [startHour, startMin] = start.split(":").map(Number);
-    const [endHour, endMin] = end.split(":").map(Number);
+    const [startHour, startMin] = start.split(/[:.]+/).map(Number);
+    const [endHour, endMin] = end.split(/[:.]+/).map(Number);
 
     const startTime = new Date(2000, 0, 1, startHour, startMin);
     const endTime = new Date(2000, 0, 1, endHour, endMin);
@@ -37,7 +50,9 @@ async function getTotalWorkingHourPerDay(start, end) {
 
 const getDataAPI = async (_id) => {
     try {
-        const response = await axios.get(`${url}/api/clock-ins/${_id}`, {
+        const token = getToken();
+        const empId = getId();
+        const response = await axios.get(`${url}/api/clock-ins/${empId}`, {
             params: { date: new Date().toISOString() },
             headers: { authorization: token || '' },
         });
@@ -45,15 +60,17 @@ const getDataAPI = async (_id) => {
         return data;
 
     } catch (error) {
+        //  if (error?.message === "Network Error") {
+        //         navigate("/network-issue")
+        //     }
         console.log(error?.response?.data?.error);
-
-        // return error?.response?.data?.error;
     }
 };
 
 
 const getclockinsDataById = async (id) => {
     try {
+        const token = getToken()
         const response = await axios.get(`${url}/api/clock-ins/item/${id}`, {
             headers: { authorization: token || '' },
         });
@@ -61,13 +78,33 @@ const getclockinsDataById = async (id) => {
         const data = response.data;
         return data;
     } catch (error) {
+        //  if (error?.message === "Network Error") {
+        //         navigate("/network-issue")
+        //     }
         return error?.response?.data?.message;
     }
 };
 
+function checkDateIsHoliday(dateList, target) {
+    return dateList.some((holiday) => new Date(holiday.date).toLocaleDateString() === new Date(target).toLocaleDateString());
+}
+
+function isValidLeaveDate(holidays, WeeklyDays, target) {
+    let date = new Date(target);
+    const dateStr = date.toLocaleString(undefined, { weekday: "long" })
+
+    if (WeeklyDays.includes(dateStr) && !checkDateIsHoliday(holidays, date)) {
+        return true;
+    } else {
+        return false;
+    }
+}
+
 const addDataAPI = async (body, worklocation, location) => {
     try {
-        const response = await axios.post(`${url}/api/clock-ins/${_id}`, body, {
+        const token = getToken();
+        const empId = getId();
+        const response = await axios.post(`${url}/api/clock-ins/${empId}`, body, {
             params: {
                 worklocation,
                 location
@@ -77,6 +114,9 @@ const addDataAPI = async (body, worklocation, location) => {
         toast.success(response.data.message);
         return response?.data?.clockIns;
     } catch (error) {
+        //  if (error?.message === "Network Error") {
+        //         navigate("/network-issue")
+        //     }
         toast.error(error?.response?.data?.error)
 
         return error?.response?.data?.error;
@@ -92,6 +132,7 @@ function removeClockinsData() {
 
 const fetchEmpLeaveRequests = async () => {
     try {
+        const token = getToken()
         const res = await axios.get(`${url}/api/leave-application/hr`, {
             headers: {
                 authorization: token || ""
@@ -108,10 +149,8 @@ const fetchEmpLeaveRequests = async () => {
 }
 
 function timeToMinutes(timeStr) {
-    console.log(typeof timeStr, timeStr);
     if (typeof timeStr === 'object') {
         const timeData = new Date(timeStr).toTimeString().split(' ')[0]
-        console.log(timeData);
         const [hours, minutes, seconds] = timeData.split(/[:.]+/).map(Number)
         return Number(((hours * 60) + minutes + (seconds / 60)).toFixed(2)) || 0;
     }
@@ -124,10 +163,35 @@ function timeToMinutes(timeStr) {
     }
 }
 
+async function createTask(task) {
+    try {
+        const token = getToken();
+        const empId = getId();
+        let newTaskObj = {
+            ...task,
+            assignedTo: Array.isArray(task?.assignedTo) && task.assignedTo.includes(empId)
+                ? task.assignedTo
+                : [...(task?.assignedTo || []), empId]
+        }
+        const res = await axios.post(`${url}/api/task/${empId}`, newTaskObj, {
+            headers: { Authorization: token || "" }
+        });
+
+        toast.success(res.data.message);
+    } catch (error) {
+        //  if (error?.message === "Network Error") {
+        //         navigate("/network-issue")
+        //     }
+        console.error("Task creation error:", error);
+        toast.error(error.response?.data?.error || "Task creation failed");
+        return;
+    }
+}
+
 const getCurrentTimeInMinutes = () => {
     const now = new Date().toLocaleTimeString('en-US', { timeZone: process.env.TIMEZONE, hourCycle: 'h23' });
     const timeWithoutSuffix = now.replace(/ AM| PM/, ""); // Remove AM/PM
-    const [hour, min, sec] = timeWithoutSuffix.split(":").map(Number);
+    const [hour, min, sec] = timeWithoutSuffix.split(/[:.]+/).map(Number);
     return timeToMinutes(`${hour}:${min}:${sec}`);
 };
 
@@ -150,7 +214,7 @@ function formatTimeFromMinutes(minutes) {
 }
 
 function convertTimeStringToDate(timeStr) {
-    const [hours, minutes, seconds] = timeStr.split(":").map(Number);
+    const [hours, minutes, seconds] = timeStr.split(/[:.]+/).map(Number);
 
     if (
         [hours, minutes, seconds].some(
@@ -189,6 +253,7 @@ function processActivityDurations(record, activity) {
 
 const fetchLeaveRequests = async (_id) => {
     try {
+        const token = getToken()
         const res = await axios.get(`${url}/api/leave-application/emp/${_id}`, {
             headers: {
                 authorization: token || ""
@@ -222,7 +287,9 @@ function getDayDifference(leave) {
 
 async function deleteLeave(id) {
     try {
-        let deletedMsg = await axios.delete(`${url}/api/leave-application/${_id}/${id}`, {
+        const token = getToken();
+        const empId = getId();
+        let deletedMsg = await axios.delete(`${url}/api/leave-application/${empId}/${id}`, {
             headers: {
                 authorization: token || ""
             }
@@ -238,6 +305,7 @@ async function deleteLeave(id) {
 
 const fetchEmployeeData = async (id) => {
     try {
+        const token = getToken()
         const response = await axios.get(`${url}/api/employee/${id}`, {
             headers: {
                 authorization: token || ""
@@ -246,6 +314,9 @@ const fetchEmployeeData = async (id) => {
         return response.data;
 
     } catch (error) {
+        //  if (error?.message === "Network Error") {
+        //         navigate("/network-issue")
+        //     }
 
         if (error.response && error.response.data && error.response.data.message) {
             toast.error(error?.response?.data?.details)
@@ -256,6 +327,7 @@ const fetchEmployeeData = async (id) => {
 
 const fetchEmployees = async () => {
     try {
+        const token = getToken()
         const res = await axios.get(`${url}/api/employee`, {
             headers: {
                 authorization: token || ""
@@ -263,12 +335,13 @@ const fetchEmployees = async () => {
         });
         return res.data;
     } catch (err) {
-        return err
+        return err;
     }
 }
 
 const fetchAllEmployees = async () => {
     try {
+        const token = getToken()
         const res = await axios.get(`${url}/api/employee/all`, {
             headers: {
                 authorization: token || ""
@@ -281,6 +354,7 @@ const fetchAllEmployees = async () => {
 }
 
 const gettingClockinsData = async (_id) => {
+    const token = getToken();
     if (!token) {
         window.location.reload();
         return;
@@ -313,6 +387,7 @@ function formatTime(fractionalHours) {
 
 const fetchWorkplace = async () => {
     try {
+        const token = getToken()
         const workPlaces = await axios.get(url + "/api/work-place", {
             headers: {
                 authorization: token || ""
@@ -326,6 +401,7 @@ const fetchWorkplace = async () => {
 
 const fetchPayslipInfo = async () => {
     try {
+        const token = getToken()
         const payslipInfo = await axios.get(`${url}/api/payslip-info`, {
             headers: {
                 authorization: token || ""
@@ -342,12 +418,16 @@ const fetchPayslipFromEmp = async (_id) => {
         const payslip = await axios.get(`${url}/api/payslip/emp/${_id}`);
         return payslip.data;
     } catch (error) {
+        //  if (error?.message === "Network Error") {
+        //         navigate("/network-issue")
+        //     }
         return error?.response?.data?.message
     }
 }
 
 const fetchRoles = async () => {
     try {
+        const token = getToken()
         const roles = await axios.get(url + "/api/role", {
             headers: {
                 authorization: token || ""
@@ -355,12 +435,16 @@ const fetchRoles = async () => {
         });
         return roles.data;
     } catch (error) {
+        //  if (error?.message === "Network Error") {
+        //         navigate("/network-issue")
+        //     }
         return error?.response?.data?.message
     }
 }
 
 const fetchTeams = async () => {
     try {
+        const token = getToken()
         const teams = await axios.get(`${url}/api/team`, {
             headers: {
                 Authorization: token || ""
@@ -368,7 +452,10 @@ const fetchTeams = async () => {
         });
         return teams.data;
     } catch (error) {
-        toast.error(error.response.data.error);
+        //  if (error?.message === "Network Error") {
+        //         navigate("/network-issue")
+        //     }
+        toast.error(error?.response?.data?.error);
     }
 }
 
@@ -377,12 +464,16 @@ const fetchPayslip = async (id) => {
         const payslip = await axios.get(`${url}/api/payslip/${id}`);
         return payslip.data;
     } catch (error) {
+        //  if (error?.message === "Network Error") {
+        //         navigate("/network-issue")
+        //     }
         return error?.response?.data?.message
     }
 }
 
 const getDepartments = async () => {
     try {
+        const token = getToken()
         const departments = await axios.get(url + "/api/department", {
             headers: {
                 authorization: token || ""
@@ -390,12 +481,16 @@ const getDepartments = async () => {
         });
         return departments.data;
     } catch (error) {
+        //  if (error?.message === "Network Error") {
+        //         navigate("/network-issue")
+        //     }
         return error?.response?.data?.message
     }
 }
 
 const updateEmp = async (data, id) => {
     try {
+        const token = getToken()
         const res = await axios.put(`${url}/api/employee/${id || data._id}`, data, {
             headers: {
                 authorization: token || ""
@@ -403,7 +498,10 @@ const updateEmp = async (data, id) => {
         })
         return res.data.message;
     } catch (error) {
-        toast.error(error.response.data.error);
+        //  if (error?.message === "Network Error") {
+        //         navigate("/network-issue")
+        //     }
+        toast.error(error?.response?.data?.error);
     }
 }
 
@@ -421,9 +519,17 @@ async function getUserLocation(lat, lng) {
             return null;
         }
     } catch (error) {
+        //  if (error?.message === "Network Error") {
+        //         navigate("/network-issue")
+        //     }
         console.error("Error fetching location:", error);
         return null;
     }
+}
+
+function formatDate(date) {
+    const actualDate = new Date(date).toUTCString().split(" ");
+    return `${actualDate[1]}, ${actualDate[2]}`
 }
 
 function formatTimeFromHour(hour) {
@@ -446,7 +552,7 @@ const addSecondsToTime = (timeString, secondsToAdd) => {
     }
 
     // Split and convert to numbers
-    const [hours, minutes, seconds] = timeString.split(":").map(Number);
+    const [hours, minutes, seconds] = timeString.split(/[:.]+/).map(Number);
 
     // Ensure totalSeconds is non-negative
     const totalSeconds = Math.max(0, hours * 3600 + minutes * 60 + seconds + secondsToAdd);
@@ -465,6 +571,7 @@ const addSecondsToTime = (timeString, secondsToAdd) => {
 
 async function getHoliday() {
     try {
+        const token = getToken()
         const res = await axios.get(`${url}/api/holidays/${new Date().getFullYear()}`, {
             headers: {
                 Authorization: token || ""
@@ -472,12 +579,16 @@ async function getHoliday() {
         });
         return res.data
     } catch (error) {
+        //  if (error?.message === "Network Error") {
+        //         navigate("/network-issue")
+        //     }
         console.log(error?.response?.data?.error);
     }
 }
 
 async function fetchCompanies() {
     try {
+        const token = getToken()
         const res = await axios.get(`${url}/api/company`, {
             headers: {
                 Authorization: token
@@ -485,14 +596,17 @@ async function fetchCompanies() {
         })
         return res.data;
     } catch (error) {
+        // if (error?.message === "Network Error") {
+        //     navigate("/network-issue")
+        // }
         console.log("error in fetch companies", error);
-        toast.error(error.response.data.error)
+        toast.error(error?.response?.data?.error)
     }
 }
 
 function getTimeFromHour(timeStr, min = false) {
     if (timeStr) {
-        const [hours, minutes, seconds] = timeStr.split(":").map(Number);
+        const [hours, minutes, seconds] = timeStr.split(/[:.]+/).map(Number);
         if (min) {
             return ((hours * 60) + minutes + (seconds / 60))?.toFixed(2);
         } else {
@@ -529,16 +643,47 @@ async function fileUploadInServer(files) {
 
 }
 
-function calculateTimePattern(timePatternObj) {
-    if (timePatternObj.StartingTime && timePatternObj.FinishingTime) {
-        const startingTime = new Date(timePatternObj.StartingTime).getTime()
-        const endingTime = new Date(timePatternObj.FinishingTime).getTime()
-        const timeDiff = endingTime - startingTime;
-        console.log(startingTime, endingTime, timeDiff);
-        const hoursDiff = Math.floor(timeDiff / (1000 * 60 * 60));
-        return hoursDiff
+function calculateTimePattern(start, end) {
+    const startingTime = new Date(start).getTime()
+    const endingTime = new Date(end).getTime()
+    const timeDiff = endingTime - startingTime;
+    const hoursDiff = Math.floor(timeDiff / (1000 * 60 * 60));
+    return hoursDiff
+}
+
+function getDueDateByType(type) {
+    const today = new Date();
+    const startOfToday = new Date(today.setHours(23, 59, 59, 999));
+
+    switch (type) {
+        case "Due Today":
+            return startOfToday;
+
+        case "Due This Week":
+            const endOfWeek = new Date();
+            endOfWeek.setDate(endOfWeek.getDate() + (6 - endOfWeek.getDay()));
+            return new Date(endOfWeek.setHours(23, 59, 59, 999));
+
+        case "Due Next Week":
+            const nextWeek = new Date();
+            const day = nextWeek.getDay();
+            const diff = 7 - day + 1; // Next Monday
+            nextWeek.setDate(nextWeek.getDate() + diff);
+            return new Date(nextWeek.setHours(9, 0, 0, 0));
+
+        case "Due Over Two Weeks":
+            const overTwoWeeks = new Date();
+            overTwoWeeks.setDate(overTwoWeeks.getDate() + 15);
+            return new Date(overTwoWeeks.setHours(9, 0, 0, 0));
+
+        case "No Deadline":
+            return null;
+
+        default:
+            return null;
     }
 }
+
 
 function triggerToaster(response) {
     return (
@@ -619,10 +764,12 @@ function exportAttendanceToExcel(attendanceData) {
 export {
     triggerToaster,
     calculateTimePattern,
+    formatDate,
     processActivityDurations,
     getTimeFromHour,
     getHoliday,
     addDataAPI,
+    createTask,
     fetchCompanies,
     fetchTeams,
     getDataAPI,
@@ -635,7 +782,9 @@ export {
     fetchPayslip,
     removeClockinsData,
     fetchLeaveRequests,
+    isValidLeaveDate,
     deleteLeave,
+    getDueDateByType,
     getclockinsDataById,
     fetchEmployeeData,
     fetchEmployees,
@@ -648,6 +797,7 @@ export {
     fetchWorkplace,
     fetchRoles,
     formatTimeFromHour,
+    timeToMinutes,
     fileUploadInServer,
     convertTimeStringToDate,
     getDayDifference,

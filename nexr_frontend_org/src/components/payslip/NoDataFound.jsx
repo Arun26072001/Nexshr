@@ -1,4 +1,4 @@
-export default function NoDataFound({message}) {
+export default function NoDataFound({ message }) {
   return (
     <div className="notFoundText" >{message}</div>
   )

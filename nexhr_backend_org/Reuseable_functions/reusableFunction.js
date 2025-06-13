@@ -1,5 +1,83 @@
 const mongoose = require("mongoose");
+const dayjs = require('dayjs');
+const isSameOrBefore = require('dayjs/plugin/isSameOrBefore');
+const isSameOrAfter = require('dayjs/plugin/isSameOrAfter');
+const isoWeek = require('dayjs/plugin/isoWeek');
+const isBetween = require('dayjs/plugin/isBetween');
+const { PlannerCategory } = require("../models/PlannerCategoryModel");
+const { Holiday } = require("../models/HolidayModel");
+const { Employee } = require("../models/EmpModel");
 
+dayjs.extend(isSameOrBefore);
+dayjs.extend(isSameOrAfter);
+dayjs.extend(isoWeek);
+dayjs.extend(isBetween);
+
+function categorizeTasks(tasks) {
+  const today = dayjs().startOf('day');
+  const endOfWeek = dayjs().endOf('week');
+  const startOfNextWeek = dayjs().add(1, 'week').startOf('week');
+  const endOfNextWeek = dayjs().add(1, 'week').endOf('week');
+  const twoWeeksLater = dayjs().add(2, 'week').endOf('week');
+
+  const result = {
+    "Overdue": [],
+    "Due Today": [],
+    "Due This Week": [],
+    "Due Next Week": [],
+    "Due Over Two Weeks": [],
+    "No Deadline": [],
+    "Completed": []
+  };
+
+  tasks.forEach(task => {
+    if (task.status === "Completed") {
+      result["Completed"].push(task);
+    } else if (!task.to) {
+      result["No Deadline"].push(task);
+    } else {
+      const due = dayjs(task.to).startOf('day');
+      if (due?.isBefore(today)) {
+        result["Overdue"].push(task);
+      } else if (due?.isSame(today)) {
+        result["Due Today"].push(task);
+      } else if (due?.isBefore(endOfWeek)) {
+        result["Due This Week"].push(task);
+      } else if (due.isBetween(startOfNextWeek, endOfNextWeek, null, '[]')) {
+        result["Due Next Week"].push(task);
+      } else if (due?.isAfter(endOfNextWeek)) {
+        result["Due Over Two Weeks"].push(task);
+      }
+    }
+  });
+
+  return result;
+}
+
+async function checkLoginForOfficeTime(scheduledTime, actualTime, permissionTime = 0) {
+
+  // Parse scheduled andl actual time into hours and minutes
+  const [scheduledHours, scheduledMinutes] = scheduledTime.split(/[:.]+/).map(Number);
+  const [actualHours, actualMinutes] = actualTime.split(/[:.]+/).map(Number);
+
+  // Create Date objects for both scheduled and actual times
+  const scheduledDate = new Date(2000, 0, 1, scheduledHours + (permissionTime), scheduledMinutes);
+  const actualDate = new Date(2000, 0, 1, actualHours, actualMinutes);
+
+  // Calculate the difference in milliseconds
+  const timeDifference = actualDate - scheduledDate;
+
+  // Convert milliseconds to minutes
+  const differenceInMinutes = Math.abs(Math.floor(timeDifference / (1000 * 60)));
+
+  if (timeDifference > 0) {
+    return `You came ${differenceInMinutes} minutes late today.`;
+  } else if (timeDifference < 0) {
+    return `You came ${differenceInMinutes} minutes early today.`;
+  } else {
+    return `You came on time today.`;
+  }
+}
 
 const convertToString = (value) => {
   if (Array.isArray(value)) {
@@ -8,22 +86,72 @@ const convertToString = (value) => {
   return mongoose.isValidObjectId(value) ? value?.toString() : value;
 };
 
-function getDayDifference(leave) {
+function isValidLeaveDate(holidays, WeeklyDays, target) {
+  let date = new Date(target);
+  const dateStr = date.toLocaleString(undefined, { weekday: "long" })
 
-  if (leave?.periodOfLeave === "half day") {
+  if (WeeklyDays.includes(dateStr) && !checkDateIsHoliday(holidays, date)) {
+    return true;
+  } else {
+    return false;
+  }
+}
+
+async function rangeofDate(fromDate, toDate, empData) {
+  const from = new Date(fromDate);
+  const to = new Date(toDate);
+  const holiday = await Holiday.findOne({ year: new Date().getFullYear() }).lean().exec();
+
+  const emp = await Employee.findById(empData._id, "workingTimePattern")
+    .populate("workingTimePattern", "WeeklyDays").lean().exec();
+  let dayCount = 0;
+  while (from <= to) {
+    const date = new Date(from);
+    if (isValidLeaveDate(holiday.holidays, emp.workingTimePattern.WeeklyDays, date)) {
+      dayCount += 1
+    }
+    from.setDate(from.getDate() + 1); // <- Corrected here
+  }
+  return dayCount;
+}
+
+async function getDayDifference({ fromDate, toDate, employee, periodOfLeave }) {
+
+  let dayDifference = 0;
+  if (periodOfLeave === "half day") {
     return 0.5;
   }
 
-  let toDate = new Date(leave.toDate);
-  let fromDate = new Date(leave.fromDate);
-
-  let timeDifference = toDate - fromDate;
-  let dayDifference = timeDifference / (1000 * 60 * 60 * 24); // Convert milliseconds to days
-
-  if (dayDifference < 1) {
-    return 1; // Minimum one day for a leave if it's less than a full day
-  }
+  dayDifference = await rangeofDate(fromDate, toDate, employee)
   return dayDifference;
+}
+
+function checkDateIsHoliday(dateList, target) {
+  return dateList.some((holiday) => new Date(holiday.date).toLocaleDateString() === new Date(target).toLocaleDateString());
+}
+
+const sumLeaveDays = async (leaveArray) => {
+  const dayDiffs = await Promise.all(leaveArray.map(getDayDifference));
+  return dayDiffs.reduce((a, b) => a + b, 0);
+};
+
+function getValidLeaveDays(holidays, WeeklyDays, from, to) {
+  let date = new Date(from);
+  const endDate = new Date(to);
+  const validDays = [];
+
+  while (date <= endDate) {
+    const dateStr = date.toLocaleString("default", { weekday: "long" })
+
+    if (WeeklyDays.includes(dateStr) && !checkDateIsHoliday(holidays, date)) {
+      validDays.push(new Date(date).toLocaleDateString("en-GB"));
+    }
+
+    // Move to next day
+    date.setDate(date.getDate() + 1);
+  }
+
+  return validDays;
 }
 
 function getWeekdaysOfCurrentMonth(year, month, holidays) {// 0-based index (0 = January)
@@ -90,7 +218,7 @@ function mailContent(type, fromDateValue, toDateValue, emp, leaveType, actionBy,
   Kavya<br />
   HR Department
 </p>
-          <a href="${process.env.REACT_APP_API_URL}" style="font-weight: bold; padding: 12px 24px; border-radius: 30px; background-color: ${isRejected ? "red" : "green"}; color: white; text-decoration: none; display: inline-block; margin: 15px 0; border: none;">View Leave Details</a>
+          <a href="${process.env.FRONTEND_BASE_URL}" style="font-weight: bold; padding: 12px 24px; border-radius: 30px; background-color: ${isRejected ? "red" : "green"}; color: white; text-decoration: none; display: inline-block; margin: 15px 0; border: none;">View Leave Details</a>
           <p style="font-size: 14px; color: #B4B4B8; margin: 10px 0;">Why did you receive this mail?</p>
           <p style="font-size: 14px; color: #B4B4B8; margin: 10px 0;">
             ${["admin", "lead", "head", "manager"].includes(member.type) ? `Because you are the ${member.type} for this employee` : "Because you applied for this leave."}
@@ -181,29 +309,44 @@ function processActivityDurations(record) {
   });
 }
 
+async function fetchFirstTwoItems() {
+  try {
+    const items = await PlannerCategory.find().limit(2);
+    const itemsId = items.map((item) => item._id)
+    return itemsId;
+  } catch (error) {
+    console.error('Error fetching items:', error);
+    throw error;
+  }
+}
+
 function timeToMinutes(timeStr) {
-    console.log(typeof timeStr, timeStr);
-    if (typeof timeStr === 'object') {
-        const timeData = new Date(timeStr).toTimeString().split(' ')[0]
-        console.log(timeData);
-        const [hours, minutes, seconds] = timeData.split(/[:.]+/).map(Number)
-        return Number(((hours * 60) + minutes + (seconds / 60)).toFixed(2)) || 0;
-    }
-    if (timeStr.split(/[:.]+/).length === 3) {
-        const [hours, minutes, seconds] = timeStr.split(/[:.]+/).map(Number);
-        return Number(((hours * 60) + minutes + (seconds / 60)).toFixed(2)) || 0; // Defaults to 0 if input is invalid
-    } else {
-        const [hours, minutes] = timeStr.split(/[:.]+/).map(Number);
-        return Number(((hours * 60) + minutes).toFixed(2)) || 0;
-    }
+  if (typeof timeStr === 'object') {
+    const timeData = new Date(timeStr).toTimeString().split(' ')[0]
+    const [hours, minutes, seconds] = timeData.split(/[:.]+/).map(Number)
+    return Number(((hours * 60) + minutes + (seconds / 60)).toFixed(2)) || 0;
+  }
+  if (timeStr.split(/[:.]+/).length === 3) {
+    const [hours, minutes, seconds] = timeStr.split(/[:.]+/).map(Number);
+    return Number(((hours * 60) + minutes + (seconds / 60)).toFixed(2)) || 0; // Defaults to 0 if input is invalid
+  } else {
+    const [hours, minutes] = timeStr.split(/[:.]+/).map(Number);
+    return Number(((hours * 60) + minutes).toFixed(2)) || 0;
+  }
 }
 
 const getCurrentTimeInMinutes = () => {
   const now = new Date().toLocaleTimeString('en-US', { timeZone: process.env.TIMEZONE, hourCycle: 'h23' });
   const timeWithoutSuffix = now.replace(/ AM| PM/, ""); // Remove AM/PM
-  const [hour, min, sec] = timeWithoutSuffix.split(":").map(Number);
+  const [hour, min, sec] = timeWithoutSuffix.split(/[:.]+/).map(Number);
   return timeToMinutes(`${hour}:${min}:${sec}`);
 };
+
+const getCurrentTime = (date) => {
+  const now = new Date(date).toLocaleTimeString('en-US', { timeZone: process.env.TIMEZONE, hourCycle: 'h23' });
+  const [hour, min] = now.split(/[:.]+/).map(Number);
+  return `${hour}:${min}`
+}
 
 function formatTimeFromMinutes(minutes) {
   if ([NaN, 0].includes(minutes)) {
@@ -357,4 +500,4 @@ function generateCoverByEmail(empData, relievingOffData) {
         `;
 }
 
-module.exports = { convertToString, projectMailContent, processActivityDurations, getTotalWorkingHourPerDay, formatLeaveData, getDayDifference, getOrgDB, formatDate, getWeekdaysOfCurrentMonth, mailContent, checkLogin, getTotalWorkingHoursExcludingWeekends, getCurrentTimeInMinutes, timeToMinutes, formatTimeFromMinutes };
+module.exports = { convertToString, sumLeaveDays, getValidLeaveDays, fetchFirstTwoItems, getCurrentTime, checkLoginForOfficeTime, categorizeTasks, projectMailContent, processActivityDurations, getTotalWorkingHourPerDay, formatLeaveData, getDayDifference, getOrgDB, formatDate, getWeekdaysOfCurrentMonth, mailContent, checkLogin, getTotalWorkingHoursExcludingWeekends, getCurrentTimeInMinutes, timeToMinutes, formatTimeFromMinutes };

@@ -9,6 +9,8 @@ const { Team } = require('../models/TeamModel');
 const fs = require("fs");
 const path = require("path");
 const { LeaveApplication } = require('../models/LeaveAppModel');
+const { fetchFirstTwoItems, sumLeaveDays } = require('../Reuseable_functions/reusableFunction');
+const { PlannerType } = require('../models/PlannerTypeModel');
 
 router.get("/", verifyAdminHRTeamHigherAuth, async (req, res) => {
   try {
@@ -55,13 +57,15 @@ router.put("/notifications/:id", verifyAdminHREmployeeManagerNetwork, async (req
   try {
     const emp = await Employee.findById(req.params.id, "notifications").exec();
     if (!emp) return res.status(404).send({ error: "Employee not found" });
-
-    const titlesToRemove = req.body.map(n => n.title);
-
-    emp.notifications = emp.notifications.filter(notification =>
-      !titlesToRemove.includes(notification.title)
+    // console.log("removed", req.body);
+    const idsToRemove = req.body.map(n => n._id);
+    const filteredNotifications = emp.notifications.filter(notification => {
+      const notification_id = String(notification._id);
+      return !idsToRemove.includes(notification_id)
+    }
     );
-
+    // console.log("notifications", filteredNotifications);
+    emp.notifications = filteredNotifications;
     await emp.save();
 
     return res.send({ message: "Notifications have been deleted successfully" });
@@ -207,9 +211,20 @@ router.get("/team/members/:id", verifyTeamHigherAuthority, async (req, res) => {
   }
 })
 
+router.post("/add-company/:id", async (req, res) => {
+  try {
+    const emps = await Employee.find({}, "company").exec();
+    emps.forEach(async (emp) => {
+      emp.company = req.params.id;
+      await emp.save();
+    })
+    return res.send({ message: "add company for all employees" })
+  } catch (error) {
+    return res.status(500).send({ error: error.message })
+  }
+})
+
 router.get('/:id', verifyAdminHREmployeeManagerNetwork, async (req, res) => {
-  let totalTakenLeaveCount = 0;
-  let totalUnpaidLeaveCount = 0;
   const empData = await Employee.findById(req.params.id, "annualLeaveYearStart")
   const now = new Date();
   const annualStart = empData?.annualLeaveYearStart ? new Date(empData?.annualLeaveYearStart) : new Date(now.setDate(1));
@@ -250,8 +265,10 @@ router.get('/:id', verifyAdminHREmployeeManagerNetwork, async (req, res) => {
     const unpaidLeaveRequest = leaveApplications.filter((leave) => leave.leaveType.toLowerCase().includes("unpaid"))
 
     // Calculate total taken leave count
-    takenLeaveRequests.forEach((leave) => totalTakenLeaveCount += Math.ceil(getDayDifference(leave)));
-    unpaidLeaveRequest.forEach((leave) => totalUnpaidLeaveCount += Math.ceil(getDayDifference(leave)))
+    const [totalTakenLeaveCount, totalUnpaidLeaveCount] = await Promise.all([
+      sumLeaveDays(takenLeaveRequests),
+      sumLeaveDays(unpaidLeaveRequest)
+    ])
 
     // Send response with employee details, pending leave requests, taken leave count, and colleagues
     res.send({
@@ -312,6 +329,14 @@ router.post("/:id", verifyAdminHR, async (req, res) => {
 
     const employee = await Employee.create(employeeData);
 
+    // add planner type 
+    const defaultCategories = await fetchFirstTwoItems();
+    const plannerTypeData = {
+      employee: employee._id,
+      categories: [...(defaultCategories || [])]
+    }
+    await PlannerType.create(plannerTypeData);
+
     const htmlContent = `
 <!DOCTYPE html>
 <html lang="en">
@@ -335,7 +360,7 @@ router.post("/:id", verifyAdminHR, async (req, res) => {
       <p style="margin: 5px 0;"><strong>Password:</strong> ${Password}</p>
 
       <p style="margin-top: 20px;">Please click the button below to confirm your email and get started:</p>
-      <a href="${process.env.REACT_APP_API_URL}" style="
+      <a href="${process.env.FRONTEND_BASE_URL}" style="
         display: inline-block;
         padding: 12px 24px;
         background-color: #28a745;
@@ -347,7 +372,7 @@ router.post("/:id", verifyAdminHR, async (req, res) => {
       ">Confirm Email</a>
 
       <p>If the button doesn't work, you can also copy and paste this link into your browser:</p>
-      <p><a href="${process.env.REACT_APP_API_URL}" style="color: #28a745;">${process.env.REACT_APP_API_URL}</a></p>
+      <p><a href="${process.env.FRONTEND_BASE_URL}" style="color: #28a745;">${process.env.FRONTEND_BASE_URL}</a></p>
 
       <p style="margin-top: 30px;">Cheers,<br/>The ${inviter.company.CompanyName} Team</p>
     </div>
@@ -361,7 +386,7 @@ router.post("/:id", verifyAdminHR, async (req, res) => {
 `;
 
     sendMail({
-      From: process.env.FROM_MAIL,
+      From: `<${process.env.FROM_MAIL}> (Nexshr)`,
       To: Email,
       Subject: `Welcome to ${inviter.company.CompanyName}`,
       HtmlBody: htmlContent,
@@ -382,7 +407,6 @@ router.post("/:id", verifyAdminHR, async (req, res) => {
     res.status(500).send({ error: err.message });
   }
 });
-
 
 router.put("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
   try {
@@ -423,7 +447,7 @@ router.put("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
     }
 
     // Prepare update payload
-    const updatedData = {
+    let updatedData = {
       ...req.body,
       company: req.body.company || null,
       position: req.body.position || null,
@@ -436,23 +460,31 @@ router.put("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
       updatedData.companyWorkingHourPerWeek = `${hour}.${mins}`;
     }
 
+    // add typesOfLeaveRemainingDays. if, has typesOfLeavecount
+    if (updatedData.typesOfLeaveCount && Object.values(updatedData.typesOfLeaveCount).length) {
+      if (!req.body?.typesOfLeaveRemainingDays) {
+        updatedData.typesOfLeaveRemainingDays = updatedData.typesOfLeaveCount
+      }
+    }
+
     // Check for credentials update
     if (Email !== employeeData.Email || Password !== employeeData.Password) {
+      const companyName = employeeData?.company?.CompanyName;
       const htmlContent = `
         <!DOCTYPE html>
         <html>
-        <head><title>${employeeData.company.CompanyName}</title></head>
+        <head><title>${companyName}</title></head>
         <body style="font-family: Arial; background: #f6f9fc; padding: 0; margin: 0;">
           <div style="text-align: center; padding-top: 30px;">
-            <img src="${employeeData.company.logo}" alt="Company Logo" style="width: 100px; height: 100px;" />
+            <img src="${employeeData?.company?.logo}" alt="Company Logo" style="width: 100px; height: 100px;" />
           </div>
           <div style="max-width: 600px; margin: 20px auto; background: #fff; padding: 30px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
             <h2>Hi ${FirstName} ${LastName} 👋,</h2>
             <p>Your credentials have been <strong>updated successfully</strong>.</p>
             <p><strong>Email:</strong> ${Email}<br/><strong>Password:</strong> ${Password}</p>
-            <a href="${process.env.REACT_APP_API_URL}" style="display: inline-block; padding: 12px 24px; background-color: #4CAF50; color: white; border-radius: 30px; text-decoration: none;">Go to Login</a>
-            <p>If the button doesn’t work, use this link: <a href="${process.env.REACT_APP_API_URL}">${process.env.REACT_APP_API_URL}</a></p>
-            <p>Thanks,<br/>The ${employeeData.company.CompanyName} Team</p>
+            <a href="${process.env.FRONTEND_BASE_URL}" style="display: inline-block; padding: 12px 24px; background-color: #4CAF50; color: white; border-radius: 30px; text-decoration: none;">Go to Login</a>
+            <p>If the button doesn’t work, use this link: <a href="${process.env.FRONTEND_BASE_URL}">${process.env.FRONTEND_BASE_URL}</a></p>
+            <p>Thanks,<br/>The ${companyName} Team</p>
           </div>
           <div style="text-align: center; font-size: 13px; color: #777;">
             <p>Need help? <a href="mailto:${process.env.FROM_MAIL}" style="color: #777;">Contact support</a>.</p>
@@ -462,7 +494,7 @@ router.put("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
       `;
 
       await sendMail({
-        From: process.env.FROM_MAIL,
+        From: `<${process.env.FROM_MAIL}> (Nexshr)`,
         To: employeeData.Email,
         Subject: "Your Credentials are updated",
         HtmlBody: htmlContent,

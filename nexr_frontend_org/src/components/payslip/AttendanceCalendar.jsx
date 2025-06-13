@@ -5,9 +5,11 @@ import "react-big-calendar/lib/css/react-big-calendar.css";
 import { Calendar, dayjsLocalizer } from "react-big-calendar";
 import { getHoliday } from '../ReuseableAPI';
 import Loading from '../Loader';
+import { useNavigate } from 'react-router-dom';
 
 const localizer = dayjsLocalizer(dayjs);
 export default function AttendanceCalendar() {
+    const navigate = useNavigate();
     const [holidays, setHolidays] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
 
@@ -37,7 +39,10 @@ export default function AttendanceCalendar() {
                         end: new Date(item.date),
                     }))
                 );
-            } catch (error) {
+           } catch (error) {
+         if (error?.message === "Network Error") {
+                navigate("/network-issue")
+            }
                 console.log(error);
                 setHolidays([]);
             }

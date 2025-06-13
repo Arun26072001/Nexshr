@@ -1,5 +1,4 @@
 import React, { useContext, useEffect, useState } from 'react'
-import Loading from '../Loader';
 import LeaveTable from '../LeaveTable';
 import axios from "axios";
 import { EssentialValues } from '../../App';
@@ -8,14 +7,17 @@ import CommonModel from './CommonModel';
 import { toast } from 'react-toastify';
 import { Input } from 'rsuite';
 import { Skeleton } from '@mui/material';
+import { useNavigate } from 'react-router-dom';
 
 export default function LeaveDetails() {
+    const navigate = useNavigate();
     const [isLoading, setIsLoading] = useState(false);
     const [leaveTypes, setLeavetypes] = useState([]);
     const url = process.env.REACT_APP_API_URL;
     const { data } = useContext(EssentialValues);
     const [leaveTypeObj, setLeaveTypeObj] = useState({});
     const [isWorkingApi, setIsworkingApi] = useState(false);
+    const [isDeleting, setIsDeleting] = useState("");
     const [fullLeavetypes, setFullLeavetypes] = useState([]);
     const [leaveTypeName, setLeavTypeName] = useState("");
     const [isChangeLeavetype, setIsChangeLeaveType] = useState({
@@ -25,6 +27,7 @@ export default function LeaveDetails() {
 
     async function deleteLeaveType(leaveData) {
         try {
+            setIsDeleting(leaveData._id)
             const res = await axios.delete(`${url}/api/leave-type/${leaveData._id}`, {
                 headers: {
                     Authorization: data.token || ""
@@ -33,7 +36,11 @@ export default function LeaveDetails() {
             toast.success(res.data.message);
             fetchLeavetypes();
         } catch (error) {
-
+            if (error?.message === "Network Error") {
+                navigate("/network-issue")
+            }
+        } finally {
+            setIsDeleting("")
         }
     }
 
@@ -50,8 +57,11 @@ export default function LeaveDetails() {
             toast.success(res.data.message);
             handleChangeLeavetype("Edit")
         } catch (error) {
+            if (error?.message === "Network Error") {
+                navigate("/network-issue")
+            }
             console.log(error);
-            toast.error(error.response.data.error)
+            toast.error(error?.response?.data?.error)
         } finally {
             setIsworkingApi(false);
         }
@@ -70,8 +80,11 @@ export default function LeaveDetails() {
             handleChangeLeavetype("Add")
             toast.success(res.data.message)
         } catch (error) {
+            if (error?.message === "Network Error") {
+                navigate("/network-issue")
+            }
             console.log(error);
-            toast.error(error.response.data.error)
+            toast.error(error?.response?.data?.error)
         } finally {
             setIsworkingApi(false);
         }
@@ -91,7 +104,7 @@ export default function LeaveDetails() {
         } else if (type === "Delete") {
             deleteLeaveType(value)
         } else {
-            if(isChangeLeavetype.isAdd){
+            if (isChangeLeavetype.isAdd) {
                 setLeaveTypeObj({})
             }
             setIsChangeLeaveType((pre) => ({
@@ -128,6 +141,9 @@ export default function LeaveDetails() {
             setLeavetypes(res.data);
             setFullLeavetypes(res.data);
         } catch (error) {
+            if (error?.message === "Network Error") {
+                navigate("/network-issue")
+            }
             setLeavetypes([])
             console.log(error);
         } finally {
@@ -158,7 +174,7 @@ export default function LeaveDetails() {
                             height={"50vh"}
                         /> :
                             leaveTypes.length > 0 ?
-                                <LeaveTable data={leaveTypes} handleChangeLeavetype={handleChangeLeavetype} />
+                                <LeaveTable data={leaveTypes} isLoading={isDeleting} handleChangeLeavetype={handleChangeLeavetype} />
                                 : <NoDataFound message={"Leave Type data not found"} />
                     }
                 </div>

@@ -1,5 +1,9 @@
 const mongoose = require("mongoose");
 const Joi = require("joi");
+const schedule = require("node-schedule");
+const { Employee } = require("./EmpModel");
+const { sendPushNotification } = require("../auth/PushNotification");
+const sendMail = require("../routes/mailSender");
 
 const TrackerSchema = new mongoose.Schema({
     date: { type: Date },
@@ -45,8 +49,136 @@ const taskSchema = new mongoose.Schema({
     comments: [{ type: commentSchema, default: null }],
     estTime: { type: Number },
     createdby: { type: mongoose.Schema.Types.ObjectId, ref: "Employee" },
-    project: { type: mongoose.Schema.Types.ObjectId, ref: "Project" }
+    project: { type: mongoose.Schema.Types.ObjectId, ref: "Project" },
+    category: {type: mongoose.Schema.Types.ObjectId, ref: "PlannerCategory"}
 }, { timestamps: true })
+
+taskSchema.post("save", async function (doc) {
+    const task = doc.toObject();
+    const { remind = [], createdby, assignedTo } = task;
+    let [creator, assignees] = await Promise.all([
+        Employee.findById(createdby, "FirstName LastName Email fcmToken company").populate("company", "CompanyName logo"),
+        Employee.find({ _id: { $in: assignedTo } }, "FirstName LastName Email fcmToken company").populate("company", "CompanyName logo")
+    ])
+
+    if (!Array.isArray(remind) || remind.length === 0) return;
+
+    remind.forEach((reminder) => {
+        const reminderDate = new Date(reminder.on);
+        if (reminderDate <= new Date()) return; // Skip past reminders
+
+        schedule.scheduleJob(reminderDate, async () => {
+
+            const title = "Task Reminder Notification";
+            const message = `You have a task reminder: ${task.title}`;
+
+            // Fetch full creator & assignees if needed here using Task.populate()
+
+            if (["Creator", "Self"].includes(reminder.for)) {
+                if (creator?.fcmToken) {
+                    await sendPushNotification({
+                        token: creator.fcmToken,
+                        title,
+                        body: message,
+                        // company: creator.company
+                    });
+                }
+
+                await sendMail({
+                    From:`<${process.env.FROM_MAIL}> (Nexshr)`,
+                    To: creator.Email,
+                    Subject: title,
+                    TextBody: message
+                });
+            } else {
+                const employees = Array.isArray(assignees) ? assignees : [assignees];
+
+                for (const emp of employees) {
+                    if (!emp?.Email) continue;
+
+                    if (emp.fcmToken) {
+                        await sendPushNotification({
+                            token: emp.fcmToken,
+                            title,
+                            body: message,
+                            // company: emp.company || creator.company
+                        });
+                    }
+
+                    await sendMail({
+                        From: `<${creator.Email}> (Nexshr)`,
+                        To: emp.Email,
+                        Subject: title,
+                        TextBody: message
+                    });
+                }
+            }
+        });
+    });
+});
+
+taskSchema.post("findOneAndUpdate", async function (doc) {
+    const task = doc.toObject();
+    const { remind = [], createdby, assignedTo } = task;
+    let [creator, assignees] = await Promise.all([
+        Employee.findById(createdby, "FirstName LastName Email fcmToken company").populate("company", "CompanyName logo"),
+        Employee.find({ _id: { $in: assignedTo } }, "FirstName LastName Email fcmToken company").populate("company", "CompanyName logo")
+    ])
+
+    if (!Array.isArray(remind) || remind.length === 0) return;
+
+    remind.forEach((reminder) => {
+        const reminderDate = new Date(reminder.on);
+        if (reminderDate <= new Date()) return; // Skip past reminders
+
+        schedule.scheduleJob(reminderDate, async () => {
+
+            const title = "Task Reminder Notification";
+            const message = `You have a task reminder: ${task.title}`;
+
+            // Fetch full creator & assignees if needed here using Task.populate()
+
+            if (["Creator", "Self"].includes(reminder.for)) {
+                if (creator?.fcmToken) {
+                    await sendPushNotification({
+                        token: creator.fcmToken,
+                        title,
+                        body: message,
+                        // company: creator.company
+                    });
+                }
+
+                await sendMail({
+                    From: `<${process.env.FROM_MAIL}> (Nexshr)`,
+                    To: creator.Email,
+                    Subject: title,
+                    TextBody: message
+                });
+            } else {
+                const employees = Array.isArray(assignees) ? assignees : [assignees];
+
+                for (const emp of employees) {
+                    if (!emp?.Email) continue;
+
+                    if (emp.fcmToken) {
+                        await sendPushNotification({
+                            token: emp.fcmToken,
+                            title,
+                            body: message
+                        });
+                    }
+
+                    await sendMail({
+                        From: `<${creator.Email}> (Nexshr)`,
+                        To: emp.Email,
+                        Subject: title,
+                        TextBody: message
+                    });
+                }
+            }
+        });
+    });
+});
 
 const Task = mongoose.model("Task", taskSchema);
 
@@ -61,7 +193,7 @@ const taskValidation = Joi.object({
         .required()
         .label('Priority'),
     subTask: Joi.any().optional(),
-    remindOn: Joi.any().optional(),
+    remind: Joi.any().optional(),
     dependantTasks: Joi.any().optional(),
     observers: Joi.any().optional(),
     participants: Joi.any().optional(),
@@ -91,7 +223,7 @@ const taskValidation = Joi.object({
     spend: Joi.any().label("Spend"),
     comments: Joi.any().label("Comments"),
     trash: Joi.boolean().allow("", null).label("Trash"),
-    project: Joi.string().regex(/^[0-9a-fA-F]{24}$/).required().label('Project ID'),
+    project: Joi.string().regex(/^[0-9a-fA-F]{24}$/).optional().label('Project ID'),
 });
 
 module.exports = {

@@ -50,14 +50,12 @@ export default function Twotabs() {
   const { whoIs } = useContext(EssentialValues);
   const navigate = useNavigate();
   const { data } = useContext(EssentialValues);
-
   const { annualLeave, _id } = data;
   const [value, setValue] = useState(0);
   const [takenLeave, setTakenLeave] = useState(0);
   const today = new Date();
-  const [leaveRequests, setLeaveRequests] = useState([]);
+  const [leaveRequests, setLeaveRequests] = useState({});
   const [isLoading, setIsLoading] = useState(false);
-  const [selectedDate, setSelectedDate] = useState("");
   const [leaveData, setLeaveData] = useState([]);
 
   const handleChange = (event, newValue) => {
@@ -71,13 +69,10 @@ export default function Twotabs() {
       setIsLoading(true)
       if (_id) {
         const leaveReqs = await fetchLeaveRequests(_id);
-        console.log(leaveReqs);
-
         if (leaveReqs?.leaveApplications?.length > 0) {
-          setLeaveRequests(leaveReqs.leaveApplications);
+          setLeaveRequests(leaveReqs);
 
           leaveReqs.leaveApplications.forEach((req) => {
-            // if (req.status === "pending" || req.status === "approved") {
             if (req.status === "approved" && !["Permission Leave", "Unpaid Leave (LWP)"].includes(req.leaveType)) {
               const dayDifference = Math.ceil(getDayDifference(req));
               setTakenLeave(prev => prev + Number(dayDifference.toFixed(2)));  // Set this to the correct unit (e.g., days)
@@ -98,7 +93,7 @@ export default function Twotabs() {
   }, []);
 
   useEffect(() => {
-    async function getAllEmpLeaveData() {
+    async function getEmpAllLeaveData() {
       setIsLoading(true);
       try {
         const res = await fetchLeaveRequests(data._id);
@@ -108,28 +103,39 @@ export default function Twotabs() {
           end: new Date(leave.toDate),
           status: leave.status
         })))
-      } catch (error) {
+     } catch (error) {
+         if (error?.message === "Network Error") {
+                navigate("/network-issue")
+            }
         console.log(error);
       }
       setIsLoading(false)
     }
     // if (["2", "3"].includes(data.Account)) {
-    getAllEmpLeaveData();
+    getEmpAllLeaveData();
     // }
   }, [])
 
   function getTodoList(date) {
-    if (!date) {
-      return [];
-    }
+    if (!date) return [];
 
-    return leaveData.filter((leave) => {
-      return leave.start.toDateString() === date.toDateString();
+    const current = new Date(date);
+    current.setHours(0, 0, 0, 0); // Normalize time
+
+    return leaveData?.filter((leave) => {
+      const start = new Date(leave.start);
+      const end = new Date(leave.end || leave.start); // fallback to start if no end
+
+      // Normalize time for comparison
+      start.setHours(0, 0, 0, 0);
+      end.setHours(0, 0, 0, 0);
+      return current >= start && current <= end;
     });
   }
 
   const renderMenu = (date) => ({ onClose, right, top, className }, ref) => {
     const list = getTodoList(date);
+
     if (!list.length) {
       return null; // Return null instead of []
     }
@@ -144,7 +150,7 @@ export default function Twotabs() {
     return (
       <Popover ref={ref} className={className} style={{ right, top }} full>
         <Dropdown.Menu onSelect={handleSelect} title="Personal Settings">
-          {list.map((item) => (
+          {list?.map((item) => (
             <Dropdown.Item key={item.start}>{item.title}</Dropdown.Item>
           ))}
         </Dropdown.Menu>
@@ -153,28 +159,46 @@ export default function Twotabs() {
   };
 
   function highlightToLeave(date) {
-    if (!leaveData || !leaveData.length) return null; // Ensure leaveData exists
+    if (!leaveData || !leaveData.length) return null;
 
-    // Filter leaveData based on date comparison
-    const isLeave = leaveData.filter((leave) => {
-      const leaveDate = new Date(leave.start); // Ensure `leave.start` is a Date object
-      return leaveDate.toDateString() === date.toDateString();
+    // Find if the given date falls within any leave range
+    const matchedLeave = leaveData.find((leave) => {
+      const start = new Date(leave.start);
+      const end = new Date(leave.end || leave.start); // fallback if no end
+
+      // Normalize time to 00:00:00 for comparison
+      start.setHours(start.getHours(), start.getMinutes(), start.getSeconds(), 0);
+      end.setHours(end.getHours(), end.getMinutes(), end.getSeconds(), 0);
+      const current = new Date(date);
+      current.setHours(0, 0, 0, 0);
+      
+      if (leaveRequests?.calendarLeaveApps?.includes(current.toLocaleDateString("en-GB"))) {
+        return current.toLocaleDateString() === start.toLocaleDateString() || (current >= start && current <= end);
+      }
     });
 
-    if (isLeave.length > 0) {
-      const leaveStatus = isLeave[0].status; // Get status from the first matched leave
+    if (matchedLeave) {
+      const leaveStatus = matchedLeave.status;
 
       return (
         <Whisper placement="bottomEnd" trigger="click" speaker={renderMenu(date)}>
           <div style={{ width: "20px", height: "20px" }}>
-            <Badge className={`calendar-todo-item-badge ${leaveStatus === "pending" ? "bg-warning" : leaveStatus === "approved" ? "bg-success" : ""}`} />
+            <Badge
+              className={`calendar-todo-item-badge ${leaveStatus === "pending"
+                ? "bg-warning"
+                : leaveStatus === "approved"
+                  ? "bg-success"
+                  : ""
+                }`}
+            />
           </div>
         </Whisper>
       );
     }
 
-    return null; // Return null if no leave is found
+    return null;
   }
+
 
   return (
     <Box sx={{ width: '100%', borderRadius: '5px', height: "100%", backgroundColor: 'white' }} >
@@ -220,7 +244,7 @@ export default function Twotabs() {
             isLoading ? [...Array(5)].map((item, index) => {
               return <Skeleton variant='rounded' key={index} width={"100%"} className='my-1' height={30} />
             }) :
-              leaveRequests?.map((req, index) => {
+              leaveRequests.leaveApplications?.map((req, index) => {
                 let todayDate = today.getTime()
                 let leaveDate = new Date(req.fromDate).getTime()
                 if (todayDate < leaveDate) {
@@ -236,7 +260,7 @@ export default function Twotabs() {
           <HStack spacing={10} style={{ height: 320 }} alignItems="flex-start" wrap className='position-relative'>
             {
               isLoading ? <Skeleton variant='rounded' width={"100%"} height={300} />
-                : <Calendar compact style={{ width: 320, paddingTop: "0px" }} renderCell={highlightToLeave} onChange={(value) => setSelectedDate(value)} bordered />
+                : <Calendar compact style={{ width: 320, paddingTop: "0px" }} renderCell={highlightToLeave} bordered />
             }
           </HStack>
 

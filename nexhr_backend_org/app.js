@@ -45,8 +45,9 @@ const payslipInfo = require("./routes/payslipInfo");
 const payslip = require("./routes/payslip");
 const userPermission = require("./routes/user-permission");
 const pageAuth = require("./routes/page-auth");
-const organization = require("./routes/organization");
-const userAccount = require("./routes/user-account");
+// const organization = require("./routes/organization");
+// const userAccount = require("./routes/user-account");
+const plannerType = require("./routes/planner-type");
 const { imgUpload } = require('./routes/imgUpload');
 const holidays = require("./routes/holidays");
 const report = require("./routes/reports");
@@ -111,7 +112,7 @@ app.get("/", (req, res) => {
 });
 
 // Routers
-app.use("/api/user-account", userAccount);
+// app.use("/api/user-account", userAccount);
 app.use("/api/company", company);
 app.use("/api/login", login);
 app.use("/api/role", role);
@@ -122,7 +123,7 @@ app.use("/api/country", country);
 app.use("/api/employee", employee);
 app.use("/api/family-info", familyInfo);
 app.use("/api/personal-info", personalInfo);
-app.use("/api/organization", organization);
+// app.use("/api/organization", organization);
 app.use("/api/payroll", payroll);
 app.use("/api/payslip", payslip);
 app.use("/api/education", education);
@@ -153,6 +154,7 @@ app.use("/api/google-sheet/upload", fileData);
 app.use("/api/mail-settings", mailSettings);
 app.use("/api/wfh-application", wfhRouter);
 app.use("/api/email-template", emailTemplate);
+app.use("/api/planner", plannerType)
 app.post("/push-notification", sendPushNotification);
 app.post("/verify_completed_workinghour", verifyWorkingTimeCompleted);
 app.post("/ask-reason-for-delay", askReasonForDelay);
@@ -185,7 +187,7 @@ async function fetchTimePatterns() {
       });
 
       // send mail and apply fullday leave
-      schedule.scheduleJob(`0 ${finishingMin - 5} ${finishingHour} * * 1-5`, async function () {
+      schedule.scheduleJob(`0 ${finishingMin - 5} ${finishingHour} * * *`, async function () {
         try {
           const response = await axios.post(`${process.env.REACT_APP_API_URL}/api/clock-ins/not-login/apply-leave/${pattern._id}`);
           console.log("Apply Leave for Not-login Triggered:", response.data.message);
@@ -193,23 +195,12 @@ async function fetchTimePatterns() {
           console.error("Logout Error:", error);
         }
       })
-
-      // Schedule job for logout
-      // schedule.scheduleJob(`0 ${finishingMin} ${finishingHour} * * 1-5`, async function () {
-      //   try {
-      //     const response = await axios.post(`${process.env.REACT_APP_API_URL}/api/clock-ins/ontime/logout`);
-      //     console.log("Logout Triggered:", response.data.message);
-      //   } catch (error) {
-      //     console.error("Logout Error:", error);
-      //   }
-      // });
     });
   } catch (error) {
     console.error("Error fetching time patterns:", error);
   }
 }
 
-// Call function to schedule jobs
 fetchTimePatterns();
 
 schedule.scheduleJob("0 10 * * 1-5", async () => {

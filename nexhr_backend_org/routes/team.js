@@ -9,7 +9,6 @@ const sendInvitationEmail = async (emp, roleLabel, team, creator) => {
     const frontendUrl = process.env.REACT_APP_API_URL;
     const empName = `${emp.FirstName[0].toUpperCase() + emp.FirstName.slice(1)} ${emp.LastName}`;
     const CompanyName = creator.company.CompanyName;
-    console.log(creator.company);
 
     const emailContent = `
         <div style="text-align: center;">
@@ -31,7 +30,7 @@ const sendInvitationEmail = async (emp, roleLabel, team, creator) => {
     `;
 
     await sendMail({
-        From: creator.Email,
+        From: `<${creator.Email}> (Nexshr)`,
         To: emp.Email,
         Subject: `You're invited to join the ${team.teamName} team at ${CompanyName}`,
         HtmlBody: emailContent
@@ -50,7 +49,8 @@ router.get("/", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
 
 router.get("/members/:id", verifyTeamHigherAuthorityEmp, async (req, res) => {
     try {
-        const who = req.params.who ? "lead" : req.params.who ? "head" : req.params.who ? "manager" : "employees"
+        const who = req.query.who;
+        // const who = req.params.who ? "lead" : req.params.who ? "head" : req.params.who ? "manager" : "employees"
         const response = await Team.findOne({ [who]: req.params.id })
             .populate({
                 path: "employees",
@@ -141,7 +141,7 @@ router.post("/:id", verifyAdminHR, async (req, res) => {
         const creator = await Employee.findById(req.params.id, "FirstName LastName company Email").populate("company", "logo CompanyName");
         if (!creator) return res.status(404).json({ error: "Creator not found!" });
 
-        const { teamName, lead, head, manager, employees, admin, hr } = req.body;
+        const { teamName, lead=[], head=[], manager=[], employees=[], admin=[], hr=[] } = req.body;
         const existingTeam = await Team.findOne({ teamName });
         if (existingTeam) return res.status(400).json({ error: `Team "${teamName}" already exists!` });
 
@@ -153,22 +153,24 @@ router.post("/:id", verifyAdminHR, async (req, res) => {
             employees: allMemberIds,
             createdBy: req.params.id,
         });
+        
+      await Promise.all(
+  Object.entries(roles).flatMap(([role, ids]) => {
+    if (!Array.isArray(ids) || ids.length === 0) return [];
 
-        await Promise.all(
-            Object.entries(roles).flatMap(([role, ids]) =>
-                ids.map(async (memberId) => {
-                    const emp = await Employee.findById(memberId, "FirstName LastName Email fcmToken").populate("company", "CompanyName logo");
-                    if (!emp) return;
+    return ids.map(async (memberId) => {
 
-                    emp.team = newTeam._id;
-                    await emp.save();
+      const emp = await Employee.findById(memberId, "FirstName LastName Email fcmToken").populate("company", "CompanyName logo");
+      if (!emp) return;
 
-                    const roleLabel = role === "employees" ? "Employee" : role.charAt(0).toUpperCase() + role.slice(1);
-                    await sendInvitationEmail(emp, roleLabel, req.body, creator);
-                })
-            )
-        );
+      emp.team = newTeam._id;
+      await emp.save();
 
+      const roleLabel = role === "employees" ? "Employee" : role.charAt(0).toUpperCase() + role.slice(1);
+      await sendInvitationEmail(emp, roleLabel, req.body, creator);
+    });
+  })
+);
         res.json({ message: `New team "${newTeam.teamName}" has been added!`, newTeam });
 
     } catch (error) {
@@ -177,7 +179,7 @@ router.post("/:id", verifyAdminHR, async (req, res) => {
     }
 });
 
-router.put("/:id", verifyAdminHRTeamHigherAuth, async (req, res) => {
+router.put("/:id", verifyAdminHR, async (req, res) => {
     try {
         const { error } = TeamValidation.validate(req.body);
         if (error) return res.status(400).json({ error: error.details[0].message });

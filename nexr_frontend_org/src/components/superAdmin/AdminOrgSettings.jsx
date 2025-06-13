@@ -5,9 +5,11 @@ import { EssentialValues } from '../../App';
 import Loading from '../Loader';
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 import { toast } from 'react-toastify';
+import { useNavigate } from 'react-router-dom';
 
 const AdminOrgSettings = ({ organizations }) => {
     const url = process.env.REACT_APP_API_URL;
+    const navigate = useNavigate();
     const { data } = useContext(EssentialValues)
     const [mailSettingsObj, setMailSettingsObj] = useState({});
     const [mailSettings, setMailSettings] = useState([]);
@@ -36,7 +38,10 @@ const AdminOrgSettings = ({ organizations }) => {
                 }
             })
             setMailSettings(res.data)
-        } catch (error) {
+       } catch (error) {
+         if (error?.message === "Network Error") {
+                navigate("/network-issue")
+            }
             console.log(error);
         } finally {
             setIsLoading(false)
@@ -57,7 +62,10 @@ const AdminOrgSettings = ({ organizations }) => {
             toast.success(res.data.message);
             fetchMailSettings();
             setIsChangeMail(false)
-        } catch (error) {
+       } catch (error) {
+         if (error?.message === "Network Error") {
+                navigate("/network-issue")
+            }
             console.log(error);
         }
     }

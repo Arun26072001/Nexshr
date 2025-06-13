@@ -14,7 +14,7 @@ const Payslip = ({ payslips, isLoading }) => {
                     Payslip
                 </p>
                 <div>
-                    <DateRangePicker size="lg" showOneCalendar placement="bottomEnd" value={daterangeValue} placeholder="Select Date" onChange={setDaterangeValue} />
+                    <DateRangePicker size="lg" showOneCalendar placement="bottomEnd" value={daterangeValue} placeholder="Filter Range of Date" onChange={setDaterangeValue} />
                 </div>
             </div>
 

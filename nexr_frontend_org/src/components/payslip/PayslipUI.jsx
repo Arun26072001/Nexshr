@@ -72,7 +72,10 @@ export default function PayslipUI() {
                 if (payslipInfo?.payslipFields) {
                     setPayslipFields(payslipInfo?.payslipFields);
                 }
-            } catch (error) {
+           } catch (error) {
+         if (error?.message === "Network Error") {
+                navigate("/network-issue")
+            }
                 console.log(error);
                 toast.error(error);
             }
@@ -96,7 +99,6 @@ export default function PayslipUI() {
                         totalEarnings += fieldValue;
                     }
                 } else {
-
                     totalDeductions += fieldValue;
                 }
             }
@@ -171,16 +173,16 @@ export default function PayslipUI() {
                             <div>
                                 <div className="boxBorder">
                                     <div style={{ background: "#D6EFD8" }}>
-                                        <p className='rupeeFont'>₹{payslips?.employee?.basicSalary || 0}</p>
+                                        <p className='rupeeFont'>₹{payslips?.payslip?.basicSalary || 0}</p>
                                         <p className='payslipTxt'>Employee Net Pay</p>
                                     </div>
                                     <div className=''>
                                         <p className='payslipTxt'>Paid Days: {payslips?.payslip?.paidDays}</p>
-                                        <p className='payslipTxt'>LOP Days: {payslips?.payslip?.LossOfPay || 0}</p>
+                                        <p className='payslipTxt'>LOP Days: {payslips?.payslip?.lopDays || 0}</p>
                                     </div>
                                 </div>
                             </div>
-                        </div>
+                        </div>cam
 
                         {/* Employee Bank and Division */}
                         <div className='d-flex payslipHeader py-3'>

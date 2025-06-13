@@ -13,14 +13,14 @@ import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
 import KeyboardArrowDownRoundedIcon from '@mui/icons-material/KeyboardArrowDownRounded';
 import Loading from '../../Loader';
 import { convertTimeStringToDate, processActivityDurations, updateDataAPI } from '../../ReuseableAPI';
+import { useNavigate } from 'react-router-dom';
 
 export default function Navbar({ handleSideBar }) {
     const { handleLogout, data, handleUpdateAnnouncements, isChangeAnnouncements, whoIs,
         changeViewReasonForEarlyLogout, isViewEarlyLogout, setIsStartLogin } = useContext(EssentialValues)
     const { startLoginTimer, stopLoginTimer, workTimeTracker, isStartLogin,
-        trackTimer, changeReasonForEarly, setWorkTimeTracker, updateClockins,
-        isWorkingLoginTimerApi, setIsWorkingLoginTimerApi, isForgetToPunchOut,
-        setIsForgetToPunchOut } = useContext(TimerStates);
+        trackTimer, changeReasonForEarly, setWorkTimeTracker, isWorkingLoginTimerApi,
+        setIsWorkingLoginTimerApi, isForgetToPunchOut } = useContext(TimerStates);
     const [sec, setSec] = useState(workTimeTracker?.login?.timeHolder?.split(':')[2])
     const [min, setMin] = useState(workTimeTracker?.login?.timeHolder?.split(':')[1])
     const [hour, setHour] = useState(workTimeTracker?.login?.timeHolder?.split(':')[0])
@@ -32,6 +32,7 @@ export default function Navbar({ handleSideBar }) {
     const [latitude, setLatitude] = useState("");
     const [longitude, setLongitude] = useState("");
     const [isLoading, setIsLoading] = useState(false);
+    const navigate = useNavigate();
     const [workLocation, setWorklocation] = useState(localStorage.getItem("workLocation") || "");
     const worklocationType = ["WFH", "WFO"].map((item) => ({ label: item, value: item }))
 
@@ -56,20 +57,15 @@ export default function Navbar({ handleSideBar }) {
 
     // start and stop timer only
     function stopOnlyTimer() {
-        console.log(workRef.current, isStartLogin);
         if (workRef.current && isStartLogin) {
-            console.log("try to stop");
             clearInterval(workRef.current);
             workRef.current = null;
         }
     }
 
     function startOnlyTimer() {
-        // console.log("call timer only fun: ", workTimeTracker._id, isStartLogin);
         if (!workRef.current) {
-            // if (isStartLogin) {
             workRef.current = setInterval(incrementTime, 1000);
-            // }
         }
     }
 
@@ -127,9 +123,14 @@ export default function Navbar({ handleSideBar }) {
             });
             setIsRemove(totalRemovables);
             setNotifications(res.data);
-            console.log(res.data);
         } catch (error) {
-            console.log("error in fetch notifications", error);
+            if (error?.message === "Network Error") {
+                navigate("/network-issue")
+            }
+            if (error?.message === "Network Error") {
+                navigate("/network-issue")
+            }
+            console.log("error in fetch notifications", error.message);
         } finally {
             setIsLoading(false);
         }
@@ -153,11 +154,14 @@ export default function Navbar({ handleSideBar }) {
         try {
             const res = await axios.post(`${url}/verify_completed_workinghour`, updatedState);
             if (!res.data.isCompleteworkingHours) {
-                checkIsEnterReasonforEarly()
+                changeViewReasonForEarlyLogout()
             } else {
                 stopTimer()
             }
         } catch (error) {
+            if (error?.message === "Network Error") {
+                navigate("/network-issue")
+            }
             console.log("error in check working hour is complated", error);
         }
     }
@@ -172,6 +176,9 @@ export default function Navbar({ handleSideBar }) {
             console.log("updated notifications", res.data.message);
             handleUpdateAnnouncements();
         } catch (error) {
+            if (error?.message === "Network Error") {
+                navigate("/network-issue")
+            }
             console.log("Error in update notifications", error);
         }
     }
@@ -188,6 +195,9 @@ export default function Navbar({ handleSideBar }) {
 
             await updateEmpNotifications(notifications); // Await if it's async
         } catch (error) {
+            if (error?.message === "Network Error") {
+                navigate("/network-issue")
+            }
             console.log("Error clearing messages:", error);
         }
     }
@@ -211,12 +221,15 @@ export default function Navbar({ handleSideBar }) {
                 }
             }, 300);
         } catch (error) {
+            if (error?.message === "Network Error") {
+                navigate("/network-issue")
+            }
             console.log("Error removing message:", error);
         }
     }
 
-    // useHandleTabClose(isStartLogin, workTimeTracker, data.token);
 
+    // trigger this function when add reason for early logout
     function checkIsEnterReasonforEarly() {
         changeViewReasonForEarlyLogout()
         localStorage.removeItem("isViewEarlyLogout");
@@ -251,15 +264,20 @@ export default function Navbar({ handleSideBar }) {
             })
             setWorklocation(res.data ? "WFH" : "WFO")
         } catch (error) {
+            if (error?.message === "Network Error") {
+                navigate("/network-issue")
+            }
             console.log("error in check wfh", error);
         }
     }
-    
+
     async function clockOut() {
         try {
             setIsWorkingLoginTimerApi(true)
             const updatedState = processActivityDurations(workTimeTracker, "login")
             const updatedData = await updateDataAPI(updatedState);
+            setIsStartLogin(false);
+            localStorage.setItem("isStartLogin", false)
             // eslint-disable-next-line no-restricted-globals
             location.reload()
         } catch (err) {
@@ -269,15 +287,33 @@ export default function Navbar({ handleSideBar }) {
         }
     }
 
-    function updateCheckoutTime(time) {
-        const actualTime = new Date(time).toTimeString().split(" ")[0]
+    function removeLastOneNdAddCurrent(actualTime) {
+        const updatedLoginEndTime = workTimeTracker.login.endingTime;
+        updatedLoginEndTime.pop();
+        updatedLoginEndTime.push(actualTime);
+
         setWorkTimeTracker((pre) => ({
             ...pre,
             "login": {
                 ...pre?.login,
-                endingTime: [...(workTimeTracker?.login?.endingTime || []), actualTime],
+                endingTime: updatedLoginEndTime,
             }
         }))
+    }
+
+    function updateCheckoutTime(time) {
+        const actualTime = new Date(time).toTimeString().split(" ")[0];
+        if (workTimeTracker.login.startingTime.length !== workTimeTracker.login.endingTime.length) {
+            setWorkTimeTracker((pre) => ({
+                ...pre,
+                "login": {
+                    ...pre?.login,
+                    endingTime: [...(workTimeTracker?.login?.endingTime || []), actualTime],
+                }
+            }))
+        } else {
+            removeLastOneNdAddCurrent(actualTime)
+        }
     }
 
     useEffect(() => {
@@ -316,7 +352,7 @@ export default function Navbar({ handleSideBar }) {
     // Initialize time based on selected workTimeTracker and timeOption
     useEffect(() => {
         if (workTimeTracker?.login?.timeHolder) {
-            const [newHour, newMin, newSec] = workTimeTracker?.login?.timeHolder?.split(":").map(Number);
+            const [newHour, newMin, newSec] = workTimeTracker?.login?.timeHolder?.split(/[:.]+/).map(Number);
             setHour(newHour);
             setMin(newMin);
             setSec(newSec);
@@ -336,12 +372,17 @@ export default function Navbar({ handleSideBar }) {
                     <p className='modelLabel'>Please Enter the reason</p>
                     <Input size='lg'
                         type='text'
+                        autoComplete='off'
                         onChange={(e) => changeReasonForEarly(e, "forgetToLogout")}
                         value={workTimeTracker?.forgetToLogout} />
                 </div>
                 <div className="modelInput">
                     <p className='modelLabel'>Checkout Time:</p>
-                    <DatePicker value={workTimeTracker?.login?.endingTime?.at(-1) ? convertTimeStringToDate(workTimeTracker?.login?.endingTime?.at(-1)) : null} size='lg' style={{ width: "100%" }} format="HH:mm:ss" onChange={(e) => updateCheckoutTime(e)} />
+                    <DatePicker value={workTimeTracker?.login?.endingTime[workTimeTracker?.login?.startingTime.length - 1] ? convertTimeStringToDate(workTimeTracker?.login?.endingTime?.[workTimeTracker?.login?.startingTime?.length - 1]) : null}
+                        size='lg'
+                        style={{ width: "100%" }}
+                        format="HH:mm:ss"
+                        onChange={(e) => updateCheckoutTime(e)} />
                 </div>
             </Modal.Body>
 
@@ -349,7 +390,7 @@ export default function Navbar({ handleSideBar }) {
                 <Button
                     onClick={clockOut}
                     appearance="primary"
-                    disabled={workTimeTracker.forgetToLogout && workTimeTracker?.login?.endingTime?.length === workTimeTracker?.login?.startingTime?.length  ? false : true}
+                    disabled={workTimeTracker.forgetToLogout && workTimeTracker?.login?.endingTime?.length === workTimeTracker?.login?.startingTime?.length ? false : true}
                 >
                     Add
                 </Button>
@@ -368,6 +409,7 @@ export default function Navbar({ handleSideBar }) {
                             <p>Please Enter reason for early logout</p>
                             <Input size='lg'
                                 type='text'
+                                autoComplete='off'
                                 onChange={(e) => changeReasonForEarly(e, "reasonForEarlyLogout")}
                                 value={workTimeTracker?.login?.reasonForEarlyLogout} />
                         </div>

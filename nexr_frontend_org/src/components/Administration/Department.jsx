@@ -7,13 +7,18 @@ import { getDepartments } from '../ReuseableAPI';
 import CommonModel from './CommonModel';
 import { EssentialValues } from '../../App';
 import { Skeleton } from '@mui/material';
+import { useNavigate } from 'react-router-dom';
+import { TimerStates } from '../payslip/HRMDashboard';
 
-export default function Department({ companies }) {
+export default function Department() {
+    const { companies } = useContext(TimerStates);
+    const navigate = useNavigate();
     const url = process.env.REACT_APP_API_URL;
     const { data } = useContext(EssentialValues);
     const [departmentObj, setDepartmentObj] = useState({});
     const [departments, setDepartments] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
+    const [isDeleting, setIsDeleting] = useState("");
     const [isDepartmentsDataUpdate, setIsDepartmentDataUpdate] = useState(false);
     const [isAddDepartment, setIsAddDepartment] = useState(false);
     const [isChangingDepartment, setIsChangingDepartment] = useState(false);
@@ -48,6 +53,9 @@ export default function Department({ companies }) {
             modifyDepartments();
             reloadDepartmentPage();
         } catch (error) {
+            if (error?.message === "Network Error") {
+                navigate("/network-issue")
+            }
             return toast.error(error?.response?.data?.error)
         }
         setIsChangingDepartment(false);
@@ -55,6 +63,7 @@ export default function Department({ companies }) {
 
     async function deleteDepartment(id) {
         try {
+            setIsDeleting(id)
             const deleteDep = await axios.delete(`${url}/api/department/${id}`, {
                 headers: {
                     Authorization: data.token || ""
@@ -63,8 +72,13 @@ export default function Department({ companies }) {
             toast.success(deleteDep?.data?.message);
             reloadDepartmentPage();
         } catch (error) {
+            if (error?.message === "Network Error") {
+                navigate("/network-issue")
+            }
             console.log(error);
             toast.error(error?.response?.data?.message)
+        } finally {
+            setIsDeleting("")
         }
     }
 
@@ -85,6 +99,9 @@ export default function Department({ companies }) {
             // Reload the department page (or trigger any necessary updates)
             reloadDepartmentPage();
         } catch (error) {
+            if (error?.message === "Network Error") {
+                navigate("/network-issue")
+            }
             // Show an error toast with the message from the API (or a generic error message if not available)
             const errorMessage = error?.response?.data?.message || error.message || "Something went wrong";
             toast.error(errorMessage);
@@ -103,6 +120,9 @@ export default function Department({ companies }) {
             setDepartmentObj(department.data);
             modifyDepartments();
         } catch (error) {
+            if (error?.message === "Network Error") {
+                navigate("/network-issue")
+            }
             console.log(error);
             toast.error(error);
         }
@@ -115,6 +135,9 @@ export default function Department({ companies }) {
                 const departmentsData = await getDepartments();
                 setDepartments(departmentsData);
             } catch (error) {
+                if (error?.message === "Network Error") {
+                    navigate("/network-issue")
+                }
                 toast.error(error);
             }
             setIsLoading(false);
@@ -148,7 +171,7 @@ export default function Department({ companies }) {
                         height={"50vh"}
                     /> :
                         departments.length > 0 ?
-                            <LeaveTable data={departments} deleteData={deleteDepartment} fetchData={getEditDepartmentId} />
+                            <LeaveTable data={departments} deleteData={deleteDepartment} isLoading={isDeleting} fetchData={getEditDepartmentId} />
                             : <NoDataFound message={"Departments data not found"} />
                 }
             </div>

@@ -6,7 +6,6 @@ const wfhSchema = new mongoose.Schema({
     fromDate: { type: Date },
     toDate: { type: Date },
     numOfDays: { type: Number },
-    // createdBy: { type: mongoose.Schema.Types.ObjectId, ref: "Employee" },
     reason: { type: String },
     rejectionReason: { type: String },
     status: { type: String },
@@ -24,7 +23,9 @@ const WFHAppValidation = Joi.object({
     updatedAt: Joi.any().optional(),
     employee: Joi.string().required(),
     fromDate: Joi.date().required(),
-    toDate: Joi.date().required(),
+    toDate: Joi.date().greater(Joi.ref("fromDate")).required().messages({
+      'date.greater': '"toDate" must be greater than "fromDate"',
+    }),
     numOfDays: Joi.number().positive().required(),
     reason: Joi.string().max(500).required(),
     rejectionReason: Joi.string().max(500).allow('', null).optional(),

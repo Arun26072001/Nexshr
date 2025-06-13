@@ -6,8 +6,10 @@ import LeaveTable from '../LeaveTable';
 import { EssentialValues } from '../../App';
 import NoDataFound from '../payslip/NoDataFound';
 import { Skeleton } from '@mui/material';
+import { useNavigate } from 'react-router-dom';
 
 const Announce = () => {
+    const navigate = useNavigate();
     const url = process.env.REACT_APP_API_URL;
     const [announcements, setAnnouncements] = useState([]);
     const [changeAnnouncement, setChangeAnnouncement] = useState(false);
@@ -30,7 +32,10 @@ const Announce = () => {
                 // Show success notification
                 toast.success(response.data.message);
                 handleChangeAnnouncement()
-            } catch (error) {
+           } catch (error) {
+         if (error?.message === "Network Error") {
+                navigate("/network-issue")
+            }
                 console.error('Error deleting announcement:', error);
                 toast.error('Failed to delete announcement!');
             }
@@ -47,7 +52,10 @@ const Announce = () => {
                     }
                 });
                 setAnnouncements(response.data.Team || response.data); // Adjust based on your API response structure
-            } catch (error) {
+           } catch (error) {
+         if (error?.message === "Network Error") {
+                navigate("/network-issue")
+            }
                 console.error('Error fetching announcements:', error);
             }
             setIsLoading(false);

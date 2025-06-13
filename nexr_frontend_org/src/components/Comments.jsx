@@ -4,7 +4,6 @@ import axios from 'axios';
 import { useNavigate, useParams } from 'react-router-dom';
 import { EssentialValues } from '../App';
 import { toast } from 'react-toastify';
-import Loading from './Loader';
 import TimerOutlinedIcon from '@mui/icons-material/TimerOutlined';
 import { fileUploadInServer, getTimeFromHour } from './ReuseableAPI';
 import MoreHorizOutlinedIcon from '@mui/icons-material/MoreHorizOutlined';
@@ -120,7 +119,10 @@ export default function Comments() {
             setIsEditCommit(false);
             setIsEditTask(false);
             setEditCommentIndex(null);
-        } catch (error) {
+       } catch (error) {
+         if (error?.message === "Network Error") {
+                navigate("/network-issue")
+            }
             console.error("Error updating task:", error);
             toast.error("Failed to update task.");
         }
@@ -138,7 +140,10 @@ export default function Comments() {
                 }
             })
             console.log(res.data.message);
-        } catch (error) {
+       } catch (error) {
+         if (error?.message === "Network Error") {
+                navigate("/network-issue")
+            }
             console.log("error in update task in comments");
         }
     }
@@ -167,7 +172,10 @@ export default function Comments() {
             setIsAddComment(false);
             setPreviewList([]);
             setCommentObj({});
-        } catch (error) {
+       } catch (error) {
+         if (error?.message === "Network Error") {
+                navigate("/network-issue")
+            }
             console.log(error);
         }
     }
@@ -200,7 +208,10 @@ export default function Comments() {
             setIsEditCommit(false);
             setPreviewList([]);
             setCommentObj({});
-        } catch (error) {
+       } catch (error) {
+         if (error?.message === "Network Error") {
+                navigate("/network-issue")
+            }
             console.error("Error updating task:", error);
             toast.error("Failed to update task.");
         }
@@ -219,7 +230,10 @@ export default function Comments() {
             try {
                 toast.success("Commit has been move trash");
                 updateCommentsInObj(taskObj, "delete comment")
-            } catch (error) {
+           } catch (error) {
+         if (error?.message === "Network Error") {
+                navigate("/network-issue")
+            }
                 console.log(error);
             }
         }
@@ -309,9 +323,12 @@ export default function Comments() {
                     timeHolder: getTimeFromHour(res?.data?.spend?.timeHolder || 0)
                 }
             });
-        } catch (error) {
+       } catch (error) {
+         if (error?.message === "Network Error") {
+                navigate("/network-issue")
+            }
             console.log(error)
-            toast.error(error.response.data.error)
+            toast.error(error?.response?.data?.error)
         }
     }
 
@@ -324,8 +341,11 @@ export default function Comments() {
             })
             toast.success(res.data.message);
             navigate(`/${whoIs}/tasks`);
-        } catch (error) {
-            toast.error(error.response.data.error)
+       } catch (error) {
+         if (error?.message === "Network Error") {
+                navigate("/network-issue")
+            }
+            toast.error(error?.response?.data?.error)
         }
     }
 
@@ -397,8 +417,11 @@ export default function Comments() {
                 }
             })
             setProjects(res.data.map((project) => ({ label: project.name, value: project._id })));
-        } catch (error) {
-            toast.error(error.response.data.error)
+       } catch (error) {
+         if (error?.message === "Network Error") {
+                navigate("/network-issue")
+            }
+            toast.error(error?.response?.data?.error)
         }
     }
 

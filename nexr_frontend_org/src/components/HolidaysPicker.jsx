@@ -5,7 +5,7 @@ import { toast } from "react-toastify";
 import DatePanel from "react-multi-date-picker/plugins/date_panel";
 import weekends from "react-multi-date-picker/plugins/highlight_weekends";
 import { Calendar, dayjsLocalizer } from "react-big-calendar";
-import { Button, Input, InputNumber, Modal, Tabs } from "rsuite";
+import { Button, Input, InputNumber, Modal, SelectPicker, Tabs } from "rsuite";
 import dayjs from "dayjs";
 import "react-big-calendar/lib/css/react-big-calendar.css";
 import "./calendar.css";
@@ -14,10 +14,12 @@ import { EssentialValues } from "../App";
 import LeaveTable from "./LeaveTable";
 import { Skeleton } from "@mui/material";
 import Loading from "./Loader";
+import { TimerStates } from "./payslip/HRMDashboard";
 
 const localizer = dayjsLocalizer(dayjs);
 
 function Holiday() {
+    const { companies } = useContext(TimerStates);
     const [holidays, setHolidays] = useState([]);
     const [titles, setTitles] = useState({});
     const [holidayObj, setHolidayObj] = useState({});
@@ -105,7 +107,7 @@ function Holiday() {
             const method = changeHoliday.isEdit ? axios.put : axios.post;
             const endpoint = changeHoliday.isEdit
                 ? `${url}/api/holidays/${holidayObj._id}`
-                : `${url}/api/holidays`;
+                : `${url}/api/holidays/${data._id}`;
 
             const res = await method(endpoint, payload, {
                 headers: { Authorization: data.token }
@@ -151,7 +153,7 @@ function Holiday() {
     });
 
     const renderHolidayForm = () => (
-        <Modal open={changeHoliday.isEdit || changeHoliday.isAdd} size="sm" backdrop="static">
+        <Modal open={changeHoliday.isEdit || changeHoliday.isAdd} size="sm" backdrop="static" onClose={() => toggleHolidayMode(changeHoliday.isEdit ? "Edit" : "Add")} >
             <Modal.Header>
                 <Modal.Title>
                     {`${changeHoliday.isEdit ? "Edit" : "Add"} Holidays`}
@@ -161,6 +163,20 @@ function Holiday() {
                 <>
                     <div className="d-flex justify-content-center gap-2">
                         <div className="col-half">
+                            <div className="modelInput">
+                                <p className='modelLabel important'>Select Company </p>
+                                <SelectPicker value={holidayObj?.company} onChange={(e) => fillHolidayObj(e, "company")} style={{ width: "100%" }} size="lg" data={companies} />
+                            </div>
+                        </div>
+                        <div className="col-half">
+                            <div className="modelInput">
+                                <p className='modelLabel important'>Holiday Year</p>
+                                <InputNumber size="lg" value={holidayObj?.currentYear} onChange={(val) => fillHolidayObj(val, "currentYear")} />
+                            </div>
+                        </div>
+                    </div>
+                    <div className="d-flex justify-content-center gap-2 px-1">
+                        <div className="col-full">
                             <div className="modelInput">
                                 <p className='modelLabel important'>Select Holidays </p>
                                 <DatePicker
@@ -172,12 +188,6 @@ function Holiday() {
                                     plugins={[<DatePanel key="panel" />, weekends()]}
                                     placeholder="Select holidays"
                                 />
-                            </div>
-                        </div>
-                        <div className="col-half">
-                            <div className="modelInput">
-                                <p className='modelLabel important'>Holiday Year</p>
-                                <InputNumber size="lg" value={holidayObj?.currentYear} onChange={(val) => fillHolidayObj(val, "currentYear")} />
                             </div>
                         </div>
                     </div>
@@ -215,14 +225,16 @@ function Holiday() {
 
     return (
         isEditable ? renderHolidayForm() :
-            whoIs === "emp" ? <Calendar
-                localizer={localizer}
-                events={fetchedHolidays}
-                startAccessor="start"
-                endAccessor="end"
-                eventPropGetter={eventPropGetter}
-                style={{ height: 500 }}
-            /> :
+            whoIs === "emp" ?
+                (fetchedHolidays.length > 0 ?
+                    <Calendar
+                        localizer={localizer}
+                        events={fetchedHolidays}
+                        startAccessor="start"
+                        endAccessor="end"
+                        eventPropGetter={eventPropGetter}
+                        style={{ height: 500 }}
+                    /> : <h3 className="notFoundText" style={{ height: "100vh" }}>The current year's holidays have not been added yet.</h3>) :
                 <Tabs defaultActiveKey="1" appearance="pills">
                     <Tabs.Tab eventKey="1" title="TableView">
                         <>
@@ -232,7 +244,11 @@ function Holiday() {
                                     <button className="button mx-1" onClick={() => toggleHolidayMode("Add")}>Add Holidays</button>
                                 </div>
                             </div>
-                            <LeaveTable data={allYearHoliday} deleteData={deleteHoliday} handleChangeData={toggleHolidayMode} />
+                            {
+                                allYearHoliday.length > 0 ?
+                                    <LeaveTable data={allYearHoliday} deleteData={deleteHoliday} handleChangeData={toggleHolidayMode} /> :
+                                    <h3 className="notFoundText" style={{ height: "60vh" }}>Data not found</h3>
+                            }
                         </>
                     </Tabs.Tab>
                     <Tabs.Tab eventKey="2" title="CalendarView">

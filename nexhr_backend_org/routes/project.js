@@ -11,6 +11,8 @@ const { sendPushNotification } = require('../auth/PushNotification');
 
 router.get("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
   try {
+    console.log("calling...");
+
     const project = await Project.findById(req.params.id)
     if (!project) {
       return res.status(200).send({ message: "Project" })
@@ -23,6 +25,7 @@ router.get("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
 
 router.get("/", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
   try {
+
     const projects = await Project.find({ trash: false }, "-trash -tracker")
       .populate("company", "CompanyName")
       .populate("employees", "FirstName LastName Email")
@@ -32,7 +35,7 @@ router.get("/", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
       const { tasks } = project;
       const completedTasksCount = tasks.filter(task => task.status === "Completed").length;
       const progress = tasks.length ? (completedTasksCount / tasks.length) * 100 : 0;
-      const pendingTasks = tasks.filter(task => task.status !== "Completed");
+      const pendingTasks = tasks.filter(task => task.status === "Pending");
 
       return {
         ...project.toObject(),
@@ -63,14 +66,29 @@ router.get("/employees/:projectId", verifyAdminHREmployeeManagerNetwork, async (
 
 router.get("/emp/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
   try {
-    const projects = await Project.find({ employees: { $in: req.params.id }, trash: false }, "-tasks -reports -tracker")
+    const projects = await Project.find({ employees: { $in: req.params.id }, trash: false }, "-trash -tracker")
       .populate({ path: "company", select: "CompanyName" })
       .populate({ path: "employees", select: "FirstName LastName Email" })
       .populate({ path: "tasks" })
       .exec();
 
-    return res.send(projects);
+    const formattedProjects = projects.map((project) => {
+      const { tasks } = project;
+      const completedTasksCount = tasks.filter(task => task.status === "Completed").length;
+      const progress = tasks.length ? (completedTasksCount / tasks.length) * 100 : 0;
+      const pendingTasks = tasks.filter(task => task.status === "Pending");
+
+      return {
+        ...project.toObject(),
+        progress,
+        pendingTasks
+      };
+    });
+
+    return res.send(formattedProjects);
   } catch (error) {
+    console.log("error in fetch emp projects", error);
+
     return res.status(500).send({ error: error.message })
   }
 })
@@ -122,7 +140,7 @@ router.post("/:id", verifyAdminHRTeamHigherAuth, async (req, res) => {
       assignees.map(async (emp) => {
         // Send Email
         await sendMail({
-          From: creator.Email,
+          From: `<${creator.Email}> (Nexshr)`,
           To: emp.Email,
           Subject,
           HtmlBody: projectMailContent(emp, creator, creator.company, req.body, "project")
@@ -145,7 +163,7 @@ router.post("/:id", verifyAdminHRTeamHigherAuth, async (req, res) => {
               token: fullEmp.fcmToken,
               title: Subject,
               body: message,
-              company: creator.company
+              // company: creator.company
             });
           }
         }
@@ -166,10 +184,6 @@ router.post("/:id", verifyAdminHRTeamHigherAuth, async (req, res) => {
 
 router.put("/:empId/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
   try {
-    // Clean up input
-    delete req.body['_id'];
-    delete req.body['__v'];
-
     const projectData = await Project.findById(req.params.id);
     const employee = await Employee.findById(req.params.empId);
 
@@ -233,7 +247,7 @@ router.put("/:empId/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) 
     await Promise.all(newAssigneeDocs.map(async (emp) => {
       // Send mail
       await sendMail({
-        From: assignedPerson.Email,
+        From: `<${assignedPerson.Email}> (Nexshr)`,
         To: emp.Email,
         Subject: subject,
         HtmlBody: projectMailContent(emp, assignedPerson, assignedPerson.company, req.body, "project")
@@ -256,7 +270,7 @@ router.put("/:empId/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) 
             token: fullEmp.fcmToken,
             title: subject,
             body: notifyMessage,
-            company: assignedPerson.company
+            // company: assignedPerson.company
           });
         }
       }
@@ -302,6 +316,7 @@ router.delete("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
 
     return res.send({ message: "Project and Tasks were put in trash" });
   } catch (error) {
+    console.log("error in delete project", error);
     return res.status(500).send({ error: error.message });
   }
 });

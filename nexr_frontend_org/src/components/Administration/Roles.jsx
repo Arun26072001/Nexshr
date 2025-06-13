@@ -1,5 +1,4 @@
 import React, { useContext, useEffect, useState } from 'react';
-import Loading from '../Loader';
 import { toast } from 'react-toastify';
 import { fetchRoles } from '../ReuseableAPI';
 import { useNavigate } from 'react-router-dom';
@@ -15,11 +14,13 @@ const Roles = () => {
     const { data } = useContext(EssentialValues);
     const { reloadRolePage } = useContext(TimerStates);
     const [isLoading, setIsLoading] = useState(false);
+    const [isDeleting, setIsDeleting] = useState("");
     const [roles, setRoles] = useState([]);
     const navigate = useNavigate();
 
     async function deleteRoleAndPermission(id) {
         try {
+            setIsDeleting(id);
             const deleteRole = await axios.delete(`${url}/api/role/${id}`, {
                 headers: {
                     Authorization: data.token || ""
@@ -28,8 +29,13 @@ const Roles = () => {
             toast.success(deleteRole?.data?.message);
             reloadRolePage();
         } catch (error) {
+            if (error?.message === "Network Error") {
+                navigate("/network-issue")
+            }
             console.log(error);
             toast.error(error?.response?.data?.message)
+        } finally {
+            setIsDeleting("");
         }
     }
 
@@ -38,8 +44,6 @@ const Roles = () => {
             setIsLoading(true);
             try {
                 const roleData = await fetchRoles();
-                console.log(roleData);
-
                 setRoles(roleData);
             } catch (err) {
                 console.log(err);
@@ -52,7 +56,7 @@ const Roles = () => {
 
     return (
         <div className='dashboard-parent pt-4'>
-            <div className="d-flex justify-content-between px-2">
+            <div className="d-flex justify-content-between px-2 mb-2">
                 <h5 className='text-daily'>Roles</h5>
                 <button className='button m-0' onClick={() => navigate(`add`)}>+ Add Role</button>
             </div>
@@ -64,7 +68,7 @@ const Roles = () => {
                     height={"50vh"}
                 /> :
                     roles.length > 0 ?
-                        <LeaveTable data={roles} deleteData={deleteRoleAndPermission} />
+                        <LeaveTable data={roles} isLoading={isDeleting} deleteData={deleteRoleAndPermission} />
                         : <NoDataFound message={"Roles data not found"} />
             }
         </div>

@@ -45,7 +45,10 @@ const Leave = () => {
             toast.success(res.data.message);
             getLeaveData();
         } catch (error) {
-            toast.error(error.response.data.error)
+            if (error?.message === "Network Error") {
+                navigate("/network-issue")
+            }
+            toast.error(error?.response?.data?.error)
         }
     }
 
@@ -60,11 +63,10 @@ const Leave = () => {
                     authorization: token || ""
                 }
             })
-
             setLeaveRequests(leaveData.data);
             setFullLeaveRequests(leaveData.data.leaveData);
         } catch (err) {
-            toast.error(err?.response?.data?.message)
+            toast.error(err?.response?.data?.error)
         } finally {
             setIsLoading(false);
         }
@@ -85,7 +87,7 @@ const Leave = () => {
                     Leave
                 </p>
                 <div className="col-6 d-flex justify-content-end">
-                    <DateRangePicker size="lg" className="ml-1" showOneCalendar placement="bottomEnd" value={daterangeValue} placeholder="Select Date" onChange={setDaterangeValue} />
+                    <DateRangePicker size="lg" className="ml-1" showOneCalendar placement="bottomEnd" value={daterangeValue} placeholder="Filter Range of Date" onChange={setDaterangeValue} />
                     <button className="button mx-1" onClick={() => navigate(`/${whoIs}/leave-request`)}>
                         Add Leave
                     </button>
@@ -98,7 +100,7 @@ const Leave = () => {
                         <div className="leaveData col-12 col-lg-3">
                             <div className="d-flex flex-column">
                                 <div className="leaveDays">
-                                    {leaveRequests?.approvedLeave?.length} Days
+                                    {leaveRequests?.approvedLeave || 0} Days
                                 </div>
                                 <div className="leaveDaysDesc">
                                     Leave taken
@@ -108,7 +110,7 @@ const Leave = () => {
                         <div className="leaveData col-12 col-lg-3">
                             <div className="d-flex flex-column">
                                 <div className="leaveDays">
-                                    {leaveRequests?.upComingLeave?.length || 0} Days
+                                    {leaveRequests?.upComingLeave || 0} Days
                                 </div>
                                 <div className="leaveDaysDesc">
                                     Upcoming leave
@@ -118,7 +120,7 @@ const Leave = () => {
                         <div className="leaveData col-lg-3 col-12" style={{ borderRight: "none" }} >
                             <div className="d-flex flex-column">
                                 <div className="leaveDays">
-                                    {leaveRequests?.pendingLeave?.length} Days
+                                    {leaveRequests?.pendingLeave || 0} Days
                                 </div>
                                 <div className="leaveDaysDesc">
                                     Pending request
@@ -130,7 +132,6 @@ const Leave = () => {
                 <div className='px-3 my-3'>
                     <div className="row">
                         <div className="col-lg-12 col-12 d-flex justify-content-end">
-                            {/* <input type="text" className='payrunInput' value={empName} onChange={(e) => setEmpName(e.target.value)} placeholder='Search by Leave type' /> */}
                             <Input value={empName} size="lg" style={{ width: "250px" }} placeholder="Search by Leave type" onChange={(e) => setEmpName(e)} />
                         </div>
                     </div>

@@ -2,9 +2,10 @@ import React, { useState, useEffect, useContext } from 'react';
 import PropTypes from 'prop-types';
 import Tabs from '@mui/material/Tabs';
 import Tab from '@mui/material/Tab';
+import axios from "axios";
 import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
-import { getDataAPI } from './ReuseableAPI';
+import { formatDate, getDataAPI } from './ReuseableAPI';
 import ApexChart from './ApexChart';
 import { TimerStates } from './payslip/HRMDashboard';
 import { Skeleton } from '@mui/material';
@@ -13,6 +14,7 @@ import "./NexHRDashboard.css";
 import calendarIcon from "../asserts/calendar.svg";
 import NoDataFound from './payslip/NoDataFound';
 import { EssentialValues } from '../App';
+import { useNavigate } from 'react-router-dom';
 
 function CustomTabPanel(props) {
     const { children, value, index, ...other } = props;
@@ -48,11 +50,21 @@ function a11yProps(index) {
     };
 }
 
-export default function Home({ peopleOnLeave, peopleOnWorkFromHome, isFetchPeopleOnLeave, isFetchpeopleOnWfh }) {
+export default function Home() {
+    const url = process.env.REACT_APP_API_URL;
+    const navigate = useNavigate();
     const { isStartLogin, isStartActivity, workTimeTracker, timeOption, checkClockins } = useContext(TimerStates);
     const [value, setValue] = useState(0);
     const [isLoading, setLoading] = useState(true); // Track loading state
     const { data } = useContext(EssentialValues);
+    const [isFetchPeopleOnLeave, setIsFetchPeopleOnLeave] = useState(false);
+    const [isFetchpeopleOnWfh, setIsFetchPeopleOnWfh] = useState(false);
+    const [peopleOnLeave, setPeopleOnLeave] = useState([]);
+    const [filteredPeopleOnLeave, setFilteredPeopleOnLeave] = useState([]);
+    const [peopleOnWorkFromHome, setPeopleOnWorkFromHome] = useState([]);
+    const [filteredPeopleOnWfh, setFilteredPeopleOnWfh] = useState([]);
+    const [empForLeave, setEmpforLeave] = useState("");
+    const [empForWfh, setEmpforWfh] = useState("");
     const now = new Date();
 
     const staticData = {
@@ -74,29 +86,86 @@ export default function Home({ peopleOnLeave, peopleOnWorkFromHome, isFetchPeopl
         setValue(newValue);
     };
 
-    function formatDate(date) {
-        const actualDate = new Date(date).toUTCString().split(" ");
-        return `${actualDate.slice(1, 3)} ${actualDate[4]?.split(":")[0]}:${actualDate[4]?.split(":")[1]}`
+    const getClockInsData = async () => {
+        try {
+            setLoading(true);
+            if (!isStartLogin && !isStartActivity && data._id) {
+                const { activitiesData } = await getDataAPI(data._id);
+                if (activitiesData) {
+                    setTableData(activitiesData)
+                } else {
+                    setTableData(tableData);
+                }
+            }
+            setLoading(false);
+        }
+        catch (err) {
+            setLoading(false);
+        }
+    };
+    async function fetchPeopleOnLeave() {
+        try {
+            setIsFetchPeopleOnLeave(true);
+            const res = await axios.get(`${url}/api/leave-application/people-on-leave`, {
+                headers: {
+                    Authorization: data.token || ""
+                }
+            })
+            setPeopleOnLeave(res.data);
+            setFilteredPeopleOnLeave(res.data);
+        } catch (error) {
+            if (error?.message === "Network Error") {
+                navigate("/network-issue")
+            }
+            setPeopleOnLeave([]);
+            console.log("error in fetch peopleOnLeave data: ", error);
+        } finally {
+            setIsFetchPeopleOnLeave(false);
+        }
+    }
+
+    async function fetchWorkFromHomeEmps() {
+        try {
+            setIsFetchPeopleOnWfh(true);
+            const res = await axios.get(`${url}/api/wfh-application/on-wfh`, {
+                headers: {
+                    Authorization: data.token || ""
+                }
+            })
+            setPeopleOnWorkFromHome(res.data);
+            setFilteredPeopleOnWfh(res.data);
+        } catch (error) {
+            if (error?.message === "Network Error") {
+                navigate("/network-issue")
+            }
+            console.log("error in fetch work from home emps", error);
+        } finally {
+            setIsFetchPeopleOnWfh(false)
+        }
     }
 
     useEffect(() => {
-        const getClockInsData = async () => {
-            try {
-                setLoading(true);
-                if (!isStartLogin && !isStartActivity && data._id) {
-                    const { activitiesData } = await getDataAPI(data._id);
-                    if (activitiesData) {
-                        setTableData(activitiesData)
-                    } else {
-                        setTableData(tableData);
-                    }
-                }
-                setLoading(false);
-            }
-            catch (err) {
-                setLoading(false);
-            }
-        };
+        if (empForLeave === "") {
+            setPeopleOnLeave(filteredPeopleOnLeave);
+        } else {
+            setPeopleOnLeave(filteredPeopleOnLeave.filter((leave) => leave.employee.FirstName.toLowerCase().includes(empForLeave)))
+        }
+    }, [empForLeave])
+
+    useEffect(() => {
+        if (empForWfh === "") {
+            setPeopleOnWorkFromHome(filteredPeopleOnWfh);
+        } else {
+            setPeopleOnWorkFromHome(filteredPeopleOnWfh.filter((wfh) => wfh.employee.FirstName.toLowerCase().includes(empForWfh)))
+        }
+    }, [empForWfh])
+
+    useEffect(() => {
+        fetchPeopleOnLeave()
+        fetchWorkFromHomeEmps();
+    }, [])
+
+    useEffect(() => {
         getClockInsData();
     }, [checkClockins]);
 
@@ -168,10 +237,11 @@ export default function Home({ peopleOnLeave, peopleOnWorkFromHome, isFetchPeopl
                     <div className="d-flex flex-wrap gap-2 align-items-center justify-content-center my-2">
                         {/* people on leave container */}
                         <div className="boxContainer-parent">
-                            <div className="d-flex justify-content-between align-items-center py-2" style={{ position: "sticky", top: "0px", background: "rgba(245, 245, 245, 1)" }} >
+                            <div className="d-flex flex-wrap justify-content-between align-items-center py-2" style={{ position: "sticky", top: "0px", background: "rgba(245, 245, 245, 1)" }} >
                                 <p className='sub_text text-dark' style={{ fontWeight: "bold" }}>PeopleOnLeave</p>
                                 <p className='timeLogBox' style={{ background: "white" }}><img src={calendarIcon} alt='dateIcon' width={15} height={"auto"} /> <span className='sub_text text-dark'>{now.getDate() + " " + now.toLocaleString("default", { "month": "short" }) + " " + now.getFullYear()}</span></p>
                             </div>
+                            <input type="text" className='box-content my-1 homeEmpSearchInp' placeholder='Search Employee...' value={empForLeave} onChange={(e) => setEmpforLeave(e.target.value)} />
                             {
                                 isFetchPeopleOnLeave ? <div className="gap-1">
                                     {
@@ -190,15 +260,16 @@ export default function Home({ peopleOnLeave, peopleOnWorkFromHome, isFetchPeopl
                                                     <p className={`sub_text ${leave?.leaveType?.toLowerCase()?.includes("unpaid") ? "text-danger" : "text-success"}`}>{leave.leaveType}</p>
                                                 </div>
                                             </div>
-                                        }) : <NoDataFound message={"No one is leave Today"} />
+                                        }) : <p className='homeEmpListtxt' >No one is leave Today</p>
                             }
                         </div>
                         {/* work from home employees container */}
                         <div className="boxContainer-parent">
-                            <div className="d-flex justify-content-between align-items-center py-2" style={{ position: "sticky", top: "0px", background: "rgba(245, 245, 245, 1)" }} >
+                            <div className="d-flex flex-wrap justify-content-between align-items-center py-2" style={{ position: "sticky", top: "0px", background: "rgba(245, 245, 245, 1)" }} >
                                 <p className='sub_text text-dark' style={{ fontWeight: "bold" }}>WFH Employees</p>
                                 <p className='timeLogBox' style={{ background: "white" }}><img src={calendarIcon} alt='dateIcon' width={15} height={"auto"} /> <span className='sub_text text-dark'>{now.getDate() + " " + now.toLocaleString("default", { "month": "short" }) + " " + now.getFullYear()}</span></p>
                             </div>
+                            <input type="text" className='box-content my-1 homeEmpSearchInp' placeholder='Search Employee...' value={empForWfh} onChange={(e) => setEmpforWfh(e.target.value)} />
                             {
                                 isFetchpeopleOnWfh ? <div className="gap-1">
                                     {
@@ -216,7 +287,7 @@ export default function Home({ peopleOnLeave, peopleOnWorkFromHome, isFetchPeopl
                                                     <p className='sub_text'><b>{formatDate(wfh.fromDate)} - {formatDate(wfh.toDate)}</b></p>
                                                 </div>
                                             </div>
-                                        }) : <NoDataFound message={"No one in Work From Home"} />
+                                        }) : <p className='homeEmpListtxt'>No one in Work From Home</p>
                             }
                         </div>
                     </div>
@@ -228,6 +299,6 @@ export default function Home({ peopleOnLeave, peopleOnWorkFromHome, isFetchPeopl
             <CustomTabPanel value={value} index={2}>
                 Who's Working?
             </CustomTabPanel>
-        </Box>
+        </Box >
     );
 }

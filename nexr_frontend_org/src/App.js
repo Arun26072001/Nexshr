@@ -5,8 +5,8 @@ import HRMDashboard from "./components/payslip/HRMDashboard.jsx";
 import { Routes, Route, useNavigate, Navigate, useLocation } from "react-router-dom";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import NoInternet from "./components/NoInternet.jsx";
 import { jwtDecode } from "jwt-decode";
+import { registerLicense } from '@syncfusion/ej2-base';
 import "./App.css";
 import 'rsuite/dist/rsuite.min.css';
 import "react-datepicker/dist/react-datepicker.css";
@@ -14,9 +14,10 @@ import AdminDashboard from "./components/superAdmin/AdminDashboard.js";
 import { getToken, onMessage } from "firebase/messaging";
 import { messaging } from "./firebase/firebase.js";
 import { triggerToaster } from "./components/ReuseableAPI.jsx";
+import ErrorUI from "./components/ErrorUI.jsx";
 
 export const EssentialValues = createContext(null);
-
+registerLicense("Ngo9BigBOggjHTQxAR8/V1NNaF1cWWhPYVF+WmFZfVtgd19DZVZVRWYuP1ZhSXxWdkBhUH9ddXFRQmhbU0V9XUs=")
 const App = () => {
   const url = process.env.REACT_APP_API_URL;
   const [isOnline, setIsOnline] = useState(navigator.onLine);
@@ -41,30 +42,30 @@ const App = () => {
   const [isChangeComments, setIsChangeComments] = useState(false);
   const [isViewTakeTime, setIsTaketime] = useState(localStorage.getItem("isViewTakeTime") ? true : false);
   const [isViewEarlyLogout, setIsViewEarlyLogout] = useState(JSON.parse(localStorage.getItem("isViewEarlyLogout")) ? true : false);
-
+  
   function handleUpdateAnnouncements() {
-    setIschangeAnnouncements(!isChangeAnnouncements)
+    setIschangeAnnouncements(!isChangeAnnouncements);
   }
 
-  async function handleUpdateComments(){
+  async function handleUpdateComments() {
     setIsChangeComments(!isChangeComments)
   }
 
   // change ask the reason late in breaks and lunch activity
   function changeViewReasonForTaketime() {
     if (!isViewTakeTime) {
-        localStorage.setItem("isViewTakeTime", true)
+      localStorage.setItem("isViewTakeTime", true)
     }
     setIsTaketime(!isViewTakeTime)
-}
-
-// change ask the reason for early logout
-function changeViewReasonForEarlyLogout() {
-  if (!isViewEarlyLogout) {
-      localStorage.setItem("isViewEarlyLogout", true)
   }
-  setIsViewEarlyLogout(!isViewEarlyLogout)
-}
+
+  // change ask the reason for early logout
+  function changeViewReasonForEarlyLogout() {
+    if (!isViewEarlyLogout) {
+      localStorage.setItem("isViewEarlyLogout", true)
+    }
+    setIsViewEarlyLogout(!isViewEarlyLogout)
+  }
 
   // Helper Functions
   const handleLogout = () => {
@@ -97,6 +98,7 @@ function changeViewReasonForEarlyLogout() {
     try {
       const response = await axios.post(`${url}/api/login`, { Email: email, Password: password });
       const decodedData = jwtDecode(response.data);
+      console.log("decodedData", decodedData);
 
       if (!decodedData?.Account || !["17", "1", "2", "3", "4", "5"].includes(String(decodedData?.Account))) {
         throw new Error("Invalid account type.");
@@ -126,7 +128,12 @@ function changeViewReasonForEarlyLogout() {
       setWhoIs(roles[String(accountType)] || "");
       navigate(`/${roles[String(accountType)]}`);
     } catch (error) {
-      console.log(error);
+      if (error?.message === "Network Error") {
+        navigate("/network-issue")
+      }
+      if (error?.message === "Network Error") {
+        navigate("/network-issue")
+      }
       setPass(false);
       setLoading(false);
       if (error?.response?.data?.details?.includes("buffering timed out after 10000ms")) {
@@ -144,7 +151,7 @@ function changeViewReasonForEarlyLogout() {
     event.target.reset();
   };
 
-  
+
   async function saveFcmToken(empId, fcmToken) {
     try {
       const res = await axios.post(`${url}/api/employee/add-fcm-token`, { empId, fcmToken }, {
@@ -152,8 +159,13 @@ function changeViewReasonForEarlyLogout() {
           Authorization: data.token || ""
         }
       })
-      console.log(res.data.message);
     } catch (error) {
+      if (error?.message === "Network Error") {
+        navigate("/network-issue")
+      }
+      if (error?.message === "Network Error") {
+        navigate("/network-issue")
+      }
       console.log("error in save fcm token", error);
     }
   }
@@ -180,6 +192,9 @@ function changeViewReasonForEarlyLogout() {
           console.log("Notification permission denied.");
         }
       } catch (error) {
+        if (error?.message === "Network Error") {
+          navigate("/network-issue")
+        }
         console.error("Error getting permission for notifications", error);
       }
     };
@@ -189,20 +204,20 @@ function changeViewReasonForEarlyLogout() {
     // Listen for incoming messages when the app is in the foreground
     const unsubscribe = onMessage(messaging, (payload) => {
       console.log("Message received:", payload);
-      const company = JSON.parse(payload.data.companyData)
-      const type = payload.data.type;
-      if(!["edit comment","delete comment"].includes(type)){
-        triggerToaster({company, title: payload.notification.title, message: payload.notification.body })
+      const decodedData = jwtDecode(localStorage.getItem("token"));
+      const type = payload?.data?.type;
+      if (!["edit comment", "delete comment"].includes(type)) {
+        triggerToaster({ company: decodedData.company, title: payload.notification.title, message: payload.notification.body })
       }
-      if(type.toLowerCase().includes("comment")){
-       setIsChangeComments(payload?.messageId)
+      if (type.toLowerCase().includes("comment")) {
+        setIsChangeComments(payload?.messageId)
       }
-      if(type === "late reason"){
+      if (type === "late reason") {
         changeViewReasonForTaketime();
-      } if(type === "early reason"){
+      } if (type === "early reason") {
         changeViewReasonForEarlyLogout()
       }
-      handleUpdateAnnouncements()
+      setIschangeAnnouncements(payload.messageId);
     });
 
     return () => unsubscribe();
@@ -219,9 +234,9 @@ function changeViewReasonForEarlyLogout() {
       setData((prev) => ({
         ...prev,
         _id: decodedData._id || "",
-        Account: decodedData?.Account || "",
+        Account: String(decodedData?.Account) || "",
         Name: `${decodedData.FirstName} ${decodedData.LastName}` || "",
-        annualLeave: decodedData.annualLeaveEntitment || 0,
+        annualLeave: decodedData.annualLeaveEntitlement || 0,
         token: localStorage.getItem("token") || "",
         profile: decodedData.profile
       }))
@@ -239,7 +254,7 @@ function changeViewReasonForEarlyLogout() {
     }
   }, []);
 
-// detech browser is online or offline
+  // detech browser is online or offline
   useEffect(() => {
     const handleOnline = () => {
       setIsOnline(true);
@@ -270,6 +285,9 @@ function changeViewReasonForEarlyLogout() {
       const response = await fetch("https://www.google.com", { mode: "no-cors" });
       setHasInternet(true);
     } catch (error) {
+      if (error?.message === "Network Error") {
+        navigate("/network-issue")
+      }
       setHasInternet(false);
     }
   };
@@ -317,7 +335,8 @@ function changeViewReasonForEarlyLogout() {
           path={`${whoIs}/*`}
           element={isLogin && whoIs && data.token ? whoIs === "superAdmin" ? <AdminDashboard /> : <HRMDashboard /> : <Navigate to="/login" />}
         />
-        <Route path="no-internet-connection" element={<NoInternet />} />
+        <Route path="network-issue" element={<ErrorUI title={"Network Error"} description={"Please check your network and server connection!"} />} />
+        <Route path="no-internet-connection" element={<ErrorUI title={"Network Disconnected"} description={"Please check your network connection!"} />} />
         <Route path="*" element=
           {<div className='d-flex align-items-center justify-content-center' style={{ height: "100vh" }}>
             <h1 >404</h1>
@@ -328,68 +347,3 @@ function changeViewReasonForEarlyLogout() {
 };
 
 export default App;
-
-    // useEffect(() => {
-    //   if (!socket.connected && isLogin) {
-    //     socket.connect();
-    //   }
-  
-    //   if (isLogin && data?._id) {
-    //     socket.emit("join_room", data._id);
-  
-    //     const handlers = {
-    //       receive_announcement: (response) => {
-    //         console.log("responseData", response);
-    //         triggerToaster(response);
-    //         handleUpdateAnnouncements();
-    //       },
-    //       send_leave_notification: (response) => {
-    //         console.log(response);
-    //         triggerToaster(response);
-    //         handleUpdateAnnouncements();
-    //       },
-    //       send_project_notification: (response) => {
-    //         triggerToaster(response);
-    //         handleUpdateAnnouncements();
-    //       },
-    //       send_task_notification: (response) => {
-    //         triggerToaster(response);
-    //         handleUpdateAnnouncements();
-    //       },
-    //       send_team_notification: (response) => {
-    //         triggerToaster(response);
-    //         handleUpdateAnnouncements();
-    //       },
-    //       send_wfh_notification: (response) => {
-    //         console.log(response);
-    //         triggerToaster(response);
-    //         handleUpdateAnnouncements();
-    //       },
-    //     };
-  
-    //     // Attach all handlers
-    //     Object.entries(handlers).forEach(([event, handler]) => {
-    //       socket.on(event, handler);
-    //     });
-  
-    //     return () => {
-      //       // Detach all handlers
-    //       Object.keys(handlers).forEach((event) => {
-    //         socket.off(event);
-    //       });
-    //     };
-    //   }
-    // }, [socket, isLogin, data?._id]);
-    // function triggerNotification() {
-    //   try {
-    //     const trigger = axios.post(`${url}/push-notification`, { userId: data._id, title: "Hey", body: "how are you" });
-    //     console.log("triggered");
-    //   } catch (error) {
-    //     console.log("error in trigger notification", error);
-    //   }
-    // }
-    // useEffect(() => {
-    //   if (data._id) {
-    //     triggerNotification();
-    //   }
-    // }, [data._id])

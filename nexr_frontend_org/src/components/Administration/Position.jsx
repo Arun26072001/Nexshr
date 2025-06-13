@@ -1,19 +1,23 @@
 import React, { useContext, useEffect, useState } from 'react';
 import NoDataFound from '../payslip/NoDataFound';
-import Loading from '../Loader';
 import { toast } from 'react-toastify';
 import axios from 'axios';
 import CommonModel from './CommonModel';
 import LeaveTable from '../LeaveTable';
 import { EssentialValues } from '../../App';
 import { Skeleton } from '@mui/material';
+import { useNavigate } from 'react-router-dom';
+import { TimerStates } from '../payslip/HRMDashboard';
 
-export default function Position({ companies }) {
+export default function Position() {
+    const { companies } = useContext(TimerStates);
+    const navigate = useNavigate();
     const url = process.env.REACT_APP_API_URL;
     const { data } = useContext(EssentialValues);
     const [positionObj, setPositionObj] = useState({});
     const [positions, setPositions] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
+    const [isDeleting, setIsDeleting] = useState("");
     const [isPositionsDataUpdate, setIsPositionsDataUpdate] = useState(false);
     const [isAddPosition, setIsAddPosition] = useState(false);
     const [isChangingPosition, setIschangingPosition] = useState(false);
@@ -49,6 +53,9 @@ export default function Position({ companies }) {
             modifyPositions();
             reloadPositionPage();
         } catch (error) {
+            if (error?.message === "Network Error") {
+                navigate("/network-issue")
+            }
             toast.error(error?.response?.data?.message || "Failed to add position");
         }
         setIschangingPosition(false);
@@ -56,6 +63,7 @@ export default function Position({ companies }) {
 
     async function deletePosition(id) {
         try {
+            setIsDeleting(id)
             const deletePos = await axios.delete(`${url}/api/position/${id}`, {
                 headers: {
                     Authorization: data.token || ""
@@ -64,8 +72,13 @@ export default function Position({ companies }) {
             toast.success(deletePos?.data?.message);
             reloadPositionPage();
         } catch (error) {
+            if (error?.message === "Network Error") {
+                navigate("/network-issue")
+            }
             console.error("Error deleting position:", error);
             toast.error(error?.response?.data?.error || "Failed to delete position");
+        } finally {
+            setIsDeleting("")
         }
     }
 
@@ -82,6 +95,9 @@ export default function Position({ companies }) {
             modifyPositions();
             reloadPositionPage();
         } catch (error) {
+            if (error?.message === "Network Error") {
+                navigate("/network-issue")
+            }
             console.error("Error editing position:", error);
             const errorMessage = error?.response?.data?.message || error.message || "Something went wrong";
             toast.error(errorMessage);
@@ -99,6 +115,9 @@ export default function Position({ companies }) {
             setPositionObj(position.data);
             modifyPositions();
         } catch (error) {
+            if (error?.message === "Network Error") {
+                navigate("/network-issue")
+            }
             console.error("Error fetching position:", error);
             toast.error("Failed to load position data");
         }
@@ -115,6 +134,9 @@ export default function Position({ companies }) {
                 });
                 setPositions(response.data);
             } catch (error) {
+                if (error?.message === "Network Error") {
+                    navigate("/network-issue")
+                }
                 console.error("Error fetching positions:", error);
                 toast.error("Failed to load positions data");
             }
@@ -152,7 +174,7 @@ export default function Position({ companies }) {
                         height={"50vh"}
                     /> :
                         positions.length > 0 ?
-                            <LeaveTable data={positions} deleteData={deletePosition} fetchData={getEditPositionId} />
+                            <LeaveTable data={positions} deleteData={deletePosition} isLoading={isDeleting} fetchData={getEditPositionId} />
                             : <NoDataFound message={"Position data not found"} />
                 }
             </div>

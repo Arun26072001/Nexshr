@@ -212,14 +212,15 @@ router.put('/:id', verifyAdmin, async (req, res) => {
 
 router.delete("/:id", verifyAdmin, async (req, res) => {
   try {
-    // const {orgName} = jwt.decode(req.headers['authorization']);
-    // const OrgEmployeeModel = getEmployeeModel(orgName);
     const isEmpRole = await Employee.find({ role: { $in: req.params.id } });
     if (isEmpRole.length === 0) {
-      // const { orgName } = jwt.decode(req.headers['authorization']);
-      // const RoleAndPermission = getRoleAndPermissionModel(orgName)
+      const roleData = await RoleAndPermission.findById(req.params.id);
+      // delete pageAuth and permission data from table
+      await PageAuth.findByIdAndDelete(roleData.pageAuth);
+      await UserPermission.findByIdAndDelete(roleData.userPermissions);
+      
       const deleteRole = await RoleAndPermission.findByIdAndDelete(req.params.id);
-      res.send({ message: "Role has been deleted!" })
+      res.send({ message: `${deleteRole.RoleName} Role has been deleted` })
     } else {
       res.status(400).send({ message: "Please remove Employees from this role!" })
     }

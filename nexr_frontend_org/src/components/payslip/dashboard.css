@@ -16,6 +16,12 @@ thead {
   color: rgba(158, 158, 158, 1);
 }
 
+.timeLogBox .active {
+  background: white;
+  padding: 5px 10px;
+  border-radius: 5px;
+}
+
 .main_pages {
   background: white;
   border: 2px solid rgb(208, 210, 210);
@@ -119,5 +125,4 @@ thead {
 }
 
 .waves {
-  
 }

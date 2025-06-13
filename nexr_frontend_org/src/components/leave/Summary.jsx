@@ -30,7 +30,7 @@ export default function LeaveSummary() {
                                 showOneCalendar
                                 placement="bottomEnd"
                                 value={daterangeValue}
-                                placeholder="Select Date"
+                                placeholder="Filter Range of Date"
                                 onChange={setDaterangeValue}
                             />
                         </div>
@@ -39,19 +39,19 @@ export default function LeaveSummary() {
                         <div className="leaveBoard">
                             <div className="leaveData col-12 col-lg-3">
                                 <div className="d-flex flex-column">
-                                    <div className="leaveDays">{leaveRequests?.approvedLeave?.length} Days</div>
+                                    <div className="leaveDays">{leaveRequests?.approvedLeave || 0} Days</div>
                                     <div className="leaveDaysDesc">Leave Taken</div>
                                 </div>
                             </div>
                             <div className="leaveData col-12 col-lg-3">
                                 <div className="d-flex flex-column">
-                                    <div className="leaveDays">{leaveRequests?.upComingLeave?.length} Days</div>
+                                    <div className="leaveDays">{leaveRequests?.upComingLeave || 0} Days</div>
                                     <div className="leaveDaysDesc">Upcoming Leave</div>
                                 </div>
                             </div>
                             <div style={{ width: '30%', margin: '10px' }} className='col-12 col-lg-3' >
                                 <div className="d-flex flex-column">
-                                    <div className="leaveDays">{leaveRequests?.pendingLeave?.length} Days</div>
+                                    <div className="leaveDays">{leaveRequests?.pendingLeave || 0} Days</div>
                                     <div className="leaveDaysDesc">Pending Request</div>
                                 </div>
                             </div>

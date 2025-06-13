@@ -18,8 +18,8 @@ import { useNavigate } from 'react-router-dom';
 import { Skeleton } from '@mui/material';
 
 export default function Projects() {
-    const navigator = useNavigate();
-    const { whoIs, data, 
+    const navigate = useNavigate();
+    const { whoIs, data,
         // socket 
     } = useContext(EssentialValues);
     const { isTeamLead, isTeamHead, isTeamManager } = jwtDecode(data.token);
@@ -46,7 +46,7 @@ export default function Projects() {
                     authorization: data.token || ""
                 }
             });
-            setCompanies(response.data.map((data) => ({ label: data.CompanyName, value: data._id })));
+            setCompanies(response.data.map((company) => ({ label: company.CompanyName, value: company._id })));
         } catch (err) {
             console.error("Error fetching companies:", err.message || err);
         }
@@ -79,7 +79,10 @@ export default function Projects() {
             })
             setProjectObj(res.data);
         } catch (error) {
-            toast.error(error.response.data.error)
+            if (error?.message === "Network Error") {
+                navigate("/network-issue")
+            }
+            toast.error(error?.response?.data?.error)
         }
     }
 
@@ -91,10 +94,14 @@ export default function Projects() {
                     Authorization: data.token || ""
                 }
             })
+
             setProjects(res.data);
             setFilterProjects(res.data);
         } catch (error) {
-            toast.error(error.response.data.error)
+            if (error?.message === "Network Error") {
+                navigate("/network-issue")
+            }
+            toast.error(error?.response?.data?.error)
         }
         setIsLoading(false)
     }
@@ -111,7 +118,10 @@ export default function Projects() {
             setProjects(res.data);
             setFilterProjects(res.data);
         } catch (error) {
-            toast.error(error.response.data.error)
+            if (error?.message === "Network Error") {
+                navigate("/network-issue")
+            }
+            toast.error(error?.response?.data?.error)
         }
         setIsLoading(false)
     }
@@ -129,6 +139,9 @@ export default function Projects() {
             setIsAddProject(false)
             setProjectObj({})
         } catch (error) {
+            if (error?.message === "Network Error") {
+                navigate("/network-issue")
+            }
             toast.error(error?.response?.data?.error)
         }
         setIsWorkingApi(false);
@@ -153,7 +166,10 @@ export default function Projects() {
             setProjectObj({});
             handleAddProject();
         } catch (error) {
-            toast.error(error.response.data.error)
+            if (error?.message === "Network Error") {
+                navigate("/network-issue")
+            }
+            toast.error(error?.response?.data?.error)
         }
         setIsWorkingApi(false);
     }
@@ -190,7 +206,10 @@ export default function Projects() {
             toast.success(res.data.message);
             handleDeleteProject()
         } catch (error) {
-            toast.error(error.response.data.error)
+            if (error?.message === "Network Error") {
+                navigate("/network-issue")
+            }
+            toast.error(error?.response?.data?.error)
         }
     }
 
@@ -383,7 +402,7 @@ export default function Projects() {
                                                             </div>
 
                                                             <div className='w-100' onClick={() => {
-                                                                navigator(`/${whoIs}/tasks`)
+                                                                navigate(`/${whoIs}/tasks`)
                                                                 handleAddTask(project._id)
                                                             }} >
                                                                 <button className='button' style={{ background: "#4b70f5", width: "100%", padding: "6px" }}>Add Task</button>

@@ -35,6 +35,7 @@ const Tasks = () => {
   const [projects, setProjects] = useState([]);
   const [projectId, setProjectId] = useState(localStorage.getItem("selectedProject") || "");
   const [allTasks, setAllTask] = useState([]);
+  const [projectAllTasks, setProjectAllTasks] = useState([]);
   const [notCompletedTasks, setNotCompletedTasks] = useState([]);
   const [pendingTasks, setPendingTasks] = useState([]);
   const [progressTasks, setProgressTasks] = useState([]);
@@ -78,9 +79,12 @@ const Tasks = () => {
           Authorization: data.token || ""
         }
       })
-
+      
       setEmployees(res.data.map((emp) => ({ label: emp.FirstName + " " + emp.LastName, value: emp._id })))
-    } catch (error) {
+   } catch (error) {
+         if (error?.message === "Network Error") {
+                navigate("/network-issue")
+            }
       console.log("error in fetch employess", error);
     }
   }
@@ -96,7 +100,10 @@ const Tasks = () => {
         }
       })
       setEmployees(res.data.employees.map((emp) => ({ label: emp.FirstName + " " + emp.LastName, value: emp._id })))
-    } catch (error) {
+   } catch (error) {
+         if (error?.message === "Network Error") {
+                navigate("/network-issue")
+            }
       console.log("error in fetch team emps", error);
 
     }
@@ -226,15 +233,19 @@ const Tasks = () => {
     });
   }
 
-  function addReminder(remindObj){
-    setTaskObj((pre)=>({
+  function addReminder(remindObj) {
+    setTaskObj((pre) => ({
       ...pre,
-      "remind": [...pre.remind, remindObj]
+      "remind": [...(pre?.remind || []), remindObj]
     }))
   }
 
-  function removeReminder(item){
-    
+  function removeReminder(index) {
+    const filteredReminders = taskObj?.remind.filter((item, i) => i !== index);
+    setTaskObj((pre) => ({
+      ...pre,
+      "remind": filteredReminders
+    }))
   }
 
   function handleEditTask() {
@@ -267,9 +278,32 @@ const Tasks = () => {
           Authorization: data.token || ""
         }
       })
+      setProjectAllTasks(res.data.tasks);
+   } catch (error) {
+         if (error?.message === "Network Error") {
+                navigate("/network-issue")
+            }
+      setAllTask([])
+      console.log(error);
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  async function fetchEmpAssignedTasks() {
+    setIsLoading(true);
+    try {
+      const res = await axios.get(`${url}/api/task/assigned/${data._id}`, {
+        headers: {
+          Authorization: data.token || ""
+        }
+      })
       setAllTask(res.data.tasks);
       setNotCompletedTasks(res.data.tasks.filter((task) => task.status !== "Completed"))
-    } catch (error) {
+   } catch (error) {
+         if (error?.message === "Network Error") {
+                navigate("/network-issue")
+            }
       setAllTask([])
       setNotCompletedTasks([]);
       console.log(error);
@@ -315,7 +349,10 @@ const Tasks = () => {
         setPreviewList(res.data.attachments);
       }
       return res.data;
-    } catch (error) {
+   } catch (error) {
+         if (error?.message === "Network Error") {
+                navigate("/network-issue")
+            }
       console.log(error);
     }
   }
@@ -339,7 +376,7 @@ const Tasks = () => {
   function getSelectStatusTasks() {
     const statusTypes = ["Pending", "Completed", "In Progress"];
     statusTypes.map((type) => {
-      const filterValue = allTasks.filter((task) => task?.status === type);
+      const filterValue = projectAllTasks.filter((task) => task?.status === type);
       if (type === "Pending") {
         setPendingTasks(filterValue);
         setPendingFilterTasks(filterValue);
@@ -355,7 +392,7 @@ const Tasks = () => {
 
   useEffect(() => {
     getSelectStatusTasks()
-  }, [status, allTasks]);
+  }, [status, projectAllTasks]);
 
   async function editTask(updatedTask, changeComments) {
     if (!updatedTask?._id) {
@@ -368,7 +405,7 @@ const Tasks = () => {
     // Ensure `spend.timeHolder` is correctly formatted
     if (
       typeof updatedTask?.spend?.timeHolder === "string" &&
-      updatedTask.spend.timeHolder.split(":").length <= 2
+      updatedTask.spend.timeHolder.split(/[:.]+/).length <= 2
     ) {
       taskToUpdate.spend = {
         ...updatedTask.spend,
@@ -430,7 +467,10 @@ const Tasks = () => {
       setIsAddTask(false);
       setIsEditTask(false);
       fetchTaskByProjectId(projectId); // Refresh tasks
-    } catch (error) {
+   } catch (error) {
+         if (error?.message === "Network Error") {
+                navigate("/network-issue")
+            }
       console.error("Error updating task:", error);
       const errorMessage = error?.response?.data?.error || "An error occurred while updating the task.";
       toast.error(errorMessage);
@@ -467,8 +507,11 @@ const Tasks = () => {
       toast.success(res.data.message);
       handleDeleteTask();
       fetchTaskByProjectId(projectId);
-    } catch (error) {
-      toast.error(error.response.data.error)
+   } catch (error) {
+         if (error?.message === "Network Error") {
+                navigate("/network-issue")
+            }
+      toast.error(error?.response?.data?.error)
     }
   }
 
@@ -489,7 +532,10 @@ const Tasks = () => {
 
         // After successful upload, create the task
         await createTask(newTask);
-      } catch (error) {
+     } catch (error) {
+         if (error?.message === "Network Error") {
+                navigate("/network-issue")
+            }
         console.error("Upload error:", error);
         toast.error("File upload failed");
       } finally {
@@ -524,12 +570,14 @@ const Tasks = () => {
       // socket.emit("send_notification_for_task", newTaskObj)
       setTaskObj({});
       triggerHandleAddTask();
-    } catch (error) {
+   } catch (error) {
+         if (error?.message === "Network Error") {
+                navigate("/network-issue")
+            }
       console.error("Task creation error:", error);
       toast.error(error.response?.data?.error || "Task creation failed");
     }
   }
-
 
   async function fetchEmpsProjects() {
     setIsLoading(true)
@@ -541,8 +589,11 @@ const Tasks = () => {
       })
 
       setProjects(res.data.map((project) => ({ label: project.name, value: project._id })));
-    } catch (error) {
-      toast.error(error.response.data.error)
+   } catch (error) {
+         if (error?.message === "Network Error") {
+                navigate("/network-issue")
+            }
+      toast.error(error?.response?.data?.error)
     }
     setIsLoading(false)
   }
@@ -553,6 +604,7 @@ const Tasks = () => {
     } else {
       setAllTask([]);
     }
+    fetchEmpAssignedTasks()
   }, [projectId, isDelete.type, isAddTask, isEditTask])
 
   useEffect(() => {
@@ -584,8 +636,11 @@ const Tasks = () => {
         })
 
         setProjects(res.data.map((project) => ({ label: project.name, value: project._id })));
-      } catch (error) {
-        toast.error(error.response.data.error)
+     } catch (error) {
+         if (error?.message === "Network Error") {
+                navigate("/network-issue")
+            }
+        toast.error(error?.response?.data?.error)
       }
       setIsLoading(false)
     }
@@ -597,9 +652,9 @@ const Tasks = () => {
   }, [])
 
   async function getValue(task) {
-    const taskData = await fetchTaskById(task._id);
+    // const taskData = await fetchTaskById(task._id);
     const updatedTask = {
-      ...taskData,
+      ...task,
       "status": task.status === "Completed" ? "Pending" : "Completed"
     }
     editTask(updatedTask)
@@ -629,7 +684,6 @@ const Tasks = () => {
     }
     editTask(updatedTask)
   }
-  console.log(taskObj);
 
   return (
 
@@ -646,6 +700,7 @@ const Tasks = () => {
             editData={editTask}
             addReminder={addReminder}
             changeData={changeTask}
+            removeReminder={removeReminder}
             projects={projects}
             addData={addTask}
             removeAttachment={removeAttachment}

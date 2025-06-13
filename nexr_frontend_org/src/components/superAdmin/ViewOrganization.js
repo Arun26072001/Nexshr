@@ -35,9 +35,12 @@ const ViewOrganization = ({ organizations, isLoading, handleChangeToRefetchOrgs 
             toast.success(response.data.message)
             handleChangeOrg();
             handleChangeToRefetchOrgs();
-        } catch (error) {
+       } catch (error) {
+         if (error?.message === "Network Error") {
+                navigate("/network-issue")
+            }
             console.log(error);
-            toast.error(error.response.data.error)
+            toast.error(error?.response?.data?.error)
         }
     }
 
@@ -56,7 +59,10 @@ const ViewOrganization = ({ organizations, isLoading, handleChangeToRefetchOrgs 
                 }
             })
             setOrgObj(res.data);
-        } catch (error) {
+       } catch (error) {
+         if (error?.message === "Network Error") {
+                navigate("/network-issue")
+            }
             console.log(error);
         }
     }

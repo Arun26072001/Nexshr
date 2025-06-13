@@ -10,8 +10,10 @@ import NoDataFound from "./NoDataFound";
 import { toast } from "react-toastify";
 import { EssentialValues } from "../../App";
 import FileDownloadRoundedIcon from '@mui/icons-material/FileDownloadRounded';
+import { useNavigate } from "react-router-dom";
 
 const Attendence = () => {
+  const navigate = useNavigate();
   const url = process.env.REACT_APP_API_URL;
   const { data } = useContext(EssentialValues);
   const { _id, token } = data;
@@ -109,7 +111,10 @@ const Attendence = () => {
         setLateHeight((totalLateLogins / totalLogins) * 100);
         setEarlyHeight((totalEarlyLogins / totalLogins) * 100);
       }
-    } catch (error) {
+   } catch (error) {
+         if (error?.message === "Network Error") {
+                navigate("/network-issue")
+            }
       console.log(error);
     }
     setIsLoading(false);
@@ -123,7 +128,7 @@ const Attendence = () => {
       toast.error("Employee Id not found!")
     }
   }, [_id, daterangeValue])
-  console.log(clockInsData);
+  console.log("tableData", tableData);
   return (
     <div>
       <div className="leaveDateParent">
@@ -195,7 +200,7 @@ const Attendence = () => {
             {/* Filters: Date Picker & Time Selector */}
             <div className="d-flex justify-content-between align-items-center gap-2 flex-wrap my-2 px-2">
               <div className="col-lg-5 col-12">
-                <DateRangePicker value={daterangeValue} size="lg" placeholder="Select Date" onChange={setDaterangeValue} />
+                <DateRangePicker value={daterangeValue} size="lg" placeholder="Filter Range of Date" onChange={setDaterangeValue} />
               </div>
               {tableData.length > 0 &&
                 <div className="col-lg-5 col-12 ">

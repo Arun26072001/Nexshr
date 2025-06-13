@@ -1,29 +1,18 @@
-import React, { useContext, useEffect, useRef, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import axios from "axios";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
-import { SelectPicker, TagPicker, Toggle } from "rsuite";
+import { Input, SelectPicker, TagPicker, Toggle } from "rsuite";
 import Loading from "./Loader";
 import NoDataFound from "./payslip/NoDataFound";
 import { EssentialValues } from "../App";
 import "./leaveForm.css";
 import { fetchPayslipInfo } from "./ReuseableAPI";
 
-const AddEmployeeForm = ({
-    details,
-    handleScroll,
-    timePatterns,
-    personalRef,
-    contactRef,
-    employmentRef,
-    jobRef,
-    financialRef,
-    payslipRef,
-    countries,
-    companies,
-    departments,
-    positions,
-    roles
+const EmployeeForm = ({
+    details, handleScroll, timePatterns, personalRef, stateData, employeeObj, handleTagSelector,
+    contactRef, employmentRef, jobRef, financialRef, payslipRef, setEmployeeObj, selectedLeaveTypes,
+    countries, companies, departments, positions, roles, fillEmpObj, preview, changeImg
 }) => {
     const navigate = useNavigate();
     const { whoIs, data } = useContext(EssentialValues);
@@ -33,12 +22,6 @@ const AddEmployeeForm = ({
     const [leaveTypes, setLeaveTypes] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
     const [isWorkingApi, setIsWorkingApi] = useState(false);
-    const [stateData, setStateData] = useState([]);
-    const [selectedLeaveTypes, setSelectedLeavetypes] = useState([]);
-    const [employeeObj, setEmployeeObj] = useState({
-        address: {} // Initialize address object to prevent undefined errors
-    });
-    const [preview, setPreview] = useState("");
     const [errors, setErrors] = useState({});
 
     // Fetch payslip info on component mount
@@ -47,9 +30,9 @@ const AddEmployeeForm = ({
             try {
                 const payslipInfo = await fetchPayslipInfo();
                 if (payslipInfo?.payslipFields) {
-                    const fields = payslipInfo.payslipFields;
+                    const fields = payslipInfo.payslipFields.filter((field) => !field.fieldName.toLowerCase().includes("salary"));
                     const additionalFields = fields.reduce((acc, field) => {
-                        acc[field.fieldName] = "";
+                        acc[field.fieldName] = employeeObj?.payslipFields?.[field.fieldName] || "";
                         return acc;
                     }, {});
 
@@ -75,18 +58,12 @@ const AddEmployeeForm = ({
             if (!timePatterns.length || !employeeObj?.workingTimePattern) return;
 
             const selectedPattern = timePatterns.find(
-                pattern => pattern._id === employeeObj.workingTimePattern
+                pattern => pattern._id === employeeObj?.workingTimePattern
             );
 
             if (selectedPattern?.StartingTime && selectedPattern?.FinishingTime) {
-                const [startHour, startMinute] = selectedPattern.StartingTime.split(/[:.]+/).map(Number);
-                const [endHour, endMinute] = selectedPattern.FinishingTime.split(/[:.]+/).map(Number);
-
-                const startDate = new Date();
-                startDate.setHours(startHour, startMinute);
-
-                const endDate = new Date();
-                endDate.setHours(endHour, endMinute);
+                const startDate = new Date(selectedPattern?.StartingTime);
+                const endDate = new Date(selectedPattern?.FinishingTime);
 
                 const timeDiff = endDate.getTime() - startDate.getTime();
                 const hoursDiff = Math.floor(timeDiff / (1000 * 60 * 60));
@@ -118,6 +95,9 @@ const AddEmployeeForm = ({
                     }))
                 );
             } catch (error) {
+                if (error?.message === "Network Error") {
+                    navigate("/network-issue")
+                }
                 console.error("Error fetching leave types:", error);
                 toast.error(error.response?.data?.error || "Failed to fetch leave types");
             } finally {
@@ -131,12 +111,12 @@ const AddEmployeeForm = ({
     const hourAndMin = timeDifference.toString().split(/[:.]+/);
     const [hour = 0, min = 0] = hourAndMin;
 
-    const updateEmployee = async (empData) => {
+    const updateEmployee = async (employeeObj) => {
         try {
             // setIsWorkingApi(true);
             const res = await axios.put(
-                `${url}/api/employee/${empData._id}`,
-                empData,
+                `${url}/api/employee/${employeeObj?._id}`,
+                employeeObj,
                 {
                     headers: {
                         Authorization: data.token || ""
@@ -151,17 +131,20 @@ const AddEmployeeForm = ({
             setEmployeeObj({});
             toast.success(res.data.message);
         } catch (error) {
+            if (error?.message === "Network Error") {
+                navigate("/network-issue")
+            }
             console.error("Error updating employee:", error);
             toast.error(error.response?.data?.error || "Failed to update employee");
-        } 
+        }
     };
 
-    const addEmployee = async (empData) => {
+    const addEmployee = async (employeeObj) => {
         try {
             // setIsWorkingApi(true);
             const res = await axios.post(
                 `${url}/api/employee/${data._id}`,
-                empData,
+                employeeObj,
                 {
                     headers: {
                         Authorization: data.token || ""
@@ -176,101 +159,44 @@ const AddEmployeeForm = ({
             setEmployeeObj({});
             toast.success(res.data.message);
         } catch (error) {
+            if (error?.message === "Network Error") {
+                navigate("/network-issue")
+            }
             console.error("Error adding employee:", error);
             toast.error(error?.response?.data?.error || "Failed to add employee");
-        } 
-    };
-
-    const changeImg = event => {
-        const { name, files } = event.target;
-        if (files && files[0]) {
-            setPreview(URL.createObjectURL(files[0]));
-            setEmployeeObj(pre => ({
-                ...pre,
-                [name]: files[0]
-            }));
         }
     };
 
-    const fillEmpObj = (value, name) => {
-        let countryFullData;
-
-        if (name === "country") {
-            countryFullData = countries.find(country =>
-                Object.values(country).includes(value)
-            );
-            setStateData(countryFullData?.states || []);
-            setEmployeeObj(pre => ({
-                ...pre,
-                countryCode: countryFullData?.code || ""
-            }));
-        }
-
-        setEmployeeObj(prev => {
-            if (["country", "state", "city", "zipCode"].includes(name)) {
-                return {
-                    ...prev,
-                    address: {
-                        ...prev.address,
-                        [name]: name === "country" && countryFullData ? countryFullData.name : value
-                    }
-                };
-            }
-
-            return {
-                ...prev,
-                [name]: value
-            };
-        });
-    };
-
-    const handleTagSelector = value => {
-        let leaveCount = 0;
-        const leaveTypeCount = {};
-
-        value.forEach(type => {
-            const key = type.split(" ").slice(0, 2).join(" ");
-            leaveTypeCount[key] = type.split(" ")[0];
-            leaveCount += Number(type.split(" ").at(-1));
-        });
-
-        setEmployeeObj(pre => ({
-            ...pre,
-            annualLeaveEntitlement: leaveCount,
-            typesOfLeaveCount: leaveTypeCount
-        }));
-        setSelectedLeavetypes(value);
-    };
 
     const validationForm = () => {
         const newError = {};
 
         // Required field validations
-        if (!employeeObj.FirstName) newError.FirstName = "First name is required";
-        if (!employeeObj.LastName) newError.LastName = "Last name is required";
-        if (!employeeObj.Email) newError.Email = "Email is required";
-        if (!employeeObj.Password) newError.Password = "Password is required";
-        if (!employeeObj.company) newError.company = "Company is required";
-        if (!employeeObj.position) newError.position = "Position is required";
-        if (!employeeObj.department) newError.department = "Department is required";
-        if (!employeeObj.role) newError.role = "Role is required";
-        if (!employeeObj.employmentType) newError.employmentType = "Employment type is required";
-        if (!employeeObj.workingTimePattern) newError.workingTimePattern = "Working time pattern is required";
-        if (!employeeObj.annualLeaveYearStart) newError.annualLeaveYearStart = "AnnualLeaveYearStart date is required";
-        if (!employeeObj.annualLeaveEntitlement) newError.annualLeaveEntitlement = "Annual leave entitlement is required";
-        if (!employeeObj.basicSalary) newError.basicSalary = "Basic salary is required";
-        if (!employeeObj.bankName) newError.bankName = "Bank name is required";
-        if (!employeeObj.accountNo) newError.accountNo = "Account number is required";
-        if (!employeeObj.accountHolderName) newError.accountHolderName = "Account holder name is required";
-        if (!employeeObj.IFSCcode) newError.IFSCcode = "IFSC code is required";
+        if (!employeeObj?.FirstName) newError.FirstName = "First name is required";
+        if (!employeeObj?.LastName) newError.LastName = "Last name is required";
+        if (!employeeObj?.Email) newError.Email = "Email is required";
+        if (!employeeObj?.Password) newError.Password = "Password is required";
+        if (!employeeObj?.company) newError.company = "Company is required";
+        if (!employeeObj?.position) newError.position = "Position is required";
+        if (!employeeObj?.department) newError.department = "Department is required";
+        if (!employeeObj?.role) newError.role = "Role is required";
+        if (!employeeObj?.employmentType) newError.employmentType = "Employment type is required";
+        if (!employeeObj?.workingTimePattern) newError.workingTimePattern = "Working time pattern is required";
+        if (!employeeObj?.annualLeaveYearStart) newError.annualLeaveYearStart = "AnnualLeaveYearStart date is required";
+        if (!employeeObj?.annualLeaveEntitlement) newError.annualLeaveEntitlement = "Annual leave entitlement is required";
+        if (!employeeObj?.basicSalary) newError.basicSalary = "Basic salary is required";
+        if (!employeeObj?.bankName) newError.bankName = "Bank name is required";
+        if (!employeeObj?.accountNo) newError.accountNo = "Account number is required";
+        if (!employeeObj?.accountHolderName) newError.accountHolderName = "Account holder name is required";
+        if (!employeeObj?.IFSCcode) newError.IFSCcode = "IFSC code is required";
 
         // Email validation
-        if (employeeObj.Email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(employeeObj.Email)) {
+        if (employeeObj?.Email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(employeeObj?.Email)) {
             newError.Email = "Please enter a valid email address";
         }
 
         // Password strength validation
-        if (employeeObj.Password && employeeObj.Password.length < 8) {
+        if (employeeObj?.Password && employeeObj?.Password.length < 8) {
             newError.Password = "Password must be at least 8 characters";
         }
 
@@ -285,7 +211,7 @@ const AddEmployeeForm = ({
         const fieldSections = {
             personal: ["FirstName", "LastName", "gender", "role"],
             contact: ["Email", "Password", "phone"],
-            employment: ["workingTimePattern", "company", "dateOfJoining", "employmentType", "monthlyPermissions"],
+            employment: ["workingTimePattern", "company", "dateOfJoining", "employmentType", "monthlyPermissions", "Annual Leave Year Start", "code"],
             job: ["department", "position"],
             financial: ["basicSalary", "bankName", "accountNo", "accountHolderName", "IFSCcode"]
         };
@@ -306,8 +232,8 @@ const AddEmployeeForm = ({
     const handleSubmit = async e => {
         e.preventDefault();
         if (!validationForm()) {
-            toast.error("Please fix the errors in the form.");
             navToError();
+            toast.error("Please fix the errors in the form.");
             return;
         }
 
@@ -317,9 +243,9 @@ const AddEmployeeForm = ({
                 ...employeeObj
             }
             // Check if profile is a File (new upload), and has image type
-            if (employeeObj?.profile instanceof File && employeeObj.profile.type?.includes("image")) {
+            if (employeeObj?.profile instanceof File && employeeObj?.profile.type?.includes("image")) {
                 const formData = new FormData();
-                formData.append("documents", employeeObj.profile);
+                formData.append("documents", employeeObj?.profile);
 
                 const uploadRes = await axios.post(
                     `${process.env.REACT_APP_API_URL}/api/upload`,
@@ -337,17 +263,21 @@ const AddEmployeeForm = ({
                     "profile": uploadedFile
                 }
             }
-            if (employeeObj._id) {
+            if (employeeObj?._id) {
                 await updateEmployee(updatedEmp);
             } else {
                 await addEmployee(updatedEmp);
             }
         } catch (error) {
+            if (error?.message === "Network Error") {
+                navigate("/network-issue")
+            }
             console.error("Form submission error:", error);
         } finally {
             setIsWorkingApi(false);
         }
     };
+    console.log("employeeObj", employeeObj);
 
     if (isLoading) return <Loading height="80vh" />;
 
@@ -378,22 +308,22 @@ const AddEmployeeForm = ({
                                 <input
                                     type="text"
                                     name="FirstName"
-                                    className={`inputField ${errors.FirstName ? "error" : ""}`}
+                                    className={`inputField ${errors?.FirstName ? "error" : ""}`}
                                     onChange={e => fillEmpObj(e.target.value, "FirstName")}
-                                    value={employeeObj.FirstName || ""}
+                                    value={employeeObj?.FirstName || ""}
                                 />
-                                {errors.FirstName && <div className="text-center text-danger">{errors.FirstName}</div>}
+                                {errors?.FirstName && <div className="text-center text-danger">{errors?.FirstName}</div>}
                             </div>
                             <div className="col-lg-6">
                                 <div className="inputLabel important">Last Name</div>
                                 <input
                                     type="text"
-                                    className={`inputField ${errors.LastName ? "error" : ""}`}
+                                    className={`inputField ${errors?.LastName ? "error" : ""}`}
                                     name="LastName"
                                     onChange={e => fillEmpObj(e.target.value, "LastName")}
-                                    value={employeeObj.LastName || ""}
+                                    value={employeeObj?.LastName || ""}
                                 />
-                                {errors.LastName && <div className="text-center text-danger">{errors.LastName}</div>}
+                                {errors?.LastName && <div className="text-center text-danger">{errors?.LastName}</div>}
                             </div>
                         </div>
 
@@ -402,15 +332,15 @@ const AddEmployeeForm = ({
                                 <div className="inputLabel">Gender</div>
                                 <select
                                     name="gender"
-                                    className={`selectInput ${errors.gender ? "error" : ""}`}
+                                    className={`selectInput ${errors?.gender ? "error" : ""}`}
                                     onChange={e => fillEmpObj(e.target.value, "gender")}
-                                    value={employeeObj.gender || ""}
+                                    value={employeeObj?.gender || ""}
                                 >
                                     <option value="">Select gender</option>
                                     <option value="Male">Male</option>
                                     <option value="Female">Female</option>
                                 </select>
-                                {errors.gender && <div className="text-center text-danger">{errors.gender}</div>}
+                                {errors?.gender && <div className="text-center text-danger">{errors?.gender}</div>}
                             </div>
                             <div className="col-lg-6">
                                 <div className="inputLabel">Date Of Birth</div>
@@ -419,7 +349,7 @@ const AddEmployeeForm = ({
                                     className="inputField"
                                     name="dateOfBirth"
                                     onChange={e => fillEmpObj(e.target.value, "dateOfBirth")}
-                                    value={employeeObj.dateOfBirth || ""}
+                                    value={employeeObj?.dateOfBirth || ""}
                                 />
                             </div>
                         </div>
@@ -429,9 +359,10 @@ const AddEmployeeForm = ({
                                 <div className="inputLabel important">Role</div>
                                 <select
                                     name="role"
-                                    className={`selectInput ${errors.role ? "error" : ""}`}
-                                    onChange={e => fillEmpObj(e.target.value, "role")}
-                                    value={employeeObj.role || ""}
+                                    disabled={["admin", "hr"].includes(whoIs) ? false : true}
+                                    className={`selectInput ${errors?.role ? "error" : ""}`}
+                                    onChange={["admin", "hr"].includes(whoIs) ? e => fillEmpObj(e.target.value, "role") : () => { }}
+                                    value={employeeObj?.role || ""}
                                 >
                                     <option value="">Select Role</option>
                                     {roles.map(role => (
@@ -440,23 +371,24 @@ const AddEmployeeForm = ({
                                         </option>
                                     ))}
                                 </select>
-                                {errors.role && <div className="text-center text-danger">{errors.role}</div>}
+                                {errors?.role && <div className="text-center text-danger">{errors?.role}</div>}
                             </div>
                             <div className="col-lg-6">
                                 <div className="inputLabel important">Employment Type</div>
                                 <select
                                     name="employmentType"
-                                    className={`selectInput ${errors.employmentType ? "error" : ""}`}
-                                    onChange={e => fillEmpObj(e.target.value, "employmentType")}
-                                    value={employeeObj.employmentType || ""}
+                                    disabled={["admin", "hr"].includes(whoIs) ? false : true}
+                                    className={`selectInput ${errors?.employmentType ? "error" : ""}`}
+                                    onChange={["admin", "hr"].includes(whoIs) ? e => fillEmpObj(e.target.value, "employmentType") : () => { }}
+                                    value={employeeObj?.employmentType || ""}
                                 >
                                     <option value="">Employment Type</option>
                                     <option value="full-time">Full Time</option>
                                     <option value="part-time">Part Time</option>
                                     <option value="intern">Contract</option>
                                 </select>
-                                {errors.employmentType && (
-                                    <div className="text-center text-danger">{errors.employmentType}</div>
+                                {errors?.employmentType && (
+                                    <div className="text-center text-danger">{errors?.employmentType}</div>
                                 )}
                             </div>
                         </div>
@@ -489,23 +421,25 @@ const AddEmployeeForm = ({
                                 <div className="inputLabel important">Email</div>
                                 <input
                                     type="email"
-                                    className={`inputField ${errors.Email ? "error" : ""}`}
+                                    className={`inputField ${errors?.Email ? "error" : ""}`}
                                     name="Email"
-                                    onChange={e => fillEmpObj(e.target.value, "Email")}
-                                    value={employeeObj.Email || ""}
+                                    disabled={["admin", "hr"].includes(whoIs) ? false : true}
+                                    onChange={["admin", "hr"].includes(whoIs) ? e => fillEmpObj(e.target.value, "Email") : () => { }}
+                                    value={employeeObj?.Email || ""}
                                 />
-                                {errors.Email && <div className="text-center text-danger">{errors.Email}</div>}
+                                {errors?.Email && <div className="text-center text-danger">{errors?.Email}</div>}
                             </div>
                             <div className="col-lg-6">
                                 <div className="inputLabel important">Password</div>
                                 <input
-                                    type="password"
-                                    className={`inputField ${errors.Password ? "error" : ""}`}
+                                    type="text"
+                                    className={`inputField ${errors?.Password ? "error" : ""}`}
                                     name="Password"
-                                    onChange={e => fillEmpObj(e.target.value, "Password")}
-                                    value={employeeObj.Password || ""}
+                                    disabled={["admin", "hr"].includes(whoIs) ? false : true}
+                                    onChange={["admin", "hr"].includes(whoIs) ? e => fillEmpObj(e.target.value, "Password") : () => { }}
+                                    value={employeeObj?.Password || ""}
                                 />
-                                {errors.Password && <div className="text-center text-danger">{errors.Password}</div>}
+                                {errors?.Password && <div className="text-center text-danger">{errors?.Password}</div>}
                             </div>
                         </div>
 
@@ -513,7 +447,7 @@ const AddEmployeeForm = ({
                             <div className="col-lg-6 col-md-6 col-6">
                                 <div className="inputLabel">Country Code</div>
                                 <SelectPicker
-                                    className="mt-2 selectInput"
+                                    className="p-0 mt-1 selectInput"
                                     style={{
                                         background: "none",
                                         border: "none",
@@ -526,7 +460,7 @@ const AddEmployeeForm = ({
                                     appearance="subtle"
                                     labelKey="code"
                                     valueKey="code"
-                                    value={employeeObj.countryCode}
+                                    value={employeeObj?.countryCode}
                                     onChange={value => fillEmpObj(value, "countryCode")}
                                     placeholder="Select Country Code"
                                     renderMenuItem={(label, item) => (
@@ -539,7 +473,7 @@ const AddEmployeeForm = ({
                                             <div>
                                                 {item.icon} {item.name} ({item.abbr})
                                             </div>
-                                        ) : null
+                                        ) : () => { }
                                     }
                                 />
                             </div>
@@ -547,12 +481,12 @@ const AddEmployeeForm = ({
                                 <div className="inputLabel">Phone</div>
                                 <input
                                     type="tel"
-                                    className={`inputField ${errors.phone ? "error" : ""}`}
+                                    className={`inputField ${errors?.phone ? "error" : ""}`}
                                     name="phone"
                                     onChange={e => fillEmpObj(e.target.value, "phone")}
-                                    value={employeeObj.phone || ""}
+                                    value={employeeObj?.phone || ""}
                                 />
-                                {errors.phone && <div className="text-center text-danger">{errors.phone}</div>}
+                                {errors?.phone && <div className="text-center text-danger">{errors?.phone}</div>}
                             </div>
                         </div>
 
@@ -576,7 +510,7 @@ const AddEmployeeForm = ({
                                     onChange={value => fillEmpObj(value, "country")}
                                     placeholder="Choose a Country"
                                     renderMenuItem={label => <div>{label}</div>}
-                                    renderValue={(value, item) => (item ? <div>{item.name}</div> : null)}
+                                    renderValue={(value, item) => (item ? <div>{item.name}</div> : () => { })}
                                 />
                             </div>
                             <div className="col-lg-6">
@@ -594,7 +528,7 @@ const AddEmployeeForm = ({
                                     value={employeeObj?.address?.state}
                                     onChange={e => fillEmpObj(e, "state")}
                                     data={stateData?.map(item => ({ label: item, value: item }))}
-                                    disabled={!stateData.length}
+                                    readOnly={!stateData?.length}
                                 />
                             </div>
                         </div>
@@ -630,32 +564,34 @@ const AddEmployeeForm = ({
                             <div className="col-lg-12">
                                 <div className="inputLabel important">WorkingTime Pattern</div>
                                 <select
-                                    className={`selectInput ${errors.workingTimePattern ? "error" : ""}`}
+                                    className={`selectInput ${errors?.workingTimePattern ? "error" : ""}`}
                                     name="workingTimePattern"
-                                    onChange={e => fillEmpObj(e.target.value, "workingTimePattern")}
-                                    value={employeeObj.workingTimePattern || ""}
+                                    onChange={["admin", "hr"].includes(whoIs) ? e => fillEmpObj(e.target.value, "workingTimePattern") : () => { }}
+                                    value={employeeObj?.workingTimePattern || ""}
+                                    disabled={["admin", "hr"].includes(whoIs) ? false : true}
                                 >
                                     <option value="">Select Work Time Pattern</option>
                                     {timePatterns.map(pattern => (
                                         <option key={pattern._id} value={pattern._id}>
-                                            {pattern.PatternName} ({pattern.StartingTime} - {pattern.FinishingTime})
+                                            {pattern.PatternName} ({new Date(pattern.StartingTime).toLocaleString()} - {new Date(pattern.FinishingTime).toLocaleString()})
                                         </option>
                                     ))}
                                 </select>
-                                {errors.workingTimePattern && (
-                                    <div className="text-center text-danger">{errors.workingTimePattern}</div>
+                                {errors?.workingTimePattern && (
+                                    <div className="text-center text-danger">{errors?.workingTimePattern}</div>
                                 )}
                             </div>
                         </div>
 
                         <div className="row d-flex justify-content-center">
-                            <div className="col-lg-6">
+                            <div className="col-lg-4 col-md-4 col-12">
                                 <div className="inputLabel important">Company</div>
                                 <select
-                                    className={`selectInput ${errors.company ? "error" : ""}`}
+                                    className={`selectInput ${errors?.company ? "error" : ""}`}
                                     name="company"
-                                    onChange={e => fillEmpObj(e.target.value, "company")}
-                                    value={employeeObj.company || ""}
+                                    onChange={["admin", "hr"].includes(whoIs) ? e => fillEmpObj(e.target.value, "company") : () => { }}
+                                    value={employeeObj?.company || ""}
+                                    disabled={["admin", "hr"].includes(whoIs) ? false : true}
                                 >
                                     <option value="">Select Company</option>
                                     {companies.map(company => (
@@ -664,16 +600,22 @@ const AddEmployeeForm = ({
                                         </option>
                                     ))}
                                 </select>
-                                {errors.company && <div className="text-center text-danger">{errors.company}</div>}
+                                {errors?.company && <div className="text-center text-danger">{errors?.company}</div>}
                             </div>
-                            <div className="col-lg-6">
+                            <div className="col-lg-4 col-md-4 col-12 text-center">
                                 <div className="inputLabel">isPermanentWFH</div>
                                 <Toggle
                                     size="lg"
                                     checked={employeeObj?.isPermanentWFH || false}
-                                    onChange={e => fillEmpObj(e, "isPermanentWFH")}
+                                    onChange={["admin", "hr"].includes(whoIs) ? e => fillEmpObj(e, "isPermanentWFH") : () => { }}
+                                    disabled={["admin", "hr"].includes(whoIs) ? false : true}
                                 />
                             </div>
+                            <div className="col-lg-4 col-md-4 col-12">
+                                <div className="inputLabel important">Employee Code</div>
+                                <Input type="text" value={employeeObj?.code} onChange={(e) => fillEmpObj(e, "code")} style={{ width: "100%" }} className={`inputField ${errors?.code ? "error" : ""}`} />
+                            </div>
+                            {errors?.code && <div className="text-center text-danger">{errors?.code}</div>}
                         </div>
 
                         <div className="row d-flex justify-content-center">
@@ -681,26 +623,28 @@ const AddEmployeeForm = ({
                                 <div className="inputLabel important">Date Of Joining</div>
                                 <input
                                     type="date"
-                                    className={`inputField ${errors.dateOfJoining ? "error" : ""}`}
+                                    className={`inputField ${errors?.dateOfJoining ? "error" : ""}`}
                                     name="dateOfJoining"
-                                    onChange={e => fillEmpObj(e.target.value, "dateOfJoining")}
-                                    value={employeeObj.dateOfJoining || ""}
+                                    onChange={["admin", "hr"].includes(whoIs) ? e => fillEmpObj(e.target.value, "dateOfJoining") : () => { }}
+                                    value={employeeObj?.dateOfJoining || ""}
+                                    disabled={["admin", "hr"].includes(whoIs) ? false : true}
                                 />
-                                {errors.dateOfJoining && (
-                                    <div className="text-center text-danger">{errors.dateOfJoining}</div>
+                                {errors?.dateOfJoining && (
+                                    <div className="text-center text-danger">{errors?.dateOfJoining}</div>
                                 )}
                             </div>
                             <div className="col-lg-6 my-2">
                                 <div className="inputLabel important">Annual Leave Year Start</div>
                                 <input
                                     type="date"
-                                    className={`inputField ${errors.annualLeaveYearStart ? "error" : ""}`}
+                                    className={`inputField ${errors?.annualLeaveYearStart ? "error" : ""}`}
                                     name="annualLeaveYearStart"
-                                    onChange={e => fillEmpObj(e.target.value, "annualLeaveYearStart")}
+                                    onChange={["admin", "hr"].includes(whoIs) ? e => fillEmpObj(e.target.value, "annualLeaveYearStart") : () => { }}
                                     value={employeeObj?.annualLeaveYearStart || ""}
+                                    disabled={["admin", "hr"].includes(whoIs) ? false : true}
                                 />
-                                {errors.annualLeaveYearStart && (
-                                    <div className="text-center text-danger">{errors.annualLeaveYearStart}</div>
+                                {errors?.annualLeaveYearStart && (
+                                    <div className="text-center text-danger">{errors?.annualLeaveYearStart}</div>
                                 )}
                             </div>
                         </div>
@@ -745,8 +689,9 @@ const AddEmployeeForm = ({
                                     block
                                     appearance="subtle"
                                     name="publicHoliday"
+                                    disabled={["admin", "hr"].includes(whoIs) ? false : true}
                                     value={employeeObj?.publicHoliday}
-                                    onChange={e => fillEmpObj(e, "publicHoliday")}
+                                    onChange={["admin", "hr"].includes(whoIs) ? e => fillEmpObj(e, "publicHoliday") : () => { }}
                                     data={countries?.map(item => ({ label: item.name, value: item.name }))}
                                 />
                             </div>
@@ -757,12 +702,13 @@ const AddEmployeeForm = ({
                                     min={0}
                                     max={10}
                                     value={employeeObj?.monthlyPermissions || ""}
-                                    onChange={e => fillEmpObj(e.target.value, "monthlyPermissions")}
+                                    onChange={["admin", "hr"].includes(whoIs) ? e => fillEmpObj(e.target.value, "monthlyPermissions") : () => { }}
                                     name="monthlyPermissions"
-                                    className={`inputField ${errors.monthlyPermissions ? "error" : ""}`}
+                                    disabled={["admin", "hr"].includes(whoIs) ? false : true}
+                                    className={`inputField ${errors?.monthlyPermissions ? "error" : ""}`}
                                 />
-                                {errors.monthlyPermissions && (
-                                    <div className="text-center text-danger">{errors.monthlyPermissions}</div>
+                                {errors?.monthlyPermissions && (
+                                    <div className="text-center text-danger">{errors?.monthlyPermissions}</div>
                                 )}
                             </div>
                         </div>
@@ -773,10 +719,11 @@ const AddEmployeeForm = ({
                                 <TagPicker
                                     data={leaveTypes}
                                     size="lg"
-                                    onChange={handleTagSelector}
+                                    disabled={["admin", "hr"].includes(whoIs) ? false : true}
+                                    onChange={["admin", "hr"].includes(whoIs) ? handleTagSelector : () => { }}
                                     value={selectedLeaveTypes}
                                     className={
-                                        employeeObj.annualLeaveEntitlement
+                                        employeeObj?.annualLeaveEntitlement
                                             ? "rsuite_selector"
                                             : "rsuite_selector_disabled"
                                     }
@@ -787,13 +734,14 @@ const AddEmployeeForm = ({
                                 <div className="inputLabel important">Annual Leave Entitlement</div>
                                 <input
                                     type="number"
-                                    value={employeeObj.annualLeaveEntitlement || ""}
-                                    onChange={e => fillEmpObj(e.target.value, "annualLeaveEntitlement")}
+                                    value={employeeObj?.annualLeaveEntitlement || ""}
+                                    onChange={["admin", "hr"].includes(whoIs) ? e => fillEmpObj(e.target.value, "annualLeaveEntitlement") : () => { }}
                                     name="annualLeaveEntitlement"
-                                    className={`inputField ${errors.annualLeaveEntitlement ? "error" : ""}`}
+                                    disabled={["admin", "hr"].includes(whoIs) ? false : true}
+                                    className={`inputField ${errors?.annualLeaveEntitlement ? "error" : ""}`}
                                 />
-                                {errors.annualLeaveEntitlement && (
-                                    <div className="text-center text-danger">{errors.annualLeaveEntitlement}</div>
+                                {errors?.annualLeaveEntitlement && (
+                                    <div className="text-center text-danger">{errors?.annualLeaveEntitlement}</div>
                                 )}
                             </div>
                         </div>
@@ -804,7 +752,7 @@ const AddEmployeeForm = ({
                                     <input
                                         type="number"
                                         value={leaveName.split(" ").at(-1)}
-                                        disabled
+                                        readOnly
                                         name={leaveName}
                                         className="inputField"
                                     />
@@ -824,9 +772,10 @@ const AddEmployeeForm = ({
                                 <div className="inputLabel important">Position</div>
                                 <select
                                     name="position"
-                                    className={`selectInput ${errors.position ? "error" : ""}`}
-                                    onChange={e => fillEmpObj(e.target.value, "position")}
-                                    value={employeeObj.position || ""}
+                                    className={`selectInput ${errors?.position ? "error" : ""}`}
+                                    onChange={["admin", "hr"].includes(whoIs) ? e => fillEmpObj(e.target.value, "position") : () => { }}
+                                    value={employeeObj?.position || ""}
+                                    disabled={["admin", "hr"].includes(whoIs) ? false : true}
                                 >
                                     <option value="">Select Position</option>
                                     {positions.map(position => (
@@ -835,15 +784,16 @@ const AddEmployeeForm = ({
                                         </option>
                                     ))}
                                 </select>
-                                {errors.position && <div className="text-center text-danger">{errors.position}</div>}
+                                {errors?.position && <div className="text-center text-danger">{errors?.position}</div>}
                             </div>
                             <div className="col-lg-6">
                                 <div className="inputLabel important">Department</div>
                                 <select
                                     name="department"
-                                    className={`selectInput ${errors.department ? "error" : ""}`}
-                                    onChange={e => fillEmpObj(e.target.value, "department")}
-                                    value={employeeObj.department || ""}
+                                    disabled={["admin", "hr"].includes(whoIs) ? false : true}
+                                    className={`selectInput ${errors?.department ? "error" : ""}`}
+                                    onChange={["admin", "hr"].includes(whoIs) ? e => fillEmpObj(e.target.value, "department") : () => { }}
+                                    value={employeeObj?.department || ""}
                                 >
                                     <option value="">Select Department</option>
                                     {departments.map(department => (
@@ -852,7 +802,7 @@ const AddEmployeeForm = ({
                                         </option>
                                     ))}
                                 </select>
-                                {errors.department && <div className="text-center text-danger">{errors.department}</div>}
+                                {errors?.department && <div className="text-center text-danger">{errors?.department}</div>}
                             </div>
                         </div>
 
@@ -860,13 +810,14 @@ const AddEmployeeForm = ({
                             <div className="col-lg-12 my-2">
                                 <div className="inputLabel">Description</div>
                                 <textarea
-                                    onChange={e => fillEmpObj(e.target.value, "description")}
+                                    disabled={["admin", "hr"].includes(whoIs) ? false : true}
+                                    onChange={["admin", "hr"].includes(whoIs) ? e => fillEmpObj(e.target.value, "description") : () => { }}
                                     name="description"
                                     className="inputField"
                                     cols={50}
                                     rows={10}
                                     style={{ height: "100px" }}
-                                    value={employeeObj.description || ""}
+                                    value={employeeObj?.description || ""}
                                 />
                             </div>
                         </div>
@@ -880,23 +831,25 @@ const AddEmployeeForm = ({
                                 <div className="inputLabel important">Basic Salary</div>
                                 <input
                                     type="number"
-                                    className={`inputField ${errors.basicSalary ? "error" : ""}`}
+                                    className={`inputField ${errors?.basicSalary ? "error" : ""}`}
                                     name="basicSalary"
-                                    onChange={e => fillEmpObj(e.target.value, "basicSalary")}
-                                    value={employeeObj.basicSalary || ""}
+                                    onChange={["admin", "hr"].includes(whoIs) ? e => fillEmpObj(e.target.value, "basicSalary") : () => { }}
+                                    value={employeeObj?.basicSalary}
+                                    disabled={["admin", "hr"].includes(whoIs) ? false : true}
                                 />
-                                {errors.basicSalary && <div className="text-center text-danger">{errors.basicSalary}</div>}
+                                {errors?.basicSalary && <div className="text-center text-danger">{errors?.basicSalary}</div>}
                             </div>
                             <div className="col-lg-6">
                                 <div className="inputLabel important">Bank Name</div>
                                 <input
                                     type="text"
-                                    className={`inputField ${errors.bankName ? "error" : ""}`}
+                                    className={`inputField ${errors?.bankName ? "error" : ""}`}
                                     name="bankName"
-                                    onChange={e => fillEmpObj(e.target.value, "bankName")}
-                                    value={employeeObj.bankName || ""}
+                                    onChange={["admin", "hr"].includes(whoIs) ? e => fillEmpObj(e.target.value, "bankName") : () => { }}
+                                    value={employeeObj?.bankName || ""}
+                                    disabled={["admin", "hr"].includes(whoIs) ? false : true}
                                 />
-                                {errors.bankName && <div className="text-center text-danger">{errors.bankName}</div>}
+                                {errors?.bankName && <div className="text-center text-danger">{errors?.bankName}</div>}
                             </div>
                         </div>
 
@@ -905,12 +858,13 @@ const AddEmployeeForm = ({
                                 <div className="inputLabel important">Account No</div>
                                 <input
                                     type="number"
-                                    className={`inputField ${errors.accountNo ? "error" : ""}`}
+                                    className={`inputField ${errors?.accountNo ? "error" : ""}`}
                                     name="accountNo"
-                                    onChange={e => fillEmpObj(e.target.value, "accountNo")}
-                                    value={employeeObj.accountNo || ""}
+                                    onChange={["admin", "hr"].includes(whoIs) ? e => fillEmpObj(e.target.value, "accountNo") : () => { }}
+                                    value={employeeObj?.accountNo || ""}
+                                    disabled={["admin", "hr"].includes(whoIs) ? false : true}
                                 />
-                                {errors.accountNo && <div className="text-center text-danger">{errors.accountNo}</div>}
+                                {errors?.accountNo && <div className="text-center text-danger">{errors?.accountNo}</div>}
                             </div>
                         </div>
 
@@ -919,13 +873,14 @@ const AddEmployeeForm = ({
                                 <div className="inputLabel important">Account Holder Name</div>
                                 <input
                                     type="text"
-                                    className={`inputField ${errors.accountHolderName ? "error" : ""}`}
+                                    className={`inputField ${errors?.accountHolderName ? "error" : ""}`}
                                     name="accountHolderName"
-                                    onChange={e => fillEmpObj(e.target.value, "accountHolderName")}
-                                    value={employeeObj.accountHolderName || ""}
+                                    disabled={["admin", "hr"].includes(whoIs) ? false : true}
+                                    onChange={["admin", "hr"].includes(whoIs) ? e => fillEmpObj(e.target.value, "accountHolderName") : () => { }}
+                                    value={employeeObj?.accountHolderName || ""}
                                 />
-                                {errors.accountHolderName && (
-                                    <div className="text-center text-danger">{errors.accountHolderName}</div>
+                                {errors?.accountHolderName && (
+                                    <div className="text-center text-danger">{errors?.accountHolderName}</div>
                                 )}
                             </div>
                             <div className="col-lg-6">
@@ -934,8 +889,9 @@ const AddEmployeeForm = ({
                                     type="number"
                                     className="inputField"
                                     name="taxDeduction"
-                                    onChange={e => fillEmpObj(e.target.value, "taxDeduction")}
-                                    value={employeeObj.taxDeduction || ""}
+                                    disabled={["admin", "hr"].includes(whoIs) ? false : true}
+                                    onChange={["admin", "hr"].includes(whoIs) ? e => fillEmpObj(e.target.value, "taxDeduction") : () => { }}
+                                    value={employeeObj?.taxDeduction || ""}
                                 />
                             </div>
                         </div>
@@ -945,12 +901,13 @@ const AddEmployeeForm = ({
                                 <div className="inputLabel important">IFSC Code</div>
                                 <input
                                     type="text"
-                                    className={`inputField ${errors.IFSCcode ? "error" : ""}`}
+                                    className={`inputField ${errors?.IFSCcode ? "error" : ""}`}
                                     name="IFSCcode"
-                                    onChange={e => fillEmpObj(e.target.value, "IFSCcode")}
-                                    value={employeeObj.IFSCcode || ""}
+                                    onChange={["admin", "hr"].includes(whoIs) ? e => fillEmpObj(e.target.value, "IFSCcode") : () => { }}
+                                    value={employeeObj?.IFSCcode || ""}
+                                    disabled={["admin", "hr"].includes(whoIs) ? false : true}
                                 />
-                                {errors.IFSCcode && <div className="text-center text-danger">{errors.IFSCcode}</div>}
+                                {errors?.IFSCcode && <div className="text-center text-danger">{errors?.IFSCcode}</div>}
                             </div>
                         </div>
                     </div>
@@ -969,8 +926,9 @@ const AddEmployeeForm = ({
                                             type={field.type}
                                             className={`inputField ${errors[field.fieldName] ? "error" : ""}`}
                                             name={field.fieldName}
-                                            onChange={e => fillEmpObj(e.target.value, field.fieldName)}
+                                            onChange={["admin", "hr"].includes(whoIs) ? e => fillEmpObj(e.target.value, field.fieldName) : () => { }}
                                             value={employeeObj?.[field.fieldName] || ""}
+                                            disabled={["admin", "hr"].includes(whoIs) ? false : true}
                                         />
                                         {errors[field.fieldName] && (
                                             <div className="text-center text-danger">{errors[field.fieldName]}</div>
@@ -1006,11 +964,10 @@ const AddEmployeeForm = ({
                             type="submit"
                             className="btn btn-dark"
                             style={{
-                                padding: "12px",
                                 cursor: isWorkingApi ? "progress" : "pointer"
                             }}
                         >
-                            {isWorkingApi ? <Loading size={20} color="white" /> : "Save"}
+                            {isWorkingApi ? <Loading size={20} color="white" /> : employeeObj?._id ? "Update" : "Save"}
                         </button>
                     </div>
                 </div>
@@ -1019,4 +976,4 @@ const AddEmployeeForm = ({
     );
 };
 
-export default AddEmployeeForm;
+export default EmployeeForm;

@@ -8,44 +8,40 @@ const { getDayDifference } = require("./leave-app");
 const sendMail = require("./mailSender");
 const { LeaveApplication } = require("../models/LeaveAppModel");
 const { Team } = require("../models/TeamModel");
-const { getCurrentTimeInMinutes, formatTimeFromMinutes, timeToMinutes, getTotalWorkingHourPerDay, processActivityDurations } = require("../Reuseable_functions/reusableFunction");
+const { timeToMinutes, getTotalWorkingHourPerDay, processActivityDurations, checkLoginForOfficeTime, getCurrentTime, sumLeaveDays } = require("../Reuseable_functions/reusableFunction");
 const { WFHApplication } = require("../models/WFHApplicationModel");
 const { sendPushNotification } = require("../auth/PushNotification");
-
-async function checkLoginForOfficeTime(scheduledTime, actualTime, permissionTime) {
-    console.log("in behaviour", scheduledTime, actualTime, permissionTime);
-
-    // Parse scheduled and actual time into hours and minutes
-    const [scheduledHours, scheduledMinutes] = scheduledTime.split('.').map(Number);
-    const [actualHours, actualMinutes] = actualTime.split(':').map(Number);
-
-    // Create Date objects for both scheduled and actual times
-    const scheduledDate = new Date(2000, 0, 1, scheduledHours + (permissionTime || 0), scheduledMinutes);
-    const actualDate = new Date(2000, 0, 1, actualHours, actualMinutes);
-
-    // Calculate the difference in milliseconds
-    const timeDifference = actualDate - scheduledDate;
-
-    // Convert milliseconds to minutes
-    const differenceInMinutes = Math.abs(Math.floor(timeDifference / (1000 * 60)));
-
-    if (timeDifference > 0) {
-        return `You came ${differenceInMinutes} minutes late today.`;
-    } else if (timeDifference < 0) {
-        return `You came ${differenceInMinutes} minutes early today.`;
-    } else {
-        return `You came on time today.`;
-    }
-}
+const { Holiday } = require("../models/HolidayModel");
+const { TimePattern } = require("../models/TimePatternModel");
 
 router.post("/not-login/apply-leave/:workPatternId", async (req, res) => {
     try {
+        const timePatternId = req.params.workPatternId;
         const now = new Date();
         const startOfDay = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 0, 0, 0));
         const endOfDay = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 23, 59, 59));
 
+        // check whf request is weekend or holiday
+        function checkDateIsHoliday(dateList, target) {
+            return dateList.some((holiday) => new Date(holiday.date).toLocaleDateString() === new Date(target).toLocaleDateString());
+        }
+        const holiday = await Holiday.findOne({ year: new Date().getFullYear() });
+        const isTodayHoliday = checkDateIsHoliday(holiday.holidays, now);
+        if (isTodayHoliday) {
+            return res.status(200).send({ message: "No need to apply leave for holiday" })
+        }
+        async function checkDateIsWeekend(date) {
+            const timePattern = await TimePattern.findById(timePatternId, "WeeklyDays").lean().exec();
+            const isWeekend = !timePattern.WeeklyDays.includes(new Date(date).toLocaleDateString(undefined, { weekday: 'long' }));
+            return isWeekend;
+        }
+        const todayIsWeekend = await checkDateIsWeekend(now);
+        if (todayIsWeekend) {
+            return res.status(200).send({ message: "No need to apply leave for Weekend" })
+        }
+
         const allEmployees = await Employee.find(
-            { workingTimePattern: req.params.workPatternId },
+            { workingTimePattern: timePatternId },
             "_id workingTimePattern FirstName LastName Email team leaveApplication company"
         )
             .populate("leaveApplication")
@@ -88,8 +84,8 @@ router.post("/not-login/apply-leave/:workPatternId", async (req, res) => {
         for (const emp of notLoginEmps) {
             if (!emp.workingTimePattern) continue;
 
-            const officeStartingTime = `${new Date(emp.workingTimePattern.StartingTime).getHours()}:${new Date(empData.workingTimePattern.StartingTime).getMinutes()}`;
-            const officeFinishingTime = `${new Date(emp.workingTimePattern.FinishingTime).getHours()}:${new Date(empData.workingTimePattern.FinishingTime).getMinutes()}`;
+            const officeStartingTime = `${new Date(emp.workingTimePattern.StartingTime).getHours()}:${new Date(emp.workingTimePattern.StartingTime).getMinutes()}`;
+            const officeFinishingTime = `${new Date(emp.workingTimePattern.FinishingTime).getHours()}:${new Date(emp.workingTimePattern.FinishingTime).getMinutes()}`;
             const workingHours = getTotalWorkingHourPerDay(
                 officeStartingTime,
                 officeFinishingTime
@@ -106,10 +102,10 @@ router.post("/not-login/apply-leave/:workPatternId", async (req, res) => {
                 employee: emp._id,
                 status: "pending",
                 approvers: {
-                    TeamLead: "approved",
-                    TeamHead: "approved",
-                    Hr: "approved",
-                    Manager: "approved",
+                    lead: "approved",
+                    head: "approved",
+                    hr: "approved",
+                    manager: "approved"
                 },
             };
 
@@ -138,7 +134,7 @@ router.post("/not-login/apply-leave/:workPatternId", async (req, res) => {
             if (hrEmails.length > 0) {
                 emailPromises.push(
                     sendMail({
-                        From: process.env.FROM_MAIL,
+                        From: `<${process.env.FROM_MAIL}> (Nexshr)`,
                         To: hrEmails.join(", "),
                         Subject,
                         HtmlBody: htmlContent,
@@ -152,7 +148,7 @@ router.post("/not-login/apply-leave/:workPatternId", async (req, res) => {
                             token: hr.fcmToken,
                             title: Subject,
                             body: `${emp.FirstName} ${emp.LastName} did not punch in on the HRM system by the end of the day.`,
-                            company: emp.company,
+                            // company: emp.company,
                         });
                     }
                 });
@@ -188,22 +184,39 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
         }
         // Fetch employee details with required fields
         const emp = await Employee.findById(req.params.id, "FirstName LastName Email profile company clockIns leaveApplication isPermanentWFH")
-            .populate("workingTimePattern")
-            .populate("company", "location CompanyName")
-            .populate({ path: "clockIns", match: { date: { $gte: startOfDay, $lte: endOfDay } } })
-            .populate({
-                path: "leaveApplication",
-                match: {
-                    fromDate: { $gte: startOfDay, $lte: endOfDay },
-                    status: "approved",
-                    leaveType: { $nin: "Permission Leave" }
-                }
-            })
+            .populate([{ path: "workingTimePattern" },
+            { path: "company", select: "location CompanyName" },
+            { path: "team" },
+            { path: "clockIns", match: { date: { $gte: startOfDay, $lte: endOfDay } } },
+            { path: "company", select: "location CompanyName" },
+            { path: "team" },
+            { path: "clockIns", match: { date: { $gte: startOfDay, $lte: endOfDay } } },
+            { path: "leaveApplication", match: { fromDate: { $lte: endOfDay }, toDate: { $gte: startOfDay }, status: "approved" } }
+            ]).exec();
 
         if (!emp) return res.status(404).send({ error: "Employee not found!" });
+        // Office login time & employee login time 
+        const officeLoginTime = getCurrentTime(emp?.workingTimePattern?.StartingTime) || "9:00";
+        const loginTimeRaw = req.body?.login?.startingTime?.[0];
 
         if (emp.leaveApplication.length) {
-            return res.status(400).send({ error: "You are in Leave today" })
+            const permissionLeave = emp.leaveApplication.find((leave) => leave.leaveType.toLowerCase().includes("permission"));
+            if (permissionLeave) {
+                const [hour, min, sec] = loginTimeRaw.split(":").map(Number);
+                const current = new Date().setHours(hour, min, sec, 0)
+                const start = new Date(permissionLeave.fromDate);
+                const end = new Date(permissionLeave.toDate); // fallback to start if no end
+
+                // Normalize time for comparison
+                start.setHours(start.getHours(), start.getMinutes(), start.getSeconds(), 0);
+                end.setHours(end.getHours(), end.getMinutes(), end.getSeconds(), 0);
+
+                if (current >= start && current <= end) {
+                    return res.status(400).send({ error: "You have permission. Once finished, start the timer." })
+                }
+            } else {
+                return res.status(400).send({ error: "You are in Leave today" })
+            }
         }
         if (emp?.clockIns?.length > 0) return res.status(409).send({ message: "You have already Punch-In!" });
 
@@ -227,13 +240,9 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
         //     }
         // }
 
-        // Office login time & employee login time
-        const officeLoginTime = `${new Date(emp?.workingTimePattern?.StartingTime).getHours()}:${new Date(emp?.workingTimePattern?.StartingTime).getMinutes()}` || "9:00";
-        const loginTimeRaw = req.body?.login?.startingTime?.[0];
         if (!loginTimeRaw) return res.status(400).send({ error: "You must start Punch-in Timer" });
         const companyLoginMinutes = timeToMinutes(officeLoginTime) + Number(emp?.workingTimePattern?.WaitingTime);
         const empLoginMinutes = timeToMinutes(loginTimeRaw);
-        console.log(companyLoginMinutes, empLoginMinutes, officeLoginTime, loginTimeRaw);
 
         if (companyLoginMinutes < empLoginMinutes) {
             const timeDiff = empLoginMinutes - companyLoginMinutes;
@@ -241,7 +250,6 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
             const endOfMonth = new Date();
 
             if (timeDiff > 120 && timeDiff >= 240) {
-                console.log("enter halfday leave", timeDiff);
 
                 // Half-day leave due to late arrival
                 const halfDayLeaveApp = {
@@ -255,10 +263,10 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
                     coverBy: null,
                     status: "pending",
                     approvers: {
-                        TeamLead: "approved",
-                        TeamHead: "approved",
-                        Hr: "approved",
-                        Manager: "approved"
+                        lead: "approved",
+                        head: "approved",
+                        hr: "approved",
+                        manager: "approved"
                     },
                     approvedOn: null,
                     approverId: []
@@ -279,7 +287,6 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
                 let leaveAppData, subject, htmlContent;
 
                 if (empPermissions.length === 2) {
-                    console.log("apply permission");
 
                     // Exceeded permission limit → Convert to Half-Day Leave
                     leaveAppData = {
@@ -293,10 +300,10 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
                         coverBy: null,
                         status: "pending",
                         approvers: {
-                            TeamLead: "approved",
-                            TeamHead: "approved",
-                            Hr: "approved",
-                            Manager: "approved"
+                            lead: "approved",
+                            head: "approved",
+                            hr: "approved",
+                            manager: "approved"
                         },
                         approvedOn: null,
                         approverId: []
@@ -333,11 +340,11 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
                         employee: emp._id,
                         status: "approved",
                         approvers: {
-                            TeamLead: "approved",
-                            TeamHead: "approved",
-                            Hr: "approved",
-                            Manager: "approved"
-                        }
+                            lead: "approved",
+                            head: "approved",
+                            hr: "approved",
+                            manager: "approved"
+                        },
                     }
 
                     subject = empPermissions.length === 1 ? "2nd Permission Applied" : "1st Permission Applied";
@@ -357,7 +364,7 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
 
                 // Send Email Notification
                 sendMail({
-                    From: process.env.FROM_MAIL,
+                    From: `<${process.env.FROM_MAIL}> (Nexshr)`,
                     To: emp.Email,
                     Subject: subject,
                     HtmlBody: htmlContent,
@@ -372,7 +379,6 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
         // Function to check login status
         const checkLoginStatus = (scheduledTime, actualTime, permissionTime = 0) => {
             if (!scheduledTime || !actualTime) return null;
-            console.log("in status", scheduledTime, actualTime,);
 
             const scheduledMinutes = timeToMinutes(scheduledTime);
             const actualMinutes = timeToMinutes(actualTime);
@@ -391,12 +397,13 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
 
         // Determine employee behavior (Late, Early, On Time)
         const loginTime = loginTimeRaw;
-        const permissionMinutes = emp?.leaveApplication?.length
-            ? ((new Date(emp.leaveApplication[0].toDate).getTime() - new Date(emp.leaveApplication[0].fromDate).getTime()) / 60000) / 60
-            : 0;
+        // const permissionMinutes = emp?.leaveApplication?.length
+        //     ? ((new Date(emp.leaveApplication[0].toDate).getTime() - new Date(emp.leaveApplication[0].fromDate).getTime()) / 60000) / 60
+        //     : 0;
+        // console.log(emp?.leaveApplication[0]);
 
-        const behaviour = checkLoginStatus(officeLoginTime, loginTime, permissionMinutes);
-        const punchInMsg = await checkLoginForOfficeTime(officeLoginTime, loginTime, permissionMinutes);
+        const behaviour = checkLoginStatus(officeLoginTime, loginTime);
+        const punchInMsg = await checkLoginForOfficeTime(officeLoginTime, loginTime);
 
         // Create clock-in entry
         const newClockIns = await ClockIns.create({
@@ -436,8 +443,6 @@ router.get("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
         });
 
         if (prevClockIn && prevClockIn.login?.startingTime?.length !== prevClockIn.login?.endingTime?.length) {
-            console.log("checking");
-
             const activitiesData = processActivityDurations(prevClockIn);
             const totalMinutes = activitiesData.reduce((sum, a) => sum + a.timeCalMins, 0);
             const empTotalWorkingHours = (totalMinutes / 60).toFixed(2);
@@ -505,8 +510,8 @@ router.get("/team/:id", verifyTeamHigherAuthority, async (req, res) => {
 
 router.get("/item/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
     const convertToMinutes = (start, end) => {
-        const [endHour, endMin] = end.split(":").map(Number);
-        const [startHour, startMin] = start.split(":").map(Number);
+        const [endHour, endMin] = end.split(/[:.]+/).map(Number);
+        const [startHour, startMin] = start.split(/[:.]+/).map(Number);
 
         const startTime = new Date(2000, 0, 1, startHour, startMin);
         const endTime = new Date(2000, 0, 1, endHour, endMin);
@@ -589,22 +594,23 @@ router.get("/employee/:empId", verifyAdminHREmployeeManagerNetwork, async (req, 
             return totalHours;
         };
 
-        const employee = await Employee.findById(empId, "FirstName LastName clockIns leaveApplication")
-            .populate([{ path: "workingTimePattern" },
-            {
-                path: "clockIns",
-                match: { date: { $gte: startOfMonth, $lte: endOfMonth } },
-                populate: { path: "employee", select: "FirstName LastName" }
-            },
-            {
-                path: "leaveApplication",
-                match: { fromDate: { $lte: endOfMonth }, toDate: { $gte: startOfMonth }, status: "approved", leaveType: { $ne: "Permission Leave" } },
-                select: "fromDate toDate leaveType periodOfLeave"
-            }])
+        const employee = await Employee.findById(empId, "FirstName LastName clockIns leaveApplication workingTimePattern")
+            .populate([
+                { path: "workingTimePattern" },
+                {
+                    path: "clockIns",
+                    match: { date: { $gte: startOfMonth, $lte: endOfMonth } },
+                    populate: { path: "employee", select: "FirstName LastName" }
+                },
+                {
+                    path: "leaveApplication",
+                    match: { fromDate: { $lte: endOfMonth }, toDate: { $gte: startOfMonth }, status: "approved", leaveType: { $ne: "Permission Leave" } },
+                    select: "fromDate toDate leaveType periodOfLeave employee"
+                }])
 
         if (!employee) return res.status(400).send({ message: "Employee not found." });
 
-        totalLeaveDays = Math.ceil(employee.leaveApplication.reduce((sum, leave) => sum + getDayDifference(leave), 0));
+        totalLeaveDays = Math.ceil(await sumLeaveDays(employee.leaveApplication));
 
         employee.clockIns.forEach(({ login }) => {
             const { startingTime, endingTime } = login;
@@ -624,7 +630,7 @@ router.get("/employee/:empId", verifyAdminHREmployeeManagerNetwork, async (req, 
         });
     } catch (error) {
         console.error("Error fetching employee data:", error);
-        res.status(500).send({ message: "Server error", details: error.message });
+        res.status(500).send({ error: error.message });
     }
 });
 
@@ -698,7 +704,7 @@ router.get("/sendmail/:id/:clockinId", async (req, res) => {
                                 </html>`
 
         sendMail({
-            From: process.env.FROM_MAIL,
+            From: `<${process.env.FROM_MAIL}> (Nexshr)`,
             To: emp.Email,
             Subject: `You have punched in for the ${emp.clockIns[0].date}`,
             HtmlBody: htmlContent,
@@ -740,8 +746,6 @@ router.put("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
         if (!updatedClockIn) {
             return res.status(404).send({ message: "Clock-in entry not found" });
         }
-        // check user is late login and early logout
-
         res.send(updatedClockIn);
     } catch (error) {
         console.error("Error updating ClockIns:", error);
@@ -781,7 +785,7 @@ router.post("/ontime/:type", async (req, res) => {
 
         activeEmps.map((emp) => {
             sendMail({
-                From: process.env.FROM_MAIL,
+                From: `<${process.env.FROM_MAIL}> (Nexshr)`,
                 To: emp.Email,
                 Subject: type === "login" ? "Login Remainder" : "Logout Remainder",
                 HtmlBody: `
@@ -812,8 +816,6 @@ router.post("/ontime/:type", async (req, res) => {
 </html>
 `  })
         })
-        console.log("sent successfully!");
-
         return res.send({ message: "Email sent successfully for all employees." })
 
     } catch (error) {
@@ -830,7 +832,7 @@ router.post("/remainder/:id/:timeOption", async (req, res) => {
         // send email notification
         const Subject = `Your ${timeOption[0].toUpperCase() + timeOption.slice(1)} time has ended`;
         sendMail({
-            From: process.env.FROM_MAIL,
+            From: `<${process.env.FROM_MAIL}> (Nexshr)`,
             To: emp.Email,
             Subject,
             HtmlBody: `<html lang="en">
@@ -859,7 +861,7 @@ router.post("/remainder/:id/:timeOption", async (req, res) => {
         // send notification even ask the reason for late
         await sendPushNotification({
             token: emp.fcmToken,
-            company: emp.company,
+            // company: emp.company,
             title: Subject,
             body: `Your ${timeOption[0].toUpperCase() + timeOption.slice(1)} time has ended. Please resume your work.`,
             type: "late reason"

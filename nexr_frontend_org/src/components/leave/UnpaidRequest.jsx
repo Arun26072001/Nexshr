@@ -6,11 +6,14 @@ import NoDataFound from '../payslip/NoDataFound';
 import axios from 'axios';
 import { EssentialValues } from '../../App';
 import { toast } from 'react-toastify';
+import { useNavigate } from 'react-router-dom';
 
 export default function UnpaidRequest() {
+    const navigate = useNavigate();
     const url = process.env.REACT_APP_API_URL;
     const { data } = useContext(EssentialValues);
     const [isLoading, setIsLoading] = useState(false);
+    const [isResponsing, setIsResponsing] = useState("");
     const [empName, setEmpName] = useState("");
     const [daterangeValue, setDaterangeValue] = useState([]);
     const [leaveRequests, setLeaveRequests] = useState([]);
@@ -18,6 +21,7 @@ export default function UnpaidRequest() {
 
     async function replyToLeave(leave, response) {
         try {
+            setIsResponsing(leave._id)
             let updatedLeaveRequest;
             updatedLeaveRequest = {
                 ...leave,
@@ -32,8 +36,13 @@ export default function UnpaidRequest() {
             toast.success(res.data.message);
             fetchUnpaidLeave();
         } catch (error) {
+            if (error?.message === "Network Error") {
+                navigate("/network-issue")
+            }
             console.log("error in reply to leave", error);
-            toast.error(error.response.data.error)
+            toast.error(error?.response?.data?.error)
+        } finally {
+            setIsResponsing("")
         }
     }
 
@@ -60,6 +69,9 @@ export default function UnpaidRequest() {
             setLeaveRequests(res.data);
             setFullLeaveRequests(res.data);
         } catch (error) {
+            if (error?.message === "Network Error") {
+                navigate("/network-issue")
+            }
             setLeaveRequests([])
             console.log("error in fetch unpaidleave", error);
         } finally {
@@ -90,7 +102,7 @@ export default function UnpaidRequest() {
                                 showOneCalendar
                                 placement="bottomEnd"
                                 value={daterangeValue}
-                                placeholder="Select Date"
+                                placeholder="Filter Range of Date"
                                 onChange={setDaterangeValue}
                             />
                         </div>
@@ -104,7 +116,7 @@ export default function UnpaidRequest() {
                             height={"50vh"}
                         /> :
                             leaveRequests?.length > 0 ?
-                                <LeaveTable data={leaveRequests} replyToLeave={replyToLeave} /> : <NoDataFound message="No Leave request for this employee Name" />
+                                <LeaveTable data={leaveRequests} isLoading={isResponsing} replyToLeave={replyToLeave} /> : <NoDataFound message="No Leave request for this employee Name" />
                     }
                 </div>
             </div>

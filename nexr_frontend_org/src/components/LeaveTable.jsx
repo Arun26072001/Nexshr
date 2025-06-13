@@ -20,10 +20,12 @@ import BorderColorRoundedIcon from '@mui/icons-material/BorderColorRounded';
 import DeleteRoundedIcon from '@mui/icons-material/DeleteRounded';
 import { EssentialValues } from '../App';
 import profile from "../imgs/male_avatar.webp";
+import Loading from './Loader';
 
-export default function LeaveTable({ data, Account, getCheckedValue, handleDelete, handleChangeData, fetchReportById, fetchOrgData, fetchData, roleObj, getCheckAll, deleteData, replyToLeave, handleChangeLeavetype, isTeamHead, isTeamLead, isTeamManager }) {
+export default function LeaveTable({ data, Account, getCheckedValue, handleDelete, handleChangeData, fetchReportById, fetchOrgData, fetchData, roleObj, getCheckAll, deleteData, replyToLeave, handleChangeLeavetype, isTeamHead, isTeamLead, isTeamManager, isLoading }) {
     const navigate = useNavigate();
     const { whoIs } = useContext(EssentialValues);
+    const empId = localStorage.getItem("_id")
     const timerStateData = useContext(TimerStates)
     const [page, setPage] = useState(0);
     const [rowsPerPage, setRowsPerPage] = useState(+localStorage.getItem("rowsPerPage") || 10);
@@ -74,8 +76,8 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
         { id: 'periodOfLeave', label: 'Period Of Leave', align: "left", minWidth: 100, getter: (row) => row.periodOfLeave },
         { id: 'fromDate', label: 'Start Date', minWidth: 120, align: 'left', getter: (row) => row.fromDate ? row.fromDate.split("T")[0] : 'N/A' },
         { id: 'toDate', label: 'End Date', minWidth: 120, align: 'left', getter: (row) => row.toDate ? row.toDate.split("T")[0] : 'N/A' },
-        { id: 'leaveType', label: 'Type', minWidth: 130, align: 'left', getter: (row) => row.leaveType },
-        { id: '', label: 'Reason', minWidth: 100, align: 'left', getter: (row) => <div dangerouslySetInnerHTML={{ __html: row.reasonForLeave.slice(0, 20) }} /> },
+        { id: 'leaveType', label: 'Type', minWidth: 170, align: 'left', getter: (row) => row.leaveType },
+        { id: '', label: 'Reason', minWidth: 150, align: 'left', getter: (row) => <div dangerouslySetInnerHTML={{ __html: row.reasonForLeave.slice(0, 20) + (row?.reasonForLeave?.length > 20 ? "..." : "") }} /> },
         {
             id: 'status',
             label: 'Status',
@@ -125,7 +127,7 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
                 );
             }
         },
-        { id: 'basicSalary', label: 'Salary', minWidth: 120, align: 'center', getter: (row) => row?.employee?.basicSalary ? `₹${row.employee.basicSalary}` : 'N/A' },
+        { id: 'basicSalary', label: 'Salary', minWidth: 120, align: 'center', getter: (row) => row?.payslip?.basicSalary ? `₹${row.payslip.basicSalary}` : 'N/A' },
         { id: 'status', label: 'Status', minWidth: 120, align: 'center', getter: (row) => row?.payslip?.status ? row.payslip.status : 'N/A' },
         { id: 'period', label: 'Period', minWidth: 120, align: 'center', getter: (row) => row?.payslip?.period ? row.payslip.period : 'N/A' },
         { id: 'lossofpay', label: 'LOP', minWidth: 100, align: 'center', getter: (row) => row?.payslip?.LossOfPay },
@@ -184,16 +186,16 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
         {
             id: 'StratingTime',
             label: 'Shift',
-            minWidth: 100,
+            minWidth: 120,
             align: 'center',
-            getter: (row) => row?.workingTimePattern?.StartingTime || 'N/A'
+            getter: (row) => row?.workingTimePattern?.PatternName || 'N/A'
         },
         {
             id: 'dateOfJoining',
             label: 'Joining Date',
-            minWidth: 100,
+            minWidth: 130,
             align: 'center',
-            getter: (row) => row?.dateOfJoining || 'N/A'
+            getter: (row) => new Date(row?.dateOfJoining).toLocaleDateString() || 'N/A'
         },
         {
             id: 'RoleName',
@@ -260,11 +262,13 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
             getter: (row) => row?.login?.endingTime ? row.login.endingTime[row.login.endingTime.length - 1] : "00:00:00"
         },
         {
-            id: 'totalHour',
+            id: 'timeHolder',
             label: 'Total Hour',
             minWidth: 130,
             align: 'center',
-            getter: (row) => row?.login?.totalHour || "00:00:00"
+            getter: (row) => {
+                return row?.login?.timeHolder || "00:00:00"
+            }
         },
         {
             id: 'behaviour',
@@ -316,7 +320,7 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
             label: 'Total Hour',
             minWidth: 130,
             align: 'left',
-            getter: (row) => row?.totalHour || row.login.timeHolder || 0
+            getter: (row) => row?.[row.type]?.totalHour || "00:00:00"
         },
         {
             id: 'behaviour',
@@ -482,8 +486,8 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
         { id: 'periodOfLeave', label: 'Period Of Leave', align: "left", minWidth: 150, getter: (row) => row.periodOfLeave },
         { id: 'fromDate', label: 'Start Date', minWidth: 130, align: 'left', getter: (row) => row.fromDate ? row.fromDate.split("T")[0] : 'N/A' },
         { id: 'toDate', label: 'End Date', minWidth: 130, align: 'left', getter: (row) => row.toDate ? row.toDate.split("T")[0] : 'N/A' },
-        { id: 'leaveType', label: 'Type', minWidth: 150, align: 'left', getter: (row) => row.leaveType },
-        { id: 'reasonForLeave', label: 'Reason', minWidth: 100, align: 'left', getter: (row) => row.reasonForLeave },
+        { id: 'leaveType', label: 'Type', minWidth: 100, align: 'left', getter: (row) => row.leaveType },
+        { id: 'reasonForLeave', label: 'Reason', minWidth: 150, align: 'left', getter: (row) => row.reasonForLeave.slice(0, 20) + (row?.reasonForLeave?.length > 20 ? "..." : "") },
         { id: 'status', label: 'Status', minWidth: 100, align: 'left', getter: (row) => row.status },
     ];
 
@@ -711,7 +715,7 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
         { id: 'FinishingTime', label: 'End Time', minWidth: 100, align: 'center', getter: (row) => new Date(row?.FinishingTime).toLocaleTimeString() || 'N/A' },
         { id: 'BreakTime', label: 'Break Time', minWidth: 100, align: 'center', getter: (row) => row?.BreakTime || 'N/A' },
         { id: 'WaitingTime', label: 'Waiting Time', minWidth: 100, align: 'center', getter: (row) => row?.WaitingTime || 'N/A' },
-        { id: 'WeeklyDays', label: 'Weekly Days', minWidth: 150, align: 'center', getter: (row) => row.WeeklyDays.length ? row.WeeklyDays.join(", ") : 'N/A' },
+        { id: 'WeeklyDays', label: 'Weekly Days', minWidth: 150, align: 'center', getter: (row) => row.WeeklyDays.length ? row.WeeklyDays.slice(0, 3).join(", ") + (row.WeeklyDays.length > 3 ? "..." : "") : 'N/A' },
         { id: 'Action', label: 'Action', minWidth: 100, align: 'center' }
     ];
     const column19 = [
@@ -724,9 +728,7 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
             minWidth: 200,
             align: 'center',
             getter: (row) =>
-                Array.isArray(row?.employees) && row.employees.length
-                    ? row.employees.map(emp => emp?.FirstName[0].toUpperCase() + emp?.FirstName.slice(1)).join(', ')
-                    : 'N/A'
+                Array.isArray(row?.employees) && row.employees.length ? row.employees.length : 0
         },
         { id: 'Action', label: 'Action', minWidth: 100, align: 'center' }
     ];
@@ -781,7 +783,7 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
             label: 'Reason',
             minWidth: 200,
             align: 'center',
-            getter: (row) => row?.reason || 'N/A'
+            getter: (row) => row?.reason.slice(0, 20) + (row?.reason?.length > 20 ? "..." : "") || 'N/A'
         },
         {
             id: 'status',
@@ -840,7 +842,7 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
             minWidth: 180,
             align: 'center',
             getter: (row) => Array.isArray(row?.shortTags)
-                ? row.shortTags.join(', ')
+                ? row.shortTags.slice(0, 3).join(', ') + (row.shortTags.length > 3 ? "..." : "")
                 : row?.shortTags || 'N/A'
         },
         {
@@ -860,9 +862,75 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
 
     const column22 = [
         { id: 'currentYear', label: 'Year', minWidth: 100, align: 'left', getter: (row) => row.currentYear || "N/A" },
-        { id: 'holidays', label: 'Holidays', minWidth: 400, align: 'center', getter: (row) => row.holidays.length ? row.holidays?.map((holiday) => holiday.date + ", ") : "N/A" },
+        { id: 'holidays', label: 'Holidays', minWidth: 400, align: 'center', getter: (row) => row.holidays.length ? row.holidays?.slice(0, 3).map((holiday) => holiday.date + ", ") + (row.holidays.length > 3 ? "..." : "") : "N/A" },
         { id: "Action", label: "Action", minWidth: 100, align: "center" }
     ]
+
+    const column23 = [
+        {
+            id: 'title',
+            label: 'Task Name',
+            minWidth: 150,
+            align: 'center',
+            getter: (row) => row?.title || 'N/A'
+        },
+        {
+            id: 'from',
+            label: 'Active',
+            minWidth: 80,
+            align: 'center',
+            getter: (row) => row?.from ? new Date(row.from).toLocaleDateString() : 'N/A'
+        },
+        {
+            id: 'to',
+            label: 'Deadline',
+            minWidth: 120,
+            align: 'center',
+            getter: (row) => row?.to ? new Date(row.to).toLocaleDateString() : 'N/A'
+        },
+        {
+            id: 'createdby',
+            label: 'Created By',
+            minWidth: 150,
+            align: 'center',
+            getter: (row) => {
+                const creator = row?.createdby;
+                return creator?.FirstName ? `${creator.FirstName} ${creator.LastName || ''}`.trim() : 'N/A';
+            }
+        },
+        {
+            id: 'assignedTo',
+            label: 'Assignee(s)',
+            minWidth: 180,
+            align: 'center',
+            getter: (row) => {
+                const assignees = row?.assignedTo || [];
+                if (!assignees.length) return 'N/A';
+                return assignees.map(emp => `${emp.FirstName} ${emp.LastName || ''}`.trim()).join(', ');
+            }
+        },
+        {
+            id: 'project',
+            label: 'Project',
+            minWidth: 150,
+            align: 'center',
+            getter: (row) => row?.project?.name || 'N/A'
+        },
+        {
+            id: 'tags',
+            label: 'Tags',
+            minWidth: 150,
+            align: 'center',
+            getter: (row) => Array.isArray(row.tags) && row.tags.length ? row.tags.join(', ') : 'N/A'
+        },
+        {
+            id: 'Action',
+            label: 'Action',
+            minWidth: 100,
+            align: 'center'
+        }
+    ];
+
 
     function toggleView() {
         setOpenModal(!openModal);
@@ -874,10 +942,10 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
         if (['daily-log', "attendance-request"].includes(page)) {
             async function fetchAttendanceData() {
                 try {
-                    const data = await getclockinsDataById(id);
+                    const res = await getclockinsDataById(id);
 
                     setModelData({
-                        ...data.timeData,
+                        ...res.timeData,
                         title: "Attendance Details"
                     });
                     toggleView();
@@ -934,9 +1002,10 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
                 return setColumns(column10)
             } else if (item?.title && params["*"] === "announcement") {
                 return setColumns(column11)
-            } else if (item?.createdby) {
-                return setColumns(column12)
-            } else if (item?.CompanyName && params["*"] === "company") {
+            } else if (params["*"] === "" && item.title) {
+                setColumns(column23)
+            }
+            else if (item?.CompanyName && params["*"] === "company") {
                 return setColumns(column13)
             } else if (item?.icon) {
                 return setColumns(column14)
@@ -956,7 +1025,10 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
                 return setColumns(column21)
             } else if (params["*"] === "holiday") {
                 setColumns(column22);
-            } else {
+            } else if (item?.createdby && params["*"] === "reports") {
+                return setColumns(column12)
+            }
+            else {
                 return setColumns(column2)
             }
         })
@@ -990,18 +1062,18 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
                                             // Apply conditional styling for employee type
                                             const cellStyle =
                                                 column.id === "employmentType" && ["contract", "intern"].includes(value) ? {
-                                                    color: "#AFDDFF", background: "#3A59D1",
+                                                    color: "white", background: "#3A59D1",
                                                     padding: "0px",
                                                     fontWeight: "bold"
                                                 } :
                                                     column.id === "employmentType" && value?.toLowerCase() === "part-time" ? {
-                                                        color: "#FFEFC8", background: "#FFB22C",
+                                                        color: "white", background: "#FFB22C",
                                                         padding: "0px",
                                                         fontWeight: "bold",
                                                         borderRadius: "4px"
                                                     } :
                                                         column.id === "employmentType" && value?.toLowerCase() === "full-time" ? {
-                                                            color: "rgb(206, 229, 211)", background: "#0A7E22",
+                                                            color: "white", background: "#0A7E22",
                                                             padding: "0px",
                                                             fontWeight: "bold",
                                                             borderRadius: "4px"
@@ -1013,7 +1085,7 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
                                                 } else if (column.id === "Action") {
                                                     if (["leave-request", "wfh-request"].includes(params['*'])) {
                                                         return (
-                                                            <Dropdown placement='leftStart' title={<EditRoundedIcon style={{ cursor: "pointer" }} />} noCaret>
+                                                            <Dropdown placement='leftStart' title={isLoading === row._id ? <Loading size={20} color={"black"} /> : <EditRoundedIcon style={{ cursor: isLoading === row._id ? "process" : "pointer" }} />} noCaret>
                                                                 <Dropdown.Item style={{ minWidth: 120 }} onClick={() => navigate(params['*'] === "leave-request" ? `/${whoIs}/leave-request/view/${row._id}` : `/${whoIs}/wfh-request/view/${row._id}`)}>View</Dropdown.Item>
                                                                 {
                                                                     (isTeamLead && row?.approvers?.lead === "pending") ||
@@ -1027,23 +1099,22 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
                                                                         </>
                                                                     ) : null
                                                                 }
-
                                                             </Dropdown>
                                                         );
                                                     } else if (params["*"] === "unpaid-request") {
-                                                        return (<Dropdown placement='leftStart' title={<EditRoundedIcon style={{ cursor: "pointer" }} />} noCaret>
+                                                        return (<Dropdown placement='leftStart' title={isLoading === row._id ? <Loading size={20} color={"black"} /> : <EditRoundedIcon style={{ cursor: isLoading === row._id ? "process" : "pointer" }} />} noCaret>
                                                             <Dropdown.Item style={{ minWidth: 120 }} onClick={() => replyToLeave(row, "approved")}>Approve</Dropdown.Item>
                                                             <Dropdown.Item style={{ minWidth: 120 }} onClick={() => replyToLeave(row, "rejected")}>Reject</Dropdown.Item>
                                                         </Dropdown>)
                                                     }
                                                     else if (["payslip", "daily-log", "attendance-request"].includes(params["*"])) {
                                                         return (
-                                                            <Dropdown title={<RemoveRedEyeRoundedIcon style={{ cursor: "pointer" }} />} noCaret onClick={() => getValueForView([row._id, params['*']])}>
+                                                            <Dropdown title={<RemoveRedEyeRoundedIcon style={{ cursor: isLoading === row._id ? "process" : "pointer" }} />} noCaret onClick={() => getValueForView([row._id, params['*']])}>
                                                             </Dropdown>
                                                         );
                                                     } else if (params["*"] === "workFromHome") {
                                                         return (
-                                                            <Dropdown title={<EditRoundedIcon style={{ cursor: "pointer" }} />} placement='leftStart' noCaret>
+                                                            <Dropdown title={isLoading === row._id ? <Loading size={20} color={"black"} /> : <EditRoundedIcon style={{ cursor: isLoading === row._id ? "process" : "pointer" }} />} placement='leftStart' noCaret>
                                                                 <Dropdown.Item style={{ minWidth: 120 }} onClick={() => navigate(`/${whoIs}/wfh-request/edit/${row._id}`)}>
                                                                     <b>
                                                                         <BorderColorRoundedIcon sx={{ color: "#FFD65A" }} /> Edit
@@ -1058,7 +1129,7 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
                                                         );
                                                     } else if (params['*'] === "employee") {
                                                         return (
-                                                            <Dropdown title={<EditRoundedIcon style={{ cursor: "pointer" }} />} placement='leftStart' noCaret>
+                                                            <Dropdown title={isLoading === row._id ? <Loading size={20} color={"black"} /> : <EditRoundedIcon style={{ cursor: isLoading === row._id ? "process" : "pointer" }} />} placement='leftStart' noCaret>
                                                                 <Dropdown.Item style={{ minWidth: 120 }} onClick={() => timerStateData?.changeEmpEditForm(row._id)}>
                                                                     <b>
                                                                         <BorderColorRoundedIcon sx={{ color: "#FFD65A" }} /> Edit
@@ -1073,7 +1144,7 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
                                                         );
                                                     } else if (params["*"] === "reports") {
                                                         return (
-                                                            <Dropdown title={"Action"} placement='leftStart' noCaret>
+                                                            <Dropdown title={isLoading === row._id ? <Loading size={20} color={"black"} /> : "Action"} placement='leftStart' noCaret>
                                                                 <Dropdown.Item style={{ minWidth: 80 }} onClick={() => fetchReportById(row._id, "View")}>
                                                                     <b>
                                                                         <RemoveRedEyeRoundedIcon sx={{ color: "#80C4E9" }} /> View
@@ -1102,7 +1173,7 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
 
                                                     } else if (params["*"] === "leave-details") {
                                                         return (
-                                                            <Dropdown title={"Action"} placement='leftStart' noCaret>
+                                                            <Dropdown title={isLoading === row._id ? <Loading size={20} color={"black"} /> : "Action"} placement='leftStart' noCaret>
                                                                 <Dropdown.Item style={{ minWidth: 80 }} onClick={() => handleChangeLeavetype("Edit", row)}>
                                                                     <b>
                                                                         <BorderColorRoundedIcon sx={{ color: "#FFD65A" }} /> Edit
@@ -1116,7 +1187,7 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
                                                             </Dropdown>
                                                         )
                                                     } else if (params["*"] === "leave") {
-                                                        return (<Dropdown title={"Action"} noCaret placement="leftStart">
+                                                        return (<Dropdown title={isLoading === row._id ? <Loading size={20} color={"black"} /> : "Action"} noCaret placement="leftStart">
                                                             <Dropdown.Item style={{ minWidth: 80 }} onClick={() => navigate(`/${whoIs}/leave-request/view/${row._id}`)}>
                                                                 <b>
                                                                     <RemoveRedEyeRoundedIcon sx={{ color: "#80C4E9" }} /> View
@@ -1139,7 +1210,7 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
                                                             }
                                                         </Dropdown>)
                                                     } else if (["organizations", "users", "announcement"].includes(params["*"])) {
-                                                        return (<Dropdown title={"Action"} placement='leftStart' noCaret>
+                                                        return (<Dropdown title={isLoading === row._id ? <Loading size={20} color={"black"} /> : "Action"} placement='leftStart' noCaret>
                                                             {["organizations", "users"].includes(params["*"])
                                                                 &&
                                                                 <Dropdown.Item style={{ minWidth: 80 }} onClick={() => fetchOrgData(row._id, "Edit")}>
@@ -1158,7 +1229,7 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
                                                             }
                                                         </Dropdown>);
                                                     } else if (["profile", "holiday"].includes(params["*"])) { // for time pattern
-                                                        return (<Dropdown title={"Action"} placement='leftStart' noCaret>
+                                                        return (<Dropdown title={isLoading === row._id ? <Loading size={20} color={"black"} /> : "Action"} placement='leftStart' noCaret>
                                                             {
                                                                 params["*"] === "profile" &&
                                                                 <Dropdown.Item style={{ minWidth: 80 }} onClick={() => handleChangeData("View", row)}>
@@ -1180,7 +1251,7 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
                                                         </Dropdown>)
                                                     } else if (["email-templates"].includes(params["*"])) {
                                                         return (
-                                                            <Dropdown title={<EditRoundedIcon style={{ cursor: "pointer" }} />} placement='leftStart' noCaret>
+                                                            <Dropdown title={<EditRoundedIcon style={{ cursor: isLoading === row._id ? "process" : "pointer" }} />} placement='leftStart' noCaret>
                                                                 <Dropdown.Item style={{ minWidth: 120 }} onClick={() => handleChangeData("Edit", row)}>
                                                                     <b>
                                                                         <BorderColorRoundedIcon sx={{ color: "#FFD65A" }} /> Edit
@@ -1188,10 +1259,35 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
                                                                 </Dropdown.Item>
                                                             </Dropdown>
                                                         );
+                                                    } else if (params["*"] === "") {
+                                                        return (
+                                                            <Dropdown title={isLoading === row._id ? <Loading size={20} color={"black"} /> : "Action"} placement='leftStart' noCaret>
+                                                                <Dropdown.Item style={{ minWidth: 80 }} onClick={() => handleChangeData("View", row?._id)}>
+                                                                    <b>
+                                                                        <RemoveRedEyeRoundedIcon sx={{ color: "#80C4E9" }} /> View
+                                                                    </b>
+                                                                </Dropdown.Item>
+                                                                {
+                                                                    empId === row?.createdby?._id &&
+                                                                    <>
+                                                                        <Dropdown.Item style={{ minWidth: 80 }} onClick={() => handleChangeData("Edit", row?._id)}>
+                                                                            <b>
+                                                                                <BorderColorRoundedIcon sx={{ color: "#FFD65A" }} /> Edit
+                                                                            </b>
+                                                                        </Dropdown.Item>
+                                                                        <Dropdown.Item style={{ minWidth: 80 }} onClick={() => deleteData(row._id)}>
+                                                                            <b>
+                                                                                <DeleteRoundedIcon sx={{ color: "#F93827" }} /> Delete
+                                                                            </b>
+                                                                        </Dropdown.Item>
+                                                                    </>
+                                                                }
+                                                            </Dropdown>
+                                                        )
                                                     }
                                                 } else if (column.id === "auth") {
                                                     return (
-                                                        <Dropdown title={<KeyRoundedIcon style={{ cursor: "pointer" }} />} placement='leftStart' noCaret>
+                                                        <Dropdown title={isLoading === row._id ? <Loading size={20} color={"black"} /> : <KeyRoundedIcon style={{ cursor: isLoading === row._id ? "process" : "pointer" }} />} placement='leftStart' noCaret>
                                                             <Dropdown.Item style={{ minWidth: 120 }} onClick={() => navigate(`view/${row._id}`)}><RemoveRedEyeRoundedIcon sx={{ color: "#80C4E9" }} /> View</Dropdown.Item>
                                                             <Dropdown.Item style={{ minWidth: 120 }} onClick={() => navigate(`edit/${row._id}`)}><BorderColorRoundedIcon sx={{ color: "#FFD65A" }} /> Edit</Dropdown.Item>
                                                             <Dropdown.Item style={{ minWidth: 120 }} onClick={() => deleteData(row._id)}><DeleteRoundedIcon sx={{ color: "#F93827" }} /> Delete</Dropdown.Item>
@@ -1199,7 +1295,7 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
                                                     );
                                                 } else if (["department", "position", "company"].includes(params["*"])) {
                                                     return (
-                                                        <Dropdown title={<EditRoundedIcon style={{ cursor: "pointer" }} />} placement='leftStart' noCaret>
+                                                        <Dropdown title={isLoading === row._id ? <Loading size={20} color={"black"} /> : <EditRoundedIcon style={{ cursor: isLoading === row._id ? "process" : "pointer" }} />} placement='leftStart' noCaret>
                                                             <Dropdown.Item style={{ minWidth: 120 }} onClick={() => fetchData(row._id)}>
                                                                 <b>
                                                                     <BorderColorRoundedIcon sx={{ color: "#FFD65A" }} /> Edit

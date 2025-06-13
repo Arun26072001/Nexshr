@@ -20,13 +20,12 @@ export default function Employee() {
     const { isTeamHead, isTeamLead, isTeamManager } = decodedData;
     const [employees, setEmployees] = useState([]);
     const [empName, setEmpName] = useState("");
-    const [allEmployees, setAllEmployees] = useState([]);
+    const [filteredEmps, setFilteredEmps] = useState([]);
     const [isModifyEmps, setIsModifyEmps] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
+    const [isDeleting, setIsDeleting] = useState("");
     const [processing, setProcessing] = useState(false);
     const navigate = useNavigate();
-    console.log(isTeamHead, isTeamLead, isTeamManager);
-
 
     function handleModifyEmps() {
         setIsModifyEmps(!isModifyEmps)
@@ -46,8 +45,11 @@ export default function Employee() {
             toast.success(response.data.message);
             handleModifyEmps();
         } catch (error) {
+            if (error?.message === "Network Error") {
+                navigate("/network-issue")
+            }
             console.error('File upload failed:', error);
-            toast.error(error.response.data.error);
+            toast.error(error?.response?.data?.error);
         } finally {
             setProcessing(false);
         }
@@ -55,6 +57,7 @@ export default function Employee() {
     // delete employee
     async function handleDeleteEmp(empId) {
         try {
+            setIsDeleting(empId)
             const res = await axios.delete(`${url}/api/employee/${empId}`, {
                 headers: {
                     Authorization: data.token || ""
@@ -63,7 +66,13 @@ export default function Employee() {
             toast.success(res.data.message);
             handleModifyEmps();
         } catch (error) {
+            toast.error(error.response.data.error)
+            if (error?.message === "Network Error") {
+                navigate("/network-issue")
+            }
             console.log("error in delete emp", error);
+        } finally {
+            setIsDeleting("")
         }
     }
 
@@ -72,14 +81,11 @@ export default function Employee() {
         try {
             const empData = await fetchEmployees();
             setEmployees(empData);
-            setAllEmployees(empData);
-            // const withoutMyData = empData?.filter((emp) => emp._id !== data._id)
-            // if (["admin", "hr"].includes(whoIs)) {
-            // } else {
-            //     setEmployees(withoutMyData);
-            //     setAllEmployees(withoutMyData);
-            // }
+            setFilteredEmps(empData);
         } catch (error) {
+            if (error?.message === "Network Error") {
+                navigate("/network-issue")
+            }
             setEmployees([]);
             console.log("error: ", error);
             toast.error("Failed to fetch employees");
@@ -93,9 +99,11 @@ export default function Employee() {
         try {
             const empData = await fetchAllEmployees();
             setEmployees(empData);
-            setAllEmployees(empData);
-            // const withoutMyData = empData.filter((emp) => emp._id !== data._id)
+            setFilteredEmps(empData);
         } catch (error) {
+            if (error?.message === "Network Error") {
+                navigate("/network-issue")
+            }
             console.log("error: ", error);
             // toast.error("Failed to fetch employees");
         } finally {
@@ -117,8 +125,11 @@ export default function Employee() {
             console.log("team emps", res.data);
 
             setEmployees(res.data)
-            setAllEmployees(res.data)
+            setFilteredEmps(res.data)
         } catch (error) {
+            if (error?.message === "Network Error") {
+                navigate("/network-issue")
+            }
             setEmployees([]);
             console.log(error);
         } finally {
@@ -127,17 +138,12 @@ export default function Employee() {
     }
 
     useEffect(() => {
-        if (data.Account === "1") {
+        if (["admin"].includes(whoIs)) {
             fetchAllEmployeeData()
         } else if ([isTeamLead, isTeamHead, isTeamManager].includes(true)) {
-            console.log("akjshdkjas");
-
             fetchTeamEmps();
         }
-        // else if (data.Account === "3") {
-        //     navigate(`/${whoIs}/unauthorize`)
-        // } 
-        else {
+        else if (["hr"].includes(whoIs)) {
             fetchEmployeeData();
         }
     }, [isModifyEmps]);
@@ -147,9 +153,9 @@ export default function Employee() {
     useEffect(() => {
         function filterEmployees() {
             if (empName === "") {
-                setEmployees(allEmployees);
+                setEmployees(filteredEmps);
             } else {
-                setEmployees(allEmployees?.filter((emp) => emp?.FirstName?.toLowerCase()?.includes(empName.toLowerCase())));
+                setEmployees(filteredEmps?.filter((emp) => emp?.FirstName?.toLowerCase()?.includes(empName.toLowerCase())));
             }
         }
         filterEmployees();
@@ -181,7 +187,7 @@ export default function Employee() {
                             <button className="button" onClick={() => navigate(`/${whoIs}/employee/add`)}>
                                 <AddRoundedIcon /> Add Employee
                             </button>
-                            <button className="button " onClick={() => document.getElementById("fileUploader").click()} >
+                            <button className="button" style={{ cursor: `${processing ? "wait" : "pointer"}` }} onClick={() => document.getElementById("fileUploader").click()} >
                                 <AddRoundedIcon />Import
                             </button>
                         </>
@@ -194,11 +200,14 @@ export default function Employee() {
                     />
                 </div>
             </div>
-            <p className='text-end px-2 my-2'>
-                <a href={employeesData} download={employeesData}>
-                    Download Employee data model file
-                </a>
-            </p>
+            {
+                ["admin", "hr"].includes(whoIs) &&
+                <p className='text-end px-2 my-2'>
+                    <a href={employeesData} download={employeesData}>
+                        Download Employee data model file
+                    </a>
+                </p>
+            }
             <div className='employee d-block'>
                 {/* content */}
                 <div className='px-3'>
@@ -218,7 +227,7 @@ export default function Employee() {
                             height={"50vh"}
                         /> :
                         employees.length > 0 ?
-                            <LeaveTable data={employees} deleteData={handleDeleteEmp} />
+                            <LeaveTable data={employees} isLoading={isDeleting} deleteData={handleDeleteEmp} />
                             : <NoDataFound message={"Employee data not found"} />
                 }
             </div>

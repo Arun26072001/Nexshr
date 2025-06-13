@@ -9,8 +9,10 @@ import Loading from '../Loader';
 import CommonModel from '../Administration/CommonModel';
 import { toast } from 'react-toastify';
 import { fetchAllEmployees } from '../ReuseableAPI';
+import { useNavigate } from 'react-router-dom';
 
 export default function EmailTemplates() {
+    const navigate = useNavigate();
     const url = process.env.REACT_APP_API_URL;
     const { data } = useContext(EssentialValues);
     const [isLoading, setIsLoading] = useState(false);
@@ -19,7 +21,6 @@ export default function EmailTemplates() {
     const [templateObj, setTemplateObj] = useState({});
     const [empMails, setEmpMails] = useState([]);
     const [title, setTitle] = useState("");
-    const [errorMsg, setErrorMsg] = useState("");
     const [isWorkingApi, setIsWorkingApi] = useState(false);
     const [isChangeTemp, setIsChangeTemp] = useState({
         isEdit: false,
@@ -31,7 +32,10 @@ export default function EmailTemplates() {
             const emps = await fetchAllEmployees();
             // const withoutMyData = emps.filter((emp)=> emp._id !== _id);
             setEmpMails(emps.map((emp) => ({ label: emp?.Email, value: emp.Email })))
-        } catch (error) {
+       } catch (error) {
+         if (error?.message === "Network Error") {
+                navigate("/network-issue")
+            }
             console.log(error);
         }
     }
@@ -74,9 +78,12 @@ export default function EmailTemplates() {
             toast.success(res.data.message);
             handleChangeTemp(type);
             fetchTemplates();
-        } catch (error) {
+       } catch (error) {
+         if (error?.message === "Network Error") {
+                navigate("/network-issue")
+            }
             console.log("error in add template", error);
-            toast.error(error.response.data.error);
+            toast.error(error?.response?.data?.error);
         } finally {
             setIsWorkingApi(false)
         }
@@ -94,9 +101,12 @@ export default function EmailTemplates() {
             toast.success(res.data.message);
             handleChangeTemp("Edit");
             fetchTemplates();
-        } catch (error) {
+       } catch (error) {
+         if (error?.message === "Network Error") {
+                navigate("/network-issue")
+            }
             console.log("error in update template", error);
-            toast.error(error.response.data.error)
+            toast.error(error?.response?.data?.error)
         } finally {
             setIsWorkingApi(false)
         }
@@ -145,7 +155,10 @@ export default function EmailTemplates() {
             })
             setTemplates(res.data);
             setfilterTemplates(res.data);
-        } catch (error) {
+       } catch (error) {
+         if (error?.message === "Network Error") {
+                navigate("/network-issue")
+            }
             console.log("error in fetch templates", error);
         } finally {
             setIsLoading(false);
@@ -166,9 +179,9 @@ export default function EmailTemplates() {
     }, [])
 
     return (
-        isChangeTemp.isAdd ? <CommonModel isAddData={isChangeTemp.isAdd} isWorkingApi={isWorkingApi} changeData={fillTemplateObj} removeState={removeState} dataObj={templateObj} type={"Email Template"} changeState={changeShortTags} modifyData={handleChangeTemp} errorMsg={errorMsg} addData={addTemplate} /> :
-            isChangeTemp.isEdit ? <CommonModel isAddData={isChangeTemp.isEdit} isWorkingApi={isWorkingApi} changeData={fillTemplateObj} removeState={removeState} dataObj={templateObj} type={"Email Template"} changeState={changeShortTags} modifyData={handleChangeTemp} errorMsg={errorMsg} editData={updateTemplate} /> :
-                isLoading ? <Loading /> :
+        isChangeTemp.isAdd ? <CommonModel isAddData={isChangeTemp.isAdd} isWorkingApi={isWorkingApi} changeData={fillTemplateObj} removeState={removeState} dataObj={templateObj} type={"Email Template"} changeState={changeShortTags} modifyData={handleChangeTemp} addData={addTemplate} /> :
+            isChangeTemp.isEdit ? <CommonModel isAddData={isChangeTemp.isEdit} isWorkingApi={isWorkingApi} changeData={fillTemplateObj} removeState={removeState} dataObj={templateObj} type={"Email Template"} changeState={changeShortTags} modifyData={handleChangeTemp} editData={updateTemplate} /> :
+                isLoading ? <Loading height='80vh' /> :
                     <div className='dashboard-parent py-4'>
                         <div className="d-flex justify-content-between px-2">
                             <p className="payslipTitle col-6">

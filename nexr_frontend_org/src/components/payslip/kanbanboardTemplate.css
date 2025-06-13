@@ -1,0 +1,56 @@
+.kanbanboard-parent {
+  display: flex;
+  width: 100%;
+  height: 400px;
+  overflow: scroll;
+}
+
+.kanbanboard-child {
+  display: flex;
+  flex-direction: column;
+  height: fit-content;
+  width: 300px;
+  height: 100%;
+  border-right: 1px dotted black;
+}
+
+.timeLogBox > #taskNameInput {
+  border: none;
+  background: none;
+}
+
+.timeLogBox > #taskNameInput:focus {
+  border: none;
+  outline: none;
+}
+
+.addTask-btn {
+  width: 100%;
+  border-radius: 20px;
+  text-align: center;
+  padding: 5px 10px;
+  margin: 5px 0px;
+  color: black;
+  font-weight: 600;
+}
+
+.kanbanboard-child-heading {
+  font-weight: 600;
+  font-size: "13px";
+  border-radius: 5px;
+  display: flex;
+  justify-content: center;
+  align-items: "center";
+  padding: 5px 10px;
+  width: 200px !important;
+}
+
+.dateContainer {
+  background-color: black;
+  border-radius: 10px;
+  width: fit-content;
+  padding: 0px 5px;
+  margin: 8px 0px;
+  color: white;
+  font-weight: 600;
+}

@@ -8,10 +8,12 @@ const sendMail = require("./mailSender");
 const { Employee } = require("../models/EmpModel");
 const { ClockIns } = require("../models/ClockInsModel");
 const { LeaveApplication, LeaveApplicationValidation } = require("../models/LeaveAppModel");
+const { RoleAndPermission } = require("../models/RoleModel");
+const { TimePattern } = require("../models/TimePatternModel");
 
 const timeToMinutes = (timeStr) => {
     if (!timeStr) return 0;
-    const [hours, minutes] = timeStr.split(":").map(Number);
+    const [hours, minutes] = timeStr.split(/[:.]+/).map(Number);
     return hours * 60 + minutes;
 };
 
@@ -90,10 +92,10 @@ router.post("/attendance", upload.single("documents"), verifyAdminHrNetworkAdmin
                                 coverBy: null,
                                 status: "approved",
                                 approvers: {
-                                    Manager: "approved",
-                                    TeamLead: "approved",
-                                    TeamHead: "approved",
-                                    Hr: "approved",
+                                    manager: "approved",
+                                    lead: "approved",
+                                    head: "approved",
+                                    hr: "approved",
                                 },
                                 approvedOn: null,
                                 approverId: []
@@ -128,7 +130,7 @@ router.post("/attendance", upload.single("documents"), verifyAdminHrNetworkAdmin
                                 </html>`;
 
                             sendMail({
-                                From: process.env.FROM_MAIL,
+                                From: `<${process.env.FROM_MAIL}> (Nexshr)`,
                                 To: emp.Email,
                                 Subject: `Half - day Leave Applied(Unpaid Leave(LWP))`,
                                 HtmlBody: htmlContent,
@@ -148,10 +150,10 @@ router.post("/attendance", upload.single("documents"), verifyAdminHrNetworkAdmin
                                 coverBy: null,
                                 status: "approved",
                                 approvers: {
-                                    Manager: "approverd",
-                                    TeamLead: "approved",
-                                    TeamHead: "approved",
-                                    Hr: "approved",
+                                    manager: "approverd",
+                                    lead: "approved",
+                                    head: "approved",
+                                    hr: "approved",
                                 }
                             };
                             const { error } = LeaveApplicationValidation.validate(halfDayLeaveApp);
@@ -188,7 +190,7 @@ router.post("/attendance", upload.single("documents"), verifyAdminHrNetworkAdmin
                             </html>`;
 
                             sendMail({
-                                From: process.env.FROM_MAIL,
+                                From: `<${process.env.FROM_MAIL}> (Nexshr)`,
                                 To: emp.Email,
                                 Subject: `Half - day Leave Applied(Unpaid Leave(LWP))`,
                                 HtmlBody: htmlContent,
@@ -245,7 +247,7 @@ router.post("/attendance", upload.single("documents"), verifyAdminHrNetworkAdmin
                         </html>`;
 
                         sendMail({
-                            From: process.env.FROM_MAIL,
+                            From: `<${process.env.FROM_MAIL}> (Nexshr)`,
                             To: emp.Email,
                             Subject: "Incomplete Working Hours Alert",
                             HtmlBody: emailHtml,
@@ -275,8 +277,10 @@ router.post("/employees/:id", upload.single("documents"), verifyAdminHR, async (
         const workbook = XLSX.readFile(filePath);
         const sheet = workbook.Sheets[workbook.SheetNames[0]];
         // Convert to JSON while trimming empty rows
-        const excelData = XLSX.utils.sheet_to_json(sheet, { header: 1 }).filter(row => row.some(cell => cell !== null && cell !== ""));
+        const excelData = XLSX.utils.sheet_to_json(sheet, { header: 1, raw: false, dateNF: "yyyy-mm-dd" }).filter(row => row.some(cell => cell !== null && cell !== ""));
 
+        const defaultRole = await RoleAndPermission.findOne({ RoleName: "Assosiate" }, "_id").lean().exec();
+        const defaultTimePattern = await TimePattern.findOne({ DefaultPattern: true }, "_id").lean().exec();
 
         let employees = [];
         let existsEmps = [];
@@ -285,6 +289,7 @@ router.post("/employees/:id", upload.single("documents"), verifyAdminHR, async (
 
             const employeeExists = await Employee.exists({ code: row[9] });
             if (!employeeExists && row[0]?.trim()) {
+
                 const newEmp = {
                     FirstName: row[0],
                     LastName: row[1],
@@ -293,11 +298,11 @@ router.post("/employees/:id", upload.single("documents"), verifyAdminHR, async (
                     countryCode: row[4],
                     phone: row[5],
                     panNumber: row[6],
-                    dateOfBirth: row[7],
+                    dateOfBirth: new Date(row[7]),
                     gender: row[8],
                     code: row[9],
                     working: row[10],
-                    dateOfJoining: row[11],
+                    dateOfJoining: new Date(row[11]),
                     employmentType: row[12],
                     description: row[13],
                     bloodGroup: row[14],
@@ -312,8 +317,9 @@ router.post("/employees/:id", upload.single("documents"), verifyAdminHR, async (
                         "Annual Leave": row[12] === "Intern" ? "1" : "7",
                         "Sick Leave": row[12] === "Intern" ? "2" : "7"
                     },
-                    role: "679b31dba453436edb1b27a3",
-                    workingTimePattern: "679ca37c9ac5c938538f18ba",
+                    company: inviter.company._id,
+                    role: defaultRole._id,
+                    workingTimePattern: defaultTimePattern._id,
                     emergencyContacts: row[15] ? [{
                         name: row[15]?.split(" ")[0] || "",
                         phone: row[15]?.split(" ")[1] || ""
@@ -343,7 +349,7 @@ router.post("/employees/:id", upload.single("documents"), verifyAdminHR, async (
                             <p><b>Email</b>: ${addEmp.Email}</p><br />
                             <p><b>Password</b>: ${addEmp.Password}</p><br />
                             <p>Your details have been registered! Please confirm your email by clicking the button below.</p>
-                            <a href="${process.env.REACT_APP_API_URL}" style="display: inline-block; padding: 10px 20px; background-color: #28a745; color: #fff !important; text-decoration: none; border-radius: 5px; margin-top: 10px;">Confirm Email</a>
+                            <a href="${process.env.FRONTEND_BASE_URL}" style="display: inline-block; padding: 10px 20px; background-color: #28a745; color: #fff !important; text-decoration: none; border-radius: 5px; margin-top: 10px;">Confirm Email</a>
                           </div>
                           <div style="text-align: center; font-size: 14px; margin-top: 20px; color: #777;">
                             <p>Have questions? Need help? <a href="mailto:${process.env.FROM_MAIL}" style="color: #777;">Contact our support team</a>.</p>
@@ -354,7 +360,7 @@ router.post("/employees/:id", upload.single("documents"), verifyAdminHR, async (
                   `;
 
                     sendMail({
-                        From: process.env.FROM_MAIL,
+                        From: `<${process.env.FROM_MAIL}> (Nexshr)`,
                         To: addEmp.Email,
                         Subject: `Welcome To ${inviter.company.CompanyName}`,
                         HtmlBody: htmlContent,
@@ -409,7 +415,7 @@ router.post("/leave", upload.single("documents"), verifyAdminHR, async (req, res
         }
 
         const sheet = workbook.Sheets[sheetName];
-        const excelData = XLSX.utils.sheet_to_json(sheet, { header: 0 });
+        const excelData = XLSX.utils.sheet_to_json(sheet, { header: 0 , raw: false, dateNF: "yyyy-mm-dd hh-mm-ss"});
 
         let leaveApps = [];
         let existsApps = [];

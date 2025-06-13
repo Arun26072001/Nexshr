@@ -24,17 +24,18 @@ router.post("/", async (req, res) => {
             const emp = await Employee.findOne({
                 Email: { $regex: new RegExp('^' + req.body.Email, 'i') },
                 Password: req.body.Password
-            }).populate({
-                path: "role",
-                populate: [
-                    { path: "userPermissions" },
-                    { path: "pageAuth" }
-                ]
             })
+                .populate("company", "CompanyName logo")
+                .populate({
+                    path: "role",
+                    populate: [
+                        { path: "userPermissions" },
+                        { path: "pageAuth" }
+                    ]
+                })
 
             if (!emp) {
                 console.log("no emp");
-
                 return res.status(400).send({ message: "Invalid Credentials" })
             } else {
                 const empDataWithEmailVerified = {
@@ -72,6 +73,7 @@ router.post("/", async (req, res) => {
                     annualLeaveEntitlement: emp.annualLeaveEntitlement,
                     roleData: emp?.role,
                     isLogin: updateIsEmailVerify.isLogin,
+                    company: emp.company,
                     isTeamLead,
                     isTeamHead,
                     isTeamManager

@@ -44,7 +44,7 @@ router.post('/:id', async (req, res) => {
           if (emp.fcmToken) {
             await sendPushNotification({
               token: emp.fcmToken,
-              company: emp.company,
+              // company: emp.company,
               title: req.body.title,
               body: req.body.message.replace(/<\/?[^>]+(>|$)/g, '')
             });

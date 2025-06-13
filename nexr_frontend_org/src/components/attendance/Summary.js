@@ -5,17 +5,18 @@ import { gettingClockinsData } from '../ReuseableAPI';
 import { toast } from 'react-toastify';
 import LeaveTable from '../LeaveTable';
 import NoDataFound from '../payslip/NoDataFound';
-import Loading from '../Loader';
 import "./Summary.css";
 import { EssentialValues } from '../../App';
 import { TimerStates } from '../payslip/HRMDashboard';
 import { SelectPicker } from 'rsuite';
 import { Skeleton } from '@mui/material';
+import { useNavigate } from 'react-router-dom';
 
 // Register required Chart.js components
 ChartJS.register(ArcElement, Tooltip, Legend);
 
 const Summary = () => {
+    const navigate = useNavigate();
     const { data } = useContext(EssentialValues);
     const { employees } = useContext(TimerStates);
     const { _id } = data; // Ensure safe access to `_id` & `Name`
@@ -59,7 +60,10 @@ const Summary = () => {
                 setClockinsData({});
                 resetChartData();
             }
-        } catch (error) {
+       } catch (error) {
+         if (error?.message === "Network Error") {
+                navigate("/network-issue")
+            }
             toast.error("An error occurred while fetching clockins data.");
         } finally {
             setIsLoading(false);
@@ -103,7 +107,10 @@ const Summary = () => {
                     } else {
                         toast.error("Error in getting clockins data!");
                     }
-                } catch (error) {
+               } catch (error) {
+         if (error?.message === "Network Error") {
+                navigate("/network-issue")
+            }
                     toast.error("An error occurred while fetching data.");
                 }
             }
