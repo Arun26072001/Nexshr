@@ -190,13 +190,37 @@ const CommonModel = ({
                             <div className="col-half">
                                 <div className="modelInput">
                                     <p className='modelLabel important'>LimitDays:</p>
-                                    <InputNumber size='lg' defaultValue={0} style={{ width: "100%" }} step={1} value={dataObj?.limitDays} onChange={(e) => changeData(e, "limitDays")} />
+                                    <InputNumber
+                                        size="lg"
+                                        min={0}
+                                        defaultValue={0}
+                                        value={dataObj?.limitDays ?? null}
+                                        step={1}
+                                        style={{ width: "100%" }}
+                                        onChange={(value) => {
+                                            if (value === null || value === '' || value >= 0) {
+                                                changeData(value, "limitDays");
+                                            }
+                                        }}
+                                        onKeyDown={(e) => {
+                                            if (e.key === '-' || e.key === 'e' || e.key === 'E') {
+                                                e.preventDefault();
+                                            }
+                                        }}
+                                        onPaste={(e) => {
+                                            const pasted = e.clipboardData.getData('text');
+                                            if (!/^\d+$/.test(pasted)) {
+                                                e.preventDefault();
+                                            }
+                                        }}
+                                    />
+
                                 </div>
                             </div>
                         }
                         {
                             ["TimePattern", "View TimePattern"].includes(type) &&
-                            <div className="col-half">
+                            <div className="col-hhalf">
                                 <div className="modelInput">
                                     <p className='modelLabel important'>Default Pattern:</p>
                                     <Toggle checked={dataObj?.DefaultPattern} onChange={(e) => changeData(e, "DefaultPattern")} />

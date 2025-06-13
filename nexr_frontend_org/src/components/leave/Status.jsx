@@ -82,7 +82,7 @@ export default function Status() {
                             width={"100%"}
                             height={"50vh"}
                         /> :
-                            leaveRequests?.leaveData.length > 0 ?
+                            leaveRequests?.leaveData?.length > 0 ?
                                 <LeaveTable data={leaveRequests.leaveData} /> : <NoDataFound message="No Leave request for this employee Name" />
                     }
                 </div>
