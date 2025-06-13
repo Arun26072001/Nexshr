@@ -20,8 +20,9 @@ import BorderColorRoundedIcon from '@mui/icons-material/BorderColorRounded';
 import DeleteRoundedIcon from '@mui/icons-material/DeleteRounded';
 import { EssentialValues } from '../App';
 import profile from "../imgs/male_avatar.webp";
+import Loading from './Loader';
 
-export default function LeaveTable({ data, Account, getCheckedValue, handleDelete, handleChangeData, fetchReportById, fetchOrgData, fetchData, roleObj, getCheckAll, deleteData, replyToLeave, handleChangeLeavetype, isTeamHead, isTeamLead, isTeamManager }) {
+export default function LeaveTable({ data, Account, getCheckedValue, handleDelete, handleChangeData, fetchReportById, fetchOrgData, fetchData, roleObj, getCheckAll, deleteData, replyToLeave, handleChangeLeavetype, isTeamHead, isTeamLead, isTeamManager, isLoading }) {
     const navigate = useNavigate();
     const { whoIs } = useContext(EssentialValues);
     const empId = localStorage.getItem("_id")
@@ -727,7 +728,7 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
             minWidth: 200,
             align: 'center',
             getter: (row) =>
-                Array.isArray(row?.employees) && row.employees.length ? row.employees.length : 'N/A'
+                Array.isArray(row?.employees) && row.employees.length ? row.employees.length : 0
         },
         { id: 'Action', label: 'Action', minWidth: 100, align: 'center' }
     ];
@@ -1084,7 +1085,7 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
                                                 } else if (column.id === "Action") {
                                                     if (["leave-request", "wfh-request"].includes(params['*'])) {
                                                         return (
-                                                            <Dropdown placement='leftStart' title={<EditRoundedIcon style={{ cursor: "pointer" }} />} noCaret>
+                                                            <Dropdown placement='leftStart' title={isLoading === row._id ? <Loading size={20} color={"black"} /> : <EditRoundedIcon style={{ cursor: isLoading === row._id ? "process" : "pointer" }} />} noCaret>
                                                                 <Dropdown.Item style={{ minWidth: 120 }} onClick={() => navigate(params['*'] === "leave-request" ? `/${whoIs}/leave-request/view/${row._id}` : `/${whoIs}/wfh-request/view/${row._id}`)}>View</Dropdown.Item>
                                                                 {
                                                                     (isTeamLead && row?.approvers?.lead === "pending") ||
@@ -1098,23 +1099,22 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
                                                                         </>
                                                                     ) : null
                                                                 }
-
                                                             </Dropdown>
                                                         );
                                                     } else if (params["*"] === "unpaid-request") {
-                                                        return (<Dropdown placement='leftStart' title={<EditRoundedIcon style={{ cursor: "pointer" }} />} noCaret>
+                                                        return (<Dropdown placement='leftStart' title={isLoading === row._id ? <Loading size={20} color={"black"} /> : <EditRoundedIcon style={{ cursor: isLoading === row._id ? "process" : "pointer" }} />} noCaret>
                                                             <Dropdown.Item style={{ minWidth: 120 }} onClick={() => replyToLeave(row, "approved")}>Approve</Dropdown.Item>
                                                             <Dropdown.Item style={{ minWidth: 120 }} onClick={() => replyToLeave(row, "rejected")}>Reject</Dropdown.Item>
                                                         </Dropdown>)
                                                     }
                                                     else if (["payslip", "daily-log", "attendance-request"].includes(params["*"])) {
                                                         return (
-                                                            <Dropdown title={<RemoveRedEyeRoundedIcon style={{ cursor: "pointer" }} />} noCaret onClick={() => getValueForView([row._id, params['*']])}>
+                                                            <Dropdown title={<RemoveRedEyeRoundedIcon style={{ cursor: isLoading === row._id ? "process" : "pointer" }} />} noCaret onClick={() => getValueForView([row._id, params['*']])}>
                                                             </Dropdown>
                                                         );
                                                     } else if (params["*"] === "workFromHome") {
                                                         return (
-                                                            <Dropdown title={<EditRoundedIcon style={{ cursor: "pointer" }} />} placement='leftStart' noCaret>
+                                                            <Dropdown title={isLoading === row._id ? <Loading size={20} color={"black"} /> : <EditRoundedIcon style={{ cursor: isLoading === row._id ? "process" : "pointer" }} />} placement='leftStart' noCaret>
                                                                 <Dropdown.Item style={{ minWidth: 120 }} onClick={() => navigate(`/${whoIs}/wfh-request/edit/${row._id}`)}>
                                                                     <b>
                                                                         <BorderColorRoundedIcon sx={{ color: "#FFD65A" }} /> Edit
@@ -1129,7 +1129,7 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
                                                         );
                                                     } else if (params['*'] === "employee") {
                                                         return (
-                                                            <Dropdown title={<EditRoundedIcon style={{ cursor: "pointer" }} />} placement='leftStart' noCaret>
+                                                            <Dropdown title={isLoading === row._id ? <Loading size={20} color={"black"} /> : <EditRoundedIcon style={{ cursor: isLoading === row._id ? "process" : "pointer" }} />} placement='leftStart' noCaret>
                                                                 <Dropdown.Item style={{ minWidth: 120 }} onClick={() => timerStateData?.changeEmpEditForm(row._id)}>
                                                                     <b>
                                                                         <BorderColorRoundedIcon sx={{ color: "#FFD65A" }} /> Edit
@@ -1144,7 +1144,7 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
                                                         );
                                                     } else if (params["*"] === "reports") {
                                                         return (
-                                                            <Dropdown title={"Action"} placement='leftStart' noCaret>
+                                                            <Dropdown title={isLoading === row._id ? <Loading size={20} color={"black"} /> : "Action"} placement='leftStart' noCaret>
                                                                 <Dropdown.Item style={{ minWidth: 80 }} onClick={() => fetchReportById(row._id, "View")}>
                                                                     <b>
                                                                         <RemoveRedEyeRoundedIcon sx={{ color: "#80C4E9" }} /> View
@@ -1173,7 +1173,7 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
 
                                                     } else if (params["*"] === "leave-details") {
                                                         return (
-                                                            <Dropdown title={"Action"} placement='leftStart' noCaret>
+                                                            <Dropdown title={isLoading === row._id ? <Loading size={20} color={"black"} /> : "Action"} placement='leftStart' noCaret>
                                                                 <Dropdown.Item style={{ minWidth: 80 }} onClick={() => handleChangeLeavetype("Edit", row)}>
                                                                     <b>
                                                                         <BorderColorRoundedIcon sx={{ color: "#FFD65A" }} /> Edit
@@ -1187,7 +1187,7 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
                                                             </Dropdown>
                                                         )
                                                     } else if (params["*"] === "leave") {
-                                                        return (<Dropdown title={"Action"} noCaret placement="leftStart">
+                                                        return (<Dropdown title={isLoading === row._id ? <Loading size={20} color={"black"} /> : "Action"} noCaret placement="leftStart">
                                                             <Dropdown.Item style={{ minWidth: 80 }} onClick={() => navigate(`/${whoIs}/leave-request/view/${row._id}`)}>
                                                                 <b>
                                                                     <RemoveRedEyeRoundedIcon sx={{ color: "#80C4E9" }} /> View
@@ -1210,7 +1210,7 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
                                                             }
                                                         </Dropdown>)
                                                     } else if (["organizations", "users", "announcement"].includes(params["*"])) {
-                                                        return (<Dropdown title={"Action"} placement='leftStart' noCaret>
+                                                        return (<Dropdown title={isLoading === row._id ? <Loading size={20} color={"black"} /> : "Action"} placement='leftStart' noCaret>
                                                             {["organizations", "users"].includes(params["*"])
                                                                 &&
                                                                 <Dropdown.Item style={{ minWidth: 80 }} onClick={() => fetchOrgData(row._id, "Edit")}>
@@ -1229,7 +1229,7 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
                                                             }
                                                         </Dropdown>);
                                                     } else if (["profile", "holiday"].includes(params["*"])) { // for time pattern
-                                                        return (<Dropdown title={"Action"} placement='leftStart' noCaret>
+                                                        return (<Dropdown title={isLoading === row._id ? <Loading size={20} color={"black"} /> : "Action"} placement='leftStart' noCaret>
                                                             {
                                                                 params["*"] === "profile" &&
                                                                 <Dropdown.Item style={{ minWidth: 80 }} onClick={() => handleChangeData("View", row)}>
@@ -1251,7 +1251,7 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
                                                         </Dropdown>)
                                                     } else if (["email-templates"].includes(params["*"])) {
                                                         return (
-                                                            <Dropdown title={<EditRoundedIcon style={{ cursor: "pointer" }} />} placement='leftStart' noCaret>
+                                                            <Dropdown title={<EditRoundedIcon style={{ cursor: isLoading === row._id ? "process" : "pointer" }} />} placement='leftStart' noCaret>
                                                                 <Dropdown.Item style={{ minWidth: 120 }} onClick={() => handleChangeData("Edit", row)}>
                                                                     <b>
                                                                         <BorderColorRoundedIcon sx={{ color: "#FFD65A" }} /> Edit
@@ -1261,7 +1261,7 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
                                                         );
                                                     } else if (params["*"] === "") {
                                                         return (
-                                                            <Dropdown title={"Action"} placement='leftStart' noCaret>
+                                                            <Dropdown title={isLoading === row._id ? <Loading size={20} color={"black"} /> : "Action"} placement='leftStart' noCaret>
                                                                 <Dropdown.Item style={{ minWidth: 80 }} onClick={() => handleChangeData("View", row?._id)}>
                                                                     <b>
                                                                         <RemoveRedEyeRoundedIcon sx={{ color: "#80C4E9" }} /> View
@@ -1287,7 +1287,7 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
                                                     }
                                                 } else if (column.id === "auth") {
                                                     return (
-                                                        <Dropdown title={<KeyRoundedIcon style={{ cursor: "pointer" }} />} placement='leftStart' noCaret>
+                                                        <Dropdown title={isLoading === row._id ? <Loading size={20} color={"black"} /> : <KeyRoundedIcon style={{ cursor: isLoading === row._id ? "process" : "pointer" }} />} placement='leftStart' noCaret>
                                                             <Dropdown.Item style={{ minWidth: 120 }} onClick={() => navigate(`view/${row._id}`)}><RemoveRedEyeRoundedIcon sx={{ color: "#80C4E9" }} /> View</Dropdown.Item>
                                                             <Dropdown.Item style={{ minWidth: 120 }} onClick={() => navigate(`edit/${row._id}`)}><BorderColorRoundedIcon sx={{ color: "#FFD65A" }} /> Edit</Dropdown.Item>
                                                             <Dropdown.Item style={{ minWidth: 120 }} onClick={() => deleteData(row._id)}><DeleteRoundedIcon sx={{ color: "#F93827" }} /> Delete</Dropdown.Item>
@@ -1295,7 +1295,7 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
                                                     );
                                                 } else if (["department", "position", "company"].includes(params["*"])) {
                                                     return (
-                                                        <Dropdown title={<EditRoundedIcon style={{ cursor: "pointer" }} />} placement='leftStart' noCaret>
+                                                        <Dropdown title={isLoading === row._id ? <Loading size={20} color={"black"} /> : <EditRoundedIcon style={{ cursor: isLoading === row._id ? "process" : "pointer" }} />} placement='leftStart' noCaret>
                                                             <Dropdown.Item style={{ minWidth: 120 }} onClick={() => fetchData(row._id)}>
                                                                 <b>
                                                                     <BorderColorRoundedIcon sx={{ color: "#FFD65A" }} /> Edit

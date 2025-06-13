@@ -102,10 +102,10 @@ router.post("/not-login/apply-leave/:workPatternId", async (req, res) => {
                 employee: emp._id,
                 status: "pending",
                 approvers: {
-                    TeamLead: "approved",
-                    TeamHead: "approved",
-                    Hr: "approved",
-                    Manager: "approved",
+                    lead: "approved",
+                    head: "approved",
+                    hr: "approved",
+                    manager: "approved"
                 },
             };
 
@@ -184,18 +184,15 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
         }
         // Fetch employee details with required fields
         const emp = await Employee.findById(req.params.id, "FirstName LastName Email profile company clockIns leaveApplication isPermanentWFH")
-            .populate("workingTimePattern")
-            .populate("company", "location CompanyName")
-            .populate({ path: "clockIns", match: { date: { $gte: startOfDay, $lte: endOfDay } } })
-            .populate({
-                path: "leaveApplication",
-                match: {
-                    fromDate: { $lte: endOfDay },
-                    toDate: { $gte: startOfDay },
-                    status: "approved",
-                    // leaveType: { $nin: ["Permission Leave"] }
-                }
-            }).exec();
+            .populate([{ path: "workingTimePattern" },
+            { path: "company", select: "location CompanyName" },
+            { path: "team" },
+            { path: "clockIns", match: { date: { $gte: startOfDay, $lte: endOfDay } } },
+            { path: "company", select: "location CompanyName" },
+            { path: "team" },
+            { path: "clockIns", match: { date: { $gte: startOfDay, $lte: endOfDay } } },
+            { path: "leaveApplication", match: { fromDate: { $lte: endOfDay }, toDate: { $gte: startOfDay }, status: "approved" } }
+            ]).exec();
 
         if (!emp) return res.status(404).send({ error: "Employee not found!" });
         // Office login time & employee login time 
@@ -266,10 +263,10 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
                     coverBy: null,
                     status: "pending",
                     approvers: {
-                        TeamLead: "approved",
-                        TeamHead: "approved",
-                        Hr: "approved",
-                        Manager: "approved"
+                        lead: "approved",
+                        head: "approved",
+                        hr: "approved",
+                        manager: "approved"
                     },
                     approvedOn: null,
                     approverId: []
@@ -303,10 +300,10 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
                         coverBy: null,
                         status: "pending",
                         approvers: {
-                            TeamLead: "approved",
-                            TeamHead: "approved",
-                            Hr: "approved",
-                            Manager: "approved"
+                            lead: "approved",
+                            head: "approved",
+                            hr: "approved",
+                            manager: "approved"
                         },
                         approvedOn: null,
                         approverId: []
@@ -343,11 +340,11 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
                         employee: emp._id,
                         status: "approved",
                         approvers: {
-                            TeamLead: "approved",
-                            TeamHead: "approved",
-                            Hr: "approved",
-                            Manager: "approved"
-                        }
+                            lead: "approved",
+                            head: "approved",
+                            hr: "approved",
+                            manager: "approved"
+                        },
                     }
 
                     subject = empPermissions.length === 1 ? "2nd Permission Applied" : "1st Permission Applied";

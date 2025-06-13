@@ -19,7 +19,7 @@ import { Skeleton } from '@mui/material';
 
 export default function Projects() {
     const navigate = useNavigate();
-    const { whoIs, data, 
+    const { whoIs, data,
         // socket 
     } = useContext(EssentialValues);
     const { isTeamLead, isTeamHead, isTeamManager } = jwtDecode(data.token);
@@ -78,8 +78,8 @@ export default function Projects() {
                 }
             })
             setProjectObj(res.data);
-       } catch (error) {
-         if (error?.message === "Network Error") {
+        } catch (error) {
+            if (error?.message === "Network Error") {
                 navigate("/network-issue")
             }
             toast.error(error?.response?.data?.error)
@@ -94,10 +94,11 @@ export default function Projects() {
                     Authorization: data.token || ""
                 }
             })
+
             setProjects(res.data);
             setFilterProjects(res.data);
-       } catch (error) {
-         if (error?.message === "Network Error") {
+        } catch (error) {
+            if (error?.message === "Network Error") {
                 navigate("/network-issue")
             }
             toast.error(error?.response?.data?.error)
@@ -116,8 +117,8 @@ export default function Projects() {
 
             setProjects(res.data);
             setFilterProjects(res.data);
-       } catch (error) {
-         if (error?.message === "Network Error") {
+        } catch (error) {
+            if (error?.message === "Network Error") {
                 navigate("/network-issue")
             }
             toast.error(error?.response?.data?.error)
@@ -137,8 +138,8 @@ export default function Projects() {
             setIsEdit(false)
             setIsAddProject(false)
             setProjectObj({})
-       } catch (error) {
-         if (error?.message === "Network Error") {
+        } catch (error) {
+            if (error?.message === "Network Error") {
                 navigate("/network-issue")
             }
             toast.error(error?.response?.data?.error)
@@ -164,8 +165,8 @@ export default function Projects() {
             // socket.emit("send_notification_for_project", newProjectObj)
             setProjectObj({});
             handleAddProject();
-       } catch (error) {
-         if (error?.message === "Network Error") {
+        } catch (error) {
+            if (error?.message === "Network Error") {
                 navigate("/network-issue")
             }
             toast.error(error?.response?.data?.error)
@@ -204,8 +205,8 @@ export default function Projects() {
             })
             toast.success(res.data.message);
             handleDeleteProject()
-       } catch (error) {
-         if (error?.message === "Network Error") {
+        } catch (error) {
+            if (error?.message === "Network Error") {
                 navigate("/network-issue")
             }
             toast.error(error?.response?.data?.error)

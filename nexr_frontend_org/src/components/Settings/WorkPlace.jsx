@@ -19,6 +19,7 @@ const WorkPlaceTab = () => {
   const { data } = useContext(EssentialValues);
   const { employees } = useContext(TimerStates);
   const [isLoading, setIsLoading] = useState(false);
+  const [isDeleting, setIsDeleting] = useState("");
   const [workPlaceObj, setWorkPlaceObj] = useState({});
   const [countries, setCountries] = useState([]);
   const [states, setStates] = useState([]);
@@ -109,10 +110,10 @@ const WorkPlaceTab = () => {
       fetchWorkPlaces();
       setWorkPlaceObj({});
       handleChangeWorkPlace("Add");
-   } catch (error) {
-         if (error?.message === "Network Error") {
-                navigate("/network-issue")
-            }
+    } catch (error) {
+      if (error?.message === "Network Error") {
+        navigate("/network-issue")
+      }
       console.log("error in add workplace:", error);
       toast.error(error?.response?.data?.error)
     } finally {
@@ -132,10 +133,10 @@ const WorkPlaceTab = () => {
       setWorkPlaceObj({})
       handleChangeWorkPlace("Edit");
       fetchWorkPlaces();
-   } catch (error) {
-         if (error?.message === "Network Error") {
-                navigate("/network-issue")
-            }
+    } catch (error) {
+      if (error?.message === "Network Error") {
+        navigate("/network-issue")
+      }
       console.log("error in add workplace:", error);
       toast.error(error?.response?.data?.error)
     } finally {
@@ -145,6 +146,7 @@ const WorkPlaceTab = () => {
 
   async function deleteWorkplace(workPlaceId) {
     try {
+      setIsDeleting(workPlaceId)
       const res = await axios.delete(`${url}/api/work-place/${workPlaceId}`, {
         headers: {
           Authorization: data.token || ""
@@ -152,12 +154,14 @@ const WorkPlaceTab = () => {
       })
       toast.success(res.data.message);
       fetchWorkPlaces();
-   } catch (error) {
-         if (error?.message === "Network Error") {
-                navigate("/network-issue")
-            }
+    } catch (error) {
+      if (error?.message === "Network Error") {
+        navigate("/network-issue")
+      }
       console.log("error in delete workplace", error);
       toast.error(error?.response?.data?.error)
+    } finally {
+      setIsDeleting("")
     }
   }
 
@@ -176,7 +180,7 @@ const WorkPlaceTab = () => {
   useEffect(() => {
     fetchWorkPlaces();
     fetchCountries();
-    if(workPlaceObj.Country){
+    if (workPlaceObj.Country) {
       fetchStateData();
     }
   }, []);
@@ -218,7 +222,7 @@ const WorkPlaceTab = () => {
               height={"50vh"}
             /> :
               workPlaces.length > 0 ? (
-                <LeaveTable data={workPlaces} handleChangeData={handleChangeWorkPlace} deleteData={deleteWorkplace} />
+                <LeaveTable data={workPlaces} isLoading={isDeleting} handleChangeData={handleChangeWorkPlace} deleteData={deleteWorkplace} />
               ) : (
                 <div className="align-items-center justify-content-center">
                   <Loading height="80vh" />

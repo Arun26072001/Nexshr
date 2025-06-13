@@ -23,6 +23,7 @@ export default function Employee() {
     const [filteredEmps, setFilteredEmps] = useState([]);
     const [isModifyEmps, setIsModifyEmps] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
+    const [isDeleting, setIsDeleting] = useState("");
     const [processing, setProcessing] = useState(false);
     const navigate = useNavigate();
 
@@ -56,6 +57,7 @@ export default function Employee() {
     // delete employee
     async function handleDeleteEmp(empId) {
         try {
+            setIsDeleting(empId)
             const res = await axios.delete(`${url}/api/employee/${empId}`, {
                 headers: {
                     Authorization: data.token || ""
@@ -69,6 +71,8 @@ export default function Employee() {
                 navigate("/network-issue")
             }
             console.log("error in delete emp", error);
+        } finally {
+            setIsDeleting("")
         }
     }
 
@@ -223,7 +227,7 @@ export default function Employee() {
                             height={"50vh"}
                         /> :
                         employees.length > 0 ?
-                            <LeaveTable data={employees} deleteData={handleDeleteEmp} />
+                            <LeaveTable data={employees} isLoading={isDeleting} deleteData={handleDeleteEmp} />
                             : <NoDataFound message={"Employee data not found"} />
                 }
             </div>

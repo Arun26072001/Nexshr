@@ -19,6 +19,7 @@ export default function Company() {
     const [countries, setCountries] = useState([]);
     const [states, setStates] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
+    const [isDeleting, setIsDeleting] = useState("");
     const [logoPreview, setLogoPreView] = useState("");
     const [isChangingCompany, setIschangingCompany] = useState(false);
     const [modifyCompany, setModifyCompany] = useState({
@@ -60,6 +61,7 @@ export default function Company() {
 
     async function deleteCompany(id) {
         try {
+            setIsDeleting(id)
             const deleteCom = await axios.delete(`${url}/api/company/${id}`, {
                 headers: {
                     Authorization: data.token || ""
@@ -68,11 +70,13 @@ export default function Company() {
             toast.success(deleteCom?.data?.message);
             handleCompanyChange();
             changeCompanyOperation("Delete");
-       } catch (error) {
-         if (error?.message === "Network Error") {
+        } catch (error) {
+            if (error?.message === "Network Error") {
                 navigate("/network-issue")
             }
             toast.error(error?.response?.data?.error)
+        } finally {
+            setIsDeleting("");
         }
     }
 
@@ -100,8 +104,8 @@ export default function Company() {
             setLogoPreView("");
             handleCompanyChange();
             changeCompanyOperation("Add");
-       } catch (error) {
-         if (error?.message === "Network Error") {
+        } catch (error) {
+            if (error?.message === "Network Error") {
                 navigate("/network-issue")
             }
             return toast.error(error?.response?.data?.error)
@@ -120,8 +124,8 @@ export default function Company() {
             setCompanyObj(company.data);
             setLogoPreView(company.data.logo);
             changeCompanyOperation("Edit");
-       } catch (error) {
-         if (error?.message === "Network Error") {
+        } catch (error) {
+            if (error?.message === "Network Error") {
                 navigate("/network-issue")
             }
             console.log(error);
@@ -171,8 +175,8 @@ export default function Company() {
             setLogoPreView("")
             handleCompanyChange()
             changeCompanyOperation("Edit");
-       } catch (error) {
-         if (error?.message === "Network Error") {
+        } catch (error) {
+            if (error?.message === "Network Error") {
                 navigate("/network-issue")
             }
             toast.error(error?.response?.data?.error);
@@ -187,10 +191,10 @@ export default function Company() {
             try {
                 const companyData = await fetchCompanies();
                 setCompanies(companyData)
-           } catch (error) {
-         if (error?.message === "Network Error") {
-                navigate("/network-issue")
-            }
+            } catch (error) {
+                if (error?.message === "Network Error") {
+                    navigate("/network-issue")
+                }
                 console.log(error);
 
             }
@@ -231,7 +235,7 @@ export default function Company() {
                             height={"50vh"}
                         /> :
                             companies?.length > 0 ?
-                                <LeaveTable data={companies} deleteData={deleteCompany} fetchData={fetchCompanyById} />
+                                <LeaveTable data={companies} deleteData={deleteCompany} isLoading={isDeleting} fetchData={fetchCompanyById} />
                                 : <NoDataFound message={"Companies data not found"} />
                     }
                 </div>

@@ -13,6 +13,7 @@ export default function UnpaidRequest() {
     const url = process.env.REACT_APP_API_URL;
     const { data } = useContext(EssentialValues);
     const [isLoading, setIsLoading] = useState(false);
+    const [isResponsing, setIsResponsing] = useState("");
     const [empName, setEmpName] = useState("");
     const [daterangeValue, setDaterangeValue] = useState([]);
     const [leaveRequests, setLeaveRequests] = useState([]);
@@ -20,6 +21,7 @@ export default function UnpaidRequest() {
 
     async function replyToLeave(leave, response) {
         try {
+            setIsResponsing(leave._id)
             let updatedLeaveRequest;
             updatedLeaveRequest = {
                 ...leave,
@@ -33,12 +35,14 @@ export default function UnpaidRequest() {
             })
             toast.success(res.data.message);
             fetchUnpaidLeave();
-       } catch (error) {
-         if (error?.message === "Network Error") {
+        } catch (error) {
+            if (error?.message === "Network Error") {
                 navigate("/network-issue")
             }
             console.log("error in reply to leave", error);
             toast.error(error?.response?.data?.error)
+        } finally {
+            setIsResponsing("")
         }
     }
 
@@ -64,8 +68,8 @@ export default function UnpaidRequest() {
             })
             setLeaveRequests(res.data);
             setFullLeaveRequests(res.data);
-       } catch (error) {
-         if (error?.message === "Network Error") {
+        } catch (error) {
+            if (error?.message === "Network Error") {
                 navigate("/network-issue")
             }
             setLeaveRequests([])
@@ -112,7 +116,7 @@ export default function UnpaidRequest() {
                             height={"50vh"}
                         /> :
                             leaveRequests?.length > 0 ?
-                                <LeaveTable data={leaveRequests} replyToLeave={replyToLeave} /> : <NoDataFound message="No Leave request for this employee Name" />
+                                <LeaveTable data={leaveRequests} isLoading={isResponsing} replyToLeave={replyToLeave} /> : <NoDataFound message="No Leave request for this employee Name" />
                     }
                 </div>
             </div>

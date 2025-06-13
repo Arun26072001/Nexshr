@@ -17,6 +17,7 @@ export default function Position() {
     const [positionObj, setPositionObj] = useState({});
     const [positions, setPositions] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
+    const [isDeleting, setIsDeleting] = useState("");
     const [isPositionsDataUpdate, setIsPositionsDataUpdate] = useState(false);
     const [isAddPosition, setIsAddPosition] = useState(false);
     const [isChangingPosition, setIschangingPosition] = useState(false);
@@ -51,8 +52,8 @@ export default function Position() {
             setPositionObj({});
             modifyPositions();
             reloadPositionPage();
-       } catch (error) {
-         if (error?.message === "Network Error") {
+        } catch (error) {
+            if (error?.message === "Network Error") {
                 navigate("/network-issue")
             }
             toast.error(error?.response?.data?.message || "Failed to add position");
@@ -62,6 +63,7 @@ export default function Position() {
 
     async function deletePosition(id) {
         try {
+            setIsDeleting(id)
             const deletePos = await axios.delete(`${url}/api/position/${id}`, {
                 headers: {
                     Authorization: data.token || ""
@@ -69,12 +71,14 @@ export default function Position() {
             });
             toast.success(deletePos?.data?.message);
             reloadPositionPage();
-       } catch (error) {
-         if (error?.message === "Network Error") {
+        } catch (error) {
+            if (error?.message === "Network Error") {
                 navigate("/network-issue")
             }
             console.error("Error deleting position:", error);
             toast.error(error?.response?.data?.error || "Failed to delete position");
+        } finally {
+            setIsDeleting("")
         }
     }
 
@@ -90,8 +94,8 @@ export default function Position() {
             setPositionObj({});
             modifyPositions();
             reloadPositionPage();
-       } catch (error) {
-         if (error?.message === "Network Error") {
+        } catch (error) {
+            if (error?.message === "Network Error") {
                 navigate("/network-issue")
             }
             console.error("Error editing position:", error);
@@ -110,8 +114,8 @@ export default function Position() {
             });
             setPositionObj(position.data);
             modifyPositions();
-       } catch (error) {
-         if (error?.message === "Network Error") {
+        } catch (error) {
+            if (error?.message === "Network Error") {
                 navigate("/network-issue")
             }
             console.error("Error fetching position:", error);
@@ -129,10 +133,10 @@ export default function Position() {
                     }
                 });
                 setPositions(response.data);
-           } catch (error) {
-         if (error?.message === "Network Error") {
-                navigate("/network-issue")
-            }
+            } catch (error) {
+                if (error?.message === "Network Error") {
+                    navigate("/network-issue")
+                }
                 console.error("Error fetching positions:", error);
                 toast.error("Failed to load positions data");
             }
@@ -170,7 +174,7 @@ export default function Position() {
                         height={"50vh"}
                     /> :
                         positions.length > 0 ?
-                            <LeaveTable data={positions} deleteData={deletePosition} fetchData={getEditPositionId} />
+                            <LeaveTable data={positions} deleteData={deletePosition} isLoading={isDeleting} fetchData={getEditPositionId} />
                             : <NoDataFound message={"Position data not found"} />
                 }
             </div>

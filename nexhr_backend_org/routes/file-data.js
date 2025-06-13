@@ -92,10 +92,10 @@ router.post("/attendance", upload.single("documents"), verifyAdminHrNetworkAdmin
                                 coverBy: null,
                                 status: "approved",
                                 approvers: {
-                                    Manager: "approved",
-                                    TeamLead: "approved",
-                                    TeamHead: "approved",
-                                    Hr: "approved",
+                                    manager: "approved",
+                                    lead: "approved",
+                                    head: "approved",
+                                    hr: "approved",
                                 },
                                 approvedOn: null,
                                 approverId: []
@@ -150,10 +150,10 @@ router.post("/attendance", upload.single("documents"), verifyAdminHrNetworkAdmin
                                 coverBy: null,
                                 status: "approved",
                                 approvers: {
-                                    Manager: "approverd",
-                                    TeamLead: "approved",
-                                    TeamHead: "approved",
-                                    Hr: "approved",
+                                    manager: "approverd",
+                                    lead: "approved",
+                                    head: "approved",
+                                    hr: "approved",
                                 }
                             };
                             const { error } = LeaveApplicationValidation.validate(halfDayLeaveApp);

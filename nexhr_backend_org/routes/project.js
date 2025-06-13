@@ -11,6 +11,8 @@ const { sendPushNotification } = require('../auth/PushNotification');
 
 router.get("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
   try {
+    console.log("calling...");
+
     const project = await Project.findById(req.params.id)
     if (!project) {
       return res.status(200).send({ message: "Project" })
@@ -23,6 +25,7 @@ router.get("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
 
 router.get("/", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
   try {
+
     const projects = await Project.find({ trash: false }, "-trash -tracker")
       .populate("company", "CompanyName")
       .populate("employees", "FirstName LastName Email")
@@ -32,7 +35,7 @@ router.get("/", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
       const { tasks } = project;
       const completedTasksCount = tasks.filter(task => task.status === "Completed").length;
       const progress = tasks.length ? (completedTasksCount / tasks.length) * 100 : 0;
-      const pendingTasks = tasks.filter(task => task.status !== "Completed");
+      const pendingTasks = tasks.filter(task => task.status === "Pending");
 
       return {
         ...project.toObject(),
@@ -63,14 +66,29 @@ router.get("/employees/:projectId", verifyAdminHREmployeeManagerNetwork, async (
 
 router.get("/emp/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
   try {
-    const projects = await Project.find({ employees: { $in: req.params.id }, trash: false }, "-tasks -reports -tracker")
+    const projects = await Project.find({ employees: { $in: req.params.id }, trash: false }, "-trash -tracker")
       .populate({ path: "company", select: "CompanyName" })
       .populate({ path: "employees", select: "FirstName LastName Email" })
       .populate({ path: "tasks" })
       .exec();
 
-    return res.send(projects);
+    const formattedProjects = projects.map((project) => {
+      const { tasks } = project;
+      const completedTasksCount = tasks.filter(task => task.status === "Completed").length;
+      const progress = tasks.length ? (completedTasksCount / tasks.length) * 100 : 0;
+      const pendingTasks = tasks.filter(task => task.status === "Pending");
+
+      return {
+        ...project.toObject(),
+        progress,
+        pendingTasks
+      };
+    });
+
+    return res.send(formattedProjects);
   } catch (error) {
+    console.log("error in fetch emp projects", error);
+
     return res.status(500).send({ error: error.message })
   }
 })
@@ -166,10 +184,6 @@ router.post("/:id", verifyAdminHRTeamHigherAuth, async (req, res) => {
 
 router.put("/:empId/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
   try {
-    // Clean up input
-    delete req.body['_id'];
-    delete req.body['__v'];
-
     const projectData = await Project.findById(req.params.id);
     const employee = await Employee.findById(req.params.empId);
 
@@ -302,6 +316,7 @@ router.delete("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
 
     return res.send({ message: "Project and Tasks were put in trash" });
   } catch (error) {
+    console.log("error in delete project", error);
     return res.status(500).send({ error: error.message });
   }
 });

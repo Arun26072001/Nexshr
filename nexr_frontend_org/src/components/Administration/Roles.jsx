@@ -14,11 +14,13 @@ const Roles = () => {
     const { data } = useContext(EssentialValues);
     const { reloadRolePage } = useContext(TimerStates);
     const [isLoading, setIsLoading] = useState(false);
+    const [isDeleting, setIsDeleting] = useState("");
     const [roles, setRoles] = useState([]);
     const navigate = useNavigate();
 
     async function deleteRoleAndPermission(id) {
         try {
+            setIsDeleting(id);
             const deleteRole = await axios.delete(`${url}/api/role/${id}`, {
                 headers: {
                     Authorization: data.token || ""
@@ -26,12 +28,14 @@ const Roles = () => {
             });
             toast.success(deleteRole?.data?.message);
             reloadRolePage();
-       } catch (error) {
-         if (error?.message === "Network Error") {
+        } catch (error) {
+            if (error?.message === "Network Error") {
                 navigate("/network-issue")
             }
             console.log(error);
             toast.error(error?.response?.data?.message)
+        } finally {
+            setIsDeleting("");
         }
     }
 
@@ -40,8 +44,6 @@ const Roles = () => {
             setIsLoading(true);
             try {
                 const roleData = await fetchRoles();
-                console.log(roleData);
-
                 setRoles(roleData);
             } catch (err) {
                 console.log(err);
@@ -66,7 +68,7 @@ const Roles = () => {
                     height={"50vh"}
                 /> :
                     roles.length > 0 ?
-                        <LeaveTable data={roles} deleteData={deleteRoleAndPermission} />
+                        <LeaveTable data={roles} isLoading={isDeleting} deleteData={deleteRoleAndPermission} />
                         : <NoDataFound message={"Roles data not found"} />
             }
         </div>

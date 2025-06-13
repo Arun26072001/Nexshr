@@ -164,8 +164,7 @@ taskSchema.post("findOneAndUpdate", async function (doc) {
                         await sendPushNotification({
                             token: emp.fcmToken,
                             title,
-                            body: message,
-                            // company: emp.company || creator.company
+                            body: message
                         });
                     }
 

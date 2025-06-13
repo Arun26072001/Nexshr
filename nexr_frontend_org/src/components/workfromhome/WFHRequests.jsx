@@ -16,11 +16,11 @@ export default function WFHRequests() {
     const [dateRangeValue, setDaterangeValue] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
     const [requests, setRequests] = useState({});
+    const [isResponsing, setIsResponsing] = useState("");
     const navigate = useNavigate();
 
     async function fetchTeamWfhRequests() {
         setIsLoading(true)
-
         try {
             const res = await axios.get(`${url}/api/wfh-application/team/${data._id}`, {
                 params: {
@@ -33,8 +33,8 @@ export default function WFHRequests() {
             })
 
             setRequests(res.data);
-       } catch (error) {
-         if (error?.message === "Network Error") {
+        } catch (error) {
+            if (error?.message === "Network Error") {
                 navigate("/network-issue")
             }
             console.log("error in fetch wfhRequests", error);
@@ -42,7 +42,6 @@ export default function WFHRequests() {
             setIsLoading(false)
         }
     }
-    console.log("requests", requests);
 
     async function fetchAllWfhRequests() {
         setIsLoading(true);
@@ -56,8 +55,8 @@ export default function WFHRequests() {
                 }
             })
             setRequests(res.data);
-       } catch (error) {
-         if (error?.message === "Network Error") {
+        } catch (error) {
+            if (error?.message === "Network Error") {
                 navigate("/network-issue")
             }
             console.log("erorr in fetch wfh requests", error);
@@ -68,6 +67,7 @@ export default function WFHRequests() {
 
     async function replyToRequest(request, response) {
         try {
+            setIsResponsing(request._id)
             let updatedWFHRequest;
             let actionBy;
             if (isTeamHead) {
@@ -126,11 +126,13 @@ export default function WFHRequests() {
             })
             toast.success(res.data.message);
             setDaterangeValue([]);
-       } catch (error) {
-         if (error?.message === "Network Error") {
+        } catch (error) {
+            if (error?.message === "Network Error") {
                 navigate("/network-issue")
             }
             toast.error(error?.response?.data?.error)
+        } finally {
+            setIsResponsing("")
         }
     }
 
@@ -199,7 +201,7 @@ export default function WFHRequests() {
                             height={"50vh"}
                         /> :
                         requests?.correctRequests?.length > 0 ?
-                            <LeaveTable data={requests.correctRequests} replyToLeave={replyToRequest} isTeamHead={isTeamHead} isTeamLead={isTeamLead} isTeamManager={isTeamManager} />
+                            <LeaveTable data={requests.correctRequests} isLoading={isResponsing} replyToLeave={replyToRequest} isTeamHead={isTeamHead} isTeamLead={isTeamLead} isTeamManager={isTeamManager} />
                             : <NoDataFound message={"WFH Requests not for this month!"} />
                 }
             </div>

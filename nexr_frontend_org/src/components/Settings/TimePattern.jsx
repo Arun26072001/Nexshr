@@ -19,6 +19,7 @@ const TimePattern = () => {
         isEdit: false,
         isView: false
     });
+    const [isDeleting, setIsDeleting] = useState("")
     const [isLoading, setIsLoading] = useState(false);
     const [timePatternObj, setTimePatternObj] = useState({});
     const [timePatterns, setTimePatterns] = useState([]);
@@ -27,21 +28,35 @@ const TimePattern = () => {
 
     function handleChangeTimePattern(type, pattern) {
         if (type === "Add") {
+            // remove data, go to hide pattern
+            if (changePattern.isAdd) {
+                setTimePatternObj({})
+            }
             setChangePattern((pre) => ({
                 ...pre,
                 isAdd: !pre.isAdd
             }))
         } else if (type === "Edit") {
+            // add data, go to show pattern
             if (!changePattern.isEdit) {
                 setTimePatternObj(pattern)
+            } 
+            // remove data, go to hide pattern
+            if (changePattern.isEdit) {
+                setTimePatternObj({})
             }
             setChangePattern((pre) => ({
                 ...pre,
                 isEdit: !pre.isEdit
             }))
         } else {
+            // add data, go to show pattern
             if (!changePattern.isView) {
                 setTimePatternObj(pattern)
+            } 
+            // remove data, go to hide pattern
+            if (changePattern.isView) {
+                setTimePatternObj({})
             }
             setChangePattern((pre) => ({
                 ...pre,
@@ -56,7 +71,7 @@ const TimePattern = () => {
             [name]: ["StartingTime", "FinishingTime"].includes(name) ? new Date(value).toISOString() : value
         })
     }
-    
+
     async function updateTimePattern() {
         try {
             setIsWorkingApi(true);
@@ -69,8 +84,8 @@ const TimePattern = () => {
             handleChangeTimePattern("Edit");
             setTimePatternObj({})
             reload(!dom);
-       } catch (error) {
-         if (error?.message === "Network Error") {
+        } catch (error) {
+            if (error?.message === "Network Error") {
                 navigate("/network-issue")
             }
             console.log(error);
@@ -91,8 +106,8 @@ const TimePattern = () => {
             toast.success(res.data.message);
             handleChangeTimePattern("Add");
             reload(!dom);
-       } catch (error) {
-         if (error?.message === "Network Error") {
+        } catch (error) {
+            if (error?.message === "Network Error") {
                 navigate("/network-issue")
             }
             toast.error(error?.response?.data?.error);
@@ -103,7 +118,7 @@ const TimePattern = () => {
     }
 
     async function deletePattern(pattern) {
-
+        setIsDeleting(pattern)
         try {
             const res = await axios.delete(`${url}/api/time-pattern/${pattern}`, {
                 headers: {
@@ -113,12 +128,14 @@ const TimePattern = () => {
 
             toast.success(res.data.message);
             reload(!dom);
-       } catch (error) {
-         if (error?.message === "Network Error") {
+        } catch (error) {
+            if (error?.message === "Network Error") {
                 navigate("/network-issue")
             }
             toast.error(error?.response?.data?.error)
             console.log("error in delete timePatternObj:", error);
+        } finally {
+            setIsDeleting("")
         }
     }
 
@@ -132,10 +149,10 @@ const TimePattern = () => {
                     }
                 })
                 setTimePatterns(res.data);
-           } catch (error) {
-         if (error?.message === "Network Error") {
-                navigate("/network-issue")
-            }
+            } catch (error) {
+                if (error?.message === "Network Error") {
+                    navigate("/network-issue")
+                }
                 console.log(error);
                 setTimePatterns([]);
             } finally {
@@ -144,6 +161,7 @@ const TimePattern = () => {
         }
         fetchTimePatterns();
     }, [dom]);
+    console.log("patterns", timePatterns);
 
     return (
         changePattern.isAdd ? <CommonModel type={"TimePattern"} isWorkingApi={isWoringApi} isAddData={changePattern.isAdd} changeData={fillPatternData} dataObj={timePatternObj} modifyData={handleChangeTimePattern} addData={addTimePattern} /> :
@@ -170,7 +188,7 @@ const TimePattern = () => {
                                 width={"100%"}
                                 height={"50vh"}
                             /> :
-                                timePatterns.length ? <LeaveTable data={timePatterns} deleteData={deletePattern} handleChangeData={handleChangeTimePattern} /> :
+                                timePatterns.length ? <LeaveTable data={timePatterns} isLoading={isDeleting} deleteData={deletePattern} handleChangeData={handleChangeTimePattern} /> :
                                     <NoDataFound message={"Time Pattern data not found"} />
                         }
                     </>

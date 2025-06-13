@@ -49,7 +49,8 @@ router.get("/", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
 
 router.get("/members/:id", verifyTeamHigherAuthorityEmp, async (req, res) => {
     try {
-        const who = req.params.who ? "lead" : req.params.who ? "head" : req.params.who ? "manager" : "employees"
+        const who = req.query.who;
+        // const who = req.params.who ? "lead" : req.params.who ? "head" : req.params.who ? "manager" : "employees"
         const response = await Team.findOne({ [who]: req.params.id })
             .populate({
                 path: "employees",

@@ -13,6 +13,7 @@ import FileUploadRoundedIcon from '@mui/icons-material/FileUploadRounded';
 import FileDownloadRoundedIcon from '@mui/icons-material/FileDownloadRounded';
 import { useNavigate } from 'react-router-dom';
 import { Skeleton } from '@mui/material';
+import { useState } from 'react';
 
 export default function LeaveRequest() {
     const url = process.env.REACT_APP_API_URL;
@@ -20,11 +21,13 @@ export default function LeaveRequest() {
     const { daterangeValue, setDaterangeValue } = useContext(TimerStates)
     const { data, whoIs } = useContext(EssentialValues);
     const { token } = data;
+    const { responsing, setResponsing } = useState("");
     const { isTeamHead, isTeamLead, isTeamManager } = jwtDecode(token);
     const navigate = useNavigate()
 
     async function replyToLeave(leave, response) {
         try {
+            setResponsing(leave._id)
             let actionBy;
             let updatedLeaveRequest;
             if (isTeamHead) {
@@ -86,11 +89,13 @@ export default function LeaveRequest() {
             toast.success(res.data.message);
             changeRequests();
 
-       } catch (error) {
-         if (error?.message === "Network Error") {
+        } catch (error) {
+            if (error?.message === "Network Error") {
                 navigate("/network-issue")
             }
             toast.error(error?.response?.data?.error)
+        } finally {
+            setResponsing("")
         }
     }
 
@@ -113,8 +118,8 @@ export default function LeaveRequest() {
             });
             toast.success(response.data.message);
             changeRequests();
-       } catch (error) {
-         if (error?.message === "Network Error") {
+        } catch (error) {
+            if (error?.message === "Network Error") {
                 navigate("/network-issue")
             }
             console.error('File upload failed:', error);
@@ -240,7 +245,7 @@ export default function LeaveRequest() {
                         height={"50vh"}
                     /> :
                         leaveRequests?.leaveData?.length > 0 ?
-                            <LeaveTable Account={data?.Account} data={leaveRequests.leaveData} replyToLeave={replyToLeave} isTeamHead={isTeamHead} isTeamLead={isTeamLead} isTeamManager={isTeamManager} /> :
+                            <LeaveTable Account={data?.Account} data={leaveRequests.leaveData} isLoading={responsing} replyToLeave={replyToLeave} isTeamHead={isTeamHead} isTeamLead={isTeamLead} isTeamManager={isTeamManager} /> :
                             <NoDataFound message={"No Leave request in this month"} />
                 }
             </div>

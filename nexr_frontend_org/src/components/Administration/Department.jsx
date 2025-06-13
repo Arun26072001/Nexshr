@@ -18,6 +18,7 @@ export default function Department() {
     const [departmentObj, setDepartmentObj] = useState({});
     const [departments, setDepartments] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
+    const [isDeleting, setIsDeleting] = useState("");
     const [isDepartmentsDataUpdate, setIsDepartmentDataUpdate] = useState(false);
     const [isAddDepartment, setIsAddDepartment] = useState(false);
     const [isChangingDepartment, setIsChangingDepartment] = useState(false);
@@ -51,8 +52,8 @@ export default function Department() {
             setDepartmentObj({});
             modifyDepartments();
             reloadDepartmentPage();
-       } catch (error) {
-         if (error?.message === "Network Error") {
+        } catch (error) {
+            if (error?.message === "Network Error") {
                 navigate("/network-issue")
             }
             return toast.error(error?.response?.data?.error)
@@ -62,6 +63,7 @@ export default function Department() {
 
     async function deleteDepartment(id) {
         try {
+            setIsDeleting(id)
             const deleteDep = await axios.delete(`${url}/api/department/${id}`, {
                 headers: {
                     Authorization: data.token || ""
@@ -69,12 +71,14 @@ export default function Department() {
             });
             toast.success(deleteDep?.data?.message);
             reloadDepartmentPage();
-       } catch (error) {
-         if (error?.message === "Network Error") {
+        } catch (error) {
+            if (error?.message === "Network Error") {
                 navigate("/network-issue")
             }
             console.log(error);
             toast.error(error?.response?.data?.message)
+        } finally {
+            setIsDeleting("")
         }
     }
 
@@ -94,8 +98,8 @@ export default function Department() {
             setDepartmentObj({});
             // Reload the department page (or trigger any necessary updates)
             reloadDepartmentPage();
-       } catch (error) {
-         if (error?.message === "Network Error") {
+        } catch (error) {
+            if (error?.message === "Network Error") {
                 navigate("/network-issue")
             }
             // Show an error toast with the message from the API (or a generic error message if not available)
@@ -115,8 +119,8 @@ export default function Department() {
             });
             setDepartmentObj(department.data);
             modifyDepartments();
-       } catch (error) {
-         if (error?.message === "Network Error") {
+        } catch (error) {
+            if (error?.message === "Network Error") {
                 navigate("/network-issue")
             }
             console.log(error);
@@ -130,10 +134,10 @@ export default function Department() {
             try {
                 const departmentsData = await getDepartments();
                 setDepartments(departmentsData);
-           } catch (error) {
-         if (error?.message === "Network Error") {
-                navigate("/network-issue")
-            }
+            } catch (error) {
+                if (error?.message === "Network Error") {
+                    navigate("/network-issue")
+                }
                 toast.error(error);
             }
             setIsLoading(false);
@@ -167,7 +171,7 @@ export default function Department() {
                         height={"50vh"}
                     /> :
                         departments.length > 0 ?
-                            <LeaveTable data={departments} deleteData={deleteDepartment} fetchData={getEditDepartmentId} />
+                            <LeaveTable data={departments} deleteData={deleteDepartment} isLoading={isDeleting} fetchData={getEditDepartmentId} />
                             : <NoDataFound message={"Departments data not found"} />
                 }
             </div>

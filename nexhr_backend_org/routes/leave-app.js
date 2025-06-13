@@ -724,7 +724,6 @@ leaveApp.get("/date-range/:empId", verifyAdminHREmployeeManagerNetwork, async (r
           { path: "coverBy", select: "FirstName LastName Email profile" }
         ]
       });
-    console.log("employeeLeaveData", employeeLeaveData);
 
     if (!employeeLeaveData || !employeeLeaveData.leaveApplication.length) {
       return res.send({

@@ -29,87 +29,82 @@ router.get("/:id", async (req, res) => {
   }
 });
 
+router.post("/", verifyAdminHR, async (req, res) => {
+  try {
+    const { error } = DepartmentValidation.validate(req.body);
+    if (error) {
+      return res.status(400).send({ error: error.details[0].message });
+    }
 
-router.post("/", verifyAdminHR, (req, res) => {
-  Joi.validate(req.body, DepartmentValidation, async (err, result) => {
-    if (err) {
-      console.log(err);
-      res.status(400).send({ message: err.details[0].message });
-    } else {
-      if (await Department.exists({ DepartmentName: req.body.DepartmentName })) {
-        return res.status(400).send({ error: `${req.body.DepartmentName} Department already exist` })
-      }
-      Department.create(req.body, function (err, department) {
-        if (err) {
-          console.log(err);
-          res.status(500).send({ error: err.message });
-        } else {
-          res.send({ message: "new department has been added!" });
-        }
+    const existingDepartment = await Department.findOne({ DepartmentName: req.body.DepartmentName });
+    if (existingDepartment) {
+      return res.status(400).send({
+        error: `${req.body.DepartmentName} Department already exists`,
       });
     }
-  });
+
+    const newDepartment = await Department.create(req.body);
+
+    res.send({ message: `${newDepartment.DepartmentName} department has been added!` });
+  } catch (err) {
+    console.error(err);
+    res.status(500).send({ error: err.message });
+  }
 });
 
-router.put("/:id", verifyAdminHR, (req, res) => {
-  let updateDepartment;
-  updateDepartment = {
-    DepartmentName: req.body.DepartmentName,
-    company: req.body.company
-  };
-  Joi.validate(updateDepartment, DepartmentValidation, (err, result) => {
-    if (err) {
-      console.log(err);
-      res.status(400).send({ message: err.details[0].message });
-    } else {
-      // const {orgName} = jwt.decode(req.headers['authorization']);
-      // const Department = getDepartmentModel(orgName)  
-      Department.findByIdAndUpdate(req.params.id, {
-        $set: updateDepartment
-      }, function (
-        err,
-        department
-      ) {
-        if (err) {
-          res.status(500).send({ message: err.message });
-        } else {
-          res.send({ message: "department has been updated!" });
-        }
+router.put("/:id", verifyAdminHR, async (req, res) => {
+  try {
+    const updateDepartment = {
+      DepartmentName: req.body.DepartmentName,
+      company: req.body.company,
+    };
+
+    const { error } = DepartmentValidation.validate(updateDepartment);
+    if (error) {
+      return res.status(400).send({ message: error.details[0].message });
+    }
+
+    const updatedDepartment = await Department.findByIdAndUpdate(
+      req.params.id,
+      { $set: updateDepartment },
+      { new: true }
+    );
+
+    if (!updatedDepartment) {
+      return res.status(404).send({ message: "Department not found." });
+    }
+
+    res.send({ message: "Department has been updated!" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).send({ message: "Internal server error." });
+  }
+});
+
+router.delete("/:id", verifyAdminHR, async (req, res) => {
+  try {
+    const departmentId = req.params.id;
+
+    // Check if any employees are associated with this department
+    const employees = await Employee.find({ department: departmentId });
+
+    if (employees.length > 0) {
+      return res.status(403).send({
+        message: "This department is associated with employees, so it cannot be deleted.",
       });
     }
-  });
+    const deleted = await Department.findByIdAndRemove(departmentId);
+
+    if (!deleted) {
+      return res.status(404).send({ message: "Department not found." });
+    }
+
+    res.send({ message: "Department has been deleted!" });
+  } catch (err) {
+    console.error("error in delete department", err);
+    res.status(500).send({ error: err.message });
+  }
 });
 
-router.delete("/:id", verifyAdminHR, (req, res) => {
-  // const {orgName} = jwt.decode(req.headers['authorization']);
-  // const OrgEmployeeModel = getEmployeeModel(orgName);
-  Employee.find({ department: req.params.id }, function (err, d) {
-    if (err) {
-      console.log(err);
-      res.send(err);
-    } else {
-      console.log(d);
-      if (d.length == 0) {
-        // const Department = getDepartmentModel(orgName)
-        Department.findByIdAndRemove({ _id: req.params.id }, function (
-          err,
-          department
-        ) {
-          if (!err) {
-            res.send("deparment has been deleted!");
-          }
-        });
-        console.log("delete");
-        console.log(req.params.id);
-      } else {
-        res
-          .status(403)
-          .send(
-            "This department is associated with Employee so you can not delete this"
-          );
-      }
-    }
-  });
-});
 
 module.exports = router;

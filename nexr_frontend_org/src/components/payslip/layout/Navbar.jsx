@@ -153,7 +153,6 @@ export default function Navbar({ handleSideBar }) {
         // check user is completed working hour
         try {
             const res = await axios.post(`${url}/verify_completed_workinghour`, updatedState);
-            console.log("isCompleted", res.data.isCompleteworkingHours);
             if (!res.data.isCompleteworkingHours) {
                 changeViewReasonForEarlyLogout()
             } else {
@@ -359,8 +358,6 @@ export default function Navbar({ handleSideBar }) {
             setSec(newSec);
         }
     }, [workTimeTracker, isStartLogin]);
-
-    console.log("worktraker", workTimeTracker);
 
     return (
         isForgetToPunchOut ? <Modal open={isForgetToPunchOut} size="sm" backdrop="static">
