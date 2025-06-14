@@ -682,8 +682,6 @@ leaveApp.get("/date-range/management/:whoIs", verifyAdminHrNetworkAdmin, async (
       sumLeaveDays(approvedLeave)
     ])
 
-    console.log("leaveData", leaveData);
-
     res.send({
       leaveData,
       approvedLeave: approvedLeaveDays,
@@ -1001,7 +999,7 @@ leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("pre
 
     return res.status(201).json({ message: "Leave request submitted successfully.", newLeaveApp, notifiedMembers: notify });
   } catch (err) {
-    console.error(err);
+    console.error("error in apply leave", err);
     return res.status(500).json({ error: err.message });
   }
 });

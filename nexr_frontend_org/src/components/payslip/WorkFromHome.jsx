@@ -15,6 +15,7 @@ export default function WorkFromHome() {
   const [requests, setRequests] = useState({});
   const [dateRangeValue, setDaterangeValue] = useState([]);
   const navigate = useNavigate();
+  const [isDeleting, setIsDeleting] = useState("");
 
   async function fetchWfhReuests() {
     setIsLoading(true)
@@ -45,6 +46,7 @@ export default function WorkFromHome() {
 
   async function deleteRequest(id) {
     try {
+      setIsDeleting(id)
       const res = await axios.delete(`${url}/api/wfh-application/${id}`, {
         headers: {
           Authorization: data.token || ""
@@ -57,6 +59,8 @@ export default function WorkFromHome() {
         navigate("/network-issue")
       }
       console.log("error in delete wfh request", error);
+    } finally {
+      setIsDeleting("")
     }
   }
   return (
@@ -117,7 +121,7 @@ export default function WorkFromHome() {
               height={"50vh"}
             /> :
             requests?.correctRequests?.length > 0 ?
-              <LeaveTable data={requests.correctRequests} deleteData={deleteRequest} />
+              <LeaveTable data={requests.correctRequests} isLoading={isDeleting} deleteData={deleteRequest} />
               : <NoDataFound message={"WFH Requests not for this month!"} />
         }
       </div>

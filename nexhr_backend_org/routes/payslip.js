@@ -1,7 +1,7 @@
 const express = require("express");
 const { Employee } = require("../models/EmpModel");
 const { Payslip } = require("../models/PaySlipModel");
-const { getDayDifference, getWeekdaysOfCurrentMonth, sumLeaveDays } = require("../Reuseable_functions/reusableFunction");
+const { getWeekdaysOfCurrentMonth, sumLeaveDays } = require("../Reuseable_functions/reusableFunction");
 const { Holiday } = require("../models/HolidayModel");
 const router = express.Router();
 
