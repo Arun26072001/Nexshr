@@ -32,6 +32,7 @@ const LeaveApplicationValidation = Joi.object({
   toDate: Joi.date().greater(Joi.ref('fromDate')).required().label('toDate').messages({
     'date.greater': '"toDate" must be greater than "fromDate"',
   }),
+  applyFor: Joi.any().optional(),
   employee: Joi.string().regex(/^[0-9a-fA-F]{24}$/).optional().label('employee'),
   reasonForLeave: Joi.string().required().disallow(null, '', 'none', 'undefined').label('reasonForLeave'),
   periodOfLeave: Joi.string().label('periodOfLeave'),

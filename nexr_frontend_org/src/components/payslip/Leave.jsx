@@ -19,6 +19,7 @@ const Leave = () => {
     const url = process.env.REACT_APP_API_URL;
     const [daterangeValue, setDaterangeValue] = useState("");
     const [isLoading, setIsLoading] = useState(false);
+    const [isDeleting, setIsDeleting] = useState("");
 
     function filterLeaveRequests() {
         if (empName === "") {
@@ -37,6 +38,7 @@ const Leave = () => {
 
     async function deleteLeave(leaveId) {
         try {
+            setIsDeleting(leaveId);
             const res = await axios.delete(`${url}/api/leave-application/${_id}/${leaveId}`, {
                 headers: {
                     Authorization: token || ""
@@ -49,6 +51,8 @@ const Leave = () => {
                 navigate("/network-issue")
             }
             toast.error(error?.response?.data?.error)
+        }finally{
+            setIsDeleting("")
         }
     }
 
@@ -145,7 +149,7 @@ const Leave = () => {
                             height={"50vh"}
                         /> :
                         leaveRequests?.leaveData?.length > 0 ?
-                            <LeaveTable data={leaveRequests.leaveData} fetchData={deleteLeave} />
+                            <LeaveTable data={leaveRequests.leaveData} isLoading={isDeleting} fetchData={deleteLeave} />
                             : <NoDataFound message={"Leave data not for this month!"} />
                 }
             </div>

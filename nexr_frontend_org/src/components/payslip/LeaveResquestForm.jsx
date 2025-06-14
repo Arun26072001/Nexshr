@@ -9,12 +9,15 @@ import DatePicker from "react-datepicker";
 import TextEditor from "./TextEditor";
 import { EssentialValues } from "../../App";
 import Loading from "../Loader";
+import { Notification, toaster } from "rsuite";
+import { jwtDecode } from "jwt-decode";
 
 const LeaveRequestForm = ({ type }) => {
   const { id } = useParams();
   const url = process.env.REACT_APP_API_URL;
-  const { whoIs, data} = useContext(EssentialValues);
+  const { whoIs, data } = useContext(EssentialValues);
   const { _id, token } = data;
+  const { company } = jwtDecode(token);
   const [errorData, setErrorData] = useState("");
   const [isShowPeriodOfLeave, setIsShowPeriodOfLeave] = useState(false);
   const navigate = useNavigate();
@@ -94,10 +97,10 @@ const LeaveRequestForm = ({ type }) => {
       toast.success(res.data.message);
       setLeaveRequestObj({});
       navigate(`/${whoIs}`); // Navigate back
-   } catch (error) {
-         if (error?.message === "Network Error") {
-                navigate("/network-issue")
-            }
+    } catch (error) {
+      if (error?.message === "Network Error") {
+        navigate("/network-issue")
+      }
       console.log("error in update leave", error);
       toast.error(error?.response?.data?.error);
       setErrorData(error?.response?.data?.error)
@@ -114,10 +117,10 @@ const LeaveRequestForm = ({ type }) => {
         }
       });
       setLeaveRequestObj(response.data);
-   } catch (error) {
-         if (error?.message === "Network Error") {
-                navigate("/network-issue")
-            }
+    } catch (error) {
+      if (error?.message === "Network Error") {
+        navigate("/network-issue")
+      }
       toast.error("Failed to fetch leave request data.");
     }
   };
@@ -159,10 +162,10 @@ const LeaveRequestForm = ({ type }) => {
       } else {
         toast.error("_id is not loaded in the app.");
       }
-   } catch (error) {
-         if (error?.message === "Network Error") {
-                navigate("/network-issue")
-            }
+    } catch (error) {
+      if (error?.message === "Network Error") {
+        navigate("/network-issue")
+      }
       console.error("Error fetching leave requests:", error);
       toast.error("Failed to fetch leave requests. Please try again.");
     } finally {
@@ -192,10 +195,10 @@ const LeaveRequestForm = ({ type }) => {
       const emps = await fetchAllEmployees();
       const filterEmps = emps.filter((emp) => emp._id !== _id)
       setEmployees(filterEmps.map((emp) => ({ label: emp.FirstName + " " + emp.LastName, value: emp._id })))
-   } catch (error) {
-         if (error?.message === "Network Error") {
-                navigate("/network-issue")
-            }
+    } catch (error) {
+      if (error?.message === "Network Error") {
+        navigate("/network-issue")
+      }
       console.log(error);
     }
   }
@@ -204,10 +207,10 @@ const LeaveRequestForm = ({ type }) => {
     try {
       const res = await getHoliday();
       setExcludeDates(res.holidays.map(holiday => new Date(holiday.date)));
-   } catch (error) {
-         if (error?.message === "Network Error") {
-                navigate("/network-issue")
-            }
+    } catch (error) {
+      if (error?.message === "Network Error") {
+        navigate("/network-issue")
+      }
       console.error("Failed to fetch holidays", error);
     }
   }
@@ -240,6 +243,27 @@ const LeaveRequestForm = ({ type }) => {
       gettingEmps()
     }
   }, [whoIs])
+
+  useEffect(() => {
+    if (["admin", "hr"].includes(whoIs)) {
+      toaster.push(
+        <Notification
+          header={
+            <div style={{ display: 'flex', alignItems: 'center' }}>
+              <img src={company.logo} alt="Company Logo" style={{ width: 50, height: 50, marginRight: 10 }} />
+              <span style={{ fontWeight: 'bold', fontSize: '16px' }}>{company.CompanyName}</span>
+            </div>
+          }
+          closable
+        >
+          <strong className="text-danger">Important notice</strong>
+          <p className="my-1">If you want to apply leave for an employee, please select the "Apply Leave For Employee" option.</p>
+          <p className="my-1">If you are applying leave for yourself, please do not select the "Apply Leave For Employee" option.</p>
+        </Notification>,
+        { placement: 'topCenter' }
+      );
+    }
+  }, [])
 
   return (
     isLoading ? <Loading height="80vh" /> :

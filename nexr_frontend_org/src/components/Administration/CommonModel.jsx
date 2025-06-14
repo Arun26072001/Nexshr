@@ -193,28 +193,15 @@ const CommonModel = ({
                                     <InputNumber
                                         size="lg"
                                         min={0}
-                                        defaultValue={0}
                                         value={dataObj?.limitDays ?? null}
                                         step={1}
                                         style={{ width: "100%" }}
                                         onChange={(value) => {
                                             if (value === null || value === '' || value >= 0) {
-                                                changeData(value, "limitDays");
-                                            }
-                                        }}
-                                        onKeyDown={(e) => {
-                                            if (e.key === '-' || e.key === 'e' || e.key === 'E') {
-                                                e.preventDefault();
-                                            }
-                                        }}
-                                        onPaste={(e) => {
-                                            const pasted = e.clipboardData.getData('text');
-                                            if (!/^\d+$/.test(pasted)) {
-                                                e.preventDefault();
+                                                changeData(value, "limitDays")
                                             }
                                         }}
                                     />
-
                                 </div>
                             </div>
                         }
@@ -232,7 +219,7 @@ const CommonModel = ({
                             <div className="col-half">
                                 <div className="modelInput">
                                     <p className='modelLabel important'>Postcode:</p>
-                                    <InputNumber size='lg' value={dataObj?.PostCode} onChange={(e) => changeData(e, "PostCode")} disabled={type === "View WorkPlace"} />
+                                    <InputNumber size='lg' min={0} value={dataObj?.PostCode} onChange={(e) => changeData(e, "PostCode")} disabled={type === "View WorkPlace"} />
                                 </div>
                             </div>
                         }
@@ -270,7 +257,7 @@ const CommonModel = ({
                             <div className="col-half">
                                 <div className="modelInput">
                                     <p className='modelLabel'>Spend time:</p>
-                                    <InputNumber size='lg' defaultValue={0.00} style={{ width: "100%" }} step={0.01} value={dataObj?.comments[0]?.["spend"]} onChange={(e) => changeData(e, "comments.spend")} />
+                                    <InputNumber min={0} size='lg' defaultValue={0.00} style={{ width: "100%" }} step={0.01} value={dataObj?.comments[0]?.["spend"]} onChange={(e) => changeData(e, "comments.spend")} />
                                 </div>
                             </div>
                         }
@@ -279,7 +266,7 @@ const CommonModel = ({
                             <div className="col-half">
                                 <div className="modelInput">
                                     <p className='modelLabel'>Spend time:</p>
-                                    <InputNumber size='lg' defaultValue={0.00} style={{ width: "100%" }} step={0.01} value={dataObj?.spend} onChange={(e) => changeData(e, "spend")} />
+                                    <InputNumber min={0} size='lg' defaultValue={0.00} style={{ width: "100%" }} step={0.01} value={dataObj?.spend} onChange={(e) => changeData(e, "spend")} />
                                 </div>
                             </div>
                         }
@@ -535,6 +522,7 @@ const CommonModel = ({
                                 <div className="modelInput">
                                     <p className='modelLabel important'>Est Time:</p>
                                     <InputNumber
+                                        min={0}
                                         size='lg'
                                         placeholder="Select Time"
                                         style={{ width: "100%" }}
@@ -575,6 +563,7 @@ const CommonModel = ({
                             <div className="modelInput">
                                 <p className='modelLabel important'>Est Time:</p>
                                 <InputNumber
+                                    min={0}
                                     size='lg'
                                     placeholder="Select Time"
                                     style={{ width: "100%" }}
@@ -587,7 +576,7 @@ const CommonModel = ({
                         <div className="col-half">
                             <div className="modelInput">
                                 <p className='modelLabel'>Spend time:</p>
-                                <InputNumber size='lg' defaultValue={0.00} style={{ width: "100%" }} step={0.01} value={dataObj?.spend?.timeHolder} onChange={(e) => changeData(e, "spend.timeHolder")} />
+                                <InputNumber min={0} size='lg' defaultValue={0.00} style={{ width: "100%" }} step={0.01} value={dataObj?.spend?.timeHolder} onChange={(e) => changeData(e, "spend.timeHolder")} />
                             </div>
                         </div>
                     </div>
@@ -945,6 +934,7 @@ const CommonModel = ({
                             <div className="modelInput">
                                 <p className='modelLabel important'>Code:</p>
                                 <InputNumber
+                                    min={0}
                                     required
                                     size="lg"
                                     style={{ width: "100%", height: 45 }}
@@ -1245,13 +1235,13 @@ const CommonModel = ({
                             <div className="col-half">
                                 <div className="modelInput">
                                     <p className='modelLabel'>Waiting Time:</p>
-                                    <InputNumber size='lg' placeholder='Enter in Minutes' step={0.01} onChange={(e) => changeData(e, "WaitingTime")} disabled={type === "View TimePattern"} value={dataObj?.WaitingTime} />
+                                    <InputNumber min={0} size='lg' placeholder='Enter in Minutes' step={0.01} onChange={(e) => changeData(e, "WaitingTime")} disabled={type === "View TimePattern"} value={dataObj?.WaitingTime} />
                                 </div>
                             </div>
                             <div className="col-half">
                                 <div className="modelInput">
                                     <p className='modelLabel'>Break Time:</p>
-                                    <InputNumber size='lg' placeholder='Enter in Minutes' step={0.01} onChange={(e) => changeData(e, "BreakTime")} disabled={type === "View TimePattern"} value={dataObj?.BreakTime} />
+                                    <InputNumber min={0} size='lg' placeholder='Enter in Minutes' step={0.01} onChange={(e) => changeData(e, "BreakTime")} disabled={type === "View TimePattern"} value={dataObj?.BreakTime} />
                                 </div>
                             </div>
                         </div>

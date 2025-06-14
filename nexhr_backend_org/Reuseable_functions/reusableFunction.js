@@ -102,7 +102,7 @@ async function rangeofDate(fromDate, toDate, empData) {
   const to = new Date(toDate);
   const holiday = await Holiday.findOne({ year: new Date().getFullYear() }).lean().exec();
 
-  const emp = await Employee.findById(empData._id, "workingTimePattern")
+  const emp = await Employee.findById(empData, "workingTimePattern")
     .populate("workingTimePattern", "WeeklyDays").lean().exec();
   let dayCount = 0;
   while (from <= to) {

@@ -14,6 +14,20 @@ const LeaveTypeSchema = new mongoose.Schema({
 
 const LeaveType = mongoose.model("LeaveType", LeaveTypeSchema);
 
+
+const LeaveTypeValidation = Joi.object().keys({
+    _id: Joi.any().optional(),
+    __v: Joi.any().optional(),
+    LeaveName: Joi.string().required(),
+    Description: Joi.string().optional(),
+    limitDays: Joi.number().positive().required().label("LimitDays")
+})
+
+module.exports = {
+    LeaveType,
+    LeaveTypeValidation
+};
+
 // const staticLeavetypes = [
 //     {
 //         "LeaveName": "Annual Leave",
@@ -105,16 +119,3 @@ const LeaveType = mongoose.model("LeaveType", LeaveTypeSchema);
 //         console.log("Leavetypes already exist. Skipping static data insertion.");
 //     }
 // });
-
-const LeaveTypeValidation = Joi.object().keys({
-    _id: Joi.any().optional(),
-    __v: Joi.any().optional(),
-    LeaveName: Joi.string().required(),
-    Description: Joi.string().optional(),
-    limitDays: Joi.number().required().label("LimitDays")
-})
-
-module.exports = {
-    LeaveType,
-    LeaveTypeValidation
-};
