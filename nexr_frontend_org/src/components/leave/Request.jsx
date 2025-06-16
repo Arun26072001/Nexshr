@@ -21,7 +21,7 @@ export default function LeaveRequest() {
     const { daterangeValue, setDaterangeValue } = useContext(TimerStates)
     const { data, whoIs } = useContext(EssentialValues);
     const { token } = data;
-    const { responsing, setResponsing } = useState("");
+    const [responsing, setResponsing] = useState("");
     const { isTeamHead, isTeamLead, isTeamManager } = jwtDecode(token);
     const navigate = useNavigate()
 
