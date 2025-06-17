@@ -240,8 +240,8 @@ export default function Home() {
                             <div className="d-flex flex-wrap justify-content-between align-items-center py-2" style={{ position: "sticky", top: "0px", background: "rgba(245, 245, 245, 1)" }} >
                                 <p className='sub_text text-dark' style={{ fontWeight: "bold" }}>PeopleOnLeave</p>
                                 <p className='timeLogBox' style={{ background: "white" }}><img src={calendarIcon} alt='dateIcon' width={15} height={"auto"} /> <span className='sub_text text-dark'>{now.getDate() + " " + now.toLocaleString("default", { "month": "short" }) + " " + now.getFullYear()}</span></p>
+                                <input type="text" className='box-content mt-2 homeEmpSearchInp' placeholder='Search Employee...' value={empForLeave} onChange={(e) => setEmpforLeave(e.target.value)} />
                             </div>
-                            <input type="text" className='box-content my-1 homeEmpSearchInp' placeholder='Search Employee...' value={empForLeave} onChange={(e) => setEmpforLeave(e.target.value)} />
                             {
                                 isFetchPeopleOnLeave ? <div className="gap-1">
                                     {
@@ -268,8 +268,8 @@ export default function Home() {
                             <div className="d-flex flex-wrap justify-content-between align-items-center py-2" style={{ position: "sticky", top: "0px", background: "rgba(245, 245, 245, 1)" }} >
                                 <p className='sub_text text-dark' style={{ fontWeight: "bold" }}>WFH Employees</p>
                                 <p className='timeLogBox' style={{ background: "white" }}><img src={calendarIcon} alt='dateIcon' width={15} height={"auto"} /> <span className='sub_text text-dark'>{now.getDate() + " " + now.toLocaleString("default", { "month": "short" }) + " " + now.getFullYear()}</span></p>
+                                <input type="text" className='box-content mt-2 homeEmpSearchInp' placeholder='Search Employee...' value={empForWfh} onChange={(e) => setEmpforWfh(e.target.value)} />
                             </div>
-                            <input type="text" className='box-content my-1 homeEmpSearchInp' placeholder='Search Employee...' value={empForWfh} onChange={(e) => setEmpforWfh(e.target.value)} />
                             {
                                 isFetchpeopleOnWfh ? <div className="gap-1">
                                     {

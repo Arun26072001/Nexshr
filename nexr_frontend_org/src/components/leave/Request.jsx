@@ -21,7 +21,7 @@ export default function LeaveRequest() {
     const { daterangeValue, setDaterangeValue } = useContext(TimerStates)
     const { data, whoIs } = useContext(EssentialValues);
     const { token } = data;
-    const { responsing, setResponsing } = useState("");
+    const [responsing, setResponsing] = useState("");
     const { isTeamHead, isTeamLead, isTeamManager } = jwtDecode(token);
     const navigate = useNavigate()
 
@@ -31,7 +31,7 @@ export default function LeaveRequest() {
             let actionBy;
             let updatedLeaveRequest;
             if (isTeamHead) {
-                actionBy = "Head"
+                actionBy = `${data?.Name} (Head)`
                 updatedLeaveRequest = {
                     ...leave,
                     approvers: {
@@ -40,7 +40,7 @@ export default function LeaveRequest() {
                     }
                 }
             } else if (isTeamLead) {
-                actionBy = "Lead"
+                actionBy = `${data?.Name} (Lead)`
                 updatedLeaveRequest = {
                     ...leave,
                     approvers: {
@@ -49,7 +49,7 @@ export default function LeaveRequest() {
                     }
                 }
             } else if (isTeamManager) {
-                actionBy = "Manager"
+                actionBy = `${data?.Name} (Manager)`
                 updatedLeaveRequest = {
                     ...leave,
                     approvers: {
@@ -59,7 +59,7 @@ export default function LeaveRequest() {
                 }
             }
             else if (String(data.Account) === "2") {
-                actionBy = "Hr"
+                actionBy = `${data?.Name} (Hr)`
                 updatedLeaveRequest = {
                     ...leave,
                     approvers: {
@@ -68,7 +68,7 @@ export default function LeaveRequest() {
                     }
                 }
             } else if (String(data.Account) === "1") {
-                actionBy = "Admin"
+                actionBy = `${data?.Name} (Admin)`
                 updatedLeaveRequest = {
                     ...leave,
                     status: response
