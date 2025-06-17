@@ -15,6 +15,7 @@ const Announce = () => {
     const [changeAnnouncement, setChangeAnnouncement] = useState(false);
     const { data } = useContext(EssentialValues);
     const [isLoading, setIsLoading] = useState(false);
+    const [isDeleting, setIsDeleting] = useState("");
 
     function handleChangeAnnouncement() {
         setChangeAnnouncement(!changeAnnouncement)
@@ -24,6 +25,7 @@ const Announce = () => {
     const handleDelete = async (announcement) => {
         if (announcement) {
             try {
+                setIsDeleting(announcement._id)
                 const response = await axios.delete(`${url}/api/announcements/${announcement._id}`, {
                     headers: {
                         Authorization: `${data.token}`
@@ -32,12 +34,14 @@ const Announce = () => {
                 // Show success notification
                 toast.success(response.data.message);
                 handleChangeAnnouncement()
-           } catch (error) {
-         if (error?.message === "Network Error") {
-                navigate("/network-issue")
-            }
+            } catch (error) {
+                if (error?.message === "Network Error") {
+                    navigate("/network-issue")
+                }
                 console.error('Error deleting announcement:', error);
                 toast.error('Failed to delete announcement!');
+            } finally {
+                setIsDeleting("")
             }
         }
     };
@@ -52,10 +56,10 @@ const Announce = () => {
                     }
                 });
                 setAnnouncements(response.data.Team || response.data); // Adjust based on your API response structure
-           } catch (error) {
-         if (error?.message === "Network Error") {
-                navigate("/network-issue")
-            }
+            } catch (error) {
+                if (error?.message === "Network Error") {
+                    navigate("/network-issue")
+                }
                 console.error('Error fetching announcements:', error);
             }
             setIsLoading(false);
@@ -79,7 +83,7 @@ const Announce = () => {
                         height={"50vh"}
                     /> :
                         announcements.length > 0 ?
-                            <LeaveTable handleDelete={handleDelete} data={announcements} /> :
+                            <LeaveTable handleDelete={handleDelete} data={announcements} isLoading={isDeleting} /> :
                             <NoDataFound message={"Announcement data not found"} />
                 }
             </div>
