@@ -18,7 +18,7 @@ const LeaveType = mongoose.model("LeaveType", LeaveTypeSchema);
 const LeaveTypeValidation = Joi.object().keys({
     _id: Joi.any().optional(),
     __v: Joi.any().optional(),
-    LeaveName: Joi.string().required(),
+    LeaveName: Joi.string().required().disallow(null, '', 'none', 'undefined'),
     Description: Joi.string().optional(),
     limitDays: Joi.number().positive().required().label("LimitDays")
 })

@@ -21,13 +21,13 @@ const WFHAppValidation = Joi.object({
     __v: Joi.any().optional(),
     createdAt: Joi.any().optional(),
     updatedAt: Joi.any().optional(),
-    employee: Joi.string().required(),
+    employee: Joi.string().regex(/^[0-9a-fA-F]{24}$/).required(),
     fromDate: Joi.date().required(),
     toDate: Joi.date().greater(Joi.ref("fromDate")).required().messages({
       'date.greater': '"toDate" must be greater than "fromDate"',
     }),
     numOfDays: Joi.number().positive().required(),
-    reason: Joi.string().max(500).required(),
+    reason: Joi.string().disallow(null, '', 'none', 'undefined').max(500).required(),
     rejectionReason: Joi.string().max(500).allow('', null).optional(),
     status: Joi.string()
         .valid('pending', 'approved', 'rejected')

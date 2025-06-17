@@ -10,7 +10,7 @@ const PositionValidation = Joi.object().keys({
   PositionName: Joi.string()
     .max(200)
     .required(),
-  company: Joi.required()
+  company: Joi.string().regex(/^[0-9a-fA-F]{24}$/).required()
 });
 
 var Position = mongoose.model("Position", positionSchema);
@@ -40,4 +40,4 @@ var Position = mongoose.model("Position", positionSchema);
 //   }
 // });
 
-module.exports = { Position, PositionValidation , positionSchema};
+module.exports = { Position, PositionValidation, positionSchema };

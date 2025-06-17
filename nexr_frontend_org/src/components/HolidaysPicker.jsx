@@ -20,10 +20,9 @@ const localizer = dayjsLocalizer(dayjs);
 
 function Holiday() {
     const { companies } = useContext(TimerStates);
-    const [holidays, setHolidays] = useState([]);
     const [titles, setTitles] = useState({});
     const [holidayObj, setHolidayObj] = useState({});
-    const [fetchedHolidays, setFetchedHolidays] = useState([]);
+    const [holidays, setHolidays] = useState([]);
     const [allYearHoliday, setAllYearHoliday] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
     const [isWorkingApi, setIsWorkingApi] = useState(false);
@@ -78,14 +77,15 @@ function Holiday() {
                 start: new Date(item.date),
                 end: new Date(item.date)
             }));
-            setFetchedHolidays(mapped);
+            // setHolidays(mapped);
+            setHolidays(mapped)
         } catch (err) {
             console.error("Error fetching holidays", err);
-            setFetchedHolidays([]);
+            setHolidays([]);
         } finally {
             setIsLoading(false);
         }
-    }, []);
+    }, [changeHoliday.isAdd, changeHoliday.isEdit]);
 
     const fillHolidayObj = useCallback((value, name) => {
         setHolidayObj(prev => ({ ...prev, [name]: value }));
@@ -230,10 +230,10 @@ function Holiday() {
     return (
         isEditable ? renderHolidayForm() :
             whoIs === "emp" ?
-                (fetchedHolidays.length > 0 ?
+                (holidays.length > 0 ?
                     <Calendar
                         localizer={localizer}
-                        events={fetchedHolidays}
+                        events={holidays}
                         startAccessor="start"
                         endAccessor="end"
                         eventPropGetter={eventPropGetter}
@@ -256,14 +256,17 @@ function Holiday() {
                         </>
                     </Tabs.Tab>
                     <Tabs.Tab eventKey="2" title="CalendarView">
-                        <Calendar
-                            localizer={localizer}
-                            events={fetchedHolidays}
-                            startAccessor="start"
-                            endAccessor="end"
-                            eventPropGetter={eventPropGetter}
-                            style={{ height: 500 }}
-                        />
+                        {
+                            holidays.length > 0 ?
+                                <Calendar
+                                    localizer={localizer}
+                                    events={holidays}
+                                    startAccessor="start"
+                                    endAccessor="end"
+                                    eventPropGetter={eventPropGetter}
+                                    style={{ height: 500 }}
+                                /> : <h3 className="notFoundText" style={{ height: "100vh" }}>The current year's holidays have not been added yet.</h3>
+                        }
                     </Tabs.Tab>
                 </Tabs>
     );

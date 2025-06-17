@@ -4,7 +4,7 @@ const { WFHAppValidation, WFHApplication } = require("../models/WFHApplicationMo
 const { Employee } = require("../models/EmpModel");
 const sendMail = require("./mailSender");
 const { Team } = require("../models/TeamModel");
-const { formatDate, mailContent,  sumLeaveDays } = require("../Reuseable_functions/reusableFunction");
+const { formatDate, mailContent, sumLeaveDays } = require("../Reuseable_functions/reusableFunction");
 const { sendPushNotification } = require("../auth/PushNotification");
 const { Holiday } = require("../models/HolidayModel");
 const { TimePattern } = require("../models/TimePatternModel");
@@ -289,6 +289,7 @@ router.get("/", verifyAdminHR, async (req, res) => {
         let startDate = new Date(now.getFullYear(), now.getMonth(), 1);
         let endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
         if (req.query?.dateRangeValue?.length) {
+
             startDate = new Date(req.query.dateRangeValue[0]);
             endDate = new Date(req.query.dateRangeValue[1]);
             filterObj = {
@@ -296,6 +297,7 @@ router.get("/", verifyAdminHR, async (req, res) => {
                 toDate: { $gte: startDate }
             }
         }
+
         const applications = await WFHApplication.find(filterObj)
             .populate("employee", "FirstName LastName profile")
             .lean()
@@ -304,7 +306,7 @@ router.get("/", verifyAdminHR, async (req, res) => {
             ...item,
             reason: item.reason.replace(/<\/?[^>]+(>|$)/g, '')
         })).sort((a, b) => new Date(b.fromDate) - new Date(a.fromDate))
-
+        
         // pending wfh request days
         const pendingRequests = correctRequests.filter((item) => item.status === "pending");
         const approvedRequests = correctRequests.filter((item) => item.status === "approved");
@@ -322,6 +324,7 @@ router.get("/", verifyAdminHR, async (req, res) => {
             "upcommingRequests": upcomingrequestDays
         });
     } catch (error) {
+        console.log("error in get month wfh", error);
         return res.status(500).send({ error: error.message })
     }
 })

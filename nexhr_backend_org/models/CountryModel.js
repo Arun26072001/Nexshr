@@ -10,10 +10,10 @@ var countrySchema = new mongoose.Schema({
 var Country = mongoose.model("Country", countrySchema);
 
 const CountryValidation = Joi.object().keys({
-  name: Joi.string().required(),
+  name: Joi.string().disallow(null, '', 'none', 'undefined').required(),
   icon: Joi.string().optional(),
   abbr: Joi.string().required(),
-  code: Joi.string().required(),
+  code: Joi.string().disallow(null, '', 'none', 'undefined').required(),
   states: Joi.array().items(Joi.string()).optional()
 });
 
