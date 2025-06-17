@@ -21,7 +21,7 @@ const NexHRDashboard = () => {
             <>
               <div className="d-flex align-items-center justify-content-between m-2">
                 <span className="bold m-2">
-                  OVERVIEW
+                  OVERVIEW (Leave)
                 </span>
               </div>
               <CircleProgressBar token={token} isTeamLead={isTeamLead} isTeamManager={isTeamManager} account={Account} id={_id} isTeamHead={isTeamHead} />

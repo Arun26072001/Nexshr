@@ -101,7 +101,6 @@ async function rangeofDate(fromDate, toDate, empData) {
   const from = new Date(fromDate);
   const to = new Date(toDate);
   const holiday = await Holiday.findOne({ year: new Date().getFullYear() }).lean().exec();
-  // console.log("empDataType", typeof empData, empData, fromDate, toDate);
   const empId = typeof empData === "object" ? empData?._id : empData
   const emp = await Employee.findById(empId, "workingTimePattern")
     .populate("workingTimePattern", "WeeklyDays").lean().exec();
