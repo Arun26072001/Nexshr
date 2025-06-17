@@ -28,6 +28,7 @@ function Holiday() {
     const [isLoading, setIsLoading] = useState(false);
     const [isWorkingApi, setIsWorkingApi] = useState(false);
     const [changeHoliday, setChangeHoliday] = useState({ isAdd: false, isEdit: false });
+    const [isDeleting, setIsDeleting] = useState("");
 
     const { data, whoIs } = useContext(EssentialValues);
     const url = process.env.REACT_APP_API_URL;
@@ -128,6 +129,7 @@ function Holiday() {
 
     const deleteHoliday = useCallback(async (id) => {
         try {
+            setIsDeleting(id)
             const res = await axios.delete(`${url}/api/holidays/${id}`, {
                 headers: { Authorization: data.token }
             });
@@ -135,6 +137,8 @@ function Holiday() {
             fetchAllYearHolidays();
         } catch (err) {
             console.error("Error deleting holiday", err);
+        } finally {
+            setIsDeleting("")
         }
     }, [url, data.token, fetchAllYearHolidays]);
 
@@ -246,7 +250,7 @@ function Holiday() {
                             </div>
                             {
                                 allYearHoliday.length > 0 ?
-                                    <LeaveTable data={allYearHoliday} deleteData={deleteHoliday} handleChangeData={toggleHolidayMode} /> :
+                                    <LeaveTable data={allYearHoliday} deleteData={deleteHoliday} isLoading={isDeleting} handleChangeData={toggleHolidayMode} /> :
                                     <h3 className="notFoundText" style={{ height: "60vh" }}>Data not found</h3>
                             }
                         </>

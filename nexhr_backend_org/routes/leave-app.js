@@ -1138,7 +1138,7 @@ leaveApp.put('/:id', verifyAdminHREmployeeManagerNetwork, async (req, res) => {
       notifiedMembers: mailList
     });
   } catch (err) {
-    console.error(err);
+    console.error("error in update leave", err);
     res.status(500).send({ error: err.message });
   }
 });
