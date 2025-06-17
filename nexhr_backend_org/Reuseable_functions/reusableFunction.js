@@ -101,8 +101,9 @@ async function rangeofDate(fromDate, toDate, empData) {
   const from = new Date(fromDate);
   const to = new Date(toDate);
   const holiday = await Holiday.findOne({ year: new Date().getFullYear() }).lean().exec();
-
-  const emp = await Employee.findById(empData, "workingTimePattern")
+  // console.log("empDataType", typeof empData, empData, fromDate, toDate);
+  const empId = typeof empData === "object" ? empData?._id : empData
+  const emp = await Employee.findById(empId, "workingTimePattern")
     .populate("workingTimePattern", "WeeklyDays").lean().exec();
   let dayCount = 0;
   while (from <= to) {
@@ -116,7 +117,6 @@ async function rangeofDate(fromDate, toDate, empData) {
 }
 
 async function getDayDifference({ fromDate, toDate, employee, periodOfLeave }) {
-
   let dayDifference = 0;
   if (periodOfLeave === "half day") {
     return 0.5;

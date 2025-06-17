@@ -18,22 +18,28 @@ const TimePatternValidation = Joi.object({
     _id: Joi.string().allow("").optional(),
     TimePatternID: Joi.optional(),
     PatternName: Joi.string()
+        .disallow(null, '', 'none', 'undefined')
         .max(200)
         .required(),
     DefaultPattern: Joi.boolean()
         .optional(),
     StartingTime: Joi.string()
+        .disallow(null, '', 'none', 'undefined')
         .required(),
     FinishingTime: Joi.string()
+        .disallow(null, '', 'none', 'undefined')
         .required(),
     BreakTime: Joi.string()
+        .disallow(null, '', 'none', 'undefined')
         .required(),
     WaitingTime: Joi.string()
+        .disallow(null, '', 'none', 'undefined')
         .required(),
     WeeklyDays: Joi.array()
         .items(Joi.string())
         .required(),
     PublicHoliday: Joi.string()
+        .disallow(null, '', 'none', 'undefined')
         .required(),
     createdAt: Joi.string().allow('').label('createdAt'),
     updatedAt: Joi.string().allow('').label('updatedAt'),

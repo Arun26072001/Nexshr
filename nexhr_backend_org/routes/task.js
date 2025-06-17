@@ -210,6 +210,15 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
     try {
         const { title, project: projectId, assignedTo = [], participants = [], observers = [], status, spend } = req.body;
 
+        // verify task validation
+        const { error } = taskValidation.validate({
+            ...req.body,
+            createdby: req.params.id
+        });
+        if (error) {
+            return res.status(400).send({ error: error.details[0].message })
+        }
+
         // Validate uniqueness of task
         if (await Task.exists({ title })) {
             return res.status(400).send({ error: "Task with this title already exists." });

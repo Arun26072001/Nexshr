@@ -28,8 +28,9 @@ const CompanyValidation = Joi.object().keys({
   updatedAt: Joi.string().allow('').label('updatedAt'),
   CompanyName: Joi.string()
     .max(200)
-    .required(),
+    .required().disallow(null, '', 'none', 'undefined').label("CompanyName"),
   Address: Joi.string()
+    .disallow(null, '', 'none', 'undefined')
     .max(2000)
     .required(),
   PostalCode: Joi.number()
@@ -42,7 +43,7 @@ const CompanyValidation = Joi.object().keys({
     .required(),
   Email: Joi.string()
     .max(1000)
-    .required(),
+    .required().disallow(null, '', 'none', 'undefined'),
   ContactPerson: Joi.string()
     .max(200)
     .optional(),
@@ -62,8 +63,8 @@ const CompanyValidation = Joi.object().keys({
     .max(200)
     .optional(),
   placeId: Joi.any().optional(),
-  State: Joi.string().required(),
-  Country: Joi.string().required(),
+  State: Joi.string().required().disallow(null, '', 'none', 'undefined'),
+  Country: Joi.string().required().disallow(null, '', 'none', 'undefined'),
   location: Joi.any().optional()
 });
 

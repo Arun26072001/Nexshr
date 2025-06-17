@@ -28,8 +28,8 @@ var projectSchema = new mongoose.Schema({
 var Project = mongoose.model("Project", projectSchema);
 
 const projectValidation = Joi.object({
-  name: Joi.string().required().label('Project Name'),
-  prefix: Joi.string().required().label('Project Prefix'),
+  name: Joi.string().required().disallow(null, '', 'none', 'undefined').label('Project Name'),
+  prefix: Joi.string().required().disallow(null, '', 'none', 'undefined').label('Project Prefix'),
   company: Joi.string()
     .regex(/^[0-9a-fA-F]{24}$/)
     .required()
