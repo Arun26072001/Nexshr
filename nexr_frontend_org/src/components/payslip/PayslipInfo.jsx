@@ -23,6 +23,7 @@ export default function PayslipInfo() {
             try {
                 setIsLoading(true);
                 const payslipInfo = await fetchPayslipInfo();
+
                 setPayslipInfos(payslipInfo?.payslipFields ? payslipInfo : { payslipFields: [] });
             } catch (error) {
                 if (error?.message === "Network Error") {

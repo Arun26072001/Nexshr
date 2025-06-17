@@ -2,10 +2,10 @@ const express = require('express');
 const router = express.Router();
 const Joi = require('joi');
 const { CompanySettings, CompanySettingsValidation } = require('../models/SettingsModel');
-const { verifyAdmin } = require('../auth/authMiddleware');
+const { verifyAdminHR } = require('../auth/authMiddleware');
 
 
-router.get("/", verifyAdmin, async (req, res) => {
+router.get("/", verifyAdminHR, async (req, res) => {
   try {
     const settings = await CompanySettings.findOne({}).exec();
     return res.send(settings)
@@ -14,7 +14,7 @@ router.get("/", verifyAdmin, async (req, res) => {
   }
 })
 
-router.post("/", verifyAdmin, (req, res) => {
+router.post("/", verifyAdminHR, (req, res) => {
   Joi.validate(req.body, CompanySettingsValidation, async (err, result) => {
     if (err) {
       res.sendStatus(404)

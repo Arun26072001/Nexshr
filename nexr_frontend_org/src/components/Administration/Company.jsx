@@ -28,6 +28,8 @@ export default function Company() {
         isDelete: false
     })
 
+    console.log("companyObj", companyObj);
+
     function handleCompanyChange() {
         setIsCompanyChange(!isCompanychange);
     }
@@ -122,6 +124,8 @@ export default function Company() {
                 }
             });
             setCompanyObj(company.data);
+            const fullCountry = countries.filter((contry) => contry.name);
+            setCountries(fullCountry?.states);
             setLogoPreView(company.data.logo);
             changeCompanyOperation("Edit");
         } catch (error) {
