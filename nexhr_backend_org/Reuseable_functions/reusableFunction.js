@@ -100,14 +100,14 @@ function isValidLeaveDate(holidays, WeeklyDays, target) {
 async function rangeofDate(fromDate, toDate, empData) {
   const from = new Date(fromDate);
   const to = new Date(toDate);
-  const holiday = await Holiday.findOne({ year: new Date().getFullYear() }).lean().exec();
+  const holiday = await Holiday.findOne({ currentYear: new Date().getFullYear() }).lean().exec();
   const empId = typeof empData === "object" ? empData?._id : empData
   const emp = await Employee.findById(empId, "workingTimePattern")
     .populate("workingTimePattern", "WeeklyDays").lean().exec();
   let dayCount = 0;
   while (from <= to) {
     const date = new Date(from);
-    if (isValidLeaveDate(holiday.holidays, emp.workingTimePattern.WeeklyDays, date)) {
+    if (isValidLeaveDate(holiday?.holidays, emp.workingTimePattern.WeeklyDays, date)) {
       dayCount += 1
     }
     from.setDate(from.getDate() + 1); // <- Corrected here
@@ -125,7 +125,7 @@ async function getDayDifference({ fromDate, toDate, employee, periodOfLeave }) {
   return dayDifference;
 }
 
-function checkDateIsHoliday(dateList, target) {
+function checkDateIsHoliday(dateList = [], target) {
   return dateList.some((holiday) => new Date(holiday.date).toLocaleDateString() === new Date(target).toLocaleDateString());
 }
 
@@ -134,14 +134,13 @@ const sumLeaveDays = async (leaveArray) => {
   return dayDiffs.reduce((a, b) => a + b, 0);
 };
 
-function getValidLeaveDays(holidays, WeeklyDays, from, to) {
+function getValidLeaveDays(holidays = [], WeeklyDays = [], from, to) {
   let date = new Date(from);
   const endDate = new Date(to);
   const validDays = [];
 
   while (date <= endDate) {
     const dateStr = date.toLocaleString("default", { weekday: "long" })
-
     if (WeeklyDays.includes(dateStr) && !checkDateIsHoliday(holidays, date)) {
       validDays.push(new Date(date).toLocaleDateString("en-GB"));
     }

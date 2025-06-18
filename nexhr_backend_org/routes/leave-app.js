@@ -343,9 +343,9 @@ leaveApp.get("/emp/:empId", verifyAdminHREmployeeManagerNetwork, async (req, res
       prescription: leave.prescription ? `${process.env.REACT_APP_API_URL}/uploads/${leave.prescription}` : null
     });
     let actualLeaveApps = [];
-    const { holidays } = await Holiday.findOne({ year: new Date().getFullYear() });
+    const yearHolidays = await Holiday.findOne({ currentYear: new Date().getFullYear() });
     leaveApplications.map((leave) => {
-      actualLeaveApps.push(...getValidLeaveDays(holidays, emp.workingTimePattern.WeeklyDays, leave.fromDate, leave.toDate))
+      actualLeaveApps.push(...getValidLeaveDays(yearHolidays?.holidays, emp.workingTimePattern.WeeklyDays, leave.fromDate, leave.toDate))
     })
 
     res.json({
@@ -891,7 +891,7 @@ leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("pre
     function checkDateIsHoliday(dateList, target) {
       return dateList.some((holiday) => new Date(holiday.date).toLocaleDateString() === new Date(target).toLocaleDateString());
     }
-    const holiday = await Holiday.findOne({ year: new Date().getFullYear() });
+    const holiday = await Holiday.findOne({ currentYear: new Date().getFullYear() });
     if (holiday.holidays.length) {
       const isFromDateHoliday = checkDateIsHoliday(holiday.holidays, fromDate);
       const isToDateHoliday = checkDateIsHoliday(holiday.holidays, fromDate);
@@ -1033,7 +1033,7 @@ leaveApp.put('/:id', verifyAdminHREmployeeManagerNetwork, async (req, res) => {
     if (!emp) return res.status(404).send({ error: 'Employee not found.' });
     if (!emp.team) return res.status(404).send({ error: `${emp.FirstName} is not assigned to a team.` });
 
-    const holiday = await Holiday.findOne({ year: new Date().getFullYear() });
+    const holiday = await Holiday.findOne({ currentYear: new Date().getFullYear() });
     const checkDateIsHoliday = (date) => holiday.holidays.some(h => new Date(h.date).toDateString() === new Date(date).toDateString());
     const checkDateIsWeekend = (date) => !emp.workingTimePattern.WeeklyDays.includes(new Date(date).toLocaleDateString(undefined, { weekday: 'long' }));
 
