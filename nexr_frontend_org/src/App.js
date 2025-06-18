@@ -42,7 +42,7 @@ const App = () => {
   const [isChangeComments, setIsChangeComments] = useState(false);
   const [isViewTakeTime, setIsTaketime] = useState(localStorage.getItem("isViewTakeTime") ? true : false);
   const [isViewEarlyLogout, setIsViewEarlyLogout] = useState(JSON.parse(localStorage.getItem("isViewEarlyLogout")) ? true : false);
-  
+
   function handleUpdateAnnouncements() {
     setIschangeAnnouncements(!isChangeAnnouncements);
   }
@@ -203,13 +203,12 @@ const App = () => {
 
     // Listen for incoming messages when the app is in the foreground
     const unsubscribe = onMessage(messaging, (payload) => {
-      console.log("Message received:", payload);
       const decodedData = jwtDecode(localStorage.getItem("token"));
       const type = payload?.data?.type;
       if (!["edit comment", "delete comment"].includes(type)) {
-        triggerToaster({ company: decodedData.company, title: payload.notification.title, message: payload.notification.body })
+        triggerToaster({ company: decodedData.company, title: payload.data.title, message: payload.data.body })
       }
-      if (type.toLowerCase().includes("comment")) {
+      if (type && type.toLowerCase().includes("comment")) {
         setIsChangeComments(payload?.messageId)
       }
       if (type === "late reason") {

@@ -14,10 +14,29 @@ firebase.initializeApp({
 const messaging = firebase.messaging();
 
 messaging.onBackgroundMessage((payload) => {
-    console.log("📩 Received background message:", payload);
-    const { title, body } = payload.data;
+    const { title, body, url } = payload.data;
+
     self.registration.showNotification(title, {
         body,
-        icon: "./webnexs_logo.png",  // Update with your app icon
+        icon: './webnexs_logo.png',
+        data: {
+            url
+        }
     });
 });
+
+self.addEventListener('notificationclick', function (event) {
+    console.log(event);
+    const url = event.notification?.data?.url || '/';
+    event.notification.close();
+
+    event.waitUntil(
+        clients.matchAll({ type: 'window', includeUncontrolled: true }).then(clientList => {
+            for (let client of clientList) {
+                if (client.url === url && 'focus' in client) return client.focus();
+            }
+            return clients.openWindow(url);
+        })
+    );
+});
+
