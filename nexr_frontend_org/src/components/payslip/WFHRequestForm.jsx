@@ -26,11 +26,17 @@ export default function WFHRequestForm({ type }) {
     const [error, setError] = useState("");
 
     function handleInputChange(name, value) {
+        const cleanedValue =
+            typeof value === "string"
+                ? (value === "<p><br></p>" ? "" : value.trimStart().replace(/\s+/g, ' '))
+                : value;
+
         setwfhRequestObj(prev => ({
             ...prev,
-            [name]: value === "<p><br></p>" ? "" : value?.trimStart()?.replace(/\s+/g, ' ')
+            [name]: cleanedValue
         }));
     }
+
 
     async function handleSubmit(e) {
         e.preventDefault();
