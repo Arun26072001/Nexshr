@@ -4,6 +4,7 @@ import "./SettingsStyle.css";
 import axios from "axios";
 import { toast } from "react-toastify";
 import Loading from "../Loader";
+import NoDataFound from "../payslip/NoDataFound";
 import { fetchWorkplace } from "../ReuseableAPI";
 import LeaveTable from "../LeaveTable";
 import { EssentialValues } from "../../App";
@@ -94,7 +95,7 @@ const WorkPlaceTab = () => {
     }
     setWorkPlaceObj((pre) => ({
       ...pre,
-      [name]: value
+      [name]: value?.trimStart()?.replace(/\s+/g, ' ')
     }))
   }
 
@@ -224,9 +225,7 @@ const WorkPlaceTab = () => {
               workPlaces.length > 0 ? (
                 <LeaveTable data={workPlaces} isLoading={isDeleting} handleChangeData={handleChangeWorkPlace} deleteData={deleteWorkplace} />
               ) : (
-                <div className="align-items-center justify-content-center">
-                  <Loading height="80vh" />
-                </div>
+                <h5 className="d-flex align-items-center justify-content-center" style={{ height: "60vh", color: "red" }} >Workplace data not found</h5>
               )
             }
           </div>

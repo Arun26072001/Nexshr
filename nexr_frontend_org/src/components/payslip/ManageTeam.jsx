@@ -55,7 +55,7 @@ const ManageTeam = () => {
     const changeTeamObj = (value, name) => {
         setTeamObj((prev) => ({
             ...prev,
-            [name]: value
+            [name]: value?.trimStart()?.replace(/\s+/g, ' ')
         }));
     };
 

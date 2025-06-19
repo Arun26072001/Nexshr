@@ -19,46 +19,48 @@ export default function Country() {
     const { data } = useContext(EssentialValues);
     const [isLoading, setIsLoading] = useState(false);
     const [isChangingCountry, setIschangingCountry] = useState(false);
+    const [countryName, setCountryName] = useState("");
     const [modifyCountry, setModifyCountry] = useState({
         isAdd: false,
         isEdit: false,
         isDelete: false
     });
-    const [countryName, setCountryName] = useState("");
 
     function changeCountry(value, name) {
         setcountryObj((pre) => ({
             ...pre,
-            [name]: value
+            [name]: value?.trimStart()?.replace(/\s+/g, ' ')
         }))
     }
 
     function changeState(name, value) {
 
-        if (countryObj?.state) {
-            const isExists = countryObj?.state?.filter((item) => item === value);
+        if (countryObj?.states) {
+            const isExists = countryObj?.states?.filter((item) => item === value?.trimStart()?.replace(/\s+/g, ' '));
 
             if (isExists?.length < 1) {
                 setcountryObj((pre) => ({
                     ...pre,
-                    [name]: [...pre?.state, value]
+                    [name]: [...pre?.states, value?.trimStart()?.replace(/\s+/g, ' ')]
                 }))
             }
         } else {
             setcountryObj((pre) => ({
                 ...pre,
-                state: [...(pre?.state || []), value] // Ensure state is an array before spreading
+                states: [...(pre?.states || []), value?.trimStart()?.replace(/\s+/g, ' ')] // Ensure states is an array before spreading
             }));
         }
     }
 
     function removeState(value) {
-        const removedStates = countryObj?.state.filter((item) => item !== value)
+        console.log("item", value);
+        const removedStates = countryObj?.states.filter((item) => item !== value)
         setcountryObj((pre) => ({
             ...pre,
-            ['state']: removedStates
+            ['states']: removedStates
         }))
     }
+    console.log("countryObj", countryObj);
 
     function changeCountryOperation(type) {
         if (type === "Edit") {
@@ -95,6 +97,7 @@ export default function Country() {
             toast.success(res.data.message);
             changeCountryOperation("Edit");
             setcountryObj({})
+            fetchCountries()
         } catch (error) {
             if (error?.message === "Network Error") {
                 navigate("/network-issue")
@@ -115,6 +118,7 @@ export default function Country() {
             toast.success(res.data.message);
             setcountryObj({});
             changeCountryOperation("Add");
+            fetchCountries()
         } catch (error) {
             if (error?.message === "Network Error") {
                 navigate("/network-issue")
@@ -142,28 +146,28 @@ export default function Country() {
         changeCountryOperation(type)
     }
 
-    useEffect(() => {
-        async function fetchCountries() {
-            setIsLoading(true)
-            try {
-                const res = await axios.get(`${url}/api/country`, {
-                    headers: {
-                        Authorization: data.token || ""
-                    }
-                })
-                setCountries(res.data);
-                setFilteredContries(res.data);
-            } catch (error) {
-                if (error?.message === "Network Error") {
-                    navigate("/network-issue")
+    async function fetchCountries() {
+        setIsLoading(true)
+        try {
+            const res = await axios.get(`${url}/api/country`, {
+                headers: {
+                    Authorization: data.token || ""
                 }
-                console.log(error);
+            })
+            setCountries(res.data);
+            setFilteredContries(res.data);
+        } catch (error) {
+            if (error?.message === "Network Error") {
+                navigate("/network-issue")
             }
-            setIsLoading(false);
+            console.log(error);
         }
+        setIsLoading(false);
+    }
 
+    useEffect(() => {
         fetchCountries()
-    }, [modifyCountry.isAdd, data.token, modifyCountry.isEdit])
+    }, [data.token])
 
     return (
         modifyCountry.isAdd ? <CommonModel type="Country" isWorkingApi={isChangingCountry} addData={addCountry} removeState={removeState} dataObj={countryObj} isAddData={modifyCountry.isAdd} changeState={changeState} modifyData={changeCountryOperation} changeData={changeCountry} /> :
@@ -171,8 +175,6 @@ export default function Country() {
                 <div className="dashboard-parent">
                     <div className="d-flex justify-content-between px-2">
                         <h5 className='text-daily'>Country</h5>
-                        {/* <div className='col-lg-4 col-4'>
-                        </div> */}
                         <div className='d-flex gap-2'>
                             <Input size="lg" appearance="default" onChange={setCountryName} style={{ width: "250px" }} placeholder="Search Country" />
                             <button className='button m-0' onClick={() => changeCountryOperation("Add")} >+ Add Country</button>

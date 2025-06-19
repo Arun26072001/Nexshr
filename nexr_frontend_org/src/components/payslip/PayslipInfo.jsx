@@ -42,7 +42,7 @@ export default function PayslipInfo() {
         const { name, value } = e.target;
         setField((prev) => ({
             ...prev,
-            [name]: value,
+            [name]: value?.trimStart()?.replace(/\s+/g, ' '),
         }));
     };
 

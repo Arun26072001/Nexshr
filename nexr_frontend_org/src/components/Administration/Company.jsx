@@ -28,8 +28,6 @@ export default function Company() {
         isDelete: false
     })
 
-    console.log("companyObj", companyObj);
-
     function handleCompanyChange() {
         setIsCompanyChange(!isCompanychange);
     }
@@ -150,7 +148,7 @@ export default function Company() {
         }
         setCompanyObj((pre) => ({
             ...pre,
-            [name]: name === "logo" ? value.target.files[0] : value
+            [name]: name === "logo" ? value.target.files[0] : value?.trimStart()?.replace(/\s+/g, ' ')
         }))
     }
 

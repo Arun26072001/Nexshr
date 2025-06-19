@@ -36,7 +36,7 @@ export default function Position() {
     function changePosition(value, name) {
         setPositionObj((prev) => ({
             ...prev,
-            [name]: value,
+            [name]: value?.trimStart()?.replace(/\s+/g, ' '),
         }));
     }
 

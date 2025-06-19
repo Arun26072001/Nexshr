@@ -79,12 +79,12 @@ const Tasks = () => {
           Authorization: data.token || ""
         }
       })
-      
+
       setEmployees(res.data.map((emp) => ({ label: emp.FirstName + " " + emp.LastName, value: emp._id })))
-   } catch (error) {
-         if (error?.message === "Network Error") {
-                navigate("/network-issue")
-            }
+    } catch (error) {
+      if (error?.message === "Network Error") {
+        navigate("/network-issue")
+      }
       console.log("error in fetch employess", error);
     }
   }
@@ -100,10 +100,10 @@ const Tasks = () => {
         }
       })
       setEmployees(res.data.employees.map((emp) => ({ label: emp.FirstName + " " + emp.LastName, value: emp._id })))
-   } catch (error) {
-         if (error?.message === "Network Error") {
-                navigate("/network-issue")
-            }
+    } catch (error) {
+      if (error?.message === "Network Error") {
+        navigate("/network-issue")
+      }
       console.log("error in fetch team emps", error);
 
     }
@@ -279,10 +279,10 @@ const Tasks = () => {
         }
       })
       setProjectAllTasks(res.data.tasks);
-   } catch (error) {
-         if (error?.message === "Network Error") {
-                navigate("/network-issue")
-            }
+    } catch (error) {
+      if (error?.message === "Network Error") {
+        navigate("/network-issue")
+      }
       setAllTask([])
       console.log(error);
     } finally {
@@ -300,10 +300,10 @@ const Tasks = () => {
       })
       setAllTask(res.data.tasks);
       setNotCompletedTasks(res.data.tasks.filter((task) => task.status !== "Completed"))
-   } catch (error) {
-         if (error?.message === "Network Error") {
-                navigate("/network-issue")
-            }
+    } catch (error) {
+      if (error?.message === "Network Error") {
+        navigate("/network-issue")
+      }
       setAllTask([])
       setNotCompletedTasks([]);
       console.log(error);
@@ -349,10 +349,10 @@ const Tasks = () => {
         setPreviewList(res.data.attachments);
       }
       return res.data;
-   } catch (error) {
-         if (error?.message === "Network Error") {
-                navigate("/network-issue")
-            }
+    } catch (error) {
+      if (error?.message === "Network Error") {
+        navigate("/network-issue")
+      }
       console.log(error);
     }
   }
@@ -364,11 +364,11 @@ const Tasks = () => {
       else setProgressTasks(processFilterTasks)
     } else {
       if (status === "Pending") {
-        setPendingTasks(pendingFilterTasks.filter((task) => task?.title?.includes(value)))
+        setPendingTasks(pendingFilterTasks.filter((task) => task?.title?.toLowerCase()?.includes(value?.toLowerCase())))
       } else if (status === "Completed") {
-        setCompletedTask(completedFilterTasks.filter((task) => task?.title?.includes(value)))
+        setCompletedTask(completedFilterTasks.filter((task) => task?.title?.toLowerCase()?.includes(value?.toLowerCase())))
       } else {
-        setProgressTasks(processFilterTasks.filter((task) => task?.title?.includes(value)))
+        setProgressTasks(processFilterTasks.filter((task) => task?.title?.toLowerCase()?.includes(value?.toLowerCase())))
       }
     }
   }
@@ -467,10 +467,10 @@ const Tasks = () => {
       setIsAddTask(false);
       setIsEditTask(false);
       fetchTaskByProjectId(projectId); // Refresh tasks
-   } catch (error) {
-         if (error?.message === "Network Error") {
-                navigate("/network-issue")
-            }
+    } catch (error) {
+      if (error?.message === "Network Error") {
+        navigate("/network-issue")
+      }
       console.error("Error updating task:", error);
       const errorMessage = error?.response?.data?.error || "An error occurred while updating the task.";
       toast.error(errorMessage);
@@ -507,10 +507,10 @@ const Tasks = () => {
       toast.success(res.data.message);
       handleDeleteTask();
       fetchTaskByProjectId(projectId);
-   } catch (error) {
-         if (error?.message === "Network Error") {
-                navigate("/network-issue")
-            }
+    } catch (error) {
+      if (error?.message === "Network Error") {
+        navigate("/network-issue")
+      }
       toast.error(error?.response?.data?.error)
     }
   }
@@ -532,10 +532,10 @@ const Tasks = () => {
 
         // After successful upload, create the task
         await createTask(newTask);
-     } catch (error) {
-         if (error?.message === "Network Error") {
-                navigate("/network-issue")
-            }
+      } catch (error) {
+        if (error?.message === "Network Error") {
+          navigate("/network-issue")
+        }
         console.error("Upload error:", error);
         toast.error("File upload failed");
       } finally {
@@ -570,10 +570,10 @@ const Tasks = () => {
       // socket.emit("send_notification_for_task", newTaskObj)
       setTaskObj({});
       triggerHandleAddTask();
-   } catch (error) {
-         if (error?.message === "Network Error") {
-                navigate("/network-issue")
-            }
+    } catch (error) {
+      if (error?.message === "Network Error") {
+        navigate("/network-issue")
+      }
       console.error("Task creation error:", error);
       toast.error(error.response?.data?.error || "Task creation failed");
     }
@@ -589,10 +589,10 @@ const Tasks = () => {
       })
 
       setProjects(res.data.map((project) => ({ label: project.name, value: project._id })));
-   } catch (error) {
-         if (error?.message === "Network Error") {
-                navigate("/network-issue")
-            }
+    } catch (error) {
+      if (error?.message === "Network Error") {
+        navigate("/network-issue")
+      }
       toast.error(error?.response?.data?.error)
     }
     setIsLoading(false)
@@ -636,10 +636,10 @@ const Tasks = () => {
         })
 
         setProjects(res.data.map((project) => ({ label: project.name, value: project._id })));
-     } catch (error) {
-         if (error?.message === "Network Error") {
-                navigate("/network-issue")
-            }
+      } catch (error) {
+        if (error?.message === "Network Error") {
+          navigate("/network-issue")
+        }
         toast.error(error?.response?.data?.error)
       }
       setIsLoading(false)
