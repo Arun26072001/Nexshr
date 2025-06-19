@@ -10,5 +10,6 @@ root.render(
     <App />
     {/* <AdminDashboard organizations={[]} /> */}
     {/* <SkeletonLoader /> */}
+    
   </BrowserRouter>
 );

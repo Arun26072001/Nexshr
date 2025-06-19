@@ -28,11 +28,17 @@ export default function WFHRequestForm({ type }) {
     function handleInputChange(name, value) {
         console.log("calling...");
         
+        const cleanedValue =
+            typeof value === "string"
+                ? (value === "<p><br></p>" ? "" : value.trimStart().replace(/\s+/g, ' '))
+                : value;
+
         setwfhRequestObj(prev => ({
             ...prev,
-            [name]: value === "<p><br></p>" ? "" : value
+            [name]: value === "<p><br></p>" ? "" : value?.trimStart()?.replace(/\s+/g, ' ')
         }));
     }
+
 
     async function handleSubmit(e) {
         e.preventDefault();
@@ -125,26 +131,46 @@ export default function WFHRequestForm({ type }) {
                             <div className="col-12 col-lg-6 col-md-6">
                                 <span className="inputLabel">From Date</span>
                                 <DatePicker
+                                    showTimeSelect
+                                    dateFormat="Pp"
                                     disabled={type === "view"}
                                     className={`inputField ${error?.includes("fromDate") ? "error" : ""} w-100`}
                                     selected={wfhRequestObj.fromDate ? new Date(wfhRequestObj.fromDate) : null}
-                                    minDate={now}
-                                    onChange={(date) => handleInputChange("fromDate", date)}
-                                    excludeDates={excludedDates}
+                                    onChange={(date) => type !== "view" && handleInputChange("fromDate", date)}
+                                    minDate={["admin", "hr"].includes(whoIs) ? null : now}
+                                    minTime={wfhRequestObj.leaveType?.toLowerCase()?.includes("permission") ? now : null}
+                                    maxTime={wfhRequestObj.leaveType?.toLowerCase()?.includes("permission") ? new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59) : null}
+                                    excludeDates={!wfhRequestObj.leaveType?.toLowerCase()?.includes("permission") && excludedDates}
+                                    onKeyDown={(e) => e.preventDefault()}
                                 />
+
                                 {error?.includes("fromDate") && <div className="text-center text-danger">{error}</div>}
                             </div>
 
                             <div className="col-12 col-lg-6 col-md-6">
                                 <span className="inputLabel">To Date</span>
                                 <DatePicker
+                                    showTimeSelect
+                                    dateFormat="Pp"
                                     disabled={type === "view"}
                                     className={`inputField ${error?.includes("toDate") ? "error" : ""} w-100`}
                                     selected={wfhRequestObj.toDate ? new Date(wfhRequestObj.toDate) : null}
                                     onChange={(date) => handleInputChange("toDate", date)}
-                                    minDate={now}
-                                    excludeDates={excludedDates}
+                                    minDate={wfhRequestObj.fromDate || (["admin", "hr"].includes(whoIs) ? null : now)}
+                                    minTime={
+                                        wfhRequestObj.leaveType?.toLowerCase()?.includes("permission") ? now : null
+                                    }
+                                    maxTime={
+                                        wfhRequestObj.leaveType?.toLowerCase()?.includes("permission")
+                                            ? new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59)
+                                            : null
+                                    }
+                                    excludeDates={
+                                        !wfhRequestObj.leaveType?.toLowerCase()?.includes("permission") && excludedDates
+                                    }
+                                    onKeyDown={(e) => e.preventDefault()}
                                 />
+
                                 {error?.includes("toDate") && <div className="text-center text-danger">{error}</div>}
                             </div>
                         </div>
