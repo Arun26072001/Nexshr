@@ -26,8 +26,6 @@ export default function WFHRequestForm({ type }) {
     const [error, setError] = useState("");
 
     function handleInputChange(name, value) {
-        console.log("calling...");
-        
         const cleanedValue =
             typeof value === "string"
                 ? (value === "<p><br></p>" ? "" : value.trimStart().replace(/\s+/g, ' '))
