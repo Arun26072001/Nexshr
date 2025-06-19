@@ -213,7 +213,7 @@ export default function Employee() {
                 <div className='px-3'>
                     <div className="row">
                         <div className="col-lg-12 searchInputIcon">
-                            <input type="text" className='payrunInput' onChange={(e) => setEmpName(e.target.value)} placeholder='Search by EmpName' />
+                            <input type="text" className='payrunInput' onChange={(e) => setEmpName(e.target.value?.trimStart()?.replace(/\s+/g, ' '))} placeholder='Search by EmpName' />
                         </div>
                     </div>
                 </div>

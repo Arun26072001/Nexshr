@@ -1,16 +1,12 @@
 [
   {
     "states": [
-      "iue",
-      "kjlA"
+      "lkjdlsad"
     ],
     "icon": "🇦🇽",
     "name": "Alland Islands",
     "abbr": "AX",
-    "code": "358",
-    "states": [
-      "lkjdlsad"
-    ]
+    "code": "358"
   },
   {
     "states": [
@@ -23,12 +19,17 @@
   },
   {
     "states": [
-      "aaaa"
+      "aaaa",
+      "dwqdqw"
     ],
     "icon": "🇩🇿",
     "name": "Algeria",
     "abbr": "DZ",
-    "code": "213"
+    "code": "213",
+    "state": [
+      "aaaa",
+      "dsdas"
+    ]
   },
   {
     "states": [
@@ -76,7 +77,9 @@
     "code": "672"
   },
   {
-    "states": [],
+    "states": [
+      "fewfewfew"
+    ],
     "icon": "🇦🇬",
     "name": "Antigua and Barbuda",
     "abbr": "AG",
@@ -710,11 +713,13 @@
     "code": "504"
   },
   {
-    "states": [],
     "icon": "🇭🇰",
     "name": "Hong Kong",
     "abbr": "HK",
-    "code": "852"
+    "code": "852",
+    "states": [
+      "askjdlksa"
+    ]
   },
   {
     "states": [],

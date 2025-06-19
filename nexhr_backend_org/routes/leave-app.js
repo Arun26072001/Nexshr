@@ -1032,15 +1032,16 @@ leaveApp.put('/:id', verifyAdminHREmployeeManagerNetwork, async (req, res) => {
 
     if (!emp) return res.status(404).send({ error: 'Employee not found.' });
     if (!emp.team) return res.status(404).send({ error: `${emp.FirstName} is not assigned to a team.` });
+    const leaveApplicationYear = new Date(req.body.fromDate).getFullYear();
 
-    const holiday = await Holiday.findOne({ currentYear: new Date().getFullYear() });
-    const checkDateIsHoliday = (date) => holiday.holidays.some(h => new Date(h.date).toDateString() === new Date(date).toDateString());
-    const checkDateIsWeekend = (date) => !emp.workingTimePattern.WeeklyDays.includes(new Date(date).toLocaleDateString(undefined, { weekday: 'long' }));
+    const holiday = await Holiday.findOne({ currentYear: leaveApplicationYear });
+    const checkDateIsHoliday = (date, holidays = []) => holidays.some(h => new Date(h.date).toDateString() === new Date(date).toDateString());
+    const checkDateIsWeekend = (date, weeklyDays = []) => !weeklyDays.includes(new Date(date).toLocaleDateString(undefined, { weekday: 'long' }));
 
-    if (checkDateIsHoliday(fromDate)) return res.status(400).send("Holiday is not allowed for fromDate");
-    if (checkDateIsHoliday(toDate)) return res.status(400).send("Holiday is not allowed for toDate");
-    if (await checkDateIsWeekend(fromDate)) return res.status(400).send({ error: "Weekend is not allowed in fromDate" });
-    if (await checkDateIsWeekend(toDate)) return res.status(400).send({ error: "Weekend is not allowed in toDate" });
+    if (checkDateIsHoliday(fromDate, holiday.holidays)) return res.status(400).send("Holiday is not allowed for fromDate");
+    if (checkDateIsHoliday(toDate, holiday.holidays)) return res.status(400).send("Holiday is not allowed for toDate");
+    if (await checkDateIsWeekend(fromDate, emp.workingTimePattern.WeeklyDays)) return res.status(400).send({ error: "Weekend is not allowed in fromDate" });
+    if (await checkDateIsWeekend(toDate, emp.workingTimePattern.WeeklyDays)) return res.status(400).send({ error: "Weekend is not allowed in toDate" });
 
     let updatedApprovers = approvers;
     if (["approved", "rejected"].includes(status)) {

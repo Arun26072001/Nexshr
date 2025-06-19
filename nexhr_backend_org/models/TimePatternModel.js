@@ -33,7 +33,7 @@ const TimePatternValidation = Joi.object({
         .disallow(null, '', 'none', 'undefined')
         .required(),
     WaitingTime: Joi.string()
-        .disallow(null, '', 'none', 'undefined')
+        .disallow(null, '', 'none', 'undefined', 0)
         .required(),
     WeeklyDays: Joi.array()
         .items(Joi.string())

@@ -303,12 +303,12 @@ export default function Projects() {
                         : <>
                             <div className="projectParent">
                                 <div className="projectTitle col-lg-6 col-12">Projects</div>
-                                <div className="col-lg-6 col-12 projectChild gap-1">
+                                <div className="col-lg-6 col-12 projectChild justify-content-end gap-1">
                                     <SelectPicker
                                         data={companies}
                                         size="lg"
                                         appearance="default"
-                                        style={{ width: "100%" }}
+                                        style={{ width: "300px" }}
                                         placeholder="Search By Company"
                                         onChange={filterByName}
                                         value={name}

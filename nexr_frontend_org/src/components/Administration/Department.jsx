@@ -37,7 +37,7 @@ export default function Department() {
     function changeDepartment(value, name) {
         setDepartmentObj((prev) => ({
             ...prev,
-            [name]: value
+            [name]: value?.trimStart()?.replace(/\s+/g, ' ')
         }))
     }
     async function addDepartment() {
