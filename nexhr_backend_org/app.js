@@ -203,22 +203,52 @@ async function fetchTimePatterns() {
 
 fetchTimePatterns();
 
-schedule.scheduleJob("0 10 * * 1-5", async () => {
+// know their higher authorities leave and wfh
+async function makeKnowLeave() {
   try {
     const response = await axios.get(`${process.env.REACT_APP_API_URL}/api/leave-application/make-know`);
     console.log(response.data);
   } catch (error) {
     console.log(error.response.data.error);
   }
+}
+
+async function makeKnowWFH() {
+  try {
+    const response = await axios.get(`${process.env.REACT_APP_API_URL}/api/wfh-application/make-know`);
+    console.log(response.data);
+  } catch (error) {
+    console.log(error.response.data.error);
+  }
+}
+
+schedule.scheduleJob("0 10 * * 1-5", async () => {
+  await makeKnowLeave();
+  await makeKnowWFH();
 });
 
-schedule.scheduleJob("0 7 * * *", async () => {
+// reject unresponsed leave and wfh reqests
+async function rejectLeave() {
   try {
     const res = await axios.put(`${process.env.REACT_APP_API_URL}/api/leave-application/reject-leave`);
     console.log(res.data);
   } catch (error) {
     console.log("error in reject leave", error);
   }
+}
+
+async function rejectWfh() {
+  try {
+    const res = await axios.put(`${process.env.REACT_APP_API_URL}/api/wfh-application/reject-wfh`);
+    console.log(res.data);
+  } catch (error) {
+    console.log("error in reject leave", error);
+  }
+}
+
+schedule.scheduleJob("0 7 * * *", async () => {
+  await rejectLeave();
+  await rejectWfh();
 })
 
 // Start Server

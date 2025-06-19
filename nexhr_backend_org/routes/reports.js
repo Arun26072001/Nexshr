@@ -50,7 +50,6 @@ router.get("/createdby/:id", verifyAdminHREmployeeManagerNetwork, async (req, re
         }
     } catch (error) {
         console.log(error);
-
         return res.status(400).send({ error: error.message })
     }
 })
@@ -58,8 +57,8 @@ router.get("/createdby/:id", verifyAdminHREmployeeManagerNetwork, async (req, re
 router.get("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
     try {
         const report = await Report.findById({ _id: req.params.id })
-            // .populate({ path: "createdby", select: "FirstName LastName" })
             .exec();
+
         if (!report) {
             return res.status(404).send({ error: "Report not found" })
         } else {

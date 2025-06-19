@@ -79,6 +79,111 @@ function generateWfhEmail(empData, fromDateValue, toDateValue, reason, type) {
         `;
 }
 
+router.get("/make-know", async (req, res) => {
+    try {
+        const wfhReqs = await LeaveApplication.find({ status: "pending" })
+            .populate({
+                path: "employee",
+                select: "FirstName LastName Email company",
+                populate: [
+                    {
+                        path: "team",
+                        populate: [
+                            { path: "lead", select: "Email fcmToken" },
+                            { path: "head", select: "Email fcmToken" },
+                            { path: "manager", select: "Email fcmToken" },
+                            { path: "hr", select: "Email fcmToken" }
+                        ],
+                    },
+                    { path: "company", select: "logo CompanyName" }
+                ],
+            })
+            .exec();
+
+        for (const wfh of wfhReqs) {
+            const emp = wfh.employee;
+            const teamData = emp?.team;
+            if (!teamData) continue;
+
+            const formatFromDate = new Date(wfh.fromDate).toLocaleString();
+            const formatToDate = new Date(wfh.toDate).toLocaleString();
+            const Subject = "Work From Home Request Reminder";
+            const plainReason = (wfh.reasonForLeave || "").replace(/<\/?[^>]+(>|$)/g, "");
+            const message = `${emp.FirstName} has applied for WFH from ${formatFromDate} to ${formatToDate} due to ${plainReason}. Please respond to this request.`;
+
+            // Notify only the first pending role
+            const approvalOrder = ["lead", "head", "manager", "hr"];
+            const pendingRole = approvalOrder.find(role => wfh.approvers?.[role] === "pending");
+            if (!pendingRole || !Array.isArray(teamData[pendingRole])) continue;
+
+            const recipients = teamData[pendingRole];
+
+            for (const member of recipients) {
+                if (!member) continue;
+
+                const htmlContent = `
+          <!DOCTYPE html>
+          <html lang="en">
+          <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>${emp?.company?.CompanyName || "Webnexs"}</title>
+          </head>
+          <body style="font-family: Arial, sans-serif; background-color: #f6f9fc; color: #333; margin: 0; padding: 0;">
+            <div style="max-width: 600px; margin: auto; padding: 20px; background-color: #fff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);">
+              <div style="text-align: center; padding: 20px;">
+                <img src="${emp?.company?.logo}" alt="Logo" style="max-width: 100px;" />
+                <h1 style="margin: 0;">${emp.FirstName} ${emp.LastName} has applied for WFH</h1>
+              </div>
+              <div style="margin: 20px 0;">
+                <p>Hi,</p>
+                <p>${emp.FirstName} has applied for WFH from <b>${formatFromDate}</b> to <b>${formatToDate}</b> due to: ${plainReason}.</p>
+                <p>Please review and respond to the request at your earliest convenience.</p>
+              </div>
+            </div>
+          </body>
+          </html>
+        `;
+
+                // Send Email
+                await sendMail({
+                    From: `<${emp.Email}> (Nexshr)`,
+                    To: member.Email,
+                    Subject,
+                    HtmlBody: htmlContent,
+                });
+
+                // Save Notification
+                const notification = {
+                    company: emp?.company?._id,
+                    title: Subject,
+                    message,
+                };
+
+                const fullMember = await Employee.findById(member._id, "notifications");
+                if (fullMember) {
+                    fullMember.notifications.push(notification);
+                    await fullMember.save();
+                }
+
+                // Push Notification
+                if (member.fcmToken) {
+                    await sendPushNotification({
+                        token: member.fcmToken,
+                        title: Subject,
+                        body: message,
+                    });
+                }
+            }
+
+            console.log(`Notification sent to ${pendingRole}s: ${recipients.map(m => m.Email).join(", ")}`);
+        }
+
+        res.status(200).json({ message: "Notifications sent to pending approvers." });
+    } catch (error) {
+        console.error("Error in /make-know:", error);
+        res.status(500).json({ error: "An error occurred while notifying higher authorities." });
+    }
+});
+
 router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
     try {
         const { id } = req.params;
@@ -95,7 +200,7 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
             return res.status(409).json({ error: "WFH request already exists for the given date range." });
         }
 
-        // check has leave application is approved in the range
+        // check has wfh application is approved in the range
         const isLeave = await LeaveApplication.findOne({
             employee: id,
             fromDate: { $lte: toDate },
@@ -103,7 +208,7 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
             status: "approved"
         })
         if (isLeave) {
-            return res.status(400).send({ error: "You can't apply because you already have leave during this period." })
+            return res.status(400).send({ error: "You can't apply because you already have wfh during this period." })
         }
 
         // check has more than two team members in wfh
@@ -306,7 +411,7 @@ router.get("/", verifyAdminHR, async (req, res) => {
             ...item,
             reason: item.reason.replace(/<\/?[^>]+(>|$)/g, '')
         })).sort((a, b) => new Date(b.fromDate) - new Date(a.fromDate))
-        
+
         // pending wfh request days
         const pendingRequests = correctRequests.filter((item) => item.status === "pending");
         const approvedRequests = correctRequests.filter((item) => item.status === "approved");
@@ -429,9 +534,68 @@ router.get("/team/:id", verifyTeamHigherAuthority, async (req, res) => {
     }
 })
 
+router.put("/reject-wfh", async (req, res) => {
+    try {
+        const today = new Date();
+        const endOfDay = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate(), 23, 59, 59));
+
+        const wfhReqs = await WFHApplication.find({
+            fromDate: { $lte: endOfDay },
+            status: "pending"
+        })
+            .populate("employee", "FirstName LastName Email")
+            .exec();
+
+        if (!wfhReqs.length) {
+            return res.status(200).send({ message: "No pending WFH requests found for today." });
+        }
+
+        await Promise.all(wfhReqs.map(async (wfh) => {
+            let approvers = {};
+            for (const [key, value] of Object.entries(wfh.approvers)) {
+                approvers[key] = "rejected";
+            }
+
+            const updatedLeave = {
+                ...req.body,
+                status: "rejected",
+                approvers
+            };
+
+            await LeaveApplication.findByIdAndUpdate(wfh._id, updatedLeave, { new: true });
+
+            const employee = wfh.employee;
+            const fromDateStr = formatDate(wfh.fromDate);
+            const toDateStr = formatDate(wfh.toDate);
+
+            const htmlContent = `
+        <p>Dear ${employee?.FirstName || "Employee"},</p>
+        <p>This is to inform you that your WFH request (${wfh.leaveType}) scheduled from <b>${fromDateStr}</b> to <b>${toDateStr}</b> was not responded to by the approving authorities in time.</p>
+        <p style="color: red; font-weight: bold;">Please note that proceeding with this WFH without approval will be considered as unpaid and may lead to a salary deduction.</p>
+        <p>We advise you to follow up with your reporting manager for further clarification.</p>
+        <p>Thank you for your understanding.</p>
+      `;
+
+            await sendMail({
+                From: `<${process.env.FROM_MAIL}> (Nexshr)`,
+                To: employee?.Email,
+                Subject: `WFH Request Rejected (${fromDateStr} - ${toDateStr})`,
+                HtmlBody: htmlContent,
+            });
+        }));
+
+        return res.status(200).send({ message: "WFH rejection processed successfully." });
+
+    } catch (error) {
+        console.error("Error processing WFH rejections:", error.message);
+        return res.status(500).send({ error: "An error occurred while processing WFH rejections." });
+    }
+});
+
+
 router.put("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
     try {
-        const { approvers, fromDate, toDate, status, employee, ...restBody } = req.body;
+        const { approvers, fromDate, toDate, status, employee } = req.body;
         let updatedApprovers = approvers;
         if (status === "approved") {
             // ✅ Check team WFH count
@@ -607,17 +771,18 @@ router.put("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
                             token: member.fcmToken,
                             title: Subject,
                             body: message,
-                            // company: emp.company
                         });
                     }
                 }));
             }
         }
 
+        const updatedWfhRequest = { ...req.body, approvers: updatedApprovers, status: updatedLeaveStatus }
+        
         // ✅ Update WFH application
         const updatedData = await WFHApplication.findByIdAndUpdate(
             req.params.id,
-            { ...restBody, approvers: updatedApprovers, status: updatedLeaveStatus },
+            updatedWfhRequest,
             { new: true }
         );
 
@@ -631,7 +796,6 @@ router.put("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
         res.status(500).json({ error: error.message });
     }
 });
-
 
 router.delete("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
     try {

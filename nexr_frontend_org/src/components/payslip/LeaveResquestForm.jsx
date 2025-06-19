@@ -34,6 +34,10 @@ const LeaveRequestForm = ({ type }) => {
   function handleSubmit(e) {
     e.preventDefault();
     setErrorData("");
+    if (new Date(leaveRequestObj.fromDate) > new Date(leaveRequestObj.toDate)) {
+      setErrorData("To Date must be after From Date");
+      return;
+    }
     const formData = new FormData();
     formData.append("leaveType", leaveRequestObj.leaveType);
     formData.append("fromDate", leaveRequestObj.fromDate ? new Date(leaveRequestObj.fromDate).toISOString() : "");
@@ -337,7 +341,9 @@ const LeaveRequestForm = ({ type }) => {
                   minTime={leaveRequestObj.leaveType?.toLowerCase()?.includes("permission") ? now : null}
                   maxTime={leaveRequestObj.leaveType?.toLowerCase()?.includes("permission") ? new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59) : null}
                   excludeDates={!leaveRequestObj.leaveType?.toLowerCase()?.includes("permission") && excludedDates}
+                  onKeyDown={(e) => e.preventDefault()}
                 />
+
                 {errorData?.includes("fromDate") && <div className="text-center text-danger">{errorData}</div>}
               </div>
               <div className="col-12 col-lg-6 col-md-6">
@@ -346,14 +352,16 @@ const LeaveRequestForm = ({ type }) => {
                   showTimeSelect
                   dateFormat="Pp"
                   disabled={type === "view"}
-                  className={`inputField ${errorData?.includes("toDate") ? "error" : ""}`}
+                  className={`inputField ${errorData?.includes("toDate") ? "error" : ""} w-100`}
                   selected={leaveRequestObj.toDate ? new Date(leaveRequestObj.toDate) : null}
                   onChange={(date) => type !== "view" && fillLeaveObj(date, "toDate")}
-                  minDate={["admin", "hr"].includes(whoIs) ? null : now}
+                  minDate={leaveRequestObj.fromDate || (["admin", "hr"].includes(whoIs) ? null : now)}
                   minTime={leaveRequestObj.leaveType?.toLowerCase()?.includes("permission") ? now : null}
                   maxTime={leaveRequestObj.leaveType?.toLowerCase()?.includes("permission") ? new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59) : null}
                   excludeDates={!leaveRequestObj.leaveType?.toLowerCase()?.includes("permission") && excludedDates}
+                  onKeyDown={(e) => e.preventDefault()}
                 />
+
                 {errorData?.includes("toDate") && <div className="text-center text-danger">{errorData}</div>}
               </div>
             </div>

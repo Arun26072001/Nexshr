@@ -1110,16 +1110,24 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
                                                     } else if (params["*"] === "workFromHome") {
                                                         return (
                                                             <Dropdown title={isLoading === row._id ? <Loading size={20} color={"black"} /> : <EditRoundedIcon style={{ cursor: isLoading === row._id ? "process" : "pointer" }} />} placement='leftStart' noCaret>
-                                                                <Dropdown.Item style={{ minWidth: 120 }} onClick={() => navigate(`/${whoIs}/wfh-request/edit/${row._id}`)}>
+                                                                <Dropdown.Item style={{ minWidth: 80 }} onClick={() => navigate(`/${whoIs}/wfh-request/view/${row._id}`)}>
                                                                     <b>
-                                                                        <BorderColorRoundedIcon sx={{ color: "#FFD65A" }} /> Edit
+                                                                        <RemoveRedEyeRoundedIcon sx={{ color: "#80C4E9" }} /> View
                                                                     </b>
                                                                 </Dropdown.Item>
-                                                                <Dropdown.Item style={{ minWidth: 120 }} onClick={() => deleteData(row._id)}>
-                                                                    <b>
-                                                                        <DeleteRoundedIcon sx={{ color: "#F93827" }} /> Delete
-                                                                    </b>
-                                                                </Dropdown.Item>
+                                                                {row.status === "pending" &&
+                                                                    <>
+                                                                        <Dropdown.Item style={{ minWidth: 120 }} onClick={() => navigate(`/${whoIs}/wfh-request/edit/${row._id}`)}>
+                                                                            <b>
+                                                                                <BorderColorRoundedIcon sx={{ color: "#FFD65A" }} /> Edit
+                                                                            </b>
+                                                                        </Dropdown.Item>
+                                                                        <Dropdown.Item style={{ minWidth: 120 }} onClick={() => deleteData(row._id)}>
+                                                                            <b>
+                                                                                <DeleteRoundedIcon sx={{ color: "#F93827" }} /> Delete
+                                                                            </b>
+                                                                        </Dropdown.Item>
+                                                                    </>}
                                                             </Dropdown>
                                                         );
                                                     } else if (params['*'] === "employee") {

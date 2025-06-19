@@ -3,8 +3,8 @@ import "../Settings/SettingsStyle.css";
 import { Modal, Button, SelectPicker, TagPicker, Input, InputNumber, InputGroup, Toggle } from 'rsuite';
 import TextEditor from '../payslip/TextEditor';
 import ErrorOutlineRoundedIcon from '@mui/icons-material/ErrorOutlineRounded';
-// import DatePicker from "react-datepicker";
 import { DatePicker } from "rsuite";
+import { isBefore } from 'date-fns';
 import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
 import "../projectndTask.css";
 import { MultiCascader, VStack } from 'rsuite';
@@ -418,7 +418,7 @@ const CommonModel = ({
                                                 ? new Date(dataObj?.startDate)
                                                 : null
                                     }
-                                    minDate={new Date()}
+                                    disabledDate={date => isBefore(date, new Date().setDate(new Date().getDate() - 1))}
                                     onChange={
                                         ["Report View", "Task View"].includes(type)
                                             ? null
@@ -438,7 +438,7 @@ const CommonModel = ({
                                     style={{ width: "100%" }}
                                     format={["Announcement", "Task", "Report"].includes(type) ? "yyyy-MM-dd HH:mm" : "yyyy-MM-dd"}
                                     disabled={["Report View", "Task View"].includes(type)}
-                                    minDate={new Date()}
+                                    disabledDate={date => isBefore(date, new Date().setDate(new Date().getDate() - 1))}
                                     placeholder="Select Due Date"
                                     value={
                                         dataObj?.to
@@ -1421,6 +1421,7 @@ const CommonModel = ({
                                         value={remindOn}
                                         onChange={setRemindOn}
                                         size="lg"
+                                        disabledDate={date => isBefore(date, new Date().setDate(new Date().getDate() - 1))}
                                         style={{ width: "100%" }}
                                         format="yyyy-MM-dd HH:mm"
                                         disabled={type === "Task View"}
