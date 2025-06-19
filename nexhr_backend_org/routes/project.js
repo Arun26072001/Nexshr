@@ -11,8 +11,6 @@ const { sendPushNotification } = require('../auth/PushNotification');
 
 router.get("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
   try {
-    console.log("calling...");
-
     const project = await Project.findById(req.params.id)
     if (!project) {
       return res.status(200).send({ message: "Project" })

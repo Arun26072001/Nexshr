@@ -161,8 +161,6 @@ export default function HRMDashboard() {
 
     //change reason for early(login) input field
     function changeReasonForEarly(value, name) {
-        console.log(name, value);
-
         setWorkTimeTracker((pre) => {
             if (name === "reasonForEarlyLogout") {
                 return {

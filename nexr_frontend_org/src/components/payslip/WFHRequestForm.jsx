@@ -26,9 +26,11 @@ export default function WFHRequestForm({ type }) {
     const [error, setError] = useState("");
 
     function handleInputChange(name, value) {
+        console.log("calling...");
+        
         setwfhRequestObj(prev => ({
             ...prev,
-            [name]: value === "<p><br></p>" ? "" : value?.trimStart()?.replace(/\s+/g, ' ')
+            [name]: value === "<p><br></p>" ? "" : value
         }));
     }
 
@@ -60,8 +62,8 @@ export default function WFHRequestForm({ type }) {
                 navigate(-1);
             }
             setwfhRequestObj({});
-       } catch (error) {
-         if (error?.message === "Network Error") {
+        } catch (error) {
+            if (error?.message === "Network Error") {
                 navigate("/network-issue")
             }
             setError(error?.response?.data?.error)
@@ -80,8 +82,8 @@ export default function WFHRequestForm({ type }) {
                 }
             })
             setwfhRequestObj(res.data);
-       } catch (error) {
-         if (error?.message === "Network Error") {
+        } catch (error) {
+            if (error?.message === "Network Error") {
                 navigate("/network-issue")
             }
             console.log("error in get wfh request", error);
@@ -95,10 +97,10 @@ export default function WFHRequestForm({ type }) {
             try {
                 const res = await getHoliday();
                 setExcludeDates(res?.holidays?.map(date => new Date(date)));
-           } catch (error) {
-         if (error?.message === "Network Error") {
-                navigate("/network-issue")
-            }
+            } catch (error) {
+                if (error?.message === "Network Error") {
+                    navigate("/network-issue")
+                }
                 console.log(error);
                 // toast.error("Failed to load holidays.");
             }

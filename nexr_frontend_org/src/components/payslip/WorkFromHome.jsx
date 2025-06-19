@@ -38,7 +38,6 @@ export default function WorkFromHome() {
       setIsLoading(false)
     }
   }
-  console.log(requests);
 
   useEffect(() => {
     fetchWfhReuests();

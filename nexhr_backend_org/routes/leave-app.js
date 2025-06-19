@@ -191,7 +191,6 @@ leaveApp.get("/make-know", async (req, res) => {
   }
 });
 
-
 // need to update this api
 leaveApp.put("/reject-leave", async (req, res) => {
   try {
