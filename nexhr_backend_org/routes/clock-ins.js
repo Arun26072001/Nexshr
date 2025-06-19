@@ -1,10 +1,10 @@
 const express = require("express");
 const router = express.Router();
-const { getDistance } = require("geolib");
 const { verifyAdminHREmployeeManagerNetwork, verifyAdminHrNetworkAdmin, verifyTeamHigherAuthority } = require("../auth/authMiddleware");
 const { ClockIns, clockInsValidation } = require("../models/ClockInsModel");
 const { Employee } = require("../models/EmpModel");
-const { getDayDifference } = require("./leave-app");
+// const { getDayDifference } = require("./leave-app");
+// const { getDistance } = require("geolib");
 const sendMail = require("./mailSender");
 const { LeaveApplication } = require("../models/LeaveAppModel");
 const { Team } = require("../models/TeamModel");
@@ -45,10 +45,10 @@ router.post("/not-login/apply-leave/:workPatternId", async (req, res) => {
             "_id workingTimePattern FirstName LastName Email team leaveApplication company"
         )
             .populate("leaveApplication")
-            .populate("company", "CompanyName logo")
+            // .populate("company", "CompanyName logo")
             .populate({
                 path: "team",
-                populate: { path: "hr", select: "Email fcmToken" },
+                populate: { path: "hr", select: "FirstName LastName Email fcmToken" },
             });
 
         const notLoginEmps = [];
@@ -144,11 +144,12 @@ router.post("/not-login/apply-leave/:workPatternId", async (req, res) => {
                 // Send push notifications
                 emp.team.hr.forEach(hr => {
                     if (hr.fcmToken) {
+                        const path = `${process.env.FRONTEND_BASE_URL}/emp/job-desk/leave`;
                         sendPushNotification({
                             token: hr.fcmToken,
                             title: Subject,
                             body: `${emp.FirstName} ${emp.LastName} did not punch in on the HRM system by the end of the day.`,
-                            // company: emp.company,
+                            path
                         });
                     }
                 });

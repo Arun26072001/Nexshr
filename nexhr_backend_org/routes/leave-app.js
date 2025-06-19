@@ -987,10 +987,13 @@ leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("pre
           const fullEmp = await Employee.findById(member._id, "notifications");
           fullEmp.notifications.push(notification);
           await fullEmp.save();
+          // set dyanmic path depends on role
+          const path = `${process.env.FRONTEND_BASE_URL}/${["lead", "head"].includes(role) ? "emp" : role === "manager" ? "manager" : role === "admin" ? "admin" : "hr"}/leave/leave-request`
           await sendPushNotification({
             token: member.fcmToken,
             title: notification.title,
-            body: notification.message
+            body: notification.message,
+            path
           });
           notify.push(member.Email);
         });
@@ -1093,33 +1096,44 @@ leaveApp.put('/:id', verifyAdminHREmployeeManagerNetwork, async (req, res) => {
 
       const notified = new Set();
       for (const member of members) {
-        if (!notified.has(member.Email)) {
-          notified.add(member.Email);
-          mailList.push(member.Email);
+        if (!actionBy.toLowerCase().includes(member.type)) {
+          if (!notified.has(member.Email)) {
+            notified.add(member.Email);
+            mailList.push(member.Email);
 
-          await sendMail({
-            From: `< ${process.env.FROM_MAIL} > (Nexshr)`,
-            To: member.Email,
-            Subject,
-            HtmlBody: mailContent(emailType, fromDateValue, toDateValue, emp, leaveType, actionBy, member)
-          });
-
-          await Employee.findByIdAndUpdate(member._id, {
-            $push: {
-              notifications: {
-                company: emp.company._id,
-                title: Subject,
-                message
-              }
-            }
-          });
-
-          if (member.fcmToken) {
-            await sendPushNotification({
-              token: member.fcmToken,
-              title: Subject,
-              body: message
+            await sendMail({
+              From: `< ${process.env.FROM_MAIL} > (Nexshr)`,
+              To: member.Email,
+              Subject,
+              HtmlBody: mailContent(emailType, fromDateValue, toDateValue, emp, leaveType, actionBy, member)
             });
+
+            await Employee.findByIdAndUpdate(member._id, {
+              $push: {
+                notifications: {
+                  company: emp.company._id,
+                  title: Subject,
+                  message
+                }
+              }
+            });
+
+            if (member.fcmToken) {
+              let path;
+              if (member.type === "emp") {
+                path = `${process.env.FRONTEND_BASE_URL}/emp/job-desk/leave`
+              } else if (["lead", "head"].includes(member.type)) {
+                path = `${process.env.FRONTEND_BASE_URL}/emp/leave/leave-request`
+              } else {
+                path = `${process.env.FRONTEND_BASE_URL}/${member.type}/leave/leave-request`
+              }
+              await sendPushNotification({
+                token: member.fcmToken,
+                title: Subject,
+                body: message,
+                path
+              });
+            }
           }
         }
       }

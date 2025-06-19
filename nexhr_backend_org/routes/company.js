@@ -37,6 +37,7 @@ router.post("/", verifyAdminHR, async (req, res) => {
   try {
     // Validate request body
     await CompanyValidation.validateAsync(req.body);
+    
 
     // Check if company already exists
     const companyExists = await Company.exists({ CompanyName: req.body.CompanyName });

@@ -5,6 +5,7 @@ const { getCurrentTimeInMinutes, timeToMinutes, getTotalWorkingHourPerDay } = re
 
 exports.sendPushNotification = async (msgObj) => {
     const { token, title, body } = msgObj;
+
     try {
         if (!token) {
             console.log("No FCM tokens found for this user");
@@ -12,14 +13,20 @@ exports.sendPushNotification = async (msgObj) => {
         }
         const message = {
             token,
-            notification: { title, body },
             data: {
-                type: msgObj.type ? msgObj.type : ""
+                title,
+                body,
+                type: msgObj.type || "",
+                url: msgObj.path || ""
             }
         };
 
-        const response = await admin.messaging().send(message)
-        console.log("Notifications sent successfully:", response);
+
+        await admin.messaging().send(message).then((res) => {
+            console.log("successfully notification triggered", res);
+        }).catch((err) => {
+            console.log("error in pushnotification", err);
+        })
     } catch (error) {
         console.error("Error sending notification:", error);
         return;

@@ -70,13 +70,22 @@ export default function Twotabs() {
       if (_id) {
         const leaveReqs = await fetchLeaveRequests(_id);
         if (leaveReqs?.leaveApplications?.length > 0) {
-          setLeaveRequests(leaveReqs);
+          const correctApplications = [];
 
           leaveReqs.leaveApplications.forEach((req) => {
+            let todayDate = today.getTime()
+            let leaveDate = new Date(req.fromDate).getTime()
+            if (leaveDate > todayDate) {
+              correctApplications.push(req)
+            }
             if (req.status === "approved" && !["Permission Leave", "Unpaid Leave (LWP)"].includes(req.leaveType)) {
               const dayDifference = Math.ceil(getDayDifference(req));
               setTakenLeave(prev => prev + Number(dayDifference.toFixed(2)));  // Set this to the correct unit (e.g., days)
             }
+            setLeaveRequests({
+              ...leaveReqs,
+              leaveApplications: correctApplications
+            });
           });
         } else {
           setTakenLeave(0);
@@ -103,10 +112,10 @@ export default function Twotabs() {
           end: new Date(leave.toDate),
           status: leave.status
         })))
-     } catch (error) {
-         if (error?.message === "Network Error") {
-                navigate("/network-issue")
-            }
+      } catch (error) {
+        if (error?.message === "Network Error") {
+          navigate("/network-issue")
+        }
         console.log(error);
       }
       setIsLoading(false)
@@ -171,7 +180,7 @@ export default function Twotabs() {
       end.setHours(end.getHours(), end.getMinutes(), end.getSeconds(), 0);
       const current = new Date(date);
       current.setHours(0, 0, 0, 0);
-      
+
       if (leaveRequests?.calendarLeaveApps?.includes(current.toLocaleDateString("en-GB"))) {
         return current.toLocaleDateString() === start.toLocaleDateString() || (current >= start && current <= end);
       }
@@ -244,17 +253,16 @@ export default function Twotabs() {
             isLoading ? [...Array(5)].map((item, index) => {
               return <Skeleton variant='rounded' key={index} width={"100%"} className='my-1' height={30} />
             }) :
-              leaveRequests.leaveApplications?.map((req, index) => {
-                let todayDate = today.getTime()
-                let leaveDate = new Date(req.fromDate).getTime()
-                if (todayDate < leaveDate) {
-                  return (<div key={index} className={`leaveReq ${req.status === "pending" ? "bg-warning"
-                    : req.status === "rejected" ? "bg-danger" : "bg-success"}`}>
-                    {req.leaveType[0].toUpperCase() + req.leaveType.slice(1) + " "}
-                    {new Date(req.fromDate).toLocaleString("default", { month: "short" })} {new Date(req.fromDate).getDate()}th{" to "}{new Date(req.toDate).getDate()}th
-                  </div>)
-                }
+              leaveRequests.leaveApplications?.slice(0, 3).map((req, index) => {
+                return (<div key={index} className={`leaveReq ${req.status === "pending" ? "bg-warning"
+                  : req.status === "rejected" ? "bg-danger" : "bg-success"}`}>
+                  {req.leaveType[0].toUpperCase() + req.leaveType.slice(1) + " "}
+                  {new Date(req.fromDate).toLocaleString("default", { month: "short" })} {new Date(req.fromDate).getDate()}th{" to "}{new Date(req.toDate).getDate()}th
+                </div>)
               })
+          }
+          {
+            leaveRequests?.leaveApplications?.length > 3 ? <p className='text-center sub_text my-2' style={{ cursor: "pointer", fontWeight: 600 }} onClick={() => navigate(`/${whoIs}/job-desk/leave`)} >View All...</p> : null
           }
 
           <HStack spacing={10} style={{ height: 320 }} alignItems="flex-start" wrap className='position-relative'>
