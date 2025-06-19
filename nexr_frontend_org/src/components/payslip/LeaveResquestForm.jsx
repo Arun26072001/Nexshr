@@ -40,8 +40,8 @@ const LeaveRequestForm = ({ type }) => {
     }
     const formData = new FormData();
     formData.append("leaveType", leaveRequestObj.leaveType);
-    formData.append("fromDate", new Date(leaveRequestObj.fromDate).toISOString());
-    formData.append("toDate", new Date(leaveRequestObj.toDate).toISOString());
+    formData.append("fromDate", leaveRequestObj.fromDate ? new Date(leaveRequestObj.fromDate).toISOString() : "");
+    formData.append("toDate", leaveRequestObj.toDate ? new Date(leaveRequestObj.toDate).toISOString() : "");
     formData.append("periodOfLeave", leaveRequestObj.periodOfLeave || leaveRequestObj?.leaveType?.toLowerCase()?.includes("permission") ? "half day" : "full day");
     formData.append("reasonForLeave", leaveRequestObj.reasonForLeave);
     formData.append("prescription", prescriptionFile); // Assuming `file` is the file object
@@ -54,7 +54,7 @@ const LeaveRequestForm = ({ type }) => {
     }
 
     if (leaveRequestObj._id) {
-      updateLeave(formData)
+      updateLeave(leaveRequestObj)
     } else {
       applyLeave(formData)
     }

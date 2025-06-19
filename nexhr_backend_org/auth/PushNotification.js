@@ -38,6 +38,7 @@ exports.verifyWorkingTimeCompleted = async (req, res) => {
         const { employee, login } = req.body;
         const empData = await Employee.findById(employee, "FirstName LastName workingTimePattern")
             .populate("workingTimePattern").exec();
+        console.log("empData", empData);
 
         let startingTimes = login?.startingTime;
         let endingTimes = login?.endingTime;
@@ -58,8 +59,8 @@ exports.verifyWorkingTimeCompleted = async (req, res) => {
         });
 
         const totalValue = values?.reduce((acc, value) => acc + value, 0) / 60;
-        const officeStartingTime = `${new Date(empData.workingTimePattern.StartingTime).getHours()}:${new Date(empData.workingTimePattern.StartingTime).getMinutes()}`;
-        const officeFinishingTime = `${new Date(empData.workingTimePattern.FinishingTime).getHours()}:${new Date(empData.workingTimePattern.FinishingTime).getMinutes()}`;
+        const officeStartingTime = `${new Date(empData?.workingTimePattern?.StartingTime).getHours()}:${new Date(empData?.workingTimePattern?.StartingTime).getMinutes()}`;
+        const officeFinishingTime = `${new Date(empData?.workingTimePattern?.FinishingTime).getHours()}:${new Date(empData?.workingTimePattern?.FinishingTime).getMinutes()}`;
         const scheduleWorkingHours = getTotalWorkingHourPerDay(
             officeStartingTime,
             officeFinishingTime

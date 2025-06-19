@@ -23,6 +23,7 @@ function Holiday() {
     const [titles, setTitles] = useState({});
     const [holidayObj, setHolidayObj] = useState({});
     const [holidays, setHolidays] = useState([]);
+    const [formattedHolidays, setFormattedHolidays] = useState([]);
     const [allYearHoliday, setAllYearHoliday] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
     const [isWorkingApi, setIsWorkingApi] = useState(false);
@@ -77,18 +78,19 @@ function Holiday() {
                 start: new Date(item.date),
                 end: new Date(item.date)
             }));
-            // setHolidays(mapped);
-            setHolidays(mapped)
+            console.log("mappedData", mapped);
+            // for holiday view in calendar
+            setFormattedHolidays(mapped)
         } catch (err) {
             console.error("Error fetching holidays", err);
-            setHolidays([]);
+            setFormattedHolidays([]);
         } finally {
             setIsLoading(false);
         }
     }, [changeHoliday.isAdd, changeHoliday.isEdit]);
 
     const fillHolidayObj = useCallback((value, name) => {
-        setHolidayObj(prev => ({ ...prev, [name]: value }));
+        setHolidayObj(prev => ({ ...prev, [name]: value?.trimStart()?.replace(/\s+/g, ' ') }));
     }, []);
 
     const addOrUpdateHolidays = async () => {
@@ -206,7 +208,7 @@ function Holiday() {
                                             size="lg"
                                             width={"100%"}
                                             value={titles[date] || ""}
-                                            onChange={(val) => setTitles(prev => ({ ...prev, [date]: val }))}
+                                            onChange={(val) => setTitles(prev => ({ ...prev, [date]: val?.trimStart()?.replace(/\s+/g, ' ') }))}
                                         />
                                     </div>
 
@@ -230,10 +232,10 @@ function Holiday() {
     return (
         isEditable ? renderHolidayForm() :
             whoIs === "emp" ?
-                (holidays.length > 0 ?
+                (formattedHolidays.length > 0 ?
                     <Calendar
                         localizer={localizer}
-                        events={holidays}
+                        events={formattedHolidays}
                         startAccessor="start"
                         endAccessor="end"
                         eventPropGetter={eventPropGetter}
@@ -257,10 +259,10 @@ function Holiday() {
                     </Tabs.Tab>
                     <Tabs.Tab eventKey="2" title="CalendarView">
                         {
-                            holidays.length > 0 ?
+                            formattedHolidays.length > 0 ?
                                 <Calendar
                                     localizer={localizer}
-                                    events={holidays}
+                                    events={formattedHolidays}
                                     startAccessor="start"
                                     endAccessor="end"
                                     eventPropGetter={eventPropGetter}

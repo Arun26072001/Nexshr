@@ -28,7 +28,7 @@ export default function WFHRequestForm({ type }) {
     function handleInputChange(name, value) {
         setwfhRequestObj(prev => ({
             ...prev,
-            [name]: value === "<p><br></p>" ? "" : value
+            [name]: value === "<p><br></p>" ? "" : value?.trimStart()?.replace(/\s+/g, ' ')
         }));
     }
 

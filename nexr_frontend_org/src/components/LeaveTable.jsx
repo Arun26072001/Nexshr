@@ -589,13 +589,8 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
         { id: 'name', label: 'Name', minWidth: 100, align: "left", getter: (row) => row.name },
         { id: 'abbreviation', label: 'Abbreviation', minWidth: 100, align: "left", getter: (row) => row.abbr },
         { id: 'code', label: 'Code', minWidth: 100, align: "left", getter: (row) => row.code },
-        { id: 'state', label: 'State', minWidth: 130, align: "left", getter: (row) => row?.state?.length ? row.state.join(", ") : "N/A" },
-        {
-            id: "Action",
-            label: "Action",
-            minWidth: 100,
-            align: "center"
-        }
+        { id: 'states', label: 'States', minWidth: 130, align: "left", getter: (row) => row?.states?.length ? row.states.slice(0, 3).join(", ") + (row.states.length > 3 ? "..." : "") : "N/A" },
+        { id: "Action", label: "Action", minWidth: 100, align: "center" }
     ];
 
     const column15 = [

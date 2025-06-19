@@ -231,7 +231,7 @@ const EmployeeForm = ({
 
     const handleSubmit = async e => {
         e.preventDefault();
-        if (!validationForm()) {
+        if (!validationForm() && whoIs !== "emp") {
             navToError();
             toast.error("Please fix the errors in the form.");
             return;

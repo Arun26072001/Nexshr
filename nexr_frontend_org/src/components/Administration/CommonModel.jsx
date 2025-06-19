@@ -127,7 +127,7 @@ const CommonModel = ({
                                         value={dataObj?.[type === "Department" ? "DepartmentName" : type === "Position" ? "PositionName" : type === "Team" ? "teamName" : type === "Organization" ? "orgName" : type === "LeaveType" ? "LeaveName" : type === "TimePattern" ? "PatternName" : ["WorkPlace", "View WorkPlace"].includes(type) ? "CompanyName" : `name`] || ""}
                                         disabled={["Report View", "Project View", "View WorkPlace"].includes(type) ? true : false}
                                         onChange={!["Report View", "Project View", "View WorkPlace"].includes(type) ? (e) =>
-                                            changeData(e, type === "Department" ? "DepartmentName" : type === "Position" ? "PositionName" : type === "Team" ? "teamName" : type === "Organization" ? "orgName" : type === "LeaveType" ? "LeaveName" : type === "TimePattern" ? "PatternName" : ["WorkPlace", "View WorkPlace"].includes(type) ? "CompanyName" : "name") : null}
+                                            changeData(e?.trimStart()?.replace(/\s+/g, ' '), type === "Department" ? "DepartmentName" : type === "Position" ? "PositionName" : type === "Team" ? "teamName" : type === "Organization" ? "orgName" : type === "LeaveType" ? "LeaveName" : type === "TimePattern" ? "PatternName" : ["WorkPlace", "View WorkPlace"].includes(type) ? "CompanyName" : "name") : null}
                                     />
                                 </div>
                             </div>
@@ -154,7 +154,7 @@ const CommonModel = ({
                                         name={`prefix`}
                                         disabled={type === "Project View" ? true : false}
                                         value={dataObj?.[`prefix`] || ""}
-                                        onChange={!["Project View"].includes(type) ? (e) => changeData(e.toUpperCase(), "prefix") : null} />
+                                        onChange={!["Project View"].includes(type) ? (e) => changeData(e.trimStart().replace(/\s+/g, ' ').toUpperCase(), "prefix") : null} />
                                 </div>
                             </div>
                         )}
@@ -181,7 +181,12 @@ const CommonModel = ({
                             <div className="col-half">
                                 <div className="modelInput">
                                     <p className='modelLabel important'>EntendValidity:</p>
-                                    <InputNumber size='lg' defaultValue={0} style={{ width: "100%" }} step={1} value={dataObj?.entendValidity} onChange={(e) => changeData(e, "entendValidity")} />
+                                    <InputNumber size='lg' defaultValue={0} style={{ width: "100%" }} step={1} value={dataObj?.entendValidity} onChange={(e) => {
+                                        if (e === null || e === '' || e >= 0) {
+                                            changeData(e, "entendValidity")
+                                        }
+                                    }
+                                    } />
                                 </div>
                             </div>
                         }
@@ -219,7 +224,11 @@ const CommonModel = ({
                             <div className="col-half">
                                 <div className="modelInput">
                                     <p className='modelLabel important'>Postcode:</p>
-                                    <InputNumber size='lg' min={0} value={dataObj?.PostCode} onChange={(e) => changeData(e, "PostCode")} disabled={type === "View WorkPlace"} />
+                                    <InputNumber size='lg' min={0} value={dataObj?.PostCode} onChange={(e) => {
+                                        if (e === null || e === '' || e >= 0) {
+                                            changeData(e, "PostCode")
+                                        }
+                                    }} disabled={type === "View WorkPlace"} />
                                 </div>
                             </div>
                         }
@@ -236,7 +245,7 @@ const CommonModel = ({
                                     size="lg"
                                     disabled={["Task View", "Add Comments"].includes(type) ? true : false}
                                     value={dataObj?.[`title`] || ""}
-                                    onChange={type !== "Task View" ? (e) => changeData(e, "title") : null}
+                                    onChange={type !== "Task View" ? (e) => changeData(e?.trimStart()?.replace(/\s+/g, ' '), "title") : null}
                                 />
                                 {errorMsg?.includes("title") && <p className='text-danger'>{errorMsg}</p>}
                             </div>
@@ -257,7 +266,12 @@ const CommonModel = ({
                             <div className="col-half">
                                 <div className="modelInput">
                                     <p className='modelLabel'>Spend time:</p>
-                                    <InputNumber min={0} size='lg' defaultValue={0.00} style={{ width: "100%" }} step={0.01} value={dataObj?.comments[0]?.["spend"]} onChange={(e) => changeData(e, "comments.spend")} />
+                                    <InputNumber min={0} size='lg' defaultValue={0.00} style={{ width: "100%" }} step={0.01} value={dataObj?.comments[0]?.["spend"]}
+                                        onChange={(e) => {
+                                            if (e === null || e === '' || e >= 0) {
+                                                changeData(e, "comments.spend")
+                                            }
+                                        }} />
                                 </div>
                             </div>
                         }
@@ -266,7 +280,12 @@ const CommonModel = ({
                             <div className="col-half">
                                 <div className="modelInput">
                                     <p className='modelLabel'>Spend time:</p>
-                                    <InputNumber min={0} size='lg' defaultValue={0.00} style={{ width: "100%" }} step={0.01} value={dataObj?.spend} onChange={(e) => changeData(e, "spend")} />
+                                    <InputNumber min={0} size='lg' defaultValue={0.00} style={{ width: "100%" }} step={0.01} value={dataObj?.spend}
+                                        onChange={(e) => {
+                                            if (e === null || e === '' || e >= 0) {
+                                                changeData(e, "spend")
+                                            }
+                                        }} />
                                 </div>
                             </div>
                         }
@@ -568,7 +587,11 @@ const CommonModel = ({
                                     placeholder="Select Time"
                                     style={{ width: "100%" }}
                                     value={dataObj?.estTime}
-                                    onChange={(e) => changeData(e, "estTime")}
+                                    onChange={(e) => {
+                                        if (e === null || e === '' || e >= 0) {
+                                            changeData(e, "estTime")
+                                        }
+                                    }}
                                     step={0.01}
                                 />
                             </div>
@@ -576,7 +599,12 @@ const CommonModel = ({
                         <div className="col-half">
                             <div className="modelInput">
                                 <p className='modelLabel'>Spend time:</p>
-                                <InputNumber min={0} size='lg' defaultValue={0.00} style={{ width: "100%" }} step={0.01} value={dataObj?.spend?.timeHolder} onChange={(e) => changeData(e, "spend.timeHolder")} />
+                                <InputNumber min={0} size='lg' defaultValue={0.00} style={{ width: "100%" }} step={0.01} value={dataObj?.spend?.timeHolder}
+                                    onChange={(e) => {
+                                        if (e === null || e === '' || e >= 0) {
+                                            changeData(e, "spend.timeHolder")
+                                        }
+                                    }} />
                             </div>
                         </div>
                     </div>
@@ -679,7 +707,7 @@ const CommonModel = ({
                                     </p>
 
                                     <TextEditor
-                                        handleChange={(e) => changeData(e, type === "Announcement" ? "message" : type === "Edit Comments" ? "comment" : "comments.comment")}
+                                        handleChange={(e) => changeData(e?.trimStart()?.replace(/\s+/g, ' '), type === "Announcement" ? "message" : type === "Edit Comments" ? "comment" : "comments.comment")}
                                         content={type === "Add Comments" ? dataObj?.comments[0]?.["comment"] : type === "Edit Comments" ? dataObj?.["comment"] : dataObj?.["message"]}
                                     />
                                 </div>
@@ -708,7 +736,7 @@ const CommonModel = ({
                             <div className="modelInput">
                                 <p className='modelLabel'>{type === "Email Template" ? "Content" : "Description"}:</p>
                                 <TextEditor
-                                    handleChange={!["Task View", "Project View"].includes(type) ? (e) => changeData(e, type === "Email Template" ? "content" : "description") : null}
+                                    handleChange={!["Task View", "Project View"].includes(type) ? (e) => changeData(e?.trimStart()?.replace(/\s+/g, ' '), type === "Email Template" ? "content" : "description") : null}
                                     content={dataObj?.[type === "Email Template" ? "content" : "description"]}
                                     isDisabled={["Task View", "Project View"].includes(type) ? true : false}
                                 />
@@ -941,7 +969,11 @@ const CommonModel = ({
                                     max={3}
                                     value={dataObj?.[`code`] || ""}
                                     appearance='default'
-                                    onChange={(e) => changeData(e, "code")}
+                                    onChange={(e) => {
+                                        if (e === null || e === '' || e >= 0) {
+                                            changeData(e, "code")
+                                        }
+                                    }}
                                 />
                             </div>
                         </div>
@@ -960,12 +992,12 @@ const CommonModel = ({
                                 style={{ width: "100%", height: 45 }}
                                 type={"text"}
                                 id="stateInput"
-                                name={`state`}
+                                name={`states`}
                                 appearance='default'
                                 onChange={(e) => e !== "" ? setIsDisabled(false) : setIsDisabled(true)}
                             />
                             <button className='btn btn-primary addBtn' disabled={isDisabled} onClick={() => {
-                                changeState(type === "Email Template" ? "shortTags" : 'state', document.getElementById("stateInput").value)
+                                changeState(type === "Email Template" ? "shortTags" : 'states', document.getElementById("stateInput").value)
                                 document.getElementById("stateInput").value = ""
                                 setIsDisabled(true)
                             }}>Add</button>
@@ -978,7 +1010,7 @@ const CommonModel = ({
                                             </span>
                                         ))
                                     ) : (
-                                        dataObj?.state?.map((item) => (
+                                        dataObj?.states?.map((item) => (
                                             <span key={item} onClick={() => removeState(item)}>
                                                 {item} <CloseRoundedIcon />
                                             </span>
@@ -1131,7 +1163,11 @@ const CommonModel = ({
                                             style={{ width: "100%", height: 45 }}
                                             value={dataObj?.[`mailPort`] || ""}
                                             appearance='default'
-                                            onChange={(e) => changeData(e, "mailport")}
+                                            onChange={(e) => {
+                                                if (e === null || e === '' || e >= 0) {
+                                                    changeData(e, "mailport")
+                                                }
+                                            }}
                                         />
                                     </div>
                                 </div>
@@ -1235,13 +1271,21 @@ const CommonModel = ({
                             <div className="col-half">
                                 <div className="modelInput">
                                     <p className='modelLabel'>Waiting Time:</p>
-                                    <InputNumber min={0} size='lg' placeholder='Enter in Minutes' step={0.01} onChange={(e) => changeData(e, "WaitingTime")} disabled={type === "View TimePattern"} value={dataObj?.WaitingTime} />
+                                    <InputNumber min={0} size='lg' placeholder='Enter in Minutes' step={0.01} onChange={(e) => {
+                                        if (e === null || e === '' || e >= 0) {
+                                            changeData(e, "WaitingTime")
+                                        }
+                                    }} disabled={type === "View TimePattern"} value={dataObj?.WaitingTime} />
                                 </div>
                             </div>
                             <div className="col-half">
                                 <div className="modelInput">
                                     <p className='modelLabel'>Break Time:</p>
-                                    <InputNumber min={0} size='lg' placeholder='Enter in Minutes' step={0.01} onChange={(e) => changeData(e, "BreakTime")} disabled={type === "View TimePattern"} value={dataObj?.BreakTime} />
+                                    <InputNumber min={0} size='lg' placeholder='Enter in Minutes' step={0.01} onChange={(e) => {
+                                        if (e === null || e === '' || e >= 0) {
+                                            changeData(e, "BreakTime")
+                                        }
+                                    }} disabled={type === "View TimePattern"} value={dataObj?.BreakTime} />
                                 </div>
                             </div>
                         </div>
@@ -1529,8 +1573,8 @@ const CommonModel = ({
                                             disabled={type === "View WorkPlace"}
                                             size="lg"
                                             data={states}
-                                            value={dataObj?.State}
-                                            onChange={(value) => changeData(value, "State")}
+                                            value={dataObj?.states}
+                                            onChange={(value) => changeData(value?.trimStart()?.replace(/\s+/g, ' '), "states")}
                                         />
                                     </div>
                                 </div>

@@ -30,10 +30,10 @@ const AnnouncementComponent = ({ handleChangeAnnouncement }) => {
                     { headers },
                 );
                 setTeam_member(response?.data?.Team || []);
-           } catch (error) {
-         if (error?.message === "Network Error") {
-                navigate("/network-issue")
-            }
+            } catch (error) {
+                if (error?.message === "Network Error") {
+                    navigate("/network-issue")
+                }
                 console.error('Error fetching team members:', error);
             }
         };
@@ -50,7 +50,7 @@ const AnnouncementComponent = ({ handleChangeAnnouncement }) => {
     function changeAnnouncementData(value, name) {
         setAnnouncementObj((pre) => ({
             ...pre,
-            [name]: value
+            [name]: typeof value === "string" ? value?.trimStart()?.replace(/\s+/g, ' ') : value
         }))
     }
 
@@ -62,19 +62,14 @@ const AnnouncementComponent = ({ handleChangeAnnouncement }) => {
 
         setIschangingAnnouncement(true);
         try {
-            // const updatedAnnouncementObj  = {
-            //     ...announcementObj,
-            //     startDate: new Date(announcementObj.startDate
-            // }
             const addAnnounce = await axios.post(`${url}/api/announcements/${data._id}`, announcementObj,
                 { headers }
             );
             handleChangeAnnouncement();
             handleModel();
             toast.success(addAnnounce.data.message);
-            // socket.emit("send_announcement", addAnnounce.data.data);
-       } catch (error) {
-         if (error?.message === "Network Error") {
+        } catch (error) {
+            if (error?.message === "Network Error") {
                 navigate("/network-issue")
             }
             setErrorMsg(error.response.data.error)

@@ -38,8 +38,6 @@ const AddEmployee = () => {
 
   function handlePersonal() {
     if (personalRef.current) {
-      console.log("height in ref", personalRef.current.getBoundingClientRect().top);
-      console.log(window.scrollY);
       const scrollDown = personalRef.current.getBoundingClientRect().top + window.scrollY;
       window.scrollTo({
         top: scrollDown,
@@ -76,7 +74,7 @@ const AddEmployee = () => {
 
       return {
         ...prev,
-        [name]: value
+        [name]: typeof value === "string" ? value?.trimStart()?.replace(/\s+/g, ' ') : value
       };
     });
   };
@@ -160,8 +158,6 @@ const AddEmployee = () => {
     } else if (value === "payslip") {
       return handlePayslip();
     } else {
-      console.log("call for fina");
-
       return handleFinancial();
     }
   }

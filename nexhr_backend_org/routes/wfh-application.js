@@ -159,7 +159,7 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
         function checkDateIsHoliday(dateList, target) {
             return dateList.some((holiday) => new Date(holiday.date).toLocaleDateString() === new Date(target).toLocaleDateString());
         }
-        const holiday = await Holiday.findOne({ year: new Date().getFullYear() });
+        const holiday = await Holiday.findOne({ currentYear: new Date().getFullYear() });
         const isFromDateHoliday = checkDateIsHoliday(holiday.holidays, fromDate);
         const isToDateHoliday = checkDateIsHoliday(holiday.holidays, fromDate);
         if (isFromDateHoliday) {
@@ -520,7 +520,7 @@ router.put("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
             function checkDateIsHoliday(dateList, target) {
                 return dateList.some((holiday) => new Date(holiday.date).toLocaleDateString() === new Date(target).toLocaleDateString());
             }
-            const holiday = await Holiday.findOne({ year: new Date().getFullYear() });
+            const holiday = await Holiday.findOne({ currentYear: new Date().getFullYear() });
             const isFromDateHoliday = checkDateIsHoliday(holiday.holidays, fromDate);
             const isToDateHoliday = checkDateIsHoliday(holiday.holidays, fromDate);
             if (isFromDateHoliday) {

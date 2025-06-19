@@ -40,7 +40,7 @@ const TimePattern = () => {
             // add data, go to show pattern
             if (!changePattern.isEdit) {
                 setTimePatternObj(pattern)
-            } 
+            }
             // remove data, go to hide pattern
             if (changePattern.isEdit) {
                 setTimePatternObj({})
@@ -53,7 +53,7 @@ const TimePattern = () => {
             // add data, go to show pattern
             if (!changePattern.isView) {
                 setTimePatternObj(pattern)
-            } 
+            }
             // remove data, go to hide pattern
             if (changePattern.isView) {
                 setTimePatternObj({})
@@ -68,7 +68,7 @@ const TimePattern = () => {
     function fillPatternData(value, name) {
         setTimePatternObj({
             ...timePatternObj,
-            [name]: ["StartingTime", "FinishingTime"].includes(name) ? new Date(value).toISOString() : value
+            [name]: ["StartingTime", "FinishingTime"].includes(name) ? new Date(value).toISOString() : typeof value === "string" ? value?.trimStart()?.replace(/\s+/g, ' ') : value
         })
     }
 

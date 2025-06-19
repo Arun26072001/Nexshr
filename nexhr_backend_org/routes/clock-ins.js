@@ -25,7 +25,7 @@ router.post("/not-login/apply-leave/:workPatternId", async (req, res) => {
         function checkDateIsHoliday(dateList, target) {
             return dateList.some((holiday) => new Date(holiday.date).toLocaleDateString() === new Date(target).toLocaleDateString());
         }
-        const holiday = await Holiday.findOne({ year: new Date().getFullYear() });
+        const holiday = await Holiday.findOne({ currentYear: new Date().getFullYear() });
         const isTodayHoliday = checkDateIsHoliday(holiday.holidays, now);
         if (isTodayHoliday) {
             return res.status(200).send({ message: "No need to apply leave for holiday" })

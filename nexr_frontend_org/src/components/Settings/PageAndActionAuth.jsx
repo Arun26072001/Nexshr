@@ -137,7 +137,7 @@ export default function PageAndActionAuth() {
             });
             setRoleObj({
                 ...roleData.data,
-                RoleName: roleName || "Employee"
+                RoleName: roleName?.trimStart()?.replace(/\s+/g, ' ') || "Employee"
             })
        } catch (error) {
          if (error?.message === "Network Error") {
