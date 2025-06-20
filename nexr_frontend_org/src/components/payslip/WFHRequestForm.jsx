@@ -33,7 +33,7 @@ export default function WFHRequestForm({ type }) {
 
         setwfhRequestObj(prev => ({
             ...prev,
-            [name]: value === "<p><br></p>" ? "" : value?.trimStart()?.replace(/\s+/g, ' ')
+            [name]: cleanedValue
         }));
     }
 
