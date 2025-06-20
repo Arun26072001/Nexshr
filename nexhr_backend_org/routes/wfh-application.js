@@ -546,19 +546,30 @@ router.put("/reject-wfh", async (req, res) => {
             .populate("employee", "FirstName LastName Email")
             .exec();
 
+
         if (!wfhReqs.length) {
             return res.status(200).send({ message: "No pending WFH requests found for today." });
         }
 
         await Promise.all(wfhReqs.map(async (wfh) => {
+            // check has more than two team members in wfh
+            const team = await Team.findOne({ employees: wfh.employee }, "employees").exec();
+
+            const wfhEmps = await WFHApplication.find({
+                employee: { $in: team.employees },
+                status: "approved",
+                fromDate: { $lte: toDate },
+                toDate: { $gte: fromDate }
+            })
+
             let approvers = {};
             for (const [key, value] of Object.entries(wfh.approvers)) {
-                approvers[key] = "rejected";
+                approvers[key] = wfhEmps.length >= 2 ? "rejected" : "approved";
             }
 
             const updatedLeave = {
                 ...req.body,
-                status: "rejected",
+                status: wfhEmps.length >= 2 ? "rejected" : "approved",
                 approvers
             };
 
@@ -777,7 +788,7 @@ router.put("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
         }
 
         const updatedWfhRequest = { ...req.body, approvers: updatedApprovers, status: updatedLeaveStatus }
-        
+
         // ✅ Update WFH application
         const updatedData = await WFHApplication.findByIdAndUpdate(
             req.params.id,
