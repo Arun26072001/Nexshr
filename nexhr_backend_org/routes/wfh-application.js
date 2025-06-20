@@ -613,7 +613,6 @@ router.put("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
                 }
             }
             let approverData = {}
-            console.log("approvers", approvers);
             Object.entries(approvers).map(([key, value]) => {
                 approverData[key] = "approved"
             })
