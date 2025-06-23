@@ -576,12 +576,14 @@ const Dashboard = () => {
         )
     }
 
+    console.log("leaveData", leaveData.totalTakenLeaveCount);
+
     return (
         <div className='dashboard-parent'>
             <ActivityTimeTracker empName={data.Name} leaveData={leaveData} handleLogout={handleLogout} updateClockins={updateClockins} />
             <>
                 <div className='allowance flex-wrap'>
-                    <div className={`col-lg-2 col-md-6 col-4 my-1 ${isLoading ? "d-flex justify-content-center" : "text-center"}`}>
+                    <div className={`col-lg-2 col-md-6 col-4 my-1 ${isLoading ? "d-flex justify-content-center" : "text-center"}`} title='This is the total number of paid leave days allotted to you for the current year based on your company’s leave policy. It includes all types of eligible leave such as annual, casual, or earned leave.'>
                         {
                             isLoading ?
                                 <ContentLoader />
@@ -592,7 +594,7 @@ const Dashboard = () => {
                         }
                     </div>
 
-                    <div className={`col-lg-2 col-md-6 col-4 my-1 ${isLoading ? "d-flex justify-content-center" : "text-center"}`}>
+                    <div className={`col-lg-2 col-md-6 col-4 my-1 ${isLoading ? "d-flex justify-content-center" : "text-center"}`} title='This is the total number of leave days you have already used or taken from your allotted leave balance during the current year.' >
                         {
                             isLoading ? <ContentLoader /> :
                                 <>
@@ -601,7 +603,7 @@ const Dashboard = () => {
                                 </>
                         }
                     </div>
-                    <div className={`col-lg-2 col-md-6 col-4 my-1 ${isLoading ? "d-flex justify-content-center" : "text-center"}`}>
+                    <div className={`col-lg-2 col-md-6 col-4 my-1 ${isLoading ? "d-flex justify-content-center" : "text-center"}`} title="This is the remaining number of paid leave days you can still use, calculated by subtracting your taken leaves from your total leave allowance." >
                         {
                             isLoading ? <ContentLoader /> :
                                 <>
@@ -610,7 +612,7 @@ const Dashboard = () => {
                                 </>
                         }
                     </div>
-                    <div className={`col-lg-3 col-md-6 col-4 my-1 ${isLoading ? "d-flex justify-content-center" : "text-center"}`}>
+                    <div className={`col-lg-3 col-md-6 col-4 my-1 ${isLoading ? "d-flex justify-content-center" : "text-center"}`} title="These are leave requests you’ve submitted that are waiting for approval from your manager or HR. They are not yet counted as approved leave." >
                         {
                             isLoading ? <ContentLoader /> :
                                 <>
@@ -619,7 +621,7 @@ const Dashboard = () => {
                                 </>
                         }
                     </div>
-                    <div className={`col-lg-2 col-md-6 col-4 my-1 ${isLoading ? "d-flex justify-content-center" : "text-center"}`}>
+                    <div className={`col-lg-2 col-md-6 col-4 my-1 ${isLoading ? "d-flex justify-content-center" : "text-center"}`} title='This is the total number of leave days taken without pay, usually applied when paid leave balance is exhausted or for specific leave types like LOP (Loss Of Pay).' >
                         {
                             isLoading ? <ContentLoader /> :
                                 <>
