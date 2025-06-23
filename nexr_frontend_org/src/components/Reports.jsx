@@ -7,17 +7,20 @@ import axios from 'axios';
 import NoDataFound from './payslip/NoDataFound';
 import CommonModel from './Administration/CommonModel';
 import { toast } from 'react-toastify';
-import { getDepartments } from './ReuseableAPI';
+import { fetchTeamEmps, getDepartments } from './ReuseableAPI';
 import { Skeleton } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
+import { jwtDecode } from 'jwt-decode';
 
 export default function Reports() {
     const navigate = useNavigate();
     const url = process.env.REACT_APP_API_URL;
     const { data } = useContext(EssentialValues);
+    const { isTeamLead, isTeamHead, isTeamManager } = jwtDecode(data.token);
     const [employees, setEmployees] = useState([]);
     const [empId, setEmpId] = useState(data?._id);
     const [reports, setReports] = useState([]);
+    const [teamsEmps, setTeamEmps] = useState([]);
     const [reportObj, setReportObj] = useState({});
     const [filterReports, setFilterReports] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
@@ -118,7 +121,7 @@ export default function Reports() {
         if (["", null].includes(value)) {
             setReports(filterReports)
         } else {
-            setReports(filterReports.filter((report) => report?.name?.includes(value)))
+            setReports(filterReports.filter((report) => report?.name.toLowerCase()?.includes(value.toLowerCase())))
         }
     }
 
@@ -214,6 +217,8 @@ export default function Reports() {
         }
     }
 
+
+
     async function fetchProjectEmps() {
         try {
             const res = await axios.get(`${url}/api/project/employees/${reportObj?.project}`, {
@@ -236,6 +241,18 @@ export default function Reports() {
             fetchProjectEmps()
         }
     }, [reportObj?.project])
+
+    useEffect(() => {
+        async function gettingTeamEmp() {
+            const emps = await fetchTeamEmps();
+            if(Array.isArray(emps) && emps.length > 0){
+                setTeamEmps(emps);
+            }
+        }
+        if ([isTeamLead, isTeamHead, isTeamManager].includes(true)) {
+            gettingTeamEmp();
+        }
+    }, [])
 
     useEffect(() => {
         async function fetchReportsByEmp() {
@@ -272,16 +289,19 @@ export default function Reports() {
                         <>
                             <div className="projectParent">
                                 <div className="projectTitle col-lg-6 col-md-4 col-12">Reports</div>
-                                <div className="col-lg-6 col-md-8 col-12 projectChild flex-wrap">
-                                    <SelectPicker
-                                        data={employees}
-                                        size="lg"
-                                        appearance="default"
-                                        style={{ width: 300 }}
-                                        placeholder="Search By Created Person"
-                                        value={empId}
-                                        onChange={(e) => setEmpId(e)}
-                                    />
+                                <div className="col-lg-6 col-md-8 col-12 projectChild flex-wrap justify-content-end">
+                                    {
+                                        [isTeamLead, isTeamHead, isTeamManager].includes(true) ?
+                                            <SelectPicker
+                                                data={teamsEmps}
+                                                size="lg"
+                                                appearance="default"
+                                                style={{ width: 300 }}
+                                                placeholder="Search By Created Person"
+                                                value={empId}
+                                                onChange={(e) => setEmpId(e)}
+                                            /> : null
+                                    }
                                     <div className="button" onClick={handleAddReport}>
                                         New Report +
                                     </div>

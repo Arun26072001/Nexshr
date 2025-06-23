@@ -125,6 +125,20 @@ async function getDayDifference({ fromDate, toDate, employee, periodOfLeave }) {
   return dayDifference;
 }
 
+function accountFromRole(account) {
+  if (account === 1) {
+    return "admin"
+  } if (account === 2) {
+    return "hr"
+  } if (account === 3) {
+    return "emp"
+  } if (account === "4") {
+    return "manager"
+  } if (account === "5") {
+    return "network-admin"
+  }
+}
+
 function checkDateIsHoliday(dateList = [], target) {
   return dateList.some((holiday) => new Date(holiday.date).toLocaleDateString() === new Date(target).toLocaleDateString());
 }
@@ -464,6 +478,8 @@ function formatDate(date) {
   return `${dateValue + " " + monthString + " " + String(actualDate.getHours()).padStart(2, "0") + ":" + String(actualDate.getMinutes()).padStart(2, "0")}`
 }
 
+
+module.exports = { convertToString, accountFromRole, sumLeaveDays, getValidLeaveDays, fetchFirstTwoItems, getCurrentTime, checkLoginForOfficeTime, categorizeTasks, projectMailContent, processActivityDurations, getTotalWorkingHourPerDay, formatLeaveData, getDayDifference, getOrgDB, formatDate, getWeekdaysOfCurrentMonth, mailContent, checkLogin, getTotalWorkingHoursExcludingWeekends, getCurrentTimeInMinutes, timeToMinutes, formatTimeFromMinutes };
 // Helper function to generate coverBy email content
 // function generateCoverByEmail(empData, relievingOffData) {
 //   return `
@@ -497,5 +513,3 @@ function formatDate(date) {
 //         </html>
 //         `;
 // }
-
-module.exports = { convertToString, sumLeaveDays, getValidLeaveDays, fetchFirstTwoItems, getCurrentTime, checkLoginForOfficeTime, categorizeTasks, projectMailContent, processActivityDurations, getTotalWorkingHourPerDay, formatLeaveData, getDayDifference, getOrgDB, formatDate, getWeekdaysOfCurrentMonth, mailContent, checkLogin, getTotalWorkingHoursExcludingWeekends, getCurrentTimeInMinutes, timeToMinutes, formatTimeFromMinutes };

@@ -2,9 +2,11 @@ import axios from 'axios';
 import { toast } from 'react-toastify';
 import { Notification, toaster } from "rsuite";
 import * as XLSX from "xlsx";
+import {useNavigate} from "react-router-dom";
 import { saveAs } from "file-saver";
-import { useNavigate } from 'react-router-dom';
+import { jwtDecode } from 'jwt-decode';
 const url = process.env.REACT_APP_API_URL;
+
 
 function getToken() {
     const token = localStorage.getItem('token');
@@ -29,12 +31,29 @@ const updateDataAPI = async (body) => {
             toast.error("You did't Login properly!")
         }
     } catch (error) {
-        //  if (error?.message === "Network Error") {
-        //         navigate("/network-issue")
-        //     }
         console.error('Update error:', error);
     }
 };
+
+  async function fetchTeamEmps() {
+    const empId = getId();
+    const token  = getToken()
+    const {isTeamHead, isTeamLead, isTeamManager} = jwtDecode(token);
+    try {
+      const res = await axios.get(`${url}/api/team/members/${empId}`, {
+        params: {
+          who: isTeamLead ? "lead" : isTeamHead ? "head" : isTeamManager ? "manager" : "employees"
+        },
+        headers: {
+          Authorization: token || ""
+        }
+      })
+      const emps = res.data.employees.map((emp) => ({ label: emp.FirstName + " " + emp.LastName, value: emp._id }));
+      return emps;
+    } catch (error) {
+      console.log("error in fetch team emps", error);
+    }
+  }
 
 async function getTotalWorkingHourPerDay(start, end) {
     const [startHour, startMin] = start.split(/[:.]+/).map(Number);
@@ -498,9 +517,6 @@ const updateEmp = async (data, id) => {
         })
         return res.data.message;
     } catch (error) {
-        //  if (error?.message === "Network Error") {
-        //         navigate("/network-issue")
-        //     }
         toast.error(error?.response?.data?.error);
     }
 }
@@ -684,7 +700,6 @@ function getDueDateByType(type) {
     }
 }
 
-
 function triggerToaster(response) {
     return (
         toaster.push(
@@ -799,6 +814,7 @@ export {
     formatTimeFromHour,
     timeToMinutes,
     fileUploadInServer,
+    fetchTeamEmps,
     convertTimeStringToDate,
     getDayDifference,
     exportAttendanceToExcel

@@ -1,10 +1,11 @@
 const express = require("express");
+const jwt = require('jsonwebtoken');
 const { verifyAdminHREmployeeManagerNetwork, verifyAdminHR, verifyTeamHigherAuthority } = require("../auth/authMiddleware");
 const { WFHAppValidation, WFHApplication } = require("../models/WFHApplicationModel");
 const { Employee } = require("../models/EmpModel");
 const sendMail = require("./mailSender");
 const { Team } = require("../models/TeamModel");
-const { formatDate, mailContent, sumLeaveDays } = require("../Reuseable_functions/reusableFunction");
+const { formatDate, mailContent, sumLeaveDays, accountFromRole } = require("../Reuseable_functions/reusableFunction");
 const { sendPushNotification } = require("../auth/PushNotification");
 const { Holiday } = require("../models/HolidayModel");
 const { TimePattern } = require("../models/TimePatternModel");
@@ -102,6 +103,7 @@ router.get("/make-know", async (req, res) => {
 
         for (const wfh of wfhReqs) {
             const emp = wfh.employee;
+
             const teamData = emp?.team;
             if (!teamData) continue;
 
@@ -121,27 +123,50 @@ router.get("/make-know", async (req, res) => {
             for (const member of recipients) {
                 if (!member) continue;
 
-                const htmlContent = `
-          <!DOCTYPE html>
-          <html lang="en">
-          <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>${emp?.company?.CompanyName || "Webnexs"}</title>
-          </head>
-          <body style="font-family: Arial, sans-serif; background-color: #f6f9fc; color: #333; margin: 0; padding: 0;">
-            <div style="max-width: 600px; margin: auto; padding: 20px; background-color: #fff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);">
-              <div style="text-align: center; padding: 20px;">
-                <img src="${emp?.company?.logo}" alt="Logo" style="max-width: 100px;" />
-                <h1 style="margin: 0;">${emp.FirstName} ${emp.LastName} has applied for WFH</h1>
-              </div>
-              <div style="margin: 20px 0;">
-                <p>Hi,</p>
-                <p>${emp.FirstName} has applied for WFH from <b>${formatFromDate}</b> to <b>${formatToDate}</b> due to: ${plainReason}.</p>
-                <p>Please review and respond to the request at your earliest convenience.</p>
-              </div>
-            </div>
-          </body>
-          </html>
-        `;
+                const htmlContent = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>${emp?.company?.CompanyName || "Webnexs"} - Work From Home Request</title>
+</head>
+<body style="font-family: Arial, sans-serif; background-color: #f6f9fc; color: #333; margin: 0; padding: 0;">
+  <div style="max-width: 500px; margin: auto; padding: 20px; background-color: #fff; border-radius: 8px;
+              box-shadow: rgba(0, 0, 0, 0.02) 0px 1px 3px 0px, rgba(27, 31, 35, 0.15) 0px 0px 0px 1px;">
+    
+    <!-- Header -->
+    <div style="text-align: center; padding: 20px;">
+      <img src="${emp?.company?.logo}" alt="Company Logo" style="max-width: 100px;" />
+      <h1 style="font-size: 20px; margin: 10px 0;">
+        Work From Home Request (${formatFromDate} to ${formatToDate})
+      </h1>
+      <h2 style="font-size: 16px; margin: 5px 0; color: #555;">
+        Requested by: ${emp.FirstName} ${emp.LastName}
+      </h2>
+    </div>
+
+    <!-- Content -->
+    <div style="margin: 20px 0; padding: 10px;">
+      <p style="font-size: 14px; margin: 10px 0;">
+        <strong>Reason for WFH:</strong> ${plainReason}
+      </p>
+      <p style="font-size: 14px; margin: 10px 0;">
+        Please review and respond to the request at your earliest convenience.
+      </p>
+      <p style="font-size: 14px; margin: 10px 0;">
+        Regards,<br />
+        HR Department
+      </p>
+    </div>
+
+    <!-- Footer -->
+    <div style="text-align: center; padding-top: 15px; border-top: 1px solid #ddd; margin-top: 20px;">
+      <p style="font-size: 12px; color: #777;">&copy; ${new Date().getFullYear()} ${emp?.company?.CompanyName || "Webnexs"}. All rights reserved.</p>
+    </div>
+  </div>
+</body>
+</html>
+`;
 
                 // Send Email
                 await sendMail({
@@ -163,13 +188,12 @@ router.get("/make-know", async (req, res) => {
                     fullMember.notifications.push(notification);
                     await fullMember.save();
                 }
-
                 // Push Notification
                 if (member.fcmToken) {
                     await sendPushNotification({
                         token: member.fcmToken,
                         title: Subject,
-                        body: message,
+                        body: message
                     });
                 }
             }
@@ -543,9 +567,8 @@ router.put("/reject-wfh", async (req, res) => {
             fromDate: { $lte: endOfDay },
             status: "pending"
         })
-            .populate("employee", "FirstName LastName Email")
+            .populate({ path: "employee", select: "FirstName LastName Email company fcmToken", populate: { path: "company" } })
             .exec();
-
 
         if (!wfhReqs.length) {
             return res.status(200).send({ message: "No pending WFH requests found for today." });
@@ -553,13 +576,13 @@ router.put("/reject-wfh", async (req, res) => {
 
         await Promise.all(wfhReqs.map(async (wfh) => {
             // check has more than two team members in wfh
-            const team = await Team.findOne({ employees: wfh.employee }, "employees").exec();
+            const team = await Team.findOne({ employees: wfh.employee._id }, "employees").exec();
 
             const wfhEmps = await WFHApplication.find({
                 employee: { $in: team.employees },
                 status: "approved",
-                fromDate: { $lte: toDate },
-                toDate: { $gte: fromDate }
+                fromDate: { $lte: wfh.toDate },
+                toDate: { $gte: wfh.fromDate }
             })
 
             let approvers = {};
@@ -567,42 +590,99 @@ router.put("/reject-wfh", async (req, res) => {
                 approvers[key] = wfhEmps.length >= 2 ? "rejected" : "approved";
             }
 
-            const updatedLeave = {
+            const updateReq = {
                 ...req.body,
                 status: wfhEmps.length >= 2 ? "rejected" : "approved",
                 approvers
             };
 
-            await LeaveApplication.findByIdAndUpdate(wfh._id, updatedLeave, { new: true });
-
+            await LeaveApplication.findByIdAndUpdate(wfh._id, updateReq, { new: true });
+            const reqStatus = updateReq.status;
             const employee = wfh.employee;
             const fromDateStr = formatDate(wfh.fromDate);
             const toDateStr = formatDate(wfh.toDate);
+            const content = updateReq.status === "approved" ?
+                "Your Work From Home request has been approved. Since no one else from your team is working from home, please ensure you remain active online." :
+                "Please note that proceeding with this WFH without approval will be considered as unpaid and may lead to a salary deduction."
+            const htmlContent = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>${employee.company.CompanyName} - WFH Request Status</title>
+</head>
+<body style="font-family: Arial, sans-serif; background-color: #f6f9fc; color: #333; margin: 0; padding: 0;">
+  <div style="max-width: 500px; margin: auto; padding: 20px; background-color: #fff; border-radius: 8px;
+              box-shadow: rgba(0, 0, 0, 0.02) 0px 1px 3px 0px, rgba(27, 31, 35, 0.15) 0px 0px 0px 1px;">
+    
+    <!-- Header -->
+    <div style="text-align: center; padding: 20px;">
+      <img src="${employee.company.logo}" alt="Company Logo" style="max-width: 100px;" />
+      <h1 style="font-size: 20px; margin: 10px 0;">
+        WFH Request Notification
+      </h1>
+    </div>
 
-            const htmlContent = `
-        <p>Dear ${employee?.FirstName || "Employee"},</p>
-        <p>This is to inform you that your WFH request (${wfh.leaveType}) scheduled from <b>${fromDateStr}</b> to <b>${toDateStr}</b> was not responded to by the approving authorities in time.</p>
-        <p style="color: red; font-weight: bold;">Please note that proceeding with this WFH without approval will be considered as unpaid and may lead to a salary deduction.</p>
-        <p>We advise you to follow up with your reporting manager for further clarification.</p>
-        <p>Thank you for your understanding.</p>
-      `;
+    <!-- Content -->
+    <div style="margin: 20px 0; padding: 10px; font-size: 14px;">
+      <p>Dear ${employee?.FirstName || "Employee"},</p>
+      <p>
+        This is to inform you that your WFH request scheduled from 
+        <b>${fromDateStr}</b> to <b>${toDateStr}</b> was not responded to by the approving authorities in time.
+      </p>
+      <p style="color: ${reqStatus === "approved" ? "green" : "red"}; font-weight: bold;"> ${content}</p>
+      <p> We advise you to follow up with your reporting manager for further clarification. </p>
+      <p> Thank you for your understanding.   </p>
+    </div>
 
-            await sendMail({
-                From: `<${process.env.FROM_MAIL}> (Nexshr)`,
-                To: employee?.Email,
-                Subject: `WFH Request Rejected (${fromDateStr} - ${toDateStr})`,
-                HtmlBody: htmlContent,
-            });
+    <!-- Footer -->
+    <div style="text-align: center; padding-top: 15px; border-top: 1px solid #ddd; margin-top: 20px;">
+      <p style="font-size: 12px; color: #777;">&copy; ${new Date().getFullYear()} NexsHR. All rights reserved.</p>
+    </div>
+  </div>
+</body>
+</html>
+`;
+            const Subject = `WFH Request ${reqStatus === "approved" ? "Approved" : "Rejected"}`
+            if (employee.Email) {
+                await sendMail({
+                    From: `<${process.env.FROM_MAIL}> (Nexshr)`,
+                    To: employee?.Email,
+                    Subject,
+                    HtmlBody: htmlContent,
+                });
+
+                // Save Notification
+                const notification = {
+                    company: employee?.company?._id,
+                    title: Subject,
+                    message: content,
+                };
+
+                const fullMember = await Employee.findById(employee._id, "notifications");
+                if (fullMember) {
+                    fullMember.notifications.push(notification);
+                    await fullMember.save();
+                }
+
+                // Push Notification
+                if (employee.fcmToken) {
+                    await sendPushNotification({
+                        token: employee.fcmToken,
+                        title: Subject,
+                        body: content
+                    });
+                }
+            }
         }));
 
         return res.status(200).send({ message: "WFH rejection processed successfully." });
 
     } catch (error) {
-        console.error("Error processing WFH rejections:", error.message);
-        return res.status(500).send({ error: "An error occurred while processing WFH rejections." });
+        console.error("Error processing WFH rejections:", error);
+        return res.status(500).send({ error: error.message });
     }
 });
-
 
 router.put("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
     try {

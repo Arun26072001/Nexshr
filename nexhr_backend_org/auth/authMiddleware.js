@@ -28,8 +28,6 @@ function verifyEmployee(req, res, next) {
 
   if (typeof token !== "undefined") {
     jwt.verify(token, jwtKey, (err, authData) => {
-      console.log(authData);
-
       if (err) {
         console.log(err);
         res.sendStatus(401);

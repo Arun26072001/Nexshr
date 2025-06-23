@@ -190,7 +190,7 @@ export default function WFHRequests() {
                                     Pending request
                                 </div>
                             </div>
-                        </div>
+                        </div>  
                     </div>
                 </div>
                 {

@@ -2,7 +2,7 @@ import React, { useContext, useEffect, useState } from 'react';
 import { toast } from 'react-toastify';
 import "./dashboard.css";
 import LeaveTable from '../LeaveTable';
-import { fetchAllEmployees, fetchEmployees } from '../ReuseableAPI';
+import { fetchAllEmployees, fetchEmployees, fetchTeamEmps } from '../ReuseableAPI';
 import { useNavigate } from 'react-router-dom';
 import NoDataFound from './NoDataFound';
 import { EssentialValues } from '../../App';
@@ -111,37 +111,16 @@ export default function Employee() {
         }
     };
 
-    async function fetchTeamEmps() {
-        setIsLoading(true);
-        try {
-            const res = await axios.get(`${url}/api/employee/team/members/${data._id}`, {
-                params: {
-                    who: isTeamLead ? "lead" : isTeamHead ? "head" : "manager"
-                },
-                headers: {
-                    Authorization: data.token || ""
-                }
-            })
-            console.log("team emps", res.data);
-
-            setEmployees(res.data)
-            setFilteredEmps(res.data)
-        } catch (error) {
-            if (error?.message === "Network Error") {
-                navigate("/network-issue")
-            }
-            setEmployees([]);
-            console.log(error);
-        } finally {
-            setIsLoading(false)
-        }
+    async function getTeamEmps() {
+        const emps = await fetchTeamEmps();
+        setEmployees(emps)
     }
 
     useEffect(() => {
         if (["admin"].includes(whoIs)) {
             fetchAllEmployeeData()
         } else if ([isTeamLead, isTeamHead, isTeamManager].includes(true)) {
-            fetchTeamEmps();
+            getTeamEmps()
         }
         else if (["hr"].includes(whoIs)) {
             fetchEmployeeData();

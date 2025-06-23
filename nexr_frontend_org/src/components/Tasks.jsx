@@ -1,6 +1,6 @@
 import React, { useContext, useEffect, useState } from "react"
 import { Dropdown, Input, Popover, SelectPicker, Whisper } from "rsuite";
-import { fileUploadInServer, formatTimeFromHour, getTimeFromHour } from "./ReuseableAPI";
+import { fetchTeamEmps, fileUploadInServer, formatTimeFromHour, getTimeFromHour } from "./ReuseableAPI";
 import { useNavigate } from "react-router-dom";
 import CommonModel from "./Administration/CommonModel";
 import axios from "axios";
@@ -59,6 +59,7 @@ const Tasks = () => {
         triggerHandleAddTask();
       } else if (eventKey === 2) {
         // handleLogout();
+        console.log("eventKey 2 pressed");
       }
       onClose();
     };
@@ -89,24 +90,10 @@ const Tasks = () => {
     }
   }
 
-  async function fetchTeamEmps() {
-    try {
-      const res = await axios.get(`${url}/api/team/members/${data._id}`, {
-        params: {
-          who: isTeamLead ? "lead" : isTeamHead ? "head" : isTeamManager ? "manager" : "employees"
-        },
-        headers: {
-          Authorization: data.token || ""
-        }
-      })
-      setEmployees(res.data.employees.map((emp) => ({ label: emp.FirstName + " " + emp.LastName, value: emp._id })))
-    } catch (error) {
-      if (error?.message === "Network Error") {
-        navigate("/network-issue")
-      }
-      console.log("error in fetch team emps", error);
-
-    }
+  async function getTeamEmps() {
+    // fetch team employees
+    const emps = await fetchTeamEmps()
+    setEmployees(emps)
   }
 
   // fetch prject of employees
@@ -114,8 +101,7 @@ const Tasks = () => {
     if (taskObj?.project) {
       fetchProjectEmps()
     } else {
-      // fetch team employees
-      fetchTeamEmps()
+      getTeamEmps()
     }
   }, [taskObj?.project])
 
@@ -670,7 +656,8 @@ const Tasks = () => {
         spend: {
           ...taskData?.spend,
           startingTime: [...(taskData?.spend?.startingTime || []), currentTime]
-        }
+        },
+        status: "In Progress"
       }
     } else {
       updatedTask = {
@@ -679,7 +666,8 @@ const Tasks = () => {
           ...taskData?.spend,
           endingTime: [...(taskData?.spend?.endingTime || []), currentTime],
           timeHolder: timeHolderData
-        }
+        },
+        status: "Pending"
       }
     }
     editTask(updatedTask)

@@ -54,8 +54,7 @@ export default function WFHRequestForm({ type }) {
                         Authorization: data.token || ""
                     }
                 });
-                toast.success(res.data?.message);
-                navigate(-1);
+                toast.success(res.data?.message)
             } else {
                 const res = await axios.post(`${url}/api/wfh-application/${data._id}`, updatedRequest, {
                     headers: {
@@ -63,9 +62,9 @@ export default function WFHRequestForm({ type }) {
                     }
                 });
                 toast.success(res.data?.message);
-                navigate(-1);
             }
             setwfhRequestObj({});
+            navigate(-1);
         } catch (error) {
             if (error?.message === "Network Error") {
                 navigate("/network-issue")
@@ -141,7 +140,6 @@ export default function WFHRequestForm({ type }) {
                                     excludeDates={!wfhRequestObj.leaveType?.toLowerCase()?.includes("permission") && excludedDates}
                                     onKeyDown={(e) => e.preventDefault()}
                                 />
-
                                 {error?.includes("fromDate") && <div className="text-center text-danger">{error}</div>}
                             </div>
 
@@ -196,7 +194,7 @@ export default function WFHRequestForm({ type }) {
                                     <button
                                         type="button"
                                         className="btn btn-outline-dark w-100"
-                                        onClick={() => navigate(`/${whoIs}`)}
+                                        onClick={() => navigate(-1)}
                                     >
                                         Cancel
                                     </button>

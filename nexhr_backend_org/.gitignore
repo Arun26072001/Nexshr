@@ -1,4 +1,4 @@
 /node_modules
 config.js
 jwtKey.js
-# .env
+.env
