@@ -608,6 +608,7 @@ router.get("/employee/:empId", verifyAdminHREmployeeManagerNetwork, async (req, 
                     match: { fromDate: { $lte: endOfMonth }, toDate: { $gte: startOfMonth }, status: "approved", leaveType: { $ne: "Permission Leave" } },
                     select: "fromDate toDate leaveType periodOfLeave employee"
                 }])
+        console.log("employee", employee);
 
         if (!employee) return res.status(400).send({ message: "Employee not found." });
 

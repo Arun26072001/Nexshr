@@ -74,8 +74,8 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
             }
         },
         { id: 'periodOfLeave', label: 'Period Of Leave', align: "left", minWidth: 100, getter: (row) => row.periodOfLeave },
-        { id: 'fromDate', label: 'Start Date', minWidth: 120, align: 'left', getter: (row) => row.fromDate ? row.fromDate.split("T")[0] : 'N/A' },
-        { id: 'toDate', label: 'End Date', minWidth: 120, align: 'left', getter: (row) => row.toDate ? row.toDate.split("T")[0] : 'N/A' },
+        { id: 'fromDate', label: 'Start Date', minWidth: 120, align: 'left', getter: (row) => row.fromDate ? new Date(row?.fromDate).toLocaleDateString() : 'N/A' },
+        { id: 'toDate', label: 'End Date', minWidth: 120, align: 'left', getter: (row) => row.toDate ? new Date(row?.toDate).toLocaleDateString() : 'N/A' },
         { id: 'leaveType', label: 'Type', minWidth: 170, align: 'left', getter: (row) => row.leaveType },
         { id: '', label: 'Reason', minWidth: 150, align: 'left', getter: (row) => <div dangerouslySetInnerHTML={{ __html: row.reasonForLeave.slice(0, 20) + (row?.reasonForLeave?.length > 20 ? "..." : "") }} /> },
         {
@@ -245,7 +245,7 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
             label: 'Date',
             minWidth: 130,
             align: 'center',
-            getter: (row) => row?.date ? row.date.split("T")[0] : "no date"
+            getter: (row) => row?.date ? new Date(row.date).toLocaleDateString() : "no date"
         },
         {
             id: 'punchIn',
@@ -292,7 +292,7 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
             label: 'Date',
             minWidth: 130,
             align: 'left',
-            getter: (row) => row?.date ? row.date.split("T")[0] : "no date"
+            getter: (row) => row?.date ? new Date(row.date).toLocaleDateString() : "no date"
         },
         {
             id: 'type',
@@ -484,8 +484,8 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
             }
         },
         { id: 'periodOfLeave', label: 'Period Of Leave', align: "left", minWidth: 150, getter: (row) => row.periodOfLeave },
-        { id: 'fromDate', label: 'Start Date', minWidth: 130, align: 'left', getter: (row) => row.fromDate ? row.fromDate.split("T")[0] : 'N/A' },
-        { id: 'toDate', label: 'End Date', minWidth: 130, align: 'left', getter: (row) => row.toDate ? row.toDate.split("T")[0] : 'N/A' },
+        { id: 'fromDate', label: 'Start Date', minWidth: 130, align: 'left', getter: (row) => row.fromDate ? new Date(row.fromDate).toLocaleDateString() : 'N/A' },
+        { id: 'toDate', label: 'End Date', minWidth: 130, align: 'left', getter: (row) => row.toDate ? new Date(row.toDate).toLocaleDateString() : 'N/A' },
         { id: 'leaveType', label: 'Type', minWidth: 100, align: 'left', getter: (row) => row.leaveType },
         { id: 'reasonForLeave', label: 'Reason', minWidth: 150, align: 'left', getter: (row) => row.reasonForLeave.slice(0, 20) + (row?.reasonForLeave?.length > 20 ? "..." : "") },
         { id: 'status', label: 'Status', minWidth: 100, align: 'left', getter: (row) => row.status },
@@ -525,8 +525,8 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
 
     const column11 = [
         { id: 'title', label: 'Title', minWidth: 150, align: 'left', getter: (row) => row.title || 'Untitled' },
-        { id: 'startDate', label: 'Start Date', minWidth: 130, align: 'left', getter: (row) => row.startDate ? row.startDate.split("T")[0] : 'N/A' },
-        { id: 'endDate', label: 'End Date', minWidth: 130, align: 'left', getter: (row) => row.endDate ? row.endDate.split("T")[0] : 'N/A' },
+        { id: 'startDate', label: 'Start Date', minWidth: 130, align: 'left', getter: (row) => row.startDate ? new Date(row.startDate).toLocaleDateString() : 'N/A' },
+        { id: 'endDate', label: 'End Date', minWidth: 130, align: 'left', getter: (row) => row.endDate ? new Date(row.endDate).toLocaleDateString() : 'N/A' },
         { id: 'message', label: 'Message', minWidth: 200, align: 'left', getter: (row) => row.message.replace(/<[^>]*>/g, "") || 'No message' },
         { id: 'Action', label: 'Action', minWidth: 100, align: 'center' },
     ];
@@ -544,14 +544,14 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
             label: 'Start Date',
             minWidth: 130,
             align: 'left',
-            getter: (row) => row.startDate ? row.startDate.split("T")[0] : 'N/A',
+            getter: (row) => row.startDate ? new Date(row.startDate).toLocaleDateString() : 'N/A',
         },
         {
             id: 'endDate',
             label: 'End Date',
             minWidth: 130,
             align: 'left',
-            getter: (row) => row.endDate ? row.endDate.split("T")[0] : 'N/A',
+            getter: (row) => row.endDate ? new Date(row.endDate).toLocaleDateString() : 'N/A',
         },
         {
             id: 'createdby',
@@ -1115,7 +1115,7 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
                                                                         <RemoveRedEyeRoundedIcon sx={{ color: "#80C4E9" }} /> View
                                                                     </b>
                                                                 </Dropdown.Item>
-                                                                {row.status === "pending" &&
+                                                                {row.status === "pending" ?
                                                                     <>
                                                                         <Dropdown.Item style={{ minWidth: 120 }} onClick={() => navigate(`/${whoIs}/wfh-request/edit/${row._id}`)}>
                                                                             <b>
@@ -1127,7 +1127,7 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
                                                                                 <DeleteRoundedIcon sx={{ color: "#F93827" }} /> Delete
                                                                             </b>
                                                                         </Dropdown.Item>
-                                                                    </>}
+                                                                    </> : null}
                                                             </Dropdown>
                                                         );
                                                     } else if (params['*'] === "employee") {
@@ -1197,19 +1197,19 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
                                                                 </b>
                                                             </Dropdown.Item>
                                                             {
-                                                                row.status === "pending" &&
-                                                                <>
-                                                                    <Dropdown.Item style={{ minWidth: 80 }} onClick={() => navigate(`/${whoIs}/leave-request/edit/${row._id}`)}>
-                                                                        <b>
-                                                                            <BorderColorRoundedIcon sx={{ color: "#FFD65A" }} /> Edit
-                                                                        </b>
-                                                                    </Dropdown.Item>
-                                                                    <Dropdown.Item style={{ minWidth: 80 }} onClick={() => fetchData(row._id, "delete")}>
-                                                                        <b>
-                                                                            <DeleteRoundedIcon sx={{ color: "#F93827" }} /> Delete
-                                                                        </b>
-                                                                    </Dropdown.Item>
-                                                                </>
+                                                                row.status === "pending" && row.leaveType !== "Unpaid Leave (LWP)" ?
+                                                                    <>
+                                                                        <Dropdown.Item style={{ minWidth: 80 }} onClick={() => navigate(`/${whoIs}/leave-request/edit/${row._id}`)}>
+                                                                            <b>
+                                                                                <BorderColorRoundedIcon sx={{ color: "#FFD65A" }} /> Edit
+                                                                            </b>
+                                                                        </Dropdown.Item>
+                                                                        <Dropdown.Item style={{ minWidth: 80 }} onClick={() => fetchData(row._id, "delete")}>
+                                                                            <b>
+                                                                                <DeleteRoundedIcon sx={{ color: "#F93827" }} /> Delete
+                                                                            </b>
+                                                                        </Dropdown.Item>
+                                                                    </> : null
                                                             }
                                                         </Dropdown>)
                                                     } else if (["organizations", "users", "announcement"].includes(params["*"])) {
@@ -1313,14 +1313,13 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
                                                         </Dropdown>
                                                     );
                                                 }
-                                                return <p>sjdjkh</p>;
+                                                return <p>N/A</p>;
                                             };
 
                                             return (
                                                 <TableCell
                                                     key={column.id}
                                                     align={column.align}
-                                                    // className={cellClass}
                                                     style={cellStyle}
                                                 >
                                                     {["Action", "auth", "Manage"].includes(column.id) ? renderActions() : value}

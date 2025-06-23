@@ -173,7 +173,6 @@ export default function Navbar({ handleSideBar }) {
                     Authorization: data.token || ""
                 }
             })
-            console.log("updated notifications", res.data.message);
             handleUpdateAnnouncements();
         } catch (error) {
             if (error?.message === "Network Error") {

@@ -1,6 +1,6 @@
 import React, { useContext, useEffect, useRef, useState } from 'react';
 import './dashboard.css';
-import { createTask, fetchEmployeeData, fileUploadInServer, formatTime, formatTimeFromHour, getDataAPI, gettingClockinsData, getTotalWorkingHourPerDay } from '../ReuseableAPI';
+import { createTask, fetchEmployeeData, fetchTeamEmps, fileUploadInServer, formatTime, formatTimeFromHour, getDataAPI, gettingClockinsData, getTotalWorkingHourPerDay } from '../ReuseableAPI';
 import ActivityTimeTracker from '../ActivityTimeTracker';
 import NexHRDashboard from '../NexHRDashboard';
 import AddRoundedIcon from '@mui/icons-material/AddRounded';
@@ -119,27 +119,6 @@ const Dashboard = () => {
             fetchProjectEmps()
         }
     }, [taskObj?.project])
-
-    // fetch team emps
-    async function fetchTeamEmps() {
-        try {
-            const res = await axios.get(`${url}/api/team/members/${data._id}`, {
-                params: {
-                    who: isTeamLead ? "lead" : isTeamHead ? "head" : isTeamManager ? "manager" : "employees"
-                },
-                headers: {
-                    Authorization: data.token || ""
-                }
-            })
-            setTeamEmps(res.data.employees.map((emp) => ({ label: emp.FirstName + " " + emp.LastName, value: emp._id })))
-        } catch (error) {
-            if (error?.message === "Network Error") {
-                navigate("/network-issue")
-            }
-            console.log("error in fetch team emps", error);
-
-        }
-    }
 
     async function fetchTaskById(id) {
         try {
@@ -526,9 +505,15 @@ const Dashboard = () => {
         }
         setIsLoading(false)
     }
+    async function gettingTeamEmp() {
+        const emps = await fetchTeamEmps();
+        if (Array.isArray(emps) && emps.length > 0) {
+            setTeamEmps(emps);
+        }
+    }
     useEffect(() => {
         if ([isTeamLead, isTeamHead, isTeamManager].includes(true)) {
-            fetchTeamEmps();
+            gettingTeamEmp()
         }
         fetchEmpsProjects()
     }, [])

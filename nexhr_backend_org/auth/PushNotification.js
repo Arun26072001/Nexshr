@@ -38,7 +38,6 @@ exports.verifyWorkingTimeCompleted = async (req, res) => {
         const { employee, login } = req.body;
         const empData = await Employee.findById(employee, "FirstName LastName workingTimePattern")
             .populate("workingTimePattern").exec();
-        console.log("empData", empData);
 
         let startingTimes = login?.startingTime;
         let endingTimes = login?.endingTime;

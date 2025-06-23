@@ -98,23 +98,28 @@ const Attendence = () => {
           authorization: token || ""
         }
       });
+      console.log("empClockins", dashboard);
 
-      setclockInsData(dashboard.data);
-      setTableData(dashboard.data.clockIns);
-      setFilteredTableData(dashboard.data.clockIns)
-      const { totalEarlyLogins, totalLateLogins, totalRegularLogins } = dashboard.data;
-      const totalLogins = totalEarlyLogins + totalLateLogins + totalRegularLogins
+      if (dashboard.data) {
+        setclockInsData(dashboard.data);
+        if (dashboard.data.clockIns?.length) {
+          setTableData(dashboard.data.clockIns);
+          setFilteredTableData(dashboard.data.clockIns)
+        }
+        const { totalEarlyLogins, totalLateLogins, totalRegularLogins } = dashboard.data;
+        const totalLogins = totalEarlyLogins + totalLateLogins + totalRegularLogins
 
-      // Calculate height percentages
-      if (totalLogins > 0) {
-        setRegularHeight((totalRegularLogins / totalLogins) * 100);
-        setLateHeight((totalLateLogins / totalLogins) * 100);
-        setEarlyHeight((totalEarlyLogins / totalLogins) * 100);
+        // Calculate height percentages
+        if (totalLogins > 0) {
+          setRegularHeight((totalRegularLogins / totalLogins) * 100);
+          setLateHeight((totalLateLogins / totalLogins) * 100);
+          setEarlyHeight((totalEarlyLogins / totalLogins) * 100);
+        }
       }
-   } catch (error) {
-         if (error?.message === "Network Error") {
-                navigate("/network-issue")
-            }
+    } catch (error) {
+      if (error?.message === "Network Error") {
+        navigate("/network-issue")
+      }
       console.log(error);
     }
     setIsLoading(false);
@@ -151,7 +156,7 @@ const Attendence = () => {
                 return (<div
                   key={key}
                   className={`col-lg-3 col-3 ${label.toLowerCase()}`}
-                  style={{ height: `${height}%` }}>
+                  style={{ height: `${height}%`, zIndex: height === 0 ? 0 : height >= 20 ? 1 : height >= 40 ? 2 : 3 }}>
                   <div className={`${screen.width < 720 ? "d-block" : "d-flex"}  justify-content-center ${clockInsData[key] === 0 ? "emtChart" : ""}`}>
                     <p className="payslipTitle" style={{ color: "#146ADC" }}>
                       {clockInsData[key].toFixed(1)} Days
