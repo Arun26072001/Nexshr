@@ -34,7 +34,6 @@ export default function Navbar({ handleSideBar }) {
     const [isLoading, setIsLoading] = useState(false);
     const navigate = useNavigate();
     const [workLocation, setWorklocation] = useState(localStorage.getItem("workLocation") || "");
-    const worklocationType = ["WFH", "WFO"].map((item) => ({ label: item, value: item }))
 
     // Timer logic to increment time
     const incrementTime = () => {
@@ -502,7 +501,7 @@ export default function Navbar({ handleSideBar }) {
 
                         <div className='gap-2 col-lg-4 col-md-3 d-flex align-items-center justify-content-end'>
                             <SelectPicker
-                                data={worklocationType}
+                                data={["WFH", "WFO"].map((item) => ({ label: item, value: item }))}
                                 searchable={false}
                                 onChange={(e) => {
                                     setWorklocation(e)
