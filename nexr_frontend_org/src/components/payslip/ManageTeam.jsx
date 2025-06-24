@@ -55,7 +55,7 @@ const ManageTeam = () => {
     const changeTeamObj = (value, name) => {
         setTeamObj((prev) => ({
             ...prev,
-            [name]: value?.trimStart()?.replace(/\s+/g, ' ')
+            [name]: typeof value === "string" ? value?.trimStart()?.replace(/\s+/g, ' ') : value
         }));
     };
 
@@ -150,8 +150,8 @@ const ManageTeam = () => {
                 label: emp.FirstName + " " + emp.LastName,
                 value: emp._id
             })));
-       } catch (error) {
-         if (error?.message === "Network Error") {
+        } catch (error) {
+            if (error?.message === "Network Error") {
                 navigate("/network-issue")
             }
             console.log(error.response.data.error);
@@ -169,8 +169,8 @@ const ManageTeam = () => {
                 label: emp.FirstName + " " + emp.LastName,
                 value: emp._id
             })));
-       } catch (error) {
-         if (error?.message === "Network Error") {
+        } catch (error) {
+            if (error?.message === "Network Error") {
                 navigate("/network-issue")
             }
             console.log(error.response.data.error);
@@ -188,8 +188,8 @@ const ManageTeam = () => {
                 label: emp.FirstName + " " + emp.LastName,
                 value: emp._id
             })));
-       } catch (error) {
-         if (error?.message === "Network Error") {
+        } catch (error) {
+            if (error?.message === "Network Error") {
                 navigate("/network-issue")
             }
             console.log(error.response.data.error);
@@ -207,8 +207,8 @@ const ManageTeam = () => {
                 label: emp.FirstName + " " + emp.LastName,
                 value: emp._id
             })));
-       } catch (error) {
-         if (error?.message === "Network Error") {
+        } catch (error) {
+            if (error?.message === "Network Error") {
                 navigate("/network-issue")
             }
             console.log(error.response.data.error);
@@ -226,8 +226,8 @@ const ManageTeam = () => {
                 label: emp.FirstName + " " + emp.LastName,
                 value: emp._id
             })));
-       } catch (error) {
-         if (error?.message === "Network Error") {
+        } catch (error) {
+            if (error?.message === "Network Error") {
                 navigate("/network-issue")
             }
             console.log(error.response.data.error);
