@@ -385,6 +385,8 @@ const gettingClockinsData = async (_id) => {
         return;
     }
     try {
+        console.log("url", url);
+        
         const dashboard = await axios.get(`${url}/api/clock-ins/employee/${_id}`, {
             headers: {
                 authorization: token || ""
