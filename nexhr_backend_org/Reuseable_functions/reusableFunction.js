@@ -425,19 +425,12 @@ function getTotalWorkingHourPerDay(startingTime, endingTime) {
   }
 }
 
-const getTotalWorkingHoursExcludingWeekends = (start, end, dailyHours = 0, holidays = [], WeeklyDays = []) => {
+const getTotalWorkingHoursExcludingWeekends = (start, end, dailyHours = 10.30) => {
   let totalHours = 0;
-
-  let date = new Date(start);
-  const endDate = new Date(end);
-  while (date <= endDate) {
-    const dateStr = date.toLocaleString("default", { weekday: "long" })
-    if (WeeklyDays.includes(dateStr) && !checkDateIsHoliday(holidays, date)) {
+  for (let date = new Date(start); date <= end; date.setDate(date.getDate() + 1)) {
+    if (date.getDay() !== 0 && date.getDay() !== 6) { // Exclude weekends
       totalHours += dailyHours;
     }
-
-    // Move to next day
-    date.setDate(date.getDate() + 1);
   }
   return totalHours;
 };
