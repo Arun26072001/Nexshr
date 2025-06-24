@@ -102,7 +102,7 @@ export default function Comments() {
 
             // Send PUT request to update task
             const res = await axios.put(
-                `${url}api/task/${data._id}/${taskObj._id}`,
+                `${url}/api/task/${data._id}/${taskObj._id}`,
                 updatedTaskData,
                 {
                     headers: {
@@ -131,7 +131,7 @@ export default function Comments() {
 
     async function updateCommentsInObj(taskObjdata, type) {
         try {
-            const res = await axios.put(`${url}api/task/updatedTaskComment/${data._id}`, taskObjdata, {
+            const res = await axios.put(`${url}/api/task/updatedTaskComment/${data._id}`, taskObjdata, {
                 params: {
                     type
                 },
@@ -309,7 +309,7 @@ export default function Comments() {
 
     async function fetchTaskOfComments() {
         try {
-            const res = await axios.get(`${url}api/task/${id}`, {
+            const res = await axios.get(`${url}/api/task/${id}`, {
                 params: {
                     withComments: true
                 },
@@ -334,7 +334,7 @@ export default function Comments() {
 
     async function deleteTask() {
         try {
-            const res = await axios.delete(`${url}api/task/${taskObj._id}`, {
+            const res = await axios.delete(`${url}/api/task/${taskObj._id}`, {
                 headers: {
                     Authorization: data.token || ""
                 }
@@ -411,7 +411,7 @@ export default function Comments() {
     }
     async function fetchProjects() {
         try {
-            const res = await axios.get(`${url}api/project`, {
+            const res = await axios.get(`${url}/api/project`, {
                 headers: {
                     Authorization: data.token || ""
                 }

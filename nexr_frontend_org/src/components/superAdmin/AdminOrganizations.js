@@ -58,7 +58,7 @@ const AdminOrganizations = ({ organizations, isLoading, handleChangeToRefetchOrg
 
     async function fetchOrgData(orgId, type) {
         try {
-            const res = await axios.get(`${url}api/organization/${orgId}`, {
+            const res = await axios.get(`${url}/api/organization/${orgId}`, {
                 headers: {
                     Authorization: data.token || ""
                 }
@@ -83,7 +83,7 @@ const AdminOrganizations = ({ organizations, isLoading, handleChangeToRefetchOrg
                 // upload org image
                 const formData = new FormData();
                 formData.append("documents", orgObj.orgImg);
-                const uploadedData = await axios.post(`${url}api/upload`, formData);
+                const uploadedData = await axios.post(`${url}/api/upload`, formData);
                 newOrg = {
                     ...orgObj,
                     orgImg: uploadedData.data.files[0].originalFile
@@ -91,7 +91,7 @@ const AdminOrganizations = ({ organizations, isLoading, handleChangeToRefetchOrg
             }
             // add organization
             const response = await axios.post(
-                `${url}api/organization/${data._id}`,
+                `${url}/api/organization/${data._id}`,
                 newOrg,
                 {
                     headers: {
@@ -123,13 +123,13 @@ const AdminOrganizations = ({ organizations, isLoading, handleChangeToRefetchOrg
                 // upload org image
                 const formData = new FormData();
                 formData.append("documents", orgObj.orgImg);
-                const uploadedData = await axios.post(`${url}api/upload`, formData);
+                const uploadedData = await axios.post(`${url}/api/upload`, formData);
                 updatedOrg = {
                     ...orgObj,
                     orgImg: uploadedData.files[0].originalFile
                 }
             }
-            const response = await axios.put(`${url}api/organization/${orgObj._id}`, updatedOrg,
+            const response = await axios.put(`${url}/api/organization/${orgObj._id}`, updatedOrg,
                 {
                     headers: {
                         Authorization: data.token || "",

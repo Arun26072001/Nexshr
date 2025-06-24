@@ -36,7 +36,7 @@ const AdminDashboard = () => {
     const fetchAllOrganizations = async () => {
         setIsLoading(true)
         try {
-            const response = await axios(`${url}api/organization`, {
+            const response = await axios(`${url}/api/organization`, {
                 headers: {
                     Authorization: token
                 }
@@ -55,7 +55,7 @@ const AdminDashboard = () => {
     async function fetchEmps() {
         setIsLoading(true);
         try {
-            const res = await axios.get(`${url}api/user-account`, {
+            const res = await axios.get(`${url}/api/user-account`, {
                 headers: {
                     Authorization: token || ""
                 }

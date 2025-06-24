@@ -36,7 +36,7 @@ export default function Employee() {
         formData.append('documents', file);
         setProcessing(true);
         try {
-            const response = await axios.post(`${url}api/google-sheet/upload/employees/${data._id}`, formData, {
+            const response = await axios.post(`${url}/api/google-sheet/upload/employees/${data._id}`, formData, {
                 headers: {
                     'Content-Type': 'multipart/form-data',
                     Authorization: data.token || ""
@@ -58,7 +58,7 @@ export default function Employee() {
     async function handleDeleteEmp(empId) {
         try {
             setIsDeleting(empId)
-            const res = await axios.delete(`${url}api/employee/${empId}`, {
+            const res = await axios.delete(`${url}/api/employee/${empId}`, {
                 headers: {
                     Authorization: data.token || ""
                 }

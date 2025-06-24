@@ -89,7 +89,7 @@ export default function Country() {
     async function updateCountry() {
         setIschangingCountry(true);
         try {
-            const res = await axios.put(`${url}api/country/${countryObj.code}`, countryObj, {
+            const res = await axios.put(`${url}/api/country/${countryObj.code}`, countryObj, {
                 headers: {
                     Authorization: data.token || ""
                 }
@@ -110,7 +110,7 @@ export default function Country() {
     async function addCountry() {
         setIschangingCountry(true);
         try {
-            const res = await axios.post(`${url}api/country`, countryObj, {
+            const res = await axios.post(`${url}/api/country`, countryObj, {
                 headers: {
                     Authorization: data.token || ""
                 }
@@ -149,7 +149,7 @@ export default function Country() {
     async function fetchCountries() {
         setIsLoading(true)
         try {
-            const res = await axios.get(`${url}api/country`, {
+            const res = await axios.get(`${url}/api/country`, {
                 headers: {
                     Authorization: data.token || ""
                 }

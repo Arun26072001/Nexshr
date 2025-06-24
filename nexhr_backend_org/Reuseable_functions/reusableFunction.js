@@ -425,12 +425,21 @@ function getTotalWorkingHourPerDay(startingTime, endingTime) {
   }
 }
 
-const getTotalWorkingHoursExcludingWeekends = (start, end, dailyHours = 10.30) => {
+const getTotalWorkingHoursExcludingWeekends = (start, end, dailyHours = 0, holidays = [], WeeklyDays = []) => {
   let totalHours = 0;
-  for (let date = new Date(start); date <= end; date.setDate(date.getDate() + 1)) {
-    if (date.getDay() !== 0 && date.getDay() !== 6) { // Exclude weekends
-      totalHours += dailyHours;
+  // for (let date = new Date(start); date <= end; date.setDate(date.getDate() + 1)) {
+  //   if (date.getDay() !== 0 && date.getDay() !== 6) { // Exclude weekends
+  //     totalHours += dailyHours;
+  //   }
+  // }
+  const from = new Date(start);
+  const to = new Date(end);
+  while (from <= to) {
+    const date = new Date(from);
+    if (isValidLeaveDate(holidays, WeeklyDays, date)) {
+      totalHours += dailyHours
     }
+    from.setDate(from.getDate() + 1); // <- Corrected here
   }
   return totalHours;
 };
@@ -467,7 +476,7 @@ const getOrgDB = async (organizationId) => {
 
 // Helper function to format leave data
 const formatLeaveData = (leave) => ({
-  ...leave?.toObject(),
+  ...leave,
   prescription: leave.prescription ? `${process.env.REACT_APP_API_URL}/uploads/${leave.prescription}` : null
 });
 

@@ -70,7 +70,7 @@ export default function EmailTemplates() {
                 ...templateObj,
                 status: templateObj.status || false
             }
-            const res = await axios.post(`${url}api/email-template/${data._id}`, newTemplate, {
+            const res = await axios.post(`${url}/api/email-template/${data._id}`, newTemplate, {
                 headers: {
                     Authorization: data.token
                 }
@@ -93,7 +93,7 @@ export default function EmailTemplates() {
     async function updateTemplate() {
         try {
             setIsWorkingApi(true)
-            const res = await axios.put(`${url}api/email-template/${templateObj._id}`, templateObj, {
+            const res = await axios.put(`${url}/api/email-template/${templateObj._id}`, templateObj, {
                 headers: {
                     Authorization: data.token
                 }
@@ -148,7 +148,7 @@ export default function EmailTemplates() {
     async function fetchTemplates() {
         try {
             setIsLoading(true)
-            const res = await axios(`${url}api/email-template`, {
+            const res = await axios(`${url}/api/email-template`, {
                 headers: {
                     Authorization: data.token
                 }

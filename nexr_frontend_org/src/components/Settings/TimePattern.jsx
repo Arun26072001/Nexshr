@@ -75,7 +75,7 @@ const TimePattern = () => {
     async function updateTimePattern() {
         try {
             setIsWorkingApi(true);
-            const res = await axios.put(`${url}api/time-pattern/${timePatternObj._id}`, timePatternObj, {
+            const res = await axios.put(`${url}/api/time-pattern/${timePatternObj._id}`, timePatternObj, {
                 headers: {
                     authorization: token || ""
                 }
@@ -97,7 +97,7 @@ const TimePattern = () => {
     async function addTimePattern() {
         try {
             setIsWorkingApi(true)
-            const res = await axios.post(`${url}api/time-pattern`, timePatternObj, {
+            const res = await axios.post(`${url}/api/time-pattern`, timePatternObj, {
                 headers: {
                     Authorization: token
                 }
@@ -120,7 +120,7 @@ const TimePattern = () => {
     async function deletePattern(pattern) {
         setIsDeleting(pattern)
         try {
-            const res = await axios.delete(`${url}api/time-pattern/${pattern}`, {
+            const res = await axios.delete(`${url}/api/time-pattern/${pattern}`, {
                 headers: {
                     authorization: token || ""
                 }
@@ -143,7 +143,7 @@ const TimePattern = () => {
         async function fetchTimePatterns() {
             setIsLoading(true)
             try {
-                const res = await axios.get(`${url}api/time-pattern`, {
+                const res = await axios.get(`${url}/api/time-pattern`, {
                     headers: {
                         authorization: token || ""
                     }

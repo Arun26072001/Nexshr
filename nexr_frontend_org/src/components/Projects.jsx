@@ -72,7 +72,7 @@ export default function Projects() {
 
     async function fetchProjectById(id) {
         try {
-            const res = await axios.get(`${url}api/project/${id}`, {
+            const res = await axios.get(`${url}/api/project/${id}`, {
                 headers: {
                     Authorization: data.token || ""
                 }
@@ -89,7 +89,7 @@ export default function Projects() {
     async function fetchProjects() {
         setIsLoading(true)
         try {
-            const res = await axios.get(`${url}api/project`, {
+            const res = await axios.get(`${url}/api/project`, {
                 headers: {
                     Authorization: data.token || ""
                 }
@@ -109,7 +109,7 @@ export default function Projects() {
     async function fetchEmpsProjects() {
         setIsLoading(true)
         try {
-            const res = await axios.get(`${url}api/project/emp/${data._id}`, {
+            const res = await axios.get(`${url}/api/project/emp/${data._id}`, {
                 headers: {
                     Authorization: data.token || ""
                 }
@@ -129,7 +129,7 @@ export default function Projects() {
     async function updateProject() {
         setIsWorkingApi(true);
         try {
-            const res = await axios.put(`${url}api/project/${data._id}/${projectObj?._id}`, projectObj, {
+            const res = await axios.put(`${url}/api/project/${data._id}/${projectObj?._id}`, projectObj, {
                 headers: {
                     Authorization: data.token || ""
                 }
@@ -156,7 +156,7 @@ export default function Projects() {
                     ? projectObj.employees
                     : [...(projectObj?.employees || []), data._id]
             }
-            const res = await axios.post(`${url}api/project/${data._id}`, newProjectObj, {
+            const res = await axios.post(`${url}/api/project/${data._id}`, newProjectObj, {
                 headers: {
                     Authorization: data.token || ""
                 }
@@ -198,7 +198,7 @@ export default function Projects() {
 
     async function deleteProject() {
         try {
-            const res = await axios.delete(`${url}api/project/${isDelete.value}`, {
+            const res = await axios.delete(`${url}/api/project/${isDelete.value}`, {
                 headers: {
                     Authorization: data.token || ""
                 }

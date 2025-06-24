@@ -243,7 +243,7 @@ const AddEmployee = () => {
 
   async function fetchCountries() {
     try {
-      const res = await axios.get(`${url}api/country`, {
+      const res = await axios.get(`${url}/api/country`, {
         headers: {
           authorization: token || ""
         }

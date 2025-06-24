@@ -72,7 +72,7 @@ export default function PageAndActionAuth() {
 
     async function fetchRoleById() {
         try {
-            const role = await axios.get(`${url}api/role/${id}`, {
+            const role = await axios.get(`${url}/api/role/${id}`, {
                 headers: {
                     Authorization: data.token || ""
                 }
@@ -91,7 +91,7 @@ export default function PageAndActionAuth() {
     async function addRoleAndPermission() {
         setIschangingRole(true);
         try {
-            const roleData = await axios.post(`${url}api/role`, roleObj, {
+            const roleData = await axios.post(`${url}/api/role`, roleObj, {
                 headers: {
                     Authorization: data.token || ""
                 }
@@ -110,7 +110,7 @@ export default function PageAndActionAuth() {
     async function updateRoleAndPermission() {
         setIschangingRole(true)
         try {
-            const updatedRole = await axios.put(`${url}api/role/${id}`, roleObj, {
+            const updatedRole = await axios.put(`${url}/api/role/${id}`, roleObj, {
                 headers: {
                     authorization: data.token || ""
                 }
@@ -130,7 +130,7 @@ export default function PageAndActionAuth() {
     async function getInitialRoleObj() {
         const roleName = prompt("Please Enter Role Name: ");
         try {
-            const roleData = await axios.get(`${url}api/role/name`, {
+            const roleData = await axios.get(`${url}/api/role/name`, {
                 headers: {
                     authorization: data.token || ""
                 }

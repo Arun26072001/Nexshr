@@ -96,9 +96,8 @@ const App = () => {
   const login = async (email, password) => {
     setLoading(true);
     try {
-      const response = await axios.post(`${url}api/login`, { Email: email, Password: password });
+      const response = await axios.post(`${url}/api/login`, { Email: email, Password: password });
       const decodedData = jwtDecode(response.data);
-      console.log("decodedData", decodedData);
 
       if (!decodedData?.Account || !["17", "1", "2", "3", "4", "5"].includes(String(decodedData?.Account))) {
         throw new Error("Invalid account type.");
@@ -154,7 +153,7 @@ const App = () => {
 
   async function saveFcmToken(empId, fcmToken) {
     try {
-      const res = await axios.post(`${url}api/employee/add-fcm-token`, { empId, fcmToken }, {
+      const res = await axios.post(`${url}/api/employee/add-fcm-token`, { empId, fcmToken }, {
         headers: {
           Authorization: data.token || ""
         }

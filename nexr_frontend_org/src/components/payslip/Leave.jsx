@@ -39,7 +39,7 @@ const Leave = () => {
     async function deleteLeave(leaveId) {
         try {
             setIsDeleting(leaveId);
-            const res = await axios.delete(`${url}api/leave-application/${_id}/${leaveId}`, {
+            const res = await axios.delete(`${url}/api/leave-application/${_id}/${leaveId}`, {
                 headers: {
                     Authorization: token || ""
                 }
@@ -59,7 +59,7 @@ const Leave = () => {
     const getLeaveData = async () => {
         setIsLoading(true);
         try {
-            const leaveData = await axios.get(`${url}api/leave-application/date-range/${_id}`, {
+            const leaveData = await axios.get(`${url}/api/leave-application/date-range/${_id}`, {
                 params: {
                     daterangeValue
                 },
