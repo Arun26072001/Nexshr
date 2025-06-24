@@ -874,10 +874,10 @@ leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("pre
         ![today.toDateString(), tomorrow.toDateString()].includes(formattedFrom)) {
         return res.status(400).json({ error: "Sick leave is only applicable for today or tomorrow." });
       }
+      console.log("today", today.toDateString(), "tomarrow", tomorrow.toDateString(), "actual", formattedFrom);
 
       if (["Annual Leave", "Casual Leave"].includes(leaveType) &&
         [3, 5].includes(accountLevel) && [today.toDateString(), tomorrow.toDateString()].includes(formattedFrom)) {
-        console.log("today", today.toDateString(), "tomarrow", tomorrow.toDateString(), "actual", formattedFrom);
         return res.status(400).json({ error: `${leaveType} is not allowed for same day and next dates for your role.` });
       }
     }
