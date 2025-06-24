@@ -28,7 +28,7 @@ export default function UnpaidRequest() {
                 status: response
             }
 
-            const res = await axios.put(`${url}/api/leave-application/${leave._id}`, updatedLeaveRequest, {
+            const res = await axios.put(`${url}api/leave-application/${leave._id}`, updatedLeaveRequest, {
                 headers: {
                     Authorization: data.token || ""
                 }
@@ -58,7 +58,7 @@ export default function UnpaidRequest() {
     async function fetchUnpaidLeave() {
         try {
             setIsLoading(true);
-            const res = await axios.get(`${url}/api/leave-application/unpaid`, {
+            const res = await axios.get(`${url}api/leave-application/unpaid`, {
                 params: {
                     daterangeValue
                 },

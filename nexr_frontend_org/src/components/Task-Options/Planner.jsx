@@ -143,7 +143,7 @@ export default function Planner({ isLoading, updateTaskStatus, fetchEmpAssignedT
 
     async function fetchCategories() {
         try {
-            const res = await axios.get(`${url}/api/planner/${data._id}`, {
+            const res = await axios.get(`${url}api/planner/${data._id}`, {
                 headers: {
                     Authorization: data.token
                 }

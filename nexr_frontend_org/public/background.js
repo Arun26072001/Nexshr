@@ -49,7 +49,7 @@ const currentTime = `${currentHours}:${currentMinutes}:${currentSeconds}`;
 // Function to fetch data from the API
 async function getDataAPI() {
   try {
-    const response = await fetch(`${url}/api/clock-ins/${empId}?date=${new Date().toISOString()}`, {
+    const response = await fetch(`${url}api/clock-ins/${empId}?date=${new Date().toISOString()}`, {
       method: "GET",
       headers: { authorization: token || '' },
     });
@@ -71,7 +71,7 @@ async function getDataAPI() {
 async function addDataAPI(updatedTimer) {
   try {
     if (token && empId) {
-      const response = await fetch(`${url}/api/clock-ins/${empId}`, {
+      const response = await fetch(`${url}api/clock-ins/${empId}`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -101,7 +101,7 @@ async function updateDataAPI(body) {
   }
   if (token && empId) {
     try {
-      const response = await fetch(`${url}/api/clock-ins/${body._id}`, {
+      const response = await fetch(`${url}api/clock-ins/${body._id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",

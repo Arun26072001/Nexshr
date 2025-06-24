@@ -30,7 +30,7 @@ export default function TimeLog() {
         try {
             // Send updated task
             const res = await axios.put(
-                `${url}/api/task/${data._id}/${updatedTask._id}`, // Ensure correct projectId
+                `${url}api/task/${data._id}/${updatedTask._id}`, // Ensure correct projectId
                 updatedTask,
                 {
                     params: { changeComments },
@@ -61,7 +61,7 @@ export default function TimeLog() {
     async function fetchTaskOfTimeLogs() {
         setIsLoading(true);
         try {
-            const res = await axios.get(`${url}/api/task/${id}`, {
+            const res = await axios.get(`${url}api/task/${id}`, {
                 params: {
                     withComments: false
                 },

@@ -64,7 +64,7 @@ export default function Department() {
     async function deleteDepartment(id) {
         try {
             setIsDeleting(id)
-            const deleteDep = await axios.delete(`${url}/api/department/${id}`, {
+            const deleteDep = await axios.delete(`${url}api/department/${id}`, {
                 headers: {
                     Authorization: data.token || ""
                 }
@@ -86,7 +86,7 @@ export default function Department() {
         setIsChangingDepartment(true);
         try {
             // Assuming the correct API endpoint for editing a department is '/api/department/${id}'
-            const response = await axios.put(`${url}/api/department/${departmentObj._id}`, departmentObj, {
+            const response = await axios.put(`${url}api/department/${departmentObj._id}`, departmentObj, {
                 headers: {
                     Authorization: data.token || ""
                 }
@@ -112,7 +112,7 @@ export default function Department() {
     async function getEditDepartmentId(id) {
 
         try {
-            const department = await axios.get(`${url}/api/department/${id}`, {
+            const department = await axios.get(`${url}api/department/${id}`, {
                 headers: {
                     Authorization: data.token || ""
                 }

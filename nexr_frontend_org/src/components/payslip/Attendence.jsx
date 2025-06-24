@@ -92,7 +92,7 @@ const Attendence = () => {
     try {
       console.log("url",url);
       
-      const dashboard = await axios.get(`${url}/api/clock-ins/employee/${_id}`, {
+      const dashboard = await axios.get(`${url}api/clock-ins/employee/${_id}`, {
         params: {
           daterangeValue
         },

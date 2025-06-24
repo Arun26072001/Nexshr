@@ -64,7 +64,7 @@ const LeaveRequestForm = ({ type }) => {
     try {
       setIsWorkingApi(true);
       // Leave request submission
-      const res = await axios.post(`${url}/api/leave-application/${_id}`, formData, {
+      const res = await axios.post(`${url}api/leave-application/${_id}`, formData, {
         headers: {
           "Content-Type": "multipart/form-data",
           authorization: token || "",
@@ -93,7 +93,7 @@ const LeaveRequestForm = ({ type }) => {
 
     try {
       setIsWorkingApi(true);
-      const res = await axios.put(`${url}/api/leave-application/${leaveRequestObj._id}`, leaveData, {
+      const res = await axios.put(`${url}api/leave-application/${leaveRequestObj._id}`, leaveData, {
         headers: {
           Authorization: token || ""
         }
@@ -115,7 +115,7 @@ const LeaveRequestForm = ({ type }) => {
 
   const fetchLeaveRequest = async () => {
     try {
-      const response = await axios.get(`${url}/api/leave-application/${id}`, {
+      const response = await axios.get(`${url}api/leave-application/${id}`, {
         headers: {
           authorization: token || ""
         }

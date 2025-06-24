@@ -75,7 +75,7 @@ const Tasks = () => {
 
   async function fetchProjectEmps() {
     try {
-      const res = await axios.get(`${url}/api/project/employees/${taskObj?.project}`, {
+      const res = await axios.get(`${url}api/project/employees/${taskObj?.project}`, {
         headers: {
           Authorization: data.token || ""
         }
@@ -266,7 +266,7 @@ const Tasks = () => {
   async function fetchTaskByProjectId(id) {
     setIsLoading(true);
     try {
-      const res = await axios.get(`${url}/api/task/project/${id}`, {
+      const res = await axios.get(`${url}api/task/project/${id}`, {
         headers: {
           Authorization: data.token || ""
         }
@@ -286,7 +286,7 @@ const Tasks = () => {
   async function fetchEmpAssignedTasks() {
     setIsLoading(true);
     try {
-      const res = await axios.get(`${url}/api/task/assigned/${data._id}`, {
+      const res = await axios.get(`${url}api/task/assigned/${data._id}`, {
         headers: {
           Authorization: data.token || ""
         }
@@ -317,7 +317,7 @@ const Tasks = () => {
 
   async function fetchTaskById(id, storeCommentImgs) {
     try {
-      const res = await axios.get(`${url}/api/task/${id}`, {
+      const res = await axios.get(`${url}api/task/${id}`, {
         headers: {
           Authorization: data.token || ""
         }
@@ -440,7 +440,7 @@ const Tasks = () => {
       setIsTaskChanging(true);
       // Send updated task
       const res = await axios.put(
-        `${url}/api/task/${data._id}/${taskToUpdate._id}`, // Ensure correct projectId
+        `${url}api/task/${data._id}/${taskToUpdate._id}`, // Ensure correct projectId
         updatedTaskData,
         {
           params: { changeComments },
@@ -485,7 +485,7 @@ const Tasks = () => {
 
   async function deleteTask() {
     try {
-      const res = await axios.delete(`${url}/api/task/${isDelete.value}`, {
+      const res = await axios.delete(`${url}api/task/${isDelete.value}`, {
         headers: {
           Authorization: data.token || ""
         }
@@ -548,7 +548,7 @@ const Tasks = () => {
           ? task.assignedTo
           : [...(task?.assignedTo || []), data._id]
       }
-      const res = await axios.post(`${url}/api/task/${data._id}`, newTaskObj, {
+      const res = await axios.post(`${url}api/task/${data._id}`, newTaskObj, {
         headers: { Authorization: data.token || "" }
       });
 
@@ -568,7 +568,7 @@ const Tasks = () => {
   async function fetchEmpsProjects() {
     setIsLoading(true)
     try {
-      const res = await axios.get(`${url}/api/project/emp/${data._id}`, {
+      const res = await axios.get(`${url}api/project/emp/${data._id}`, {
         headers: {
           Authorization: data.token || ""
         }
@@ -615,7 +615,7 @@ const Tasks = () => {
     async function fetchProjects() {
       setIsLoading(true)
       try {
-        const res = await axios.get(`${url}/api/project`, {
+        const res = await axios.get(`${url}api/project`, {
           headers: {
             Authorization: data.token || ""
           }

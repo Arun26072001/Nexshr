@@ -28,7 +28,7 @@ export default function LeaveDetails() {
     async function deleteLeaveType(leaveData) {
         try {
             setIsDeleting(leaveData._id)
-            const res = await axios.delete(`${url}/api/leave-type/${leaveData._id}`, {
+            const res = await axios.delete(`${url}api/leave-type/${leaveData._id}`, {
                 headers: {
                     Authorization: data.token || ""
                 }
@@ -47,7 +47,7 @@ export default function LeaveDetails() {
     async function editLeaveType() {
         setIsworkingApi(true);
         try {
-            const res = await axios.put(`${url}/api/leave-type/${leaveTypeObj._id}`, leaveTypeObj, {
+            const res = await axios.put(`${url}api/leave-type/${leaveTypeObj._id}`, leaveTypeObj, {
                 headers: {
                     Authorization: data.token || ""
                 }
@@ -70,7 +70,7 @@ export default function LeaveDetails() {
     async function addLeavetype() {
         setIsworkingApi(true);
         try {
-            const res = await axios.post(`${url}/api/leave-type`, leaveTypeObj, {
+            const res = await axios.post(`${url}api/leave-type`, leaveTypeObj, {
                 headers: {
                     Authorization: data.token || ""
                 }
@@ -133,7 +133,7 @@ export default function LeaveDetails() {
     async function fetchLeavetypes() {
         setIsLoading(true);
         try {
-            const res = await axios.get(`${url}/api/leave-type`, {
+            const res = await axios.get(`${url}api/leave-type`, {
                 headers: {
                     Authorization: data.token || ""
                 }

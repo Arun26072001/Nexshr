@@ -59,7 +59,7 @@ function Holiday() {
     const fetchAllYearHolidays = useCallback(async () => {
         setIsLoading(true);
         try {
-            const res = await axios.get(`${url}/api/holidays`, {
+            const res = await axios.get(`${url}api/holidays`, {
                 headers: { Authorization: data.token }
             });
             setAllYearHoliday(res.data);
@@ -110,8 +110,8 @@ function Holiday() {
 
             const method = changeHoliday.isEdit ? axios.put : axios.post;
             const endpoint = changeHoliday.isEdit
-                ? `${url}/api/holidays/${holidayObj._id}`
-                : `${url}/api/holidays/${data._id}`;
+                ? `${url}api/holidays/${holidayObj._id}`
+                : `${url}api/holidays/${data._id}`;
 
             const res = await method(endpoint, payload, {
                 headers: { Authorization: data.token }
@@ -133,7 +133,7 @@ function Holiday() {
     const deleteHoliday = useCallback(async (id) => {
         try {
             setIsDeleting(id)
-            const res = await axios.delete(`${url}/api/holidays/${id}`, {
+            const res = await axios.delete(`${url}api/holidays/${id}`, {
                 headers: { Authorization: data.token }
             });
             toast.success(res.data.message);

@@ -64,7 +64,7 @@ export default function LandingPage() {
 
         try {
             const response = await axios.post(
-                `${url}/api/user-account`,
+                `${url}api/user-account`,
                 registerData,
                 {
                     headers: {
@@ -94,7 +94,7 @@ export default function LandingPage() {
     useEffect(() => {
         async function fetchCountries() {
             try {
-                const res = await axios.get(`${url}/api/country`, {
+                const res = await axios.get(`${url}api/country`, {
                     headers: {
                         authorization: token || ""
                     }

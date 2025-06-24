@@ -49,14 +49,14 @@ export default function WFHRequestForm({ type }) {
         try {
             setIsWorkingApi(true);
             if (wfhRequestObj._id) {
-                const res = await axios.put(`${url}/api/wfh-application/${wfhRequestObj._id}`, updatedRequest, {
+                const res = await axios.put(`${url}api/wfh-application/${wfhRequestObj._id}`, updatedRequest, {
                     headers: {
                         Authorization: data.token || ""
                     }
                 });
                 toast.success(res.data?.message)
             } else {
-                const res = await axios.post(`${url}/api/wfh-application/${data._id}`, updatedRequest, {
+                const res = await axios.post(`${url}api/wfh-application/${data._id}`, updatedRequest, {
                     headers: {
                         Authorization: data.token || ""
                     }
@@ -79,7 +79,7 @@ export default function WFHRequestForm({ type }) {
     async function fetchLeaveRequest() {
         setIsLoading(true);
         try {
-            const res = await axios.get(`${url}/api/wfh-application/${id}`, {
+            const res = await axios.get(`${url}api/wfh-application/${id}`, {
                 headers: {
                     Authorization: data.token
                 }

@@ -48,7 +48,7 @@ export default function PayslipInfo() {
 
     async function addPayslipInfo() {
         try {
-            const response = await axios.post(`${url}/api/payslip-info`, payslipInfos, {
+            const response = await axios.post(`${url}api/payslip-info`, payslipInfos, {
                 headers: { Authorization: data.token || "" },
             });
             toast.success(response.data.message);
@@ -121,7 +121,7 @@ export default function PayslipInfo() {
 
     const updatePayslipInfo = async () => {
         try {
-            const response = await axios.put(`${url}/api/payslip-info/${payslipInfos._id}`, payslipInfos, {
+            const response = await axios.put(`${url}api/payslip-info/${payslipInfos._id}`, payslipInfos, {
                 headers: { Authorization: data.token || "" },
             });
             toast.success(response.data.message);
