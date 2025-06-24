@@ -26,7 +26,7 @@ const AnnouncementComponent = ({ handleChangeAnnouncement }) => {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const response = await axios.get(`${url}api/employee/user`,
+                const response = await axios.get(`${url}/api/employee/user`,
                     { headers },
                 );
                 setTeam_member(response?.data?.Team || []);
@@ -62,7 +62,7 @@ const AnnouncementComponent = ({ handleChangeAnnouncement }) => {
 
         setIschangingAnnouncement(true);
         try {
-            const addAnnounce = await axios.post(`${url}api/announcements/${data._id}`, announcementObj,
+            const addAnnounce = await axios.post(`${url}/api/announcements/${data._id}`, announcementObj,
                 { headers }
             );
             handleChangeAnnouncement();

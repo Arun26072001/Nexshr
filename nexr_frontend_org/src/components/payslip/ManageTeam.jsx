@@ -63,7 +63,7 @@ const ManageTeam = () => {
     useEffect(() => {
         const fetchEmployees = async () => {
             try {
-                const res = await axios.get(`${url}api/employee/all`, {
+                const res = await axios.get(`${url}/api/employee/all`, {
                     headers: {
                         Authorization: token
                     }
@@ -86,7 +86,7 @@ const ManageTeam = () => {
 
     const deleteTeam = async (id) => {
         try {
-            const res = await axios.delete(`${url}api/team/${id}`, {
+            const res = await axios.delete(`${url}/api/team/${id}`, {
                 headers: {
                     Authorization: `${token}` || ""
                 }
@@ -102,7 +102,7 @@ const ManageTeam = () => {
     const handleSubmit = async () => {
         try {
             setIsChangingTeam(true);
-            const response = await axios.post(`${url}api/team/${_id}`, teamObj, {
+            const response = await axios.post(`${url}/api/team/${_id}`, teamObj, {
                 headers: {
                     Authorization: token || ""
                 }
@@ -122,7 +122,7 @@ const ManageTeam = () => {
     const handleSubmitEdit = async () => {
         try {
             setIsChangingTeam(true);
-            const res = await axios.put(`${url}api/team/${teamObj._id}`, teamObj, {
+            const res = await axios.put(`${url}/api/team/${teamObj._id}`, teamObj, {
                 headers: {
                     Authorization: token || ""
                 }
@@ -141,7 +141,7 @@ const ManageTeam = () => {
 
     async function fetchLeads() {
         try {
-            const res = await axios.get(`${url}api/employee/team/lead`, {
+            const res = await axios.get(`${url}/api/employee/team/lead`, {
                 headers: {
                     Authorization: token || ""
                 }
@@ -160,7 +160,7 @@ const ManageTeam = () => {
 
     async function fetchHeads() {
         try {
-            const res = await axios.get(`${url}api/employee/team/head`, {
+            const res = await axios.get(`${url}/api/employee/team/head`, {
                 headers: {
                     Authorization: token || ""
                 }
@@ -179,7 +179,7 @@ const ManageTeam = () => {
 
     async function fetchManagers() {
         try {
-            const res = await axios.get(`${url}api/employee/team/manager`, {
+            const res = await axios.get(`${url}/api/employee/team/manager`, {
                 headers: {
                     Authorization: token || ""
                 }
@@ -198,7 +198,7 @@ const ManageTeam = () => {
 
     async function fetchHr() {
         try {
-            const res = await axios.get(`${url}api/employee/team/hr`, {
+            const res = await axios.get(`${url}/api/employee/team/hr`, {
                 headers: {
                     Authorization: token || ""
                 }
@@ -217,7 +217,7 @@ const ManageTeam = () => {
 
     async function fetchAdmins() {
         try {
-            const res = await axios.get(`${url}api/employee/team/admin`, {
+            const res = await axios.get(`${url}/api/employee/team/admin`, {
                 headers: {
                     Authorization: token || ""
                 }
@@ -238,7 +238,7 @@ const ManageTeam = () => {
         try {
             setIsLoading(true);
             const who = isTeamHead ? "head" : isTeamLead ? "lead" : "manager";
-            const res = await axios.get(`${url}api/team/${who}/${_id}`, {
+            const res = await axios.get(`${url}/api/team/${who}/${_id}`, {
                 headers: {
                     Authorization: `${token}` || ""
                 }
@@ -262,7 +262,7 @@ const ManageTeam = () => {
         const fetchTeams = async () => {
             try {
                 setIsLoading(true);
-                const res = await axios.get(`${url}api/team`, {
+                const res = await axios.get(`${url}/api/team`, {
                     headers: {
                         Authorization: `${token}` || ""
                     }

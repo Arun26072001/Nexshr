@@ -22,7 +22,7 @@ export default function WFHRequests() {
     async function fetchTeamWfhRequests() {
         setIsLoading(true)
         try {
-            const res = await axios.get(`${url}api/wfh-application/team/${data._id}`, {
+            const res = await axios.get(`${url}/api/wfh-application/team/${data._id}`, {
                 params: {
                     dateRangeValue,
                     who: isTeamLead ? "lead" : isTeamHead ? "head" : "manager"
@@ -46,7 +46,7 @@ export default function WFHRequests() {
     async function fetchAllWfhRequests() {
         setIsLoading(true);
         try {
-            const res = await axios.get(`${url}api/wfh-application`, {
+            const res = await axios.get(`${url}/api/wfh-application`, {
                 params: {
                     dateRangeValue
                 },
@@ -118,7 +118,7 @@ export default function WFHRequests() {
                 return;
             }
 
-            const res = await axios.put(`${url}api/wfh-application/${request._id}`, updatedWFHRequest, {
+            const res = await axios.put(`${url}/api/wfh-application/${request._id}`, updatedWFHRequest, {
                 params: { actionBy },
                 headers: {
                     Authorization: data.token || ""

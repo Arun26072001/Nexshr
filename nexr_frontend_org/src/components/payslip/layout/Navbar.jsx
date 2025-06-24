@@ -111,7 +111,7 @@ export default function Navbar({ handleSideBar }) {
     async function fetchNotifications() {
         try {
             setIsLoading(true);
-            const res = await axios.get(`${url}api/employee/notifications/${data._id}`, {
+            const res = await axios.get(`${url}/api/employee/notifications/${data._id}`, {
                 headers: {
                     Authorization: data.token || ""
                 }
@@ -167,7 +167,7 @@ export default function Navbar({ handleSideBar }) {
 
     async function updateEmpNotifications(updatedValues) {
         try {
-            const res = await axios.put(`${url}api/employee/notifications/${data._id}`, updatedValues, {
+            const res = await axios.put(`${url}/api/employee/notifications/${data._id}`, updatedValues, {
                 headers: {
                     Authorization: data.token || ""
                 }
@@ -255,7 +255,7 @@ export default function Navbar({ handleSideBar }) {
 
     async function verifyWfh() {
         try {
-            const res = await axios.get(`${url}api/wfh-application/check-wfh/${data._id}`, {
+            const res = await axios.get(`${url}/api/wfh-application/check-wfh/${data._id}`, {
                 headers: {
                     Authorization: data.token || ""
                 }

@@ -20,7 +20,7 @@ export default function WorkFromHome() {
   async function fetchWfhReuests() {
     setIsLoading(true)
     try {
-      const res = await axios.get(`${url}api/wfh-application/employee/${data._id}`, {
+      const res = await axios.get(`${url}/api/wfh-application/employee/${data._id}`, {
         params: {
           dateRangeValue
         },
@@ -46,7 +46,7 @@ export default function WorkFromHome() {
   async function deleteRequest(id) {
     try {
       setIsDeleting(id)
-      const res = await axios.delete(`${url}api/wfh-application/${id}`, {
+      const res = await axios.delete(`${url}/api/wfh-application/${id}`, {
         headers: {
           Authorization: data.token || ""
         }

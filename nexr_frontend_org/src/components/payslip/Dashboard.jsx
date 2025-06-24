@@ -135,7 +135,7 @@ const Dashboard = () => {
     // project of emps
     async function fetchProjectEmps() {
         try {
-            const res = await axios.get(`${url}api/project/employees/${taskObj?.project}`, {
+            const res = await axios.get(`${url}/api/project/employees/${taskObj?.project}`, {
                 headers: {
                     Authorization: data.token || ""
                 }
@@ -152,7 +152,7 @@ const Dashboard = () => {
 
     async function fetchTaskById(id) {
         try {
-            const res = await axios.get(`${url}api/task/${id}`, {
+            const res = await axios.get(`${url}/api/task/${id}`, {
                 headers: {
                     Authorization: data.token || ""
                 }
@@ -443,7 +443,7 @@ const Dashboard = () => {
             setIsWorkingApi(true);
             // Send updated task
             const res = await axios.put(
-                `${url}api/task/${data._id}/${taskToUpdate._id}`, // Ensure correct projectId
+                `${url}/api/task/${data._id}/${taskToUpdate._id}`, // Ensure correct projectId
                 updatedTaskData,
                 {
                     headers: { Authorization: data?.token || "" },
@@ -470,7 +470,7 @@ const Dashboard = () => {
     async function fetchEmpAssignedTasks() {
         setIsLoadingForTask(true);
         try {
-            const res = await axios.get(`${url}api/task/assigned/${selectedEmp.value}`, {
+            const res = await axios.get(`${url}/api/task/assigned/${selectedEmp.value}`, {
                 headers: {
                     Authorization: data.token || ""
                 }
@@ -493,7 +493,7 @@ const Dashboard = () => {
 
     async function deleteTask(id) {
         try {
-            const res = await axios.delete(`${url}api/task/${id}`, {
+            const res = await axios.delete(`${url}/api/task/${id}`, {
                 headers: {
                     Authorization: data.token || ""
                 }
@@ -520,7 +520,7 @@ const Dashboard = () => {
     async function fetchEmpsProjects() {
         setIsLoading(true)
         try {
-            const res = await axios.get(`${url}api/project/emp/${data._id}`, {
+            const res = await axios.get(`${url}/api/project/emp/${data._id}`, {
                 headers: {
                     Authorization: data.token || ""
                 }

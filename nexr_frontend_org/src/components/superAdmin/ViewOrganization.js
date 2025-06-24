@@ -25,7 +25,7 @@ const ViewOrganization = ({ organizations, isLoading, handleChangeToRefetchOrgs 
     async function editOrganization() {
         try {
 
-            const response = await axios.put(`${url}api/organization/${organizationId}`, orgObj,
+            const response = await axios.put(`${url}/api/organization/${organizationId}`, orgObj,
                 {
                     headers: {
                         Authorization: token || "",
@@ -53,7 +53,7 @@ const ViewOrganization = ({ organizations, isLoading, handleChangeToRefetchOrgs 
 
     async function fetchOrgData() {
         try {
-            const res = await axios.get(`${url}api/organization/${organizationId}`, {
+            const res = await axios.get(`${url}/api/organization/${organizationId}`, {
                 headers: {
                     Authorization: token || ""
                 }

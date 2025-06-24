@@ -35,7 +35,7 @@ export default function Reports() {
 
     async function fetchProjects() {
         try {
-            const res = await axios.get(`${url}api/project`, {
+            const res = await axios.get(`${url}/api/project`, {
                 headers: {
                     Authorization: data.token || ""
                 }
@@ -73,7 +73,7 @@ export default function Reports() {
 
     async function deleteReport() {
         try {
-            const res = await axios.delete(`${url}api/report/${isDeleteReport.value[0]}/${isDeleteReport.value[1]}`, {
+            const res = await axios.delete(`${url}/api/report/${isDeleteReport.value[0]}/${isDeleteReport.value[1]}`, {
                 headers: {
                     Authorization: data.token || ""
                 }
@@ -134,7 +134,7 @@ export default function Reports() {
                     ? reportObj.employees
                     : [...(reportObj?.employees || []), data._id]
             }
-            const res = await axios.post(`${url}api/report/${data._id}`, newReportObj, {
+            const res = await axios.post(`${url}/api/report/${data._id}`, newReportObj, {
                 headers: {
                     Authorization: data.token || ""
                 }
@@ -156,7 +156,7 @@ export default function Reports() {
     async function editReport(updatedReport) {
         setIsWorkingApi(true);
         try {
-            const res = await axios.put(`${url}api/report/${data._id}/${updatedReport._id}`, updatedReport, {
+            const res = await axios.put(`${url}/api/report/${data._id}/${updatedReport._id}`, updatedReport, {
                 headers: {
                     Authorization: data.token || ""
                 }
@@ -197,7 +197,7 @@ export default function Reports() {
         } else {
 
             try {
-                const res = await axios.get(`${url}api/report/${id}`, {
+                const res = await axios.get(`${url}/api/report/${id}`, {
                     headers: {
                         Authorization: data.token || ""
                     }
@@ -221,7 +221,7 @@ export default function Reports() {
 
     async function fetchProjectEmps() {
         try {
-            const res = await axios.get(`${url}api/project/employees/${reportObj?.project}`, {
+            const res = await axios.get(`${url}/api/project/employees/${reportObj?.project}`, {
                 headers: {
                     Authorization: data.token || ""
                 }
@@ -258,7 +258,7 @@ export default function Reports() {
         async function fetchReportsByEmp() {
             setIsLoading(true);
             try {
-                const res = await axios.get(`${url}api/report/createdby/${empId}`, {
+                const res = await axios.get(`${url}/api/report/createdby/${empId}`, {
                     headers: {
                         Authorization: data.token || ""
                     }

@@ -78,7 +78,7 @@ export default function LeaveRequest() {
                 return;
             }
 
-            const res = await axios.put(`${url}api/leave-application/${leave._id}`, updatedLeaveRequest, {
+            const res = await axios.put(`${url}/api/leave-application/${leave._id}`, updatedLeaveRequest, {
                 params: {
                     actionBy
                 },
@@ -110,7 +110,7 @@ export default function LeaveRequest() {
         formData.append('documents', file);
 
         try {
-            const response = await axios.post(`${url}api/google-sheet/upload/leave`, formData, {
+            const response = await axios.post(`${url}/api/google-sheet/upload/leave`, formData, {
                 headers: {
                     'Content-Type': 'multipart/form-data',
                     Authorization: token || ""

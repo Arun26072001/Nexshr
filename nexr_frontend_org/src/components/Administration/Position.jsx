@@ -64,7 +64,7 @@ export default function Position() {
     async function deletePosition(id) {
         try {
             setIsDeleting(id)
-            const deletePos = await axios.delete(`${url}api/position/${id}`, {
+            const deletePos = await axios.delete(`${url}/api/position/${id}`, {
                 headers: {
                     Authorization: data.token || ""
                 }
@@ -85,7 +85,7 @@ export default function Position() {
     async function editPosition() {
         setIschangingPosition(true);
         try {
-            const response = await axios.put(`${url}api/position/${positionObj._id}`, positionObj, {
+            const response = await axios.put(`${url}/api/position/${positionObj._id}`, positionObj, {
                 headers: {
                     Authorization: data.token || ""
                 }
@@ -107,7 +107,7 @@ export default function Position() {
 
     async function getEditPositionId(id) {
         try {
-            const position = await axios.get(`${url}api/position/${id}`, {
+            const position = await axios.get(`${url}/api/position/${id}`, {
                 headers: {
                     Authorization: data.token || ""
                 }

@@ -106,7 +106,7 @@ export default function Home() {
     async function fetchPeopleOnLeave() {
         try {
             setIsFetchPeopleOnLeave(true);
-            const res = await axios.get(`${url}api/leave-application/people-on-leave`, {
+            const res = await axios.get(`${url}/api/leave-application/people-on-leave`, {
                 headers: {
                     Authorization: data.token || ""
                 }
@@ -127,7 +127,7 @@ export default function Home() {
     async function fetchWorkFromHomeEmps() {
         try {
             setIsFetchPeopleOnWfh(true);
-            const res = await axios.get(`${url}api/wfh-application/on-wfh`, {
+            const res = await axios.get(`${url}/api/wfh-application/on-wfh`, {
                 headers: {
                     Authorization: data.token || ""
                 }

@@ -21,7 +21,7 @@ const Roles = () => {
     async function deleteRoleAndPermission(id) {
         try {
             setIsDeleting(id);
-            const deleteRole = await axios.delete(`${url}api/role/${id}`, {
+            const deleteRole = await axios.delete(`${url}/api/role/${id}`, {
                 headers: {
                     Authorization: data.token || ""
                 }
