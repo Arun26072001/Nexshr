@@ -374,11 +374,11 @@ leaveApp.get("/hr", verifyHR, async (req, res) => {
     }
 
     // Fetch leave requests for these employees
-    const leaveReqs = await Employee.find({ _id: { $in: empIds } }, "_id FirstName LastName")
+    const leaveReqs = await Employee.find({ _id: { $in: empIds } }, "_id FirstName LastName leaveApplication")
       .populate({
         path: "leaveApplication",
         populate: { path: "employee", select: "_id FirstName LastName profile" }
-      });
+      }).lean().exec();
 
     // Check if there are any leave requests
     if (leaveReqs.length === 0) {
