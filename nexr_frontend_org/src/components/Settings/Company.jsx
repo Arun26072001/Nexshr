@@ -73,7 +73,7 @@ export default function CompanyTab() {
 
   function handleSubmit() {
     const body = RadioOption;
-    axios.post(`${url}/api/company-settings`, body, {
+    axios.post(`${url}api/company-settings`, body, {
       headers: {
         authorization: data.token || ""
       }
@@ -117,7 +117,7 @@ export default function CompanyTab() {
   useEffect(() => {
     async function fetchCompanySettings() {
       try {
-        const res = await axios.get(`${url}/api/company-settings`, {
+        const res = await axios.get(`${url}api/company-settings`, {
           headers: {
             Authorization: data.token || ""
           }

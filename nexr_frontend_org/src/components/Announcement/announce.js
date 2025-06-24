@@ -26,7 +26,7 @@ const Announce = () => {
         if (announcement) {
             try {
                 setIsDeleting(announcement._id)
-                const response = await axios.delete(`${url}/api/announcements/${announcement._id}`, {
+                const response = await axios.delete(`${url}api/announcements/${announcement._id}`, {
                     headers: {
                         Authorization: `${data.token}`
                     }
@@ -50,7 +50,7 @@ const Announce = () => {
         const fetchAnnouncements = async () => {
             setIsLoading(true);
             try {
-                const response = await axios.get(`${url}/api/announcements`, {
+                const response = await axios.get(`${url}api/announcements`, {
                     headers: {
                         Authorization: data.token || ""
                     }

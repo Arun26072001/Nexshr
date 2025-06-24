@@ -32,7 +32,7 @@ const AdminOrgSettings = ({ organizations }) => {
     async function fetchMailSettings() {
         setIsLoading(true)
         try {
-            const res = await axios.get(`${url}/api/mail-settings`, {
+            const res = await axios.get(`${url}api/mail-settings`, {
                 headers: {
                     Authorization: data.token || ""
                 }
@@ -54,7 +54,7 @@ const AdminOrgSettings = ({ organizations }) => {
                 ...updatedData,
                 isActive: JSON.parse(updatedData.isActive)
             }
-            const res = await axios.put(`${url}/api/mail-settings/${updatedData._id}`, updatedData, {
+            const res = await axios.put(`${url}api/mail-settings/${updatedData._id}`, updatedData, {
                 headers: {
                     Authorization: data.token || ""
                 }

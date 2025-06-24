@@ -41,7 +41,7 @@ const CircleProgressBar = ({ isTeamLead, isTeamHead, isTeamManager }) => {
       setIsLoading(true)
       try {
         // Fetch leave requests
-        const leaveRes = await axios.get(`${url}/api/leave-application/hr`, {
+        const leaveRes = await axios.get(`${url}api/leave-application/hr`, {
           headers: {
             authorization: token || "",
           },
@@ -49,7 +49,7 @@ const CircleProgressBar = ({ isTeamLead, isTeamHead, isTeamManager }) => {
         setLeaveRequests(leaveRes.data);
 
         // Fetch employees
-        const empRes = await axios.get(`${url}/api/employee`, {
+        const empRes = await axios.get(`${url}api/employee`, {
           headers: {
             authorization: token || "",
           },
@@ -68,7 +68,7 @@ const CircleProgressBar = ({ isTeamLead, isTeamHead, isTeamManager }) => {
       setIsLoading(true)
       try {
         // Fetch leave requests
-        const leaveRes = await axios.get(`${url}/api/leave-application/team/${_id}`, {
+        const leaveRes = await axios.get(`${url}api/leave-application/team/${_id}`, {
           params: {
             who: isTeamHead ? "head" : isTeamLead ? "lead" : "manager"
           },
@@ -80,7 +80,7 @@ const CircleProgressBar = ({ isTeamLead, isTeamHead, isTeamManager }) => {
         setLeaveRequests(leaveRes.data.leaveData);
 
         // Fetch employees
-        const empRes = await axios.get(`${url}/api/team/members/${_id}`, {
+        const empRes = await axios.get(`${url}api/team/members/${_id}`, {
           params: {
             who: isTeamLead ? "lead" : isTeamHead ? "head" : isTeamManager ? "manager" : "employees",
           },

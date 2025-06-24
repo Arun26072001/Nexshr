@@ -124,7 +124,7 @@ export default function HRMDashboard() {
 
     async function fetchCompanies() {
         try {
-            const res = await axios.get(`${url}/api/company`, {
+            const res = await axios.get(`${url}api/company`, {
                 headers: {
                     Authorization: token || ""
                 }
@@ -356,7 +356,7 @@ export default function HRMDashboard() {
 
     const getAttendanceData = async () => {
         try {
-            const empOfAttendances = await axios.get(`${url}/api/clock-ins/`, {
+            const empOfAttendances = await axios.get(`${url}api/clock-ins/`, {
                 params: {
                     daterangeValue
                 },
@@ -375,7 +375,7 @@ export default function HRMDashboard() {
 
     async function getTeamAttendance() {
         try {
-            const res = await axios.get(`${url}/api/clock-ins/team/${_id}`, {
+            const res = await axios.get(`${url}api/clock-ins/team/${_id}`, {
                 params: {
                     who: isTeamHead ? "head" : isTeamLead ? "lead" : "manager",
                     daterangeValue
@@ -420,7 +420,7 @@ export default function HRMDashboard() {
     const getLeaveData = async () => {
         setIsLoading(true);
         try {
-            const leaveData = await axios.get(`${url}/api/leave-application/date-range/management/${whoIs}`, {
+            const leaveData = await axios.get(`${url}api/leave-application/date-range/management/${whoIs}`, {
                 params: {
                     daterangeValue
                 },
@@ -440,7 +440,7 @@ export default function HRMDashboard() {
     const getLeaveDataFromTeam = async () => {
         setIsLoading(true);
         try {
-            const leaveData = await axios.get(`${url}/api/leave-application/team/${_id}`, {
+            const leaveData = await axios.get(`${url}api/leave-application/team/${_id}`, {
                 params: {
                     who: isTeamLead ? "lead" : isTeamHead ? "head" : "manager",
                     daterangeValue

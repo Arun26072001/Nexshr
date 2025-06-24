@@ -25,7 +25,7 @@ const Dailylog = ({ attendanceData, isLoading }) => {
         formData.append('documents', file);
 
         try {
-            const response = await axios.post(`${url}/api/google-sheet/upload/attendance`, formData, {
+            const response = await axios.post(`${url}api/google-sheet/upload/attendance`, formData, {
                 headers: {
                     'Content-Type': 'multipart/form-attendanceData',
                     Authorization: data.token || ""

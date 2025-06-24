@@ -83,7 +83,7 @@ const EmployeeForm = ({
         const gettingLeaveTypes = async () => {
             try {
                 setIsLoading(true);
-                const response = await axios.get(`${url}/api/leave-type`, {
+                const response = await axios.get(`${url}api/leave-type`, {
                     headers: {
                         Authorization: data.token || ""
                     }
@@ -115,7 +115,7 @@ const EmployeeForm = ({
         try {
             // setIsWorkingApi(true);
             const res = await axios.put(
-                `${url}/api/employee/${employeeObj?._id}`,
+                `${url}api/employee/${employeeObj?._id}`,
                 employeeObj,
                 {
                     headers: {
@@ -143,7 +143,7 @@ const EmployeeForm = ({
         try {
             // setIsWorkingApi(true);
             const res = await axios.post(
-                `${url}/api/employee/${data._id}`,
+                `${url}api/employee/${data._id}`,
                 employeeObj,
                 {
                     headers: {

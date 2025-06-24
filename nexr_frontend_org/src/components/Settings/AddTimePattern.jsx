@@ -85,7 +85,7 @@ const AddTimePattern = ({ handleAddWorkingTime, reload }) => {
             e.preventDefault();
             setIsWorkingApi(true);
             const body = timePattern;
-            const res = await axios.post(`${url}/api/time-pattern`, body,
+            const res = await axios.post(`${url}api/time-pattern`, body,
                 {
                     headers: {
                         authorization: data.token

@@ -62,7 +62,7 @@ export default function Company() {
     async function deleteCompany(id) {
         try {
             setIsDeleting(id)
-            const deleteCom = await axios.delete(`${url}/api/company/${id}`, {
+            const deleteCom = await axios.delete(`${url}api/company/${id}`, {
                 headers: {
                     Authorization: data.token || ""
                 }
@@ -116,7 +116,7 @@ export default function Company() {
 
     async function fetchCompanyById(id) {
         try {
-            const company = await axios.get(`${url}/api/company/${id}`, {
+            const company = await axios.get(`${url}api/company/${id}`, {
                 headers: {
                     Authorization: data.token || ""
                 }
@@ -166,7 +166,7 @@ export default function Company() {
                 }
             }
             // Assuming the correct API endpoint for editing a department is '/api/department/${id}'
-            const response = await axios.put(`${url}/api/company/${companyObj._id}`, updatedCompanyObj, {
+            const response = await axios.put(`${url}api/company/${companyObj._id}`, updatedCompanyObj, {
                 headers: {
                     Authorization: data.token || ""
                 }
@@ -208,7 +208,7 @@ export default function Company() {
     useEffect(() => {
         async function fetchCountries() {
             try {
-                const res = await axios.get(`${url}/api/country`, {
+                const res = await axios.get(`${url}api/country`, {
                     headers: {
                         authorization: data.token || ""
                     }

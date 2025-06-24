@@ -33,7 +33,7 @@ const WorkPlaceTab = () => {
 
   async function fetchCountries() {
     try {
-      const res = await axios.get(`${url}/api/country`, {
+      const res = await axios.get(`${url}api/country`, {
         headers: {
           authorization: data.token || ""
         }
@@ -102,7 +102,7 @@ const WorkPlaceTab = () => {
   async function addWorkplace() {
     try {
       setIsWorkingApi(true);
-      const res = await axios.post(`${url}/api/work-place`, workPlaceObj, {
+      const res = await axios.post(`${url}api/work-place`, workPlaceObj, {
         headers: {
           Authorization: data.token || ""
         }
@@ -125,7 +125,7 @@ const WorkPlaceTab = () => {
   async function editWorkPlace() {
     try {
       setIsWorkingApi(true);
-      const res = await axios.put(`${url}/api/work-place/${workPlaceObj._id}`, workPlaceObj, {
+      const res = await axios.put(`${url}api/work-place/${workPlaceObj._id}`, workPlaceObj, {
         headers: {
           Authorization: data.token || ""
         }
@@ -148,7 +148,7 @@ const WorkPlaceTab = () => {
   async function deleteWorkplace(workPlaceId) {
     try {
       setIsDeleting(workPlaceId)
-      const res = await axios.delete(`${url}/api/work-place/${workPlaceId}`, {
+      const res = await axios.delete(`${url}api/work-place/${workPlaceId}`, {
         headers: {
           Authorization: data.token || ""
         }
