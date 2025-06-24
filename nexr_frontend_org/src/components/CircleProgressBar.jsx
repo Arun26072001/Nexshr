@@ -112,18 +112,18 @@ const CircleProgressBar = ({ isTeamLead, isTeamHead, isTeamManager }) => {
       const todayDate = today.toISOString().split("T")[0];
       const tomorrowDate = tomorrow.toISOString().split("T")[0];
       const yesterdayDate = yesterday.toISOString().split("T")[0];
-
-      leaveRequests.forEach((request) => {
-        const appliedDate = new Date(request.fromDate).toISOString().split("T")[0];
-
-        if (appliedDate === todayDate) {
-          setTodayLeaveCount((prev) => prev + 1);
-        } else if (appliedDate === tomorrowDate) {
-          setTomorrowLeaveCount((prev) => prev + 1);
-        } else if (appliedDate === yesterdayDate) {
-          setYesterdayLeaveCount((prev) => prev + 1);
-        }
-      });
+      if (leaveRequests?.length) {
+        leaveRequests.forEach((request) => {
+          const appliedDate = new Date(request?.fromDate).toISOString().split("T")[0];
+          if (appliedDate === todayDate) {
+            setTodayLeaveCount((prev) => prev + 1);
+          } else if (appliedDate === tomorrowDate) {
+            setTomorrowLeaveCount((prev) => prev + 1);
+          } else if (appliedDate === yesterdayDate) {
+            setYesterdayLeaveCount((prev) => prev + 1);
+          }
+        });
+      }
     }
 
     getLeaveCounts();
