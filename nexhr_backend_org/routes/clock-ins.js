@@ -8,7 +8,7 @@ const { Employee } = require("../models/EmpModel");
 const sendMail = require("./mailSender");
 const { LeaveApplication } = require("../models/LeaveAppModel");
 const { Team } = require("../models/TeamModel");
-const { timeToMinutes, getTotalWorkingHourPerDay, processActivityDurations, checkLoginForOfficeTime, getCurrentTime, sumLeaveDays } = require("../Reuseable_functions/reusableFunction");
+const { timeToMinutes, getTotalWorkingHourPerDay, processActivityDurations, checkLoginForOfficeTime, getCurrentTime, sumLeaveDays, getTotalWorkingHoursExcludingWeekends } = require("../Reuseable_functions/reusableFunction");
 const { WFHApplication } = require("../models/WFHApplicationModel");
 const { sendPushNotification } = require("../auth/PushNotification");
 const { Holiday } = require("../models/HolidayModel");
@@ -587,15 +587,7 @@ router.get("/employee/:empId", verifyAdminHREmployeeManagerNetwork, async (req, 
             else regular++;
         };
 
-        const getTotalWorkingHoursExcludingWeekends = (start, end, dailyHours = 8) => {
-            let totalHours = 0;
-            for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
-                if (![0, 6].includes(d.getDay())) totalHours += dailyHours;
-            }
-            return totalHours;
-        };
-
-        const employee = await Employee.findById(empId, "FirstName LastName clockIns leaveApplication workingTimePattern")
+        const employee = await Employee.findById(empId, "FirstName LastName clockIns leaveApplication workingTimePattern company")
             .populate([
                 { path: "workingTimePattern" },
                 {
@@ -608,24 +600,29 @@ router.get("/employee/:empId", verifyAdminHREmployeeManagerNetwork, async (req, 
                     match: { fromDate: { $lte: endOfMonth }, toDate: { $gte: startOfMonth }, status: "approved", leaveType: { $ne: "Permission Leave" } },
                     select: "fromDate toDate leaveType periodOfLeave employee"
                 }])
-        console.log("employee", employee);
-
+        const empCurrentYearHolidays = await Holiday.findOne({ company: employee.company, currentYear: now.getFullYear() })
         if (!employee) return res.status(400).send({ message: "Employee not found." });
 
         totalLeaveDays = Math.ceil(await sumLeaveDays(employee.leaveApplication));
-
+        let scheduledWorkingHours, scheduledLoginTime;
+        if (employee.workingTimePattern) {
+            const startingDate = new Date(employee.workingTimePattern.StartingTime);
+            const endingDate = new Date(employee.workingTimePattern.FinishingTime)
+            scheduledLoginTime = startingDate.toLocaleTimeString().split(" ")[0];
+            scheduledWorkingHours = (endingDate.getTime() - startingDate.getTime()) / (1000 * 60 * 60)
+        }
         employee.clockIns.forEach(({ login }) => {
             const { startingTime, endingTime } = login;
             totalEmpWorkingHours += getTotalWorkingHourPerDay(startingTime[0], endingTime.at(-1));
-            checkLogin("09:00", startingTime[0]);
+            checkLogin(scheduledLoginTime, startingTime[0]);
         });
 
         res.send({
             totalRegularLogins: regular,
             totalLateLogins: late,
             totalEarlyLogins: early,
-            companyTotalWorkingHour: getTotalWorkingHoursExcludingWeekends(startOfMonth, endOfMonth),
-            totalWorkingHoursPerMonth: getTotalWorkingHoursExcludingWeekends(startOfMonth, new Date(now.getFullYear(), now.getMonth() + 1, 0)),
+            companyTotalWorkingHour: getTotalWorkingHoursExcludingWeekends(startOfMonth, endOfMonth, scheduledWorkingHours, empCurrentYearHolidays.holidays, employee.workingTimePattern.WeeklyDays),
+            totalWorkingHoursPerMonth: getTotalWorkingHoursExcludingWeekends(startOfMonth, new Date(now.getFullYear(), now.getMonth() + 1, 0), scheduledWorkingHours, empCurrentYearHolidays.holidays, employee.workingTimePattern.WeeklyDays),
             totalEmpWorkingHours,
             totalLeaveDays,
             clockIns: employee.clockIns.sort((a, b) => new Date(a.date) - new Date(b.date))

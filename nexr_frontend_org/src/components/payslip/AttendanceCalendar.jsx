@@ -58,7 +58,6 @@ export default function AttendanceCalendar() {
                     events={holidays}
                     startAccessor="start"
                     endAccessor="end"
-                    // onSelectEvent={getdata}
                     eventPropGetter={eventPropGetter}
                     style={{ height: 500 }}
                 /> : <NoDataFound message="Please Add Holidays for this year" />

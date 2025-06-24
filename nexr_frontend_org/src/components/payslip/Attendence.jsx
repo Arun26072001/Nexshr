@@ -221,7 +221,7 @@ const Attendence = () => {
                   />
                 </div>
               }
-              <button className="button" onClick={() => exportAttendanceToExcel(clockInsData.clockIns)} ><FileDownloadRoundedIcon /> Export</button>
+              {/* <button className="button" onClick={() => exportAttendanceToExcel(clockInsData.clockIns)} ><FileDownloadRoundedIcon /> Export</button> */}
             </div>
             {
               tableData.length > 0 ?
