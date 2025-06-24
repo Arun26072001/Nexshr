@@ -600,14 +600,16 @@ router.get("/employee/:empId", verifyAdminHREmployeeManagerNetwork, async (req, 
                     match: { fromDate: { $lte: endOfMonth }, toDate: { $gte: startOfMonth }, status: "approved", leaveType: { $ne: "Permission Leave" } },
                     select: "fromDate toDate leaveType periodOfLeave employee"
                 }])
-        const empCurrentYearHolidays = await Holiday.findOne({ company: employee.company, currentYear: now.getFullYear() })
+        const holiday = await Holiday.findOne({ company: employee.company, currentYear: now.getFullYear() })
+        const empCurrentYearHolidays = holiday?.holidays && Array.isArray(holiday?.holidays) ? holiday.holidays : []
         if (!employee) return res.status(400).send({ message: "Employee not found." });
 
         totalLeaveDays = Math.ceil(await sumLeaveDays(employee.leaveApplication));
-        let scheduledWorkingHours, scheduledLoginTime;
+        let scheduledWorkingHours, scheduledLoginTime, weeklyDays;
         if (employee.workingTimePattern) {
             const startingDate = new Date(employee.workingTimePattern.StartingTime);
-            const endingDate = new Date(employee.workingTimePattern.FinishingTime)
+            const endingDate = new Date(employee.workingTimePattern.FinishingTime);
+            weeklyDays = employee.workingTimePattern.WeeklyDays ? employee.workingTimePattern.WeeklyDays : []
             scheduledLoginTime = startingDate.toLocaleTimeString().split(" ")[0];
             scheduledWorkingHours = (endingDate.getTime() - startingDate.getTime()) / (1000 * 60 * 60)
         }
@@ -621,8 +623,8 @@ router.get("/employee/:empId", verifyAdminHREmployeeManagerNetwork, async (req, 
             totalRegularLogins: regular,
             totalLateLogins: late,
             totalEarlyLogins: early,
-            companyTotalWorkingHour: getTotalWorkingHoursExcludingWeekends(startOfMonth, endOfMonth),
-            totalWorkingHoursPerMonth: getTotalWorkingHoursExcludingWeekends(startOfMonth, new Date(now.getFullYear(), now.getMonth() + 1, 0)),
+            companyTotalWorkingHour: getTotalWorkingHoursExcludingWeekends(startOfMonth, endOfMonth, scheduledWorkingHours, empCurrentYearHolidays, weeklyDays),
+            totalWorkingHoursPerMonth: getTotalWorkingHoursExcludingWeekends(startOfMonth, new Date(now.getFullYear(), now.getMonth() + 1, 0), scheduledWorkingHours, empCurrentYearHolidays, weeklyDays),
             totalEmpWorkingHours,
             totalLeaveDays,
             clockIns: employee.clockIns.sort((a, b) => new Date(a.date) - new Date(b.date))

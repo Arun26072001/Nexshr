@@ -699,7 +699,7 @@ const Dashboard = () => {
                                         <div className='col-lg-6 col-md-5 col-12'>
                                             <div className='space row'>
                                                 <p className='col-lg-6 col-md-6 col-sm-6 col-6 text-start'><span className='text_gap '>Total</span></p>
-                                                <p className='col-lg-6 col-md-6 col-sm-6 col-6 text-end'><span className='value'>{monthlyLoginData?.companyTotalWorkingHour || 0} hour</span></p>
+                                                <p className='col-lg-6 col-md-6 col-sm-6 col-6 text-end'><span className='value'>{monthlyLoginData?.companyTotalWorkingHour?.toFixed(2) || 0} hour</span></p>
                                             </div>
                                             <div className="progress">
                                                 <div

@@ -709,20 +709,25 @@ leaveApp.get("/date-range/:empId", verifyAdminHREmployeeManagerNetwork, async (r
   }
 
   try {
-    const employeeLeaveData = await Employee.findById(req.params.empId, "_id FirstName LastName profile leaveApplication")
-      .populate({
-        path: "leaveApplication",
-        match: {
-          fromDate: { $lte: endOfMonth },
-          toDate: { $gte: startOfMonth }
-        },
-        populate: [
-          { path: "employee", select: "FirstName LastName Email profile" },
-          { path: "coverBy", select: "FirstName LastName Email profile" }
-        ]
-      });
+    // const employeeLeaveData = await Employee.findById(req.params.empId, "_id FirstName LastName profile leaveApplication")
+    //   .populate({
+    //     path: "leaveApplication",
+    //     match: {
+    //       fromDate: { $lte: endOfMonth },
+    //       toDate: { $gte: startOfMonth }
+    //     },
+    //     populate: [
+    //       { path: "employee", select: "FirstName LastName Email profile" },
+    //       { path: "coverBy", select: "FirstName LastName Email profile" }
+    //     ]
+    //   });
+    const employeeLeaveData = await LeaveApplication.find({ employee: req.params.empId, fromDate: { $lte: endOfMonth }, toDate: { $gte: startOfMonth } })
+      .populate([
+        { path: "employee", select: "FirstName LastName Email profile" },
+        { path: "coverBy", select: "FirstName LastName Email profile" }
+      ]).lean().exec();
 
-    if (!employeeLeaveData || !employeeLeaveData.leaveApplication.length) {
+    if (!employeeLeaveData || !employeeLeaveData.length) {
       return res.send({
         leaveData: [],
         approvedLeave: 0,
@@ -733,7 +738,7 @@ leaveApp.get("/date-range/:empId", verifyAdminHREmployeeManagerNetwork, async (r
       });
     }
 
-    const leaveData = employeeLeaveData.leaveApplication
+    const leaveData = employeeLeaveData
       .sort((a, b) => new Date(b.fromDate) - new Date(a.fromDate))
       .map(formatLeaveData);
 
@@ -872,6 +877,7 @@ leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("pre
 
       if (["Annual Leave", "Casual Leave"].includes(leaveType) &&
         [3, 5].includes(accountLevel) && [today.toDateString(), tomorrow.toDateString()].includes(formattedFrom)) {
+        console.log("today", today.toDateString(), "tomarrow", tomorrow.toDateString(), "actual", formattedFrom);
         return res.status(400).json({ error: `${leaveType} is not allowed for same day and next dates for your role.` });
       }
     }

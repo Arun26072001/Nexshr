@@ -98,7 +98,6 @@ const App = () => {
     try {
       const response = await axios.post(`${url}/api/login`, { Email: email, Password: password });
       const decodedData = jwtDecode(response.data);
-      console.log("decodedData", decodedData);
 
       if (!decodedData?.Account || !["17", "1", "2", "3", "4", "5"].includes(String(decodedData?.Account))) {
         throw new Error("Invalid account type.");

@@ -2,7 +2,6 @@ import axios from 'axios';
 import { toast } from 'react-toastify';
 import { Notification, toaster } from "rsuite";
 import * as XLSX from "xlsx";
-import { useNavigate } from "react-router-dom";
 import { saveAs } from "file-saver";
 import { jwtDecode } from 'jwt-decode';
 const url = process.env.REACT_APP_API_URL;
@@ -385,8 +384,6 @@ const gettingClockinsData = async (_id) => {
         return;
     }
     try {
-        console.log("url", url);
-        
         const dashboard = await axios.get(`${url}/api/clock-ins/employee/${_id}`, {
             headers: {
                 authorization: token || ""
