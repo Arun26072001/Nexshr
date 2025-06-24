@@ -867,10 +867,7 @@ leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("pre
     }
 
     // 3. Same day/tomorrow restriction for Sick/Medical Leave
-    const formattedFrom = fromDateObj.toDateString();
-    const localDate = toZonedTime(fromDateObj, process.env.TIMEZONE);
-    console.log("time from server", localDate);
-    // const formatted = format(localDate, 'yyyy-MM-dd HH:mm:ssXXX', { timeZone });
+    const formattedFrom = toZonedTime(fromDateObj, process.env.TIMEZONE).toDateString();
     const tomorrow = new Date(today);
     tomorrow.setDate(today.getDate() + 1);
 
