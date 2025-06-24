@@ -809,9 +809,11 @@ leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("pre
       reasonForLeave, coverBy, applyFor, role
     } = req.body;
 
+
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const fromDateObj = new Date(fromDate);
+
     // fromDateObj.setHours(0, 0, 0, 0);
     const toDateObj = new Date(toDate);
     const prescription = req.file?.filename || null;
@@ -866,6 +868,9 @@ leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("pre
 
     // 3. Same day/tomorrow restriction for Sick/Medical Leave
     const formattedFrom = fromDateObj.toDateString();
+    const localDate = toZonedTime(fromDateObj, process.env.TIMEZONE);
+    console.log("time from server", localDate);
+    // const formatted = format(localDate, 'yyyy-MM-dd HH:mm:ssXXX', { timeZone });
     const tomorrow = new Date(today);
     tomorrow.setDate(today.getDate() + 1);
 
