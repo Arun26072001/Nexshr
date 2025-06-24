@@ -898,8 +898,8 @@ leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("pre
     function checkDateIsHoliday(dateList, target) {
       return dateList.some((holiday) => new Date(holiday.date).toLocaleDateString() === new Date(target).toLocaleDateString());
     }
-    const holiday = await Holiday.findOne({ currentYear: new Date().getFullYear() });
-    if (holiday.holidays.length) {
+    const holiday = await Holiday.findOne({ currentYear: new Date().getFullYear(), company: emp.company._id });
+    if (holiday && holiday?.holidays?.length) {
       const isFromDateHoliday = checkDateIsHoliday(holiday.holidays, fromDate);
       const isToDateHoliday = checkDateIsHoliday(holiday.holidays, fromDate);
       if (isFromDateHoliday) {
