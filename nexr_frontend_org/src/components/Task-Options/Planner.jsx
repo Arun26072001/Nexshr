@@ -185,9 +185,6 @@ export default function Planner({ isLoading, updateTaskStatus, fetchEmpAssignedT
             <div className="kanbanboard-parent" >
                 {
                     categories?.map((category) => {
-                        console.log("category", category._id);
-                        console.log(plannerTasks["68416fff839127da057eced2"]);
-
                         return <div key={category._id} className="kanbanboard-child" style={{ opacity: draggedOver === category._id ? 0.6 : null }}
                             onDragOver={(e) => handleDragOver(e, category._id)} onDragLeave={() => setDraggedOver("")}
                             onDrop={handleDrop} onMouseEnter={() => setOnHover(category._id)} onMouseLeave={() => setOnHover("")} >

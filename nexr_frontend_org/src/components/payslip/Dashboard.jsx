@@ -45,7 +45,11 @@ const Dashboard = () => {
     const [employees, setEmployees] = useState([]);
     const [selectedEmp, setSelectedEmp] = useState({ value: data._id, label: data.Name });
     const [taskObj, setTaskObj] = useState({});
-    const [toggleTask, setToggleTask] = useState({ isAdd: false, isEdit: false, isView: false })
+    // handle add, edit and view task
+    const [isAddTask, setIsAddTask] = useState(false);
+    const [isEditTask, setIsEditTask] = useState(false);
+    const [isviewTask, setIsViewtask] = useState(false);
+    // const [toggleTask, setToggleTask] = useState({ isAdd: false, isEdit: false, isView: false })
 
     function navigateToMyTask() {
         const scrollDown = myTaskRef?.current?.getBoundingClientRect()?.top + window.scrollY
@@ -55,38 +59,70 @@ const Dashboard = () => {
         })
     }
 
-    function toggleTaskMode(type, id) {
-        if (type === "Edit") {
-            if (id) {
-                fetchTaskById(id)
-            } else {
-                setTaskObj({})
-            }
+    // function toggleTaskMode(type, id) {
+    //     console.log("type", type);
 
-        } if (type === "View") {
-            console.log(type);
-            if (id) {
-                fetchTaskById(id)
-            } else {
-                console.log("calling.....");
-                setTaskObj({})
-            }
-        } if (type === "Add" && toggleTask.isAdd) {
+    //     if (type === "Edit") {
+    //         if (type === "Edit" && toggleTask.isEdit) {
+    //             setTaskObj({})
+    //         }
+    //         if (id) {
+    //             fetchTaskById(id)
+    //         }
+
+    //     } if (type === "View") {
+    //         console.log(type);
+    //         if (id) {
+    //             fetchTaskById(id)
+    //         } else {
+    //             console.log("calling.....");
+    //             setTaskObj({})
+    //         }
+    //     } if (type === "Add" && toggleTask.isAdd) {
+    //         setTaskObj({})
+    //     }
+    //     setToggleTask((prev) => {
+    //         return {
+    //             ...prev,
+    //             isAdd: type === "Add" ? !prev.isAdd : false,
+    //             isEdit: type === "Edit" && id ? true : false,
+    //             isView: type === "View" ? !prev.isView : false
+    //         };
+    //     });
+    // }
+    // console.log("taskObj", taskObj);
+
+    function handleViewTask(id) {
+        if (id) {
+            fetchTaskById(id)
+        }
+        if (isviewTask) {
             setTaskObj({})
         }
-        setToggleTask((prev) => {
-            return {
-                ...prev,
-                isAdd: type === "Add" ? !prev.isAdd : false,
-                isEdit: type === "Edit" && id ? true : false,
-                isView: type === "View" ? !prev.isView : false
-            };
-        });
+        setIsViewtask(!isviewTask)
+    }
+
+    function handleEditTask(id) {
+        if (id) {
+            fetchTaskById(id)
+        }
+        if (isEditTask) {
+            setTaskObj({});
+        }
+        setIsEditTask(!isEditTask);
+    }
+
+    function handleAddTask() {
+        if (isAddTask) {
+            setTaskObj({});
+            setPreviewList([]);
+        }
+        setIsAddTask(!isAddTask)
     }
 
     useEffect(() => {
         navigateToMyTask()
-    }, [toggleTask])
+    }, [isviewTask, isEditTask, isAddTask])
 
     // remove task of attachments
     function removeAttachment(value, fileIndex) {
@@ -113,12 +149,6 @@ const Dashboard = () => {
             console.log("error in fetch employess", error);
         }
     }
-
-    useEffect(() => {
-        if (taskObj?.project) {
-            fetchProjectEmps()
-        }
-    }, [taskObj?.project])
 
     async function fetchTaskById(id) {
         try {
@@ -147,8 +177,8 @@ const Dashboard = () => {
             const empData = await fetchEmployeeData(data._id);
 
             // Calculate working hours for the day
-            if (empData?.workingTimePattern?.StartingTime && empData?.workingTimePattern?.FinishingTime) {
-                workingHour = await getTotalWorkingHourPerDay(empData?.workingTimePattern?.StartingTime, empData?.workingTimePattern?.FinishingTime);
+            if (empData && empData?.workingTimePattern?.StartingTime && empData?.workingTimePattern?.FinishingTime) {
+                workingHour = getTotalWorkingHourPerDay(new Date(empData?.workingTimePattern?.StartingTime), new Date(empData?.workingTimePattern?.FinishingTime));
             }
 
             // Fetch clock-ins data
@@ -167,7 +197,9 @@ const Dashboard = () => {
 
             // Fetch daily clock-in data
             const clockinsData = await getDataAPI(data._id);
-            setDailyLoginData(clockinsData);
+            if (clockinsData) {
+                setDailyLoginData(clockinsData);
+            }
             // Set leave data with working hours
             setLeaveData({ ...empData, workingHour });
 
@@ -175,7 +207,7 @@ const Dashboard = () => {
             if (error?.message === "Network Error") {
                 navigate("/network-issue")
             }
-            console.log(error.message || "An error occurred while fetching employee data.");
+            console.log(error || "An error occurred while fetching employee data.");
             // toast.error(error.message || "An error occurred while fetching employee data.");
             setLeaveData({});
         } finally {
@@ -325,7 +357,7 @@ const Dashboard = () => {
                 // After successful upload, create the task
                 await createTask(newTask);
                 setTaskObj({});
-                toggleTaskMode("Add");
+                setIsAddTask(false)
                 navigateToMyTask()
                 fetchEmpAssignedTasks();
             } catch (error) {
@@ -345,7 +377,7 @@ const Dashboard = () => {
 
             await createTask(newTask);
             setTaskObj({});
-            toggleTaskMode("Add");
+            setIsViewtask(false);
             navigateToMyTask()
         }
         setIsWorkingApi(false);
@@ -420,7 +452,7 @@ const Dashboard = () => {
 
             toast.success(res.data.message);
             setTaskObj({});
-            toggleTaskMode("Edit");
+            setIsEditTask(false);
             navigateToMyTask();
             fetchEmpAssignedTasks()
         } catch (error) {
@@ -519,8 +551,10 @@ const Dashboard = () => {
     }, [])
 
     useEffect(() => {
-
-    }, [])
+        if (taskObj?.project) {
+            fetchProjectEmps()
+        }
+    }, [taskObj?.project])
 
     useEffect(() => {
         fetchEmpAssignedTasks();
@@ -530,11 +564,11 @@ const Dashboard = () => {
         gettingEmpdata();
     }, [isEditEmp]);
 
-    if (toggleTask.isView) {
+    if (isviewTask) {
         return (
-            <CommonModel type="Task View" tasks={tasks} isAddData={toggleTask.isView} modifyData={toggleTaskMode} notCompletedTasks={notCompletedTasks} dataObj={taskObj} projects={projects} removeAttachment={removeAttachment} employees={employees} />
+            <CommonModel type="Task View" tasks={tasks} isAddData={isviewTask} modifyData={handleViewTask} notCompletedTasks={notCompletedTasks} dataObj={taskObj} projects={projects} removeAttachment={removeAttachment} employees={employees} />
         )
-    } if (toggleTask.isEdit) {
+    } if (isEditTask) {
         return (
             <CommonModel
                 isWorkingApi={isWorkingApi}
@@ -542,7 +576,7 @@ const Dashboard = () => {
                 tasks={tasks}
                 notCompletedTasks={notCompletedTasks}
                 previewList={previewList}
-                isAddData={toggleTask.isEdit}
+                isAddData={isEditTask}
                 editData={editTask}
                 addReminder={addReminder}
                 changeData={changeTask}
@@ -552,9 +586,9 @@ const Dashboard = () => {
                 removeAttachment={removeAttachment}
                 employees={employees}
                 type="Task"
-                modifyData={toggleTaskMode} />
+                modifyData={handleEditTask} />
         )
-    } if (toggleTask.isAdd) {
+    } if (isAddTask) {
         return (
             <CommonModel
                 isWorkingApi={isWorkingApi}
@@ -562,7 +596,7 @@ const Dashboard = () => {
                 tasks={tasks}
                 notCompletedTasks={notCompletedTasks}
                 previewList={previewList}
-                isAddData={toggleTask.isAdd}
+                isAddData={isAddTask}
                 editData={editTask}
                 addReminder={addReminder}
                 changeData={changeTask}
@@ -572,11 +606,9 @@ const Dashboard = () => {
                 removeAttachment={removeAttachment}
                 employees={employees}
                 type="Task"
-                modifyData={toggleTaskMode} />
+                modifyData={handleAddTask} />
         )
     }
-
-    console.log("leaveData", leaveData.totalTakenLeaveCount);
 
     return (
         <div className='dashboard-parent'>
@@ -639,18 +671,18 @@ const Dashboard = () => {
                                 <>
                                     <p className='leaveIndicatorTxt'>Today</p>
                                     <div className='row gap-3 text-center d-flex justify-content-center'>
-                                        <div className='col-lg-3 col-md-3 col-4 timeLogBox'>
+                                        <div className='col-lg-3 col-md-3 col-4 timeLogBox' title='This is the total number of working hours defined by the company for a day, used to track attendance, productivity, and leave calculations.' >
                                             <>
                                                 <p>{formatTime(leaveData?.workingHour || 0)}</p>
                                                 <p className='sub_text'>Total Hours</p>
                                             </>
                                         </div>
-                                        <div className='col-lg-3 col-md-3 col-4 timeLogBox'>
+                                        <div className='col-lg-3 col-md-3 col-4 timeLogBox' title="This is the total number of hours you have actively worked or logged within the company’s defined working period" >
                                             <p>{dailyLogindata?.empTotalWorkingHours ? dailyLogindata?.empTotalWorkingHours : "00:00"}</p>
                                             <p className='sub_text'>Worked</p>
                                         </div>
-                                        <div className='col-lg-3 col-md-3 col-4 timeLogBox'>
-                                            <p>{getPadStartHourAndMin(leaveData?.workingHour - (Number(dailyLogindata?.empTotalWorkingHours)?.toFixed(2) || "00:00"))}</p>
+                                        <div className='col-lg-3 col-md-3 col-4 timeLogBox' title="This is the remaining number of hours you are expected to work to meet the company’s total working hours for the period." >
+                                            <p>{getPadStartHourAndMin(leaveData?.workingHour - Number(dailyLogindata?.empTotalWorkingHours || 0)?.toFixed(2))}</p>
                                             <p className='sub_text'>Balance</p>
                                         </div>
                                     </div>
@@ -726,54 +758,54 @@ const Dashboard = () => {
                     </div>
                 </div>
                 {
-                    // !["admin", "hr"].includes(whoIs) &&
-                    // <div className='time justify-content-start flex-wrap' >
-                    //     <h6 ref={myTaskRef}>My Task</h6>
+                    !["admin", "hr"].includes(whoIs) &&
+                    <div className='time justify-content-start flex-wrap' >
+                        <h6 ref={myTaskRef}>My Task</h6>
 
-                    //     <div className="col-lg-12 col-md-12 col-12"  >
-                    //         <div className="d-flex justify-content-between align-items-start flex-wrap my-2 px-2">
-                    //             <div className='d-flex align-items-center gap-3 timeLogBox'>
-                    //                 {["List", "DeadLine", "Planner", "Calendar", "Gantt"].map((label) => (
-                    //                     <span
-                    //                         key={label}
-                    //                         onClick={() => setTaskOption(label)}
-                    //                         className={taskOption === label ? "active" : ""}
-                    //                         style={{ cursor: "pointer" }}
-                    //                     >
-                    //                         {label}
-                    //                     </span>
-                    //                 ))}
-                    //             </div>
+                        <div className="col-lg-12 col-md-12 col-12"  >
+                            <div className="d-flex justify-content-between align-items-start flex-wrap my-2 px-2">
+                                <div className='d-flex align-items-center gap-3 timeLogBox'>
+                                    {["List", "DeadLine", "Planner", "Calendar", "Gantt"].map((label) => (
+                                        <span
+                                            key={label}
+                                            onClick={() => setTaskOption(label)}
+                                            className={taskOption === label ? "active" : ""}
+                                            style={{ cursor: "pointer" }}
+                                        >
+                                            {label}
+                                        </span>
+                                    ))}
+                                </div>
 
-                    //             {/* Right Side: Controls */}
-                    //             <div className="d-flex gap-2 justify-content-end" style={{ minWidth: "200px" }}>
-                    //                 {
-                    //                     [isTeamManager, isTeamLead, isTeamHead].includes(true) &&
-                    //                     <Select options={teamEmps} styles={{
-                    //                         menuPortal: (base) => ({ ...base, zIndex: 9999 }),
-                    //                         menu: (base) => ({ ...base, zIndex: 9999 })
-                    //                     }} onChange={(e) => setSelectedEmp(e)} value={selectedEmp} placeholder="Select Team Employee" />
-                    //                 }
-                    //                 <button className="button" onClick={() => toggleTaskMode("Add")} >
-                    //                     <AddRoundedIcon /> New Task
-                    //                 </button>
-                    //             </div>
-                    //         </div>
-                    //         <div >
-                    //             {
-                    //                 taskOption === "List" ?
-                    //                     isLoadingForTask ? <Loading /> :
-                    //                         tasks.length ?
-                    //                             <LeaveTable data={tasks} handleChangeData={toggleTaskMode} deleteData={deleteTask} />
-                    //                             : <NoDataFound message={"Tasks data not found"} /> :
-                    //                     taskOption === "DeadLine" ? <DeadlineTask updateTask={editTask} categorizeTasks={categorizeTasks} fetchEmpAssignedTasks={fetchEmpAssignedTasks} updateTaskStatus={getValue} setCategorizeTasks={setCategorizeTasks} updatedTimerInTask={updatedTimerInTask} /> :
-                    //                         ["Planner"].includes(taskOption) ? <Planner plannerTasks={plannerTasks} setPlannerTasks={setPlannerTasks} isLoading={isLoading} />
-                    //                             : taskOption === "Calendar" ? <CalendarViewTasks tasks={tasks} />
-                    //                                 : taskOption === "Gantt" ? <GanttView tasks={tasks} isLoading={isLoadingForTask} /> : null
-                    //             }
-                    //         </div>
-                    //     </div>
-                    // </div>
+                                {/* Right Side: Controls */}
+                                <div className="d-flex gap-2 justify-content-end" style={{ minWidth: "200px" }}>
+                                    {
+                                        [isTeamManager, isTeamLead, isTeamHead].includes(true) &&
+                                        <Select options={teamEmps} styles={{
+                                            menuPortal: (base) => ({ ...base, zIndex: 9999 }),
+                                            menu: (base) => ({ ...base, zIndex: 9999 })
+                                        }} onChange={(e) => setSelectedEmp(e)} value={selectedEmp} placeholder="Select Team Employee" />
+                                    }
+                                    <button className="button" onClick={handleAddTask} >
+                                        <AddRoundedIcon /> New Task
+                                    </button>
+                                </div>
+                            </div>
+                            <div >
+                                {
+                                    taskOption === "List" ?
+                                        isLoadingForTask ? <Loading /> :
+                                            tasks.length ?
+                                                <LeaveTable data={tasks} handleEdit={handleEditTask} handleView={handleViewTask} deleteData={deleteTask} />
+                                                : <NoDataFound message={"Tasks data not found"} /> :
+                                        taskOption === "DeadLine" ? <DeadlineTask updateTask={editTask} categorizeTasks={categorizeTasks} fetchEmpAssignedTasks={fetchEmpAssignedTasks} updateTaskStatus={getValue} setCategorizeTasks={setCategorizeTasks} updatedTimerInTask={updatedTimerInTask} /> :
+                                            ["Planner"].includes(taskOption) ? <Planner plannerTasks={plannerTasks} setPlannerTasks={setPlannerTasks} isLoading={isLoading} />
+                                                : taskOption === "Calendar" ? <CalendarViewTasks tasks={tasks} />
+                                                    : taskOption === "Gantt" ? <GanttView tasks={tasks} isLoading={isLoadingForTask} /> : null
+                                }
+                            </div>
+                        </div>
+                    </div>
                 }
                 <NexHRDashboard updateClockins={updateClockins} />
             </>

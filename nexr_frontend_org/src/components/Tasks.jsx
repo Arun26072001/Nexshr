@@ -30,7 +30,7 @@ const Tasks = () => {
   const [employees, setEmployees] = useState([]);
   const { data, whoIs } = useContext(EssentialValues);
   const { isAddTask, setIsAddTask, handleAddTask, selectedProject } = useContext(TimerStates);
-  const { isTeamLead, isTeamHead, isTeamManager } = jwtDecode(data.token)
+  const { isTeamLead, isTeamHead } = jwtDecode(data.token)
   const [taskObj, setTaskObj] = useState({});
   const [projects, setProjects] = useState([]);
   const [projectId, setProjectId] = useState(localStorage.getItem("selectedProject") || "");
@@ -234,6 +234,13 @@ const Tasks = () => {
     }))
   }
 
+  function handleViewTask() {
+    if (isviewTask) {
+      setTaskObj({})
+    }
+    setIsViewtask(!isviewTask)
+  }
+
   function handleEditTask() {
     if (isEditTask) {
       setTaskObj({});
@@ -296,13 +303,6 @@ const Tasks = () => {
     } finally {
       setIsLoading(false)
     }
-  }
-
-  function handleViewTask() {
-    if (isviewTask) {
-      setTaskObj({})
-    }
-    setIsViewtask(!isviewTask)
   }
 
   function handleAddComment(id) {

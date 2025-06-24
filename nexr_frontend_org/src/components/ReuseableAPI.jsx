@@ -2,7 +2,7 @@ import axios from 'axios';
 import { toast } from 'react-toastify';
 import { Notification, toaster } from "rsuite";
 import * as XLSX from "xlsx";
-import {useNavigate} from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { saveAs } from "file-saver";
 import { jwtDecode } from 'jwt-decode';
 const url = process.env.REACT_APP_API_URL;
@@ -35,36 +35,42 @@ const updateDataAPI = async (body) => {
     }
 };
 
-  async function fetchTeamEmps() {
+async function fetchTeamEmps() {
     const empId = getId();
-    const token  = getToken()
-    const {isTeamHead, isTeamLead, isTeamManager} = jwtDecode(token);
+    const token = getToken()
+    const { isTeamHead, isTeamLead, isTeamManager } = jwtDecode(token);
     try {
-      const res = await axios.get(`${url}/api/team/members/${empId}`, {
-        params: {
-          who: isTeamLead ? "lead" : isTeamHead ? "head" : isTeamManager ? "manager" : "employees"
-        },
-        headers: {
-          Authorization: token || ""
-        }
-      })
-      const emps = res.data.employees.map((emp) => ({ label: emp.FirstName + " " + emp.LastName, value: emp._id }));
-      return emps;
+        const res = await axios.get(`${url}/api/team/members/${empId}`, {
+            params: {
+                who: isTeamLead ? "lead" : isTeamHead ? "head" : isTeamManager ? "manager" : "employees"
+            },
+            headers: {
+                Authorization: token || ""
+            }
+        })
+        const emps = res.data.employees.map((emp) => ({ label: emp.FirstName + " " + emp.LastName, value: emp._id }));
+        return emps;
     } catch (error) {
-      console.log("error in fetch team emps", error);
+        console.log("error in fetch team emps", error);
     }
-  }
+}
 
-async function getTotalWorkingHourPerDay(start, end) {
-    const [startHour, startMin] = start.split(/[:.]+/).map(Number);
-    const [endHour, endMin] = end.split(/[:.]+/).map(Number);
+function getTotalWorkingHourPerDay(start, end) {
+    if (start && end) {
+        // Calculate the difference in milliseconds
+        const startTime = new Date(start).getTime();
+        const endTime = new Date(end).getTime();
 
-    const startTime = new Date(2000, 0, 1, startHour, startMin);
-    const endTime = new Date(2000, 0, 1, endHour, endMin);
+        let timeDifference;
+        if (endTime > startTime) {
+            timeDifference = end - start;
+        } else {
+            timeDifference = start - end
+        }
 
-    const diffMs = endTime - startTime;
-    const diffHrs = diffMs / (1000 * 60 * 60); // Convert milliseconds to hours
-    return diffHrs > 0 ? diffHrs : 0; // Ensure non-negative value
+        const diffHrs = timeDifference / (1000 * 60 * 60); // Convert milliseconds to hours
+        return diffHrs > 0 ? diffHrs : 0; // Ensure non-negative value
+    }
 }
 
 const getDataAPI = async (_id) => {

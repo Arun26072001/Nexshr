@@ -22,7 +22,7 @@ import { EssentialValues } from '../App';
 import profile from "../imgs/male_avatar.webp";
 import Loading from './Loader';
 
-export default function LeaveTable({ data, Account, getCheckedValue, handleDelete, handleChangeData, fetchReportById, fetchOrgData, fetchData, roleObj, getCheckAll, deleteData, replyToLeave, handleChangeLeavetype, isTeamHead, isTeamLead, isTeamManager, isLoading }) {
+export default function LeaveTable({ data, Account, getCheckedValue, handleDelete, handleEdit, handleView, handleChangeData, fetchReportById, fetchOrgData, fetchData, roleObj, getCheckAll, deleteData, replyToLeave, handleChangeLeavetype, isTeamHead, isTeamLead, isTeamManager, isLoading }) {
     const navigate = useNavigate();
     const { whoIs } = useContext(EssentialValues);
     const empId = localStorage.getItem("_id")
@@ -1265,7 +1265,7 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
                                                     } else if (params["*"] === "") {
                                                         return (
                                                             <Dropdown title={isLoading === row._id ? <Loading size={20} color={"black"} /> : "Action"} placement='leftStart' noCaret>
-                                                                <Dropdown.Item style={{ minWidth: 80 }} onClick={() => handleChangeData("View", row?._id)}>
+                                                                <Dropdown.Item style={{ minWidth: 80 }} onClick={() => handleView(row?._id)}>
                                                                     <b>
                                                                         <RemoveRedEyeRoundedIcon sx={{ color: "#80C4E9" }} /> View
                                                                     </b>
@@ -1273,7 +1273,7 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
                                                                 {
                                                                     empId === row?.createdby?._id &&
                                                                     <>
-                                                                        <Dropdown.Item style={{ minWidth: 80 }} onClick={() => handleChangeData("Edit", row?._id)}>
+                                                                        <Dropdown.Item style={{ minWidth: 80 }} onClick={() => handleEdit(row?._id)}>
                                                                             <b>
                                                                                 <BorderColorRoundedIcon sx={{ color: "#FFD65A" }} /> Edit
                                                                             </b>

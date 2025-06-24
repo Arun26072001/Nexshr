@@ -213,6 +213,7 @@ export default function PayslipInfo() {
                     {payslipInfos.payslipFields.length > 0 ? (
                         payslipInfos.payslipFields.map((data, index) => (
                             <div
+                                title="These are the fields used when generating a payslip. Only these fields will be shown on the payslip."
                                 key={index}
                                 className="payslipInfoCard row d-flex justify-content-between align-items-center border rounded py-3 my-2 shadow-sm bg-white"
                             >

@@ -9,6 +9,7 @@ import { Button, Input, InputNumber, Modal, SelectPicker, Tabs } from "rsuite";
 import dayjs from "dayjs";
 import "react-big-calendar/lib/css/react-big-calendar.css";
 import "./calendar.css";
+import CircleIcon from '@mui/icons-material/Circle';
 import { getHoliday } from "./ReuseableAPI";
 import { EssentialValues } from "../App";
 import LeaveTable from "./LeaveTable";
@@ -233,14 +234,17 @@ function Holiday() {
         isEditable ? renderHolidayForm() :
             whoIs === "emp" ?
                 (formattedHolidays.length > 0 ?
-                    <Calendar
-                        localizer={localizer}
-                        events={formattedHolidays}
-                        startAccessor="start"
-                        endAccessor="end"
-                        eventPropGetter={eventPropGetter}
-                        style={{ height: 500 }}
-                    /> : <h3 className="notFoundText" style={{ height: "100vh" }}>The current year's holidays have not been added yet.</h3>) :
+                    <>
+                        <p className="text-center mb-2 payslipTitle"><CircleIcon color="success" /> Holiday</p>
+                        <Calendar
+                            localizer={localizer}
+                            events={formattedHolidays}
+                            startAccessor="start"
+                            endAccessor="end"
+                            eventPropGetter={eventPropGetter}
+                            style={{ height: 500 }}
+                        />
+                    </> : <h3 className="notFoundText" style={{ height: "100vh" }}>The current year's holidays have not been added yet.</h3>) :
                 <Tabs defaultActiveKey="1" appearance="pills">
                     <Tabs.Tab eventKey="1" title="TableView">
                         <>
@@ -260,14 +264,17 @@ function Holiday() {
                     <Tabs.Tab eventKey="2" title="CalendarView">
                         {
                             formattedHolidays.length > 0 ?
-                                <Calendar
-                                    localizer={localizer}
-                                    events={formattedHolidays}
-                                    startAccessor="start"
-                                    endAccessor="end"
-                                    eventPropGetter={eventPropGetter}
-                                    style={{ height: 500 }}
-                                /> : <h3 className="notFoundText" style={{ height: "100vh" }}>The current year's holidays have not been added yet.</h3>
+                                <>
+                                    <p className="text-center mb-2 payslipTitle"><CircleIcon color="success" /> Holiday</p>
+                                    <Calendar
+                                        localizer={localizer}
+                                        events={formattedHolidays}
+                                        startAccessor="start"
+                                        endAccessor="end"
+                                        eventPropGetter={eventPropGetter}
+                                        style={{ height: 500 }}
+                                    />
+                                </> : <h3 className="notFoundText" style={{ height: "100vh" }}>The current year's holidays have not been added yet.</h3>
                         }
                     </Tabs.Tab>
                 </Tabs>
