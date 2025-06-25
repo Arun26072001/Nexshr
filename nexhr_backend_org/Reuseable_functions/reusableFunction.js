@@ -347,6 +347,11 @@ function timeToMinutes(timeStr) {
   }
 }
 
+function changeClientTimezoneDate(date) {
+  const actualDate = toZonedTime(new Date(date), process.env.TIMEZONE);
+  return actualDate
+}
+
 const getCurrentTimeInMinutes = () => {
   const now = new Date().toLocaleTimeString('en-US', { timeZone: process.env.TIMEZONE, hourCycle: 'h23' });
   const timeWithoutSuffix = now.replace(/ AM| PM/, ""); // Remove AM/PM
@@ -488,7 +493,7 @@ function formatDate(date) {
 }
 
 
-module.exports = { convertToString, accountFromRole, sumLeaveDays, getValidLeaveDays, fetchFirstTwoItems, getCurrentTime, checkLoginForOfficeTime, categorizeTasks, projectMailContent, processActivityDurations, getTotalWorkingHourPerDay, formatLeaveData, getDayDifference, getOrgDB, formatDate, getWeekdaysOfCurrentMonth, mailContent, checkLogin, getTotalWorkingHoursExcludingWeekends, getCurrentTimeInMinutes, timeToMinutes, formatTimeFromMinutes };
+module.exports = { convertToString, accountFromRole, changeClientTimezoneDate, sumLeaveDays, getValidLeaveDays, fetchFirstTwoItems, getCurrentTime, checkLoginForOfficeTime, categorizeTasks, projectMailContent, processActivityDurations, getTotalWorkingHourPerDay, formatLeaveData, getDayDifference, getOrgDB, formatDate, getWeekdaysOfCurrentMonth, mailContent, checkLogin, getTotalWorkingHoursExcludingWeekends, getCurrentTimeInMinutes, timeToMinutes, formatTimeFromMinutes };
 // Helper function to generate coverBy email content
 // function generateCoverByEmail(empData, relievingOffData) {
 //   return `

@@ -6,6 +6,7 @@ const { verifyAdminHR, verifyAdminHREmployeeManagerNetwork } = require('../auth/
 const { Employee } = require('../models/EmpModel');
 const { sendPushNotification } = require('../auth/PushNotification');
 const sendMail = require('./mailSender');
+const { changeClientTimezoneDate } = require('../Reuseable_functions/reusableFunction');
 
 router.get("/", verifyAdminHREmployeeManagerNetwork, (req, res) => {
   TimePattern.find()
@@ -66,8 +67,8 @@ router.put("/:id", verifyAdminHR, async (req, res) => {
       };
       const companyName = member.company.CompanyName;
       const workStartTime = new Date(updatedPattern.StartingTime)
-      console.log("start", new Date(workStartTime).toLocaleTimeString());
-      console.log("finish", new Date(updatedPattern.FinishingTime).toLocaleTimeString());
+      console.log("start", changeClientTimezoneDate(workStartTime).toLocaleTimeString());
+      console.log("finish", changeClientTimezoneDate(updatedPattern.FinishingTime).toLocaleTimeString());
 
       //       const htmlcontent = `
       //           <!DOCTYPE html>
@@ -135,14 +136,14 @@ router.put("/:id", verifyAdminHR, async (req, res) => {
       //   Subject: title,
       //   HtmlBody: htmlcontent,
       // });
-      const fullEmp = await Employee.findById(member._id, "notifications");
-      fullEmp.notifications.push(notification);
-      await fullEmp.save();
-      await sendPushNotification({
-        token: member.fcmToken,
-        title: notification.title,
-        body: notification.message,
-      });
+      // const fullEmp = await Employee.findById(member._id, "notifications");
+      // fullEmp.notifications.push(notification);
+      // await fullEmp.save();
+      // await sendPushNotification({
+      //   token: member.fcmToken,
+      //   title: notification.title,
+      //   body: notification.message,
+      // });
       notify.push(member.Email);
     });
     return res.send({ message: `${req.body.PatternName} Pattern updated successfully`, updatedPattern, notifiedPeoples: notify })

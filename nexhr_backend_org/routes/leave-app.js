@@ -10,7 +10,7 @@ const { verifyHR, verifyEmployee, verifyAdminHREmployeeManagerNetwork, verifyAdm
 const { Team } = require('../models/TeamModel');
 const { upload } = require('./imgUpload');
 const sendMail = require("./mailSender");
-const { getDayDifference, mailContent, formatLeaveData, formatDate, getValidLeaveDays, sumLeaveDays } = require('../Reuseable_functions/reusableFunction');
+const { getDayDifference, mailContent, formatLeaveData, formatDate, getValidLeaveDays, sumLeaveDays, changeClientTimezoneDate } = require('../Reuseable_functions/reusableFunction');
 const { Task } = require('../models/TaskModel');
 const { sendPushNotification } = require('../auth/PushNotification');
 const { Holiday } = require('../models/HolidayModel');
@@ -867,7 +867,7 @@ leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("pre
     }
 
     // 3. Same day/tomorrow restriction for Sick/Medical Leave
-    const formattedFrom = toZonedTime(fromDateObj, process.env.TIMEZONE).toDateString();
+    const formattedFrom = changeClientTimezoneDate(fromDateObj).toDateString();
     const tomorrow = new Date(today);
     tomorrow.setDate(today.getDate() + 1);
 
@@ -876,7 +876,6 @@ leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("pre
         ![today.toDateString(), tomorrow.toDateString()].includes(formattedFrom)) {
         return res.status(400).json({ error: "Sick leave is only applicable for today or tomorrow." });
       }
-      console.log("today", today.toDateString(), "tomarrow", tomorrow.toDateString(), "actual", formattedFrom);
 
       if (["Annual Leave", "Casual Leave"].includes(leaveType) &&
         [3, 5].includes(accountLevel) && [today.toDateString(), tomorrow.toDateString()].includes(formattedFrom)) {
