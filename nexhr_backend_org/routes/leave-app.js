@@ -867,10 +867,7 @@ leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("pre
     }
 
     // 3. Same day/tomorrow restriction for Sick/Medical Leave
-    const formattedFrom = fromDateObj.toDateString();
-    const localDate = toZonedTime(fromDateObj, process.env.TIMEZONE);
-    console.log("time from server", localDate);
-    // const formatted = format(localDate, 'yyyy-MM-dd HH:mm:ssXXX', { timeZone });
+    const formattedFrom = toZonedTime(fromDateObj, process.env.TIMEZONE).toDateString();
     const tomorrow = new Date(today);
     tomorrow.setDate(today.getDate() + 1);
 
@@ -901,8 +898,8 @@ leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("pre
     function checkDateIsHoliday(dateList, target) {
       return dateList.some((holiday) => new Date(holiday.date).toLocaleDateString() === new Date(target).toLocaleDateString());
     }
-    const holiday = await Holiday.findOne({ currentYear: new Date().getFullYear() });
-    if (holiday.holidays.length) {
+    const holiday = await Holiday.findOne({ currentYear: new Date().getFullYear(), company: emp.company._id });
+    if (holiday && holiday?.holidays?.length) {
       const isFromDateHoliday = checkDateIsHoliday(holiday.holidays, fromDate);
       const isToDateHoliday = checkDateIsHoliday(holiday.holidays, fromDate);
       if (isFromDateHoliday) {
