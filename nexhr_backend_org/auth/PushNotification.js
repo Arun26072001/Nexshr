@@ -36,8 +36,15 @@ exports.sendPushNotification = async (msgObj) => {
 exports.verifyWorkingTimeCompleted = async (req, res) => {
     try {
         const { employee, login } = req.body;
-        const empData = await Employee.findById(employee, "FirstName LastName workingTimePattern")
+        const empData = await Employee.findById(employee, "FirstName LastName workingTimePattern company")
             .populate("workingTimePattern").exec();
+        // let timeZone;
+        // if (empData.company) {
+        //     const timeZoneData = await Timezone.findOne({ company: empData.company }).lean().exec();
+        //     if (timeZoneData) {
+        //         timeZone = timeZoneData?.timeZone
+        //     }
+        // }
 
         let startingTimes = login?.startingTime;
         let endingTimes = login?.endingTime;
@@ -96,6 +103,15 @@ exports.askReasonForDelay = (req, res) => {
                 const startingTimes = timeData?.startingTime || [];
                 const endingTimes = timeData?.endingTime || [];
 
+                const empData = await Employee.findById(employeeId, "company")
+                // let timeZone;
+                // if (empData.company) {
+                //     const timeZoneData = await Timezone.findOne({ company: empData.company }).lean().exec();
+                //     if (timeZoneData) {
+                //         timeZone = timeZoneData?.timeZone
+                //     }
+                // }
+
                 const values = startingTimes.map((startTime, index) => {
                     if (!startTime) return 0;
 
@@ -106,11 +122,8 @@ exports.askReasonForDelay = (req, res) => {
                     const startTimeInMin = timeToMinutes(startTime);
                     return Math.abs(endTimeInMin - startTimeInMin);
                 });
-                console.log(values);
 
                 const lastValue = values.at(-1) || 0;
-
-                console.log(startingTimes.length, endingTimes.length, lastValue, time);
 
                 // Compare duration (in minutes) with the original delay time (converted to number)
                 if (startingTimes.length !== endingTimes.length && lastValue >= Number(time)) {

@@ -289,7 +289,6 @@ router.post("/employees/:id", upload.single("documents"), verifyAdminHR, async (
 
             const employeeExists = await Employee.exists({ code: row[9] });
             if (!employeeExists && row[0]?.trim()) {
-
                 const newEmp = {
                     FirstName: row[0],
                     LastName: row[1],
@@ -312,12 +311,11 @@ router.post("/employees/:id", upload.single("documents"), verifyAdminHR, async (
                         "Sick Leave": row[12] === "Intern" ? "2" : "7",
                         "permission": "2"
                     },
-
                     typesOfLeaveRemainingDays: {
                         "Annual Leave": row[12] === "Intern" ? "1" : "7",
                         "Sick Leave": row[12] === "Intern" ? "2" : "7"
                     },
-                    company: inviter.company._id,
+                    company: inviter?.company?._id,
                     role: defaultRole._id,
                     workingTimePattern: defaultTimePattern._id,
                     emergencyContacts: row[15] ? [{
@@ -415,7 +413,7 @@ router.post("/leave", upload.single("documents"), verifyAdminHR, async (req, res
         }
 
         const sheet = workbook.Sheets[sheetName];
-        const excelData = XLSX.utils.sheet_to_json(sheet, { header: 0 , raw: false, dateNF: "yyyy-mm-dd hh-mm-ss"});
+        const excelData = XLSX.utils.sheet_to_json(sheet, { header: 0, raw: false, dateNF: "yyyy-mm-dd hh-mm-ss" });
 
         let leaveApps = [];
         let existsApps = [];
@@ -492,13 +490,24 @@ router.post("/leave", upload.single("documents"), verifyAdminHR, async (req, res
 
         // Update employee leave applications
         await Promise.all(createdLeaves.map(async (leave) => {
-            const emp = await Employee.findById(leave.employee)
+            const emp = await Employee.findById(leave.employee);
 
-            if (emp) {
-                emp.leaveApplication.push(leave._id);
-                await emp.save();
+            if (!emp) return;
+
+            const leaveDaysTaken = Math.max(await getDayDifference(req.body), 1);
+            const balance = Number(emp.typesOfLeaveRemainingDays?.[leaveType]) || 0;
+
+            if (balance < leaveDaysTaken) {
+                throw new Error(`Insufficient leave balance for ${emp.name || emp._id}`);
             }
+
+            // Update balance and leaveApplication together
+            emp.typesOfLeaveRemainingDays[leaveType] = balance - leaveDaysTaken;
+            emp.leaveApplication.push(leave._id);
+
+            await emp.save();
         }));
+
 
         res.status(200).json({ status: true, message: `${createdLeaves.length} leave applications added and ${existsApps.length} leave application exists.` });
 

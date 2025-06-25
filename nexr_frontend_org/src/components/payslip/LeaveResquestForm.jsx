@@ -220,6 +220,13 @@ const LeaveRequestForm = ({ type }) => {
   }
 
   function fillLeaveObj(value, name) {
+    if (["fromDate", "toDate"].includes(name)) {
+      // check date is actual date
+      const date = new Date(value);
+      if (!date.getHours()) {
+        setErrorData(`${name} should be the actual date time`)
+      }
+    }
     setLeaveRequestObj((pre) => ({
       ...pre,
       [name]: value
@@ -268,6 +275,7 @@ const LeaveRequestForm = ({ type }) => {
       );
     }
   }, [])
+  console.log("errorData", errorData);
 
   return (
     isLoading ? <Loading height="80vh" /> :
@@ -281,7 +289,7 @@ const LeaveRequestForm = ({ type }) => {
               {leaveRequestObj._id ? (
                 <p className="text-dark">Update the required fields below to modify your annual leave request</p>
               ) : (
-                <p className="text-dark">Fill the required fields below to apply for annual leave</p>
+                <p className="text-dark sub_text" style={{ fontWeight: 500 }}>To apply for leave, the "From Date" and "To Date" should match the actual office start and end time for a full-day leave. For permission or half-day leave, select the appropriate date and time accordingly.</p>
               )}
             </div>
 

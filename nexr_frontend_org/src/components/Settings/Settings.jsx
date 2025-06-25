@@ -9,6 +9,7 @@ import Permission from './Permission';
 import TimePattern from './TimePattern';
 import Notification from './Notification';
 import WorkPlaceTab from './WorkPlace';
+import TimezoneTab from './TimezoneTab';
 
 function CustomTabPanel(props) {
   const { children, value, index, ...other } = props;
@@ -55,6 +56,7 @@ export default function Settings() {
           <Tab label="Working time patterns" {...a11yProps(2)} className='ccc'/>
           <Tab label="Notifications" {...a11yProps(3)} className='ccc' />
           <Tab label="Place of work" {...a11yProps(4)} className='ccc'/>
+          <Tab label="Time zone"  {...a11yProps(5)} className='ccc'/>
         </Tabs>
       </Box>
       <CustomTabPanel value={value} index={0}>
@@ -71,6 +73,9 @@ export default function Settings() {
       </CustomTabPanel>
       <CustomTabPanel value={value} index={4}>
         <WorkPlaceTab />
+      </CustomTabPanel>
+      <CustomTabPanel value={value} index={5}>
+        <TimezoneTab />
       </CustomTabPanel>
     </Box>
   );

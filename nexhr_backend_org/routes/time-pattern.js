@@ -126,12 +126,12 @@ router.put("/:id", verifyAdminHR, async (req, res) => {
 </body>
 </html>
 `
-      sendMail({
-        From: `<${process.env.FROM_MAIL}> (Nexshr)`,
-        To: member.Email,
-        Subject: title,
-        HtmlBody: htmlcontent,
-      });
+      // sendMail({
+      //   From: `<${process.env.FROM_MAIL}> (Nexshr)`,
+      //   To: member.Email,
+      //   Subject: title,
+      //   HtmlBody: htmlcontent,
+      // });
       const fullEmp = await Employee.findById(member._id, "notifications");
       fullEmp.notifications.push(notification);
       await fullEmp.save();
@@ -139,7 +139,6 @@ router.put("/:id", verifyAdminHR, async (req, res) => {
         token: member.fcmToken,
         title: notification.title,
         body: notification.message,
-        // company: member.company
       });
       notify.push(member.Email);
     });

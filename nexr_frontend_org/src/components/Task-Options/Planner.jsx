@@ -148,22 +148,21 @@ export default function Planner({ isLoading, updateTaskStatus, fetchEmpAssignedT
                     Authorization: data.token
                 }
             })
-            console.log("categories", res.data.categories);
+            console.log("planner", res.data.categories);
 
             setCategories(res.data.categories);
-       } catch (error) {
-         if (error?.message === "Network Error") {
+        } catch (error) {
+            if (error?.message === "Network Error") {
                 navigate("/network-issue")
             }
             console.log("error in fetch categories", error);
-
         }
     }
     useEffect(() => {
         fetchCategories()
     }, [])
 
-    // console.log(plannerTasks);
+    console.log("plannerTasks", plannerTasks);
 
     return (
         isLoading ? (
@@ -184,31 +183,34 @@ export default function Planner({ isLoading, updateTaskStatus, fetchEmpAssignedT
         ) :
             <div className="kanbanboard-parent" >
                 {
-                    categories?.map((category) => {
-                        return <div key={category._id} className="kanbanboard-child" style={{ opacity: draggedOver === category._id ? 0.6 : null }}
-                            onDragOver={(e) => handleDragOver(e, category._id)} onDragLeave={() => setDraggedOver("")}
-                            onDrop={handleDrop} onMouseEnter={() => setOnHover(category._id)} onMouseLeave={() => setOnHover("")} >
-                            <div className="kanbanboard-child-heading" style={{ backgroundColor: "black", color: "white" }}>
-                                {category?.name}({plannerTasks[category._id]?.length})
-                            </div>
-                            {!["Completed", "Overdue"].includes(category._id) ?
-                                <div className="addTask-btn" onClick={() => setAddTaskFor(category._id)} style={{ background: onHover === category._id ? "#DDDDDD" : null, cursor: "pointer" }}><AddRoundedIcon /> {onHover === category._id ? "Quick Task" : ""}</div> : null
-                            }
-                            {
-                                addTaskFor === category._id &&
-                                <div className="timeLogBox" >
-                                    <input className="mb-3" id="taskNameInput" value={taskObj?.title} placeholder="Name #tag" onChange={(e) => fillTaskObj(e.target.value, category)} />
-                                    <p>Press <SubdirectoryArrowLeftRoundedIcon /> to create</p>
+                    categories.length > 0 ?
+                        categories?.map((category) => {
+                            console.log("category", category._id);
+                            
+                            return <div key={category?._id} className="kanbanboard-child" style={{ opacity: draggedOver === category?._id ? 0.6 : null }}
+                                onDragOver={(e) => handleDragOver(e, category?._id)} onDragLeave={() => setDraggedOver("")}
+                                onDrop={handleDrop} onMouseEnter={() => setOnHover(category?._id)} onMouseLeave={() => setOnHover("")} >
+                                <div className="kanbanboard-child-heading" style={{ backgroundColor: "black", color: "white" }}>
+                                    {category?.name}({plannerTasks[category?._id]?.length})
                                 </div>
-                            }
-                            {
-                                plannerTasks[category._id].length ?
-                                    plannerTasks[category._id]?.map((task) => {
-                                        return contentTemplate(task, category._id)
-                                    }) : null
-                            }
-                        </div>
-                    })
+                                {/* {!["Completed", "Overdue"].includes(category?._id) ?
+                                <div className="addTask-btn" onClick={() => setAddTaskFor(category?._id)} style={{ background: onHover === category?._id ? "#DDDDDD" : null, cursor: "pointer" }}><AddRoundedIcon /> {onHover === category?._id ? "Quick Task" : ""}</div> : null
+                            } */}
+                                {/* {
+                                    addTaskFor === category?._id &&
+                                    <div className="timeLogBox" >
+                                        <input className="mb-3" id="taskNameInput" value={taskObj?.title} placeholder="Name #tag" onChange={(e) => fillTaskObj(e.target.value, category)} />
+                                        <p>Press <SubdirectoryArrowLeftRoundedIcon /> to create</p>
+                                    </div>
+                                }
+                                {
+                                    plannerTasks[category?._id].length ?
+                                        plannerTasks[category?._id]?.map((task) => {
+                                            return contentTemplate(task, category?._id)
+                                        }) : null
+                                } */}
+                            </div>
+                        }) : <p className='payslipTitle'>Categories not found</p>
                 }
             </div>
     );
