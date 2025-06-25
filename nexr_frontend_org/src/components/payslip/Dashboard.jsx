@@ -20,6 +20,7 @@ import CalendarViewTasks from './CalendarViewTasks';
 import GanttView from './GanttView';
 import Planner from '../Task-Options/Planner';
 import { useNavigate } from 'react-router-dom';
+import { DateRangePicker } from 'rsuite';
 
 const Dashboard = () => {
     const navigate = useNavigate();
@@ -49,7 +50,7 @@ const Dashboard = () => {
     const [isAddTask, setIsAddTask] = useState(false);
     const [isEditTask, setIsEditTask] = useState(false);
     const [isviewTask, setIsViewtask] = useState(false);
-    // const [toggleTask, setToggleTask] = useState({ isAdd: false, isEdit: false, isView: false })
+    const [dateRange, setDateRange] = useState([]);
 
     function navigateToMyTask() {
         const scrollDown = myTaskRef?.current?.getBoundingClientRect()?.top + window.scrollY
@@ -58,39 +59,6 @@ const Dashboard = () => {
             behavior: "smooth"
         })
     }
-
-    // function toggleTaskMode(type, id) {
-    //     console.log("type", type);
-
-    //     if (type === "Edit") {
-    //         if (type === "Edit" && toggleTask.isEdit) {
-    //             setTaskObj({})
-    //         }
-    //         if (id) {
-    //             fetchTaskById(id)
-    //         }
-
-    //     } if (type === "View") {
-    //         console.log(type);
-    //         if (id) {
-    //             fetchTaskById(id)
-    //         } else {
-    //             console.log("calling.....");
-    //             setTaskObj({})
-    //         }
-    //     } if (type === "Add" && toggleTask.isAdd) {
-    //         setTaskObj({})
-    //     }
-    //     setToggleTask((prev) => {
-    //         return {
-    //             ...prev,
-    //             isAdd: type === "Add" ? !prev.isAdd : false,
-    //             isEdit: type === "Edit" && id ? true : false,
-    //             isView: type === "View" ? !prev.isView : false
-    //         };
-    //     });
-    // }
-    // console.log("taskObj", taskObj);
 
     function handleViewTask(id) {
         if (id) {
@@ -471,10 +439,15 @@ const Dashboard = () => {
         setIsLoadingForTask(true);
         try {
             const res = await axios.get(`${url}/api/task/assigned/${selectedEmp.value}`, {
+                params: {
+                    dateRange
+                },
                 headers: {
                     Authorization: data.token || ""
                 }
             })
+            console.log("empTasks", res.data);
+
             setTasks(res.data.tasks);
             setCategorizeTasks(res.data.categorizeTasks);
             setPlannerTasks(res.data.planner);
@@ -558,7 +531,7 @@ const Dashboard = () => {
 
     useEffect(() => {
         fetchEmpAssignedTasks();
-    }, [selectedEmp])
+    }, [selectedEmp, dateRange])
 
     useEffect(() => {
         gettingEmpdata();
@@ -758,54 +731,55 @@ const Dashboard = () => {
                     </div>
                 </div>
                 {
-                    // !["admin", "hr"].includes(whoIs) &&
-                    // <div className='time justify-content-start flex-wrap' >
-                    //     <h6 ref={myTaskRef}>My Task</h6>
+                    !["admin", "hr"].includes(whoIs) &&
+                    <div className='time justify-content-start flex-wrap' >
+                        <h6 ref={myTaskRef}>My Task</h6>
 
-                    //     <div className="col-lg-12 col-md-12 col-12"  >
-                    //         <div className="d-flex justify-content-between align-items-start flex-wrap my-2 px-2">
-                    //             <div className='d-flex align-items-center gap-3 timeLogBox'>
-                    //                 {["List", "DeadLine", "Planner", "Calendar", "Gantt"].map((label) => (
-                    //                     <span
-                    //                         key={label}
-                    //                         onClick={() => setTaskOption(label)}
-                    //                         className={taskOption === label ? "active" : ""}
-                    //                         style={{ cursor: "pointer" }}
-                    //                     >
-                    //                         {label}
-                    //                     </span>
-                    //                 ))}
-                    //             </div>
+                        <div className="col-lg-12 col-md-12 col-12"  >
+                            <div className="d-flex justify-content-between align-items-start flex-wrap my-2 px-2">
+                                <div className='d-flex align-items-center gap-3 timeLogBox'>
+                                    {["List", "DeadLine", "Planner", "Calendar", "Gantt"].map((label) => (
+                                        <span
+                                            key={label}
+                                            onClick={() => setTaskOption(label)}
+                                            className={taskOption === label ? "active" : ""}
+                                            style={{ cursor: "pointer" }}
+                                        >
+                                            {label}
+                                        </span>
+                                    ))}
+                                </div>
 
-                    //             {/* Right Side: Controls */}
-                    //             <div className="d-flex gap-2 justify-content-end" style={{ minWidth: "200px" }}>
-                    //                 {
-                    //                     [isTeamManager, isTeamLead, isTeamHead].includes(true) &&
-                    //                     <Select options={teamEmps} styles={{
-                    //                         menuPortal: (base) => ({ ...base, zIndex: 9999 }),
-                    //                         menu: (base) => ({ ...base, zIndex: 9999 })
-                    //                     }} onChange={(e) => setSelectedEmp(e)} value={selectedEmp} placeholder="Select Team Employee" />
-                    //                 }
-                    //                 <button className="button" onClick={handleAddTask} >
-                    //                     <AddRoundedIcon /> New Task
-                    //                 </button>
-                    //             </div>
-                    //         </div>
-                    //         <div >
-                    //             {
-                    //                 taskOption === "List" ?
-                    //                     isLoadingForTask ? <Loading /> :
-                    //                         tasks.length ?
-                    //                             <LeaveTable data={tasks} handleEdit={handleEditTask} handleView={handleViewTask} deleteData={deleteTask} />
-                    //                             : <NoDataFound message={"Tasks data not found"} /> :
-                    //                     taskOption === "DeadLine" ? <DeadlineTask updateTask={editTask} categorizeTasks={categorizeTasks} fetchEmpAssignedTasks={fetchEmpAssignedTasks} updateTaskStatus={getValue} setCategorizeTasks={setCategorizeTasks} updatedTimerInTask={updatedTimerInTask} /> :
-                    //                         ["Planner"].includes(taskOption) ? <Planner plannerTasks={plannerTasks} setPlannerTasks={setPlannerTasks} isLoading={isLoading} />
-                    //                             : taskOption === "Calendar" ? <CalendarViewTasks tasks={tasks} />
-                    //                                 : taskOption === "Gantt" ? <GanttView tasks={tasks} isLoading={isLoadingForTask} /> : null
-                    //             }
-                    //         </div>
-                    //     </div>
-                    // </div>
+                                {/* Right Side: Controls */}
+                                <div className="d-flex gap-2 justify-content-end" style={{ minWidth: "200px" }}>
+                                    {
+                                        [isTeamManager, isTeamLead, isTeamHead].includes(true) &&
+                                        <Select options={teamEmps} styles={{
+                                            menuPortal: (base) => ({ ...base, zIndex: 9999 }),
+                                            menu: (base) => ({ ...base, zIndex: 9999 })
+                                        }} onChange={(e) => setSelectedEmp(e)} value={selectedEmp} placeholder="Select Team Employee" />
+                                    }
+                                    <DateRangePicker size="lg" className="ml-1" showOneCalendar style={{ width: "200px" }} placement="bottomEnd" value={dateRange} placeholder="Filter task" onChange={setDateRange} />
+                                    <button className="button" onClick={handleAddTask} >
+                                        <AddRoundedIcon /> New Task
+                                    </button>
+                                </div>
+                            </div>
+                            <div >
+                                {
+                                    taskOption === "List" ?
+                                        isLoadingForTask ? <Loading /> :
+                                            tasks.length ?
+                                                <LeaveTable data={tasks} handleEdit={handleEditTask} handleView={handleViewTask} deleteData={deleteTask} />
+                                                : <NoDataFound message={"Tasks data not found"} /> :
+                                        taskOption === "DeadLine" ? <DeadlineTask updateTask={editTask} categorizeTasks={categorizeTasks} fetchEmpAssignedTasks={fetchEmpAssignedTasks} updateTaskStatus={getValue} setCategorizeTasks={setCategorizeTasks} updatedTimerInTask={updatedTimerInTask} /> :
+                                            ["Planner"].includes(taskOption) ? <Planner plannerTasks={plannerTasks} setPlannerTasks={setPlannerTasks} isLoading={isLoading} />
+                                                : taskOption === "Calendar" ? <CalendarViewTasks tasks={tasks} />
+                                                    : taskOption === "Gantt" ? <GanttView tasks={tasks} isLoading={isLoadingForTask} /> : null
+                                }
+                            </div>
+                        </div>
+                    </div>
                 }
                 <NexHRDashboard updateClockins={updateClockins} />
             </>

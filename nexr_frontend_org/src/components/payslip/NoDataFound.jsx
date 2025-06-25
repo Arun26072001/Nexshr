@@ -1,5 +1,5 @@
-export default function NoDataFound({ message }) {
+export default function NoDataFound({ message, height }) {
   return (
-    <div className="notFoundText" >{message}</div>
+    <div className="notFoundText" style={{ height: height ? height : "100%" }} >{message}</div>
   )
 }

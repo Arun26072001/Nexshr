@@ -184,11 +184,11 @@ const EmployeeForm = ({
         if (!employeeObj?.workingTimePattern) newError.workingTimePattern = "Working time pattern is required";
         if (!employeeObj?.annualLeaveYearStart) newError.annualLeaveYearStart = "AnnualLeaveYearStart date is required";
         if (!employeeObj?.annualLeaveEntitlement) newError.annualLeaveEntitlement = "Annual leave entitlement is required";
-        if (!employeeObj?.basicSalary) newError.basicSalary = "Basic salary is required";
-        if (!employeeObj?.bankName) newError.bankName = "Bank name is required";
-        if (!employeeObj?.accountNo) newError.accountNo = "Account number is required";
-        if (!employeeObj?.accountHolderName) newError.accountHolderName = "Account holder name is required";
-        if (!employeeObj?.IFSCcode) newError.IFSCcode = "IFSC code is required";
+        // if (!employeeObj?.basicSalary) newError.basicSalary = "Basic salary is required";
+        // if (!employeeObj?.bankName) newError.bankName = "Bank name is required";
+        // if (!employeeObj?.accountNo) newError.accountNo = "Account number is required";
+        // if (!employeeObj?.accountHolderName) newError.accountHolderName = "Account holder name is required";
+        // if (!employeeObj?.IFSCcode) newError.IFSCcode = "IFSC code is required";
 
         // Email validation
         if (employeeObj?.Email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(employeeObj?.Email)) {
@@ -213,7 +213,7 @@ const EmployeeForm = ({
             contact: ["Email", "Password", "phone"],
             employment: ["workingTimePattern", "company", "dateOfJoining", "employmentType", "monthlyPermissions", "Annual Leave Year Start", "code"],
             job: ["department", "position"],
-            financial: ["basicSalary", "bankName", "accountNo", "accountHolderName", "IFSCcode"]
+            // financial: ["basicSalary", "bankName", "accountNo", "accountHolderName", "IFSCcode"]
         };
 
         for (const [section, fields] of Object.entries(fieldSections)) {
@@ -752,7 +752,8 @@ const EmployeeForm = ({
                                     <input
                                         type="number"
                                         value={leaveName.split(" ").at(-1)}
-                                        readOnly
+                                        // readOnly
+                                        onChange={(e) => fillEmpObj(e.target.value, `${leaveName}`)}
                                         name={leaveName}
                                         className="inputField"
                                     />

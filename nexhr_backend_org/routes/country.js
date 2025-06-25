@@ -1,9 +1,9 @@
 const express = require('express');
 const router = express.Router();
-const fs = require('fs');
-const path = require('path');
 const { verifyAdminHREmployeeManagerNetwork, verifyAdmin } = require('../auth/authMiddleware');
 const { CountryValidation } = require('../models/CountryModel');
+const fs = require('fs');
+const path = require('path');
 const configPath = path.join(__dirname, '../countriesData/countryCode.json');
 
 // Read JSON file

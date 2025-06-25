@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { Employee } = require('../models/EmpModel');
+const { Employee, employeeSchema } = require('../models/EmpModel');
 const { verifyAdminHREmployeeManagerNetwork, verifyAdminHR, verifyTeamHigherAuthority, verifyAdminHRTeamHigherAuth } = require('../auth/authMiddleware');
 const { getDayDifference } = require('./leave-app');
 const sendMail = require("./mailSender");
@@ -224,6 +224,7 @@ router.post("/add-company/:id", async (req, res) => {
   }
 })
 
+
 router.get('/:id', verifyAdminHREmployeeManagerNetwork, async (req, res) => {
   const empData = await Employee.findById(req.params.id, "annualLeaveYearStart")
   const now = new Date();
@@ -233,7 +234,7 @@ router.get('/:id', verifyAdminHREmployeeManagerNetwork, async (req, res) => {
 
   try {
     const emp = await Employee.findById(req.params.id, "-clockIns -payslip")
-      .populate([
+    .populate([
         { path: "role" },
         {
           path: "team", populate: [
@@ -299,10 +300,10 @@ router.post("/add-fcm-token", verifyAdminHREmployeeManagerNetwork, async (req, r
 router.post("/:id", verifyAdminHR, async (req, res) => {
   try {
     const inviter = await Employee.findById(req.params.id, "FirstName LastName")
-      .populate("company", "logo CompanyName");
+    .populate("company", "logo CompanyName");
 
     const { Email, phone, FirstName, LastName, Password, company, annualLeaveEntitlement, typesOfLeaveCount, employementType } = req.body;
-
+    
     // Check if email already exists
     if (await Employee.exists({ Email })) {
       return res.status(400).json({ error: "Email already exists" });
@@ -328,7 +329,7 @@ router.post("/:id", verifyAdminHR, async (req, res) => {
     };
 
     const employee = await Employee.create(employeeData);
-
+    
     // add planner type 
     const defaultCategories = await fetchFirstTwoItems();
     const plannerTypeData = {
@@ -336,9 +337,9 @@ router.post("/:id", verifyAdminHR, async (req, res) => {
       categories: [...(defaultCategories || [])]
     }
     await PlannerType.create(plannerTypeData);
-
+    
     const htmlContent = `
-<!DOCTYPE html>
+    <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -358,33 +359,33 @@ router.post("/:id", verifyAdminHR, async (req, res) => {
       <p style="font-size: 15px; margin: 20px 0 10px;"><strong>Your credentials:</strong></p>
       <p style="margin: 5px 0;"><strong>Email:</strong> ${Email}</p>
       <p style="margin: 5px 0;"><strong>Password:</strong> ${Password}</p>
-
+      
       <p style="margin-top: 20px;">Please click the button below to confirm your email and get started:</p>
       <a href="${process.env.FRONTEND_BASE_URL}" style="
-        display: inline-block;
-        padding: 12px 24px;
-        background-color: #28a745;
-        color: white;
+      display: inline-block;
+      padding: 12px 24px;
+      background-color: #28a745;
+      color: white;
         border-radius: 30px;
         text-decoration: none;
         font-weight: bold;
         margin: 15px 0;
-      ">Confirm Email</a>
+        ">Confirm Email</a>
+        
+        <p>If the button doesn't work, you can also copy and paste this link into your browser:</p>
+        <p><a href="${process.env.FRONTEND_BASE_URL}" style="color: #28a745;">${process.env.FRONTEND_BASE_URL}</a></p>
 
-      <p>If the button doesn't work, you can also copy and paste this link into your browser:</p>
-      <p><a href="${process.env.FRONTEND_BASE_URL}" style="color: #28a745;">${process.env.FRONTEND_BASE_URL}</a></p>
-
-      <p style="margin-top: 30px;">Cheers,<br/>The ${inviter.company.CompanyName} Team</p>
+        <p style="margin-top: 30px;">Cheers,<br/>The ${inviter.company.CompanyName} Team</p>
     </div>
-  </div>
-
-  <div style="text-align: center; font-size: 13px; color: #777; margin-top: 20px; padding-bottom: 20px;">
+    </div>
+    
+    <div style="text-align: center; font-size: 13px; color: #777; margin-top: 20px; padding-bottom: 20px;">
     <p>Have questions? <a href="mailto:support@${inviter.company.CompanyName.toLowerCase()}.com" style="color: #777;">Contact our support team</a>.</p>
-  </div>
-</body>
-</html>
-`;
-
+    </div>
+    </body>
+    </html>
+    `;
+    
     sendMail({
       From: `<${process.env.FROM_MAIL}> (Nexshr)`,
       To: Email,
@@ -403,7 +404,7 @@ router.post("/:id", verifyAdminHR, async (req, res) => {
     if (err.status === 404) {
       return res.status(404).send({ error: err.message });
     }
-
+    
     res.status(500).send({ error: err.message });
   }
 });
@@ -521,5 +522,24 @@ router.delete("/:id", verifyAdminHR, async (req, res) => {
   }
 });
 
-// module.getEmployeeModel = getEmployeeModel;
 module.exports = router;
+
+// router.post("/update-leave-type-remaining", async (req, res) => {
+//   try {
+//     const emps = await Employee.find({}, "typesOfLeaveRemainingDays").exec();
+//     if (emps.length) {
+//       emps.forEach(async (emp) => {
+//         if (emp.typesOfLeaveRemainingDays && Object.values(emp.typesOfLeaveRemainingDays).length) {
+//           emp.typesOfLeaveRemainingDays = {
+//             "Annual Leave": 7,
+//             "Sick Leave": 7
+//           }
+//           await emp.save();
+//         }
+//       })
+//     }
+//     return res.send({ messgage: "all emps for updated typesOfLeaveRemainingDays" })
+//   } catch (error) {
+//     console.log("error in update typesOfLeaveRemainingDays", error)
+//   }
+// })

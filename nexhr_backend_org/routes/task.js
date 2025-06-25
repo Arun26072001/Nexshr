@@ -7,14 +7,25 @@ const sendMail = require("./mailSender");
 const { convertToString, getCurrentTimeInMinutes, timeToMinutes, formatTimeFromMinutes, projectMailContent, categorizeTasks } = require("../Reuseable_functions/reusableFunction");
 const { sendPushNotification } = require("../auth/PushNotification");
 const { PlannerCategory } = require("../models/PlannerCategoryModel");
+const { PlannerType } = require("../models/PlannerTypeModel");
 const router = express.Router();
+
+// router.post("/add-category", async(req, res)=>{
+//     try {
+//         const 
+//     } catch (error) {
+        
+//     }
+// })
 
 router.get("/project/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
     try {
         let tasks = await Task.find({ project: { $in: req.params.id } }, "-tracker")
             .populate({ path: "project", select: "name color" })
             .populate({ path: "assignedTo", select: "FirstName LastName" })
+            .populate({ path: "createdby", select: "company" })
             .exec();
+
         if (tasks.length === 0) {
             return res.status(200).send({ tasks: [] })
         }
@@ -70,7 +81,19 @@ router.get("/project/:id", verifyAdminHREmployeeManagerNetwork, async (req, res)
 
 router.get("/assigned/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
     try {
-        let tasks = await Task.find({ assignedTo: { $in: [req.params.id] } }, "-tracker")
+        let filterTask = {
+            assignedTo: { $in: [req.params.id] }
+        }
+        if (req.query?.dateRange?.length) {
+            const fromDate = new Date(req.query.dateRange[0]);
+            const toDate = new Date(req.query.dateRange[1]);
+            filterTask = {
+                ...filterTask,
+                from: { $lte: toDate },
+                to: { $gte: fromDate }
+            }
+        }
+        let tasks = await Task.find(filterTask, "-tracker")
             .populate({ path: "project", select: "name color" })
             .populate({ path: "assignedTo", select: "FirstName LastName" })
             .populate({ path: "createdby", select: "FirstName LastName" })
@@ -120,23 +143,25 @@ router.get("/assigned/:id", verifyAdminHREmployeeManagerNetwork, async (req, res
             };
         }).filter(Boolean);
         const result = categorizeTasks(timeUpdatedTasks);
-        // const planner = {};
-        // const plannerType = await PlannerType.findOne({ employee: req.params.id }).lean().exec();
+        const planner = {};
+        const plannerType = await PlannerType.findOne({ employee: req.params.id }).lean().exec();
 
-        // if (plannerType && plannerType._id) {
-        //     cate
-        //     tasks.forEach((task) => {
-        //         // Check if task matches the plannerType (based on category or lack of one)
-        //         if (!task.category || (task.category && task.category === plannerType._id.toString())) {
-        //             if (!planner[plannerType._id]) {
-        //                 planner[plannerType._id] = [];
-        //             }
-        //             planner[plannerType._id].push(task);
-        //         }
-        //     });
-        // }
+        if (plannerType && plannerType._id) {
 
-        return res.send({ tasks: timeUpdatedTasks, categorizeTasks: result });
+            tasks.forEach((task) => {
+
+                // Check if task matches the plannerType (based on category or lack of one)
+                if (!task.category || (task.category && task.category === plannerType._id.toString())) {
+                    if (!planner[plannerType._id]) {
+                        planner[plannerType._id] = [];
+                    }
+                    planner[plannerType._id].push(task);
+                }
+            });
+        }
+        console.log("plannerData", planner);
+
+        return res.send({ tasks: timeUpdatedTasks, categorizeTasks: result, planner });
     } catch (error) {
         console.log(error);
         res.status(500).send({ error: error.message })

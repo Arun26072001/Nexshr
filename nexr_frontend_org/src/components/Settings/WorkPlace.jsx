@@ -199,9 +199,7 @@ const WorkPlaceTab = () => {
           <div className="container">
             <div className="my-3 row">
               <div className="col-6 d-flex justify-content-start">
-                <span>
                   <h5>PLACES OF WORK</h5>
-                </span>
               </div>
               <div className="col-6 d-flex justify-content-end">
                 <button type="button" onClick={() => handleChangeWorkPlace("Add")} className="button">

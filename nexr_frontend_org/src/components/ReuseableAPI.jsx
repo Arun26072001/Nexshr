@@ -203,9 +203,6 @@ async function createTask(task) {
 
         toast.success(res.data.message);
     } catch (error) {
-        //  if (error?.message === "Network Error") {
-        //         navigate("/network-issue")
-        //     }
         console.error("Task creation error:", error);
         toast.error(error.response?.data?.error || "Task creation failed");
         return;
