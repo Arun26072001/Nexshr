@@ -135,14 +135,14 @@ router.put("/:id", verifyAdminHR, async (req, res) => {
       //   Subject: title,
       //   HtmlBody: htmlcontent,
       // });
-      const fullEmp = await Employee.findById(member._id, "notifications");
-      fullEmp.notifications.push(notification);
-      await fullEmp.save();
-      await sendPushNotification({
-        token: member.fcmToken,
-        title: notification.title,
-        body: notification.message,
-      });
+      // const fullEmp = await Employee.findById(member._id, "notifications");
+      // fullEmp.notifications.push(notification);
+      // await fullEmp.save();
+      // await sendPushNotification({
+      //   token: member.fcmToken,
+      //   title: notification.title,
+      //   body: notification.message,
+      // });
       notify.push(member.Email);
     });
     return res.send({ message: `${req.body.PatternName} Pattern updated successfully`, updatedPattern, notifiedPeoples: notify })
