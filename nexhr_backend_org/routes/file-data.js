@@ -498,7 +498,7 @@ router.post("/leave", upload.single("documents"), verifyAdminHR, async (req, res
             const balance = Number(emp.typesOfLeaveRemainingDays?.[leaveType]) || 0;
 
             if (balance < leaveDaysTaken) {
-                throw new Error(`Insufficient leave balance for ${emp.name || emp._id}`);
+                return res.status(400).send({ error: `Insufficient leave balance for ${emp.name || emp._id}` });
             }
 
             // Update balance and leaveApplication together

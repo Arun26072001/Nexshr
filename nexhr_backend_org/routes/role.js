@@ -1,28 +1,14 @@
 const express = require('express');
 const router = express.Router();
 const { Employee } = require('../models/EmpModel');
-const { verifyAdminHR, verifyAdmin, verifyAdminHREmployeeManagerNetwork } = require('../auth/authMiddleware');
-const { RoleAndPermission, RoleAndPermissionValidation, RoleAndPermissionSchema } = require('../models/RoleModel');
+const { verifyAdminHR, verifyAdminHREmployeeManagerNetwork } = require('../auth/authMiddleware');
+const { RoleAndPermission } = require('../models/RoleModel');
 const { userPermissionsValidation, UserPermission } = require('../models/UserPermissionModel');
 const { PageAuth, pageAuthValidation } = require('../models/PageAuth');
 
-// const RoleAndPermissionModels = {};
-
-// function getRoleAndPermissionModel(orgName) {
-//   // If model already exists in the object, return it; otherwise, create it
-//   if (!RoleAndPermissionModels[orgName]) {
-//     RoleAndPermissionModels[orgName] = mongoose.model(`${orgName}RoleAndPermission`, RoleAndPermissionSchema);
-//   }
-
-//   return RoleAndPermissionModels[orgName];
-// }
-
 // get role by roleName
-router.get("/name", verifyAdmin, async (req, res) => {
+router.get("/name", verifyAdminHR, async (req, res) => {
   try {
-    // const { orgName } = jwt.decode(req.headers['authorization']);
-    // const RoleAndPermission = getRoleAndPermissionModel(orgName)
-
     const roleData = await RoleAndPermission.findOne({ RoleName: "Assosiate" })
       .populate("userPermissions")
       .populate("pageAuth")
@@ -63,7 +49,7 @@ router.get("/name", verifyAdmin, async (req, res) => {
 })
 
 // role get by id
-router.get("/:id", verifyAdmin, async (req, res) => {
+router.get("/:id", verifyAdminHR, async (req, res) => {
   try {
     // const { orgName } = jwt.decode(req.headers['authorization']);
     // const RoleAndPermission = getRoleAndPermissionModel(orgName)
@@ -100,7 +86,7 @@ router.get('/', verifyAdminHREmployeeManagerNetwork, (req, res) => {
 });
 
 // Add new role
-router.post('/', verifyAdmin, async (req, res) => {
+router.post('/', verifyAdminHR, async (req, res) => {
   const newRole = req.body;
   try {
 
@@ -137,7 +123,7 @@ router.post('/', verifyAdmin, async (req, res) => {
 });
 
 // Update role
-router.put('/:id', verifyAdmin, async (req, res) => {
+router.put('/:id', verifyAdminHR, async (req, res) => {
   try {
     const updatedRole = req.body;
 
@@ -210,7 +196,7 @@ router.put('/:id', verifyAdmin, async (req, res) => {
   }
 });
 
-router.delete("/:id", verifyAdmin, async (req, res) => {
+router.delete("/:id", verifyAdminHR, async (req, res) => {
   try {
     const isEmpRole = await Employee.find({ role: { $in: req.params.id } });
     if (isEmpRole.length === 0) {
@@ -218,7 +204,7 @@ router.delete("/:id", verifyAdmin, async (req, res) => {
       // delete pageAuth and permission data from table
       await PageAuth.findByIdAndDelete(roleData.pageAuth);
       await UserPermission.findByIdAndDelete(roleData.userPermissions);
-      
+
       const deleteRole = await RoleAndPermission.findByIdAndDelete(req.params.id);
       res.send({ message: `${deleteRole.RoleName} Role has been deleted` })
     } else {

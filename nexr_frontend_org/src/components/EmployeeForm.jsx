@@ -12,7 +12,7 @@ import { fetchPayslipInfo } from "./ReuseableAPI";
 const EmployeeForm = ({
     details, handleScroll, timePatterns, personalRef, stateData, employeeObj, handleTagSelector,
     contactRef, employmentRef, jobRef, financialRef, payslipRef, setEmployeeObj, selectedLeaveTypes,
-    countries, companies, departments, positions, roles, fillEmpObj, preview, changeImg
+    countries, companies, departments, positions, roles, fillEmpObj, preview, changeImg, changeLeaveTypeManual
 }) => {
     const navigate = useNavigate();
     const { whoIs, data } = useContext(EssentialValues);
@@ -23,6 +23,7 @@ const EmployeeForm = ({
     const [isLoading, setIsLoading] = useState(false);
     const [isWorkingApi, setIsWorkingApi] = useState(false);
     const [errors, setErrors] = useState({});
+    console.log("empData", employeeObj);
 
     // Fetch payslip info on component mount
     useEffect(() => {
@@ -277,7 +278,6 @@ const EmployeeForm = ({
             setIsWorkingApi(false);
         }
     };
-    console.log("employeeObj", employeeObj);
 
     if (isLoading) return <Loading height="80vh" />;
 
@@ -746,19 +746,20 @@ const EmployeeForm = ({
                             </div>
                         </div>
                         <div className="row d-flex justify-content-center">
-                            {selectedLeaveTypes?.map((leaveName, index) => (
-                                <div key={index} className="col-lg-6 my-2">
-                                    <div className="inputLabel">Choose {leaveName} count</div>
+                            {selectedLeaveTypes?.map((leaveName, index) => {
+                                const actualName = leaveName.split(" ")[0] + " " + leaveName.split(" ")[1];
+
+                                return <div key={index} className="col-lg-6 my-2">
+                                    <div className="inputLabel">Choose {actualName} count</div>
                                     <input
                                         type="number"
-                                        value={leaveName.split(" ").at(-1)}
-                                        // readOnly
-                                        onChange={(e) => fillEmpObj(e.target.value, `${leaveName}`)}
+                                        value={employeeObj.typesOfLeaveCount[actualName]}                                        // readOnly
+                                        onChange={(e) => changeLeaveTypeManual(e.target.value, `${leaveName}`)}
                                         name={leaveName}
                                         className="inputField"
                                     />
                                 </div>
-                            ))}
+                            })}
                         </div>
                     </div>
 

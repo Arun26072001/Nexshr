@@ -5,7 +5,7 @@ const { WFHAppValidation, WFHApplication } = require("../models/WFHApplicationMo
 const { Employee } = require("../models/EmpModel");
 const sendMail = require("./mailSender");
 const { Team } = require("../models/TeamModel");
-const { formatDate, mailContent, sumLeaveDays, accountFromRole } = require("../Reuseable_functions/reusableFunction");
+const { formatDate, mailContent, sumLeaveDays, accountFromRole, changeClientTimezoneDate } = require("../Reuseable_functions/reusableFunction");
 const { sendPushNotification } = require("../auth/PushNotification");
 const { Holiday } = require("../models/HolidayModel");
 const { TimePattern } = require("../models/TimePatternModel");
@@ -13,8 +13,8 @@ const { LeaveApplication } = require("../models/LeaveAppModel");
 const router = express.Router();
 
 function generateWfhEmail(empData, fromDateValue, toDateValue, reason, type) {
-    const fromDate = new Date(fromDateValue);
-    const toDate = new Date(toDateValue);
+    const fromDate = changeClientTimezoneDate(fromDateValue);
+    const toDate = changeClientTimezoneDate(toDateValue);
     const isRejected = type === "rejected";
 
     const formattedFromDate = `${fromDate.toLocaleString("default", { month: "long" })} ${fromDate.getDate()}, ${fromDate.getFullYear()}`;
@@ -107,8 +107,8 @@ router.get("/make-know", async (req, res) => {
             const teamData = emp?.team;
             if (!teamData) continue;
 
-            const formatFromDate = new Date(wfh.fromDate).toLocaleString();
-            const formatToDate = new Date(wfh.toDate).toLocaleString();
+            const formatFromDate = changeClientTimezoneDate(wfh.fromDate).toLocaleString();
+            const formatToDate = changeClientTimezoneDate(wfh.toDate).toLocaleString();
             const Subject = "Work From Home Request Reminder";
             const plainReason = (wfh.reasonForLeave || "").replace(/<\/?[^>]+(>|$)/g, "");
             const message = `${emp.FirstName} has applied for WFH from ${formatFromDate} to ${formatToDate} due to ${plainReason}. Please respond to this request.`;
@@ -599,8 +599,8 @@ router.put("/reject-wfh", async (req, res) => {
             await LeaveApplication.findByIdAndUpdate(wfh._id, updateReq, { new: true });
             const reqStatus = updateReq.status;
             const employee = wfh.employee;
-            const fromDateStr = formatDate(wfh.fromDate);
-            const toDateStr = formatDate(wfh.toDate);
+            const fromDateStr = formatDate(changeClientTimezoneDate(wfh.fromDate));
+            const toDateStr = formatDate(changeClientTimezoneDate(wfh.toDate));
             const content = updateReq.status === "approved" ?
                 "Your Work From Home request has been approved. Since no one else from your team is working from home, please ensure you remain active online." :
                 "Please note that proceeding with this WFH without approval will be considered as unpaid and may lead to a salary deduction."

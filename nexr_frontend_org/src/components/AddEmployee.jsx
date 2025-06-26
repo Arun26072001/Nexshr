@@ -48,6 +48,8 @@ const AddEmployee = () => {
   const [stateData, setStateData] = useState([]);
 
   const fillEmpObj = (value, name) => {
+    console.log(name, value);
+
     let countryFullData;
 
     if (name === "country") {
@@ -287,6 +289,20 @@ const AddEmployee = () => {
     }
   }
 
+  function changeLeaveTypeManual(value, name) {
+    console.log("name", typeof name);
+    // setSelectedLeavetypes([employeeObj.typesOfLeaveCount])
+    const actualName = name.split(" ").slice(0, 2).join(" ");
+    const updatedEmpObj = {
+      ...employeeObj,
+      "typesOfLeaveCount": {
+        ...employeeObj.typesOfLeaveCount,
+        [actualName]:  Number(value) 
+      }
+    }
+    setEmployeeObj(updatedEmpObj);
+  }
+
   const handleTagSelector = value => {
     let leaveCount = 0;
     const leaveTypeCount = {};
@@ -354,6 +370,7 @@ const AddEmployee = () => {
       ) :
         <EmployeeForm
           details={details}
+          changeLeaveTypeManual={changeLeaveTypeManual}
           selectedLeaveTypes={selectedLeaveTypes}
           handleTagSelector={handleTagSelector}
           employeeObj={employeeObj}
