@@ -290,16 +290,19 @@ const AddEmployee = () => {
   }
 
   function changeLeaveTypeManual(value, name) {
-    console.log("name", typeof name);
-    // setSelectedLeavetypes([employeeObj.typesOfLeaveCount])
+    let leaveCount = 0;
     const actualName = name.split(" ").slice(0, 2).join(" ");
     const updatedEmpObj = {
       ...employeeObj,
       "typesOfLeaveCount": {
         ...employeeObj.typesOfLeaveCount,
-        [actualName]:  Number(value) 
+        [actualName]: Number(value)
       }
     }
+    Object.values(updatedEmpObj.typesOfLeaveCount).map(val => {
+      leaveCount += Number(val);
+    });
+    updatedEmpObj.annualLeaveEntitlement = leaveCount
     setEmployeeObj(updatedEmpObj);
   }
 
