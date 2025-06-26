@@ -573,7 +573,7 @@ const EmployeeForm = ({
                                     <option value="">Select Work Time Pattern</option>
                                     {timePatterns.map(pattern => (
                                         <option key={pattern._id} value={pattern._id}>
-                                            {pattern.PatternName} ({new Date(pattern.StartingTime).toLocaleString()} - {new Date(pattern.FinishingTime).toLocaleString()})
+                                            {pattern.PatternName} ({new Date(pattern.StartingTime).toLocaleTimeString()} - {new Date(pattern.FinishingTime).toLocaleTimeString()})
                                         </option>
                                     ))}
                                 </select>
