@@ -485,6 +485,7 @@ leaveApp.get("/team/:id", verifyTeamHigherAuthority, async (req, res) => {
 
 leaveApp.get("/all/emp", verifyAdminHR, async (req, res) => {
   try {
+    
     const filterByAccount = req.query.isHr ? true : false;
 
     // Fetch leave data for employees with Account 3

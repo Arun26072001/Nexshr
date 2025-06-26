@@ -50,7 +50,7 @@ const taskSchema = new mongoose.Schema({
     estTime: { type: Number },
     createdby: { type: mongoose.Schema.Types.ObjectId, ref: "Employee" },
     project: { type: mongoose.Schema.Types.ObjectId, ref: "Project" },
-    category: {type: mongoose.Schema.Types.ObjectId, ref: "PlannerCategory"}
+    category: { type: mongoose.Schema.Types.ObjectId, ref: "PlannerCategory" }
 }, { timestamps: true })
 
 taskSchema.post("save", async function (doc) {
@@ -85,7 +85,7 @@ taskSchema.post("save", async function (doc) {
                 }
 
                 await sendMail({
-                    From:`<${process.env.FROM_MAIL}> (Nexshr)`,
+                    From: `<${process.env.FROM_MAIL}> (Nexshr)`,
                     To: creator.Email,
                     Subject: title,
                     TextBody: message
@@ -223,6 +223,7 @@ const taskValidation = Joi.object({
     spend: Joi.any().label("Spend"),
     comments: Joi.any().label("Comments"),
     trash: Joi.boolean().allow("", null).label("Trash"),
+    category: Joi.any().optional(),
     project: Joi.string().regex(/^[0-9a-fA-F]{24}$/).optional().label('Project ID'),
 });
 

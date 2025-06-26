@@ -10,6 +10,7 @@ import { useContext, useEffect, useState } from "react";
 import { EssentialValues } from "../../App";
 import { Skeleton } from "@mui/material";
 import { calculateTimePattern, createTask, getDueDateByType } from "../ReuseableAPI";
+import NoDataFound from "./NoDataFound";
 
 export default function DeadlineTask({ isLoading, updateTaskStatus, fetchEmpAssignedTasks, updatedTimerInTask, categorizeTasks, setCategorizeTasks, updateTask }) {
     // for task 
@@ -148,6 +149,7 @@ export default function DeadlineTask({ isLoading, updateTaskStatus, fetchEmpAssi
             inputElement.removeEventListener("keypress", handleKeyPress);
         };
     }, [addTaskFor, taskObj, data]);
+    console.log("categorizeTasks", categorizeTasks);
 
     return (
         isLoading ? (
@@ -166,35 +168,39 @@ export default function DeadlineTask({ isLoading, updateTaskStatus, fetchEmpAssi
                 </div>
             </>
         ) :
-            <div className="kanbanboard-parent" >
-                {
-                    typeOfTasks?.map((type) => {
-                        return <div key={type} className="kanbanboard-child" style={{ opacity: draggedOver === type.name ? 0.6 : null }}
-                            onDragOver={(e) => handleDragOver(e, type.name)} onDragLeave={() => setDraggedOver("")}
-                            onDrop={handleDrop} onMouseEnter={() => setOnHover(type.name)} onMouseLeave={() => setOnHover("")} >
-                            <div className="kanbanboard-child-heading" style={{ backgroundColor: "black", color: "white", borderLeft: type.name === "Overdue" ? "1px dotted black" : null }}>
-                                {type?.name}({categorizeTasks[type.name]?.length})
-                            </div>
-                            {!["Completed", "Overdue"].includes(type.name) ?
-                                <div className="addTask-btn" onClick={() => setAddTaskFor(type.name)} style={{ background: onHover === type.name ? "#DDDDDD" : null, cursor: "pointer" }}><AddRoundedIcon /> {onHover === type.name ? "Quick Task" : ""}</div> : null
-                            }
-                            {
-                                addTaskFor === type.name &&
-                                <div className="timeLogBox" >
-                                    <input className="mb-3" id="taskNameInput" value={taskObj?.title} placeholder="Name #tag" onChange={(e) => fillTaskObj(e.target.value, type)} />
-                                    <p>Press <SubdirectoryArrowLeftRoundedIcon /> to create</p>
+
+            categorizeTasks && Object.keys(categorizeTasks).length > 0 ?
+                <div className="kanbanboard-parent" >
+                    {
+                        typeOfTasks?.map((type) => {
+                            return <div key={type} className="kanbanboard-child col-lg-3" style={{ opacity: draggedOver === type.name ? 0.6 : null }}
+                                onDragOver={(e) => handleDragOver(e, type.name)} onDragLeave={() => setDraggedOver("")}
+                                onDrop={handleDrop} onMouseEnter={() => setOnHover(type.name)} onMouseLeave={() => setOnHover("")} >
+                                <div className="kanbanboard-child-header">
+                                    <div className="kanbanboard-child-heading" style={{ backgroundColor: "black", color: "white", borderLeft: type.name === "Overdue" ? "1px dotted black" : null }}>
+                                        {type?.name}({categorizeTasks[type.name]?.length})
+                                    </div>
+                                    {!["Completed", "Overdue"].includes(type.name) ?
+                                        <div className="addTask-btn" onClick={() => setAddTaskFor(type.name)} style={{ background: onHover === type.name ? "#DDDDDD" : null, cursor: "pointer" }}><AddRoundedIcon /> {onHover === type.name ? "Quick Task" : ""}</div> : null
+                                    }
                                 </div>
-                            }
-                            {
-                                categorizeTasks[type.name].length ?
-                                    categorizeTasks[type.name]?.map((task) => {
-                                        return contentTemplate(task, type.name)
-                                    }) : null
-                            }
-                        </div>
-                    })
-                }
-            </div>
+                                {
+                                    addTaskFor === type.name &&
+                                    <div className="timeLogBox" >
+                                        <input className="mb-3" id="taskNameInput" value={taskObj?.title} placeholder="Name #tag" onChange={(e) => fillTaskObj(e.target.value, type)} />
+                                        <p>Press <SubdirectoryArrowLeftRoundedIcon /> to create</p>
+                                    </div>
+                                }
+                                {
+                                    categorizeTasks[type.name].length ?
+                                        categorizeTasks[type.name]?.map((task) => {
+                                            return contentTemplate(task, type.name)
+                                        }) : null
+                                }
+                            </div>
+                        })
+                    }
+                </div> : <NoDataFound message={"Tasks not found"} />
     );
 }
 

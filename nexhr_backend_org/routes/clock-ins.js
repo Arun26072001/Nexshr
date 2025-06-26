@@ -175,7 +175,7 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
         let regular = 0, late = 0, early = 0;
         const today = changeClientTimezoneDate(new Date());
         const startOfDay = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate(), 0, 0, 0));
-        const endOfDay = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate(), 23, 59, 59));
+        const endOfDay = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate(), 23, 59, 59, 0));
         if (!worklocation) {
             return res.status(400).send({ error: "Please select your work location" })
         }
@@ -183,16 +183,22 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
         if (worklocation === "WFH") {
             isWfh = await WFHApplication.findOne({ fromDate: { $gte: today }, status: "approved" })
         }
+
         // Fetch employee details with required fields
         const emp = await Employee.findById(req.params.id, "FirstName LastName Email profile company clockIns leaveApplication isPermanentWFH")
             .populate([{ path: "workingTimePattern" },
             { path: "company", select: "location CompanyName" },
-            { path: "team" },
             { path: "clockIns", match: { date: { $gte: startOfDay, $lte: endOfDay } } },
-            { path: "company", select: "location CompanyName" },
             { path: "team" },
-            { path: "clockIns", match: { date: { $gte: startOfDay, $lte: endOfDay } } },
-            { path: "leaveApplication", match: { fromDate: { $lte: endOfDay }, toDate: { $gte: startOfDay }, status: "approved" } }
+            {
+                path: "leaveApplication", match: {
+                    $and: [
+                        { fromDate: { $lte: endOfDay } },
+                        { toDate: { $gte: startOfDay } },
+                        { status: "approved" }
+                    ]
+                }
+            }
             ]).exec();
 
         if (!emp) return res.status(404).send({ error: "Employee not found!" });

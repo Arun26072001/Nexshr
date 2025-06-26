@@ -14,14 +14,14 @@ dayjs.extend(isSameOrAfter);
 dayjs.extend(isoWeek);
 dayjs.extend(isBetween);
 
-function categorizeTasks(tasks) {
+function categorizeTasks(tasks = []) {
   const today = dayjs().startOf('day');
   const endOfWeek = dayjs().endOf('week');
   const startOfNextWeek = dayjs().add(1, 'week').startOf('week');
   const endOfNextWeek = dayjs().add(1, 'week').endOf('week');
   const twoWeeksLater = dayjs().add(2, 'week').endOf('week');
 
-  const result = {
+  let result = {
     "Overdue": [],
     "Due Today": [],
     "Due This Week": [],
@@ -30,27 +30,28 @@ function categorizeTasks(tasks) {
     "No Deadline": [],
     "Completed": []
   };
-
-  tasks.forEach(task => {
-    if (task.status === "Completed") {
-      result["Completed"].push(task);
-    } else if (!task.to) {
-      result["No Deadline"].push(task);
-    } else {
-      const due = dayjs(task.to).startOf('day');
-      if (due?.isBefore(today)) {
-        result["Overdue"].push(task);
-      } else if (due?.isSame(today)) {
-        result["Due Today"].push(task);
-      } else if (due?.isBefore(endOfWeek)) {
-        result["Due This Week"].push(task);
-      } else if (due.isBetween(startOfNextWeek, endOfNextWeek, null, '[]')) {
-        result["Due Next Week"].push(task);
-      } else if (due?.isAfter(endOfNextWeek)) {
-        result["Due Over Two Weeks"].push(task);
+  if (tasks.length) {
+    tasks.forEach(task => {
+      if (task.status === "Completed") {
+        result["Completed"].push(task);
+      } else if (!task.to) {
+        result["No Deadline"].push(task);
+      } else {
+        const due = dayjs(task.to).startOf('day');
+        if (due?.isBefore(today)) {
+          result["Overdue"].push(task);
+        } else if (due?.isSame(today)) {
+          result["Due Today"].push(task);
+        } else if (due?.isBefore(endOfWeek)) {
+          result["Due This Week"].push(task);
+        } else if (due.isBetween(startOfNextWeek, endOfNextWeek, null, '[]')) {
+          result["Due Next Week"].push(task);
+        } else if (due?.isAfter(endOfNextWeek)) {
+          result["Due Over Two Weeks"].push(task);
+        }
       }
-    }
-  });
+    });
+  }
 
   return result;
 }

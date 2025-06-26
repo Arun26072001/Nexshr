@@ -773,7 +773,7 @@ const Dashboard = () => {
                                                 <LeaveTable data={tasks} handleEdit={handleEditTask} handleView={handleViewTask} deleteData={deleteTask} />
                                                 : <NoDataFound message={"Tasks data not found"} /> :
                                         taskOption === "DeadLine" ? <DeadlineTask updateTask={editTask} categorizeTasks={categorizeTasks} fetchEmpAssignedTasks={fetchEmpAssignedTasks} updateTaskStatus={getValue} setCategorizeTasks={setCategorizeTasks} updatedTimerInTask={updatedTimerInTask} /> :
-                                            ["Planner"].includes(taskOption) ? <Planner plannerTasks={plannerTasks} setPlannerTasks={setPlannerTasks} isLoading={isLoading} />
+                                            ["Planner"].includes(taskOption) ? <Planner plannerTasks={plannerTasks} setPlannerTasks={setPlannerTasks} isLoading={isLoading} updatedTimerInTask={updatedTimerInTask} fetchEmpAssignedTasks={fetchEmpAssignedTasks} />
                                                 : taskOption === "Calendar" ? <CalendarViewTasks tasks={tasks} />
                                                     : taskOption === "Gantt" ? <GanttView tasks={tasks} isLoading={isLoadingForTask} /> : null
                                 }

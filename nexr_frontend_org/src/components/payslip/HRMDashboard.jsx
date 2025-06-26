@@ -321,8 +321,6 @@ export default function HRMDashboard() {
             navigate(["manager", "admin", "hr"].includes(whoIs) ? `/${whoIs}/employee` : `/${whoIs}`);
             setIsEditEmp(false);
         } else {
-            // console.log("calling...");
-            // setIsEditEmp(true);
             navigate(`/${whoIs}/employee/edit/${id}`);
         }
     }

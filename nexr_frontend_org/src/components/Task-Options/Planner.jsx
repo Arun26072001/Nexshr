@@ -1,4 +1,3 @@
-import axios from 'axios';
 import React, { useContext, useEffect, useState } from 'react'
 import { EssentialValues } from '../../App';
 import { Skeleton } from "@mui/material";
@@ -9,8 +8,14 @@ import AccountCircleRoundedIcon from '@mui/icons-material/AccountCircleRounded';
 import ChevronRightRoundedIcon from '@mui/icons-material/ChevronRightRounded';
 import PlayCircleFilledRoundedIcon from '@mui/icons-material/PlayCircleFilledRounded';
 import SubdirectoryArrowLeftRoundedIcon from '@mui/icons-material/SubdirectoryArrowLeftRounded';
+import AddCircleRoundedIcon from '@mui/icons-material/AddCircleRounded';
 import AddRoundedIcon from '@mui/icons-material/AddRounded';
 import { useNavigate } from 'react-router-dom';
+import { Button, Input, Modal } from 'rsuite';
+import Loading from '../Loader';
+import { toast } from 'react-toastify';
+import axios from 'axios';
+import NoDataFound from '../payslip/NoDataFound';
 
 export default function Planner({ isLoading, updateTaskStatus, fetchEmpAssignedTasks, updatedTimerInTask, plannerTasks }) {
     const url = process.env.REACT_APP_API_URL;
@@ -25,6 +30,9 @@ export default function Planner({ isLoading, updateTaskStatus, fetchEmpAssignedT
     const [taskObj, setTaskObj] = useState({});
     const [addTaskFor, setAddTaskFor] = useState("");
     const [draggedOver, setDraggedOver] = useState("");
+    const [isAddCategory, setIsAddCategory] = useState(false);
+    const [categoryName, setCategoryName] = useState("");
+    const [isWorkingApi, setIsWorkingApi] = useState(false);
 
     const handleDragStart = (e, task, taskType) => {
         e.dataTransfer.setData('application/json', JSON.stringify([task, taskType]));
@@ -50,6 +58,10 @@ export default function Planner({ isLoading, updateTaskStatus, fetchEmpAssignedT
         // }
     }
 
+    function handleAddCategory() {
+        setIsAddCategory(!isAddCategory)
+    }
+
     const handleDrop = (e) => {
         e.preventDefault();
         const [taskData, category] = JSON.parse(e.dataTransfer.getData("application/json"))
@@ -72,11 +84,32 @@ export default function Planner({ isLoading, updateTaskStatus, fetchEmpAssignedT
         updatedTimerInTask(task, "stopTime")
     }
 
-    function fillTaskObj(title) {
+    function fillTaskObj(title, category) {
         setTaskObj((pre) => ({
             ...pre,
             title,
+            "category": typeof category === "string" ? category : category._id
         }))
+    }
+
+    async function addCategory() {
+        try {
+            setIsWorkingApi(true);
+            const res = await axios.post(`${url}/api/category/${data._id}`, { name: categoryName }, {
+                headers: {
+                    Authorization: data.token || ""
+                }
+            })
+            toast.success(res.data.message);
+            setCategoryName("");
+            fetchCategories();
+            setIsAddCategory(false);
+        } catch (error) {
+            console.log("error in add category", error);
+            toast.error(error.response.data.error)
+        } finally {
+            setIsWorkingApi(false)
+        }
     }
 
     function contentTemplate(task, category) {
@@ -148,8 +181,6 @@ export default function Planner({ isLoading, updateTaskStatus, fetchEmpAssignedT
                     Authorization: data.token
                 }
             })
-            console.log("planner", res.data.categories);
-
             setCategories(res.data.categories);
         } catch (error) {
             if (error?.message === "Network Error") {
@@ -162,7 +193,32 @@ export default function Planner({ isLoading, updateTaskStatus, fetchEmpAssignedT
         fetchCategories()
     }, [])
 
-    console.log("plannerTasks", plannerTasks);
+    if (isAddCategory) {
+        return <Modal open={isAddCategory} size="sm" backdrop="static" onClose={handleAddCategory} >
+            <Modal.Header>
+                <Modal.Title>
+                    Add Category
+                </Modal.Title>
+            </Modal.Header>
+            <Modal.Body>
+                <div className="col-full">
+                    <div className="modelInput">
+                        <p className='modelLabel important'>Category Name: </p>
+                        <Input
+                            size="lg"
+                            width={"100%"}
+                            value={categoryName}
+                            onChange={setCategoryName}
+                        />
+                    </div>
+                </div>
+            </Modal.Body>
+            <Modal.Footer>
+                <Button onClick={handleAddCategory} appearance="default">Back</Button>
+                <Button onClick={addCategory} appearance="primary"> {isWorkingApi ? <Loading color="white" size={20} /> : "Add Category"}</Button>
+            </Modal.Footer>
+        </Modal>
+    }
 
     return (
         isLoading ? (
@@ -185,18 +241,18 @@ export default function Planner({ isLoading, updateTaskStatus, fetchEmpAssignedT
                 {
                     categories.length > 0 ?
                         categories?.map((category) => {
-                            console.log("category", category._id);
-                            
-                            return <div key={category?._id} className="kanbanboard-child" style={{ opacity: draggedOver === category?._id ? 0.6 : null }}
+                            return <div key={category?._id} className="kanbanboard-child col-lg-3" style={{ position: "relative", opacity: draggedOver === category?._id ? 0.6 : null }}
                                 onDragOver={(e) => handleDragOver(e, category?._id)} onDragLeave={() => setDraggedOver("")}
                                 onDrop={handleDrop} onMouseEnter={() => setOnHover(category?._id)} onMouseLeave={() => setOnHover("")} >
-                                <div className="kanbanboard-child-heading" style={{ backgroundColor: "black", color: "white" }}>
-                                    {category?.name}({plannerTasks[category?._id]?.length})
+                                <div className="kanbanboard-child-header">
+                                    <div className="kanbanboard-child-heading" style={{ backgroundColor: "black", color: "white" }} >
+                                        {category?.name}({plannerTasks[category?._id]?.length || 0}) {onHover === category._id ? <AddCircleRoundedIcon onClick={handleAddCategory} className="heading_icon" sx={{ color: "white" }} fontSize="small" /> : null}
+                                    </div>
+                                    {!["Completed", "Overdue"].includes(category?._id) ?
+                                        <div className="addTask-btn" onClick={() => setAddTaskFor(category?._id)} style={{ background: onHover === category?._id ? "#DDDDDD" : null, cursor: "pointer" }}><AddRoundedIcon /> {onHover === category?._id ? "Quick Task" : ""}</div> : null
+                                    }
                                 </div>
-                                {/* {!["Completed", "Overdue"].includes(category?._id) ?
-                                <div className="addTask-btn" onClick={() => setAddTaskFor(category?._id)} style={{ background: onHover === category?._id ? "#DDDDDD" : null, cursor: "pointer" }}><AddRoundedIcon /> {onHover === category?._id ? "Quick Task" : ""}</div> : null
-                            } */}
-                                {/* {
+                                {
                                     addTaskFor === category?._id &&
                                     <div className="timeLogBox" >
                                         <input className="mb-3" id="taskNameInput" value={taskObj?.title} placeholder="Name #tag" onChange={(e) => fillTaskObj(e.target.value, category)} />
@@ -204,13 +260,13 @@ export default function Planner({ isLoading, updateTaskStatus, fetchEmpAssignedT
                                     </div>
                                 }
                                 {
-                                    plannerTasks[category?._id].length ?
+                                    plannerTasks[category?._id]?.length ?
                                         plannerTasks[category?._id]?.map((task) => {
                                             return contentTemplate(task, category?._id)
                                         }) : null
-                                } */}
+                                }
                             </div>
-                        }) : <p className='payslipTitle'>Categories not found</p>
+                        }) : <NoDataFound message={"Tasks not found"} />
                 }
             </div>
     );

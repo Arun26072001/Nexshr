@@ -56,6 +56,7 @@ const mailSettings = require("./routes/mail-settings");
 const emailTemplate = require("./routes/email-template");
 const wfhRouter = require("./routes/wfh-application");
 const timezone = require("./routes/timezone");
+const category = require("./routes/planner-category");
 const { sendPushNotification, verifyWorkingTimeCompleted, askReasonForDelay } = require("./auth/PushNotification");
 
 // MongoDB Connection
@@ -157,6 +158,7 @@ app.use("/api/wfh-application", wfhRouter);
 app.use("/api/email-template", emailTemplate);
 app.use("/api/planner", plannerType);
 app.use("/api/timezone", timezone);
+app.use("/api/category", category);
 app.post("/push-notification", sendPushNotification);
 app.post("/verify_completed_workinghour", verifyWorkingTimeCompleted);
 app.post("/ask-reason-for-delay", askReasonForDelay);
