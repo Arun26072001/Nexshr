@@ -14,7 +14,7 @@ const router = express.Router();
 //     try {
 //         const 
 //     } catch (error) {
-        
+
 //     }
 // })
 
@@ -79,6 +79,24 @@ router.get("/project/:id", verifyAdminHREmployeeManagerNetwork, async (req, res)
     }
 })
 
+router.post("/add-category/:id", async (req, res) => {
+    try {
+        const plannerTypeData = await PlannerType.findOne({ employee: req.params.id }).exec();
+        if (plannerTypeData) {
+            const categoryType = plannerTypeData.categories[0]
+            const tasks = await Task.find({ assignedTo: req.params.id }, "title category").exec();
+            tasks.forEach(async (task) => {
+                task.category = categoryType
+                await task.save();
+            })
+        }
+        return res.send({ message: `planner add for all task in ${req.params.id}` })
+    } catch (error) {
+        console.log("error in add category", error);
+
+    }
+})
+
 router.get("/assigned/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
     try {
         let filterTask = {
@@ -99,7 +117,7 @@ router.get("/assigned/:id", verifyAdminHREmployeeManagerNetwork, async (req, res
             .populate({ path: "createdby", select: "FirstName LastName" })
             .exec();
         if (tasks.length === 0) {
-            return res.status(200).send({ tasks: [] })
+            return res.status(200).send({ tasks: [], categorizeTasks: {}, planner: {} })
         }
         const timeUpdatedTasks = tasks.map((task) => {
             if (!task?.spend) return task; // Ensure spend exists
@@ -146,19 +164,19 @@ router.get("/assigned/:id", verifyAdminHREmployeeManagerNetwork, async (req, res
         const planner = {};
         const plannerType = await PlannerType.findOne({ employee: req.params.id }).lean().exec();
 
-        if (plannerType && plannerType._id) {
-
+        if (plannerType && plannerType._id && tasks.length) {
             tasks.forEach((task) => {
-
+                const categories = plannerType.categories.map((item) => item.toString())
                 // Check if task matches the plannerType (based on category or lack of one)
-                if (!task.category || (task.category && task.category === plannerType._id.toString())) {
-                    if (!planner[plannerType._id]) {
-                        planner[plannerType._id] = [];
+                if (task.category && categories.includes(task.category.toString())) {
+                    if (!planner[task.category]) {
+                        planner[task.category] = [];
                     }
-                    planner[plannerType._id].push(task);
+                    planner[task.category].push(task);
                 }
             });
         }
+        console.log("result", result);
 
         return res.send({ tasks: timeUpdatedTasks, categorizeTasks: result, planner });
     } catch (error) {
@@ -286,7 +304,7 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
             status: status || "On Hold",
             spend: spend || {},
             tracker: [],
-            category: defaultCategory._id
+            category: req.body.category || defaultCategory._id
         });
 
         // Trackers
