@@ -2,10 +2,9 @@ const express = require('express');
 const router = express.Router()
 const { Department, DepartmentValidation, departmentSchema } = require('../models/DepartmentModel');
 const { Employee } = require('../models/EmpModel');
-const Joi = require('joi');
-const { verifyAdminHR } = require('../auth/authMiddleware');
+const { verifyAdminHR, verifyAdminHREmployeeManagerNetwork } = require('../auth/authMiddleware');
 
-router.get("/", async (req, res) => {
+router.get("/", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
   try {
     // const {orgName} = jwt.decode(req.headers['authorization']);
     // const Department = getDepartmentModel(orgName)
@@ -20,7 +19,7 @@ router.get("/", async (req, res) => {
   }
 });
 
-router.get("/:id", async (req, res) => {
+router.get("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
   try {
     const department = await Department.findById(req.params.id).lean()
     res.send(department);
@@ -105,6 +104,5 @@ router.delete("/:id", verifyAdminHR, async (req, res) => {
     res.status(500).send({ error: err.message });
   }
 });
-
 
 module.exports = router;

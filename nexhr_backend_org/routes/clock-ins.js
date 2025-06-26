@@ -8,7 +8,7 @@ const { Employee } = require("../models/EmpModel");
 const sendMail = require("./mailSender");
 const { LeaveApplication } = require("../models/LeaveAppModel");
 const { Team } = require("../models/TeamModel");
-const { timeToMinutes, getTotalWorkingHourPerDay, processActivityDurations, checkLoginForOfficeTime, getCurrentTime, sumLeaveDays, getTotalWorkingHoursExcludingWeekends } = require("../Reuseable_functions/reusableFunction");
+const { timeToMinutes, getTotalWorkingHourPerDay, processActivityDurations, checkLoginForOfficeTime, getCurrentTime, sumLeaveDays, getTotalWorkingHoursExcludingWeekends, changeClientTimezoneDate } = require("../Reuseable_functions/reusableFunction");
 const { WFHApplication } = require("../models/WFHApplicationModel");
 const { sendPushNotification } = require("../auth/PushNotification");
 const { Holiday } = require("../models/HolidayModel");
@@ -173,7 +173,7 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
         const { location, worklocation } = req.query;
 
         let regular = 0, late = 0, early = 0;
-        const today = new Date();
+        const today = changeClientTimezoneDate(new Date());
         const startOfDay = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate(), 0, 0, 0));
         const endOfDay = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate(), 23, 59, 59));
         if (!worklocation) {
@@ -785,6 +785,8 @@ router.post("/ontime/:type", async (req, res) => {
         })
 
         activeEmps.map((emp) => {
+            const officeStartAt = changeClientTimezoneDate(emp?.workingTimePattern?.StartingTime).toLocaleTimeString();
+            const officeEndAt = changeClientTimezoneDate(emp?.workingTimePattern?.FinishingTime).toLocaleTimeString()
             sendMail({
                 From: `<${process.env.FROM_MAIL}> (Nexshr)`,
                 To: emp.Email,
@@ -801,10 +803,10 @@ router.post("/ontime/:type", async (req, res) => {
         <div style="margin: 20px 0;">
             <p>Dear ${emp.FirstName} ${emp.LastName},</p>
             ${type === "login" ? `
-                <p>Please ensure that you log in on time at ${emp?.workingTimePattern?.StartingTime}.</p>
+                <p>Please ensure that you log in on time at ${officeStartAt}.</p>
                 <p>If you are delayed due to traffic or any unforeseen circumstances, please inform HR as soon as possible.</p>
             ` : `
-                <p>Please ensure that you log out on time at ${emp?.workingTimePattern?.FinishingTime}.</p>
+                <p>Please ensure that you log out on time at ${officeEndAt}.</p>
             `}
             <p>Kindly follow the necessary guidelines.</p><br />
             <p>Thank you!</p>

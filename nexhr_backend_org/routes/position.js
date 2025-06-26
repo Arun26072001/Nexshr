@@ -78,7 +78,7 @@ router.put("/:id", verifyAdminHR, async (req, res) => {
   }
 });
 
-router.delete("/:id", async (req, res) => {
+router.delete("/:id", verifyAdminHR,async (req, res) => {
   try {
     const isEmpInPosition = await Employee.find({ position: req.params.id }).exec();
     if (isEmpInPosition.length > 0) {

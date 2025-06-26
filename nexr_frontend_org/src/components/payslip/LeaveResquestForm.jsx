@@ -21,7 +21,8 @@ const LeaveRequestForm = ({ type }) => {
   const [errorData, setErrorData] = useState("");
   const [isShowPeriodOfLeave, setIsShowPeriodOfLeave] = useState(false);
   const navigate = useNavigate();
-  const [typeOfLeave, setTypOfLeave] = useState({});
+  const [isRemainPermissions, setIsRemainPermissions] = useState(false);
+  const [typeOfLeave, setTypOfLeave] = useState([]);
   const [excludedDates, setExcludeDates] = useState([]);
   const [filteredExcludesDates, setFilteredExcludeDates] = useState([]);
   const [prescriptionFile, setPrescriptionFile] = useState("");
@@ -33,9 +34,10 @@ const LeaveRequestForm = ({ type }) => {
 
   function handleSubmit(e) {
     e.preventDefault();
+
     setErrorData("");
     if (new Date(leaveRequestObj.fromDate) > new Date(leaveRequestObj.toDate)) {
-      setErrorData("To Date must be after From Date");
+      setErrorData("ToDate must be after FromDate");
       return;
     }
     const formData = new FormData();
@@ -157,12 +159,18 @@ const LeaveRequestForm = ({ type }) => {
           setExcludeDates((prev) => [...prev, ...duplicateDates]);
           setFilteredExcludeDates((prev) => [...prev, ...duplicateDates])
         }
-
-        // Set types of leave
-        const validLeaveTypes = Object.keys(leaveReqs?.employee?.typesOfLeaveCount).map((type) => type);
+        let validLeaveTypes;
+        if (leaveReqs?.employee?.typesOfLeaveCount && Object.keys(leaveReqs?.employee?.typesOfLeaveCount).length) {
+          const leaveTypeObj = leaveReqs?.employee?.typesOfLeaveCount
+          // Set types of leave
+          if (isRemainPermissions) {
+            validLeaveTypes = Object.keys(leaveTypeObj).map((type) => type);
+          } else {
+            validLeaveTypes = Object.keys(leaveTypeObj).filter((type) => !type.toLowerCase().includes("permission"))
+          }
+        }
 
         setTypOfLeave(validLeaveTypes || {});
-
       } else {
         toast.error("_id is not loaded in the app.");
       }
@@ -238,7 +246,7 @@ const LeaveRequestForm = ({ type }) => {
     if (id) {
       fetchLeaveRequest()
     }
-  }, [_id, leaveRequestObj.applyFor]);
+  }, [_id, leaveRequestObj.applyFor, isRemainPermissions]);
 
   useEffect(() => {
     const leaveType = leaveRequestObj.leaveType?.toLowerCase();
@@ -254,6 +262,21 @@ const LeaveRequestForm = ({ type }) => {
       gettingEmps()
     }
   }, [whoIs])
+
+  async function checkEmpPermissions() {
+    try {
+      const res = await axios.get(`${url}/api/leave-application/check-permissions/${_id}`, {
+        headers: {
+          Authorization: token || ""
+        }
+      })
+      if (res.data.type === "Permission is remain") {
+        setIsRemainPermissions(true)
+      }
+    } catch (error) {
+      console.log("error in check permissions", error);
+    }
+  }
 
   useEffect(() => {
     if (["admin", "hr"].includes(whoIs)) {
@@ -275,7 +298,10 @@ const LeaveRequestForm = ({ type }) => {
       );
     }
   }, [])
-  console.log("errorData", errorData);
+
+  useEffect(() => {
+    checkEmpPermissions()
+  }, [leaveRequestObj?.applyFor])
 
   return (
     isLoading ? <Loading height="80vh" /> :

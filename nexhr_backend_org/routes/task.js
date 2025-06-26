@@ -159,7 +159,6 @@ router.get("/assigned/:id", verifyAdminHREmployeeManagerNetwork, async (req, res
                 }
             });
         }
-        console.log("plannerData", planner);
 
         return res.send({ tasks: timeUpdatedTasks, categorizeTasks: result, planner });
     } catch (error) {

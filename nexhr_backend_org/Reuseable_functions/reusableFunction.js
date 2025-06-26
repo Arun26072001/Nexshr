@@ -186,6 +186,10 @@ function getWeekdaysOfCurrentMonth(year, month, holidays) {// 0-based index (0 =
 
 function mailContent(type, fromDateValue, toDateValue, emp, leaveType, actionBy, member) {
   const isRejected = type === "rejected";
+  const actualFromDate = changeClientTimezoneDate(fromDateValue);
+  const actualToDate = changeClientTimezoneDate(toDateValue);
+  const formattedFromDate = `${new Date(actualFromDate).toLocaleString("default", { month: "long" })} ${new Date(actualFromDate).getDate()}, ${new Date(actualFromDate).getFullYear()}`;
+  const formattedToDate = `${new Date(actualToDate).toLocaleString("default", { month: "long" })} ${new Date(actualToDate).getDate()}, ${new Date(actualToDate).getFullYear()}`
   const subject = isRejected
     ? `${emp.FirstName}'s ${leaveType === "WFH" ? "WFH Request" : leaveType.toLowerCase() === "permission" ? "Permission" : "Leave Application"} has been rejected by ${actionBy}`
     : `${emp.FirstName}'s ${leaveType === "WFH" ? "WFH Request" : leaveType.toLowerCase() === "permission" ? "Permission" : "Leave Application"} has been approved by ${actionBy}`;
@@ -209,12 +213,12 @@ function mailContent(type, fromDateValue, toDateValue, emp, leaveType, actionBy,
           <h3 style="color: #686D76; margin: 10px 0;">Details</h3>
           <p style="font-size: 14px; color: #686D76; margin: 10px 0;">
             ${leaveType} from 
-            ${new Date(fromDateValue).toLocaleString("default", { month: "long" })} ${new Date(fromDateValue).getDate()}, ${new Date(fromDateValue).getFullYear()} 
+            ${formattedFromDate} 
             to  
-            ${new Date(toDateValue).toLocaleString("default", { month: "long" })} ${new Date(toDateValue).getDate()}, ${new Date(toDateValue).getFullYear()}
+            ${formattedToDate}
           </p> 
      <p>
-  Your request for ${leaveType} on  ${new Date(fromDateValue).toLocaleString("default", { month: "long" })} ${new Date(fromDateValue).getDate()}, ${new Date(fromDateValue).getFullYear()}  has been 
+  Your request for ${leaveType} on  ${formattedFromDate}  has been 
   ${isRejected
       ? "not approved due to Team Workload."
       : "approved."
