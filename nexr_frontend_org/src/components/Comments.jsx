@@ -5,7 +5,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { EssentialValues } from '../App';
 import { toast } from 'react-toastify';
 import TimerOutlinedIcon from '@mui/icons-material/TimerOutlined';
-import { fileUploadInServer, getTimeFromHour } from './ReuseableAPI';
+import { fetchTeamEmps, fileUploadInServer, getTimeFromHour } from './ReuseableAPI';
 import MoreHorizOutlinedIcon from '@mui/icons-material/MoreHorizOutlined';
 import profile from "../imgs/male_avatar.webp";
 import CalendarMonthRoundedIcon from '@mui/icons-material/CalendarMonthRounded';
@@ -23,10 +23,12 @@ export default function Comments() {
     const [commentObj, setCommentObj] = useState({});
     const { id } = useParams();
     const { data, whoIs } = useContext(EssentialValues);
-    const { employees } = useContext(TimerStates);
+    const [employees, setEmployees] = useState([]);
     const url = process.env.REACT_APP_API_URL;
     const [previewList, setPreviewList] = useState([]);
     const [projects, setProjects] = useState([]);
+    const [allTasks, setAllTask] = useState([]);
+    const [notCompletedTasks, setNotCompletedTasks] = useState([]);
     const [isEditCommit, setIsEditCommit] = useState(false);
     const [editCommentIndex, setEditCommentIndex] = useState(null);
     const [ischecked, setIschecked] = useState(false);
@@ -119,8 +121,8 @@ export default function Comments() {
             setIsEditCommit(false);
             setIsEditTask(false);
             setEditCommentIndex(null);
-       } catch (error) {
-         if (error?.message === "Network Error") {
+        } catch (error) {
+            if (error?.message === "Network Error") {
                 navigate("/network-issue")
             }
             console.error("Error updating task:", error);
@@ -128,6 +130,38 @@ export default function Comments() {
         }
         setIsChangingComment(false);
     }
+
+    async function fetchProjectEmps() {
+        try {
+            const res = await axios.get(`${url}/api/project/employees/${taskObj?.project}`, {
+                headers: {
+                    Authorization: data.token || ""
+                }
+            })
+
+            setEmployees(res.data.map((emp) => ({ label: emp.FirstName + " " + emp.LastName, value: emp._id })))
+        } catch (error) {
+            if (error?.message === "Network Error") {
+                navigate("/network-issue")
+            }
+            console.log("error in fetch employess", error);
+        }
+    }
+
+    async function getTeamEmps() {
+        // fetch team employees
+        const emps = await fetchTeamEmps()
+        setEmployees(emps)
+    }
+
+    // fetch prject of employees
+    useEffect(() => {
+        if (taskObj?.project) {
+            fetchProjectEmps()
+        } else {
+            getTeamEmps()
+        }
+    }, [taskObj?.project])
 
     async function updateCommentsInObj(taskObjdata, type) {
         try {
@@ -138,10 +172,10 @@ export default function Comments() {
                 headers: {
                     Authorization: data.token
                 }
-            })
+            });
             console.log(res.data.message);
-       } catch (error) {
-         if (error?.message === "Network Error") {
+        } catch (error) {
+            if (error?.message === "Network Error") {
                 navigate("/network-issue")
             }
             console.log("error in update task in comments");
@@ -172,8 +206,8 @@ export default function Comments() {
             setIsAddComment(false);
             setPreviewList([]);
             setCommentObj({});
-       } catch (error) {
-         if (error?.message === "Network Error") {
+        } catch (error) {
+            if (error?.message === "Network Error") {
                 navigate("/network-issue")
             }
             console.log(error);
@@ -208,8 +242,8 @@ export default function Comments() {
             setIsEditCommit(false);
             setPreviewList([]);
             setCommentObj({});
-       } catch (error) {
-         if (error?.message === "Network Error") {
+        } catch (error) {
+            if (error?.message === "Network Error") {
                 navigate("/network-issue")
             }
             console.error("Error updating task:", error);
@@ -230,10 +264,10 @@ export default function Comments() {
             try {
                 toast.success("Commit has been move trash");
                 updateCommentsInObj(taskObj, "delete comment")
-           } catch (error) {
-         if (error?.message === "Network Error") {
-                navigate("/network-issue")
-            }
+            } catch (error) {
+                if (error?.message === "Network Error") {
+                    navigate("/network-issue")
+                }
                 console.log(error);
             }
         }
@@ -323,12 +357,34 @@ export default function Comments() {
                     timeHolder: getTimeFromHour(res?.data?.spend?.timeHolder || 0)
                 }
             });
-       } catch (error) {
-         if (error?.message === "Network Error") {
+        } catch (error) {
+            if (error?.message === "Network Error") {
                 navigate("/network-issue")
             }
             console.log(error)
             toast.error(error?.response?.data?.error)
+        }
+    }
+
+    async function fetchEmpAssignedTasks() {
+        // setIsLoading(true);
+        try {
+            const res = await axios.get(`${url}/api/task/assigned/${data._id}`, {
+                headers: {
+                    Authorization: data.token || ""
+                }
+            })
+            setAllTask(res.data.tasks?.map((task) => ({ label: task.title + " " + task.status, value: task._id })));
+            setNotCompletedTasks(res.data.tasks.filter((task) => task.status !== "Completed")?.map((task) => ({ label: task.title, value: task._id })))
+        } catch (error) {
+            if (error?.message === "Network Error") {
+                navigate("/network-issue")
+            }
+            setAllTask([])
+            setNotCompletedTasks([]);
+            console.log(error);
+        } finally {
+            //   setIsLoading(false)
         }
     }
 
@@ -341,8 +397,8 @@ export default function Comments() {
             })
             toast.success(res.data.message);
             navigate(`/${whoIs}/tasks`);
-       } catch (error) {
-         if (error?.message === "Network Error") {
+        } catch (error) {
+            if (error?.message === "Network Error") {
                 navigate("/network-issue")
             }
             toast.error(error?.response?.data?.error)
@@ -417,20 +473,39 @@ export default function Comments() {
                 }
             })
             setProjects(res.data.map((project) => ({ label: project.name, value: project._id })));
-       } catch (error) {
-         if (error?.message === "Network Error") {
+        } catch (error) {
+            if (error?.message === "Network Error") {
                 navigate("/network-issue")
             }
             toast.error(error?.response?.data?.error)
         }
     }
 
+    // add and remove remainder
+    function addReminder(remindObj) {
+        setTaskObj((pre) => ({
+            ...pre,
+            "remind": [...(pre?.remind || []), remindObj]
+        }))
+    }
+
+    function removeReminder(index) {
+        const filteredReminders = taskObj?.remind.filter((item, i) => i !== index);
+        setTaskObj((pre) => ({
+            ...pre,
+            "remind": filteredReminders
+        }))
+    }
+
     useEffect(() => {
+        console.log("calling for fetchComments..");
+
         fetchTaskOfComments()
     }, [isChangeComments, id])
 
     useEffect(() => {
-        fetchProjects()
+        fetchProjects();
+        fetchEmpAssignedTasks();
     }, [])
 
     return (
@@ -449,8 +524,12 @@ export default function Comments() {
             previewList={previewList}
             isAddData={isEditTask}
             isWorkingApi={ischangingComment}
+            tasks={allTasks}
+            notCompletedTasks={notCompletedTasks}
             editData={editTask}
             changeData={changeTask}
+            addReminder={addReminder}
+            removeReminder={removeReminder}
             projects={projects}
             removeAttachment={removeAttachment}
             employees={employees}

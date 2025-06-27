@@ -20,7 +20,7 @@ const CommonModel = ({
     team_member,
     changeData,
     isAddData, addData, leads, heads, addReminder, removeReminder, managers,
-    hrs, admins, previewList, modifyData, notCompletedTasks,
+    hrs, admins, previewList, modifyData, notCompletedTasks = [],
     projects, departments, employees, deleteData, removeState,
     comps, changeState, removeAttachment, isWorkingApi, removePreview,
     preview, countries, states, errorMsg, tasks, type // New prop to determine if it's for "department" or "position"
@@ -31,6 +31,7 @@ const CommonModel = ({
     const [isShowPassword, setIsShowPassword] = useState(false);
     const [remindOn, setRemindOn] = useState(dataObj?.remind?.on ? new Date(dataObj.remind.on) : null);
     const [remindFor, setRemindFor] = useState(dataObj?.remind?.for || "");
+    console.log("tasks", tasks);
 
     const isButtonDisabled = !(remindOn && remindFor);
 
@@ -1388,7 +1389,7 @@ const CommonModel = ({
                                         appearance='default'
                                         style={{ width: "100%" }}
                                         size="lg"
-                                        data={tasks?.map((task) => ({ label: task.title + " " + task.status, value: task._id }))}
+                                        data={tasks}
                                         disabled={type === "Task View"}
                                         value={dataObj?.subTask}
                                         onChange={(value) => changeData(value, "subTask")}
@@ -1405,7 +1406,7 @@ const CommonModel = ({
                                         appearance='default'
                                         style={{ width: "100%" }}
                                         size="lg"
-                                        data={notCompletedTasks.map((task) => ({ label: task.title, value: task._id }))}
+                                        data={notCompletedTasks}
                                         disabled={type === "Task View"}
                                         value={dataObj?.gantt}
                                         onChange={(value) => changeData(value, "gantt")}
@@ -1513,7 +1514,7 @@ const CommonModel = ({
                                     Dependant Tasks
                                 </p>
                                 <TagPicker
-                                    data={tasks.map((task) => ({ label: task.title + " " + task.status, value: task._id }))}
+                                    data={tasks}
                                     size="lg"
                                     defaultValue={[data._id]}
                                     appearance="default"

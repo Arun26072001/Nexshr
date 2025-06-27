@@ -149,7 +149,6 @@ export default function DeadlineTask({ isLoading, updateTaskStatus, fetchEmpAssi
             inputElement.removeEventListener("keypress", handleKeyPress);
         };
     }, [addTaskFor, taskObj, data]);
-    console.log("categorizeTasks", categorizeTasks);
 
     return (
         isLoading ? (

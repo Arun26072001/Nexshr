@@ -163,7 +163,7 @@ router.get("/assigned/:id", verifyAdminHREmployeeManagerNetwork, async (req, res
         const result = categorizeTasks(timeUpdatedTasks);
         const planner = {};
         const plannerType = await PlannerType.findOne({ employee: req.params.id }).lean().exec();
-
+        console.log("essentials", plannerType && plannerType._id && tasks.length);
         if (plannerType && plannerType._id && tasks.length) {
             tasks.forEach((task) => {
                 const categories = plannerType.categories.map((item) => item.toString())
@@ -176,7 +176,6 @@ router.get("/assigned/:id", verifyAdminHREmployeeManagerNetwork, async (req, res
                 }
             });
         }
-        console.log("result", result);
 
         return res.send({ tasks: timeUpdatedTasks, categorizeTasks: result, planner });
     } catch (error) {
@@ -395,6 +394,8 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
 
 router.put("/updatedTaskComment/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
     const { type } = req.query;
+    console.log("type", type);
+
     const taskObj = req.body;
     try {
         const assignessId = taskObj.assignedTo.map((member) => member._id);
@@ -424,7 +425,6 @@ router.put("/updatedTaskComment/:id", verifyAdminHREmployeeManagerNetwork, async
                     token: emp.fcmToken,
                     title,
                     body: message,
-                    // company: emp.company,
                     type
                 })
             });

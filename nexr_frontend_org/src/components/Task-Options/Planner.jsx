@@ -219,6 +219,7 @@ export default function Planner({ isLoading, updateTaskStatus, fetchEmpAssignedT
             </Modal.Footer>
         </Modal>
     }
+    console.log("plannerTask", plannerTasks);
 
     return (
         isLoading ? (
@@ -239,7 +240,7 @@ export default function Planner({ isLoading, updateTaskStatus, fetchEmpAssignedT
         ) :
             <div className="kanbanboard-parent" >
                 {
-                    categories.length > 0 ?
+                    plannerTasks && Object.keys(plannerTasks).length > 0 ?
                         categories?.map((category) => {
                             return <div key={category?._id} className="kanbanboard-child col-lg-3" style={{ position: "relative", opacity: draggedOver === category?._id ? 0.6 : null }}
                                 onDragOver={(e) => handleDragOver(e, category?._id)} onDragLeave={() => setDraggedOver("")}

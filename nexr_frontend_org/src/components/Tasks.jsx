@@ -35,8 +35,8 @@ const Tasks = () => {
   const [projects, setProjects] = useState([]);
   const [projectId, setProjectId] = useState(localStorage.getItem("selectedProject") || "");
   const [allTasks, setAllTask] = useState([]);
-  const [projectAllTasks, setProjectAllTasks] = useState([]);
   const [notCompletedTasks, setNotCompletedTasks] = useState([]);
+  const [projectAllTasks, setProjectAllTasks] = useState([]);
   const [pendingTasks, setPendingTasks] = useState([]);
   const [progressTasks, setProgressTasks] = useState([]);
   const [completedTasks, setCompletedTask] = useState([]);
@@ -219,6 +219,7 @@ const Tasks = () => {
     });
   }
 
+  // add and remove remainder
   function addReminder(remindObj) {
     setTaskObj((pre) => ({
       ...pre,
@@ -291,8 +292,8 @@ const Tasks = () => {
           Authorization: data.token || ""
         }
       })
-      setAllTask(res.data.tasks);
-      setNotCompletedTasks(res.data.tasks.filter((task) => task.status !== "Completed"))
+      setAllTask(res.data.tasks?.map((task) => ({ label: task.title + " " + task.status, value: task._id })));
+      setNotCompletedTasks(res.data.tasks.filter((task) => task.status !== "Completed")?.map((task) => ({ label: task.title, value: task._id })))
     } catch (error) {
       if (error?.message === "Network Error") {
         navigate("/network-issue")
