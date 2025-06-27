@@ -47,6 +47,8 @@ export default function Comments() {
     }
 
     function changeCommit(value, name) {
+        console.log(name, value);
+
         const files = value?.target?.files;
         if (name === "attachments") {
             const imgUrls = [];
@@ -664,6 +666,7 @@ export default function Comments() {
                                                     files={previewList}
                                                     changeCommit={changeCommit}
                                                     dataObj={commentObj}
+                                                    members={employees}
                                                     removeAttachment={removeAttachment}
                                                 />
                                                 <button className='button' onClick={addComment}>Add Comment</button>

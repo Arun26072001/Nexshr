@@ -8,6 +8,8 @@ const { Employee } = require('../models/EmpModel');
 const { Report } = require('../models/ReportModel');
 const { convertToString, projectMailContent } = require('../Reuseable_functions/reusableFunction');
 const { sendPushNotification } = require('../auth/PushNotification');
+const { PlannerCategory } = require('../models/PlannerCategoryModel');
+const { PlannerType } = require('../models/PlannerTypeModel');
 
 router.get("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
   try {
@@ -100,6 +102,25 @@ router.post("/:id", verifyAdminHRTeamHigherAuth, async (req, res) => {
       Employee.findById(creatorId).populate("company", "logo CompanyName"),
       Employee.find({ _id: { $in: employeeIds } }, "FirstName LastName Email fcmToken notifications")
     ]);
+    const addPlannerFor = [];
+    // add planner types for all assignees
+    const defaultCategories = await PlannerCategory.find({}, "_id").exec();
+
+    if (defaultCategories.length) {
+      for (const emp of assignees) {
+        const exists = await PlannerType.exists({ employee: emp._id });
+        if (!exists) {
+          const plannerdetails = {
+            employee: emp._id,
+            categories: defaultCategories.slice(0, 2),
+          };
+
+          const addedPlanner = await PlannerType.create(plannerdetails);
+          addPlannerFor.push({ [emp.FirstName]: addedPlanner._id });
+        }
+      }
+    }
+
 
     if (!creator) {
       return res.status(404).send({ error: "Creator not found." });

@@ -9,6 +9,9 @@ import { jwtDecode } from "jwt-decode";
 import { registerLicense } from '@syncfusion/ej2-base';
 import "./App.css";
 import 'rsuite/dist/rsuite.min.css';
+import "react-quill/dist/quill.snow.css";
+import "quill-mention"; // Import mention module
+import "quill-mention/dist/quill.mention.css"; // Optional: mention styling
 import "react-datepicker/dist/react-datepicker.css";
 import AdminDashboard from "./components/superAdmin/AdminDashboard.js";
 import { getToken, onMessage } from "firebase/messaging";
@@ -205,7 +208,6 @@ const App = () => {
       const decodedData = jwtDecode(localStorage.getItem("token"));
       const type = payload?.data?.type;
       if (!["edit comment", "delete comment"].includes(type)) {
-        console.log("done_1");
         triggerToaster({ company: decodedData.company, title: payload.data.title, message: payload.data.body })
       }
       if (type && type.toLowerCase().includes("comment")) {

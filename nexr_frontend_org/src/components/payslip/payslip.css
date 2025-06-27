@@ -68,6 +68,8 @@ ul {
   padding: 10px;
   font-weight: 500;
   color: black !important;
+  display: flex;
+  align-items: center;
 }
 
 /* PaySlip Design */
@@ -106,7 +108,7 @@ ul {
   flex-wrap: wrap;
   background-color: white;
   justify-content: space-between;
-  border: 2px solid  #E7E7E7;
+  border: 2px solid #e7e7e7;
 }
 
 .leaveData {
@@ -178,7 +180,8 @@ ul {
 }
 
 /* History Design */
-.historyCard, .payslipInfoCard {
+.historyCard,
+.payslipInfoCard {
   padding: 10px 25px;
   margin: 13px 0;
   background: white;

@@ -901,7 +901,7 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
             getter: (row) => {
                 const assignees = row?.assignedTo || [];
                 if (!assignees.length) return 'N/A';
-                return assignees.map(emp => `${emp.FirstName} ${emp.LastName || ''}`.trim()).join(', ');
+                return assignees.slice(0, 2).map(emp => `${emp.FirstName} ${emp.LastName || ''}`.trim()).join(', ') + (assignees.length > 3 ? "..." : "");
             }
         },
         {
