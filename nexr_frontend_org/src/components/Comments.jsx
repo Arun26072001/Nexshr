@@ -165,6 +165,7 @@ export default function Comments() {
 
     async function updateCommentsInObj(taskObjdata, type) {
         try {
+            // ischangingComment(true);
             const res = await axios.put(`${url}/api/task/updatedTaskComment/${data._id}`, taskObjdata, {
                 params: {
                     type
@@ -179,6 +180,8 @@ export default function Comments() {
                 navigate("/network-issue")
             }
             console.log("error in update task in comments");
+        } finally {
+            // setIsChangingComment(false)
         }
     }
 
@@ -210,7 +213,6 @@ export default function Comments() {
             if (error?.message === "Network Error") {
                 navigate("/network-issue")
             }
-            console.log(error);
         }
     }
 
@@ -557,16 +559,16 @@ export default function Comments() {
                             <div className="commentsHeader mb-3">
                                 {taskObj.title}
                             </div>
-                            <p >{
-                                taskObj?.assignedTo?.map((emp) => {
+                            <div className='d-flex gap-1 flex-wrap' >{
+                                taskObj?.assignedTo?.map((emp, index) => {
                                     return (
-                                        <>
+                                        <div className="taggedPeople" key={index}>
                                             <img src={emp?.profile || profile} className='userProfile' key={emp._id} />
-                                            {emp?.FirstName?.[0]?.toUpperCase() + emp?.FirstName?.slice(1) + " " + emp?.LastName + "   "}
-                                        </>)
+                                            <span className='sub_text'>{emp?.FirstName?.[0]?.toUpperCase() + emp?.FirstName?.slice(1) + " " + emp?.LastName + "   "}</span>
+                                        </div>)
                                 })
-                            }</p>
-                            <p className='d-flex align-items-center'><CalendarMonthRoundedIcon />{new Date(taskObj.to).toDateString()}</p>
+                            }</div>
+                            <p className='d-flex align-items-center my-2'><CalendarMonthRoundedIcon />{new Date(taskObj.to).toDateString()}</p>
                         </div>
                         <div className="col-lg-1 col-2">
                             <span className='circleEditIcon' >
@@ -586,7 +588,7 @@ export default function Comments() {
                                         <div className='text-align-center'>
                                             <hr width="100%" size="2" color='gray' style={{ borderTop: "1px solid gray" }}></hr>
                                             <div className='row'>
-                                                <div className="col-lg-2 col-md-2 col-12">
+                                                <div className="col-lg-2 col-md-2 col-12 sub_text" style={{ fontWeight: 700, fontSize: "13px" }}>
                                                     {new Date(comment.date).toDateString().split(" ").slice(1).join(" ")}
                                                 </div>
                                                 <div className="col-lg-1 col-md-1 col-3">

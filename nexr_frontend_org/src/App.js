@@ -89,9 +89,9 @@ const App = () => {
     navigate(location.pathname, { replace: true });
   };
 
-  async function sendEmpIdtoExtension(empId, token) {
-    window.postMessage({ type: "FROM_REACT", payload: { empId, token } }, "*");
-  }
+  // async function sendEmpIdtoExtension(empId, token) {
+  //   window.postMessage({ type: "FROM_REACT", payload: { empId, token } }, "*");
+  // }
 
   const login = async (email, password) => {
     setLoading(true);
@@ -122,7 +122,7 @@ const App = () => {
       setLoading(false);
       setIsLogin(true);
       // send emp id for extension
-      sendEmpIdtoExtension(decodedData._id, response.data);
+      // sendEmpIdtoExtension(decodedData._id, response.data);
       const roles = { "17": "superAdmin", "1": "admin", "2": "hr", "3": "emp", "4": "manager", "5": "sys-admin" };
       setWhoIs(roles[String(accountType)] || "");
       navigate(`/${roles[String(accountType)]}`);
@@ -205,9 +205,11 @@ const App = () => {
       const decodedData = jwtDecode(localStorage.getItem("token"));
       const type = payload?.data?.type;
       if (!["edit comment", "delete comment"].includes(type)) {
+        console.log("done_1");
         triggerToaster({ company: decodedData.company, title: payload.data.title, message: payload.data.body })
       }
       if (type && type.toLowerCase().includes("comment")) {
+        console.log("done_2");
         setIsChangeComments(payload?.messageId)
       }
       if (type === "late reason") {

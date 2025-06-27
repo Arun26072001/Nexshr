@@ -708,7 +708,7 @@ function triggerToaster(response) {
             <Notification
                 header={
                     <div style={{ display: 'flex', alignItems: 'center' }}>
-                        <img src={response.company.logo} alt="Company Logo" style={{ width: 50, height: 50, marginRight: 10 }} />
+                        <img src={response?.company?.logo} alt="Company Logo" style={{ width: 50, height: 50, marginRight: 10 }} />
                         <span style={{ fontWeight: 'bold', fontSize: '16px' }}>{response.company.CompanyName}</span>
                     </div>
                 }

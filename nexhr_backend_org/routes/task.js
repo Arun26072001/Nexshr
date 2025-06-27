@@ -163,7 +163,6 @@ router.get("/assigned/:id", verifyAdminHREmployeeManagerNetwork, async (req, res
         const result = categorizeTasks(timeUpdatedTasks);
         const planner = {};
         const plannerType = await PlannerType.findOne({ employee: req.params.id }).lean().exec();
-        console.log("essentials", plannerType && plannerType._id && tasks.length);
         if (plannerType && plannerType._id && tasks.length) {
             tasks.forEach((task) => {
                 const categories = plannerType.categories.map((item) => item.toString())
@@ -411,6 +410,8 @@ router.put("/updatedTaskComment/:id", verifyAdminHREmployeeManagerNetwork, async
         const updatedTask = await Task.findByIdAndUpdate(taskObj._id, taskObj, { new: true });
         if (emps.length) {
             emps.forEach((emp) => {
+                console.log("empData", emp);
+
                 const title = `${commentCreator.FirstName + " " + commentCreator.LastName} has commented in ${taskObj.title}`;
                 const message = currentCmt.comment.replace(/<\/?[^>]+(>|$)/g, '')
                 // send mail 
