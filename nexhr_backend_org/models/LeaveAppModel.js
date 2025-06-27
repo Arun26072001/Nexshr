@@ -27,7 +27,7 @@ var LeaveApplication = mongoose.model(
 );
 
 const LeaveApplicationValidation = Joi.object({
-  leaveType: Joi.string().required().disallow(null, '', 'none', 'undefined').label('leaveType'),
+  leaveType: Joi.string().label('leaveType').required(),
   fromDate: Joi.date().required().label('fromDate'),
   toDate: Joi.date().greater(Joi.ref('fromDate')).required().label('toDate').messages({
     'date.greater': '"toDate" must be greater than "fromDate"',

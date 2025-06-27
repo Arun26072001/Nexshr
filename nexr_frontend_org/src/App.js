@@ -39,7 +39,7 @@ const App = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [isChangeAnnouncements, setIschangeAnnouncements] = useState(false);
-  const [isChangeComments, setIsChangeComments] = useState(false);
+  const [isChangeComments, setIsChangeComments] = useState("");
   const [isViewTakeTime, setIsTaketime] = useState(localStorage.getItem("isViewTakeTime") ? true : false);
   const [isViewEarlyLogout, setIsViewEarlyLogout] = useState(JSON.parse(localStorage.getItem("isViewEarlyLogout")) ? true : false);
 

@@ -21,7 +21,7 @@ var projectSchema = new mongoose.Schema({
   estCost: { type: String },
   estTime: { type: String },
   priority: { type: String },
-  tracker: [{type: TrackerSchema}],
+  tracker: [{ type: TrackerSchema }],
   createdby: { type: mongoose.Schema.Types.ObjectId, ref: "Employee" }
 }, { timestamps: true });
 
@@ -62,6 +62,8 @@ const projectValidation = Joi.object({
     .label('Created By'),
   tracker: Joi.any().label("Tracker"),
   trash: Joi.boolean().allow("", null).label("Trash"),
+  _id: Joi.any().optional(),
+  __v: Joi.any().optional(),
   createdAt: Joi.string().allow('').label('createdAt'),
   updatedAt: Joi.string().allow('').label('updatedAt')
 });
