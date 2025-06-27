@@ -399,9 +399,9 @@ router.put("/updatedTaskComment/:id", verifyAdminHREmployeeManagerNetwork, async
     const taskObj = req.body;
     try {
         const assignessId = taskObj.assignedTo.map((member) => member._id);
-        const exceptSender = assignessId.filter((emp) => emp !== req.params.id);
+        // const exceptSender = assignessId.filter((emp) => emp !== req.params.id);
         // get employee data for company data
-        const emps = await Employee.find({ _id: { $in: exceptSender } }, "FirstName LastName Email fcmToken profile company")
+        const emps = await Employee.find({ _id: { $in: assignessId } }, "FirstName LastName Email fcmToken profile company")
             .populate("company", "CompanyName logo")
             .exec();
 
