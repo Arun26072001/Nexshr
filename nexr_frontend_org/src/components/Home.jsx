@@ -54,7 +54,7 @@ export default function Home() {
     const navigate = useNavigate();
     const { isStartLogin, isStartActivity, workTimeTracker, timeOption, checkClockins } = useContext(TimerStates);
     const [value, setValue] = useState(0);
-    const [isMobileView, setIsMobileView] = useState(false);
+    // const [isMobileView, setIsMobileView] = useState(false);
     const [isLoading, setLoading] = useState(true); // Track loading state
     const { data } = useContext(EssentialValues);
     const [isFetchPeopleOnLeave, setIsFetchPeopleOnLeave] = useState(false);
@@ -104,7 +104,7 @@ export default function Home() {
             setLoading(false)
         }
     };
-    
+
     async function fetchPeopleOnLeave() {
         try {
             setIsFetchPeopleOnLeave(true);
@@ -171,22 +171,22 @@ export default function Home() {
         getClockInsData();
     }, [checkClockins]);
 
-    useEffect(() => {
-        const handleResize = () => {
-            if (window.innerWidth <= 370) {
-                setIsMobileView(true)
-            } else {
-                setIsMobileView(false)
-            }
-        };
+    // useEffect(() => {
+    //     const handleResize = () => {
+    //         if (window.innerWidth <= 450) {
+    //             setIsMobileView(true)
+    //         } else {
+    //             setIsMobileView(false)
+    //         }
+    //     };
 
-        window.addEventListener("resize", handleResize);
+    //     window.addEventListener("resize", handleResize);
 
-        // Cleanup function to remove the event listener
-        return () => {
-            window.removeEventListener("resize", handleResize);
-        };
-    }, []);
+    //     // Cleanup function to remove the event listener
+    //     return () => {
+    //         window.removeEventListener("resize", handleResize);
+    //     };
+    // }, []);
 
     return (
         <Box sx={{ width: '100%' }}>
@@ -255,7 +255,7 @@ export default function Home() {
                     {/* <p className='payslipTitle my-2 px-3'>PeopleOnLeave</p> */}
                     <div className="d-flex flex-wrap gap-2 align-items-center justify-content-center my-2">
                         {/* people on leave container */}
-                        <div className="boxContainer-parent col-12" style={{ width: isMobileView ? "100%" : "48%" }}>
+                        <div className="boxContainer-parent col-12" >
                             <div className="d-flex flex-wrap justify-content-between align-items-center py-2" style={{ position: "sticky", top: "0px", background: "rgba(245, 245, 245, 1)" }} >
                                 <p className='sub_text text-dark' style={{ fontWeight: "bold" }}>PeopleOnLeave</p>
                                 <p className='timeLogBox' style={{ background: "white" }}><img src={calendarIcon} alt='dateIcon' width={15} height={"auto"} /> <span className='sub_text text-dark'>{now.getDate() + " " + now.toLocaleString("default", { "month": "short" }) + " " + now.getFullYear()}</span></p>
@@ -283,7 +283,7 @@ export default function Home() {
                             }
                         </div>
                         {/* work from home employees container */}
-                        <div className="boxContainer-parent col-12" style={{ width: isMobileView ? "100%" : "48%" }} >
+                        <div className="boxContainer-parent col-12" >
                             <div className="d-flex flex-wrap justify-content-between align-items-center py-2" style={{ position: "sticky", top: "0px", background: "rgba(245, 245, 245, 1)" }} >
                                 <p className='sub_text text-dark' style={{ fontWeight: "bold" }}>WFH Employees</p>
                                 <p className='timeLogBox' style={{ background: "white" }}><img src={calendarIcon} alt='dateIcon' width={15} height={"auto"} /> <span className='sub_text text-dark'>{now.getDate() + " " + now.toLocaleString("default", { "month": "short" }) + " " + now.getFullYear()}</span></p>

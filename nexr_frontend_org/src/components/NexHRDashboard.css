@@ -102,10 +102,17 @@ input::-webkit-inner-spin-button {
   line-height: 18px;
   border-radius: 8px;
   padding: 0px 16px;
-  /* width: 48%; */
+  width: 48%;
   height: 300px;
   overflow: scroll;
 }
+
+@media (max-width: 450px) {
+  .boxContainer-parent {
+    width: 100%;
+  }
+}
+
 .hr_border {
   width: 100%;
   border: 1px solid white;

@@ -10,8 +10,6 @@ import { registerLicense } from '@syncfusion/ej2-base';
 import "./App.css";
 import 'rsuite/dist/rsuite.min.css';
 import "react-quill/dist/quill.snow.css";
-import "quill-mention"; // Import mention module
-import "quill-mention/dist/quill.mention.css"; // Optional: mention styling
 import "react-datepicker/dist/react-datepicker.css";
 import AdminDashboard from "./components/superAdmin/AdminDashboard.js";
 import { getToken, onMessage } from "firebase/messaging";
