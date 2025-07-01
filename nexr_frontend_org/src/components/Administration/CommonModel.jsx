@@ -31,7 +31,7 @@ const CommonModel = ({
     const [isShowPassword, setIsShowPassword] = useState(false);
     const [remindOn, setRemindOn] = useState(dataObj?.remind?.on ? new Date(dataObj.remind.on) : null);
     const [remindFor, setRemindFor] = useState(dataObj?.remind?.for || "");
-    console.log("tasks", tasks);
+    console.log("type", type);
 
     const isButtonDisabled = !(remindOn && remindFor);
 
@@ -631,7 +631,7 @@ const CommonModel = ({
                                         placeholder="Select Employees"
                                         value={type.includes("Task") ? dataObj?.assignedTo : dataObj?.employees}
                                         onChange={["Report View", "Task View", "Project View"].includes(type) ? null : (e) =>
-                                            changeData(e, "employees")
+                                            changeData(e, type.includes("Task") ? "assignedTo" : "employees")
                                         }
                                     />
                                 </div>
@@ -1637,6 +1637,7 @@ const CommonModel = ({
                                     <Button
                                         onClick={() => ((type === "Add Comments" && dataObj?._id) ? editData(dataObj, true) : dataObj?._id || type === "Edit Country" ? editData(dataObj) : type === "Edit Comments" ? editData() : addData())}
                                         appearance="primary"
+                                        style={{ cursor: isWorkingApi ? "wait" : "pointer" }}
                                         disabled={
                                             ["Project", "Assign", "Task", "Task Assign", "Report", "Company", "Country", "Edit Country", "Announcement", "Team", "Add Comments", "TimePattern", "Edit Comments", "Organization", "MailSettings postmark", "MailSettings nodemailer", "LeaveType", "WorkPlace", "Email Template"].includes(type)
                                                 ? false : (["Department", "Position"].includes(type) && dataObj?.company ? false : true)

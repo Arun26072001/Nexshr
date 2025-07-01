@@ -28,7 +28,7 @@ import Holiday from '../HolidaysPicker';
 const Dashboard = React.lazy(() => import('./Dashboard'));
 const JobDesk = React.lazy(() => import('./Jobdesk'));
 const Employee = React.lazy(() => import('./Employee'));
-const Employees = React.lazy(() => import('./Employees'));
+// const Employees = React.lazy(() => import('./Employees'));
 const Request = React.lazy(() => import('../attendance/Request'));
 const Dailylog = React.lazy(() => import('../attendance/Dailylog'));
 const Details = React.lazy(() => import('../attendance/Details'));
@@ -63,7 +63,7 @@ export const TimerStates = createContext(null);
 
 export default function HRMDashboard() {
     const url = process.env.REACT_APP_API_URL;
-    const { data, isStartLogin, isStartActivity, setIsStartLogin, setIsStartActivity, whoIs } = useContext(EssentialValues);
+    const { data, isStartLogin, isStartActivity, setIsStartLogin, setIsStartActivity, whoIs, isEditEmp, handleEditEmp, handleLogout } = useContext(EssentialValues);
     const { token, Account, _id } = data;
     const { isTeamLead, isTeamHead, isTeamManager } = jwtDecode(token);
     const [attendanceData, setAttendanceData] = useState([]);
@@ -74,7 +74,6 @@ export default function HRMDashboard() {
     const [isLoading, setIsLoading] = useState(false);
     const [waitForAttendance, setWaitForAttendance] = useState(false);
     const [daterangeValue, setDaterangeValue] = useState("");
-    const [isEditEmp, setIsEditEmp] = useState(false);
     const [timeOption, setTimeOption] = useState(localStorage.getItem("timeOption") || "meeting");
     const navigate = useNavigate();
     const [reloadRole, setReloadRole] = useState(false);
@@ -319,7 +318,7 @@ export default function HRMDashboard() {
     function changeEmpEditForm(id) {
         if (isEditEmp) {
             navigate(["manager", "admin", "hr"].includes(whoIs) ? `/${whoIs}/employee` : `/${whoIs}`);
-            setIsEditEmp(false);
+            handleEditEmp()
         } else {
             navigate(`/${whoIs}/employee/edit/${id}`);
         }
@@ -485,7 +484,8 @@ export default function HRMDashboard() {
                         if (new Date(timeData.date).toLocaleDateString() !== new Date().toLocaleDateString()) {
                             localStorage.setItem('isStartLogin', true);
                             setIsStartLogin(true);
-                            setIsForgetToPunchOut(true)
+                            setIsForgetToPunchOut(true);
+                            handleLogout();
                         }
 
                         setWorkTimeTracker(timeData)
@@ -498,7 +498,7 @@ export default function HRMDashboard() {
                 if (error?.message === "Network Error") {
                     navigate("/network-issue")
                 }
-                console.warn(error);
+                console.warn("error in fetch clickins data", error);
             }
         }
         gettingEmps()
@@ -506,7 +506,7 @@ export default function HRMDashboard() {
     }, [syncTimer]);
 
     return (
-        <TimerStates.Provider value={{ workTimeTracker, reloadRolePage, setIsWorkingLoginTimerApi, setIsEditEmp, companies, employees, isForgetToPunchOut, setIsForgetToPunchOut, updateWorkTracker, isWorkingLoginTimerApi, isworkingActivityTimerApi, trackTimer, startLoginTimer, stopLoginTimer, changeReasonForLate, changeReasonForEarly, startActivityTimer, stopActivityTimer, setWorkTimeTracker, updateClockins, checkClockins, timeOption, isStartLogin, isStartActivity, handleAddTask, changeEmpEditForm, isEditEmp, isAddTask, setIsAddTask, handleAddTask, selectedProject, daterangeValue, setDaterangeValue }}>
+        <TimerStates.Provider value={{ workTimeTracker, reloadRolePage, setIsWorkingLoginTimerApi, handleEditEmp, companies, employees, isForgetToPunchOut, setIsForgetToPunchOut, updateWorkTracker, isWorkingLoginTimerApi, isworkingActivityTimerApi, trackTimer, startLoginTimer, stopLoginTimer, changeReasonForLate, changeReasonForEarly, startActivityTimer, stopActivityTimer, setWorkTimeTracker, updateClockins, checkClockins, timeOption, isStartLogin, isStartActivity, handleAddTask, changeEmpEditForm, isAddTask, setIsAddTask, handleAddTask, selectedProject, daterangeValue, setDaterangeValue }}>
             <Routes >
                 <Route path="/" element={<Parent />} >
                     <Route index element={<Dashboard data={data} />} />

@@ -47,7 +47,7 @@ const Tasks = () => {
   const [isEditTask, setIsEditTask] = useState(false);
   const [isviewTask, setIsViewtask] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [isUpdateTime, setIsUpdateTime] = useState(false);
+  const [isUpdateTime, setIsUpdateTime] = useState("");
   const [isDelete, setIsDelete] = useState({ type: false, value: "" });
   const [status, setStatus] = useState("Pending");
   const [isAddComment, setIsAddComment] = useState(false);
@@ -400,7 +400,7 @@ const Tasks = () => {
       };
     }
 
-    setIsUpdateTime(true);
+    setIsUpdateTime(updatedTask._id);
 
     let files = [];
 
@@ -462,7 +462,7 @@ const Tasks = () => {
       const errorMessage = error?.response?.data?.error || "An error occurred while updating the task.";
       toast.error(errorMessage);
     } finally {
-      setIsUpdateTime(false);
+      setIsUpdateTime("");
       setIsAddComment(false);
       setIsTaskChanging(false);
     }
@@ -492,7 +492,7 @@ const Tasks = () => {
         }
       })
       toast.success(res.data.message);
-      handleDeleteTask();
+      setIsDelete({ type: false, value: "" })
       fetchTaskByProjectId(projectId);
     } catch (error) {
       if (error?.message === "Network Error") {

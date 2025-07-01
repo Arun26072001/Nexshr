@@ -523,23 +523,3 @@ router.delete("/:id", verifyAdminHR, async (req, res) => {
 });
 
 module.exports = router;
-
-// router.post("/update-leave-type-remaining", async (req, res) => {
-//   try {
-//     const emps = await Employee.find({}, "typesOfLeaveRemainingDays").exec();
-//     if (emps.length) {
-//       emps.forEach(async (emp) => {
-//         if (emp.typesOfLeaveRemainingDays && Object.values(emp.typesOfLeaveRemainingDays).length) {
-//           emp.typesOfLeaveRemainingDays = {
-//             "Annual Leave": 7,
-//             "Sick Leave": 7
-//           }
-//           await emp.save();
-//         }
-//       })
-//     }
-//     return res.send({ messgage: "all emps for updated typesOfLeaveRemainingDays" })
-//   } catch (error) {
-//     console.log("error in update typesOfLeaveRemainingDays", error)
-//   }
-// })

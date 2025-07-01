@@ -10,19 +10,11 @@ const { PlannerCategory } = require("../models/PlannerCategoryModel");
 const { PlannerType } = require("../models/PlannerTypeModel");
 const router = express.Router();
 
-// router.post("/add-category", async(req, res)=>{
-//     try {
-//         const 
-//     } catch (error) {
-
-//     }
-// })
-
 router.get("/project/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
     try {
         let tasks = await Task.find({ project: { $in: req.params.id } }, "-tracker")
             .populate({ path: "project", select: "name color" })
-            .populate({ path: "assignedTo", select: "FirstName LastName" })
+            .populate({ path: "assignedTo", select: "FirstName LastName profile" })
             .populate({ path: "createdby", select: "company" })
             .exec();
 
@@ -393,7 +385,6 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
 
 router.put("/updatedTaskComment/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
     const { type } = req.query;
-    console.log("type", type);
 
     const taskObj = req.body;
     try {
@@ -410,7 +401,6 @@ router.put("/updatedTaskComment/:id", verifyAdminHREmployeeManagerNetwork, async
         const updatedTask = await Task.findByIdAndUpdate(taskObj._id, taskObj, { new: true });
         if (emps.length) {
             emps.forEach((emp) => {
-                console.log("empData", emp);
 
                 const title = `${commentCreator.FirstName + " " + commentCreator.LastName} has commented in ${taskObj.title}`;
                 const message = currentCmt.comment.replace(/<\/?[^>]+(>|$)/g, '')
@@ -426,7 +416,8 @@ router.put("/updatedTaskComment/:id", verifyAdminHREmployeeManagerNetwork, async
                     token: emp.fcmToken,
                     title,
                     body: message,
-                    type
+                    type,
+                    name: emp.FirstName
                 })
             });
         }

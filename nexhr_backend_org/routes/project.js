@@ -88,7 +88,6 @@ router.get("/emp/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => 
     return res.send(formattedProjects);
   } catch (error) {
     console.log("error in fetch emp projects", error);
-
     return res.status(500).send({ error: error.message })
   }
 })
@@ -102,6 +101,9 @@ router.post("/:id", verifyAdminHRTeamHigherAuth, async (req, res) => {
       Employee.findById(creatorId).populate("company", "logo CompanyName"),
       Employee.find({ _id: { $in: employeeIds } }, "FirstName LastName Email fcmToken notifications")
     ]);
+    if (!creator) {
+      return res.status(404).send({ error: "Creator not found." });
+    }
     const addPlannerFor = [];
     // add planner types for all assignees
     const defaultCategories = await PlannerCategory.find({}, "_id").exec();
@@ -119,11 +121,6 @@ router.post("/:id", verifyAdminHRTeamHigherAuth, async (req, res) => {
           addPlannerFor.push({ [emp.FirstName]: addedPlanner._id });
         }
       }
-    }
-
-
-    if (!creator) {
-      return res.status(404).send({ error: "Creator not found." });
     }
 
     const projectName = req.body.name;
@@ -182,7 +179,6 @@ router.post("/:id", verifyAdminHRTeamHigherAuth, async (req, res) => {
               token: fullEmp.fcmToken,
               title: Subject,
               body: message,
-              // company: creator.company
             });
           }
         }
@@ -191,7 +187,8 @@ router.post("/:id", verifyAdminHRTeamHigherAuth, async (req, res) => {
 
     return res.status(201).send({
       message: "Project created successfully.",
-      project
+      project,
+      addPlannerFor
     });
 
   } catch (error) {
@@ -253,6 +250,25 @@ router.put("/:empId/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) 
       Employee.find({ _id: { $in: newAssignees } }, "FirstName LastName Email fcmToken notifications company")
     ]);
 
+    const addPlannerFor = [];
+    // add planner types for all assignees
+    const defaultCategories = await PlannerCategory.find({}, "_id").exec();
+
+    if (defaultCategories.length) {
+      for (const emp of newAssigneeDocs) {
+        const exists = await PlannerType.exists({ employee: emp._id });
+        if (!exists) {
+          const plannerdetails = {
+            employee: emp._id,
+            categories: defaultCategories.slice(0, 2),
+          };
+
+          const addedPlanner = await PlannerType.create(plannerdetails);
+          addPlannerFor.push({ [emp.FirstName]: addedPlanner._id });
+        }
+      }
+    }
+
     // Update project
     const project = await Project.findByIdAndUpdate(req.params.id, updatedProject, { new: true });
     if (!project) {
@@ -297,7 +313,8 @@ router.put("/:empId/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) 
 
     return res.status(200).send({
       message: "Project updated successfully",
-      project
+      project,
+      addPlannerFor
     });
 
   } catch (err) {

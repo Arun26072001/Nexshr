@@ -19,7 +19,7 @@ const JobDesk = () => {
     const navigate = useNavigate();
     const [empObj, setEmpObj] = useState({});
     const [error, setError] = useState("");
-    const { data } = useContext(EssentialValues);
+    const { data, isEditEmp } = useContext(EssentialValues);
     const [isLoading, setIsLoading] = useState(false);
     const [refetch, setRefetch] = useState(false);
     const [payslipData, setPayslipData] = useState({});
@@ -61,7 +61,7 @@ const JobDesk = () => {
             }
         }
         getEmp();
-    }, [refetch])
+    }, [refetch, isEditEmp])
 
 
     return (

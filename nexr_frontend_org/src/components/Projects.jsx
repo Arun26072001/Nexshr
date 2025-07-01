@@ -87,8 +87,8 @@ export default function Projects() {
     }
 
     async function fetchProjects() {
-        setIsLoading(true)
         try {
+            setIsLoading(true)
             const res = await axios.get(`${url}/api/project`, {
                 headers: {
                     Authorization: data.token || ""
@@ -102,8 +102,9 @@ export default function Projects() {
                 navigate("/network-issue")
             }
             toast.error(error?.response?.data?.error)
+        } finally {
+            setIsLoading(false)
         }
-        setIsLoading(false)
     }
 
     async function fetchEmpsProjects() {

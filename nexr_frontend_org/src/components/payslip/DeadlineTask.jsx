@@ -5,6 +5,7 @@ import AccountCircleRoundedIcon from '@mui/icons-material/AccountCircleRounded';
 import ChevronRightRoundedIcon from '@mui/icons-material/ChevronRightRounded';
 import PlayCircleFilledRoundedIcon from '@mui/icons-material/PlayCircleFilledRounded';
 import SubdirectoryArrowLeftRoundedIcon from '@mui/icons-material/SubdirectoryArrowLeftRounded';
+import DeleteRoundedIcon from '@mui/icons-material/DeleteRounded';
 import AddRoundedIcon from '@mui/icons-material/AddRounded';
 import { useContext, useEffect, useState } from "react";
 import { EssentialValues } from "../../App";
@@ -12,7 +13,7 @@ import { Skeleton } from "@mui/material";
 import { calculateTimePattern, createTask, getDueDateByType } from "../ReuseableAPI";
 import NoDataFound from "./NoDataFound";
 
-export default function DeadlineTask({ isLoading, updateTaskStatus, fetchEmpAssignedTasks, updatedTimerInTask, categorizeTasks, setCategorizeTasks, updateTask }) {
+export default function DeadlineTask({ isLoading, updateTaskStatus, fetchEmpAssignedTasks, updatedTimerInTask, handleViewTask, handleEditTask, deleteTask, categorizeTasks, setCategorizeTasks, updateTask }) {
     // for task 
     const [isHovering, setIsHovering] = useState("");
     // for list of task
@@ -92,8 +93,11 @@ export default function DeadlineTask({ isLoading, updateTaskStatus, fetchEmpAssi
         const creator = task.createdby ? task?.createdby?.FirstName + " " + task?.createdby?.LastName : data.Name
 
         return (
-            <div className='p-2 my-1 timeLogBox' draggable={type !== "Completed"} onDragStart={(e) => handleDragStart(e, task, type)} style={{ borderLeft: "3px solid black" }} onMouseEnter={() => setIsHovering(task._id)} onMouseLeave={() => setIsHovering("")} >
-                <div className="sub_text" style={{ fontWeight: 600 }}>{task.title}</div>
+            <div className='p-2 my-1 timeLogBox' key={task._id} draggable={type !== "Completed"} onDragStart={(e) => handleDragStart(e, task, type)} style={{ borderLeft: "3px solid black" }} onMouseEnter={() => setIsHovering(task._id)} onMouseLeave={() => setIsHovering("")} >
+                <div className="d-flex justify-content-between">
+                    <span className="sub_text hoverStyle" style={{ fontWeight: 600 }} onClick={() => task.createdby._id === data._id ? handleEditTask(task._id) : handleViewTask(task._id)} >{task.title}</span>
+                    <span className="" >{task._id === isHovering && task.createdby._id === data._id ? <DeleteRoundedIcon onClick={() => deleteTask(task)} /> : ""}</span>
+                </div>
                 <p className="sub_text dateContainer" >{task.status === "Completed" ? "Completed" : task.to ? dateFormat(task.to) : "No DeadLine"}</p>
                 <div className="d-flex justify-content-between">
                     <div>
@@ -103,7 +107,7 @@ export default function DeadlineTask({ isLoading, updateTaskStatus, fetchEmpAssi
                     </div>
                     {task.status !== "Completed" ?
                         task._id === isHovering &&
-                        <div >
+                        <div>
                             {
                                 isWorkingTask === task._id ? <PauseCircleFilledRoundedIcon sx={{ cursor: "pointer", color: "red" }} titleAccess="Pause Task" onClick={() => stopTime(task)} /> :
                                     <PlayCircleFilledRoundedIcon color="success" sx={{ cursor: "pointer", color: "green" }} titleAccess="Start Task" onClick={() => startTime(task)} />
@@ -171,8 +175,8 @@ export default function DeadlineTask({ isLoading, updateTaskStatus, fetchEmpAssi
             categorizeTasks && Object.keys(categorizeTasks).length > 0 ?
                 <div className="kanbanboard-parent" >
                     {
-                        typeOfTasks?.map((type) => {
-                            return <div key={type} className="kanbanboard-child col-lg-3" style={{ opacity: draggedOver === type.name ? 0.6 : null }}
+                        typeOfTasks?.map((type, index) => {
+                            return <div key={index} className="kanbanboard-child col-lg-3 col-12" style={{ opacity: draggedOver === type.name ? 0.6 : null }}
                                 onDragOver={(e) => handleDragOver(e, type.name)} onDragLeave={() => setDraggedOver("")}
                                 onDrop={handleDrop} onMouseEnter={() => setOnHover(type.name)} onMouseLeave={() => setOnHover("")} >
                                 <div className="kanbanboard-child-header">
@@ -203,8 +207,6 @@ export default function DeadlineTask({ isLoading, updateTaskStatus, fetchEmpAssi
     );
 }
 
-// <div style={{ padding: '40px' }}>
-//     <div
 //         draggable
 //         onDragStart={handleDragStart}
 //         style={{

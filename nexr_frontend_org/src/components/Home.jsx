@@ -97,12 +97,14 @@ export default function Home() {
                     setTableData(tableData);
                 }
             }
-            setLoading(false);
         }
         catch (err) {
-            setLoading(false);
+            console.log("error in fetch clockins data: ", err)
+        } finally {
+            setLoading(false)
         }
     };
+    
     async function fetchPeopleOnLeave() {
         try {
             setIsFetchPeopleOnLeave(true);

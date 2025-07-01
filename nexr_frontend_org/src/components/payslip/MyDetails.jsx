@@ -9,7 +9,7 @@ const MyDetails = () => {
     const navigate = useNavigate();
     const [empObj, setEmpObj] = useState({});
     const [error, setError] = useState("");
-    const { data } = useContext(EssentialValues);
+    const { data, isEditEmp } = useContext(EssentialValues);
     const [isLoading, setIsLoading] = useState(false);
 
     useEffect(() => {
@@ -29,7 +29,7 @@ const MyDetails = () => {
         if (data._id) {
             getEmp();
         }
-    }, [data._id])
+    }, [data._id, isEditEmp])
 
     return (
         error ? <NoDataFound message={error} /> :

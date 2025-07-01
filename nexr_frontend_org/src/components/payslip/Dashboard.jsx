@@ -24,10 +24,11 @@ import { DateRangePicker } from 'rsuite';
 
 const Dashboard = () => {
     const navigate = useNavigate();
+
     const url = process.env.REACT_APP_API_URL;
     const myTaskRef = useRef();
-    const { updateClockins, isEditEmp } = useContext(TimerStates)
-    const { handleLogout, data, whoIs } = useContext(EssentialValues);
+    const { updateClockins } = useContext(TimerStates)
+    const { handleLogout, data, whoIs, isEditEmp, setData, notificationPermission, handlechangeAskNotification } = useContext(EssentialValues);
     const { isTeamLead, isTeamHead, isTeamManager } = jwtDecode(data.token)
     const [leaveData, setLeaveData] = useState({});
     const [isWorkingApi, setIsWorkingApi] = useState(false);
@@ -45,6 +46,7 @@ const Dashboard = () => {
     const [previewList, setPreviewList] = useState([]);
     const [employees, setEmployees] = useState([]);
     const [selectedEmp, setSelectedEmp] = useState({ value: data._id, label: data.Name });
+    const [isDelete, setIsDelete] = useState({ type: false, value: "" });
     const [taskObj, setTaskObj] = useState({});
     // handle add, edit and view task
     const [isAddTask, setIsAddTask] = useState(false);
@@ -78,6 +80,22 @@ const Dashboard = () => {
             setTaskObj({});
         }
         setIsEditTask(!isEditTask);
+    }
+
+    // handling to delete task
+    function handleDeleteTask() {
+        setIsDelete((pre) => ({
+            ...pre,
+            type: !pre.type
+        }));
+    }
+
+    function handleDelete(data) {
+        setIsDelete((pre) => ({
+            ...pre,
+            value: data._id
+        }))
+        handleDeleteTask();
     }
 
     function handleAddTask() {
@@ -133,6 +151,13 @@ const Dashboard = () => {
             console.log(error);
         }
     }
+    // useEffect(() => {
+    //     if (notificationPermission === "denied") {
+    //         console.log("calling.....");
+
+    //         handlechangeAskNotification()
+    //     }
+    // }, [notificationPermission, ])
 
     const gettingEmpdata = async () => {
         try {
@@ -143,6 +168,15 @@ const Dashboard = () => {
 
             // Fetch employee data
             const empData = await fetchEmployeeData(data._id);
+            if (empData && Object.values(empData).length) {
+                setData((pre) => ({
+                    ...pre,
+                    Account: String(empData.accountType),
+                    Name: `${empData.FirstName} ${empData.LastName}`,
+                    annualLeave: empData.annualLeaveEntitlement || 0,
+                    profile: empData.profile
+                }));
+            }
 
             // Calculate working hours for the day
             if (empData && empData?.workingTimePattern?.StartingTime && empData?.workingTimePattern?.FinishingTime) {
@@ -464,15 +498,16 @@ const Dashboard = () => {
         }
     }
 
-    async function deleteTask(id) {
+    async function deleteTask() {
         try {
-            const res = await axios.delete(`${url}/api/task/${id}`, {
+            const res = await axios.delete(`${url}/api/task/${isDelete.value}`, {
                 headers: {
                     Authorization: data.token || ""
                 }
             })
             toast.success(res.data.message);
-            fetchEmpAssignedTasks()
+            fetchEmpAssignedTasks();
+            setIsDelete({ type: false, value: "" })
         } catch (error) {
             if (error?.message === "Network Error") {
                 navigate("/network-issue")
@@ -584,206 +619,207 @@ const Dashboard = () => {
     }
 
     return (
-        <div className='dashboard-parent'>
-            <ActivityTimeTracker empName={data.Name} leaveData={leaveData} handleLogout={handleLogout} updateClockins={updateClockins} />
-            <>
-                <div className='allowance flex-wrap'>
-                    <div className={`col-lg-2 col-md-6 col-4 my-1 ${isLoading ? "d-flex justify-content-center" : "text-center"}`} title='This is the total number of paid leave days allotted to you for the current year based on your company’s leave policy. It includes all types of eligible leave such as annual, casual, or earned leave.'>
-                        {
-                            isLoading ?
-                                <ContentLoader />
-                                : <>
-                                    <p className='leaveIndicatorTxt'>Total leave allowance</p>
-                                    <p className='text-primary number'>{leaveData?.annualLeaveEntitlement || 0}</p>
-                                </>
-                        }
-                    </div>
+        isDelete.type ? <CommonModel type="Task Confirmation" modifyData={handleDeleteTask} deleteData={deleteTask} isAddData={isDelete.type} /> :
+            <div className='dashboard-parent'>
+                <ActivityTimeTracker empName={data.Name} leaveData={leaveData} handleLogout={handleLogout} updateClockins={updateClockins} />
+                <>
+                    <div className='allowance flex-wrap'>
+                        <div className={`col-lg-2 col-md-6 col-4 my-1 ${isLoading ? "d-flex justify-content-center" : "text-center"}`} title='This is the total number of paid leave days allotted to you for the current year based on your company’s leave policy. It includes all types of eligible leave such as annual, casual, or earned leave.'>
+                            {
+                                isLoading ?
+                                    <ContentLoader />
+                                    : <>
+                                        <p className='leaveIndicatorTxt'>Total leave allowance</p>
+                                        <p className='text-primary number'>{leaveData?.annualLeaveEntitlement || 0}</p>
+                                    </>
+                            }
+                        </div>
 
-                    <div className={`col-lg-2 col-md-6 col-4 my-1 ${isLoading ? "d-flex justify-content-center" : "text-center"}`} title='This is the total number of leave days you have already used or taken from your allotted leave balance during the current year.' >
-                        {
-                            isLoading ? <ContentLoader /> :
-                                <>
-                                    <p className='leaveIndicatorTxt'>Total leave taken</p>
-                                    <p className='text-primary number'>{leaveData?.totalTakenLeaveCount || 0}</p>
-                                </>
-                        }
-                    </div>
-                    <div className={`col-lg-2 col-md-6 col-4 my-1 ${isLoading ? "d-flex justify-content-center" : "text-center"}`} title="This is the remaining number of paid leave days you can still use, calculated by subtracting your taken leaves from your total leave allowance." >
-                        {
-                            isLoading ? <ContentLoader /> :
-                                <>
-                                    <p className='leaveIndicatorTxt'>Total leave available</p>
-                                    <p className='text-primary number'>{(Number(leaveData?.annualLeaveEntitlement) - (Number(leaveData.totalTakenLeaveCount)) < 0 ? 0 : Number(leaveData?.annualLeaveEntitlement) - Number(leaveData.totalTakenLeaveCount)) || 0}</p>
-                                </>
-                        }
-                    </div>
-                    <div className={`col-lg-3 col-md-6 col-4 my-1 ${isLoading ? "d-flex justify-content-center" : "text-center"}`} title="These are leave requests you’ve submitted that are waiting for approval from your manager or HR. They are not yet counted as approved leave." >
-                        {
-                            isLoading ? <ContentLoader /> :
-                                <>
-                                    <p className='leaveIndicatorTxt'>Leave request pending</p>
-                                    <p className='text-primary number'>{leaveData?.pendingLeaveRequests || 0}</p>
-                                </>
-                        }
-                    </div>
-                    <div className={`col-lg-2 col-md-6 col-4 my-1 ${isLoading ? "d-flex justify-content-center" : "text-center"}`} title='This is the total number of leave days taken without pay, usually applied when paid leave balance is exhausted or for specific leave types like LOP (Loss Of Pay).' >
-                        {
-                            isLoading ? <ContentLoader /> :
-                                <>
-                                    <p className='leaveIndicatorTxt'>Total Unpaid Leave</p>
-                                    <p className='text-primary number'>{leaveData.totalUnpaidLeaveCount || 0}</p>
-                                </>
-                        }
-                    </div>
-                </div>
-                <div className='time flex-wrap'>
-                    <h6 className='col-lg-12 col-12'>Time Log</h6>
-                    <div className='col-lg-6 col-md-12 col-12'>
-                        {
-                            isLoading ? <ContentLoader /> :
-                                <>
-                                    <p className='leaveIndicatorTxt'>Today</p>
-                                    <div className='row gap-3 text-center d-flex justify-content-center'>
-                                        <div className='col-lg-3 col-md-3 col-4 timeLogBox' title='This is the total number of working hours defined by the company for a day, used to track attendance, productivity, and leave calculations.' >
-                                            <>
-                                                <p>{formatTime(leaveData?.workingHour || 0)}</p>
-                                                <p className='sub_text'>Total Hours</p>
-                                            </>
-                                        </div>
-                                        <div className='col-lg-3 col-md-3 col-4 timeLogBox' title="This is the total number of hours you have actively worked or logged within the company’s defined working period" >
-                                            <p>{dailyLogindata?.empTotalWorkingHours ? dailyLogindata?.empTotalWorkingHours : "00:00"}</p>
-                                            <p className='sub_text'>Worked</p>
-                                        </div>
-                                        <div className='col-lg-3 col-md-3 col-4 timeLogBox' title="This is the remaining number of hours you are expected to work to meet the company’s total working hours for the period." >
-                                            <p>{getPadStartHourAndMin(leaveData?.workingHour - Number(dailyLogindata?.empTotalWorkingHours || 0)?.toFixed(2))}</p>
-                                            <p className='sub_text'>Balance</p>
-                                        </div>
-                                    </div>
-                                </>
-                        }
-                    </div>
-
-                    <div className={`col-lg-6 col-md-12 col-12 ${isLoading ? "d-flex justify-content-center" : ""}`}>
-                        {
-                            isLoading ? <ContentLoader /> :
-                                <>
-                                    <p className='leaveIndicatorTxt'>This month</p>
-                                    <div className='row'>
-                                        <div className='col-lg-6 col-md-5 col-12'>
-                                            <div className='space row'>
-                                                <p className='col-lg-6 col-md-6 col-sm-6 col-6 text-start'><span className='text_gap '>Total</span></p>
-                                                <p className='col-lg-6 col-md-6 col-sm-6 col-6 text-end'><span className='value'>{monthlyLoginData?.companyTotalWorkingHour?.toFixed(2) || 0} hour</span></p>
-                                            </div>
-                                            <div className="progress">
-                                                <div
-                                                    className="progress-bar progress-bar-striped"
-                                                    role="progressbar"
-                                                    style={{ width: `${monthlyLoginData?.totalWorkingHourPercentage || 0}%` }}
-                                                    aria-valuenow={monthlyLoginData?.totalWorkingHourPercentage || 0}
-                                                    aria-valuemin="0"
-                                                    aria-valuemax="100"
-                                                >
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <div className='col-lg-6 col-md-5 col-12'>
-                                            <div className='space row'>
-                                                <div className='col-lg-6 col-md-6 col-sm-6 col-6 text-start'><span className='text_gap'>Worked time</span></div>
-                                                <div className='col-lg-6 col-md-6 col-sm-6 col-6 text-end'><span className='value'>{monthlyLoginData?.totalEmpWorkingHours?.toFixed(2) || 0} hour</span></div>
-                                            </div>
-                                            <div className="progress">
-                                                <div
-                                                    className="progress-bar progress-bar-striped"
-                                                    role="progressbar"
-                                                    style={{ width: `${monthlyLoginData?.totalWorkedHourPercentage || 0}%` }}
-                                                    aria-valuenow={monthlyLoginData?.totalWorkedHourPercentage || 0}
-                                                    aria-valuemin="0"
-                                                    aria-valuemax="100"
-                                                >
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <div className='col-lg-6 col-md-5 col-12'>
-                                            <div className='space row'>
-                                                <div className='col-lg-6 col-md-6 col-sm-6 col-6 text-start'><span className='text_gap'>Shortage time</span></div>
-                                                <div className='col-lg-6 col-md-6 col-sm-6 col-6 text-end'><span className='value'>{(monthlyLoginData?.companyTotalWorkingHour - monthlyLoginData?.totalEmpWorkingHours || 0)?.toFixed(2)} hour</span></div>
-                                            </div>
-                                            <div className="progress">
-                                                <div className="progress-bar progress-bar-striped" role="progressbar" style={{ width: `${monthlyLoginData?.companyTotalWorkingHour - monthlyLoginData?.totalEmpWorkingHours || 0}%` }} aria-valuenow="10" aria-valuemin="0" aria-valuemax="100"></div>
-                                            </div>
-                                        </div>
-
-                                        <div className='col-lg-6 col-md-5 col-12'>
-                                            <div className='space row'>
-                                                <div className='col-lg-6 col-md-6 col-sm-6 col-6 text-start'><span className='text_gap'>Over time</span></div>
-                                                <div className='col-lg-6 col-md-6 col-sm-6 col-6 text-end'><span className='value'>{getOverTime(monthlyLoginData?.companyTotalWorkingHour, monthlyLoginData?.totalEmpWorkingHours)} hour</span></div>
-                                            </div>
-                                            <div className="progress">
-                                                <div className="progress-bar progress-bar-striped" role="progressbar" style={{ width: `${getOverTime(monthlyLoginData?.companyTotalWorkingHour, monthlyLoginData?.totalEmpWorkingHours)}%` }} aria-valuenow="10" aria-valuemin="0" aria-valuemax="100"></div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </>
-                        }
-
-                    </div>
-                </div>
-                {
-                    !["admin", "hr"].includes(whoIs) &&
-                    <div className='time justify-content-start flex-wrap' >
-                        <h6 ref={myTaskRef}>My Task</h6>
-
-                        <div className="col-lg-12 col-md-12 col-12"  >
-                            <div className="d-flex justify-content-between align-items-start flex-wrap my-2 px-2">
-                                <div className='d-flex align-items-center gap-3 timeLogBox'>
-                                    {["List", "DeadLine", "Planner", "Calendar", "Gantt"].map((label) => (
-                                        <span
-                                            key={label}
-                                            onClick={() => setTaskOption(label)}
-                                            className={taskOption === label ? "active" : ""}
-                                            style={{ cursor: "pointer" }}
-                                        >
-                                            {label}
-                                        </span>
-                                    ))}
-                                </div>
-
-                                {/* Right Side: Controls */}
-                                <div className="d-flex gap-2 justify-content-end" style={{ minWidth: "200px" }}>
-                                    {
-                                        [isTeamManager, isTeamLead, isTeamHead].includes(true) &&
-                                        <Select options={teamEmps} styles={{
-                                            menuPortal: (base) => ({ ...base, zIndex: 9999 }),
-                                            menu: (base) => ({ ...base, zIndex: 9999 })
-                                        }} onChange={(e) => setSelectedEmp(e)} value={selectedEmp} placeholder="Select Team Employee" />
-                                    }
-                                    <DateRangePicker size="lg" className="ml-1" showOneCalendar style={{ width: "200px" }} placement="bottomEnd" value={dateRange} placeholder="Filter task" onChange={setDateRange} />
-                                    <button className="button" onClick={handleAddTask} >
-                                        <AddRoundedIcon /> New Task
-                                    </button>
-                                </div>
-                            </div>
-                            <div >
-                                {
-                                    taskOption === "List" ?
-                                        isLoadingForTask ? <Loading /> :
-                                            tasks.length ?
-                                                <LeaveTable data={tasks} handleEdit={handleEditTask} handleView={handleViewTask} deleteData={deleteTask} />
-                                                : <NoDataFound message={"Tasks data not found"} /> :
-                                        taskOption === "DeadLine" ? <DeadlineTask updateTask={editTask} categorizeTasks={categorizeTasks} fetchEmpAssignedTasks={fetchEmpAssignedTasks} updateTaskStatus={getValue} setCategorizeTasks={setCategorizeTasks} updatedTimerInTask={updatedTimerInTask} /> :
-                                            ["Planner"].includes(taskOption) ? <Planner plannerTasks={plannerTasks} setPlannerTasks={setPlannerTasks} isLoading={isLoading} updatedTimerInTask={updatedTimerInTask} fetchEmpAssignedTasks={fetchEmpAssignedTasks} />
-                                                : taskOption === "Calendar" ? <CalendarViewTasks tasks={tasks} />
-                                                    : taskOption === "Gantt" ? <GanttView tasks={tasks} isLoading={isLoadingForTask} /> : null
-                                }
-                            </div>
+                        <div className={`col-lg-2 col-md-6 col-4 my-1 ${isLoading ? "d-flex justify-content-center" : "text-center"}`} title='This is the total number of leave days you have already used or taken from your allotted leave balance during the current year.' >
+                            {
+                                isLoading ? <ContentLoader /> :
+                                    <>
+                                        <p className='leaveIndicatorTxt'>Total leave taken</p>
+                                        <p className='text-primary number'>{leaveData?.totalTakenLeaveCount || 0}</p>
+                                    </>
+                            }
+                        </div>
+                        <div className={`col-lg-2 col-md-6 col-4 my-1 ${isLoading ? "d-flex justify-content-center" : "text-center"}`} title="This is the remaining number of paid leave days you can still use, calculated by subtracting your taken leaves from your total leave allowance." >
+                            {
+                                isLoading ? <ContentLoader /> :
+                                    <>
+                                        <p className='leaveIndicatorTxt'>Total leave available</p>
+                                        <p className='text-primary number'>{(Number(leaveData?.annualLeaveEntitlement) - (Number(leaveData.totalTakenLeaveCount)) < 0 ? 0 : Number(leaveData?.annualLeaveEntitlement) - Number(leaveData.totalTakenLeaveCount)) || 0}</p>
+                                    </>
+                            }
+                        </div>
+                        <div className={`col-lg-3 col-md-6 col-4 my-1 ${isLoading ? "d-flex justify-content-center" : "text-center"}`} title="These are leave requests you’ve submitted that are waiting for approval from your manager or HR. They are not yet counted as approved leave." >
+                            {
+                                isLoading ? <ContentLoader /> :
+                                    <>
+                                        <p className='leaveIndicatorTxt'>Leave request pending</p>
+                                        <p className='text-primary number'>{leaveData?.pendingLeaveRequests || 0}</p>
+                                    </>
+                            }
+                        </div>
+                        <div className={`col-lg-2 col-md-6 col-4 my-1 ${isLoading ? "d-flex justify-content-center" : "text-center"}`} title='This is the total number of leave days taken without pay, usually applied when paid leave balance is exhausted or for specific leave types like LOP (Loss Of Pay).' >
+                            {
+                                isLoading ? <ContentLoader /> :
+                                    <>
+                                        <p className='leaveIndicatorTxt'>Total Unpaid Leave</p>
+                                        <p className='text-primary number'>{leaveData.totalUnpaidLeaveCount || 0}</p>
+                                    </>
+                            }
                         </div>
                     </div>
-                }
-                <NexHRDashboard updateClockins={updateClockins} />
-            </>
-        </div>
+                    <div className='time flex-wrap'>
+                        <h6 className='col-lg-12 col-12'>Time Log</h6>
+                        <div className='col-lg-6 col-md-12 col-12'>
+                            {
+                                isLoading ? <ContentLoader /> :
+                                    <>
+                                        <p className='leaveIndicatorTxt'>Today</p>
+                                        <div className='row gap-3 text-center d-flex justify-content-center'>
+                                            <div className='col-lg-3 col-md-3 col-4 timeLogBox' title='This is the total number of working hours defined by the company for a day, used to track attendance, productivity, and leave calculations.' >
+                                                <>
+                                                    <p>{formatTime(leaveData?.workingHour || 0)}</p>
+                                                    <p className='sub_text'>Total Hours</p>
+                                                </>
+                                            </div>
+                                            <div className='col-lg-3 col-md-3 col-4 timeLogBox' title="This is the total number of hours you have actively worked or logged within the company’s defined working period" >
+                                                <p>{dailyLogindata?.empTotalWorkingHours ? dailyLogindata?.empTotalWorkingHours : "00:00"}</p>
+                                                <p className='sub_text'>Worked</p>
+                                            </div>
+                                            <div className='col-lg-3 col-md-3 col-4 timeLogBox' title="This is the remaining number of hours you are expected to work to meet the company’s total working hours for the period." >
+                                                <p>{getPadStartHourAndMin(leaveData?.workingHour - Number(dailyLogindata?.empTotalWorkingHours || 0)?.toFixed(2))}</p>
+                                                <p className='sub_text'>Balance</p>
+                                            </div>
+                                        </div>
+                                    </>
+                            }
+                        </div>
+
+                        <div className={`col-lg-6 col-md-12 col-12 ${isLoading ? "d-flex justify-content-center" : ""}`}>
+                            {
+                                isLoading ? <ContentLoader /> :
+                                    <>
+                                        <p className='leaveIndicatorTxt'>This month</p>
+                                        <div className='row'>
+                                            <div className='col-lg-6 col-md-5 col-12'>
+                                                <div className='space row'>
+                                                    <p className='col-lg-6 col-md-6 col-sm-6 col-6 text-start'><span className='text_gap '>Total</span></p>
+                                                    <p className='col-lg-6 col-md-6 col-sm-6 col-6 text-end'><span className='value'>{monthlyLoginData?.companyTotalWorkingHour?.toFixed(2) || 0} hour</span></p>
+                                                </div>
+                                                <div className="progress">
+                                                    <div
+                                                        className="progress-bar progress-bar-striped"
+                                                        role="progressbar"
+                                                        style={{ width: `${monthlyLoginData?.totalWorkingHourPercentage || 0}%` }}
+                                                        aria-valuenow={monthlyLoginData?.totalWorkingHourPercentage || 0}
+                                                        aria-valuemin="0"
+                                                        aria-valuemax="100"
+                                                    >
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div className='col-lg-6 col-md-5 col-12'>
+                                                <div className='space row'>
+                                                    <div className='col-lg-6 col-md-6 col-sm-6 col-6 text-start'><span className='text_gap'>Worked time</span></div>
+                                                    <div className='col-lg-6 col-md-6 col-sm-6 col-6 text-end'><span className='value'>{monthlyLoginData?.totalEmpWorkingHours?.toFixed(2) || 0} hour</span></div>
+                                                </div>
+                                                <div className="progress">
+                                                    <div
+                                                        className="progress-bar progress-bar-striped"
+                                                        role="progressbar"
+                                                        style={{ width: `${monthlyLoginData?.totalWorkedHourPercentage || 0}%` }}
+                                                        aria-valuenow={monthlyLoginData?.totalWorkedHourPercentage || 0}
+                                                        aria-valuemin="0"
+                                                        aria-valuemax="100"
+                                                    >
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div className='col-lg-6 col-md-5 col-12'>
+                                                <div className='space row'>
+                                                    <div className='col-lg-6 col-md-6 col-sm-6 col-6 text-start'><span className='text_gap'>Shortage time</span></div>
+                                                    <div className='col-lg-6 col-md-6 col-sm-6 col-6 text-end'><span className='value'>{(monthlyLoginData?.companyTotalWorkingHour - monthlyLoginData?.totalEmpWorkingHours || 0)?.toFixed(2)} hour</span></div>
+                                                </div>
+                                                <div className="progress">
+                                                    <div className="progress-bar progress-bar-striped" role="progressbar" style={{ width: `${monthlyLoginData?.companyTotalWorkingHour - monthlyLoginData?.totalEmpWorkingHours || 0}%` }} aria-valuenow="10" aria-valuemin="0" aria-valuemax="100"></div>
+                                                </div>
+                                            </div>
+
+                                            <div className='col-lg-6 col-md-5 col-12'>
+                                                <div className='space row'>
+                                                    <div className='col-lg-6 col-md-6 col-sm-6 col-6 text-start'><span className='text_gap'>Over time</span></div>
+                                                    <div className='col-lg-6 col-md-6 col-sm-6 col-6 text-end'><span className='value'>{getOverTime(monthlyLoginData?.companyTotalWorkingHour, monthlyLoginData?.totalEmpWorkingHours)} hour</span></div>
+                                                </div>
+                                                <div className="progress">
+                                                    <div className="progress-bar progress-bar-striped" role="progressbar" style={{ width: `${getOverTime(monthlyLoginData?.companyTotalWorkingHour, monthlyLoginData?.totalEmpWorkingHours)}%` }} aria-valuenow="10" aria-valuemin="0" aria-valuemax="100"></div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </>
+                            }
+
+                        </div>
+                    </div>
+                    {
+                        !["admin", "hr"].includes(whoIs) &&
+                        <div className='time justify-content-start flex-wrap' >
+                            <h6 ref={myTaskRef}>My Task</h6>
+
+                            <div  >
+                                <div className="d-flex justify-content-between align-items-start flex-wrap my-2 px-2">
+                                    <div className='d-flex align-items-center gap-3 timeLogBox'>
+                                        {["List", "DeadLine", "Planner", "Calendar", "Gantt"].map((label) => (
+                                            <span
+                                                key={label}
+                                                onClick={() => setTaskOption(label)}
+                                                className={taskOption === label ? "active" : ""}
+                                                style={{ cursor: "pointer" }}
+                                            >
+                                                {label}
+                                            </span>
+                                        ))}
+                                    </div>
+
+                                    {/* Right Side: Controls */}
+                                    <div className="d-flex gap-2 justify-content-end" style={{ minWidth: "200px" }}>
+                                        {
+                                            [isTeamManager, isTeamLead, isTeamHead].includes(true) &&
+                                            <Select options={teamEmps} styles={{
+                                                menuPortal: (base) => ({ ...base, zIndex: 9999 }),
+                                                menu: (base) => ({ ...base, zIndex: 9999 })
+                                            }} onChange={(e) => setSelectedEmp(e)} value={selectedEmp} placeholder="Select Team Employee" />
+                                        }
+                                        <DateRangePicker size="lg" className="ml-1" showOneCalendar style={{ width: "200px" }} placement="bottomEnd" value={dateRange} placeholder="Filter task" onChange={setDateRange} />
+                                        <button className="button" onClick={handleAddTask} >
+                                            <AddRoundedIcon /> New Task
+                                        </button>
+                                    </div>
+                                </div>
+                                <div >
+                                    {
+                                        taskOption === "List" ?
+                                            isLoadingForTask ? <Loading /> :
+                                                tasks.length ?
+                                                    <LeaveTable data={tasks} handleEdit={handleEditTask} handleView={handleViewTask} deleteData={deleteTask} />
+                                                    : <NoDataFound message={"Tasks data not found"} /> :
+                                            taskOption === "DeadLine" ? <DeadlineTask updateTask={editTask} categorizeTasks={categorizeTasks} fetchEmpAssignedTasks={fetchEmpAssignedTasks} updateTaskStatus={getValue} deleteTask={handleDelete} handleViewTask={handleViewTask} handleEditTask={handleEditTask} setCategorizeTasks={setCategorizeTasks} updatedTimerInTask={updatedTimerInTask} /> :
+                                                ["Planner"].includes(taskOption) ? <Planner plannerTasks={plannerTasks} deleteTask={handleDelete} setPlannerTasks={setPlannerTasks} isLoading={isLoading} updatedTimerInTask={updatedTimerInTask} handleViewTask={handleViewTask} handleEditTask={handleEditTask} fetchEmpAssignedTasks={fetchEmpAssignedTasks} />
+                                                    : taskOption === "Calendar" ? <CalendarViewTasks tasks={tasks} isLoading={isLoadingForTask} />
+                                                        : taskOption === "Gantt" ? <GanttView tasks={tasks} isLoading={isLoadingForTask} /> : null
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    }
+                    <NexHRDashboard updateClockins={updateClockins} />
+                </>
+            </div>
     );
 };
 

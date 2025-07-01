@@ -20,13 +20,14 @@ import { triggerToaster } from "./components/ReuseableAPI.jsx";
 import ErrorUI from "./components/ErrorUI.jsx";
 
 export const EssentialValues = createContext(null);
-registerLicense("Ngo9BigBOggjHTQxAR8/V1NNaF1cWWhPYVF+WmFZfVtgd19DZVZVRWYuP1ZhSXxWdkBhUH9ddXFRQmhbU0V9XUs=")
+registerLicense("Ngo9BigBOggjHTQxAR8/V1JEaF5cXmRCeUx1RXxbf1x1ZFREallRTnNYUiweQnxTdEBjX3xecHRQR2BcVUBxWEleYw==")
 const App = () => {
   const url = process.env.REACT_APP_API_URL;
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [showOfflineAlert, setShowOfflineAlert] = useState(false);
   const [hasInternet, setHasInternet] = useState(true);
   const [whoIs, setWhoIs] = useState("");
+  const [isEditEmp, setIsEditEmp] = useState(false);
   const [isStartLogin, setIsStartLogin] = useState([null, "false"].includes(localStorage.getItem("isStartLogin")) ? false : true);
   const [isStartActivity, setIsStartActivity] = useState([null, "false"].includes(localStorage.getItem("isStartActivity")) ? false : true);
   const [data, setData] = useState({
@@ -52,6 +53,10 @@ const App = () => {
 
   async function handleUpdateComments() {
     setIsChangeComments(!isChangeComments)
+  }
+
+  function handleEditEmp() {
+    setIsEditEmp(!isEditEmp)
   }
 
   // change ask the reason late in breaks and lunch activity
@@ -110,7 +115,7 @@ const App = () => {
       setData({
         _id: decodedData._id,
         Account: String(accountType),
-        Name: `${decodedData.FirstName} ${decodedData.LastName}`,
+        Name: `${decodedData.FirstName} ${decodedData.LastName || ""}`,
         token: response.data,
         annualLeave: decodedData.annualLeaveEntitlement || 0,
         profile: decodedData.profile
@@ -161,10 +166,8 @@ const App = () => {
           Authorization: data.token || ""
         }
       })
+      console.log(res.data.message);
     } catch (error) {
-      if (error?.message === "Network Error") {
-        navigate("/network-issue")
-      }
       if (error?.message === "Network Error") {
         navigate("/network-issue")
       }
@@ -205,6 +208,7 @@ const App = () => {
 
     // Listen for incoming messages when the app is in the foreground
     const unsubscribe = onMessage(messaging, (payload) => {
+      console.log("payloadData", payload);
       const decodedData = jwtDecode(localStorage.getItem("token"));
       const type = payload?.data?.type;
       if (!["edit comment", "delete comment"].includes(type)) {
@@ -309,6 +313,8 @@ const App = () => {
       value={{
         data,
         setData,
+        handleEditEmp,
+        isEditEmp,
         handleLogout,
         handleSubmit,
         loading,

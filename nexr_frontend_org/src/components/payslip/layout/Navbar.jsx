@@ -417,7 +417,7 @@ export default function Navbar({ handleSideBar }) {
                         <Button
                             onClick={checkIsEnterReasonforEarly}
                             appearance="primary"
-                            disabled={workTimeTracker.login.reasonForEarlyLogout ? false : true}
+                            disabled={workTimeTracker?.login?.reasonForEarlyLogout ? false : true}
                         >
                             Add
                         </Button>

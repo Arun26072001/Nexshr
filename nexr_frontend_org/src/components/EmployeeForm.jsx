@@ -8,6 +8,7 @@ import NoDataFound from "./payslip/NoDataFound";
 import { EssentialValues } from "../App";
 import "./leaveForm.css";
 import { fetchPayslipInfo } from "./ReuseableAPI";
+import { TimerStates } from "./payslip/HRMDashboard";
 
 const EmployeeForm = ({
     details, handleScroll, timePatterns, personalRef, stateData, employeeObj, handleTagSelector,
@@ -15,7 +16,7 @@ const EmployeeForm = ({
     countries, companies, departments, positions, roles, fillEmpObj, preview, changeImg, changeLeaveTypeManual
 }) => {
     const navigate = useNavigate();
-    const { whoIs, data } = useContext(EssentialValues);
+    const { whoIs, data, handleEditEmp } = useContext(EssentialValues);
     const [timeDifference, setTimeDifference] = useState(0);
     const [payslipFields, setPayslipFields] = useState([]);
     const url = process.env.REACT_APP_API_URL;
@@ -23,7 +24,6 @@ const EmployeeForm = ({
     const [isLoading, setIsLoading] = useState(false);
     const [isWorkingApi, setIsWorkingApi] = useState(false);
     const [errors, setErrors] = useState({});
-    console.log("empData", employeeObj);
 
     // Fetch payslip info on component mount
     useEffect(() => {
@@ -131,6 +131,7 @@ const EmployeeForm = ({
             }
             setEmployeeObj({});
             toast.success(res.data.message);
+            handleEditEmp()
         } catch (error) {
             if (error?.message === "Network Error") {
                 navigate("/network-issue")
@@ -234,7 +235,7 @@ const EmployeeForm = ({
         e.preventDefault();
         if (!validationForm() && whoIs !== "emp") {
             navToError();
-            toast.error("Please fix the errors in the form.");
+            toast.error("Please fill the required fields in the form.");
             return;
         }
 

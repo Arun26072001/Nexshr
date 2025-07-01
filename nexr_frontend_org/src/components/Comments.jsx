@@ -14,7 +14,6 @@ import BorderColorRoundedIcon from '@mui/icons-material/BorderColorRounded';
 import DeleteRoundedIcon from '@mui/icons-material/DeleteRounded';
 import CommonModel from './Administration/CommonModel';
 import TextEditor from './payslip/TextEditor';
-import { TimerStates } from './payslip/HRMDashboard';
 
 export default function Comments() {
     const navigate = useNavigate();
@@ -47,7 +46,6 @@ export default function Comments() {
     }
 
     function changeCommit(value, name) {
-        console.log(name, value);
 
         const files = value?.target?.files;
         if (name === "attachments") {
@@ -100,7 +98,7 @@ export default function Comments() {
                 }
             } else {
                 updatedTaskData = {
-                    ...taskObj
+                    ...taskData
                 }
             }
 
@@ -370,6 +368,8 @@ export default function Comments() {
         }
     }
 
+    console.log("ischecked", ischecked);
+
     async function fetchEmpAssignedTasks() {
         // setIsLoading(true);
         try {
@@ -463,10 +463,14 @@ export default function Comments() {
     }
 
     async function getValue(value) {
+        console.log("getingValue", value);
+
         const updatedTask = {
             ...taskObj,
             "status": value ? "Completed" : "Pending"
         }
+        console.log("updatedtask", updatedTask);
+
         editTask(updatedTask)
     }
     async function fetchProjects() {

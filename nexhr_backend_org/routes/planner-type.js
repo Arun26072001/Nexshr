@@ -2,13 +2,14 @@ const express = require("express");
 const { verifyAdminHREmployeeManagerNetwork } = require("../auth/authMiddleware");
 const { PlannerType } = require("../models/PlannerTypeModel");
 const { PlannerCategory } = require("../models/PlannerCategoryModel");
+const { Employee } = require("../models/EmpModel");
 const router = express.Router();
 
 router.get("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
     try {
         const planner = await PlannerType.findOne({ employee: req.params.id }, "categories")
-        .populate("categories")
-        .lean().exec();
+            .populate("categories")
+            .lean().exec();
         if (!planner) {
             return res.status(200).send({ categories: [] })
         }
@@ -16,6 +17,34 @@ router.get("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
         return res.send({ categories: planner.categories })
     } catch (error) {
         console.log("error in get categories", error);
+        return res.status(500).send({ error: error.message })
+    }
+})
+
+router.post("/add-planner", async (req, res) => {
+    try {
+        const emps = await Employee.find({}, "_id").exec();
+        const addPlannerFor = [];
+        // add planner types for all assignees
+        const defaultCategories = await PlannerCategory.find({}, "_id").exec();
+
+        if (defaultCategories.length) {
+            for (const emp of emps) {
+                const exists = await PlannerType.exists({ employee: emp._id });
+                if (!exists) {
+                    const plannerdetails = {
+                        employee: emp._id,
+                        categories: defaultCategories.slice(0, 2),
+                    };
+
+                    const addedPlanner = await PlannerType.create(plannerdetails);
+                    addPlannerFor.push({ [emp.FirstName]: addedPlanner._id });
+                }
+            }
+        }
+        return res.send({ message: `planner type add for ${addPlannerFor.join(", ")}` })
+    } catch (error) {
+        console.log("error in add for emps", error)
         return res.status(500).send({ error: error.message })
     }
 })

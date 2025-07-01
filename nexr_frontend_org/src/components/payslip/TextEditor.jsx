@@ -151,7 +151,7 @@ const TextEditor = ({
         preserveWhitespace={true}
         style={{ flexGrow: 1, height: "fit-content", marginBottom: "10px" }}
         placeholder="Write away..."
-        value={content}
+        value={content || ""}
         readOnly={isDisabled}
         onChange={handleChange}
       />

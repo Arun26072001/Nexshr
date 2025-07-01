@@ -10,6 +10,8 @@ import VisibilityOffRoundedIcon from '@mui/icons-material/VisibilityOffRounded';
 import { Input, InputGroup } from "rsuite";
 
 const Login = () => {
+  const url = process.env.REACT_APP_API_URL;
+  console.log("url", url)
   const { handleSubmit, loading, pass, whoIs } = useContext(EssentialValues);
   const isLogin = localStorage.getItem("isLogin");
   const navigate = useNavigate();
