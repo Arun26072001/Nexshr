@@ -31,7 +31,6 @@ const CommonModel = ({
     const [isShowPassword, setIsShowPassword] = useState(false);
     const [remindOn, setRemindOn] = useState(dataObj?.remind?.on ? new Date(dataObj.remind.on) : null);
     const [remindFor, setRemindFor] = useState(dataObj?.remind?.for || "");
-    console.log("type", type);
 
     const isButtonDisabled = !(remindOn && remindFor);
 
@@ -985,7 +984,7 @@ const CommonModel = ({
                     <div className="col-full">
                         <div className="modelInput position-relative">
                             <p className="modelLabel">
-                                {type === "Email Template" ? "Short Tags" : "State"}:
+                                {type === "Email Template" ? "Short Tags" : "States"}:
                             </p>
 
                             <Input
@@ -1576,8 +1575,8 @@ const CommonModel = ({
                                             disabled={type === "View WorkPlace"}
                                             size="lg"
                                             data={states}
-                                            value={dataObj?.states}
-                                            onChange={(value) => changeData(value?.trimStart()?.replace(/\s+/g, ' '), "states")}
+                                            value={dataObj?.State}
+                                            onChange={(value) => changeData(value?.trimStart()?.replace(/\s+/g, ' '), "State")}
                                         />
                                     </div>
                                 </div>

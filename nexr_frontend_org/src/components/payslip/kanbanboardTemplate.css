@@ -12,7 +12,7 @@
   /* width: 200px; */
   height: 100%;
   border-right: 1px dotted black;
-  overflow-y: scroll;
+  /* overflow-y: scroll; */
 }
 
 .hoverStyle:hover{

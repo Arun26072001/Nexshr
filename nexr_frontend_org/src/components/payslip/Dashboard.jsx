@@ -39,7 +39,7 @@ const Dashboard = () => {
     const [monthlyLoginData, setMonthlyLoginData] = useState({});
     const [tasks, setTasks] = useState([]);
     const [categorizeTasks, setCategorizeTasks] = useState({});
-    const [plannerTasks, setPlannerTasks] = useState([]);
+    const [plannerTasks, setPlannerTasks] = useState({});
     const [notCompletedTasks, setNotCompletedTasks] = useState([]);
     const [projects, setProjects] = useState([]);
     const [teamEmps, setTeamEmps] = useState([]);
@@ -352,7 +352,7 @@ const Dashboard = () => {
 
                 newTask = {
                     ...taskObj,
-                    estTime: (new Date(taskObj.to) - new Date(taskObj.from)) / (1000 * 60 * 60),
+                    estTime: getTotalWorkingHourPerDay(taskObj.from, taskObj.to),
                     attachments: responseData.files.map(file => file.originalFile)
                 };
 
@@ -480,7 +480,6 @@ const Dashboard = () => {
                     Authorization: data.token || ""
                 }
             })
-            console.log("empTasks", res.data);
 
             setTasks(res.data.tasks);
             setCategorizeTasks(res.data.categorizeTasks);
@@ -549,13 +548,16 @@ const Dashboard = () => {
         const emps = await fetchTeamEmps();
         if (Array.isArray(emps) && emps.length > 0) {
             setTeamEmps(emps);
+            setEmployees(emps);
         }
     }
     useEffect(() => {
-        if ([isTeamLead, isTeamHead, isTeamManager].includes(true)) {
+        // if ([isTeamLead, isTeamHead, isTeamManager].includes(true)) {
+        // }
+        if (!["admin", "hr"].includes(whoIs)) {
             gettingTeamEmp()
+            fetchEmpsProjects()
         }
-        fetchEmpsProjects()
     }, [])
 
     useEffect(() => {
@@ -771,9 +773,9 @@ const Dashboard = () => {
                         <div className='time justify-content-start flex-wrap' >
                             <h6 ref={myTaskRef}>My Task</h6>
 
-                            <div  >
+                            <div className="col-lg-12 col-md-12 col-12"  >
                                 <div className="d-flex justify-content-between align-items-start flex-wrap my-2 px-2">
-                                    <div className='d-flex align-items-center gap-3 timeLogBox'>
+                                    <div className='d-flex align-items-center gap-3 timeLogBox flex-wrap'>
                                         {["List", "DeadLine", "Planner", "Calendar", "Gantt"].map((label) => (
                                             <span
                                                 key={label}
@@ -787,7 +789,7 @@ const Dashboard = () => {
                                     </div>
 
                                     {/* Right Side: Controls */}
-                                    <div className="d-flex gap-2 justify-content-end" style={{ minWidth: "200px" }}>
+                                    <div className="d-flex gap-2 justify-content-end align-items-center" style={{ minWidth: "200px" }}>
                                         {
                                             [isTeamManager, isTeamLead, isTeamHead].includes(true) &&
                                             <Select options={teamEmps} styles={{
@@ -809,7 +811,7 @@ const Dashboard = () => {
                                                     <LeaveTable data={tasks} handleEdit={handleEditTask} handleView={handleViewTask} deleteData={deleteTask} />
                                                     : <NoDataFound message={"Tasks data not found"} /> :
                                             taskOption === "DeadLine" ? <DeadlineTask updateTask={editTask} categorizeTasks={categorizeTasks} fetchEmpAssignedTasks={fetchEmpAssignedTasks} updateTaskStatus={getValue} deleteTask={handleDelete} handleViewTask={handleViewTask} handleEditTask={handleEditTask} setCategorizeTasks={setCategorizeTasks} updatedTimerInTask={updatedTimerInTask} /> :
-                                                ["Planner"].includes(taskOption) ? <Planner plannerTasks={plannerTasks} deleteTask={handleDelete} setPlannerTasks={setPlannerTasks} isLoading={isLoading} updatedTimerInTask={updatedTimerInTask} handleViewTask={handleViewTask} handleEditTask={handleEditTask} fetchEmpAssignedTasks={fetchEmpAssignedTasks} />
+                                                ["Planner"].includes(taskOption) ? <Planner plannerTasks={plannerTasks} deleteTask={handleDelete} setPlannerTasks={setPlannerTasks} isLoading={isLoading} updatedTimerInTask={updatedTimerInTask} handleViewTask={handleViewTask} handleEditTask={handleEditTask} fetchEmpAssignedTasks={fetchEmpAssignedTasks} updateTask={editTask} />
                                                     : taskOption === "Calendar" ? <CalendarViewTasks tasks={tasks} isLoading={isLoadingForTask} />
                                                         : taskOption === "Gantt" ? <GanttView tasks={tasks} isLoading={isLoadingForTask} /> : null
                                     }

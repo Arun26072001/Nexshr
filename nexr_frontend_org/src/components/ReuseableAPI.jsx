@@ -69,7 +69,7 @@ function getTotalWorkingHourPerDay(start, end) {
 
         const diffHrs = timeDifference / (1000 * 60 * 60); // Convert milliseconds to hours
         return diffHrs > 0 ? diffHrs : 0; // Ensure non-negative value
-    }
+    }else return 0;
 }
 
 const getDataAPI = async (_id) => {
@@ -554,7 +554,6 @@ function formatTimeFromHour(hour) {
     if (!hour) {
         return `00:00:00`;
     }
-
     const hours = Math.floor(hour);
     const minutes = Math.floor(hour % 60);
     const seconds = Math.floor((hour * 60) % 60); // Convert remaining fraction to seconds

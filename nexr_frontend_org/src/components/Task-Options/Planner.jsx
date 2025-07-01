@@ -18,7 +18,7 @@ import { toast } from 'react-toastify';
 import axios from 'axios';
 import NoDataFound from '../payslip/NoDataFound';
 
-export default function Planner({ isLoading, updateTaskStatus, fetchEmpAssignedTasks, deleteTask, handleViewTask, handleEditTask, updatedTimerInTask, plannerTasks }) {
+export default function Planner({ isLoading, updateTaskStatus, fetchEmpAssignedTasks, deleteTask, updateTask, handleViewTask, handleEditTask, updatedTimerInTask, plannerTasks, setPlannerTasks }) {
     const url = process.env.REACT_APP_API_URL;
     const navigate = useNavigate();
     const { data } = useContext(EssentialValues);
@@ -45,18 +45,20 @@ export default function Planner({ isLoading, updateTaskStatus, fetchEmpAssignedT
     };
 
     function mergeToSpecifyArray(category, task, taskType) {
-        // if (category && taskType !== category) {
-        //     let updatedTask = { ...task };
+        if (category && taskType !== category) {
+            let updatedTask = {
+                ...task,
+                category
+            };
+            const removeFromCategory = plannerTasks[taskType].filter((task) => task.category !== taskType)
 
-        //     const removeFromType = plannerTasks[taskType].filter((taskData) => taskData._id !== task._id);
-
-        //     setCategorizeTasks((prev) => ({
-        //         ...prev,
-        //         [taskType]: removeFromType,
-        //         [category]: [...prev[category], updatedTask],
-        //     }));
-        //     updateTask(updatedTask)
-        // }
+            setPlannerTasks((pre) => ({
+                ...pre,
+                [taskType]: removeFromCategory,
+                [category]: [...(pre[category] || []), task]
+            }))
+            updateTask(updatedTask)
+        }
     }
 
     function handleAddCategory() {
@@ -117,7 +119,7 @@ export default function Planner({ isLoading, updateTaskStatus, fetchEmpAssignedT
         const creator = task.createdby ? task?.createdby?.FirstName + " " + task?.createdby?.LastName : data.Name
 
         return (
-            <div className='p-2 my-1 timeLogBox' key={task._id} onDragStart={(e) => handleDragStart(e, task, category)} style={{ borderLeft: "3px solid black" }} onMouseEnter={() => setIsHovering(task._id)} onMouseLeave={() => setIsHovering("")} >
+            <div className='p-2 my-1 timeLogBox' draggable key={task._id} onDragStart={(e) => handleDragStart(e, task, category)} style={{ borderLeft: "3px solid black" }} onMouseEnter={() => setIsHovering(task._id)} onMouseLeave={() => setIsHovering("")} >
                 <div className="d-flex justify-content-between">
                     <span className="sub_text hoverStyle" style={{ fontWeight: 600 }} onClick={() => task.createdby._id === data._id ? handleEditTask(task._id) : handleViewTask(task._id)} >{task.title}</span>
                     <span className="" >{task._id === isHovering && task.createdby._id === data._id ? <DeleteRoundedIcon onClick={() => deleteTask(task)} /> : ""}</span>
@@ -241,38 +243,79 @@ export default function Planner({ isLoading, updateTaskStatus, fetchEmpAssignedT
                 </div>
             </>
         ) :
-            <div className="kanbanboard-parent" >
-                {
-                    plannerTasks && Object.keys(plannerTasks).length > 0 ?
-                        categories?.map((category, index) => {
-                            return <div key={index} className="kanbanboard-child col-lg-3 col-12" style={{ position: "relative", opacity: draggedOver === category?._id ? 0.6 : null }}
-                                onDragOver={(e) => handleDragOver(e, category?._id)} onDragLeave={() => setDraggedOver("")}
-                                onDrop={handleDrop} onMouseEnter={() => setOnHover(category?._id)} onMouseLeave={() => setOnHover("")} >
-                                <div className="kanbanboard-child-header">
-                                    <div className="kanbanboard-child-heading" style={{ backgroundColor: "black", color: "white" }} >
-                                        {category?.name}({plannerTasks[category?._id]?.length || 0}) {onHover === category._id ? <AddCircleRoundedIcon onClick={handleAddCategory} className="heading_icon" sx={{ color: "white" }} fontSize="small" /> : null}
-                                    </div>
-                                    {!["Completed", "Overdue"].includes(category?._id) ?
-                                        <div className="addTask-btn" onClick={() => setAddTaskFor(category?._id)} style={{ background: onHover === category?._id ? "#DDDDDD" : null, cursor: "pointer" }}><AddRoundedIcon /> {onHover === category?._id ? "Quick Task" : ""}</div> : null
-                                    }
+            plannerTasks && Object.keys(plannerTasks).length > 0 ? (
+                <div className="kanbanboard-parent">
+                    {categories?.map((category, index) => (
+                        <div
+                            key={index}
+                            className="kanbanboard-child col-lg-3 col-12 col-md-3"
+                            style={{
+                                position: "relative",
+                                opacity: draggedOver === category?._id ? 0.6 : 1,
+                            }}
+                            onDragOver={(e) => handleDragOver(e, category?._id)}
+                            onDragLeave={() => setDraggedOver("")}
+                            onDrop={handleDrop}
+                            onMouseEnter={() => setOnHover(category?._id)}
+                            onMouseLeave={() => setOnHover("")}
+                        >
+                            {/* Header */}
+                            <div className="kanbanboard-child-header">
+                                <div
+                                    className="kanbanboard-child-heading"
+                                    style={{ backgroundColor: "black", color: "white" }}
+                                >
+                                    {category?.name} ({plannerTasks[category?._id]?.length || 0}){" "}
+                                    {onHover === category._id && (
+                                        <AddCircleRoundedIcon
+                                            onClick={handleAddCategory}
+                                            className="heading_icon"
+                                            sx={{ color: "white" }}
+                                            fontSize="small"
+                                        />
+                                    )}
                                 </div>
-                                {
-                                    addTaskFor === category?._id &&
-                                    <div className="timeLogBox" >
-                                        <input className="mb-3" id="taskNameInput" value={taskObj?.title} placeholder="Name #tag" onChange={(e) => fillTaskObj(e.target.value, category)} />
-                                        <p>Press <SubdirectoryArrowLeftRoundedIcon /> to create</p>
-                                    </div>
-                                }
-                                {
-                                    plannerTasks[category?._id]?.length ?
-                                        plannerTasks[category?._id]?.map((task) => {
-                                            return contentTemplate(task, category?._id)
-                                        }) : null
-                                }
-                            </div>
-                        }) : <NoDataFound message={"Tasks not found"} />
-                }
-            </div>
-    );
 
+                                {!["Completed", "Overdue"].includes(category?._id) && (
+                                    <div
+                                        className="addTask-btn"
+                                        onClick={() => setAddTaskFor(category?._id)}
+                                        style={{
+                                            background: onHover === category?._id ? "#DDDDDD" : undefined,
+                                            cursor: "pointer",
+                                        }}
+                                    >
+                                        <AddRoundedIcon /> {onHover === category?._id ? "Quick Task" : ""}
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Quick Add Input */}
+                            {addTaskFor === category?._id && (
+                                <div className="timeLogBox">
+                                    <input
+                                        className="mb-3"
+                                        id="taskNameInput"
+                                        value={taskObj?.title}
+                                        placeholder="Name #tag"
+                                        onChange={(e) => fillTaskObj(e.target.value, category)}
+                                    />
+                                    <p>
+                                        Press <SubdirectoryArrowLeftRoundedIcon /> to create
+                                    </p>
+                                </div>
+                            )}
+
+                            {/* Task List */}
+                            {plannerTasks[category?._id]?.length > 0 &&
+                                plannerTasks[category?._id].map((task) =>
+                                    contentTemplate(task, category?._id)
+                                )}
+                        </div>
+                    ))}
+                </div>
+            ) : (
+                <NoDataFound message="Tasks not found" />
+            )
+    );
 }

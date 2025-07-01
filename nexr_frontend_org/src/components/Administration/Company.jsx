@@ -122,22 +122,24 @@ export default function Company() {
                 }
             });
             setCompanyObj(company.data);
-            const fullCountry = countries.filter((contry) => contry.name);
-            setCountries(fullCountry?.states);
+            if (countries.length > 0) {
+                const fullCountry = countries.find((contry) => contry?.name === company.data.Country);
+                setStates(fullCountry?.states.map((state) => ({ label: state, value: state })) || []);
+            }
             setLogoPreView(company.data.logo);
             changeCompanyOperation("Edit");
         } catch (error) {
             if (error?.message === "Network Error") {
                 navigate("/network-issue")
             }
-            console.log(error);
-            toast.error(error);
+            console.log("error in fetch companyData", error);
+            // toast.error(error);
         }
     }
 
     function changeCompany(value, name) {
         if (name === "Country") {
-            const selectedcountryOfStates = countries.filter((country) => country.name === value)[0].states.map((state) => ({
+            const selectedcountryOfStates = countries.find((country) => country.name === value).states.map((state) => ({
                 label: state, value: state
             }))
             setStates(selectedcountryOfStates)
@@ -205,21 +207,24 @@ export default function Company() {
         gettingCompanies();
     }, [isCompanychange])
 
-    useEffect(() => {
-        async function fetchCountries() {
-            try {
-                const res = await axios.get(`${url}/api/country`, {
-                    headers: {
-                        authorization: data.token || ""
-                    }
-                })
-                setCountries(res.data);
-            } catch (err) {
-                toast.error(err.response.data.error)
-            }
+    async function fetchCountries() {
+        try {
+            const res = await axios.get(`${url}/api/country`, {
+                headers: {
+                    authorization: data.token || ""
+                }
+            })
+            console.log("countryData", res.data);
+            setCountries(res.data);
+        } catch (err) {
+            toast.error(err.response.data.error)
         }
+    }
+    useEffect(() => {
         fetchCountries();
     }, [])
+    console.log("states", states);
+    console.log("companyDat", companyObj)
 
     return (
         modifyCompany.isAdd ? <CommonModel type="Company" countries={countries} states={states} preview={logoPreview} isWorkingApi={isChangingCompany} modifyData={changeCompanyOperation} addData={addCompany} changeData={changeCompany} dataObj={companyObj} isAddData={modifyCompany.isAdd} /> :

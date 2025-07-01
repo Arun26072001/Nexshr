@@ -1,4 +1,4 @@
-@media (max-width: 768px) {
+/* @media (max-width: 768px) {
   #sidebar.active {
     width: 100%;
     z-index: 1001;
@@ -17,7 +17,7 @@
   .scroller {
     display: none;
   }
-}
+} */
 
 #sidebar {
   background-color: white;
@@ -46,7 +46,6 @@
 
 .navContent {
   background: #f5f5f5;
-  width: calc(100% - 250px);
   margin-left: auto;
   padding: 60px 15px 15px 15px;
   height: 100%;

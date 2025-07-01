@@ -18,7 +18,7 @@ export default function DeadlineTask({ isLoading, updateTaskStatus, fetchEmpAssi
     const [isHovering, setIsHovering] = useState("");
     // for list of task
     const [onHover, setOnHover] = useState("");
-    const [isWorkingTask, setIsWorkingTask] = useState("");
+    const [isWorkingTasks, setIsWorkingTasks] = useState({});
     const [taskObj, setTaskObj] = useState({});
     const { data } = useContext(EssentialValues);
     const [addTaskFor, setAddTaskFor] = useState("");
@@ -56,7 +56,7 @@ export default function DeadlineTask({ isLoading, updateTaskStatus, fetchEmpAssi
                 [taskType]: removeFromType,
                 [type]: [...prev[type], updatedTask],
             }));
-            updateTask(updatedTask)
+            updateTask(updatedTask);
         }
     }
 
@@ -73,14 +73,41 @@ export default function DeadlineTask({ isLoading, updateTaskStatus, fetchEmpAssi
     }
 
     function startTime(task) {
-        setIsWorkingTask(task._id)
+        localStorage.setItem(`isRunning_${task._id}`, true)
+        setIsWorkingTasks((pre) => ({
+            ...pre,
+            [`isRunning_${task._id}`]: true
+        }))
         updatedTimerInTask(task, "startTime")
     }
 
     function stopTime(task) {
-        setIsWorkingTask("")
+        localStorage.setItem(`isRunning_${task._id}`, false)
+        setIsWorkingTasks((pre) => ({
+            ...pre,
+            [`isRunning_${task._id}`]: false
+        }))
         updatedTimerInTask(task, "stopTime")
     }
+
+    function fetchRunningTimersData() {
+        typeOfTasks.map((type) => {
+            const typeTasks = categorizeTasks[type.name];
+            typeTasks.map((task) => {
+                if (localStorage.getItem(`isRunning_${task._id}`) === "true") {
+                    setIsWorkingTasks((pre) => ({
+                        ...pre,
+                        [`isRunning_${task._id}`]: true
+                    }))
+                }
+            })
+        })
+    }
+
+
+    useEffect(() => {
+        fetchRunningTimersData()
+    }, [])
 
     function fillTaskObj(title, type) {
         setTaskObj((pre) => ({
@@ -109,7 +136,7 @@ export default function DeadlineTask({ isLoading, updateTaskStatus, fetchEmpAssi
                         task._id === isHovering &&
                         <div>
                             {
-                                isWorkingTask === task._id ? <PauseCircleFilledRoundedIcon sx={{ cursor: "pointer", color: "red" }} titleAccess="Pause Task" onClick={() => stopTime(task)} /> :
+                                isWorkingTasks[`isRunning_${task._id}`] ? <PauseCircleFilledRoundedIcon sx={{ cursor: "pointer", color: "red" }} titleAccess="Pause Task" onClick={() => stopTime(task)} /> :
                                     <PlayCircleFilledRoundedIcon color="success" sx={{ cursor: "pointer", color: "green" }} titleAccess="Start Task" onClick={() => startTime(task)} />
                             }
                             <CheckCircleRoundedIcon sx={{ cursor: "pointer" }} color="action" onClick={() => updateTaskStatus(task)} />
@@ -176,7 +203,7 @@ export default function DeadlineTask({ isLoading, updateTaskStatus, fetchEmpAssi
                 <div className="kanbanboard-parent" >
                     {
                         typeOfTasks?.map((type, index) => {
-                            return <div key={index} className="kanbanboard-child col-lg-3 col-12" style={{ opacity: draggedOver === type.name ? 0.6 : null }}
+                            return <div key={index} className="kanbanboard-child col-lg-3 col-12 col-md-3" style={{ opacity: draggedOver === type.name ? 0.6 : null }}
                                 onDragOver={(e) => handleDragOver(e, type.name)} onDragLeave={() => setDraggedOver("")}
                                 onDrop={handleDrop} onMouseEnter={() => setOnHover(type.name)} onMouseLeave={() => setOnHover("")} >
                                 <div className="kanbanboard-child-header">
@@ -207,7 +234,6 @@ export default function DeadlineTask({ isLoading, updateTaskStatus, fetchEmpAssi
     );
 }
 
-//         draggable
 //         onDragStart={handleDragStart}
 //         style={{
 //             width: '150px',
