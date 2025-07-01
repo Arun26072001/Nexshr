@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { Calendar, dayjsLocalizer } from "react-big-calendar";
 import dayjs from "dayjs";
+import Loading from '../Loader';
+import NoDataFound from './NoDataFound';
 
 const localizer = dayjsLocalizer(dayjs);
-export default function CalendarViewTasks({ tasks }) {
+export default function CalendarViewTasks({ tasks, isLoading }) {
     const [calendarViewTasks, setCalendarViewTasks] = useState([]);
     const eventPropGetter = () => ({
         style: {
@@ -25,6 +27,8 @@ export default function CalendarViewTasks({ tasks }) {
         changeTasksAsCalendarView()
     }, [tasks])
     return (
+        isLoading ? <Loading /> :
+        calendarViewTasks.length > 0 ?
         <Calendar
             localizer={localizer}
             events={calendarViewTasks}
@@ -32,6 +36,6 @@ export default function CalendarViewTasks({ tasks }) {
             endAccessor="end"
             eventPropGetter={eventPropGetter}
             style={{ height: 500 }}
-        />
+        /> : <NoDataFound message={"Task data not found"} />
     )
 }

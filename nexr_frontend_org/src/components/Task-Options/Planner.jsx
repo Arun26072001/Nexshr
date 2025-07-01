@@ -10,6 +10,7 @@ import PlayCircleFilledRoundedIcon from '@mui/icons-material/PlayCircleFilledRou
 import SubdirectoryArrowLeftRoundedIcon from '@mui/icons-material/SubdirectoryArrowLeftRounded';
 import AddCircleRoundedIcon from '@mui/icons-material/AddCircleRounded';
 import AddRoundedIcon from '@mui/icons-material/AddRounded';
+import DeleteRoundedIcon from '@mui/icons-material/DeleteRounded';
 import { useNavigate } from 'react-router-dom';
 import { Button, Input, Modal } from 'rsuite';
 import Loading from '../Loader';
@@ -17,7 +18,7 @@ import { toast } from 'react-toastify';
 import axios from 'axios';
 import NoDataFound from '../payslip/NoDataFound';
 
-export default function Planner({ isLoading, updateTaskStatus, fetchEmpAssignedTasks, updatedTimerInTask, plannerTasks }) {
+export default function Planner({ isLoading, updateTaskStatus, fetchEmpAssignedTasks, deleteTask, handleViewTask, handleEditTask, updatedTimerInTask, plannerTasks }) {
     const url = process.env.REACT_APP_API_URL;
     const navigate = useNavigate();
     const { data } = useContext(EssentialValues);
@@ -44,7 +45,7 @@ export default function Planner({ isLoading, updateTaskStatus, fetchEmpAssignedT
     };
 
     function mergeToSpecifyArray(category, task, taskType) {
-        // if (category !== "Completed" && taskType !== category) {
+        // if (category && taskType !== category) {
         //     let updatedTask = { ...task };
 
         //     const removeFromType = plannerTasks[taskType].filter((taskData) => taskData._id !== task._id);
@@ -116,8 +117,11 @@ export default function Planner({ isLoading, updateTaskStatus, fetchEmpAssignedT
         const creator = task.createdby ? task?.createdby?.FirstName + " " + task?.createdby?.LastName : data.Name
 
         return (
-            <div className='p-2 my-1 timeLogBox' draggable={category !== "Completed"} onDragStart={(e) => handleDragStart(e, task, category)} style={{ borderLeft: "3px solid black" }} onMouseEnter={() => setIsHovering(task._id)} onMouseLeave={() => setIsHovering("")} >
-                <div className="sub_text" style={{ fontWeight: 600 }}>{task.title}</div>
+            <div className='p-2 my-1 timeLogBox' key={task._id} onDragStart={(e) => handleDragStart(e, task, category)} style={{ borderLeft: "3px solid black" }} onMouseEnter={() => setIsHovering(task._id)} onMouseLeave={() => setIsHovering("")} >
+                <div className="d-flex justify-content-between">
+                    <span className="sub_text hoverStyle" style={{ fontWeight: 600 }} onClick={() => task.createdby._id === data._id ? handleEditTask(task._id) : handleViewTask(task._id)} >{task.title}</span>
+                    <span className="" >{task._id === isHovering && task.createdby._id === data._id ? <DeleteRoundedIcon onClick={() => deleteTask(task)} /> : ""}</span>
+                </div>
                 <p className="sub_text dateContainer" >{task.status === "Completed" ? "Completed" : task.to ? dateFormat(task.to) : "No DeadLine"}</p>
                 <div className="d-flex justify-content-between">
                     <div>
@@ -125,7 +129,7 @@ export default function Planner({ isLoading, updateTaskStatus, fetchEmpAssignedT
                         <ChevronRightRoundedIcon sx={{ cursor: "pointer" }} />
                         <AccountCircleRoundedIcon color="disabled" titleAccess={creator + " " + "(creator)"} sx={{ cursor: "pointer" }} />
                     </div>
-                    {task.status !== "Completed" ?
+                    {
                         task._id === isHovering &&
                         <div >
                             {
@@ -133,7 +137,7 @@ export default function Planner({ isLoading, updateTaskStatus, fetchEmpAssignedT
                                     <PlayCircleFilledRoundedIcon color="success" sx={{ cursor: "pointer", color: "green" }} titleAccess="Start Task" onClick={() => startTime(task)} />
                             }
                             <CheckCircleRoundedIcon sx={{ cursor: "pointer" }} color="action" onClick={() => updateTaskStatus(task)} />
-                        </div> : null
+                        </div>
                     }
                 </div>
             </div>
@@ -219,7 +223,6 @@ export default function Planner({ isLoading, updateTaskStatus, fetchEmpAssignedT
             </Modal.Footer>
         </Modal>
     }
-    console.log("plannerTask", plannerTasks);
 
     return (
         isLoading ? (
@@ -241,8 +244,8 @@ export default function Planner({ isLoading, updateTaskStatus, fetchEmpAssignedT
             <div className="kanbanboard-parent" >
                 {
                     plannerTasks && Object.keys(plannerTasks).length > 0 ?
-                        categories?.map((category) => {
-                            return <div key={category?._id} className="kanbanboard-child col-lg-3" style={{ position: "relative", opacity: draggedOver === category?._id ? 0.6 : null }}
+                        categories?.map((category, index) => {
+                            return <div key={index} className="kanbanboard-child col-lg-3 col-12" style={{ position: "relative", opacity: draggedOver === category?._id ? 0.6 : null }}
                                 onDragOver={(e) => handleDragOver(e, category?._id)} onDragLeave={() => setDraggedOver("")}
                                 onDrop={handleDrop} onMouseEnter={() => setOnHover(category?._id)} onMouseLeave={() => setOnHover("")} >
                                 <div className="kanbanboard-child-header">

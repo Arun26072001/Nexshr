@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { Checkbox, Whisper } from 'rsuite';
+import defaultProfile from "../imgs/male_avatar.webp";
 
 // icons
 import AddCircleOutlineRoundedIcon from '@mui/icons-material/AddCircleOutlineRounded';
@@ -28,9 +29,7 @@ export default function TaskItem({ task, status, getValue, handleEditTask, handl
     }, [task]);
 
     return (
-
         <div key={task._id} className="box-content d-flex flex-wrap  align-items-center justify-content-between my-3">
-
             {/* Left Section - Task Details */}
             <div className=" d-flex flex-wrap  align-items-center col-lg-6 col-12 col-md-6 col-half gap-1">
                 <Checkbox
@@ -50,8 +49,9 @@ export default function TaskItem({ task, status, getValue, handleEditTask, handl
                             className="nameHolder"
                             style={{ width: "30px", height: "30px" }}
                             key={emp._id}
+                            title={`${emp.FirstName + " " + emp.LastName}`}
                         >
-                            {emp.FirstName[0].toUpperCase() + emp.LastName[0].toUpperCase()}
+                            <img src={emp?.profile || defaultProfile} style={{ width: '30px', height: '30px', borderRadius: '50%' }} alt={`${emp.FirstName + " " + emp.LastName}`} />
                         </div>
                     ))}
 
@@ -78,7 +78,7 @@ export default function TaskItem({ task, status, getValue, handleEditTask, handl
                     </div>
                 }
                 {
-                    isLoading ?
+                    isLoading === task._id ?
                         <ScaleLoader size={100} color="#123abc" />
                         :
                         <Mytimer2 task={task} updatedTimerInTask={updatedTimerInTask} />

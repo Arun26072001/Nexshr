@@ -413,9 +413,8 @@ function getTotalWorkingHourPerDay(startingTime, endingTime) {
   if (startingTime !== "00:00:00" && endingTime) {
 
     // Convert time strings to Date objects (using today's date)
-    const today = new Date();
-    const start = new Date(today.getFullYear(), today.getMonth(), today.getDate(), ...startingTime?.split(':').map(Number));
-    const end = new Date(today.getFullYear(), today.getMonth(), today.getDate(), ...endingTime?.split(':').map(Number));
+    const start = new Date(startingTime);
+    const end = new Date(endingTime);
 
     // Calculate the difference in milliseconds
     const startTime = start.getTime();

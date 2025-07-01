@@ -5,6 +5,7 @@ import {
     ColumnDirective
 } from '@syncfusion/ej2-react-gantt';
 import Loading from '../Loader';
+import NoDataFound from './NoDataFound';
 
 const Default = ({ tasks, isLoading }) => {
     const [taskData, setTaskData] = useState([]);
@@ -39,34 +40,35 @@ const Default = ({ tasks, isLoading }) => {
     };
 
     return (
-        isLoading ? <Loading height='80vh' /> : 
-        <div className='control-pane'>
-            <div className='control-section'>
-                <GanttComponent
-                    id='Default'
-                    dataSource={taskData}
-                    treeColumnIndex={1}
-                    taskFields={taskFields}
-                    labelSettings={labelSettings}
-                    height='410px'
-                >
-                    <ColumnsDirective>
-                        <ColumnDirective field='TaskID' width='80' />
-                        <ColumnDirective
-                            field='TaskName'
-                            headerText='Title'
-                            width='250'
-                            clipMode='EllipsisWithTooltip'
-                        />
-                        <ColumnDirective field='StartDate' />
-                        <ColumnDirective field='Duration' />
-                        <ColumnDirective field='Progress' />
-                        <ColumnDirective field='Predecessor' />
-                    </ColumnsDirective>
-                    {/* <Inject services={[Selection]} /> */}
-                </GanttComponent>
-            </div>
-        </div>
+        isLoading ? <Loading height='80vh' /> :
+            taskData.length > 0 ?
+                <div className='control-pane'>
+                    <div className='control-section'>
+                        <GanttComponent
+                            id='Default'
+                            dataSource={taskData}
+                            treeColumnIndex={1}
+                            taskFields={taskFields}
+                            labelSettings={labelSettings}
+                            height='410px'
+                        >
+                            <ColumnsDirective>
+                                <ColumnDirective field='TaskID' width='80' />
+                                <ColumnDirective
+                                    field='TaskName'
+                                    headerText='Title'
+                                    width='250'
+                                    clipMode='EllipsisWithTooltip'
+                                />
+                                <ColumnDirective field='StartDate' />
+                                <ColumnDirective field='Duration' />
+                                <ColumnDirective field='Progress' />
+                                <ColumnDirective field='Predecessor' />
+                            </ColumnsDirective>
+                            {/* <Inject services={[Selection]} /> */}
+                        </GanttComponent>
+                    </div>
+                </div> : <NoDataFound message={"Task data not found"} />
     );
 };
 

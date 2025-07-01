@@ -21,6 +21,15 @@
   gap: 10px;
 }
 
+.taggedPeople {
+  border: 1px solid white;
+  padding: 2px;
+  border-radius: 16px;
+  width: fit-content;
+  background-color: white;
+  box-shadow: rgba(0, 0, 0, 0.16) 0px 1px 4px;
+}
+
 input[type="checkbox"] {
   width: 30px; /*Desired width*/
   height: 30px; /*Desired height*/
@@ -45,15 +54,15 @@ input[type="checkbox"] {
   border: 1px solid gray;
 }
 
-.userProfile{
-    width: 30px;
-    height: 30px;
-    object-fit: cover;
-    border-radius: 50%;
-    margin-right: 3px;
+.userProfile {
+  width: 20px;
+  height: 20px;
+  object-fit: cover;
+  border-radius: 50%;
+  margin-right: 3px;
 }
 
-.imgsContainer{
+.imgsContainer {
   gap: 10px;
   display: flex;
   flex-wrap: wrap;

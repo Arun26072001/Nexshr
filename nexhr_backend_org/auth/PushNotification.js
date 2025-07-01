@@ -25,7 +25,7 @@ exports.sendPushNotification = async (msgObj) => {
         await admin.messaging().send(message).then((res) => {
             console.log("successfully notification triggered", res);
         }).catch((err) => {
-            console.log("error in pushnotification", err);
+            console.log(`error in pushnotification for: ${msgObj?.name}`, err);
         })
     } catch (error) {
         console.error("Error sending notification:", error);
@@ -65,14 +65,12 @@ exports.verifyWorkingTimeCompleted = async (req, res) => {
         });
 
         const totalValue = values?.reduce((acc, value) => acc + value, 0) / 60;
-        const officeStartingTime = `${new Date(empData?.workingTimePattern?.StartingTime).getHours()}:${new Date(empData?.workingTimePattern?.StartingTime).getMinutes()}`;
-        const officeFinishingTime = `${new Date(empData?.workingTimePattern?.FinishingTime).getHours()}:${new Date(empData?.workingTimePattern?.FinishingTime).getMinutes()}`;
         const scheduleWorkingHours = getTotalWorkingHourPerDay(
-            officeStartingTime,
-            officeFinishingTime
+            empData?.workingTimePattern?.StartingTime,
+            empData?.workingTimePattern?.FinishingTime
         )
         let isCompleteworkingHours = true;
-        if (scheduleWorkingHours > totalValue && !login.reasonForEarlyLogout) {
+        if (scheduleWorkingHours > totalValue && !login?.reasonForEarlyLogout) {
             isCompleteworkingHours = false;
         }
         return res.send({ isCompleteworkingHours })
@@ -103,7 +101,7 @@ exports.askReasonForDelay = (req, res) => {
                 const startingTimes = timeData?.startingTime || [];
                 const endingTimes = timeData?.endingTime || [];
 
-                const empData = await Employee.findById(employeeId, "company")
+                // const empData = await Employee.findById(employeeId, "company")
                 // let timeZone;
                 // if (empData.company) {
                 //     const timeZoneData = await Timezone.findOne({ company: empData.company }).lean().exec();

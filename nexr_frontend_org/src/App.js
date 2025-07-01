@@ -9,6 +9,9 @@ import { jwtDecode } from "jwt-decode";
 import { registerLicense } from '@syncfusion/ej2-base';
 import "./App.css";
 import 'rsuite/dist/rsuite.min.css';
+import "react-quill/dist/quill.snow.css";
+import "quill-mention"; // Import mention module
+import "quill-mention/dist/quill.mention.css"; // Optional: mention styling
 import "react-datepicker/dist/react-datepicker.css";
 import AdminDashboard from "./components/superAdmin/AdminDashboard.js";
 import { getToken, onMessage } from "firebase/messaging";
@@ -17,13 +20,14 @@ import { triggerToaster } from "./components/ReuseableAPI.jsx";
 import ErrorUI from "./components/ErrorUI.jsx";
 
 export const EssentialValues = createContext(null);
-registerLicense("Ngo9BigBOggjHTQxAR8/V1NNaF1cWWhPYVF+WmFZfVtgd19DZVZVRWYuP1ZhSXxWdkBhUH9ddXFRQmhbU0V9XUs=")
+registerLicense("Ngo9BigBOggjHTQxAR8/V1JEaF5cXmRCeUx1RXxbf1x1ZFREallRTnNYUiweQnxTdEBjX3xecHRQR2BcVUBxWEleYw==")
 const App = () => {
   const url = process.env.REACT_APP_API_URL;
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [showOfflineAlert, setShowOfflineAlert] = useState(false);
   const [hasInternet, setHasInternet] = useState(true);
   const [whoIs, setWhoIs] = useState("");
+  const [isEditEmp, setIsEditEmp] = useState(false);
   const [isStartLogin, setIsStartLogin] = useState([null, "false"].includes(localStorage.getItem("isStartLogin")) ? false : true);
   const [isStartActivity, setIsStartActivity] = useState([null, "false"].includes(localStorage.getItem("isStartActivity")) ? false : true);
   const [data, setData] = useState({
@@ -49,6 +53,10 @@ const App = () => {
 
   async function handleUpdateComments() {
     setIsChangeComments(!isChangeComments)
+  }
+
+  function handleEditEmp() {
+    setIsEditEmp(!isEditEmp)
   }
 
   // change ask the reason late in breaks and lunch activity
@@ -89,9 +97,9 @@ const App = () => {
     navigate(location.pathname, { replace: true });
   };
 
-  async function sendEmpIdtoExtension(empId, token) {
-    window.postMessage({ type: "FROM_REACT", payload: { empId, token } }, "*");
-  }
+  // async function sendEmpIdtoExtension(empId, token) {
+  //   window.postMessage({ type: "FROM_REACT", payload: { empId, token } }, "*");
+  // }
 
   const login = async (email, password) => {
     setLoading(true);
@@ -107,7 +115,7 @@ const App = () => {
       setData({
         _id: decodedData._id,
         Account: String(accountType),
-        Name: `${decodedData.FirstName} ${decodedData.LastName}`,
+        Name: `${decodedData.FirstName} ${decodedData.LastName || ""}`,
         token: response.data,
         annualLeave: decodedData.annualLeaveEntitlement || 0,
         profile: decodedData.profile
@@ -122,7 +130,7 @@ const App = () => {
       setLoading(false);
       setIsLogin(true);
       // send emp id for extension
-      sendEmpIdtoExtension(decodedData._id, response.data);
+      // sendEmpIdtoExtension(decodedData._id, response.data);
       const roles = { "17": "superAdmin", "1": "admin", "2": "hr", "3": "emp", "4": "manager", "5": "sys-admin" };
       setWhoIs(roles[String(accountType)] || "");
       navigate(`/${roles[String(accountType)]}`);
@@ -158,10 +166,8 @@ const App = () => {
           Authorization: data.token || ""
         }
       })
+      console.log(res.data.message);
     } catch (error) {
-      if (error?.message === "Network Error") {
-        navigate("/network-issue")
-      }
       if (error?.message === "Network Error") {
         navigate("/network-issue")
       }
@@ -202,12 +208,14 @@ const App = () => {
 
     // Listen for incoming messages when the app is in the foreground
     const unsubscribe = onMessage(messaging, (payload) => {
+      console.log("payloadData", payload);
       const decodedData = jwtDecode(localStorage.getItem("token"));
       const type = payload?.data?.type;
       if (!["edit comment", "delete comment"].includes(type)) {
         triggerToaster({ company: decodedData.company, title: payload.data.title, message: payload.data.body })
       }
       if (type && type.toLowerCase().includes("comment")) {
+        console.log("done_2");
         setIsChangeComments(payload?.messageId)
       }
       if (type === "late reason") {
@@ -305,6 +313,8 @@ const App = () => {
       value={{
         data,
         setData,
+        handleEditEmp,
+        isEditEmp,
         handleLogout,
         handleSubmit,
         loading,
