@@ -1,8 +1,6 @@
 import React, { useRef } from "react";
 import ReactQuill, { Quill } from "react-quill";
 import "react-quill/dist/quill.snow.css";
-import "quill-mention";
-import "quill-mention/dist/quill.mention.css";
 import RedoRoundedIcon from '@mui/icons-material/RedoRounded';
 import UndoRoundedIcon from '@mui/icons-material/UndoRounded';
 import DescriptionOutlinedIcon from '@mui/icons-material/DescriptionOutlined';
@@ -16,11 +14,10 @@ const TextEditor = ({
   changeCommit,
   files,
   dataObj,
-  removeAttachment,
-  members = [] // For mention
+  removeAttachment
 }) => {
   const quillRef = useRef(null);
-  console.log("members", members);
+  
 
   // Undo Function
   const handleUndo = (e) => {
@@ -52,39 +49,6 @@ const TextEditor = ({
     fileInput.click();
   };
 
-  // Mention Config
-  const mentionConfig = {
-    allowedChars: /^[A-Za-z\s]*$/,
-    mentionDenotationChars: ["@"],
-    source: function (searchTerm, renderList) {
-      console.log("calling..", searchTerm);
-
-      const filtered = !searchTerm
-        ? members
-        : members.filter((m) =>
-          m.label.toLowerCase().includes(searchTerm.toLowerCase())
-        );
-      renderList(
-        filtered.map((m) => ({
-          id: m.value,
-          value: m.label,
-          // profilePhoto: m.profilePhoto,
-        }))
-      );
-    },
-    renderItem: (item) => {
-      console.log("item", item);
-
-      // const avatar = item.profilePhoto
-      //   ? `<img src="${item.profilePhoto}" alt="${item.value}" style="width: 24px; height: 24px; border-radius: 50%; margin-right: 8px;" />`
-      //   : `<span style="width: 24px; height: 24px; border-radius: 50%; background: "black"; color: #fff; display: inline-flex; align-items: center; justify-content: center; font-size: 12px; margin-right: 8px;">
-      //         ${item.label}
-      //      </span>`;
-
-      return `<div style="display: flex; align-items: center;"><span>${item.value}</span></div>`;
-    },
-  };
-
   // Toolbar Config
   const modules = {
     toolbar: [
@@ -92,21 +56,6 @@ const TextEditor = ({
       [{ list: "ordered" }, { list: "bullet" }],
       ["link"],
     ],
-    mention: {
-      allowedChars: /^[A-Za-z\s]*$/, // ✅ space allowed
-      mentionDenotationChars: ["@"],
-      source: function (searchTerm, renderList, mentionChar) {
-        const values = [
-          { id: 1, value: "Arun Kumar" },
-          { id: 2, value: "Priya Sharma" },
-          { id: 3, value: "John Doe" },
-        ];
-        const matches = values.filter((entry) =>
-          entry.value.toLowerCase().includes(searchTerm.toLowerCase())
-        );
-        renderList(matches, searchTerm);
-      },
-    },
   };
 
   const formats = [
@@ -117,7 +66,6 @@ const TextEditor = ({
     "list",
     "bullet",
     "link",
-    "mention"
   ];
 
   return (
@@ -148,7 +96,7 @@ const TextEditor = ({
         ref={quillRef}
         modules={modules}
         formats={formats}
-        preserveWhitespace={true}
+        // preserveWhitespace={true}
         style={{ flexGrow: 1, height: "fit-content", marginBottom: "10px" }}
         placeholder="Write away..."
         value={content || ""}

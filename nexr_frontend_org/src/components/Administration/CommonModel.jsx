@@ -737,6 +737,7 @@ const CommonModel = ({
                             <div className="modelInput">
                                 <p className='modelLabel'>{type === "Email Template" ? "Content" : "Description"}:</p>
                                 <TextEditor
+                                    // isAllowFile={true}
                                     handleChange={!["Task View", "Project View"].includes(type) ? (e) => changeData(e?.trimStart()?.replace(/\s+/g, ' '), type === "Email Template" ? "content" : "description") : null}
                                     content={dataObj?.[type === "Email Template" ? "content" : "description"]}
                                     isDisabled={["Task View", "Project View"].includes(type) ? true : false}
