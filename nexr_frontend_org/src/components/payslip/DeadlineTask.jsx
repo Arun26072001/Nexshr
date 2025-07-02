@@ -104,7 +104,6 @@ export default function DeadlineTask({ isLoading, updateTaskStatus, fetchEmpAssi
         })
     }
 
-
     useEffect(() => {
         fetchRunningTimersData()
     }, [])

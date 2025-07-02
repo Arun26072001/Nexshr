@@ -27,7 +27,7 @@ export default function Planner({ isLoading, updateTaskStatus, fetchEmpAssignedT
     const [isHovering, setIsHovering] = useState("");
     // for list of task
     const [onHover, setOnHover] = useState("");
-    const [isWorkingTask, setIsWorkingTask] = useState("");
+    const [isWorkingTasks, setIsWorkingTasks] = useState({});
     const [taskObj, setTaskObj] = useState({});
     const [addTaskFor, setAddTaskFor] = useState("");
     const [draggedOver, setDraggedOver] = useState("");
@@ -78,12 +78,20 @@ export default function Planner({ isLoading, updateTaskStatus, fetchEmpAssignedT
     }
 
     function startTime(task) {
-        setIsWorkingTask(task._id)
+        localStorage.setItem(`isRunning_${task._id}`, true)
+        setIsWorkingTasks((pre) => ({
+            ...pre,
+            [`isRunning_${task._id}`]: true
+        }))
         updatedTimerInTask(task, "startTime")
     }
 
     function stopTime(task) {
-        setIsWorkingTask("")
+        localStorage.setItem(`isRunning_${task._id}`, false)
+        setIsWorkingTasks((pre) => ({
+            ...pre,
+            [`isRunning_${task._id}`]: false
+        }))
         updatedTimerInTask(task, "stopTime")
     }
 
@@ -135,7 +143,7 @@ export default function Planner({ isLoading, updateTaskStatus, fetchEmpAssignedT
                         task._id === isHovering &&
                         <div >
                             {
-                                isWorkingTask === task._id ? <PauseCircleFilledRoundedIcon sx={{ cursor: "pointer", color: "red" }} titleAccess="Pause Task" onClick={() => stopTime(task)} /> :
+                                isWorkingTasks[`isRunning_${task._id}`] === task._id ? <PauseCircleFilledRoundedIcon sx={{ cursor: "pointer", color: "red" }} titleAccess="Pause Task" onClick={() => stopTime(task)} /> :
                                     <PlayCircleFilledRoundedIcon color="success" sx={{ cursor: "pointer", color: "green" }} titleAccess="Start Task" onClick={() => startTime(task)} />
                             }
                             <CheckCircleRoundedIcon sx={{ cursor: "pointer" }} color="action" onClick={() => updateTaskStatus(task)} />
@@ -195,9 +203,28 @@ export default function Planner({ isLoading, updateTaskStatus, fetchEmpAssignedT
             console.log("error in fetch categories", error);
         }
     }
+
+    function fetchRunningTimersData() {
+        categories.map((category) => {
+            const categoryTasks = plannerTasks[category];
+            categoryTasks.map((task) => {
+                if (localStorage.getItem(`isRunning_${task._id}`) === "true") {
+                    setIsWorkingTasks((pre) => ({
+                        ...pre,
+                        [`isRunning_${task._id}`]: true
+                    }))
+                }
+            })
+        })
+    }
+
     useEffect(() => {
-        fetchCategories()
+        fetchCategories();
     }, [])
+
+    useEffect(() => {
+        fetchRunningTimersData();
+    }, [categories])
 
     if (isAddCategory) {
         return <Modal open={isAddCategory} size="sm" backdrop="static" onClose={handleAddCategory} >

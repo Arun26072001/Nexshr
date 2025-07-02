@@ -17,15 +17,17 @@ import { useState } from 'react';
 
 export default function LeaveRequest() {
     const url = process.env.REACT_APP_API_URL;
+    const { data, whoIs } = useContext(EssentialValues);
     const { empName, setEmpName, filterLeaveRequests, isLoading, leaveRequests, changeRequests } = useContext(LeaveStates);
     const { daterangeValue, setDaterangeValue } = useContext(TimerStates)
-    const { data, whoIs } = useContext(EssentialValues);
-    const { token } = data;
+    const { token, Account } = data;
     const [responsing, setResponsing] = useState("");
     const { isTeamHead, isTeamLead, isTeamManager } = jwtDecode(token);
     const navigate = useNavigate()
 
     async function replyToLeave(leave, response) {
+        console.log("account", Account);
+
         try {
             setResponsing(leave._id)
             let actionBy;
@@ -58,7 +60,7 @@ export default function LeaveRequest() {
                     }
                 }
             }
-            else if (String(data.Account) === "2") {
+            else if (String(Account) === "2") {
                 actionBy = `${data?.Name} (Hr)`
                 updatedLeaveRequest = {
                     ...leave,
@@ -67,7 +69,7 @@ export default function LeaveRequest() {
                         hr: response
                     }
                 }
-            } else if (String(data.Account) === "1") {
+            } else if (String(Account) === "1") {
                 actionBy = `${data?.Name} (Admin)`
                 updatedLeaveRequest = {
                     ...leave,

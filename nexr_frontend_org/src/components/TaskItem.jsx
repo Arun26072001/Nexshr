@@ -27,7 +27,6 @@ export default function TaskItem({ task, status, getValue, handleEditTask, handl
             sec: hourMinSec.split(/[:.]+/)[2]
         });
     }, [task]);
-    console.log("task", task);
 
     return (
         <div key={task._id} className="box-content d-flex flex-wrap  align-items-center justify-content-between my-3">
