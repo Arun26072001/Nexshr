@@ -1,6 +1,7 @@
 const express = require("express");
 const { verifySuperAdmin } = require("../auth/authMiddleware");
 const EmailConfig = require("../models/EmailConfigModel");
+const { errorCollector } = require("../Reuseable_functions/reusableFunction");
 const router = express.Router();
 
 // get mail settings data
@@ -9,6 +10,7 @@ router.get("/", verifySuperAdmin, async (req, res) => {
         const settings = await EmailConfig.find().exec();
         return res.status(200).send(settings)
     } catch (error) {
+        await errorCollector({ url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT })
         return res.status(500).send({ error: error.messaeg })
     }
 })
@@ -19,6 +21,7 @@ router.put("/:id", verifySuperAdmin, async (req, res) => {
         const updatedSetting = await EmailConfig.findByIdAndUpdate(req.params.id, req.body, { new: true });
         return res.send({ message: "Email settings updated successfully", updatedSetting })
     } catch (error) {
+        await errorCollector({ url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT })
         return res.status(500).send({ error: error.message })
     }
 })

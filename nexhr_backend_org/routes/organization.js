@@ -98,7 +98,8 @@
 //             orgData,
 //         });
 
-//     } catch (err) {
+//     } catch (error) {
+await errorCollector({url: req.originalUrl, name: err.name, message: err.message, env: process.env.ENVIRONMENT})
 //         console.error("Error creating organization:", err);
 //         res.status(500).json({ error: err.message });
 //     }
@@ -116,6 +117,7 @@
 //         }
 
 //     } catch (error) {
+await errorCollector({url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT})
 //         console.log(error);
 //         return res.status(500).send({ error: error.message })
 //     }
@@ -130,6 +132,7 @@
 //             res.send(org);
 //         }
 //     } catch (error) {
+await errorCollector({url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT})
 //         res.status(500).send({ error: error.message })
 //     }
 // });
@@ -145,6 +148,7 @@
 //         const updatedOrg = await Org.findByIdAndUpdate(req.params.id, req.body, { new: true });
 //         return res.send({ message: `${req.body.name} Organization update successfully`, updatedOrg })
 //     } catch (error) {
+await errorCollector({url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT})
 //         console.log(error);
 //         return res.status(500).send({ error: error.message })
 //     }

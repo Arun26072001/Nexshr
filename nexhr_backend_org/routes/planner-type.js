@@ -3,6 +3,7 @@ const { verifyAdminHREmployeeManagerNetwork } = require("../auth/authMiddleware"
 const { PlannerType } = require("../models/PlannerTypeModel");
 const { PlannerCategory } = require("../models/PlannerCategoryModel");
 const { Employee } = require("../models/EmpModel");
+const { errorCollector } = require("../Reuseable_functions/reusableFunction");
 const router = express.Router();
 
 router.get("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
@@ -16,6 +17,7 @@ router.get("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
 
         return res.send({ categories: planner.categories })
     } catch (error) {
+        await errorCollector({ url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT })
         console.log("error in get categories", error);
         return res.status(500).send({ error: error.message })
     }
@@ -44,6 +46,7 @@ router.post("/add-planner", async (req, res) => {
         }
         return res.send({ message: `planner type add for ${addPlannerFor.join(", ")}` })
     } catch (error) {
+        await errorCollector({ url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT })
         console.log("error in add for emps", error)
         return res.status(500).send({ error: error.message })
     }
@@ -60,6 +63,7 @@ router.put("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
         await plannerData.save();
         return res.send({ message: "task planner has been updated successfully" })
     } catch (error) {
+        await errorCollector({ url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT })
         return res.status(500).send({ error: error.message })
     }
 })

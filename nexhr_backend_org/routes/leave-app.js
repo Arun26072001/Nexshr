@@ -10,7 +10,7 @@ const { verifyHR, verifyEmployee, verifyAdminHREmployeeManagerNetwork, verifyAdm
 const { Team } = require('../models/TeamModel');
 const { upload } = require('./imgUpload');
 const sendMail = require("./mailSender");
-const { getDayDifference, mailContent, formatLeaveData, formatDate, getValidLeaveDays, sumLeaveDays, changeClientTimezoneDate } = require('../Reuseable_functions/reusableFunction');
+const { getDayDifference, mailContent, formatLeaveData, formatDate, getValidLeaveDays, sumLeaveDays, changeClientTimezoneDate, errorCollector } = require('../Reuseable_functions/reusableFunction');
 const { Task } = require('../models/TaskModel');
 const { sendPushNotification } = require('../auth/PushNotification');
 const { Holiday } = require('../models/HolidayModel');
@@ -104,6 +104,7 @@ leaveApp.get("/check-permissions/:id", verifyAdminHREmployeeManagerNetwork, asyn
       return res.send({ type: "Permission is remain" })
     }
   } catch (error) {
+    await errorCollector({ url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT })
     console.error("error in check emp's permissions", error);
     return res.status(500).send({ error: error.message })
   }
@@ -212,6 +213,7 @@ leaveApp.get("/make-know", async (req, res) => {
 
     res.status(200).json({ message: "Notifications sent successfully!" });
   } catch (error) {
+    await errorCollector({ url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT })
     console.error("Error in /make-know:", error);
     res.status(500).json({ error: "An error occurred while processing leave applications." });
   }
@@ -320,7 +322,8 @@ leaveApp.get("/emp/:empId", verifyAdminHREmployeeManagerNetwork, async (req, res
       calendarLeaveApps: actualLeaveApps
     });
 
-  } catch (err) {
+  } catch (error) {
+    await errorCollector({ url: req.originalUrl, name: err.name, message: err.message, env: process.env.ENVIRONMENT })
     console.error("Error fetching employee data:", err);
     res.status(500).json({ message: "Internal server error", details: err.message });
   }
@@ -359,7 +362,8 @@ leaveApp.get("/hr", verifyHR, async (req, res) => {
       .sort((a, b) => new Date(b.fromDate) - new Date(a.fromDate));
     empLeaveReqs = empLeaveReqs.map(formatLeaveData)
     res.send(empLeaveReqs);
-  } catch (err) {
+  } catch (error) {
+    await errorCollector({ url: req.originalUrl, name: err.name, message: err.message, env: process.env.ENVIRONMENT })
     console.error("Error fetching leave requests:", err);
     res.status(500).send({ message: "Internal Server Error", details: err.message });
   }
@@ -383,6 +387,7 @@ leaveApp.get("/unpaid", verifyAdminHR, async (req, res) => {
     const arrangeLeave = unpaidRequests.sort((a, b) => new Date(b.fromDate) - new Date(a.fromDate));
     return res.send(arrangeLeave);
   } catch (error) {
+    await errorCollector({ url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT })
     console.log("error in fetch unpaid leave", error);
     return res.status(500).send({ error: error.message })
   }
@@ -478,6 +483,7 @@ leaveApp.get("/team/:id", verifyTeamHigherAuthority, async (req, res) => {
       colleagues
     });
   } catch (error) {
+    await errorCollector({ url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT })
     console.error("Error in /team/:id:", error);
     res.status(500).json({ error: error.message });
   }
@@ -502,7 +508,8 @@ leaveApp.get("/all/emp", verifyAdminHR, async (req, res) => {
     res.send({
       leaveData
     });
-  } catch (err) {
+  } catch (error) {
+    await errorCollector({ url: req.originalUrl, name: err.name, message: err.message, env: process.env.ENVIRONMENT })
     console.error("Error fetching leave data:", err);
     res.status(500).send({ error: err.message });
   }
@@ -533,6 +540,7 @@ leaveApp.get("/people-on-leave", verifyAdminHREmployeeManagerNetwork, async (req
 
     return res.status(200).send(leaveData);
   } catch (error) {
+    await errorCollector({ url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT })
     return res.status(500).send({ error: error.message });
   }
 });
@@ -556,6 +564,7 @@ leaveApp.get("/all/team/:id", verifyEmployee, async (req, res) => {
       res.send({ leaveData: teamLeaves });
     }
   } catch (error) {
+    await errorCollector({ url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT })
     res.status(500).send({ error: error.message })
   }
 });
@@ -581,7 +590,8 @@ leaveApp.get("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
     };
 
     res.status(200).send(updatedLeaveData); // Explicitly send a 200 response
-  } catch (err) {
+  } catch (error) {
+    await errorCollector({ url: req.originalUrl, name: err.name, message: err.message, env: process.env.ENVIRONMENT })
     console.error("Error fetching leave application:", err);
 
     res.status(500).send({
@@ -656,6 +666,7 @@ leaveApp.get("/date-range/management/:whoIs", verifyAdminHrNetworkAdmin, async (
       upcomingLeave: upComingLeaveDays
     });
   } catch (error) {
+    await errorCollector({ url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT })
     console.error("Error fetching leave data:", error);
     res.status(500).send({ error: "An error occurred while fetching leave data." });
   }
@@ -726,6 +737,7 @@ leaveApp.get("/date-range/:empId", verifyAdminHREmployeeManagerNetwork, async (r
       leaveInHours: approvedLeave * 9
     });
   } catch (error) {
+    await errorCollector({ url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT })
     console.error("Error fetching leave data:", error);
     res.status(500).send({
       error: error.message
@@ -755,7 +767,8 @@ leaveApp.get("/", verifyAdminHR, async (req, res) => {
       })
       res.send(requests);
     }
-  } catch (err) {
+  } catch (error) {
+    await errorCollector({ url: req.originalUrl, name: err.name, message: err.message, env: process.env.ENVIRONMENT })
     res.status(500).send({ message: "Internal Server Error", details: err.message })
   }
 });
@@ -817,6 +830,7 @@ leaveApp.put("/reject-leave", async (req, res) => {
     return res.status(200).send({ message: "Leave rejection processed successfully." });
 
   } catch (error) {
+    await errorCollector({ url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT })
     console.error("Error processing leave rejections:", error.message);
     return res.status(500).send({ error: "An error occurred while processing leave rejections." });
   }
@@ -1037,7 +1051,8 @@ leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("pre
     }
 
     return res.status(201).json({ message: "Leave request submitted successfully.", newLeaveApp, notifiedMembers: notify });
-  } catch (err) {
+  } catch (error) {
+    await errorCollector({ url: req.originalUrl, name: err.name, message: err.message, env: process.env.ENVIRONMENT })
     console.error("error in apply leave", err);
     return res.status(500).json({ error: err.message });
   }
@@ -1205,7 +1220,8 @@ leaveApp.put('/:id', verifyAdminHREmployeeManagerNetwork, async (req, res) => {
       data: updatedRequest,
       notifiedMembers: mailList
     });
-  } catch (err) {
+  } catch (error) {
+    await errorCollector({ url: req.originalUrl, name: err.name, message: err.message, env: process.env.ENVIRONMENT })
     console.error("error in update leave", err);
     res.status(500).send({ error: err.message });
   }
@@ -1239,7 +1255,8 @@ leaveApp.delete("/:id/:leaveId", verifyAdminHREmployeeManagerNetwork, async (req
         return res.status(400).send({ error: "You can't delete reponsed Leave." })
       }
     }
-  } catch (err) {
+  } catch (error) {
+    await errorCollector({ url: req.originalUrl, name: err.name, message: err.message, env: process.env.ENVIRONMENT })
     console.log(err);
     res.status(500).send({ message: "Error in delete Leave request", details: err.message })
   }

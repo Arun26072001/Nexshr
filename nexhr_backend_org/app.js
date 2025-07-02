@@ -58,6 +58,7 @@ const wfhRouter = require("./routes/wfh-application");
 const timezone = require("./routes/timezone");
 const category = require("./routes/planner-category");
 const { sendPushNotification, verifyWorkingTimeCompleted, askReasonForDelay } = require("./auth/PushNotification");
+const { errorCollector } = require("./Reuseable_functions/reusableFunction");
 
 // MongoDB Connection
 const mongoURI = process.env.DATABASEURL;
@@ -167,7 +168,8 @@ schedule.scheduleJob("0 0 10 4 * *", async function () {
   try {
     const response = await axios.post(`${process.env.REACT_APP_API_URL}/api/payslip/`, {});
     console.log("Payslip generation response:", response.data);
-  } catch (err) {
+  } catch (error) {
+    await errorCollector({ url: req.originalUrl, name: err.name, message: err.message, env: process.env.ENVIRONMENT })
     console.error("Error while generating payslips:", err);
   }
 });
@@ -186,6 +188,7 @@ async function fetchTimePatterns() {
           const response = await axios.post(`${process.env.REACT_APP_API_URL}/api/clock-ins/ontime/login`);
           console.log("Login Triggered:", response.data.message);
         } catch (error) {
+          await errorCollector({ url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT })
           console.error("Login Error:", error.message);
         }
       });
@@ -196,11 +199,13 @@ async function fetchTimePatterns() {
           const response = await axios.post(`${process.env.REACT_APP_API_URL}/api/clock-ins/not-login/apply-leave/${pattern._id}`);
           console.log("Apply Leave for Not-login Triggered:", response.data.message);
         } catch (error) {
+          await errorCollector({ url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT })
           console.error("Logout Error:", error);
         }
       })
     });
   } catch (error) {
+    await errorCollector({ url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT })
     console.error("Error fetching time patterns:", error);
   }
 }
@@ -213,6 +218,7 @@ async function makeKnowLeave() {
     const response = await axios.get(`${process.env.REACT_APP_API_URL}/api/leave-application/make-know`);
     console.log(response.data);
   } catch (error) {
+    await errorCollector({ url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT })
     console.log(error.response.data.error);
   }
 }
@@ -222,6 +228,7 @@ async function makeKnowWFH() {
     const response = await axios.get(`${process.env.REACT_APP_API_URL}/api/wfh-application/make-know`);
     console.log(response.data);
   } catch (error) {
+    await errorCollector({ url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT })
     console.log(error.response.data.error);
   }
 }
@@ -237,6 +244,7 @@ async function rejectLeave() {
     const res = await axios.put(`${process.env.REACT_APP_API_URL}/api/leave-application/reject-leave`);
     console.log(res.data);
   } catch (error) {
+    await errorCollector({ url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT })
     console.log("error in reject leave", error);
   }
 }
@@ -246,6 +254,7 @@ async function rejectWfh() {
     const res = await axios.put(`${process.env.REACT_APP_API_URL}/api/wfh-application/reject-wfh`);
     console.log(res.data);
   } catch (error) {
+    await errorCollector({ url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT })
     console.log("error in reject leave", error);
   }
 }

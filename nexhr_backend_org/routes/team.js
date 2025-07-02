@@ -4,6 +4,7 @@ const { verifyAdminHR, verifyAdminHREmployeeManagerNetwork, verifyAdminHREmploye
 const { TeamValidation, Team } = require("../models/TeamModel");
 const { Employee } = require("../models/EmpModel");
 const sendMail = require("./mailSender");
+const { errorCollector } = require("../Reuseable_functions/reusableFunction");
 
 const sendInvitationEmail = async (emp, roleLabel, team, creator) => {
     const frontendUrl = process.env.REACT_APP_API_URL;
@@ -41,7 +42,8 @@ router.get("/", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
     try {
         const teams = await Team.find()
         res.send(teams)
-    } catch (err) {
+    } catch (error) {
+await errorCollector({url: req.originalUrl, name: err.name, message: err.message, env: process.env.ENVIRONMENT})
         console.error(err)
         res.status(500).send({ error: err.message });
     }
@@ -61,7 +63,8 @@ router.get("/members/:id", verifyTeamHigherAuthorityEmp, async (req, res) => {
         } else {
             res.send(response);
         }
-    } catch (err) {
+    } catch (error) {
+await errorCollector({url: req.originalUrl, name: err.name, message: err.message, env: process.env.ENVIRONMENT})
         console.log(err);
         res.status(500).send({ message: "Error in get a team of Employee", details: err })
     }
@@ -71,7 +74,8 @@ router.get("/:who/:id", verifyTeamHigherAuthority, async (req, res) => {
     try {
         const teams = await Team.find({ [req.params.who]: req.params.id })
         res.send(teams);
-    } catch (err) {
+    } catch (error) {
+await errorCollector({url: req.originalUrl, name: err.name, message: err.message, env: process.env.ENVIRONMENT})
         console.error(err)
         res.status(500).send({ error: err.message });
     }
@@ -112,7 +116,8 @@ router.get("/user", verifyAdminHR, async (req, res) => {
             status_code: 200,
             Team: formattedTeams
         });
-    } catch (err) {
+    } catch (error) {
+await errorCollector({url: req.originalUrl, name: err.name, message: err.message, env: process.env.ENVIRONMENT})
         console.error(err);
         res.status(500).send({ message: "Internal server error", details: err.message });
     }
@@ -127,7 +132,8 @@ router.get("/:id", verifyAdminHRTeamHigherAuth, async (req, res) => {
         } else {
             res.send(response);
         }
-    } catch (err) {
+    } catch (error) {
+await errorCollector({url: req.originalUrl, name: err.name, message: err.message, env: process.env.ENVIRONMENT})
         console.log(err);
         res.status(500).send({ error: "Error in get a team of Employee", details: err })
     }
@@ -174,6 +180,7 @@ router.post("/:id", verifyAdminHR, async (req, res) => {
         res.json({ message: `New team "${newTeam.teamName}" has been added!`, newTeam });
 
     } catch (error) {
+await errorCollector({url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT})
         console.error("POST /:id error:", error);
         res.status(500).json({ error: error.message });
     }
@@ -226,7 +233,8 @@ router.put("/:id", verifyAdminHR, async (req, res) => {
         const updatedTeam = await Team.findByIdAndUpdate(teamId, req.body, { new: true });
         res.json({ message: `Team "${updatedTeam.teamName}" has been updated!`, updatedTeam });
 
-    } catch (err) {
+    } catch (error) {
+await errorCollector({url: req.originalUrl, name: err.name, message: err.message, env: process.env.ENVIRONMENT})
         console.error("PUT /:id error:", err);
         res.status(500).json({ error: err.message });
     }
@@ -244,7 +252,8 @@ router.delete("/:id", verifyAdminHR, async (req, res) => {
         } else {
             res.send({ message: `${response?.teamName} Team has been deleted!` })
         }
-    } catch (err) {
+    } catch (error) {
+await errorCollector({url: req.originalUrl, name: err.name, message: err.message, env: process.env.ENVIRONMENT})
         console.log("erorr in delete team", err);
         res.status(500).send({ error: err })
     }

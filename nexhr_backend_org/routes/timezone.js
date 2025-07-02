@@ -5,6 +5,7 @@ const { Employee } = require("../models/EmpModel");
 const router = express.Router();
 const fs = require('fs');
 const path = require('path');
+const { errorCollector } = require("../Reuseable_functions/reusableFunction");
 const configPath = path.join(__dirname, '../timezoneData/timezoneData.json');
 
 // Read JSON file
@@ -24,6 +25,7 @@ router.get("/values", verifyAdmin, async (req, res) => {
         }
 
     } catch (error) {
+        await errorCollector({ url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT })
         console.log("error in get timezone values", error);
         return res.status(500).send({ error: error.message })
     }
@@ -46,6 +48,7 @@ router.get("/name", verifyAdmin, async (req, res) => {
             return res.status(404).send({ error: "Timezone data's values not found" })
         }
     } catch (error) {
+        await errorCollector({ url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT })
         console.log("error in get name's utc", error);
         return res.status(500).send({ error: error.message })
     }
@@ -72,6 +75,7 @@ router.post("/:id", verifyAdmin, async (req, res) => {
         const timeZoneData = await Timezone.create(newTimezone);
         return res.send({ message: `${timeZoneData.timeZone} is added successfully`, timeZoneData })
     } catch (error) {
+        await errorCollector({ url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT })
         console.error("error in add timezone", error)
         return res.status(500).send({ error: error.message })
     }
@@ -110,6 +114,7 @@ router.put("/:id", verifyAdmin, async (req, res) => {
             return res.send({ message: `${updatedTimeZone.timeZone} timezone is updated successfully` })
         }
     } catch (error) {
+        await errorCollector({ url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT })
         console.error("error in update timezone", error);
         return res.status(500).send({ error: error.message })
     }

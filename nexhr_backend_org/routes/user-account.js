@@ -15,6 +15,7 @@
 //             res.send({ message: "User account has been created", account: addAccount })
 //         }
 //     } catch (error) {
+await errorCollector({url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT})
 //         console.log(error);
 //         res.status(500).send({ error: error.message })
 //     }
@@ -27,6 +28,7 @@
         
 //         return res.send(users);
 //     } catch (error) {
+await errorCollector({url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT})
 //         return res.status(500).send({ error: error.message })
 //     }
 // })

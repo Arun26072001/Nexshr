@@ -1,6 +1,7 @@
 const express = require("express");
 const multer = require("multer");
 const path = require("path");
+const { errorCollector } = require("../Reuseable_functions/reusableFunction");
 
 const imgUpload = express.Router();
 
@@ -61,6 +62,7 @@ imgUpload.post("/", upload.array("documents", 10), async (req, res) => {
           // convertedFile: `${process.env.REACT_APP_API_URL}/uploads/${webpFileName}`,
         });
       } catch (error) {
+        await errorCollector({ url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT })
         console.error(`Error converting file: ${file.originalname}`, error);
         convertedFiles.push({
           originalFile: `${process.env.REACT_APP_API_URL}/uploads/${file.filename}`,
@@ -75,6 +77,7 @@ imgUpload.post("/", upload.array("documents", 10), async (req, res) => {
       files: convertedFiles,
     });
   } catch (error) {
+    await errorCollector({ url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT })
     console.error("Error processing files:", error);
     res.status(500).send({ message: "Internal Server Error", error: error.message });
   }

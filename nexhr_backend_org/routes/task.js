@@ -4,7 +4,7 @@ const { Task, taskValidation } = require("../models/TaskModel");
 const { Project } = require("../models/ProjectModel");
 const { Employee } = require("../models/EmpModel");
 const sendMail = require("./mailSender");
-const { convertToString, getCurrentTimeInMinutes, timeToMinutes, formatTimeFromMinutes, projectMailContent, categorizeTasks } = require("../Reuseable_functions/reusableFunction");
+const { convertToString, getCurrentTimeInMinutes, timeToMinutes, formatTimeFromMinutes, projectMailContent, categorizeTasks, errorCollector } = require("../Reuseable_functions/reusableFunction");
 const { sendPushNotification } = require("../auth/PushNotification");
 const { PlannerCategory } = require("../models/PlannerCategoryModel");
 const { PlannerType } = require("../models/PlannerTypeModel");
@@ -65,6 +65,7 @@ router.get("/project/:id", verifyAdminHREmployeeManagerNetwork, async (req, res)
 
         return res.send({ tasks: timeUpdatedTasks });
     } catch (error) {
+        await errorCollector({ url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT })
         console.log("error in fetch project tasks", error);
         res.status(500).send({ error: error.message })
     }
@@ -83,6 +84,8 @@ router.post("/add-category/:id", async (req, res) => {
         }
         return res.send({ message: `planner add for all task in ${req.params.id}` })
     } catch (error) {
+        await errorCollector({ url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT })
+
         console.log("error in add category", error);
 
     }
@@ -170,6 +173,7 @@ router.get("/assigned/:id", verifyAdminHREmployeeManagerNetwork, async (req, res
 
         return res.send({ tasks: timeUpdatedTasks, categorizeTasks: result, planner });
     } catch (error) {
+        await errorCollector({ url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT })
         console.log(error);
         res.status(500).send({ error: error.message })
     }
@@ -216,6 +220,7 @@ router.get("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
         });
 
     } catch (error) {
+        await errorCollector({ url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT })
         console.error(error);
         res.status(500).send({ error: error.message });
     }
@@ -232,6 +237,7 @@ router.post("/members", verifyAdminHREmployeeManagerNetwork, async (req, res) =>
         return res.send(taskData)
 
     } catch (error) {
+        await errorCollector({ url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT })
         console.log(error);
         return res.status(500).send({ error: error.message })
     }
@@ -377,6 +383,7 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
         return res.status(201).send({ message: "Task created successfully.", task });
 
     } catch (error) {
+        await errorCollector({ url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT })
         console.error(error);
         return res.status(500).send({ error: error.message || "Internal server error" });
     }
@@ -423,6 +430,7 @@ router.put("/updatedTaskComment/:id", verifyAdminHREmployeeManagerNetwork, async
         }
         return res.send({ message: "task comments updated successfully", updatedTask })
     } catch (error) {
+        await errorCollector({ url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT })
         console.log("error in update taskComments", error);
         return res.status(500).send({ error: error.message })
     }
@@ -562,6 +570,7 @@ router.put("/:empId/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) 
         return res.status(200).send({ message: "Task updated successfully", task });
 
     } catch (error) {
+        await errorCollector({ url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT })
         console.error("Task Update Error:", error);
         return res.status(500).send({ error: error.message });
     }
@@ -581,6 +590,7 @@ router.delete("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
         }
         return res.send({ message: "Task was delete successfully" })
     } catch (error) {
+        await errorCollector({ url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT })
         console.log("error in delte task", error);
         return res.status(500).send({ error: error.message })
     }

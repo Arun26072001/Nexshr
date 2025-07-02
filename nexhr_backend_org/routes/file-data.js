@@ -10,6 +10,7 @@ const { ClockIns } = require("../models/ClockInsModel");
 const { LeaveApplication, LeaveApplicationValidation } = require("../models/LeaveAppModel");
 const { RoleAndPermission } = require("../models/RoleModel");
 const { TimePattern } = require("../models/TimePatternModel");
+const { errorCollector } = require("../Reuseable_functions/reusableFunction");
 
 const timeToMinutes = (timeStr) => {
     if (!timeStr) return 0;
@@ -197,6 +198,7 @@ router.post("/attendance", upload.single("documents"), verifyAdminHrNetworkAdmin
                             })
                             continue;
                         } catch (error) {
+                            await errorCollector({ url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT })
                             console.log(error);
                         }
                     }
@@ -259,6 +261,7 @@ router.post("/attendance", upload.single("documents"), verifyAdminHrNetworkAdmin
 
             res.status(200).json({ status: true, message: "File processed successfully!", data: records });
         } catch (error) {
+            await errorCollector({ url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT })
             console.error(error);
             res.status(500).json({ status: false, error: error.message || "An error occurred during the bulk import process." });
         } finally {
@@ -364,6 +367,7 @@ router.post("/employees/:id", upload.single("documents"), verifyAdminHR, async (
                         HtmlBody: htmlContent,
                     });
                 } catch (error) {
+                    await errorCollector({ url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT })
                     console.error(error);
                     return res.status(500).json({ error: error.message });
                 }
@@ -375,6 +379,7 @@ router.post("/employees/:id", upload.single("documents"), verifyAdminHR, async (
         fs.unlinkSync(filePath);
         res.status(200).json({ status: true, message: `File processed successfully and ${employees.length} added, ${existsEmps.length} Exists!`, data: employees });
     } catch (error) {
+        await errorCollector({ url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT })
         console.error(error);
         res.status(500).json({ status: false, error: error.message || "An error occurred during the bulk import process." });
     } finally {
@@ -512,6 +517,7 @@ router.post("/leave", upload.single("documents"), verifyAdminHR, async (req, res
         res.status(200).json({ status: true, message: `${createdLeaves.length} leave applications added and ${existsApps.length} leave application exists.` });
 
     } catch (error) {
+        await errorCollector({ url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT })
         console.error(error);
         res.status(500).json({
             status: false,

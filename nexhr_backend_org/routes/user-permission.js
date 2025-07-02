@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const { verifyAdmin } = require("../auth/authMiddleware");
 const { userPermissionsValidation, UserPermission } = require("../models/UserPermissionModel");
+const { errorCollector } = require("../Reuseable_functions/reusableFunction");
 
 router.post("/", verifyAdmin, async (req, res) => {
     try {
@@ -14,6 +15,7 @@ router.post("/", verifyAdmin, async (req, res) => {
             res.send(newUserPermission._id)
         }
     } catch (error) {
+        await errorCollector({ url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT })
         res.status(500).send({ error: error.message })
     }
 })

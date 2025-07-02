@@ -4,6 +4,7 @@ const { Holiday, HolidayValidation } = require("../models/HolidayModel");
 const sendMail = require("./mailSender");
 const { sendPushNotification } = require("../auth/PushNotification");
 const { Employee } = require("../models/EmpModel");
+const { errorCollector } = require("../Reuseable_functions/reusableFunction");
 const router = express.Router();
 
 router.post("/:id", verifyAdminHR, async (req, res) => {
@@ -104,6 +105,7 @@ router.post("/:id", verifyAdminHR, async (req, res) => {
     })
     return res.send({ message: "holiday has been added.", data: response.data });
   } catch (error) {
+    await errorCollector({ url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT })
     console.log(error);
     return res.status(500).send({ error: error.message })
   }
@@ -118,6 +120,7 @@ router.get("/:year", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
       return res.send(response);
     }
   } catch (error) {
+    await errorCollector({ url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT })
     return res.status(500).send({ error: error.message })
   }
 })
@@ -127,6 +130,7 @@ router.get("/", verifyAdminHR, async (req, res) => {
     const allYear = await Holiday.find().lean().exec();
     return res.send(allYear)
   } catch (error) {
+    await errorCollector({ url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT })
     return res.status(500).send({ erorr: error.message })
   }
 })
@@ -224,6 +228,7 @@ router.put("/:id", verifyAdminHR, async (req, res) => {
     })
     return res.send({ message: `${updatedHolidays.currentYear} of holidays has been updated`, notifyemps })
   } catch (error) {
+    await errorCollector({ url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT })
     return res.status(500).send({ error: error.message })
   }
 })
@@ -237,6 +242,7 @@ router.delete("/:id", verifyAdminHR, async (req, res) => {
     const deletedHoliday = await Holiday.findByIdAndDelete(req.params.id).exec();
     return res.send({ message: `${deletedHoliday.currentYear} of holiday has been deleted successfully` })
   } catch (error) {
+    await errorCollector({ url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT })
     console.log("error in delete", error);
     return res.status(500).send({ error: error.message })
   }

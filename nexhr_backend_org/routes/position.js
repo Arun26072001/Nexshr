@@ -3,6 +3,7 @@ const router = express.Router();
 const { Position, PositionValidation } = require('../models/PositionModel');
 const { Employee } = require('../models/EmpModel');
 const { verifyAdminHR, verifyAdminHREmployeeManagerNetwork } = require('../auth/authMiddleware');
+const { errorCollector } = require('../Reuseable_functions/reusableFunction');
 
 router.get("/", verifyAdminHREmployeeManagerNetwork, (req, res) => {
   Position.find()
@@ -43,7 +44,8 @@ router.post("/", verifyAdminHR, async (req, res) => {
     const position = await Position.create(req.body);
 
     res.send({ message: `${position.PositionName} Position added!` });
-  } catch (err) {
+  } catch (error) {
+    await errorCollector({ url: req.originalUrl, name: err.name, message: err.message, env: process.env.ENVIRONMENT })
     console.error(err);
     res.status(500).send({ message: "Internal server error." });
   }
@@ -72,13 +74,14 @@ router.put("/:id", verifyAdminHR, async (req, res) => {
     }
 
     res.send({ message: `Position has been updated! ${position.PositionName}` });
-  } catch (err) {
+  } catch (error) {
+    await errorCollector({ url: req.originalUrl, name: err.name, message: err.message, env: process.env.ENVIRONMENT })
     console.error(err);
     res.status(500).send({ message: "Internal server error." });
   }
 });
 
-router.delete("/:id", verifyAdminHR,async (req, res) => {
+router.delete("/:id", verifyAdminHR, async (req, res) => {
   try {
     const isEmpInPosition = await Employee.find({ position: req.params.id }).exec();
     if (isEmpInPosition.length > 0) {
@@ -88,6 +91,7 @@ router.delete("/:id", verifyAdminHR,async (req, res) => {
       return res.send({ message: `${deletePos.PositionName} Position has been deleted successfully` })
     }
   } catch (error) {
+    await errorCollector({ url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT })
     res.status(500).send({ error: error.message })
   }
 })
