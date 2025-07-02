@@ -408,17 +408,12 @@ const checkLogin = (scheduledTime, actualTime) => {
   }
 };
 
-// Function to calculate working hours between start and end times
-function getTotalWorkingHourPerDay(startingTime, endingTime) {
-  if (startingTime !== "00:00:00" && endingTime) {
-
-    // Convert time strings to Date objects (using today's date)
-    const start = new Date(startingTime);
-    const end = new Date(endingTime);
-
+function getTotalWorkingHourPerDayByDate(start, end) {
+  if (start && end) {
     // Calculate the difference in milliseconds
-    const startTime = start.getTime();
-    const endTime = end.getTime();
+    const startTime = new Date(start).getTime();
+    const endTime = new Date(end).getTime();
+
     let timeDifference;
     if (endTime > startTime) {
       timeDifference = end - start;
@@ -426,10 +421,32 @@ function getTotalWorkingHourPerDay(startingTime, endingTime) {
       timeDifference = start - end
     }
 
-    // Convert the difference to minutes
-    const minutesDifference = Math.floor(timeDifference / (1000 * 60));
+    const diffHrs = timeDifference / (1000 * 60 * 60); // Convert milliseconds to hours
+    return diffHrs > 0 ? diffHrs : 0; // Ensure non-negative value
+  } else return 0;
+}
 
-    return minutesDifference / 60;
+// Function to calculate working hours between start and end times
+function getTotalWorkingHourPerDay(startingTime, endingTime) {
+  if (startingTime !== "00:00:00" && endingTime) {
+    const [startHour, startMin, startSec] = startingTime.split(":").map(Number);
+    const [endHour, endMin, endSec] = endingTime.split(":").map(Number);
+
+    const start = new Date();
+    const end = new Date();
+
+    start.setHours(startHour, startMin, startSec, 0);
+    end.setHours(endHour, endMin, endSec, 0);
+
+    // Ensure end is after start
+    if (end < start) {
+      return 0;
+    }
+
+    const timeDifference = end.getTime() - start.getTime(); // in milliseconds
+    const totalMinutes = Math.floor(timeDifference / (1000 * 60));
+
+    return totalMinutes / 60; // return in hours
   } else {
     return 0;
   }
@@ -498,37 +515,4 @@ function formatDate(date) {
 }
 
 
-module.exports = { convertToString, accountFromRole, changeClientTimezoneDate, sumLeaveDays, getValidLeaveDays, fetchFirstTwoItems, getCurrentTime, checkLoginForOfficeTime, categorizeTasks, projectMailContent, processActivityDurations, getTotalWorkingHourPerDay, formatLeaveData, getDayDifference, getOrgDB, formatDate, getWeekdaysOfCurrentMonth, mailContent, checkLogin, getTotalWorkingHoursExcludingWeekends, getCurrentTimeInMinutes, timeToMinutes, formatTimeFromMinutes };
-// Helper function to generate coverBy email content
-// function generateCoverByEmail(empData, relievingOffData) {
-//   return `
-//   < !DOCTYPE html >
-//     <html lang="en">
-//       <head>
-//         <meta charset="UTF-8">
-//           <meta name="viewport" content="width=device-width, initial-scale=1.0">
-//             <title>NexsHR - Task Assignment</title>
-//           </head>
-//           <body style="font-family: Arial, sans-serif; background-color: #f6f9fc; color: #333; margin: 0; padding: 0;">
-//             <div style="max-width: 600px; margin: 20px auto; padding: 20px; background-color: #fff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);">
-//               <div style="text-align: center; padding: 20px;">
-//                 <img src="https://imagedelivery.net/r89jzjNfZziPHJz5JXGOCw/1dd59d6a-7b64-49d7-ea24-1366e2f48300/public" alt="Company Logo" style="max-width: 100px;" />
-//                 <h1 style="margin: 0;">Task Assignment Notification</h1>
-//               </div>
-
-//               <div style="margin: 20px 0; font-size: 16px; line-height: 1.5;">
-//                 <p>Hi <strong>${relievingOffData.FirstName}</strong>,</p>
-//                 <p><strong>${empData.FirstName}</strong> has assigned some tasks to you during their leave.</p>
-//                 <p>Please ensure the assigned tasks are completed as required.</p>
-//                 <p>Let us know if you need any assistance.</p>
-//                 <p>Thank you!</p>
-//               </div>
-
-//               <div style="text-align: center; font-size: 14px; margin-top: 20px; color: #777;">
-//                 <p>&copy; ${new Date().getFullYear()} NexsHR. All rights reserved.</p>
-//               </div>
-//             </div>
-//           </body>
-//         </html>
-//         `;
-// }
+module.exports = { convertToString, getTotalWorkingHourPerDay, getTotalWorkingHourPerDayByDate, accountFromRole, changeClientTimezoneDate, sumLeaveDays, getValidLeaveDays, fetchFirstTwoItems, getCurrentTime, checkLoginForOfficeTime, categorizeTasks, projectMailContent, processActivityDurations, formatLeaveData, getDayDifference, getOrgDB, formatDate, getWeekdaysOfCurrentMonth, mailContent, checkLogin, getTotalWorkingHoursExcludingWeekends, getCurrentTimeInMinutes, timeToMinutes, formatTimeFromMinutes };

@@ -124,5 +124,7 @@ thead {
   margin-top: 0px;
 }
 
-.waves {
+.rbc-toolbar > .rbc-btn-group {
+  display: flex !important;
+  flex-wrap: wrap;
 }

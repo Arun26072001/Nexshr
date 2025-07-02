@@ -5,6 +5,7 @@ import KeyboardArrowDownSharpIcon from '@mui/icons-material/KeyboardArrowDownSha
 import { EssentialValues } from '../../../App';
 import { jwtDecode } from 'jwt-decode';
 // icons
+import ChevronRightRoundedIcon from '@mui/icons-material/ChevronRightRounded';
 import jobDeskIcon from '../../../asserts/jobDeskIcon.svg';
 import settingsIcon from '../../../asserts/settingsIcon.svg';
 import homeIcon from '../../../asserts/homeIcon.svg';
@@ -21,7 +22,7 @@ import holidayIcon from "../../../asserts/beach.svg";
 import announcementIcon from "../../../asserts/announcement.svg";
 import bugIcon from "../../../asserts/bugIcon.svg";
 
-const Sidebar = ({ sideBar }) => {
+const Sidebar = ({ isMobileView, handleSideBar, setIsMobileView }) => {
   const { data, whoIs } = useContext(EssentialValues);
   const { token, _id } = data;
   const decodedData = jwtDecode(token);
@@ -69,15 +70,18 @@ const Sidebar = ({ sideBar }) => {
       <li className="nav-item">
         <NavLink
           className={`nav-link ${activeNavLink === menuKey ? 'active' : ''}`}
-          onClick={() => toggleActiveLink(menuKey)}
+          onClick={() => {
+            toggleActiveLink(menuKey)
+            setIsMobileView(false)
+          }}
         >
           <span>
             <img src={icon} width={"22"} height={"22"} alt={`${label} Icon`} />
           </span>
           <span className="sideBarTxt">{label}</span>
-          <span className={`KeyboardArrowDownSharpIcon ${activeNavLink === menuKey ? "rotate" : ""}`}>
+          {!isMobileView ? <span className={`KeyboardArrowDownSharpIcon ${activeNavLink === menuKey ? "rotate" : ""}`}>
             <KeyboardArrowDownSharpIcon />
-          </span>
+          </span> : null}
         </NavLink>
         {activeNavLink === menuKey && (
           <ul className="nav-content p-2">
@@ -101,7 +105,12 @@ const Sidebar = ({ sideBar }) => {
   };
 
   return (
-    <div style={{ width: '250px' }} className={`${!sideBar ? "d-none" : ""} sidebar sidebar_hrm`}>
+    <div style={{ width: isMobileView ? "40px" : "250px" }} className={`sidebar sidebar_hrm`}>
+      <div className="d-flex position-relative w-100 justify-content-center align-items-center">
+        <span className={`circleArrowIcon ${isMobileView ? "rotate" : ""}`} onClick={handleSideBar} style={{ position: 'sticky', top: "0px", display: "flex !important", right: "0px", background: "white", border: "none", boxShadow: "rgba(0, 0, 0, 0.16) 0px 1px 4px" }}>
+          <ChevronRightRoundedIcon color='dark' />
+        </span>
+      </div>
       <ul className="sidebar-nav p-0" id="sidebar-nav">
         {renderNavLink(
           Dashboard === 'allow' || ['admin', 'hr', 'emp'].includes(whoIs),

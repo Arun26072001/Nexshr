@@ -140,28 +140,31 @@ export default function Navbar({ handleSideBar }) {
     }, [isChangeAnnouncements])
 
     async function checkIsCompletedWorkingHour() {
-        const currentTime = new Date().toTimeString().split(' ')[0];
-        const updatedState = {
-            ...workTimeTracker,
-            login: {
-                ...workTimeTracker?.login,
-                endingTime: [...(workTimeTracker?.login?.endingTime || []), currentTime],
-                timeHolder: `${String(hour).padStart(2, '0')}:${String(min).padStart(2, '0')}:${String(sec).padStart(2, '0')}`,
-            },
-        };
-        // check user is completed working hour
-        try {
-            const res = await axios.post(`${url}/verify_completed_workinghour`, updatedState);
-            if (!res.data.isCompleteworkingHours) {
-                changeViewReasonForEarlyLogout()
-            } else {
-                stopTimer()
+        const confirmToLogout = window.confirm("Are you sure you want to punch out?");
+        if (confirmToLogout) {
+            const currentTime = new Date().toTimeString().split(' ')[0];
+            const updatedState = {
+                ...workTimeTracker,
+                login: {
+                    ...workTimeTracker?.login,
+                    endingTime: [...(workTimeTracker?.login?.endingTime || []), currentTime],
+                    timeHolder: `${String(hour).padStart(2, '0')}:${String(min).padStart(2, '0')}:${String(sec).padStart(2, '0')}`,
+                },
+            };
+            // check user is completed working hour
+            try {
+                const res = await axios.post(`${url}/verify_completed_workinghour`, updatedState);
+                if (!res.data.isCompleteworkingHours) {
+                    changeViewReasonForEarlyLogout()
+                } else {
+                    stopTimer()
+                }
+            } catch (error) {
+                if (error?.message === "Network Error") {
+                    navigate("/network-issue")
+                }
+                console.log("error in check working hour is complated", error);
             }
-        } catch (error) {
-            if (error?.message === "Network Error") {
-                navigate("/network-issue")
-            }
-            console.log("error in check working hour is complated", error);
         }
     }
 

@@ -8,7 +8,7 @@ const { Employee } = require("../models/EmpModel");
 const sendMail = require("./mailSender");
 const { LeaveApplication } = require("../models/LeaveAppModel");
 const { Team } = require("../models/TeamModel");
-const { timeToMinutes, getTotalWorkingHourPerDay, processActivityDurations, checkLoginForOfficeTime, getCurrentTime, sumLeaveDays, getTotalWorkingHoursExcludingWeekends, changeClientTimezoneDate } = require("../Reuseable_functions/reusableFunction");
+const { timeToMinutes, getTotalWorkingHourPerDay, processActivityDurations, checkLoginForOfficeTime, getCurrentTime, sumLeaveDays, getTotalWorkingHoursExcludingWeekends, changeClientTimezoneDate, getTotalWorkingHourPerDayByDate } = require("../Reuseable_functions/reusableFunction");
 const { WFHApplication } = require("../models/WFHApplicationModel");
 const { sendPushNotification } = require("../auth/PushNotification");
 const { Holiday } = require("../models/HolidayModel");
@@ -84,9 +84,9 @@ router.post("/not-login/apply-leave/:workPatternId", async (req, res) => {
         for (const emp of notLoginEmps) {
             if (!emp.workingTimePattern) continue;
 
-            const officeStartingTime = `${new Date(emp.workingTimePattern.StartingTime).getHours()}:${new Date(emp.workingTimePattern.StartingTime).getMinutes()}`;
-            const officeFinishingTime = `${new Date(emp.workingTimePattern.FinishingTime).getHours()}:${new Date(emp.workingTimePattern.FinishingTime).getMinutes()}`;
-            const workingHours = getTotalWorkingHourPerDay(
+            const officeStartingTime = new Date(emp.workingTimePattern.StartingTime);
+            const officeFinishingTime = new Date(emp.workingTimePattern.FinishingTime);
+            const workingHours = getTotalWorkingHourPerDayByDate(
                 officeStartingTime,
                 officeFinishingTime
             );
@@ -620,8 +620,8 @@ router.get("/employee/:empId", verifyAdminHREmployeeManagerNetwork, async (req, 
             scheduledWorkingHours = (endingDate.getTime() - startingDate.getTime()) / (1000 * 60 * 60)
         }
         employee.clockIns.forEach(({ login }) => {
-            const { startingTime, endingTime } = login;
-            totalEmpWorkingHours += getTotalWorkingHourPerDay(startingTime[0], endingTime.at(-1));
+            const { startingTime, timeHolder } = login;
+            totalEmpWorkingHours += (timeToMinutes(timeHolder) / 60);
             checkLogin(scheduledLoginTime, startingTime[0]);
         });
 

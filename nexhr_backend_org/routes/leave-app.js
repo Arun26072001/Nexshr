@@ -485,7 +485,7 @@ leaveApp.get("/team/:id", verifyTeamHigherAuthority, async (req, res) => {
 
 leaveApp.get("/all/emp", verifyAdminHR, async (req, res) => {
   try {
-    
+
     const filterByAccount = req.query.isHr ? true : false;
 
     // Fetch leave data for employees with Account 3
@@ -1107,11 +1107,28 @@ leaveApp.put('/:id', verifyAdminHREmployeeManagerNetwork, async (req, res) => {
 
     if (allApproved && !leaveType.toLowerCase().includes("unpaid")) {
       const leaveDaysTaken = Math.max(await getDayDifference(req.body), 1);
-      const balance = Number(emp.typesOfLeaveRemainingDays?.[leaveType]) || 0;
-      if (balance < leaveDaysTaken) return res.status(400).send({ error: 'Insufficient leave balance.' });
-      await Employee.findByIdAndUpdate(emp._id, {
-        $inc: { [`typesOfLeaveRemainingDays.${leaveType}`]: -Number(leaveDaysTaken) }
-      });
+
+      const currentValue = emp.typesOfLeaveRemainingDays?.[leaveType];
+
+      // Convert to number (handles string or number)
+      const currentNumber = typeof currentValue === "string"
+        ? parseFloat(currentValue)
+        : currentValue;
+
+      if (typeof currentNumber === "number" && !isNaN(currentNumber)) {
+        if (currentNumber < leaveDaysTaken) {
+          return res.status(400).send({ error: "Insufficient leave balance." });
+        }
+
+        const newValue = currentNumber - leaveDaysTaken;
+
+        await Employee.findByIdAndUpdate(emp._id, {
+          $set: { [`typesOfLeaveRemainingDays.${leaveType}`]: newValue }
+        });
+      } else {
+        console.error(`❌ Invalid leave balance for "${leaveType}":`, currentValue);
+        return res.status(400).send({ error: `Invalid leave balance for ${leaveType}.` });
+      }
     }
 
     if (!allPending) {

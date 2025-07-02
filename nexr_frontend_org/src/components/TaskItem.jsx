@@ -94,9 +94,9 @@ export default function TaskItem({ task, status, getValue, handleEditTask, handl
                 <span
                     className="defaultDesign text-light"
                     title="Project Name"
-                    style={{ background: task.project.color }}
+                    style={{ background: task?.project?.color || "#FFC107" }}
                 >
-                    {task.project.name}
+                    {task?.project?.name || "Individual"}
                 </span>
 
                 <CalendarMonthRoundedIcon sx={{ cursor: "pointer" }} onClick={() => handleAddComment(task._id)} />

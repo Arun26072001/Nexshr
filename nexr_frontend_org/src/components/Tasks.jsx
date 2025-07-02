@@ -33,7 +33,7 @@ const Tasks = () => {
   const { isTeamLead, isTeamHead } = jwtDecode(data.token)
   const [taskObj, setTaskObj] = useState({});
   const [projects, setProjects] = useState([]);
-  const [projectId, setProjectId] = useState(localStorage.getItem("selectedProject") || "");
+  const [projectId, setProjectId] = useState(JSON.parse(localStorage.getItem("selectedProject")) || "");
   const [allTasks, setAllTask] = useState([]);
   const [notCompletedTasks, setNotCompletedTasks] = useState([]);
   const [projectAllTasks, setProjectAllTasks] = useState([]);
@@ -292,8 +292,12 @@ const Tasks = () => {
           Authorization: data.token || ""
         }
       })
-      setAllTask(res.data.tasks?.map((task) => ({ label: task.title + " " + task.status, value: task._id })));
-      setNotCompletedTasks(res.data.tasks.filter((task) => task.status !== "Completed")?.map((task) => ({ label: task.title, value: task._id })))
+      const empTasks = res.data.tasks;
+      if (empTasks.length) {
+        setProjectAllTasks(empTasks)
+        setAllTask(empTasks?.map((task) => ({ label: task.title + " " + task.status, value: task._id })));
+        setNotCompletedTasks(empTasks.filter((task) => task.status !== "Completed")?.map((task) => ({ label: task.title, value: task._id })))
+      }
     } catch (error) {
       if (error?.message === "Network Error") {
         navigate("/network-issue")
@@ -589,9 +593,9 @@ const Tasks = () => {
     if (projectId) {
       fetchTaskByProjectId(projectId)
     } else {
+      fetchEmpAssignedTasks();
       setAllTask([]);
     }
-    fetchEmpAssignedTasks()
   }, [projectId, isDelete.type, isAddTask, isEditTask])
 
   useEffect(() => {
@@ -675,38 +679,12 @@ const Tasks = () => {
   }
 
   return (
-
     isviewTask ? <CommonModel type="Task View" isAddData={isviewTask} modifyData={handleViewTask} dataObj={taskObj} projects={projects} removeAttachment={removeAttachment} employees={employees} /> :
       isDelete.type ? <CommonModel type="Task Confirmation" modifyData={handleDeleteTask} deleteData={deleteTask} isAddData={isDelete.type} /> :
         isEditTask ? <CommonModel type="Task Assign" isAddData={isEditTask} employees={employees} changeData={changeTask} dataObj={taskObj} editData={editTask} isWorkingApi={isTaskChanging} modifyData={handleEditTask} /> :
-          isAddTask ? <CommonModel
-            isWorkingApi={isTaskChanging}
-            dataObj={taskObj}
-            tasks={allTasks}
-            notCompletedTasks={notCompletedTasks}
-            previewList={previewList}
-            isAddData={isAddTask}
-            editData={editTask}
-            addReminder={addReminder}
-            changeData={changeTask}
-            removeReminder={removeReminder}
-            projects={projects}
-            addData={addTask}
-            removeAttachment={removeAttachment}
-            employees={employees}
-            type="Task"
-            modifyData={triggerHandleAddTask} /> :
+          isAddTask ? <CommonModel isWorkingApi={isTaskChanging} dataObj={taskObj} tasks={allTasks} notCompletedTasks={notCompletedTasks} previewList={previewList} isAddData={isAddTask} editData={editTask} addReminder={addReminder} changeData={changeTask} removeReminder={removeReminder} projects={projects} addData={addTask} removeAttachment={removeAttachment} employees={employees} type="Task" modifyData={triggerHandleAddTask} /> :
             isAddComment && taskObj?._id ? (
-              <CommonModel
-                type="Add Comments"
-                removeAttachment={removeAttachment}
-                isAddData={isAddComment}
-                modifyData={handleAddComment}
-                changeData={changeTask}
-                editData={editTask}
-                dataObj={taskObj}
-                previewList={previewList}
-              />
+              <CommonModel type="Add Comments" removeAttachment={removeAttachment} isAddData={isAddComment} modifyData={handleAddComment} changeData={changeTask} editData={editTask} dataObj={taskObj} previewList={previewList} />
             ) :
               <>
                 <div className="projectParent ">

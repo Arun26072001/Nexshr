@@ -389,7 +389,7 @@ export default function Projects() {
                                                             >
                                                                 Client: {project?.company?.CompanyName}
                                                             </div>
-                                                            <div className="d-flex align-items-center gap-2 my-3" style={{ overflow: "auto" }}>
+                                                            <div className="d-flex align-items-center gap-2 my-3 flex-wrap" >
                                                                 {project?.employees?.map((emp) => (
                                                                     <div className="nameHolder" style={{ width: "35px", height: "35px" }} key={emp?._id}>
                                                                         {emp?.FirstName[0]?.toUpperCase() +

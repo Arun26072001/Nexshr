@@ -14,18 +14,18 @@ export const WorkTimeTrackerContext = createContext(null);
 
 const Parent = () => {
     const { handleLogout, isStartLogin, isLogin } = useContext(EssentialValues);
-    const [sideBar, setSideBar] = useState(screen.width > 1000 ? true : false);
+    const [isMobileView, setIsMobileView] = useState(false);
 
-    function handleSideBar() {
-        setSideBar(!sideBar)
+    function handlechangeMobileView() {
+        setIsMobileView(!isMobileView)
     }
 
     useEffect(() => {
         const handleResize = () => {
-            if (window.innerWidth > 1000) {
-                setSideBar(true)
+            if (window.innerWidth < 450) {
+                setIsMobileView(true)
             } else {
-                setSideBar(false)
+                setIsMobileView(false)
             }
         };
 
@@ -60,10 +60,10 @@ const Parent = () => {
 
     return (
         <div>
-            <Navbar handleSideBar={handleSideBar} />
+            <Navbar handleSideBar={handlechangeMobileView} />
             <div className="d-flex marTop">
-                <Sidebar handleLogout={handleLogout} handleSideBar={handleSideBar} sideBar={sideBar} />
-                <div className="navContent">
+                <Sidebar handleSideBar={handlechangeMobileView} setIsMobileView={setIsMobileView} isMobileView={isMobileView} />
+                <div className="navContent" style={{width: `calc(100% - ${isMobileView ? "40":"250"}px)`}}>
                     <Suspense fallback={<Loading height="80vh" />}>
                         <Outlet />
                     </Suspense>

@@ -1,7 +1,7 @@
 const admin = require("./firebase-admin");
 const { Employee } = require("../models/EmpModel");
 const axios = require("axios");
-const { getCurrentTimeInMinutes, timeToMinutes, getTotalWorkingHourPerDay } = require("../Reuseable_functions/reusableFunction");
+const { getCurrentTimeInMinutes, timeToMinutes, getTotalWorkingHourPerDay, getTotalWorkingHourPerDayByDate } = require("../Reuseable_functions/reusableFunction");
 
 exports.sendPushNotification = async (msgObj) => {
     const { token, title, body } = msgObj;
@@ -65,7 +65,7 @@ exports.verifyWorkingTimeCompleted = async (req, res) => {
         });
 
         const totalValue = values?.reduce((acc, value) => acc + value, 0) / 60;
-        const scheduleWorkingHours = getTotalWorkingHourPerDay(
+        const scheduleWorkingHours = getTotalWorkingHourPerDayByDate(
             empData?.workingTimePattern?.StartingTime,
             empData?.workingTimePattern?.FinishingTime
         )

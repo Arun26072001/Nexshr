@@ -11,6 +11,17 @@
     rgba(0, 0, 0, 0.06) 0px 1px 2px 0px;
 }
 
+.circleArrowIcon {
+  transition: transform 0.3s ease !important;
+  cursor: pointer;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
 @media (max-width: 768px) {
   .sidebar {
     top: 72px;
@@ -20,6 +31,7 @@
 @media (max-width: 480px) {
   .sidebar {
     top: 127px;
+    width: 40px;
   }
 }
 
@@ -88,7 +100,7 @@
 .KeyboardArrowDownSharpIcon {
   position: absolute;
   right: 10px;
-  transition-duration: .5s;
+  transition-duration: 0.5s;
 }
 
 li {

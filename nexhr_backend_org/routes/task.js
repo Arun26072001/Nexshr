@@ -12,7 +12,7 @@ const router = express.Router();
 
 router.get("/project/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
     try {
-        let tasks = await Task.find({ project: { $in: req.params.id } }, "-tracker")
+        let tasks = await Task.find({ project: { $in: req.params.id }, trash: false }, "-tracker")
             .populate({ path: "project", select: "name color" })
             .populate({ path: "assignedTo", select: "FirstName LastName profile" })
             .populate({ path: "createdby", select: "company" })
@@ -92,7 +92,8 @@ router.post("/add-category/:id", async (req, res) => {
 router.get("/assigned/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
     try {
         let filterTask = {
-            assignedTo: { $in: [req.params.id] }
+            assignedTo: { $in: [req.params.id] },
+            trash: false
         }
         if (req.query?.dateRange?.length) {
             const fromDate = new Date(req.query.dateRange[0]);
@@ -105,7 +106,7 @@ router.get("/assigned/:id", verifyAdminHREmployeeManagerNetwork, async (req, res
         }
         let tasks = await Task.find(filterTask, "-tracker")
             .populate({ path: "project", select: "name color" })
-            .populate({ path: "assignedTo", select: "FirstName LastName" })
+            .populate({ path: "assignedTo", select: "FirstName LastName profile" })
             .populate({ path: "createdby", select: "FirstName LastName" })
             .exec();
         if (tasks.length === 0) {

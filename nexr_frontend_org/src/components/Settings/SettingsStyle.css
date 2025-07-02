@@ -204,8 +204,8 @@ input[type="time"]::-webkit-calendar-picker-indicator {
 }
 
 .arrow {
-  transition: transform 0.3s ease !important;
   display: inline-block !important;
+  transition: transform 0.3s ease !important;
   cursor: pointer;
 }
 
