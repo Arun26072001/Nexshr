@@ -552,8 +552,6 @@ const Dashboard = () => {
         }
     }
     useEffect(() => {
-        // if ([isTeamLead, isTeamHead, isTeamManager].includes(true)) {
-        // }
         if (!["admin", "hr"].includes(whoIs)) {
             gettingTeamEmp()
             fetchEmpsProjects()

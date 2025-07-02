@@ -959,7 +959,6 @@ leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("pre
       if ((emp.leaveApplication?.length || 0) >= (emp.monthlyPermissions || 2)) {
         return res.status(400).json({ error: `You have already used ${emp.monthlyPermissions} permissions this month.` });
       }
-
     }
 
     // 6. Leave balance check

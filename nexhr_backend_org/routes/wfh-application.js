@@ -237,16 +237,17 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
 
         // check has more than two team members in wfh
         const team = await Team.findOne({ employees: id }, "employees").exec();
+        if (team && team.employees.length > 0) {
+            const wfhEmps = await WFHApplication.find({
+                employee: { $in: team.employees },
+                status: "approved",
+                fromDate: { $lte: toDate },
+                toDate: { $gte: fromDate }
+            })
 
-        const wfhEmps = await WFHApplication.find({
-            employee: { $in: team.employees },
-            status: "approved",
-            fromDate: { $lte: toDate },
-            toDate: { $gte: fromDate }
-        })
-
-        if (wfhEmps.length === 2) {
-            return res.status(400).send({ error: "Already two members are approved for WFH in this time period." })
+            if (wfhEmps.length === 2) {
+                return res.status(400).send({ error: "Already two members are approved for WFH in this time period." })
+            }
         }
 
         // 2. Fetch employee and team information

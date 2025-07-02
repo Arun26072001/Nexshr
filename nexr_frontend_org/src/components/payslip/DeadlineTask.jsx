@@ -92,7 +92,7 @@ export default function DeadlineTask({ isLoading, updateTaskStatus, fetchEmpAssi
 
     function fetchRunningTimersData() {
         typeOfTasks.map((type) => {
-            const typeTasks = categorizeTasks[type.name];
+            const typeTasks = categorizeTasks[type.name] || [];
             typeTasks.map((task) => {
                 if (localStorage.getItem(`isRunning_${task._id}`) === "true") {
                     setIsWorkingTasks((pre) => ({

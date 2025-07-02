@@ -16,13 +16,13 @@ const Default = ({ tasks, isLoading }) => {
             TaskName: task.title,
             StartDate: new Date(task.from),
             EndDate: new Date(task.to),
-            Duration: task.estTime || 10,
-            Progress: task.spend.timeHolder || 0,
+            Duration: (task.estTime || 0) / 24,
+            Progress: (task.spend.timeHolder || 0) + "hrs",
             Status: task.status,
             child: []
         }));
         setTaskData(arrangedData)
-    }, [tasks])
+    }, [tasks]);
 
     const taskFields = {
         id: 'TaskID',
@@ -36,7 +36,7 @@ const Default = ({ tasks, isLoading }) => {
     };
 
     const labelSettings = {
-        leftLabel: 'TaskName'
+        leftLabel: 'TaskName',
     };
 
     return (
@@ -54,18 +54,12 @@ const Default = ({ tasks, isLoading }) => {
                         >
                             <ColumnsDirective>
                                 <ColumnDirective field='TaskID' width='80' />
-                                <ColumnDirective
-                                    field='TaskName'
-                                    headerText='Title'
-                                    width='250'
-                                    clipMode='EllipsisWithTooltip'
-                                />
+                                <ColumnDirective field='TaskName' headerText='Title' width='250' clipMode='EllipsisWithTooltip' />
                                 <ColumnDirective field='StartDate' />
                                 <ColumnDirective field='Duration' />
                                 <ColumnDirective field='Progress' />
                                 <ColumnDirective field='Predecessor' />
                             </ColumnsDirective>
-                            {/* <Inject services={[Selection]} /> */}
                         </GanttComponent>
                     </div>
                 </div> : <NoDataFound message={"Task data not found"} />
