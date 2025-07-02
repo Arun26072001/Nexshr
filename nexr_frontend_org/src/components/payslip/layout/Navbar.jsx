@@ -140,7 +140,7 @@ export default function Navbar({ handleSideBar }) {
     }, [isChangeAnnouncements])
 
     async function checkIsCompletedWorkingHour() {
-        const confirmToLogout = window.confirm("Are you confirm to punchout?");
+        const confirmToLogout = window.confirm("Are you sure you want to punch out?");
         if (confirmToLogout) {
             const currentTime = new Date().toTimeString().split(' ')[0];
             const updatedState = {
