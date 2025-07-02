@@ -12,7 +12,7 @@ const router = express.Router();
 
 router.get("/project/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
     try {
-        let tasks = await Task.find({ project: { $in: req.params.id }, trash: false }, "-tracker")
+        let tasks = await Task.find({ project: req.params.id, trash: false }, "-tracker")
             .populate({ path: "project", select: "name color" })
             .populate({ path: "assignedTo", select: "FirstName LastName profile" })
             .populate({ path: "createdby", select: "company" })
@@ -65,8 +65,7 @@ router.get("/project/:id", verifyAdminHREmployeeManagerNetwork, async (req, res)
 
         return res.send({ tasks: timeUpdatedTasks });
     } catch (error) {
-        console.log(error);
-
+        console.log("error in fetch project tasks", error);
         res.status(500).send({ error: error.message })
     }
 })

@@ -265,22 +265,24 @@ const Tasks = () => {
   }
 
   async function fetchTaskByProjectId(id) {
-    setIsLoading(true);
-    try {
-      const res = await axios.get(`${url}/api/task/project/${id}`, {
-        headers: {
-          Authorization: data.token || ""
+    if (id) {
+      try {
+        setIsLoading(true);
+        const res = await axios.get(`${url}/api/task/project/${id}`, {
+          headers: {
+            Authorization: data.token || ""
+          }
+        })
+        setProjectAllTasks(res.data.tasks);
+      } catch (error) {
+        if (error?.message === "Network Error") {
+          navigate("/network-issue")
         }
-      })
-      setProjectAllTasks(res.data.tasks);
-    } catch (error) {
-      if (error?.message === "Network Error") {
-        navigate("/network-issue")
+        setAllTask([])
+        console.log(error);
+      } finally {
+        setIsLoading(false)
       }
-      setAllTask([])
-      console.log(error);
-    } finally {
-      setIsLoading(false)
     }
   }
 
@@ -408,6 +410,8 @@ const Tasks = () => {
 
     let files = [];
 
+    // set loader true task is updating
+    setIsTaskChanging(true);
     try {
       // Ensure attachments exist before filtering
       if (taskToUpdate?.comments?.[0]?.attachments?.length) {
@@ -441,8 +445,6 @@ const Tasks = () => {
           };
         }
       }
-      // set loader true task is updating
-      setIsTaskChanging(true);
       // Send updated task
       const res = await axios.put(
         `${url}/api/task/${data._id}/${taskToUpdate._id}`, // Ensure correct projectId
@@ -457,7 +459,7 @@ const Tasks = () => {
       setTaskObj({});
       setIsAddTask(false);
       setIsEditTask(false);
-      fetchTaskByProjectId(projectId); // Refresh tasks
+      fetchEmpAssignedTasks()// Refresh tasks
     } catch (error) {
       if (error?.message === "Network Error") {
         navigate("/network-issue")
@@ -497,7 +499,8 @@ const Tasks = () => {
       })
       toast.success(res.data.message);
       setIsDelete({ type: false, value: "" })
-      fetchTaskByProjectId(projectId);
+      // fetchTaskByProjectId(projectId);
+      fetchEmpAssignedTasks()
     } catch (error) {
       if (error?.message === "Network Error") {
         navigate("/network-issue")

@@ -206,15 +206,17 @@ export default function Planner({ isLoading, updateTaskStatus, fetchEmpAssignedT
 
     function fetchRunningTimersData() {
         categories.map((category) => {
-            const categoryTasks = plannerTasks[category];
-            categoryTasks.map((task) => {
-                if (localStorage.getItem(`isRunning_${task._id}`) === "true") {
-                    setIsWorkingTasks((pre) => ({
-                        ...pre,
-                        [`isRunning_${task._id}`]: true
-                    }))
-                }
-            })
+            const categoryTasks = plannerTasks[category] || [];
+            if (categoryTasks.length > 0) {
+                categoryTasks.map((task) => {
+                    if (localStorage.getItem(`isRunning_${task._id}`) === "true") {
+                        setIsWorkingTasks((pre) => ({
+                            ...pre,
+                            [`isRunning_${task._id}`]: true
+                        }))
+                    }
+                })
+            }
         })
     }
 
