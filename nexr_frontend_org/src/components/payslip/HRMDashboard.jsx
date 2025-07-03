@@ -485,7 +485,7 @@ export default function HRMDashboard() {
                             localStorage.setItem('isStartLogin', true);
                             setIsStartLogin(true);
                             setIsForgetToPunchOut(true);
-                            handleLogout();
+                            // handleLogout();
                         }
 
                         setWorkTimeTracker(timeData)
