@@ -8,7 +8,6 @@ import NoDataFound from "./payslip/NoDataFound";
 import { EssentialValues } from "../App";
 import "./leaveForm.css";
 import { fetchPayslipInfo } from "./ReuseableAPI";
-import { TimerStates } from "./payslip/HRMDashboard";
 
 const EmployeeForm = ({
     details, handleScroll, timePatterns, personalRef, stateData, employeeObj, handleTagSelector,

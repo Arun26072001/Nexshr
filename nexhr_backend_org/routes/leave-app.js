@@ -258,9 +258,7 @@ leaveApp.get("/emp/:empId", verifyAdminHREmployeeManagerNetwork, async (req, res
           $gte: new Date(startDate),
           $lte: new Date(endDate)
         }
-      })
-        .populate("employee", "FirstName LastName")
-        .lean(),
+      }).populate("employee", "FirstName LastName").lean(),
       LeaveApplication.find(filterLeaves).populate("employee", "FirstName LastName profile").lean(),
       Team.findOne({ employees: empId }, "employees").lean()
     ]);
@@ -524,9 +522,9 @@ leaveApp.get("/people-on-leave", verifyAdminHREmployeeManagerNetwork, async (req
     const leaveData = await LeaveApplication.find({
       fromDate: { $lte: endOfDay },
       toDate: { $gte: startOfDay },
-      leaveType: { $nin: ["Permission", "Permission Leave"] },
+      leaveType: { $nin: ["Permission", "Permission Leave", "permission"] },
       status: "approved"
-    }, "fromDate toDate status leaveType")
+    }, "fromDate toDate status leaveType periodOfLeave")
       .populate({
         path: "employee",
         select: "FirstName LastName profile",
@@ -534,9 +532,7 @@ leaveApp.get("/people-on-leave", verifyAdminHREmployeeManagerNetwork, async (req
           path: "team",
           select: "teamName"
         }
-      })
-      .lean()
-      .exec();
+      }).lean().exec();
 
     return res.status(200).send(leaveData);
   } catch (error) {
@@ -779,7 +775,7 @@ leaveApp.put("/reject-leave", async (req, res) => {
     const today = new Date();
     const endOfDay = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate(), 23, 59, 59));
 
-    const leaves = await LeaveApplication.find({
+    let leaves = await LeaveApplication.find({
       fromDate: { $lte: endOfDay },
       leaveType: { $nin: ["Unpaid Leave (LWP)"] },
       status: "pending"
@@ -789,7 +785,9 @@ leaveApp.put("/reject-leave", async (req, res) => {
       return res.status(200).send({ message: "No pending leave applications found for today." });
     }
 
-    await Promise.all(leaves.map(async (leave) => {
+    const actualLeave = leaves.filter((leave) => new Date(leave.fromDate).toLocaleDateString() !== new Date(leave.createdAt).toLocaleDateString())
+
+    await Promise.all(actualLeave.map(async (leave) => {
       let approvers = {};
       Object.entries(leave.approvers).map(([key, value]) => {
         approvers[key] = "rejected"
@@ -830,9 +828,9 @@ leaveApp.put("/reject-leave", async (req, res) => {
     return res.status(200).send({ message: "Leave rejection processed successfully." });
 
   } catch (error) {
-    await errorCollector({ url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT })
-    console.error("Error processing leave rejections:", error.message);
-    return res.status(500).send({ error: "An error occurred while processing leave rejections." });
+    // await errorCollector({ url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT })
+    console.error("Error processing leave rejections:", error);
+    return res.status(500).send({ error: error.message });
   }
 });
 

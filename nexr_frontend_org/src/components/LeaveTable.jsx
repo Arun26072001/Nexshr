@@ -31,7 +31,7 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
     const [rowsPerPage, setRowsPerPage] = useState(+localStorage.getItem("rowsPerPage") || 10);
     const [rows, setRows] = useState([]);
     const [columns, setColumns] = useState([]);
-    const [totalHours, setTotalHours] = useState({}); // To hold total hours for each entry
+    // const [totalHours, setTotalHours] = useState({}); // To hold total hours for each entry
     const [openModal, setOpenModal] = useState(false);
     const [modelData, setModelData] = useState({});
     const params = useParams();
@@ -320,7 +320,7 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
             label: 'Total Hour',
             minWidth: 130,
             align: 'left',
-            getter: (row) => row?.[row.type]?.totalHour || "00:00:00"
+            getter: (row) => row?.totalHour || "00:00:00"
         },
         {
             id: 'behaviour',
@@ -1006,7 +1006,7 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
                 return setColumns(column14)
             } else if (item?.orgName) {
                 return setColumns(column15)
-            } else if (params["*"] === "users" || item.Name) {
+            } else if (params["*"] === "users" || item?.Name) {
                 return setColumns(column16)
             } else if (params["*"] === "leave-details" && item.LeaveName) {
                 return setColumns(column17)
@@ -1345,7 +1345,7 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
 
             {
                 openModal ?
-                    <ViewAttendanceModel modelData={modelData} toggleView={toggleView} totalHours={totalHours} openModal={openModal} /> : null
+                    <ViewAttendanceModel modelData={modelData} toggleView={toggleView} openModal={openModal} /> : null
             }
         </div >
     );

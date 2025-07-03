@@ -5,11 +5,9 @@ import axios from "axios";
 import LeaveTable from "../LeaveTable";
 import { DateRangePicker, TagPicker } from "rsuite";
 import Loading from "../Loader";
-import { exportAttendanceToExcel, formatTime } from "../ReuseableAPI";
+import { formatTime } from "../ReuseableAPI";
 import NoDataFound from "./NoDataFound";
-import { toast } from "react-toastify";
 import { EssentialValues } from "../../App";
-import FileDownloadRoundedIcon from '@mui/icons-material/FileDownloadRounded';
 import { useNavigate } from "react-router-dom";
 
 const Attendence = () => {
@@ -37,13 +35,13 @@ const Attendence = () => {
 
   useEffect(() => {
     if (selectedTimeOption.length > 0) {
-      const updateTableData = filteredTabledata.flatMap((item) =>
-        selectedTimeOption.map((option) => {
+      const updateTableData = filteredTabledata.flatMap((item) => {
+        return selectedTimeOption.map((option) => {
           const timeOptionKey = option; // Get the corresponding key
           const timeData = item[timeOptionKey] || {}; // Safely access time data
 
           return {
-            Name: `${item.employee.FirstName} ${item.employee.LastName}`,
+            Name: `${item?.employee?.FirstName} ${item?.employee?.LastName}`,
             date: item.date.split("T")[0],
             type: timeOptionKey,
             punchIn: timeData.startingTime?.[0] || "00:00:00", // Avoid errors if empty
@@ -52,6 +50,7 @@ const Attendence = () => {
             behaviour: timeOptionKey === "login" ? item.behaviour : timeData.reasonForLate || "N/A"
           };
         })
+      }
       );
 
       setTableData(updateTableData); // Set table data once after processing all items
@@ -90,8 +89,7 @@ const Attendence = () => {
   const getClockins = async () => {
     setIsLoading(true);
     try {
-      console.log("url",url);
-      
+
       const dashboard = await axios.get(`${url}/api/clock-ins/employee/${_id}`, {
         params: {
           daterangeValue
@@ -100,11 +98,12 @@ const Attendence = () => {
           authorization: token || ""
         }
       });
-      console.log("empClockins", dashboard);
 
       if (dashboard.data) {
         setclockInsData(dashboard.data);
-        if (dashboard.data.clockIns?.length) {
+        if (Array.isArray(dashboard.data.clockIns)) {
+          console.log("clockinsData", dashboard.data.clockIns);
+
           setTableData(dashboard.data.clockIns);
           setFilteredTableData(dashboard.data.clockIns)
         }
@@ -123,19 +122,16 @@ const Attendence = () => {
         navigate("/network-issue")
       }
       console.log(error);
+    } finally {
+      setIsLoading(false);
     }
-    setIsLoading(false);
   }
 
   useEffect(() => {
     if (_id) {
       getClockins()
-    } else {
-      setIsLoading(false);
-      toast.error("Employee Id not found!")
     }
   }, [_id, daterangeValue])
-  console.log("tableData", tableData);
   return (
     <div>
       <div className="leaveDateParent">
