@@ -34,7 +34,7 @@ const updateDataAPI = async (body) => {
     }
 };
 
-async function fetchTeamEmps() {
+async function fetchTeamEmps(type) {
     const empId = getId();
     const token = getToken()
     const { isTeamHead, isTeamLead, isTeamManager } = jwtDecode(token);
@@ -47,6 +47,9 @@ async function fetchTeamEmps() {
                 Authorization: token || ""
             }
         })
+        if (type === "fullData") {
+            return res.data.employees;
+        }
         const emps = res.data.employees.map((emp) => ({ label: emp.FirstName + " " + emp.LastName, value: emp._id }));
         return emps;
     } catch (error) {
@@ -69,7 +72,7 @@ function getTotalWorkingHourPerDay(start, end) {
 
         const diffHrs = timeDifference / (1000 * 60 * 60); // Convert milliseconds to hours
         return diffHrs > 0 ? diffHrs : 0; // Ensure non-negative value
-    }else return 0;
+    } else return 0;
 }
 
 const getDataAPI = async (_id) => {
@@ -333,12 +336,7 @@ const fetchEmployeeData = async (id) => {
             }
         });
         return response.data;
-
     } catch (error) {
-        //  if (error?.message === "Network Error") {
-        //         navigate("/network-issue")
-        //     }
-
         if (error.response && error.response.data && error.response.data.message) {
             toast.error(error?.response?.data?.details)
             return error;

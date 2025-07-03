@@ -33,7 +33,8 @@ const Tasks = () => {
   const { isTeamLead, isTeamHead } = jwtDecode(data.token)
   const [taskObj, setTaskObj] = useState({});
   const [projects, setProjects] = useState([]);
-  const [projectId, setProjectId] = useState(JSON.parse(localStorage.getItem("selectedProject")) || "");
+  const strObjId = JSON.stringify(localStorage.getItem("selectedProject") || "")
+  const [projectId, setProjectId] = useState(JSON.parse(strObjId) || "");
   const [allTasks, setAllTask] = useState([]);
   const [notCompletedTasks, setNotCompletedTasks] = useState([]);
   const [projectAllTasks, setProjectAllTasks] = useState([]);

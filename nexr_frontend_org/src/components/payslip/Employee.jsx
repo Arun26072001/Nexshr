@@ -77,8 +77,8 @@ export default function Employee() {
     }
 
     const fetchEmployeeData = async () => {
-        setIsLoading(true);
         try {
+            setIsLoading(true);
             const empData = await fetchEmployees();
             setEmployees(empData);
             setFilteredEmps(empData);
@@ -95,8 +95,8 @@ export default function Employee() {
     };
 
     const fetchAllEmployeeData = async () => {
-        setIsLoading(true);
         try {
+            setIsLoading(true);
             const empData = await fetchAllEmployees();
             setEmployees(empData);
             setFilteredEmps(empData);
@@ -112,9 +112,13 @@ export default function Employee() {
     };
 
     async function getTeamEmps() {
-        const emps = await fetchTeamEmps();
-        setEmployees(emps)
+        const emps = await fetchTeamEmps("fullData");
+        if (emps?.length > 0) {
+            setEmployees(emps)
+        }
     }
+
+    console.log("employees", employees)
 
     useEffect(() => {
         if (["admin"].includes(whoIs)) {
@@ -205,7 +209,7 @@ export default function Employee() {
                             width={"100%"}
                             height={"50vh"}
                         /> :
-                        employees.length > 0 ?
+                        employees?.length > 0 ?
                             <LeaveTable data={employees} isLoading={isDeleting} deleteData={handleDeleteEmp} />
                             : <NoDataFound message={"Employee data not found"} />
                 }

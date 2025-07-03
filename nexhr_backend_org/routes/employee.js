@@ -131,7 +131,7 @@ router.get("/user", verifyAdminHR, async (req, res) => {
 
 router.get("/all", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
   try {
-    const employees = await Employee.find({}, "_id FirstName LastName profile employmentType dateOfJoining gender working code docType serialNo")
+    const employees = await Employee.find({}, "FirstName LastName profile employmentType dateOfJoining gender working code docType serialNo company position department workingTimePattern role")
       .populate([
         {
           path: "company",
