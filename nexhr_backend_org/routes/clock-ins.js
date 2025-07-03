@@ -392,14 +392,14 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
             const actualMinutes = timeToMinutes(actualTime);
 
             if ((scheduledMinutes + permissionTime) > actualMinutes) {
-                regular++;
-                return "On Time";
+                early++;
+                return "Early";
             } else if (actualMinutes > scheduledMinutes) {
                 late++;
                 return "Late";
             } else {
-                early++;
-                return "Early";
+                regular++;
+                return "On Time";
             }
         };
 
@@ -580,7 +580,7 @@ router.get("/employee/:empId", verifyAdminHREmployeeManagerNetwork, async (req, 
         const { empId } = req.params;
         const { daterangeValue } = req.query;
 
-        const [startOfMonth, endOfMonth] = daterangeValue ?
+        const [startOfMonth, endOfMonth] = Array.isArray(daterangeValue) ?
             [new Date(daterangeValue[0]), new Date(daterangeValue[1])] :
             [new Date(now.getFullYear(), now.getMonth(), 1), now];
 
@@ -598,7 +598,7 @@ router.get("/employee/:empId", verifyAdminHREmployeeManagerNetwork, async (req, 
             else regular++;
         };
 
-        const employee = await Employee.findById(empId, "FirstName LastName clockIns leaveApplication workingTimePattern company")
+        const employee = await Employee.findById(empId, "FirstName LastName profile clockIns leaveApplication workingTimePattern company")
             .populate([
                 { path: "workingTimePattern" },
                 {

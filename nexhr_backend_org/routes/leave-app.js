@@ -258,9 +258,7 @@ leaveApp.get("/emp/:empId", verifyAdminHREmployeeManagerNetwork, async (req, res
           $gte: new Date(startDate),
           $lte: new Date(endDate)
         }
-      })
-        .populate("employee", "FirstName LastName")
-        .lean(),
+      }).populate("employee", "FirstName LastName").lean(),
       LeaveApplication.find(filterLeaves).populate("employee", "FirstName LastName profile").lean(),
       Team.findOne({ employees: empId }, "employees").lean()
     ]);
@@ -524,9 +522,9 @@ leaveApp.get("/people-on-leave", verifyAdminHREmployeeManagerNetwork, async (req
     const leaveData = await LeaveApplication.find({
       fromDate: { $lte: endOfDay },
       toDate: { $gte: startOfDay },
-      leaveType: { $nin: ["Permission", "Permission Leave"] },
+      leaveType: { $nin: ["Permission", "Permission Leave", "permission"] },
       status: "approved"
-    }, "fromDate toDate status leaveType")
+    }, "fromDate toDate status leaveType periodOfLeave")
       .populate({
         path: "employee",
         select: "FirstName LastName profile",
@@ -534,9 +532,7 @@ leaveApp.get("/people-on-leave", verifyAdminHREmployeeManagerNetwork, async (req
           path: "team",
           select: "teamName"
         }
-      })
-      .lean()
-      .exec();
+      }).lean().exec();
 
     return res.status(200).send(leaveData);
   } catch (error) {
@@ -779,7 +775,7 @@ leaveApp.put("/reject-leave", async (req, res) => {
     const today = new Date();
     const endOfDay = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate(), 23, 59, 59));
 
-    const leaves = await LeaveApplication.find({
+    let leaves = await LeaveApplication.find({
       fromDate: { $lte: endOfDay },
       leaveType: { $nin: ["Unpaid Leave (LWP)"] },
       status: "pending"
@@ -789,7 +785,9 @@ leaveApp.put("/reject-leave", async (req, res) => {
       return res.status(200).send({ message: "No pending leave applications found for today." });
     }
 
-    await Promise.all(leaves.map(async (leave) => {
+    const actualLeave = leaves.filter((leave) => new Date(leave.fromDate).toLocaleDateString() !== new Date(leave.createdAt).toLocaleDateString())
+
+    await Promise.all(actualLeave.map(async (leave) => {
       let approvers = {};
       Object.entries(leave.approvers).map(([key, value]) => {
         approvers[key] = "rejected"
@@ -830,9 +828,9 @@ leaveApp.put("/reject-leave", async (req, res) => {
     return res.status(200).send({ message: "Leave rejection processed successfully." });
 
   } catch (error) {
-    await errorCollector({ url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT })
-    console.error("Error processing leave rejections:", error.message);
-    return res.status(500).send({ error: "An error occurred while processing leave rejections." });
+    // await errorCollector({ url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT })
+    console.error("Error processing leave rejections:", error);
+    return res.status(500).send({ error: error.message });
   }
 });
 
@@ -957,9 +955,9 @@ leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("pre
     }
     const [fromDateIsWeekend, toDateIsWeekend] = await Promise.all([checkDateIsWeekend(fromDateObj.toISOString()), checkDateIsWeekend(toDateObj)])
     if (fromDateIsWeekend) {
-      return res.status(400).send({ error: "Weekend are not allowed in fromDate" })
+      return res.status(400).send({ error: "Weekend is not allowed in fromDate" })
     } if (toDateIsWeekend) {
-      return res.status(400).send({ error: "Weekend are not allowed in toDate" })
+      return res.status(400).send({ error: "Weekend is not allowed in toDate" })
     }
 
     // 5. Permission Leave checks
@@ -1084,15 +1082,16 @@ leaveApp.put('/:id', verifyAdminHREmployeeManagerNetwork, async (req, res) => {
     if (!emp) return res.status(404).send({ error: 'Employee not found.' });
     if (!emp.team) return res.status(404).send({ error: `${emp.FirstName} is not assigned to a team.` });
     const leaveApplicationYear = new Date(req.body.fromDate).getFullYear();
-
     const holiday = await Holiday.findOne({ currentYear: leaveApplicationYear });
     const checkDateIsHoliday = (date, holidays = []) => holidays.some(h => new Date(h.date).toDateString() === new Date(date).toDateString());
-    const checkDateIsWeekend = (date, weeklyDays = []) => !weeklyDays.includes(new Date(date).toLocaleDateString(undefined, { weekday: 'long' }));
+    const checkDateIsWeekend = (date, weeklyDays = []) => !weeklyDays.includes(format(date, "EEEE"));
 
-    if (checkDateIsHoliday(fromDate, holiday.holidays)) return res.status(400).send("Holiday is not allowed for fromDate");
-    if (checkDateIsHoliday(toDate, holiday.holidays)) return res.status(400).send("Holiday is not allowed for toDate");
-    if (await checkDateIsWeekend(fromDate, emp.workingTimePattern.WeeklyDays)) return res.status(400).send({ error: "Weekend is not allowed in fromDate" });
-    if (await checkDateIsWeekend(toDate, emp.workingTimePattern.WeeklyDays)) return res.status(400).send({ error: "Weekend is not allowed in toDate" });
+    const actualfromDate = changeClientTimezoneDate(fromDate);
+    const actualtoDate = changeClientTimezoneDate(toDate);
+    if (checkDateIsHoliday(actualfromDate, holiday.holidays)) return res.status(400).send("Holiday is not allowed for fromDate");
+    if (checkDateIsHoliday(actualtoDate, holiday.holidays)) return res.status(400).send("Holiday is not allowed for toDate");
+    if (checkDateIsWeekend(actualfromDate, emp.workingTimePattern.WeeklyDays)) return res.status(400).send({ error: "Weekend is not allowed in fromDate" });
+    if (checkDateIsWeekend(actualtoDate, emp.workingTimePattern.WeeklyDays)) return res.status(400).send({ error: "Weekend is not allowed in toDate" });
 
     let updatedApprovers = approvers;
     if (["approved", "rejected"].includes(status)) {
@@ -1119,7 +1118,7 @@ leaveApp.put('/:id', verifyAdminHREmployeeManagerNetwork, async (req, res) => {
     updatedStatus = allApproved ? "approved" : anyRejected ? "rejected" : "pending";
     const mailList = [];
 
-    if (allApproved && !["Unpaid Leave (LWP)","Permission Leave"].includes(leaveType)) {
+    if (allApproved && !["unpaid leave (lwp)", "permission"].includes(leaveType.toLowerCase())) {
       const leaveDaysTaken = Math.max(await getDayDifference(req.body), 1);
 
       const currentValue = emp.typesOfLeaveRemainingDays?.[leaveType];

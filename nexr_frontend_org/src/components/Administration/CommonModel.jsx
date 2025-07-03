@@ -31,6 +31,7 @@ const CommonModel = ({
     const [isShowPassword, setIsShowPassword] = useState(false);
     const [remindOn, setRemindOn] = useState(dataObj?.remind?.on ? new Date(dataObj.remind.on) : null);
     const [remindFor, setRemindFor] = useState(dataObj?.remind?.for || "");
+    console.log("dataObj", dataObj);
 
     const isButtonDisabled = !(remindOn && remindFor);
 

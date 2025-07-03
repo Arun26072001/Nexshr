@@ -24,9 +24,8 @@ const JobDesk = () => {
     const [refetch, setRefetch] = useState(false);
     const [payslipData, setPayslipData] = useState({});
     const jobDeskFiles = [
-        'my-details',
-        'attendance', 'leave', "workFromHome", 'payslip', 'history',
-        'contact', 'social', 'address'
+        'my-details', 'attendance', 'leave', "workFromHome",
+        'payslip', 'history', 'contact', 'social', 'address'
     ];
 
     function changeFetching() {
@@ -53,10 +52,10 @@ const JobDesk = () => {
             try {
                 const empData = await fetchEmployeeData(data._id);
                 setEmpObj(empData);
-           } catch (error) {
-         if (error?.message === "Network Error") {
-                navigate("/network-issue")
-            }
+            } catch (error) {
+                if (error?.message === "Network Error") {
+                    navigate("/network-issue")
+                }
                 setError(error.response.data.error);
             }
         }

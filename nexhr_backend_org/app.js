@@ -187,7 +187,6 @@ async function fetchTimePatterns() {
           const response = await axios.post(`${process.env.REACT_APP_API_URL}/api/clock-ins/ontime/login`);
           console.log("Login Triggered:", response.data.message);
         } catch (error) {
-          // await errorCollector({ url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT })
           console.error("Login Error:", error.message);
         }
       });

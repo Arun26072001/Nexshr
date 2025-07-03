@@ -53,20 +53,33 @@ router.get("/members/:id", verifyTeamHigherAuthorityEmp, async (req, res) => {
     try {
         const who = req.query.who;
         // const who = req.params.who ? "lead" : req.params.who ? "head" : req.params.who ? "manager" : "employees"
-        const response = await Team.findOne({ [who]: req.params.id })
+        const response = await Team.find({ [who]: req.params.id })
             .populate({
                 path: "employees",
-                select: "_id FirstName LastName",
+                select: "FirstName LastName profile employmentType dateOfJoining gender working code docType serialNo company position department workingTimePattern role",
+                populate: [
+                        {  path: "company",    select: "_id CompanyName Town" },
+                         {   path: "position"},
+                        { path: "department" },
+                         { path: "workingTimePattern" },
+                          { path: "role" }
+                      ]
             })
-        if (!response) {
-            res.status(404).send({ message: "You haven't in any team" })
+        if (!response.length) {
+            return res.status(404).send({ message: "You haven't in any team" })
         } else {
-            res.send(response);
+            let employees = [];
+            response.map((team)=>{
+            const teamEmps = Array.isArray(team.employees) ? team.employees : [];
+            const notAddedInEmployees = teamEmps.filter((emp)=> !employees.includes(emp))
+            employees.push(...notAddedInEmployees)
+            })
+           return res.send({employees});
         }
     } catch (error) {
-await errorCollector({url: req.originalUrl, name: err.name, message: err.message, env: process.env.ENVIRONMENT})
-        console.log(err);
-        res.status(500).send({ message: "Error in get a team of Employee", details: err })
+        await errorCollector({url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT})
+        console.log("error in fetch team emps",error);
+        return res.status(500).send({ error: error.message })
     }
 })
 

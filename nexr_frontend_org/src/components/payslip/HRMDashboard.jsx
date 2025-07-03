@@ -524,7 +524,7 @@ export default function HRMDashboard() {
                     <Route path="/raise-bugs" element={<div className='text-center' style={{ justifyContent: "center", flexDirection: "row" }}>
                         <h2>If you encounter any bugs, please report them using the sheet below.</h2>
                         <button className='button' >
-                            <a href={"https://docs.google.com/spreadsheets/d/1BXfw57J6w9HL2LzsTfu5d9WrxT6L55jdlqoG09XqON0/edit?gid=263793447#gid=263793447"} target="_blank" rel="noreferrer noopener" >
+                            <a href={"https://docs.google.com/forms/d/e/1FAIpQLSdaYXBb_xrwIq_oZYGqyZh7Ez9n8Be6v5uLvf5PziaUJULf8g/viewform"} target="_blank" rel="noreferrer noopener" >
                                 Raise your bug
                             </a>
                         </button>
