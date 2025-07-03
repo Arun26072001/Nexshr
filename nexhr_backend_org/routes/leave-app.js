@@ -949,18 +949,18 @@ leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("pre
         return res.status(400).send("holiday are not allowed for toDate")
       }
     }
-    // async function checkDateIsWeekend(date) {
-    //   const timePattern = await TimePattern.findById(emp.workingTimePattern, "WeeklyDays").lean().exec();
-    //   const zonedDate = toZonedTime(date, process.env.TIMEZONE);
-    //   const isWeekend = !timePattern?.WeeklyDays.includes(format(zonedDate, "EEEE"));
-    //   return isWeekend;
-    // }
-    // const [fromDateIsWeekend, toDateIsWeekend] = await Promise.all([checkDateIsWeekend(fromDateObj.toISOString()), checkDateIsWeekend(toDateObj)])
-    // if (fromDateIsWeekend) {
-    //   return res.status(400).send({ error: "Weekend are not allowed in fromDate" })
-    // } if (toDateIsWeekend) {
-    //   return res.status(400).send({ error: "Weekend are not allowed in toDate" })
-    // }
+    async function checkDateIsWeekend(date) {
+      const timePattern = await TimePattern.findById(emp.workingTimePattern, "WeeklyDays").lean().exec();
+      const zonedDate = toZonedTime(date, process.env.TIMEZONE);
+      const isWeekend = !timePattern?.WeeklyDays.includes(format(zonedDate, "EEEE"));
+      return isWeekend;
+    }
+    const [fromDateIsWeekend, toDateIsWeekend] = await Promise.all([checkDateIsWeekend(fromDateObj.toISOString()), checkDateIsWeekend(toDateObj)])
+    if (fromDateIsWeekend) {
+      return res.status(400).send({ error: "Weekend is not allowed in fromDate" })
+    } if (toDateIsWeekend) {
+      return res.status(400).send({ error: "Weekend is not allowed in toDate" })
+    }
 
     // 5. Permission Leave checks
     if (leaveType.toLowerCase().includes("permission")) {
@@ -1084,15 +1084,16 @@ leaveApp.put('/:id', verifyAdminHREmployeeManagerNetwork, async (req, res) => {
     if (!emp) return res.status(404).send({ error: 'Employee not found.' });
     if (!emp.team) return res.status(404).send({ error: `${emp.FirstName} is not assigned to a team.` });
     const leaveApplicationYear = new Date(req.body.fromDate).getFullYear();
-
     const holiday = await Holiday.findOne({ currentYear: leaveApplicationYear });
     const checkDateIsHoliday = (date, holidays = []) => holidays.some(h => new Date(h.date).toDateString() === new Date(date).toDateString());
-    const checkDateIsWeekend = (date, weeklyDays = []) => !weeklyDays.includes(new Date(date).toLocaleDateString(undefined, { weekday: 'long' }));
+    const checkDateIsWeekend = (date, weeklyDays = []) => !weeklyDays.includes(format(date, "EEEE"));
 
-    if (checkDateIsHoliday(fromDate, holiday.holidays)) return res.status(400).send("Holiday is not allowed for fromDate");
-    if (checkDateIsHoliday(toDate, holiday.holidays)) return res.status(400).send("Holiday is not allowed for toDate");
-    if (await checkDateIsWeekend(fromDate, emp.workingTimePattern.WeeklyDays)) return res.status(400).send({ error: "Weekend is not allowed in fromDate" });
-    if (await checkDateIsWeekend(toDate, emp.workingTimePattern.WeeklyDays)) return res.status(400).send({ error: "Weekend is not allowed in toDate" });
+    const actualfromDate = changeClientTimezoneDate(fromDate);
+    const actualtoDate = changeClientTimezoneDate(toDate);
+    if (checkDateIsHoliday(actualfromDate, holiday.holidays)) return res.status(400).send("Holiday is not allowed for fromDate");
+    if (checkDateIsHoliday(actualtoDate, holiday.holidays)) return res.status(400).send("Holiday is not allowed for toDate");
+    if (checkDateIsWeekend(actualfromDate, emp.workingTimePattern.WeeklyDays)) return res.status(400).send({ error: "Weekend is not allowed in fromDate" });
+    if (checkDateIsWeekend(actualtoDate, emp.workingTimePattern.WeeklyDays)) return res.status(400).send({ error: "Weekend is not allowed in toDate" });
 
     let updatedApprovers = approvers;
     if (["approved", "rejected"].includes(status)) {
