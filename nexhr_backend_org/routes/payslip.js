@@ -1,7 +1,7 @@
 const express = require("express");
 const { Employee } = require("../models/EmpModel");
 const { Payslip } = require("../models/PaySlipModel");
-const { getWeekdaysOfCurrentMonth, sumLeaveDays } = require("../Reuseable_functions/reusableFunction");
+const { getWeekdaysOfCurrentMonth, sumLeaveDays, errorCollector } = require("../Reuseable_functions/reusableFunction");
 const { Holiday } = require("../models/HolidayModel");
 const router = express.Router();
 
@@ -22,6 +22,7 @@ router.get("/:id", async (req, res) => {
       res.send(payslip);
     }
   } catch (error) {
+    await errorCollector({ url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT })
     res.status(500).send({ error: error.message })
   }
 })
@@ -87,7 +88,8 @@ router.post("/", async (req, res) => {
     await Promise.all(payslipPromises);
     res.json({ message: `Payslips have been generated for ${payslipGendratedEmps.length} people and ${unPayslipFieldsEmps.length} people for not assign PayslipFields` });
 
-  } catch (err) {
+  } catch (error) {
+    await errorCollector({ url: req.originalUrl, name: err.name, message: err.message, env: process.env.ENVIRONMENT })
     console.error("Error generating payslips:", err);
     res.status(500).json({ message: "An error occurred while generating payslips", error: err.message });
   }
@@ -107,7 +109,8 @@ router.get("/emp/:empId", async (req, res) => {
       conflitPayslips,
       successPayslips
     })
-  } catch (err) {
+  } catch (error) {
+    await errorCollector({ url: req.originalUrl, name: err.name, message: err.message, env: process.env.ENVIRONMENT })
     res.status(500).send({ error: err.message })
   }
 })

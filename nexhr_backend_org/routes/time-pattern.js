@@ -6,7 +6,7 @@ const { verifyAdminHR, verifyAdminHREmployeeManagerNetwork } = require('../auth/
 const { Employee } = require('../models/EmpModel');
 const { sendPushNotification } = require('../auth/PushNotification');
 const sendMail = require('./mailSender');
-const { changeClientTimezoneDate } = require('../Reuseable_functions/reusableFunction');
+const { changeClientTimezoneDate, errorCollector } = require('../Reuseable_functions/reusableFunction');
 
 router.get("/", verifyAdminHREmployeeManagerNetwork, (req, res) => {
   TimePattern.find()
@@ -39,6 +39,7 @@ router.post("/", verifyAdminHR, async (req, res) => {
     return res.send({ message: `${req.body.PatternName} pattern has been added successfully`, pattern: addPattern })
 
   } catch (error) {
+    await errorCollector({ url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT })
     return res.status(500).send({ error: error.message })
   }
 })
@@ -146,6 +147,7 @@ router.put("/:id", verifyAdminHR, async (req, res) => {
     });
     return res.send({ message: `${req.body.PatternName} Pattern updated successfully`, updatedPattern, notifiedPeoples: notify })
   } catch (error) {
+    await errorCollector({ url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT })
     return res.status(500).send({ error: error.message })
   }
 })
@@ -160,6 +162,7 @@ router.delete("/:id", verifyAdminHR, async (req, res) => {
     const deletePattern = await TimePattern.findByIdAndRemove(req.params.id);
     return res.send({ message: `${deletePattern.PatternName} pattern deleted successfully` })
   } catch (error) {
+    await errorCollector({ url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT })
     console.log("error in delete timePattern", error);
     return res.status(500).send({ error: error.message })
   }

@@ -5,6 +5,7 @@ const { verifyAdminHR, verifyAdminHREmployeeManagerNetwork } = require('../auth/
 const { RoleAndPermission } = require('../models/RoleModel');
 const { userPermissionsValidation, UserPermission } = require('../models/UserPermissionModel');
 const { PageAuth, pageAuthValidation } = require('../models/PageAuth');
+const { errorCollector } = require('../Reuseable_functions/reusableFunction');
 
 // get role by roleName
 router.get("/name", verifyAdminHR, async (req, res) => {
@@ -43,6 +44,7 @@ router.get("/name", verifyAdminHR, async (req, res) => {
       res.send(role)
     }
   } catch (error) {
+    await errorCollector({ url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT })
     console.log(error);
     res.status(500).send({ error: error.message })
   }
@@ -63,6 +65,7 @@ router.get("/:id", verifyAdminHR, async (req, res) => {
       res.send(role);
     }
   } catch (error) {
+    await errorCollector({ url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT })
     res.status(500).send({ error: error.message })
   }
 });
@@ -118,6 +121,7 @@ router.post('/', verifyAdminHR, async (req, res) => {
     const role = await RoleAndPermission.create(finalRoleData);
     res.send({ message: `${role.RoleName} Role and permission has been added!` });
   } catch (error) {
+    await errorCollector({ url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT })
     res.status(500).send({ error: error.message });
   }
 });
@@ -191,6 +195,7 @@ router.put('/:id', verifyAdminHR, async (req, res) => {
 
     return res.send({ message: `${updatedRole.RoleName} Authorization has been updated!` });
   } catch (error) {
+    await errorCollector({ url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT })
     console.log(error);
     return res.status(500).send({ error: error.message });
   }
@@ -211,6 +216,7 @@ router.delete("/:id", verifyAdminHR, async (req, res) => {
       res.status(400).send({ message: "Please remove Employees from this role!" })
     }
   } catch (error) {
+    await errorCollector({ url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT })
     res.status(500).send({ error: error.message })
   }
 })

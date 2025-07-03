@@ -8,6 +8,7 @@ const isBetween = require('dayjs/plugin/isBetween');
 const { PlannerCategory } = require("../models/PlannerCategoryModel");
 const { Holiday } = require("../models/HolidayModel");
 const { Employee } = require("../models/EmpModel");
+const { ErrorLog } = require("../models/ErrorLogModel");
 
 dayjs.extend(isSameOrBefore);
 dayjs.extend(isSameOrAfter);
@@ -514,5 +515,13 @@ function formatDate(date) {
   return `${dateValue + " " + monthString + " " + String(actualDate.getHours()).padStart(2, "0") + ":" + String(actualDate.getMinutes()).padStart(2, "0")}`
 }
 
+async function errorCollector(errorLog) {
+  try {
+    const addLog = await ErrorLog.create(errorLog);
+    console.log("error log recoderd.", addLog)
+  } catch (error) {
+    console.log("error in add errorLog", error);
+  }
+}
 
-module.exports = { convertToString, getTotalWorkingHourPerDay, getTotalWorkingHourPerDayByDate, accountFromRole, changeClientTimezoneDate, sumLeaveDays, getValidLeaveDays, fetchFirstTwoItems, getCurrentTime, checkLoginForOfficeTime, categorizeTasks, projectMailContent, processActivityDurations, formatLeaveData, getDayDifference, getOrgDB, formatDate, getWeekdaysOfCurrentMonth, mailContent, checkLogin, getTotalWorkingHoursExcludingWeekends, getCurrentTimeInMinutes, timeToMinutes, formatTimeFromMinutes };
+module.exports = { convertToString, errorCollector, getTotalWorkingHourPerDay, getTotalWorkingHourPerDayByDate, accountFromRole, changeClientTimezoneDate, sumLeaveDays, getValidLeaveDays, fetchFirstTwoItems, getCurrentTime, checkLoginForOfficeTime, categorizeTasks, projectMailContent, processActivityDurations, formatLeaveData, getDayDifference, getOrgDB, formatDate, getWeekdaysOfCurrentMonth, mailContent, checkLogin, getTotalWorkingHoursExcludingWeekends, getCurrentTimeInMinutes, timeToMinutes, formatTimeFromMinutes };

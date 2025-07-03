@@ -4,6 +4,7 @@ const { verifyAdminHREmployeeManagerNetwork, verifyAdmin } = require('../auth/au
 const { CountryValidation } = require('../models/CountryModel');
 const fs = require('fs');
 const path = require('path');
+const { errorCollector } = require('../Reuseable_functions/reusableFunction');
 const configPath = path.join(__dirname, '../countriesData/countryCode.json');
 
 // Read JSON file
@@ -22,6 +23,7 @@ router.get("/", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
         const rawData = readData();
         return res.send(rawData);
     } catch (error) {
+        await errorCollector({ url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT })
         res.status(500).send({ error: error.message })
     }
 })
@@ -37,6 +39,7 @@ router.get("/:name", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
             return res.status(404).send({ error: `States data not found in ${req.params.name}` })
         }
     } catch (error) {
+        await errorCollector({ url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT })
         return res.status(500).send({ error: error.message })
     }
 })
@@ -63,6 +66,7 @@ router.post("/", verifyAdmin, async (req, res) => {
         res.status(201).send({ message: "New country is Add successfully" });
 
     } catch (error) {
+        await errorCollector({ url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT })
         res.status(500).json({ error: error.message });
     }
 })
@@ -80,6 +84,7 @@ router.put("/:code", verifyAdmin, async (req, res) => {
         return res.json({ message: "Country is updated successfully", data: countries[index] });
 
     } catch (error) {
+        await errorCollector({ url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT })
         console.error(error);
         return res.status(500).json({ error: error.message });
     }

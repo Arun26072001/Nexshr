@@ -2,6 +2,7 @@ const express = require("express");
 const { verifyAdminHREmployeeManagerNetwork } = require("../auth/authMiddleware");
 const { PlannerCategory } = require("../models/PlannerCategoryModel");
 const { PlannerType } = require("../models/PlannerTypeModel");
+const { errorCollector } = require("../Reuseable_functions/reusableFunction");
 const router = express.Router();
 
 router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
@@ -9,14 +10,15 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
         if (![" ", null, "undefined"].includes(req.body.name)) {
             // add planner in planner collection
             const add = await PlannerCategory.create(req.body);
-            const empPlanner = await PlannerType.findOne({employee: req.params.id}).exec();
+            const empPlanner = await PlannerType.findOne({ employee: req.params.id }).exec();
             empPlanner.categories.push(add._id);
             await empPlanner.save();
-            return res.send({message: `${add.name} category has been added successfully`})
+            return res.send({ message: `${add.name} category has been added successfully` })
         } else {
             return res.status(400).send({ error: "Category name is required" })
         }
     } catch (error) {
+        await errorCollector({ url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT })
         console.error("error in add category", error);
         return res.status(500).send({ error: error.message })
     }

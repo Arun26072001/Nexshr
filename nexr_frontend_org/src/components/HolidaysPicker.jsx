@@ -190,7 +190,7 @@ function Holiday() {
                                     multiple
                                     format="YYYY-MM-DD"
                                     value={holidays}
-                                    onChange={(dates) => setHolidays(dates.map(d => d.format("YYYY-MM-DD")))}
+                                    onChange={(dates) => setHolidays(Array.isArray(dates) && dates.length > 0 ? dates.map(d => d.format("YYYY-MM-DD")) : [])}
                                     style={{ height: "40px", width: "100%" }}
                                     plugins={[<DatePanel key="panel" />, weekends()]}
                                     placeholder="Select holidays"

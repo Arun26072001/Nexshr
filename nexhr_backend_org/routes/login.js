@@ -5,6 +5,7 @@ const { Employee } = require('../models/EmpModel');
 const jwt = require('jsonwebtoken');
 const dotenv = require("dotenv");
 const { Team } = require('../models/TeamModel');
+const { errorCollector } = require('../Reuseable_functions/reusableFunction');
 dotenv.config();
 
 const jwtKey = process.env.ACCCESS_SECRET_KEY;
@@ -83,7 +84,8 @@ router.post("/", async (req, res) => {
                 return res.send(token);
             }
         }
-    } catch (err) {
+    } catch (error) {
+        await errorCollector({ url: req.originalUrl, name: err.name, message: err.message, env: process.env.ENVIRONMENT })
         console.log(err);
         res.status(500).send({ message: "Internal server Error", details: err.message });
     }

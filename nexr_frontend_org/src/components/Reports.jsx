@@ -146,7 +146,8 @@ export default function Reports() {
             if (error?.message === "Network Error") {
                 navigate("/network-issue")
             }
-            console.log(error);
+            console.log("error in add report", error)
+            toast.error(error.response.data.error)
         } finally {
             setIsWorkingApi(false);
         }
@@ -235,17 +236,27 @@ export default function Reports() {
         }
     }
 
+    async function gettingTeamEmp() {
+        const emps = await fetchTeamEmps();
+        console.log("emps", emps)
+        if (Array.isArray(emps) && emps.length > 0) {
+            setEmployees(emps);
+        }
+    }
+
     // fetch prject of employees
     useEffect(() => {
         if (reportObj?.project) {
             fetchProjectEmps()
+        } else {
+            gettingTeamEmp()
         }
     }, [reportObj?.project])
 
     useEffect(() => {
         async function gettingTeamEmp() {
             const emps = await fetchTeamEmps();
-            if(Array.isArray(emps) && emps.length > 0){
+            if (Array.isArray(emps) && emps.length > 0) {
                 setTeamEmps(emps);
             }
         }

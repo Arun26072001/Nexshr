@@ -5,7 +5,7 @@ const { WFHAppValidation, WFHApplication } = require("../models/WFHApplicationMo
 const { Employee } = require("../models/EmpModel");
 const sendMail = require("./mailSender");
 const { Team } = require("../models/TeamModel");
-const { formatDate, mailContent, sumLeaveDays, accountFromRole, changeClientTimezoneDate } = require("../Reuseable_functions/reusableFunction");
+const { formatDate, mailContent, sumLeaveDays, accountFromRole, changeClientTimezoneDate, errorCollector } = require("../Reuseable_functions/reusableFunction");
 const { sendPushNotification } = require("../auth/PushNotification");
 const { Holiday } = require("../models/HolidayModel");
 const { TimePattern } = require("../models/TimePatternModel");
@@ -203,6 +203,7 @@ router.get("/make-know", async (req, res) => {
 
         res.status(200).json({ message: "Notifications sent to pending approvers." });
     } catch (error) {
+        await errorCollector({ url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT })
         console.error("Error in /make-know:", error);
         res.status(500).json({ error: "An error occurred while notifying higher authorities." });
     }
@@ -358,6 +359,7 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
 
         return res.status(201).json({ message: "WFH request has been sent to higher authority", application, notifiedMembers: notify });
     } catch (error) {
+        await errorCollector({ url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT })
         console.error(error);
         return res.status(500).json({ error: error.message });
     }
@@ -383,6 +385,7 @@ router.get("/on-wfh", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
             }).lean().exec();
         return res.send(data);
     } catch (error) {
+        await errorCollector({ url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT })
         console.log(error);
         return res.status(500).send({ error: error.message })
     }
@@ -407,6 +410,7 @@ router.get("/check-wfh/:id", verifyAdminHREmployeeManagerNetwork, async (req, re
         }
         return res.send(wfhEmp);
     } catch (error) {
+        await errorCollector({ url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT })
         return res.status(500).send({ error: error.message })
     }
 })
@@ -454,6 +458,7 @@ router.get("/", verifyAdminHR, async (req, res) => {
             "upcommingRequests": upcomingrequestDays
         });
     } catch (error) {
+        await errorCollector({ url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT })
         console.log("error in get month wfh", error);
         return res.status(500).send({ error: error.message })
     }
@@ -464,6 +469,7 @@ router.get("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
         const data = await WFHApplication.findById(req.params.id);
         return res.send(data);
     } catch (error) {
+        await errorCollector({ url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT })
         return res.status(500).send({ error: error.message })
     }
 })
@@ -507,6 +513,7 @@ router.get("/employee/:id", verifyAdminHREmployeeManagerNetwork, async (req, res
             upcommingRequests: upCommingReqDays
         });
     } catch (error) {
+        await errorCollector({ url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT })
         return res.status(500).send({ error: error.message })
     }
 })
@@ -555,6 +562,7 @@ router.get("/team/:id", verifyTeamHigherAuthority, async (req, res) => {
             "upcommingRequests": upCommingReqDays
         });
     } catch (error) {
+        await errorCollector({ url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT })
         return res.status(500).send({ error: error.message })
     }
 })
@@ -680,6 +688,7 @@ router.put("/reject-wfh", async (req, res) => {
         return res.status(200).send({ message: "WFH rejection processed successfully." });
 
     } catch (error) {
+        await errorCollector({ url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT })
         console.error("Error processing WFH rejections:", error);
         return res.status(500).send({ error: error.message });
     }
@@ -883,6 +892,7 @@ router.put("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
             notifiedMembers: members
         });
     } catch (error) {
+        await errorCollector({ url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT })
         console.error("Error in update WFH:", error);
         res.status(500).json({ error: error.message });
     }
@@ -902,6 +912,7 @@ router.delete("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
         return res.send({ message: `WFH request has been deleted successfully` })
 
     } catch (error) {
+        await errorCollector({ url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT })
         return res.status(500).send({ error: error.message })
     }
 })

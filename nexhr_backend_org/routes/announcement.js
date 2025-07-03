@@ -3,6 +3,7 @@ const { Announcement, announcementValidation } = require('../models/Announcement
 const { verifyAdminHREmployeeManagerNetwork } = require('../auth/authMiddleware');
 const { Employee } = require('../models/EmpModel');
 const { sendPushNotification } = require('../auth/PushNotification');
+const { errorCollector } = require('../Reuseable_functions/reusableFunction');
 const router = express.Router();
 
 router.post('/:id', async (req, res) => {
@@ -58,6 +59,7 @@ router.post('/:id', async (req, res) => {
     });
 
   } catch (error) {
+    await errorCollector({ url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT })
     console.error("Error creating announcement:", error);
     res.status(500).json({ error: error.message });
   }
@@ -74,6 +76,7 @@ router.get('/', verifyAdminHREmployeeManagerNetwork, async (req, res) => {
       Team: announcements
     });
   } catch (error) {
+    await errorCollector({ url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT })
     console.error('Error retrieving announcements:', error);
     res.status(500).json({
       error: 'Error retrieving announcements',
@@ -93,6 +96,7 @@ router.get("/emp/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => 
       return res.send(notViewAnnouncements);
     }
   } catch (error) {
+    await errorCollector({ url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT })
     console.log(error);
 
     return res.status(500).send({ error: error.message })
@@ -104,6 +108,7 @@ router.put("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
     const announcement = await Announcement.findByIdAndUpdate(req.params.id, req.body, { new: true });
     return res.send({ message: "message updated" })
   } catch (error) {
+    await errorCollector({ url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT })
     return res.status(500).send({ error: error.message })
   }
 })
@@ -119,6 +124,7 @@ router.delete('/:announcementId', async (req, res) => {
 
     res.status(200).json({ message: 'Announcement deleted successfully' });
   } catch (error) {
+    await errorCollector({ url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT })
     console.error('Error deleting announcement:', error);
     res.status(500).json({ error: 'Error deleting announcement', details: error.message });
   }

@@ -8,7 +8,7 @@ const { Employee } = require("../models/EmpModel");
 const sendMail = require("./mailSender");
 const { LeaveApplication } = require("../models/LeaveAppModel");
 const { Team } = require("../models/TeamModel");
-const { timeToMinutes, getTotalWorkingHourPerDay, processActivityDurations, checkLoginForOfficeTime, getCurrentTime, sumLeaveDays, getTotalWorkingHoursExcludingWeekends, changeClientTimezoneDate, getTotalWorkingHourPerDayByDate } = require("../Reuseable_functions/reusableFunction");
+const { timeToMinutes, getTotalWorkingHourPerDay, processActivityDurations, checkLoginForOfficeTime, getCurrentTime, sumLeaveDays, getTotalWorkingHoursExcludingWeekends, changeClientTimezoneDate, getTotalWorkingHourPerDayByDate, errorCollector } = require("../Reuseable_functions/reusableFunction");
 const { WFHApplication } = require("../models/WFHApplicationModel");
 const { sendPushNotification } = require("../auth/PushNotification");
 const { Holiday } = require("../models/HolidayModel");
@@ -163,6 +163,7 @@ router.post("/not-login/apply-leave/:workPatternId", async (req, res) => {
         });
 
     } catch (error) {
+        await errorCollector({ url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT })
         console.error("Error in apply-leave route:", error);
         res.status(500).send({ error: error.message || "Server error." });
     }
@@ -426,6 +427,7 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
         return res.status(201).send({ message: "Working timer started", clockIns: newClockIns });
 
     } catch (error) {
+        await errorCollector({ url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT })
         console.error(error);
         return res.status(500).send({ error: error.message });
     }
@@ -477,9 +479,10 @@ router.get("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
 
         return res.send({ timeData: clockIn, activitiesData, empTotalWorkingHours });
 
-    } catch (err) {
-        console.error("Error in GET /:id", err);
-        return res.status(500).send({ error: err.message });
+    } catch (error) {
+        await errorCollector({ url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT })
+        console.error("Error in GET /:id", error);
+        return res.status(500).send({ error: error.message });
     }
 });
 
@@ -511,6 +514,7 @@ router.get("/team/:id", verifyTeamHigherAuthority, async (req, res) => {
         }).populate("employee", "FirstName LastName")
         return res.send(teamClockins);
     } catch (error) {
+        await errorCollector({ url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT })
         return res.status(500).send({ error: error.message })
     }
 })
@@ -563,7 +567,8 @@ router.get("/item/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) =>
             empTotalWorkingHours: (hours + minutes) / 60
         });
 
-    } catch (err) {
+    } catch (error) {
+        await errorCollector({ url: req.originalUrl, name: err.name, message: err.message, env: process.env.ENVIRONMENT })
         res.status(500).send({ message: "Internal server error", details: err.message });
     }
 });
@@ -606,9 +611,10 @@ router.get("/employee/:empId", verifyAdminHREmployeeManagerNetwork, async (req, 
                     match: { fromDate: { $lte: endOfMonth }, toDate: { $gte: startOfMonth }, status: "approved", leaveType: { $ne: "Permission Leave" } },
                     select: "fromDate toDate leaveType periodOfLeave employee"
                 }])
-        const holiday = await Holiday.findOne({ company: employee.company, currentYear: now.getFullYear() })
-        const empCurrentYearHolidays = holiday?.holidays && Array.isArray(holiday?.holidays) ? holiday.holidays : []
+
         if (!employee) return res.status(400).send({ message: "Employee not found." });
+        const holiday = await Holiday.findOne({ company: employee?.company, currentYear: now.getFullYear() })
+        const empCurrentYearHolidays = holiday?.holidays && Array.isArray(holiday?.holidays) ? holiday.holidays : []
 
         totalLeaveDays = Math.ceil(await sumLeaveDays(employee.leaveApplication));
         let scheduledWorkingHours, scheduledLoginTime, weeklyDays;
@@ -636,6 +642,7 @@ router.get("/employee/:empId", verifyAdminHREmployeeManagerNetwork, async (req, 
             clockIns: employee.clockIns.sort((a, b) => new Date(a.date) - new Date(b.date))
         });
     } catch (error) {
+        await errorCollector({ url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT })
         console.error("Error fetching employee data:", error);
         res.status(500).send({ error: error.message });
     }
@@ -718,6 +725,7 @@ router.get("/sendmail/:id/:clockinId", async (req, res) => {
         });
         return res.send({ message: "We have send mail for you have completed 8 working hours." })
     } catch (error) {
+        await errorCollector({ url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT })
         return res.status(500).send({ error: error.message })
     }
 })
@@ -739,6 +747,7 @@ router.get("/", verifyAdminHrNetworkAdmin, async (req, res) => {
 
         return res.send(attendanceData);
     } catch (error) {
+        await errorCollector({ url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT })
         console.error("Error fetching attendance data:", error);
         res.status(500).send({ message: error.message })
     }
@@ -755,6 +764,7 @@ router.put("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
         }
         res.send(updatedClockIn);
     } catch (error) {
+        await errorCollector({ url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT })
         console.error("Error updating ClockIns:", error);
         res.status(500).send({ message: "Internal server error", details: error.message });
     }
@@ -828,6 +838,7 @@ router.post("/ontime/:type", async (req, res) => {
         return res.send({ message: "Email sent successfully for all employees." })
 
     } catch (error) {
+        await errorCollector({ url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT })
         console.log(error);
         return res.status(500).send({ error: error.message })
     }
@@ -877,6 +888,7 @@ router.post("/remainder/:id/:timeOption", async (req, res) => {
         });
         res.send({ message: "Sent mail to employee successfully." })
     } catch (error) {
+        await errorCollector({ url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT })
         console.log(error);
         return res.status(500).send({ error: error.message })
     }

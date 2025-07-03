@@ -3,6 +3,7 @@ const router = express.Router();
 const Joi = require('joi');
 const { CompanySettings, CompanySettingsValidation } = require('../models/SettingsModel');
 const { verifyAdminHR } = require('../auth/authMiddleware');
+const { errorCollector } = require('../Reuseable_functions/reusableFunction');
 
 
 router.get("/", verifyAdminHR, async (req, res) => {
@@ -10,6 +11,7 @@ router.get("/", verifyAdminHR, async (req, res) => {
     const settings = await CompanySettings.findOne({}).exec();
     return res.send(settings)
   } catch (error) {
+    await errorCollector({ url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT })
     return res.status(500).send({ error: error.message })
   }
 })

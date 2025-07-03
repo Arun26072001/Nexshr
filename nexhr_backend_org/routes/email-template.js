@@ -1,6 +1,7 @@
 const express = require("express");
 const { verifyAdminHR } = require("../auth/authMiddleware");
 const { EmailtempValidation, EmailTemplate } = require("../models/EmailTemplateModel");
+const { errorCollector } = require("../Reuseable_functions/reusableFunction");
 const router = express.Router();
 
 // add email template
@@ -19,6 +20,7 @@ router.post("/:id", verifyAdminHR, async (req, res) => {
         const addTemp = await EmailTemplate.create(newTemp);
         return res.send({ message: `${addTemp.title} email template created successfully` })
     } catch (error) {
+        await errorCollector({ url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT })
         console.log("error in add email temp", error);
         return res.status(500).send({ error: error.message })
     }
@@ -30,6 +32,7 @@ router.get("/", verifyAdminHR, async (req, res) => {
         const templates = await EmailTemplate.find().lean().exec();
         return res.send(templates);
     } catch (error) {
+        await errorCollector({ url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT })
         console.log("error in fetch templates", error);
         return res.status(500).send({ error: error.message })
     }
@@ -45,6 +48,7 @@ router.put("/:id", verifyAdminHR, async (req, res) => {
         const updatedTemp = await EmailTemplate.findByIdAndUpdate(req.params.id, req.body, { new: true });
         return res.send({ message: `${updatedTemp.title} has been updated successfully` })
     } catch (error) {
+        await errorCollector({ url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT })
         return res.status(500).send({ error: error.message })
     }
 })

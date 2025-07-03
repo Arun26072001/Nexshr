@@ -8,6 +8,7 @@ const { Department } = require('../models/DepartmentModel');
 const { Position } = require('../models/PositionModel');
 const path = require("path");
 const fs = require("fs");
+const { errorCollector } = require('../Reuseable_functions/reusableFunction');
 
 router.get("/", verifyAdminHREmployeeManagerNetwork, (req, res) => {
   Company.find({}, "CompanyName").lean()
@@ -29,6 +30,7 @@ router.get("/:id", verifyAdminHR, async (req, res) => {
       return res.send(company);
     }
   } catch (error) {
+    await errorCollector({ url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT })
     return res.status(500).send({ error: error.message })
   }
 })
@@ -37,7 +39,7 @@ router.post("/", verifyAdminHR, async (req, res) => {
   try {
     // Validate request body
     await CompanyValidation.validateAsync(req.body);
-    
+
 
     // Check if company already exists
     const companyExists = await Company.exists({ CompanyName: req.body.CompanyName });
@@ -50,6 +52,7 @@ router.post("/", verifyAdminHR, async (req, res) => {
     return res.status(201).send({ message: "New company added successfully", company });
 
   } catch (error) {
+    await errorCollector({ url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT })
     if (error.isJoi) {
       return res.status(400).send({ error: error.details[0].message });
     }
@@ -76,6 +79,7 @@ router.put("/:id", verifyAdminHR, async (req, res) => {
             console.log(`Deleted old profile image: ${filename}`);
           }
         } catch (error) {
+          await errorCollector({ url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT })
           console.error("Error deleting profile image:", error.message);
         }
       }
@@ -84,6 +88,7 @@ router.put("/:id", verifyAdminHR, async (req, res) => {
       return res.send({ message: `${updateCompany.CompanyName} company is updated successfully` })
     }
   } catch (error) {
+    await errorCollector({ url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT })
     console.log("error in update company", error);
     return res.status(500).send({ erorr: error.message })
   }
@@ -99,8 +104,9 @@ router.delete("/:id", verifyAdminHR, async (req, res) => {
       return res.status(400).send({ error: "Some Postions data are using this Comapany, Please remove them" })
     }
     const delte = await Company.findByIdAndDelete(req.params.id);
-    return res.send({ message:`${delte?.CompanyName} Company has been deleted` })
+    return res.send({ message: `${delte?.CompanyName} Company has been deleted` })
   } catch (error) {
+    await errorCollector({ url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT })
     return res.status(500).send({ error: error.message })
   }
 })

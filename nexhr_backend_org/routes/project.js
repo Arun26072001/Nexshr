@@ -6,7 +6,7 @@ const { Task } = require('../models/TaskModel');
 const sendMail = require('./mailSender');
 const { Employee } = require('../models/EmpModel');
 const { Report } = require('../models/ReportModel');
-const { convertToString, projectMailContent } = require('../Reuseable_functions/reusableFunction');
+const { convertToString, projectMailContent, errorCollector } = require('../Reuseable_functions/reusableFunction');
 const { sendPushNotification } = require('../auth/PushNotification');
 const { PlannerCategory } = require('../models/PlannerCategoryModel');
 const { PlannerType } = require('../models/PlannerTypeModel');
@@ -19,6 +19,7 @@ router.get("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
     }
     return res.send(project);
   } catch (error) {
+    await errorCollector({ url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT })
     return res.status(500).send({ error: error.message })
   }
 });
@@ -46,6 +47,7 @@ router.get("/", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
 
     res.send(formattedProjects);
   } catch (error) {
+    await errorCollector({ url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT })
     console.error("Error fetching projects:", error);
     res.status(500).send({ error: "An error occurred while fetching projects." });
   }
@@ -60,6 +62,7 @@ router.get("/employees/:projectId", verifyAdminHREmployeeManagerNetwork, async (
       return res.status(404).send([])
     }
   } catch (error) {
+    await errorCollector({ url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT })
     return res.status(500).send({ error: error.message })
   }
 })
@@ -87,6 +90,7 @@ router.get("/emp/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => 
 
     return res.send(formattedProjects);
   } catch (error) {
+    await errorCollector({ url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT })
     console.log("error in fetch emp projects", error);
     return res.status(500).send({ error: error.message })
   }
@@ -192,6 +196,7 @@ router.post("/:id", verifyAdminHRTeamHigherAuth, async (req, res) => {
     });
 
   } catch (error) {
+    await errorCollector({ url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT })
     console.error(error);
     return res.status(500).send({ error: error.message || "Server error occurred." });
   }
@@ -317,7 +322,8 @@ router.put("/:empId/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) 
       addPlannerFor
     });
 
-  } catch (err) {
+  } catch (error) {
+    await errorCollector({ url: req.originalUrl, name: err.name, message: err.message, env: process.env.ENVIRONMENT })
     console.error(err);
     return res.status(500).send({ error: err.message || "Internal Server Error" });
   }
@@ -352,6 +358,7 @@ router.delete("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
 
     return res.send({ message: "Project and Tasks were put in trash" });
   } catch (error) {
+    await errorCollector({ url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT })
     console.log("error in delete project", error);
     return res.status(500).send({ error: error.message });
   }

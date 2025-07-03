@@ -1,7 +1,7 @@
 const admin = require("./firebase-admin");
 const { Employee } = require("../models/EmpModel");
 const axios = require("axios");
-const { getCurrentTimeInMinutes, timeToMinutes, getTotalWorkingHourPerDay, getTotalWorkingHourPerDayByDate } = require("../Reuseable_functions/reusableFunction");
+const { getCurrentTimeInMinutes, timeToMinutes, getTotalWorkingHourPerDayByDate } = require("../Reuseable_functions/reusableFunction");
 
 exports.sendPushNotification = async (msgObj) => {
     const { token, title, body } = msgObj;
@@ -21,13 +21,13 @@ exports.sendPushNotification = async (msgObj) => {
             }
         };
 
-
         await admin.messaging().send(message).then((res) => {
             console.log("successfully notification triggered", res);
         }).catch((err) => {
             console.log(`error in pushnotification for: ${msgObj?.name}`, err);
         })
     } catch (error) {
+        await errorCollector({ url: "push-notifcation", name: error.name, message: error.message, env: process.env.ENVIRONMENT })
         console.error("Error sending notification:", error);
         return;
     }
@@ -75,6 +75,7 @@ exports.verifyWorkingTimeCompleted = async (req, res) => {
         }
         return res.send({ isCompleteworkingHours })
     } catch (error) {
+        await errorCollector({ url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT })
         console.log("error in check working hour is complated", error);
         return res.status(500).send({ error: error.message })
     }
@@ -139,6 +140,7 @@ exports.askReasonForDelay = (req, res) => {
 
         return res.send({ message: "Enabled ask reason for late" });
     } catch (error) {
+        // await errorCollector({ url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT })
         return res.status(500).send({ error: error.message });
     }
 };

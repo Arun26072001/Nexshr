@@ -19,12 +19,12 @@ const Report = mongoose.model("Report", reportSchema);
 const ReportValidation = Joi.object({
     _id: Joi.string().allow('').label('_id'),
     __v: Joi.string().allow(0).label('__v'),
-    name: Joi.string().disallow(null, '', 'none', 'undefined').required(), // Name is a required string
+    name: Joi.string().disallow(null, ' ', 'none', 'undefined').required(), // Name is a required string
     department: Joi.string().regex(/^[0-9a-fA-F]{24}$/).required(), // Must be a valid ObjectId
     startDate: Joi.date().required(), // Must be a valid date
     endDate: Joi.date().greater(Joi.ref("startDate")).required(), // Must be a valid date and later than startDate
     company: Joi.string().regex(/^[0-9a-fA-F]{24}$/).required(), // Must be a valid ObjectId
-    project: Joi.string().regex(/^[0-9a-fA-F]{24}$/).optional(), // Optional ObjectId
+    project: Joi.string().regex(/^[0-9a-fA-F]{24}$/).required(), // Optional ObjectId
     employees: Joi.array()
         .items(Joi.string().regex(/^[0-9a-fA-F]{24}$/))
         .required(), // Array of ObjectIds

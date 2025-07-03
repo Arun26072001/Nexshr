@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { WorkPlace, WorkPlaceValidation } = require('../models/WorkPlaceModel');
 const { verifyAdminHR } = require('../auth/authMiddleware');
+const { errorCollector } = require('../Reuseable_functions/reusableFunction');
 
 router.get("/", verifyAdminHR, async (req, res) => {
   try {
@@ -11,7 +12,8 @@ router.get("/", verifyAdminHR, async (req, res) => {
     } else {
       return res.status(200).send([])
     }
-  } catch (err) {
+  } catch (error) {
+await errorCollector({url: req.originalUrl, name: err.name, message: err.message, env: process.env.ENVIRONMENT})
     res.status(500).send({ error: err.message })
   }
 })
@@ -23,7 +25,8 @@ router.get("/:id", verifyAdminHR, async (req, res) => {
       return res.status(404).send({ message: "No work place found!" });
     }
     res.send(workPlace);
-  } catch (err) {
+  } catch (error) {
+await errorCollector({url: req.originalUrl, name: err.name, message: err.message, env: process.env.ENVIRONMENT})
     res.status(500).send({ error: err.message });
   }
 });
@@ -44,6 +47,7 @@ router.post("/", verifyAdminHR, async (req, res) => {
       return res.send({ message: `${req.body.CompanyName} workplace has been created successfully`, workPlace })
     }
   } catch (error) {
+await errorCollector({url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT})
     return res.status(500).send({ error: error.message })
   }
 });
@@ -58,6 +62,7 @@ router.put("/:id", verifyAdminHR, async (req, res) => {
       return res.send({ message: `${updatedData.CompanyName} workplace has been updated successfully` })
     }
   } catch (error) {
+await errorCollector({url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT})
     return res.status(500).send({ error: error.message })
   }
 })
@@ -71,6 +76,7 @@ router.delete("/:id", verifyAdminHR, async (req, res) => {
     const deleteData = await WorkPlace.findByIdAndDelete(req.params.id);
     return res.send({ message: `${deleteData.CompanyName} workplace has been delete successfully` })
   } catch (error) {
+await errorCollector({url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT})
     return res.status(500).send({ error: error.message })
   }
 })

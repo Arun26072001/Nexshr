@@ -3,6 +3,7 @@ const router = express.Router()
 const { Department, DepartmentValidation, departmentSchema } = require('../models/DepartmentModel');
 const { Employee } = require('../models/EmpModel');
 const { verifyAdminHR, verifyAdminHREmployeeManagerNetwork } = require('../auth/authMiddleware');
+const { errorCollector } = require('../Reuseable_functions/reusableFunction');
 
 router.get("/", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
   try {
@@ -14,7 +15,8 @@ router.get("/", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
         select: '_id CompanyName'
       }).lean();
     res.send(departments);
-  } catch (err) {
+  } catch (error) {
+    await errorCollector({ url: req.originalUrl, name: err.name, message: err.message, env: process.env.ENVIRONMENT })
     res.status(500).send({ error: err.message });
   }
 });
@@ -23,7 +25,8 @@ router.get("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
   try {
     const department = await Department.findById(req.params.id).lean()
     res.send(department);
-  } catch (err) {
+  } catch (error) {
+    await errorCollector({ url: req.originalUrl, name: err.name, message: err.message, env: process.env.ENVIRONMENT })
     res.status(500).send({ error: err.message });
   }
 });
@@ -45,7 +48,8 @@ router.post("/", verifyAdminHR, async (req, res) => {
     const newDepartment = await Department.create(req.body);
 
     res.send({ message: `${newDepartment.DepartmentName} department has been added!` });
-  } catch (err) {
+  } catch (error) {
+    await errorCollector({ url: req.originalUrl, name: err.name, message: err.message, env: process.env.ENVIRONMENT })
     console.error(err);
     res.status(500).send({ error: err.message });
   }
@@ -74,7 +78,8 @@ router.put("/:id", verifyAdminHR, async (req, res) => {
     }
 
     res.send({ message: "Department has been updated!" });
-  } catch (err) {
+  } catch (error) {
+    await errorCollector({ url: req.originalUrl, name: err.name, message: err.message, env: process.env.ENVIRONMENT })
     console.error(err);
     res.status(500).send({ message: "Internal server error." });
   }
@@ -99,7 +104,8 @@ router.delete("/:id", verifyAdminHR, async (req, res) => {
     }
 
     res.send({ message: "Department has been deleted!" });
-  } catch (err) {
+  } catch (error) {
+    await errorCollector({ url: req.originalUrl, name: err.name, message: err.message, env: process.env.ENVIRONMENT })
     console.error("error in delete department", err);
     res.status(500).send({ error: err.message });
   }

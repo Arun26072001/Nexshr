@@ -3,6 +3,7 @@ const { verifyAdminHREmployeeManagerNetwork } = require("../auth/authMiddleware"
 const { Report, ReportValidation } = require("../models/ReportModel");
 const { Project } = require("../models/ProjectModel");
 const { Employee } = require("../models/EmpModel");
+const { errorCollector } = require("../Reuseable_functions/reusableFunction");
 const router = express.Router();
 
 router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
@@ -31,6 +32,7 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
         await project.save();
         return res.send({ message: "Report is created successfully", result })
     } catch (error) {
+        await errorCollector({ url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT })
         console.log(error);
 
         return res.status(500).send({ error: error.message })
@@ -49,6 +51,7 @@ router.get("/createdby/:id", verifyAdminHREmployeeManagerNetwork, async (req, re
             return res.send({ reports })
         }
     } catch (error) {
+        await errorCollector({ url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT })
         console.log(error);
         return res.status(400).send({ error: error.message })
     }
@@ -65,6 +68,7 @@ router.get("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
             return res.send(report)
         }
     } catch (error) {
+        await errorCollector({ url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT })
         console.log(error);
 
         return res.status(500).send({ error: error.message })
@@ -92,6 +96,7 @@ router.put("/:empId/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) 
         await projectData.save();
         return res.send({ message: "Report is updated Successfully", report })
     } catch (error) {
+        await errorCollector({ url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT })
         return res.status(500).send({ error: error.message })
     }
 })
@@ -104,6 +109,7 @@ router.delete("/:id/:projectId", verifyAdminHREmployeeManagerNetwork, async (req
         await project.save();
         return res.send({ message: "Report was Deleted Successfully" })
     } catch (error) {
+        await errorCollector({ url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT })
         return res.status(500).send({ error: error.message })
     }
 })
