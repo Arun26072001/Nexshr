@@ -949,18 +949,18 @@ leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("pre
         return res.status(400).send("holiday are not allowed for toDate")
       }
     }
-    async function checkDateIsWeekend(date) {
-      const timePattern = await TimePattern.findById(emp.workingTimePattern, "WeeklyDays").lean().exec();
-      const zonedDate = toZonedTime(date, process.env.TIMEZONE);
-      const isWeekend = !timePattern?.WeeklyDays.includes(format(zonedDate, "EEEE"));
-      return isWeekend;
-    }
-    const [fromDateIsWeekend, toDateIsWeekend] = await Promise.all([checkDateIsWeekend(fromDateObj.toISOString()), checkDateIsWeekend(toDateObj)])
-    if (fromDateIsWeekend) {
-      return res.status(400).send({ error: "Weekend are not allowed in fromDate" })
-    } if (toDateIsWeekend) {
-      return res.status(400).send({ error: "Weekend are not allowed in toDate" })
-    }
+    // async function checkDateIsWeekend(date) {
+    //   const timePattern = await TimePattern.findById(emp.workingTimePattern, "WeeklyDays").lean().exec();
+    //   const zonedDate = toZonedTime(date, process.env.TIMEZONE);
+    //   const isWeekend = !timePattern?.WeeklyDays.includes(format(zonedDate, "EEEE"));
+    //   return isWeekend;
+    // }
+    // const [fromDateIsWeekend, toDateIsWeekend] = await Promise.all([checkDateIsWeekend(fromDateObj.toISOString()), checkDateIsWeekend(toDateObj)])
+    // if (fromDateIsWeekend) {
+    //   return res.status(400).send({ error: "Weekend are not allowed in fromDate" })
+    // } if (toDateIsWeekend) {
+    //   return res.status(400).send({ error: "Weekend are not allowed in toDate" })
+    // }
 
     // 5. Permission Leave checks
     if (leaveType.toLowerCase().includes("permission")) {
@@ -1119,7 +1119,7 @@ leaveApp.put('/:id', verifyAdminHREmployeeManagerNetwork, async (req, res) => {
     updatedStatus = allApproved ? "approved" : anyRejected ? "rejected" : "pending";
     const mailList = [];
 
-    if (allApproved && !["Unpaid Leave (LWP)","Permission Leave"].includes(leaveType)) {
+    if (allApproved && !["unpaid leave (lwp)", "permission"].includes(leaveType.toLowerCase())) {
       const leaveDaysTaken = Math.max(await getDayDifference(req.body), 1);
 
       const currentValue = emp.typesOfLeaveRemainingDays?.[leaveType];
