@@ -20,14 +20,14 @@ exports.sendPushNotification = async (msgObj) => {
                 url: msgObj.path || ""
             }
         };
-        
+
         await admin.messaging().send(message).then((res) => {
             console.log("successfully notification triggered", res);
         }).catch((err) => {
             console.log(`error in pushnotification for: ${msgObj?.name}`, err);
         })
     } catch (error) {
-        await errorCollector({ url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT })
+        await errorCollector({ url: "push-notifcation", name: error.name, message: error.message, env: process.env.ENVIRONMENT })
         console.error("Error sending notification:", error);
         return;
     }

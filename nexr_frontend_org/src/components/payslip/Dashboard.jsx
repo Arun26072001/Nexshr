@@ -168,10 +168,12 @@ const Dashboard = () => {
 
             // Fetch employee data
             const empData = await fetchEmployeeData(data._id);
+            console.log("empData", empData);
+
             if (empData && Object.values(empData).length) {
                 setData((pre) => ({
                     ...pre,
-                    Account: String(empData.accountType),
+                    Account: String(empData.Account),
                     Name: `${empData.FirstName} ${empData.LastName}`,
                     annualLeave: empData.annualLeaveEntitlement || 0,
                     profile: empData.profile
@@ -754,7 +756,7 @@ const Dashboard = () => {
                                             <div className='col-lg-6 col-md-5 col-12'>
                                                 <div className='space row'>
                                                     <div className='col-lg-6 col-md-6 col-sm-6 col-6 text-start'><span className='text_gap'>Over time</span></div>
-                                                    <div className='col-lg-6 col-md-6 col-sm-6 col-6 text-end'><span className='value'>{getOverTime(monthlyLoginData?.companyTotalWorkingHour, monthlyLoginData?.totalEmpWorkingHours)} hour</span></div>
+                                                    <div className='col-lg-6 col-md-6 col-sm-6 col-6 text-end'><span className='value'>{getOverTime(monthlyLoginData?.companyTotalWorkingHour, monthlyLoginData?.totalEmpWorkingHours)?.toFixed(2)} hour</span></div>
                                                 </div>
                                                 <div className="progress">
                                                     <div className="progress-bar progress-bar-striped" role="progressbar" style={{ width: `${getOverTime(monthlyLoginData?.companyTotalWorkingHour, monthlyLoginData?.totalEmpWorkingHours)}%` }} aria-valuenow="10" aria-valuemin="0" aria-valuemax="100"></div>

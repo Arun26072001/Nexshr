@@ -1119,7 +1119,7 @@ leaveApp.put('/:id', verifyAdminHREmployeeManagerNetwork, async (req, res) => {
     updatedStatus = allApproved ? "approved" : anyRejected ? "rejected" : "pending";
     const mailList = [];
 
-    if (allApproved && !leaveType.toLowerCase().includes("unpaid")) {
+    if (allApproved && !["Unpaid Leave (LWP)","Permission Leave"].includes(leaveType)) {
       const leaveDaysTaken = Math.max(await getDayDifference(req.body), 1);
 
       const currentValue = emp.typesOfLeaveRemainingDays?.[leaveType];

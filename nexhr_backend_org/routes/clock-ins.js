@@ -480,9 +480,9 @@ router.get("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
         return res.send({ timeData: clockIn, activitiesData, empTotalWorkingHours });
 
     } catch (error) {
-        await errorCollector({ url: req.originalUrl, name: err.name, message: err.message, env: process.env.ENVIRONMENT })
-        console.error("Error in GET /:id", err);
-        return res.status(500).send({ error: err.message });
+        await errorCollector({ url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT })
+        console.error("Error in GET /:id", error);
+        return res.status(500).send({ error: error.message });
     }
 });
 
@@ -611,9 +611,10 @@ router.get("/employee/:empId", verifyAdminHREmployeeManagerNetwork, async (req, 
                     match: { fromDate: { $lte: endOfMonth }, toDate: { $gte: startOfMonth }, status: "approved", leaveType: { $ne: "Permission Leave" } },
                     select: "fromDate toDate leaveType periodOfLeave employee"
                 }])
-        const holiday = await Holiday.findOne({ company: employee.company, currentYear: now.getFullYear() })
-        const empCurrentYearHolidays = holiday?.holidays && Array.isArray(holiday?.holidays) ? holiday.holidays : []
+
         if (!employee) return res.status(400).send({ message: "Employee not found." });
+        const holiday = await Holiday.findOne({ company: employee?.company, currentYear: now.getFullYear() })
+        const empCurrentYearHolidays = holiday?.holidays && Array.isArray(holiday?.holidays) ? holiday.holidays : []
 
         totalLeaveDays = Math.ceil(await sumLeaveDays(employee.leaveApplication));
         let scheduledWorkingHours, scheduledLoginTime, weeklyDays;
