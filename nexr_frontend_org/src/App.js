@@ -16,6 +16,7 @@ import { getToken, onMessage } from "firebase/messaging";
 import { messaging } from "./firebase/firebase.js";
 import { triggerToaster } from "./components/ReuseableAPI.jsx";
 import ErrorUI from "./components/ErrorUI.jsx";
+import NotFound from "./components/NotFound.jsx";
 
 export const EssentialValues = createContext(null);
 registerLicense("Ngo9BigBOggjHTQxAR8/V1JEaF5cXmRCeUx1RXxbf1x1ZFREallRTnNYUiweQnxTdEBjX3xecHRQR2BcVUBxWEleYw==")
@@ -133,9 +134,6 @@ const App = () => {
       setWhoIs(roles[String(accountType)] || "");
       navigate(`/${roles[String(accountType)]}`);
     } catch (error) {
-      if (error?.message === "Network Error") {
-        navigate("/network-issue")
-      }
       if (error?.message === "Network Error") {
         navigate("/network-issue")
       }
@@ -343,10 +341,7 @@ const App = () => {
         />
         <Route path="network-issue" element={<ErrorUI title={"Network Error"} description={"Please check your network and server connection!"} />} />
         <Route path="no-internet-connection" element={<ErrorUI title={"Network Disconnected"} description={"Please check your network connection!"} />} />
-        <Route path="*" element=
-          {<div className='d-flex align-items-center justify-content-center' style={{ height: "100vh" }}>
-            <h1 >404</h1>
-          </div>} />
+        <Route path="*" element={<NotFound />} />
       </Routes>
     </EssentialValues.Provider>
   );

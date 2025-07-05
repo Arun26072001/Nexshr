@@ -5,8 +5,10 @@ import CircleBar from './CircleProcess';
 import { Skeleton } from '@mui/material';
 import { EssentialValues } from '../App';
 import { formatDate } from './ReuseableAPI';
+import { useNavigate } from 'react-router-dom';
 
 const CircleProgressBar = ({ isTeamLead, isTeamHead, isTeamManager }) => {
+  const navigate = useNavigate();
   const url = process.env.REACT_APP_API_URL;
   const [todayLeaveCount, setTodayLeaveCount] = useState(0);
   const [tomorrowLeaveCount, setTomorrowLeaveCount] = useState(0);
@@ -14,7 +16,7 @@ const CircleProgressBar = ({ isTeamLead, isTeamHead, isTeamManager }) => {
   const [leaveRequests, setLeaveRequests] = useState([]);
   const [emps, setEmps] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
-  const { data } = useContext(EssentialValues);
+  const { data, whoIs } = useContext(EssentialValues);
   const { token, Account, _id } = data;
 
   // Calculate dates for today, tomorrow, and yesterday, skipping weekends
@@ -131,23 +133,26 @@ const CircleProgressBar = ({ isTeamLead, isTeamHead, isTeamManager }) => {
 
   return (
     <div className='row d-flex justify-content-center'>
-      <div className='col-lg-4 col-md-4 col-12'>
+      <div className='col-lg-4 col-md-4 col-12' style={{ cursor: "pointer" }} title={`${yesterdayLeaveCount} Employees were on leave yesterday.`} onClick={() => navigate(`/${whoIs}/leave/leave-request`, { state: { date: yesterday, type: "yesterday" } })}>
         <p className='text-center'>{formatDate(yesterday).replace(",", "")}</p>
         {
+          // yesterday
           isLoading ? <Skeleton variant="circular" width={120} height={120} style={{ margin: "20px auto" }} /> :
             <CircleBar empLength={emps?.length} leaveCount={yesterdayLeaveCount} />
         }
       </div>
-      <div className='col-lg-4 col-md-4 col-12'>
+      <div className='col-lg-4 col-md-4 col-12' style={{ cursor: "pointer" }} title={`${todayLeaveCount} Employees are on leave today.`} onClick={() => navigate(`/${whoIs}/leave/leave-request`, { state: { date: today, type: "today" } })}>
         <p className='text-center text-primary'>{formatDate(today).replace(",", "")}</p>
         {
+          // today
           isLoading ? <Skeleton variant="circular" width={120} height={120} style={{ margin: "20px auto" }} /> :
             <CircleBar empLength={emps?.length} leaveCount={todayLeaveCount} />
         }
       </div>
-      <div className='col-lg-4 col-md-4 col-12'>
+      <div className='col-lg-4 col-md-4 col-12' style={{ cursor: "pointer" }} title={`${tomorrowLeaveCount} Employees will be on leave tomorrow.`} onClick={() => navigate(`/${whoIs}/leave/leave-request`, { state: { date: tomorrow, type: "tomorrow" } })}>
         <p className='text-center'>{formatDate(tomorrow).replace(",", "")}</p>
         {
+          // tomarrow
           isLoading ? <Skeleton variant="circular" width={120} height={120} style={{ margin: "20px auto" }} /> :
             <CircleBar empLength={emps?.length} leaveCount={tomorrowLeaveCount} />
         }

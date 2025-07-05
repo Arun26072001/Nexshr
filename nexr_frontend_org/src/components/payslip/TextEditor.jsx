@@ -18,7 +18,6 @@ const TextEditor = ({
 }) => {
   const quillRef = useRef(null);
   
-
   // Undo Function
   const handleUndo = (e) => {
     e.preventDefault();

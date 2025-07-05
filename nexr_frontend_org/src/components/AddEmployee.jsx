@@ -34,6 +34,7 @@ const AddEmployee = () => {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
   const [selectedLeaveTypes, setSelectedLeavetypes] = useState([]);
+  const [stateData, setStateData] = useState([]);
   const [preview, setPreview] = useState("");
 
   function handlePersonal() {
@@ -45,11 +46,8 @@ const AddEmployee = () => {
       })
     }
   }
-  const [stateData, setStateData] = useState([]);
 
   const fillEmpObj = (value, name) => {
-    console.log(name, value);
-
     let countryFullData;
 
     if (name === "country") {
@@ -186,7 +184,6 @@ const AddEmployee = () => {
         }
       });
       setTimePatterns(patterns.data);
-
     } catch (err) {
       console.log(err.data);
     }
@@ -200,7 +197,6 @@ const AddEmployee = () => {
         }
       });
       setCompanies(company.data);
-
     } catch (err) {
       console.log(err);
     }
@@ -213,7 +209,6 @@ const AddEmployee = () => {
       let filterTL = employees.filter(emp => emp?.position?.PositionName === "Team Lead").map(emp => emp);
 
       setLeads(filterTL);
-
     } catch (err) {
       console.error(err);
     }

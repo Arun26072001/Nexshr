@@ -102,7 +102,6 @@ const Attendence = () => {
       if (dashboard.data) {
         setclockInsData(dashboard.data);
         if (Array.isArray(dashboard.data.clockIns)) {
-          console.log("clockinsData", dashboard.data.clockIns);
 
           setTableData(dashboard.data.clockIns);
           setFilteredTableData(dashboard.data.clockIns)

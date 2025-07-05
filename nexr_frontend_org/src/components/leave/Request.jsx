@@ -11,11 +11,12 @@ import { jwtDecode } from 'jwt-decode';
 import ArrowDropDownRoundedIcon from '@mui/icons-material/ArrowDropDownRounded';
 import FileUploadRoundedIcon from '@mui/icons-material/FileUploadRounded';
 import FileDownloadRoundedIcon from '@mui/icons-material/FileDownloadRounded';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { Skeleton } from '@mui/material';
 import { useState } from 'react';
 
 export default function LeaveRequest() {
+    const { state } = useLocation();
     const url = process.env.REACT_APP_API_URL;
     const { data, whoIs } = useContext(EssentialValues);
     const { empName, setEmpName, filterLeaveRequests, isLoading, leaveRequests, changeRequests } = useContext(LeaveStates);
@@ -26,8 +27,6 @@ export default function LeaveRequest() {
     const navigate = useNavigate()
 
     async function replyToLeave(leave, response) {
-        console.log("account", Account);
-
         try {
             setResponsing(leave._id)
             let actionBy;
@@ -105,10 +104,36 @@ export default function LeaveRequest() {
         filterLeaveRequests();
     }, [empName, daterangeValue]);
 
+    useEffect(() => {
+        const today = new Date();
+
+        if (state) {
+            if (state.type === "today") {
+                const start = new Date(today.setHours(0, 0, 0, 0));
+                const end = new Date(today.setHours(23, 59, 59, 999));
+                setDaterangeValue([start, end]);
+            }
+
+            if (state.type === "tomorrow") {
+                const tomorrow = new Date(state.date);
+                const start = new Date(tomorrow.setHours(0, 0, 0, 0));
+                const end = new Date(tomorrow.setHours(23, 59, 59, 999));
+                setDaterangeValue([start, end]);
+            }
+
+            if (state.type === "yesterday") {
+                const yesterday = new Date(state.date);
+                const start = new Date(yesterday.setHours(0, 0, 0, 0));
+                const end = new Date(yesterday.setHours(23, 59, 59, 999));
+                setDaterangeValue([start, end]);
+            }
+        }
+    }, [state]);
+
+
     // Handle file upload
     const handleUpload = async (file) => {
         const formData = new FormData();
-
         formData.append('documents', file);
 
         try {

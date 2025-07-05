@@ -29,7 +29,7 @@ router.get("/", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
 
     const projects = await Project.find({ trash: false }, "-trash -tracker")
       .populate("company", "CompanyName")
-      .populate("employees", "FirstName LastName Email")
+      .populate("employees", "FirstName LastName Email profile")
       .populate("tasks", "-tracker -comments");
 
     const formattedProjects = projects.map((project) => {
@@ -71,7 +71,7 @@ router.get("/emp/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => 
   try {
     const projects = await Project.find({ employees: { $in: req.params.id }, trash: false }, "-trash -tracker")
       .populate({ path: "company", select: "CompanyName" })
-      .populate({ path: "employees", select: "FirstName LastName Email" })
+      .populate({ path: "employees", select: "FirstName LastName Email profile" })
       .populate({ path: "tasks" })
       .exec();
 
@@ -322,7 +322,7 @@ router.put("/:empId/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) 
       addPlannerFor
     });
 
-  } catch (error) {
+  } catch (err) {
     await errorCollector({ url: req.originalUrl, name: err.name, message: err.message, env: process.env.ENVIRONMENT })
     console.error(err);
     return res.status(500).send({ error: err.message || "Internal Server Error" });

@@ -303,17 +303,19 @@ export default function Navbar({ handleSideBar }) {
     }
 
     function updateCheckoutTime(time) {
-        const actualTime = new Date(time).toTimeString().split(" ")[0];
-        if (workTimeTracker.login.startingTime.length !== workTimeTracker.login.endingTime.length) {
-            setWorkTimeTracker((pre) => ({
-                ...pre,
-                "login": {
-                    ...pre?.login,
-                    endingTime: [...(workTimeTracker?.login?.endingTime || []), actualTime],
-                }
-            }))
-        } else {
-            removeLastOneNdAddCurrent(actualTime)
+        if (typeof time === "object" && new Date(time).getHours()) {
+            const actualTime = new Date(time).toTimeString().split(" ")[0];
+            if (workTimeTracker.login.startingTime.length !== workTimeTracker.login.endingTime.length) {
+                setWorkTimeTracker((pre) => ({
+                    ...pre,
+                    "login": {
+                        ...pre?.login,
+                        endingTime: [...(workTimeTracker?.login?.endingTime || []), actualTime],
+                    }
+                }))
+            } else {
+                removeLastOneNdAddCurrent(actualTime)
+            }
         }
     }
 
@@ -383,7 +385,9 @@ export default function Navbar({ handleSideBar }) {
                         size='lg'
                         style={{ width: "100%" }}
                         format="HH:mm:ss"
-                        onChange={(e) => updateCheckoutTime(e)} />
+                        onChange={
+                            (e) => updateCheckoutTime(e)
+                        } />
                 </div>
             </Modal.Body>
 

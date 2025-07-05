@@ -32,7 +32,7 @@ const CommonModel = ({
     const [remindOn, setRemindOn] = useState(dataObj?.remind?.on ? new Date(dataObj.remind.on) : null);
     const [remindFor, setRemindFor] = useState(dataObj?.remind?.for || "");
     console.log("dataObj", dataObj);
-
+    console.log("leads", leads, "heads", heads, "admin", admins, "emps", employees)
     const isButtonDisabled = !(remindOn && remindFor);
 
     const handleAddReminder = () => {

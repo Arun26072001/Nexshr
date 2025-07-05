@@ -33,7 +33,7 @@ router.get("/", verifyAdminHRTeamHigherAuth, async (req, res) => {
       employees = employees.filter((emp) => !["Team Lead", "Team Head", "Manager"].includes(emp?.position?.PositionName) && emp.Account !== 1)
     }
     res.send(employees)
-  } catch (error) {
+  } catch (err) {
     await errorCollector({ url: req.originalUrl, name: err.name, message: err.message, env: process.env.ENVIRONMENT })
     console.log(err);
     res.status(500).send({ error: err.message })
@@ -42,12 +42,15 @@ router.get("/", verifyAdminHRTeamHigherAuth, async (req, res) => {
 
 router.get("/notifications/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
   try {
-    const { notifications } = await Employee.findById(req.params.id, "notifications profile")
+    const emp = await Employee.findById(req.params.id, "notifications profile")
       .populate("notifications.company", "logo CompanyName")
       .exec();
+    if (emp && emp.notifications?.length > 0) {
+      return res.send(emp.notifications);
+    } else {
+      return res.send([]);
+    }
 
-    // const notifications = emp.notifications.filter((item) => item.isViewed === false);
-    return res.send(notifications);
   } catch (error) {
     await errorCollector({ url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT })
     console.log(error);
@@ -122,7 +125,7 @@ router.get("/user", verifyAdminHR, async (req, res) => {
       status_code: 200,
       Team: formattedTeams,
     });
-  } catch (error) {
+  } catch (err) {
     await errorCollector({ url: req.originalUrl, name: err.name, message: err.message, env: process.env.ENVIRONMENT })
     console.error(err);
     res.status(500).send({ error: err.message });
@@ -148,7 +151,7 @@ router.get("/all", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
         }
       ]).lean().exec();
     res.send(employees)
-  } catch (error) {
+  } catch (err) {
     await errorCollector({ url: req.originalUrl, name: err.name, message: err.message, env: process.env.ENVIRONMENT })
     console.log(err);
     res.status(500).send({ error: err.message })
@@ -180,7 +183,7 @@ router.get("/team/:higher", verifyAdminHRTeamHigherAuth, async (req, res) => {
       return positionName && positionName.includes(keyword);
     });
     return res.send(filtered);
-  } catch (error) {
+  } catch (err) {
     await errorCollector({ url: req.originalUrl, name: err.name, message: err.message, env: process.env.ENVIRONMENT })
     console.log("error in fetch highers", err);
 
@@ -288,7 +291,7 @@ router.get('/:id', verifyAdminHREmployeeManagerNetwork, async (req, res) => {
       collegues: emp.team ? emp.team.employees : []
     });
 
-  } catch (error) {
+  } catch (err) {
     await errorCollector({ url: req.originalUrl, name: err.name, message: err.message, env: process.env.ENVIRONMENT })
     console.log(err);
     res.status(500).send({ error: err.message });
@@ -298,8 +301,12 @@ router.get('/:id', verifyAdminHREmployeeManagerNetwork, async (req, res) => {
 // save fcm token for employee
 router.post("/add-fcm-token", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
   try {
-    const addFcmTokenEmp = await Employee.findByIdAndUpdate(req.body.empId, { $set: { fcmToken: req.body.fcmToken } }, { new: true });
-    return res.send({ message: `FCM token has been saved for ${addFcmTokenEmp.FirstName}`, addFcmTokenEmp })
+    if (await Employee.exists({ _id: req.body.empId })) {
+      const addFcmTokenEmp = await Employee.findByIdAndUpdate(req.body.empId, { $set: { fcmToken: req.body.fcmToken } }, { new: true });
+      return res.send({ message: `FCM token has been saved for ${addFcmTokenEmp.FirstName}`, addFcmTokenEmp })
+    } else {
+      return res.status(404).send({ error: `Employee data not found` })
+    }
   } catch (error) {
     await errorCollector({ url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT })
     console.log("erorr in add fcm token", error);
@@ -404,7 +411,7 @@ router.post("/:id", verifyAdminHR, async (req, res) => {
     });
 
     res.status(201).json({ message: "Employee details saved successfully!", employee });
-  } catch (error) {
+  } catch (err) {
     await errorCollector({ url: req.originalUrl, name: err.name, message: err.message, env: process.env.ENVIRONMENT })
     console.error("Error:", err);
 
@@ -517,7 +524,7 @@ router.put("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
     const updatedEmp = await Employee.findByIdAndUpdate(id, updatedData, { new: true });
     res.send({ message: `${updatedEmp.FirstName}'s data has been updated!` });
 
-  } catch (error) {
+  } catch (err) {
     await errorCollector({ url: req.originalUrl, name: err.name, message: err.message, env: process.env.ENVIRONMENT })
     console.error("Error in employee update:", err);
     res.status(500).send({ error: err.message });

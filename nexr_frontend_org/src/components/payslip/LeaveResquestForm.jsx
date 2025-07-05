@@ -250,13 +250,19 @@ const LeaveRequestForm = ({ type }) => {
 
   useEffect(() => {
     const leaveType = leaveRequestObj.leaveType?.toLowerCase();
-    if (leaveType === "permission leave" || new Date(leaveRequestObj.fromDate).toLocaleDateString() === new Date(leaveRequestObj.toDate).toLocaleDateString()) {
+    if (["permission"].includes(leaveType) || new Date(leaveRequestObj.fromDate).toLocaleDateString() === new Date(leaveRequestObj.toDate).toLocaleDateString()) {
+      if (["permission"].includes(leaveType)) {
+        setLeaveRequestObj((pre) => ({
+          ...pre,
+          "periodOfLeave": "half day"
+        }))
+      }
       setIsShowPeriodOfLeave(true);
     } else {
       setIsShowPeriodOfLeave(false);
     }
-  }, [leaveRequestObj.leaveType, leaveRequestObj]);
-
+  }, [leaveRequestObj.leaveType]);
+  
   useEffect(() => {
     if (whoIs !== "emp") {
       gettingEmps()
@@ -417,7 +423,7 @@ const LeaveRequestForm = ({ type }) => {
                 </select>
               </div>
             )}
-  
+
             {/* Reason for Leave */}
             <div className="my-3">
               <span className="inputLabel">Reason for Leave</span>

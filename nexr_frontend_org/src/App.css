@@ -79,7 +79,8 @@ h1 {
 .attendanceFile,
 .messageCount,
 .circleEditIcon,
-.center-box {
+.center-box,
+.notFoundPageParent {
   display: flex;
   justify-content: center;
   align-items: center;

@@ -247,9 +247,9 @@ router.put("/:id", verifyAdminHR, async (req, res) => {
         res.json({ message: `Team "${updatedTeam.teamName}" has been updated!`, updatedTeam });
 
     } catch (error) {
-await errorCollector({url: req.originalUrl, name: err.name, message: err.message, env: process.env.ENVIRONMENT})
+        await errorCollector({url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT})
         console.error("PUT /:id error:", err);
-        res.status(500).json({ error: err.message });
+        res.status(500).json({ error: error.message });
     }
 });
 
@@ -266,30 +266,10 @@ router.delete("/:id", verifyAdminHR, async (req, res) => {
             res.send({ message: `${response?.teamName} Team has been deleted!` })
         }
     } catch (error) {
-await errorCollector({url: req.originalUrl, name: err.name, message: err.message, env: process.env.ENVIRONMENT})
-        console.log("erorr in delete team", err);
-        res.status(500).send({ error: err })
+        await errorCollector({url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT})
+        console.log("erorr in delete team", error);
+        res.status(500).send({ error: error.message })
     }
 })
 
-
 module.exports = router;
-        
-                // Check if members already belong to a team
-                // for (const role of higherAuth) {
-                //     const members = roles[role];
-                //     if (Array.isArray(members) && members.length) {
-                //         for (const memberId of members) {
-                //             const exists = await Team.exists({ [role]: memberId });
-                //             if (exists) {
-                //                 const emp = await Employee.findById(memberId, "FirstName LastName team")
-                //                     .populate("team", "teamName");
-                //                 console.log(emp);
-        
-                //                 return res.status(400).send({
-                //                     error: `${emp.FirstName} ${emp.LastName} is already in ${emp.team.teamName} team`
-                //                 });
-                //             }
-                //         }
-                //     }
-                // }

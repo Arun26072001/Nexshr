@@ -57,7 +57,6 @@ export default function Twotabs() {
   const [leaveRequests, setLeaveRequests] = useState({});
   const [isLoading, setIsLoading] = useState(false);
   const [leaveData, setLeaveData] = useState([]);
-  console.log("leaveData", leaveData);
 
   const handleChange = (event, newValue) => {
     setValue(newValue);

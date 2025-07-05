@@ -168,7 +168,6 @@ schedule.scheduleJob("0 0 10 4 * *", async function () {
     const response = await axios.post(`${process.env.REACT_APP_API_URL}/api/payslip/`, {});
     console.log("Payslip generation response:", response.data);
   } catch (error) {
-    // await errorCollector({ url: req.originalUrl, name: err.name, message: err.message, env: process.env.ENVIRONMENT })
     console.error("Error while generating payslips:", err);
   }
 });

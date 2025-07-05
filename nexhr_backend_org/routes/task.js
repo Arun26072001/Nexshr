@@ -246,7 +246,10 @@ router.post("/members", verifyAdminHREmployeeManagerNetwork, async (req, res) =>
 router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
     try {
         const { title, project: projectId, assignedTo = [], participants = [], observers = [], status, spend } = req.body;
-
+        
+        if (!req.body.assignedTo && !Array.isArray(req.body.assignedTo)) {
+            return res.status(400).send({ error: "Minimum one employee should to assign in the task" })
+        }
         // verify task validation
         const { error } = taskValidation.validate({
             ...req.body,

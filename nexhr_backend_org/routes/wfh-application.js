@@ -405,7 +405,7 @@ router.get("/check-wfh/:id", verifyAdminHREmployeeManagerNetwork, async (req, re
             status: "approved"
         })
 
-        if (isWFH || emp.isPermanentWFH) {
+        if (isWFH || (emp && emp?.isPermanentWFH)) {
             wfhEmp = true;
         }
         return res.send(wfhEmp);
@@ -442,20 +442,15 @@ router.get("/", verifyAdminHR, async (req, res) => {
         })).sort((a, b) => new Date(b.fromDate) - new Date(a.fromDate))
 
         // pending wfh request days
-        const pendingRequests = correctRequests.filter((item) => item.status === "pending");
-        const approvedRequests = correctRequests.filter((item) => item.status === "approved");
-        const upcomingRequests = correctRequests.filter(request => new Date(request.fromDate) > now);
-        const [pendingrequestDays, approvedrequestDays, upcomingrequestDays] = await Promise.all([
-            sumLeaveDays(pendingRequests),
-            sumLeaveDays(approvedRequests),
-            sumLeaveDays(upcomingRequests)
-        ])
+        const pendingrequestDays = correctRequests.filter((item) => item.status === "pending").reduce((total, iter) => total += Number(iter.numOfDays), 0);
+        const approvedrequestDays = correctRequests.filter((item) => item.status === "approved").reduce((total, iter) => total += Number(iter.numOfDays), 0);
+        const upcomingrequestDays = correctRequests.filter(request => new Date(request.fromDate) > now).reduce((total, iter) => total += Number(iter.numOfDays), 0);
 
         return res.send({
             correctRequests,
-            "pendingRequests": pendingrequestDays,
-            "approvedRequests": approvedrequestDays,
-            "upcommingRequests": upcomingrequestDays
+            "pendingRequests": pendingrequestDays.toFixed(2),
+            "approvedRequests": approvedrequestDays.toFixed(2),
+            "upcommingRequests": upcomingrequestDays.toFixed(2)
         });
     } catch (error) {
         await errorCollector({ url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT })
