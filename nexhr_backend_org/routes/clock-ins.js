@@ -398,6 +398,7 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
         // Function to check login status
         const checkLoginStatus = (scheduledTime, actualTime, permissionTime = 0) => {
             if (!scheduledTime || !actualTime) return null;
+            console.log(scheduledTime, actualTime);
 
             const scheduledMinutes = timeToMinutes(scheduledTime);
             const actualMinutes = timeToMinutes(actualTime);
@@ -599,6 +600,7 @@ router.get("/employee/:empId", verifyAdminHREmployeeManagerNetwork, async (req, 
         let regular = 0, late = 0, early = 0;
 
         const checkLogin = (scheduledTime, actualTime) => {
+            console.log("essentials", scheduledTime, actualTime);
             const [schedHours, schedMinutes] = scheduledTime.split(':').map(Number);
             const [actualHours, actualMinutes] = actualTime.split(':').map(Number);
             const scheduled = schedHours * 60 + schedMinutes;
@@ -645,7 +647,11 @@ router.get("/employee/:empId", verifyAdminHREmployeeManagerNetwork, async (req, 
             totalEmpWorkingHours += (timeToMinutes(timeHolder) / 60);
             checkLogin(scheduledLoginTime, startingTime[0]);
         });
-        console.log("early", early, "late", late, "regular", regular)
+        console.log({
+            totalRegularLogins: regular,
+            totalLateLogins: late,
+            totalEarlyLogins: early,
+        })
         res.send({
             totalRegularLogins: regular,
             totalLateLogins: late,

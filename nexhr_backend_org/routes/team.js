@@ -43,7 +43,7 @@ router.get("/", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
         const teams = await Team.find()
         res.send(teams)
     } catch (error) {
-await errorCollector({url: req.originalUrl, name: err.name, message: err.message, env: process.env.ENVIRONMENT})
+        await errorCollector({ url: req.originalUrl, name: err.name, message: err.message, env: process.env.ENVIRONMENT })
         console.error(err)
         res.status(500).send({ error: err.message });
     }
@@ -58,27 +58,27 @@ router.get("/members/:id", verifyTeamHigherAuthorityEmp, async (req, res) => {
                 path: "employees",
                 select: "FirstName LastName profile employmentType dateOfJoining gender working code docType serialNo company position department workingTimePattern role",
                 populate: [
-                        {  path: "company",    select: "_id CompanyName Town" },
-                         {   path: "position"},
-                        { path: "department" },
-                         { path: "workingTimePattern" },
-                          { path: "role" }
-                      ]
+                    { path: "company", select: "_id CompanyName Town" },
+                    { path: "position" },
+                    { path: "department" },
+                    { path: "workingTimePattern" },
+                    { path: "role" }
+                ]
             })
         if (!response.length) {
             return res.status(404).send({ message: "You haven't in any team" })
         } else {
             let employees = [];
-            response.map((team)=>{
-            const teamEmps = Array.isArray(team.employees) ? team.employees : [];
-            const notAddedInEmployees = teamEmps.filter((emp)=> !employees.includes(emp))
-            employees.push(...notAddedInEmployees)
+            response.map((team) => {
+                const teamEmps = Array.isArray(team.employees) ? team.employees : [];
+                const notAddedInEmployees = teamEmps.filter((emp) => !employees.includes(emp))
+                employees.push(...notAddedInEmployees)
             })
-           return res.send({employees});
+            return res.send({ employees });
         }
     } catch (error) {
-        await errorCollector({url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT})
-        console.log("error in fetch team emps",error);
+        await errorCollector({ url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT })
+        console.log("error in fetch team emps", error);
         return res.status(500).send({ error: error.message })
     }
 })
@@ -88,7 +88,7 @@ router.get("/:who/:id", verifyTeamHigherAuthority, async (req, res) => {
         const teams = await Team.find({ [req.params.who]: req.params.id })
         res.send(teams);
     } catch (error) {
-await errorCollector({url: req.originalUrl, name: err.name, message: err.message, env: process.env.ENVIRONMENT})
+        await errorCollector({ url: req.originalUrl, name: err.name, message: err.message, env: process.env.ENVIRONMENT })
         console.error(err)
         res.status(500).send({ error: err.message });
     }
@@ -130,7 +130,7 @@ router.get("/user", verifyAdminHR, async (req, res) => {
             Team: formattedTeams
         });
     } catch (error) {
-await errorCollector({url: req.originalUrl, name: err.name, message: err.message, env: process.env.ENVIRONMENT})
+        await errorCollector({ url: req.originalUrl, name: err.name, message: err.message, env: process.env.ENVIRONMENT })
         console.error(err);
         res.status(500).send({ message: "Internal server error", details: err.message });
     }
@@ -146,7 +146,7 @@ router.get("/:id", verifyAdminHRTeamHigherAuth, async (req, res) => {
             res.send(response);
         }
     } catch (error) {
-await errorCollector({url: req.originalUrl, name: err.name, message: err.message, env: process.env.ENVIRONMENT})
+        await errorCollector({ url: req.originalUrl, name: err.name, message: err.message, env: process.env.ENVIRONMENT })
         console.log(err);
         res.status(500).send({ error: "Error in get a team of Employee", details: err })
     }
@@ -160,7 +160,7 @@ router.post("/:id", verifyAdminHR, async (req, res) => {
         const creator = await Employee.findById(req.params.id, "FirstName LastName company Email").populate("company", "logo CompanyName");
         if (!creator) return res.status(404).json({ error: "Creator not found!" });
 
-        const { teamName, lead=[], head=[], manager=[], employees=[], admin=[], hr=[] } = req.body;
+        const { teamName, lead = [], head = [], manager = [], employees = [], admin = [], hr = [] } = req.body;
         const existingTeam = await Team.findOne({ teamName });
         if (existingTeam) return res.status(400).json({ error: `Team "${teamName}" already exists!` });
 
@@ -172,30 +172,30 @@ router.post("/:id", verifyAdminHR, async (req, res) => {
             employees: allMemberIds,
             createdBy: req.params.id,
         });
-        
-      await Promise.all(
-  Object.entries(roles).flatMap(([role, ids]) => {
-    if (!Array.isArray(ids) || ids.length === 0) return [];
 
-    return ids.map(async (memberId) => {
+        await Promise.all(
+            Object.entries(roles).flatMap(([role, ids]) => {
+                if (!Array.isArray(ids) || ids.length === 0) return [];
 
-      const emp = await Employee.findById(memberId, "FirstName LastName Email fcmToken").populate("company", "CompanyName logo");
-      if (!emp) return;
+                return ids.map(async (memberId) => {
 
-      emp.team = newTeam._id;
-      await emp.save();
+                    const emp = await Employee.findById(memberId, "FirstName LastName Email fcmToken").populate("company", "CompanyName logo");
+                    if (!emp) return;
 
-      const roleLabel = role === "employees" ? "Employee" : role.charAt(0).toUpperCase() + role.slice(1);
-      await sendInvitationEmail(emp, roleLabel, req.body, creator);
-    });
-  })
-);
+                    emp.team = newTeam._id;
+                    await emp.save();
+
+                    const roleLabel = role === "employees" ? "Employee" : role.charAt(0).toUpperCase() + role.slice(1);
+                    await sendInvitationEmail(emp, roleLabel, req.body, creator);
+                });
+            })
+        );
         res.json({ message: `New team "${newTeam.teamName}" has been added!`, newTeam });
 
     } catch (error) {
-await errorCollector({url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT})
+        await errorCollector({ url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT })
         console.error("POST /:id error:", error);
-        res.status(500).json({ error: error.message });
+        return res.status(500).json({ error: error.message });
     }
 });
 
@@ -247,7 +247,7 @@ router.put("/:id", verifyAdminHR, async (req, res) => {
         res.json({ message: `Team "${updatedTeam.teamName}" has been updated!`, updatedTeam });
 
     } catch (error) {
-        await errorCollector({url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT})
+        await errorCollector({ url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT })
         console.error("PUT /:id error:", err);
         res.status(500).json({ error: error.message });
     }
@@ -266,7 +266,7 @@ router.delete("/:id", verifyAdminHR, async (req, res) => {
             res.send({ message: `${response?.teamName} Team has been deleted!` })
         }
     } catch (error) {
-        await errorCollector({url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT})
+        await errorCollector({ url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT })
         console.log("erorr in delete team", error);
         res.status(500).send({ error: error.message })
     }

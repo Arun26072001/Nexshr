@@ -361,7 +361,9 @@ export default function HRMDashboard() {
                     Authorization: token || ""
                 }
             });
-            setAttendanceData(empOfAttendances.data);
+            if (empOfAttendances && empOfAttendances.data) {
+                setAttendanceData(empOfAttendances.data);
+            }
         } catch (error) {
             if (error?.message === "Network Error") {
                 navigate("/network-issue")
@@ -386,7 +388,7 @@ export default function HRMDashboard() {
             if (error?.message === "Network Error") {
                 navigate("/network-issue")
             }
-            console.error(error);
+            console.error("error in get team attendance", error);
         }
     }
 
@@ -397,8 +399,9 @@ export default function HRMDashboard() {
     async function gettingEmps() {
         try {
             const emps = await fetchAllEmployees();
-            // const withoutMyData = emps.filter((emp)=> emp._id !== _id);
-            setEmployees(emps.map((emp) => ({ label: emp?.FirstName + " " + emp?.LastName, value: emp._id })))
+            if (emps && emps.length > 0) {
+                setEmployees(emps.map((emp) => ({ label: emp?.FirstName + " " + emp?.LastName, value: emp._id })))
+            }
         } catch (error) {
             if (error?.message === "Network Error") {
                 navigate("/network-issue")

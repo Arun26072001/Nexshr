@@ -1,5 +1,6 @@
 const express = require("express");
 const jwt = require('jsonwebtoken');
+const { toZonedTime } = require('date-fns-tz');
 const { verifyAdminHREmployeeManagerNetwork, verifyAdminHR, verifyTeamHigherAuthority } = require("../auth/authMiddleware");
 const { WFHAppValidation, WFHApplication } = require("../models/WFHApplicationModel");
 const { Employee } = require("../models/EmpModel");
@@ -393,9 +394,9 @@ router.get("/on-wfh", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
 
 router.get("/check-wfh/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
     try {
-        const today = new Date();
-        const startOfDay = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate(), 0, 0, 0));
-        const endOfDay = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate(), 23, 59, 59));
+        const today = toZonedTime(new Date(), process.env.TIMEZONE);
+        const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 0, 0, 0);
+        const endOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 23, 59, 59);
         let wfhEmp = false;
         const emp = await Employee.findById(req.params.id, "isPermanentWFH")
         const isWFH = await WFHApplication.findOne({
@@ -404,7 +405,7 @@ router.get("/check-wfh/:id", verifyAdminHREmployeeManagerNetwork, async (req, re
             toDate: { $gte: startOfDay },
             status: "approved"
         })
-
+        // console.log(isWFH, emp?.isPermanentWFH)
         if (isWFH || (emp && emp?.isPermanentWFH)) {
             wfhEmp = true;
         }

@@ -18,23 +18,61 @@ const CircleProgressBar = ({ isTeamLead, isTeamHead, isTeamManager }) => {
   const [isLoading, setIsLoading] = useState(false);
   const { data, whoIs } = useContext(EssentialValues);
   const { token, Account, _id } = data;
+  const [tomorrow, setTomorrow] = useState(null);
+  const [yesterday, setYesterday] = useState(null);
 
   // Calculate dates for today, tomorrow, and yesterday, skipping weekends
   let today = new Date();
+  async function getTomorrowDate() {
+    let tomorrowDate = new Date(today); // Clone the 'today' date
+    while (true) {
+      tomorrowDate.setDate(tomorrowDate.getDate() + 1);
 
-  let tomorrow = new Date(today);
-  while (true) {
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    if (tomorrow.getDay() !== 6 && tomorrow.getDay() !== 0) {
-      break;
+      const checkDate = new Date(tomorrowDate); // Clone for state
+      const isValidLeave = await checkIsLeaveDate(checkDate);
+      if (isValidLeave && !isValidLeave.data) {
+        setTomorrow(checkDate);
+        break;
+      }
     }
   }
 
-  let yesterday = new Date(today);
-  while (true) {
-    yesterday.setDate(yesterday.getDate() - 1);
-    if (yesterday.getDay() !== 6 && yesterday.getDay() !== 0) {
-      break;
+  async function getYesterdayDate() {
+    let yesterdayDate = new Date(today); // Clone the 'today' date
+    while (true) {
+      yesterdayDate.setDate(yesterdayDate.getDate() - 1);
+
+      const checkDate = new Date(yesterdayDate); // Clone for state
+      const isValidLeave = await checkIsLeaveDate(checkDate);
+
+      if (isValidLeave && !isValidLeave.data) {
+        setYesterday(checkDate);
+        break;
+      }
+    }
+  }
+
+  useEffect(() => {
+    getTomorrowDate();
+    getYesterdayDate();
+  }, [])
+
+  async function checkIsLeaveDate(date) {
+    try {
+      const checkIsValidLeave = await axios.get(`${url}/api/leave-application/check-is-valid-leave/${_id}`, {
+        params: {
+          date
+        },
+        headers: {
+          Authorization: token || ""
+        }
+      })
+      return checkIsValidLeave;
+    } catch (error) {
+      if (error.message === "Network Error") {
+        navigate("/network-issue")
+      }
+      console.log("error in check LeaveDate", error.message)
     }
   }
 
@@ -93,9 +131,13 @@ const CircleProgressBar = ({ isTeamLead, isTeamHead, isTeamManager }) => {
         setEmps(empRes.data.employees);
 
       } catch (err) {
-        console.log(err);
+        console.log("error in fetch team members", err);
+        if (err.message === "Network Error") {
+          navigate("/network-issue")
+        }
+      } finally {
+        setIsLoading(false)
       }
-      setIsLoading(false)
     }
 
     if (Account === "2") {
@@ -112,8 +154,8 @@ const CircleProgressBar = ({ isTeamLead, isTeamHead, isTeamManager }) => {
       setYesterdayLeaveCount(0);
 
       const todayDate = today.toISOString().split("T")[0];
-      const tomorrowDate = tomorrow.toISOString().split("T")[0];
-      const yesterdayDate = yesterday.toISOString().split("T")[0];
+      const tomorrowDate = tomorrow ? tomorrow.toISOString().split("T")[0] : "";
+      const yesterdayDate = yesterday ? yesterday.toISOString().split("T")[0] : "";
       if (leaveRequests?.length) {
         leaveRequests.forEach((request) => {
           const appliedDate = new Date(request?.fromDate).toISOString().split("T")[0];

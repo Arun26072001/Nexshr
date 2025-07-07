@@ -10,7 +10,7 @@ const { verifyHR, verifyEmployee, verifyAdminHREmployeeManagerNetwork, verifyAdm
 const { Team } = require('../models/TeamModel');
 const { upload } = require('./imgUpload');
 const sendMail = require("./mailSender");
-const { getDayDifference, mailContent, formatLeaveData, formatDate, getValidLeaveDays, sumLeaveDays, changeClientTimezoneDate, errorCollector } = require('../Reuseable_functions/reusableFunction');
+const { getDayDifference, mailContent, formatLeaveData, formatDate, getValidLeaveDays, sumLeaveDays, changeClientTimezoneDate, errorCollector, isValidLeaveDate } = require('../Reuseable_functions/reusableFunction');
 const { Task } = require('../models/TaskModel');
 const { sendPushNotification } = require('../auth/PushNotification');
 const { Holiday } = require('../models/HolidayModel');
@@ -832,6 +832,39 @@ leaveApp.put("/reject-leave", async (req, res) => {
     return res.status(500).send({ error: error.message });
   }
 });
+
+leaveApp.get("/check-is-valid-leave/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
+  try {
+    const queryData = req.query;
+    if (queryData.date) {
+      const actualDate = toZonedTime(queryData.date, process.env.TIMEZONE)
+      const empData = await Employee.findById(req.params.id, "workingTimePattern company")
+        .populate("workingTimePattern")
+        .lean().exec();
+      if (!empData) {
+        return res.status(404).send({ error: `Employee data not found` })
+      }
+      let weeklyDays = [];
+      let holidays = [];
+      if (empData.company) {
+        // add weekly days
+        const holidayData = await Holiday.findOne({ company: empData.company, currentYear: new Date().getFullYear() })
+        if (holidayData) {
+          holidays = holidayData.holidays;
+        }
+      }
+      if (empData.workingTimePattern && empData.workingTimePattern.WeeklyDays) {
+        weeklyDays = empData.workingTimePattern.WeeklyDays
+      }
+      const isLeaveDate = isValidLeaveDate(holidays, weeklyDays, actualDate);
+      return res.send(isLeaveDate)
+    } else {
+      return res.status(400).send({ error: `date value is required to check valid` })
+    }
+  } catch (error) {
+    return res.status(500).send({ error: error.message })
+  }
+})
 
 // Optimized and cleaned leave application route
 leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("prescription"), async (req, res) => {

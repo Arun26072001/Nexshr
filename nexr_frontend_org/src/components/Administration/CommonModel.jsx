@@ -31,8 +31,7 @@ const CommonModel = ({
     const [isShowPassword, setIsShowPassword] = useState(false);
     const [remindOn, setRemindOn] = useState(dataObj?.remind?.on ? new Date(dataObj.remind.on) : null);
     const [remindFor, setRemindFor] = useState(dataObj?.remind?.for || "");
-    console.log("dataObj", dataObj);
-    console.log("leads", leads, "heads", heads, "admin", admins, "emps", employees)
+    console.log("emps", employees)
     const isButtonDisabled = !(remindOn && remindFor);
 
     const handleAddReminder = () => {
@@ -324,7 +323,7 @@ const CommonModel = ({
 
                             {/* Display preview images */}
                             {previewList?.length > 0 || preview ? (
-                                <div className='d-flex align-items-center justify-content-center'>
+                                <div className='d-flex align-items-center justify-content-center flex-wrap'>
 
                                     {
                                         ["Organization", "Company"].includes(type) ? <div className="position-relative">
