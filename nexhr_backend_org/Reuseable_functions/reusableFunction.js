@@ -463,8 +463,8 @@ const getTotalWorkingHoursExcludingWeekends = (start, end, dailyHours = 0, holid
   //     totalHours += dailyHours;
   //   }
   // }
-  const from = new Date(start);
-  const to = new Date(end);
+  const from = changeClientTimezoneDate(start);
+  const to = changeClientTimezoneDate(end);
   while (from <= to) {
     const date = new Date(from);
     if (isValidLeaveDate(holidays, WeeklyDays, date)) {

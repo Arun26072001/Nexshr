@@ -58,6 +58,7 @@ const wfhRouter = require("./routes/wfh-application");
 const timezone = require("./routes/timezone");
 const category = require("./routes/planner-category");
 const { sendPushNotification, verifyWorkingTimeCompleted, askReasonForDelay } = require("./auth/PushNotification");
+const { changeClientTimezoneDate } = require("./Reuseable_functions/reusableFunction");
 
 // MongoDB Connection
 const mongoURI = process.env.DATABASEURL;
@@ -175,10 +176,11 @@ schedule.scheduleJob("0 0 10 4 * *", async function () {
 async function fetchTimePatterns() {
   try {
     const timePatterns = await TimePattern.find();
-
+    const actualPatternStart = changeClientTimezoneDate(pattern.StartingTime);
+    const actualPatternEnd = changeClientTimezoneDate(pattern.FinishingTime)
     timePatterns.forEach((pattern) => {
-      const [startingHour, startingMin] = [new Date(pattern.StartingTime).getHours(), new Date(pattern.StartingTime).getMinutes()];
-      const [finishingHour, finishingMin] = [new Date(pattern.FinishingTime).getHours(), new Date(pattern.FinishingTime).getMinutes()];
+      const [startingHour, startingMin] = [actualPatternStart.getHours(), actualPatternStart.getMinutes()];
+      const [finishingHour, finishingMin] = [actualPatternStart.getHours(), actualPatternStart.getMinutes()];
 
       // Schedule job for login
       schedule.scheduleJob(`0 ${startingMin} ${startingHour} * * 1-5`, async function () {
