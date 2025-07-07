@@ -6,7 +6,6 @@ import { saveAs } from "file-saver";
 import { jwtDecode } from 'jwt-decode';
 const url = process.env.REACT_APP_API_URL;
 
-
 function getToken() {
     const token = localStorage.getItem('token');
     return token;
@@ -90,7 +89,7 @@ const getDataAPI = async (_id) => {
         //  if (error?.message === "Network Error") {
         //         navigate("/network-issue")
         //     }
-        console.log(error?.response?.data?.error);
+        console.log("error in fetch clockins data", error);
     }
 };
 
@@ -116,15 +115,15 @@ function checkDateIsHoliday(dateList, target) {
     return dateList.some((holiday) => new Date(holiday.date).toLocaleDateString() === new Date(target).toLocaleDateString());
 }
 
-function isValidLeaveDate(holidays, WeeklyDays, target) {
-    let date = new Date(target);
-    const dateStr = date.toLocaleString(undefined, { weekday: "long" })
+function isValidLeaveDate(holidays = [], WeeklyDays = [], target) {
+    const date = new Date(target);
+    const dayName = date.toLocaleString(undefined, { weekday: "long" }); // e.g., 'Monday', 'Tuesday', etc.
 
-    if (WeeklyDays.includes(dateStr) && !checkDateIsHoliday(holidays, date)) {
-        return true;
-    } else {
-        return false;
-    }
+    const isHoliday = checkDateIsHoliday(holidays, date);
+    const isWeeklyOff = WeeklyDays.includes(dayName);
+
+    // A valid leave date is one that is NOT a holiday AND NOT a weekly off
+    return !isHoliday && !isWeeklyOff;
 }
 
 const addDataAPI = async (body, worklocation, location) => {
@@ -368,7 +367,8 @@ const fetchAllEmployees = async () => {
         });
         return res.data;
     } catch (err) {
-        return err.response.data.message
+        console.log("error in fetchall emps", err)
+        return err.response.data.error
     }
 }
 

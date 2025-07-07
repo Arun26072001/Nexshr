@@ -168,7 +168,6 @@ const Dashboard = () => {
 
             // Fetch employee data
             const empData = await fetchEmployeeData(data._id);
-            console.log("empData", empData);
 
             if (empData && Object.values(empData).length) {
                 setData((pre) => ({
@@ -187,17 +186,18 @@ const Dashboard = () => {
 
             // Fetch clock-ins data
             const getEmpMonthPunchIns = await gettingClockinsData(data._id);
+            if (getEmpMonthPunchIns) {
+                // Calculate total working hour percentage and total worked hour percentage
+                const totalWorkingHourPercentage = (getEmpMonthPunchIns.companyTotalWorkingHour / getEmpMonthPunchIns.totalWorkingHoursPerMonth) * 100;
+                const totalWorkedHourPercentage = (getEmpMonthPunchIns.totalEmpWorkingHours / getEmpMonthPunchIns.companyTotalWorkingHour) * 100;
 
-            // Calculate total working hour percentage and total worked hour percentage
-            const totalWorkingHourPercentage = (getEmpMonthPunchIns.companyTotalWorkingHour / getEmpMonthPunchIns.totalWorkingHoursPerMonth) * 100;
-            const totalWorkedHourPercentage = (getEmpMonthPunchIns.totalEmpWorkingHours / getEmpMonthPunchIns.companyTotalWorkingHour) * 100;
-
-            // Set the monthly login data
-            setMonthlyLoginData({
-                ...getEmpMonthPunchIns,
-                totalWorkingHourPercentage,
-                totalWorkedHourPercentage
-            });
+                // Set the monthly login data
+                setMonthlyLoginData({
+                    ...getEmpMonthPunchIns,
+                    totalWorkingHourPercentage,
+                    totalWorkedHourPercentage
+                });
+            }
 
             // Fetch daily clock-in data
             const clockinsData = await getDataAPI(data._id);
@@ -746,7 +746,18 @@ const Dashboard = () => {
                                             <div className='col-lg-6 col-md-5 col-12'>
                                                 <div className='space row'>
                                                     <div className='col-lg-6 col-md-6 col-sm-6 col-6 text-start'><span className='text_gap'>Shortage time</span></div>
-                                                    <div className='col-lg-6 col-md-6 col-sm-6 col-6 text-end'><span className='value'>{(monthlyLoginData?.companyTotalWorkingHour - monthlyLoginData?.totalEmpWorkingHours || 0)?.toFixed(2)} hour</span></div>
+                                                    <div className="col-lg-6 col-md-6 col-sm-6 col-6 text-end">
+                                                        <span className="value">
+                                                            {(
+                                                                Math.max(
+                                                                    0,
+                                                                    (monthlyLoginData?.companyTotalWorkingHour || 0) -
+                                                                    (monthlyLoginData?.totalEmpWorkingHours || 0)
+                                                                )
+                                                            ).toFixed(2)} hour
+                                                        </span>
+                                                    </div>
+
                                                 </div>
                                                 <div className="progress">
                                                     <div className="progress-bar progress-bar-striped" role="progressbar" style={{ width: `${monthlyLoginData?.companyTotalWorkingHour - monthlyLoginData?.totalEmpWorkingHours || 0}%` }} aria-valuenow="10" aria-valuemin="0" aria-valuemax="100"></div>

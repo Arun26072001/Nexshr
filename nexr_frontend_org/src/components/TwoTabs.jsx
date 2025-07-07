@@ -106,19 +106,22 @@ export default function Twotabs() {
       setIsLoading(true);
       try {
         const res = await fetchLeaveRequests(data._id);
-        setLeaveData(res.leaveApplications.map((leave) => ({
-          title: `${leave.employee.FirstName[0].toUpperCase() + leave.employee.FirstName.slice(1)} ${leave.employee.LastName} (${leave.leaveType[0].toUpperCase() + leave.leaveType.slice(1)} - ${leave.status})`,
-          start: new Date(leave.fromDate),
-          end: new Date(leave.toDate),
-          status: leave.status
-        })))
+        if (res && res.leaveApplications) {
+          setLeaveData(res.leaveApplications.map((leave) => ({
+            title: `${leave.employee.FirstName[0].toUpperCase() + leave.employee.FirstName.slice(1)} ${leave.employee.LastName} (${leave.leaveType[0].toUpperCase() + leave.leaveType.slice(1)} - ${leave.status})`,
+            start: new Date(leave.fromDate),
+            end: new Date(leave.toDate),
+            status: leave.status
+          })))
+        }
       } catch (error) {
         if (error?.message === "Network Error") {
           navigate("/network-issue")
         }
         console.log(error);
+      } finally {
+        setIsLoading(false)
       }
-      setIsLoading(false)
     }
     // if (["2", "3"].includes(data.Account)) {
     getEmpAllLeaveData();

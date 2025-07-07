@@ -4,6 +4,8 @@ const { Task, taskValidation } = require("../models/TaskModel");
 const { Project } = require("../models/ProjectModel");
 const { Employee } = require("../models/EmpModel");
 const sendMail = require("./mailSender");
+const fs = require("fs");
+const path = require("path");
 const { convertToString, getCurrentTimeInMinutes, timeToMinutes, formatTimeFromMinutes, projectMailContent, categorizeTasks, errorCollector } = require("../Reuseable_functions/reusableFunction");
 const { sendPushNotification } = require("../auth/PushNotification");
 const { PlannerCategory } = require("../models/PlannerCategoryModel");
@@ -246,7 +248,7 @@ router.post("/members", verifyAdminHREmployeeManagerNetwork, async (req, res) =>
 router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
     try {
         const { title, project: projectId, assignedTo = [], participants = [], observers = [], status, spend } = req.body;
-        
+
         if (!req.body.assignedTo && !Array.isArray(req.body.assignedTo)) {
             return res.status(400).send({ error: "Minimum one employee should to assign in the task" })
         }
@@ -476,6 +478,25 @@ router.put("/:empId/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) 
             }
             return [];
         });
+
+        // check attachments are changes and changed imgs from server
+        const deletedImgs = taskData.attachments.map((img) => {
+            if (!req.body.attachments.includes(img)) {
+                return img;
+            }
+        }).filter(Boolean);
+
+        if (deletedImgs.length > 0) {
+            const removedFiles = [];
+            deletedImgs.map((img) => {
+                const oldFile = img.split("/").pop();
+                const oldFilePath = path.join(__dirname, "..", "uploads", oldFile);
+                if (fs.existsSync(oldFilePath)) {
+                    fs.unlinkSync(oldFilePath);
+                    removedFiles.push(oldFile);
+                }
+            })
+        }
 
         // Prepare optional comment update
         let updatedComment = null;

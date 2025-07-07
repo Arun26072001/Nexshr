@@ -9,7 +9,7 @@ const getActiveEmailConfig = async () => {
         const activeConfig = await EmailConfig.findOne({ isActive: true });
         return activeConfig || null;
     } catch (error) {
-        await errorCollector({ url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT })
+        // await errorCollector({ url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT })
         console.error("❌ Error fetching email configuration:", error);
         return null;
     }
@@ -40,7 +40,7 @@ const sendMail = async (mailOptions) => {
             await transporter.sendMail(mailOptions);
             console.log(`📧 Email sent via Nodemailer successfully`);
         } catch (error) {
-            await errorCollector({ url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT })
+            // await errorCollector({ url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT })
             console.error("❌ Error sending email via Nodemailer:", error);
         }
     } else if (activeConfig.service === "postmark") {
@@ -52,7 +52,7 @@ const sendMail = async (mailOptions) => {
             await client.sendEmail(mailOptions);
             console.log(`📧 Email sent via Postmark successfully`);
         } catch (error) {
-            await errorCollector({ url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT })
+            // await errorCollector({ url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT })
             console.error("❌ Error sending email via Postmark:", error);
         }
     } else {

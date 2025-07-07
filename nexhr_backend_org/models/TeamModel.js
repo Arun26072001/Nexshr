@@ -28,7 +28,7 @@ const Team = mongoose.model("Team", TeamSchema);
 const TeamValidation = Joi.object({
     _id: Joi.string().optional(),
     teamName: Joi.string().required().disallow(null, '', 'none', 'undefined').label("Team Name"),
-    employees: Joi.array().items(Joi.string()).required().label("Employees"),
+    employees: Joi.array().min(2).items(Joi.string()).required().label("Team Members"),
     lead: Joi.array().items(Joi.string()).optional().label("Lead"),
     head: Joi.array().items(Joi.string()).optional().label("Head"),
     manager: Joi.array().items(Joi.string()).optional().label("Manager"),

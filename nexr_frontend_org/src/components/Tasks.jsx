@@ -171,6 +171,7 @@ const Tasks = () => {
       setPreviewList((prev = []) => [...prev, ...imgUrls]);
     }
 
+
     setTaskObj((prev) => {
       if (name.startsWith("remind.")) {
         const childName = name.split(/[:.]+/)[1];
@@ -257,6 +258,8 @@ const Tasks = () => {
     }
     handleAddTask()
   }
+
+  console.log("previewList", previewList);
 
   function removeAttachment(value, fileIndex) {
     const updatedPrevireList = previewList.filter((imgFile) => imgFile !== value);
