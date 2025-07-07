@@ -4,6 +4,7 @@ const { verifyAdminHREmployeeManagerNetwork, verifyAdminHrNetworkAdmin, verifyTe
 const { ClockIns, clockInsValidation } = require("../models/ClockInsModel");
 const { Employee } = require("../models/EmpModel");
 const sendMail = require("./mailSender");
+const { format } = require("date-fns");
 const { LeaveApplication } = require("../models/LeaveAppModel");
 const { Team } = require("../models/TeamModel");
 const { timeToMinutes, processActivityDurations, checkLoginForOfficeTime, getCurrentTime, sumLeaveDays, getTotalWorkingHoursExcludingWeekends, changeClientTimezoneDate, getTotalWorkingHourPerDayByDate, errorCollector, isValidLeaveDate } = require("../Reuseable_functions/reusableFunction");
@@ -15,9 +16,9 @@ const { TimePattern } = require("../models/TimePatternModel");
 router.post("/not-login/apply-leave/:workPatternId", async (req, res) => {
     try {
         const timePatternId = req.params.workPatternId;
-        const now = new Date();
-        const startOfDay = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 0, 0, 0));
-        const endOfDay = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 23, 59, 59));
+        const now = changeClientTimezoneDate(new Date());
+        const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0);
+        const endOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59);
 
         // check whf request is weekend or holiday
         function checkDateIsHoliday(dateList, target) {
@@ -30,7 +31,7 @@ router.post("/not-login/apply-leave/:workPatternId", async (req, res) => {
         }
         async function checkDateIsWeekend(date) {
             const timePattern = await TimePattern.findById(timePatternId, "WeeklyDays").lean().exec();
-            const isWeekend = !timePattern.WeeklyDays.includes(new Date(date).toLocaleDateString(undefined, { weekday: 'long' }));
+            const isWeekend = !timePattern.WeeklyDays.includes(format(date, "EEEE"));
             return isWeekend;
         }
         const todayIsWeekend = await checkDateIsWeekend(now);
@@ -636,8 +637,8 @@ router.get("/employee/:empId", verifyAdminHREmployeeManagerNetwork, async (req, 
         totalLeaveDays = Math.ceil(await sumLeaveDays(employee.leaveApplication));
         let scheduledWorkingHours, scheduledLoginTime, weeklyDays;
         if (employee.workingTimePattern) {
-            const startingDate = new Date(employee.workingTimePattern.StartingTime);
-            const endingDate = new Date(employee.workingTimePattern.FinishingTime);
+            const startingDate = changeClientTimezoneDate(employee.workingTimePattern.StartingTime);
+            const endingDate = changeClientTimezoneDate(employee.workingTimePattern.FinishingTime);
             weeklyDays = employee.workingTimePattern.WeeklyDays ? employee.workingTimePattern.WeeklyDays : []
             scheduledLoginTime = startingDate.toLocaleTimeString().split(" ")[0];
             scheduledWorkingHours = (endingDate.getTime() - startingDate.getTime()) / (1000 * 60 * 60)
