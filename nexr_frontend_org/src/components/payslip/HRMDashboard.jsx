@@ -479,13 +479,14 @@ export default function HRMDashboard() {
         const getClockInsData = async () => {
             try {
                 if (_id) {
-                    const { timeData } = await getDataAPI(_id);
-                    if (timeData) {
+                    const clockinData = await getDataAPI(_id);
+                    const timeData = clockinData && clockinData.timeData ? clockinData.timeData : {}
+                    if (Object.keys(timeData).length > 0) {
                         if (new Date(timeData.date).toLocaleDateString() !== new Date().toLocaleDateString()) {
                             localStorage.setItem('isStartLogin', true);
                             setIsStartLogin(true);
                             setIsForgetToPunchOut(true);
-                            handleLogout();
+                            // handleLogout();
                         }
 
                         setWorkTimeTracker(timeData)
@@ -597,7 +598,6 @@ export default function HRMDashboard() {
                         </Routes>
                     } />
                     <Route path='payslip/:id' element={<PayslipUI />} />
-                    <Route path="*" element={<p>404</p>} />
                     <Route path="unauthorize" element={<UnAuthorize />} />
                 </Route>
             </Routes>

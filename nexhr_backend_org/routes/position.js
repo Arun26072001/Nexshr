@@ -44,7 +44,7 @@ router.post("/", verifyAdminHR, async (req, res) => {
     const position = await Position.create(req.body);
 
     res.send({ message: `${position.PositionName} Position added!` });
-  } catch (error) {
+  } catch (err) {
     await errorCollector({ url: req.originalUrl, name: err.name, message: err.message, env: process.env.ENVIRONMENT })
     console.error(err);
     res.status(500).send({ message: "Internal server error." });
@@ -74,7 +74,7 @@ router.put("/:id", verifyAdminHR, async (req, res) => {
     }
 
     res.send({ message: `Position has been updated! ${position.PositionName}` });
-  } catch (error) {
+  } catch (err) {
     await errorCollector({ url: req.originalUrl, name: err.name, message: err.message, env: process.env.ENVIRONMENT })
     console.error(err);
     res.status(500).send({ message: "Internal server error." });

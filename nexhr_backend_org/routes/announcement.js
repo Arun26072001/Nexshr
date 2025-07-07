@@ -115,14 +115,13 @@ router.put("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
 
 router.delete('/:announcementId', async (req, res) => {
   const { announcementId } = req.params;
-
   try {
-    const result = await Announcement.findOneAndDelete({ announcementId });
-    if (!result) {
-      return res.status(404).json({ error: 'Announcement not found' });
+    if (await Announcement.exists({ _id: announcementId })) {
+      const result = await Announcement.findByIdAndDelete(announcementId);
+      res.status(200).json({ message: `${result.title} Announcement has been deleted.` });
+    } else {
+      return res.status(404).send({ error: "Announcement data not found" })
     }
-
-    res.status(200).json({ message: 'Announcement deleted successfully' });
   } catch (error) {
     await errorCollector({ url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT })
     console.error('Error deleting announcement:', error);

@@ -3,12 +3,10 @@ const router = express.Router();
 const { verifyAdminHREmployeeManagerNetwork, verifyAdminHrNetworkAdmin, verifyTeamHigherAuthority } = require("../auth/authMiddleware");
 const { ClockIns, clockInsValidation } = require("../models/ClockInsModel");
 const { Employee } = require("../models/EmpModel");
-// const { getDayDifference } = require("./leave-app");
-// const { getDistance } = require("geolib");
 const sendMail = require("./mailSender");
 const { LeaveApplication } = require("../models/LeaveAppModel");
 const { Team } = require("../models/TeamModel");
-const { timeToMinutes, getTotalWorkingHourPerDay, processActivityDurations, checkLoginForOfficeTime, getCurrentTime, sumLeaveDays, getTotalWorkingHoursExcludingWeekends, changeClientTimezoneDate, getTotalWorkingHourPerDayByDate, errorCollector } = require("../Reuseable_functions/reusableFunction");
+const { timeToMinutes,processActivityDurations, checkLoginForOfficeTime, getCurrentTime, sumLeaveDays, getTotalWorkingHoursExcludingWeekends, changeClientTimezoneDate, getTotalWorkingHourPerDayByDate, errorCollector, isValidLeaveDate } = require("../Reuseable_functions/reusableFunction");
 const { WFHApplication } = require("../models/WFHApplicationModel");
 const { sendPushNotification } = require("../auth/PushNotification");
 const { Holiday } = require("../models/HolidayModel");
@@ -177,6 +175,7 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
         const today = changeClientTimezoneDate(new Date());
         const startOfDay = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate(), 0, 0, 0));
         const endOfDay = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate(), 23, 59, 59, 0));
+
         if (!worklocation) {
             return res.status(400).send({ error: "Please select your work location" })
         }
@@ -201,8 +200,20 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
                 }
             }
             ]).exec();
-
         if (!emp) return res.status(404).send({ error: "Employee not found!" });
+        let holidays = [];
+        const weeklyDays = emp.workingTimePattern && emp.workingTimePattern.WeeklyDays ? emp.workingTimePattern.WeeklyDays : [];
+        if (emp.company) {
+            const holidayData = await Holiday.findOne({ company: emp.company?._id, currentYear: new Date().getFullYear() }).exec();
+            if (holidayData && holidayData.holidays) {
+                holidays = holidayData?.holidays
+            }
+        }
+        // check current day is workingday
+        if (isValidLeaveDate(holidays, weeklyDays, today)) {
+            return res.status(400).send({error: "Today is the not an working day"})
+        }
+
         // Office login time & employee login time 
         const officeLoginTime = getCurrentTime(emp?.workingTimePattern?.StartingTime) || "9:00";
         const loginTimeRaw = req.body?.login?.startingTime?.[0];
@@ -251,7 +262,7 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
         if (!loginTimeRaw) return res.status(400).send({ error: "You must start Punch-in Timer" });
         const companyLoginMinutes = timeToMinutes(officeLoginTime) + Number(emp?.workingTimePattern?.WaitingTime);
         const empLoginMinutes = timeToMinutes(loginTimeRaw);
-
+        // check emp's login time is greater than office time
         if (companyLoginMinutes < empLoginMinutes) {
             const timeDiff = empLoginMinutes - companyLoginMinutes;
             const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
@@ -567,7 +578,7 @@ router.get("/item/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) =>
             empTotalWorkingHours: (hours + minutes) / 60
         });
 
-    } catch (error) {
+    } catch (err) {
         await errorCollector({ url: req.originalUrl, name: err.name, message: err.message, env: process.env.ENVIRONMENT })
         res.status(500).send({ message: "Internal server error", details: err.message });
     }
@@ -592,10 +603,14 @@ router.get("/employee/:empId", verifyAdminHREmployeeManagerNetwork, async (req, 
             const [actualHours, actualMinutes] = actualTime.split(':').map(Number);
             const scheduled = schedHours * 60 + schedMinutes;
             const actual = actualHours * 60 + actualMinutes;
-
-            if (actual > scheduled) late++;
-            else if (actual < scheduled) early++;
-            else regular++;
+            if (actual > scheduled) {
+                late++;
+            }
+            else if (actual < scheduled) {
+                early++;
+            } else {
+                regular++;
+            }
         };
 
         const employee = await Employee.findById(empId, "FirstName LastName profile clockIns leaveApplication workingTimePattern company")
@@ -630,7 +645,6 @@ router.get("/employee/:empId", verifyAdminHREmployeeManagerNetwork, async (req, 
             totalEmpWorkingHours += (timeToMinutes(timeHolder) / 60);
             checkLogin(scheduledLoginTime, startingTime[0]);
         });
-
         res.send({
             totalRegularLogins: regular,
             totalLateLogins: late,

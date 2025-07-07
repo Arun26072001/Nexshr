@@ -16,6 +16,7 @@ import { jwtDecode } from 'jwt-decode';
 import { TimerStates } from './payslip/HRMDashboard';
 import { useNavigate } from 'react-router-dom';
 import { Skeleton } from '@mui/material';
+import defaultProfile from "../imgs/male_avatar.webp";
 
 export default function Projects() {
     const navigate = useNavigate();
@@ -390,12 +391,13 @@ export default function Projects() {
                                                                 Client: {project?.company?.CompanyName}
                                                             </div>
                                                             <div className="d-flex align-items-center gap-2 my-3 flex-wrap" >
-                                                                {project?.employees?.map((emp) => (
-                                                                    <div className="nameHolder" style={{ width: "35px", height: "35px" }} key={emp?._id}>
-                                                                        {emp?.FirstName[0]?.toUpperCase() +
-                                                                            emp?.LastName[0]?.toUpperCase()}
+                                                                {project?.employees?.slice(0, 4).map((emp) => (
+                                                                    <div className="nameHolder" style={{ width: "35px", height: "35px", background: "none" }} key={emp?._id} title={`${emp.FirstName + " " + emp.LastName}`}>
+                                                                        <img src={emp?.profile || defaultProfile} style={{ width: '30px', height: '30px', borderRadius: '50%' }} alt={`${emp.FirstName + " " + emp.LastName}`} />
                                                                     </div>
-                                                                ))}
+                                                                ))} {
+                                                                    (Array.isArray(project.employees) && project.employees.length > 4 ? "..." : "")
+                                                                }
                                                                 <AddCircleOutlineRoundedIcon fontSize="large" sx={{ cursor: "pointer" }} color="disabled" onClick={() => {
                                                                     fetchProjectById(project._id)
                                                                     handleEditProject()

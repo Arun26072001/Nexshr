@@ -187,7 +187,7 @@ const taskValidation = Joi.object({
     __v: Joi.string().allow(0).label('__v'),
     createdAt: Joi.string().allow('').label('createdAt'),
     updatedAt: Joi.string().allow('').label('updatedAt'),
-    title: Joi.string().required().disallow(null, '', 'none', 'undefined').label('Task Title'),
+    title: Joi.string().required().disallow(null, ' ', 'none', 'undefined').label('Title'),
     priority: Joi.string()
         .valid('Low', 'Medium', 'High', 'Critical')
         .required()
@@ -201,7 +201,7 @@ const taskValidation = Joi.object({
         .items(Joi.string().label('Attachment URL'))
         .label('Attachments'),
     description: Joi.string().allow('').label('Description'),
-    assignedTo: Joi.array()
+    assignedTo: Joi.array().min(1)
         .items(Joi.string().regex(/^[0-9a-fA-F]{24}$/).label('Employee ID'))
         .required()
         .label('Assigned To'),
@@ -209,7 +209,8 @@ const taskValidation = Joi.object({
     to: Joi.date()
         .greater(Joi.ref('from'))
         .required()
-        .label('End Date'),
+        .label('End Date')
+        .messages({ "date.min": "'To' Date must be greater than 'From' Date" }),
     status: Joi.string()
         .valid('Pending', 'In Progress', 'Completed', 'On Hold')
         .required()

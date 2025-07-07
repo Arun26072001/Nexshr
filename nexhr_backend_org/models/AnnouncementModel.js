@@ -13,10 +13,12 @@ const announcementSchema = new mongoose.Schema({
 
 const Announcement = mongoose.model('Announcement', announcementSchema);
 const announcementValidation = Joi.object({
-    title: Joi.string().required().disallow(null, '', 'none', 'undefined').label('title'),
+    title: Joi.string().required().disallow(null, ' ', 'none', 'undefined').label('title'),
     startDate: Joi.date().required().label('startDate'),
-    endDate: Joi.date().required().label('endDate').min(Joi.ref('startDate')),
-    message: Joi.string().required().disallow(null, '', 'none', 'undefined').label('message'),
+    endDate: Joi.date().required().label('endDate').min(Joi.ref('startDate')).messages({
+        "date.min": "'endDate' must be greater than 'fromDate'"
+    }),
+    message: Joi.string().required().disallow(null, ' ', 'none', 'undefined', '<p><br></p>').label('message'),
     selectTeamMembers: Joi.array().items(Joi.string()).label("Selected members"),
     createdBy: Joi.any().optional(),
 });

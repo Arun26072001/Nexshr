@@ -805,7 +805,7 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
             minWidth: 100,
             align: 'center',
             getter: (row) => row?.numOfDays !== undefined
-                ? row.numOfDays
+                ? row.numOfDays.toFixed(2)
                 : 'N/A'
         },
         {

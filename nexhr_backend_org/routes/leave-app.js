@@ -320,7 +320,7 @@ leaveApp.get("/emp/:empId", verifyAdminHREmployeeManagerNetwork, async (req, res
       calendarLeaveApps: actualLeaveApps
     });
 
-  } catch (error) {
+  } catch (err) {
     await errorCollector({ url: req.originalUrl, name: err.name, message: err.message, env: process.env.ENVIRONMENT })
     console.error("Error fetching employee data:", err);
     res.status(500).json({ message: "Internal server error", details: err.message });
@@ -343,7 +343,7 @@ leaveApp.get("/hr", verifyHR, async (req, res) => {
     const leaveReqs = await Employee.find({ _id: { $in: empIds } }, "_id FirstName LastName leaveApplication")
       .populate({
         path: "leaveApplication",
-        populate: { path: "employee", select: "_id FirstName LastName profile" }
+        populate: { path: "employee", select: "_id FirstName LastName profile" },
       }).lean().exec();
 
     // Check if there are any leave requests
@@ -358,9 +358,10 @@ leaveApp.get("/hr", verifyHR, async (req, res) => {
       .map((req) => req.leaveApplication)
       .flat()
       .sort((a, b) => new Date(b.fromDate) - new Date(a.fromDate));
+    empLeaveReqs = empLeaveReqs.filter((leave) => !["Permission Leave", "permission", "Unpaid Leave (LWP)"].includes(leave.leaveType))
     empLeaveReqs = empLeaveReqs.map(formatLeaveData)
     res.send(empLeaveReqs);
-  } catch (error) {
+  } catch (err) {
     await errorCollector({ url: req.originalUrl, name: err.name, message: err.message, env: process.env.ENVIRONMENT })
     console.error("Error fetching leave requests:", err);
     res.status(500).send({ message: "Internal Server Error", details: err.message });
@@ -439,11 +440,9 @@ leaveApp.get("/team/:id", verifyTeamHigherAuthority, async (req, res) => {
       .lean(); // lean = returns plain JS objects, faster
 
     // Map prescription URLs
-    const baseURL = process.env.REACT_APP_API_URL;
-    teamLeaves = teamLeaves.map((leave) => ({
-      ...leave,
-      prescription: leave.prescription ? `${baseURL}/uploads/${leave.prescription}` : null
-    }));
+    teamLeaves = teamLeaves.map(formatLeaveData)
+    // filter leave from unpaid and permission
+    teamLeaves.filter((leave) => !["Permission Leave", "permission", "Unpaid Leave (LWP)"].includes(leave.leaveType))
 
     // Sort by fromDate descending
     teamLeaves.sort((a, b) => new Date(b.fromDate) - new Date(a.fromDate));
@@ -506,7 +505,7 @@ leaveApp.get("/all/emp", verifyAdminHR, async (req, res) => {
     res.send({
       leaveData
     });
-  } catch (error) {
+  } catch (err) {
     await errorCollector({ url: req.originalUrl, name: err.name, message: err.message, env: process.env.ENVIRONMENT })
     console.error("Error fetching leave data:", err);
     res.status(500).send({ error: err.message });
@@ -586,7 +585,7 @@ leaveApp.get("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
     };
 
     res.status(200).send(updatedLeaveData); // Explicitly send a 200 response
-  } catch (error) {
+  } catch (err) {
     await errorCollector({ url: req.originalUrl, name: err.name, message: err.message, env: process.env.ENVIRONMENT })
     console.error("Error fetching leave application:", err);
 
@@ -763,7 +762,7 @@ leaveApp.get("/", verifyAdminHR, async (req, res) => {
       })
       res.send(requests);
     }
-  } catch (error) {
+  } catch (err) {
     await errorCollector({ url: req.originalUrl, name: err.name, message: err.message, env: process.env.ENVIRONMENT })
     res.status(500).send({ message: "Internal Server Error", details: err.message })
   }
@@ -1049,7 +1048,7 @@ leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("pre
     }
 
     return res.status(201).json({ message: "Leave request submitted successfully.", newLeaveApp, notifiedMembers: notify });
-  } catch (error) {
+  } catch (err) {
     await errorCollector({ url: req.originalUrl, name: err.name, message: err.message, env: process.env.ENVIRONMENT })
     console.error("error in apply leave", err);
     return res.status(500).json({ error: err.message });
@@ -1219,7 +1218,7 @@ leaveApp.put('/:id', verifyAdminHREmployeeManagerNetwork, async (req, res) => {
       data: updatedRequest,
       notifiedMembers: mailList
     });
-  } catch (error) {
+  } catch (err) {
     await errorCollector({ url: req.originalUrl, name: err.name, message: err.message, env: process.env.ENVIRONMENT })
     console.error("error in update leave", err);
     res.status(500).send({ error: err.message });
@@ -1254,7 +1253,7 @@ leaveApp.delete("/:id/:leaveId", verifyAdminHREmployeeManagerNetwork, async (req
         return res.status(400).send({ error: "You can't delete reponsed Leave." })
       }
     }
-  } catch (error) {
+  } catch (err) {
     await errorCollector({ url: req.originalUrl, name: err.name, message: err.message, env: process.env.ENVIRONMENT })
     console.log(err);
     res.status(500).send({ message: "Error in delete Leave request", details: err.message })

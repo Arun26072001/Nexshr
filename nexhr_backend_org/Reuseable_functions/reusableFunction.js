@@ -4,6 +4,7 @@ const isSameOrBefore = require('dayjs/plugin/isSameOrBefore');
 const isSameOrAfter = require('dayjs/plugin/isSameOrAfter');
 const isoWeek = require('dayjs/plugin/isoWeek');
 const { toZonedTime } = require('date-fns-tz');
+const { format } = require("date-fns");
 const isBetween = require('dayjs/plugin/isBetween');
 const { PlannerCategory } = require("../models/PlannerCategoryModel");
 const { Holiday } = require("../models/HolidayModel");
@@ -89,28 +90,30 @@ const convertToString = (value) => {
   return mongoose.isValidObjectId(value) ? value?.toString() : value;
 };
 
-function isValidLeaveDate(holidays, WeeklyDays, target) {
-  let date = new Date(target);
-  const dateStr = date.toLocaleString(undefined, { weekday: "long" })
+function isValidLeaveDate(holidays = [], WeeklyDays = [], target) {
+  const date = new Date(target);
+  const dayName = format(date, "EEEE"); // e.g., 'Monday', 'Tuesday', etc.
 
-  if (WeeklyDays.includes(dateStr) && !checkDateIsHoliday(holidays, date)) {
-    return true;
-  } else {
-    return false;
-  }
+  const isHoliday = checkDateIsHoliday(holidays, date);
+  const isWeeklyOff = WeeklyDays.includes(dayName);
+
+  // A valid leave date is one that is NOT a holiday AND NOT a weekly off
+  return !isHoliday && !isWeeklyOff;
 }
 
 async function rangeofDate(fromDate, toDate, empData) {
   const from = new Date(fromDate);
   const to = new Date(toDate);
-  const holiday = await Holiday.findOne({ currentYear: new Date().getFullYear() }).lean().exec();
+  const holidayData = await Holiday.findOne({ currentYear: new Date().getFullYear() }).lean().exec();
+  const holidays = Array.isArray(holidayData.holiday) && holidayData.holiday.length > 0 ? holidayData.holiday : []
   const empId = typeof empData === "object" ? empData?._id : empData
   const emp = await Employee.findById(empId, "workingTimePattern")
     .populate("workingTimePattern", "WeeklyDays").lean().exec();
+  const empTimePatternWorkingDays = emp?.workingTimePattern && Array.isArray(emp.workingTimePattern.WeeklyDays) ? emp.workingTimePattern.WeeklyDays : [];
   let dayCount = 0;
   while (from <= to) {
     const date = new Date(from);
-    if (isValidLeaveDate(holiday?.holidays, emp.workingTimePattern.WeeklyDays, date)) {
+    if (isValidLeaveDate(holidays, empTimePatternWorkingDays, date)) {
       dayCount += 1
     }
     from.setDate(from.getDate() + 1); // <- Corrected here
@@ -524,4 +527,4 @@ async function errorCollector(errorLog) {
   }
 }
 
-module.exports = { convertToString, errorCollector, getTotalWorkingHourPerDay, getTotalWorkingHourPerDayByDate, accountFromRole, changeClientTimezoneDate, sumLeaveDays, getValidLeaveDays, fetchFirstTwoItems, getCurrentTime, checkLoginForOfficeTime, categorizeTasks, projectMailContent, processActivityDurations, formatLeaveData, getDayDifference, getOrgDB, formatDate, getWeekdaysOfCurrentMonth, mailContent, checkLogin, getTotalWorkingHoursExcludingWeekends, getCurrentTimeInMinutes, timeToMinutes, formatTimeFromMinutes };
+module.exports = { convertToString, isValidLeaveDate, errorCollector, getTotalWorkingHourPerDay, getTotalWorkingHourPerDayByDate, accountFromRole, changeClientTimezoneDate, sumLeaveDays, getValidLeaveDays, fetchFirstTwoItems, getCurrentTime, checkLoginForOfficeTime, categorizeTasks, projectMailContent, processActivityDurations, formatLeaveData, getDayDifference, getOrgDB, formatDate, getWeekdaysOfCurrentMonth, mailContent, checkLogin, getTotalWorkingHoursExcludingWeekends, getCurrentTimeInMinutes, timeToMinutes, formatTimeFromMinutes };

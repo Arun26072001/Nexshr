@@ -1,5 +1,5 @@
 import React, { useContext, useState } from 'react';
-import { NavLink, useParams } from 'react-router-dom';
+import { NavLink, useNavigate, useParams } from 'react-router-dom';
 import './sidebar.css';
 import KeyboardArrowDownSharpIcon from '@mui/icons-material/KeyboardArrowDownSharp';
 import { EssentialValues } from '../../../App';
@@ -27,6 +27,7 @@ const Sidebar = ({ isMobileView, handleSideBar, setIsMobileView }) => {
   const { token, _id } = data;
   const decodedData = jwtDecode(token);
   const { isTeamManager } = decodedData;
+  const navigate = useNavigate();
 
   const { Dashboard, JobDesk, Employee, Leave,
     Attendance, Administration, Settings
@@ -90,9 +91,12 @@ const Sidebar = ({ isMobileView, handleSideBar, setIsMobileView }) => {
                 <li
                   key={item.key}
                   className={`submenu_navlist ${activeSubmenu === item.key ? 'active' : ''}`}
-                  onClick={() => setActiveSubmenu(item.key)}
+                  onClick={() => {
+                    setActiveSubmenu(item.key)
+                    navigate(item.path)
+                  }}
                 >
-                  <NavLink to={item.path} className="nav-lists">
+                  <NavLink className="nav-lists">
                     {item.label}
                   </NavLink>
                 </li>

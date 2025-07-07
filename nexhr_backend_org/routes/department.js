@@ -15,7 +15,7 @@ router.get("/", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
         select: '_id CompanyName'
       }).lean();
     res.send(departments);
-  } catch (error) {
+  } catch (err) {
     await errorCollector({ url: req.originalUrl, name: err.name, message: err.message, env: process.env.ENVIRONMENT })
     res.status(500).send({ error: err.message });
   }
@@ -25,7 +25,7 @@ router.get("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
   try {
     const department = await Department.findById(req.params.id).lean()
     res.send(department);
-  } catch (error) {
+  } catch (err) {
     await errorCollector({ url: req.originalUrl, name: err.name, message: err.message, env: process.env.ENVIRONMENT })
     res.status(500).send({ error: err.message });
   }
@@ -48,7 +48,7 @@ router.post("/", verifyAdminHR, async (req, res) => {
     const newDepartment = await Department.create(req.body);
 
     res.send({ message: `${newDepartment.DepartmentName} department has been added!` });
-  } catch (error) {
+  } catch (err) {
     await errorCollector({ url: req.originalUrl, name: err.name, message: err.message, env: process.env.ENVIRONMENT })
     console.error(err);
     res.status(500).send({ error: err.message });
@@ -78,7 +78,7 @@ router.put("/:id", verifyAdminHR, async (req, res) => {
     }
 
     res.send({ message: "Department has been updated!" });
-  } catch (error) {
+  } catch (err) {
     await errorCollector({ url: req.originalUrl, name: err.name, message: err.message, env: process.env.ENVIRONMENT })
     console.error(err);
     res.status(500).send({ message: "Internal server error." });
@@ -104,7 +104,7 @@ router.delete("/:id", verifyAdminHR, async (req, res) => {
     }
 
     res.send({ message: "Department has been deleted!" });
-  } catch (error) {
+  } catch (err) {
     await errorCollector({ url: req.originalUrl, name: err.name, message: err.message, env: process.env.ENVIRONMENT })
     console.error("error in delete department", err);
     res.status(500).send({ error: err.message });

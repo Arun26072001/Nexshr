@@ -44,16 +44,19 @@ export default function TaskItem({ task, status, getValue, handleEditTask, handl
 
                 {/* Assigned Employees */}
                 <div className=" d-flex flex-wrap  align-items-center gap-1 mx-1">
-                    {task.assignedTo.map((emp) => (
+                    {task.assignedTo.slice(0, 3).map((emp) => (
                         <div
                             className="nameHolder"
-                            style={{ width: "30px", height: "30px" }}
+                            style={{ width: "30px", height: "30px", background: "none" }}
                             key={emp._id}
                             title={`${emp.FirstName + " " + emp.LastName}`}
                         >
                             <img src={emp?.profile || defaultProfile} style={{ width: '30px', height: '30px', borderRadius: '50%' }} alt={`${emp.FirstName + " " + emp.LastName}`} />
                         </div>
                     ))}
+                    {
+                        Array.isArray(task.assignedTo) && task.assignedTo.length > 3 ? "..." : ""
+                    }
 
                     <AddCircleOutlineRoundedIcon
                         sx={{ cursor: "pointer" }}

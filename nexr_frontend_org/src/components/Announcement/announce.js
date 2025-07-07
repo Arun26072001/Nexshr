@@ -23,6 +23,7 @@ const Announce = () => {
 
     // Function to handle delete
     const handleDelete = async (announcement) => {
+        console.log("announcement", announcement);
         if (announcement) {
             try {
                 setIsDeleting(announcement._id)

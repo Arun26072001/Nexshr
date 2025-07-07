@@ -123,10 +123,10 @@ const EmployeeForm = ({
                     }
                 }
             );
-            if (whoIs !== "emp") {
-                navigate(`/${whoIs}/employee`);
-            } else {
+            if (["emp", "sys-admin"].includes(whoIs)) {
                 navigate(`/${whoIs}`)
+            } else {
+                navigate(`/${whoIs}/employee`);
             }
             setEmployeeObj({});
             toast.success(res.data.message);
@@ -232,10 +232,12 @@ const EmployeeForm = ({
 
     const handleSubmit = async e => {
         e.preventDefault();
-        if (!validationForm() && whoIs !== "emp") {
-            navToError();
-            toast.error("Please fill the required fields in the form.");
-            return;
+        if (!["emp", "sys-admin"].includes(whoIs)) {
+            if (!validationForm()) {
+                navToError();
+                toast.error("Please fill the required fields in the form.");
+                return;
+            }
         }
 
         try {
@@ -953,7 +955,7 @@ const EmployeeForm = ({
                             type="button"
                             className="outline-btn mx-2"
                             onClick={() =>
-                                whoIs === "emp"
+                                ["emp", "sys-admin"].includes(whoIs)
                                     ? navigate(`/${whoIs}`)
                                     : navigate(`/${whoIs}/employee`)
                             }
