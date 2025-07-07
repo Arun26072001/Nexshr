@@ -33,6 +33,7 @@ const Attendence = () => {
   const [selectedTimeOption, setSelectedTimeOption] = useState(["login", "morningBreak", "eveningBreak", "lunch"]);
   const [filteredTabledata, setFilteredTableData] = useState([]);
 
+
   useEffect(() => {
     if (selectedTimeOption.length > 0) {
       const updateTableData = filteredTabledata.flatMap((item) => {
@@ -99,6 +100,7 @@ const Attendence = () => {
         }
       });
 
+      console.log("dashboardData", dashboard.data);
       if (dashboard.data) {
         setclockInsData(dashboard.data);
         if (Array.isArray(dashboard.data.clockIns)) {

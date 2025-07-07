@@ -6,7 +6,7 @@ const { Employee } = require("../models/EmpModel");
 const sendMail = require("./mailSender");
 const { LeaveApplication } = require("../models/LeaveAppModel");
 const { Team } = require("../models/TeamModel");
-const { timeToMinutes,processActivityDurations, checkLoginForOfficeTime, getCurrentTime, sumLeaveDays, getTotalWorkingHoursExcludingWeekends, changeClientTimezoneDate, getTotalWorkingHourPerDayByDate, errorCollector, isValidLeaveDate } = require("../Reuseable_functions/reusableFunction");
+const { timeToMinutes, processActivityDurations, checkLoginForOfficeTime, getCurrentTime, sumLeaveDays, getTotalWorkingHoursExcludingWeekends, changeClientTimezoneDate, getTotalWorkingHourPerDayByDate, errorCollector, isValidLeaveDate } = require("../Reuseable_functions/reusableFunction");
 const { WFHApplication } = require("../models/WFHApplicationModel");
 const { sendPushNotification } = require("../auth/PushNotification");
 const { Holiday } = require("../models/HolidayModel");
@@ -211,7 +211,7 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
         }
         // check current day is workingday
         if (isValidLeaveDate(holidays, weeklyDays, today)) {
-            return res.status(400).send({error: "Today is the not an working day"})
+            return res.status(400).send({ error: "Today is the not an working day" })
         }
 
         // Office login time & employee login time 
@@ -645,6 +645,7 @@ router.get("/employee/:empId", verifyAdminHREmployeeManagerNetwork, async (req, 
             totalEmpWorkingHours += (timeToMinutes(timeHolder) / 60);
             checkLogin(scheduledLoginTime, startingTime[0]);
         });
+        console.log("early", early, "late", late, "regular", regular)
         res.send({
             totalRegularLogins: regular,
             totalLateLogins: late,
