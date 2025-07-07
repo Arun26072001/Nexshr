@@ -36,6 +36,8 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
     const [modelData, setModelData] = useState({});
     const params = useParams();
 
+    console.log("tableData", data)
+
     const handleChangePage = (event, newPage) => {
         setPage(newPage);
     };
@@ -286,7 +288,7 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
     ];
 
     const column5 = [
-        { id: 'Name', label: 'Name', minWidth: 130, align: 'left', getter: (row) => row?.Name || row.employee.FirstName + " " + row.employee.LastName || 'N/A' },
+        { id: 'Name', label: 'Name', minWidth: 130, align: 'left', getter: (row) => row?.Name || (row?.employee?.FirstName + " " + row?.employee?.LastName) || 'Unknown' },
         {
             id: 'date',
             label: 'Date',
@@ -313,7 +315,7 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
             label: 'Punch Out',
             minWidth: 130,
             align: 'left',
-            getter: (row) => row?.punchOut || row?.login?.endingTime[row.login.endingTime.length - 1]
+            getter: (row) => row?.punchOut || row?.login?.endingTime[row.login.endingTime.length - 1] || "N/A"
         },
         {
             id: 'totalHour',
