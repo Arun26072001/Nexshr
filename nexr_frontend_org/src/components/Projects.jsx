@@ -289,7 +289,7 @@ export default function Projects() {
     return (
         isViewProject ? <CommonModel type="Project View" comps={companies} teams={teams} isAddData={isViewProject} employees={employees} dataObj={projectObj} modifyData={handleViewProject} /> :
             isEdit ? <CommonModel type="Assign" isAddData={isEdit} isWorkingApi={isWorkingApi} employees={employees} changeData={changeProject} dataObj={projectObj} editData={updateProject} modifyData={handleEditProject} /> :
-                isDelete.type ? <CommonModel type="Confirmation" modifyData={handleDeleteProject} deleteData={deleteProject} isAddData={isDelete} /> :
+                isDelete.type ? <CommonModel type="Project Confirmation" modifyData={handleDeleteProject} deleteData={deleteProject} isAddData={isDelete} /> :
                     isAddProject ? <CommonModel
                         comps={companies}
                         dataObj={projectObj}

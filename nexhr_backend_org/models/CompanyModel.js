@@ -42,6 +42,7 @@ const CompanyValidation = Joi.object().keys({
   logo: Joi.string()
     .required(),
   Email: Joi.string()
+    .email()
     .max(1000)
     .required().disallow(null, '', 'none', 'undefined'),
   ContactPerson: Joi.string()

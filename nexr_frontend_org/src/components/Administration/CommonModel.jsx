@@ -52,7 +52,7 @@ const CommonModel = ({
         return result;
     };
 
-
+    console.log("type", type)
     const handleTeamChange = (selectedValues) => {
         const selectedSet = new Set(selectedValues);
         let result = [];
@@ -107,7 +107,7 @@ const CommonModel = ({
             <Modal.Header>
                 <Modal.Title>
                     {type === "Assign" ? `Edit ${type}` :
-                        ["Confirmation", "Report Confirmation"].includes(type) ? "" :
+                        ["Project Confirmation", "Team Confirmation", "Report Confirmation"].includes(type) ? "" :
                             type === "Add Comments" ? "Add Comments" : type === "Edit Comments" ? "Edit Comments" :
                                 dataObj?._id ? `Edit ${type}` : `Add a ${type}`}
                 </Modal.Title>
@@ -1046,7 +1046,7 @@ const CommonModel = ({
                 }
 
                 {
-                    ["Confirmation", "Task Confirmation", "Report Confirmation"].includes(type) &&
+                    ["Project Confirmation", "Team Confirmation", "Task Confirmation", "Report Confirmation"].includes(type) &&
                     <div className='text-center' style={{ color: "#FFD65A" }}>
                         <p>
                             <ErrorOutlineRoundedIcon sx={{ fontSize: "80px" }} />
@@ -1059,7 +1059,7 @@ const CommonModel = ({
                                 <p>By deleting this data all its item, invoice and time entries will be deleted.</p>
                             </div>
                         }
-                        <Input required placeholder={`Please Type "Delete" to delete this ${type === "Confirmation" ? "Project" : type === "Report Confirmation" ? "Report" : "Task"}`} onChange={setConfirmationTxt} value={confirmationTxt} appearance="default" size='lg' />
+                        <Input required placeholder={`Please Type "Delete" to delete ${type.split(" ")[0]}`} onChange={setConfirmationTxt} value={confirmationTxt} appearance="default" size='lg' />
                     </div>
                 }
                 {
@@ -1598,7 +1598,7 @@ const CommonModel = ({
 
             <Modal.Footer>
                 {
-                    ["Confirmation", "Task Confirmation", "Report Confirmation"].includes(type) ?
+                    ["Project Confirmation", "Team Confirmation", "Task Confirmation", "Report Confirmation"].includes(type) ?
                         <>
                             <Button onClick={modifyData} appearance="default">No</Button>
                             <Button disabled={confirmationTxt === "Delete" ? false : true} onClick={deleteData} appearance="primary">Yes</Button>

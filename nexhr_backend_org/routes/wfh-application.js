@@ -784,9 +784,9 @@ router.put("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
             const isFromDateHoliday = checkDateIsHoliday(holiday.holidays, fromDate);
             const isToDateHoliday = checkDateIsHoliday(holiday.holidays, fromDate);
             if (isFromDateHoliday) {
-                return res.status(400).send("holiday are not allowed for fromDate")
+                return res.status(400).send({ error: "holiday are not allowed for fromDate" })
             } if (isToDateHoliday) {
-                return res.status(400).send("holiday are not allowed for toDate")
+                return res.status(400).send({ error: "holiday are not allowed for toDate" })
             }
             async function checkDateIsWeekend(date) {
                 const timePattern = await TimePattern.findById(emp.workingTimePattern, "WeeklyDays").lean().exec();

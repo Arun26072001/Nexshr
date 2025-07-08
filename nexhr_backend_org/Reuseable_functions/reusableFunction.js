@@ -458,16 +458,11 @@ function getTotalWorkingHourPerDay(startingTime, endingTime) {
 
 const getTotalWorkingHoursExcludingWeekends = (start, end, dailyHours = 0, holidays = [], WeeklyDays = []) => {
   let totalHours = 0;
-  // for (let date = new Date(start); date <= end; date.setDate(date.getDate() + 1)) {
-  //   if (date.getDay() !== 0 && date.getDay() !== 6) { // Exclude weekends
-  //     totalHours += dailyHours;
-  //   }
-  // }
-  const from = changeClientTimezoneDate(start);
-  const to = changeClientTimezoneDate(end);
+  const from = new Date(start);
+  const to = new Date(end);
   while (from <= to) {
     const date = new Date(from);
-    if (isValidLeaveDate(holidays, WeeklyDays, date)) {
+    if (!isValidLeaveDate(holidays, WeeklyDays, date)) {
       totalHours += dailyHours
     }
     from.setDate(from.getDate() + 1); // <- Corrected here
