@@ -25,7 +25,7 @@ const EmpCard = ({ team, deleteTeam, editTeam, whoIs }) => {
         <>
             {isDelete && (
                 <CommonModel
-                    type="Confirmation"
+                    type="Team Confirmation"
                     isAddData={isDelete}
                     deleteData={confirmDelete}
                     modifyData={handleDelete}

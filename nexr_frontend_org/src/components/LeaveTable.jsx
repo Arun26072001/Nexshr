@@ -31,7 +31,6 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
     const [rowsPerPage, setRowsPerPage] = useState(+localStorage.getItem("rowsPerPage") || 10);
     const [rows, setRows] = useState([]);
     const [columns, setColumns] = useState([]);
-    // const [totalHours, setTotalHours] = useState({}); // To hold total hours for each entry
     const [openModal, setOpenModal] = useState(false);
     const [modelData, setModelData] = useState({});
     const params = useParams();

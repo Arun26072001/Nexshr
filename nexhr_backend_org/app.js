@@ -176,11 +176,11 @@ schedule.scheduleJob("0 0 10 4 * *", async function () {
 async function fetchTimePatterns() {
   try {
     const timePatterns = await TimePattern.find();
-    const actualPatternStart = changeClientTimezoneDate(pattern.StartingTime);
-    const actualPatternEnd = changeClientTimezoneDate(pattern.FinishingTime)
     timePatterns.forEach((pattern) => {
+      const actualPatternStart = changeClientTimezoneDate(pattern.StartingTime);
+      const actualPatternEnd = changeClientTimezoneDate(pattern.FinishingTime)
       const [startingHour, startingMin] = [actualPatternStart.getHours(), actualPatternStart.getMinutes()];
-      const [finishingHour, finishingMin] = [actualPatternStart.getHours(), actualPatternStart.getMinutes()];
+      const [finishingHour, finishingMin] = [actualPatternEnd.getHours(), actualPatternEnd.getMinutes()];
 
       // Schedule job for login
       schedule.scheduleJob(`0 ${startingMin} ${startingHour} * * 1-5`, async function () {

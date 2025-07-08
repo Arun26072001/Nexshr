@@ -3,6 +3,7 @@ const leaveApp = express.Router();
 const { LeaveApplication,
   LeaveApplicationValidation
 } = require('../models/LeaveAppModel');
+const jwt = require("jsonwebtoken");
 const { toZonedTime } = require('date-fns-tz');
 const { format } = require("date-fns");
 const { Employee } = require('../models/EmpModel');
@@ -370,6 +371,8 @@ leaveApp.get("/hr", verifyHR, async (req, res) => {
 
 leaveApp.get("/unpaid", verifyAdminHR, async (req, res) => {
   try {
+    // if hr, fetch unpaid leave should to return employee's leave
+    const decodedData = jwt.verify(req.headers["authorization"], process.env.ACCCESS_SECRET_KEY)
     const daterangeValue = req.query?.daterangeValue;
     const now = new Date();
     // get dateRange value or current month range value
@@ -381,9 +384,19 @@ leaveApp.get("/unpaid", verifyAdminHR, async (req, res) => {
       fromDate: { $lte: endOfMonth },
       toDate: { $gte: startOfMonth },
       status: "pending"
-    }).populate("employee", "FirstName LastName profile").exec();
+    }).populate("employee", "FirstName LastName profile Account").exec();
     const unpaidRequests = pendingRequests.filter((leave) => leave?.leaveType?.toLowerCase().includes("unpaid"))
-    const arrangeLeave = unpaidRequests.sort((a, b) => new Date(b.fromDate) - new Date(a.fromDate));
+    let arrangeLeave = unpaidRequests.sort((a, b) => new Date(b.fromDate) - new Date(a.fromDate));
+
+    // filter only execept admin and hr employee
+    if (decodedData && decodedData.Account === 2) {
+      arrangeLeave = arrangeLeave.filter((leave) => {
+        if (leave.employee && leave.employee?.Account) {
+          return ![1, 2].includes(leave.employee?.Account)
+        }
+      })
+    }
+
     return res.send(arrangeLeave);
   } catch (error) {
     await errorCollector({ url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT })
@@ -1175,8 +1188,8 @@ leaveApp.put('/:id', verifyAdminHREmployeeManagerNetwork, async (req, res) => {
         return res.status(400).send({ error: `Invalid leave balance for ${leaveType}.` });
       }
     }
-
-    if (!allPending) {
+    // check leave is not pending by all and leave not unpaid
+    if (!allPending && !leaveType.toLowerCase().includes("unpaid")) {
       const Subject = "Leave Application Response Notification";
       const message = `${emp.FirstName}'s leave application has been ${emailType} by ${actionBy}`;
 

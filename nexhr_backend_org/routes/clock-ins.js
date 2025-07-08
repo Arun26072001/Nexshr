@@ -31,8 +31,12 @@ router.post("/not-login/apply-leave/:workPatternId", async (req, res) => {
         }
         async function checkDateIsWeekend(date) {
             const timePattern = await TimePattern.findById(timePatternId, "WeeklyDays").lean().exec();
-            const isWeekend = !timePattern.WeeklyDays.includes(format(date, "EEEE"));
-            return isWeekend;
+            if (timePattern && timePattern.WeeklyDays) {
+                const isWeekend = !timePattern.WeeklyDays.includes(format(date, "EEEE"));
+                return isWeekend;
+            } else {
+                return false;
+            }
         }
         const todayIsWeekend = await checkDateIsWeekend(now);
         if (todayIsWeekend) {
@@ -44,7 +48,6 @@ router.post("/not-login/apply-leave/:workPatternId", async (req, res) => {
             "_id workingTimePattern FirstName LastName Email team leaveApplication company"
         )
             .populate("leaveApplication")
-            // .populate("company", "CompanyName logo")
             .populate({
                 path: "team",
                 populate: { path: "hr", select: "FirstName LastName Email fcmToken" },
@@ -79,6 +82,7 @@ router.post("/not-login/apply-leave/:workPatternId", async (req, res) => {
 
         const leaveApplications = [];
         const emailPromises = [];
+        const notifiedFor = [];
 
         for (const emp of notLoginEmps) {
             if (!emp.workingTimePattern) continue;
@@ -114,6 +118,7 @@ router.post("/not-login/apply-leave/:workPatternId", async (req, res) => {
             await Employee.findByIdAndUpdate(emp._id, {
                 $set: { leaveApplication: [leave._id] },
             });
+            notifiedFor.push(emp.Email);
 
             const htmlContent = `
                 <html>
@@ -592,11 +597,9 @@ router.get("/employee/:empId", verifyAdminHREmployeeManagerNetwork, async (req, 
         const now = new Date();
         const { empId } = req.params;
         const { daterangeValue } = req.query;
-
-        const [startOfMonth, endOfMonth] = Array.isArray(daterangeValue) ?
+        const [startOfMonth, endOfMonth] = daterangeValue && Array.isArray(daterangeValue) ?
             [new Date(daterangeValue[0]), new Date(daterangeValue[1])] :
             [new Date(now.getFullYear(), now.getMonth(), 1), now];
-
         let totalEmpWorkingHours = 0, totalLeaveDays = 0
         let regular = 0, late = 0, early = 0;
 
