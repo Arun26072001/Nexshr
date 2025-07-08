@@ -22,6 +22,7 @@ export default function Reports() {
     const [reports, setReports] = useState([]);
     const [teamsEmps, setTeamEmps] = useState([]);
     const [reportObj, setReportObj] = useState({});
+    const [errorData, setErrorData] = useState("");
     const [filterReports, setFilterReports] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
     const [isAddReport, setIsAddReport] = useState(false);
@@ -127,6 +128,7 @@ export default function Reports() {
 
     async function addReport() {
         setIsWorkingApi(true);
+        setErrorData("")
         try {
             let newReportObj = {
                 ...reportObj,
@@ -143,11 +145,13 @@ export default function Reports() {
             setReportObj({});
             toast.success(res.data.message);
         } catch (error) {
+            console.log("error in add report", error)
             if (error?.message === "Network Error") {
                 navigate("/network-issue")
             }
-            console.log("error in add report", error)
-            toast.error(error.response.data.error)
+            const errorMsg = error?.response?.data?.error
+            setErrorData(errorMsg)
+            toast.error(errorMsg)
         } finally {
             setIsWorkingApi(false);
         }
@@ -156,6 +160,7 @@ export default function Reports() {
 
     async function editReport(updatedReport) {
         setIsWorkingApi(true);
+        setErrorData("");
         try {
             const res = await axios.put(`${url}/api/report/${data._id}/${updatedReport._id}`, updatedReport, {
                 headers: {
@@ -170,7 +175,9 @@ export default function Reports() {
             if (error?.message === "Network Error") {
                 navigate("/network-issue")
             }
-            toast.error(error?.response?.data?.error)
+            const errorMsg = error?.response?.data?.error
+            setErrorData(errorMsg)
+            toast.error(errorMsg)
         }
         setIsWorkingApi(false);
     }
@@ -295,8 +302,8 @@ export default function Reports() {
     return (
         isViewReport ? <CommonModel type="Report View" isAddData={isViewReport} modifyData={fetchReportById} dataObj={reportObj} projects={projects} comps={companies} departments={departments} employees={employees} /> :
             isDeleteReport.type ? <CommonModel type="Report Confirmation" modifyData={handleDeleteReport} deleteData={deleteReport} isAddData={isDeleteReport.type} /> :
-                isAddReport ? <CommonModel type="Report" isWorkingApi={isWorkingApi} isAddData={isAddReport} projects={projects} comps={companies} departments={departments} modifyData={handleAddReport} changeData={changeReport} addData={addReport} dataObj={reportObj} editData={editReport} employees={employees} /> :
-                    isEditReport ? <CommonModel type="Report" isWorkingApi={isWorkingApi} isAddData={isEditReport} projects={projects} comps={companies} departments={departments} modifyData={handleEditReport} changeData={changeReport} dataObj={reportObj} editData={editReport} employees={employees} /> :
+                isAddReport ? <CommonModel type="Report" errorMsg={errorData} isWorkingApi={isWorkingApi} isAddData={isAddReport} projects={projects} comps={companies} departments={departments} modifyData={handleAddReport} changeData={changeReport} addData={addReport} dataObj={reportObj} editData={editReport} employees={employees} /> :
+                    isEditReport ? <CommonModel type="Report" errorMsg={errorData} isWorkingApi={isWorkingApi} isAddData={isEditReport} projects={projects} comps={companies} departments={departments} modifyData={handleEditReport} changeData={changeReport} dataObj={reportObj} editData={editReport} employees={employees} /> :
                         <>
                             <div className="projectParent">
                                 <div className="projectTitle col-lg-6 col-md-4 col-12">Reports</div>

@@ -404,7 +404,6 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
         // Function to check login status
         const checkLoginStatus = (scheduledTime, actualTime, permissionTime = 0) => {
             if (!scheduledTime || !actualTime) return null;
-            console.log(scheduledTime, actualTime);
 
             const scheduledMinutes = timeToMinutes(scheduledTime);
             const actualMinutes = timeToMinutes(actualTime);

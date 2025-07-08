@@ -21,6 +21,7 @@ export default function Company() {
     const [isLoading, setIsLoading] = useState(false);
     const [isDeleting, setIsDeleting] = useState("");
     const [logoPreview, setLogoPreView] = useState("");
+    const [errorData, setErrorData] = useState("");
     const [isChangingCompany, setIschangingCompany] = useState(false);
     const [modifyCompany, setModifyCompany] = useState({
         isAdd: false,
@@ -82,6 +83,7 @@ export default function Company() {
 
     async function addCompany() {
         setIschangingCompany(true);
+        setErrorData("")
         try {
             let updatedCompanyObj = {
                 ...companyObj
@@ -108,7 +110,9 @@ export default function Company() {
             if (error?.message === "Network Error") {
                 navigate("/network-issue")
             }
-            return toast.error(error?.response?.data?.error)
+            const errorMsg = error?.response?.data?.error
+            setErrorData(errorMsg)
+            toast.error(errorMsg)
         } finally {
             setIschangingCompany(false);
         }
@@ -159,6 +163,7 @@ export default function Company() {
         let updatedCompanyObj = {
             ...companyObj
         }
+        setErrorData("");
         try {
             if (companyObj?.logo?.type?.includes("image")) {
                 const upload = await fileUploadInServer([companyObj.logo]);
@@ -183,7 +188,9 @@ export default function Company() {
             if (error?.message === "Network Error") {
                 navigate("/network-issue")
             }
-            toast.error(error?.response?.data?.error);
+            const errorMsg = error?.response?.data?.error
+            setErrorData(errorMsg)
+            toast.error(errorMsg)
         } finally {
             setIschangingCompany(false);
         }
@@ -223,12 +230,10 @@ export default function Company() {
     useEffect(() => {
         fetchCountries();
     }, [])
-    console.log("states", states);
-    console.log("companyDat", companyObj)
 
     return (
-        modifyCompany.isAdd ? <CommonModel type="Company" countries={countries} states={states} preview={logoPreview} isWorkingApi={isChangingCompany} modifyData={changeCompanyOperation} addData={addCompany} changeData={changeCompany} dataObj={companyObj} isAddData={modifyCompany.isAdd} /> :
-            modifyCompany.isEdit ? <CommonModel type="Company" preview={logoPreview} countries={countries} states={states} isWorkingApi={isChangingCompany} modifyData={changeCompanyOperation} addData={addCompany} changeData={changeCompany} dataObj={companyObj} isAddData={modifyCompany.isEdit} editData={editCompany} /> :
+        modifyCompany.isAdd ? <CommonModel type="Company" errorMsg={errorData} countries={countries} states={states} preview={logoPreview} isWorkingApi={isChangingCompany} modifyData={changeCompanyOperation} addData={addCompany} changeData={changeCompany} dataObj={companyObj} isAddData={modifyCompany.isAdd} /> :
+            modifyCompany.isEdit ? <CommonModel type="Company" errorMsg={errorData} preview={logoPreview} countries={countries} states={states} isWorkingApi={isChangingCompany} modifyData={changeCompanyOperation} addData={addCompany} changeData={changeCompany} dataObj={companyObj} isAddData={modifyCompany.isEdit} editData={editCompany} /> :
                 <div className='dashboard-parent pt-4'>
                     <div className="d-flex justify-content-between px-2">
                         <h5 className='text-daily'>Company</h5>

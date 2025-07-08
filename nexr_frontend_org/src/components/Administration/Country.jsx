@@ -17,6 +17,7 @@ export default function Country() {
     const [countryObj, setcountryObj] = useState({});
     const url = process.env.REACT_APP_API_URL;
     const { data } = useContext(EssentialValues);
+    const [errorData, setErrorData] = useState("");
     const [isLoading, setIsLoading] = useState(false);
     const [isChangingCountry, setIschangingCountry] = useState(false);
     const [countryName, setCountryName] = useState("");
@@ -34,7 +35,6 @@ export default function Country() {
     }
 
     function changeState(name, value) {
-
         if (countryObj?.states) {
             const isExists = countryObj?.states?.filter((item) => item === value?.trimStart()?.replace(/\s+/g, ' '));
 
@@ -53,14 +53,12 @@ export default function Country() {
     }
 
     function removeState(value) {
-        console.log("item", value);
         const removedStates = countryObj?.states.filter((item) => item !== value)
         setcountryObj((pre) => ({
             ...pre,
             ['states']: removedStates
         }))
     }
-    console.log("countryObj", countryObj);
 
     function changeCountryOperation(type) {
         if (type === "Edit") {
@@ -88,6 +86,7 @@ export default function Country() {
     }
     async function updateCountry() {
         setIschangingCountry(true);
+        setErrorData("");
         try {
             const res = await axios.put(`${url}/api/country/${countryObj.code}`, countryObj, {
                 headers: {
@@ -102,13 +101,16 @@ export default function Country() {
             if (error?.message === "Network Error") {
                 navigate("/network-issue")
             }
-            toast.error(error?.response?.data?.error)
+            const errorMsg = error?.response?.data?.error
+            setErrorData(errorMsg)
+            toast.error(errorMsg)
         }
         setIschangingCountry(false);
     }
 
     async function addCountry() {
         setIschangingCountry(true);
+        setErrorData("")
         try {
             const res = await axios.post(`${url}/api/country`, countryObj, {
                 headers: {
@@ -124,7 +126,9 @@ export default function Country() {
                 navigate("/network-issue")
             }
             console.log("error in add country", error);
-            toast.error(error?.response?.data?.error)
+            const errorMsg = error?.response?.data?.error
+            setErrorData(errorMsg)
+            toast.error(errorMsg)
         }
         setIschangingCountry(false);
     }
@@ -170,8 +174,8 @@ export default function Country() {
     }, [data.token])
 
     return (
-        modifyCountry.isAdd ? <CommonModel type="Country" isWorkingApi={isChangingCountry} addData={addCountry} removeState={removeState} dataObj={countryObj} isAddData={modifyCountry.isAdd} changeState={changeState} modifyData={changeCountryOperation} changeData={changeCountry} /> :
-            modifyCountry.isEdit ? <CommonModel type="Edit Country" isWorkingApi={isChangingCountry} removeState={removeState} editData={updateCountry} changeState={changeState} dataObj={countryObj} isAddData={modifyCountry.isEdit} modifyData={changeCountryOperation} changeData={changeCountry} /> :
+        modifyCountry.isAdd ? <CommonModel type="Country" errorMsg={errorData} isWorkingApi={isChangingCountry} addData={addCountry} removeState={removeState} dataObj={countryObj} isAddData={modifyCountry.isAdd} changeState={changeState} modifyData={changeCountryOperation} changeData={changeCountry} /> :
+            modifyCountry.isEdit ? <CommonModel type="Edit Country" errorMsg={errorData} isWorkingApi={isChangingCountry} removeState={removeState} editData={updateCountry} changeState={changeState} dataObj={countryObj} isAddData={modifyCountry.isEdit} modifyData={changeCountryOperation} changeData={changeCountry} /> :
                 <div className="dashboard-parent">
                     <div className="d-flex justify-content-between px-2">
                         <h5 className='text-daily'>Country</h5>

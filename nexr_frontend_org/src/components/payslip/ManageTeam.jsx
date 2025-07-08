@@ -20,6 +20,7 @@ const ManageTeam = () => {
     const [isLoading, setIsLoading] = useState(false);
     const [searchTeam, setSearchTeam] = useState('');
     const [dom, reload] = useState(false);
+    const [errorData, setErrorData] = useState("");
     const [addTeam, setAddTeam] = useState(false);
     const [employees, setEmployees] = useState([]); // Null indicates no team is being edited
     const [teams, setTeams] = useState([]);
@@ -102,6 +103,7 @@ const ManageTeam = () => {
     const handleSubmit = async () => {
         try {
             setIsChangingTeam(true);
+            setErrorData("")
             const response = await axios.post(`${url}/api/team/${_id}`, teamObj, {
                 headers: {
                     Authorization: token || ""
@@ -113,7 +115,9 @@ const ManageTeam = () => {
             setTeamObj({})
             reloadUI();
         } catch (err) {
-            toast.error(err.response.data.error);
+            const errorMsg = err?.response?.data?.error
+            setErrorData(errorMsg)
+            toast.error(errorMsg)
         } finally {
             setIsChangingTeam(false)
         }
@@ -122,6 +126,7 @@ const ManageTeam = () => {
     const handleSubmitEdit = async () => {
         try {
             setIsChangingTeam(true);
+            setErrorData("");
             const res = await axios.put(`${url}/api/team/${teamObj._id}`, teamObj, {
                 headers: {
                     Authorization: token || ""
@@ -133,7 +138,9 @@ const ManageTeam = () => {
             toast.success(res.data.message);
         } catch (err) {
             console.log(err);
-            toast.error(err.response.data.error);
+            const errorMsg = err?.response?.data?.error
+            setErrorData(errorMsg)
+            toast.error(errorMsg)
         } finally {
             setIsChangingTeam(false);
         }
@@ -314,6 +321,7 @@ const ManageTeam = () => {
                 {addTeam && (
                     <CommonModel type="Team"
                         isAddData={addTeam}
+                        errorMsg={errorData}
                         changeData={changeTeamObj}
                         editData={handleSubmitEdit}
                         leads={leads}

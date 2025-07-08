@@ -102,15 +102,6 @@ exports.askReasonForDelay = (req, res) => {
                 const startingTimes = timeData?.startingTime || [];
                 const endingTimes = timeData?.endingTime || [];
 
-                // const empData = await Employee.findById(employeeId, "company")
-                // let timeZone;
-                // if (empData.company) {
-                //     const timeZoneData = await Timezone.findOne({ company: empData.company }).lean().exec();
-                //     if (timeZoneData) {
-                //         timeZone = timeZoneData?.timeZone
-                //     }
-                // }
-
                 const values = startingTimes.map((startTime, index) => {
                     if (!startTime) return 0;
 

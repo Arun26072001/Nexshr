@@ -15,6 +15,7 @@ export default function Department() {
     const navigate = useNavigate();
     const url = process.env.REACT_APP_API_URL;
     const { data } = useContext(EssentialValues);
+    const [errorData, setErrorData] = useState("");
     const [departmentObj, setDepartmentObj] = useState({});
     const [departments, setDepartments] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
@@ -42,6 +43,7 @@ export default function Department() {
     }
     async function addDepartment() {
         setIsChangingDepartment(true);
+        setErrorData("");
         try {
             const msg = await axios.post(url + "/api/department", departmentObj, {
                 headers: {
@@ -56,7 +58,9 @@ export default function Department() {
             if (error?.message === "Network Error") {
                 navigate("/network-issue")
             }
-            return toast.error(error?.response?.data?.error)
+            const errorMsg = error?.response?.data?.error
+            setErrorData(errorMsg)
+            toast.error(errorMsg)
         }
         setIsChangingDepartment(false);
     }
@@ -84,6 +88,7 @@ export default function Department() {
 
     async function editDepartment() {
         setIsChangingDepartment(true);
+        setErrorData("");
         try {
             // Assuming the correct API endpoint for editing a department is '/api/department/${id}'
             const response = await axios.put(`${url}/api/department/${departmentObj._id}`, departmentObj, {
@@ -103,8 +108,9 @@ export default function Department() {
                 navigate("/network-issue")
             }
             // Show an error toast with the message from the API (or a generic error message if not available)
-            const errorMessage = error?.response?.data?.message || error.message || "Something went wrong";
-            toast.error(errorMessage);
+            const errorMsg = error?.response?.data?.error
+            setErrorData(errorMsg)
+            toast.error(errorMsg)
         }
         setIsChangingDepartment(false);
     }
@@ -148,6 +154,7 @@ export default function Department() {
 
     return (
         isAddDepartment ? <CommonModel
+            errorMsg={errorData}
             dataObj={departmentObj}
             editData={editDepartment}
             changeData={changeDepartment}

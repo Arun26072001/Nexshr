@@ -21,6 +21,7 @@ export default function Comments() {
     const [taskObj, setTaskObj] = useState({});
     const [commentObj, setCommentObj] = useState({});
     const { id } = useParams();
+    const [errorData, setErrorData] = useState("");
     const { data, whoIs } = useContext(EssentialValues);
     const [employees, setEmployees] = useState([]);
     const url = process.env.REACT_APP_API_URL;
@@ -84,6 +85,7 @@ export default function Comments() {
 
     async function editTask(taskData) {
         setIsChangingComment(true)
+        setErrorData("")
         try {
             let updatedTaskData;
             const files = taskData?.attachments?.filter((file) => file.type === "image/png") || [];
@@ -125,6 +127,7 @@ export default function Comments() {
             if (error?.message === "Network Error") {
                 navigate("/network-issue")
             }
+            setErrorData(error.response.data.error)
             console.error("Error updating task:", error);
             toast.error("Failed to update task.");
         }
@@ -165,6 +168,7 @@ export default function Comments() {
 
     async function updateCommentsInObj(taskObjdata, type, index) {
         try {
+            setErrorData("")
             // ischangingComment(true);
             const res = await axios.put(`${url}/api/task/updatedTaskComment/${data._id}`, taskObjdata, {
                 params: {
@@ -180,6 +184,7 @@ export default function Comments() {
             if (error?.message === "Network Error") {
                 navigate("/network-issue")
             }
+            setErrorData(error.response.data.error);
             console.log("error in update task in comments");
         } finally {
             // setIsChangingComment(false)
@@ -540,6 +545,7 @@ export default function Comments() {
             addReminder={addReminder}
             removeReminder={removeReminder}
             projects={projects}
+            errorMsg={errorData}
             removeAttachment={removeAttachment}
             employees={employees}
             type="Task"

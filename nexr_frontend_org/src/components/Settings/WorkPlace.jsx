@@ -21,6 +21,7 @@ const WorkPlaceTab = () => {
   const { employees } = useContext(TimerStates);
   const [isLoading, setIsLoading] = useState(false);
   const [isDeleting, setIsDeleting] = useState("");
+  const [errorData, setErrorData] = useState("");
   const [workPlaceObj, setWorkPlaceObj] = useState({});
   const [countries, setCountries] = useState([]);
   const [states, setStates] = useState([]);
@@ -102,6 +103,7 @@ const WorkPlaceTab = () => {
   async function addWorkplace() {
     try {
       setIsWorkingApi(true);
+      setErrorData("")
       const res = await axios.post(`${url}/api/work-place`, workPlaceObj, {
         headers: {
           Authorization: data.token || ""
@@ -116,7 +118,9 @@ const WorkPlaceTab = () => {
         navigate("/network-issue")
       }
       console.log("error in add workplace:", error);
-      toast.error(error?.response?.data?.error)
+      const errorMsg = error?.response?.data?.error
+      setErrorData(errorMsg)
+      toast.error(errorMsg)
     } finally {
       setIsWorkingApi(false);
     }
@@ -125,6 +129,7 @@ const WorkPlaceTab = () => {
   async function editWorkPlace() {
     try {
       setIsWorkingApi(true);
+      setErrorData("")
       const res = await axios.put(`${url}/api/work-place/${workPlaceObj._id}`, workPlaceObj, {
         headers: {
           Authorization: data.token || ""
@@ -139,7 +144,9 @@ const WorkPlaceTab = () => {
         navigate("/network-issue")
       }
       console.log("error in add workplace:", error);
-      toast.error(error?.response?.data?.error)
+      const errorMsg = error?.response?.data?.error
+      setErrorData(errorMsg)
+      toast.error(errorMsg)
     } finally {
       setIsWorkingApi(false);
     }
@@ -193,13 +200,13 @@ const WorkPlaceTab = () => {
   }, [changeWorkplace.isEdit])
 
   return (
-    changeWorkplace.isAdd ? <CommonModel type={"WorkPlace"} isAddData={changeWorkplace.isAdd} isWorkingApi={isWorkingApi} employees={employees} dataObj={workPlaceObj} countries={countries} states={states} modifyData={handleChangeWorkPlace} addData={addWorkplace} changeData={fillworkplaceObj} /> :
-      changeWorkplace.isEdit ? <CommonModel type={"WorkPlace"} isAddData={changeWorkplace.isEdit} employees={employees} isWorkingApi={isWorkingApi} dataObj={workPlaceObj} countries={countries} states={states} modifyData={handleChangeWorkPlace} editData={editWorkPlace} changeData={fillworkplaceObj} /> :
+    changeWorkplace.isAdd ? <CommonModel type={"WorkPlace"} errorMsg={errorData} isAddData={changeWorkplace.isAdd} isWorkingApi={isWorkingApi} employees={employees} dataObj={workPlaceObj} countries={countries} states={states} modifyData={handleChangeWorkPlace} addData={addWorkplace} changeData={fillworkplaceObj} /> :
+      changeWorkplace.isEdit ? <CommonModel type={"WorkPlace"} errorMsg={errorData} isAddData={changeWorkplace.isEdit} employees={employees} isWorkingApi={isWorkingApi} dataObj={workPlaceObj} countries={countries} states={states} modifyData={handleChangeWorkPlace} editData={editWorkPlace} changeData={fillworkplaceObj} /> :
         changeWorkplace.isView ? <CommonModel type={"View WorkPlace"} employees={employees} isAddData={changeWorkplace.isView} dataObj={workPlaceObj} countries={countries} states={states} modifyData={handleChangeWorkPlace} /> :
           <div className="container">
             <div className="my-3 row">
               <div className="col-6 d-flex justify-content-start">
-                  <h5>PLACES OF WORK</h5>
+                <h5>PLACES OF WORK</h5>
               </div>
               <div className="col-6 d-flex justify-content-end">
                 <button type="button" onClick={() => handleChangeWorkPlace("Add")} className="button">

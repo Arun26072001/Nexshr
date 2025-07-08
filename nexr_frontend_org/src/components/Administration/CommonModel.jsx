@@ -31,7 +31,6 @@ const CommonModel = ({
     const [isShowPassword, setIsShowPassword] = useState(false);
     const [remindOn, setRemindOn] = useState(dataObj?.remind?.on ? new Date(dataObj.remind.on) : null);
     const [remindFor, setRemindFor] = useState(dataObj?.remind?.for || "");
-    console.log("emps", employees)
     const isButtonDisabled = !(remindOn && remindFor);
 
     const handleAddReminder = () => {
@@ -52,7 +51,6 @@ const CommonModel = ({
         return result;
     };
 
-    console.log("type", type)
     const handleTeamChange = (selectedValues) => {
         const selectedSet = new Set(selectedValues);
         let result = [];
@@ -124,11 +122,13 @@ const CommonModel = ({
                                     <p className='modelLabel important'>{type} Name: </p>
                                     <Input required
                                         size='lg'
+                                        className={`${errorMsg?.toLowerCase()?.includes(["CompanyName", "DepartmentName", "PositionName", "teamName", "orgName", "LeaveName", "PatternName", "CompanyName", "name"]) ? "error" : ""}`}
                                         value={dataObj?.[type === "Department" ? "DepartmentName" : type === "Position" ? "PositionName" : type === "Team" ? "teamName" : type === "Organization" ? "orgName" : type === "LeaveType" ? "LeaveName" : type === "TimePattern" ? "PatternName" : ["WorkPlace", "View WorkPlace"].includes(type) ? "CompanyName" : `name`] || ""}
                                         disabled={["Report View", "Project View", "View WorkPlace"].includes(type) ? true : false}
                                         onChange={!["Report View", "Project View", "View WorkPlace"].includes(type) ? (e) =>
                                             changeData(e?.trimStart()?.replace(/\s+/g, ' '), type === "Department" ? "DepartmentName" : type === "Position" ? "PositionName" : type === "Team" ? "teamName" : type === "Organization" ? "orgName" : type === "LeaveType" ? "LeaveName" : type === "TimePattern" ? "PatternName" : ["WorkPlace", "View WorkPlace"].includes(type) ? "CompanyName" : "name") : null}
                                     />
+                                    {errorMsg?.toLowerCase()?.includes(["CompanyName", "DepartmentName", "PositionName", "teamName", "orgName", "LeaveName", "PatternName", "CompanyName", "name"]) ? <div className="text-center text-danger">{errorMsg}</div> : null}
                                 </div>
                             </div>
                         }
@@ -139,7 +139,6 @@ const CommonModel = ({
                                     <p className='modelLabel'>Icon:</p>
                                     <Input required
                                         name={`icon`}
-                                        // disabled={type === "Project View" ? true : false}
                                         value={dataObj?.[`icon`] || ""}
                                         onChange={(e) => changeData(e.toUpperCase(), "icon")} />
                                 </div>
@@ -152,9 +151,11 @@ const CommonModel = ({
                                     <Input required
                                         size='lg'
                                         name={`prefix`}
+                                        className={`${errorMsg?.toLowerCase()?.includes("prefix") ? "error" : ""}`}
                                         disabled={type === "Project View" ? true : false}
                                         value={dataObj?.[`prefix`] || ""}
                                         onChange={!["Project View"].includes(type) ? (e) => changeData(e.trimStart().replace(/\s+/g, ' ').toUpperCase(), "prefix") : null} />
+                                    {errorMsg?.toLowerCase()?.includes("prefix") ? <div className="text-center text-danger">{errorMsg}</div> : null}
                                 </div>
                             </div>
                         )}
@@ -167,12 +168,14 @@ const CommonModel = ({
                                         data={departments}
                                         appearance='default'
                                         style={{ width: "100%" }}
+                                        className={`${errorMsg?.toLowerCase()?.includes("department") ? "error" : ""}`}
                                         size="lg"
                                         disabled={type === "Report View" ? true : false}
                                         placeholder="Select Department"
                                         value={dataObj?.department}
                                         onChange={type !== "Report View" ? (e) => changeData(e, "department") : null}
                                     />
+                                    {errorMsg?.toLowerCase()?.includes("department") ? <div className="text-center text-danger">{errorMsg}</div> : null}
                                 </div>
                             </div>
                         }
@@ -199,6 +202,7 @@ const CommonModel = ({
                                         size="lg"
                                         min={0}
                                         value={dataObj?.limitDays ?? null}
+                                        className={`${errorMsg?.toLowerCase()?.includes("limitDays") ? "error" : ""}`}
                                         step={1}
                                         style={{ width: "100%" }}
                                         onChange={(value) => {
@@ -207,6 +211,7 @@ const CommonModel = ({
                                             }
                                         }}
                                     />
+                                    {errorMsg?.toLowerCase()?.includes("limitDays") ? <div className="text-center text-danger">{errorMsg}</div> : null}
                                 </div>
                             </div>
                         }
@@ -243,6 +248,7 @@ const CommonModel = ({
                                 <Input required
                                     name={`title`}
                                     size="lg"
+                                    className={errorMsg.toLowerCase().includes("title") ? "error" : ""}
                                     disabled={["Task View", "Add Comments"].includes(type) ? true : false}
                                     value={dataObj?.[`title`] || ""}
                                     onChange={type !== "Task View" ? (e) => changeData(e?.trimStart()?.replace(/\s+/g, ' '), "title") : null}
@@ -296,6 +302,7 @@ const CommonModel = ({
                                 <SelectPicker
                                     required
                                     data={projects}
+                                    className={`${errorMsg?.toLowerCase()?.includes("project") ? "error" : ""}`}
                                     size="lg"
                                     disabled={type === "Task View" ? true : false}
                                     appearance='default'
@@ -304,6 +311,7 @@ const CommonModel = ({
                                     value={dataObj?.project}
                                     onChange={type !== "Task View" ? (e) => changeData(e, "project") : null}
                                 />
+                                {errorMsg?.toLowerCase()?.includes("project") ? <div className="text-center text-danger">{errorMsg}</div> : null}
                             </div>
                         </div>}
                     </div>
@@ -324,7 +332,6 @@ const CommonModel = ({
                             {/* Display preview images */}
                             {previewList?.length > 0 || preview ? (
                                 <div className='d-flex align-items-center justify-content-center flex-wrap'>
-
                                     {
                                         ["Organization", "Company"].includes(type) ? <div className="position-relative">
                                             <img
@@ -411,6 +418,7 @@ const CommonModel = ({
                                     style={{ width: "100%" }}
                                     disabled={["Report View", "Task View"].includes(type)}
                                     placeholder={`Select ${type === "Task" ? "From Date" : "Start Date"}`}
+                                    className={`${errorMsg?.toLowerCase()?.includes(["from", "startDate"]) ? "error" : ""}`}
                                     value={
                                         dataObj?.from
                                             ? new Date(dataObj?.from)
@@ -425,6 +433,7 @@ const CommonModel = ({
                                             : (e) => changeData(e, type === "Task" ? "from" : "startDate")
                                     }
                                 />
+                                {errorMsg?.toLowerCase()?.includes(["from", "startDate"]) ? <div className="text-center text-danger">{errorMsg}</div> : null}
                             </div>
                         </div>
 
@@ -440,6 +449,7 @@ const CommonModel = ({
                                     disabled={["Report View", "Task View"].includes(type)}
                                     disabledDate={date => isBefore(date, new Date().setDate(new Date().getDate() - 1))}
                                     placeholder="Select Due Date"
+                                    className={`${errorMsg?.toLowerCase()?.includes(["to", "endDate"]) ? "error" : ""}`}
                                     value={
                                         dataObj?.to
                                             ? new Date(dataObj?.to)
@@ -453,6 +463,7 @@ const CommonModel = ({
                                             : (e) => changeData(e, type === "Task" ? "to" : "endDate")
                                     }
                                 />
+                                {errorMsg?.toLowerCase()?.includes(["to", "endDate"]) ? <div className="text-center text-danger">{errorMsg}</div> : null}
                             </div>
                         </div>
                     </div>
@@ -468,6 +479,7 @@ const CommonModel = ({
                                         required
                                         data={comps}
                                         size="lg"
+                                        className={`${errorMsg?.toLowerCase()?.includes("company") ? "error" : ""}`}
                                         disabled={["Report View", "Project View"].includes(type) ? true : false}
                                         appearance='default'
                                         style={{ width: "100%" }}
@@ -475,6 +487,7 @@ const CommonModel = ({
                                         value={dataObj?.company}
                                         onChange={(e) => changeData(e, "company")}
                                     />
+                                    {errorMsg?.toLowerCase()?.includes("company") ? <div className="text-center text-danger">{errorMsg}</div> : null}
                                 </div>
                             </div>
                             {
@@ -486,6 +499,7 @@ const CommonModel = ({
                                             required
                                             data={projects}
                                             size="lg"
+                                            className={`${errorMsg?.toLowerCase()?.includes("project") ? "error" : ""}`}
                                             disabled={type === "Report View" ? true : false}
                                             appearance='default'
                                             style={{ width: "100%" }}
@@ -493,6 +507,7 @@ const CommonModel = ({
                                             value={dataObj?.project}
                                             onChange={type !== "Report View" ? (e) => changeData(e, "project") : null}
                                         />
+                                        {errorMsg?.toLowerCase()?.includes("project") ? <div className="text-center text-danger">{errorMsg}</div> : null}
                                     </div>
                                 </div>
                             }
@@ -508,6 +523,7 @@ const CommonModel = ({
                                         required
                                         data={["Low", "Medium", "High", "Critical"].map((data) => ({ label: data, value: data }))}
                                         size="lg"
+                                        className={`${errorMsg.toLowerCase().includes("priority") ? "error" : ""}`}
                                         disabled={["Task View", "Project View"].includes(type) ? true : false}
                                         appearance='default'
                                         style={{ width: "100%", zIndex: 1 }}
@@ -515,6 +531,7 @@ const CommonModel = ({
                                         value={dataObj?.priority}
                                         onChange={!["Task View", "Project View"].includes(type) ? (e) => changeData(e, "priority") : null}
                                     />
+                                    {errorMsg?.toLowerCase()?.includes("priority") ? <div className="text-center text-danger">{errorMsg}</div> : null}
                                 </div>
                             </div>}
                         {
@@ -524,6 +541,7 @@ const CommonModel = ({
                                     <p className='modelLabel important'>Status:</p>
                                     <SelectPicker
                                         required
+                                        className={`${errorMsg?.toLowerCase()?.includes("status") ? "error" : ""}`}
                                         data={['Pending', 'In Progress', 'Completed', 'On Hold'].map((data) => ({ label: data, value: data }))}
                                         size="lg"
                                         appearance='default'
@@ -532,6 +550,7 @@ const CommonModel = ({
                                         value={dataObj?.status}
                                         onChange={(e) => changeData(e, "status")}
                                     />
+                                    {errorMsg.toLowerCase().includes("status") ? <div className="text-center text-danger">{errorMsg}</div> : null}
                                 </div>
                             </div>
                         }
@@ -543,6 +562,7 @@ const CommonModel = ({
                                     <InputNumber
                                         min={0}
                                         size='lg'
+                                        className={`${errorMsg?.toLowerCase()?.includes("estTime")}`}
                                         placeholder="Select Time"
                                         style={{ width: "100%" }}
                                         value={(new Date(String(dataObj?.to)) - new Date(String(dataObj?.from))) / (1000 * 60 * 60) || 0}
@@ -550,6 +570,7 @@ const CommonModel = ({
                                         onChange={(e) => changeData(e, "estTime")}
                                         step={0.01}
                                     />
+                                    {errorMsg?.toLowerCase()?.includes("estTime") ? <div className="text-center text-danger">{errorMsg}</div> : null}
                                 </div>
                             </div>
                         }
@@ -584,6 +605,7 @@ const CommonModel = ({
                                 <InputNumber
                                     min={0}
                                     size='lg'
+                                    className={`${errorMsg?.toLowerCase()?.includes("estTime")}`}
                                     placeholder="Select Time"
                                     style={{ width: "100%" }}
                                     value={dataObj?.estTime}
@@ -594,6 +616,7 @@ const CommonModel = ({
                                     }}
                                     step={0.01}
                                 />
+                                {errorMsg?.toLowerCase()?.includes("estTime") ? <div className="text-center text-danger">{errorMsg}</div> : null}
                             </div>
                         </div>
                         <div className="col-half">
@@ -623,6 +646,7 @@ const CommonModel = ({
                                         data={employees}
                                         required
                                         size="lg"
+                                        className={`${errorMsg?.toLowerCase()?.includes(["assignedTo", "employees"]) ? "error" : ""}`}
                                         defaultValue={[data._id]}
                                         appearance="default"
                                         disabled={["Report View", "Project View", "View WorkPlace"].includes(type) ? true : false}
@@ -633,6 +657,7 @@ const CommonModel = ({
                                             changeData(e, type.includes("Task") ? "assignedTo" : "employees")
                                         }
                                     />
+                                    {errorMsg?.toLowerCase()?.includes(["assignedTo", "employees"]) ? <div className="text-center text-danger">{errorMsg}</div> : null}
                                 </div>
                             </div>
                         </div>
@@ -653,6 +678,7 @@ const CommonModel = ({
                                         data={employees}
                                         required
                                         size="lg"
+                                        className={`${errorMsg?.toLowerCase()?.includes(["assignedTo", "participants", "observers"]) ? "error" : ""}`}
                                         defaultValue={field === "assignedTo" ? [data._id] : []}
                                         appearance="default"
                                         disabled={["Task View"].includes(type)}
@@ -662,6 +688,7 @@ const CommonModel = ({
                                             ["Task View"].includes(type) ? null : (e) => changeData(e, field)
                                         }
                                     />
+                                    {errorMsg?.toLowerCase()?.includes(["assignedTo", "participants", "observers"]) ? <div className="text-center text-danger">{errorMsg}</div> : null}
                                 </div>
                             </div>
                         </div>
@@ -686,15 +713,13 @@ const CommonModel = ({
                                                 data={team_member}
                                                 onChange={handleTeamChange}
                                                 valueType="all" // 🔥 makes 'select-all' and group values appear in selection
-                                                style={{ width: '100%' }}
+                                                style={{ width: '100%', border: errorMsg?.toLowerCase()?.includes("employee") ? "border 2px solid" : "" }}
                                                 placeholder="Select team members"
                                                 searchable
                                                 checkAll
                                             />
-
-
-
                                         </VStack>
+                                        {errorMsg?.toLowerCase()?.includes("employee") ? <div className="text-center text-danger">{errorMsg}</div> : null}
                                     </div>
                                 </div>
                             </div>
@@ -710,6 +735,7 @@ const CommonModel = ({
                                         handleChange={(e) => changeData(e?.trimStart()?.replace(/\s+/g, ' '), type === "Announcement" ? "message" : type === "Edit Comments" ? "comment" : "comments.comment")}
                                         content={type === "Add Comments" ? dataObj?.comments[0]?.["comment"] : type === "Edit Comments" ? dataObj?.["comment"] : dataObj?.["message"]}
                                     />
+                                    {errorMsg?.toLowerCase()?.includes(["comment", "message"]) ? <div className="text-center text-danger">{errorMsg}</div> : null}
                                 </div>
                             </div>
                         </div>
@@ -723,7 +749,8 @@ const CommonModel = ({
                         <div className="col-full">
                             <div className="modelInput">
                                 <p className='modelLabel'>Subject:</p>
-                                <Input type='text' size='lg' onChange={(e) => changeData(e, "subject")} value={dataObj?.subject} />
+                                <Input type='text' size='lg' className={`${errorMsg?.toLowerCase()?.includes("subject") ? "error" : ''}`} onChange={(e) => changeData(e, "subject")} value={dataObj?.subject} />
+                                {errorMsg?.toLowerCase()?.includes("subject") ? <div className="text-center text-danger">{errorMsg}</div> : null}
                             </div>
                         </div>
                     </>
@@ -736,11 +763,11 @@ const CommonModel = ({
                             <div className="modelInput">
                                 <p className='modelLabel'>{type === "Email Template" ? "Content" : "Description"}:</p>
                                 <TextEditor
-                                    // isAllowFile={true}
                                     handleChange={!["Task View", "Project View"].includes(type) ? (e) => changeData(e?.trimStart()?.replace(/\s+/g, ' '), type === "Email Template" ? "content" : "description") : null}
                                     content={dataObj?.[type === "Email Template" ? "content" : "description"]}
                                     isDisabled={["Task View", "Project View"].includes(type) ? true : false}
                                 />
+                                {errorMsg?.toLowerCase()?.includes(["content", "description"]) ? <div className="text-center text-danger">{errorMsg}</div> : null}
                             </div>
                         </div>
                     </>
@@ -759,10 +786,12 @@ const CommonModel = ({
                                         style={{ width: "100%", height: 45 }}
                                         type={"text"}
                                         name={`name`}
+                                        className={`${errorMsg?.toLowerCase()?.includes("companyname") ? "error" : ""}`}
                                         value={dataObj?.[`CompanyName`] || ""}
                                         appearance='default'
                                         onChange={(e) => changeData(e, "CompanyName")}
                                     />
+                                    {errorMsg?.toLowerCase()?.includes("companyname") ? <div className="text-center text-danger">{errorMsg}</div> : null}
                                 </div>
                             </div>
                             <div className="col-half">
@@ -788,6 +817,7 @@ const CommonModel = ({
                                 <p className='modelLabel important'>Address:</p>
                                 <Input
                                     required
+                                    className={`${errorMsg?.toLowerCase()?.includes("address") ? "error" : ""}`}
                                     size="lg"
                                     style={{ width: "100%", height: 45 }}
                                     type={"text"}
@@ -797,6 +827,7 @@ const CommonModel = ({
                                     appearance='default'
                                     onChange={(e) => changeData(e, "Address")}
                                 />
+                                {errorMsg?.toLowerCase()?.includes("address") ? <div className="text-center text-danger">{errorMsg}</div> : null}
                             </div>
                         </div>
 
@@ -810,11 +841,13 @@ const CommonModel = ({
                                         style={{ width: "100%", height: 45 }}
                                         type={"email"}
                                         name={`Email`}
+                                        className={`${errorMsg?.toLowerCase()?.includes("email") ? "error" : ""}`}
                                         // disabled={ ? true : false}
                                         value={dataObj?.[`Email`] || ""}
                                         appearance='default'
                                         onChange={(e) => changeData(e, "Email")}
                                     />
+                                    {errorMsg?.toLowerCase()?.includes("email") ? <div className="text-center text-danger">{errorMsg}</div> : null}
                                 </div>
                             </div>
                             <div className="col-half">
@@ -945,7 +978,7 @@ const CommonModel = ({
                     <div className="d-flex justify-content-between gap-2">
                         <div className="col-half">
                             <div className="modelInput">
-                                <p className='modelLabel Abbriviation'>Abbriviation:</p>
+                                <p className='modelLabel'>Abbriviation:</p>
                                 <Input
                                     required
                                     size="lg"
@@ -1053,7 +1086,7 @@ const CommonModel = ({
                         </p>
                         <h2>Delete</h2>
                         {
-                            type === "Confirmation" &&
+                            ["Project Confirmation", "Team Confirmation", "Task Confirmation", "Report Confirmation"].includes(type) &&
                             <div className="projectBody bg-warning text-dark text-center">
                                 <p className='my-2'><b>Are you sure you want to delete this data</b></p>
                                 <p>By deleting this data all its item, invoice and time entries will be deleted.</p>
@@ -1257,13 +1290,13 @@ const CommonModel = ({
                         <div className="d-flex justify-content-between gap-2">
                             <div className="col-half">
                                 <div className="modelInput">
-                                    <p className='modelLabel'>Starting Time:</p>
+                                    <p className='modelLabel important'>Starting Time:</p>
                                     <DatePicker value={new Date(dataObj?.StartingTime)} size='lg' style={{ width: "100%" }} format="HH:mm" onChange={(e) => changeData(e, "StartingTime")} disabled={type === "View TimePattern"} editable={false} />
                                 </div>
                             </div>
                             <div className="col-half">
                                 <div className="modelInput">
-                                    <p className='modelLabel'>Finishing Time:</p>
+                                    <p className='modelLabel important'>Finishing Time:</p>
                                     <DatePicker value={new Date(dataObj?.FinishingTime)} size='lg' style={{ width: "100%" }} format="HH:mm" onChange={(e) => changeData(e, "FinishingTime")} disabled={type === "View TimePattern"} editable={false} />
                                 </div>
                             </div>
@@ -1271,7 +1304,7 @@ const CommonModel = ({
                         <div className="d-flex justify-content-between gap-2">
                             <div className="col-half">
                                 <div className="modelInput">
-                                    <p className='modelLabel'>Waiting Time:</p>
+                                    <p className='modelLabel important'>Waiting Time:</p>
                                     <InputNumber min={0} size='lg' placeholder='Enter in Minutes' step={0.01} onChange={(e) => {
                                         if (e === null || e === '' || e >= 0) {
                                             changeData(e, "WaitingTime")
@@ -1281,7 +1314,7 @@ const CommonModel = ({
                             </div>
                             <div className="col-half">
                                 <div className="modelInput">
-                                    <p className='modelLabel'>Break Time:</p>
+                                    <p className='modelLabel important'>Break Time:</p>
                                     <InputNumber min={0} size='lg' placeholder='Enter in Minutes' step={0.01} onChange={(e) => {
                                         if (e === null || e === '' || e >= 0) {
                                             changeData(e, "BreakTime")
@@ -1292,7 +1325,7 @@ const CommonModel = ({
                         </div>
                         <div className="col-full">
                             <div className="modelInput">
-                                <p className='modelLabel'>Weekly Days:</p>
+                                <p className='modelLabel important'>Weekly Days:</p>
                                 <TagPicker
                                     required
                                     data={["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"].map((data) => ({ label: data, value: data }))}
@@ -1303,6 +1336,7 @@ const CommonModel = ({
                                     defaultValue={dataObj?.WeeklyDays}
                                     onChange={(e) => changeData(e, "WeeklyDays")}
                                 />
+                                {errorMsg?.toLowerCase()?.includes("weeklydays") ? <div className="text-center text-danger">{errorMsg}</div> : null}
                             </div>
                         </div>
                         {

@@ -33,6 +33,7 @@ const Dashboard = () => {
     const [leaveData, setLeaveData] = useState({});
     const [isWorkingApi, setIsWorkingApi] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
+    const [errorData, setErrorData] = useState("");
     const [taskOption, setTaskOption] = useState("List");
     const [isLoadingForTask, setIsLoadingForTask] = useState(false);
     const [dailyLogindata, setDailyLoginData] = useState({})
@@ -347,7 +348,7 @@ const Dashboard = () => {
     async function addTask() {
         let newTask;
         setIsWorkingApi(true);
-
+        setErrorData("");
         if (taskObj?.attachments?.length > 0) {
             try {
                 const files = taskObj.attachments;
@@ -369,8 +370,9 @@ const Dashboard = () => {
                 if (error?.message === "Network Error") {
                     navigate("/network-issue")
                 }
-                console.error("Upload error:", error);
-                toast.error("File upload failed");
+                const errorMsg = error?.response?.data?.error
+                setErrorData(errorMsg)
+                toast.error(errorMsg)
             } finally {
                 setIsLoading(false);
             }
@@ -446,6 +448,7 @@ const Dashboard = () => {
             }
             // set loader true task is updating
             setIsWorkingApi(true);
+            setErrorData("")
             // Send updated task
             const res = await axios.put(
                 `${url}/api/task/${data._id}/${taskToUpdate._id}`, // Ensure correct projectId
@@ -465,8 +468,9 @@ const Dashboard = () => {
                 navigate("/network-issue")
             }
             console.error("Error updating task:", error);
-            const errorMessage = error?.response?.data?.error || "An error occurred while updating the task.";
-            toast.error(errorMessage);
+            const errorMsg = error?.response?.data?.error
+            setErrorData(errorMsg)
+            toast.error(errorMsg)
         } finally {
             setIsWorkingApi(false);
         }
@@ -582,6 +586,7 @@ const Dashboard = () => {
     } if (isEditTask) {
         return (
             <CommonModel
+                errorMsg={errorData}
                 isWorkingApi={isWorkingApi}
                 dataObj={taskObj}
                 tasks={tasks}
@@ -602,6 +607,7 @@ const Dashboard = () => {
     } if (isAddTask) {
         return (
             <CommonModel
+                errorMsg={errorData}
                 isWorkingApi={isWorkingApi}
                 dataObj={taskObj}
                 tasks={tasks}

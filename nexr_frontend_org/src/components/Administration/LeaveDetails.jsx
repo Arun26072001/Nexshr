@@ -14,6 +14,7 @@ export default function LeaveDetails() {
     const [isLoading, setIsLoading] = useState(false);
     const [leaveTypes, setLeavetypes] = useState([]);
     const url = process.env.REACT_APP_API_URL;
+    const [errorData, setErrorData] = useState("");
     const { data } = useContext(EssentialValues);
     const [leaveTypeObj, setLeaveTypeObj] = useState({});
     const [isWorkingApi, setIsworkingApi] = useState(false);
@@ -46,6 +47,7 @@ export default function LeaveDetails() {
 
     async function editLeaveType() {
         setIsworkingApi(true);
+        setErrorData("");
         try {
             const res = await axios.put(`${url}/api/leave-type/${leaveTypeObj._id}`, leaveTypeObj, {
                 headers: {
@@ -60,8 +62,10 @@ export default function LeaveDetails() {
             if (error?.message === "Network Error") {
                 navigate("/network-issue")
             }
-            console.log(error);
-            toast.error(error?.response?.data?.error)
+            console.log("error in update leavetype", error);
+            const errorMsg = error?.response?.data?.error
+            setErrorData(errorMsg)
+            toast.error(errorMsg)
         } finally {
             setIsworkingApi(false);
         }
@@ -69,6 +73,7 @@ export default function LeaveDetails() {
 
     async function addLeavetype() {
         setIsworkingApi(true);
+        setErrorData("");
         try {
             const res = await axios.post(`${url}/api/leave-type`, leaveTypeObj, {
                 headers: {
@@ -83,8 +88,10 @@ export default function LeaveDetails() {
             if (error?.message === "Network Error") {
                 navigate("/network-issue")
             }
-            console.log(error);
-            toast.error(error?.response?.data?.error)
+            console.log("error in add leaveType", error);
+            const errorMsg = error?.response?.data?.error
+            setErrorData(errorMsg)
+            toast.error(errorMsg)
         } finally {
             setIsworkingApi(false);
         }
@@ -156,8 +163,8 @@ export default function LeaveDetails() {
     }, [])
 
     return (
-        isChangeLeavetype.isAdd ? <CommonModel isAddData={isChangeLeavetype.isAdd} type="LeaveType" dataObj={leaveTypeObj} isWorkingApi={isWorkingApi} changeData={changeLeavetypeData} modifyData={handleChangeLeavetype} addData={addLeavetype} /> :
-            isChangeLeavetype.isEdit ? <CommonModel isAddData={isChangeLeavetype.isEdit} changeData={changeLeavetypeData} type="LeaveType" dataObj={leaveTypeObj} isWorkingApi={isWorkingApi} modifyData={handleChangeLeavetype} editData={editLeaveType} /> :
+        isChangeLeavetype.isAdd ? <CommonModel isAddData={isChangeLeavetype.isAdd} errorMsg={errorData} type="LeaveType" dataObj={leaveTypeObj} isWorkingApi={isWorkingApi} changeData={changeLeavetypeData} modifyData={handleChangeLeavetype} addData={addLeavetype} /> :
+            isChangeLeavetype.isEdit ? <CommonModel isAddData={isChangeLeavetype.isEdit} errorMsg={errorData} changeData={changeLeavetypeData} type="LeaveType" dataObj={leaveTypeObj} isWorkingApi={isWorkingApi} modifyData={handleChangeLeavetype} editData={editLeaveType} /> :
                 <div className='dashboard-parent pt-4'>
                     <div className="d-flex justify-content-between px-2 my-2">
                         <h5 className='text-daily'>Leave Details</h5>

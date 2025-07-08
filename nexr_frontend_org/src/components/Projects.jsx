@@ -26,6 +26,7 @@ export default function Projects() {
     const { isTeamLead, isTeamHead, isTeamManager } = jwtDecode(data.token);
     const { handleAddTask, employees } = useContext(TimerStates);
     const [teams, setTeams] = useState([]);
+    const [errorData, setErrorData] = useState("");
     const [isDelete, setIsDelete] = useState({ type: false, value: "" });
     const [isEdit, setIsEdit] = useState(false);
     const [projects, setProjects] = useState([]);
@@ -130,6 +131,7 @@ export default function Projects() {
 
     async function updateProject() {
         setIsWorkingApi(true);
+        setErrorData("")
         try {
             const res = await axios.put(`${url}/api/project/${data._id}/${projectObj?._id}`, projectObj, {
                 headers: {
@@ -144,6 +146,7 @@ export default function Projects() {
             if (error?.message === "Network Error") {
                 navigate("/network-issue")
             }
+            setErrorData(error.response.data.error)
             toast.error(error?.response?.data?.error)
         }
         setIsWorkingApi(false);
@@ -151,6 +154,7 @@ export default function Projects() {
 
     async function addProject() {
         setIsWorkingApi(true);
+        setErrorData("")
         try {
             let newProjectObj = {
                 ...projectObj,
@@ -171,22 +175,12 @@ export default function Projects() {
             if (error?.message === "Network Error") {
                 navigate("/network-issue")
             }
+            setErrorData(error.response.data.error)
             toast.error(error?.response?.data?.error)
         }
         setIsWorkingApi(false);
     }
 
-    useEffect(() => {
-        const gettingsTeams = async () => {
-            try {
-                const teamsData = await fetchTeams();
-                setTeams(teamsData.map((data) => ({ label: data.teamName, value: data._id })));
-            } catch (err) {
-                console.log(err);
-            }
-        }
-        gettingsTeams();
-    }, [])
 
     function filterByName(name) {
         localStorage.setItem("selectedCompany", name)
@@ -239,6 +233,24 @@ export default function Projects() {
         fetchCompanies();
     }, [])
 
+    useEffect(() => {
+        const gettingsTeams = async () => {
+            try {
+                const teamsData = await fetchTeams();
+                setTeams(teamsData.map((data) => ({ label: data.teamName, value: data._id })));
+            } catch (err) {
+                console.log(err);
+            }
+        }
+        gettingsTeams();
+    }, [])
+    useEffect(() => {
+        if (whoIs === "admin" || isTeamLead || isTeamHead) {
+            fetchProjects();
+        } else {
+            fetchEmpsProjects()
+        }
+    }, [isAddProject, isDelete.type, isEdit])
     const renderMenu = (project) => ({ onClose, right, top, className }, ref) => {
         const handleSelect = (eventKey) => {
             if (eventKey === 1) {
@@ -278,20 +290,14 @@ export default function Projects() {
         );
     };
 
-    useEffect(() => {
-        if (whoIs === "admin" || isTeamLead || isTeamHead) {
-            fetchProjects();
-        } else {
-            fetchEmpsProjects()
-        }
-    }, [isAddProject, isDelete.type, isEdit])
 
     return (
-        isViewProject ? <CommonModel type="Project View" comps={companies} teams={teams} isAddData={isViewProject} employees={employees} dataObj={projectObj} modifyData={handleViewProject} /> :
+        isViewProject ? <CommonModel type="Project View" errorMsg={errorData} comps={companies} teams={teams} isAddData={isViewProject} employees={employees} dataObj={projectObj} modifyData={handleViewProject} /> :
             isEdit ? <CommonModel type="Assign" isAddData={isEdit} isWorkingApi={isWorkingApi} employees={employees} changeData={changeProject} dataObj={projectObj} editData={updateProject} modifyData={handleEditProject} /> :
                 isDelete.type ? <CommonModel type="Project Confirmation" modifyData={handleDeleteProject} deleteData={deleteProject} isAddData={isDelete} /> :
                     isAddProject ? <CommonModel
                         comps={companies}
+                        errorMsg={errorData}
                         dataObj={projectObj}
                         isAddData={isAddProject}
                         changeData={changeProject}

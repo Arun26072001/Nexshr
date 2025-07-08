@@ -55,10 +55,6 @@ const AnnouncementComponent = ({ handleChangeAnnouncement }) => {
     }
 
     const handleSubmit = async () => {
-        if (!announcementObj.selectTeamMembers || announcementObj.selectTeamMembers.length === 0) {
-            toast.error("Please select at least one employee");
-            return;
-        }
 
         setIschangingAnnouncement(true);
         try {
@@ -72,9 +68,9 @@ const AnnouncementComponent = ({ handleChangeAnnouncement }) => {
             if (error?.message === "Network Error") {
                 navigate("/network-issue")
             }
-            setErrorMsg(error.response.data.error)
-            toast.error(error?.response?.data?.error)
-            console.error('Error creating the announcement or sending notification:', error);
+            const errorMsg = error?.response?.data?.error
+            setErrorMsg(errorMsg)
+            toast.error(errorMsg)
         }
         setIschangingAnnouncement(false);
     };

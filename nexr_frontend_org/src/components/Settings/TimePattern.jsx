@@ -21,6 +21,7 @@ const TimePattern = () => {
     });
     const [isDeleting, setIsDeleting] = useState("")
     const [isLoading, setIsLoading] = useState(false);
+    const [errorData, setErrorData] = useState("");
     const [timePatternObj, setTimePatternObj] = useState({});
     const [timePatterns, setTimePatterns] = useState([]);
     const [dom, reload] = useState(false);
@@ -75,6 +76,7 @@ const TimePattern = () => {
     async function updateTimePattern() {
         try {
             setIsWorkingApi(true);
+            setErrorData("");
             const res = await axios.put(`${url}/api/time-pattern/${timePatternObj._id}`, timePatternObj, {
                 headers: {
                     authorization: token || ""
@@ -88,7 +90,10 @@ const TimePattern = () => {
             if (error?.message === "Network Error") {
                 navigate("/network-issue")
             }
-            console.log(error);
+            const errorMsg = error?.response?.data?.error
+            setErrorData(errorMsg)
+            toast.error(errorMsg)
+            console.log("error in updatetimePattern", error);
         } finally {
             setIsWorkingApi(false)
         }
@@ -97,6 +102,7 @@ const TimePattern = () => {
     async function addTimePattern() {
         try {
             setIsWorkingApi(true)
+            setErrorData("")
             const res = await axios.post(`${url}/api/time-pattern`, timePatternObj, {
                 headers: {
                     Authorization: token
@@ -110,7 +116,9 @@ const TimePattern = () => {
             if (error?.message === "Network Error") {
                 navigate("/network-issue")
             }
-            toast.error(error?.response?.data?.error);
+            const errorMsg = error?.response?.data?.error
+            setErrorData(errorMsg)
+            toast.error(errorMsg)
             console.log("error in add timepattern", error);
         } finally {
             setIsWorkingApi(false)
@@ -164,8 +172,8 @@ const TimePattern = () => {
     console.log("patterns", timePatterns);
 
     return (
-        changePattern.isAdd ? <CommonModel type={"TimePattern"} isWorkingApi={isWoringApi} isAddData={changePattern.isAdd} changeData={fillPatternData} dataObj={timePatternObj} modifyData={handleChangeTimePattern} addData={addTimePattern} /> :
-            changePattern.isEdit ? <CommonModel type={"TimePattern"} isWorkingApi={isWoringApi} isAddData={changePattern.isEdit} dataObj={timePatternObj} changeData={fillPatternData} editData={updateTimePattern} modifyData={handleChangeTimePattern} /> :
+        changePattern.isAdd ? <CommonModel type={"TimePattern"} errorMsg={errorData} isWorkingApi={isWoringApi} isAddData={changePattern.isAdd} changeData={fillPatternData} dataObj={timePatternObj} modifyData={handleChangeTimePattern} addData={addTimePattern} /> :
+            changePattern.isEdit ? <CommonModel type={"TimePattern"} errorMsg={errorData} isWorkingApi={isWoringApi} isAddData={changePattern.isEdit} dataObj={timePatternObj} changeData={fillPatternData} editData={updateTimePattern} modifyData={handleChangeTimePattern} /> :
                 changePattern.isView ? <CommonModel type={"View TimePattern"} isAddData={changePattern.isView} dataObj={timePatternObj} modifyData={handleChangeTimePattern} /> :
                     <>
                         <div className="d-flex align-items-center justify-content-between m-3">
