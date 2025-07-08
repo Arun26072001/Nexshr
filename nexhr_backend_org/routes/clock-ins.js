@@ -601,7 +601,6 @@ router.get("/employee/:empId", verifyAdminHREmployeeManagerNetwork, async (req, 
         let regular = 0, late = 0, early = 0;
 
         const checkLogin = (scheduledTime, actualTime) => {
-            console.log("essentials", scheduledTime, actualTime);
             const [schedHours, schedMinutes] = scheduledTime.split(':').map(Number);
             const [actualHours, actualMinutes] = actualTime.split(':').map(Number);
             const scheduled = schedHours * 60 + schedMinutes;
@@ -648,11 +647,6 @@ router.get("/employee/:empId", verifyAdminHREmployeeManagerNetwork, async (req, 
             totalEmpWorkingHours += (timeToMinutes(timeHolder) / 60);
             checkLogin(scheduledLoginTime, startingTime[0]);
         });
-        console.log({
-            totalRegularLogins: regular,
-            totalLateLogins: late,
-            totalEarlyLogins: early,
-        })
         res.send({
             totalRegularLogins: regular,
             totalLateLogins: late,
