@@ -163,12 +163,13 @@ export default function Comments() {
         }
     }, [taskObj?.project])
 
-    async function updateCommentsInObj(taskObjdata, type) {
+    async function updateCommentsInObj(taskObjdata, type, index) {
         try {
             // ischangingComment(true);
             const res = await axios.put(`${url}/api/task/updatedTaskComment/${data._id}`, taskObjdata, {
                 params: {
-                    type
+                    type,
+                    updatedComment: index
                 },
                 headers: {
                     Authorization: data.token
@@ -240,7 +241,7 @@ export default function Comments() {
 
             // Update the comment in the task object if taskData is not provided
             taskObj.comments[editCommentIndex] = updatedCommentObj;
-            await updateCommentsInObj(taskObj, "edit comment");
+            await updateCommentsInObj(taskObj, "edit comment", editCommentIndex);
             setIsEditCommit(false);
             setPreviewList([]);
             setCommentObj({});
@@ -265,7 +266,7 @@ export default function Comments() {
             taskObj.comments[index] = updatedCommit;
             try {
                 toast.success("Commit has been move trash");
-                updateCommentsInObj(taskObj, "delete comment")
+                updateCommentsInObj(taskObj, "delete comment", index)
             } catch (error) {
                 if (error?.message === "Network Error") {
                     navigate("/network-issue")

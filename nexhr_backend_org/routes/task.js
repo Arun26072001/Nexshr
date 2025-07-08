@@ -400,13 +400,52 @@ router.put("/updatedTaskComment/:id", verifyAdminHREmployeeManagerNetwork, async
 
     const taskObj = req.body;
     try {
+        let oldTaskObj = await Task.findById(req.body._id, "comments").exec();
         const assignessId = taskObj.assignedTo.map((member) => member._id);
-        // const exceptSender = assignessId.filter((emp) => emp !== req.params.id);
         // get employee data for company data
         const emps = await Employee.find({ _id: { $in: assignessId } }, "FirstName LastName Email fcmToken profile company")
             .populate("company", "CompanyName logo")
             .exec();
 
+        if (type === "edit comment") {
+            // remove or unused images in updated comment
+            const updatedCommentIndex = req.query.index;
+            const updatedComment = taskObj.comments[req.query?.index];
+            if (oldTaskObj.comments[updatedCommentIndex] && oldTaskObj.comments[updatedCommentIndex].attachments) {
+                const deletedImgs = oldTaskObj.comments[updatedCommentIndex].attachments.map((img) => {
+                    if (!updatedComment.includes(img)) {
+                        return img;
+                    }
+                }).filter(Boolean)
+                if (deletedImgs.length > 0) {
+                    const removedFiles = [];
+                    deletedImgs.map((img) => {
+                        const oldFile = img.split("/").pop();
+                        const oldFilePath = path.join(__dirname, "..", "uploads", oldFile);
+                        if (fs.existsSync(oldFilePath)) {
+                            fs.unlinkSync(oldFilePath);
+                            removedFiles.push(oldFile)
+                        }
+                    })
+                }
+            }
+        }
+        // remove images from deleted comments
+        if (type === "delete comment") {
+            const deletedCommentIndex = req.query.index;
+            if (oldTaskObj.comments[deletedCommentIndex] && oldTaskObj.comments[deletedCommentIndex].attachments.length > 0) {
+                const removedFiles = [];
+                oldTaskObj.comments[deletedCommentIndex].attachments.map((img) => {
+                    const oldFile = img.split("/").pop();
+                    const oldFilePath = path.join(__dirname, "..", "uploads", oldFile);
+                    if (fs.existsSync(oldFilePath)) {
+                        fs.unlinkSync(oldFilePath);
+                        removedFiles.push(oldFile)
+                    }
+                })
+                console.log("removedFile in delete comment", removedFiles)
+            }
+        }
         const currentCmt = taskObj.comments.at(-1)
         const commentCreator = await Employee.findById(currentCmt.createdBy, "FirstName LastName")
         // update task with updated comments

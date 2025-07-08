@@ -179,7 +179,7 @@ const Attendence = () => {
               },
               { value: formatTime(clockInsData.totalEmpWorkingHours), label: "Total active hour", className: "text-success" },
               {
-                value: `${(clockInsData.companyTotalWorkingHour - Number(clockInsData.totalEmpWorkingHours)).toFixed(0)} hour`,
+                value: `${Math.max(0, (clockInsData.companyTotalWorkingHour - Number(clockInsData.totalEmpWorkingHours))).toFixed(0)} hour`,
                 label: "Balance",
                 className: "text-danger",
               },

@@ -259,8 +259,6 @@ const Tasks = () => {
     handleAddTask()
   }
 
-  console.log("previewList", previewList);
-
   function removeAttachment(value, fileIndex) {
     const updatedPrevireList = previewList.filter((imgFile) => imgFile !== value);
     setPreviewList(updatedPrevireList);
