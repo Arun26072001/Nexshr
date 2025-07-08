@@ -95,16 +95,16 @@ const ActivityTimeTracker = () => {
                                 token: data.token
                             });
                             console.log(res.data);
-                       } catch (error) {
-         if (error?.message === "Network Error") {
-                navigate("/network-issue")
-            }
+                        } catch (error) {
+                            if (error?.message === "Network Error") {
+                                navigate("/network-issue")
+                            }
                             console.log("error in enable ask reason for late", error);
 
                         }
                     }
                 }
-            } else if (["morningBreak", "eveningBreak"].includes(timeOption) && timeData < 1) {
+            } else if (["morningBreak", "eveningBreak"].includes(timeOption) && timeData < 15) {
                 if (!timerRef.current) {
                     await startActivityTimer();
                     trackTimer()
@@ -120,10 +120,10 @@ const ActivityTimeTracker = () => {
                                 token: data.token
                             });
                             console.log(res.data.message);
-                       } catch (error) {
-         if (error?.message === "Network Error") {
-                navigate("/network-issue")
-            }
+                        } catch (error) {
+                            if (error?.message === "Network Error") {
+                                navigate("/network-issue")
+                            }
                             console.log("error in enable ask reason for late", error);
                         }
                     }

@@ -53,6 +53,7 @@ const Tasks = () => {
   const [status, setStatus] = useState("Pending");
   const [isAddComment, setIsAddComment] = useState(false);
   const [isTaskChanging, setIsTaskChanging] = useState(false);
+  const [errorData, setErrorData] = useState("");
 
   const renderMenu1 = ({ onClose, right, top, className }, ref) => {
     const handleSelect = eventKey => {
@@ -447,6 +448,7 @@ const Tasks = () => {
           };
         }
       }
+      setErrorData("");
       // Send updated task
       const res = await axios.put(
         `${url}/api/task/${data._id}/${taskToUpdate._id}`, // Ensure correct projectId
@@ -467,7 +469,8 @@ const Tasks = () => {
         navigate("/network-issue")
       }
       console.error("Error updating task:", error);
-      const errorMessage = error?.response?.data?.error || "An error occurred while updating the task.";
+      const errorMessage = error?.response?.data?.error;
+      setErrorData(errorMessage);
       toast.error(errorMessage);
     } finally {
       setIsUpdateTime("");
@@ -514,7 +517,7 @@ const Tasks = () => {
   async function addTask() {
     let newTask;
     setIsTaskChanging(true);
-
+    setErrorData("");
     if (taskObj?.attachments?.length > 0) {
       try {
         const files = taskObj.attachments;
@@ -571,6 +574,7 @@ const Tasks = () => {
         navigate("/network-issue")
       }
       console.error("Task creation error:", error);
+      setErrorData(error.response.data.error);
       toast.error(error.response?.data?.error || "Task creation failed");
     }
   }
@@ -684,12 +688,12 @@ const Tasks = () => {
   }
 
   return (
-    isviewTask ? <CommonModel type="Task View" isAddData={isviewTask} modifyData={handleViewTask} dataObj={taskObj} projects={projects} removeAttachment={removeAttachment} employees={employees} /> :
+    isviewTask ? <CommonModel type="Task View" errorMsg={errorData} isAddData={isviewTask} modifyData={handleViewTask} dataObj={taskObj} projects={projects} removeAttachment={removeAttachment} employees={employees} /> :
       isDelete.type ? <CommonModel type="Task Confirmation" modifyData={handleDeleteTask} deleteData={deleteTask} isAddData={isDelete.type} /> :
-        isEditTask ? <CommonModel type="Task Assign" isAddData={isEditTask} employees={employees} changeData={changeTask} dataObj={taskObj} editData={editTask} isWorkingApi={isTaskChanging} modifyData={handleEditTask} /> :
-          isAddTask ? <CommonModel isWorkingApi={isTaskChanging} dataObj={taskObj} tasks={allTasks} notCompletedTasks={notCompletedTasks} previewList={previewList} isAddData={isAddTask} editData={editTask} addReminder={addReminder} changeData={changeTask} removeReminder={removeReminder} projects={projects} addData={addTask} removeAttachment={removeAttachment} employees={employees} type="Task" modifyData={triggerHandleAddTask} /> :
+        isEditTask ? <CommonModel type="Task Assign" errorMsg={errorData} isAddData={isEditTask} employees={employees} changeData={changeTask} dataObj={taskObj} editData={editTask} isWorkingApi={isTaskChanging} modifyData={handleEditTask} /> :
+          isAddTask ? <CommonModel isWorkingApi={isTaskChanging} errorMsg={errorData} dataObj={taskObj} tasks={allTasks} notCompletedTasks={notCompletedTasks} previewList={previewList} isAddData={isAddTask} editData={editTask} addReminder={addReminder} changeData={changeTask} removeReminder={removeReminder} projects={projects} addData={addTask} removeAttachment={removeAttachment} employees={employees} type="Task" modifyData={triggerHandleAddTask} /> :
             isAddComment && taskObj?._id ? (
-              <CommonModel type="Add Comments" removeAttachment={removeAttachment} isAddData={isAddComment} modifyData={handleAddComment} changeData={changeTask} editData={editTask} dataObj={taskObj} previewList={previewList} />
+              <CommonModel type="Add Comments" errorMsg={errorData} removeAttachment={removeAttachment} isAddData={isAddComment} modifyData={handleAddComment} changeData={changeTask} editData={editTask} dataObj={taskObj} previewList={previewList} />
             ) :
               <>
                 <div className="projectParent ">

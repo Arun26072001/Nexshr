@@ -91,7 +91,7 @@ export default function Navbar({ handleSideBar }) {
     const renderMenu = ({ onClose, right, top, className }, ref) => {
         const handleSelect = eventKey => {
             if (eventKey === 1) {
-
+                navigate(`/${whoIs}/employee/edit/${data._id}`)
             } else if (eventKey === 2) {
                 handleLogout();
             }
@@ -100,8 +100,7 @@ export default function Navbar({ handleSideBar }) {
         return (
             <Popover ref={ref} className={className} style={{ right, top }} full>
                 <Dropdown.Menu onSelect={handleSelect} title="Personal Settings">
-                    <Dropdown.Item><b>Personal Profile</b></Dropdown.Item>
-                    {/* <Dropdown.Item eventKey={1}>Profile</Dropdown.Item> */}
+                    <Dropdown.Item eventKey={1}><b>Personal Profile</b></Dropdown.Item>
                     <Dropdown.Item eventKey={2}>Log out</Dropdown.Item>
                 </Dropdown.Menu>
             </Popover>

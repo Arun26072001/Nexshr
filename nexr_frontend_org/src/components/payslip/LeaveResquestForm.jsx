@@ -37,7 +37,7 @@ const LeaveRequestForm = ({ type }) => {
 
     setErrorData("");
     if (new Date(leaveRequestObj.fromDate) > new Date(leaveRequestObj.toDate)) {
-      setErrorData("ToDate must be after FromDate");
+      setErrorData("ToDate must be greater than FromDate");
       return;
     }
     const formData = new FormData();
@@ -262,7 +262,7 @@ const LeaveRequestForm = ({ type }) => {
       setIsShowPeriodOfLeave(false);
     }
   }, [leaveRequestObj.leaveType]);
-  
+
   useEffect(() => {
     if (whoIs !== "emp") {
       gettingEmps()
@@ -308,6 +308,7 @@ const LeaveRequestForm = ({ type }) => {
   useEffect(() => {
     checkEmpPermissions()
   }, [leaveRequestObj?.applyFor])
+  console.log("errorMsg", errorData)
 
   return (
     isLoading ? <Loading height="80vh" /> :
@@ -341,7 +342,7 @@ const LeaveRequestForm = ({ type }) => {
                     <option value={emp.value}>{emp.label}</option>
                   ))}
                 </select>
-                {errorData?.includes("applyFor") && <div className="text-center text-danger">Please select an employee</div>}
+                {errorData?.toLowerCase()?.includes("applyfor") && <div className="text-center text-danger">{errorData}</div>}
               </div>
             )}
 
@@ -363,7 +364,7 @@ const LeaveRequestForm = ({ type }) => {
                     </option>
                   ))}
               </select>
-              {errorData?.includes("leaveType") && <div className="text-center text-danger">Leave type is required</div>}
+              {errorData.toLowerCase()?.includes("leavetype") && <div className="text-center text-danger">{errorData}</div>}
             </div>
 
             {/* Date Picker */}
@@ -374,7 +375,7 @@ const LeaveRequestForm = ({ type }) => {
                   showTimeSelect
                   dateFormat="Pp"
                   disabled={type === "view"}
-                  className={`inputField ${errorData?.includes("fromDate") ? "error" : ""} w-100`}
+                  className={`inputField ${errorData.toLowerCase()?.includes("fromdate") ? "error" : ""} w-100`}
                   selected={leaveRequestObj.fromDate ? new Date(leaveRequestObj.fromDate) : null}
                   onChange={(date) => type !== "view" && fillLeaveObj(date, "fromDate")}
                   minDate={["admin", "hr"].includes(whoIs) ? null : now}
@@ -383,8 +384,7 @@ const LeaveRequestForm = ({ type }) => {
                   excludeDates={!leaveRequestObj.leaveType?.toLowerCase()?.includes("permission") && excludedDates}
                   onKeyDown={(e) => e.preventDefault()}
                 />
-
-                {errorData?.includes("fromDate") && <div className="text-center text-danger">{errorData}</div>}
+                {errorData.toLowerCase()?.includes("fromdate") && <div className="text-center text-danger">{errorData}</div>}
               </div>
               <div className="col-12 col-lg-6 col-md-6">
                 <span className="inputLabel">To Date</span>
@@ -402,7 +402,7 @@ const LeaveRequestForm = ({ type }) => {
                   onKeyDown={(e) => e.preventDefault()}
                 />
 
-                {errorData?.includes("toDate") && <div className="text-center text-danger">{errorData}</div>}
+                {errorData.toLowerCase()?.includes("todate") && <div className="text-center text-danger">{errorData}</div>}
               </div>
             </div>
 

@@ -27,6 +27,7 @@ function Holiday() {
     const [formattedHolidays, setFormattedHolidays] = useState([]);
     const [allYearHoliday, setAllYearHoliday] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
+    const [errorData, setErrorData] = useState("");
     const [isWorkingApi, setIsWorkingApi] = useState(false);
     const [changeHoliday, setChangeHoliday] = useState({ isAdd: false, isEdit: false });
     const [isDeleting, setIsDeleting] = useState("");
@@ -79,7 +80,6 @@ function Holiday() {
                 start: new Date(item.date),
                 end: new Date(item.date)
             }));
-            console.log("mappedData", mapped);
             // for holiday view in calendar
             setFormattedHolidays(mapped)
         } catch (err) {
@@ -97,6 +97,7 @@ function Holiday() {
     const addOrUpdateHolidays = async () => {
         try {
             setIsWorkingApi(true);
+            setErrorData("");
             const isAllFilled = holidays.every(date => titles[date]);
             if (!isAllFilled) {
                 toast.warn("Please fill titles for all selected dates");
@@ -124,7 +125,9 @@ function Holiday() {
             setTitles({});
         } catch (err) {
             console.error("Error saving holidays", err);
-            toast.error(err.response?.data?.error || "Error saving holidays");
+            const errorMsg = err?.response?.data?.error
+            setErrorData(errorMsg)
+            toast.error(errorMsg)
         } finally {
             setIsWorkingApi(false);
         }
@@ -150,7 +153,7 @@ function Holiday() {
             fetchAllYearHolidays()
         } fetchHolidays()
     }, [whoIs, fetchAllYearHolidays, fetchHolidays]);
-
+    console.log("error", errorData.includes("holidays"), errorData)
     const eventPropGetter = () => ({
         style: {
             backgroundColor: "#5D8736",
@@ -172,13 +175,15 @@ function Holiday() {
                         <div className="col-half">
                             <div className="modelInput">
                                 <p className='modelLabel important'>Select Company </p>
-                                <SelectPicker value={holidayObj?.company} onChange={(e) => fillHolidayObj(e, "company")} style={{ width: "100%" }} size="lg" data={companies} />
+                                <SelectPicker value={holidayObj?.company} className={errorData.includes("company") ? "error" : ""} onChange={(e) => fillHolidayObj(e, "company")} style={{ width: "100%" }} size="lg" data={companies} />
+                                {errorData.includes("company") ? <div className="text-center text-danger">{errorData}</div> : null}
                             </div>
                         </div>
                         <div className="col-half">
                             <div className="modelInput">
                                 <p className='modelLabel important'>Holiday Year</p>
-                                <InputNumber size="lg" value={holidayObj?.currentYear} onChange={(val) => fillHolidayObj(val, "currentYear")} />
+                                <InputNumber size="lg" value={holidayObj?.currentYear} className={`${errorData.includes("currentYear") ? "error" : ""}`} onChange={(val) => fillHolidayObj(val, "currentYear")} />
+                                {errorData.includes("currentYear") ? <div className="text-center text-danger">{errorData}</div> : null}
                             </div>
                         </div>
                     </div>
@@ -189,12 +194,14 @@ function Holiday() {
                                 <DatePicker
                                     multiple
                                     format="YYYY-MM-DD"
+                                    // className={errorData.includes("holidays") ? "error" : ""}
                                     value={holidays}
                                     onChange={(dates) => setHolidays(Array.isArray(dates) && dates.length > 0 ? dates.map(d => d.format("YYYY-MM-DD")) : [])}
-                                    style={{ height: "40px", width: "100%" }}
+                                    style={{ height: "40px", width: "100%", border: errorData.includes("holidays") ? "2px solid red" : "" }}
                                     plugins={[<DatePanel key="panel" />, weekends()]}
                                     placeholder="Select holidays"
                                 />
+                                {errorData.includes("holidays") ? <div className="text-center text-danger">{errorData}</div> : null}
                             </div>
                         </div>
                     </div>
@@ -208,11 +215,12 @@ function Holiday() {
                                             key={date}
                                             size="lg"
                                             width={"100%"}
+                                            className={!titles[date] ? "error" : ""}
                                             value={titles[date] || ""}
                                             onChange={(val) => setTitles(prev => ({ ...prev, [date]: val?.trimStart()?.replace(/\s+/g, ' ') }))}
                                         />
+                                        {!titles[date] ? <div className="text-center text-danger">{date} title is required</div> : null}
                                     </div>
-
                                 </div>
                             ))}
                         </div>

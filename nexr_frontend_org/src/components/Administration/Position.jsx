@@ -14,6 +14,7 @@ export default function Position() {
     const navigate = useNavigate();
     const url = process.env.REACT_APP_API_URL;
     const { data } = useContext(EssentialValues);
+    const [errorData, setErrorData] = useState("");
     const [positionObj, setPositionObj] = useState({});
     const [positions, setPositions] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
@@ -42,6 +43,7 @@ export default function Position() {
 
     async function addPosition() {
         setIschangingPosition(true);
+        setErrorData("");
         try {
             const msg = await axios.post(url + "/api/position", positionObj, {
                 headers: {
@@ -56,7 +58,9 @@ export default function Position() {
             if (error?.message === "Network Error") {
                 navigate("/network-issue")
             }
-            toast.error(error?.response?.data?.message || "Failed to add position");
+            const errorMsg = error?.response?.data?.error
+            setErrorData(errorMsg)
+            toast.error(errorMsg)
         }
         setIschangingPosition(false);
     }
@@ -84,6 +88,7 @@ export default function Position() {
 
     async function editPosition() {
         setIschangingPosition(true);
+        setErrorData("");
         try {
             const response = await axios.put(`${url}/api/position/${positionObj._id}`, positionObj, {
                 headers: {
@@ -98,9 +103,9 @@ export default function Position() {
             if (error?.message === "Network Error") {
                 navigate("/network-issue")
             }
-            console.error("Error editing position:", error);
-            const errorMessage = error?.response?.data?.message || error.message || "Something went wrong";
-            toast.error(errorMessage);
+            const errorMsg = error?.response?.data?.error
+            setErrorData(errorMsg)
+            toast.error(errorMsg)
         }
         setIschangingPosition(false);
     }
@@ -149,6 +154,7 @@ export default function Position() {
     return (
         isAddPosition ? (
             <CommonModel
+                errorMsg={errorData}
                 dataObj={positionObj}
                 editData={editPosition}
                 changeData={changePosition}

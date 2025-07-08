@@ -20,7 +20,7 @@ const LeaveTypeValidation = Joi.object().keys({
     __v: Joi.any().optional(),
     LeaveName: Joi.string().required().disallow(null, '', 'none', 'undefined'),
     Description: Joi.string().optional(),
-    limitDays: Joi.number().positive().required().label("LimitDays")
+    limitDays: Joi.number().positive().required().label("limitDays")
 })
 
 module.exports = {
