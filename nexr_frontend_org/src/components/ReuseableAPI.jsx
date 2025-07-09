@@ -145,7 +145,7 @@ const addDataAPI = async (body, worklocation, location) => {
         //     }
         toast.error(error?.response?.data?.error)
 
-        return error?.response?.data?.error;
+        // return error?.response?.data?.error;
     }
 };
 

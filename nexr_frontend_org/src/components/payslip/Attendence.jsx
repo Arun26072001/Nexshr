@@ -100,7 +100,6 @@ const Attendence = () => {
         }
       });
 
-      console.log("dashboardData", dashboard.data);
       if (dashboard.data) {
         setclockInsData(dashboard.data);
         if (Array.isArray(dashboard.data.clockIns)) {
@@ -155,7 +154,7 @@ const Attendence = () => {
                 return (<div
                   key={key}
                   className={`col-lg-3 col-3 ${label.toLowerCase()}`}
-                  style={{ height: `${height}%`, zIndex: height === 0 ? 0 : height >= 20 ? 1 : height >= 40 ? 2 : 3 }}>
+                  style={{ height: `${height}%`, zIndex: height }}>
                   <div className={`${screen.width < 720 ? "d-block" : "d-flex"}  justify-content-center ${clockInsData[key] === 0 ? "emtChart" : ""}`}>
                     <p className="payslipTitle" style={{ color: "#146ADC" }}>
                       {clockInsData[key].toFixed(1)} Days

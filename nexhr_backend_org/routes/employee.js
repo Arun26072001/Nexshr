@@ -266,6 +266,7 @@ router.get('/:id', verifyAdminHREmployeeManagerNetwork, async (req, res) => {
     }
     const leaveApplications = await LeaveApplication.find({
       employee: req.params.id,
+      leaveType: { $nin: ["Permission Leave", "permission"] },
       fromDate: {
         $gte: new Date(startDate),
         $lte: new Date(endDate)

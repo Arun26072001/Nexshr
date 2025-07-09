@@ -169,7 +169,7 @@ const Dashboard = () => {
 
             // Fetch employee data
             const empData = await fetchEmployeeData(data._id);
-
+            console.log("empData", empData)
             if (empData && Object.values(empData).length) {
                 setData((pre) => ({
                     ...pre,
@@ -187,7 +187,6 @@ const Dashboard = () => {
 
             // Fetch clock-ins data
             const getEmpMonthPunchIns = await gettingClockinsData(data._id);
-            console.log("getEmpMonthPunchIns", getEmpMonthPunchIns)
             if (getEmpMonthPunchIns) {
                 // Calculate total working hour percentage and total worked hour percentage
                 const totalWorkingHourPercentage = (getEmpMonthPunchIns.companyTotalWorkingHour / getEmpMonthPunchIns.totalWorkingHoursPerMonth) * 100;

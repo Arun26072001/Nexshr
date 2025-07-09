@@ -95,10 +95,22 @@ function isValidLeaveDate(holidays = [], WeeklyDays = [], target) {
   const dayName = format(date, "EEEE"); // e.g., 'Monday', 'Tuesday', etc.
 
   const isHoliday = checkDateIsHoliday(holidays, date);
-  const isWeeklyOff = WeeklyDays.includes(dayName);
+  const isWeeklyOff = !WeeklyDays.includes(dayName);
 
   // A valid leave date is one that is NOT a holiday AND NOT a weekly off
-  return !isHoliday && !isWeeklyOff;
+  return isHoliday || isWeeklyOff;
+}
+
+function setPeriodOfLeave(leave) {
+  // check diff of from and toDate leave
+  const fromDate = new Date(leave.fromDate).getTime();
+  const toDate = new Date(leave.toDate).getTime();
+  const diff = (toDate - fromDate) / (1000 * 60 * 60);
+  if (diff > 8) {
+    return "full day";
+  } else {
+    return "half day";
+  }
 }
 
 async function rangeofDate(fromDate, toDate, empData) {
@@ -145,8 +157,11 @@ function accountFromRole(account) {
   }
 }
 
-function checkDateIsHoliday(dateList = [], target) {
-  return dateList.some((holiday) => new Date(holiday.date).toLocaleDateString() === new Date(target).toLocaleDateString());
+function checkDateIsHoliday(holidays, targetDate) {
+  const targetStr = format(new Date(targetDate), "yyyy-MM-dd"); // normalize to date string
+  return holidays.some(holiday => {
+    return holiday.date === targetStr
+  });
 }
 
 const sumLeaveDays = async (leaveArray) => {
@@ -348,12 +363,9 @@ function timeToMinutes(timeStr) {
     const [hours, minutes, seconds] = timeData.split(/[:.]+/).map(Number)
     return Number(((hours * 60) + minutes + (seconds / 60)).toFixed(2)) || 0;
   }
-  if (timeStr.split(/[:.]+/).length === 3) {
-    const [hours, minutes, seconds] = timeStr.split(/[:.]+/).map(Number);
-    return Number(((hours * 60) + minutes + (seconds / 60)).toFixed(2)) || 0; // Defaults to 0 if input is invalid
-  } else {
+  if (timeStr.split(/[:.]+/).length > 0) {
     const [hours, minutes] = timeStr.split(/[:.]+/).map(Number);
-    return Number(((hours * 60) + minutes).toFixed(2)) || 0;
+    return Number(((hours * 60) + minutes).toFixed(2)) || 0; // Defaults to 0 if input is invalid
   }
 }
 
@@ -522,4 +534,4 @@ async function errorCollector(errorLog) {
   }
 }
 
-module.exports = { convertToString, isValidLeaveDate, errorCollector, getTotalWorkingHourPerDay, getTotalWorkingHourPerDayByDate, accountFromRole, changeClientTimezoneDate, sumLeaveDays, getValidLeaveDays, fetchFirstTwoItems, getCurrentTime, checkLoginForOfficeTime, categorizeTasks, projectMailContent, processActivityDurations, formatLeaveData, getDayDifference, getOrgDB, formatDate, getWeekdaysOfCurrentMonth, mailContent, checkLogin, getTotalWorkingHoursExcludingWeekends, getCurrentTimeInMinutes, timeToMinutes, formatTimeFromMinutes };
+module.exports = { convertToString, setPeriodOfLeave, isValidLeaveDate, errorCollector, getTotalWorkingHourPerDay, getTotalWorkingHourPerDayByDate, accountFromRole, changeClientTimezoneDate, sumLeaveDays, getValidLeaveDays, fetchFirstTwoItems, getCurrentTime, checkLoginForOfficeTime, categorizeTasks, projectMailContent, processActivityDurations, formatLeaveData, getDayDifference, getOrgDB, formatDate, getWeekdaysOfCurrentMonth, mailContent, checkLogin, getTotalWorkingHoursExcludingWeekends, getCurrentTimeInMinutes, timeToMinutes, formatTimeFromMinutes };
