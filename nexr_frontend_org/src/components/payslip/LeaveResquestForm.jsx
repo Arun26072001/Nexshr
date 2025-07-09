@@ -19,7 +19,6 @@ const LeaveRequestForm = ({ type }) => {
   const { _id, token } = data;
   const { company } = jwtDecode(token);
   const [errorData, setErrorData] = useState("");
-  const [isShowPeriodOfLeave, setIsShowPeriodOfLeave] = useState(false);
   const navigate = useNavigate();
   const [isRemainPermissions, setIsRemainPermissions] = useState(false);
   const [typeOfLeave, setTypOfLeave] = useState([]);
@@ -32,6 +31,7 @@ const LeaveRequestForm = ({ type }) => {
   const now = new Date();
   const [leaveRequestObj, setLeaveRequestObj] = useState({});
 
+  console.log("errorData", errorData)
   function handleSubmit(e) {
     e.preventDefault();
 
@@ -77,7 +77,6 @@ const LeaveRequestForm = ({ type }) => {
       navigate(`/${whoIs}`); // Navigate back
     } catch (err) {
       console.log("error in add leave", err);
-      console.log("function", err?.response?.data?.error);
       toast.error(err?.response?.data?.error);
       setErrorData(err?.response?.data?.error);
     } finally {
@@ -164,9 +163,9 @@ const LeaveRequestForm = ({ type }) => {
           const leaveTypeObj = leaveReqs?.employee?.typesOfLeaveCount
           // Set types of leave
           if (isRemainPermissions) {
-            validLeaveTypes = Object.keys(leaveTypeObj).map((type) => type);
+            validLeaveTypes = Object.keys(leaveTypeObj).filter((type) => !type.toLowerCase().includes("unpaid"));
           } else {
-            validLeaveTypes = Object.keys(leaveTypeObj).filter((type) => !type.toLowerCase().includes("permission"))
+            validLeaveTypes = Object.keys(leaveTypeObj).filter((type) => !["permission", "permission leave", "unpaid leave (lwp)"].includes(type.toLowerCase()))
           }
         }
 
@@ -184,15 +183,14 @@ const LeaveRequestForm = ({ type }) => {
       setIsLoading(false);
     }
   };
+  console.log("execlude", excludedDates)
 
   function handleLeaveType(e) {
     const { name, value } = e.target;
-    if (["permission leave", "sick leave"].includes(value.toLowerCase())) {
+    if (["permission leave", "sick leave", "permission", "medical leave"].includes(value.toLowerCase())) {
       setExcludeDates([]);
-      fetchHolidays();
       fillLeaveObj(value, name)
     } else {
-      fetchHolidays();
       setExcludeDates(filteredExcludesDates);
       fillLeaveObj(value, name)
     }
@@ -218,7 +216,10 @@ const LeaveRequestForm = ({ type }) => {
   async function fetchHolidays() {
     try {
       const res = await getHoliday();
-      setExcludeDates(res.holidays.map(holiday => new Date(holiday.date)));
+      if (res.holidays.length > 0) {
+        setExcludeDates((pre) => ([...(pre || []), ...res.holidays.map(holiday => new Date(holiday.date))]));
+        setFilteredExcludeDates((pre) => ([...(pre || []), ...res.holidays.map(holiday => new Date(holiday.date))]))
+      }
     } catch (error) {
       if (error?.message === "Network Error") {
         navigate("/network-issue")
@@ -233,7 +234,7 @@ const LeaveRequestForm = ({ type }) => {
       const date = new Date(value);
       if (!date.getHours()) {
         setErrorData(`${name} should be the actual date time`)
-      }else{
+      } else {
         setErrorData("")
       }
     }
@@ -242,37 +243,6 @@ const LeaveRequestForm = ({ type }) => {
       [name]: value
     }))
   }
-
-  useEffect(() => {
-    gettingLeaveRequests();
-    if (id) {
-      fetchLeaveRequest()
-    }
-  }, [_id, leaveRequestObj.applyFor, isRemainPermissions]);
-
-  // useEffect(() => {
-  //   const leaveType = leaveRequestObj.leaveType?.toLowerCase();
-  //   if (["permission"].includes(leaveType) || new Date(leaveRequestObj.fromDate).toLocaleDateString() === new Date(leaveRequestObj.toDate).toLocaleDateString()) {
-  //     if (["permission"].includes(leaveType)) {
-  //       setLeaveRequestObj((pre) => ({
-  //         ...pre,
-  //         "periodOfLeave": "half day"
-  //       }))
-  //     }
-  //     setIsShowPeriodOfLeave(true);
-  //   } else {
-  //     setIsShowPeriodOfLeave(false);
-  //   }
-  // }, [leaveRequestObj.leaveType]);
-
-  useEffect(() => {
-    if (whoIs !== "emp") {
-      gettingEmps()
-    }
-  }, [whoIs])
-
-  console.log("leaveReqestObj", leaveRequestObj)
-
   async function checkEmpPermissions() {
     try {
       const res = await axios.get(`${url}/api/leave-application/check-permissions/${_id}`, {
@@ -287,6 +257,25 @@ const LeaveRequestForm = ({ type }) => {
       console.log("error in check permissions", error);
     }
   }
+
+  useEffect(() => {
+    fetchHolidays()
+  }, [])
+
+  useEffect(() => {
+    gettingLeaveRequests();
+    if (id) {
+      fetchLeaveRequest()
+    }
+  }, [_id, leaveRequestObj.applyFor, isRemainPermissions]);
+
+
+  useEffect(() => {
+    if (whoIs !== "emp") {
+      gettingEmps()
+    }
+  }, [whoIs])
+
 
   useEffect(() => {
     if (["admin", "hr"].includes(whoIs)) {
@@ -311,8 +300,7 @@ const LeaveRequestForm = ({ type }) => {
 
   useEffect(() => {
     checkEmpPermissions()
-  }, [leaveRequestObj?.applyFor])
-  console.log("errorMsg", errorData)
+  }, [leaveRequestObj?.applyFor]);
 
   return (
     isLoading ? <Loading height="80vh" /> :
@@ -368,7 +356,7 @@ const LeaveRequestForm = ({ type }) => {
                     </option>
                   ))}
               </select>
-              {errorData.toLowerCase()?.includes("leavetype") && <div className="text-center text-danger">{errorData}</div>}
+              {errorData?.toLowerCase()?.includes("leavetype") && <div className="text-center text-danger">{errorData}</div>}
             </div>
 
             {/* Date Picker */}
@@ -379,16 +367,16 @@ const LeaveRequestForm = ({ type }) => {
                   showTimeSelect
                   dateFormat="Pp"
                   disabled={type === "view"}
-                  className={`inputField ${errorData.toLowerCase()?.includes("fromdate") ? "error" : ""} w-100`}
+                  className={`inputField ${errorData?.toLowerCase()?.includes("fromdate") ? "error" : ""} w-100`}
                   selected={leaveRequestObj.fromDate ? new Date(leaveRequestObj.fromDate) : null}
                   onChange={(date) => type !== "view" && fillLeaveObj(date, "fromDate")}
                   minDate={["admin", "hr"].includes(whoIs) ? null : now}
                   minTime={leaveRequestObj.leaveType?.toLowerCase()?.includes("permission") ? now : null}
                   maxTime={leaveRequestObj.leaveType?.toLowerCase()?.includes("permission") ? new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59) : null}
-                  excludeDates={!leaveRequestObj.leaveType?.toLowerCase()?.includes("permission") && excludedDates}
+                  excludeDates={excludedDates}
                   onKeyDown={(e) => e.preventDefault()}
                 />
-                {errorData.toLowerCase()?.includes("fromdate") && <div className="text-center text-danger">{errorData}</div>}
+                {errorData?.toLowerCase()?.includes("fromdate") && <div className="text-center text-danger">{errorData}</div>}
               </div>
               <div className="col-12 col-lg-6 col-md-6">
                 <span className="inputLabel">To Date</span>
@@ -402,31 +390,13 @@ const LeaveRequestForm = ({ type }) => {
                   minDate={leaveRequestObj.fromDate || (["admin", "hr"].includes(whoIs) ? null : now)}
                   minTime={leaveRequestObj.leaveType?.toLowerCase()?.includes("permission") ? now : null}
                   maxTime={leaveRequestObj.leaveType?.toLowerCase()?.includes("permission") ? new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59) : null}
-                  excludeDates={!leaveRequestObj.leaveType?.toLowerCase()?.includes("permission") && excludedDates}
+                  excludeDates={excludedDates}
                   onKeyDown={(e) => e.preventDefault()}
                 />
 
-                {errorData.toLowerCase()?.includes("todate") && <div className="text-center text-danger">{errorData}</div>}
+                {errorData?.toLowerCase()?.includes("todate") && <div className="text-center text-danger">{errorData}</div>}
               </div>
             </div>
-
-            {/* Period of Leave */}
-            {isShowPeriodOfLeave && (
-              <div className="my-3">
-                <span className="inputLabel">Period Of Leave</span>
-                <select
-                  name="periodOfLeave"
-                  className={`selectInput ${errorData?.includes("periodOfLeave") ? "error" : ""}`}
-                  onChange={type === "view" ? null : (e) => fillLeaveObj(e.target.value, "periodOfLeave")}
-                  value={leaveRequestObj.periodOfLeave}
-                  disabled={type === "view"}
-                >
-                  <option>Select Leave Period</option>
-                  <option value="full day">Full Day</option>
-                  <option value="half day">Half Day</option>
-                </select>
-              </div>
-            )}
 
             {/* Reason for Leave */}
             <div className="my-3">
@@ -485,3 +455,18 @@ const LeaveRequestForm = ({ type }) => {
 };
 
 export default LeaveRequestForm;
+
+// useEffect(() => {
+//   const leaveType = leaveRequestObj.leaveType?.toLowerCase();
+//   if (["permission"].includes(leaveType) || new Date(leaveRequestObj.fromDate).toLocaleDateString() === new Date(leaveRequestObj.toDate).toLocaleDateString()) {
+//     if (["permission"].includes(leaveType)) {
+//       setLeaveRequestObj((pre) => ({
+//         ...pre,
+//         "periodOfLeave": "half day"
+//       }))
+//     }
+//     setIsShowPeriodOfLeave(true);
+//   } else {
+//     setIsShowPeriodOfLeave(false);
+//   }
+// }, [leaveRequestObj.leaveType]);

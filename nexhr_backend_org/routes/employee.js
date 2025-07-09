@@ -276,7 +276,6 @@ router.get('/:id', verifyAdminHREmployeeManagerNetwork, async (req, res) => {
     const pendingLeaveRequests = leaveApplications.filter((leave) => leave.status === "pending");
     const takenLeaveRequests = leaveApplications.filter((leave) => leave.status === "approved" && !leave.leaveType.toLowerCase().includes("unpaid"));
     const unpaidLeaveRequest = leaveApplications.filter((leave) => leave.leaveType.toLowerCase().includes("unpaid"))
-
     // Calculate total taken leave count
     const [totalTakenLeaveCount, totalUnpaidLeaveCount] = await Promise.all([
       sumLeaveDays(takenLeaveRequests),

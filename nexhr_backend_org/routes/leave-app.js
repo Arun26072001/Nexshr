@@ -414,6 +414,10 @@ leaveApp.get("/team/:id", verifyTeamHigherAuthority, async (req, res) => {
     const [startOfMonth, endOfMonth] = daterangeValue
       ? [new Date(daterangeValue[0]), new Date(daterangeValue[1])]
       : [new Date(now.getFullYear(), now.getMonth(), 1), new Date(now.getFullYear(), now.getMonth() + 2, 0)];
+    // reduce one day from start the date for exact filter
+    startOfMonth.setDate(startOfMonth.getDate() - 1)
+    // add one day from end the date for exact filter
+    endOfMonth.setDate(endOfMonth.getDate() + 1)
 
     // Find team where the current user is a lead/head/etc.
     const teams = await Team.find({ [who]: req.params.id }).exec();
@@ -617,6 +621,10 @@ leaveApp.get("/date-range/management/:whoIs", verifyAdminHrNetworkAdmin, async (
   if (req.query?.daterangeValue) {
     [startOfMonth, endOfMonth] = req.query.daterangeValue.map(date => new Date(date));
     endOfMonth.setHours(23, 59, 59, 999); // Include full last day
+    // reduce one day from start the date for exact filter
+    startOfMonth.setDate(startOfMonth.getDate() - 1)
+    // add one day from end the date for exact filter
+    endOfMonth.setDate(endOfMonth.getDate() + 1)
   } else {
     startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
     endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
@@ -888,10 +896,10 @@ leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("pre
 
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    const fromDateObj = new Date(fromDate);
+    const fromDateObj = changeClientTimezoneDate(fromDate);
 
     // fromDateObj.setHours(0, 0, 0, 0);
-    const toDateObj = new Date(toDate);
+    const toDateObj = changeClientTimezoneDate(toDate);
     const prescription = req.file?.filename || null;
     const coverByValue = [undefined, "undefined"].includes(coverBy) ? null : coverBy;
     const personId = [undefined, "undefined"].includes(applyFor) ? empId : applyFor;
@@ -978,9 +986,9 @@ leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("pre
       const isFromDateHoliday = checkDateIsHoliday(holiday.holidays, fromDate);
       const isToDateHoliday = checkDateIsHoliday(holiday.holidays, fromDate);
       if (isFromDateHoliday) {
-        return res.status(400).send("holiday are not allowed for fromDate")
+        return res.status(400).send({ error: "holiday are not allowed for fromDate" })
       } if (isToDateHoliday) {
-        return res.status(400).send("holiday are not allowed for toDate")
+        return res.status(400).send({ error: "holiday are not allowed for toDate" })
       }
     }
     async function checkDateIsWeekend(date) {
