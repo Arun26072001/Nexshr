@@ -18,44 +18,57 @@ const CircleProgressBar = ({ isTeamLead, isTeamHead, isTeamManager }) => {
   const [isLoading, setIsLoading] = useState(false);
   const { data, whoIs } = useContext(EssentialValues);
   const { token, Account, _id } = data;
+  const [today, setToday] = useState(null);
   const [tomorrow, setTomorrow] = useState(null);
   const [yesterday, setYesterday] = useState(null);
 
-  // Calculate dates for today, tomorrow, and yesterday, skipping weekends
-  let today = new Date();
-  async function getTomorrowDate() {
-    let tomorrowDate = new Date(today); // Clone the 'today' date
-    while (true) {
-      tomorrowDate.setDate(tomorrowDate.getDate() + 1);
-
-      const checkDate = new Date(tomorrowDate); // Clone for state
-      const isValidLeave = await checkIsLeaveDate(checkDate);
-      if (isValidLeave && !isValidLeave.data) {
-        setTomorrow(checkDate);
-        break;
-      }
-    }
-  }
-
-  async function getYesterdayDate() {
-    let yesterdayDate = new Date(today); // Clone the 'today' date
-    while (true) {
-      yesterdayDate.setDate(yesterdayDate.getDate() - 1);
-
-      const checkDate = new Date(yesterdayDate); // Clone for state
-      const isValidLeave = await checkIsLeaveDate(checkDate);
-
-      if (isValidLeave && !isValidLeave.data) {
-        setYesterday(checkDate);
-        break;
-      }
-    }
-  }
-
   useEffect(() => {
-    getTomorrowDate();
-    getYesterdayDate();
-  }, [])
+    async function initDates() {
+      const referenceDate = new Date(); // today's date as a base
+
+      // 1. Get valid **yesterday**
+      const yesterdayDate = new Date(referenceDate);
+      while (true) {
+        yesterdayDate.setDate(yesterdayDate.getDate() - 1);
+        const yCheck = new Date(yesterdayDate);
+        const yValid = await checkIsLeaveDate(yCheck);
+
+        if (!yValid) {
+          setYesterday(yCheck);
+          break;
+        }
+      }
+
+
+      // 2. Get valid **today**
+      const todayDate = new Date(referenceDate);
+      while (true) {
+        todayDate.setDate(todayDate.getDate() + 1);
+        const tCheck = new Date(todayDate);
+        const tValid = await checkIsLeaveDate(tCheck);
+        if (!tValid) {
+          setToday(tCheck);
+          break;
+        }
+      }
+
+      // 3. Get valid **tomorrow**
+      const tomorrowDate = new Date(todayDate); // start from "today"
+      while (true) {
+        tomorrowDate.setDate(tomorrowDate.getDate() + 1);
+        const tmCheck = new Date(tomorrowDate);
+        const tmValid = await checkIsLeaveDate(tmCheck);
+        console.log("tmValid", tmValid)
+        if (!tmValid) {
+          setTomorrow(tmCheck);
+          break;
+        }
+      }
+    }
+
+    initDates();
+  }, []);
+
 
   async function checkIsLeaveDate(date) {
     try {
@@ -67,7 +80,8 @@ const CircleProgressBar = ({ isTeamLead, isTeamHead, isTeamManager }) => {
           Authorization: token || ""
         }
       })
-      return checkIsValidLeave;
+      console.log("date", date, "checkIsValidLeave", checkIsValidLeave.data)
+      return checkIsValidLeave.data;
     } catch (error) {
       if (error.message === "Network Error") {
         navigate("/network-issue")
@@ -169,9 +183,10 @@ const CircleProgressBar = ({ isTeamLead, isTeamHead, isTeamManager }) => {
         });
       }
     }
-
-    getLeaveCounts();
-  }, [leaveRequests]);
+    if (today && tomorrow && yesterday) {
+      getLeaveCounts();
+    }
+  }, [leaveRequests, today, tomorrow, yesterday]);
 
   return (
     <div className='row d-flex justify-content-center'>

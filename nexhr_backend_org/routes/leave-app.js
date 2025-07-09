@@ -11,7 +11,7 @@ const { verifyHR, verifyEmployee, verifyAdminHREmployeeManagerNetwork, verifyAdm
 const { Team } = require('../models/TeamModel');
 const { upload } = require('./imgUpload');
 const sendMail = require("./mailSender");
-const { getDayDifference, mailContent, formatLeaveData, formatDate, getValidLeaveDays, sumLeaveDays, changeClientTimezoneDate, errorCollector, isValidLeaveDate } = require('../Reuseable_functions/reusableFunction');
+const { getDayDifference, mailContent, formatLeaveData, formatDate, getValidLeaveDays, sumLeaveDays, changeClientTimezoneDate, errorCollector, isValidLeaveDate, setPeriodOfLeave } = require('../Reuseable_functions/reusableFunction');
 const { Task } = require('../models/TaskModel');
 const { sendPushNotification } = require('../auth/PushNotification');
 const { Holiday } = require('../models/HolidayModel');
@@ -686,7 +686,11 @@ leaveApp.get("/date-range/:empId", verifyAdminHREmployeeManagerNetwork, async (r
 
   if (req.query?.daterangeValue) {
     startOfMonth = new Date(req.query.daterangeValue[0]);
+    // reduce one day from start the date for exact filter
+    startOfMonth.setDate(startOfMonth.getDate() - 1)
     endOfMonth = new Date(req.query.daterangeValue[1]);
+    // add one day from end the date for exact filter
+    endOfMonth.setDate(endOfMonth.getDate() + 1)
     endOfMonth.setHours(23, 59, 59, 999); // Include the full last day
   } else {
     startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
@@ -694,18 +698,6 @@ leaveApp.get("/date-range/:empId", verifyAdminHREmployeeManagerNetwork, async (r
   }
 
   try {
-    // const employeeLeaveData = await Employee.findById(req.params.empId, "_id FirstName LastName profile leaveApplication")
-    //   .populate({
-    //     path: "leaveApplication",
-    //     match: {
-    //       fromDate: { $lte: endOfMonth },
-    //       toDate: { $gte: startOfMonth }
-    //     },
-    //     populate: [
-    //       { path: "employee", select: "FirstName LastName Email profile" },
-    //       { path: "coverBy", select: "FirstName LastName Email profile" }
-    //     ]
-    //   });
     const employeeLeaveData = await LeaveApplication.find({ employee: req.params.empId, fromDate: { $lte: endOfMonth }, toDate: { $gte: startOfMonth } })
       .populate([
         { path: "employee", select: "FirstName LastName Email profile" },
@@ -808,7 +800,7 @@ leaveApp.put("/reject-leave", async (req, res) => {
         leaveType: leave.leaveType,
         fromDate: leave.fromDate,
         toDate: leave.toDate,
-        periodOfLeave: leave.periodOfLeave || "full day",
+        periodOfLeave: setPeriodOfLeave(leave),
         reasonForLeave: leave.reasonForLeave || "Not specified",
         prescription: leave.prescription,
         employee: leave.employee._id,
@@ -893,7 +885,6 @@ leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("pre
       leaveType, fromDate, toDate, periodOfLeave,
       reasonForLeave, coverBy, applyFor, role
     } = req.body;
-
 
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -1039,8 +1030,9 @@ leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("pre
     });
 
     const leaveRequest = {
-      leaveType, fromDate, toDate, periodOfLeave, reasonForLeave,
+      leaveType, fromDate, toDate, reasonForLeave,
       prescription, approvers,
+      periodOfLeave: setPeriodOfLeave(req.body),
       status: (applyFor && applyFor !== "undefined" || leaveType === "Permission Leave") ? "approved" : "pending",
       coverBy: coverByValue,
       employee: personId,

@@ -193,8 +193,9 @@ export default function HRMDashboard() {
             if (!updatedState?._id) {
                 // Add new clock-ins data
                 const clockinsData = await addDataAPI(updatedState, worklocation, location);
+                console.log("clockinsData", clockinsData)
                 // const totalWorkingHour = await getTotalWorkingHourPerDay(workingTimePattern.StartingTime, workingTimePattern.FinishingTime)
-                if (clockinsData !== "undefined" && clockinsData._id) {
+                if (clockinsData && clockinsData._id) {
                     setWorkTimeTracker(clockinsData);
                     setIsStartLogin(true);
                     localStorage.setItem("isStartLogin", true);

@@ -414,7 +414,7 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
             } else if (actualMinutes > scheduledMinutes) {
                 late++;
                 return "Late";
-            } else {
+            } else if (actualMinutes === scheduledMinutes) {
                 regular++;
                 return "On Time";
             }
