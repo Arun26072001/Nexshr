@@ -151,7 +151,7 @@ const App = () => {
     event.preventDefault();
     setPass(true);
     login(event.target[0].value, event.target[1].value);
-    event.target.reset();
+    // event.target.reset();
   };
 
 

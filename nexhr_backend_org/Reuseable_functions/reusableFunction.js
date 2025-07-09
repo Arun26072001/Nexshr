@@ -125,7 +125,7 @@ async function rangeofDate(fromDate, toDate, empData) {
   let dayCount = 0;
   while (from <= to) {
     const date = new Date(from);
-    if (isValidLeaveDate(holidays, empTimePatternWorkingDays, date)) {
+    if (!isValidLeaveDate(holidays, empTimePatternWorkingDays, date)) {
       dayCount += 1
     }
     from.setDate(from.getDate() + 1); // <- Corrected here

@@ -33,7 +33,7 @@ export default function WFHRequestForm({ type }) {
 
         setwfhRequestObj(prev => ({
             ...prev,
-            [name]: cleanedValue
+            [name]: name === "fromDate" ? new Date(value).setHours(0, 0, 0, 0) : name === "toDate" ? new Date(value).setHours(23, 59, 59, 0) : cleanedValue
         }));
     }
 
