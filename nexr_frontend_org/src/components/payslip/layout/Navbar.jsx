@@ -386,7 +386,7 @@ export default function Navbar({ handleSideBar }) {
                                 style={{ width: "100%" }}
                                 format="HH:mm:ss"
                                 onChange={
-                                    (e) => updateCheckoutTime(e)
+                                    (e) => updateCheckoutTime(e, activity)
                                 } />
                         </div>
                     })
