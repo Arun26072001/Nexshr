@@ -23,7 +23,7 @@ router.post("/", async (req, res) => {
             return res.status(400).send(error.details[0].message);
         } else {
             const emp = await Employee.findOne({
-                Email: { $regex: new RegExp('^' + req.body.Email, 'i') },
+                Email: req.body.Email,
                 Password: req.body.Password
             })
                 .populate("company", "CompanyName logo")

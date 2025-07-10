@@ -30,8 +30,7 @@ const LeaveRequestForm = ({ type }) => {
   const [isWorkingApi, setIsWorkingApi] = useState(false);
   const now = new Date();
   const [leaveRequestObj, setLeaveRequestObj] = useState({});
-
-  console.log("errorData", errorData)
+  // console.log("leaveRequestObj", leaveRequestObj)
   function handleSubmit(e) {
     e.preventDefault();
 

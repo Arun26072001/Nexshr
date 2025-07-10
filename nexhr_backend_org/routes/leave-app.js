@@ -883,6 +883,12 @@ leaveApp.get("/check-is-valid-leave/:id", verifyAdminHREmployeeManagerNetwork, a
 leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("prescription"), async (req, res) => {
   try {
     const { empId } = req.params;
+    // get user authorization account
+    const decodedData = jwt.verify(req.headers["authorization"], process.env.ACCCESS_SECRET_KEY);
+    let accountLevel;
+    if (decodedData?.Account) {
+      accountLevel = decodedData.Account
+    }
 
     // check leave form validation
     const { error } = LeaveApplicationValidation.validate(req.body);
@@ -890,8 +896,8 @@ leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("pre
       return res.status(400).send({ error: error.details[0].message })
     }
     const {
-      leaveType, fromDate, toDate, periodOfLeave,
-      reasonForLeave, coverBy, applyFor, role
+      leaveType, fromDate, toDate,
+      reasonForLeave, coverBy, applyFor
     } = req.body;
 
     const today = new Date();
@@ -903,15 +909,6 @@ leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("pre
     const prescription = req.file?.filename || null;
     const coverByValue = [undefined, "undefined"].includes(coverBy) ? null : coverBy;
     const personId = [undefined, "undefined"].includes(applyFor) ? empId : applyFor;
-
-    // Determine account level
-    let accountLevel = 3;
-    if (role) {
-      const roleData = await RoleAndPermission.findById(role, "RoleName");
-      const roleName = roleData?.RoleName?.toLowerCase();
-      const roleLevels = { admin: 1, hr: 2, manager: 4, "network admin": 5 };
-      accountLevel = roleLevels[roleName] || 3;
-    }
 
     // ✅ Check team leave count
     const team = await Team.findOne({ employees: empId }, "employees");
@@ -977,7 +974,7 @@ leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("pre
       ]);
     if (!emp) return res.status(400).json({ error: `No employee found for ID ${empId}` });
 
-    // check leave request is weekend or holiday
+    // 5. check leave request is weekend or holiday
     function checkDateIsHoliday(dateList, target) {
       return dateList.some((holiday) => new Date(holiday.date).toLocaleDateString() === new Date(target).toLocaleDateString());
     }
@@ -1004,7 +1001,7 @@ leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("pre
       return res.status(400).send({ error: "Weekend is not allowed in toDate" })
     }
 
-    // 5. Permission Leave checks
+    // 6. Permission Leave checks
     if (leaveType.toLowerCase().includes("permission")) {
       const durationInMinutes = (new Date(toDate) - new Date(fromDate)) / 60000;
       // check permission duration
@@ -1017,7 +1014,7 @@ leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("pre
       }
     }
 
-    // 6. Leave balance check
+    // 7. Leave balance check
     const approvedLeaves = await LeaveApplication.find({
       leaveType: new RegExp(`^${leaveType}`, "i"),
       status: "approved",
@@ -1028,10 +1025,10 @@ leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("pre
       return res.status(400).json({ error: `${leaveType} limit has been reached.` });
     }
 
-    // 7. Task conflict
+    // 8. Task conflict
     const deadlineTasks = await Task.find({ assignedTo: personId, to: { $gte: fromDateObj, $lte: toDate } });
 
-    // 8. Setup approvers
+    // 9. Setup approvers
     const approvers = {};
     ["lead", "head", "manager", "hr"].forEach(role => {
       if (emp.team?.[role] && emp.team?.[role].length) approvers[role] = (applyFor && applyFor !== "undefined" || leaveType === "Permission Leave") ? "approved" : "pending";
@@ -1041,14 +1038,14 @@ leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("pre
       leaveType, fromDate, toDate, reasonForLeave,
       prescription, approvers,
       periodOfLeave: setPeriodOfLeave(req.body),
-      status: (applyFor && applyFor !== "undefined" || leaveType === "Permission Leave") ? "approved" : "pending",
+      status: ((applyFor && applyFor !== "undefined") || leaveType === "Permission Leave" || accountLevel === 1) ? "approved" : "pending",
       coverBy: coverByValue,
       employee: personId,
       appliedBy: empId,
     };
 
-    // Deduct days if approved and not permission
-    if (applyFor && !leaveType.toLowerCase().includes("permission")) {
+    // 10.Deduct days if approved and not permission
+    if ((accountLevel === 1 || applyFor) && !leaveType.toLowerCase().includes("permission")) {
       const days = Math.max(await getDayDifference(leaveRequest), 1);
       emp.typesOfLeaveRemainingDays[leaveType] -= days;
       await emp.save();
@@ -1058,7 +1055,7 @@ leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("pre
     emp.leaveApplication.push(newLeaveApp._id);
     await emp.save();
 
-    // 9. Notify approvers (self-apply only)
+    // 11. Notify approvers (self-apply only)
     const notify = [];
     if (!applyFor || applyFor === "undefined") {
       higherOfficals.forEach(role => {

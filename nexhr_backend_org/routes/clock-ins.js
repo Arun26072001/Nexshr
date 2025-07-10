@@ -7,7 +7,7 @@ const sendMail = require("./mailSender");
 const { format } = require("date-fns");
 const { LeaveApplication } = require("../models/LeaveAppModel");
 const { Team } = require("../models/TeamModel");
-const { timeToMinutes, processActivityDurations, checkLoginForOfficeTime, getCurrentTime, sumLeaveDays, getTotalWorkingHoursExcludingWeekends, changeClientTimezoneDate, getTotalWorkingHourPerDayByDate, errorCollector, isValidLeaveDate } = require("../Reuseable_functions/reusableFunction");
+const { timeToMinutes, processActivityDurations, checkLoginForOfficeTime, getCurrentTime, sumLeaveDays, getTotalWorkingHoursExcludingWeekends, changeClientTimezoneDate, getTotalWorkingHourPerDayByDate, errorCollector, isValidLeaveDate, setTimeHolderForAllActivities } = require("../Reuseable_functions/reusableFunction");
 const { WFHApplication } = require("../models/WFHApplicationModel");
 const { sendPushNotification } = require("../auth/PushNotification");
 const { Holiday } = require("../models/HolidayModel");
@@ -493,7 +493,6 @@ router.get("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
         const activitiesData = processActivityDurations(clockIn);
         const totalMinutes = activitiesData.reduce((sum, a) => sum + a.timeCalMins, 0);
         const empTotalWorkingHours = (totalMinutes / 60).toFixed(2);
-
         return res.send({ timeData: clockIn, activitiesData, empTotalWorkingHours });
 
     } catch (error) {
@@ -780,7 +779,8 @@ router.put("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
         if (!updatedClockIn) {
             return res.status(404).send({ message: "Clock-in entry not found" });
         }
-        res.send(updatedClockIn);
+        const activitiesData = setTimeHolderForAllActivities(updatedClockIn);
+        res.send(activitiesData);
     } catch (error) {
         await errorCollector({ url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT })
         console.error("Error updating ClockIns:", error);

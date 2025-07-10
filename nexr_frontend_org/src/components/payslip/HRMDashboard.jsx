@@ -63,7 +63,7 @@ export const TimerStates = createContext(null);
 
 export default function HRMDashboard() {
     const url = process.env.REACT_APP_API_URL;
-    const { data, isStartLogin, isStartActivity, setIsStartLogin, setIsStartActivity, whoIs, isEditEmp, handleEditEmp, handleLogout } = useContext(EssentialValues);
+    const { data, isStartLogin, isStartActivity, setIsStartLogin, setIsStartActivity, whoIs, isEditEmp, handleEditEmp } = useContext(EssentialValues);
     const { token, Account, _id } = data;
     const { isTeamLead, isTeamHead, isTeamManager } = jwtDecode(token);
     const [attendanceData, setAttendanceData] = useState([]);
@@ -199,11 +199,12 @@ export default function HRMDashboard() {
                     setWorkTimeTracker(clockinsData);
                     setIsStartLogin(true);
                     localStorage.setItem("isStartLogin", true);
+                    // for fetch update clockins data in table data(attendance)
                     updateClockins();
                 }
             } else {
                 // Update existing clock-ins data
-                trackTimer();
+                // trackTimer();
                 const updatedData = await updateDataAPI(updatedState);
                 setWorkTimeTracker(updatedData);
                 setIsStartLogin(true);
@@ -222,7 +223,8 @@ export default function HRMDashboard() {
     };
 
     const stopLoginTimer = async (timeHolderData) => {
-        trackTimer();
+        // trackTimer();
+        // console.log("before", workTimeTracker)
         const currentTime = new Date().toTimeString().split(' ')[0];
         const updatedState = {
             ...workTimeTracker,
@@ -232,6 +234,7 @@ export default function HRMDashboard() {
                 timeHolder: timeHolderData,
             },
         };
+        console.log("after", updatedState)
         // socket.emit("verify_completed_workinghour", updatedState);
         setIsWorkingLoginTimerApi(true)
         try {

@@ -97,13 +97,12 @@ function Holiday() {
     const addOrUpdateHolidays = async () => {
         try {
             setIsWorkingApi(true);
-            setErrorData("");
             const isAllFilled = holidays.every(date => titles[date]);
             if (!isAllFilled) {
                 toast.warn("Please fill titles for all selected dates");
                 return;
             }
-
+            
             const payload = {
                 ...holidayObj,
                 holidays: holidays.map(date => ({ date, title: titles[date] }))
@@ -117,12 +116,13 @@ function Holiday() {
             const res = await method(endpoint, payload, {
                 headers: { Authorization: data.token }
             });
-
+            
             toast.success(res.data.message);
             toggleHolidayMode(changeHoliday.isEdit ? "Edit" : "Add");
             fetchAllYearHolidays();
             setHolidays([]);
             setTitles({});
+            setErrorData("");
         } catch (err) {
             console.error("Error saving holidays", err);
             const errorMsg = err?.response?.data?.error
