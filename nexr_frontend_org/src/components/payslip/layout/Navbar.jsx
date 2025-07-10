@@ -20,7 +20,7 @@ export default function Navbar({ handleSideBar }) {
         changeViewReasonForEarlyLogout, isViewEarlyLogout, setIsStartLogin } = useContext(EssentialValues)
     const { startLoginTimer, stopLoginTimer, workTimeTracker, isStartLogin,
         trackTimer, changeReasonForEarly, setWorkTimeTracker, isWorkingLoginTimerApi,
-        setIsWorkingLoginTimerApi, isForgetToPunchOut } = useContext(TimerStates);
+        setIsWorkingLoginTimerApi, isForgetToPunchOut, unStoppedActivies } = useContext(TimerStates);
     const [sec, setSec] = useState(workTimeTracker?.login?.timeHolder?.split(':')[2])
     const [min, setMin] = useState(workTimeTracker?.login?.timeHolder?.split(':')[1])
     const [hour, setHour] = useState(workTimeTracker?.login?.timeHolder?.split(':')[0])
@@ -298,15 +298,15 @@ export default function Navbar({ handleSideBar }) {
         }))
     }
 
-    function updateCheckoutTime(time) {
+    function updateCheckoutTime(time, type) {
         if (typeof time === "object" && new Date(time).getHours()) {
             const actualTime = new Date(time).toTimeString().split(" ")[0];
-            if (workTimeTracker.login.startingTime.length !== workTimeTracker.login.endingTime.length) {
+            if (workTimeTracker[type].startingTime.length !== workTimeTracker[type].endingTime.length) {
                 setWorkTimeTracker((pre) => ({
                     ...pre,
-                    "login": {
-                        ...pre?.login,
-                        endingTime: [...(workTimeTracker?.login?.endingTime || []), actualTime],
+                    [type]: {
+                        ...pre[type],
+                        endingTime: [...(workTimeTracker[type]?.endingTime || []), actualTime],
                     }
                 }))
             } else {
@@ -362,7 +362,7 @@ export default function Navbar({ handleSideBar }) {
         isForgetToPunchOut ? <Modal open={isForgetToPunchOut} size="sm" backdrop="static">
             <Modal.Header >
                 <Modal.Title>
-                    Reason for forget to stop timer
+                    Reason for forget to stop timer for {unStoppedActivies.length > 0 && `${unStoppedActivies[0]} and ${unStoppedActivies[1]}`}
                 </Modal.Title>
             </Modal.Header>
 
@@ -375,16 +375,23 @@ export default function Navbar({ handleSideBar }) {
                         onChange={(e) => changeReasonForEarly(e, "forgetToLogout")}
                         value={workTimeTracker?.forgetToLogout} />
                 </div>
-                <div className="modelInput">
-                    <p className='modelLabel'>Checkout Time:</p>
-                    <DatePicker value={workTimeTracker?.login?.endingTime[workTimeTracker?.login?.startingTime.length - 1] ? convertTimeStringToDate(workTimeTracker?.login?.endingTime?.[workTimeTracker?.login?.startingTime?.length - 1]) : null}
-                        size='lg'
-                        style={{ width: "100%" }}
-                        format="HH:mm:ss"
-                        onChange={
-                            (e) => updateCheckoutTime(e)
-                        } />
-                </div>
+                {
+                    unStoppedActivies.map((activity) => {
+                        const activityStartTimes = workTimeTracker?.[activity]?.startingTime || [];
+                        const activityEndTimes = workTimeTracker?.[activity]?.endingTime || [];
+                        return <div className="modelInput">
+                            <p className='modelLabel'>Checkout Time:</p>
+                            <DatePicker value={activityEndTimes[activityStartTimes.length - 1] ? convertTimeStringToDate(activityEndTimes[activityStartTimes.length - 1]) : null}
+                                size='lg'
+                                style={{ width: "100%" }}
+                                format="HH:mm:ss"
+                                onChange={
+                                    (e) => updateCheckoutTime(e)
+                                } />
+                        </div>
+                    })
+                }
+
             </Modal.Body>
 
             <Modal.Footer>

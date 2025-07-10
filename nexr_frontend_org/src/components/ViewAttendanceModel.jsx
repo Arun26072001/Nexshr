@@ -18,6 +18,7 @@ export default function ViewAttendanceModel({ modelData, toggleView, openModal }
 
             // Handle if the value is an object (assuming you want to show startingTime and endingTime)
             if (typeof modelData[key] === 'object' && modelData[key] !== null) {
+
                 return (
                     <TableRow key={key}>
                         <TableCell>{key.replace(/([A-Z])/g, ' $1').trim().charAt(0).toUpperCase() + key.replace(/([A-Z])/g, ' $1').trim().slice(1)}</TableCell>
@@ -35,7 +36,7 @@ export default function ViewAttendanceModel({ modelData, toggleView, openModal }
             return (
                 <TableRow key={key}>
                     <TableCell>{key.replace(/([A-Z])/g, ' $1').trim().charAt(0).toUpperCase() + key.replace(/([A-Z])/g, ' $1').trim().slice(1)}</TableCell>
-                    <TableCell>{modelData[key] !== null && modelData[key] !== undefined ? modelData[key] : 'N/A'}</TableCell>
+                    <TableCell>{![undefined, null].includes(modelData[key]) ? (key === "date" ? modelData[key].split("T")[0] : modelData[key]) : "N/A"}</TableCell>
                 </TableRow>
             );
         });

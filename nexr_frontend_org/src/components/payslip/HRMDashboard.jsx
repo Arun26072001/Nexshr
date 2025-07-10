@@ -88,6 +88,7 @@ export default function HRMDashboard() {
     const [selectedProject, setSelectedProject] = useState("");
     const [checkClockins, setCheckClockins] = useState(false);
     const [isForgetToPunchOut, setIsForgetToPunchOut] = useState(false);
+    const [unStoppedActivies, setUnStoppedActivites] = useState([]);
 
     // files for payroll
     const files = ['payroll', 'value', 'manage', 'payslip'];
@@ -487,15 +488,16 @@ export default function HRMDashboard() {
             try {
                 if (_id) {
                     const clockinData = await getDataAPI(_id);
-                    const timeData = clockinData && clockinData.timeData ? clockinData.timeData : {}
+                    const timeData = clockinData && clockinData.timeData ? clockinData.timeData : {};
                     if (Object.keys(timeData).length > 0) {
                         if (new Date(timeData.date).toLocaleDateString() !== new Date().toLocaleDateString()) {
                             localStorage.setItem('isStartLogin', true);
                             setIsStartLogin(true);
                             setIsForgetToPunchOut(true);
-                            // handleLogout();
+                            if (clockinData?.types?.length > 0) {
+                                setUnStoppedActivites(clockinData.types)
+                            }
                         }
-
                         setWorkTimeTracker(timeData)
                     } else {
                         setWorkTimeTracker({ ...workTimeTracker });
@@ -514,7 +516,7 @@ export default function HRMDashboard() {
     }, [syncTimer]);
 
     return (
-        <TimerStates.Provider value={{ workTimeTracker, reloadRolePage, setIsWorkingLoginTimerApi, handleEditEmp, companies, employees, isForgetToPunchOut, setIsForgetToPunchOut, updateWorkTracker, isWorkingLoginTimerApi, isworkingActivityTimerApi, trackTimer, startLoginTimer, stopLoginTimer, changeReasonForLate, changeReasonForEarly, startActivityTimer, stopActivityTimer, setWorkTimeTracker, updateClockins, checkClockins, timeOption, isStartLogin, isStartActivity, handleAddTask, changeEmpEditForm, isAddTask, setIsAddTask, handleAddTask, selectedProject, daterangeValue, setDaterangeValue }}>
+        <TimerStates.Provider value={{ workTimeTracker, reloadRolePage, unStoppedActivies, setIsWorkingLoginTimerApi, handleEditEmp, companies, employees, isForgetToPunchOut, setIsForgetToPunchOut, updateWorkTracker, isWorkingLoginTimerApi, isworkingActivityTimerApi, trackTimer, startLoginTimer, stopLoginTimer, changeReasonForLate, changeReasonForEarly, startActivityTimer, stopActivityTimer, setWorkTimeTracker, updateClockins, checkClockins, timeOption, isStartLogin, isStartActivity, handleAddTask, changeEmpEditForm, isAddTask, setIsAddTask, handleAddTask, selectedProject, daterangeValue, setDaterangeValue }}>
             <Routes >
                 <Route path="/" element={<Parent />} >
                     <Route index element={<Dashboard data={data} />} />

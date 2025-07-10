@@ -33,31 +33,7 @@ const Attendence = () => {
   const [selectedTimeOption, setSelectedTimeOption] = useState(["login", "morningBreak", "eveningBreak", "lunch"]);
   const [filteredTabledata, setFilteredTableData] = useState([]);
 
-
-  useEffect(() => {
-    if (selectedTimeOption.length > 0) {
-      const updateTableData = filteredTabledata.flatMap((item) => {
-        return selectedTimeOption.map((option) => {
-          const timeOptionKey = option; // Get the corresponding key
-          const timeData = item[timeOptionKey] || {}; // Safely access time data
-
-          return {
-            Name: `${item?.employee?.FirstName} ${item?.employee?.LastName}`,
-            date: item.date.split("T")[0],
-            type: timeOptionKey,
-            punchIn: timeData.startingTime?.[0] || "00:00:00", // Avoid errors if empty
-            punchOut: timeData.endingTime?.[timeData.endingTime.length - 1] || "00:00:00",
-            totalHour: timeData.timeHolder || "00:00:00",
-            behaviour: timeOptionKey === "login" ? item.behaviour : timeData.reasonForLate || "N/A"
-          };
-        })
-      }
-      );
-
-      setTableData(updateTableData); // Set table data once after processing all items
-    }
-  }, [selectedTimeOption, filteredTabledata]);
-
+  
   function calculateOverallBehavior(regularCount, lateCount, earlyCount) {
     const totalCount = regularCount + lateCount + earlyCount;
 
@@ -89,8 +65,8 @@ const Attendence = () => {
 
   const getClockins = async () => {
     setIsLoading(true);
+    resetHeights();
     try {
-
       const dashboard = await axios.get(`${url}/api/clock-ins/employee/${_id}`, {
         params: {
           daterangeValue
@@ -99,17 +75,17 @@ const Attendence = () => {
           authorization: token || ""
         }
       });
-
+      
       if (dashboard.data) {
         setclockInsData(dashboard.data);
         if (Array.isArray(dashboard.data.clockIns)) {
-
+          
           setTableData(dashboard.data.clockIns);
           setFilteredTableData(dashboard.data.clockIns)
         }
         const { totalEarlyLogins, totalLateLogins, totalRegularLogins } = dashboard.data;
         const totalLogins = totalEarlyLogins + totalLateLogins + totalRegularLogins
-
+        
         // Calculate height percentages
         if (totalLogins > 0) {
           setRegularHeight((totalRegularLogins / totalLogins) * 100);
@@ -126,7 +102,36 @@ const Attendence = () => {
       setIsLoading(false);
     }
   }
+  
+  function resetHeights(){
+    setEarlyHeight(0);
+    setLateHeight(0);
+    setRegularHeight(0)
+  }
+  
+  useEffect(() => {
+    if (selectedTimeOption.length > 0) {
+      const updateTableData = filteredTabledata.flatMap((item) => {
+        return selectedTimeOption.map((option) => {
+          const timeOptionKey = option; // Get the corresponding key
+          const timeData = item[timeOptionKey] || {}; // Safely access time data
 
+          return {
+            Name: `${item?.employee?.FirstName} ${item?.employee?.LastName}`,
+            date: item.date.split("T")[0],
+            type: timeOptionKey,
+            punchIn: timeData.startingTime?.[0] || "00:00:00", // Avoid errors if empty
+            punchOut: timeData.endingTime?.[timeData.endingTime.length - 1] || "00:00:00",
+            totalHour: timeData.timeHolder || "00:00:00",
+            behaviour: timeOptionKey === "login" ? item.behaviour : timeData.reasonForLate || "N/A"
+          };
+        })
+      }
+      );
+
+      setTableData(updateTableData); // Set table data once after processing all items
+    }
+  }, [selectedTimeOption, filteredTabledata]);
   useEffect(() => {
     if (_id) {
       getClockins()
