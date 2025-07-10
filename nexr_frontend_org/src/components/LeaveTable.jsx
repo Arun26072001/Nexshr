@@ -210,7 +210,7 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
             align: "center"
         }
     ];
-
+    
     const column4 = [
         {
             id: 'FirstName',
@@ -242,28 +242,28 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
         {
             id: 'date',
             label: 'Date',
-            minWidth: 130,
+            minWidth: 100,
             align: 'center',
             getter: (row) => row?.date ? new Date(row.date).toLocaleDateString() : "no date"
         },
         {
             id: 'punchIn',
             label: 'Punch In',
-            minWidth: 130,
+            minWidth: 100,
             align: 'center',
             getter: (row) => row?.login?.startingTime ? row?.login?.startingTime[0] : "00:00:00"
         },
         {
             id: 'punchOut',
             label: 'Punch Out',
-            minWidth: 130,
+            minWidth: 100,
             align: 'center',
             getter: (row) => row?.login?.endingTime ? row.login.endingTime[row.login.endingTime.length - 1] : "00:00:00"
         },
         {
             id: 'timeHolder',
             label: 'Total Hour',
-            minWidth: 130,
+            minWidth: 100,
             align: 'center',
             getter: (row) => {
                 return row?.login?.timeHolder || "00:00:00"
@@ -272,9 +272,16 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
         {
             id: 'behaviour',
             label: 'Behaviour',
-            minWidth: 130,
+            minWidth: 100,
             align: 'center',
             getter: (row) => row.behaviour ? row.behaviour : 'N/A'
+        },
+        {
+            id: 'forgetToLogout',
+            label: 'ForgetToLogout',
+            minWidth: 100,
+            align: 'center',
+            getter: (row) => row.forgetToLogout ? row.forgetToLogout : 'N/A'
         },
         {
             id: "Action",

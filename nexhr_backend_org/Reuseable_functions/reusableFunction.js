@@ -347,7 +347,6 @@ function processActivityDurations(record) {
 }
 
 function setTimeHolderForAllActivities(record) {
-  console.log("before", record)
   activities.forEach((activity) => {
     const startingTimes = record[activity]?.startingTime || [];
     const endingTimes = record[activity]?.endingTime || [];
@@ -357,14 +356,13 @@ function setTimeHolderForAllActivities(record) {
       const end = endingTimes[i] ? timeToMinutes(endingTimes[i]) : getCurrentTimeInMinutes();
       return Math.abs(end - start);
     });
-    console.log("durations", durations)
     const total = durations.reduce((sum, mins) => sum + mins, 0);
     if (!record[activity]) record[activity] = {};
     record[activity].timeHolder = formatTimeFromMinutes(total);
   });
-  console.log("after", record)
   return record;
 }
+
 async function fetchFirstTwoItems() {
   try {
     const items = await PlannerCategory.find().limit(2);

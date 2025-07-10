@@ -235,7 +235,6 @@ export default function HRMDashboard() {
                 timeHolder: timeHolderData,
             },
         };
-        console.log("after", updatedState)
         // socket.emit("verify_completed_workinghour", updatedState);
         setIsWorkingLoginTimerApi(true)
         try {

@@ -276,7 +276,8 @@ export default function Navbar({ handleSideBar }) {
             setIsStartLogin(false);
             localStorage.setItem("isStartLogin", false)
             // eslint-disable-next-line no-restricted-globals
-            location.reload()
+            location.reload();
+            handleLogout();
         } catch (err) {
             console.error(err);
         } finally {
