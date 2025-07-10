@@ -84,11 +84,7 @@ const getDataAPI = async (_id) => {
         });
         const data = response.data;
         return data;
-
     } catch (error) {
-        //  if (error?.message === "Network Error") {
-        //         navigate("/network-issue")
-        //     }
         console.log("error in fetch clockins data", error);
     }
 };

@@ -346,6 +346,25 @@ function processActivityDurations(record) {
   });
 }
 
+function setTimeHolderForAllActivities(record) {
+  console.log("before", record)
+  activities.forEach((activity) => {
+    const startingTimes = record[activity]?.startingTime || [];
+    const endingTimes = record[activity]?.endingTime || [];
+
+    const durations = startingTimes.map((startTime, i) => {
+      const start = timeToMinutes(startTime);
+      const end = endingTimes[i] ? timeToMinutes(endingTimes[i]) : getCurrentTimeInMinutes();
+      return Math.abs(end - start);
+    });
+    console.log("durations", durations)
+    const total = durations.reduce((sum, mins) => sum + mins, 0);
+    if (!record[activity]) record[activity] = {};
+    record[activity].timeHolder = formatTimeFromMinutes(total);
+  });
+  console.log("after", record)
+  return record;
+}
 async function fetchFirstTwoItems() {
   try {
     const items = await PlannerCategory.find().limit(2);
@@ -364,8 +383,8 @@ function timeToMinutes(timeStr) {
     return Number(((hours * 60) + minutes + (seconds / 60)).toFixed(2)) || 0;
   }
   if (timeStr.split(/[:.]+/).length > 0) {
-    const [hours, minutes] = timeStr.split(/[:.]+/).map(Number);
-    return Number(((hours * 60) + minutes).toFixed(2)) || 0; // Defaults to 0 if input is invalid
+    const [hours, minutes, seconds] = timeStr.split(/[:.]+/).map(Number);
+    return Number(((hours * 60) + minutes + (seconds / 60)).toFixed(2)) || 0; // Defaults to 0 if input is invalid
   }
 }
 
@@ -534,4 +553,4 @@ async function errorCollector(errorLog) {
   }
 }
 
-module.exports = { convertToString, setPeriodOfLeave, isValidLeaveDate, errorCollector, getTotalWorkingHourPerDay, getTotalWorkingHourPerDayByDate, accountFromRole, changeClientTimezoneDate, sumLeaveDays, getValidLeaveDays, fetchFirstTwoItems, getCurrentTime, checkLoginForOfficeTime, categorizeTasks, projectMailContent, processActivityDurations, formatLeaveData, getDayDifference, getOrgDB, formatDate, getWeekdaysOfCurrentMonth, mailContent, checkLogin, getTotalWorkingHoursExcludingWeekends, getCurrentTimeInMinutes, timeToMinutes, formatTimeFromMinutes };
+module.exports = { convertToString, setTimeHolderForAllActivities, setPeriodOfLeave, isValidLeaveDate, errorCollector, getTotalWorkingHourPerDay, getTotalWorkingHourPerDayByDate, accountFromRole, changeClientTimezoneDate, sumLeaveDays, getValidLeaveDays, fetchFirstTwoItems, getCurrentTime, checkLoginForOfficeTime, categorizeTasks, projectMailContent, processActivityDurations, formatLeaveData, getDayDifference, getOrgDB, formatDate, getWeekdaysOfCurrentMonth, mailContent, checkLogin, getTotalWorkingHoursExcludingWeekends, getCurrentTimeInMinutes, timeToMinutes, formatTimeFromMinutes };
