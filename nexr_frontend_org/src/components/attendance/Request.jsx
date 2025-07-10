@@ -1,4 +1,3 @@
-import React from 'react';
 import './Attendence.css';
 import LeaveTable from '../LeaveTable';
 import NoDataFound from '../payslip/NoDataFound';
@@ -7,14 +6,13 @@ import FileDownloadRoundedIcon from '@mui/icons-material/FileDownloadRounded';
 import { exportAttendanceToExcel } from '../ReuseableAPI';
 
 const Request = ({ attendanceData, isLoading }) => {
-
     return (
         <div className='dashboard-parent'>
             <div className="d-flex justify-content-between align-items-center px-3">
                 <div>
                     <h5 className='text-daily'>Request</h5>
                 </div>
-                <button className='button' onClick={() => exportAttendanceToExcel(attendanceData)}><FileDownloadRoundedIcon /> Export</button>
+                <button className='button' title='Export the machine punchin records' onClick={() => exportAttendanceToExcel(attendanceData)}><FileDownloadRoundedIcon /> Export</button>
             </div>
             {
                 isLoading ? <Skeleton

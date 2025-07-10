@@ -24,7 +24,6 @@ import { DateRangePicker } from 'rsuite';
 
 const Dashboard = () => {
     const navigate = useNavigate();
-
     const url = process.env.REACT_APP_API_URL;
     const myTaskRef = useRef();
     const { updateClockins } = useContext(TimerStates)
@@ -152,13 +151,6 @@ const Dashboard = () => {
             console.log(error);
         }
     }
-    // useEffect(() => {
-    //     if (notificationPermission === "denied") {
-    //         console.log("calling.....");
-
-    //         handlechangeAskNotification()
-    //     }
-    // }, [notificationPermission, ])
 
     const gettingEmpdata = async () => {
         try {
@@ -169,7 +161,6 @@ const Dashboard = () => {
 
             // Fetch employee data
             const empData = await fetchEmployeeData(data._id);
-            console.log("empData", empData)
             if (empData && Object.values(empData).length) {
                 setData((pre) => ({
                     ...pre,
@@ -279,7 +270,6 @@ const Dashboard = () => {
 
     // fill task data
     function changeTask(event, name) {
-
         const files = event?.target?.files; // Extract files correctly
         const value = event; // Extract value properly
 

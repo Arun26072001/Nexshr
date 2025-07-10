@@ -468,11 +468,13 @@ router.get("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
             date: { $gte: prevStart, $lt: prevEnd },
         });
 
-        if (prevClockIn && prevClockIn.login?.startingTime?.length !== prevClockIn.login?.endingTime?.length) {
+        if (prevClockIn) {
+            const activities = ["login", "meeting", "morningBreak", "lunch", "eveningBreak", "event"];
+            const unstopActivities = activities.filter((activity) => prevClockIn[activity]?.startingTime?.length !== prevClockIn[activity]?.endingTime?.length)
             const activitiesData = processActivityDurations(prevClockIn);
             const totalMinutes = activitiesData.reduce((sum, a) => sum + a.timeCalMins, 0);
             const empTotalWorkingHours = (totalMinutes / 60).toFixed(2);
-            return res.send({ timeData: prevClockIn, activitiesData, empTotalWorkingHours });
+            return res.send({ timeData: prevClockIn, activitiesData, empTotalWorkingHours, types: unstopActivities });
         }
 
         // --- Handle current day's clock-ins
@@ -596,11 +598,16 @@ router.get("/employee/:empId", verifyAdminHREmployeeManagerNetwork, async (req, 
         const { empId } = req.params;
         const { daterangeValue } = req.query;
         const [startOfMonth, endOfMonth] = daterangeValue && Array.isArray(daterangeValue) ?
-            [new Date(daterangeValue[0]), new Date(daterangeValue[1])] :
+            [new Date(daterangeValue[0]), new Date(new Date(daterangeValue[1]))] :
             [new Date(now.getFullYear(), now.getMonth(), 1), now];
+        if (daterangeValue?.length > 0) {
+            // reduce one day from start the date for exact filter
+            startOfMonth.setDate(startOfMonth.getDate() - 1)
+            // add one day from end the date for exact filter
+            endOfMonth.setDate(endOfMonth.getDate() + 1)
+        }
         let totalEmpWorkingHours = 0, totalLeaveDays = 0
         let regular = 0, late = 0, early = 0;
-
         const checkLogin = (scheduledTime, actualTime) => {
             const [schedHours, schedMinutes] = scheduledTime.split(':').map(Number);
             const [actualHours, actualMinutes] = actualTime.split(':').map(Number);
