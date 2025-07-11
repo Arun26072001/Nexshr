@@ -468,9 +468,9 @@ router.get("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
             date: { $gte: prevStart, $lt: prevEnd },
         });
 
-        if (prevClockIn) {
-            const activities = ["login", "meeting", "morningBreak", "lunch", "eveningBreak", "event"];
-            const unstopActivities = activities.filter((activity) => prevClockIn[activity]?.startingTime?.length !== prevClockIn[activity]?.endingTime?.length)
+        const activities = ["login", "meeting", "morningBreak", "lunch", "eveningBreak", "event"];
+        const unstopActivities = prevClockIn ? activities.filter((activity) => prevClockIn[activity]?.startingTime?.length !== prevClockIn[activity]?.endingTime?.length) : []
+        if (prevClockIn && unstopActivities.length > 0) {
             const activitiesData = processActivityDurations(prevClockIn);
             const totalMinutes = activitiesData.reduce((sum, a) => sum + a.timeCalMins, 0);
             const empTotalWorkingHours = (totalMinutes / 60).toFixed(2);

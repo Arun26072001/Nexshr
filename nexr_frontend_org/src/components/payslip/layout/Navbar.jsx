@@ -276,7 +276,8 @@ export default function Navbar({ handleSideBar }) {
             setIsStartLogin(false);
             localStorage.setItem("isStartLogin", false)
             // eslint-disable-next-line no-restricted-globals
-            location.reload()
+            location.reload();
+            // handleLogout();
         } catch (err) {
             console.error(err);
         } finally {
@@ -359,7 +360,7 @@ export default function Navbar({ handleSideBar }) {
     }, [workTimeTracker, isStartLogin]);
 
     return (
-        isForgetToPunchOut ? <Modal open={isForgetToPunchOut} size="sm" backdrop="static">
+        unStoppedActivies.length > 0 ? <Modal open={unStoppedActivies.length ? true : false} size="sm" backdrop="static">
             <Modal.Header >
                 <Modal.Title>
                     Reason for forget to stop timer for {unStoppedActivies.length > 0 && `${unStoppedActivies[0]} and ${unStoppedActivies[1]}`}
@@ -380,7 +381,7 @@ export default function Navbar({ handleSideBar }) {
                         const activityStartTimes = workTimeTracker?.[activity]?.startingTime || [];
                         const activityEndTimes = workTimeTracker?.[activity]?.endingTime || [];
                         return <div className="modelInput">
-                            <p className='modelLabel'>Checkout Time:</p>
+                            <p className='modelLabel'>Checkout Time: {(activity[0].toUpperCase() + activity.slice(1))}</p>
                             <DatePicker value={activityEndTimes[activityStartTimes.length - 1] ? convertTimeStringToDate(activityEndTimes[activityStartTimes.length - 1]) : null}
                                 size='lg'
                                 style={{ width: "100%" }}
