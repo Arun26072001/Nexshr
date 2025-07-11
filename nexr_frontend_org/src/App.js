@@ -35,6 +35,7 @@ const App = () => {
     Name: null,
     token: null,
     annualLeave: null,
+    isPermanentWFH: null
   });
   const [loading, setLoading] = useState(false);
   const [pass, setPass] = useState(true);
@@ -96,10 +97,6 @@ const App = () => {
     navigate(location.pathname, { replace: true });
   };
 
-  // async function sendEmpIdtoExtension(empId, token) {
-  //   window.postMessage({ type: "FROM_REACT", payload: { empId, token } }, "*");
-  // }
-
   const login = async (email, password) => {
     setLoading(true);
     try {
@@ -117,7 +114,8 @@ const App = () => {
         Name: `${decodedData.FirstName} ${decodedData.LastName || ""}`,
         token: response.data,
         annualLeave: decodedData.annualLeaveEntitlement || 0,
-        profile: decodedData.profile
+        profile: decodedData.profile,
+        isPermanentWFH: decodedData.isPermanentWFH
       });
 
       // Update local storage
@@ -240,7 +238,8 @@ const App = () => {
         Name: `${decodedData.FirstName} ${decodedData.LastName}` || "",
         annualLeave: decodedData.annualLeaveEntitlement || 0,
         token: localStorage.getItem("token") || "",
-        profile: decodedData.profile
+        profile: decodedData.profile, 
+        isPermanentWFH: decodedData.isPermanentWFH
       }))
       const roles = { "17": "superAdmin", "1": "admin", "2": "hr", "3": "emp", "4": "manager", "5": "sys-admin" };
       setWhoIs(roles[String(decodedData?.Account)] || "");

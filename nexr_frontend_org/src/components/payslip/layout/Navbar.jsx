@@ -20,7 +20,7 @@ export default function Navbar({ handleSideBar }) {
         changeViewReasonForEarlyLogout, isViewEarlyLogout, setIsStartLogin } = useContext(EssentialValues)
     const { startLoginTimer, stopLoginTimer, workTimeTracker, isStartLogin,
         trackTimer, changeReasonForEarly, setWorkTimeTracker, isWorkingLoginTimerApi,
-        setIsWorkingLoginTimerApi, isForgetToPunchOut, unStoppedActivies } = useContext(TimerStates);
+        setIsWorkingLoginTimerApi, unStoppedActivies } = useContext(TimerStates);
     const [sec, setSec] = useState(workTimeTracker?.login?.timeHolder?.split(':')[2])
     const [min, setMin] = useState(workTimeTracker?.login?.timeHolder?.split(':')[1])
     const [hour, setHour] = useState(workTimeTracker?.login?.timeHolder?.split(':')[0])
@@ -82,9 +82,11 @@ export default function Navbar({ handleSideBar }) {
     // Function to stop the timer
     const stopTimer = async () => {
         if (workRef.current) {
-            await stopLoginTimer(`${String(hour).padStart(2, '0')}:${String(min).padStart(2, '0')}:${String(sec).padStart(2, '0')}`);
-            clearInterval(workRef.current);
-            workRef.current = null;
+            const isStoppedTimer = await stopLoginTimer();
+            if (isStoppedTimer) {
+                clearInterval(workRef.current);
+                workRef.current = null;
+            }
         }
     };
 
@@ -399,7 +401,7 @@ export default function Navbar({ handleSideBar }) {
                 <Button
                     onClick={clockOut}
                     appearance="primary"
-                    disabled={workTimeTracker.forgetToLogout && workTimeTracker?.login?.endingTime?.length === workTimeTracker?.login?.startingTime?.length ? false : true}
+                    disabled={workTimeTracker.forgetToLogout && unStoppedActivies.every((action) => workTimeTracker[action]?.endingTime?.length === workTimeTracker[action]?.startingTime?.length) ? false : true}
                 >
                     Add
                 </Button>

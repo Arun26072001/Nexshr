@@ -75,6 +75,7 @@ router.post("/", async (req, res) => {
                     roleData: emp?.role,
                     isLogin: updateIsEmailVerify.isLogin,
                     company: emp.company,
+                    isPermanentWFH: emp.isPermanentWFH,
                     isTeamLead,
                     isTeamHead,
                     isTeamManager

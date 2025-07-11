@@ -27,7 +27,7 @@ const Dashboard = () => {
     const url = process.env.REACT_APP_API_URL;
     const myTaskRef = useRef();
     const { updateClockins } = useContext(TimerStates)
-    const { handleLogout, data, whoIs, isEditEmp, setData, notificationPermission, handlechangeAskNotification } = useContext(EssentialValues);
+    const { handleLogout, data, whoIs, isEditEmp, setData } = useContext(EssentialValues);
     const { isTeamLead, isTeamHead, isTeamManager } = jwtDecode(data.token)
     const [leaveData, setLeaveData] = useState({});
     const [isWorkingApi, setIsWorkingApi] = useState(false);

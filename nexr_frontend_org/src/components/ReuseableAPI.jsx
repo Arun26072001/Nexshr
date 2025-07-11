@@ -25,10 +25,9 @@ const updateDataAPI = async (body) => {
             });
 
             return response.data;
-        } else {
-            toast.error("You did't Login properly!")
         }
     } catch (error) {
+        toast.warning(error.response.data.error)
         console.error('Update error:', error);
     }
 };
@@ -295,7 +294,7 @@ function getDayDifference(leave) {
     let fromDate = new Date(leave.fromDate);
 
     let timeDifference = toDate - fromDate;
-    let dayDifference = timeDifference / (1000 * 60 * 60 * 24); // Convert milliseconds to days
+    let dayDifference = Math.round(timeDifference / (1000 * 60 * 60 * 24)); // Convert milliseconds to days
 
     if (dayDifference < 1) {
         return 1; // Minimum one day for a leave if it's less than a full day

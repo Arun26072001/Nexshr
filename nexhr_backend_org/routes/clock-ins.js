@@ -779,15 +779,23 @@ router.get("/", verifyAdminHrNetworkAdmin, async (req, res) => {
 
 router.put("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
     try {
-        const updatedClockIn = await ClockIns.findByIdAndUpdate(req.params.id, req.body, {
-            new: true
-        });
-
-        if (!updatedClockIn) {
+        if (await ClockIns.exists({ _id: req.params.id })) {
+            const updatedData = setTimeHolderForAllActivities(req.body);
+            // check time time getting stop and other activies are running
+            if (updatedData.login.startingTime.length === updatedData.login.endingTime.length) {
+                const activitiesExpLogin = ["meeting", "morningBreak", "lunch", "eveningBreak", "event"]
+                const isRunningActivity = activitiesExpLogin.find((activity) => updatedData[activity].startingTime.length !== updatedData[activity].endingTime.length);
+                if (isRunningActivity) {
+                    return res.status(400).send({ error: `To punch out, you must stop the ${isRunningActivity[0].toUpperCase() + isRunningActivity.slice(1)} timer` })
+                }
+            }
+            const updatedClockIn = await ClockIns.findByIdAndUpdate(req.params.id, updatedData, {
+                new: true
+            });
+            res.send(updatedClockIn);
+        } else {
             return res.status(404).send({ message: "Clock-in entry not found" });
         }
-        const activitiesData = setTimeHolderForAllActivities(updatedClockIn);
-        res.send(activitiesData);
     } catch (error) {
         await errorCollector({ url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT })
         console.error("Error updating ClockIns:", error);

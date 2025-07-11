@@ -709,21 +709,25 @@ router.put("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
                     return res.status(400).json({ error: "Already two members are approved for WFH in this time period." });
                 }
             }
-            let approverData = {}
-            Object.entries(approvers).map(([key, value]) => {
-                approverData[key] = "approved"
-            })
-            updatedApprovers = approverData;
+            if (approvers && Object.keys(approvers).length > 0) {
+                let approverData = {}
+                Object.entries(approvers).map(([key, value]) => {
+                    approverData[key] = "approved"
+                })
+                updatedApprovers = approverData;
+            }
         } if (status === "rejected") {
-            approverData = {}
-            Object.entries(approvers).map(([key, value]) => {
-                approverData[key] = "rejected"
-            })
-            updatedApprovers = approverData;
+            if (approvers && Object.keys(approvers).length > 0) {
+                approverData = {}
+                Object.entries(approvers).map(([key, value]) => {
+                    approverData[key] = "rejected"
+                })
+                updatedApprovers = approverData;
+            }
         }
-        const allApproved = Object.values(approvers).every(status => status === "approved");
-        const anyRejected = Object.values(approvers).some(status => status === "rejected");
-        const allPending = Object.values(approvers).every(status => status === "pending");
+        const allApproved = approvers && Object.values(approvers).every(status => status === "approved");
+        const anyRejected = approvers && Object.values(approvers).some(status => status === "rejected");
+        const allPending = approvers && Object.values(approvers).every(status => status === "pending");
 
         const wfhApp = await WFHApplication.findById(req.params.id);
         if (!wfhApp) return res.status(404).json({ error: "WFH application not found." });
@@ -832,7 +836,7 @@ router.put("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
                 .filter(Boolean)
                 .filter((v, i, arr) => arr.findIndex(t => t.Email === v.Email) === i);
 
-            const emailType = allApproved ? "approved" : anyRejected ? "rejected" : "pending";
+            const emailType = allApproved || status === "approved" ? "approved" : anyRejected || status === "rejected" ? "rejected" : "pending";
 
             // ✅ Notify each member
             if (members.length > 0) {

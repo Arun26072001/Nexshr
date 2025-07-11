@@ -195,7 +195,6 @@ export default function HRMDashboard() {
                 // Add new clock-ins data
                 const clockinsData = await addDataAPI(updatedState, worklocation, location);
                 console.log("clockinsData", clockinsData)
-                // const totalWorkingHour = await getTotalWorkingHourPerDay(workingTimePattern.StartingTime, workingTimePattern.FinishingTime)
                 if (clockinsData && clockinsData._id) {
                     setWorkTimeTracker(clockinsData);
                     setIsStartLogin(true);
@@ -205,7 +204,6 @@ export default function HRMDashboard() {
                 }
             } else {
                 // Update existing clock-ins data
-                // trackTimer();
                 const updatedData = await updateDataAPI(updatedState);
                 setWorkTimeTracker(updatedData);
                 setIsStartLogin(true);
@@ -223,28 +221,29 @@ export default function HRMDashboard() {
         }
     };
 
-    const stopLoginTimer = async (timeHolderData) => {
-        // trackTimer();
-        // console.log("before", workTimeTracker)
+    const stopLoginTimer = async () => {
         const currentTime = new Date().toTimeString().split(' ')[0];
         const updatedState = {
             ...workTimeTracker,
             login: {
                 ...workTimeTracker?.login,
                 endingTime: [...(workTimeTracker?.login?.endingTime || []), currentTime],
-                timeHolder: timeHolderData,
             },
         };
-        // socket.emit("verify_completed_workinghour", updatedState);
         setIsWorkingLoginTimerApi(true)
         try {
             const updatedData = await updateDataAPI(updatedState);
-            setWorkTimeTracker(updatedData);
-            localStorage.setItem('isStartLogin', false);
-            setIsStartLogin(false);
-            updateClockins();
+            if (updatedData && updatedData?._id) {
+                setWorkTimeTracker(updatedData);
+                localStorage.setItem('isStartLogin', false);
+                setIsStartLogin(false);
+                updateClockins();
+                return true;
+            }
+            return false;
         } catch (err) {
             console.error(err);
+            return false;
         } finally {
             setIsWorkingLoginTimerApi(false);
         }
@@ -515,9 +514,13 @@ export default function HRMDashboard() {
     }, [syncTimer]);
 
     return (
-        <TimerStates.Provider value={{ workTimeTracker, reloadRolePage, unStoppedActivies, setIsWorkingLoginTimerApi, handleEditEmp, companies, employees,
-        //  isForgetToPunchOut, setIsForgetToPunchOut,
-          updateWorkTracker, isWorkingLoginTimerApi, isworkingActivityTimerApi, trackTimer, startLoginTimer, stopLoginTimer, changeReasonForLate, changeReasonForEarly, startActivityTimer, stopActivityTimer, setWorkTimeTracker, updateClockins, checkClockins, timeOption, isStartLogin, isStartActivity, handleAddTask, changeEmpEditForm, isAddTask, setIsAddTask, handleAddTask, selectedProject, daterangeValue, setDaterangeValue }}>
+        <TimerStates.Provider value={{
+            workTimeTracker, reloadRolePage, unStoppedActivies, setIsWorkingLoginTimerApi, handleEditEmp, companies, employees,
+            updateWorkTracker, isWorkingLoginTimerApi, isworkingActivityTimerApi, trackTimer, startLoginTimer, stopLoginTimer,
+            changeReasonForLate, changeReasonForEarly, startActivityTimer, stopActivityTimer, setWorkTimeTracker, updateClockins,
+            checkClockins, timeOption, isStartLogin, isStartActivity, handleAddTask, changeEmpEditForm, isAddTask, setIsAddTask,
+            handleAddTask, selectedProject, daterangeValue, setDaterangeValue
+        }}>
             <Routes >
                 <Route path="/" element={<Parent />} >
                     <Route index element={<Dashboard data={data} />} />
