@@ -83,7 +83,7 @@ const ActivityTimeTracker = () => {
             if (timeOption === "lunch" && timeData < 30) {
                 if (!timerRef.current) {
                     await startActivityTimer();
-                    trackTimer()
+                    // trackTimer()
                     timerRef.current = setInterval(incrementTime, 1000);
                     if (["morningBreak", "eveningBreak", "lunch"].includes(timeOption)) {
                         try {
@@ -107,7 +107,7 @@ const ActivityTimeTracker = () => {
             } else if (["morningBreak", "eveningBreak"].includes(timeOption) && timeData < 15) {
                 if (!timerRef.current) {
                     await startActivityTimer();
-                    trackTimer()
+                    // trackTimer()
                     timerRef.current = setInterval(incrementTime, 1000);
                     if (["morningBreak", "eveningBreak", "lunch"].includes(timeOption)) {
                         //enable ask the reason for late
@@ -134,7 +134,7 @@ const ActivityTimeTracker = () => {
         } else {
             if (!timerRef.current) {
                 await startActivityTimer();
-                trackTimer()
+                // trackTimer()
                 timerRef.current = setInterval(incrementTime, 1000);
             }
         }
@@ -187,6 +187,10 @@ const ActivityTimeTracker = () => {
             setSec(newSec);
         }
     }, [timeOption, workTimeTracker]);
+
+    useEffect(() => {
+        trackTimer()
+    }, [])
 
     const formattedName = EmpName
         ? EmpName.charAt(0).toUpperCase() + EmpName.slice(1)

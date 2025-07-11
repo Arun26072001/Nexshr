@@ -234,7 +234,7 @@ export default function Home() {
                         }
                     </div>
                     <div className='col-lg-6 col-md-6 col-12'>
-                        {
+                        { workTimeTracker &&
                             workTimeTracker?.login?.startingTime?.length === workTimeTracker?.login?.endingTime?.length &&
                                 workTimeTracker?.[timeOption]?.startingTime?.length === workTimeTracker[timeOption]?.endingTime?.length &&
                                 isLoading ?

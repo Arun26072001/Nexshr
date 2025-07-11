@@ -50,7 +50,7 @@ export default function Twotabs() {
   const { whoIs } = useContext(EssentialValues);
   const navigate = useNavigate();
   const { data } = useContext(EssentialValues);
-  const { annualLeave, _id } = data;
+  const { annualLeave, _id, isPermanentWFH } = data;
   const [value, setValue] = useState(0);
   const [takenLeave, setTakenLeave] = useState(0);
   const today = new Date();
@@ -225,7 +225,7 @@ export default function Twotabs() {
             <div className=''>
               <button className='button' onClick={() => navigate(`/${whoIs}/leave-request`)}>Apply Leave</button>
             </div>
-            <button className="button" onClick={() => navigate(`/${whoIs}/wfh-request`)}>
+            <button className="button" disabled={isPermanentWFH} title={isPermanentWFH ? "You have the permanent WFH option, so there's no need to apply for WFH." : "You can submit a WFH request."} onClick={() => navigate(`/${whoIs}/wfh-request`)}>
               <AddHomeWorkRoundedIcon /> Apply WFH
             </button>
           </div>
