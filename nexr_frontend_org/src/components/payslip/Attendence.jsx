@@ -114,8 +114,6 @@ const Attendence = () => {
         return selectedTimeOption.map((option) => {
           const timeOptionKey = option; // Get the corresponding key
           const timeData = item[timeOptionKey] || {}; // Safely access time data
-          // console.log("timeData", timeData);
-
           return {
             Name: `${item?.employee?.FirstName} ${item?.employee?.LastName}`,
             date: item.date.split("T")[0],
