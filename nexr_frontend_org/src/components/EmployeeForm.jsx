@@ -425,8 +425,7 @@ const EmployeeForm = ({
                                     type="email"
                                     className={`inputField ${errors?.Email ? "error" : ""}`}
                                     name="Email"
-                                    disabled={["admin", "hr"].includes(whoIs) ? false : true}
-                                    onChange={["admin", "hr"].includes(whoIs) ? e => fillEmpObj(e.target.value, "Email") : () => { }}
+                                    onChange={e => fillEmpObj(e.target.value, "Email")}
                                     value={employeeObj?.Email || ""}
                                 />
                                 {errors?.Email && <div className="text-center text-danger">{errors?.Email}</div>}
@@ -437,8 +436,7 @@ const EmployeeForm = ({
                                     type="text"
                                     className={`inputField ${errors?.Password ? "error" : ""}`}
                                     name="Password"
-                                    disabled={["admin", "hr"].includes(whoIs) ? false : true}
-                                    onChange={["admin", "hr"].includes(whoIs) ? e => fillEmpObj(e.target.value, "Password") : () => { }}
+                                    onChange={e => fillEmpObj(e.target.value, "Password")}
                                     value={employeeObj?.Password || ""}
                                 />
                                 {errors?.Password && <div className="text-center text-danger">{errors?.Password}</div>}
