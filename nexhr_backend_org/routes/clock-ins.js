@@ -718,7 +718,7 @@ router.get("/employee/:empId", verifyAdminHREmployeeManagerNetwork, async (req, 
             const startingDate = changeClientTimezoneDate(employee.workingTimePattern.StartingTime);
             const endingDate = changeClientTimezoneDate(employee.workingTimePattern.FinishingTime);
             weeklyDays = employee.workingTimePattern.WeeklyDays ? employee.workingTimePattern.WeeklyDays : []
-            scheduledLoginTime = startingDate.toLocaleTimeString().split(" ")[0];
+            scheduledLoginTime = startingDate.toTimeString().split(" ")[0];
             scheduledWorkingHours = (endingDate.getTime() - startingDate.getTime()) / (1000 * 60 * 60)
         }
         employee.clockIns.forEach(({ login }) => {

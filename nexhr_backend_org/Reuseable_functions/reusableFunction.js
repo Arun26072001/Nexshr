@@ -434,7 +434,7 @@ function changeClientTimezoneDate(date) {
 function timeToMinutes(timeStr) {
   if (timeStr) {
     if (new Date(timeStr) && new Date(timeStr).getHours()) {
-      const timeData = changeClientTimezoneDate(timeStr).toTimeString().split(' ')[0]
+      const timeData = changeClientTimezoneDate(timeStr).toTimeString().split(' ')[0];
       const [hours, minutes, seconds] = timeData.split(/[:.]+/).map(Number)
       return Number(((hours * 60) + minutes + (seconds / 60)).toFixed(2)) || 0;
     }
@@ -448,7 +448,7 @@ function timeToMinutes(timeStr) {
 }
 
 const getCurrentTimeInMinutes = () => {
-  const now = toZonedTime(new Date());
+  const now = changeClientTimezoneDate(new Date());
   return timeToMinutes(now);
 };
 
