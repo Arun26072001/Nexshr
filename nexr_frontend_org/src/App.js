@@ -28,6 +28,7 @@ const App = () => {
   const [whoIs, setWhoIs] = useState("");
   const [isEditEmp, setIsEditEmp] = useState(false);
   const [isStartLogin, setIsStartLogin] = useState([null, "false"].includes(localStorage.getItem("isStartLogin")) ? false : true);
+  console.log("org", localStorage.getItem("isStartLogin"))
   const [isStartActivity, setIsStartActivity] = useState([null, "false"].includes(localStorage.getItem("isStartActivity")) ? false : true);
   const [data, setData] = useState({
     _id: null,
@@ -84,11 +85,9 @@ const App = () => {
       toast.warn("We won't allow you to logout without a reason for being late.");
       return;
     }
-
     localStorage.clear();
     setData({ _id: "", Account: "", Name: "", token: "", annualLeave: 0, profile: "" });
     setWhoIs("");
-
     setIsLogin(false);
     navigate("/login");
   };
@@ -222,7 +221,7 @@ const App = () => {
 
     return () => unsubscribe();
   }, [data._id]);
-
+  console.log("isStartLogin", isStartLogin)
   useEffect(() => {
     localStorage.setItem("isStartLogin", isStartLogin);
     localStorage.setItem("isStartActivity", isStartActivity);
@@ -238,7 +237,7 @@ const App = () => {
         Name: `${decodedData.FirstName} ${decodedData.LastName}` || "",
         annualLeave: decodedData.annualLeaveEntitlement || 0,
         token: localStorage.getItem("token") || "",
-        profile: decodedData.profile, 
+        profile: decodedData.profile,
         isPermanentWFH: decodedData.isPermanentWFH
       }))
       const roles = { "17": "superAdmin", "1": "admin", "2": "hr", "3": "emp", "4": "manager", "5": "sys-admin" };
