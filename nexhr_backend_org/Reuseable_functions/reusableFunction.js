@@ -426,28 +426,30 @@ async function fetchFirstTwoItems() {
   }
 }
 
-function timeToMinutes(timeStr) {
-  if (new Date(timeStr) && new Date(timeStr).getHours()) {
-    const timeData = new Date(timeStr).toTimeString().split(' ')[0]
-    const [hours, minutes, seconds] = timeData.split(/[:.]+/).map(Number)
-    return Number(((hours * 60) + minutes + (seconds / 60)).toFixed(2)) || 0;
-  }
-  if (timeStr.split(/[:.]+/).length > 0) {
-    const [hours, minutes, seconds] = timeStr.split(/[:.]+/).map(Number);
-    return Number(((hours * 60) + minutes + (seconds / 60)).toFixed(2)) || 0; // Defaults to 0 if input is invalid
-  }
-}
-
 function changeClientTimezoneDate(date) {
   const actualDate = toZonedTime(new Date(date), process.env.TIMEZONE);
   return actualDate
 }
 
+function timeToMinutes(timeStr) {
+  if (timeStr) {
+    if (new Date(timeStr) && new Date(timeStr).getHours()) {
+      const timeData = changeClientTimezoneDate(timeStr).toTimeString().split(' ')[0]
+      const [hours, minutes, seconds] = timeData.split(/[:.]+/).map(Number)
+      return Number(((hours * 60) + minutes + (seconds / 60)).toFixed(2)) || 0;
+    }
+    if (timeStr.split(/[:.]+/).length > 0) {
+      const [hours, minutes, seconds] = timeStr.split(/[:.]+/).map(Number);
+      return Number(((hours * 60) + minutes + (seconds / 60)).toFixed(2)) || 0; // Defaults to 0 if input is invalid
+    }
+  } else {
+    return 0;
+  }
+}
+
 const getCurrentTimeInMinutes = () => {
-  const now = new Date().toLocaleTimeString('en-US', { timeZone: process.env.TIMEZONE, hourCycle: 'h23' });
-  const timeWithoutSuffix = now.replace(/ AM| PM/, ""); // Remove AM/PM
-  const [hour, min, sec] = timeWithoutSuffix.split(/[:.]+/).map(Number);
-  return timeToMinutes(`${hour}:${min}:${sec}`);
+  const now = toZonedTime(new Date());
+  return timeToMinutes(now);
 };
 
 const getCurrentTime = (date) => {

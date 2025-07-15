@@ -213,6 +213,19 @@ const getCurrentTimeInMinutes = () => {
     return timeToMinutes(`${hour}:${min}:${sec}`);
 };
 
+function changeClientTimezoneDate(date) {
+    const options = {
+        timeZone: 'Asia/Calcutta', hourCycle: 'h23', year: 'numeric',
+        month: 'numeric',
+        day: 'numeric',
+        hour: 'numeric',
+        minute: 'numeric',
+        second: 'numeric',
+    }
+    const actualDate = new Intl.DateTimeFormat('en-US', options).format(date);
+    return new Date(actualDate);
+}
+
 function formatTimeFromMinutes(minutes) {
     if ([NaN, 0].includes(minutes)) {
         return `00:00:00`;
@@ -809,6 +822,7 @@ export {
     fetchAllEmployees,
     formatTime,
     fetchWorkplace,
+    changeClientTimezoneDate,
     fetchRoles,
     formatTimeFromHour,
     timeToMinutes,

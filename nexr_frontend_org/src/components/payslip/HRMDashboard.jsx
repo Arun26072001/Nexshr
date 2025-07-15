@@ -3,6 +3,7 @@ import { Route, Routes, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import {
     addDataAPI,
+    changeClientTimezoneDate,
     fetchAllEmployees,
     getDataAPI,
     gettingClockinsData,
@@ -87,6 +88,7 @@ export default function HRMDashboard() {
     const [isworkingActivityTimerApi, setISWorkingActivityTimerApi] = useState(false);
     const [selectedProject, setSelectedProject] = useState("");
     const [checkClockins, setCheckClockins] = useState(false);
+    // const [isWorkingOvertime, setIsWorkingOvertime] = useState(localStorage.getItem("isWorkingOvertime") ? JSON.parse(localStorage.getItem("isWorkingOvertime")) : false);
     const [unStoppedActivies, setUnStoppedActivites] = useState([]);
 
     // files for payroll
@@ -180,7 +182,7 @@ export default function HRMDashboard() {
 
 
     const startLoginTimer = async (worklocation, location, type) => {
-        const currentTime = new Date();
+        const currentTime = changeClientTimezoneDate(new Date());
         const updatedState = {
             ...workTimeTracker,
             login: {
@@ -221,7 +223,7 @@ export default function HRMDashboard() {
     };
 
     const stopLoginTimer = async (type) => {
-        const currentTime = new Date();
+        const currentTime = changeClientTimezoneDate(new Date());
         const updatedState = {
             ...workTimeTracker,
             login: {
@@ -254,7 +256,7 @@ export default function HRMDashboard() {
         const loginStartTimeLen = workTimeTracker?.login?.startingTime.length;
         const loginEndTimeLen = workTimeTracker?.login?.endingTime.length;
         if (loginStartTimeLen !== loginEndTimeLen) {
-            const currentTime = new Date();
+            const currentTime = changeClientTimezoneDate(new Date());
             const updatedState = {
                 ...workTimeTracker,
                 [timeOption]: {
@@ -284,10 +286,9 @@ export default function HRMDashboard() {
         }
     }
 
-
     const stopActivityTimer = async () => {
         trackTimer();
-        const currentDate = new Date();
+        const currentDate = changeClientTimezoneDate(new Date());
         const updatedState = (prev) => ({
             ...prev,
             [timeOption]: {
@@ -483,14 +484,25 @@ export default function HRMDashboard() {
                     const clockinData = await getDataAPI(_id);
                     const timeData = clockinData && clockinData.timeData ? clockinData.timeData : {};
                     if (Object.keys(timeData).length > 0) {
-                        if (new Date(timeData.date).toLocaleDateString() !== new Date().toLocaleDateString()) {
-                            localStorage.setItem('isStartLogin', true);
-                            setIsStartLogin(true);
-                            // setIsForgetToPunchOut(true);
-                            if (clockinData?.types?.length > 0) {
-                                setUnStoppedActivites(clockinData.types)
+                        // check emp is works over time
+                        if (clockinData?.message) {
+                            const isWorkingOverTime = window.confirm(clockinData?.message);
+                            if (isWorkingOverTime) {
+                                const clockinsData = {
+                                    ...timeData,
+                                    isWorkingOverTime
+                                }
+                                await updateDataAPI(clockinsData);
+                                trackTimer();
                             }
                         }
+                        localStorage.setItem('isStartLogin', true);
+                        setIsStartLogin(true);
+                        if (clockinData?.types?.length > 0) {
+                            setUnStoppedActivites(clockinData.types)
+                        }
+                        // if (new Date(timeData.date).toLocaleDateString() !== new Date().toLocaleDateString()) {
+                        // }
                         setWorkTimeTracker(timeData)
                     } else {
                         setWorkTimeTracker({ ...workTimeTracker });

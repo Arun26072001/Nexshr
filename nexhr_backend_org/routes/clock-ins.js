@@ -7,7 +7,7 @@ const sendMail = require("./mailSender");
 const { format } = require("date-fns");
 const { LeaveApplication } = require("../models/LeaveAppModel");
 const { Team } = require("../models/TeamModel");
-const { timeToMinutes, processActivityDurations, checkLoginForOfficeTime, getCurrentTime, sumLeaveDays, getTotalWorkingHoursExcludingWeekends, changeClientTimezoneDate, getTotalWorkingHourPerDayByDate, errorCollector, isValidLeaveDate, setTimeHolderForAllActivities, changeActualTimeDataAsAttendace } = require("../Reuseable_functions/reusableFunction");
+const { timeToMinutes, processActivityDurations, checkLoginForOfficeTime, getCurrentTime, sumLeaveDays, getTotalWorkingHoursExcludingWeekends, changeClientTimezoneDate, getTotalWorkingHourPerDayByDate, errorCollector, isValidLeaveDate, setTimeHolderForAllActivities } = require("../Reuseable_functions/reusableFunction");
 const { WFHApplication } = require("../models/WFHApplicationModel");
 const { sendPushNotification } = require("../auth/PushNotification");
 const { Holiday } = require("../models/HolidayModel");
@@ -454,55 +454,112 @@ router.get("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
     try {
         const employeeId = req.params.id;
         const queryDate = new Date(req.query.date);
-        if (isNaN(queryDate)) return res.status(400).send({ error: "Invalid date format." });
+        if (isNaN(queryDate)) {
+            return res.status(400).send({ error: "Invalid date format." });
+        }
 
-        // --- Handle previous day's incomplete login
+        const currentTime = changeClientTimezoneDate(new Date());
+
+        const dayStart = new Date(Date.UTC(queryDate.getUTCFullYear(), queryDate.getUTCMonth(), queryDate.getUTCDate(), 0, 0, 0));
+        const dayEnd = new Date(Date.UTC(queryDate.getUTCFullYear(), queryDate.getUTCMonth(), queryDate.getUTCDate(), 23, 59, 59, 999));
+
+        // Fetch employee data and clock-ins
+        const employeeData = await Employee.findById(employeeId)
+            .populate({
+                path: "clockIns", match: { date: { $gte: dayStart, $lt: dayEnd } },
+                populate: { path: "employee", select: "_id FirstName LastName" }
+            }).populate({ path: "workingTimePattern" }).lean().exec();
+
+        if (!employeeData || !employeeData.workingTimePattern) {
+            return res.status(404).send({ error: "Employee or working time pattern not found." });
+        }
+
+        const startOfficeAt = new Date(employeeData.workingTimePattern.StartingTime);
+        const workingTimeLimit = new Date(startOfficeAt);
+        workingTimeLimit.setDate(workingTimeLimit.getDate() + 1);
+        workingTimeLimit.setHours(startOfficeAt.getHours() - 3);
+
+        const empOvertimeWorkingLimit = new Date(startOfficeAt);
+        empOvertimeWorkingLimit.setHours(empOvertimeWorkingLimit.getHours() + 12);
+
+        const activities = ["login", "meeting", "morningBreak", "lunch", "eveningBreak", "event"];
+
+        // Check previous day's incomplete login
         const prevDate = new Date(Date.UTC(queryDate.getUTCFullYear(), queryDate.getUTCMonth(), queryDate.getUTCDate() - 1));
-        const prevStart = new Date(prevDate);
-        const prevEnd = new Date(prevDate);
-        prevStart.setUTCHours(0, 0, 0, 0);
-        prevEnd.setUTCHours(23, 59, 59, 999);
+        const prevStart = new Date(prevDate.setUTCHours(0, 0, 0, 0));
+        const prevEnd = new Date(prevDate.setUTCHours(23, 59, 59, 999));
 
         const prevClockIn = await ClockIns.findOne({
             employee: employeeId,
             date: { $gte: prevStart, $lt: prevEnd },
         });
 
-        const activities = ["login", "meeting", "morningBreak", "lunch", "eveningBreak", "event"];
-        const unstopActivities = prevClockIn ? activities.filter((activity) => prevClockIn[activity]?.startingTime?.length !== prevClockIn[activity]?.endingTime?.length) : []
-        if (prevClockIn && unstopActivities.length > 0) {
-            const activitiesData = processActivityDurations(prevClockIn);
-            const totalMinutes = activitiesData.reduce((sum, a) => sum + a.timeCalMins, 0);
-            const empTotalWorkingHours = (totalMinutes / 60).toFixed(2);
-            return res.send({ timeData: prevClockIn, activitiesData, empTotalWorkingHours, types: unstopActivities });
+        if (prevClockIn) {
+            const unstopPrevActivities = activities.filter(
+                (activity) => prevClockIn[activity]?.startingTime?.length !== prevClockIn[activity]?.endingTime?.length
+            );
+
+            if (unstopPrevActivities.length > 0) {
+                const activitiesData = processActivityDurations(prevClockIn);
+                const empTotalWorkingHours = (activitiesData.reduce((sum, a) => sum + a.timeCalMins, 0) / 60).toFixed(2);
+
+                if (workingTimeLimit > currentTime && empOvertimeWorkingLimit > currentTime) {
+                    return res.send({
+                        message: prevClockIn.isWorkingOverTime
+                            ? undefined
+                            : "Are you still working? It seems like you’ve been working overtime.",
+                        timeData: prevClockIn,
+                        activitiesData,
+                        empTotalWorkingHours
+                    });
+                } else {
+                    return res.send({
+                        timeData: prevClockIn,
+                        activitiesData,
+                        empTotalWorkingHours,
+                        types: unstopPrevActivities
+                    })
+                }
+            }
         }
 
-        // --- Handle current day's clock-ins
-        const dayStart = new Date(Date.UTC(queryDate.getUTCFullYear(), queryDate.getUTCMonth(), queryDate.getUTCDate(), 0, 0, 0));
-        const dayEnd = new Date(Date.UTC(queryDate.getUTCFullYear(), queryDate.getUTCMonth(), queryDate.getUTCDate(), 23, 59, 59, 999));
-
-        const employeeData = await Employee.findById(employeeId).populate({
-            path: "clockIns",
-            match: { date: { $gte: dayStart, $lt: dayEnd } },
-            populate: { path: "employee", select: "_id FirstName LastName" },
-        });
-
+        // Handle current day's clock-in
         const clockIn = employeeData?.clockIns?.[0];
+
         if (!clockIn) {
             return res.status(200).send({ status: false, message: "No clock-ins found for the given date." });
         }
 
+        const unstopActivities = activities.filter(
+            (activity) => clockIn[activity]?.startingTime?.length !== clockIn[activity]?.endingTime?.length
+        );
+
         const activitiesData = processActivityDurations(clockIn);
-        const totalMinutes = activitiesData.reduce((sum, a) => sum + a.timeCalMins, 0);
-        const empTotalWorkingHours = (totalMinutes / 60).toFixed(2);
+        const empTotalWorkingHours = (activitiesData.reduce((sum, a) => sum + a.timeCalMins, 0) / 60).toFixed(2);
+
+        if (unstopActivities.length > 0 && empOvertimeWorkingLimit < currentTime && workingTimeLimit > currentTime) {
+            return res.send({
+                message: "Are you still working? It seems like you’ve been working overtime.",
+                timeData: clockIn,
+                activitiesData,
+                empTotalWorkingHours
+            });
+        }
+
         return res.send({ timeData: clockIn, activitiesData, empTotalWorkingHours });
 
     } catch (error) {
-        await errorCollector({ url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT })
+        await errorCollector({
+            url: req.originalUrl,
+            name: error.name,
+            message: error.message,
+            env: process.env.ENVIRONMENT
+        });
         console.error("Error in GET /:id", error);
         return res.status(500).send({ error: error.message });
     }
 });
+
 
 router.get("/team/:id", verifyTeamHigherAuthority, async (req, res) => {
     try {

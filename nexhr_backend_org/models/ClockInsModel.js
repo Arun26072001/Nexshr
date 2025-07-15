@@ -51,7 +51,8 @@ const clockInsSchema = new mongoose.Schema({
   punchInMsg: { type: String },
   employee: { type: mongoose.Types.ObjectId, ref: "Employee" },
   machineRecords: [{ type: String, default: [] }],
-  worklocation: { type: String }
+  worklocation: { type: String },
+  isWorkingOverTime: {type: Boolean}
 });
 
 const ClockIns = mongoose.model('clockIns', clockInsSchema);
