@@ -36,18 +36,26 @@ exports.sendPushNotification = async (msgObj) => {
 exports.verifyWorkingTimeCompleted = async (req, res) => {
     try {
         const { employee, login } = req.body;
+        const today = changeClientTimezoneDate(new Date());
+        const startOfDay = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate(), 0, 0, 0));
+        const endOfDay = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate(), 23, 59, 59, 0));
         const empData = await Employee.findById(employee, "FirstName LastName workingTimePattern company")
-            .populate("workingTimePattern").exec();
-        // let timeZone;
-        // if (empData.company) {
-        //     const timeZoneData = await Timezone.findOne({ company: empData.company }).lean().exec();
-        //     if (timeZoneData) {
-        //         timeZone = timeZoneData?.timeZone
-        //     }
-        // }
+            .populate("workingTimePattern")
+            .populate({
+                path: "leaveApplication", match: {
+                    $and: [
+                        { leaveType: { $in: ["permission", "Permission Leave"] } },
+                        { fromDate: { $lte: endOfDay } },
+                        { toDate: { $gte: startOfDay } },
+                        { status: "approved" }
+                    ]
+                }
+            })
+            .exec();
 
         let startingTimes = login?.startingTime;
         let endingTimes = login?.endingTime;
+        let permissionHrs = empData.leaveApplication.length > 0 ? getTotalWorkingHourPerDayByDate(empData.leaveApplication[0]) : 0
 
         const values = startingTimes?.map((startTime, index) => {
             if (!startTime) return 0; // No start time means no value
@@ -70,7 +78,7 @@ exports.verifyWorkingTimeCompleted = async (req, res) => {
             empData?.workingTimePattern?.FinishingTime
         )
         let isCompleteworkingHours = true;
-        if (scheduleWorkingHours > totalValue && !login?.reasonForEarlyLogout) {
+        if ((scheduleWorkingHours + permissionHrs) > totalValue && !login?.reasonForEarlyLogout) {
             isCompleteworkingHours = false;
         }
         return res.send({ isCompleteworkingHours })

@@ -118,8 +118,6 @@ export default function Employee() {
         }
     }
 
-    console.log("employees", employees)
-
     useEffect(() => {
         if (["admin"].includes(whoIs)) {
             fetchAllEmployeeData()
@@ -161,9 +159,6 @@ export default function Employee() {
                 </p>
 
                 <div className='d-flex' style={{ gap: "10px" }}>
-                    <button className="button" onClick={() => navigate(`/${whoIs}/administration/team`)}>
-                        <Groups2RoundedIcon /> Manage Team
-                    </button>
                     {
                         ["admin", "hr"].includes(whoIs) &&
                         <>

@@ -4,6 +4,8 @@ import Webnexs from "../../../imgs/webnexs_logo.webp";
 import TableRowsRoundedIcon from '@mui/icons-material/TableRowsRounded';
 import PunchIn from "../../../asserts/PunchIn.svg";
 import PunchOut from "../../../asserts/punchOut.svg";
+import PauseRoundedIcon from '@mui/icons-material/PauseRounded';
+import PlayArrowRoundedIcon from '@mui/icons-material/PlayArrowRounded';
 import { TimerStates } from '../HRMDashboard';
 import { Accordion, Button, DatePicker, Dropdown, Input, Modal, Popover, SelectPicker, Whisper } from 'rsuite';
 import logo from "../../../imgs/male_avatar.webp";
@@ -69,9 +71,9 @@ export default function Navbar({ handleSideBar }) {
     }
 
     // Function to start the timer
-    const startTimer = async () => {
+    const startTimer = async (type) => {
         if (!workRef.current) {
-            await startLoginTimer(workLocation, { latitude, longitude });
+            await startLoginTimer(workLocation, { latitude, longitude }, type);
             if (isStartLogin) {
                 workRef.current = setInterval(incrementTime, 1000);
             }
@@ -80,9 +82,10 @@ export default function Navbar({ handleSideBar }) {
     };
 
     // Function to stop the timer
-    const stopTimer = async () => {
+    const stopTimer = async (type) => {
         if (workRef.current) {
-            const isStoppedTimer = await stopLoginTimer();
+            const isStoppedTimer = await stopLoginTimer(type);
+            console.log("isStoppedTimer", isStoppedTimer)
             if (isStoppedTimer) {
                 clearInterval(workRef.current);
                 workRef.current = null;
@@ -105,6 +108,57 @@ export default function Navbar({ handleSideBar }) {
                     <Dropdown.Item eventKey={1}><b>Personal Profile</b></Dropdown.Item>
                     <Dropdown.Item eventKey={2}>Log out</Dropdown.Item>
                 </Dropdown.Menu>
+            </Popover>
+        );
+    };
+
+    const renderMenu1 = ({ onClose, right, top, className }, ref) => {
+
+        return (
+            <Popover ref={ref} className={className} style={{ right, top }} full>
+                <div className="d-flex justify-content-between p-2">
+                    <span className='sub_text' style={{ color: "#0a7e22" }}>Check-In: {workTimeTracker?.login?.startingTime?.[0] ? new Date(workTimeTracker?.login?.startingTime[0]).toLocaleTimeString() : "Not yet start"}</span>
+                    <span className='sub_text' style={{ color: "#fd4a63" }}>Check-Out: {workTimeTracker?.isStopTimer ? new Date(workTimeTracker?.login?.endingTime.at(-1)).toLocaleTimeString() : "Not yet stop"}</span>
+                </div>
+                <div className='d-flex gap-2 p-3'>
+                    <div className='d-flex flex-column align-items-center justify-content-center'>
+                        <span className='sub_text' >Hour</span>
+                        <div className='timeHolderNo'>{String(hour).padStart(2, "0")}</div>
+                        <button
+                            title="start"
+                            className='punchBtn my-2'
+                            disabled={isWorkingLoginTimerApi === "start" || !workLocation ? true : isDisabled}
+                            onClick={() => startTimer("start")}
+                            style={{ backgroundColor: "#CEE5D3" }}
+                        >
+                            {
+                                !isDisabled && isWorkingLoginTimerApi === "start" ? <Loading size={20} color="#0a7e22" /> :
+                                    <img src={PunchIn} width="25" height="25" alt="startTimer_btn" />
+                            }
+                        </button>
+                    </div>
+                    <div className='d-flex flex-column align-items-center justify-content-center'>
+                        <span className='sub_text'>Minutes</span>
+                        <div className='timeHolderNo'>{String(min).padStart(2, "0")}</div>
+                        <span className='playPauseBtn' title={isDisabled ? "pause" : "resume"} onClick={() => workTimeTracker._id ? (isDisabled ? stopTimer("pause") : startTimer("pause")) : null} >{isWorkingLoginTimerApi === "pause" ? <Loading size={20} color="black" /> : isDisabled ? <PauseRoundedIcon fontSize='large' /> : <PlayArrowRoundedIcon fontSize='large' />}</span>
+                    </div>
+                    <div className='d-flex flex-column align-items-center justify-content-center'>
+                        <span className='sub_text'>Seconds</span>
+                        <div className='timeHolderNo'>{String(sec).padStart(2, "0")}</div>
+                        <button
+                            title="stop"
+                            className='punchBtn my-2'
+                            onClick={checkIsCompletedWorkingHour}
+                            disabled={isWorkingLoginTimerApi ? true : !isDisabled}
+                            style={{ backgroundColor: "#FFD6DB" }}
+                        >
+                            {
+                                isDisabled && isWorkingLoginTimerApi === "stop" ? <Loading size={20} color="#fd314d" /> :
+                                    <img src={PunchOut} width="25" height="25" alt="stoptimer_btn" />
+                            }
+                        </button>
+                    </div>
+                </div>
             </Popover>
         );
     };
@@ -155,7 +209,7 @@ export default function Navbar({ handleSideBar }) {
                 if (!res.data.isCompleteworkingHours) {
                     changeViewReasonForEarlyLogout()
                 } else {
-                    stopTimer()
+                    stopTimer("stop")
                 }
             } catch (error) {
                 if (error?.message === "Network Error") {
@@ -302,14 +356,16 @@ export default function Navbar({ handleSideBar }) {
     }
 
     function updateCheckoutTime(time, type) {
-        if (typeof time === "object" && new Date(time).getHours()) {
-            const actualTime = new Date(time).toTimeString().split(" ")[0];
-            if (workTimeTracker[type].startingTime.length !== workTimeTracker[type].endingTime.length) {
+        if (new Date(time) && new Date(time).getHours()) {
+            const actualTime = new Date(time);
+            const startingTimes = workTimeTracker[type].startingTime || [];
+            const endingTimes = workTimeTracker[type].endingTime || [];
+            if (startingTimes?.length !== endingTimes?.length) {
                 setWorkTimeTracker((pre) => ({
                     ...pre,
                     [type]: {
                         ...pre[type],
-                        endingTime: [...(workTimeTracker[type]?.endingTime || []), actualTime],
+                        endingTime: [...(endingTimes || []), actualTime],
                     }
                 }))
             } else {
@@ -387,7 +443,7 @@ export default function Navbar({ handleSideBar }) {
                             <DatePicker value={activityEndTimes[activityStartTimes.length - 1] ? convertTimeStringToDate(activityEndTimes[activityStartTimes.length - 1]) : null}
                                 size='lg'
                                 style={{ width: "100%" }}
-                                format="HH:mm:ss"
+                                format="MM/dd/yyyy hh:mm:ss"
                                 onChange={
                                     (e) => updateCheckoutTime(e, activity)
                                 } />
@@ -453,63 +509,11 @@ export default function Navbar({ handleSideBar }) {
                         </div>
                         {
                             whoIs !== "superAdmin" &&
-                            <>
-                                <div className='col-lg-1 col-md-3  col-6 d-flex align-items-center justify-content-center'>
-                                    <div className='d-flex align-items-center gap-1 timerTxt' >
-                                        <span>{hour.toString().padStart(2, '0')}</span> :
-                                        <span>{min.toString().padStart(2, '0')}</span> :
-                                        <span>{sec.toString().padStart(2, '0')}</span>
-                                    </div>
-                                </div>
-
-                                <div className='col-lg-3 col-md-3 col-12 d-flex align-items-center justify-content-center'>
-                                    <div className='d-flex'>
-                                        <div className="punchBtnParent">
-                                            <button
-                                                className='punchBtn'
-                                                disabled={isWorkingLoginTimerApi || !workLocation ? true : isDisabled}
-                                                onClick={startTimer}
-                                                style={{ backgroundColor: "#CEE5D3" }}
-                                            >
-                                                {
-                                                    !isDisabled && isWorkingLoginTimerApi ? <Loading size={20} color="#0a7e22" /> :
-                                                        <img src={PunchIn} width="25" height="25" alt="startTimer_btn" />
-                                                }
-                                            </button>
-                                            <div className="">
-                                                <p className='timerText'>
-                                                    {workTimeTracker?.login?.startingTime.length > 0
-                                                        ? workTimeTracker?.login?.startingTime[0]
-                                                        : "00:00"}
-                                                </p>
-                                                <div className='sub_text'>Punch In</div>
-                                            </div>
-                                        </div>
-
-                                        <div className="punchBtnParent">
-                                            <button
-                                                className='punchBtn'
-                                                onClick={checkIsCompletedWorkingHour}
-                                                disabled={isWorkingLoginTimerApi ? true : !isDisabled}
-                                                style={{ backgroundColor: "#FFD6DB" }}
-                                            >
-                                                {
-                                                    isDisabled && isWorkingLoginTimerApi ? <Loading size={20} color="#fd314d" /> :
-                                                        <img src={PunchOut} width="25" height="25" alt="stoptimer_btn" />
-                                                }
-                                            </button>
-                                            <div className="">
-                                                <p className='timerText'>
-                                                    {workTimeTracker?.login?.endingTime?.length > 0
-                                                        ? workTimeTracker?.login?.endingTime[workTimeTracker?.login?.endingTime.length - 1]
-                                                        : "00:00"}
-                                                </p>
-                                                <p className='sub_text'>Punch Out</p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </>
+                            <div className="col-lg-3" onClick={trackTimer}>
+                                <Whisper placement="bottomStart" trigger="click" speaker={renderMenu1}>
+                                    <button className='button'>{isDisabled ? "Check-Out" : "Check-In"}</button>
+                                </Whisper>
+                            </div>
                         }
 
                         <div className='gap-2 col-lg-4 col-md-3 d-flex align-items-center justify-content-end'>
@@ -582,3 +586,66 @@ export default function Navbar({ handleSideBar }) {
                 </div >
     );
 }
+
+// <>
+//     <button className='button' onClick={handleCheckInAndOut}>check-in</button>
+//     {ischeckIn ? <div>check in now</div> : null}
+// </>
+
+// <>
+//     <div className='col-lg-1 col-md-3  col-6 d-flex align-items-center justify-content-center'>
+//         <div className='d-flex align-items-center gap-1 timerTxt' >
+//             <span>{hour.toString().padStart(2, '0')}</span> :
+//             <span>{min.toString().padStart(2, '0')}</span> :
+//             <span>{sec.toString().padStart(2, '0')}</span>
+//         </div>
+//     </div>
+
+//     <div className='col-lg-3 col-md-3 col-12 d-flex align-items-center justify-content-center'>
+//         <div className='d-flex'>
+//             <div className="punchBtnParent">
+//                 <button
+//                     className='punchBtn'
+//                     disabled={isWorkingLoginTimerApi || !workLocation ? true : isDisabled}
+//                     onClick={startTimer}
+//                     style={{ backgroundColor: "#CEE5D3" }}
+//                 >
+//                     {
+//                         !isDisabled && isWorkingLoginTimerApi ? <Loading size={20} color="#0a7e22" /> :
+//                             <img src={PunchIn} width="25" height="25" alt="startTimer_btn" />
+//                     }
+//                 </button>
+//                 <div className="">
+//                     <p className='timerText'>
+//                         {workTimeTracker?.login?.startingTime?.length > 0
+//                             ? new Date(workTimeTracker?.login?.startingTime[0]).toLoc
+//                             : "00:00"}
+//                     </p>
+//                     <div className='sub_text'>Punch In</div>
+//                 </div>
+//             </div>
+
+//             <div className="punchBtnParent">
+//                 <button
+//                     className='punchBtn'
+//                     onClick={checkIsCompletedWorkingHour}
+//                     disabled={isWorkingLoginTimerApi ? true : !isDisabled}
+//                     style={{ backgroundColor: "#FFD6DB" }}
+//                 >
+//                     {
+//                         isDisabled && isWorkingLoginTimerApi ? <Loading size={20} color="#fd314d" /> :
+//                             <img src={PunchOut} width="25" height="25" alt="stoptimer_btn" />
+//                     }
+//                 </button>
+//                 <div className="">
+//                     <p className='timerText'>
+//                         {workTimeTracker?.login?.endingTime?.length > 0
+//                             ? new Date(workTimeTracker?.login?.endingTime[workTimeTracker?.login?.endingTime.length - 1]).toLocaleTimeString()
+//                             : "00:00"}
+//                     </p>
+//                     <p className='sub_text'>Punch Out</p>
+//                 </div>
+//             </div>
+//         </div>
+//     </div>
+// </>

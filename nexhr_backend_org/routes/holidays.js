@@ -9,7 +9,7 @@ const router = express.Router();
 
 router.post("/:id", verifyAdminHR, async (req, res) => {
   try {
-    const isExist = await Holiday.findOne({ currentYear: req.body.currentYear });
+    const isExist = await Holiday.findOne({ currentYear: req.body.currentYear, company: req.body.company });
     if (isExist) {
       return res.status(400).send({ error: "Already added this year of holidays!" })
     }
@@ -127,7 +127,9 @@ router.get("/:year", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
 
 router.get("/", verifyAdminHR, async (req, res) => {
   try {
-    const allYear = await Holiday.find().lean().exec();
+    const allYear = await Holiday.find()
+      .populate("company", "CompanyName")
+      .lean().exec();
     return res.send(allYear)
   } catch (error) {
     await errorCollector({ url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT })

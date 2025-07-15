@@ -582,13 +582,15 @@ router.put("/reject-wfh", async (req, res) => {
         await Promise.all(wfhReqs.map(async (wfh) => {
             // check has more than two team members in wfh
             const team = await Team.findOne({ employees: wfh.employee._id }, "employees").exec();
-
-            const wfhEmps = await WFHApplication.find({
-                employee: { $in: team.employees },
-                status: "approved",
-                fromDate: { $lte: wfh.toDate },
-                toDate: { $gte: wfh.fromDate }
-            })
+            let wfhEmps = [];
+            if (team && team.employees) {
+                wfhEmps = await WFHApplication.find({
+                    employee: { $in: team.employees },
+                    status: "approved",
+                    fromDate: { $lte: wfh.toDate },
+                    toDate: { $gte: wfh.fromDate }
+                })
+            }
 
             let approvers = {};
             for (const [key, value] of Object.entries(wfh.approvers)) {

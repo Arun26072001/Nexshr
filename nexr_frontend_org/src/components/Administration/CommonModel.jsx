@@ -128,7 +128,7 @@ const CommonModel = ({
                                         onChange={!["Report View", "Project View", "View WorkPlace"].includes(type) ? (e) =>
                                             changeData(e?.trimStart()?.replace(/\s+/g, ' '), type === "Department" ? "DepartmentName" : type === "Position" ? "PositionName" : type === "Team" ? "teamName" : type === "Organization" ? "orgName" : type === "LeaveType" ? "LeaveName" : type === "TimePattern" ? "PatternName" : ["WorkPlace", "View WorkPlace"].includes(type) ? "CompanyName" : "name") : null}
                                     />
-                                    {errorMsg?.toLowerCase()?.includes(["CompanyName", "DepartmentName", "PositionName", "teamName", "orgName", "LeaveName", "PatternName", "CompanyName", "name"]) ? <div className="text-center text-danger">{errorMsg}</div> : null}
+                                    {["CompanyName", "DepartmentName", "PositionName", "teamName", "orgName", "LeaveName", "PatternName", "CompanyName", "name"].some(item => errorMsg.includes(item)) ? <div className="text-center text-danger">{errorMsg}</div> : null}
                                 </div>
                             </div>
                         }
@@ -248,12 +248,12 @@ const CommonModel = ({
                                 <Input required
                                     name={`title`}
                                     size="lg"
-                                    className={errorMsg.toLowerCase().includes("title") ? "error" : ""}
+                                    className={errorMsg?.toLowerCase().includes("title") ? "error" : ""}
                                     disabled={["Task View", "Add Comments"].includes(type) ? true : false}
                                     value={dataObj?.[`title`] || ""}
                                     onChange={type !== "Task View" ? (e) => changeData(e?.trimStart()?.replace(/\s+/g, ' '), "title") : null}
                                 />
-                                {errorMsg?.includes("title") && <p className='text-danger'>{errorMsg}</p>}
+                                {errorMsg?.toLowerCase()?.includes("title") && <p className='text-danger'>{errorMsg}</p>}
                             </div>
                         </div>}
 
@@ -418,7 +418,7 @@ const CommonModel = ({
                                     style={{ width: "100%" }}
                                     disabled={["Report View", "Task View"].includes(type)}
                                     placeholder={`Select ${type === "Task" ? "From Date" : "Start Date"}`}
-                                    className={`${errorMsg?.toLowerCase()?.includes(["from", "startDate"]) ? "error" : ""}`}
+                                    className={`${["from", "startDate"].some(item => errorMsg.includes(item)) ? "error" : ""}`}
                                     value={
                                         dataObj?.from
                                             ? new Date(dataObj?.from)
@@ -433,7 +433,7 @@ const CommonModel = ({
                                             : (e) => changeData(e, type === "Task" ? "from" : "startDate")
                                     }
                                 />
-                                {errorMsg?.toLowerCase()?.includes(["from", "startDate"]) ? <div className="text-center text-danger">{errorMsg}</div> : null}
+                                {["from", "startDate"].some(item => errorMsg.includes(item)) ? <div className="text-center text-danger">{errorMsg}</div> : null}
                             </div>
                         </div>
 
@@ -449,7 +449,7 @@ const CommonModel = ({
                                     disabled={["Report View", "Task View"].includes(type)}
                                     disabledDate={date => isBefore(date, new Date().setDate(new Date().getDate() - 1))}
                                     placeholder="Select Due Date"
-                                    className={`${errorMsg?.toLowerCase()?.includes(["to", "endDate"]) ? "error" : ""}`}
+                                    className={`${["to", "endDate"].some(item => errorMsg.includes(item)) ? "error" : ""}`}
                                     value={
                                         dataObj?.to
                                             ? new Date(dataObj?.to)
@@ -463,7 +463,7 @@ const CommonModel = ({
                                             : (e) => changeData(e, type === "Task" ? "to" : "endDate")
                                     }
                                 />
-                                {errorMsg?.toLowerCase()?.includes(["to", "endDate"]) ? <div className="text-center text-danger">{errorMsg}</div> : null}
+                                {["to", "endDate"].some((item) => errorMsg.includes(item)) ? <div className="text-center text-danger">{errorMsg}</div> : null}
                             </div>
                         </div>
                     </div>
@@ -523,7 +523,7 @@ const CommonModel = ({
                                         required
                                         data={["Low", "Medium", "High", "Critical"].map((data) => ({ label: data, value: data }))}
                                         size="lg"
-                                        className={`${errorMsg.toLowerCase().includes("priority") ? "error" : ""}`}
+                                        className={`${errorMsg?.toLowerCase().includes("priority") ? "error" : ""}`}
                                         disabled={["Task View", "Project View"].includes(type) ? true : false}
                                         appearance='default'
                                         style={{ width: "100%", zIndex: 1 }}
@@ -550,7 +550,7 @@ const CommonModel = ({
                                         value={dataObj?.status}
                                         onChange={(e) => changeData(e, "status")}
                                     />
-                                    {errorMsg.toLowerCase().includes("status") ? <div className="text-center text-danger">{errorMsg}</div> : null}
+                                    {errorMsg?.toLowerCase().includes("status") ? <div className="text-center text-danger">{errorMsg}</div> : null}
                                 </div>
                             </div>
                         }
@@ -657,7 +657,7 @@ const CommonModel = ({
                                             changeData(e, type.includes("Task") ? "assignedTo" : "employees")
                                         }
                                     />
-                                    {errorMsg?.toLowerCase()?.includes(["assignedTo", "employees"]) ? <div className="text-center text-danger">{errorMsg}</div> : null}
+                                    {["assignedTo", "employees"].some(item => errorMsg.toLowerCase().includes(item)) ? <div className="text-center text-danger">{errorMsg}</div> : null}
                                 </div>
                             </div>
                         </div>
@@ -688,7 +688,7 @@ const CommonModel = ({
                                             ["Task View"].includes(type) ? null : (e) => changeData(e, field)
                                         }
                                     />
-                                    {errorMsg?.toLowerCase()?.includes(["assignedTo", "participants", "observers"]) ? <div className="text-center text-danger">{errorMsg}</div> : null}
+                                    {["assignedTo", "participants", "observers"].some(item => errorMsg.includes(item)) ? <div className="text-center text-danger">{errorMsg}</div> : null}
                                 </div>
                             </div>
                         </div>
@@ -735,7 +735,7 @@ const CommonModel = ({
                                         handleChange={(e) => changeData(e?.trimStart()?.replace(/\s+/g, ' '), type === "Announcement" ? "message" : type === "Edit Comments" ? "comment" : "comments.comment")}
                                         content={type === "Add Comments" ? dataObj?.comments[0]?.["comment"] : type === "Edit Comments" ? dataObj?.["comment"] : dataObj?.["message"]}
                                     />
-                                    {errorMsg?.toLowerCase()?.includes(["comment", "message"]) ? <div className="text-center text-danger">{errorMsg}</div> : null}
+                                    {["comment", "message"].some(item => errorMsg.includes(item)) ? <div className="text-center text-danger">{errorMsg}</div> : null}
                                 </div>
                             </div>
                         </div>
@@ -767,7 +767,7 @@ const CommonModel = ({
                                     content={dataObj?.[type === "Email Template" ? "content" : "description"]}
                                     isDisabled={["Task View", "Project View"].includes(type) ? true : false}
                                 />
-                                {errorMsg?.toLowerCase()?.includes(["content", "description"]) ? <div className="text-center text-danger">{errorMsg}</div> : null}
+                                {["content", "description"].some((word) => errorMsg.includes(word)) ? <div className="text-center text-danger">{errorMsg}</div> : null}
                             </div>
                         </div>
                     </>
@@ -1025,6 +1025,7 @@ const CommonModel = ({
                                 size="lg"
                                 style={{ width: "100%", height: 45 }}
                                 type={"text"}
+                                className={errorMsg.toLowerCase().includes("shorttags") ? "error" : ""}
                                 id="stateInput"
                                 name={`states`}
                                 appearance='default'
@@ -1035,6 +1036,7 @@ const CommonModel = ({
                                 document.getElementById("stateInput").value = ""
                                 setIsDisabled(true)
                             }}>Add</button>
+                            {errorMsg.toLowerCase().includes("shorttags") ? <div className="text-center text-danger">{errorMsg}</div> : null}
                             <div className="inputContent">
                                 {
                                     dataObj?.shortTags && dataObj?.shortTags.length > 0 ? (
@@ -1063,7 +1065,6 @@ const CommonModel = ({
                             <p className="modelLabel">
                                 {emp}
                             </p>
-
                             <TagPicker
                                 data={emp === "Manager" ? managers : emp === "Lead" ? leads : emp === "Admin" ? admins : emp === "Hr" ? hrs : heads}
                                 required

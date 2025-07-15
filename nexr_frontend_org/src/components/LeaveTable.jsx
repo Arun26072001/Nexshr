@@ -210,7 +210,8 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
             align: "center"
         }
     ];
-    
+
+    console.log("tabledata", data)
     const column4 = [
         {
             id: 'FirstName',
@@ -251,14 +252,14 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
             label: 'Punch In',
             minWidth: 100,
             align: 'center',
-            getter: (row) => row?.login?.startingTime ? row?.login?.startingTime[0] : "00:00:00"
+            getter: (row) => row?.login?.startingTime?.length ? (new Date(row?.login?.startingTime[0]) && new Date(row?.login?.startingTime[0]).getHours() ? new Date(row?.login?.startingTime[0]).toLocaleTimeString() : row.login.startingTime[0]) : "00:00:00"
         },
         {
             id: 'punchOut',
             label: 'Punch Out',
             minWidth: 100,
             align: 'center',
-            getter: (row) => row?.login?.endingTime ? row.login.endingTime[row.login.endingTime.length - 1] : "00:00:00"
+            getter: (row) => row?.login?.endingTime?.length ? (new Date(row?.login?.endingTime?.at(-1)) && new Date(row?.login?.endingTime?.at(-1)).getHours() ? new Date(row?.login?.endingTime?.at(-1)).toLocaleTimeString() : row.login.endingTime?.at(-1)) : "00:00:00"
         },
         {
             id: 'timeHolder',
@@ -291,6 +292,8 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
         }
     ];
 
+    // console.log("rowData", data)
+
     const column5 = [
         { id: 'Name', label: 'Name', minWidth: 130, align: 'left', getter: (row) => row?.Name || (row?.employee?.FirstName + " " + row?.employee?.LastName) || 'Unknown' },
         {
@@ -312,14 +315,33 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
             label: 'Punch In',
             minWidth: 130,
             align: 'left',
-            getter: (row) => row?.punchIn || row?.login?.startingTime[0]
+            getter: (row) => {
+                const punchInTime = row?.punchIn || row?.login?.startingTime[0];
+
+                if (punchInTime) {
+                    const date = new Date(punchInTime);
+                    return !isNaN(date.getTime()) ? date.toLocaleTimeString() : punchInTime;
+                } else {
+                    return "N/A";
+                }
+            }
+
         },
         {
             id: 'punchOut',
             label: 'Punch Out',
             minWidth: 130,
             align: 'left',
-            getter: (row) => row?.punchOut || row?.login?.endingTime[row.login.endingTime.length - 1] || "N/A"
+            getter: (row) => {
+                const punchOutTime = row?.punchOut || row?.login?.endingTime?.at(-1);
+
+                if (punchOutTime) {
+                    const date = new Date(punchOutTime);
+                    return !isNaN(date.getTime()) ? date.toLocaleTimeString() : punchOutTime;
+                } else {
+                    return "N/A";
+                }
+            }
         },
         {
             id: 'totalHour',
@@ -863,6 +885,7 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
 
     const column22 = [
         { id: 'currentYear', label: 'Year', minWidth: 100, align: 'left', getter: (row) => row.currentYear || "N/A" },
+        { id: 'company', label: 'Company', minWidth: 100, align: 'left', getter: (row) => row.company?.CompanyName || "N/A" },
         { id: 'holidays', label: 'Holidays', minWidth: 400, align: 'center', getter: (row) => row.holidays.length ? row.holidays?.slice(0, 3).map((holiday) => holiday.date + ", ") + (row.holidays.length > 3 ? "..." : "") : "N/A" },
         { id: "Action", label: "Action", minWidth: 100, align: "center" }
     ]

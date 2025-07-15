@@ -59,10 +59,19 @@ function categorizeTasks(tasks = []) {
 }
 
 async function checkLoginForOfficeTime(scheduledTime, actualTime, permissionTime = 0) {
-
   // Parse scheduled andl actual time into hours and minutes
-  const [scheduledHours, scheduledMinutes] = scheduledTime.split(/[:.]+/).map(Number);
-  const [actualHours, actualMinutes] = actualTime.split(/[:.]+/).map(Number);
+  let scheduledHours, scheduledMinutes, actualHours, actualMinutes = 0;
+  if (new Date(scheduledTime) && new Date(scheduledTime).getHours()) {
+    const scheduledDate = new Date(scheduledTime);
+    [scheduledHours, scheduledMinutes] = [scheduledDate.getHours(), scheduledDate.getMinutes()];
+  } else {
+    [scheduledHours, scheduledMinutes] = scheduledTime.split(/[:.]+/).map(Number);
+  } if (new Date(actualTime) && new Date(actualTime).getHours()) {
+    const actualDate = new Date(actualTime);
+    [actualHours, actualMinutes] = [actualDate.getHours(), actualDate.getMinutes()]
+  } else {
+    [actualHours, actualMinutes] = actualTime.split(/[:.]+/).map(Number);
+  }
 
   // Create Date objects for both scheduled and actual times
   const scheduledDate = new Date(2000, 0, 1, scheduledHours + (permissionTime), scheduledMinutes);
@@ -339,11 +348,54 @@ function processActivityDurations(record) {
   });
 
   return activities.map((activity) => {
-    const start = record[activity]?.startingTime?.[0] || "00:00";
-    const end = record[activity]?.endingTime?.slice(-1)?.[0] || "00:00";
+    let start = "00:00:00";
+    let end = "00:00:00";
+    if (record[activity]?.startingTime && record[activity]?.startingTime?.[0]) {
+      start = changeClientTimezoneDate(record[activity]?.startingTime?.[0]).toLocaleTimeString();
+    } if (record[activity]?.endingTime && record[activity]?.endingTime?.at(-1)) {
+      end = changeClientTimezoneDate(record[activity]?.endingTime.at(-1)).toLocaleTimeString();
+    }
     const timeCalMins = timeToMinutes(record[activity]?.timeHolder || "00:00:00");
     return { activity, startingTime: start, endingTime: end, timeCalMins };
   });
+}
+
+function changeActualTimeDataAsAttendace(records) {
+  return records.map((record) => {
+    activities.forEach((activity) => {
+      if (record[activity]?.startingTime?.length > 0) {
+        record[activity].startingTime = record[activity].startingTime.map((time) => {
+          if (isValidDate(time)) {
+            const changedDate = "qwwqe";
+            return changedDate;
+          } else {
+            return time;
+          }
+        });
+      } else {
+        record[activity].startingTime = [];
+      }
+
+      if (record[activity]?.endingTime?.length > 0) {
+        record[activity].endingTime = record[activity].endingTime.map((time) => {
+          if (isValidDate(time)) {
+            const changedDate = "ed21d12";
+            return changedDate;
+          } else {
+            return time;
+          }
+        });
+      } else {
+        record[activity].endingTime = [];
+      }
+    });
+    return record;
+  });
+}
+
+function isValidDate(value) {
+  const date = new Date(value);
+  return !isNaN(date.getTime()) && date.getHours() !== 0;
 }
 
 function setTimeHolderForAllActivities(record) {
@@ -375,7 +427,7 @@ async function fetchFirstTwoItems() {
 }
 
 function timeToMinutes(timeStr) {
-  if (typeof timeStr === 'object') {
+  if (new Date(timeStr) && new Date(timeStr).getHours()) {
     const timeData = new Date(timeStr).toTimeString().split(' ')[0]
     const [hours, minutes, seconds] = timeData.split(/[:.]+/).map(Number)
     return Number(((hours * 60) + minutes + (seconds / 60)).toFixed(2)) || 0;
@@ -551,4 +603,4 @@ async function errorCollector(errorLog) {
   }
 }
 
-module.exports = { convertToString, setTimeHolderForAllActivities, setPeriodOfLeave, isValidLeaveDate, errorCollector, getTotalWorkingHourPerDay, getTotalWorkingHourPerDayByDate, accountFromRole, changeClientTimezoneDate, sumLeaveDays, getValidLeaveDays, fetchFirstTwoItems, getCurrentTime, checkLoginForOfficeTime, categorizeTasks, projectMailContent, processActivityDurations, formatLeaveData, getDayDifference, getOrgDB, formatDate, getWeekdaysOfCurrentMonth, mailContent, checkLogin, getTotalWorkingHoursExcludingWeekends, getCurrentTimeInMinutes, timeToMinutes, formatTimeFromMinutes };
+module.exports = { convertToString, changeActualTimeDataAsAttendace, setTimeHolderForAllActivities, setPeriodOfLeave, isValidLeaveDate, errorCollector, getTotalWorkingHourPerDay, getTotalWorkingHourPerDayByDate, accountFromRole, changeClientTimezoneDate, sumLeaveDays, getValidLeaveDays, fetchFirstTwoItems, getCurrentTime, checkLoginForOfficeTime, categorizeTasks, projectMailContent, processActivityDurations, formatLeaveData, getDayDifference, getOrgDB, formatDate, getWeekdaysOfCurrentMonth, mailContent, checkLogin, getTotalWorkingHoursExcludingWeekends, getCurrentTimeInMinutes, timeToMinutes, formatTimeFromMinutes };

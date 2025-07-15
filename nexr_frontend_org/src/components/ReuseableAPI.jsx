@@ -232,7 +232,12 @@ function formatTimeFromMinutes(minutes) {
 }
 
 function convertTimeStringToDate(timeStr) {
-    const [hours, minutes, seconds] = timeStr.split(/[:.]+/).map(Number);
+    let hours, minutes, seconds = 0;
+    if (new Date(timeStr) && new Date(timeStr).getHours()) {
+        return new Date(timeStr);
+    } else {
+        [hours, minutes, seconds] = timeStr.split(/[:.]+/).map(Number);
+    }
 
     if (
         [hours, minutes, seconds].some(
