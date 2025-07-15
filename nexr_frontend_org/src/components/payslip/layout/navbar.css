@@ -12,6 +12,17 @@
   display: none;
 }
 
+.timeHolderNo {
+  width: 100px;
+  height: 100px;
+  background: white;
+  box-shadow: rgba(0, 0, 0, 0.16) 0px 1px 4px;
+  font-size: 50px;
+  font-weight: 500;
+  padding: 10px;
+  color: #737082;
+}
+
 @media (max-width: 768px) {
   .sidebarIcon {
     display: flex;
@@ -43,10 +54,17 @@
   top: 10px;
 }
 .remove {
-    animation: fadeOut 0.3s forwards;
+  animation: fadeOut 0.3s forwards;
 }
 
 @keyframes fadeOut {
-    from { opacity: 1; }
-    to { opacity: 0; height: 0; padding: 0; margin: 0; }
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+    height: 0;
+    padding: 0;
+    margin: 0;
+  }
 }

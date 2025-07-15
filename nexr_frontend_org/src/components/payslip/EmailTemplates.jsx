@@ -20,6 +20,7 @@ export default function EmailTemplates() {
     const [filterTemplates, setfilterTemplates] = useState([]);
     const [templateObj, setTemplateObj] = useState({});
     const [empMails, setEmpMails] = useState([]);
+    const [errorMsg, setErrorMsg] = useState("");
     const [title, setTitle] = useState("");
     const [isWorkingApi, setIsWorkingApi] = useState(false);
     const [isChangeTemp, setIsChangeTemp] = useState({
@@ -32,8 +33,8 @@ export default function EmailTemplates() {
             const emps = await fetchAllEmployees();
             // const withoutMyData = emps.filter((emp)=> emp._id !== _id);
             setEmpMails(emps.map((emp) => ({ label: emp?.Email, value: emp.Email })))
-       } catch (error) {
-         if (error?.message === "Network Error") {
+        } catch (error) {
+            if (error?.message === "Network Error") {
                 navigate("/network-issue")
             }
             console.log(error);
@@ -42,9 +43,9 @@ export default function EmailTemplates() {
 
     function handleChangeTemp(type, tempData) {
         if (type === "Edit") {
-            if(tempData){
+            if (tempData) {
                 setTemplateObj(tempData)
-            } else{
+            } else {
                 setTemplateObj({})
             }
             setIsChangeTemp((pre) => ({
@@ -52,7 +53,7 @@ export default function EmailTemplates() {
                 isEdit: !pre.isEdit
             }))
         } else {
-            if(isChangeTemp.isAdd){
+            if (isChangeTemp.isAdd) {
                 setTemplateObj({})
             }
             setIsChangeTemp((pre) => ({
@@ -65,7 +66,8 @@ export default function EmailTemplates() {
     // add template
     async function addTemplate(type) {
         try {
-            setIsWorkingApi(true)
+            setIsWorkingApi(true);
+            setErrorMsg("");
             const newTemplate = {
                 ...templateObj,
                 status: templateObj.status || false
@@ -78,12 +80,14 @@ export default function EmailTemplates() {
             toast.success(res.data.message);
             handleChangeTemp(type);
             fetchTemplates();
-       } catch (error) {
-         if (error?.message === "Network Error") {
+        } catch (error) {
+            if (error?.message === "Network Error") {
                 navigate("/network-issue")
             }
             console.log("error in add template", error);
-            toast.error(error?.response?.data?.error);
+            const errorData = error?.response?.data?.error;
+            setErrorMsg(errorData);
+            toast.error(errorData);
         } finally {
             setIsWorkingApi(false)
         }
@@ -93,6 +97,7 @@ export default function EmailTemplates() {
     async function updateTemplate() {
         try {
             setIsWorkingApi(true)
+            setErrorMsg("");
             const res = await axios.put(`${url}/api/email-template/${templateObj._id}`, templateObj, {
                 headers: {
                     Authorization: data.token
@@ -101,12 +106,14 @@ export default function EmailTemplates() {
             toast.success(res.data.message);
             handleChangeTemp("Edit");
             fetchTemplates();
-       } catch (error) {
-         if (error?.message === "Network Error") {
+        } catch (error) {
+            if (error?.message === "Network Error") {
                 navigate("/network-issue")
             }
             console.log("error in update template", error);
-            toast.error(error?.response?.data?.error)
+            const errorData = error?.response?.data?.error;
+            setErrorMsg(errorData);
+            toast.error(errorData);
         } finally {
             setIsWorkingApi(false)
         }
@@ -155,8 +162,8 @@ export default function EmailTemplates() {
             })
             setTemplates(res.data);
             setfilterTemplates(res.data);
-       } catch (error) {
-         if (error?.message === "Network Error") {
+        } catch (error) {
+            if (error?.message === "Network Error") {
                 navigate("/network-issue")
             }
             console.log("error in fetch templates", error);
@@ -165,13 +172,13 @@ export default function EmailTemplates() {
         }
     }
 
-    useEffect(()=>{
-        if(!title){
+    useEffect(() => {
+        if (!title) {
             setTemplates(filterTemplates)
-        }else{
-            setTemplates(filterTemplates.filter((temp)=> temp.title.toLowerCase().includes(title.toLowerCase())))
+        } else {
+            setTemplates(filterTemplates.filter((temp) => temp.title.toLowerCase().includes(title.toLowerCase())))
         }
-    },[title])
+    }, [title])
 
     useEffect(() => {
         fetchTemplates();
@@ -179,8 +186,8 @@ export default function EmailTemplates() {
     }, [])
 
     return (
-        isChangeTemp.isAdd ? <CommonModel isAddData={isChangeTemp.isAdd} isWorkingApi={isWorkingApi} changeData={fillTemplateObj} removeState={removeState} dataObj={templateObj} type={"Email Template"} changeState={changeShortTags} modifyData={handleChangeTemp} addData={addTemplate} /> :
-            isChangeTemp.isEdit ? <CommonModel isAddData={isChangeTemp.isEdit} isWorkingApi={isWorkingApi} changeData={fillTemplateObj} removeState={removeState} dataObj={templateObj} type={"Email Template"} changeState={changeShortTags} modifyData={handleChangeTemp} editData={updateTemplate} /> :
+        isChangeTemp.isAdd ? <CommonModel isAddData={isChangeTemp.isAdd} isWorkingApi={isWorkingApi} changeData={fillTemplateObj} removeState={removeState} dataObj={templateObj} type={"Email Template"} changeState={changeShortTags} errorMsg={errorMsg} modifyData={handleChangeTemp} addData={addTemplate} /> :
+            isChangeTemp.isEdit ? <CommonModel isAddData={isChangeTemp.isEdit} isWorkingApi={isWorkingApi} changeData={fillTemplateObj} removeState={removeState} dataObj={templateObj} type={"Email Template"} changeState={changeShortTags} errorMsg={errorMsg} modifyData={handleChangeTemp} editData={updateTemplate} /> :
                 isLoading ? <Loading height='80vh' /> :
                     <div className='dashboard-parent py-4'>
                         <div className="d-flex justify-content-between px-2">

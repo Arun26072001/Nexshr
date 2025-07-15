@@ -80,6 +80,8 @@ h1 {
 .messageCount,
 .circleEditIcon,
 .center-box,
+.timeHolderNo,
+.playPauseBtn,
 .notFoundPageParent {
   display: flex;
   justify-content: center;
@@ -154,6 +156,17 @@ a {
   background: white;
   color: black;
   height: fit-content;
+  padding: 6px 12px;
+}
+
+.playPauseBtn {
+  width: 39px;
+  height: 39px;
+  margin: 8px 0px;
+  border-radius: 50%;
+  background: white;
+  box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
+  cursor: pointer;
 }
 
 .button {

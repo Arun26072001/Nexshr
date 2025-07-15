@@ -7,7 +7,7 @@ const sendMail = require("./mailSender");
 const { format } = require("date-fns");
 const { LeaveApplication } = require("../models/LeaveAppModel");
 const { Team } = require("../models/TeamModel");
-const { timeToMinutes, processActivityDurations, checkLoginForOfficeTime, getCurrentTime, sumLeaveDays, getTotalWorkingHoursExcludingWeekends, changeClientTimezoneDate, getTotalWorkingHourPerDayByDate, errorCollector, isValidLeaveDate, setTimeHolderForAllActivities } = require("../Reuseable_functions/reusableFunction");
+const { timeToMinutes, processActivityDurations, checkLoginForOfficeTime, getCurrentTime, sumLeaveDays, getTotalWorkingHoursExcludingWeekends, changeClientTimezoneDate, getTotalWorkingHourPerDayByDate, errorCollector, isValidLeaveDate, setTimeHolderForAllActivities, changeActualTimeDataAsAttendace } = require("../Reuseable_functions/reusableFunction");
 const { WFHApplication } = require("../models/WFHApplicationModel");
 const { sendPushNotification } = require("../auth/PushNotification");
 const { Holiday } = require("../models/HolidayModel");
@@ -523,13 +523,16 @@ router.get("/team/:id", verifyTeamHigherAuthority, async (req, res) => {
         if (!team) {
             return res.status(404).send({ error: "You are not a Team higher authority." })
         }
-        const teamClockins = await ClockIns.find({
+        let teamClockins = await ClockIns.find({
             employee: { $in: team.employees },
             date: {
                 $gte: startOfMonth,
                 $lte: endOfMonth
             }
-        }).populate("employee", "FirstName LastName")
+        }).populate("employee", "FirstName LastName");
+        // if (teamClockins?.length > 0) {
+        //     changeActualTimeDataAsAttendace(teamClockins)
+        // }
         return res.send(teamClockins);
     } catch (error) {
         await errorCollector({ url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT })
@@ -609,8 +612,19 @@ router.get("/employee/:empId", verifyAdminHREmployeeManagerNetwork, async (req, 
         let totalEmpWorkingHours = 0, totalLeaveDays = 0
         let regular = 0, late = 0, early = 0;
         const checkLogin = (scheduledTime, actualTime) => {
-            const [schedHours, schedMinutes] = scheduledTime.split(':').map(Number);
-            const [actualHours, actualMinutes] = actualTime.split(':').map(Number);
+            let actualHours, actualMinutes = 0;
+            let schedHours, schedMinutes = 0;
+            if (new Date(actualTime) && new Date(actualTime).getHours()) {
+                const actualDate = changeClientTimezoneDate(actualTime);
+                [actualHours, actualMinutes] = [actualDate.getHours(), actualDate.getMinutes()];
+            } else {
+                [actualHours, actualMinutes] = actualTime.split(':').map(Number);
+            } if (new Date(scheduledTime) && new Date(scheduledTime).getHours()) {
+                const scheduledDate = changeClientTimezoneDate(actualTime);
+                [schedHours, schedMinutes] = [scheduledDate.getHours(), scheduledDate.getMinutes()];
+            } else {
+                [schedHours, schedMinutes] = scheduledTime.split(':').map(Number);
+            }
             const scheduled = schedHours * 60 + schedMinutes;
             const actual = actualHours * 60 + actualMinutes;
             if (actual > scheduled) {
@@ -651,10 +665,10 @@ router.get("/employee/:empId", verifyAdminHREmployeeManagerNetwork, async (req, 
             scheduledWorkingHours = (endingDate.getTime() - startingDate.getTime()) / (1000 * 60 * 60)
         }
         employee.clockIns.forEach(({ login }) => {
-            const { startingTime, timeHolder } = login;
-            totalEmpWorkingHours += (timeToMinutes(timeHolder) / 60);
-            checkLogin(scheduledLoginTime, startingTime[0]);
+            totalEmpWorkingHours += (timeToMinutes(login.timerHolder ? login.timerHolder : "00:00:00") / 60);
+            checkLogin(scheduledLoginTime, login?.startingTime?.length ? login?.startingTime[0] : "00:00:00");
         });
+        const clockIns = employee.clockIns.length > 0 ? employee.clockIns : [];
         res.send({
             totalRegularLogins: regular,
             totalLateLogins: late,
@@ -663,7 +677,7 @@ router.get("/employee/:empId", verifyAdminHREmployeeManagerNetwork, async (req, 
             totalWorkingHoursPerMonth: getTotalWorkingHoursExcludingWeekends(startOfMonth, new Date(now.getFullYear(), now.getMonth() + 1, 0), scheduledWorkingHours, empCurrentYearHolidays, weeklyDays),
             totalEmpWorkingHours,
             totalLeaveDays,
-            clockIns: employee.clockIns.sort((a, b) => new Date(a.date) - new Date(b.date))
+            clockIns
         });
     } catch (error) {
         await errorCollector({ url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT })
@@ -768,6 +782,9 @@ router.get("/", verifyAdminHrNetworkAdmin, async (req, res) => {
         let attendanceData = await ClockIns.find(filterObj)
             .populate({ path: "employee", select: "FirstName LastName" })
             .sort({ date: -1 });
+        // if (attendanceData.length > 0) {
+        //     attendanceData = changeActualTimeDataAsAttendace(attendanceData)
+        // }
 
         return res.send(attendanceData);
     } catch (error) {
@@ -781,6 +798,12 @@ router.put("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
     try {
         if (await ClockIns.exists({ _id: req.params.id })) {
             const updatedData = setTimeHolderForAllActivities(req.body);
+            // check today's timer stopped
+            if (updatedData.login.startingTime.length !== updatedData.login.endingTime.length) {
+                if (updatedData.isStopTimer) {
+                    return res.status(400).send({ error: "You have stopped today's timer" })
+                }
+            }
             // check time time getting stop and other activies are running
             if (updatedData.login.startingTime.length === updatedData.login.endingTime.length) {
                 const activitiesExpLogin = ["meeting", "morningBreak", "lunch", "eveningBreak", "event"]

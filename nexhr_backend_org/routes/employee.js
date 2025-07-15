@@ -488,6 +488,10 @@ router.put("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
 
     // Check for credentials update
     if (Email !== employeeData.Email || Password !== employeeData.Password) {
+      updatedData = {
+        ...req.body,
+        Email: req.body.Email.toLowerCase()
+      }
       const companyName = employeeData?.company?.CompanyName;
       const htmlContent = `
         <!DOCTYPE html>

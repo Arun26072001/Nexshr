@@ -3,21 +3,21 @@ const mongoose = require('mongoose');
 
 // Define the timeRange schema with givenTime and takenTime
 const timeRangeSchema = new mongoose.Schema({
-  startingTime: [{ type: String }],
-  endingTime: [{ type: String }],
+  startingTime: [{ type: Date }],
+  endingTime: [{ type: Date }],
   timeHolder: { type: String }
 }, { _id: false })
 
 const timeRangeSchema1 = new mongoose.Schema({
-  startingTime: [{ type: String }],
-  endingTime: [{ type: String }],
+  startingTime: [{ type: Date }],
+  endingTime: [{ type: Date }],
   timeHolder: { type: String },
   reasonForLate: { type: String }
 }, { _id: false })
 
 const timeRangeSchema2 = new mongoose.Schema({
-  startingTime: [{ type: String }],
-  endingTime: [{ type: String }],
+  startingTime: [{ type: Date }],
+  endingTime: [{ type: Date }],
   timeHolder: { type: String },
   reasonForEarlyLogout: { type: String }
 }, { _id: false })
@@ -45,6 +45,7 @@ const clockInsSchema = new mongoose.Schema({
   event: {
     type: timeRangeSchema
   },
+  isStopTimer: { type: Boolean, default: false },
   forgetToLogout: { type: String },
   behaviour: { type: String },
   punchInMsg: { type: String },

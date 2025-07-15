@@ -83,11 +83,10 @@ export default function HRMDashboard() {
     const [companies, setCompanies] = useState([]);
     // for handle task modal
     const [isAddTask, setIsAddTask] = useState(false);
-    const [isWorkingLoginTimerApi, setIsWorkingLoginTimerApi] = useState(false);
+    const [isWorkingLoginTimerApi, setIsWorkingLoginTimerApi] = useState("");
     const [isworkingActivityTimerApi, setISWorkingActivityTimerApi] = useState(false);
     const [selectedProject, setSelectedProject] = useState("");
     const [checkClockins, setCheckClockins] = useState(false);
-    // const [isForgetToPunchOut, setIsForgetToPunchOut] = useState(false);
     const [unStoppedActivies, setUnStoppedActivites] = useState([]);
 
     // files for payroll
@@ -180,8 +179,8 @@ export default function HRMDashboard() {
     }
 
 
-    const startLoginTimer = async (worklocation, location) => {
-        const currentTime = new Date().toTimeString().split(' ')[0];
+    const startLoginTimer = async (worklocation, location, type) => {
+        const currentTime = new Date();
         const updatedState = {
             ...workTimeTracker,
             login: {
@@ -189,7 +188,7 @@ export default function HRMDashboard() {
                 startingTime: [...(workTimeTracker?.login?.startingTime || []), currentTime],
             },
         };
-        setIsWorkingLoginTimerApi(true)
+        setIsWorkingLoginTimerApi(type);
         try {
             if (!updatedState?._id) {
                 // Add new clock-ins data
@@ -217,20 +216,21 @@ export default function HRMDashboard() {
             localStorage.setItem("isStartLogin", false);
             toast.error(error);
         } finally {
-            setIsWorkingLoginTimerApi(false)
+            setIsWorkingLoginTimerApi("")
         }
     };
 
-    const stopLoginTimer = async () => {
-        const currentTime = new Date().toTimeString().split(' ')[0];
+    const stopLoginTimer = async (type) => {
+        const currentTime = new Date();
         const updatedState = {
             ...workTimeTracker,
             login: {
                 ...workTimeTracker?.login,
                 endingTime: [...(workTimeTracker?.login?.endingTime || []), currentTime],
             },
+            isStopTimer: type === "stop" ? true : false,
         };
-        setIsWorkingLoginTimerApi(true)
+        setIsWorkingLoginTimerApi(type)
         try {
             const updatedData = await updateDataAPI(updatedState);
             if (updatedData && updatedData?._id) {
@@ -245,7 +245,7 @@ export default function HRMDashboard() {
             console.error(err);
             return false;
         } finally {
-            setIsWorkingLoginTimerApi(false);
+            setIsWorkingLoginTimerApi("");
         }
     };
 
@@ -254,7 +254,7 @@ export default function HRMDashboard() {
         const loginStartTimeLen = workTimeTracker?.login?.startingTime.length;
         const loginEndTimeLen = workTimeTracker?.login?.endingTime.length;
         if (loginStartTimeLen !== loginEndTimeLen) {
-            const currentTime = new Date().toTimeString().split(' ')[0];
+            const currentTime = new Date();
             const updatedState = {
                 ...workTimeTracker,
                 [timeOption]: {
@@ -288,16 +288,11 @@ export default function HRMDashboard() {
     const stopActivityTimer = async () => {
         trackTimer();
         const currentDate = new Date();
-        const currentHours = currentDate.getHours().toString().padStart(2, '0');
-        const currentMinutes = currentDate.getMinutes().toString().padStart(2, '0');
-        const currentSeconds = currentDate.getSeconds().toString().padStart(2, '0');
-        const currentTime = `${currentHours}:${currentMinutes}:${currentSeconds}`;
         const updatedState = (prev) => ({
             ...prev,
             [timeOption]: {
                 ...prev[timeOption],
-                endingTime: [...workTimeTracker[timeOption]?.endingTime, currentTime],
-                timeHolder: workTimeTracker[timeOption].timeHolder
+                endingTime: [...workTimeTracker[timeOption]?.endingTime, currentDate],
             },
         });
         setISWorkingActivityTimerApi(true)
