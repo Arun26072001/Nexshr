@@ -316,7 +316,7 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
             minWidth: 130,
             align: 'left',
             getter: (row) => {
-                const punchInTime = row?.punchIn || row?.login?.startingTime[0];
+                const punchInTime = row?.punchIn || row?.login?.startingTime?.[0];
 
                 if (punchInTime) {
                     const date = new Date(punchInTime);

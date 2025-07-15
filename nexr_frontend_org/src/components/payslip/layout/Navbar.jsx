@@ -85,7 +85,7 @@ export default function Navbar({ handleSideBar }) {
     const stopTimer = async (type) => {
         if (workRef.current) {
             const isStoppedTimer = await stopLoginTimer(type);
-            console.log("isStoppedTimer", isStoppedTimer)
+            // console.log("isStoppedTimer", isStoppedTimer)
             if (isStoppedTimer) {
                 clearInterval(workRef.current);
                 workRef.current = null;
@@ -286,7 +286,7 @@ export default function Navbar({ handleSideBar }) {
     function checkIsEnterReasonforEarly() {
         changeViewReasonForEarlyLogout()
         localStorage.removeItem("isViewEarlyLogout");
-        stopTimer();
+        stopTimer("stop");
     }
 
     function getAddress() {
@@ -328,12 +328,15 @@ export default function Navbar({ handleSideBar }) {
         try {
             setIsWorkingLoginTimerApi(true)
             const updatedState = processActivityDurations(workTimeTracker, "login")
-            const updatedData = await updateDataAPI(updatedState);
+            const updatedClockIns = {
+                ...updatedState,
+                isStopTimer: true
+            }
+            const updatedData = await updateDataAPI(updatedClockIns);
             setIsStartLogin(false);
             localStorage.setItem("isStartLogin", false)
             // eslint-disable-next-line no-restricted-globals
             location.reload();
-            // handleLogout();
         } catch (err) {
             console.error(err);
         } finally {

@@ -42,7 +42,7 @@ const useHandleTabClose = (isStartLogin, workTimeTracker, token) => {
 
                 // Clear local storage and stop timers
                 localStorage.removeItem("timerState");
-                localStorage.setItem("isStartLogin", "false");
+                localStorage.setItem("isStartLogin", false);
             }
         };
 

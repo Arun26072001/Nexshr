@@ -195,7 +195,6 @@ export default function HRMDashboard() {
             if (!updatedState?._id) {
                 // Add new clock-ins data
                 const clockinsData = await addDataAPI(updatedState, worklocation, location);
-                console.log("clockinsData", clockinsData)
                 if (clockinsData && clockinsData._id) {
                     setWorkTimeTracker(clockinsData);
                     setIsStartLogin(true);
@@ -496,8 +495,8 @@ export default function HRMDashboard() {
                                 trackTimer();
                             }
                         }
-                        localStorage.setItem('isStartLogin', true);
-                        setIsStartLogin(true);
+                        // localStorage.setItem('isStartLogin', true);
+                        // setIsStartLogin(true);
                         if (clockinData?.types?.length > 0) {
                             setUnStoppedActivites(clockinData.types)
                         }
