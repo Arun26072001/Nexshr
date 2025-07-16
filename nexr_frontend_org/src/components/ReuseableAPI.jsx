@@ -78,7 +78,7 @@ const getDataAPI = async (_id) => {
         const token = getToken();
         const empId = getId();
         const response = await axios.get(`${url}/api/clock-ins/${empId}`, {
-            params: { date: new Date().toISOString() },
+            params: { date: changeClientTimezoneDate(new Date())},
             headers: { authorization: token || '' },
         });
         const data = response.data;
@@ -572,6 +572,11 @@ function formatTimeFromHour(hour) {
     return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
 }
 
+function isValidDate(value) {
+  const date = new Date(value);
+  return !isNaN(date.getTime()) && date.getHours() !== 0;
+}
+
 const addSecondsToTime = (timeString, secondsToAdd) => {
     // Validate and normalize the timeString format
     if (!/^\d{1,2}:\d{1,2}:\d{1,2}$/.test(timeString)) {
@@ -807,6 +812,7 @@ export {
     fetchPayslipInfo,
     getUserLocation,
     fetchPayslip,
+    isValidDate,
     removeClockinsData,
     fetchLeaveRequests,
     isValidLeaveDate,

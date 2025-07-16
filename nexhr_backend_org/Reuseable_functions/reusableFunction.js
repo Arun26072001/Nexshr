@@ -329,6 +329,18 @@ function projectMailContent(emp, creator, company, dataObj, type) {
   `;
 }
 
+function getTimeFromDateOrTimeData(value) {
+  if (isValidDate(value)) {
+    return changeClientTimezoneDate(value).getTime();
+  }
+  if (timeStr.split(/[:.]+/).length > 0) {
+    const [hours, minutes, seconds] = timeStr.split(/[:.]+/).map(Number);
+    const date = new Date();
+    return date.setHours(hours, minutes, seconds);
+  }
+
+}
+
 // Process activity data: calculates total duration and adds timeHolder
 const activities = ["login", "meeting", "morningBreak", "lunch", "eveningBreak", "event"];
 function processActivityDurations(record) {
@@ -337,9 +349,9 @@ function processActivityDurations(record) {
     const endingTimes = record[activity]?.endingTime || [];
 
     const durations = startingTimes.map((startTime, i) => {
-      const start = timeToMinutes(startTime);
-      const end = endingTimes[i] ? timeToMinutes(endingTimes[i]) : getCurrentTimeInMinutes();
-      return Math.abs(end - start);
+      const start = getTimeFromDateOrTimeData(startTime);
+      const end = endingTimes[i] ? getTimeFromDateOrTimeData(endingTimes[i]) : getCurrentTimeInMinutes().getTime();
+      return Math.abs((end - start) / (1000 * 60));
     });
 
     const total = durations.reduce((sum, mins) => sum + mins, 0);
@@ -404,9 +416,9 @@ function setTimeHolderForAllActivities(record) {
     const endingTimes = record[activity]?.endingTime || [];
 
     const durations = startingTimes.map((startTime, i) => {
-      const start = timeToMinutes(startTime);
-      const end = endingTimes[i] ? timeToMinutes(endingTimes[i]) : getCurrentTimeInMinutes();
-      return Math.abs(end - start);
+      const start = getTimeFromDateOrTimeData(startTime);
+      const end = endingTimes[i] ? getTimeFromDateOrTimeData(endingTimes[i]) : getCurrentTimeInMinutes();
+      return Math.abs((end - start) / (1000 * 60));
     });
     const total = durations.reduce((sum, mins) => sum + mins, 0);
     if (!record[activity]) record[activity] = {};
@@ -449,7 +461,8 @@ function timeToMinutes(timeStr) {
 
 const getCurrentTimeInMinutes = () => {
   const now = changeClientTimezoneDate(new Date());
-  return timeToMinutes(now);
+  return now;
+  // return timeToMinutes(now);
 };
 
 const getCurrentTime = (date) => {
@@ -605,4 +618,4 @@ async function errorCollector(errorLog) {
   }
 }
 
-module.exports = { convertToString, changeActualTimeDataAsAttendace, setTimeHolderForAllActivities, setPeriodOfLeave, isValidLeaveDate, errorCollector, getTotalWorkingHourPerDay, getTotalWorkingHourPerDayByDate, accountFromRole, changeClientTimezoneDate, sumLeaveDays, getValidLeaveDays, fetchFirstTwoItems, getCurrentTime, checkLoginForOfficeTime, categorizeTasks, projectMailContent, processActivityDurations, formatLeaveData, getDayDifference, getOrgDB, formatDate, getWeekdaysOfCurrentMonth, mailContent, checkLogin, getTotalWorkingHoursExcludingWeekends, getCurrentTimeInMinutes, timeToMinutes, formatTimeFromMinutes };
+module.exports = { convertToString, getTimeFromDateOrTimeData, changeActualTimeDataAsAttendace, setTimeHolderForAllActivities, setPeriodOfLeave, isValidLeaveDate, errorCollector, getTotalWorkingHourPerDay, getTotalWorkingHourPerDayByDate, accountFromRole, changeClientTimezoneDate, sumLeaveDays, getValidLeaveDays, fetchFirstTwoItems, getCurrentTime, checkLoginForOfficeTime, categorizeTasks, projectMailContent, processActivityDurations, formatLeaveData, getDayDifference, getOrgDB, formatDate, getWeekdaysOfCurrentMonth, mailContent, checkLogin, getTotalWorkingHoursExcludingWeekends, getCurrentTimeInMinutes, timeToMinutes, formatTimeFromMinutes };

@@ -168,13 +168,13 @@ export default function HRMDashboard() {
                     ...pre,
                     login: {
                         ...pre.login,
-                        [name]: value.trimStart(),
+                        [name]: value.replace(/[^a-zA-Z0-9]/g, '').trimStart(),
                     },
                 };
             } else {
                 return {
                     ...pre,
-                    [name]: value.trimStart(),
+                    [name]: value.replace(/[^a-zA-Z0-9]/g, '').trimStart(),
                 };
             }
         });
@@ -182,7 +182,7 @@ export default function HRMDashboard() {
 
 
     const startLoginTimer = async (worklocation, location, type) => {
-        const currentTime = changeClientTimezoneDate(new Date());
+        const currentTime = new Date();
         const updatedState = {
             ...workTimeTracker,
             login: {
@@ -222,7 +222,7 @@ export default function HRMDashboard() {
     };
 
     const stopLoginTimer = async (type) => {
-        const currentTime = changeClientTimezoneDate(new Date());
+        const currentTime = new Date();
         const updatedState = {
             ...workTimeTracker,
             login: {
@@ -255,7 +255,7 @@ export default function HRMDashboard() {
         const loginStartTimeLen = workTimeTracker?.login?.startingTime.length;
         const loginEndTimeLen = workTimeTracker?.login?.endingTime.length;
         if (loginStartTimeLen !== loginEndTimeLen) {
-            const currentTime = changeClientTimezoneDate(new Date());
+            const currentTime = new Date();
             const updatedState = {
                 ...workTimeTracker,
                 [timeOption]: {
@@ -287,7 +287,7 @@ export default function HRMDashboard() {
 
     const stopActivityTimer = async () => {
         trackTimer();
-        const currentDate = changeClientTimezoneDate(new Date());
+        const currentDate = new Date();
         const updatedState = (prev) => ({
             ...prev,
             [timeOption]: {
@@ -482,19 +482,20 @@ export default function HRMDashboard() {
                 if (_id) {
                     const clockinData = await getDataAPI(_id);
                     const timeData = clockinData && clockinData.timeData ? clockinData.timeData : {};
+                    console.log("timeData", timeData)
                     if (Object.keys(timeData).length > 0) {
                         // check emp is works over time
-                        if (clockinData?.message) {
-                            const isWorkingOverTime = window.confirm(clockinData?.message);
-                            if (isWorkingOverTime) {
-                                const clockinsData = {
-                                    ...timeData,
-                                    isWorkingOverTime
-                                }
-                                await updateDataAPI(clockinsData);
-                                trackTimer();
-                            }
-                        }
+                        // if (clockinData?.message) {
+                        //     const isWorkingOverTime = window.confirm(clockinData?.message);
+                        //     if (isWorkingOverTime) {
+                        //         const clockinsData = {
+                        //             ...timeData,
+                        //             isWorkingOverTime
+                        //         }
+                        //         await updateDataAPI(clockinsData);
+                        //         trackTimer();
+                        //     }
+                        // }
                         // localStorage.setItem('isStartLogin', true);
                         // setIsStartLogin(true);
                         if (clockinData?.types?.length > 0) {

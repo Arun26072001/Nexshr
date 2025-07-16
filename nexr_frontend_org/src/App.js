@@ -28,7 +28,6 @@ const App = () => {
   const [whoIs, setWhoIs] = useState("");
   const [isEditEmp, setIsEditEmp] = useState(false);
   const [isStartLogin, setIsStartLogin] = useState([null, "false"].includes(localStorage.getItem("isStartLogin")) ? false : true);
-  console.log("org", localStorage.getItem("isStartLogin"))
   const [isStartActivity, setIsStartActivity] = useState([null, "false"].includes(localStorage.getItem("isStartActivity")) ? false : true);
   const [data, setData] = useState({
     _id: null,
