@@ -185,6 +185,7 @@ const EmployeeForm = ({
         if (!employeeObj?.workingTimePattern) newError.workingTimePattern = "Working time pattern is required";
         if (!employeeObj?.annualLeaveYearStart) newError.annualLeaveYearStart = "AnnualLeaveYearStart date is required";
         if (!employeeObj?.annualLeaveEntitlement) newError.annualLeaveEntitlement = "Annual leave entitlement is required";
+        if (!employeeObj?.monthlyPermissions) newError.monthlyPermissions = "Monthly Permission is required"
         // if (!employeeObj?.basicSalary) newError.basicSalary = "Basic salary is required";
         // if (!employeeObj?.bankName) newError.bankName = "Bank name is required";
         // if (!employeeObj?.accountNo) newError.accountNo = "Account number is required";
@@ -674,7 +675,7 @@ const EmployeeForm = ({
                         </div>
 
                         <div className="row d-flex justify-content-center my-3">
-                            <div className="col-lg-6">
+                            <div className="col-lg-4">
                                 <div className="inputLabel">Public Holidays by</div>
                                 <SelectPicker
                                     className="selectInput p-0"
@@ -695,8 +696,24 @@ const EmployeeForm = ({
                                     data={countries?.map(item => ({ label: item.name, value: item.name }))}
                                 />
                             </div>
-                            <div className="col-lg-6">
-                                <div className="inputLabel">Monthly Permissions</div>
+                            <div className="col-lg-4">
+                                <div className="inputLabel">Warning Limit</div>
+                                <input
+                                    type="number"
+                                    min={0}
+                                    max={100}
+                                    value={employeeObj?.warnings || 3}
+                                    onChange={["admin", "hr"].includes(whoIs) ? e => fillEmpObj(e.target.value, "warnings") : () => { }}
+                                    name="warnings"
+                                    disabled={["admin", "hr"].includes(whoIs) ? false : true}
+                                    className={`inputField ${errors?.warnings ? "error" : ""}`}
+                                />
+                                {errors?.warnings && (
+                                    <div className="text-center text-danger">{errors?.warnings}</div>
+                                )}
+                            </div>
+                            <div className="col-lg-4">
+                                <div className="inputLabel important">Monthly Permissions</div>
                                 <input
                                     type="number"
                                     min={0}

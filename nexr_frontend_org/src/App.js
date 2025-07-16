@@ -17,6 +17,7 @@ import { messaging } from "./firebase/firebase.js";
 import { triggerToaster } from "./components/ReuseableAPI.jsx";
 import ErrorUI from "./components/ErrorUI.jsx";
 import NotFound from "./components/NotFound.jsx";
+import NotificationBox from "./components/NotificationBox.jsx";
 
 export const EssentialValues = createContext(null);
 registerLicense("Ngo9BigBOggjHTQxAR8/V1JEaF5cXmRCeUx1RXxbf1x1ZFREallRTnNYUiweQnxTdEBjX3xecHRQR2BcVUBxWEleYw==")
@@ -46,6 +47,7 @@ const App = () => {
   const [isChangeComments, setIsChangeComments] = useState("");
   const [isViewTakeTime, setIsTaketime] = useState(localStorage.getItem("isViewTakeTime") ? true : false);
   const [isViewEarlyLogout, setIsViewEarlyLogout] = useState(JSON.parse(localStorage.getItem("isViewEarlyLogout")) ? true : false);
+  const [isWarningLimitReached, setIsWarningLimitReached] = useState(localStorage.getItem("isWarningLimitReached") ? JSON.parse(localStorage.getItem("isWarningLimitReached")) : false);
 
   function handleUpdateAnnouncements() {
     setIschangeAnnouncements(!isChangeAnnouncements);
@@ -57,6 +59,11 @@ const App = () => {
 
   function handleEditEmp() {
     setIsEditEmp(!isEditEmp)
+  }
+
+  function handleIsWarningLimitReached() {
+    setIsWarningLimitReached(!isWarningLimitReached);
+    localStorage.removeItem("isWarningLimitReached");
   }
 
   // change ask the reason late in breaks and lunch activity
@@ -300,6 +307,7 @@ const App = () => {
     }
   }, [isLogin, showOfflineAlert, hasInternet])
 
+
   // Component Rendering
   return (
     <EssentialValues.Provider
@@ -340,6 +348,8 @@ const App = () => {
         <Route path="no-internet-connection" element={<ErrorUI title={"Network Disconnected"} description={"Please check your network connection!"} />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
+      {isWarningLimitReached &&
+        <NotificationBox type="warning" header="Warning Limit reached" closeBox={handleIsWarningLimitReached} content={"You have reached your warning limit, so you cannot start the timer."} />}
     </EssentialValues.Provider>
   );
 };
