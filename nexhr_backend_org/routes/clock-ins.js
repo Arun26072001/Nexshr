@@ -453,7 +453,8 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
 router.get("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
     try {
         const employeeId = req.params.id;
-        const queryDate = new Date(req.query.date);
+        const queryDate = changeClientTimezoneDate(req.query.date);
+        // console.log("queryDate", new Date(req.query.date))
         if (isNaN(queryDate)) {
             return res.status(400).send({ error: "Invalid date format." });
         }
@@ -462,7 +463,6 @@ router.get("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
 
         const dayStart = new Date(Date.UTC(queryDate.getUTCFullYear(), queryDate.getUTCMonth(), queryDate.getUTCDate(), 0, 0, 0));
         const dayEnd = new Date(Date.UTC(queryDate.getUTCFullYear(), queryDate.getUTCMonth(), queryDate.getUTCDate(), 23, 59, 59, 999));
-
         // Fetch employee data and clock-ins
         const employeeData = await Employee.findById(employeeId)
             .populate({
@@ -488,7 +488,6 @@ router.get("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
         const prevDate = new Date(Date.UTC(queryDate.getUTCFullYear(), queryDate.getUTCMonth(), queryDate.getUTCDate() - 1));
         const prevStart = new Date(prevDate.setUTCHours(0, 0, 0, 0));
         const prevEnd = new Date(prevDate.setUTCHours(23, 59, 59, 999));
-
         const prevClockIn = await ClockIns.findOne({
             employee: employeeId,
             date: { $gte: prevStart, $lt: prevEnd },
@@ -505,9 +504,9 @@ router.get("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
 
                 if (workingTimeLimit > currentTime && empOvertimeWorkingLimit > currentTime) {
                     return res.send({
-                        message: prevClockIn.isWorkingOverTime
-                            ? undefined
-                            : "Are you still working? It seems like you’ve been working overtime.",
+                        // message: prevClockIn.isWorkingOverTime
+                        //     ? undefined
+                        //     : "Are you still working? It seems like you’ve been working overtime.",
                         timeData: prevClockIn,
                         activitiesData,
                         empTotalWorkingHours
@@ -539,7 +538,7 @@ router.get("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
 
         if (unstopActivities.length > 0 && empOvertimeWorkingLimit < currentTime && workingTimeLimit > currentTime) {
             return res.send({
-                message: "Are you still working? It seems like you’ve been working overtime.",
+                // message: "Are you still working? It seems like you’ve been working overtime.",
                 timeData: clockIn,
                 activitiesData,
                 empTotalWorkingHours

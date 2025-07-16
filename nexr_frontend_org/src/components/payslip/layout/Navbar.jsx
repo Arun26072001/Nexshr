@@ -14,7 +14,7 @@ import axios from "axios";
 import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
 import KeyboardArrowDownRoundedIcon from '@mui/icons-material/KeyboardArrowDownRounded';
 import Loading from '../../Loader';
-import { convertTimeStringToDate, processActivityDurations, updateDataAPI } from '../../ReuseableAPI';
+import { changeClientTimezoneDate, convertTimeStringToDate, isValidDate, processActivityDurations, updateDataAPI } from '../../ReuseableAPI';
 import { useNavigate } from 'react-router-dom';
 
 export default function Navbar({ handleSideBar }) {
@@ -36,6 +36,8 @@ export default function Navbar({ handleSideBar }) {
     const [isLoading, setIsLoading] = useState(false);
     const navigate = useNavigate();
     const [workLocation, setWorklocation] = useState(localStorage.getItem("workLocation") || "");
+    // to error msg on reason for forget logout
+    const [errorData, setErrorData] = useState("");
 
     // Timer logic to increment time
     const incrementTime = () => {
@@ -127,7 +129,7 @@ export default function Navbar({ handleSideBar }) {
                         <button
                             title="start"
                             className='punchBtn my-2'
-                            disabled={isWorkingLoginTimerApi === "start" || !workLocation ? true : isDisabled}
+                            disabled={(workTimeTracker?._id && workTimeTracker?.startingTime?.[0]) || isWorkingLoginTimerApi === "start" || !workLocation ? true : isDisabled}
                             onClick={() => startTimer("start")}
                             style={{ backgroundColor: "#CEE5D3" }}
                         >
@@ -186,10 +188,6 @@ export default function Navbar({ handleSideBar }) {
             setIsLoading(false);
         }
     }
-
-    useEffect(() => {
-        fetchNotifications();
-    }, [isChangeAnnouncements])
 
     async function checkIsCompletedWorkingHour() {
         const confirmToLogout = window.confirm("Are you sure you want to punch out?");
@@ -359,23 +357,43 @@ export default function Navbar({ handleSideBar }) {
     }
 
     function updateCheckoutTime(time, type) {
-        if (new Date(time) && new Date(time).getHours()) {
-            const actualTime = new Date(time);
-            const startingTimes = workTimeTracker[type].startingTime || [];
-            const endingTimes = workTimeTracker[type].endingTime || [];
-            if (startingTimes?.length !== endingTimes?.length) {
-                setWorkTimeTracker((pre) => ({
-                    ...pre,
-                    [type]: {
-                        ...pre[type],
-                        endingTime: [...(endingTimes || []), actualTime],
-                    }
-                }))
-            } else {
-                removeLastOneNdAddCurrent(actualTime)
+        setErrorData("");
+
+        if (!isValidDate(time)) {
+            setErrorData(`Invalid date in ${type}`);
+            return;
+        }
+
+        const currentTime = new Date();
+        const actualTime = new Date(time);
+
+        if (currentTime.getTime() < actualTime.getTime()) {
+            setErrorData(`Invalid date in ${type}`);
+            return;
+        }
+
+        const { startingTime = [], endingTime = [] } = workTimeTracker[type] || {};
+
+        if (startingTime.length !== endingTime.length) {
+            const lastStartedAt = new Date(startingTime.at(-1)).getTime();
+
+            if (actualTime.getTime() < lastStartedAt) {
+                setErrorData(`Invalid date in ${type}`);
+                return;
             }
+
+            setWorkTimeTracker((prev) => ({
+                ...prev,
+                [type]: {
+                    ...prev[type],
+                    endingTime: [...endingTime, actualTime],
+                },
+            }));
+        } else {
+            removeLastOneNdAddCurrent(actualTime);
         }
     }
+
 
     useEffect(() => {
         getAddress();
@@ -384,6 +402,10 @@ export default function Navbar({ handleSideBar }) {
     useEffect(() => {
         verifyWfh()
     }, [])
+
+    useEffect(() => {
+        fetchNotifications();
+    }, [isChangeAnnouncements])
 
     useEffect(() => {
         const startLength = workTimeTracker?.login?.startingTime?.length || 0;
@@ -419,12 +441,11 @@ export default function Navbar({ handleSideBar }) {
             setSec(newSec);
         }
     }, [workTimeTracker, isStartLogin]);
-
     return (
         unStoppedActivies.length > 0 ? <Modal open={unStoppedActivies.length ? true : false} size="sm" backdrop="static">
             <Modal.Header >
                 <Modal.Title>
-                    Reason for forget to stop timer for {unStoppedActivies.length > 0 && `${unStoppedActivies[0]} and ${unStoppedActivies[1]}`}
+                    Reason for forget to stop timer for {unStoppedActivies.length > 0 && unStoppedActivies.length >= 2 ? `${unStoppedActivies.join(" ,")}` : `${unStoppedActivies[0]}`}
                 </Modal.Title>
             </Modal.Header>
 
@@ -446,10 +467,12 @@ export default function Navbar({ handleSideBar }) {
                             <DatePicker value={activityEndTimes[activityStartTimes.length - 1] ? convertTimeStringToDate(activityEndTimes[activityStartTimes.length - 1]) : null}
                                 size='lg'
                                 style={{ width: "100%" }}
+                                className={unStoppedActivies.some((item) => errorData.includes(item)) ? "error" : ""}
                                 format="MM/dd/yyyy hh:mm:ss"
                                 onChange={
                                     (e) => updateCheckoutTime(e, activity)
                                 } />
+                            {unStoppedActivies.some((item) => errorData.includes(item)) ? <div className="text-center text-danger">{errorData}</div> : null}
                         </div>
                     })
                 }
@@ -460,7 +483,10 @@ export default function Navbar({ handleSideBar }) {
                 <Button
                     onClick={clockOut}
                     appearance="primary"
-                    disabled={workTimeTracker.forgetToLogout && unStoppedActivies.every((action) => workTimeTracker[action]?.endingTime?.length === workTimeTracker[action]?.startingTime?.length) ? false : true}
+                    disabled={workTimeTracker.forgetToLogout
+                        && unStoppedActivies.every((action) => workTimeTracker[action]?.endingTime?.length === workTimeTracker[action]?.startingTime?.length) ? false : true
+                            && errorData ? true : false
+                    }
                 >
                     Add
                 </Button>
