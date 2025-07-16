@@ -24,7 +24,7 @@ body {
 }
 
 .marTop {
-  margin-top: 30px;
+  margin-top: var(--header-height);
 }
 
 @media (max-width: 576px) {

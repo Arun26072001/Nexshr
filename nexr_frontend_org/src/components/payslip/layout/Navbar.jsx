@@ -7,14 +7,14 @@ import PunchOut from "../../../asserts/punchOut.svg";
 import PauseRoundedIcon from '@mui/icons-material/PauseRounded';
 import PlayArrowRoundedIcon from '@mui/icons-material/PlayArrowRounded';
 import { TimerStates } from '../HRMDashboard';
-import { Accordion, Button, DatePicker, Dropdown, Input, Modal, Popover, SelectPicker, Whisper } from 'rsuite';
+import { Accordion, Button, DatePicker, Dropdown, Input, Modal, Notification, Popover, SelectPicker, Whisper } from 'rsuite';
 import logo from "../../../imgs/male_avatar.webp";
 import { EssentialValues } from '../../../App';
 import axios from "axios";
 import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
 import KeyboardArrowDownRoundedIcon from '@mui/icons-material/KeyboardArrowDownRounded';
 import Loading from '../../Loader';
-import { changeClientTimezoneDate, convertTimeStringToDate, isValidDate, processActivityDurations, updateDataAPI } from '../../ReuseableAPI';
+import { convertTimeStringToDate, isValidDate, processActivityDurations, updateDataAPI } from '../../ReuseableAPI';
 import { useNavigate } from 'react-router-dom';
 
 export default function Navbar({ handleSideBar }) {
@@ -35,6 +35,7 @@ export default function Navbar({ handleSideBar }) {
     const [longitude, setLongitude] = useState("");
     const [isLoading, setIsLoading] = useState(false);
     const navigate = useNavigate();
+    // const [isView]
     const [workLocation, setWorklocation] = useState(localStorage.getItem("workLocation") || "");
     // to error msg on reason for forget logout
     const [errorData, setErrorData] = useState("");
@@ -332,7 +333,7 @@ export default function Navbar({ handleSideBar }) {
             }
             const updatedData = await updateDataAPI(updatedClockIns);
             setIsStartLogin(false);
-            localStorage.setItem("isStartLogin", false)
+            localStorage.setItem("isStartLogin", false);
             // eslint-disable-next-line no-restricted-globals
             location.reload();
         } catch (err) {
@@ -441,6 +442,7 @@ export default function Navbar({ handleSideBar }) {
             setSec(newSec);
         }
     }, [workTimeTracker, isStartLogin]);
+
     return (
         unStoppedActivies.length > 0 ? <Modal open={unStoppedActivies.length ? true : false} size="sm" backdrop="static">
             <Modal.Header >

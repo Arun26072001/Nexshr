@@ -191,7 +191,7 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
         }
 
         // Fetch employee details with required fields
-        const emp = await Employee.findById(req.params.id, "FirstName LastName Email profile company clockIns leaveApplication isPermanentWFH")
+        const emp = await Employee.findById(req.params.id, "FirstName LastName Email profile company clockIns leaveApplication isPermanentWFH warnings")
             .populate([{ path: "workingTimePattern" },
             { path: "company", select: "location CompanyName" },
             { path: "clockIns", match: { date: { $gte: startOfDay, $lte: endOfDay } } },
@@ -207,6 +207,10 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
             }
             ]).exec();
         if (!emp) return res.status(404).send({ error: "Employee not found!" });
+        // check emp's warnings limit reach
+        if (!Number(emp.warnings)) {
+            return res.status(400).send({ error: "You have reached your warning limit, so you cannot start the timer." })
+        }
         let holidays = [];
         const weeklyDays = emp.workingTimePattern && emp.workingTimePattern.WeeklyDays ? emp.workingTimePattern.WeeklyDays : [];
         if (emp.company) {
@@ -501,12 +505,8 @@ router.get("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
             if (unstopPrevActivities.length > 0) {
                 const activitiesData = processActivityDurations(prevClockIn);
                 const empTotalWorkingHours = (activitiesData.reduce((sum, a) => sum + a.timeCalMins, 0) / 60).toFixed(2);
-
                 if (workingTimeLimit > currentTime && empOvertimeWorkingLimit > currentTime) {
                     return res.send({
-                        // message: prevClockIn.isWorkingOverTime
-                        //     ? undefined
-                        //     : "Are you still working? It seems like you’ve been working overtime.",
                         timeData: prevClockIn,
                         activitiesData,
                         empTotalWorkingHours
@@ -852,6 +852,7 @@ router.get("/", verifyAdminHrNetworkAdmin, async (req, res) => {
 
 router.put("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
     try {
+        const warning = req.query;
         if (await ClockIns.exists({ _id: req.params.id })) {
             const updatedData = setTimeHolderForAllActivities(req.body);
             // check today's timer stopped
@@ -871,7 +872,22 @@ router.put("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
             const updatedClockIn = await ClockIns.findByIdAndUpdate(req.params.id, updatedData, {
                 new: true
             });
-            res.send(updatedClockIn);
+            // check has warning
+            if (warning) {
+                const emp = Employee.findById(req.body.employee, "warnings").exec();
+                if (!emp) {
+                    console.log("error in update warnings for employee");
+                    return res.status(404).send({ error: "Employee not found" })
+                } else {
+                    if (Number(emp.warnings)) {
+                        emp.warnings = Number(emp.warnings) - 1;
+                        await emp.save();
+                    } else {
+                        return res.status(400).send({ error: "warnings limit reached" })
+                    }
+                }
+            }
+            res.send({ updatedClockIn, isWarningLimitReached: emp.warnings === 0 ? true : false });
         } else {
             return res.status(404).send({ message: "Clock-in entry not found" });
         }

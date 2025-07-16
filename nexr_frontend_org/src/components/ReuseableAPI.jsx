@@ -16,15 +16,21 @@ function getId() {
     return empId;
 }
 
-const updateDataAPI = async (body) => {
+const updateDataAPI = async (body, warning) => {
     try {
         const token = getToken()
         if (body._id) {
             const response = await axios.put(`${url}/api/clock-ins/${body._id}`, body, {
+                params: {
+                    warning
+                },
                 headers: { authorization: token || '' },
             });
-
-            return response.data;
+            const clockInsData = response.data.updatedClockIn;
+            if (response.data?.isWarningLimitReached) {
+                localStorage.setItem("isWarningLimitReached", true);
+            }
+            return clockInsData;
         }
     } catch (error) {
         toast.warning(error.response.data.error)
@@ -78,7 +84,7 @@ const getDataAPI = async (_id) => {
         const token = getToken();
         const empId = getId();
         const response = await axios.get(`${url}/api/clock-ins/${empId}`, {
-            params: { date: changeClientTimezoneDate(new Date())},
+            params: { date: changeClientTimezoneDate(new Date()) },
             headers: { authorization: token || '' },
         });
         const data = response.data;
@@ -573,8 +579,8 @@ function formatTimeFromHour(hour) {
 }
 
 function isValidDate(value) {
-  const date = new Date(value);
-  return !isNaN(date.getTime()) && date.getHours() !== 0;
+    const date = new Date(value);
+    return !isNaN(date.getTime()) && date.getHours() !== 0;
 }
 
 const addSecondsToTime = (timeString, secondsToAdd) => {

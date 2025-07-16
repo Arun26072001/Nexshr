@@ -337,6 +337,7 @@ router.post("/:id", verifyAdminHR, async (req, res) => {
       workingTimePattern: req.body.workingTimePattern,
       company: company || inviter.company._id,
       position: req.body.position || null,
+      warnings: req.body.warnings || 3,
       department: req.body.department || null,
       isPermanentWFH: req.body.isPermanentWFH || false,
       annualLeaveEntitlement: annualLeaveEntitlement || 14,

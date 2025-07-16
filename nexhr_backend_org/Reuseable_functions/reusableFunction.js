@@ -338,7 +338,6 @@ function getTimeFromDateOrTimeData(value) {
     const date = new Date();
     return date.setHours(hours, minutes, seconds);
   }
-
 }
 
 // Process activity data: calculates total duration and adds timeHolder
