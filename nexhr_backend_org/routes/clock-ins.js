@@ -7,7 +7,7 @@ const sendMail = require("./mailSender");
 const { format } = require("date-fns");
 const { LeaveApplication } = require("../models/LeaveAppModel");
 const { Team } = require("../models/TeamModel");
-const { timeToMinutes, processActivityDurations, checkLoginForOfficeTime, getCurrentTime, sumLeaveDays, getTotalWorkingHoursExcludingWeekends, changeClientTimezoneDate, getTotalWorkingHourPerDayByDate, errorCollector, isValidLeaveDate, setTimeHolderForAllActivities } = require("../Reuseable_functions/reusableFunction");
+const { timeToMinutes, processActivityDurations, checkLoginForOfficeTime, getCurrentTime, sumLeaveDays, getTotalWorkingHoursExcludingWeekends, changeClientTimezoneDate, getTotalWorkingHourPerDayByDate, errorCollector, isValidLeaveDate, setTimeHolderForAllActivities, isValidDate } = require("../Reuseable_functions/reusableFunction");
 const { WFHApplication } = require("../models/WFHApplicationModel");
 const { sendPushNotification } = require("../auth/PushNotification");
 const { Holiday } = require("../models/HolidayModel");
@@ -670,16 +670,18 @@ router.get("/employee/:empId", verifyAdminHREmployeeManagerNetwork, async (req, 
         const checkLogin = (scheduledTime, actualTime) => {
             let actualHours, actualMinutes = 0;
             let schedHours, schedMinutes = 0;
-            if (new Date(actualTime) && new Date(actualTime).getHours()) {
-                const actualDate = changeClientTimezoneDate(actualTime);
+            if (isValidDate(actualTime)) {
+                // console.log("before", actualTime);
+                const actualDate = new Date(actualTime);
+                // console.log("after", actualDate.getHours(), actualDate.getMinutes());
                 [actualHours, actualMinutes] = [actualDate.getHours(), actualDate.getMinutes()];
             } else {
                 [actualHours, actualMinutes] = actualTime.split(':').map(Number);
-            } if (new Date(scheduledTime) && new Date(scheduledTime).getHours()) {
-                const scheduledDate = changeClientTimezoneDate(actualTime);
+            } if (isValidDate(scheduledTime)) {
+                const scheduledDate = changeClientTimezoneDate(scheduledTime);
                 [schedHours, schedMinutes] = [scheduledDate.getHours(), scheduledDate.getMinutes()];
             } else {
-                [schedHours, schedMinutes] = scheduledTime.split(':').map(Number);
+                [schedHours, schedMinutes] = scheduledTime.split(/[:.]+/).map(Number);
             }
             const scheduled = schedHours * 60 + schedMinutes;
             const actual = actualHours * 60 + actualMinutes;

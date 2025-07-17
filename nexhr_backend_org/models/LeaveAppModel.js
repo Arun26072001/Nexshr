@@ -36,7 +36,7 @@ const LeaveApplicationValidation = Joi.object({
   employee: Joi.string().regex(/^[0-9a-fA-F]{24}$/).optional().label('employee'),
   reasonForLeave: Joi.string().required().disallow(null, ' ', 'none', 'undefined').label('reasonForLeave'),
   periodOfLeave: Joi.string().label('periodOfLeave'),
-  prescription: Joi.string().allow(null, ' ', 'none', 'undefined').optional().label('prescription'),
+  prescription: Joi.string().optional().label('prescription'),
   coverBy: Joi.any().label('coverBy').optional(),
   status: Joi.string().label('status'),
   appliedOn: Joi.date().label('appliedOn'),
