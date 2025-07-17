@@ -23,6 +23,13 @@
   color: #737082;
 }
 
+.timerContainer{
+  display: flex;
+  justify-content: space-between;
+  padding: 5px;
+  
+}
+
 @media (max-width: 768px) {
   .sidebarIcon {
     display: flex;

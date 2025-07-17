@@ -482,7 +482,6 @@ export default function HRMDashboard() {
                 if (_id) {
                     const clockinData = await getDataAPI(_id);
                     const timeData = clockinData && clockinData.timeData ? clockinData.timeData : {};
-                    console.log("timeData", timeData)
                     if (Object.keys(timeData).length > 0) {
                         // check emp is works over time
                         // if (clockinData?.message) {

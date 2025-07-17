@@ -227,7 +227,7 @@ const App = () => {
 
     return () => unsubscribe();
   }, [data._id]);
-  console.log("isStartLogin", isStartLogin)
+
   useEffect(() => {
     localStorage.setItem("isStartLogin", isStartLogin);
     localStorage.setItem("isStartActivity", isStartActivity);

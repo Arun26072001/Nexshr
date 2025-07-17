@@ -854,7 +854,7 @@ router.get("/", verifyAdminHrNetworkAdmin, async (req, res) => {
 
 router.put("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
     try {
-        const warning = req.query;
+        const queryData = req.query;
         if (await ClockIns.exists({ _id: req.params.id })) {
             const updatedData = setTimeHolderForAllActivities(req.body);
             // check today's timer stopped
@@ -874,9 +874,10 @@ router.put("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
             const updatedClockIn = await ClockIns.findByIdAndUpdate(req.params.id, updatedData, {
                 new: true
             });
+            let emp;
             // check has warning
-            if (warning) {
-                const emp = Employee.findById(req.body.employee, "warnings").exec();
+            if (queryData?.warning) {
+                emp = await Employee.findById(req.body.employee, "warnings").exec();
                 if (!emp) {
                     console.log("error in update warnings for employee");
                     return res.status(404).send({ error: "Employee not found" })
@@ -889,7 +890,7 @@ router.put("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
                     }
                 }
             }
-            res.send({ updatedClockIn, isWarningLimitReached: emp.warnings === 0 ? true : false });
+            res.send({ updatedClockIn, isWarningLimitReached: (emp && emp?.warnings === 0) ? true : false });
         } else {
             return res.status(404).send({ message: "Clock-in entry not found" });
         }
