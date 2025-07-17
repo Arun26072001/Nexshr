@@ -119,10 +119,10 @@ export default function Navbar({ handleSideBar }) {
 
         return (
             <Popover ref={ref} className={className} style={{ right, top }} full>
-                <div className="d-flex justify-content-between p-2">
+                {/* <div className="d-flex justify-content-between p-2">
                     <span className='sub_text' style={{ color: "#0a7e22" }}>Check-In: {workTimeTracker?.login?.startingTime?.[0] ? new Date(workTimeTracker?.login?.startingTime[0]).toLocaleTimeString() : "Not yet start"}</span>
                     <span className='sub_text' style={{ color: "#fd4a63" }}>Check-Out: {workTimeTracker?.isStopTimer ? new Date(workTimeTracker?.login?.endingTime.at(-1)).toLocaleTimeString() : "Not yet stop"}</span>
-                </div>
+                </div> */}
                 <div className='d-flex gap-2 p-3'>
                     <div className='d-flex flex-column align-items-center justify-content-center'>
                         <span className='sub_text' >Hour</span>
@@ -526,11 +526,8 @@ export default function Navbar({ handleSideBar }) {
                 <div className="webnxs">
                     <div className="row mx-auto justify-content-between" >
                         <div className="col-lg-3 col-md-3 col-6 d-flex align-items-center">
-                            <div className={`sidebarIcon`} onClick={handleSideBar}>
-                                <TableRowsRoundedIcon />
-                            </div>
-                            <img
-                                src={Webnexs}
+                        <img
+                        src={Webnexs}
                                 width={30}
                                 height={30}
                                 style={{ objectFit: "cover" }}
@@ -540,14 +537,32 @@ export default function Navbar({ handleSideBar }) {
                         </div>
                         {
                             whoIs !== "superAdmin" &&
-                            <div className="col-lg-3" onClick={trackTimer}>
+                            <div className="col-lg-3 col-md-3 col-12" onClick={trackTimer}>
                                 <Whisper placement="bottomStart" trigger="click" speaker={renderMenu1}>
-                                    <button className='button'>{isDisabled ? "Check-Out" : "Check-In"}</button>
+                                    <div className='timerContainer' >
+                                        <div className="d-flex flex-column">
+                                            <div className='sub_text'>Punch In</div>
+                                            <p className='timerText'>
+                                                {workTimeTracker?.login?.startingTime?.length > 0
+                                                    ? new Date(workTimeTracker?.login?.startingTime[0]).toLocaleTimeString()
+                                                    : "00:00"}
+                                            </p>
+                                        </div>
+                                        <div className="d-flex flex-column">
+                                            <div className='sub_text'>Punch Out</div>
+                                            <p className='timerText'>
+                                                {workTimeTracker?.isStopTimer && workTimeTracker?.login?.endingTime?.length > 0
+                                                    ? new Date(workTimeTracker?.login?.endingTime[workTimeTracker?.login?.endingTime.length - 1]).toLocaleTimeString()
+                                                    : "00:00"}
+                                            </p>
+                                        </div>
+                                        <button className='button'>{isDisabled ? "Check-Out" : "Check-In"}</button>
+                                    </div>
                                 </Whisper>
                             </div>
                         }
 
-                        <div className='gap-2 col-lg-4 col-md-3 d-flex align-items-center justify-content-end'>
+                        <div className='gap-2 col-lg-4 col-md-3 col-12 d-flex align-items-center justify-content-end'>
                             <SelectPicker
                                 data={["WFH", "WFO"].map((item) => ({ label: item, value: item }))}
                                 searchable={false}
@@ -615,8 +630,11 @@ export default function Navbar({ handleSideBar }) {
                         </div>
                     </div>
                 </div >
-    );
-}
+            );
+        }
+        // <div className={`sidebarIcon`} onClick={handleSideBar}>
+        //     <TableRowsRoundedIcon />
+        // </div>
 
 // <>
 //     <button className='button' onClick={handleCheckInAndOut}>check-in</button>

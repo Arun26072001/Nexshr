@@ -10,7 +10,7 @@ router.get("/:id", async (req, res) => {
     const payslip = await Payslip.findById({ _id: req.params.id }).populate({
       path: "employee",
       populate: [
-        { path: "company" },
+        { path: "company", select: "CompanyName logo" },
         { path: "role" },
         { path: "position" },
         { path: "department" }
@@ -34,7 +34,7 @@ router.post("/", async (req, res) => {
 
   try {
     // Fetch employees with unpaid leave in the current month
-    const employees = await Employee.find({}, "basicSalary payslipFields payslip leaveApplication").populate({
+    const employees = await Employee.find({}, "basicSalary payslipFields payslip leaveApplication company").populate({
       path: "leaveApplication",
       match: {
         $or: [
@@ -44,20 +44,23 @@ router.post("/", async (req, res) => {
         leaveType: "Unpaid Leave (LWP)",
         status: "approved"
       }
-    }).exec();
-    const response = await Holiday.findOne({ currentYear: startOfMonth.getFullYear() }).exec();
-    let currentMonthOfLeaveDays = [];
-    if (response.holidays.length) {
-      currentMonthOfLeaveDays = response.holidays.filter((holiday) => new Date(holiday.date).getMonth() === startOfMonth.getMonth()).map((item) => new Date(item.date).getDate())
-    }
-
+    })
+      .exec();
     if (!employees.length) {
       return res.status(404).json({ message: "No employees found" });
     }
+
     let unPayslipFieldsEmps = [];
     let payslipGendratedEmps = [];
 
     const payslipPromises = employees.map(async (emp) => {
+      let currentMonthOfLeaveDays = [];
+      if (emp.company) {
+        const response = await Holiday.findOne({ currentYear: startOfMonth.getFullYear(), company: emp.company }).exec();
+        if (response?.holidays?.length) {
+          currentMonthOfLeaveDays = response.holidays.filter((holiday) => new Date(holiday.date).getMonth() === startOfMonth.getMonth()).map((item) => new Date(item.date).getDate())
+        }
+      }
 
       if (emp.basicSalary && emp.payslipFields) {
         const perDayOfSalary = emp.basicSalary ? Number(emp.basicSalary) / getWeekdaysOfCurrentMonth(startOfMonth.getFullYear(), startOfMonth.getMonth(), currentMonthOfLeaveDays) : 0;

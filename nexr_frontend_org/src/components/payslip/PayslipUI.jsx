@@ -18,7 +18,6 @@ export default function PayslipUI() {
     const [earnings, setEarnings] = useState(0);
     const [deductions, setDeductions] = useState(0);
     const [isLoading, setIsLoading] = useState(false);
-
     const handleDownloadPdf = () => {
         const content = payslipRef.current;
         html2canvas(content).then((canvas) => {
@@ -72,10 +71,10 @@ export default function PayslipUI() {
                 if (payslipInfo?.payslipFields) {
                     setPayslipFields(payslipInfo?.payslipFields);
                 }
-           } catch (error) {
-         if (error?.message === "Network Error") {
-                navigate("/network-issue")
-            }
+            } catch (error) {
+                if (error?.message === "Network Error") {
+                    navigate("/network-issue")
+                }
                 console.log(error);
                 toast.error(error);
             }
@@ -114,8 +113,6 @@ export default function PayslipUI() {
             setIsLoading(true);
             try {
                 const slips = await fetchPayslip(id);
-                console.log(slips);
-
                 setPayslips(slips);
             } catch (err) {
                 toast.error(err?.response?.data?.error);
@@ -182,7 +179,7 @@ export default function PayslipUI() {
                                     </div>
                                 </div>
                             </div>
-                        </div>cam
+                        </div>
 
                         {/* Employee Bank and Division */}
                         <div className='d-flex payslipHeader py-3'>
