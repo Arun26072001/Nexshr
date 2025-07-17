@@ -672,7 +672,7 @@ router.get("/employee/:empId", verifyAdminHREmployeeManagerNetwork, async (req, 
             let schedHours, schedMinutes = 0;
             if (isValidDate(actualTime)) {
                 // console.log("before", actualTime);
-                const actualDate = new Date(actualTime);
+                const actualDate = changeClientTimezoneDate(actualTime);
                 // console.log("after", actualDate.getHours(), actualDate.getMinutes());
                 [actualHours, actualMinutes] = [actualDate.getHours(), actualDate.getMinutes()];
             } else {
