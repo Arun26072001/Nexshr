@@ -3,21 +3,21 @@ const mongoose = require('mongoose');
 
 // Define the timeRange schema with givenTime and takenTime
 const timeRangeSchema = new mongoose.Schema({
-  startingTime: [{ type: Date }],
-  endingTime: [{ type: Date }],
+  startingTime: [{ type: String }],
+  endingTime: [{ type: String }],
   timeHolder: { type: String }
 }, { _id: false })
 
 const timeRangeSchema1 = new mongoose.Schema({
-  startingTime: [{ type: Date }],
-  endingTime: [{ type: Date }],
+  startingTime: [{ type: String }],
+  endingTime: [{ type: String }],
   timeHolder: { type: String },
   reasonForLate: { type: String }
 }, { _id: false })
 
 const timeRangeSchema2 = new mongoose.Schema({
-  startingTime: [{ type: Date }],
-  endingTime: [{ type: Date }],
+  startingTime: [{ type: String }],
+  endingTime: [{ type: String }],
   timeHolder: { type: String },
   reasonForEarlyLogout: { type: String }
 }, { _id: false })

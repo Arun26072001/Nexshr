@@ -609,7 +609,7 @@ router.put("/reject-wfh", async (req, res) => {
             const fromDateStr = formatDate(changeClientTimezoneDate(wfh.fromDate));
             const toDateStr = formatDate(changeClientTimezoneDate(wfh.toDate));
             const content = updateReq.status === "approved" ?
-                "Your Work From Home request has been approved. Since no one else from your team is working from home, please ensure you remain active online." :
+                `${employee.FirstName}'s Work From Home request has been approved. Since no one else from your team is working from home, please ensure you remain active online.` :
                 "Please note that proceeding with this WFH without approval will be considered as unpaid and may lead to a salary deduction."
             const htmlContent = `<!DOCTYPE html>
 <html lang="en">

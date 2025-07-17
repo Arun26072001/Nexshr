@@ -444,8 +444,8 @@ function changeClientTimezoneDate(date) {
 
 function timeToMinutes(timeStr) {
   if (timeStr) {
-    if (new Date(timeStr) && new Date(timeStr).getHours()) {
-      const timeData = changeClientTimezoneDate(timeStr).toTimeString().split(' ')[0];
+    if (isValidDate(timeStr)) {
+      const timeData = new Date(timeStr).toTimeString().split(' ')[0];
       const [hours, minutes, seconds] = timeData.split(/[:.]+/).map(Number)
       return Number(((hours * 60) + minutes + (seconds / 60)).toFixed(2)) || 0;
     }
@@ -617,4 +617,4 @@ async function errorCollector(errorLog) {
   }
 }
 
-module.exports = { convertToString, getTimeFromDateOrTimeData, changeActualTimeDataAsAttendace, setTimeHolderForAllActivities, setPeriodOfLeave, isValidLeaveDate, errorCollector, getTotalWorkingHourPerDay, getTotalWorkingHourPerDayByDate, accountFromRole, changeClientTimezoneDate, sumLeaveDays, getValidLeaveDays, fetchFirstTwoItems, getCurrentTime, checkLoginForOfficeTime, categorizeTasks, projectMailContent, processActivityDurations, formatLeaveData, getDayDifference, getOrgDB, formatDate, getWeekdaysOfCurrentMonth, mailContent, checkLogin, getTotalWorkingHoursExcludingWeekends, getCurrentTimeInMinutes, timeToMinutes, formatTimeFromMinutes };
+module.exports = { convertToString, isValidDate, getTimeFromDateOrTimeData, changeActualTimeDataAsAttendace, setTimeHolderForAllActivities, setPeriodOfLeave, isValidLeaveDate, errorCollector, getTotalWorkingHourPerDay, getTotalWorkingHourPerDayByDate, accountFromRole, changeClientTimezoneDate, sumLeaveDays, getValidLeaveDays, fetchFirstTwoItems, getCurrentTime, checkLoginForOfficeTime, categorizeTasks, projectMailContent, processActivityDurations, formatLeaveData, getDayDifference, getOrgDB, formatDate, getWeekdaysOfCurrentMonth, mailContent, checkLogin, getTotalWorkingHoursExcludingWeekends, getCurrentTimeInMinutes, timeToMinutes, formatTimeFromMinutes };
