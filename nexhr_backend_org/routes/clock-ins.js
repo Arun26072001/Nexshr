@@ -981,7 +981,7 @@ router.post("/remainder/:id/:timeOption", async (req, res) => {
 
         const emp = await Employee.findById(id, "FirstName LastName Email fcmToken company").populate("company");
         // send email notification
-        const Subject = `Your ${timeOption[0].toUpperCase() + timeOption.slice(1)} time has ended`;
+        const Subject = `${timeOption[0].toUpperCase() + timeOption.slice(1)} time has ended`;
         sendMail({
             From: `<${process.env.FROM_MAIL}> (Nexshr)`,
             To: emp.Email,
@@ -1012,7 +1012,6 @@ router.post("/remainder/:id/:timeOption", async (req, res) => {
         // send notification even ask the reason for late
         await sendPushNotification({
             token: emp.fcmToken,
-            // company: emp.company,
             title: Subject,
             body: `Your ${timeOption[0].toUpperCase() + timeOption.slice(1)} time has ended. Please resume your work.`,
             type: "late reason"

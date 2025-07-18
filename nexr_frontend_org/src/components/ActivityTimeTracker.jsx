@@ -80,7 +80,7 @@ const ActivityTimeTracker = () => {
     const startTimer = async () => {
         const timeData = getTimeFromHour(workTimeTracker[timeOption].timeHolder, true);
         if (["morningBreak", "eveningBreak", "lunch"].includes(timeOption)) {
-            if (timeOption === "lunch" && timeData < 30) {
+            if (timeOption === "lunch" && timeData < 1) {
                 if (!timerRef.current) {
                     await startActivityTimer();
                     // trackTimer()
@@ -91,20 +91,22 @@ const ActivityTimeTracker = () => {
                                 employee: data._id,
                                 timerId: workTimeTracker._id,
                                 timeOption,
-                                time: timeOption === "lunch" ? 30 - Number(getTimeFromHour(workTimeTracker[timeOption].timeHolder, true)) : 15 - Number(getTimeFromHour(workTimeTracker[timeOption].timeHolder, true)),
+                                time: timeOption === "lunch" ? 1 - timeData : 1 - timeData,
                                 token: data.token
                             });
-                            console.log(res.data);
+                            console.log("isAddreasonForDelay", res.data.isAddreasonForDelay)
+                            if (!res.data.isAddreasonForDelay) {
+                                changeViewReasonForTaketime()
+                            }
                         } catch (error) {
                             if (error?.message === "Network Error") {
                                 navigate("/network-issue")
                             }
                             console.log("error in enable ask reason for late", error);
-
                         }
                     }
                 }
-            } else if (["morningBreak", "eveningBreak"].includes(timeOption) && timeData < 15) {
+            } else if (["morningBreak", "eveningBreak"].includes(timeOption) && timeData < .5) {
                 if (!timerRef.current) {
                     await startActivityTimer();
                     // trackTimer()
@@ -116,10 +118,13 @@ const ActivityTimeTracker = () => {
                                 employee: data._id,
                                 timerId: workTimeTracker._id,
                                 timeOption,
-                                time: 15 - Number(getTimeFromHour(workTimeTracker[timeOption].timeHolder, true)),
+                                time: 1 - timeData,
                                 token: data.token
                             });
-                            console.log(res.data.message);
+                            console.log("isAddreasonForDelay", res.data.isAddreasonForDelay)
+                            if (!res.data.isAddreasonForDelay) {
+                                changeViewReasonForTaketime()
+                            }
                         } catch (error) {
                             if (error?.message === "Network Error") {
                                 navigate("/network-issue")

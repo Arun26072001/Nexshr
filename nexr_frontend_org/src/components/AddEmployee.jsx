@@ -74,7 +74,7 @@ const AddEmployee = () => {
 
       return {
         ...prev,
-        [name]: typeof value === "string" ? value?.trimStart()?.replace(/[^a-zA-Z0-9]+/g, ' ') : name === "Email" ? value.toLowerCase() : value
+        [name]: typeof value === "string" ? value?.trimStart()?.replace(/\s+/g, ' ') : name === "Email" ? value.toLowerCase() : value
       };
     });
   };

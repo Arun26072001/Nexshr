@@ -7,7 +7,7 @@ import PunchOut from "../../../asserts/punchOut.svg";
 import PauseRoundedIcon from '@mui/icons-material/PauseRounded';
 import PlayArrowRoundedIcon from '@mui/icons-material/PlayArrowRounded';
 import { TimerStates } from '../HRMDashboard';
-import { Accordion, Button, DatePicker, Dropdown, Input, Modal, Notification, Popover, SelectPicker, Whisper } from 'rsuite';
+import { Accordion, Button, DatePicker, Dropdown, Input, Modal, Popover, SelectPicker, Whisper } from 'rsuite';
 import logo from "../../../imgs/male_avatar.webp";
 import { EssentialValues } from '../../../App';
 import axios from "axios";
@@ -331,7 +331,7 @@ export default function Navbar({ handleSideBar }) {
                 ...updatedState,
                 isStopTimer: true
             }
-            const updatedData = await updateDataAPI(updatedClockIns);
+            const updatedData = await updateDataAPI(updatedClockIns, true);
             setIsStartLogin(false);
             localStorage.setItem("isStartLogin", false);
             // eslint-disable-next-line no-restricted-globals
