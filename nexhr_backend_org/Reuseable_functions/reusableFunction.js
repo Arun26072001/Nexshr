@@ -329,9 +329,9 @@ function projectMailContent(emp, creator, company, dataObj, type) {
   `;
 }
 
-function getTimeFromDateOrTimeData(value) {
-  if (isValidDate(value)) {
-    return changeClientTimezoneDate(value).getTime();
+function getTimeFromDateOrTimeData(timeStr) {
+  if (isValidDate(timeStr)) {
+    return changeClientTimezoneDate(timeStr).getTime();
   }
   if (timeStr.split(/[:.]+/).length > 0) {
     const [hours, minutes, seconds] = timeStr.split(/[:.]+/).map(Number);

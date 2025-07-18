@@ -1,7 +1,8 @@
 const admin = require("./firebase-admin");
 const { Employee } = require("../models/EmpModel");
 const axios = require("axios");
-const { getCurrentTimeInMinutes, timeToMinutes, getTotalWorkingHourPerDayByDate, errorCollector, changeClientTimezoneDate } = require("../Reuseable_functions/reusableFunction");
+const schedule = require("node-schedule");
+const { getCurrentTimeInMinutes, timeToMinutes, getTotalWorkingHourPerDayByDate, errorCollector, changeClientTimezoneDate, getTimeFromDateOrTimeData } = require("../Reuseable_functions/reusableFunction");
 
 exports.sendPushNotification = async (msgObj) => {
     const { token, title, body } = msgObj;
@@ -93,16 +94,18 @@ exports.askReasonForDelay = (req, res) => {
     try {
         const { time, timerId, timeOption, token } = req.body;
         const delay = Number(time) * 60000;
+
         if (isNaN(delay) || delay <= 0) {
             console.error("Invalid delay time:", time);
             return res.status(400).send({ error: "Invalid delay time" });
         }
 
-        setTimeout(async () => {
+        const runAt = new Date(Date.now() + delay);
 
+        const job = schedule.scheduleJob(runAt, async () => {
             try {
                 const timerRes = await axios.get(`${process.env.REACT_APP_API_URL}/api/clock-ins/item/${timerId}`, {
-                    headers: { Authorization: token }
+                    headers: { Authorization: token },
                 });
 
                 const timeData = timerRes.data.timeData[timeOption];
@@ -114,32 +117,88 @@ exports.askReasonForDelay = (req, res) => {
                     if (!startTime) return 0;
 
                     const endTimeInMin = endingTimes[index]
-                        ? timeToMinutes(endingTimes[index])
-                        : getCurrentTimeInMinutes();
+                        ? getTimeFromDateOrTimeData(endingTimes[index])
+                        : getCurrentTimeInMinutes().getTime();
 
-                    const startTimeInMin = timeToMinutes(startTime);
-                    return Math.abs(endTimeInMin - startTimeInMin);
+                    const startTimeInMin = getTimeFromDateOrTimeData(startTime);
+                    return Math.abs((endTimeInMin - startTimeInMin) / (1000 * 60));
                 });
-
                 const lastValue = values.at(-1) || 0;
 
-                // Compare duration (in minutes) with the original delay time (converted to number)
-                if (startingTimes.length !== endingTimes.length && lastValue >= Number(time)) {
+                if (startingTimes.length !== endingTimes.length && lastValue > Number(time)) {
                     await axios.post(
                         `${process.env.REACT_APP_API_URL}/api/clock-ins/remainder/${employeeId}/${timeOption}`,
                         {},
                         { headers: { Authorization: token } }
                     );
-                    console.log("Reminder sent successfully.");
+                    if (!timeData.reasonForLate) {
+                        return res.send({ isAddreasonForDelay: false, scheduledTime: runAt });
+                    } else {
+                        return res.send({ isAddreasonForDelay: true, scheduledTime: runAt });
+                    }
                 }
             } catch (error) {
                 console.error("Error during reminder logic:", error);
             }
-        }, delay);
+        });
 
-        return res.send({ message: "Enabled ask reason for late" });
+
     } catch (error) {
-        // await errorCollector({ url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT })
         return res.status(500).send({ error: error.message });
     }
 };
+
+
+// exports.askReasonForDelay = (req, res) => {
+//     try {
+//         const { time, timerId, timeOption, token } = req.body;
+//         const delay = Number(time) * 60000;
+//         if (isNaN(delay) || delay <= 0) {
+//             console.error("Invalid delay time:", time);
+//             return res.status(400).send({ error: "Invalid delay time" });
+//         }
+
+//         setTimeout(async () => {
+//             try {
+//                 const timerRes = await axios.get(`${process.env.REACT_APP_API_URL}/api/clock-ins/item/${timerId}`, {
+//                     headers: { Authorization: token }
+//                 });
+
+//                 const timeData = timerRes.data.timeData[timeOption];
+//                 const employeeId = timerRes.data.timeData.employee._id;
+//                 const startingTimes = timeData?.startingTime || [];
+//                 const endingTimes = timeData?.endingTime || [];
+
+//                 const values = startingTimes.map((startTime, index) => {
+//                     if (!startTime) return 0;
+
+//                     const endTimeInMin = endingTimes[index]
+//                         ? getTimeFromDateOrTimeData(endingTimes[index])
+//                         : getCurrentTimeInMinutes().getTime();
+
+//                     const startTimeInMin = getTimeFromDateOrTimeData(startTime);
+//                     return Math.abs((endTimeInMin - startTimeInMin) / (1000 * 60));
+//                 });
+
+//                 const lastValue = values.at(-1) || 0;
+
+//                 // Compare duration (in minutes) with the original delay time (converted to number)
+//                 if (startingTimes.length !== endingTimes.length && lastValue > Number(time)) {
+//                     await axios.post(
+//                         `${process.env.REACT_APP_API_URL}/api/clock-ins/remainder/${employeeId}/${timeOption}`,
+//                         {},
+//                         { headers: { Authorization: token } }
+//                     );
+//                     console.log("Reminder sent successfully.");
+//                 }
+//             } catch (error) {
+//                 console.error("Error during reminder logic:", error);
+//             }
+//         }, delay);
+
+//         return res.send({ message: "Enabled ask reason for late" });
+//     } catch (error) {
+//         // await errorCollector({ url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT })
+//         return res.status(500).send({ error: error.message });
+//     }
+// };

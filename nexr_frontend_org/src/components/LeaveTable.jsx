@@ -211,7 +211,6 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
         }
     ];
 
-    console.log("tabledata", data)
     const column4 = [
         {
             id: 'FirstName',

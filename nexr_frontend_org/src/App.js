@@ -207,19 +207,18 @@ const App = () => {
 
     // Listen for incoming messages when the app is in the foreground
     const unsubscribe = onMessage(messaging, (payload) => {
-      console.log("payloadData", payload);
       const decodedData = jwtDecode(localStorage.getItem("token"));
       const type = payload?.data?.type;
       if (!["edit comment", "delete comment"].includes(type)) {
         triggerToaster({ company: decodedData.company, title: payload.data.title, message: payload.data.body })
       }
       if (type && type.toLowerCase().includes("comment")) {
-        console.log("done_2");
         setIsChangeComments(payload?.messageId)
       }
-      if (type === "late reason") {
-        changeViewReasonForTaketime();
-      } if (type === "early reason") {
+      // if (type === "late reason") {
+      //   changeViewReasonForTaketime();
+      // } 
+      if (type === "early reason") {
         changeViewReasonForEarlyLogout()
       }
       setIschangeAnnouncements(payload.messageId);
@@ -349,7 +348,7 @@ const App = () => {
         <Route path="*" element={<NotFound />} />
       </Routes>
       {isWarningLimitReached &&
-        <NotificationBox type="warning" header="Warning Limit reached" closeBox={handleIsWarningLimitReached} content={"You have reached your warning limit, so you cannot start the timer."} />}
+        <NotificationBox type="warning" header="Warning Limit reached" closeBox={handleIsWarningLimitReached} content={"You have reached your warning limit, so you cannot start the timer. If you want to start the timer, you need to get approval from your higher authority."} />}
     </EssentialValues.Provider>
   );
 };

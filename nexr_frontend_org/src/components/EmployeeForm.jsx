@@ -349,7 +349,7 @@ const EmployeeForm = ({
                                 <div className="inputLabel">Date Of Birth</div>
                                 <input
                                     type="date"
-                                    className="inputField"
+                                    className="inpputField"
                                     name="dateOfBirth"
                                     onChange={e => fillEmpObj(e.target.value, "dateOfBirth")}
                                     value={employeeObj?.dateOfBirth || ""}
@@ -702,7 +702,7 @@ const EmployeeForm = ({
                                     type="number"
                                     min={0}
                                     max={100}
-                                    value={employeeObj?.warnings || 3}
+                                    value={employeeObj?.warnings}
                                     onChange={["admin", "hr"].includes(whoIs) ? e => fillEmpObj(e.target.value, "warnings") : () => { }}
                                     name="warnings"
                                     disabled={["admin", "hr"].includes(whoIs) ? false : true}

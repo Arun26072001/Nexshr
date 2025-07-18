@@ -3,7 +3,6 @@ import { Route, Routes, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import {
     addDataAPI,
-    changeClientTimezoneDate,
     fetchAllEmployees,
     getDataAPI,
     gettingClockinsData,
@@ -208,6 +207,7 @@ export default function HRMDashboard() {
                 setWorkTimeTracker(updatedData);
                 setIsStartLogin(true);
                 localStorage.setItem("isStartLogin", true);
+                toast.success("Working timer started")
             }
         } catch (error) {
             if (error?.message === "Network Error") {
@@ -239,6 +239,7 @@ export default function HRMDashboard() {
                 localStorage.setItem('isStartLogin', false);
                 setIsStartLogin(false);
                 updateClockins();
+                toast.success("Working timer stopped")
                 return true;
             }
             return false;
@@ -303,6 +304,7 @@ export default function HRMDashboard() {
             localStorage.removeItem("isStartActivity", false);
             setIsStartActivity(false);
             updateClockins();
+            toast.success(`${timeOption[0].toUpperCase() + timeOption.slice(1)} timer has been stopped!`);
         } catch (error) {
             if (error?.message === "Network Error") {
                 navigate("/network-issue")
