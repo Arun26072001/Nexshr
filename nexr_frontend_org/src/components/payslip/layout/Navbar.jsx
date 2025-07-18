@@ -17,12 +17,12 @@ import Loading from '../../Loader';
 import { convertTimeStringToDate, isValidDate, processActivityDurations, updateDataAPI } from '../../ReuseableAPI';
 import { useNavigate } from 'react-router-dom';
 
-export default function Navbar({ handleSideBar }) {
+export default function Navbar() {
     const { handleLogout, data, handleUpdateAnnouncements, isChangeAnnouncements, whoIs,
         changeViewReasonForEarlyLogout, isViewEarlyLogout, setIsStartLogin } = useContext(EssentialValues)
     const { startLoginTimer, stopLoginTimer, workTimeTracker, isStartLogin,
         trackTimer, changeReasonForEarly, setWorkTimeTracker, isWorkingLoginTimerApi,
-        setIsWorkingLoginTimerApi, unStoppedActivies } = useContext(TimerStates);
+        setIsWorkingLoginTimerApi, unStoppedActivies, isLateLogin } = useContext(TimerStates);
     const [sec, setSec] = useState(workTimeTracker?.login?.timeHolder?.split(':')[2])
     const [min, setMin] = useState(workTimeTracker?.login?.timeHolder?.split(':')[1])
     const [hour, setHour] = useState(workTimeTracker?.login?.timeHolder?.split(':')[0])
@@ -443,8 +443,8 @@ export default function Navbar({ handleSideBar }) {
         }
     }, [workTimeTracker, isStartLogin]);
 
-    return (
-        unStoppedActivies.length > 0 ? <Modal open={unStoppedActivies.length ? true : false} size="sm" backdrop="static">
+    if (unStoppedActivies.length > 0) {
+        return <Modal open={unStoppedActivies.length ? true : false} size="sm" backdrop="static">
             <Modal.Header >
                 <Modal.Title>
                     Reason for forget to stop timer for {unStoppedActivies.length > 0 && unStoppedActivies.length >= 2 ? `${unStoppedActivies.join(" ,")}` : `${unStoppedActivies[0]}`}
@@ -493,148 +493,199 @@ export default function Navbar({ handleSideBar }) {
                     Add
                 </Button>
             </Modal.Footer>
-        </Modal > :
-            isViewEarlyLogout ?
-                <Modal open={isViewEarlyLogout} size="sm" backdrop="static">
-                    <Modal.Header >
-                        <Modal.Title>
-                            Reason for early logout
-                        </Modal.Title>
-                    </Modal.Header >
+        </Modal >
+    }
 
-                    <Modal.Body>
-                        <div className="modelInput">
-                            <p>Please Enter reason for early logout</p>
-                            <Input size='lg'
-                                type='text'
-                                autoComplete='off'
-                                onChange={(e) => changeReasonForEarly(e, "reasonForEarlyLogout")}
-                                value={workTimeTracker?.login?.reasonForEarlyLogout} />
-                        </div>
-                    </Modal.Body>
+    if (isViewEarlyLogout) {
+        return <Modal open={isViewEarlyLogout} size="sm" backdrop="static">
+            <Modal.Header >
+                <Modal.Title>
+                    Reason for early logout
+                </Modal.Title>
+            </Modal.Header >
 
-                    <Modal.Footer>
-                        <Button
-                            onClick={checkIsEnterReasonforEarly}
-                            appearance="primary"
-                            disabled={workTimeTracker?.login?.reasonForEarlyLogout ? false : true}
-                        >
-                            Add
-                        </Button>
-                    </Modal.Footer>
-                </Modal > :
-                <div className="webnxs">
-                    <div className="row mx-auto justify-content-between" >
-                        <div className="col-lg-3 col-md-3 col-6 d-flex align-items-center">
-                        <img
+            <Modal.Body>
+                <div className="modelInput">
+                    <p>Please Enter reason for early logout</p>
+                    <Input size='lg'
+                        type='text'
+                        autoComplete='off'
+                        onChange={(e) => changeReasonForEarly(e, "reasonForEarlyLogout")}
+                        value={workTimeTracker?.login?.reasonForEarlyLogout} />
+                </div>
+            </Modal.Body>
+
+            <Modal.Footer>
+                <Button
+                    onClick={checkIsEnterReasonforEarly}
+                    appearance="primary"
+                    disabled={workTimeTracker?.login?.reasonForEarlyLogout ? false : true}
+                >
+                    Add
+                </Button>
+            </Modal.Footer>
+        </Modal >
+    }
+
+    // if (isLateLogin) {
+    //     return <Modal open={isViewEarlyLogout} size="sm" backdrop="static">
+    //         <Modal.Header >
+    //             <Modal.Title>
+    //                 Reason for Late Punch-in
+    //             </Modal.Title>
+    //         </Modal.Header >
+
+    //         <Modal.Body>
+    //             <div className="modelInput important">
+    //                 <p>Late Type</p>
+    //                 <Input size='lg'
+    //                     type='text'
+    //                     autoComplete='off'
+    //                     onChange={(e) => changeReasonForEarly(e, "lateType")}
+    //                     value={workTimeTracker?.lateLogin?.lateType} />
+    //             </div>
+    //             <div className="modelInput important">
+    //                 <p>Reason for the Late</p>
+    //                 <Input size='lg'
+    //                     type='text'
+    //                     autoComplete='off'
+    //                     onChange={(e) => changeReasonForEarly(e, "lateReason")}
+    //                     value={workTimeTracker?.lateLogin?.lateReason} />
+    //             </div>
+    //             <div className="modelInput">
+    //                 <p>Proof</p>
+    //                 <input
+    //                     type="file"
+    //                     className="form-control"
+    //                     onChange={(e) => changeReasonForEarly(e, "proof")}
+    //                 />
+    //             </div>
+    //         </Modal.Body>
+
+    //         <Modal.Footer>
+    //             <Button
+    //                 onClick={checkIsEnterReasonforEarly}
+    //                 appearance="primary"
+    //             >
+    //                 Add
+    //             </Button>
+    //         </Modal.Footer>
+    //     </Modal >
+    // }
+
+    return (
+        <div className="webnxs">
+            <div className="row mx-auto justify-content-between" >
+                <div className="col-lg-3 col-md-3 col-6 d-flex align-items-center">
+                    <img
                         src={Webnexs}
-                                width={30}
-                                height={30}
-                                style={{ objectFit: "cover" }}
-                                alt="Webnexs Company Logo"
-                            />
-                            <span style={{ fontSize: "16px", fontWeight: "700" }}>NexHR</span>
-                        </div>
-                        {
-                            whoIs !== "superAdmin" &&
-                            <div className="col-lg-3 col-md-3 col-12" onClick={trackTimer}>
-                                <Whisper placement="bottomStart" trigger="click" speaker={renderMenu1}>
-                                    <div className='timerContainer' >
-                                        <div className="d-flex flex-column">
-                                            <div className='sub_text'>Punch In</div>
-                                            <p className='timerText'>
-                                                {workTimeTracker?.login?.startingTime?.length > 0
-                                                    ? new Date(workTimeTracker?.login?.startingTime[0]).toLocaleTimeString()
-                                                    : "00:00"}
-                                            </p>
-                                        </div>
-                                        <div className="d-flex flex-column">
-                                            <div className='sub_text'>Punch Out</div>
-                                            <p className='timerText'>
-                                                {workTimeTracker?.isStopTimer && workTimeTracker?.login?.endingTime?.length > 0
-                                                    ? new Date(workTimeTracker?.login?.endingTime[workTimeTracker?.login?.endingTime.length - 1]).toLocaleTimeString()
-                                                    : "00:00"}
-                                            </p>
-                                        </div>
-                                        <button className='button'>{isDisabled ? "Check-Out" : "Check-In"}</button>
-                                    </div>
-                                </Whisper>
+                        width={30}
+                        height={30}
+                        style={{ objectFit: "cover" }}
+                        alt="Webnexs Company Logo"
+                    />
+                    <span style={{ fontSize: "16px", fontWeight: "700" }}>NexHR</span>
+                </div>
+                {
+                    whoIs !== "superAdmin" &&
+                    <div className="col-lg-3 col-md-3 col-12" onClick={trackTimer}>
+                        <Whisper placement="bottomStart" trigger="click" speaker={renderMenu1}>
+                            <div className='timerContainer' >
+                                <div className="d-flex flex-column">
+                                    <div className='sub_text'>Punch In</div>
+                                    <p className='timerText'>
+                                        {workTimeTracker?.login?.startingTime?.length > 0
+                                            ? new Date(workTimeTracker?.login?.startingTime[0]).toLocaleTimeString()
+                                            : "00:00"}
+                                    </p>
+                                </div>
+                                <div className="d-flex flex-column">
+                                    <div className='sub_text'>Punch Out</div>
+                                    <p className='timerText'>
+                                        {workTimeTracker?.isStopTimer && workTimeTracker?.login?.endingTime?.length > 0
+                                            ? new Date(workTimeTracker?.login?.endingTime[workTimeTracker?.login?.endingTime.length - 1]).toLocaleTimeString()
+                                            : "00:00"}
+                                    </p>
+                                </div>
+                                <button className='button'>{isDisabled ? "Check-Out" : "Check-In"}</button>
                             </div>
-                        }
+                        </Whisper>
+                    </div>
+                }
 
-                        <div className='gap-2 col-lg-4 col-md-3 col-12 d-flex align-items-center justify-content-end'>
-                            <SelectPicker
-                                data={["WFH", "WFO"].map((item) => ({ label: item, value: item }))}
-                                searchable={false}
-                                onChange={(e) => {
-                                    setWorklocation(e)
-                                    localStorage.setItem("workLocation", e)
-                                }}
-                                style={{ width: 200 }}
-                                value={workLocation}
-                                appearance="default"
-                                placeholder="Choose work place"
-                            />
-                            <span className="bell mx-2 position-relative" data-bs-toggle="offcanvas" data-bs-target="#offcanvasRight" aria-controls="offcanvasRight">
-                                <svg width="16" height="17" viewBox="0 0 16 17" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                    <g clipPath="url(#clip0_2046_6896)">
-                                        <path d="M4.11584 4.25758C4.28455 2.64323 5.73825 1.5 7.47569 1.5H8.52431C10.2618 1.5 11.7155 2.64323 11.8842 4.25758L12.2348 7.80303C12.3619 9.01954 12.9113 10.2534 13.7994 11.1515C14.2434 11.6005 13.9022 12.5303 13.2477 12.5303H2.75233C2.09777 12.5303 1.75663 11.6005 2.20061 11.1515C3.08866 10.2534 3.63806 9.01954 3.76519 7.80303L4.11584 4.25758Z" stroke="#212143" strokeWidth="1.20741" strokeLinejoin="round" />
-                                        <path d="M6.13794 12.5303H9.86207V12.7273C9.86207 13.7063 9.0284 14.5 8.00001 14.5C6.97161 14.5 6.13794 13.7063 6.13794 12.7273V12.5303Z" stroke="#212143" strokeWidth="1.20741" strokeLinejoin="round" />
-                                    </g>
-                                    <defs>
-                                        <clipPath id="clip0_2046_6896">
-                                            <rect width="16" height="16" fill="white" transform="translate(0 0.5)" />
-                                        </clipPath>
-                                    </defs>
-                                </svg>
-                                {
-                                    notifications.length > 0 &&
-                                    <span className='messageCount'>
-                                        {notifications.length <= 9 ? notifications.length : "9+"}
-                                    </span>
-                                }
+                <div className='gap-2 col-lg-4 col-md-3 col-12 d-flex align-items-center justify-content-end'>
+                    <SelectPicker
+                        data={["WFH", "WFO"].map((item) => ({ label: item, value: item }))}
+                        searchable={false}
+                        onChange={(e) => {
+                            setWorklocation(e)
+                            localStorage.setItem("workLocation", e)
+                        }}
+                        style={{ width: 200 }}
+                        value={workLocation}
+                        appearance="default"
+                        placeholder="Choose work place"
+                    />
+                    <span className="bell mx-2 position-relative" data-bs-toggle="offcanvas" data-bs-target="#offcanvasRight" aria-controls="offcanvasRight">
+                        <svg width="16" height="17" viewBox="0 0 16 17" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <g clipPath="url(#clip0_2046_6896)">
+                                <path d="M4.11584 4.25758C4.28455 2.64323 5.73825 1.5 7.47569 1.5H8.52431C10.2618 1.5 11.7155 2.64323 11.8842 4.25758L12.2348 7.80303C12.3619 9.01954 12.9113 10.2534 13.7994 11.1515C14.2434 11.6005 13.9022 12.5303 13.2477 12.5303H2.75233C2.09777 12.5303 1.75663 11.6005 2.20061 11.1515C3.08866 10.2534 3.63806 9.01954 3.76519 7.80303L4.11584 4.25758Z" stroke="#212143" strokeWidth="1.20741" strokeLinejoin="round" />
+                                <path d="M6.13794 12.5303H9.86207V12.7273C9.86207 13.7063 9.0284 14.5 8.00001 14.5C6.97161 14.5 6.13794 13.7063 6.13794 12.7273V12.5303Z" stroke="#212143" strokeWidth="1.20741" strokeLinejoin="round" />
+                            </g>
+                            <defs>
+                                <clipPath id="clip0_2046_6896">
+                                    <rect width="16" height="16" fill="white" transform="translate(0 0.5)" />
+                                </clipPath>
+                            </defs>
+                        </svg>
+                        {
+                            notifications.length > 0 &&
+                            <span className='messageCount'>
+                                {notifications.length <= 9 ? notifications.length : "9+"}
                             </span>
-                            {/* Profile Section */}
-                            <Whisper placement="bottomEnd" trigger="click" speaker={renderMenu}>
-                                <img src={data?.profile || logo} className='imgContainer' style={{ width: "40px", height: "40px" }} alt='emp_img' />
-                            </Whisper>
-                            {/* Messages Section */}
-                            <div className="offcanvas offcanvas-end" tabIndex="-1" id="offcanvasRight" aria-labelledby="offcanvasRightLabel">
-                                <div className="offcanvas-header">
-                                    <h5 id="offcanvasRightLabel">Notifications</h5>
-                                    <button type="button" className="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
-                                </div>
-                                <div className="offcanvas-body">
-                                    {
-                                        isLoading ? <Loading /> :
-                                            notifications.length > 0 &&
-                                            notifications.map((notification, index) => {
-                                                return <div key={notification._id || index} className={`box-content my-2 ${isRemove[index] ? "remove" : ""} box-content my-2 d-flex justfy-content-center align-items-center position-relative`}>
-                                                    <span className="closeBtn" title='close' onClick={() => removeMessage(notification, index)}>
-                                                        <CloseRoundedIcon fontSize='md' />
-                                                    </span>
-                                                    <img src={notification?.company?.logo} alt={"companyLogo"} width={50} height={"auto"} />
-                                                    <Accordion>
-                                                        <Accordion.Panel header={<p>{notification.title}</p>} eventKey={1} caretAs={KeyboardArrowDownRoundedIcon}>
-                                                            <p className='sub_text' style={{ fontSize: "13px" }}>{notification?.message?.replace(/<[^>]*>/g, "")}</p>
-                                                        </Accordion.Panel>
-                                                    </Accordion>
-                                                </div>
-                                            })
-                                    }
-                                </div>
-                                <div className='text-align-center m-2' >
-                                    <button className='button w-100' onClick={clearMsgs}>Clear all</button>
-                                </div>
-                            </div>
+                        }
+                    </span>
+                    {/* Profile Section */}
+                    <Whisper placement="bottomEnd" trigger="click" speaker={renderMenu}>
+                        <img src={data?.profile || logo} className='imgContainer' style={{ width: "40px", height: "40px" }} alt='emp_img' />
+                    </Whisper>
+                    {/* Messages Section */}
+                    <div className="offcanvas offcanvas-end" tabIndex="-1" id="offcanvasRight" aria-labelledby="offcanvasRightLabel">
+                        <div className="offcanvas-header">
+                            <h5 id="offcanvasRightLabel">Notifications</h5>
+                            <button type="button" className="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+                        </div>
+                        <div className="offcanvas-body">
+                            {
+                                isLoading ? <Loading /> :
+                                    notifications.length > 0 &&
+                                    notifications.map((notification, index) => {
+                                        return <div key={notification._id || index} className={`box-content my-2 ${isRemove[index] ? "remove" : ""} box-content my-2 d-flex justfy-content-center align-items-center position-relative`}>
+                                            <span className="closeBtn" title='close' onClick={() => removeMessage(notification, index)}>
+                                                <CloseRoundedIcon fontSize='md' />
+                                            </span>
+                                            <img src={notification?.company?.logo} alt={"companyLogo"} width={50} height={"auto"} />
+                                            <Accordion>
+                                                <Accordion.Panel header={<p>{notification.title}</p>} eventKey={1} caretAs={KeyboardArrowDownRoundedIcon}>
+                                                    <p className='sub_text' style={{ fontSize: "13px" }}>{notification?.message?.replace(/<[^>]*>/g, "")}</p>
+                                                </Accordion.Panel>
+                                            </Accordion>
+                                        </div>
+                                    })
+                            }
+                        </div>
+                        <div className='text-align-center m-2' >
+                            <button className='button w-100' onClick={clearMsgs}>Clear all</button>
                         </div>
                     </div>
-                </div >
-            );
-        }
-        // <div className={`sidebarIcon`} onClick={handleSideBar}>
-        //     <TableRowsRoundedIcon />
-        // </div>
+                </div>
+            </div>
+        </div >
+    );
+}
+// <div className={`sidebarIcon`} onClick={handleSideBar}>
+//     <TableRowsRoundedIcon />
+// </div>
 
 // <>
 //     <button className='button' onClick={handleCheckInAndOut}>check-in</button>

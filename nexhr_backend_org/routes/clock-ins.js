@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const { verifyAdminHREmployeeManagerNetwork, verifyAdminHrNetworkAdmin, verifyTeamHigherAuthority } = require("../auth/authMiddleware");
+const { verifyAdminHREmployeeManagerNetwork, verifyAdminHrNetworkAdmin, verifyTeamHigherAuthority, verifyAdminHR } = require("../auth/authMiddleware");
 const { ClockIns, clockInsValidation } = require("../models/ClockInsModel");
 const { Employee } = require("../models/EmpModel");
 const sendMail = require("./mailSender");
@@ -270,8 +270,72 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
         // }
 
         if (!loginTimeRaw) return res.status(400).send({ error: "You must start Punch-in Timer" });
+
+        // Validate input data
+        const { error } = clockInsValidation.validate(req.body);
+        if (error) return res.status(400).send({ error: error.message });
+
+        // Function to check login status
+        const checkLoginStatus = (scheduledTime, actualTime, permissionTime = 0) => {
+            if (!scheduledTime || !actualTime) return null;
+
+            const scheduledMinutes = timeToMinutes(scheduledTime);
+            const actualMinutes = timeToMinutes(actualTime);
+
+            if ((scheduledMinutes + permissionTime) > actualMinutes) {
+                early++;
+                return "Early";
+            } else if (actualMinutes > scheduledMinutes) {
+                late++;
+                return "Late";
+            } else if (actualMinutes === scheduledMinutes) {
+                regular++;
+                return "On Time";
+            }
+        };
+
+        // Determine employee behavior (Late, Early, On Time)
+        const loginTime = loginTimeRaw;
+        // const permissionMinutes = emp?.leaveApplication?.length
+        //     ? ((new Date(emp.leaveApplication[0].toDate).getTime() - new Date(emp.leaveApplication[0].fromDate).getTime()) / 60000) / 60
+        //     : 0;
+        // console.log(emp?.leaveApplication[0]);
+
+        const behaviour = checkLoginStatus(officeLoginTime, loginTime);
+        const punchInMsg = await checkLoginForOfficeTime(officeLoginTime, loginTime);
+        const isLateLogin = behaviour === "Late" ? true : false
+
+        // Create clock-in entry
+        const newClockIns = await ClockIns.create({
+            ...req.body,
+            behaviour,
+            punchInMsg,
+            employee: req.params.id
+        });
+
+        emp.clockIns.push(newClockIns._id);
+        await emp.save();
+
+        return res.status(201).send({ message: "Working timer started", isLateLogin, clockIns: newClockIns });
+
+    } catch (error) {
+        await errorCollector({ url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT })
+        console.error(error);
+        return res.status(500).send({ error: error.message });
+    }
+});
+
+router.put("/late-punchin-response/:id", verifyAdminHR, async (req, res) => {
+    try {
+        
+        const clockinData = req.body;
+        const emp = clockinData.employee;
+        // Office login time & employee login time 
+        const officeLoginTime = getCurrentTime(emp?.workingTimePattern?.StartingTime) || "9:00";
+        const loginTimeRaw = req.body?.login?.startingTime?.[0];
         const companyLoginMinutes = timeToMinutes(officeLoginTime) + Number(emp?.workingTimePattern?.WaitingTime);
         const empLoginMinutes = timeToMinutes(loginTimeRaw);
+
         // check emp's login time is greater than office time
         if (companyLoginMinutes < empLoginMinutes) {
             const timeDiff = empLoginMinutes - companyLoginMinutes;
@@ -400,59 +464,10 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
                 });
             }
         }
-
-        // Validate input data
-        const { error } = clockInsValidation.validate(req.body);
-        if (error) return res.status(400).send({ error: error.message });
-
-        // Function to check login status
-        const checkLoginStatus = (scheduledTime, actualTime, permissionTime = 0) => {
-            if (!scheduledTime || !actualTime) return null;
-
-            const scheduledMinutes = timeToMinutes(scheduledTime);
-            const actualMinutes = timeToMinutes(actualTime);
-
-            if ((scheduledMinutes + permissionTime) > actualMinutes) {
-                early++;
-                return "Early";
-            } else if (actualMinutes > scheduledMinutes) {
-                late++;
-                return "Late";
-            } else if (actualMinutes === scheduledMinutes) {
-                regular++;
-                return "On Time";
-            }
-        };
-
-        // Determine employee behavior (Late, Early, On Time)
-        const loginTime = loginTimeRaw;
-        // const permissionMinutes = emp?.leaveApplication?.length
-        //     ? ((new Date(emp.leaveApplication[0].toDate).getTime() - new Date(emp.leaveApplication[0].fromDate).getTime()) / 60000) / 60
-        //     : 0;
-        // console.log(emp?.leaveApplication[0]);
-
-        const behaviour = checkLoginStatus(officeLoginTime, loginTime);
-        const punchInMsg = await checkLoginForOfficeTime(officeLoginTime, loginTime);
-
-        // Create clock-in entry
-        const newClockIns = await ClockIns.create({
-            ...req.body,
-            behaviour,
-            punchInMsg,
-            employee: req.params.id
-        });
-
-        emp.clockIns.push(newClockIns._id);
-        await emp.save();
-
-        return res.status(201).send({ message: "Working timer started", clockIns: newClockIns });
-
     } catch (error) {
-        await errorCollector({ url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT })
-        console.error(error);
-        return res.status(500).send({ error: error.message });
+
     }
-});
+})
 
 router.get("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
     try {
@@ -723,7 +738,7 @@ router.get("/employee/:empId", verifyAdminHREmployeeManagerNetwork, async (req, 
             scheduledWorkingHours = (endingDate.getTime() - startingDate.getTime()) / (1000 * 60 * 60)
         }
         employee.clockIns.forEach(({ login }) => {
-            totalEmpWorkingHours += (timeToMinutes(login.timerHolder ? login.timerHolder : "00:00:00") / 60);
+            totalEmpWorkingHours += (timeToMinutes(login?.timeHolder || "00:00:00") / 60);
             checkLogin(scheduledLoginTime, login?.startingTime?.length ? login?.startingTime[0] : "00:00:00");
         });
         const clockIns = employee.clockIns.length > 0 ? employee.clockIns : [];

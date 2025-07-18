@@ -105,9 +105,6 @@ const getclockinsDataById = async (id) => {
         const data = response.data;
         return data;
     } catch (error) {
-        //  if (error?.message === "Network Error") {
-        //         navigate("/network-issue")
-        //     }
         return error?.response?.data?.message;
     }
 };
@@ -139,14 +136,10 @@ const addDataAPI = async (body, worklocation, location) => {
             headers: { authorization: token || '' },
         });
         toast.success(response.data.message);
-        return response?.data?.clockIns;
+        return response?.data;
     } catch (error) {
-        //  if (error?.message === "Network Error") {
-        //         navigate("/network-issue")
-        //     }
+        console.log("error in start login timer", error)
         toast.error(error?.response?.data?.error)
-
-        // return error?.response?.data?.error;
     }
 };
 
@@ -403,6 +396,7 @@ const gettingClockinsData = async (_id) => {
                 authorization: token || ""
             }
         })
+        console.log("gettingClockinsData", dashboard.data)
         return dashboard.data
     } catch (err) {
         toast.error(err.message)

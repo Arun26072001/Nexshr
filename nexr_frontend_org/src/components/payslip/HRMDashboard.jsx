@@ -29,6 +29,7 @@ const Dashboard = React.lazy(() => import('./Dashboard'));
 const JobDesk = React.lazy(() => import('./Jobdesk'));
 const Employee = React.lazy(() => import('./Employee'));
 // const Employees = React.lazy(() => import('./Employees'));
+// const AttendanceCalendar = React.lazy(() => import('./AttendanceCalendar'));
 const Request = React.lazy(() => import('../attendance/Request'));
 const Dailylog = React.lazy(() => import('../attendance/Dailylog'));
 const Details = React.lazy(() => import('../attendance/Details'));
@@ -53,7 +54,6 @@ const Department = React.lazy(() => import('../Administration/Department'));
 const Position = React.lazy(() => import('../Administration/Position'));
 const Parent = React.lazy(() => import('./layout/Parent'));
 const PayslipUI = React.lazy(() => import('./PayslipUI'));
-// const AttendanceCalendar = React.lazy(() => import('./AttendanceCalendar'));
 const Projects = React.lazy(() => import("../Projects"));
 const Tasks = React.lazy(() => import("../Tasks"));
 const Reports = React.lazy(() => import("../Reports"));
@@ -81,6 +81,7 @@ export default function HRMDashboard() {
     const [isUpdatedRequest, setIsUpdatedReqests] = useState(false);
     const [employees, setEmployees] = useState([]);
     const [companies, setCompanies] = useState([]);
+    const [isLateLogin, setIsLateLogin] = useState(false);
     // for handle task modal
     const [isAddTask, setIsAddTask] = useState(false);
     const [isWorkingLoginTimerApi, setIsWorkingLoginTimerApi] = useState("");
@@ -113,6 +114,10 @@ export default function HRMDashboard() {
         eveningBreak: { ...startAndEndTime1 },
         event: { ...startAndEndTime }
     });
+
+    function handleLateLogin() {
+        setIsLateLogin(!isLateLogin)
+    }
 
     function updateClockins() {
         setCheckClockins(!checkClockins);
@@ -193,9 +198,12 @@ export default function HRMDashboard() {
         try {
             if (!updatedState?._id) {
                 // Add new clock-ins data
-                const clockinsData = await addDataAPI(updatedState, worklocation, location);
-                if (clockinsData && clockinsData._id) {
-                    setWorkTimeTracker(clockinsData);
+                const res = await addDataAPI(updatedState, worklocation, location);
+                if (res.clockIns && res.clockIns._id) {
+                    // if (res.isLateLogin) {
+                    //     handleLateLogin()
+                    // }
+                    setWorkTimeTracker(res.clockIns);
                     setIsStartLogin(true);
                     localStorage.setItem("isStartLogin", true);
                     // for fetch update clockins data in table data(attendance)
@@ -527,7 +535,7 @@ export default function HRMDashboard() {
             updateWorkTracker, isWorkingLoginTimerApi, isworkingActivityTimerApi, trackTimer, startLoginTimer, stopLoginTimer,
             changeReasonForLate, changeReasonForEarly, startActivityTimer, stopActivityTimer, setWorkTimeTracker, updateClockins,
             checkClockins, timeOption, isStartLogin, isStartActivity, handleAddTask, changeEmpEditForm, isAddTask, setIsAddTask,
-            handleAddTask, selectedProject, daterangeValue, setDaterangeValue
+            handleAddTask, selectedProject, daterangeValue, setDaterangeValue, handleLateLogin, isLateLogin
         }}>
             <Routes >
                 <Route path="/" element={<Parent />} >

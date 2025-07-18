@@ -132,10 +132,12 @@ exports.askReasonForDelay = (req, res) => {
                         { headers: { Authorization: token } }
                     );
                     if (!timeData.reasonForLate) {
-                        return res.send({ isAddreasonForDelay: false, scheduledTime: runAt });
+                        return res.send({ message: `Your ${timeOption} time limit reached`, isAddreasonForDelay: false, scheduledTime: runAt });
                     } else {
-                        return res.send({ isAddreasonForDelay: true, scheduledTime: runAt });
+                        return res.send({ message: `Your ${timeOption} time limit reached`, isAddreasonForDelay: true, scheduledTime: runAt });
                     }
+                } else {
+                    return res.send({ message: `Your ${timeOption} time limit reached` })
                 }
             } catch (error) {
                 console.error("Error during reminder logic:", error);
