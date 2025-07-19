@@ -577,6 +577,17 @@ function isValidDate(value) {
     return !isNaN(date.getTime()) && date.getHours() !== 0;
 }
 
+function getTimeFromDateOrTimeData(timeStr) {
+    if (isValidDate(timeStr)) {
+        return new Date(timeStr).toLocaleTimeString();
+    }
+    if (timeStr.split(/[:.]+/).length > 0) {
+        const [hours, minutes, seconds] = timeStr.split(/[:.]+/).map(Number);
+        const date = new Date();
+        return new Date(date.setHours(hours, minutes, seconds)).toLocaleTimeString();
+    }
+}
+
 const addSecondsToTime = (timeString, secondsToAdd) => {
     // Validate and normalize the timeString format
     if (!/^\d{1,2}:\d{1,2}:\d{1,2}$/.test(timeString)) {
@@ -796,6 +807,7 @@ function exportAttendanceToExcel(attendanceData) {
 export {
     triggerToaster,
     calculateTimePattern,
+    getTimeFromDateOrTimeData,
     formatDate,
     processActivityDurations,
     getTimeFromHour,

@@ -23,6 +23,7 @@ import WFHRequests from '../workfromhome/WFHRequests';
 import EmailTemplates from './EmailTemplates';
 import UnpaidRequest from '../leave/UnpaidRequest';
 import Holiday from '../HolidaysPicker';
+import LatePunch from '../attendance/LatePunch';
 
 // Lazy loading components
 const Dashboard = React.lazy(() => import('./Dashboard'));
@@ -81,14 +82,13 @@ export default function HRMDashboard() {
     const [isUpdatedRequest, setIsUpdatedReqests] = useState(false);
     const [employees, setEmployees] = useState([]);
     const [companies, setCompanies] = useState([]);
-    const [isLateLogin, setIsLateLogin] = useState(false);
+    const [isLateLogin, setIsLateLogin] = useState(localStorage.getItem("isLateLogin") ? JSON.parse(localStorage.getItem("isLateLogin")) : false);
     // for handle task modal
     const [isAddTask, setIsAddTask] = useState(false);
     const [isWorkingLoginTimerApi, setIsWorkingLoginTimerApi] = useState("");
     const [isworkingActivityTimerApi, setISWorkingActivityTimerApi] = useState(false);
     const [selectedProject, setSelectedProject] = useState("");
     const [checkClockins, setCheckClockins] = useState(false);
-    // const [isWorkingOvertime, setIsWorkingOvertime] = useState(localStorage.getItem("isWorkingOvertime") ? JSON.parse(localStorage.getItem("isWorkingOvertime")) : false);
     const [unStoppedActivies, setUnStoppedActivites] = useState([]);
 
     // files for payroll
@@ -200,9 +200,10 @@ export default function HRMDashboard() {
                 // Add new clock-ins data
                 const res = await addDataAPI(updatedState, worklocation, location);
                 if (res.clockIns && res.clockIns._id) {
-                    // if (res.isLateLogin) {
-                    //     handleLateLogin()
-                    // }
+                    if (res.isLateLogin) {
+                        handleLateLogin();
+                        localStorage.setItem("isLateLogin", res.isLateLogin)
+                    }
                     setWorkTimeTracker(res.clockIns);
                     setIsStartLogin(true);
                     localStorage.setItem("isStartLogin", true);
@@ -586,6 +587,7 @@ export default function HRMDashboard() {
                         <Routes>
                             <Route index path="attendance-request" element={<Request attendanceData={attendanceData} isLoading={waitForAttendance} />} />
                             <Route path="daily-log" element={<Dailylog attendanceData={attendanceData} isLoading={waitForAttendance} />} />
+                             <Route path="late-punch" element={<LatePunch />} />
                             <Route path="details" element={<Details attendanceData={attendanceData} isLoading={waitForAttendance} />} />
                             <Route path="attendance-summary" element={<Summary attendanceData={attendanceForSummary} isLoading={waitForAttendance} />} />
                         </Routes>

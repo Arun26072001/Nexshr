@@ -16,13 +16,15 @@ import KeyboardArrowDownRoundedIcon from '@mui/icons-material/KeyboardArrowDownR
 import Loading from '../../Loader';
 import { convertTimeStringToDate, isValidDate, processActivityDurations, updateDataAPI } from '../../ReuseableAPI';
 import { useNavigate } from 'react-router-dom';
+import { toast } from 'react-toastify';
+import TextEditor from '../TextEditor';
 
 export default function Navbar() {
     const { handleLogout, data, handleUpdateAnnouncements, isChangeAnnouncements, whoIs,
         changeViewReasonForEarlyLogout, isViewEarlyLogout, setIsStartLogin } = useContext(EssentialValues)
     const { startLoginTimer, stopLoginTimer, workTimeTracker, isStartLogin,
         trackTimer, changeReasonForEarly, setWorkTimeTracker, isWorkingLoginTimerApi,
-        setIsWorkingLoginTimerApi, unStoppedActivies, isLateLogin } = useContext(TimerStates);
+        setIsWorkingLoginTimerApi, unStoppedActivies, isLateLogin, handleLateLogin } = useContext(TimerStates);
     const [sec, setSec] = useState(workTimeTracker?.login?.timeHolder?.split(':')[2])
     const [min, setMin] = useState(workTimeTracker?.login?.timeHolder?.split(':')[1])
     const [hour, setHour] = useState(workTimeTracker?.login?.timeHolder?.split(':')[0])
@@ -34,6 +36,14 @@ export default function Navbar() {
     const [latitude, setLatitude] = useState("");
     const [longitude, setLongitude] = useState("");
     const [isLoading, setIsLoading] = useState(false);
+    // use when add the late loginData
+    const [isAddinglateLogin, setIsAddingLateLogin] = useState(false);
+    const lateType = [
+        { label: "Technical Downtime (IT/Office/System-related delay)", value: "Technical Downtime (IT/Office/System-related delay)" },
+        { label: "Late Punch (Employee-side delay)", value: "Late Punch (Employee-side delay)" }
+    ];
+    // to avoid dependance using useEffect worktimeTracker
+    const [lateLogin, setLateLogin] = useState({});
     const navigate = useNavigate();
     // const [isView]
     const [workLocation, setWorklocation] = useState(localStorage.getItem("workLocation") || "");
@@ -80,7 +90,6 @@ export default function Navbar() {
             if (isStartLogin) {
                 workRef.current = setInterval(incrementTime, 1000);
             }
-
         }
     };
 
@@ -323,6 +332,25 @@ export default function Navbar() {
         }
     }
 
+    async function addLateLogin() {
+        try {
+            setIsAddingLateLogin(true);
+            const res = await axios.put(`${url}/api/clock-ins/add-late-login/${data._id}`, workTimeTracker, {
+                headers: {
+                    Authorization: data.token || ""
+                }
+            })
+            toast.success(res.data.message);
+            localStorage.removeItem("isLateLogin");
+            handleLateLogin();
+        } catch (error) {
+            console.log("error in add late-login data", error)
+            toast.error(error.response.data.error)
+        } finally {
+            setIsAddingLateLogin(false)
+        }
+    }
+
     async function clockOut() {
         try {
             setIsWorkingLoginTimerApi(true)
@@ -357,16 +385,27 @@ export default function Navbar() {
         }))
     }
 
+    function fillLateLoginObj(value, name) {
+        setWorkTimeTracker((pre) => ({
+            ...pre,
+            lateLogin: {
+                ...pre.lateLogin,
+                [name]: value
+            }
+        }))
+    }
+
     function updateCheckoutTime(time, type) {
         setErrorData("");
-
         if (!isValidDate(time)) {
             setErrorData(`Invalid date in ${type}`);
             return;
         }
 
+        console.log("time", time)
         const currentTime = new Date();
         const actualTime = new Date(time);
+        console.log("actualTime", actualTime);
 
         if (currentTime.getTime() < actualTime.getTime()) {
             setErrorData(`Invalid date in ${type}`);
@@ -394,7 +433,6 @@ export default function Navbar() {
             removeLastOneNdAddCurrent(actualTime);
         }
     }
-
 
     useEffect(() => {
         getAddress();
@@ -470,7 +508,7 @@ export default function Navbar() {
                                 size='lg'
                                 style={{ width: "100%" }}
                                 className={unStoppedActivies.some((item) => errorData.includes(item)) ? "error" : ""}
-                                format="MM/dd/yyyy hh:mm:ss"
+                                format="MM/dd/yyyy hh:mm:ss aa"
                                 onChange={
                                     (e) => updateCheckoutTime(e, activity)
                                 } />
@@ -527,51 +565,56 @@ export default function Navbar() {
         </Modal >
     }
 
-    // if (isLateLogin) {
-    //     return <Modal open={isViewEarlyLogout} size="sm" backdrop="static">
-    //         <Modal.Header >
-    //             <Modal.Title>
-    //                 Reason for Late Punch-in
-    //             </Modal.Title>
-    //         </Modal.Header >
+    if (isLateLogin) {
+        return <Modal open={isLateLogin} size="sm" backdrop="static">
+            <Modal.Header >
+                <Modal.Title>
+                    Reason for Late Punch-in
+                </Modal.Title>
+            </Modal.Header >
 
-    //         <Modal.Body>
-    //             <div className="modelInput important">
-    //                 <p>Late Type</p>
-    //                 <Input size='lg'
-    //                     type='text'
-    //                     autoComplete='off'
-    //                     onChange={(e) => changeReasonForEarly(e, "lateType")}
-    //                     value={workTimeTracker?.lateLogin?.lateType} />
-    //             </div>
-    //             <div className="modelInput important">
-    //                 <p>Reason for the Late</p>
-    //                 <Input size='lg'
-    //                     type='text'
-    //                     autoComplete='off'
-    //                     onChange={(e) => changeReasonForEarly(e, "lateReason")}
-    //                     value={workTimeTracker?.lateLogin?.lateReason} />
-    //             </div>
-    //             <div className="modelInput">
-    //                 <p>Proof</p>
-    //                 <input
-    //                     type="file"
-    //                     className="form-control"
-    //                     onChange={(e) => changeReasonForEarly(e, "proof")}
-    //                 />
-    //             </div>
-    //         </Modal.Body>
+            <Modal.Body>
+                <div className="modelInput">
+                    <p className='modelLabel important'>Late Type</p>
+                    <SelectPicker
+                        required
+                        data={lateType}
+                        size="lg"
+                        appearance='default'
+                        style={{ width: "100%" }}
+                        placeholder="Select Late type"
+                        value={workTimeTracker?.lateLogin?.lateType}
+                        onChange={(e) => fillLateLoginObj(e, "lateType")}
+                    />
+                </div>
+                <div className="modelInput">
+                    <p className='modelLabel important'>Reason for the Late</p>
+                    <TextEditor
+                        handleChange={(e) => fillLateLoginObj(e?.trimStart()?.replace(/\s+/g, ' '), "lateReason")}
+                        content={workTimeTracker?.lateLogin?.lateReason}
+                    />
+                </div>
+                <div className="modelInput">
+                    <p>Proof</p>
+                    <input
+                        type="file"
+                        className="form-control"
+                        onChange={(e) => fillLateLoginObj(e, "proof")}
+                    />
+                </div>
+            </Modal.Body>
 
-    //         <Modal.Footer>
-    //             <Button
-    //                 onClick={checkIsEnterReasonforEarly}
-    //                 appearance="primary"
-    //             >
-    //                 Add
-    //             </Button>
-    //         </Modal.Footer>
-    //     </Modal >
-    // }
+            <Modal.Footer>
+                <Button
+                    disabled={!workTimeTracker?.lateLogin?.lateReason || !workTimeTracker?.lateLogin?.lateType ? true : false}
+                    onClick={addLateLogin}
+                    appearance="primary"
+                >
+                    {isAddinglateLogin ? <Loading color='white' size={20} /> : "Add"}
+                </Button>
+            </Modal.Footer>
+        </Modal >
+    }
 
     return (
         <div className="webnxs">

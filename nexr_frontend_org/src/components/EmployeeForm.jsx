@@ -168,8 +168,6 @@ const EmployeeForm = ({
         }
     };
 
-    console.log("empObj", employeeObj)
-
     const validationForm = () => {
         const newError = {};
 

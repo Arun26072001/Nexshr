@@ -7,7 +7,7 @@ import TableContainer from '@mui/material/TableContainer';
 import TableHead from '@mui/material/TableHead';
 import TablePagination from '@mui/material/TablePagination';
 import TableRow from '@mui/material/TableRow';
-import { fetchPayslip, getclockinsDataById } from './ReuseableAPI';
+import { fetchPayslip, getclockinsDataById, getTimeFromDateOrTimeData } from './ReuseableAPI';
 import EditRoundedIcon from '@mui/icons-material/EditRounded';
 import RemoveRedEyeRoundedIcon from '@mui/icons-material/RemoveRedEyeRounded';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -954,6 +954,77 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
         }
     ];
 
+    const column24 = [
+        {
+            id: 'name',
+            label: 'Name',
+            minWidth: 150,
+            align: 'left',
+            getter: (row) => {
+                const firstName = row?.employee?.FirstName || '';
+                const lastName = row?.employee?.LastName || '';
+                const profileImg = row?.employee?.profile || profile;
+
+                const fullName = firstName
+                    ? firstName[0].toUpperCase() + firstName.slice(1) + ' ' + lastName
+                    : 'Unknown';
+
+                return (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <img
+                            src={profileImg}
+                            alt="Profile"
+                            style={{ width: '30px', height: '30px', borderRadius: '50%' }}
+                        />
+                        <span>{fullName}</span>
+                    </div>
+                );
+            }
+        },
+        {
+            id: 'date',
+            label: 'Date',
+            minWidth: 130,
+            align: 'left',
+            getter: (row) => row.date ? new Date(row.date).toLocaleDateString() : 'N/A',
+        },
+        {
+            id: 'punchIn',
+            label: 'Punch In',
+            minWidth: 130,
+            align: 'left',
+            getter: (row) => row.login?.startingTime[0] ? getTimeFromDateOrTimeData(row.login?.startingTime[0]) : 'N/A',
+        },
+        {
+            id: 'lateType',
+            label: 'Late Type',
+            minWidth: 120,
+            align: 'left',
+            getter: (row) => row.lateLogin?.lateType || 'Not specified',
+        },
+        {
+            id: 'lateReason',
+            label: 'Late Reason',
+            minWidth: 200,
+            align: 'left',
+            getter: (row) => row.lateLogin?.lateReason?.replace(/<[^>]*>/g, "") || 'No reason provided',
+        },
+        {
+            id: 'status',
+            label: 'Status',
+            minWidth: 100,
+            align: 'left',
+            getter: (row) => row.lateLogin?.status || 'N/A',
+        },
+        {
+            id: 'Action',
+            label: 'Action',
+            minWidth: 100,
+            align: 'center',
+        },
+    ];
+
+
 
     function toggleView() {
         setOpenModal(!openModal);
@@ -1008,7 +1079,7 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
                 || (item?.date && params['*'] === "attendance")
             ) {
                 return setColumns(column5);
-            } else if ((item?.date && params['*'] === "attendance-request") || item?.date) {
+            } else if ((item?.date && params['*'] === "attendance-request")) {
                 return setColumns(column4);
             } else if (item?.action) {
                 return setColumns(column6);
@@ -1047,12 +1118,14 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
             } else if (params["*"] === "email-templates") {
                 return setColumns(column21)
             } else if (params["*"] === "holiday") {
-                setColumns(column22);
+                return setColumns(column22);
             } else if (item?.createdby && params["*"] === "reports") {
-                return setColumns(column12)
+                return setColumns(column12);
+            } else if (params["*"] === "late-punch") {
+                return setColumns(column24);
             }
             else {
-                return setColumns(column2)
+                return setColumns(column2);
             }
         })
     }, [data]);
@@ -1124,10 +1197,15 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
                                                                 }
                                                             </Dropdown>
                                                         );
-                                                    } else if (params["*"] === "unpaid-request") {
+                                                    } else if (["unpaid-request", "late-punch"].includes(params["*"])) {
                                                         return (<Dropdown placement='leftStart' title={isLoading === row._id ? <Loading size={20} color={"black"} /> : <EditRoundedIcon style={{ cursor: isLoading === row._id ? "process" : "pointer" }} />} noCaret>
-                                                            <Dropdown.Item style={{ minWidth: 120 }} onClick={() => replyToLeave(row, "approved")}>Approve</Dropdown.Item>
-                                                            <Dropdown.Item style={{ minWidth: 120 }} onClick={() => replyToLeave(row, "rejected")}>Reject</Dropdown.Item>
+                                                            {params["*"] === "unpaid-request" || (params["*"] === "late-punch" && row?.lateLogin?.status === "pending") ?
+                                                                <>
+                                                                    <Dropdown.Item style={{ minWidth: 120 }} onClick={() => replyToLeave(row, "approved")}>Approve</Dropdown.Item>
+                                                                    <Dropdown.Item style={{ minWidth: 120 }} onClick={() => replyToLeave(row, "rejected")}>Reject</Dropdown.Item>
+                                                                </> : null
+                                                            }
+
                                                         </Dropdown>)
                                                     }
                                                     else if (["payslip", "daily-log", "attendance-request"].includes(params["*"])) {
