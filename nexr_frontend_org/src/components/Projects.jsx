@@ -55,6 +55,10 @@ export default function Projects() {
     };
 
     function handleAddProject() {
+        if (isAddProject) {
+            setProjectObj({});
+            setErrorData("");
+        }
         setIsAddProject(!isAddProject);
     }
 
@@ -219,12 +223,17 @@ export default function Projects() {
     }
 
     function handleEditProject() {
-        setIsEdit(!isEdit)
+        if (isEdit) {
+            setProjectObj({});
+            setErrorData("");
+        }
+        setIsEdit(!isEdit);
     }
 
     function handleViewProject() {
         if (isViewProject) {
-            setProjectObj({})
+            setProjectObj({});
+            setErrorData("");
         }
         setIsViewProject(!isViewProject)
     }

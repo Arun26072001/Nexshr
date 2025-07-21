@@ -719,7 +719,7 @@ const CommonModel = ({
                                                 checkAll
                                             />
                                         </VStack>
-                                        {errorMsg?.toLowerCase()?.includes("employee") ? <div className="text-center text-danger">{errorMsg}</div> : null}
+                                        {errorMsg?.includes("selectTeamMembers") ? <div className="text-center text-danger">{errorMsg}</div> : null}
                                     </div>
                                 </div>
                             </div>

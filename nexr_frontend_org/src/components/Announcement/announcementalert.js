@@ -17,7 +17,6 @@ const AnnouncementComponent = ({ handleChangeAnnouncement }) => {
     const [isChangingAnnouncement, setIschangingAnnouncement] = useState(false);
     const [errorMsg, setErrorMsg] = useState("");
 
-
     const headers = {
         Authorization: data.token || ""
     };
@@ -42,7 +41,8 @@ const AnnouncementComponent = ({ handleChangeAnnouncement }) => {
 
     function handleModel() {
         if (isModalOpen) {
-            setAnnouncementObj({})
+            setAnnouncementObj({});
+            setErrorMsg("");
         }
         setIsModalOpen(!isModalOpen)
     }
@@ -55,12 +55,12 @@ const AnnouncementComponent = ({ handleChangeAnnouncement }) => {
     }
 
     const handleSubmit = async () => {
-
         setIschangingAnnouncement(true);
         try {
             const addAnnounce = await axios.post(`${url}/api/announcements/${data._id}`, announcementObj,
                 { headers }
             );
+            setErrorMsg("");
             handleChangeAnnouncement();
             handleModel();
             toast.success(addAnnounce.data.message);
@@ -71,8 +71,9 @@ const AnnouncementComponent = ({ handleChangeAnnouncement }) => {
             const errorMsg = error?.response?.data?.error
             setErrorMsg(errorMsg)
             toast.error(errorMsg)
+        } finally {
+            setIschangingAnnouncement(false);
         }
-        setIschangingAnnouncement(false);
     };
 
 

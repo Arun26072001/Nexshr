@@ -31,7 +31,8 @@ const TimePattern = () => {
         if (type === "Add") {
             // remove data, go to hide pattern
             if (changePattern.isAdd) {
-                setTimePatternObj({})
+                setTimePatternObj({});
+                setErrorData("");
             }
             setChangePattern((pre) => ({
                 ...pre,
@@ -45,6 +46,7 @@ const TimePattern = () => {
             // remove data, go to hide pattern
             if (changePattern.isEdit) {
                 setTimePatternObj({})
+                setErrorData("");
             }
             setChangePattern((pre) => ({
                 ...pre,
@@ -57,7 +59,7 @@ const TimePattern = () => {
             }
             // remove data, go to hide pattern
             if (changePattern.isView) {
-                setTimePatternObj({})
+                setTimePatternObj({});
             }
             setChangePattern((pre) => ({
                 ...pre,

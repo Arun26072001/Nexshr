@@ -30,10 +30,9 @@ const LeaveRequestForm = ({ type }) => {
   const [isWorkingApi, setIsWorkingApi] = useState(false);
   const now = new Date();
   const [leaveRequestObj, setLeaveRequestObj] = useState({});
-  // console.log("leaveRequestObj", leaveRequestObj)
+
   function handleSubmit(e) {
     e.preventDefault();
-
     setErrorData("");
     if (new Date(leaveRequestObj.fromDate) > new Date(leaveRequestObj.toDate)) {
       setErrorData("ToDate must be greater than FromDate");

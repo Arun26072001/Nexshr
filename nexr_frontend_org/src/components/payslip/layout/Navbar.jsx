@@ -43,7 +43,6 @@ export default function Navbar() {
     ];
     const [lateLoginProof, setLateLoginProof] = useState([]);
     const navigate = useNavigate();
-    // const [isView]
     const [workLocation, setWorklocation] = useState(localStorage.getItem("workLocation") || "");
     // to error msg on reason for forget logout
     const [errorData, setErrorData] = useState("");

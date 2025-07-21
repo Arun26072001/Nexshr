@@ -1239,7 +1239,7 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
                                                     } else if (params['*'] === "employee") {
                                                         return (
                                                             <Dropdown title={isLoading === row._id ? <Loading size={20} color={"black"} /> : <EditRoundedIcon style={{ cursor: isLoading === row._id ? "process" : "pointer" }} />} placement='leftStart' noCaret>
-                                                                <Dropdown.Item style={{ minWidth: 120 }} onClick={() => timerStateData?.changeEmpEditForm(row._id)}>
+                                                                <Dropdown.Item style={{ minWidth: 120 }} onClick={() => navigate(`/${whoIs}/employee/edit/${row._id}`)}>
                                                                     <b>
                                                                         <BorderColorRoundedIcon sx={{ color: "#FFD65A" }} /> Edit
                                                                     </b>
