@@ -210,7 +210,6 @@ const Sidebar = ({ isMobileView, handleSideBar, setIsMobileView }) => {
             'leave',
             [
               { key: 'status', path: `/${whoIs}/leave/status`, label: 'Status' },
-              { key: 'unpaid-request', path: `/${whoIs}/leave/unpaid-request`, label: 'Unpaid Request' },
               { key: 'leave-request', path: `/${whoIs}/leave/leave-request`, label: 'Leave Request' },
               { key: 'calendar', path: `/${whoIs}/leave/calendar`, label: 'Calendar' },
               { key: 'leave-summary', path: `/${whoIs}/leave/leave-summary`, label: 'Leave Summary' },

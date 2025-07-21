@@ -215,11 +215,14 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
         const { id } = req.params;
         const { fromDate, toDate, reason } = req.body;
 
+        const fromDateObj = changeClientTimezoneDate(fromDate);
+        const toDateObj = changeClientTimezoneDate(toDate);
+
         // 1. Check if a WFH request already exists
         const existingRequest = await WFHApplication.findOne({
             employee: id,
-            fromDate: { $lte: toDate },
-            toDate: { $gte: fromDate }
+            fromDate: { $lte: toDateObj },
+            toDate: { $gte: fromDateObj }
         });
 
         if (existingRequest) {
@@ -229,8 +232,8 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
         // check has wfh application is approved in the range
         const isLeave = await LeaveApplication.findOne({
             employee: id,
-            fromDate: { $lte: toDate },
-            toDate: { $gte: fromDate },
+            fromDate: { $lte: toDateObj },
+            toDate: { $gte: fromDateObj },
             status: "approved"
         })
         if (isLeave) {
@@ -243,8 +246,8 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
             const wfhEmps = await WFHApplication.find({
                 employee: { $in: team.employees },
                 status: "approved",
-                fromDate: { $lte: toDate },
-                toDate: { $gte: fromDate }
+                fromDate: { $lte: toDateObj },
+                toDate: { $gte: fromDateObj }
             })
 
             if (wfhEmps.length === 2) {
@@ -292,8 +295,8 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
             return dateList.some((holiday) => new Date(holiday.date).toLocaleDateString() === new Date(target).toLocaleDateString());
         }
         const holiday = await Holiday.findOne({ currentYear: new Date().getFullYear() });
-        const isFromDateHoliday = checkDateIsHoliday(holiday.holidays, fromDate);
-        const isToDateHoliday = checkDateIsHoliday(holiday.holidays, fromDate);
+        const isFromDateHoliday = checkDateIsHoliday(holiday.holidays, fromDateObj);
+        const isToDateHoliday = checkDateIsHoliday(holiday.holidays, toDateObj);
         if (isFromDateHoliday) {
             return res.status(400).send({ error: "holiday are not allowed for fromDate" })
         } if (isToDateHoliday) {
@@ -304,7 +307,7 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
             const isWeekend = !timePattern.WeeklyDays.includes(new Date(date).toLocaleDateString(undefined, { weekday: 'long' }));
             return isWeekend;
         }
-        const [fromDateIsWeekend, toDateIsWeekend] = await Promise.all([checkDateIsWeekend(fromDate), checkDateIsWeekend(toDate)])
+        const [fromDateIsWeekend, toDateIsWeekend] = await Promise.all([checkDateIsWeekend(fromDateObj), checkDateIsWeekend(toDateObj)])
         if (fromDateIsWeekend) {
             return res.status(400).send({ error: "Weekend are not allowed in fromDate" })
         } if (toDateIsWeekend) {
@@ -321,7 +324,7 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
         const application = await WFHApplication.create(newApplication);
 
         // 7. Send notifications and emails
-        const message = `${emp.FirstName} ${emp.LastName} has applied for WFH from ${formatDate(fromDate)} to ${formatDate(toDate)}.`;
+        const message = `${emp.FirstName} ${emp.LastName} has applied for WFH from ${formatDate(fromDateObj)} to ${formatDate(toDateObj)}.`;
         const title = "Work From Home Request Notification";
         const notify = [];
         for (const role of teamRoles) {
@@ -341,7 +344,7 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
                     From: `<${emp.Email}> (Nexshr)`,
                     To: member.Email,
                     Subject: title,
-                    HtmlBody: generateWfhEmail(emp, fromDate, toDate, reason),
+                    HtmlBody: generateWfhEmail(emp, fromDateObj, toDateObj, reason),
                 });
 
                 const fullEmp = await Employee.findById(member._id, "notifications");
@@ -351,8 +354,7 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
                 await sendPushNotification({
                     token: member.fcmToken,
                     title: notification.title,
-                    body: notification.message,
-                    // company: emp.company,
+                    body: notification.message
                 });
                 notify.push(member.Email);
             }

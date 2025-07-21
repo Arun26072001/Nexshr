@@ -570,7 +570,6 @@ export default function HRMDashboard() {
                             <Routes>
                                 <Route index path='status' element={<Status />} />
                                 <Route path='leave-request' element={<LeaveRequest />} />
-                                <Route path="unpaid-request" element={<UnpaidRequest />} />
                                 <Route path='calendar' element={<LeaveCalender />} />
                                 <Route path='leave-summary' element={<LeaveSummary />} />
                                 <Route path="leave-details" element={<LeaveDetails />} />
