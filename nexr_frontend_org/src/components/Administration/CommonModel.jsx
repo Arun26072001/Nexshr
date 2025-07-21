@@ -1670,7 +1670,7 @@ const CommonModel = ({
                             {
                                 !["Report View", "Task View", "Project View", "View TimePattern"].includes(type) && (
                                     <Button
-                                        onClick={() => ((type === "Add Comments" && dataObj?._id) ? editData(dataObj, true) : dataObj?._id || type === "Edit Country" ? editData(dataObj) : type === "Edit Comments" ? editData() : addData())}
+                                        onClick={() => isWorkingApi ? null : ((type === "Add Comments" && dataObj?._id) ? editData(dataObj, true) : dataObj?._id || type === "Edit Country" ? editData(dataObj) : type === "Edit Comments" ? editData() : addData())}
                                         appearance="primary"
                                         style={{ cursor: isWorkingApi ? "wait" : "pointer" }}
                                         disabled={
