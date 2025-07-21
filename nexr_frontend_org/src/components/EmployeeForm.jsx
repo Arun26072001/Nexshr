@@ -168,7 +168,6 @@ const EmployeeForm = ({
         }
     };
 
-
     const validationForm = () => {
         const newError = {};
 
@@ -289,15 +288,15 @@ const EmployeeForm = ({
             <div className="empForm">
                 <div className="catogaries-container">
                     <div className="catogaries">
-                        {["personal", "contact", "employment", "job", "financial", "payslip"].map(section => (
-                            <div
+                        {["personal", "contact", "employment", "job", "financial", "payslip"].map(section => {
+                            return <div
                                 key={section}
                                 className={`catogary ${details === section ? "view" : ""}`}
                                 onClick={() => handleScroll(section)}
                             >
                                 {section.charAt(0).toUpperCase() + section.slice(1)} Details
                             </div>
-                        ))}
+                        })}
                     </div>
                 </div>
 
@@ -349,7 +348,7 @@ const EmployeeForm = ({
                                 <div className="inputLabel">Date Of Birth</div>
                                 <input
                                     type="date"
-                                    className="inpputField"
+                                    className="inputField"
                                     name="dateOfBirth"
                                     onChange={e => fillEmpObj(e.target.value, "dateOfBirth")}
                                     value={employeeObj?.dateOfBirth || ""}

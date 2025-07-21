@@ -9,7 +9,6 @@ import { EssentialValues } from '../../App';
 import AddRoundedIcon from '@mui/icons-material/AddRounded';
 import axios from "axios";
 import employeesData from "../../files/Employees data.xlsx";
-import Groups2RoundedIcon from '@mui/icons-material/Groups2Rounded';
 import { jwtDecode } from 'jwt-decode';
 import { Skeleton } from '@mui/material';
 
@@ -86,7 +85,6 @@ export default function Employee() {
             if (error?.message === "Network Error") {
                 navigate("/network-issue")
             }
-            setEmployees([]);
             console.log("error: ", error);
             toast.error("Failed to fetch employees");
         } finally {

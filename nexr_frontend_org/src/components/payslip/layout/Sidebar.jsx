@@ -253,6 +253,7 @@ const Sidebar = ({ isMobileView, handleSideBar, setIsMobileView }) => {
               { key: 'daily-log', path: `/${whoIs}/attendance/daily-log`, label: 'Daily Log' },
               { key: 'attendance-request', path: `/${whoIs}/attendance/attendance-request`, label: 'Attendance Request' },
               { key: 'details', path: `/${whoIs}/attendance/details`, label: 'Details' },
+              { key: 'late-punch', path: `/${whoIs}/attendance/late-punch`, label: 'Late Punch' },
               { key: 'attendance-summary', path: `/${whoIs}/attendance/attendance-summary`, label: 'Attendance Summary' }
             ],
             attendanceIcon,

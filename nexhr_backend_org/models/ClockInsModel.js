@@ -22,6 +22,13 @@ const timeRangeSchema2 = new mongoose.Schema({
   reasonForEarlyLogout: { type: String }
 }, { _id: false })
 
+const lateLoginSchema = new mongoose.Schema({
+  lateType: { type: String },
+  lateReason: { type: String },
+  proof: { type: String },
+  status: { type: String, default: "pending" }
+}, { _id: false })
+
 // Define the main schema
 const clockInsSchema = new mongoose.Schema({
   date: {
@@ -49,6 +56,7 @@ const clockInsSchema = new mongoose.Schema({
   forgetToLogout: { type: String },
   behaviour: { type: String },
   punchInMsg: { type: String },
+  lateLogin: { type: lateLoginSchema, default: {} },
   employee: { type: mongoose.Types.ObjectId, ref: "Employee" },
   machineRecords: [{ type: String, default: [] }],
   worklocation: { type: String }

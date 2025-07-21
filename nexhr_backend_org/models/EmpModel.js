@@ -63,7 +63,7 @@ var employeeSchema = new mongoose.Schema({
   announcements: [{ type: mongoose.Schema.Types.ObjectId, ref: "Announcement" }],
   notifications: [{ type: nitificationSchema, default: {} }],
   annualLeaveYearStart: {
-    type: Date, default: new Date().toISOString()
+    type: String,
   },
   companyWorkingHourPerWeek: {
     type: String

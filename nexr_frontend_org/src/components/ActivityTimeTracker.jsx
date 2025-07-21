@@ -94,7 +94,6 @@ const ActivityTimeTracker = () => {
                                 time: timeOption === "lunch" ? 1 - timeData : 1 - timeData,
                                 token: data.token
                             });
-                            console.log("isAddreasonForDelay", res.data.isAddreasonForDelay)
                             if (!res.data.isAddreasonForDelay) {
                                 changeViewReasonForTaketime()
                             }
@@ -106,7 +105,8 @@ const ActivityTimeTracker = () => {
                         }
                     }
                 }
-            } else if (["morningBreak", "eveningBreak"].includes(timeOption) && timeData < .5) {
+            }
+             else if (["morningBreak", "eveningBreak"].includes(timeOption)) {
                 if (!timerRef.current) {
                     await startActivityTimer();
                     // trackTimer()
@@ -121,7 +121,7 @@ const ActivityTimeTracker = () => {
                                 time: 1 - timeData,
                                 token: data.token
                             });
-                            console.log("isAddreasonForDelay", res.data.isAddreasonForDelay)
+                            toast.warning(res.data.message);
                             if (!res.data.isAddreasonForDelay) {
                                 changeViewReasonForTaketime()
                             }

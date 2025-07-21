@@ -146,6 +146,7 @@ const AddEmployee = () => {
   window.addEventListener("scroll", getScrollPx);
 
   function handleScroll(value) {
+    console.log("scrollTo", value);
     setDetails(value);
     if (value === "personal") {
       return handlePersonal();

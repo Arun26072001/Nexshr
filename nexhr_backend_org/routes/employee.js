@@ -9,7 +9,7 @@ const { Team } = require('../models/TeamModel');
 const fs = require("fs");
 const path = require("path");
 const { LeaveApplication } = require('../models/LeaveAppModel');
-const { fetchFirstTwoItems, sumLeaveDays, errorCollector } = require('../Reuseable_functions/reusableFunction');
+const { fetchFirstTwoItems, sumLeaveDays, errorCollector, isValidDate } = require('../Reuseable_functions/reusableFunction');
 const { PlannerType } = require('../models/PlannerTypeModel');
 
 router.get("/", verifyAdminHRTeamHigherAuth, async (req, res) => {
@@ -331,6 +331,7 @@ router.post("/:id", verifyAdminHR, async (req, res) => {
       }
     }
 
+    
     const employeeData = {
       ...req.body,
       role: req.body.role,
@@ -345,6 +346,17 @@ router.post("/:id", verifyAdminHR, async (req, res) => {
       typesOfLeaveCount: { ...typesOfLeaveCount, Permission: 2 },
       typesOfLeaveRemainingDays: typesOfLeaveCount
     };
+    // check annual leave start date is greater than or equal doj
+    if (employeeData?.annualLeaveYearStart
+      && isValidDate(employeeData?.annualLeaveYearStart)
+      && employeeData?.dateOfJoining
+      && isValidDate(employeeData?.dateOfJoining)) {
+      const annualDateTime = new Date(employeeData?.annualLeaveYearStart).getTime();
+      const joiningDateTime = new Date(employeeData?.dateOfJoining).getTime();
+      if (joiningDateTime > annualDateTime) {
+        return res.status(400).send({ error: "annualLeaveYearStart must be greater than or equal to dateOfJoining" })
+      }
+    }
 
     const employee = await Employee.create(employeeData);
 
