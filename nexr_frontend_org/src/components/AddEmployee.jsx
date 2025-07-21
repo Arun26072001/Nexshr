@@ -272,7 +272,7 @@ const AddEmployee = () => {
       const countryFullData = countries.find((country) => Object.values(country).includes(empData?.countryCode));
       setStateData(countryFullData?.states);
       if (empData?.typesOfLeaveCount && Object.values(empData?.typesOfLeaveCount).length) {
-        setSelectedLeavetypes(Object.entries(empData?.typesOfLeaveCount)?.map(([key, value]) => key + " " + value))
+        setSelectedLeavetypes(Object.entries(empData?.typesOfLeaveCount)?.map(([key, value]) => key))
       }
     } catch (error) {
       if (error?.message === "Network Error") {

@@ -32,7 +32,7 @@ const Attendence = () => {
   ].map(item => ({ label: item, value: item }));
   const [selectedTimeOption, setSelectedTimeOption] = useState(["login", "morningBreak", "eveningBreak", "lunch"]);
   const [filteredTabledata, setFilteredTableData] = useState([]);
-
+  console.log("clockInsData", clockInsData)
 
   function calculateOverallBehavior(regularCount, lateCount, earlyCount) {
     const totalCount = regularCount + lateCount + earlyCount;
@@ -173,7 +173,7 @@ const Attendence = () => {
           <div className="leaveBoard gap-2">
             {[
               { value: formatTime(clockInsData.companyTotalWorkingHour), label: "Total schedule hour" },
-              { value: formatTime(clockInsData.totalLeaveDays * 9), label: "Leave hour" },
+              { value: formatTime(clockInsData.totalLeaveDays * clockInsData.companyWorkingHrPerDay), label: "Leave hour" },
               {
                 value: `%${calculateWorkAvailablity(Number(clockInsData.totalEmpWorkingHours), clockInsData.companyTotalWorkingHour)}`,
                 label: "Total work availability",

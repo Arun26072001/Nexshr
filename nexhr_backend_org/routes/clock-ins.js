@@ -718,7 +718,7 @@ router.get("/employee/:empId", verifyAdminHREmployeeManagerNetwork, async (req, 
             // add one day from end the date for exact filter
             endOfMonth.setDate(endOfMonth.getDate() + 1)
         }
-        let totalEmpWorkingHours = 0, totalLeaveDays = 0
+        let totalEmpWorkingHours, totalLeaveDays = 0;
         let regular = 0, late = 0, early = 0;
         const checkLogin = (scheduledTime, actualTime) => {
             let actualHours, actualMinutes = 0;
@@ -788,6 +788,7 @@ router.get("/employee/:empId", verifyAdminHREmployeeManagerNetwork, async (req, 
             totalWorkingHoursPerMonth: getTotalWorkingHoursExcludingWeekends(startOfMonth, new Date(now.getFullYear(), now.getMonth() + 1, 0), scheduledWorkingHours, empCurrentYearHolidays, weeklyDays),
             totalEmpWorkingHours,
             totalLeaveDays,
+            companyWorkingHrPerDay: scheduledWorkingHours,
             clockIns
         });
     } catch (error) {

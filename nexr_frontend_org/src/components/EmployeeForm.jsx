@@ -106,8 +106,8 @@ const EmployeeForm = ({
                 });
                 setLeaveTypes(
                     response.data.map(leave => ({
-                        label: `${leave.LeaveName} ${leave.limitDays}`,
-                        value: `${leave.LeaveName} ${leave.limitDays}`
+                        label: `${leave.LeaveName}`,
+                        value: `${leave.LeaveName}`
                     }))
                 );
             } catch (error) {
@@ -123,6 +123,8 @@ const EmployeeForm = ({
 
         gettingLeaveTypes();
     }, [url, data.token]);
+
+    console.log("leavetype", leaveTypes);
 
     const hourAndMin = timeDifference.toString().split(/[:.]+/);
     const [hour = 0, min = 0] = hourAndMin;
