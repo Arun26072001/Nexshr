@@ -1079,7 +1079,7 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
                 || (item?.date && params['*'] === "attendance")
             ) {
                 return setColumns(column5);
-            } else if ((item?.date && params['*'] === "attendance-request")) {
+            } else if ((["attendance-request", "daily-log"].includes(params['*']))) {
                 return setColumns(column4);
             } else if (item?.action) {
                 return setColumns(column6);

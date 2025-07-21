@@ -1,7 +1,6 @@
 import React, { useContext, useEffect, useRef, useState } from 'react';
 import './navbar.css';
 import Webnexs from "../../../imgs/webnexs_logo.webp";
-import TableRowsRoundedIcon from '@mui/icons-material/TableRowsRounded';
 import PunchIn from "../../../asserts/PunchIn.svg";
 import PunchOut from "../../../asserts/punchOut.svg";
 import PauseRoundedIcon from '@mui/icons-material/PauseRounded';
@@ -14,7 +13,7 @@ import axios from "axios";
 import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
 import KeyboardArrowDownRoundedIcon from '@mui/icons-material/KeyboardArrowDownRounded';
 import Loading from '../../Loader';
-import { convertTimeStringToDate, isValidDate, processActivityDurations, updateDataAPI } from '../../ReuseableAPI';
+import { convertTimeStringToDate, fileUploadInServer, isValidDate, processActivityDurations, updateDataAPI } from '../../ReuseableAPI';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import TextEditor from '../TextEditor';
@@ -42,8 +41,7 @@ export default function Navbar() {
         { label: "Technical Downtime (IT/Office/System-related delay)", value: "Technical Downtime (IT/Office/System-related delay)" },
         { label: "Late Punch (Employee-side delay)", value: "Late Punch (Employee-side delay)" }
     ];
-    // to avoid dependance using useEffect worktimeTracker
-    const [lateLogin, setLateLogin] = useState({});
+    const [lateLoginProof, setLateLoginProof] = useState([]);
     const navigate = useNavigate();
     // const [isView]
     const [workLocation, setWorklocation] = useState(localStorage.getItem("workLocation") || "");
@@ -334,8 +332,22 @@ export default function Navbar() {
 
     async function addLateLogin() {
         try {
+            let updatedClockins = {
+                ...workTimeTracker
+            }
+            // upload img into the server
+            if (workTimeTracker?.lateLogin?.proof?.length > 0) {
+                const uploads = await fileUploadInServer(workTimeTracker?.lateLogin?.proof);
+                updatedClockins = {
+                    ...workTimeTracker,
+                    lateLogin: {
+                        ...workTimeTracker.lateLogin,
+                        "proof": uploads.files.map((file) => file.originalFile)
+                    }
+                }
+            }
             setIsAddingLateLogin(true);
-            const res = await axios.put(`${url}/api/clock-ins/add-late-login/${data._id}`, workTimeTracker, {
+            const res = await axios.put(`${url}/api/clock-ins/add-late-login/${data._id}`, updatedClockins, {
                 headers: {
                     Authorization: data.token || ""
                 }
@@ -386,11 +398,45 @@ export default function Navbar() {
     }
 
     function fillLateLoginObj(value, name) {
+        if (name === "proof") {
+            const files = Array.from(value.target.files || []);
+            const imgUrls = files.map(file => URL.createObjectURL(file));
+
+            // Update preview image URLs
+            setLateLoginProof(prev => [...(prev || []), ...imgUrls]);
+
+            // Update file list in lateLogin
+            setWorkTimeTracker(prev => ({
+                ...prev,
+                lateLogin: {
+                    ...prev.lateLogin,
+                    [name]: files
+                }
+            }));
+        } else {
+            const newValue = value?.target?.value ?? value; // Handle input change or raw value
+
+            setWorkTimeTracker(prev => ({
+                ...prev,
+                lateLogin: {
+                    ...prev.lateLogin,
+                    [name]: newValue
+                }
+            }));
+        }
+    }
+
+
+    // remove file from lateLogin
+    function removeProof(value, fileIndex) {
+        const updatedPrevireList = lateLoginProof.filter((imgFile) => imgFile !== value);
+        setLateLoginProof(updatedPrevireList);
+        const updatedProofs = workTimeTracker?.lateLogin.proof.filter((file, index) => index !== fileIndex);
         setWorkTimeTracker((pre) => ({
             ...pre,
             lateLogin: {
                 ...pre.lateLogin,
-                [name]: value
+                proof: updatedProofs
             }
         }))
     }
@@ -402,10 +448,8 @@ export default function Navbar() {
             return;
         }
 
-        console.log("time", time)
         const currentTime = new Date();
         const actualTime = new Date(time);
-        console.log("actualTime", actualTime);
 
         if (currentTime.getTime() < actualTime.getTime()) {
             setErrorData(`Invalid date in ${type}`);
@@ -602,6 +646,25 @@ export default function Navbar() {
                         onChange={(e) => fillLateLoginObj(e, "proof")}
                     />
                 </div>
+                {lateLoginProof?.map((imgFile, index) => (
+                    <div className="col-lg-4 p-2" key={index}>
+                        <div className="position-relative">
+                            {(workTimeTracker?.lateLogin?.proof?.length === lateLoginProof?.length && workTimeTracker?.lateLogin[index]?.type === "video/mp4" || imgFile.includes(".mp4")) ?
+                                <video className="w-100 h-auto" controls>
+                                    <source src={imgFile} type={workTimeTracker?.lateLogin[index].type} />
+                                </video> :
+                                <img
+                                    src={imgFile}
+                                    className="w-100 h-auto"
+                                    alt="uploaded file"
+                                    style={{ borderRadius: "4px" }}
+                                />}
+                            <button onClick={() => removeProof(imgFile, index)} className="remBtn">
+                                &times;
+                            </button>
+                        </div>
+                    </div>
+                ))}
             </Modal.Body>
 
             <Modal.Footer>

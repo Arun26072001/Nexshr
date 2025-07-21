@@ -11,6 +11,7 @@ import { toast } from 'react-toastify';
 export default function WorkFromHome() {
   const url = process.env.REACT_APP_API_URL;
   const { data, whoIs } = useContext(EssentialValues);
+  const {isPermanentWFH, token} = data;
   const [isLoading, setIsLoading] = useState(false);
   const [requests, setRequests] = useState({});
   const [dateRangeValue, setDaterangeValue] = useState([]);
@@ -25,7 +26,7 @@ export default function WorkFromHome() {
           dateRangeValue
         },
         headers: {
-          Authorization: data.token || ""
+          Authorization: token || ""
         }
       })
       setRequests(res.data);
@@ -48,7 +49,7 @@ export default function WorkFromHome() {
       setIsDeleting(id)
       const res = await axios.delete(`${url}/api/wfh-application/${id}`, {
         headers: {
-          Authorization: data.token || ""
+          Authorization: token || ""
         }
       })
       toast.success(res.data.message);
@@ -71,7 +72,7 @@ export default function WorkFromHome() {
         </p>
         <div className="col-6 d-flex justify-content-end">
           <DateRangePicker size="lg" className="ml-1" showOneCalendar placement="bottomEnd" value={dateRangeValue} placeholder="Filter Range of Date" onChange={setDaterangeValue} />
-          <button className="button mx-1" onClick={() => navigate(`/${whoIs}/wfh-request`)}>
+          <button className="button mx-1" disabled={isPermanentWFH} title={isPermanentWFH ? "You have the permanent WFH option, so there's no need to apply for WFH." : "You can submit a WFH request."} onClick={() => navigate(`/${whoIs}/wfh-request`)}>
             Apply WFH
           </button>
         </div>

@@ -322,16 +322,18 @@ router.post("/:id", verifyAdminHR, async (req, res) => {
     const { Email, phone, FirstName, LastName, Password, company, annualLeaveEntitlement, typesOfLeaveCount, employementType } = req.body;
 
     // Check if email already exists
-    if (await Employee.exists({ Email })) {
+    const [isEmail, isPhone] = await Promise.all([
+      await Employee.exists({ Email }),
+      await Employee.exists({ phone })
+    ])
+
+    if (isEmail) {
       return res.status(400).json({ error: "Email already exists" });
     }
-    if (phone) {
-      if (await Employee.exists({ phone })) {
-        return res.status(400).json({ error: "Phone number already exists" });
-      }
+    if (isPhone) {
+      return res.status(400).json({ error: "Phone number already exists" });
     }
 
-    
     const employeeData = {
       ...req.body,
       role: req.body.role,
@@ -460,6 +462,18 @@ router.put("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
               : roleName === "network admin"
                 ? 5
                 : 3;
+    }
+
+    // check annual leave start date is greater than or equal doj
+    if (req.body?.annualLeaveYearStart
+      && isValidDate(req.body?.annualLeaveYearStart)
+      && req.body?.dateOfJoining
+      && isValidDate(req.body?.dateOfJoining)) {
+      const annualDateTime = new Date(req.body?.annualLeaveYearStart).getTime();
+      const joiningDateTime = new Date(req.body?.dateOfJoining).getTime();
+      if (joiningDateTime > annualDateTime) {
+        return res.status(400).send({ error: "annualLeaveYearStart must be greater than or equal to dateOfJoining" })
+      }
     }
 
     // Get employee data with profile and company

@@ -331,7 +331,7 @@ const AddEmployee = () => {
       setDetails("employment")
     } else if (scrolledHeight > 550) {
       setDetails("contact")
-    } else if (scrolledHeight < 60) {
+    } else if (scrolledHeight < 80) {
       setDetails("personal")
     }
   }, [scrolledHeight])

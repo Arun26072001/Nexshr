@@ -22,6 +22,22 @@ const EmployeeForm = ({
     const [leaveTypes, setLeaveTypes] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
     const [isWorkingApi, setIsWorkingApi] = useState(false);
+    const requiredFields = [
+        "FirstName",
+        "LastName",
+        "Email",
+        "Password",
+        "company",
+        "position",
+        "department",
+        "role",
+        "employmentType",
+        "dateOfJoining",
+        "workingTimePattern",
+        "annualLeaveYearStart",
+        "annualLeaveEntitlement",
+        "monthlyPermissions"
+    ];
     const [errors, setErrors] = useState({});
 
     // Fetch payslip info on component mount
@@ -30,7 +46,7 @@ const EmployeeForm = ({
             try {
                 const payslipInfo = await fetchPayslipInfo();
                 if (payslipInfo?.payslipFields) {
-                    const fields = payslipInfo.payslipFields.filter((field) => !field.fieldName.toLowerCase().includes("salary"));
+                    const fields = payslipInfo.payslipFields.filter((field) => !["basicsalary","lossofpay"].includes(field.fieldName.toLowerCase()));
                     const additionalFields = fields.reduce((acc, field) => {
                         acc[field.fieldName] = employeeObj?.payslipFields?.[field.fieldName] || "";
                         return acc;
@@ -135,11 +151,21 @@ const EmployeeForm = ({
             if (error?.message === "Network Error") {
                 navigate("/network-issue")
             }
+            const errorMsg = error?.response?.data?.error;
+            requiredFields.forEach((field) => {
+                if (errorMsg.includes(field)) {
+                    setErrors((pre) => ({
+                        ...pre,
+                        [field]: errorMsg
+                    }))
+                }
+            })
             console.error("Error updating employee:", error);
-            toast.error(error.response?.data?.error || "Failed to update employee");
+            toast.error(errorMsg || "Failed to update employee");
         }
     };
 
+    console.log("empObj", employeeObj)
     const addEmployee = async (employeeObj) => {
         try {
             // setIsWorkingApi(true);
@@ -163,28 +189,49 @@ const EmployeeForm = ({
             if (error?.message === "Network Error") {
                 navigate("/network-issue")
             }
+            const errorMsg = error?.response?.data?.error;
+            requiredFields.forEach((field) => {
+                if (errorMsg.includes(field)) {
+                    setErrors((pre) => ({
+                        ...pre,
+                        [field]: errorMsg
+                    }))
+                }
+            })
+            navToError();
             console.error("Error adding employee:", error);
-            toast.error(error?.response?.data?.error || "Failed to add employee");
+            toast.error(errorMsg || "Failed to add employee");
         }
     };
+
+
+    useEffect(() => {
+        if (errors && Object.keys(errors).length > 0) {
+            navToError();
+        }
+    }, [errors]);
 
     const validationForm = () => {
         const newError = {};
 
         // Required field validations
-        if (!employeeObj?.FirstName) newError.FirstName = "First name is required";
-        if (!employeeObj?.LastName) newError.LastName = "Last name is required";
-        if (!employeeObj?.Email) newError.Email = "Email is required";
-        if (!employeeObj?.Password) newError.Password = "Password is required";
-        if (!employeeObj?.company) newError.company = "Company is required";
-        if (!employeeObj?.position) newError.position = "Position is required";
-        if (!employeeObj?.department) newError.department = "Department is required";
-        if (!employeeObj?.role) newError.role = "Role is required";
-        if (!employeeObj?.employmentType) newError.employmentType = "Employment type is required";
-        if (!employeeObj?.workingTimePattern) newError.workingTimePattern = "Working time pattern is required";
-        if (!employeeObj?.annualLeaveYearStart) newError.annualLeaveYearStart = "AnnualLeaveYearStart date is required";
-        if (!employeeObj?.annualLeaveEntitlement) newError.annualLeaveEntitlement = "Annual leave entitlement is required";
-        if (!employeeObj?.monthlyPermissions) newError.monthlyPermissions = "Monthly Permission is required"
+        requiredFields.forEach((field) => {
+            if (!employeeObj?.[field]) {
+                newError[field] = `${field} is required`;
+            }
+        })
+        // if (!employeeObj?.LastName) newError.LastName = "Last name is required";
+        // if (!employeeObj?.Email) newError.Email = "Email is required";
+        // if (!employeeObj?.Password) newError.Password = "Password is required";
+        // if (!employeeObj?.company) newError.company = "Company is required";
+        // if (!employeeObj?.position) newError.position = "Position is required";
+        // if (!employeeObj?.department) newError.department = "Department is required";
+        // if (!employeeObj?.role) newError.role = "Role is required";
+        // if (!employeeObj?.employmentType) newError.employmentType = "Employment type is required";
+        // if (!employeeObj?.workingTimePattern) newError.workingTimePattern = "Working time pattern is required";
+        // if (!employeeObj?.annualLeaveYearStart) newError.annualLeaveYearStart = "AnnualLeaveYearStart date is required";
+        // if (!employeeObj?.annualLeaveEntitlement) newError.annualLeaveEntitlement = "Annual leave entitlement is required";
+        // if (!employeeObj?.monthlyPermissions) newError.monthlyPermissions = "Monthly Permission is required"
         // if (!employeeObj?.basicSalary) newError.basicSalary = "Basic salary is required";
         // if (!employeeObj?.bankName) newError.bankName = "Bank name is required";
         // if (!employeeObj?.accountNo) newError.accountNo = "Account number is required";
@@ -282,13 +329,14 @@ const EmployeeForm = ({
     };
 
     if (isLoading) return <Loading height="80vh" />;
-
+    // console.log("details", details)
     return (
         <form onSubmit={handleSubmit}>
             <div className="empForm">
                 <div className="catogaries-container">
                     <div className="catogaries">
                         {["personal", "contact", "employment", "job", "financial", "payslip"].map(section => {
+                            // console.log(details === section, details, section)
                             return <div
                                 key={section}
                                 className={`catogary ${details === section ? "view" : ""}`}
@@ -945,7 +993,7 @@ const EmployeeForm = ({
                                             className={`inputField ${errors[field.fieldName] ? "error" : ""}`}
                                             name={field.fieldName}
                                             onChange={["admin", "hr"].includes(whoIs) ? e => fillEmpObj(e.target.value, field.fieldName) : () => { }}
-                                            value={employeeObj?.[field.fieldName] || ""}
+                                            value={employeeObj?.payslipFields?.[field.fieldName] || ""}
                                             disabled={["admin", "hr"].includes(whoIs) ? false : true}
                                         />
                                         {errors[field.fieldName] && (
@@ -980,6 +1028,7 @@ const EmployeeForm = ({
                     <div className="w-50">
                         <button
                             type="submit"
+                            disabled={isWorkingApi}
                             className="btn btn-dark"
                             style={{
                                 cursor: isWorkingApi ? "progress" : "pointer"

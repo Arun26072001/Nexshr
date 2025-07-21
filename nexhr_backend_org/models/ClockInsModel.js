@@ -25,7 +25,7 @@ const timeRangeSchema2 = new mongoose.Schema({
 const lateLoginSchema = new mongoose.Schema({
   lateType: { type: String },
   lateReason: { type: String },
-  proof: { type: String },
+  proof: [{ type: String }],
   status: { type: String, default: "pending" }
 }, { _id: false })
 
