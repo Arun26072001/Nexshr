@@ -8,7 +8,6 @@ const announcementSchema = new mongoose.Schema({
     selectTeamMembers: [{ type: mongoose.Schema.Types.ObjectId, ref: "Employee", default: [] }],
     message: { type: String, required: true, trim: true },
     createdBy: { type: mongoose.Schema.Types.ObjectId, ref: "Employee" },
-    // whoViewed: {type: mongoose.Schema.Types.Mixed}
 });
 
 const Announcement = mongoose.model('Announcement', announcementSchema);
@@ -19,7 +18,7 @@ const announcementValidation = Joi.object({
         "date.min": "'endDate' must be greater than 'fromDate'"
     }),
     message: Joi.string().required().disallow(null, ' ', 'none', 'undefined', '<p><br></p>').label('message'),
-    selectTeamMembers: Joi.array().items(Joi.string()).label("Selected members"),
+    selectTeamMembers: Joi.array().min(1).items(Joi.string()).label("selectTeamMembers").required(),
     createdBy: Joi.any().optional(),
 });
 

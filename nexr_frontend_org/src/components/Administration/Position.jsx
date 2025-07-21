@@ -30,6 +30,7 @@ export default function Position() {
     function modifyPositions() {
         if (isAddPosition) {
             setPositionObj({});
+            setErrorData("");
         }
         setIsAddPosition(!isAddPosition);
     }

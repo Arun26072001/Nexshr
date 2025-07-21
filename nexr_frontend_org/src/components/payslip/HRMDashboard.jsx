@@ -324,14 +324,14 @@ export default function HRMDashboard() {
         }
     }
 
-    function changeEmpEditForm(id) {
-        if (isEditEmp) {
-            navigate(["manager", "admin", "hr"].includes(whoIs) ? `/${whoIs}/employee` : `/${whoIs}`);
-            handleEditEmp()
-        } else {
-            navigate(`/${whoIs}/employee/edit/${id}`);
-        }
-    }
+    // function changeEmpEditForm(id) {
+    //     if (isEditEmp) {
+    //         navigate(["manager", "admin", "hr"].includes(whoIs) ? `/${whoIs}/employee` : `/${whoIs}`);
+    //         handleEditEmp()
+    //     } else {
+    //         navigate(`/${whoIs}/employee/edit/${id}`);
+    //     }
+    // }
 
     function reloadRolePage() {
         setReloadRole(!reloadRole)
@@ -535,7 +535,7 @@ export default function HRMDashboard() {
             workTimeTracker, reloadRolePage, unStoppedActivies, setIsWorkingLoginTimerApi, handleEditEmp, companies, employees,
             updateWorkTracker, isWorkingLoginTimerApi, isworkingActivityTimerApi, trackTimer, startLoginTimer, stopLoginTimer,
             changeReasonForLate, changeReasonForEarly, startActivityTimer, stopActivityTimer, setWorkTimeTracker, updateClockins,
-            checkClockins, timeOption, isStartLogin, isStartActivity, handleAddTask, changeEmpEditForm, isAddTask, setIsAddTask,
+            checkClockins, timeOption, isStartLogin, isStartActivity, handleAddTask, isAddTask, setIsAddTask,
             handleAddTask, selectedProject, daterangeValue, setDaterangeValue, handleLateLogin, isLateLogin
         }}>
             <Routes >
@@ -586,7 +586,7 @@ export default function HRMDashboard() {
                         <Routes>
                             <Route index path="attendance-request" element={<Request attendanceData={attendanceData} isLoading={waitForAttendance} />} />
                             <Route path="daily-log" element={<Dailylog attendanceData={attendanceData} isLoading={waitForAttendance} />} />
-                             <Route path="late-punch" element={<LatePunch />} />
+                            <Route path="late-punch" element={<LatePunch />} />
                             <Route path="details" element={<Details attendanceData={attendanceData} isLoading={waitForAttendance} />} />
                             <Route path="attendance-summary" element={<Summary attendanceData={attendanceForSummary} isLoading={waitForAttendance} />} />
                         </Routes>

@@ -30,7 +30,8 @@ export default function Department() {
 
     function modifyDepartments() {
         if (isAddDepartment) {
-            setDepartmentObj({})
+            setDepartmentObj({});
+            setErrorData({});
         }
         setIsAddDepartment(!isAddDepartment);
     }

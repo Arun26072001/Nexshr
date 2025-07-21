@@ -146,7 +146,7 @@ const EmployeeForm = ({
             }
             setEmployeeObj({});
             toast.success(res.data.message);
-            handleEditEmp()
+            handleEditEmp();
         } catch (error) {
             if (error?.message === "Network Error") {
                 navigate("/network-issue")
@@ -165,7 +165,6 @@ const EmployeeForm = ({
         }
     };
 
-    console.log("empObj", employeeObj)
     const addEmployee = async (employeeObj) => {
         try {
             // setIsWorkingApi(true);
@@ -184,6 +183,7 @@ const EmployeeForm = ({
                 navigate(`/${whoIs}`)
             }
             setEmployeeObj({});
+            handleEditEmp();
             toast.success(res.data.message);
         } catch (error) {
             if (error?.message === "Network Error") {

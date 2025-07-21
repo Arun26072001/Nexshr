@@ -240,7 +240,8 @@ const Tasks = () => {
 
   function handleViewTask() {
     if (isviewTask) {
-      setTaskObj({})
+      setTaskObj({});
+      setErrorData("");
     }
     setIsViewtask(!isviewTask)
   }
@@ -248,6 +249,7 @@ const Tasks = () => {
   function handleEditTask() {
     if (isEditTask) {
       setTaskObj({});
+      setErrorData("");
     }
     setIsEditTask(!isEditTask);
   }

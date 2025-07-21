@@ -53,6 +53,7 @@ const WorkPlaceTab = () => {
       }))
       if (changeWorkplace.isAdd) {
         setWorkPlaceObj({})
+        setErrorData("");
       }
     } else if (type === "Edit") {
       if (!changeWorkplace.isEdit) {
@@ -66,7 +67,8 @@ const WorkPlaceTab = () => {
         isEdit: !pre.isEdit
       }))
       if (changeWorkplace.isEdit) {
-        setWorkPlaceObj({})
+        setWorkPlaceObj({});
+        setErrorData("");
       }
     } else {
       if (!changeWorkplace.isView) {

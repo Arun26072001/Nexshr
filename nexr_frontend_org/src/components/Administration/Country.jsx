@@ -64,6 +64,7 @@ export default function Country() {
         if (type === "Edit") {
             if (modifyCountry.isEdit) {
                 setcountryObj({})
+                setErrorData("");
             }
             setModifyCountry((pre) => ({
                 ...pre,
@@ -76,7 +77,8 @@ export default function Country() {
             }))
         } else if (type === "Add") {
             if (modifyCountry.isAdd) {
-                setcountryObj({})
+                setcountryObj({});
+                setErrorData("");
             }
             setModifyCountry((pre) => ({
                 ...pre,

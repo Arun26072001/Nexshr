@@ -67,7 +67,8 @@ const Dashboard = () => {
             fetchTaskById(id)
         }
         if (isviewTask) {
-            setTaskObj({})
+            setTaskObj({});
+            setErrorData("");
         }
         setIsViewtask(!isviewTask)
     }
@@ -78,6 +79,7 @@ const Dashboard = () => {
         }
         if (isEditTask) {
             setTaskObj({});
+            setErrorData("");
         }
         setIsEditTask(!isEditTask);
     }
@@ -102,6 +104,7 @@ const Dashboard = () => {
         if (isAddTask) {
             setTaskObj({});
             setPreviewList([]);
+            setErrorData("");
         }
         setIsAddTask(!isAddTask)
     }

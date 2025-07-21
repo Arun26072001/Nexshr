@@ -50,6 +50,7 @@ const ManageTeam = () => {
         setAddTeam(!addTeam);
         if (addTeam) {
             setTeamObj({});  // Reset editTeamObj when toggling out of add/edit mode
+            setErrorData("");
         }
     };
 
@@ -59,7 +60,6 @@ const ManageTeam = () => {
             [name]: typeof value === "string" ? value?.trimStart()?.replace(/\s+/g, ' ') : value
         }));
     };
-
 
     useEffect(() => {
         const fetchEmployees = async () => {

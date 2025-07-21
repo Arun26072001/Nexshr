@@ -52,7 +52,8 @@ export default function Reports() {
 
     function handleEditReport() {
         if (isEditReport) {
-            setReportObj({})
+            setReportObj({});
+            setErrorData("");
         }
         setIsEditReport(!isEditReport)
     }
@@ -106,7 +107,8 @@ export default function Reports() {
 
     function handleAddReport() {
         if (isAddReport) {
-            setReportObj({})
+            setReportObj({});
+            setErrorData("")
         }
         setIsAddReport(!isAddReport);
     }
@@ -195,6 +197,10 @@ export default function Reports() {
     }
 
     function handleViewReport() {
+        if(isViewReport){
+            setReportObj({});
+            setErrorData("");
+        }
         setIsViewReport(!isViewReport)
     }
 

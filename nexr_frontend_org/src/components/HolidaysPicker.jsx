@@ -49,6 +49,7 @@ function Holiday() {
             setHolidays([]);
             setTitles({});
             setHolidayObj({});
+            setErrorData("");
         }
 
         setChangeHoliday((prev) => ({
