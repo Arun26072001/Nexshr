@@ -492,6 +492,7 @@ router.put("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
       }
     }
 
+    console.log("company", req.body.company)
     // Prepare update payload
     let updatedData = {
       ...req.body,

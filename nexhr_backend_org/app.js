@@ -190,7 +190,7 @@ async function fetchTimePatterns() {
         } catch (error) {
           console.error("Login Error:", error.message);
         }
-      });
+      }); 
 
       // send mail and apply fullday leave
       schedule.scheduleJob(`0 ${finishingMin - 5} ${finishingHour} * * *`, async function () {
