@@ -4,6 +4,7 @@ const { Holiday, HolidayValidation } = require("../models/HolidayModel");
 const sendMail = require("./mailSender");
 const { sendPushNotification } = require("../auth/PushNotification");
 const { Employee } = require("../models/EmpModel");
+const jwt = require("jsonwebtoken");
 const { errorCollector } = require("../Reuseable_functions/reusableFunction");
 const router = express.Router();
 
@@ -111,9 +112,19 @@ router.post("/:id", verifyAdminHR, async (req, res) => {
   }
 })
 
-router.get("/:year", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
+router.get("/current-year", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
   try {
-    const response = await Holiday.findOne({ currentYear: req.params.year }).exec();
+    const decodedData = jwt.decode(req.headers["authorization"]);
+    let filterObj = {
+      currentYear: new Date().getFullYear()
+    }
+    if (decodedData.company) {
+      filterObj = {
+        ...filterObj,
+        company: decodedData.company._id
+      }
+    }
+    const response = await Holiday.findOne(filterObj).exec();
     if (!response) {
       return res.status(200).send({ message: `Please add ${req.params.year} year of holidays!` })
     } else {
@@ -139,6 +150,11 @@ router.get("/", verifyAdminHR, async (req, res) => {
 
 router.put("/:id", verifyAdminHR, async (req, res) => {
   try {
+    // check update as duplicate company holidays
+    const isExist = await Holiday.findOne({ currentYear: req.body.currentYear, company: req.body.company });
+    if (isExist) {
+      return res.status(400).send({ error: "Already added this year of holidays!" })
+    }
     // check it's exists
     const holiday = await Holiday.findById(req.params.id);
     if (!holiday) {

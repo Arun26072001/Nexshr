@@ -615,8 +615,8 @@ const addSecondsToTime = (timeString, secondsToAdd) => {
 
 async function getHoliday() {
     try {
-        const token = getToken()
-        const res = await axios.get(`${url}/api/holidays/${new Date().getFullYear()}`, {
+        const token = getToken();
+        const res = await axios.get(`${url}/api/holidays/current-year`, {
             headers: {
                 Authorization: token || ""
             }

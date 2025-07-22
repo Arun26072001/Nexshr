@@ -31,7 +31,6 @@ function Holiday() {
     const [isWorkingApi, setIsWorkingApi] = useState(false);
     const [changeHoliday, setChangeHoliday] = useState({ isAdd: false, isEdit: false });
     const [isDeleting, setIsDeleting] = useState("");
-
     const { data, whoIs } = useContext(EssentialValues);
     const url = process.env.REACT_APP_API_URL;
 
@@ -103,7 +102,7 @@ function Holiday() {
                 toast.warn("Please fill titles for all selected dates");
                 return;
             }
-            
+
             const payload = {
                 ...holidayObj,
                 holidays: holidays.map(date => ({ date, title: titles[date] }))
@@ -117,7 +116,7 @@ function Holiday() {
             const res = await method(endpoint, payload, {
                 headers: { Authorization: data.token }
             });
-            
+
             toast.success(res.data.message);
             toggleHolidayMode(changeHoliday.isEdit ? "Edit" : "Add");
             fetchAllYearHolidays();
@@ -154,7 +153,7 @@ function Holiday() {
             fetchAllYearHolidays()
         } fetchHolidays()
     }, [whoIs, fetchAllYearHolidays, fetchHolidays]);
-    console.log("error", errorData.includes("holidays"), errorData)
+
     const eventPropGetter = () => ({
         style: {
             backgroundColor: "#5D8736",
@@ -176,7 +175,7 @@ function Holiday() {
                         <div className="col-half">
                             <div className="modelInput">
                                 <p className='modelLabel important'>Select Company </p>
-                                <SelectPicker value={holidayObj?.company} className={errorData.includes("company") ? "error" : ""} onChange={(e) => fillHolidayObj(e, "company")} style={{ width: "100%" }} size="lg" data={companies} />
+                                <SelectPicker value={typeof holidayObj?.company === "string" ? holidayObj?.company : holidayObj?.company?._id} className={errorData.includes("company") ? "error" : ""} onChange={(e) => fillHolidayObj(e, "company")} style={{ width: "100%" }} size="lg" data={companies} />
                                 {errorData.includes("company") ? <div className="text-center text-danger">{errorData}</div> : null}
                             </div>
                         </div>
@@ -195,7 +194,6 @@ function Holiday() {
                                 <DatePicker
                                     multiple
                                     format="YYYY-MM-DD"
-                                    // className={errorData.includes("holidays") ? "error" : ""}
                                     value={holidays}
                                     onChange={(dates) => setHolidays(Array.isArray(dates) && dates.length > 0 ? dates.map(d => d.format("YYYY-MM-DD")) : [])}
                                     style={{ height: "40px", width: "100%", border: errorData.includes("holidays") ? "2px solid red" : "" }}

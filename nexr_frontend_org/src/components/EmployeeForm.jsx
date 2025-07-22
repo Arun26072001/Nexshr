@@ -124,8 +124,6 @@ const EmployeeForm = ({
         gettingLeaveTypes();
     }, [url, data.token]);
 
-    console.log("leavetype", leaveTypes);
-
     const hourAndMin = timeDifference.toString().split(/[:.]+/);
     const [hour = 0, min = 0] = hourAndMin;
 
