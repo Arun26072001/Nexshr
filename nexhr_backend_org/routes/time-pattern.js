@@ -8,6 +8,24 @@ const { sendPushNotification } = require('../auth/PushNotification');
 const sendMail = require('./mailSender');
 const { changeClientTimezoneDate, errorCollector } = require('../Reuseable_functions/reusableFunction');
 
+router.get("/employee/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
+  try {
+    // check employee is exists
+    const emp = await Employee.findById(req.params.id, "workingTimePattern")
+      .populate("workingTimePattern").lean().exec();
+    if (!emp) {
+      return res.status(404).send({ error: "Employee not fount" })
+    }
+    if (!emp.workingTimePattern) {
+      return res.status(404).send({ error: "Working time pattern has not been assigned to you yet" })
+    }
+    return res.send(emp.workingTimePattern);
+  } catch (error) {
+    console.log("error in fetch emp's workingTimePattern", error)
+    return res.status(500).send({ error: error.message })
+  }
+})
+
 router.get("/", verifyAdminHREmployeeManagerNetwork, (req, res) => {
   TimePattern.find()
     .exec((err, pattern) => {
@@ -42,7 +60,9 @@ router.post("/", verifyAdminHR, async (req, res) => {
     await errorCollector({ url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT })
     return res.status(500).send({ error: error.message })
   }
-})
+});
+
+
 
 router.put("/:id", verifyAdminHR, async (req, res) => {
   try {

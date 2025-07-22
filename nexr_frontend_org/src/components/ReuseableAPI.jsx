@@ -109,8 +109,12 @@ const getclockinsDataById = async (id) => {
     }
 };
 
-function checkDateIsHoliday(dateList, target) {
-    return dateList.some((holiday) => new Date(holiday.date).toLocaleDateString() === new Date(target).toLocaleDateString());
+function checkDateIsHoliday(dateList = [], target) {
+    if (target) {
+        return dateList.some((holiday) => new Date(holiday.date).toLocaleDateString() === new Date(target).toLocaleDateString());
+    } else {
+        return false;
+    }
 }
 
 function isValidLeaveDate(holidays = [], WeeklyDays = [], target) {
@@ -681,7 +685,20 @@ async function fileUploadInServer(files) {
         console.error("Upload failed:", response);
         return;
     }
+}
 
+async function checkEmpIsPermanentWFH(empId) {
+    try {
+        const token = getToken();
+        const res = await axios.get(`${url}/api/employee/isPermanentWFH/${empId}`, {
+            headers: {
+                Authorization: token || ""
+            }
+        });
+        return res.data.isPermanentWFH;
+    } catch (error) {
+        console.log("error in checkEmpIsPermanentWFH", error)
+    }
 }
 
 function calculateTimePattern(start, end) {
@@ -842,6 +859,7 @@ export {
     formatTimeFromHour,
     timeToMinutes,
     fileUploadInServer,
+    checkEmpIsPermanentWFH,
     fetchTeamEmps,
     convertTimeStringToDate,
     getDayDifference,

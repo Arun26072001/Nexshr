@@ -132,7 +132,7 @@ export default function WFHRequestForm({ type }) {
                                     className={`inputField ${error?.includes("fromDate") ? "error" : ""} w-100`}
                                     selected={wfhRequestObj.fromDate ? new Date(wfhRequestObj.fromDate) : null}
                                     onChange={(date) => type !== "view" && handleInputChange("fromDate", date)}
-                                    minDate={["admin", "hr"].includes(whoIs) ? null : now}
+                                    minDate={now}
                                     excludeDates={excludedDates}
                                     onKeyDown={(e) => e.preventDefault()}
                                 />
@@ -146,7 +146,7 @@ export default function WFHRequestForm({ type }) {
                                     className={`inputField ${error?.includes("toDate") ? "error" : ""} w-100`}
                                     selected={wfhRequestObj.toDate ? new Date(wfhRequestObj.toDate) : null}
                                     onChange={(date) => handleInputChange("toDate", date)}
-                                    minDate={wfhRequestObj.fromDate || (["admin", "hr"].includes(whoIs) ? null : now)}
+                                    minDate={wfhRequestObj.fromDate}
                                     excludeDates={excludedDates}
                                     onKeyDown={(e) => e.preventDefault()}
                                 />

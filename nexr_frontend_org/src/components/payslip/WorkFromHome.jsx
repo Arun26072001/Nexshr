@@ -7,11 +7,13 @@ import { useNavigate } from 'react-router-dom';
 import axios from "axios";
 import { EssentialValues } from '../../App';
 import { toast } from 'react-toastify';
+import { checkEmpIsPermanentWFH } from '../ReuseableAPI';
 
 export default function WorkFromHome() {
   const url = process.env.REACT_APP_API_URL;
   const { data, whoIs } = useContext(EssentialValues);
-  const {isPermanentWFH, token} = data;
+  const { token, _id } = data;
+  const [isPermanentWFH, setIsPermanentWFH] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [requests, setRequests] = useState({});
   const [dateRangeValue, setDaterangeValue] = useState([]);
@@ -39,6 +41,17 @@ export default function WorkFromHome() {
       setIsLoading(false)
     }
   }
+
+    async function checkPermanentWFH() {
+      const isPermanent = await checkEmpIsPermanentWFH(_id);
+      if(isPermanent){
+        setIsPermanentWFH(isPermanent);
+      }
+    }
+  
+    useEffect(() => {
+      checkPermanentWFH()
+    }, [])
 
   useEffect(() => {
     fetchWfhReuests();

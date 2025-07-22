@@ -442,6 +442,21 @@ router.post("/:id", verifyAdminHR, async (req, res) => {
   }
 });
 
+router.get("/isPermanentWFH/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
+  try {
+    // check emp is exists
+    const isExists = await Employee.exists({ _id: req.params.id });
+    if (!isExists) {
+      return res.status(404).send({ error: `Employee not found` })
+    }
+    const emp = await Employee.findById(req.params.id, "isPermanentWFH").lean().exec();
+    return res.send({ isPermanentWFH: emp.isPermanentWFH })
+  } catch (error) {
+    console.log("error in check emp isPermanentWFH", error)
+    return res.status(500).send({ error: error.message });
+  }
+})
+
 router.put("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
   try {
     const { id } = req.params;
