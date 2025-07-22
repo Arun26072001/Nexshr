@@ -228,7 +228,7 @@ function Holiday() {
             </Modal.Body>
             <Modal.Footer>
                 <Button onClick={() => toggleHolidayMode(changeHoliday.isEdit ? "Edit" : "Add")} appearance="default">Back</Button>
-                <Button onClick={addOrUpdateHolidays} appearance="primary"> {isWorkingApi ? <Loading color="white" size={20} /> : changeHoliday.isEdit ? "Update Holiday" : "Add Holiday"}</Button>
+                <Button onClick={isWorkingApi ? null : addOrUpdateHolidays} style={{cursor: isWorkingApi ? "progress" : "pointer"}} appearance="primary"> {isWorkingApi ? <Loading color="white" size={20} /> : changeHoliday.isEdit ? "Update Holiday" : "Add Holiday"}</Button>
             </Modal.Footer>
         </Modal>
     );

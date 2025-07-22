@@ -178,7 +178,8 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
         const { location, worklocation } = req.query;
 
         let regular = 0, late = 0, early = 0;
-        const today = changeClientTimezoneDate(new Date());
+        const today = new Date();
+        
         const startOfDay = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate(), 0, 0, 0));
         const endOfDay = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate(), 23, 59, 59, 0));
 
@@ -294,15 +295,8 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
             }
         };
 
-        // Determine employee behavior (Late, Early, On Time)
-        const loginTime = loginTimeRaw;
-        // const permissionMinutes = emp?.leaveApplication?.length
-        //     ? ((new Date(emp.leaveApplication[0].toDate).getTime() - new Date(emp.leaveApplication[0].fromDate).getTime()) / 60000) / 60
-        //     : 0;
-        // console.log(emp?.leaveApplication[0]);
-
-        const behaviour = checkLoginStatus(officeLoginTime, loginTime);
-        const punchInMsg = await checkLoginForOfficeTime(officeLoginTime, loginTime);
+        const behaviour = checkLoginStatus(officeLoginTime, loginTimeRaw);
+        const punchInMsg = await checkLoginForOfficeTime(officeLoginTime, loginTimeRaw);
         const isLateLogin = behaviour === "Late" ? true : false
 
         // Create clock-in entry
