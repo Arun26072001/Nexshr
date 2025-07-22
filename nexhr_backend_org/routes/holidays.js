@@ -155,15 +155,22 @@ router.put("/:id", verifyAdminHR, async (req, res) => {
     if (!holiday) {
       return res.status(404).send({ error: `${req.body.currentYear} holidays not found` })
     }
+    console.log("type", typeof req.body.company);
+    const companyId = typeof req.body.company === "string" ? req.body.company : req.body.company._id
+    const holidayObj = {
+      ...req.body,
+      company: companyId
+    }
     // check it has error
-    const { error } = HolidayValidation.validate(req.body);
+    const { error } = HolidayValidation.validate(holidayObj);
     if (error) {
       return res.status(400).send({ error: error.message })
     }
+
     // check update as duplicate company holidays
     const companyHoildays = await Holiday.findOne({ currentYear: req.body.currentYear, company: req.body.company });
     if (companyHoildays) {
-      if (String(companyHoildays.company) !== req.body.company && companyHoildays.currentYear === req.body.currentYear) {
+      if (String(companyHoildays.company) !== companyId && companyHoildays.currentYear === req.body.currentYear) {
         return res.status(400).send({ error: `Already has this company's holiday` })
       }
     }
