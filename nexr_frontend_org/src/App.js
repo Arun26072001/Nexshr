@@ -36,7 +36,6 @@ const App = () => {
     Name: null,
     token: null,
     annualLeave: null,
-    isPermanentWFH: null
   });
   const [loading, setLoading] = useState(false);
   const [pass, setPass] = useState(true);
@@ -120,7 +119,6 @@ const App = () => {
         token: response.data,
         annualLeave: decodedData.annualLeaveEntitlement || 0,
         profile: decodedData.profile,
-        isPermanentWFH: decodedData.isPermanentWFH
       });
 
       // Update local storage
@@ -243,7 +241,6 @@ const App = () => {
         annualLeave: decodedData.annualLeaveEntitlement || 0,
         token: localStorage.getItem("token") || "",
         profile: decodedData.profile,
-        isPermanentWFH: decodedData.isPermanentWFH
       }))
       const roles = { "17": "superAdmin", "1": "admin", "2": "hr", "3": "emp", "4": "manager", "5": "sys-admin" };
       setWhoIs(roles[String(decodedData?.Account)] || "");

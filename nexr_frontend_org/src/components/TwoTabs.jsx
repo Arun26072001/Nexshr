@@ -5,7 +5,7 @@ import Tabs from '@mui/material/Tabs';
 import Tab from '@mui/material/Tab';
 import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
-import { fetchLeaveRequests, getDayDifference } from './ReuseableAPI';
+import { checkEmpIsPermanentWFH, fetchLeaveRequests, getDayDifference } from './ReuseableAPI';
 import CircleBar from './CircleProcess';
 import { useNavigate } from 'react-router-dom';
 import { EssentialValues } from '../App';
@@ -50,7 +50,8 @@ export default function Twotabs() {
   const { whoIs } = useContext(EssentialValues);
   const navigate = useNavigate();
   const { data } = useContext(EssentialValues);
-  const { annualLeave, _id, isPermanentWFH } = data;
+  const [isPermanentWFH, setIsPermanentWFH] = useState(false);
+  const { annualLeave, _id } = data;
   const [value, setValue] = useState(0);
   const [takenLeave, setTakenLeave] = useState(0);
   const today = new Date();
@@ -100,6 +101,17 @@ export default function Twotabs() {
       setTakenLeave(0);
     }
   }, []);
+
+  async function checkPermanentWFH() {
+    const isPermanent = await checkEmpIsPermanentWFH(_id);
+    if(isPermanent){
+      setIsPermanentWFH(isPermanent);
+    }
+  }
+
+  useEffect(() => {
+    checkPermanentWFH()
+  }, [])
 
   useEffect(() => {
     async function getEmpAllLeaveData() {

@@ -6,7 +6,7 @@ const { WFHAppValidation, WFHApplication } = require("../models/WFHApplicationMo
 const { Employee } = require("../models/EmpModel");
 const sendMail = require("./mailSender");
 const { Team } = require("../models/TeamModel");
-const { formatDate, mailContent, sumLeaveDays, accountFromRole, changeClientTimezoneDate, errorCollector } = require("../Reuseable_functions/reusableFunction");
+const { formatDate, mailContent, sumLeaveDays, changeClientTimezoneDate, errorCollector, checkDateIsHoliday } = require("../Reuseable_functions/reusableFunction");
 const { sendPushNotification } = require("../auth/PushNotification");
 const { Holiday } = require("../models/HolidayModel");
 const { TimePattern } = require("../models/TimePatternModel");
@@ -214,7 +214,7 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
     try {
         const { id } = req.params;
         const { fromDate, toDate, reason } = req.body;
-
+        const today = new Date();
         const fromDateObj = changeClientTimezoneDate(fromDate);
         const toDateObj = changeClientTimezoneDate(toDate);
 
@@ -237,7 +237,7 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
             status: "approved"
         })
         if (isLeave) {
-            return res.status(400).send({ error: "You can't apply because you already have wfh during this period." })
+            return res.status(400).send({ error: "You can't apply WFH, because you have leave wfh during this period." })
         }
 
         // check has more than two team members in wfh
@@ -290,11 +290,7 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
             status: "pending"
         };
 
-        // check whf request is weekend or holiday
-        function checkDateIsHoliday(dateList, target) {
-            return dateList.some((holiday) => new Date(holiday.date).toLocaleDateString() === new Date(target).toLocaleDateString());
-        }
-        const holiday = await Holiday.findOne({ currentYear: new Date().getFullYear() });
+        const holiday = await Holiday.findOne({ currentYear: new Date().getFullYear(), company: emp.company._id });
         const isFromDateHoliday = checkDateIsHoliday(holiday.holidays, fromDateObj);
         const isToDateHoliday = checkDateIsHoliday(holiday.holidays, toDateObj);
         if (isFromDateHoliday) {
@@ -784,11 +780,7 @@ router.put("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
 
             if (!emp) return res.status(404).json({ error: "Employee not found." });
 
-            // check whf request is weekend or holiday
-            function checkDateIsHoliday(dateList, target) {
-                return dateList.some((holiday) => new Date(holiday.date).toLocaleDateString() === new Date(target).toLocaleDateString());
-            }
-            const holiday = await Holiday.findOne({ currentYear: new Date().getFullYear() });
+            const holiday = await Holiday.findOne({ currentYear: new Date().getFullYear(), company: emp.company._id });
             const isFromDateHoliday = checkDateIsHoliday(holiday.holidays, fromDate);
             const isToDateHoliday = checkDateIsHoliday(holiday.holidays, fromDate);
             if (isFromDateHoliday) {

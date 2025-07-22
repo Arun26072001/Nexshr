@@ -20,6 +20,9 @@ import { TimerStates } from "./payslip/HRMDashboard";
 const localizer = dayjsLocalizer(dayjs);
 
 function Holiday() {
+    const { data, whoIs } = useContext(EssentialValues);
+    const url = process.env.REACT_APP_API_URL;
+
     const { companies } = useContext(TimerStates);
     const [titles, setTitles] = useState({});
     const [holidayObj, setHolidayObj] = useState({});
@@ -31,8 +34,8 @@ function Holiday() {
     const [isWorkingApi, setIsWorkingApi] = useState(false);
     const [changeHoliday, setChangeHoliday] = useState({ isAdd: false, isEdit: false });
     const [isDeleting, setIsDeleting] = useState("");
-    const { data, whoIs } = useContext(EssentialValues);
-    const url = process.env.REACT_APP_API_URL;
+    const [workingTimePattern, setWorkingTimePattern] = useState({});
+
 
     const isEditable = useMemo(() => changeHoliday.isAdd || changeHoliday.isEdit, [changeHoliday]);
 
@@ -75,20 +78,40 @@ function Holiday() {
         setIsLoading(true);
         try {
             const res = await getHoliday();
-            const mapped = (res?.holidays || []).map(item => ({
-                title: item.title || "Untitled Holiday",
-                start: new Date(item.date),
-                end: new Date(item.date)
-            }));
+            let workingHrStart;
+            let workingHrEnd;
+            if (workingTimePattern && Object.values(workingTimePattern).length > 0) {
+                workingHrStart = new Date(workingTimePattern.StartingTime);
+                workingHrEnd = new Date(workingTimePattern.FinishingTime);
+            }
+            const [workStartHr, workStartMin] = [workingHrStart.getHours(), workingHrStart.getMinutes()];
+            const [workEndHr, workEndMin] = [workingHrEnd.getHours(), workingHrEnd.getMinutes()];
+            const mapped = (res?.holidays || []).map(item => {
+                const fromDate = new Date(item.date);
+                const toDate = new Date(item.date);
+                if (workingHrStart && workingHrEnd) {
+                    // set emps's comapny working hour 
+                    fromDate.setHours(workStartHr, workStartMin, 0, 0);
+                    toDate.setHours(workEndHr, workEndMin, 0, 0);
+                } else {
+                    fromDate.setHours(0, 0, 0, 0);
+                    toDate.setHours(23, 59, 59, 0);
+                }
+                return {
+                    title: item.title || "Untitled Holiday",
+                    start: fromDate,
+                    end: toDate
+                }
+            });
             // for holiday view in calendar
-            setFormattedHolidays(mapped)
+            setFormattedHolidays(mapped);
         } catch (err) {
             console.error("Error fetching holidays", err);
             setFormattedHolidays([]);
         } finally {
             setIsLoading(false);
         }
-    }, [changeHoliday.isAdd, changeHoliday.isEdit]);
+    }, [changeHoliday.isAdd, changeHoliday.isEdit, workingTimePattern]);
 
     const fillHolidayObj = useCallback((value, name) => {
         setHolidayObj(prev => ({ ...prev, [name]: value?.trimStart()?.replace(/\s+/g, ' ') }));
@@ -147,6 +170,22 @@ function Holiday() {
             setIsDeleting("")
         }
     }, [url, data.token, fetchAllYearHolidays]);
+
+    async function fetchEmpWorkTimePattern() {
+        try {
+            const res = await axios.get(`${url}/api/time-pattern/employee/${data._id}`, {
+                headers: {
+                    Authorization: data.token || ""
+                }
+            })
+            setWorkingTimePattern(res.data);
+        } catch (error) {
+            console.error("error in fetchEmp's workingTimePattern", error)
+        }
+    }
+    useEffect(() => {
+        fetchEmpWorkTimePattern()
+    }, [])
 
     useEffect(() => {
         if (whoIs !== "emp") {
@@ -228,7 +267,7 @@ function Holiday() {
             </Modal.Body>
             <Modal.Footer>
                 <Button onClick={() => toggleHolidayMode(changeHoliday.isEdit ? "Edit" : "Add")} appearance="default">Back</Button>
-                <Button onClick={isWorkingApi ? null : addOrUpdateHolidays} style={{cursor: isWorkingApi ? "progress" : "pointer"}} appearance="primary"> {isWorkingApi ? <Loading color="white" size={20} /> : changeHoliday.isEdit ? "Update Holiday" : "Add Holiday"}</Button>
+                <Button onClick={isWorkingApi ? null : addOrUpdateHolidays} style={{ cursor: isWorkingApi ? "progress" : "pointer" }} appearance="primary"> {isWorkingApi ? <Loading color="white" size={20} /> : changeHoliday.isEdit ? "Update Holiday" : "Add Holiday"}</Button>
             </Modal.Footer>
         </Modal>
     );

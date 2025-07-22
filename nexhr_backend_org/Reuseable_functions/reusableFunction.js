@@ -125,11 +125,11 @@ function setPeriodOfLeave(leave) {
 async function rangeofDate(fromDate, toDate, empData) {
   const from = new Date(fromDate);
   const to = new Date(toDate);
-  const holidayData = await Holiday.findOne({ currentYear: new Date().getFullYear() }).lean().exec();
-  const holidays = Array.isArray(holidayData.holiday) && holidayData.holiday.length > 0 ? holidayData.holiday : []
-  const empId = typeof empData === "object" ? empData?._id : empData
-  const emp = await Employee.findById(empId, "workingTimePattern")
+  const empId = typeof empData === "object" ? empData?._id : empData;
+  const emp = await Employee.findById(empId, "workingTimePattern company")
     .populate("workingTimePattern", "WeeklyDays").lean().exec();
+  const holidayData = await Holiday.findOne({ currentYear: new Date().getFullYear(), company: emp.company }).lean().exec();
+  const holidays = Array.isArray(holidayData.holiday) && holidayData.holiday.length > 0 ? holidayData.holiday : []
   const empTimePatternWorkingDays = emp?.workingTimePattern && Array.isArray(emp.workingTimePattern.WeeklyDays) ? emp.workingTimePattern.WeeklyDays : [];
   let dayCount = 0;
   while (from <= to) {
@@ -166,12 +166,6 @@ function accountFromRole(account) {
   }
 }
 
-function checkDateIsHoliday(holidays, targetDate) {
-  const targetStr = format(new Date(targetDate), "yyyy-MM-dd"); // normalize to date string
-  return holidays.some(holiday => {
-    return holiday.date === targetStr
-  });
-}
 
 const sumLeaveDays = async (leaveArray) => {
   const dayDiffs = await Promise.all(leaveArray.map(getDayDifference));
@@ -437,6 +431,15 @@ async function fetchFirstTwoItems() {
   }
 }
 
+// check whf request is weekend or holiday
+function checkDateIsHoliday(dateList = [], target) {
+  if (target) {
+    return dateList.some((holiday) => new Date(holiday.date).toLocaleDateString() === new Date(target).toLocaleDateString());
+  } else {
+    return false;
+  }
+}
+
 function changeClientTimezoneDate(date) {
   const actualDate = toZonedTime(date, process.env.TIMEZONE);
   return actualDate
@@ -616,4 +619,4 @@ async function errorCollector(errorLog) {
   }
 }
 
-module.exports = { convertToString, isValidDate, getTimeFromDateOrTimeData, changeActualTimeDataAsAttendace, setTimeHolderForAllActivities, setPeriodOfLeave, isValidLeaveDate, errorCollector, getTotalWorkingHourPerDay, getTotalWorkingHourPerDayByDate, accountFromRole, changeClientTimezoneDate, sumLeaveDays, getValidLeaveDays, fetchFirstTwoItems, getCurrentTime, checkLoginForOfficeTime, categorizeTasks, projectMailContent, processActivityDurations, formatLeaveData, getDayDifference, getOrgDB, formatDate, getWeekdaysOfCurrentMonth, mailContent, checkLogin, getTotalWorkingHoursExcludingWeekends, getCurrentTimeInMinutes, timeToMinutes, formatTimeFromMinutes };
+module.exports = { convertToString, checkDateIsHoliday, isValidDate, getTimeFromDateOrTimeData, changeActualTimeDataAsAttendace, setTimeHolderForAllActivities, setPeriodOfLeave, isValidLeaveDate, errorCollector, getTotalWorkingHourPerDay, getTotalWorkingHourPerDayByDate, accountFromRole, changeClientTimezoneDate, sumLeaveDays, getValidLeaveDays, fetchFirstTwoItems, getCurrentTime, checkLoginForOfficeTime, categorizeTasks, projectMailContent, processActivityDurations, formatLeaveData, getDayDifference, getOrgDB, formatDate, getWeekdaysOfCurrentMonth, mailContent, checkLogin, getTotalWorkingHoursExcludingWeekends, getCurrentTimeInMinutes, timeToMinutes, formatTimeFromMinutes };

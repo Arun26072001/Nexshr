@@ -29,14 +29,14 @@ const LeaveApplicationValidation = Joi.object({
     "string.disallow": "leaveType is required"
   }),
   fromDate: Joi.date().required().label('fromDate'),
-  toDate: Joi.date().greater(Joi.ref('fromDate')).required().label('toDate').messages({
-    'date.greater': '"toDate" must be greater than "fromDate"',
+  toDate: Joi.date().min(Joi.ref('fromDate')).required().label('toDate').messages({
+    'date.min': '"toDate" must be greater than "fromDate"',
   }),
   applyFor: Joi.any().optional(),
   employee: Joi.string().regex(/^[0-9a-fA-F]{24}$/).optional().label('employee'),
   reasonForLeave: Joi.string().required().disallow(null, ' ', 'none', 'undefined').label('reasonForLeave'),
   periodOfLeave: Joi.string().label('periodOfLeave'),
-  prescription: Joi.string().optional().label('prescription'),
+  prescription: Joi.any().optional(),
   coverBy: Joi.any().label('coverBy').optional(),
   status: Joi.string().label('status'),
   appliedOn: Joi.date().label('appliedOn'),

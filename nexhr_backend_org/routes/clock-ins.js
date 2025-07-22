@@ -5,172 +5,152 @@ const { ClockIns, clockInsValidation } = require("../models/ClockInsModel");
 const { Employee } = require("../models/EmpModel");
 const sendMail = require("./mailSender");
 const { format } = require("date-fns");
+const { toZonedTime } = require("date-fns-tz");
 const { LeaveApplication } = require("../models/LeaveAppModel");
 const { Team } = require("../models/TeamModel");
-const { timeToMinutes, processActivityDurations, checkLoginForOfficeTime, getCurrentTime, sumLeaveDays, getTotalWorkingHoursExcludingWeekends, changeClientTimezoneDate, getTotalWorkingHourPerDayByDate, errorCollector, isValidLeaveDate, setTimeHolderForAllActivities, isValidDate, getCurrentTimeInMinutes } = require("../Reuseable_functions/reusableFunction");
+const { timeToMinutes, processActivityDurations, checkLoginForOfficeTime, getCurrentTime, sumLeaveDays, getTotalWorkingHoursExcludingWeekends, changeClientTimezoneDate, getTotalWorkingHourPerDayByDate, errorCollector, isValidLeaveDate, setTimeHolderForAllActivities, isValidDate, getCurrentTimeInMinutes, checkDateIsHoliday } = require("../Reuseable_functions/reusableFunction");
 const { WFHApplication } = require("../models/WFHApplicationModel");
 const { sendPushNotification } = require("../auth/PushNotification");
 const { Holiday } = require("../models/HolidayModel");
 const { TimePattern } = require("../models/TimePatternModel");
 
 router.post("/not-login/apply-leave/:workPatternId", async (req, res) => {
-    try {
-        const timePatternId = req.params.workPatternId;
-        const now = changeClientTimezoneDate(new Date());
-        const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0);
-        const endOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59);
+  try {
+    const timePatternId = req.params.workPatternId;
+    const timeZone = process.env.TIMEZONE || "Asia/Kolkata";
+    const now = toZonedTime(new Date(), timeZone);
 
-        // check whf request is weekend or holiday
-        function checkDateIsHoliday(dateList, target) {
-            return dateList.some((holiday) => new Date(holiday.date).toLocaleDateString() === new Date(target).toLocaleDateString());
-        }
-        const holiday = await Holiday.findOne({ currentYear: new Date().getFullYear() });
-        const isTodayHoliday = checkDateIsHoliday(holiday.holidays, now);
-        if (isTodayHoliday) {
-            return res.status(200).send({ message: "No need to apply leave for holiday" })
-        }
-        async function checkDateIsWeekend(date) {
-            const timePattern = await TimePattern.findById(timePatternId, "WeeklyDays").lean().exec();
-            if (timePattern && timePattern.WeeklyDays) {
-                const isWeekend = !timePattern.WeeklyDays.includes(format(date, "EEEE"));
-                return isWeekend;
-            } else {
-                return false;
-            }
-        }
-        const todayIsWeekend = await checkDateIsWeekend(now);
-        if (todayIsWeekend) {
-            return res.status(200).send({ message: "No need to apply leave for Weekend" })
-        }
+    const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0);
+    const endOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59);
 
-        const allEmployees = await Employee.find(
-            { workingTimePattern: timePatternId },
-            "_id workingTimePattern FirstName LastName Email team leaveApplication company"
-        )
-            .populate("leaveApplication")
-            .populate({
-                path: "team",
-                populate: { path: "hr", select: "FirstName LastName Email fcmToken" },
-            });
+    const checkDateIsWeekend = async (date) => {
+      const timePattern = await TimePattern.findById(timePatternId, "WeeklyDays").lean();
+      if (timePattern?.WeeklyDays) {
+        const weekday = format(date, "EEEE");
+        return !timePattern.WeeklyDays.includes(weekday);
+      }
+      return false;
+    };
 
-        const notLoginEmps = [];
-
-        for (const emp of allEmployees) {
-            // Skip if employee has already clocked in today
-            const hasClockIn = await ClockIns.exists({
-                employee: emp._id,
-                date: { $gte: startOfDay, $lt: endOfDay },
-            });
-            if (hasClockIn) continue;
-
-            // Skip if employee already has an approved full-day leave today
-            const leaveExists = await LeaveApplication.exists({
-                employee: emp._id,
-                fromDate: { $gte: startOfDay, $lt: endOfDay },
-                status: "approved",
-                leaveType: { $ne: "Permission Leave" },
-            });
-
-            if (!leaveExists) {
-                notLoginEmps.push(emp);
-            }
-        }
-
-        if (!notLoginEmps.length) {
-            return res.send({ message: "No employees found without punch-in today." });
-        }
-
-        const leaveApplications = [];
-        const emailPromises = [];
-        const notifiedFor = [];
-
-        for (const emp of notLoginEmps) {
-            if (!emp.workingTimePattern) continue;
-
-            const officeStartingTime = new Date(emp.workingTimePattern.StartingTime);
-            const officeFinishingTime = new Date(emp.workingTimePattern.FinishingTime);
-            const workingHours = getTotalWorkingHourPerDayByDate(
-                officeStartingTime,
-                officeFinishingTime
-            );
-
-            const fromDate = new Date(now.getTime() - ((workingHours || 9.5) * 60 * 60 * 1000));
-
-            const leaveData = {
-                leaveType: "Unpaid Leave (LWP)",
-                fromDate,
-                toDate: now,
-                periodOfLeave: "full day",
-                reasonForLeave: "Didn't punch in until EOD",
-                employee: emp._id,
-                status: "pending",
-                approvers: {
-                    lead: "approved",
-                    head: "approved",
-                    hr: "approved",
-                    manager: "approved"
-                },
-            };
-
-            const leave = await LeaveApplication.create(leaveData);
-            leaveApplications.push(leave);
-
-            await Employee.findByIdAndUpdate(emp._id, {
-                $set: { leaveApplication: [leave._id] },
-            });
-            notifiedFor.push(emp.Email);
-
-            const htmlContent = `
-                <html>
-                    <body>
-                        <p>Dear HR,</p>
-                        <h2>${emp.FirstName} ${emp.LastName} did not punch in on the HRM system by the end of the day.</h2>
-                        <p>As a result, the HRM system has automatically applied a leave. Please confirm this action.</p>
-                    </body>
-                </html>
-            `;
-
-            const Subject = "Full-day Leave Applied (Unpaid Leave)";
-
-            // Extract HR emails
-            const hrEmails = (emp.team?.hr || []).map(hr => hr.Email).filter(Boolean);
-
-            if (hrEmails.length > 0) {
-                emailPromises.push(
-                    sendMail({
-                        From: `<${process.env.FROM_MAIL}> (Nexshr)`,
-                        To: hrEmails.join(", "),
-                        Subject,
-                        HtmlBody: htmlContent,
-                    })
-                );
-
-                // Send push notifications
-                emp.team.hr.forEach(hr => {
-                    if (hr.fcmToken) {
-                        const path = `${process.env.FRONTEND_BASE_URL}/emp/job-desk/leave`;
-                        sendPushNotification({
-                            token: hr.fcmToken,
-                            title: Subject,
-                            body: `${emp.FirstName} ${emp.LastName} did not punch in on the HRM system by the end of the day.`,
-                            path
-                        });
-                    }
-                });
-            }
-        }
-
-        await Promise.all(emailPromises);
-
-        res.send({
-            message: `${leaveApplications.length} employee(s) had leave applied and notifications sent.`,
-        });
-
-    } catch (error) {
-        await errorCollector({ url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT })
-        console.error("Error in apply-leave route:", error);
-        res.status(500).send({ error: error.message || "Server error." });
+    if (await checkDateIsWeekend(now)) {
+      return res.status(200).send({ message: "No need to apply leave for Weekend" });
     }
+
+    const allEmployees = await Employee.find({ workingTimePattern: timePatternId },
+      "_id workingTimePattern FirstName LastName Email team leaveApplication company")
+      .populate("leaveApplication")
+      .populate({
+        path: "team",
+        populate: { path: "hr", select: "FirstName LastName Email fcmToken" },
+      });
+
+    const notLoginEmps = [];
+
+    for (const emp of allEmployees) {
+      if (!emp.company) continue;
+
+      const hasClockIn = await ClockIns.exists({
+        employee: emp._id,
+        date: { $gte: startOfDay, $lt: endOfDay },
+      });
+      if (hasClockIn) continue;
+
+      const holiday = await Holiday.findOne({ currentYear: now.getFullYear(), company: emp.company });
+      const isTodayHoliday = holiday ? checkDateIsHoliday(holiday.holidays, now) : false;
+      if (isTodayHoliday) continue;
+
+      const leaveExists = await LeaveApplication.exists({
+        employee: emp._id,
+        fromDate: { $gte: startOfDay, $lt: endOfDay },
+        status: "approved",
+        leaveType: { $ne: "Permission Leave" },
+      });
+
+      if (!leaveExists) notLoginEmps.push(emp);
+    }
+
+    if (!notLoginEmps.length) {
+      return res.send({ message: "No employees found without punch-in today." });
+    }
+
+    const emailPromises = [];
+    const leaveApplications = await Promise.all(notLoginEmps.map(async (emp) => {
+      if (!emp.workingTimePattern) return null;
+
+      const start = new Date(emp.workingTimePattern.StartingTime);
+      const end = new Date(emp.workingTimePattern.FinishingTime);
+      const workingHours = getTotalWorkingHourPerDayByDate(start, end) || 9.5;
+
+      const fromDate = new Date(now.getTime() - workingHours * 60 * 60 * 1000);
+
+      const leave = await LeaveApplication.create({
+        leaveType: "Unpaid Leave (LWP)",
+        fromDate,
+        toDate: now,
+        periodOfLeave: "full day",
+        reasonForLeave: "Didn't punch in until EOD",
+        employee: emp._id,
+        status: "pending",
+        approvers: {
+          lead: "approved",
+          head: "approved",
+          hr: "approved",
+          manager: "approved",
+        },
+      });
+
+      await Employee.findByIdAndUpdate(emp._id, { $set: { leaveApplication: [leave._id] } });
+
+      const Subject = "Full-day Leave Applied (Unpaid Leave)";
+      const htmlContent = `
+        <html>
+          <body>
+            <p>Dear HR,</p>
+            <h2>${emp.FirstName} ${emp.LastName} did not punch in on the HRM system by the end of the day.</h2>
+            <p>As a result, the HRM system has automatically applied a leave. Please confirm this action.</p>
+          </body>
+        </html>`;
+
+      const hrEmails = emp.team?.hr?.map(hr => hr.Email).filter(Boolean) || [];
+
+      if (hrEmails.length > 0) {
+        emailPromises.push(sendMail({
+          From: `<${process.env.FROM_MAIL}> (Nexshr)`,
+          To: hrEmails.join(", "),
+          Subject,
+          HtmlBody: htmlContent,
+        }));
+
+        emp.team.hr.forEach(hr => {
+          if (hr.fcmToken) {
+            sendPushNotification({
+              token: hr.fcmToken,
+              title: Subject,
+              body: `${emp.FirstName} ${emp.LastName} did not punch in on the HRM system by the end of the day.`,
+              path: `${process.env.FRONTEND_BASE_URL}/emp/job-desk/leave`,
+            });
+          }
+        });
+      }
+
+      return leave;
+    }));
+
+    await Promise.all(emailPromises);
+
+    res.send({
+      message: `${leaveApplications.filter(Boolean).length} employee(s) had leave applied and notifications sent.`,
+    });
+  } catch (error) {
+    await errorCollector({
+      url: req.originalUrl,
+      name: error.name,
+      message: error.message,
+      env: process.env.ENVIRONMENT,
+    });
+    console.error("Error in apply-leave route:", error);
+    res.status(500).send({ error: error.message || "Server error." });
+  }
 });
 
 router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
@@ -179,7 +159,7 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
 
         let regular = 0, late = 0, early = 0;
         const today = new Date();
-        
+
         const startOfDay = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate(), 0, 0, 0));
         const endOfDay = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate(), 23, 59, 59, 0));
 

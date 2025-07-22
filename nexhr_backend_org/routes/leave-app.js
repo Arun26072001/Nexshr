@@ -11,7 +11,7 @@ const { verifyHR, verifyEmployee, verifyAdminHREmployeeManagerNetwork, verifyAdm
 const { Team } = require('../models/TeamModel');
 const { upload } = require('./imgUpload');
 const sendMail = require("./mailSender");
-const { getDayDifference, mailContent, formatLeaveData, formatDate, getValidLeaveDays, sumLeaveDays, changeClientTimezoneDate, errorCollector, isValidLeaveDate, setPeriodOfLeave } = require('../Reuseable_functions/reusableFunction');
+const { getDayDifference, mailContent, formatLeaveData, formatDate, getValidLeaveDays, sumLeaveDays, changeClientTimezoneDate, errorCollector, isValidLeaveDate, setPeriodOfLeave, checkDateIsHoliday } = require('../Reuseable_functions/reusableFunction');
 const { Task } = require('../models/TaskModel');
 const { sendPushNotification } = require('../auth/PushNotification');
 const { Holiday } = require('../models/HolidayModel');
@@ -228,7 +228,7 @@ leaveApp.get("/emp/:empId", verifyAdminHREmployeeManagerNetwork, async (req, res
 
     // Fetch employee data with necessary fields
     let emp = await Employee.findById(empId,
-      "annualLeaveYearStart position FirstName LastName Email phone typesOfLeaveCount typesOfLeaveRemainingDays team profile workingTimePattern"
+      "annualLeaveYearStart position FirstName company LastName Email phone typesOfLeaveCount typesOfLeaveRemainingDays team profile workingTimePattern"
     ).populate([
       { path: "workingTimePattern", select: "WeeklyDays" },
       { path: "position", select: "PositionName" },
@@ -308,7 +308,7 @@ leaveApp.get("/emp/:empId", verifyAdminHREmployeeManagerNetwork, async (req, res
       prescription: leave.prescription ? `${process.env.REACT_APP_API_URL}/uploads/${leave.prescription}` : null
     });
     let actualLeaveApps = [];
-    const yearHolidays = await Holiday.findOne({ currentYear: new Date().getFullYear() });
+    const yearHolidays = await Holiday.findOne({ currentYear: new Date().getFullYear(), company: emp.company });
     leaveApplications.map((leave) => {
       actualLeaveApps.push(...getValidLeaveDays(yearHolidays?.holidays, emp.workingTimePattern.WeeklyDays, leave.fromDate, leave.toDate))
     })
@@ -974,10 +974,6 @@ leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("pre
       ]);
     if (!emp) return res.status(400).json({ error: `No employee found for ID ${empId}` });
 
-    // 5. check leave request is weekend or holiday
-    function checkDateIsHoliday(dateList, target) {
-      return dateList.some((holiday) => new Date(holiday.date).toLocaleDateString() === new Date(target).toLocaleDateString());
-    }
     const holiday = await Holiday.findOne({ currentYear: new Date().getFullYear(), company: emp.company._id });
     if (holiday && holiday?.holidays?.length) {
       const isFromDateHoliday = checkDateIsHoliday(holiday.holidays, fromDate);
@@ -1124,9 +1120,15 @@ leaveApp.put('/:id', verifyAdminHREmployeeManagerNetwork, async (req, res) => {
     if (!emp) return res.status(404).send({ error: 'Employee not found.' });
     if (!emp.team) return res.status(404).send({ error: `${emp.FirstName} is not assigned to a team.` });
     const leaveApplicationYear = new Date(req.body.fromDate).getFullYear();
-    const holiday = await Holiday.findOne({ currentYear: leaveApplicationYear });
-    const checkDateIsHoliday = (date, holidays = []) => holidays.some(h => new Date(h.date).toDateString() === new Date(date).toDateString());
-    const checkDateIsWeekend = (date, weeklyDays = []) => !weeklyDays.includes(format(date, "EEEE"));
+    const holiday = await Holiday.findOne({ currentYear: leaveApplicationYear, company: emp.employee });
+
+    const checkDateIsWeekend = (date, weeklyDays = []) => {
+      if (date) {
+        !weeklyDays.includes(format(date, "EEEE"))
+      } else {
+        return false;
+      }
+    };
 
     const actualfromDate = changeClientTimezoneDate(fromDate);
     const actualtoDate = changeClientTimezoneDate(toDate);
