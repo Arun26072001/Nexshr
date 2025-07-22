@@ -150,11 +150,6 @@ router.get("/", verifyAdminHR, async (req, res) => {
 
 router.put("/:id", verifyAdminHR, async (req, res) => {
   try {
-    // check update as duplicate company holidays
-    const isExist = await Holiday.findOne({ currentYear: req.body.currentYear, company: req.body.company });
-    if (isExist) {
-      return res.status(400).send({ error: "Already added this year of holidays!" })
-    }
     // check it's exists
     const holiday = await Holiday.findById(req.params.id);
     if (!holiday) {
@@ -164,6 +159,13 @@ router.put("/:id", verifyAdminHR, async (req, res) => {
     const { error } = HolidayValidation.validate(req.body);
     if (error) {
       return res.status(400).send({ error: error.message })
+    }
+    // check update as duplicate company holidays
+    const companyHoildays = await Holiday.findOne({ currentYear: req.body.currentYear, company: req.body.company });
+    if (companyHoildays) {
+      if (String(companyHoildays.company) !== req.body.company && companyHoildays.currentYear === req.body.currentYear) {
+        return res.status(400).send({ error: `Already has this company's holiday` })
+      }
     }
     const updatedHolidays = await Holiday.findByIdAndUpdate(req.params.id, req.body, { new: true });
     const notifyemps = [];
@@ -246,6 +248,7 @@ router.put("/:id", verifyAdminHR, async (req, res) => {
     })
     return res.send({ message: `${updatedHolidays.currentYear} of holidays has been updated`, notifyemps })
   } catch (error) {
+    console.log("error in update hoilday", error)
     await errorCollector({ url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT })
     return res.status(500).send({ error: error.message })
   }

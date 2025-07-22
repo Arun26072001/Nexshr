@@ -438,7 +438,7 @@ async function fetchFirstTwoItems() {
 }
 
 function changeClientTimezoneDate(date) {
-  const actualDate = toZonedTime(new Date(date), process.env.TIMEZONE);
+  const actualDate = toZonedTime(date, process.env.TIMEZONE);
   return actualDate
 }
 
@@ -461,7 +461,6 @@ function timeToMinutes(timeStr) {
 const getCurrentTimeInMinutes = () => {
   const now = changeClientTimezoneDate(new Date());
   return now;
-  // return timeToMinutes(now);
 };
 
 const getCurrentTime = (date) => {

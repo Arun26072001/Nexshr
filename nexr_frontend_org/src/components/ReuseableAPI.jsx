@@ -623,9 +623,6 @@ async function getHoliday() {
         });
         return res.data
     } catch (error) {
-        //  if (error?.message === "Network Error") {
-        //         navigate("/network-issue")
-        //     }
         console.log(error?.response?.data?.error);
     }
 }
