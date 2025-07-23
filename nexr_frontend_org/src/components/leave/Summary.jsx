@@ -1,19 +1,55 @@
-import React, { useContext, useEffect } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import { DateRangePicker, Input } from 'rsuite';
 import LeaveTable from '../LeaveTable';
 import NoDataFound from '../payslip/NoDataFound';
-import { LeaveStates, TimerStates } from '../payslip/HRMDashboard';
+import axios from "axios";
 import "../payslip/payslip.css";
 import { Skeleton } from '@mui/material';
+import { toast } from 'react-toastify';
+import { EssentialValues } from '../../App';
 
 export default function LeaveSummary() {
-    const { empName, setEmpName, filterLeaveRequests, leaveRequests, isLoading } = useContext(LeaveStates);
-    const { daterangeValue, setDaterangeValue } = useContext(TimerStates)
-
-    // Trigger the filtering whenever empName or daterangeValue changes
-    useEffect(() => {
-        filterLeaveRequests();
-    }, [empName, daterangeValue]);
+    const { data, whoIs } = useContext(EssentialValues);
+        const [empName, setEmpName] = useState("");
+        const [dateRangeValue, setDateRangeValue] = useState([]);
+        const [fullLeaveRequests, setFullLeaveRequests] = useState([]);
+        const [leaveRequests, setLeaveRequests] = useState([]);
+        const url = process.env.REACT_APP_API_URL;
+        const [isLoading, setIsLoading] = useState(false);
+    
+        const getLeaveData = async () => {
+            setIsLoading(true);
+            try {
+                const leaveData = await axios.get(`${url}/api/leave-application/date-range/management/${whoIs}`, {
+                    params: {
+                        dateRangeValue
+                    },
+                    headers: {
+                        authorization: data.token || ""
+                    }
+                })
+                setLeaveRequests(leaveData.data);
+                setFullLeaveRequests(leaveData.data);
+            } catch (err) {
+                toast.error(err?.response?.data?.message);
+                console.log("error in fethc leave data", err)
+            } finally {
+                setIsLoading(false);
+            }
+        }
+    
+        useEffect(() => {
+            getLeaveData();
+        }, [dateRangeValue])
+        // Filter leave requests when empName or daterangeValue changes
+        useEffect(() => {
+            if (empName === "") {
+                setLeaveRequests(fullLeaveRequests);
+            } else {
+                const filterRequests = fullLeaveRequests?.leaveData.filter((leave) => leave?.employee?.FirstName?.toLowerCase()?.includes(empName.toLowerCase()) || leave?.employee?.LastName?.toLowerCase()?.includes(empName.toLowerCase()));
+                setLeaveRequests((pre) => ({ ...pre, leaveData: filterRequests }));
+            }
+        }, [empName]);
 
     return (
         <div>
@@ -29,9 +65,9 @@ export default function LeaveSummary() {
                                 size="lg"
                                 showOneCalendar
                                 placement="bottomEnd"
-                                value={daterangeValue}
+                                value={dateRangeValue}
                                 placeholder="Filter Range of Date"
-                                onChange={setDaterangeValue}
+                                onChange={setDateRangeValue}
                             />
                         </div>
                     </div>

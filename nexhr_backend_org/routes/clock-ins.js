@@ -799,8 +799,8 @@ router.get("/employee/:empId", verifyAdminHREmployeeManagerNetwork, async (req, 
         totalLeaveDays = Math.ceil(await sumLeaveDays(employee.leaveApplication));
         let scheduledWorkingHours, scheduledLoginTime, weeklyDays;
         if (employee.workingTimePattern) {
-            const startingDate = changeClientTimezoneDate(employee.workingTimePattern.StartingTime);
-            const endingDate = changeClientTimezoneDate(employee.workingTimePattern.FinishingTime);
+            const startingDate = new Date(employee.workingTimePattern.StartingTime);
+            const endingDate = new Date(employee.workingTimePattern.FinishingTime);
             weeklyDays = employee.workingTimePattern.WeeklyDays ? employee.workingTimePattern.WeeklyDays : []
             scheduledLoginTime = startingDate.toTimeString().split(" ")[0];
             scheduledWorkingHours = (endingDate.getTime() - startingDate.getTime()) / (1000 * 60 * 60)

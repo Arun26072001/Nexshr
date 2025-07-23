@@ -74,7 +74,7 @@ export default function HRMDashboard() {
     const [empName, setEmpName] = useState("");
     const [isLoading, setIsLoading] = useState(false);
     const [waitForAttendance, setWaitForAttendance] = useState(false);
-    const [daterangeValue, setDaterangeValue] = useState("");
+    const [dateRangeValue, setDateRangeValue] = useState("");
     const [timeOption, setTimeOption] = useState(localStorage.getItem("timeOption") || "meeting");
     const navigate = useNavigate();
     const [reloadRole, setReloadRole] = useState(false);
@@ -142,6 +142,7 @@ export default function HRMDashboard() {
             console.log("error in fetch companies", error);
         }
     }
+
     function filterLeaveRequests() {
         if (empName === "") {
             setLeaveRequests(fullLeaveRequests);
@@ -364,7 +365,7 @@ export default function HRMDashboard() {
         try {
             const empOfAttendances = await axios.get(`${url}/api/clock-ins/`, {
                 params: {
-                    daterangeValue
+                    dateRangeValue
                 },
                 headers: {
                     Authorization: token || ""
@@ -386,7 +387,7 @@ export default function HRMDashboard() {
             const res = await axios.get(`${url}/api/clock-ins/team/${_id}`, {
                 params: {
                     who: isTeamHead ? "head" : isTeamLead ? "lead" : "manager",
-                    daterangeValue
+                    dateRangeValue
                 },
                 headers: {
                     Authorization: token || ""
@@ -431,7 +432,7 @@ export default function HRMDashboard() {
         try {
             const leaveData = await axios.get(`${url}/api/leave-application/date-range/management/${whoIs}`, {
                 params: {
-                    daterangeValue
+                    dateRangeValue
                 },
                 headers: {
                     authorization: token || ""
@@ -452,7 +453,7 @@ export default function HRMDashboard() {
             const leaveData = await axios.get(`${url}/api/leave-application/team/${_id}`, {
                 params: {
                     who: isTeamLead ? "lead" : isTeamHead ? "head" : "manager",
-                    daterangeValue
+                    dateRangeValue
                 },
                 headers: {
                     authorization: token || ""
@@ -473,7 +474,7 @@ export default function HRMDashboard() {
         } else if (["admin", "hr"].includes(whoIs)) {
             getLeaveData();
         }
-    }, [daterangeValue, _id, whoIs, isUpdatedRequest]);
+    }, [dateRangeValue, _id, whoIs, isUpdatedRequest]);
 
     // to view attendance data for admin and hr
     useEffect(() => {
@@ -484,7 +485,7 @@ export default function HRMDashboard() {
         }
         getClocknsData();
         fetchCompanies();
-    }, [getClocknsData, Account, daterangeValue]);
+    }, [getClocknsData, Account, dateRangeValue]);
 
     // get workTimeTracker from DB in Initially
     useEffect(() => {
@@ -536,7 +537,7 @@ export default function HRMDashboard() {
             updateWorkTracker, isWorkingLoginTimerApi, isworkingActivityTimerApi, trackTimer, startLoginTimer, stopLoginTimer,
             changeReasonForLate, changeReasonForEarly, startActivityTimer, stopActivityTimer, setWorkTimeTracker, updateClockins,
             checkClockins, timeOption, isStartLogin, isStartActivity, handleAddTask, isAddTask, setIsAddTask,
-            handleAddTask, selectedProject, daterangeValue, setDaterangeValue, handleLateLogin, isLateLogin
+            handleAddTask, selectedProject, dateRangeValue, setDateRangeValue, handleLateLogin, isLateLogin
         }}>
             <Routes >
                 <Route path="/" element={<Parent />} >

@@ -24,7 +24,8 @@ export default function LeaveRequest() {
     const { token, Account } = data;
     const [responsing, setResponsing] = useState("");
     const { isTeamHead, isTeamLead, isTeamManager } = jwtDecode(token);
-    const navigate = useNavigate()
+    const navigate = useNavigate();
+    console.log("leaveReqests", leaveRequests)
 
     async function replyToLeave(leave, response) {
         try {
@@ -186,7 +187,6 @@ export default function LeaveRequest() {
         );
     };
     return (
-        // <p>dsadsad</p>
         <>
             <input
                 type="file"
@@ -229,7 +229,7 @@ export default function LeaveRequest() {
                         <div className="leaveData leaveData col-12 col-lg-3">
                             <div className="d-flex flex-column">
                                 <div className="leaveDays">
-                                    {leaveRequests?.takenLeave || 0} Days
+                                    {leaveRequests?.approvedLeave || 0} Days
                                 </div>
                                 <div className="leaveDaysDesc">
                                     Leave taken
@@ -241,7 +241,7 @@ export default function LeaveRequest() {
                         <div className="leaveData leaveData col-12 col-lg-3">
                             <div className="d-flex flex-column">
                                 <div className="leaveDays">
-                                    {leaveRequests?.upComingLeave || 0} Days
+                                    {leaveRequests?.upcomingLeave || 0} Days
                                 </div>
                                 <div className="leaveDaysDesc">
                                     Upcoming leave
