@@ -161,7 +161,6 @@ app.use("/api/planner", plannerType);
 app.use("/api/timezone", timezone);
 app.use("/api/category", category);
 app.post("/push-notification", sendPushNotification);
-app.post("/verify_completed_workinghour", verifyWorkingTimeCompleted);
 app.post("/ask-reason-for-delay", askReasonForDelay);
 
 schedule.scheduleJob("0 0 10 4 * *", async function () {
@@ -190,7 +189,7 @@ async function fetchTimePatterns() {
         } catch (error) {
           console.error("Login Error:", error.message);
         }
-      }); 
+      });
 
       // send mail and apply fullday leave
       schedule.scheduleJob(`0 ${finishingMin - 5} ${finishingHour} * * *`, async function () {
@@ -217,7 +216,6 @@ async function makeKnowLeave() {
     const response = await axios.get(`${process.env.REACT_APP_API_URL}/api/leave-application/make-know`);
     console.log(response.data);
   } catch (error) {
-    // await errorCollector({ url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT })
     console.log(error.response.data.error);
   }
 }
@@ -227,7 +225,6 @@ async function makeKnowWFH() {
     const response = await axios.get(`${process.env.REACT_APP_API_URL}/api/wfh-application/make-know`);
     console.log(response.data);
   } catch (error) {
-    // await errorCollector({ url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT })
     console.log(error.response.data.error);
   }
 }
@@ -243,7 +240,6 @@ async function rejectLeave() {
     const res = await axios.put(`${process.env.REACT_APP_API_URL}/api/leave-application/reject-leave`);
     console.log(res.data);
   } catch (error) {
-    // await errorCollector({ url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT })
     console.log("error in reject leave", error);
   }
 }
@@ -253,7 +249,6 @@ async function rejectWfh() {
     const res = await axios.put(`${process.env.REACT_APP_API_URL}/api/wfh-application/reject-wfh`);
     console.log(res.data);
   } catch (error) {
-    // await errorCollector({ url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT })
     console.log("error in reject leave", error);
   }
 }
@@ -263,10 +258,14 @@ schedule.scheduleJob("0 7 * * *", async () => {
   await rejectWfh();
 })
 
+
 // Start Server
 const port = process.env.PORT;
 
 app.listen(port, () => console.log(`Server listening on port ${port}!`));
+process.on("warning", (warning) => {
+  console.warn("warning is triggered", warning.stack);
+});
 process.on("uncaughtException", (err) => {
-  console.log(err);
+  console.log("uncaughtException", err);
 });

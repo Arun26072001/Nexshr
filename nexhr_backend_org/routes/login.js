@@ -20,7 +20,7 @@ router.post("/", async (req, res) => {
         const { error } = loginValidation.validate(req.body);
         if (error) {
             console.log("Validation error: " + error);
-            return res.status(400).send(error.details[0].message);
+            return res.status(400).send({erorr: error.details[0].message});
         } else {
             const emp = await Employee.findOne({
                 Email: req.body.Email,
@@ -85,9 +85,9 @@ router.post("/", async (req, res) => {
             }
         }
     } catch (error) {
-        await errorCollector({ url: req.originalUrl, name: err.name, message: err.message, env: process.env.ENVIRONMENT })
-        console.log(err);
-        res.status(500).send({ message: "Internal server Error", details: err.message });
+        console.log("error in login", error);
+        await errorCollector({ url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT })
+        res.status(500).send({ message: "Internal server Error", details: error.message });
     }
 });
 
