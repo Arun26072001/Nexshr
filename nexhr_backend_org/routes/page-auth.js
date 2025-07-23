@@ -4,6 +4,28 @@ const { pageAuthValidation, PageAuth } = require("../models/PageAuth");
 const { errorCollector } = require("../Reuseable_functions/reusableFunction");
 const router = express.Router();
 
+// router.get("/add-pages", async (req, res) => {
+//     try {
+//         const addPages = await PageAuth.find().exec();
+//         const newPages = {
+//             Task: "not allow",
+//             Announcement: "not allow",
+//             Project: "not allow",
+//             Report: "not allow"
+//         }
+//         addPages.forEach(async (item) => {
+//             const updatedPageAuth = {
+//                 ...item,
+//                 ...newPages
+//             }
+//             await PageAuth.findByIdAndUpdate(item._id, updatedPageAuth)
+//         })
+//         return res.send({ message: "pages has been add for all collection" })
+//     } catch (error) {
+//         console.log("error in add page", error)
+//         return res.status(500).send({ error: error.message })
+//     }
+// })
 router.post("/", verifyAdmin, async (req, res) => {
     try {
         const validation = pageAuthValidation.validate(req.body);

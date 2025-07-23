@@ -32,7 +32,6 @@ const Attendence = () => {
   ].map(item => ({ label: item, value: item }));
   const [selectedTimeOption, setSelectedTimeOption] = useState(["login", "morningBreak", "eveningBreak", "lunch"]);
   const [filteredTabledata, setFilteredTableData] = useState([]);
-  console.log("clockInsData", clockInsData)
 
   function calculateOverallBehavior(regularCount, lateCount, earlyCount) {
     const totalCount = regularCount + lateCount + earlyCount;
@@ -130,6 +129,7 @@ const Attendence = () => {
       setTableData(updateTableData); // Set table data once after processing all items
     }
   }, [selectedTimeOption, filteredTabledata]);
+
   useEffect(() => {
     if (_id) {
       getClockins()
@@ -157,7 +157,7 @@ const Attendence = () => {
                 return (<div
                   key={key}
                   className={`col-lg-3 col-3 ${label.toLowerCase()}`}
-                  style={{ height: `${height}%`, zIndex: height }}>
+                  style={{ height: `${height}%`, zIndex: Math.ceil(height) }}>
                   <div className={`${screen.width < 720 ? "d-block" : "d-flex"}  justify-content-center ${clockInsData[key] === 0 ? "emtChart" : ""}`}>
                     <p className="payslipTitle" style={{ color: "#146ADC" }}>
                       {clockInsData[key]?.toFixed(1)} Days

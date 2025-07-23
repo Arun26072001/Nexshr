@@ -26,7 +26,6 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
     const navigate = useNavigate();
     const { whoIs } = useContext(EssentialValues);
     const empId = localStorage.getItem("_id")
-    const timerStateData = useContext(TimerStates)
     const [page, setPage] = useState(0);
     const [rowsPerPage, setRowsPerPage] = useState(+localStorage.getItem("rowsPerPage") || 10);
     const [rows, setRows] = useState([]);
@@ -291,8 +290,6 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
         }
     ];
 
-    // console.log("rowData", data)
-
     const column5 = [
         { id: 'Name', label: 'Name', minWidth: 130, align: 'left', getter: (row) => row?.Name || (row?.employee?.FirstName + " " + row?.employee?.LastName) || 'Unknown' },
         {
@@ -316,7 +313,6 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
             align: 'left',
             getter: (row) => {
                 const punchInTime = row?.punchIn || row?.login?.startingTime?.[0];
-
                 if (punchInTime) {
                     const date = new Date(punchInTime);
                     return !isNaN(date.getTime()) ? date.toLocaleTimeString() : punchInTime;
@@ -333,7 +329,6 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
             align: 'left',
             getter: (row) => {
                 const punchOutTime = row?.punchOut || row?.login?.endingTime?.at(-1);
-
                 if (punchOutTime) {
                     const date = new Date(punchOutTime);
                     return !isNaN(date.getTime()) ? date.toLocaleTimeString() : punchOutTime;
@@ -347,7 +342,14 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
             label: 'Total Hour',
             minWidth: 130,
             align: 'left',
-            getter: (row) => row?.totalHour || "00:00:00"
+            getter: (row) => {
+                const totalWoringHrs = row?.totalHour || row?.login?.timeHolder;
+                if (totalWoringHrs) {
+                    return totalWoringHrs;
+                } else {
+                    return "00:00:00";
+                }
+            }
         },
         {
             id: 'behaviour',
@@ -1067,6 +1069,7 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
         }
     }
 
+
     useEffect(() => {
         setRows(data || []);
         data?.map((item) => {
@@ -1074,21 +1077,16 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
                 return setColumns(column1);
             } else if (item?.FirstName && params["*"] === "employee") {
                 return setColumns(column3);
-            } else if ((item?.date && params['*'] === "attendance-summary")
-                || (item?.date && params['*'] === "details")
-                || (item?.date && params['*'] === "attendance")
-            ) {
+            } else if ((item?.date && ["attendance-summary", "attendance", "details"].includes(params['*']))) {
                 return setColumns(column5);
             } else if ((["attendance-request", "daily-log"].includes(params['*']))) {
                 return setColumns(column4);
-            } else if (item?.action) {
+            } else if (item?.sNo && item.action) {
                 return setColumns(column6);
             } else if (item?.RoleName) {
                 return setColumns(column7);
             }
-            else if (item?.fromDate && params['*'] === "status"
-                || item?.fromDate && params['*'] === "leave-summary"
-                || item?.fromDate && params['*'] === "calendar") {
+            else if (item?.fromDate && ["status", "leave-summary", "calendar"].includes(params['*'])) {
                 return setColumns(column8);
             } else if (item?.DepartmentName) {
                 return setColumns(column9)

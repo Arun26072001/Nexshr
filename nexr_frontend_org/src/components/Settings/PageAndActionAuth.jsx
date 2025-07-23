@@ -12,7 +12,7 @@ export default function PageAndActionAuth() {
     const navigate = useNavigate();
     const params = useParams();
     const url = process.env.REACT_APP_API_URL;
-    const {data} = useContext(EssentialValues);
+    const { data } = useContext(EssentialValues);
     const [isChangingRole, setIschangingRole] = useState(false);
     const [roleObj, setRoleObj] = useState({});
     const actions = [
@@ -25,7 +25,7 @@ export default function PageAndActionAuth() {
         { sNo: 7, action: "Employee" },
         { sNo: 8, action: "Company" },
         { sNo: 9, action: "TimePattern" },
-        { sNo: 10, action: "Payroll" }
+        { sNo: 10, action: "Payroll" },
     ];
 
     function getCheckedValue(e) {
@@ -79,8 +79,8 @@ export default function PageAndActionAuth() {
             });
 
             setRoleObj(role.data);
-       } catch (error) {
-         if (error?.message === "Network Error") {
+        } catch (error) {
+            if (error?.message === "Network Error") {
                 navigate("/network-issue")
             }
             console.log(error);
@@ -98,8 +98,8 @@ export default function PageAndActionAuth() {
             });
             toast.success(roleData.data?.message);
             navigate(-1);
-       } catch (error) {
-         if (error?.message === "Network Error") {
+        } catch (error) {
+            if (error?.message === "Network Error") {
                 navigate("/network-issue")
             }
             toast.error(error?.response?.data?.error)
@@ -118,8 +118,8 @@ export default function PageAndActionAuth() {
             console.log(updatedRole.data);
             toast.success(updatedRole?.data?.message)
             navigate(-1);
-       } catch (error) {
-         if (error?.message === "Network Error") {
+        } catch (error) {
+            if (error?.message === "Network Error") {
                 navigate("/network-issue")
             }
             toast.error(error?.response?.data?.error)
@@ -139,8 +139,8 @@ export default function PageAndActionAuth() {
                 ...roleData.data,
                 RoleName: roleName?.trimStart()?.replace(/\s+/g, ' ') || "Employee"
             })
-       } catch (error) {
-         if (error?.message === "Network Error") {
+        } catch (error) {
+            if (error?.message === "Network Error") {
                 navigate("/network-issue")
             }
             console.log(error);
@@ -199,7 +199,7 @@ export default function PageAndActionAuth() {
                             <div className="col-lg-3 col-12">
                                 <div className="btnParent mx-auto">
                                     <button className="outline-btn" onClick={() => navigate(-1)} style={{ background: "#e0e0e0", border: "none" }} >Cancel</button>
-                                    <button className="button" onClick={id ? updateRoleAndPermission : addRoleAndPermission}>{isChangingRole ? <Loading size={20} color='white' /> : id ? "Update" : "Save"}</button>
+                                    <button className="button" style={{ cursor: isChangingRole ? "progress" : "pointer" }} onClick={isChangingRole ? null : (id ? updateRoleAndPermission : addRoleAndPermission)}>{isChangingRole ? <Loading size={20} color='white' /> : id ? "Update" : "Save"}</button>
                                 </div>
                             </div>
                         </div> : <button className="outline-btn" onClick={() => navigate(-1)} style={{ background: "#e0e0e0", border: "none" }} >Back</button>

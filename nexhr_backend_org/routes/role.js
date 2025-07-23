@@ -15,38 +15,38 @@ router.get("/name", verifyAdminHR, async (req, res) => {
       .populate("pageAuth")
       .exec();
     if (!roleData) {
-      res.status(404).send({ error: "Data not found in given role" })
+      return res.status(404).send({ error: "Data not found in given role" })
     } else {
-      let role = {
-        RoleName: roleData?.RoleName,
-        pageAuth: {
-          Administration: roleData?.pageAuth?.Administration,
-          Attendance: roleData?.pageAuth?.Attendance,
-          Dashboard: roleData?.pageAuth?.Dashboard,
-          Employee: roleData?.pageAuth?.Employee,
-          JobDesk: roleData?.pageAuth?.JobDesk,
-          Leave: roleData?.pageAuth?.Leave,
-          Settings: roleData?.pageAuth?.Settings,
-        },
-        userPermissions: {
-          Attendance: roleData?.userPermissions?.Attendance,
-          Company: roleData?.userPermissions?.Company,
-          Department: roleData?.userPermissions?.Department,
-          Employee: roleData?.userPermissions?.Employee,
-          Holiday: roleData?.userPermissions?.Holiday,
-          Leave: roleData?.userPermissions?.Leave,
-          Role: roleData?.userPermissions?.Role,
-          TimePattern: roleData?.userPermissions?.TimePattern,
-          WorkPlace: roleData?.userPermissions?.WorkPlace,
-          Payroll: roleData?.userPermissions?.Payroll,
-        }
-      }
-      res.send(role)
+      // let role = {
+      //   RoleName: roleData?.RoleName,
+      //   pageAuth: {
+      //     Administration: roleData?.pageAuth?.Administration,
+      //     Attendance: roleData?.pageAuth?.Attendance,
+      //     Dashboard: roleData?.pageAuth?.Dashboard,
+      //     Employee: roleData?.pageAuth?.Employee,
+      //     JobDesk: roleData?.pageAuth?.JobDesk,
+      //     Leave: roleData?.pageAuth?.Leave,
+      //     Settings: roleData?.pageAuth?.Settings,
+      //   },
+      //   userPermissions: {
+      //     Attendance: roleData?.userPermissions?.Attendance,
+      //     Company: roleData?.userPermissions?.Company,
+      //     Department: roleData?.userPermissions?.Department,
+      //     Employee: roleData?.userPermissions?.Employee,
+      //     Holiday: roleData?.userPermissions?.Holiday,
+      //     Leave: roleData?.userPermissions?.Leave,
+      //     Role: roleData?.userPermissions?.Role,
+      //     TimePattern: roleData?.userPermissions?.TimePattern,
+      //     WorkPlace: roleData?.userPermissions?.WorkPlace,
+      //     Payroll: roleData?.userPermissions?.Payroll,
+      //   }
+      // }
+      res.send(roleData);
     }
   } catch (error) {
     await errorCollector({ url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT })
     console.log(error);
-    res.status(500).send({ error: error.message })
+    return res.status(500).send({ error: error.message })
   }
 })
 
@@ -71,11 +71,7 @@ router.get("/:id", verifyAdminHR, async (req, res) => {
 });
 
 // Get all roles
-// router.get('/', verifyAdminHR, (req, res) => {
 router.get('/', verifyAdminHREmployeeManagerNetwork, (req, res) => {
-  // const { orgName } = jwt.decode(req.headers['authorization']);
-  // const RoleAndPermission = getRoleAndPermissionModel(orgName)
-
   RoleAndPermission.find()
     .populate("userPermissions")
     .populate("pageAuth")
@@ -115,8 +111,6 @@ router.post('/', verifyAdminHR, async (req, res) => {
       userPermissions: userPermission._id,
       pageAuth: pageAuth._id
     };
-    // const { orgName } = jwt.decode(req.headers['authorization']);
-    // const RoleAndPermission = getRoleAndPermissionModel(orgName)
 
     const role = await RoleAndPermission.create(finalRoleData);
     res.send({ message: `${role.RoleName} Role and permission has been added!` });
@@ -130,48 +124,21 @@ router.post('/', verifyAdminHR, async (req, res) => {
 router.put('/:id', verifyAdminHR, async (req, res) => {
   try {
     const updatedRole = req.body;
-
-    const updatedUserPermissions = {
-      Attendance: updatedRole.userPermissions.Attendance,
-      Company: updatedRole.userPermissions.Company,
-      Department: updatedRole.userPermissions.Department,
-      Employee: updatedRole.userPermissions.Employee,
-      Holiday: updatedRole.userPermissions.Holiday,
-      Leave: updatedRole.userPermissions.Leave,
-      Role: updatedRole.userPermissions.Role,
-      TimePattern: updatedRole.userPermissions.TimePattern,
-      WorkPlace: updatedRole.userPermissions.WorkPlace,
-      Payroll: updatedRole.userPermissions.Payroll,
-    }
-
-    // Validate userPermissions
-    const { error: userPermissionsError } = userPermissionsValidation.validate(updatedUserPermissions);
-    if (userPermissionsError) {
-      return res.status(400).send({ error: userPermissionsError.details[0].message });
-    }
-    const updatedPageAuth = {
-      Administration: updatedRole.pageAuth.Administration,
-      Attendance: updatedRole.pageAuth.Attendance,
-      Dashboard: updatedRole.pageAuth.Dashboard,
-      Employee: updatedRole.pageAuth.Employee,
-      JobDesk: updatedRole.pageAuth.JobDesk,
-      Leave: updatedRole.pageAuth.Leave,
-      Settings: updatedRole.pageAuth.Settings,
-    }
-    // Validate pageAuth
-    const { error: pageAuthError } = pageAuthValidation.validate(updatedPageAuth);
-    if (pageAuthError) {
-      return res.status(400).send({ error: pageAuthError.details[0].message });
-    }
-
+    
     // Update user permissions and page authorization in the database
+    const updatedUserPermissions = {
+      ...updatedRole.userPermissions
+    }
     const userPermission = await UserPermission.findByIdAndUpdate(
-      updatedRole.userPermissions._id,
+      updatedUserPermissions._id,
       updatedUserPermissions,
       { new: true }
     );
+    const updatedPageAuth  = {
+      ...req.body.pageAuth
+    }
     const pageAuth = await PageAuth.findByIdAndUpdate(
-      updatedRole.pageAuth._id,
+      updatedPageAuth._id,
       updatedPageAuth,
       { new: true }
     );
@@ -186,8 +153,7 @@ router.put('/:id', verifyAdminHR, async (req, res) => {
       userPermissions: updatedRole.userPermissions._id,
       pageAuth: updatedRole.pageAuth._id
     };
-    // const { orgName } = jwt.decode(req.headers['authorization']);
-    // const RoleAndPermission = getRoleAndPermissionModel(orgName)
+
     const role = await RoleAndPermission.findByIdAndUpdate(req.params.id, finalRoleData, { new: true });
     if (!role) {
       return res.status(404).send({ error: 'Role not found' });
@@ -223,3 +189,37 @@ router.delete("/:id", verifyAdminHR, async (req, res) => {
 
 module.exports = router;
 
+
+    
+        // const updatedUserPermissions = {
+        //   Attendance: updatedRole.userPermissions.Attendance,
+        //   Company: updatedRole.userPermissions.Company,
+        //   Department: updatedRole.userPermissions.Department,
+        //   Employee: updatedRole.userPermissions.Employee,
+        //   Holiday: updatedRole.userPermissions.Holiday,
+        //   Leave: updatedRole.userPermissions.Leave,
+        //   Role: updatedRole.userPermissions.Role,
+        //   TimePattern: updatedRole.userPermissions.TimePattern,
+        //   WorkPlace: updatedRole.userPermissions.WorkPlace,
+        //   Payroll: updatedRole.userPermissions.Payroll,
+        // }
+    
+        // Validate userPermissions
+        // const { error: userPermissionsError } = userPermissionsValidation.validate(updatedUserPermissions);
+        // if (userPermissionsError) {
+        //   return res.status(400).send({ error: userPermissionsError.details[0].message });
+        // }
+        // const updatedPageAuth = {
+        //   Administration: updatedRole.pageAuth.Administration,
+        //   Attendance: updatedRole.pageAuth.Attendance,
+        //   Dashboard: updatedRole.pageAuth.Dashboard,
+        //   Employee: updatedRole.pageAuth.Employee,
+        //   JobDesk: updatedRole.pageAuth.JobDesk,
+        //   Leave: updatedRole.pageAuth.Leave,
+        //   Settings: updatedRole.pageAuth.Settings,
+        // }
+        // // Validate pageAuth
+        // const { error: pageAuthError } = pageAuthValidation.validate(updatedPageAuth);
+        // if (pageAuthError) {
+        //   return res.status(400).send({ error: pageAuthError.details[0].message });
+        // }

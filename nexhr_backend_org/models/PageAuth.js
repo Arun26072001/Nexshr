@@ -8,7 +8,14 @@ const pageAuthSchema = new mongoose.Schema({
     Employee: { type: String, default: "not allow" },
     JobDesk: { type: String, default: "not allow" },
     Leave: { type: String, default: "not allow" },
-    Settings: { type: String, default: "not allow" }
+    Settings: { type: String, default: "not allow" },
+    EmailTemplate: { type: String, default: "not allow" },
+    Holiday: { type: String, default: "not allow" },
+    WorkFromHome: { type: String, default: "not allow" },
+    Task: { type: String, default: "not allow" },
+    Announcement: { type: String, default: "not allow" },
+    Project: { type: String, default: "not allow" },
+    Report: { type: String, default: "not allow" }
 });
 
 const PageAuth = mongoose.model("PageAuth", pageAuthSchema);
@@ -69,6 +76,13 @@ const pageAuthValidation = Joi.object({
     JobDesk: Joi.string().optional(),
     Leave: Joi.string().optional(),
     Settings: Joi.string().optional(),
+    EmailTemplate: Joi.string().optional(),
+    Holiday: Joi.string().optional(),
+    WorkFromHome: Joi.string().optional(),
+    Task: Joi.string().optional(),
+    Announcement: Joi.string().optional(),
+    Project: Joi.string().optional(),
+    Report: Joi.string().optional()
 });
 
 module.exports = { PageAuth, pageAuthValidation, pageAuthSchema }

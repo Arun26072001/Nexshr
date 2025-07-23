@@ -30,8 +30,8 @@ const Sidebar = ({ isMobileView, handleSideBar, setIsMobileView }) => {
   const navigate = useNavigate();
 
   const { Dashboard, JobDesk, Employee, Leave,
-    Attendance, Administration, Settings
-  } = decodedData?.roleData?.pageAuth;
+    Attendance, Administration, Settings, WorkFromHome,
+    Holiday, EmailTemplate, Task, Project, Report, Announcement } = decodedData?.roleData?.pageAuth;
   const param = useParams();
   const [activeSubmenu, setActiveSubmenu] = useState(param['*']);
   const [activeNavLink, setActiveNavLink] = useState(param['*'] === "" ? "dashboard" : param['*'].includes("my-details") ? "jobDesk" : param['*']);
@@ -125,7 +125,7 @@ const Sidebar = ({ isMobileView, handleSideBar, setIsMobileView }) => {
         )}
 
         {renderNavLink(
-          JobDesk === 'allow' || ['admin', 'hr', 'emp'].includes(whoIs),
+          JobDesk === 'allow' ,
           `/${whoIs}/job-desk/my-details`,
           jobDeskIcon,
           'Job Desk',
@@ -155,7 +155,7 @@ const Sidebar = ({ isMobileView, handleSideBar, setIsMobileView }) => {
           )}
 
         {renderNavLink(
-          ['emp', "manager"].includes(whoIs),
+          Project === "allow",
           `/${whoIs}/projects`,
           folderIcon,
           'Project',
@@ -163,7 +163,7 @@ const Sidebar = ({ isMobileView, handleSideBar, setIsMobileView }) => {
         )}
 
         {renderNavLink(
-          ['emp', "manager"].includes(whoIs),
+          Task === "allow",
           `/${whoIs}/tasks`,
           taskIcon,
           'Tasks',
@@ -171,7 +171,7 @@ const Sidebar = ({ isMobileView, handleSideBar, setIsMobileView }) => {
         )}
 
         {renderNavLink(
-          ['emp', "manager"].includes(whoIs),
+          Report === "allow",
           `/${whoIs}/reports`,
           fileIcon,
           'Reports',
@@ -180,7 +180,7 @@ const Sidebar = ({ isMobileView, handleSideBar, setIsMobileView }) => {
 
         {/* Email template */}
         {renderNavLink(
-          ['hr', "admin"].includes(whoIs),
+          EmailTemplate === "allow",
           `/${whoIs}/email-templates`,
           emailTempIcon,
           'Email-Template',
@@ -189,7 +189,7 @@ const Sidebar = ({ isMobileView, handleSideBar, setIsMobileView }) => {
 
         {/* Announcements */}
         {renderNavLink(
-          ['hr', "admin"].includes(whoIs),
+          Announcement === "allow",
           `/${whoIs}/announcement`,
           announcementIcon,
           'Announcement',
@@ -198,7 +198,7 @@ const Sidebar = ({ isMobileView, handleSideBar, setIsMobileView }) => {
 
         {/* holiday */}
         {renderNavLink(
-          ['hr', "admin", "emp", "manager"].includes(whoIs),
+          Holiday === "allow",
           `/${whoIs}/holiday`,
           holidayIcon,
           'Holiday',
@@ -245,7 +245,7 @@ const Sidebar = ({ isMobileView, handleSideBar, setIsMobileView }) => {
             'Attendance'
           )}
 
-        {Attendance === 'allow' && ["admin", "sys-admin", "hr"].includes(whoIs) &&
+        {Attendance === 'allow' && 
           renderSubMenu(
             'attendance',
             [
@@ -259,7 +259,7 @@ const Sidebar = ({ isMobileView, handleSideBar, setIsMobileView }) => {
             'Attendance'
           )}
 
-        {(Administration === 'allow' || whoIs === 'admin') &&
+        {(Administration === 'allow') &&
           renderSubMenu(
             'administration',
             [
@@ -274,7 +274,7 @@ const Sidebar = ({ isMobileView, handleSideBar, setIsMobileView }) => {
             'Administration'
           )}
 
-        {(Settings === 'allow' || whoIs === 'admin') &&
+        {(Settings === 'allow') &&
           renderSubMenu(
             'settings',
             [
@@ -287,8 +287,7 @@ const Sidebar = ({ isMobileView, handleSideBar, setIsMobileView }) => {
           )}
 
         {
-          // WorkFromHome === 'allow' &&
-          ["admin", "hr"].includes(whoIs) || [decodedData.isTeamManager, decodedData?.isTeamHead, decodedData?.isTeamLead].includes(true) ?
+          WorkFromHome === 'allow' ?
             renderSubMenu(
               'workfromhome',
               [
