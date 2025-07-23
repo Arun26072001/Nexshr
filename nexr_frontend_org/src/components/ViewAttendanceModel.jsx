@@ -7,6 +7,7 @@ import TableContainer from '@mui/material/TableContainer';
 import TableRow from '@mui/material/TableRow';
 import Loading from './Loader';
 import "./payslip/layout/ParentStyle.css";
+import { dateToFormatTime } from './ReuseableAPI';
 
 export default function ViewAttendanceModel({ modelData, toggleView, openModal }) {
     const renderAttendanceRows = () => {
@@ -25,7 +26,7 @@ export default function ViewAttendanceModel({ modelData, toggleView, openModal }
                         {/* Check if the object has 'startingTime' and 'endingTime' */}
                         <TableCell>
                             {modelData[key]?.startingTime?.length && modelData[key]?.endingTime?.length
-                                ? `${modelData[key]?.startingTime[0]} - ${modelData[key]?.endingTime.at(-1)}`
+                                ? `${dateToFormatTime(modelData[key]?.startingTime[0])} - ${dateToFormatTime(modelData[key]?.endingTime.at(-1))}`
                                 : 'N/A'}
                         </TableCell>
                     </TableRow>

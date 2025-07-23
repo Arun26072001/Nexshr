@@ -371,6 +371,7 @@ router.get("/late-punch", verifyAdminHR, async (req, res) => {
 
         const latePunch = await ClockIns.find({ date: { $gte: fromDate, $lt: toDate }, behaviour: "Late" })
             .populate("employee", "FirstName LastName profile")
+            .sort({ date: -1 })
             .lean()
             .exec()
 
@@ -913,8 +914,8 @@ router.get("/sendmail/:id/:clockinId", async (req, res) => {
 router.get("/", verifyAdminHrNetworkAdmin, async (req, res) => {
     try {
         let filterObj = {};
-
-        if (req.query.daterangeValue) {
+        const dateRangeValue = req.query?.dateRangeValue
+        if (dateRangeValue && dateRangeValue.length > 1) {
             const startDate = new Date(req.query.daterangeValue[0]);
             const endDate = new Date(req.query.daterangeValue[1])
             filterObj = {

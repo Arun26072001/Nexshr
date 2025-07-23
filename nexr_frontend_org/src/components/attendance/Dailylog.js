@@ -1,4 +1,4 @@
-import React, { useContext } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import './Attendence.css';
 import LeaveTable from '../LeaveTable';
 import NoDataFound from '../payslip/NoDataFound';
@@ -8,14 +8,15 @@ import FileDownloadRoundedIcon from '@mui/icons-material/FileDownloadRounded';
 import axios from 'axios';
 import { toast } from 'react-toastify';
 import { EssentialValues } from '../../App';
-import { TimerStates } from '../payslip/HRMDashboard';
 import { Skeleton } from '@mui/material';
 import { exportAttendanceToExcel } from '../ReuseableAPI';
 import { useNavigate } from 'react-router-dom';
 
-const Dailylog = ({ attendanceData, isLoading }) => {
-    const { data, whoIs } = useContext(EssentialValues)
-    const { daterangeValue, setDaterangeValue } = useContext(TimerStates);
+const Dailylog = () => {
+    const { data, whoIs } = useContext(EssentialValues);
+    const [attendanceData, setAttendanceData] = useState([]);
+    const { dateRangeValue, setDateRangeValue } = useState([]);
+    const [isLoading, setIsLoading] = useState(false);
     const url = process.env.REACT_APP_API_URL;
     const navigate = useNavigate();
 
@@ -32,8 +33,8 @@ const Dailylog = ({ attendanceData, isLoading }) => {
                 },
             });
             toast.success(response.attendanceData.message)
-       } catch (error) {
-         if (error?.message === "Network Error") {
+        } catch (error) {
+            if (error?.message === "Network Error") {
                 navigate("/network-issue")
             }
             console.error('File upload failed:', error);
@@ -41,7 +42,35 @@ const Dailylog = ({ attendanceData, isLoading }) => {
         }
     };
 
-   
+    const getAttendanceData = async () => {
+        try {
+            setIsLoading(true);
+            const empOfAttendances = await axios.get(`${url}/api/clock-ins/`, {
+                params: {
+                    dateRangeValue
+                },
+                headers: {
+                    Authorization: data.token || ""
+                }
+            });
+            if (empOfAttendances && empOfAttendances.data) {
+                setAttendanceData(empOfAttendances.data);
+            }
+        } catch (error) {
+            if (error?.message === "Network Error") {
+                navigate("/network-issue")
+            }
+            console.error("error in fetch attendance data",error);
+        }finally{
+            setIsLoading(false);
+        }
+    }
+
+    useEffect(() => {
+        console.log("calling..")
+        getAttendanceData();
+    }, [dateRangeValue])
+
     const renderMenu = ({ onClose, right, top, className }, ref) => {
         const handleSelect = (eventKey) => {
             if (eventKey === 1) {
@@ -60,12 +89,12 @@ const Dailylog = ({ attendanceData, isLoading }) => {
         return (
             <Popover ref={ref} className={className} style={{ right, top }}>
                 <Dropdown.Menu onSelect={handleSelect}>
-                     <Dropdown.Item eventKey={3}>
+                    <Dropdown.Item eventKey={3}>
                         <b>
                             <FileDownloadRoundedIcon /> Export
                         </b>
                     </Dropdown.Item>
-                   
+
                 </Dropdown.Menu>
             </Popover>
         );
@@ -75,7 +104,7 @@ const Dailylog = ({ attendanceData, isLoading }) => {
         <div className='dashboard-parent pt-4'>
             <div className='d-flex justify-content-between align-items-center px-3'>
                 <div>
-                    <h5 className='text-daily'>Daily Log</h5>
+                    <h5 className='text-daily'>Daily Logo</h5>
                 </div>
 
                 <div className='d-flex gap-3'>
@@ -83,9 +112,9 @@ const Dailylog = ({ attendanceData, isLoading }) => {
                         size="lg"
                         showOneCalendar
                         placement="bottomEnd"
-                        value={daterangeValue}
+                        value={dateRangeValue}
                         placeholder="Filter Range of Date Range"
-                        onChange={setDaterangeValue}
+                        onChange={setDateRangeValue}
                     />
                     {
                         ["admin", "hr"].includes(whoIs) &&

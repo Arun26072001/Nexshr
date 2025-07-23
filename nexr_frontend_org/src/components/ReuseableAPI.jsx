@@ -763,11 +763,21 @@ function triggerToaster(response) {
     )
 }
 
-// Format milliseconds to HH:mm:ss
-const formatMs = (ms) => {
-    if (!ms || isNaN(ms)) return "00:00:00";
-    return new Date(ms).toISOString().substr(11, 8);
-};
+// // Format milliseconds to HH:mm:ss
+// const formatMs = (ms) => {
+//     if (!ms || isNaN(ms)) return "00:00:00";
+//     return new Date(ms).toISOString().substr(11, 8);
+// };
+
+function dateToFormatTime(row) {
+    const dateData = row;
+    if (dateData) {
+        const date = new Date(dateData);
+        return !isNaN(date.getTime()) ? date.toLocaleTimeString() : dateData;
+    } else {
+        return "N/A";
+    }
+}
 
 function exportAttendanceToExcel(attendanceData) {
     if (!attendanceData.length) return;
@@ -778,34 +788,34 @@ function exportAttendanceToExcel(attendanceData) {
         EmployeeName: item.employee.FirstName + " " + item.employee.LastName,
 
         // Login
-        LoginStart: item.login?.startingTime[0] || "00:00",
-        LoginEnd: item.login?.endingTime.at(-1) || "00:00",
-        LoginTaken: formatMs(item.login?.takenTime || 0),
+        LoginStart: dateToFormatTime(item.login?.startingTime[0]) || "00:00",
+        LoginEnd: dateToFormatTime(item.login?.endingTime.at(-1)) || "00:00",
+        LoginTaken: item.login?.timeHolder || 0,
 
         // Meeting
-        MeetingStart: item.meeting?.startingTime[0] || "00:00",
-        MeetingEnd: item.meeting?.endingTime.at(-1) || "00:00",
-        MeetingTaken: formatMs(item.meeting?.takenTime || 0),
+        MeetingStart: dateToFormatTime(item.meeting?.startingTime[0]) || "00:00",
+        MeetingEnd: dateToFormatTime(item.meeting?.endingTime.at(-1)) || "00:00",
+        MeetingTaken: item.meeting?.timeHolder || 0,
 
         // Morning Break
-        MorningBreakStart: item.morningBreak?.startingTime[0] || "00:00",
-        MorningBreakEnd: item.morningBreak?.endingTime.at(-1) || "00:00",
-        MorningBreakTaken: formatMs(item.morningBreak?.takenTime || 0),
+        MorningBreakStart: dateToFormatTime(item.morningBreak?.startingTime[0]) || "00:00",
+        MorningBreakEnd: dateToFormatTime(item.morningBreak?.endingTime.at(-1)) || "00:00",
+        MorningBreakTaken: item.morningBreak?.timeHolder || 0,
 
         // Lunch
-        LunchStart: item.lunch?.startingTime[0] || "00:00",
-        LunchEnd: item.lunch?.endingTime.at(-1) || "00:00",
-        LunchTaken: formatMs(item.lunch?.takenTime || 0),
+        LunchStart: dateToFormatTime(item.lunch?.startingTime[0]) || "00:00",
+        LunchEnd: dateToFormatTime(item.lunch?.endingTime.at(-1)) || "00:00",
+        LunchTaken: item.lunch?.timeHolder || 0,
 
         // Evening Break
-        EveningBreakStart: item.eveningBreak?.startingTime[0] || "00:00",
-        EveningBreakEnd: item.eveningBreak?.endingTime.at(-1) || "00:00",
-        EveningBreakTaken: formatMs(item.eveningBreak?.takenTime || 0),
+        EveningBreakStart: dateToFormatTime(item.eveningBreak?.startingTime[0]) || "00:00",
+        EveningBreakEnd: dateToFormatTime(item.eveningBreak?.endingTime.at(-1)) || "00:00",
+        EveningBreakTaken: item.eveningBreak?.timeHolder || 0,
 
         // Event
-        EventStart: item.event?.startingTime[0] || "00:00",
-        EventEnd: item.event?.endingTime.at(-1) || "00:00",
-        EventTaken: formatMs(item.event?.takenTime || 0),
+        EventStart: dateToFormatTime(item.event?.startingTime[0]) || "00:00",
+        EventEnd: dateToFormatTime(item.event?.endingTime.at(-1)) || "00:00",
+        EventTaken: item.event?.timeHolder || 0,
     }));
 
     const ws = XLSX.utils.json_to_sheet(formattedData);
@@ -826,6 +836,7 @@ export {
     processActivityDurations,
     getTimeFromHour,
     getHoliday,
+    dateToFormatTime,
     addDataAPI,
     createTask,
     fetchCompanies,
