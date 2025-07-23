@@ -408,10 +408,10 @@ leaveApp.get("/unpaid", verifyAdminHR, async (req, res) => {
 leaveApp.get("/team/:id", verifyTeamHigherAuthority, async (req, res) => {
   try {
     const now = new Date(); // added missing `now`
-    const { daterangeValue, who } = req.query;
+    const { dateRangeValue, who } = req.query;
 
     // get dateRange value or current month range value
-    const [startOfMonth, endOfMonth] = daterangeValue
+    const [startOfMonth, endOfMonth] = dateRangeValue
       ? [new Date(daterangeValue[0]), new Date(daterangeValue[1])]
       : [new Date(now.getFullYear(), now.getMonth(), 1), new Date(now.getFullYear(), now.getMonth() + 2, 0)];
     // reduce one day from start the date for exact filter
@@ -490,7 +490,7 @@ leaveApp.get("/team/:id", verifyTeamHigherAuthority, async (req, res) => {
     res.json({
       leaveData: teamLeaves,
       pendingLeave: pendingLeaveDays,
-      upComingLeave: upComingLeaveDays,
+      upcomingLeave: upComingLeaveDays,
       approvedLeave: approvedLeaveDays,
       peoplesOnLeave,
       takenLeave: takenLeaveDays,
@@ -618,8 +618,8 @@ leaveApp.get("/date-range/management/:whoIs", verifyAdminHrNetworkAdmin, async (
   const now = new Date();
   let startOfMonth, endOfMonth;
 
-  if (req.query?.daterangeValue) {
-    [startOfMonth, endOfMonth] = req.query.daterangeValue.map(date => new Date(date));
+  if (req.query?.dateRangeValue) {
+    [startOfMonth, endOfMonth] = req.query.dateRangeValue.map(date => new Date(date));
     endOfMonth.setHours(23, 59, 59, 999); // Include full last day
     // reduce one day from start the date for exact filter
     startOfMonth.setDate(startOfMonth.getDate() - 1)
@@ -636,7 +636,7 @@ leaveApp.get("/date-range/management/:whoIs", verifyAdminHrNetworkAdmin, async (
         Account: 3
       }
     }
-    const employeesLeaveData = await Employee.find(filterObj, "_id FirstName LastName profile leaveApplication")
+    const employeesLeaveData = await Employee.find(filterObj, "_id FirstName LastName profile leaveApplication workingTimePattern")
       .populate({
         path: "leaveApplication",
         match: {
@@ -648,43 +648,63 @@ leaveApp.get("/date-range/management/:whoIs", verifyAdminHrNetworkAdmin, async (
           { path: "employee", select: "FirstName LastName Email profile" },
           { path: "coverBy", select: "FirstName LastName Email profile" }
         ]
-      });
+      }).populate("workingTimePattern").lean().exec();
 
     let leaveData = employeesLeaveData
       .flatMap(emp => emp.leaveApplication) // Flatten leave data
       .sort((a, b) => new Date(b.fromDate) - new Date(a.fromDate))
       .map(leave => ({
-        ...leave.toObject(),
+        ...leave,
         reasonForLeave: leave.reasonForLeave.replace(/<\/?[^>]+(>|$)/g, ''),
         prescription: leave.prescription
           ? `${process.env.REACT_APP_API_URL}/uploads/${leave.prescription}`
           : null
       }));
 
+    let workingHrPerDay = 0;
+    employeesLeaveData.forEach((employee) => {
+      if (employee?.workingTimePattern) {
+        const startingDate = new Date(employee.workingTimePattern.StartingTime);
+        const endingDate = new Date(employee.workingTimePattern.FinishingTime);
+        weeklyDays = employee.workingTimePattern.WeeklyDays ? employee.workingTimePattern.WeeklyDays : []
+        scheduledLoginTime = startingDate.toTimeString().split(" ")[0];
+        if (!workingHrPerDay) {
+          workingHrPerDay = (endingDate.getTime() - startingDate.getTime()) / (1000 * 60 * 60)
+        }
+      } else {
+        return res.status(404).send({ error: `Working time pattern has not been set yet for ${employee.FirstName}.` })
+      }
+    })
+
+    const nowTime = new Date().getTime();
     const approvedLeave = leaveData.filter(leave => leave.status === "approved");
     const pendingLeave = leaveData.filter(leave => leave.status === "pending");
     const upcomingLeave = leaveData.filter(leave => new Date(leave.fromDate) > now);
     const peopleOnLeave = approvedLeave.filter(leave =>
       new Date(leave.fromDate).toDateString() === now.toDateString()
     );
-    const [upComingLeaveDays, pendingLeaveDays, approvedLeaveDays] = await Promise.all([
+    const takenLeave = approvedLeave.filter(l => new Date(l.fromDate).getTime() < nowTime)
+    const [upComingLeaveDays, pendingLeaveDays, approvedLeaveDays, takenLeaveDays] = await Promise.all([
       sumLeaveDays(upcomingLeave),
       sumLeaveDays(pendingLeave),
-      sumLeaveDays(approvedLeave)
-    ])
+      sumLeaveDays(approvedLeave),
+      sumLeaveDays(takenLeave)
+    ]);
+    const totalLeaveDaysInHrs = approvedLeaveDays * workingHrPerDay
 
     res.send({
       leaveData,
       approvedLeave: approvedLeaveDays,
-      leaveInHours: approvedLeaveDays * 9,
+      leaveInHours: totalLeaveDaysInHrs,
       peopleOnLeave,
       pendingLeave: pendingLeaveDays,
-      upcomingLeave: upComingLeaveDays
+      upcomingLeave: upComingLeaveDays,
+      takenLeave: takenLeaveDays,
     });
   } catch (error) {
     await errorCollector({ url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT })
     console.error("Error fetching leave data:", error);
-    res.status(500).send({ error: "An error occurred while fetching leave data." });
+    res.status(500).send({ error: error.message });
   }
 });
 
