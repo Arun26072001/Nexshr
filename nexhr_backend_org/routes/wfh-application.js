@@ -237,7 +237,7 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
             status: "approved"
         })
         if (isLeave) {
-            return res.status(400).send({ error: "You can't apply WFH, because you have leave wfh during this period." })
+            return res.status(400).send({ error: "You can't apply WFH, because you applied leave during this period." })
         }
 
         // check has more than two team members in wfh

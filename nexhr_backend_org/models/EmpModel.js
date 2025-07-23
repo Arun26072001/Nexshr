@@ -89,6 +89,8 @@ var employeeSchema = new mongoose.Schema({
 
 var Employee = mongoose.model("Employee", employeeSchema);
 
+require("../ModelChangeEvents/employeeHooks")(Employee, employeeSchema)
+
 module.exports = {
   Employee,
   employeeSchema

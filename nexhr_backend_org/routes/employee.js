@@ -2,7 +2,6 @@ const express = require('express');
 const router = express.Router();
 const { Employee, employeeSchema } = require('../models/EmpModel');
 const { verifyAdminHREmployeeManagerNetwork, verifyAdminHR, verifyTeamHigherAuthority, verifyAdminHRTeamHigherAuth } = require('../auth/authMiddleware');
-const { getDayDifference } = require('./leave-app');
 const sendMail = require("./mailSender");
 const { RoleAndPermission } = require('../models/RoleModel');
 const { Team } = require('../models/TeamModel');
@@ -186,7 +185,6 @@ router.get("/team/:higher", verifyAdminHRTeamHigherAuth, async (req, res) => {
   } catch (err) {
     await errorCollector({ url: req.originalUrl, name: err.name, message: err.message, env: process.env.ENVIRONMENT })
     console.log("error in fetch highers", err);
-
     res.status(500).send({ error: err.message });
   }
 });
@@ -239,9 +237,9 @@ router.post("/add-company/:id", async (req, res) => {
 router.get('/:id', verifyAdminHREmployeeManagerNetwork, async (req, res) => {
   const empData = await Employee.findById(req.params.id, "annualLeaveYearStart")
   const now = new Date();
-  const annualStart = empData?.annualLeaveYearStart ? new Date(empData?.annualLeaveYearStart) : new Date(now.setDate(1));
-  startDate = new Date(now.getFullYear(), annualStart.getMonth(), annualStart.getDate());
-  endDate = new Date(startDate.getFullYear() + 1, startDate.getMonth(), startDate.getDate() - 1, 23, 59, 59, 999);
+  const annualStart = empData?.annualLeaveYearStart && isValidDate(empData?.annualLeaveYearStart) ? new Date(empData?.annualLeaveYearStart) : new Date(now.setDate(1));
+  const startDate = new Date(now.getFullYear(), annualStart.getMonth(), annualStart.getDate());
+  const endDate = new Date(startDate.getFullYear() + 1, startDate.getMonth(), startDate.getDate() - 1, 23, 59, 59, 999);
 
   try {
     const emp = await Employee.findById(req.params.id, "-clockIns -payslip")
@@ -268,8 +266,8 @@ router.get('/:id', verifyAdminHREmployeeManagerNetwork, async (req, res) => {
       employee: req.params.id,
       leaveType: { $nin: ["Permission Leave", "permission"] },
       fromDate: {
-        $gte: new Date(startDate),
-        $lte: new Date(endDate)
+        $gte: startDate,
+        $lte: endDate
       }
     })
     // Filter leave requests
@@ -293,7 +291,7 @@ router.get('/:id', verifyAdminHREmployeeManagerNetwork, async (req, res) => {
 
   } catch (err) {
     await errorCollector({ url: req.originalUrl, name: err.name, message: err.message, env: process.env.ENVIRONMENT })
-    console.log(err);
+    console.log("error in get empData", err);
     res.status(500).send({ error: err.message });
   }
 });

@@ -1,7 +1,6 @@
 const nodemailer = require('nodemailer');
 const postmark = require('postmark');
 const EmailConfig = require('../models/EmailConfigModel');
-const { errorCollector } = require('../Reuseable_functions/reusableFunction');
 
 // Function to get the active email configuration
 const getActiveEmailConfig = async () => {

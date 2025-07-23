@@ -210,7 +210,7 @@ export default function Navbar() {
             };
             // check user is completed working hour
             try {
-                const res = await axios.post(`${url}/verify_completed_workinghour`, updatedState);
+                const res = await axios.post(`${url}/clock-ins/verify_completed_workinghour`, updatedState);
                 if (!res.data.isCompleteworkingHours) {
                     changeViewReasonForEarlyLogout()
                 } else {

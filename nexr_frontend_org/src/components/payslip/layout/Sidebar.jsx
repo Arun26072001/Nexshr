@@ -198,7 +198,7 @@ const Sidebar = ({ isMobileView, handleSideBar, setIsMobileView }) => {
 
         {/* holiday */}
         {renderNavLink(
-          ['hr', "admin", "emp"].includes(whoIs),
+          ['hr', "admin", "emp", "manager"].includes(whoIs),
           `/${whoIs}/holiday`,
           holidayIcon,
           'Holiday',

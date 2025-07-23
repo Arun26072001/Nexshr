@@ -1,8 +1,7 @@
 const admin = require("./firebase-admin");
-const { Employee } = require("../models/EmpModel");
 const axios = require("axios");
 const schedule = require("node-schedule");
-const { getCurrentTimeInMinutes, timeToMinutes, getTotalWorkingHourPerDayByDate, errorCollector, changeClientTimezoneDate, getTimeFromDateOrTimeData } = require("../Reuseable_functions/reusableFunction");
+const { getCurrentTimeInMinutes, getTimeFromDateOrTimeData } = require("../Reuseable_functions/reusableFunction");
 
 exports.sendPushNotification = async (msgObj) => {
     const { token, title, body } = msgObj;
@@ -28,67 +27,11 @@ exports.sendPushNotification = async (msgObj) => {
             console.log(`error in pushnotification for: ${msgObj?.name}`, err);
         })
     } catch (error) {
-        await errorCollector({ url: "push-notifcation", name: error.name, message: error.message, env: process.env.ENVIRONMENT })
+        // await errorCollector({ url: "push-notifcation", name: error.name, message: error.message, env: process.env.ENVIRONMENT })
         console.error("Error sending notification:", error);
         return;
     }
 };
-
-exports.verifyWorkingTimeCompleted = async (req, res) => {
-    try {
-        const { employee, login } = req.body;
-        const today = changeClientTimezoneDate(new Date());
-        const startOfDay = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate(), 0, 0, 0));
-        const endOfDay = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate(), 23, 59, 59, 0));
-        const empData = await Employee.findById(employee, "FirstName LastName workingTimePattern company")
-            .populate("workingTimePattern")
-            .populate({
-                path: "leaveApplication", match: {
-                    $and: [
-                        { leaveType: { $in: ["permission", "Permission Leave"] } },
-                        { fromDate: { $lte: endOfDay } },
-                        { toDate: { $gte: startOfDay } },
-                        { status: "approved" }
-                    ]
-                }
-            })
-            .exec();
-
-        let startingTimes = login?.startingTime;
-        let endingTimes = login?.endingTime;
-        let permissionHrs = empData.leaveApplication.length > 0 ? getTotalWorkingHourPerDayByDate(empData.leaveApplication[0]) : 0
-
-        const values = startingTimes?.map((startTime, index) => {
-            if (!startTime) return 0; // No start time means no value
-
-            let endTimeInMin = 0;
-            if (endingTimes[index]) {
-                // Calculate time difference with an ending time
-                endTimeInMin = timeToMinutes(endingTimes[index]);
-            } else {
-                // Calculate time difference with the current time
-                endTimeInMin = getCurrentTimeInMinutes();
-            }
-            const startTimeInMin = timeToMinutes(startTime);
-            return Math.abs(endTimeInMin - startTimeInMin);
-        });
-
-        const totalValue = values?.reduce((acc, value) => acc + value, 0) / 60;
-        const scheduleWorkingHours = getTotalWorkingHourPerDayByDate(
-            empData?.workingTimePattern?.StartingTime,
-            empData?.workingTimePattern?.FinishingTime
-        )
-        let isCompleteworkingHours = true;
-        if ((scheduleWorkingHours + permissionHrs) > totalValue && !login?.reasonForEarlyLogout) {
-            isCompleteworkingHours = false;
-        }
-        return res.send({ isCompleteworkingHours })
-    } catch (error) {
-        await errorCollector({ url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT })
-        console.log("error in check working hour is complated", error);
-        return res.status(500).send({ error: error.message })
-    }
-}
 
 exports.askReasonForDelay = (req, res) => {
     try {

@@ -1,4 +1,7 @@
 const mongoose = require("mongoose");
+const { PlannerCategory } = require("../models/PlannerCategoryModel");
+const { Holiday } = require("../models/HolidayModel");
+const { ErrorLog } = require("../models/ErrorLogModel");
 const dayjs = require('dayjs');
 const isSameOrBefore = require('dayjs/plugin/isSameOrBefore');
 const isSameOrAfter = require('dayjs/plugin/isSameOrAfter');
@@ -6,10 +9,7 @@ const isoWeek = require('dayjs/plugin/isoWeek');
 const { toZonedTime } = require('date-fns-tz');
 const { format } = require("date-fns");
 const isBetween = require('dayjs/plugin/isBetween');
-const { PlannerCategory } = require("../models/PlannerCategoryModel");
-const { Holiday } = require("../models/HolidayModel");
 const { Employee } = require("../models/EmpModel");
-const { ErrorLog } = require("../models/ErrorLogModel");
 
 dayjs.extend(isSameOrBefore);
 dayjs.extend(isSameOrAfter);
@@ -126,8 +126,9 @@ async function rangeofDate(fromDate, toDate, empData) {
   const from = new Date(fromDate);
   const to = new Date(toDate);
   const empId = typeof empData === "object" ? empData?._id : empData;
-  const emp = await Employee.findById(empId, "workingTimePattern company")
-    .populate("workingTimePattern", "WeeklyDays").lean().exec();
+  const emp = await Employee.findOne({ _id: empId }, "workingTimePattern company")
+    .populate("workingTimePattern", "WeeklyDays")
+    .lean().exec();
   const holidayData = await Holiday.findOne({ currentYear: new Date().getFullYear(), company: emp.company }).lean().exec();
   const holidays = Array.isArray(holidayData.holiday) && holidayData.holiday.length > 0 ? holidayData.holiday : []
   const empTimePatternWorkingDays = emp?.workingTimePattern && Array.isArray(emp.workingTimePattern.WeeklyDays) ? emp.workingTimePattern.WeeklyDays : [];
