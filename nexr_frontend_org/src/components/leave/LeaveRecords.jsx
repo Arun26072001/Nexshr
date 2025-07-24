@@ -21,7 +21,7 @@ export default function LeaveRecords() {
     const url = process.env.REACT_APP_API_URL;
     const { data, whoIs } = useContext(EssentialValues);
     const { empName, setEmpName, filterLeaveRequests, isLoading, leaveRequests, changeRequests } = useContext(LeaveStates);
-    const { daterangeValue, setDaterangeValue } = useContext(TimerStates)
+    const { dateRangeValue, setDateRangeValue } = useContext(TimerStates)
     const { token, Account } = data;
     const [responsing, setResponsing] = useState("");
     const { isTeamHead, isTeamLead, isTeamManager } = jwtDecode(token);
@@ -103,7 +103,7 @@ export default function LeaveRecords() {
 
     useEffect(() => {
         filterLeaveRequests();
-    }, [empName, daterangeValue]);
+    }, [empName, dateRangeValue]);
 
     useEffect(() => {
         const today = new Date();
@@ -112,21 +112,21 @@ export default function LeaveRecords() {
             if (state.type === "today") {
                 const start = new Date(today.setHours(0, 0, 0, 0));
                 const end = new Date(today.setHours(23, 59, 59, 999));
-                setDaterangeValue([start, end]);
+                setDateRangeValue([start, end]);
             }
 
             if (state.type === "tomorrow") {
                 const tomorrow = new Date(state.date);
                 const start = new Date(tomorrow.setHours(0, 0, 0, 0));
                 const end = new Date(tomorrow.setHours(23, 59, 59, 999));
-                setDaterangeValue([start, end]);
+                setDateRangeValue([start, end]);
             }
 
             if (state.type === "yesterday") {
                 const yesterday = new Date(state.date);
                 const start = new Date(yesterday.setHours(0, 0, 0, 0));
                 const end = new Date(yesterday.setHours(23, 59, 59, 999));
-                setDaterangeValue([start, end]);
+                setDateRangeValue([start, end]);
             }
         }
     }, [state]);
@@ -196,10 +196,9 @@ export default function LeaveRecords() {
             />
             <div className='d-flex justify-content-between px-2'>
                 <p className="payslipTitle">
-                    Leave Request
+                    Leave Records
                 </p>
                 <div className='d-flex gap-2'>
-
                     <button className='button' onClick={() => navigate(`/${whoIs}/leave-request`)}>Apply Leave</button>
                     <button className='button' style={{ cursor: 'pointer' }}>
                         <Whisper placement="bottomEnd" trigger="click" speaker={renderMenu} >
@@ -217,9 +216,9 @@ export default function LeaveRecords() {
                             size="lg"
                             showOneCalendar
                             placement="bottomEnd"
-                            value={daterangeValue}
+                            value={dateRangeValue}
                             placeholder="Filter Range of Date"
-                            onChange={setDaterangeValue}
+                            onChange={setDateRangeValue}
                         />
                     </div>
                 </div>

@@ -3,6 +3,7 @@ import axios from "axios";
 import defaultProfile from "../../imgs/male_avatar.webp";
 import { DateRangePicker, Input } from 'rsuite';
 import "../payslip/payslip.css";
+import CircleIcon from '@mui/icons-material/Circle';
 import dayjs from "dayjs";
 import "react-big-calendar/lib/css/react-big-calendar.css";
 import { Calendar, dayjsLocalizer } from "react-big-calendar";
@@ -13,13 +14,13 @@ import Loading from '../Loader';
 const localizer = dayjsLocalizer(dayjs);
 export default function LeaveCalender() {
     const { data, whoIs } = useContext(EssentialValues);
-    const [empName, setEmpName] = useState("");
     const [dateRangeValue, setDateRangeValue] = useState([]);
     const [formattedLeaveDays, setFormattedLeaveDays] = useState([]);
     const [fullLeaveRequests, setFullLeaveRequests] = useState([]);
-    const [leaveRequests, setLeaveRequests] = useState([]);
+    const [empName, setEmpName] = useState("");
     const url = process.env.REACT_APP_API_URL;
     const [isLoading, setIsLoading] = useState(false);
+    const statuses = [{ status: "Approved", color: "#78C841" }, { status: "Rejected", color: "#FB4141" }, { status: "Pending", color: "#FFD700" }]
 
     const getLeaveData = async () => {
         setIsLoading(true);
@@ -32,21 +33,20 @@ export default function LeaveCalender() {
                     authorization: data.token || ""
                 }
             })
-            const leaveData = res.data.leaveData;
-            if (leaveData.length > 0) {
-                setFormattedLeaveDays(leaveData.map((leave) => {
-                    const { fromDate, toDate, leaveType, employee, status } = leave;
-                    return {
-                        title: leaveType,
-                        start: new Date(fromDate),
-                        end: new Date(toDate),
-                        userProfile: employee.profile,
-                        userName: employee.FirstName + " " + employee.LastName,
-                        status
-                    }
-                }));
-                setFullLeaveRequests(leaveData.data);
-            }
+            const leaveData = res.data.leaveData || [];
+            const formattedRequests = leaveData.map((leave) => {
+                const { fromDate, toDate, leaveType, employee, status } = leave;
+                return {
+                    title: leaveType,
+                    start: new Date(fromDate),
+                    end: new Date(toDate),
+                    userProfile: employee.profile,
+                    userName: employee.FirstName + " " + employee.LastName,
+                    status
+                }
+            })
+            setFormattedLeaveDays(formattedRequests);
+            setFullLeaveRequests(formattedRequests)
         } catch (err) {
             toast.error(err?.response?.data?.message);
             console.log("error in fethc leave data", err)
@@ -55,23 +55,22 @@ export default function LeaveCalender() {
         }
     }
 
-    console.log("formattedLeaveDays", formattedLeaveDays)
     useEffect(() => {
         getLeaveData();
     }, [dateRangeValue]);
-    // Filter leave requests when empName or daterangeValue changes
+
     useEffect(() => {
         if (empName === "") {
-            setLeaveRequests(fullLeaveRequests);
+            setFormattedLeaveDays(fullLeaveRequests);
         } else {
-            const filterRequests = fullLeaveRequests?.leaveData.filter((leave) => leave?.employee?.FirstName?.toLowerCase()?.includes(empName.toLowerCase()) || leave?.employee?.LastName?.toLowerCase()?.includes(empName.toLowerCase()));
-            setLeaveRequests((pre) => ({ ...pre, leaveData: filterRequests }));
+            const filterRequests = fullLeaveRequests.filter((leave) => leave?.userName?.toLowerCase()?.includes(empName.toLowerCase()));
+            setFormattedLeaveDays(filterRequests);
         }
     }, [empName]);
 
     const eventPropGetter = (event) => ({
         style: {
-            backgroundColor: event.status === "approved" ? "green" : event.status === "rejected" ? "red" : "yellow",
+            backgroundColor: event.status === "approved" ? "#78C841" : event.status === "rejected" ? "#FB4141" : "#FFD700",
             color: "#fff",
             padding: "5px"
         }
@@ -113,7 +112,7 @@ export default function LeaveCalender() {
                     {
                         isLoading ? <Loading height='60vh' /> :
                             <>
-                                <p className="text-center mb-2 payslipTitle">Holiday</p>
+                                <p className="mb-2 payslipTitle justify-content-center gap-2">{statuses.map((item) => <><CircleIcon sx={{ color: item.color }} /> {item.status}</>)}</p>
                                 <Calendar
                                     localizer={localizer}
                                     events={formattedLeaveDays}

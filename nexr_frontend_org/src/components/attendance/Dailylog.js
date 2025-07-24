@@ -65,13 +65,10 @@ const Dailylog = () => {
             setIsLoading(false);
         }
     }
-    console.log()
 
     useEffect(() => {
-        console.log("calling..")
         getAttendanceData();
     }, [dateRangeValue])
-    console.log("dateRangeValue", dateRangeValue);
 
     const renderMenu = ({ onClose, right, top, className }, ref) => {
         const handleSelect = (eventKey) => {

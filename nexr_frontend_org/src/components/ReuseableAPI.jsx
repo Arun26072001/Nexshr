@@ -400,7 +400,6 @@ const gettingClockinsData = async (_id) => {
                 authorization: token || ""
             }
         })
-        console.log("gettingClockinsData", dashboard.data)
         return dashboard.data
     } catch (err) {
         toast.error(err.message)
