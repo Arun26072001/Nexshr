@@ -754,9 +754,8 @@ router.get("/employee/:empId", verifyAdminHREmployeeManagerNetwork, async (req, 
         let totalLeaveDays = 0;
         let regular = 0, late = 0, early = 0;
         const checkLogin = (scheduledTime, actualTime) => {
-            let actualHours, actualMinutes = 0;
-            let schedHours, schedMinutes = 0;
-            console.log("values", scheduledTime, actualTime)
+            let actualHours = actualMinutes = 0;
+            let schedHours = schedMinutes = 0;
             if (isValidDate(actualTime)) {
                 const actualDate = timeZoneHrMin(actualTime);
                 [actualHours, actualMinutes] = actualDate.split(/[:.]+/).map(Number);
@@ -769,7 +768,6 @@ router.get("/employee/:empId", verifyAdminHREmployeeManagerNetwork, async (req, 
             }
             const scheduled = schedHours * 60 + schedMinutes;
             const actual = actualHours * 60 + actualMinutes;
-            console.log("essentials", actual, scheduled)
             if (actual > scheduled) {
                 late++;
             }

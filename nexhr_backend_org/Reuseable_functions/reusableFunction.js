@@ -60,17 +60,16 @@ function categorizeTasks(tasks = []) {
 
 async function checkLoginForOfficeTime(scheduledTime, actualTime, permissionTime = 0) {
   // Parse scheduled andl actual time into hours and minutes
-  let scheduledHours, scheduledMinutes, actualHours, actualMinutes = 0;
-  if (new Date(scheduledTime) && new Date(scheduledTime).getHours()) {
-    const scheduledDate = new Date(scheduledTime);
-    [scheduledHours, scheduledMinutes] = [scheduledDate.getHours(), scheduledDate.getMinutes()];
-  } else {
-    [scheduledHours, scheduledMinutes] = scheduledTime.split(/[:.]+/).map(Number);
-  } if (new Date(actualTime) && new Date(actualTime).getHours()) {
-    const actualDate = new Date(actualTime);
-    [actualHours, actualMinutes] = [actualDate.getHours(), actualDate.getMinutes()]
+  let scheduledHours = scheduledMinutes = actualHours = actualMinutes = 0;
+  if (isValidDate(actualTime)) {
+    const actualDate = timeZoneHrMin(actualTime);
+    [actualHours, actualMinutes] = actualDate.split(/[:.]+/).map(Number);
   } else {
     [actualHours, actualMinutes] = actualTime.split(/[:.]+/).map(Number);
+  } if (isValidDate(scheduledTime)) {
+    [schedHours, schedMinutes] = timeZoneHrMin(scheduledTime).split(/[:.]+/).map(Number);
+  } else {
+    [schedHours, schedMinutes] = scheduledTime.split(/[:.]+/).map(Number);
   }
 
   // Create Date objects for both scheduled and actual times
