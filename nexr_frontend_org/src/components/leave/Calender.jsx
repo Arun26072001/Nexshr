@@ -1,56 +1,87 @@
 import React, { useContext, useEffect, useState } from 'react';
-import LeaveTable from '../LeaveTable';
-import NoDataFound from '../payslip/NoDataFound';
 import axios from "axios";
 import { DateRangePicker, Input } from 'rsuite';
-import PersonRoundedIcon from '@mui/icons-material/PersonRounded';
 import "../payslip/payslip.css";
-import { Skeleton } from '@mui/material';
+import dayjs from "dayjs";
+import "react-big-calendar/lib/css/react-big-calendar.css";
+import { Calendar, dayjsLocalizer } from "react-big-calendar";
 import { EssentialValues } from '../../App';
 import { toast } from 'react-toastify';
+import Loading from '../Loader';
 
+const localizer = dayjsLocalizer(dayjs);
 export default function LeaveCalender() {
-   const { data, whoIs } = useContext(EssentialValues);
-       const [empName, setEmpName] = useState("");
-       const [dateRangeValue, setDateRangeValue] = useState([]);
-       const [fullLeaveRequests, setFullLeaveRequests] = useState([]);
-       const [leaveRequests, setLeaveRequests] = useState([]);
-       const url = process.env.REACT_APP_API_URL;
-       const [isLoading, setIsLoading] = useState(false);
-   
-       const getLeaveData = async () => {
-           setIsLoading(true);
-           try {
-               const leaveData = await axios.get(`${url}/api/leave-application/date-range/management/${whoIs}`, {
-                   params: {
-                       dateRangeValue
-                   },
-                   headers: {
-                       authorization: data.token || ""
-                   }
-               })
-               setLeaveRequests(leaveData.data);
-               setFullLeaveRequests(leaveData.data);
-           } catch (err) {
-               toast.error(err?.response?.data?.message);
-               console.log("error in fethc leave data", err)
-           } finally {
-               setIsLoading(false);
-           }
-       }
-   
-       useEffect(() => {
-           getLeaveData();
-       }, [dateRangeValue])
-       // Filter leave requests when empName or daterangeValue changes
-       useEffect(() => {
-           if (empName === "") {
-               setLeaveRequests(fullLeaveRequests);
-           } else {
-               const filterRequests = fullLeaveRequests?.leaveData.filter((leave) => leave?.employee?.FirstName?.toLowerCase()?.includes(empName.toLowerCase()) || leave?.employee?.LastName?.toLowerCase()?.includes(empName.toLowerCase()));
-               setLeaveRequests((pre) => ({ ...pre, leaveData: filterRequests }));
-           }
-       }, [empName]);
+    const { data, whoIs } = useContext(EssentialValues);
+    const [empName, setEmpName] = useState("");
+    const [dateRangeValue, setDateRangeValue] = useState([]);
+    const [formattedLeaveDays, setFormattedLeaveDays] = useState([]);
+    const [fullLeaveRequests, setFullLeaveRequests] = useState([]);
+    const [leaveRequests, setLeaveRequests] = useState([]);
+    const url = process.env.REACT_APP_API_URL;
+    const [isLoading, setIsLoading] = useState(false);
+
+    const getLeaveData = async () => {
+        setIsLoading(true);
+        try {
+            const res = await axios.get(`${url}/api/leave-application/date-range/management/${whoIs}`, {
+                params: {
+                    dateRangeValue
+                },
+                headers: {
+                    authorization: data.token || ""
+                }
+            })
+            const leaveData = res.data.leaveData;
+            if (leaveData.length > 0) {
+                setFormattedLeaveDays(leaveData.map((leave) => {
+                    const { fromDate, toDate, leaveType } = leave;
+                    return {
+                        title: leaveType,
+                        start: new Date(fromDate),
+                        end: new Date(toDate),
+                        userProfile: leave.employee.profile
+                    }
+                }));
+                setFullLeaveRequests(leaveData.data);
+            }
+        } catch (err) {
+            toast.error(err?.response?.data?.message);
+            console.log("error in fethc leave data", err)
+        } finally {
+            setIsLoading(false);
+        }
+    }
+
+    console.log("formattedLeaveDays", formattedLeaveDays)
+    useEffect(() => {
+        getLeaveData();
+    }, [dateRangeValue]);
+    // Filter leave requests when empName or daterangeValue changes
+    useEffect(() => {
+        if (empName === "") {
+            setLeaveRequests(fullLeaveRequests);
+        } else {
+            const filterRequests = fullLeaveRequests?.leaveData.filter((leave) => leave?.employee?.FirstName?.toLowerCase()?.includes(empName.toLowerCase()) || leave?.employee?.LastName?.toLowerCase()?.includes(empName.toLowerCase()));
+            setLeaveRequests((pre) => ({ ...pre, leaveData: filterRequests }));
+        }
+    }, [empName]);
+
+    // const eventPropGetter = () => ({
+    //     style: {
+    //         backgroundColor: "#5D8736",
+    //         color: "#fff",
+    //         padding: "5px"
+    //     }
+    // });
+    const CustomEventComponent = ({ event }) => {
+  return (
+    <div>
+      <strong>{event.title}</strong>
+      <p>{event.fromDate}</p>
+      <p>Value: {event.anotherCustomField}</p>
+    </div>
+  );
+};
 
     return (
         <div>
@@ -77,51 +108,24 @@ export default function LeaveCalender() {
                             />
                         </div>
                     </div>
-                    <div className="w-100 d-flex justify-content-center">
-                        <div className="leaveBoard">
-                            <div className="leaveData col-12 col-lg-3">
-                                <div className="d-flex flex-column">
-                                    <div className="leaveDays">
-                                        {leaveRequests?.approvedLeave} <PersonRoundedIcon />
-                                    </div>
-                                    <div className="leaveDaysDesc">
-                                        Leave Employees
-                                    </div>
-                                </div>
-                            </div>
-                            <div className="leaveData col-12 col-lg-3">
-                                <div className="d-flex flex-column">
-                                    <div className="leaveDays">
-                                        {leaveRequests?.leaveInHours} hr
-                                    </div>
-                                    <div className="leaveDaysDesc">
-                                        Total Leave
-                                    </div>
-                                </div>
-                            </div>
-                            <div style={{ width: "30%", margin: "10px" }} className='col-12 col-lg-3'>
-                                <div className="d-flex flex-column">
-                                    <div className="leaveDays">
-                                        {leaveRequests?.peoplesOnLeave?.length || 0} <PersonRoundedIcon />
-                                    </div>
-                                    <div className="leaveDaysDesc">
-                                        On Leave
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
 
-                    {/* Leave Table */}
                     {
-                        isLoading ? <Skeleton
-                            sx={{ bgcolor: 'grey.500' }}
-                            variant="rectangular"
-                            width={"100%"}
-                            height={"50vh"}
-                        /> :
-                            leaveRequests?.leaveData?.length > 0 ? <LeaveTable data={leaveRequests.leaveData} />
-                                : <NoDataFound message={"No Leave request for this employee Name"} />}
+                        isLoading ? <Loading height='60vh' /> :
+                            <>
+                                <p className="text-center mb-2 payslipTitle">Holiday</p>
+                                <Calendar
+                                    localizer={localizer}
+                                    events={formattedLeaveDays}
+                                    startAccessor="start"
+                                    endAccessor="end"
+                                    // eventPropGetter={eventPropGetter}
+                                    components={{
+                                        event: CustomEventComponent
+                                    }}
+                                    style={{ height: 500 }}
+                                />
+                            </>
+                    }
                 </div>
             }
 

@@ -209,10 +209,11 @@ const Sidebar = ({ isMobileView, handleSideBar, setIsMobileView }) => {
           renderSubMenu(
             'leave',
             [
-              { key: 'status', path: `/${whoIs}/leave/status`, label: 'Status' },
-              { key: 'leave-request', path: `/${whoIs}/leave/leave-request`, label: 'Leave Request' },
+              // { key: 'status', path: `/${whoIs}/leave/status`, label: 'Status' },
+              // { key: 'leave-request', path: `/${whoIs}/leave/leave-request`, label: 'Leave Request' },
+              // { key: 'leave-summary', path: `/${whoIs}/leave/leave-summary`, label: 'Leave Summary' },
+              { key: 'leave-records', path: `/${whoIs}/leave/leave-records`, label: 'Leave Records' },
               { key: 'calendar', path: `/${whoIs}/leave/calendar`, label: 'Calendar' },
-              { key: 'leave-summary', path: `/${whoIs}/leave/leave-summary`, label: 'Leave Summary' },
               { key: 'leave-details', path: `/${whoIs}/leave/leave-details`, label: 'Leave Details' },
             ],
             leaveIcon,
@@ -226,7 +227,7 @@ const Sidebar = ({ isMobileView, handleSideBar, setIsMobileView }) => {
           renderSubMenu(
             'leave',
             [
-              { key: 'leave-request', path: `/${whoIs}/leave/leave-request`, label: 'Leave Request' },
+              { key: 'leave-records', path: `/${whoIs}/leave/leave-records`, label: 'Leave Records' },
             ],
             leaveIcon,
             'Leave'
@@ -279,7 +280,6 @@ const Sidebar = ({ isMobileView, handleSideBar, setIsMobileView }) => {
             'settings',
             [
               { key: 'profile', path: `/${whoIs}/settings/profile`, label: 'Profile' },
-              // { key: 'account', path: `/${whoIs}/settings/account`, label: 'Account' },
               { key: 'payroll', path: `/${whoIs}/settings/payroll`, label: 'Payroll' }
             ],
             settingsIcon,

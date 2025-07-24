@@ -190,7 +190,7 @@ const CircleProgressBar = ({ isTeamLead, isTeamHead, isTeamManager }) => {
 
   return (
     <div className='row d-flex justify-content-center'>
-      <div className='col-lg-4 col-md-4 col-12' style={{ cursor: "pointer" }} title={`${yesterdayLeaveCount} Employees were on leave yesterday.`} onClick={() => navigate(`/${whoIs}/leave/leave-request`, { state: { date: yesterday, type: "yesterday" } })}>
+      <div className='col-lg-4 col-md-4 col-12' style={{ cursor: "pointer" }} title={`${yesterdayLeaveCount} Employees were on leave yesterday.`} onClick={() => navigate(`/${whoIs}/leave/leave-records`, { state: { date: yesterday, type: "yesterday" } })}>
         <p className='text-center'>{formatDate(yesterday).replace(",", "")}</p>
         {
           // yesterday
@@ -198,7 +198,7 @@ const CircleProgressBar = ({ isTeamLead, isTeamHead, isTeamManager }) => {
             <CircleBar empLength={emps?.length} leaveCount={yesterdayLeaveCount} />
         }
       </div>
-      <div className='col-lg-4 col-md-4 col-12' style={{ cursor: "pointer" }} title={`${todayLeaveCount} Employees are on leave today.`} onClick={() => navigate(`/${whoIs}/leave/leave-request`, { state: { date: today, type: "today" } })}>
+      <div className='col-lg-4 col-md-4 col-12' style={{ cursor: "pointer" }} title={`${todayLeaveCount} Employees are on leave today.`} onClick={() => navigate(`/${whoIs}/leave/leave-records`, { state: { date: today, type: "today" } })}>
         <p className='text-center text-primary'>{formatDate(today).replace(",", "")}</p>
         {
           // today
@@ -206,7 +206,7 @@ const CircleProgressBar = ({ isTeamLead, isTeamHead, isTeamManager }) => {
             <CircleBar empLength={emps?.length} leaveCount={todayLeaveCount} />
         }
       </div>
-      <div className='col-lg-4 col-md-4 col-12' style={{ cursor: "pointer" }} title={`${tomorrowLeaveCount} Employees will be on leave tomorrow.`} onClick={() => navigate(`/${whoIs}/leave/leave-request`, { state: { date: tomorrow, type: "tomorrow" } })}>
+      <div className='col-lg-4 col-md-4 col-12' style={{ cursor: "pointer" }} title={`${tomorrowLeaveCount} Employees will be on leave tomorrow.`} onClick={() => navigate(`/${whoIs}/leave/leave-records`, { state: { date: tomorrow, type: "tomorrow" } })}>
         <p className='text-center'>{formatDate(tomorrow).replace(",", "")}</p>
         {
           // tomarrow

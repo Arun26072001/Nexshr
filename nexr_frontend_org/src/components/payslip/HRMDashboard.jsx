@@ -35,9 +35,9 @@ const Request = React.lazy(() => import('../attendance/Request'));
 const Dailylog = React.lazy(() => import('../attendance/Dailylog'));
 const Details = React.lazy(() => import('../attendance/Details'));
 const Summary = React.lazy(() => import('../attendance/Summary'));
-const Status = React.lazy(() => import('../leave/Status'));
-const LeaveRequest = React.lazy(() => import('../leave/Request'));
-const LeaveSummary = React.lazy(() => import('../leave/Summary'));
+// const Status = React.lazy(() => import('../leave/Status'));
+// const LeaveSummary = React.lazy(() => import('../leave/Summary'));
+const LeaveRecords = React.lazy(() => import('../leave/LeaveRecords'));
 const LeaveCalender = React.lazy(() => import('../leave/Calender'));
 const Settings = React.lazy(() => import('../Settings/Settings'));
 const UnAuthorize = React.lazy(() => import('./UnAuthorize'));
@@ -569,10 +569,10 @@ export default function HRMDashboard() {
                     <Route path="leave/*" element={
                         <LeaveStates.Provider value={{ isLoading, leaveRequests, filterLeaveRequests, empName, setEmpName, changeRequests }} >
                             <Routes>
-                                <Route index path='status' element={<Status />} />
-                                <Route path='leave-request' element={<LeaveRequest />} />
+                                {/* <Route index path='status' element={<Status />} />
+                                <Route path='leave-summary' element={<LeaveSummary />} /> */}
+                                <Route path='leave-records' element={<LeaveRecords />} />
                                 <Route path='calendar' element={<LeaveCalender />} />
-                                <Route path='leave-summary' element={<LeaveSummary />} />
                                 <Route path="leave-details" element={<LeaveDetails />} />
                             </Routes>
                         </LeaveStates.Provider>
