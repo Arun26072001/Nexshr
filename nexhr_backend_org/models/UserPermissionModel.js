@@ -241,6 +241,8 @@ const permissionSchemaJoi = Joi.object({
 });
 
 const userPermissionsValidation = Joi.object({
+    _id: Joi.any().optional(),
+    __v: Joi.any().optional(),
     Attendance: permissionSchemaJoi,
     Company: permissionSchemaJoi,
     Department: permissionSchemaJoi,

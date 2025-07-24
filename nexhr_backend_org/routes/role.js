@@ -53,8 +53,6 @@ router.get("/name", verifyAdminHR, async (req, res) => {
 // role get by id
 router.get("/:id", verifyAdminHR, async (req, res) => {
   try {
-    // const { orgName } = jwt.decode(req.headers['authorization']);
-    // const RoleAndPermission = getRoleAndPermissionModel(orgName)
     const role = await RoleAndPermission.findById(req.params.id)
       .populate("userPermissions")
       .populate("pageAuth")
@@ -88,6 +86,15 @@ router.get('/', verifyAdminHREmployeeManagerNetwork, (req, res) => {
 router.post('/', verifyAdminHR, async (req, res) => {
   const newRole = req.body;
   try {
+    delete newRole._id;
+    delete newRole.userPermissions._id;
+    delete newRole.pageAuth._id;
+
+    // check role is already exists
+    const isExists = await RoleAndPermission.exists({RoleName: new RegExp(`^${newRole.RoleName}$`, "i")});
+    if(isExists){
+      return res.status(400).send({error: `${newRole.RoleName} role is already exists`})
+    }
 
     // Validate userPermissions
     const { error: userPermissionsError } = userPermissionsValidation.validate(newRole.userPermissions);
@@ -95,7 +102,7 @@ router.post('/', verifyAdminHR, async (req, res) => {
       return res.status(400).send({ error: userPermissionsError.details[0].message });
     }
 
-    // Validate pageAuth
+    // // Validate pageAuth
     const { error: pageAuthError } = pageAuthValidation.validate(newRole.pageAuth);
     if (pageAuthError) {
       return res.status(400).send({ error: pageAuthError.details[0].message });
@@ -115,6 +122,7 @@ router.post('/', verifyAdminHR, async (req, res) => {
     const role = await RoleAndPermission.create(finalRoleData);
     res.send({ message: `${role.RoleName} Role and permission has been added!` });
   } catch (error) {
+    console.log("error in create new role", error)
     await errorCollector({ url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT })
     res.status(500).send({ error: error.message });
   }

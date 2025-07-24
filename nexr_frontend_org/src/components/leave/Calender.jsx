@@ -69,16 +69,16 @@ export default function LeaveCalender() {
         }
     }, [empName]);
 
-    // const eventPropGetter = () => ({
-    //     style: {
-    //         backgroundColor: "#5D8736",
-    //         color: "#fff",
-    //         padding: "5px"
-    //     }
-    // });
+    const eventPropGetter = (event) => ({
+        style: {
+            backgroundColor: event.status === "approved" ? "green" : event.status === "rejected" ? "red" : "yellow",
+            color: "#fff",
+            padding: "5px"
+        }
+    });
     const CustomEventComponent = ({ event }) => {
         return (
-            <div>
+            <div >
                 <p><img src={event.userProfile || defaultProfile} alt={event.userName} style={{ width: '30px', height: '30px', borderRadius: '50%' }} /> {event.userName}</p>
             </div>
         );
@@ -119,7 +119,7 @@ export default function LeaveCalender() {
                                     events={formattedLeaveDays}
                                     startAccessor="start"
                                     endAccessor="end"
-                                    // eventPropGetter={eventPropGetter}
+                                    eventPropGetter={eventPropGetter}
                                     components={{
                                         event: CustomEventComponent
                                     }}
