@@ -6,7 +6,7 @@ const dayjs = require('dayjs');
 const isSameOrBefore = require('dayjs/plugin/isSameOrBefore');
 const isSameOrAfter = require('dayjs/plugin/isSameOrAfter');
 const isoWeek = require('dayjs/plugin/isoWeek');
-const { toZonedTime } = require('date-fns-tz');
+const { toZonedTime, formatInTimeZone } = require('date-fns-tz');
 const { format } = require("date-fns");
 const isBetween = require('dayjs/plugin/isBetween');
 const { Employee } = require("../models/EmpModel");
@@ -442,14 +442,21 @@ function checkDateIsHoliday(dateList = [], target) {
 }
 
 function changeClientTimezoneDate(date) {
-  const actualDate = toZonedTime(date, process.env.TIMEZONE);
+  // const date  = new Date(value);
+  const actualDate = toZonedTime(new Date(date), process.env.TIMEZONE);
   return actualDate
+}
+
+function timeZoneHrMin(value) {
+  const date = new Date(value)
+  const timeZoneTimer = formatInTimeZone(date, process.env.TIMEZONE, 'HH:mm:ss')
+  return timeZoneTimer;
 }
 
 function timeToMinutes(timeStr) {
   if (timeStr) {
     if (isValidDate(timeStr)) {
-      const timeData = new Date(timeStr).toTimeString().split(' ')[0];
+      const timeData = timeZoneHrMin(timeStr);
       const [hours, minutes, seconds] = timeData.split(/[:.]+/).map(Number)
       return Number(((hours * 60) + minutes + (seconds / 60)).toFixed(2)) || 0;
     }
@@ -620,4 +627,4 @@ async function errorCollector(errorLog) {
   }
 }
 
-module.exports = { convertToString, checkDateIsHoliday, isValidDate, getTimeFromDateOrTimeData, changeActualTimeDataAsAttendace, setTimeHolderForAllActivities, setPeriodOfLeave, isValidLeaveDate, errorCollector, getTotalWorkingHourPerDay, getTotalWorkingHourPerDayByDate, accountFromRole, changeClientTimezoneDate, sumLeaveDays, getValidLeaveDays, fetchFirstTwoItems, getCurrentTime, checkLoginForOfficeTime, categorizeTasks, projectMailContent, processActivityDurations, formatLeaveData, getDayDifference, getOrgDB, formatDate, getWeekdaysOfCurrentMonth, mailContent, checkLogin, getTotalWorkingHoursExcludingWeekends, getCurrentTimeInMinutes, timeToMinutes, formatTimeFromMinutes };
+module.exports = { convertToString, checkDateIsHoliday, timeZoneHrMin, isValidDate, getTimeFromDateOrTimeData, changeActualTimeDataAsAttendace, setTimeHolderForAllActivities, setPeriodOfLeave, isValidLeaveDate, errorCollector, getTotalWorkingHourPerDay, getTotalWorkingHourPerDayByDate, accountFromRole, changeClientTimezoneDate, sumLeaveDays, getValidLeaveDays, fetchFirstTwoItems, getCurrentTime, checkLoginForOfficeTime, categorizeTasks, projectMailContent, processActivityDurations, formatLeaveData, getDayDifference, getOrgDB, formatDate, getWeekdaysOfCurrentMonth, mailContent, checkLogin, getTotalWorkingHoursExcludingWeekends, getCurrentTimeInMinutes, timeToMinutes, formatTimeFromMinutes };

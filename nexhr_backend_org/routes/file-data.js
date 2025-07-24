@@ -10,13 +10,8 @@ const { ClockIns } = require("../models/ClockInsModel");
 const { LeaveApplication, LeaveApplicationValidation } = require("../models/LeaveAppModel");
 const { RoleAndPermission } = require("../models/RoleModel");
 const { TimePattern } = require("../models/TimePatternModel");
-const { errorCollector } = require("../Reuseable_functions/reusableFunction");
+const { errorCollector, timeToMinutes } = require("../Reuseable_functions/reusableFunction");
 
-const timeToMinutes = (timeStr) => {
-    if (!timeStr) return 0;
-    const [hours, minutes] = timeStr.split(/[:.]+/).map(Number);
-    return hours * 60 + minutes;
-};
 
 // Upload and process attendance file
 router.post("/attendance", upload.single("documents"), verifyAdminHrNetworkAdmin,

@@ -199,7 +199,7 @@ export default function PageAndActionAuth() {
                             <div className="col-lg-3 col-12">
                                 <div className="btnParent mx-auto">
                                     <button className="outline-btn" onClick={() => navigate(-1)} style={{ background: "#e0e0e0", border: "none" }} >Cancel</button>
-                                    <button className="button" style={{ cursor: isChangingRole ? "progress" : "pointer" }} onClick={isChangingRole ? null : (id ? updateRoleAndPermission : addRoleAndPermission)}>{isChangingRole ? <Loading size={20} color='white' /> : id ? "Update" : "Save"}</button>
+                                    <button className="button" style={{ cursor: isChangingRole ? "progress" : "pointer" }} onClick={isChangingRole ? null : (id ? updateRoleAndPermission : addRoleAndPermission)}>{isChangingRole ? <Loading size={20} color={isChangingRole ? `black` : "white"} /> : id ? "Update" : "Save"}</button>
                                 </div>
                             </div>
                         </div> : <button className="outline-btn" onClick={() => navigate(-1)} style={{ background: "#e0e0e0", border: "none" }} >Back</button>

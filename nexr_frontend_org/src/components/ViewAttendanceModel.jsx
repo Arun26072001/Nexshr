@@ -13,7 +13,7 @@ export default function ViewAttendanceModel({ modelData, toggleView, openModal }
     const renderAttendanceRows = () => {
         return Object.keys(modelData).map((key) => {
             // Exclude keys like "title", "__v", "employee", and "_id"
-            if (["title", "__v", "employee", "_id"].includes(key)) {
+            if (["title", "__v", "employee", "_id", "lateLogin", "isStopTimer"].includes(key)) {
                 return null;
             }
 
