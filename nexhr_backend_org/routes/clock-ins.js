@@ -756,6 +756,7 @@ router.get("/employee/:empId", verifyAdminHREmployeeManagerNetwork, async (req, 
         const checkLogin = (scheduledTime, actualTime) => {
             let actualHours, actualMinutes = 0;
             let schedHours, schedMinutes = 0;
+            console.log("values", scheduledTime, actualTime)
             if (isValidDate(actualTime)) {
                 const actualDate = timeZoneHrMin(actualTime);
                 [actualHours, actualMinutes] = actualDate.split(/[:.]+/).map(Number);
@@ -803,7 +804,7 @@ router.get("/employee/:empId", verifyAdminHREmployeeManagerNetwork, async (req, 
             const startingDate = new Date(employee.workingTimePattern.StartingTime);
             const endingDate = new Date(employee.workingTimePattern.FinishingTime);
             weeklyDays = employee.workingTimePattern.WeeklyDays ? employee.workingTimePattern.WeeklyDays : []
-            scheduledLoginTime = startingDate.toTimeString().split(" ")[0];
+            scheduledLoginTime = timeZoneHrMin(employee.workingTimePattern.StartingTime);
             scheduledWorkingHours = (endingDate.getTime() - startingDate.getTime()) / (1000 * 60 * 60)
         }
         employee.clockIns.forEach(({ login }) => {
