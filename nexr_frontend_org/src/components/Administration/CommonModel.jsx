@@ -122,7 +122,7 @@ const CommonModel = ({
                                     <p className='modelLabel important'>{type} Name: </p>
                                     <Input required
                                         size='lg'
-                                        className={`${errorMsg?.toLowerCase()?.includes(["CompanyName", "DepartmentName", "PositionName", "teamName", "orgName", "LeaveName", "PatternName", "CompanyName", "name"]) ? "error" : ""}`}
+                                        className={`${["CompanyName", "DepartmentName", "PositionName", "teamName", "orgName", "LeaveName", "PatternName", "CompanyName", "name"].some((item) => errorMsg?.includes(item)) ? "error" : ""}`}
                                         value={dataObj?.[type === "Department" ? "DepartmentName" : type === "Position" ? "PositionName" : type === "Team" ? "teamName" : type === "Organization" ? "orgName" : type === "LeaveType" ? "LeaveName" : type === "TimePattern" ? "PatternName" : ["WorkPlace", "View WorkPlace"].includes(type) ? "CompanyName" : `name`] || ""}
                                         disabled={["Report View", "Project View", "View WorkPlace"].includes(type) ? true : false}
                                         onChange={!["Report View", "Project View", "View WorkPlace"].includes(type) ? (e) =>
@@ -327,6 +327,7 @@ const CommonModel = ({
                                     onChange={(e) => changeData(e, type === "Add Comments" ? `comments.attachments` : type === "Organization" ? "orgImg" : type === "Company" ? "logo" : "attachments")}
                                     multiple={!["Organization", "Company"].includes(type)}
                                 />
+                                {["logo", "attachments", "orgImg"].some((item) => errorMsg?.toLowerCase()?.includes(item?.toLowerCase())) ? <div className="text-center text-danger">{errorMsg}</div> : null}
                             </div>
 
                             {/* Display preview images */}
@@ -803,11 +804,11 @@ const CommonModel = ({
                                         style={{ width: "100%", height: 45 }}
                                         type={"number"}
                                         name={`PostalCode`}
-                                        // disabled={ ? true : false}
                                         value={dataObj?.[`PostalCode`] || ""}
                                         appearance='default'
                                         onChange={(e) => changeData(e, "PostalCode")}
                                     />
+                                    {errorMsg?.toLowerCase()?.includes("PostalCode") ? <div className="text-center text-danger">{errorMsg}</div> : null}
                                 </div>
                             </div>
                         </div>
@@ -822,7 +823,6 @@ const CommonModel = ({
                                     style={{ width: "100%", height: 45 }}
                                     type={"text"}
                                     name={`Address`}
-                                    // disabled={ ? true : false}
                                     value={dataObj?.[`Address`] || ""}
                                     appearance='default'
                                     onChange={(e) => changeData(e, "Address")}
@@ -842,7 +842,6 @@ const CommonModel = ({
                                         type={"email"}
                                         name={`Email`}
                                         className={`${errorMsg?.toLowerCase()?.includes("email") ? "error" : ""}`}
-                                        // disabled={ ? true : false}
                                         value={dataObj?.[`Email`] || ""}
                                         appearance='default'
                                         onChange={(e) => changeData(e, "Email")}
@@ -859,10 +858,9 @@ const CommonModel = ({
                                         style={{ width: "100%", height: 45 }}
                                         type={"text"}
                                         name={`ContactPerson`}
-                                        // disabled={ ? true : false}
                                         value={dataObj?.[`ContactPerson`] || ""}
                                         appearance='default'
-                                        onChange={(e) => changeData(e, "ContactPerson")}
+                                        onChange={(e) => changeData(e, "contactperson")}
                                     />
                                 </div>
                             </div>
@@ -877,12 +875,13 @@ const CommonModel = ({
                                         size="lg"
                                         style={{ width: "100%", height: 45 }}
                                         type={"text"}
+                                        className={errorMsg?.toLowerCase()?.includes("contactno") ? "error" : ""}
                                         name={`ContactNo`}
-                                        // disabled={ ? true : false}
                                         value={dataObj?.[`ContactNo`] || ""}
                                         appearance='default'
                                         onChange={(e) => changeData(e, "ContactNo")}
                                     />
+                                    {errorMsg?.toLowerCase()?.includes("contactno") ? <div className="text-center text-danger">{errorMsg}</div> : null}
                                 </div>
                             </div>
                             <div className="col-half">
@@ -894,11 +893,12 @@ const CommonModel = ({
                                         style={{ width: "100%", height: 45 }}
                                         type={"text"}
                                         name={`Website`}
-                                        // disabled={ ? true : false}
+                                        className={errorMsg?.toLowerCase()?.includes("website") ? "error" : ""}
                                         value={dataObj?.[`Website`] || ""}
                                         appearance='default'
                                         onChange={(e) => changeData(e, "Website")}
                                     />
+                                    {errorMsg?.toLowerCase()?.includes("website") ? <div className="text-center text-danger">{errorMsg}</div> : null}
                                 </div>
                             </div>
                         </div>
@@ -912,12 +912,13 @@ const CommonModel = ({
                                         size="lg"
                                         style={{ width: "100%", height: 45 }}
                                         type={"text"}
+                                        className={errorMsg?.toLowerCase()?.includes("faxno") ? "error" : ""}
                                         name={`FaxNo`}
-                                        // disabled={ ? true : false}
                                         value={dataObj?.[`FaxNo`] || ""}
                                         appearance='default'
                                         onChange={(e) => changeData(e, "FaxNo")}
                                     />
+                                    {errorMsg?.toLowerCase()?.includes("faxno") ? <div className="text-center text-danger">{errorMsg}</div> : null}
                                 </div>
                             </div>
                             <div className="col-half">
@@ -928,11 +929,13 @@ const CommonModel = ({
                                         size="lg"
                                         style={{ width: "100%", height: 45 }}
                                         type={"text"}
+                                        className={errorMsg?.toLowerCase()?.includes("panno") ? "error" : ""}
                                         name={`PanNo`}
                                         value={dataObj?.[`PanNo`] || ""}
                                         appearance='default'
                                         onChange={(e) => changeData(e, "PanNo")}
                                     />
+                                    {errorMsg?.toLowerCase()?.includes("panno") ? <div className="text-center text-danger">{errorMsg}</div> : null}
                                 </div>
                             </div>
                         </div>
@@ -945,13 +948,14 @@ const CommonModel = ({
                                         required
                                         size="lg"
                                         style={{ width: "100%", height: 45 }}
+                                        className={errorMsg?.toLowerCase()?.includes("gstno") ? "error" : ""}
                                         type={"text"}
                                         name={`GSTNo`}
-                                        // disabled={ ? true : false}
                                         value={dataObj?.[`GSTNo`] || ""}
                                         appearance='default'
                                         onChange={(e) => changeData(e, "GSTNo")}
                                     />
+                                    {errorMsg?.toLowerCase()?.includes("gstno") ? <div className="text-center text-danger">{errorMsg}</div> : null}
                                 </div>
                             </div>
                             <div className="col-half">
@@ -960,14 +964,15 @@ const CommonModel = ({
                                     <Input
                                         required
                                         size="lg"
+                                        className={errorMsg?.toLowerCase()?.includes("cinno") ? "error" : ""}
                                         style={{ width: "100%", height: 45 }}
                                         type={"text"}
                                         name={`CINNo`}
-                                        // disabled={ ? true : false}
                                         value={dataObj?.[`CINNo`] || ""}
                                         appearance='default'
                                         onChange={(e) => changeData(e, "CINNo")}
                                     />
+                                    {errorMsg?.toLowerCase()?.includes("cinno") ? <div className="text-center text-danger">{errorMsg}</div> : null}
                                 </div>
                             </div>
                         </div>
@@ -985,7 +990,6 @@ const CommonModel = ({
                                     style={{ width: "100%", height: 45 }}
                                     type={"text"}
                                     name={`abbr`}
-                                    // disabled={ ? true : false}
                                     value={dataObj?.[`abbr`] || ""}
                                     appearance='default'
                                     onChange={(e) => changeData(e, "abbr")}

@@ -214,7 +214,7 @@ const Sidebar = ({ isMobileView, handleSideBar, setIsMobileView }) => {
               // { key: 'leave-summary', path: `/${whoIs}/leave/leave-summary`, label: 'Leave Summary' },
               { key: 'leave-records', path: `/${whoIs}/leave/leave-records`, label: 'Leave Records' },
               { key: 'calendar', path: `/${whoIs}/leave/calendar`, label: 'Calendar' },
-              { key: 'leave-details', path: `/${whoIs}/leave/leave-details`, label: 'Leave Details' },
+              // { key: 'leave-details', path: `/${whoIs}/leave/leave-details`, label: 'Leave Details' },
             ],
             leaveIcon,
             'Leave'

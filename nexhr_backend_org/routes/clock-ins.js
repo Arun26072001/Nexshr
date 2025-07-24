@@ -359,15 +359,16 @@ router.get("/late-punch", verifyAdminHR, async (req, res) => {
     try {
         let fromDate;
         let toDate;
-        const now = new Date();
 
         if (req?.query?.dateRangeValue) {
             fromDate = new Date(req.query.dateRangeValue[0]);
             toDate = new Date(req.query.dateRangeValue[1]);
         } else {
-            fromDate = new Date().setDate(now.getDate() - 1);
-            toDate = new Date().setDate(now.getDate() + 1);
+            fromDate = new Date();
+            toDate = new Date();
         }
+        fromDate.setHours(0, 0, 0, 0);
+        toDate.setHours(23, 59, 59, 0);
 
         const latePunch = await ClockIns.find({ date: { $gte: fromDate, $lt: toDate }, behaviour: "Late" })
             .populate("employee", "FirstName LastName profile")
@@ -756,8 +757,8 @@ router.get("/employee/:empId", verifyAdminHREmployeeManagerNetwork, async (req, 
             let actualHours, actualMinutes = 0;
             let schedHours, schedMinutes = 0;
             if (isValidDate(actualTime)) {
-                const actualDate = changeClientTimezoneDate(actualTime);
-                [actualHours, actualMinutes] = [actualDate.getHours(), actualDate.getMinutes()];
+                const actualDate = timeZoneHrMin(actualTime);
+                [actualHours, actualMinutes] = actualDate.split(/[:.]+/).map(Number);
             } else {
                 [actualHours, actualMinutes] = actualTime.split(/[:.]+/).map(Number);
             } if (isValidDate(scheduledTime)) {
@@ -916,8 +917,10 @@ router.get("/", verifyAdminHrNetworkAdmin, async (req, res) => {
         let filterObj = {};
         const dateRangeValue = req.query?.dateRangeValue
         if (dateRangeValue && dateRangeValue.length > 1) {
-            const startDate = new Date(dateRangeValue[0]);
+            const startDate = new Date(dateRangeValue[0])
+            startDate.setHours(0, 0, 0, 0);
             const endDate = new Date(dateRangeValue[1])
+            endDate.setHours(23, 59, 59, 0);
             filterObj = {
                 date: { $gte: startDate, $lte: endDate }
             }

@@ -32,6 +32,7 @@ export default function Department() {
         if (isAddDepartment) {
             setDepartmentObj({});
             setErrorData({});
+            setErrorData("")
         }
         setIsAddDepartment(!isAddDepartment);
     }

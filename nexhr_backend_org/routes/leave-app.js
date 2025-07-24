@@ -412,12 +412,10 @@ leaveApp.get("/team/:id", verifyTeamHigherAuthority, async (req, res) => {
 
     // get dateRange value or current month range value
     const [startOfMonth, endOfMonth] = dateRangeValue
-      ? [new Date(daterangeValue[0]), new Date(daterangeValue[1])]
+      ? [new Date(dateRangeValue[0]), new Date(dateRangeValue[1])]
       : [new Date(now.getFullYear(), now.getMonth(), 1), new Date(now.getFullYear(), now.getMonth() + 2, 0)];
-    // reduce one day from start the date for exact filter
-    startOfMonth.setDate(startOfMonth.getDate() - 1)
-    // add one day from end the date for exact filter
-    endOfMonth.setDate(endOfMonth.getDate() + 1)
+    startOfMonth.setHours(0, 0, 0, 0);
+    endOfMonth.setHours(23, 59, 59, 0);
 
     // Find team where the current user is a lead/head/etc.
     const teams = await Team.find({ [who]: req.params.id }).exec();
@@ -620,11 +618,8 @@ leaveApp.get("/date-range/management/:whoIs", verifyAdminHrNetworkAdmin, async (
 
   if (req.query?.dateRangeValue) {
     [startOfMonth, endOfMonth] = req.query.dateRangeValue.map(date => new Date(date));
+    startOfMonth.setHours(0, 0, 0, 0);
     endOfMonth.setHours(23, 59, 59, 999); // Include full last day
-    // reduce one day from start the date for exact filter
-    startOfMonth.setDate(startOfMonth.getDate() - 1)
-    // add one day from end the date for exact filter
-    endOfMonth.setDate(endOfMonth.getDate() + 1)
   } else {
     startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
     endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
