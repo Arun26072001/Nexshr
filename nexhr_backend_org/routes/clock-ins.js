@@ -768,6 +768,7 @@ router.get("/employee/:empId", verifyAdminHREmployeeManagerNetwork, async (req, 
             }
             const scheduled = schedHours * 60 + schedMinutes;
             const actual = actualHours * 60 + actualMinutes;
+            console.log("essentials", actual, scheduled)
             if (actual > scheduled) {
                 late++;
             }
