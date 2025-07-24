@@ -8,7 +8,7 @@ const { format } = require("date-fns");
 const { toZonedTime } = require("date-fns-tz");
 const { LeaveApplication } = require("../models/LeaveAppModel");
 const { Team } = require("../models/TeamModel");
-const { timeToMinutes, processActivityDurations, checkLoginForOfficeTime, getCurrentTime, sumLeaveDays, getTotalWorkingHoursExcludingWeekends, changeClientTimezoneDate, getTotalWorkingHourPerDayByDate, errorCollector, isValidLeaveDate, setTimeHolderForAllActivities, isValidDate, getCurrentTimeInMinutes, checkDateIsHoliday } = require("../Reuseable_functions/reusableFunction");
+const { timeToMinutes, processActivityDurations, checkLoginForOfficeTime, getCurrentTime, sumLeaveDays, getTotalWorkingHoursExcludingWeekends, changeClientTimezoneDate, getTotalWorkingHourPerDayByDate, errorCollector, isValidLeaveDate, setTimeHolderForAllActivities, isValidDate, getCurrentTimeInMinutes, checkDateIsHoliday, timeZoneHrMin } = require("../Reuseable_functions/reusableFunction");
 const { WFHApplication } = require("../models/WFHApplicationModel");
 const { sendPushNotification } = require("../auth/PushNotification");
 const { Holiday } = require("../models/HolidayModel");
@@ -672,7 +672,7 @@ router.get("/team/:id", verifyTeamHigherAuthority, async (req, res) => {
                 $gte: startOfMonth,
                 $lte: endOfMonth
             }
-        }).populate("employee", "FirstName LastName");
+        }).populate("employee", "FirstName LastName profile");
         return res.send(teamClockins);
     } catch (error) {
         await errorCollector({ url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT })
@@ -749,21 +749,19 @@ router.get("/employee/:empId", verifyAdminHREmployeeManagerNetwork, async (req, 
             // add one day from end the date for exact filter
             endOfMonth.setDate(endOfMonth.getDate() + 1)
         }
-        let totalEmpWorkingHours, totalLeaveDays = 0;
+        let totalEmpWorkingHours = 0;
+        let totalLeaveDays = 0;
         let regular = 0, late = 0, early = 0;
         const checkLogin = (scheduledTime, actualTime) => {
             let actualHours, actualMinutes = 0;
             let schedHours, schedMinutes = 0;
             if (isValidDate(actualTime)) {
-                // console.log("before", actualTime);
                 const actualDate = changeClientTimezoneDate(actualTime);
-                // console.log("after", actualDate.getHours(), actualDate.getMinutes());
                 [actualHours, actualMinutes] = [actualDate.getHours(), actualDate.getMinutes()];
             } else {
-                [actualHours, actualMinutes] = actualTime.split(':').map(Number);
+                [actualHours, actualMinutes] = actualTime.split(/[:.]+/).map(Number);
             } if (isValidDate(scheduledTime)) {
-                const scheduledDate = changeClientTimezoneDate(scheduledTime);
-                [schedHours, schedMinutes] = [scheduledDate.getHours(), scheduledDate.getMinutes()];
+                [schedHours, schedMinutes] = timeZoneHrMin(scheduledTime).split(/[:.]+/).map(Number);
             } else {
                 [schedHours, schedMinutes] = scheduledTime.split(/[:.]+/).map(Number);
             }
@@ -807,8 +805,10 @@ router.get("/employee/:empId", verifyAdminHREmployeeManagerNetwork, async (req, 
             scheduledWorkingHours = (endingDate.getTime() - startingDate.getTime()) / (1000 * 60 * 60)
         }
         employee.clockIns.forEach(({ login }) => {
-            totalEmpWorkingHours += (timeToMinutes(login?.timeHolder || "00:00:00") / 60);
-            checkLogin(scheduledLoginTime, login?.startingTime?.length ? login?.startingTime[0] : "00:00:00");
+            const timeHolderValue = timeToMinutes(login?.timeHolder || "00:00:00") / 60;
+            totalEmpWorkingHours += timeHolderValue;
+            const empLoginTime = login?.startingTime?.length ? login?.startingTime[0] : "00:00:00";
+            checkLogin(scheduledLoginTime, empLoginTime);
         });
         const clockIns = employee.clockIns.length > 0 ? employee.clockIns : [];
         res.send({
@@ -916,14 +916,14 @@ router.get("/", verifyAdminHrNetworkAdmin, async (req, res) => {
         let filterObj = {};
         const dateRangeValue = req.query?.dateRangeValue
         if (dateRangeValue && dateRangeValue.length > 1) {
-            const startDate = new Date(req.query.daterangeValue[0]);
-            const endDate = new Date(req.query.daterangeValue[1])
+            const startDate = new Date(dateRangeValue[0]);
+            const endDate = new Date(dateRangeValue[1])
             filterObj = {
                 date: { $gte: startDate, $lte: endDate }
             }
         }
         let attendanceData = await ClockIns.find(filterObj)
-            .populate({ path: "employee", select: "FirstName LastName" })
+            .populate({ path: "employee", select: "FirstName LastName profile" })
             .sort({ date: -1 });
 
         return res.send(attendanceData);

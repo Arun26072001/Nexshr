@@ -31,6 +31,7 @@ const Summary = () => {
             data: [0, 0, 0], // Initialize with default values
         }],
     });
+    console.log("clockinsData", clockinsData)
 
     const options = {
         maintainAspectRatio: false,
@@ -60,8 +61,8 @@ const Summary = () => {
                 setClockinsData({});
                 resetChartData();
             }
-       } catch (error) {
-         if (error?.message === "Network Error") {
+        } catch (error) {
+            if (error?.message === "Network Error") {
                 navigate("/network-issue")
             }
             toast.error("An error occurred while fetching clockins data.");
@@ -107,10 +108,10 @@ const Summary = () => {
                     } else {
                         toast.error("Error in getting clockins data!");
                     }
-               } catch (error) {
-         if (error?.message === "Network Error") {
-                navigate("/network-issue")
-            }
+                } catch (error) {
+                    if (error?.message === "Network Error") {
+                        navigate("/network-issue")
+                    }
                     toast.error("An error occurred while fetching data.");
                 }
             }
@@ -164,7 +165,7 @@ const Summary = () => {
                         </div>
                         <div className='col-lg-2'><div className="summary-divider"></div></div>
                         <div className='col-lg-5'>
-                            <p className='numvalue'>{(Number(clockinsData?.totalLeaveDays || 0) * 9)} hr</p>
+                            <p className='numvalue'>{(clockinsData?.companyWorkingHrPerDay * clockinsData?.totalLeaveDays).toFixed(1) || 0} hr</p>
                             <p>Leave hour</p>
                         </div>
                     </div>

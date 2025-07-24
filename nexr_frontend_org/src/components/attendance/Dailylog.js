@@ -15,7 +15,7 @@ import { useNavigate } from 'react-router-dom';
 const Dailylog = () => {
     const { data, whoIs } = useContext(EssentialValues);
     const [attendanceData, setAttendanceData] = useState([]);
-    const { dateRangeValue, setDateRangeValue } = useState([]);
+    const [dateRangeValue, setDateRangeValue] = useState("");
     const [isLoading, setIsLoading] = useState(false);
     const url = process.env.REACT_APP_API_URL;
     const navigate = useNavigate();
@@ -60,16 +60,18 @@ const Dailylog = () => {
             if (error?.message === "Network Error") {
                 navigate("/network-issue")
             }
-            console.error("error in fetch attendance data",error);
-        }finally{
+            console.error("error in fetch attendance data", error);
+        } finally {
             setIsLoading(false);
         }
     }
+    console.log()
 
     useEffect(() => {
         console.log("calling..")
         getAttendanceData();
     }, [dateRangeValue])
+    console.log("dateRangeValue", dateRangeValue);
 
     const renderMenu = ({ onClose, right, top, className }, ref) => {
         const handleSelect = (eventKey) => {
