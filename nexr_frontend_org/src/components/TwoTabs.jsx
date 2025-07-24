@@ -235,7 +235,7 @@ export default function Twotabs() {
         <div className='empActivies'>
           <div className="d-flex justify-content-between w-100" style={{ fontSize: "12px", fontWeight: 600 }}>
             <div className=''>
-              <button className='button' onClick={() => navigate(`/${whoIs}/leave-records`)}>Apply Leave</button>
+              <button className='button' onClick={() => navigate(`/${whoIs}/leave-request`)}>Apply Leave</button>
             </div>
             <button className="button" disabled={isPermanentWFH} title={isPermanentWFH ? "You have the permanent WFH option, so there's no need to apply for WFH." : "You can submit a WFH request."} onClick={() => navigate(`/${whoIs}/wfh-request`)}>
               <AddHomeWorkRoundedIcon /> Apply WFH
