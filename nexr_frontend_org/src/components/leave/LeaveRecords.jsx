@@ -2,6 +2,7 @@ import React, { useContext, useEffect } from 'react';
 import LeaveTable from '../LeaveTable';
 import NoDataFound from '../payslip/NoDataFound';
 import { LeaveStates, TimerStates } from '../payslip/HRMDashboard';
+import PersonRoundedIcon from '@mui/icons-material/PersonRounded';
 import axios from "axios";
 import "../payslip/payslip.css";
 import { toast } from 'react-toastify';
@@ -15,7 +16,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { Skeleton } from '@mui/material';
 import { useState } from 'react';
 
-export default function LeaveRequest() {
+export default function LeaveRecords() {
     const { state } = useLocation();
     const url = process.env.REACT_APP_API_URL;
     const { data, whoIs } = useContext(EssentialValues);
@@ -25,7 +26,6 @@ export default function LeaveRequest() {
     const [responsing, setResponsing] = useState("");
     const { isTeamHead, isTeamLead, isTeamManager } = jwtDecode(token);
     const navigate = useNavigate();
-    console.log("leaveReqests", leaveRequests)
 
     async function replyToLeave(leave, response) {
         try {
@@ -226,7 +226,7 @@ export default function LeaveRequest() {
                 <div className="w-100 d-flex justify-content-center">
                     <div className="leaveBoard">
                         {/* Leave taken */}
-                        <div className="leaveData leaveData col-12 col-lg-3">
+                        <div className="timeLogBox d-flex justify-content-center" style={{width: "200px"}}>
                             <div className="d-flex flex-column">
                                 <div className="leaveDays">
                                     {leaveRequests?.approvedLeave || 0} Days
@@ -238,7 +238,7 @@ export default function LeaveRequest() {
                         </div>
 
                         {/* Upcoming leave */}
-                        <div className="leaveData leaveData col-12 col-lg-3">
+                         <div className="timeLogBox d-flex justify-content-center" style={{width: "200px"}}>
                             <div className="d-flex flex-column">
                                 <div className="leaveDays">
                                     {leaveRequests?.upcomingLeave || 0} Days
@@ -248,9 +248,20 @@ export default function LeaveRequest() {
                                 </div>
                             </div>
                         </div>
+                        {/* People on leave */}
+                         <div className="timeLogBox d-flex justify-content-center" style={{width: "200px"}}>
+                            <div className="d-flex flex-column">
+                                <div className="leaveDays">
+                                    {leaveRequests?.peoplesOnLeave?.length || 0} <PersonRoundedIcon />
+                                </div>
+                                <div className="leaveDaysDesc">
+                                    On Leave
+                                </div>
+                            </div>
+                        </div>
 
                         {/* Pending request */}
-                        <div style={{ width: "30%", margin: "10px" }} className='leaveData col-12 col-lg-3' >
+                         <div className="timeLogBox d-flex justify-content-center" style={{width: "200px"}}>
                             <div className="d-flex flex-column">
                                 <div className="leaveDays">
                                     {leaveRequests?.pendingLeave || 0} Days

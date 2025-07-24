@@ -1094,7 +1094,7 @@ leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("pre
           fullEmp.notifications.push(notification);
           await fullEmp.save();
           // set dyanmic path depends on role
-          const path = `${process.env.FRONTEND_BASE_URL}/${["lead", "head"].includes(role) ? "emp" : role === "manager" ? "manager" : role === "admin" ? "admin" : "hr"}/leave/leave-request`
+          const path = `${process.env.FRONTEND_BASE_URL}/${["lead", "head"].includes(role) ? "emp" : role === "manager" ? "manager" : role === "admin" ? "admin" : "hr"}/leave/leave-records`
           await sendPushNotification({
             token: member.fcmToken,
             title: notification.title,
@@ -1255,9 +1255,9 @@ leaveApp.put('/:id', verifyAdminHREmployeeManagerNetwork, async (req, res) => {
               if (member.type === "emp") {
                 path = `${process.env.FRONTEND_BASE_URL}/emp/job-desk/leave`
               } else if (["lead", "head"].includes(member.type)) {
-                path = `${process.env.FRONTEND_BASE_URL}/emp/leave/leave-request`
+                path = `${process.env.FRONTEND_BASE_URL}/emp/leave/leave-records`
               } else {
-                path = `${process.env.FRONTEND_BASE_URL}/${member.type}/leave/leave-request`
+                path = `${process.env.FRONTEND_BASE_URL}/${member.type}/leave/leave-records`
               }
               await sendPushNotification({
                 token: member.fcmToken,
