@@ -69,6 +69,8 @@ const PageAuth = mongoose.model("PageAuth", pageAuthSchema);
 // });
 
 const pageAuthValidation = Joi.object({
+    _id: Joi.any().optional(),
+    __v: Joi.any().optional(),
     Administration: Joi.string().optional(),
     Attendance: Joi.string().optional(),
     Dashboard: Joi.string().optional(),

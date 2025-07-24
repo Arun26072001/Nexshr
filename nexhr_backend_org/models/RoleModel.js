@@ -55,6 +55,8 @@ const RoleAndPermission = mongoose.model('RoleAndPermission', RoleAndPermissionS
 // });
 
 const RoleAndPermissionValidation = Joi.object({
+  _id: Joi.any().optional(),
+  __v: Joi.any().optional(),
   RoleName: Joi.string().required().disallow(null, '', 'none', 'undefined').label("Role Name"),
   userPermissions: Joi.string().regex(/^[0-9a-fA-F]{24}$/).label("User Permissions"), // Ensure objectId extension if needed
   pageAuth: Joi.string().regex(/^[0-9a-fA-F]{24}$/).label("Page Authorization") // Ensure objectId extension if needed

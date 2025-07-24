@@ -1,5 +1,6 @@
 import React, { useContext, useEffect, useState } from 'react';
 import axios from "axios";
+import defaultProfile from "../../imgs/male_avatar.webp";
 import { DateRangePicker, Input } from 'rsuite';
 import "../payslip/payslip.css";
 import dayjs from "dayjs";
@@ -34,12 +35,14 @@ export default function LeaveCalender() {
             const leaveData = res.data.leaveData;
             if (leaveData.length > 0) {
                 setFormattedLeaveDays(leaveData.map((leave) => {
-                    const { fromDate, toDate, leaveType } = leave;
+                    const { fromDate, toDate, leaveType, employee, status } = leave;
                     return {
                         title: leaveType,
                         start: new Date(fromDate),
                         end: new Date(toDate),
-                        userProfile: leave.employee.profile
+                        userProfile: employee.profile,
+                        userName: employee.FirstName + " " + employee.LastName,
+                        status
                     }
                 }));
                 setFullLeaveRequests(leaveData.data);
@@ -74,14 +77,12 @@ export default function LeaveCalender() {
     //     }
     // });
     const CustomEventComponent = ({ event }) => {
-  return (
-    <div>
-      <strong>{event.title}</strong>
-      <p>{event.fromDate}</p>
-      <p>Value: {event.anotherCustomField}</p>
-    </div>
-  );
-};
+        return (
+            <div>
+                <p><img src={event.userProfile || defaultProfile} alt={event.userName} style={{ width: '30px', height: '30px', borderRadius: '50%' }} /> {event.userName}</p>
+            </div>
+        );
+    };
 
     return (
         <div>
