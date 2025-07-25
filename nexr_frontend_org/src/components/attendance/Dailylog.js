@@ -103,7 +103,7 @@ const Dailylog = () => {
         <div className='dashboard-parent pt-4'>
             <div className='d-flex justify-content-between align-items-center px-3'>
                 <div>
-                    <h5 className='text-daily'>Daily Logo</h5>
+                    <h5 className='text-daily'>Daily Log</h5>
                 </div>
 
                 <div className='d-flex gap-3'>

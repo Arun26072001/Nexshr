@@ -1,5 +1,4 @@
 const express = require("express");
-const jwt = require('jsonwebtoken');
 const { toZonedTime } = require('date-fns-tz');
 const { verifyAdminHREmployeeManagerNetwork, verifyAdminHR, verifyTeamHigherAuthority } = require("../auth/authMiddleware");
 const { WFHAppValidation, WFHApplication } = require("../models/WFHApplicationModel");
