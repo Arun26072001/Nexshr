@@ -456,15 +456,13 @@ export default function Navbar() {
         }
 
         const { startingTime = [], endingTime = [] } = workTimeTracker[type] || {};
+        const lastStartedAt = new Date(startingTime.at(-1)).getTime();
+        if (actualTime.getTime() < lastStartedAt) {
+            setErrorData(`Invalid date in ${type}`);
+            return;
+        }
 
         if (startingTime.length !== endingTime.length) {
-            const lastStartedAt = new Date(startingTime.at(-1)).getTime();
-
-            if (actualTime.getTime() < lastStartedAt) {
-                setErrorData(`Invalid date in ${type}`);
-                return;
-            }
-
             setWorkTimeTracker((prev) => ({
                 ...prev,
                 [type]: {

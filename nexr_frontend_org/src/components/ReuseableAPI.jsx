@@ -350,7 +350,11 @@ const fetchEmployeeData = async (id) => {
                 authorization: token || ""
             }
         });
-        return response.data;
+        const empData = response.data;
+        if (empData?.isWarningLimitReached) {
+            localStorage.setItem("isWarningLimitReached", true);
+        }
+        return empData;
     } catch (error) {
         if (error.response && error.response.data && error.response.data.message) {
             toast.error(error?.response?.data?.details)

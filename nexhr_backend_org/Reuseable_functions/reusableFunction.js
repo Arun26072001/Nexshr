@@ -67,18 +67,15 @@ async function checkLoginForOfficeTime(scheduledTime, actualTime, permissionTime
   } else {
     [actualHours, actualMinutes] = actualTime.split(/[:.]+/).map(Number);
   } if (isValidDate(scheduledTime)) {
-    [schedHours, schedMinutes] = timeZoneHrMin(scheduledTime).split(/[:.]+/).map(Number);
+    [scheduledHours, scheduledMinutes] = timeZoneHrMin(scheduledTime).split(/[:.]+/).map(Number);
   } else {
-    [schedHours, schedMinutes] = scheduledTime.split(/[:.]+/).map(Number);
+    [scheduledHours, scheduledMinutes] = scheduledTime.split(/[:.]+/).map(Number);
   }
-
   // Create Date objects for both scheduled and actual times
-  const scheduledDate = new Date(2000, 0, 1, scheduledHours + (permissionTime), scheduledMinutes);
-  const actualDate = new Date(2000, 0, 1, actualHours, actualMinutes);
-
+  const scheduledDate = new Date().setHours(scheduledHours + (permissionTime), scheduledMinutes);
+  const actualDate = new Date().setHours(actualHours, actualMinutes);
   // Calculate the difference in milliseconds
   const timeDifference = actualDate - scheduledDate;
-
   // Convert milliseconds to minutes
   const differenceInMinutes = Math.abs(Math.floor(timeDifference / (1000 * 60)));
 
@@ -460,7 +457,7 @@ function timeToMinutes(timeStr) {
       return Number(((hours * 60) + minutes + (seconds / 60)).toFixed(2)) || 0;
     }
     if (timeStr.split(/[:.]+/).length > 0) {
-      const [hours, minutes, seconds] = timeStr.split(/[:.]+/).map(Number);
+      const [hours = 0, minutes = 0, seconds = 0] = timeStr.split(/[:.]+/).map(Number);
       return Number(((hours * 60) + minutes + (seconds / 60)).toFixed(2)) || 0; // Defaults to 0 if input is invalid
     }
   } else {

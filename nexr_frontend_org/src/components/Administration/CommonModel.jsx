@@ -162,7 +162,7 @@ const CommonModel = ({
                         {["Report", "Report View"].includes(type) &&
                             <div className="col-half">
                                 <div className="modelInput">
-                                    <p className='modelLabel important'>Depertment:</p>
+                                    <p className='modelLabel important'>Department:</p>
                                     <SelectPicker
                                         required
                                         data={departments}

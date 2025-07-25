@@ -251,7 +251,6 @@ export default function Reports() {
 
     async function gettingTeamEmp() {
         const emps = await fetchTeamEmps();
-        console.log("emps", emps)
         if (Array.isArray(emps) && emps.length > 0) {
             setEmployees(emps);
         }
@@ -306,7 +305,7 @@ export default function Reports() {
     }, [empId, isAddReport, isEditReport, isDeleteReport.type])
 
     return (
-        isViewReport ? <CommonModel type="Report View" isAddData={isViewReport} modifyData={fetchReportById} dataObj={reportObj} projects={projects} comps={companies} departments={departments} employees={employees} /> :
+        isViewReport ? <CommonModel type="Report View" errorMsg={errorData} isAddData={isViewReport} modifyData={fetchReportById} dataObj={reportObj} projects={projects} comps={companies} departments={departments} employees={employees} /> :
             isDeleteReport.type ? <CommonModel type="Report Confirmation" modifyData={handleDeleteReport} deleteData={deleteReport} isAddData={isDeleteReport.type} /> :
                 isAddReport ? <CommonModel type="Report" errorMsg={errorData} isWorkingApi={isWorkingApi} isAddData={isAddReport} projects={projects} comps={companies} departments={departments} modifyData={handleAddReport} changeData={changeReport} addData={addReport} dataObj={reportObj} editData={editReport} employees={employees} /> :
                     isEditReport ? <CommonModel type="Report" errorMsg={errorData} isWorkingApi={isWorkingApi} isAddData={isEditReport} projects={projects} comps={companies} departments={departments} modifyData={handleEditReport} changeData={changeReport} dataObj={reportObj} editData={editReport} employees={employees} /> :

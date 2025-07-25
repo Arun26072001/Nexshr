@@ -279,6 +279,7 @@ router.get('/:id', verifyAdminHREmployeeManagerNetwork, async (req, res) => {
       sumLeaveDays(takenLeaveRequests),
       sumLeaveDays(unpaidLeaveRequest)
     ])
+    const isWarningLimitReached = (emp && emp?.warnings === 0) ? true : false;
 
     // Send response with employee details, pending leave requests, taken leave count, and colleagues
     res.send({
@@ -286,7 +287,8 @@ router.get('/:id', verifyAdminHREmployeeManagerNetwork, async (req, res) => {
       pendingLeaveRequests: pendingLeaveRequests?.length,
       totalTakenLeaveCount: Number(totalTakenLeaveCount?.toFixed(2)),
       totalUnpaidLeaveCount,
-      collegues: emp.team ? emp.team.employees : []
+      collegues: emp.team ? emp.team.employees : [],
+      isWarningLimitReached
     });
 
   } catch (err) {
@@ -505,7 +507,6 @@ router.put("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
       }
     }
 
-    console.log("company", req.body.company)
     // Prepare update payload
     let updatedData = {
       ...req.body,
