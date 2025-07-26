@@ -36,11 +36,11 @@ export default function TaskItem({ task, status, getValue, handleEditTask, handl
                     onCheckboxClick={() => getValue(task)}
                     checked={status === "Completed"}
                 />
-                <b>{task.title}</b> ||
+                <b>{task.title}</b> 
 
                 <span className={`defaultDesign text-light ${task.status === "Pending" ? "bg-danger" : task.status === "Completed" ? "bg-success" : "bg-warning"}`}>
                     {task.status}
-                </span> ||
+                </span> 
 
                 {/* Assigned Employees */}
                 <div className=" d-flex flex-wrap  align-items-center gap-1 mx-1">
