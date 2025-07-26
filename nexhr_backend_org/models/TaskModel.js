@@ -75,16 +75,16 @@ const taskValidation = Joi.object({
     attachments: Joi.array()
         .items(Joi.string().label('Attachment URL'))
         .label('Attachments'),
-    description: Joi.string().allow('').label('Description'),
+    description: Joi.string().allow('').label('description'),
     assignedTo: Joi.array().min(1)
         .items(Joi.string().regex(/^[0-9a-fA-F]{24}$/).label('Employee ID'))
         .required()
-        .label('Assigned To'),
-    from: Joi.date().required().label('Start Date'),
+        .label('assignedTo'),
+    from: Joi.date().required().label('from Date'),
     to: Joi.date()
         .greater(Joi.ref('from'))
         .required()
-        .label('End Date')
+        .label('to Date')
         .messages({ "date.min": "'To' Date must be greater than 'From' Date" }),
     status: Joi.string()
         .valid('Pending', 'In Progress', 'Completed', 'On Hold')

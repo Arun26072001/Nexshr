@@ -34,7 +34,7 @@ const Tasks = () => {
   const [taskObj, setTaskObj] = useState({});
   const [projects, setProjects] = useState([]);
   const strObjId = JSON.stringify(localStorage.getItem("selectedProject") || "")
-  const [projectId, setProjectId] = useState(JSON.parse(strObjId) || "");
+  const [projectId, setProjectId] = useState(strObjId ? JSON.parse(strObjId) : "");
   const [allTasks, setAllTask] = useState([]);
   const [notCompletedTasks, setNotCompletedTasks] = useState([]);
   const [projectAllTasks, setProjectAllTasks] = useState([]);
@@ -283,7 +283,6 @@ const Tasks = () => {
         if (error?.message === "Network Error") {
           navigate("/network-issue")
         }
-        setAllTask([])
         console.log(error);
       } finally {
         setIsLoading(false)
@@ -299,18 +298,16 @@ const Tasks = () => {
           Authorization: data.token || ""
         }
       })
-      const empTasks = res.data.tasks;
-      if (empTasks.length) {
-        setProjectAllTasks(empTasks)
-        setAllTask(empTasks?.map((task) => ({ label: task.title + " " + task.status, value: task._id })));
-        setNotCompletedTasks(empTasks.filter((task) => task.status !== "Completed")?.map((task) => ({ label: task.title, value: task._id })))
-      }
+      const empTasks = res.data?.tasks;
+      setProjectAllTasks(empTasks)
+      setAllTask(empTasks?.map((task) => ({ label: task.title + " " + task.status, value: task._id })));
+      setNotCompletedTasks(empTasks.filter((task) => task.status !== "Completed")?.map((task) => ({ label: task.title, value: task._id })))
+      //   if (empTasks.length) {
+      // }
     } catch (error) {
       if (error?.message === "Network Error") {
         navigate("/network-issue")
       }
-      setAllTask([])
-      setNotCompletedTasks([]);
       console.log(error);
     } finally {
       setIsLoading(false)
@@ -607,7 +604,7 @@ const Tasks = () => {
       fetchEmpAssignedTasks();
       setAllTask([]);
     }
-  }, [projectId, isDelete.type, isAddTask, isEditTask])
+  }, [projectId, isDelete.type, isAddTask, isEditTask]);
 
   useEffect(() => {
     return () => setPreviewList([])
@@ -710,7 +707,11 @@ const Tasks = () => {
                       value={projectId}
                       onChange={(e) => {
                         setProjectId(e)
-                        localStorage.setItem("selectedProject", e)
+                        if (e) {
+                          localStorage.setItem("selectedProject", e)
+                        } else {
+                          localStorage.removeItem("selectedProject")
+                        }
                       }}
                     />
                     <Whisper placement="bottomEnd" trigger="click" speaker={renderMenu1}>
