@@ -1,7 +1,7 @@
 import React, { useContext, useEffect } from 'react';
 import LeaveTable from '../LeaveTable';
 import NoDataFound from '../payslip/NoDataFound';
-import { LeaveStates, TimerStates } from '../payslip/HRMDashboard';
+import { TimerStates } from '../payslip/HRMDashboard';
 import PersonRoundedIcon from '@mui/icons-material/PersonRounded';
 import axios from "axios";
 import "../payslip/payslip.css";
@@ -20,9 +20,13 @@ export default function LeaveRecords() {
     const { state } = useLocation();
     const url = process.env.REACT_APP_API_URL;
     const { data, whoIs } = useContext(EssentialValues);
-    const { empName, setEmpName, filterLeaveRequests, isLoading, leaveRequests, changeRequests } = useContext(LeaveStates);
+    const [empName, setEmpName] = useState("");
+    const [filterLeaveRequests, setFilterLeaveRequests] = useState({});
+    const [isLoading, setIsLoading] = useState(false);
+    const [leaveRequests, setLeaveRequests] = useState({});
+    const [isChangedRequests, setIsChangedRequests] = useState(false);
     const { dateRangeValue, setDateRangeValue } = useContext(TimerStates)
-    const { token, Account } = data;
+    const { token, Account, _id } = data;
     const [responsing, setResponsing] = useState("");
     const { isTeamHead, isTeamLead, isTeamManager } = jwtDecode(token);
     const navigate = useNavigate();
@@ -90,7 +94,6 @@ export default function LeaveRecords() {
             })
             toast.success(res.data.message);
             changeRequests();
-
         } catch (error) {
             if (error?.message === "Network Error") {
                 navigate("/network-issue")
@@ -101,8 +104,20 @@ export default function LeaveRecords() {
         }
     }
 
+    function changeRequests() {
+        setIsChangedRequests(!isChangedRequests)
+    }
+
     useEffect(() => {
-        filterLeaveRequests();
+        function filterLeave() {
+            if (empName === "") {
+                setLeaveRequests();
+            } else {
+                const filterRequests = filterLeaveRequests?.leaveData.filter((leave) => leave?.employee?.FirstName?.toLowerCase()?.includes(empName) || leave?.employee?.LastName?.toLowerCase()?.includes(empName));
+                setLeaveRequests((pre) => ({ ...pre, leaveData: filterRequests }));
+            }
+        }
+        filterLeave()
     }, [empName, dateRangeValue]);
 
     useEffect(() => {
@@ -130,6 +145,56 @@ export default function LeaveRecords() {
             }
         }
     }, [state]);
+
+    const getLeaveData = async () => {
+        setIsLoading(true);
+        try {
+            const leaveData = await axios.get(`${url}/api/leave-application/date-range/management/${whoIs}`, {
+                params: {
+                    dateRangeValue
+                },
+                headers: {
+                    authorization: token || ""
+                }
+            })
+            console.log("leaveData", leaveData.data);
+            setLeaveRequests(leaveData.data);
+            setFilterLeaveRequests(leaveData.data);
+        } catch (err) {
+            toast.error(err?.response?.data?.message);
+        } finally {
+            setIsLoading(false);
+        }
+    }
+
+    const getLeaveDataFromTeam = async () => {
+        setIsLoading(true);
+        try {
+            const leaveData = await axios.get(`${url}/api/leave-application/team/${_id}`, {
+                params: {
+                    who: isTeamLead ? "lead" : isTeamHead ? "head" : "manager",
+                    dateRangeValue
+                },
+                headers: {
+                    authorization: token || ""
+                }
+            })
+            setLeaveRequests(leaveData.data);
+            setFilterLeaveRequests(leaveData.data);
+        } catch (err) {
+            toast.error(err?.response?.data?.message);
+        } finally {
+            setIsLoading(false);
+        }
+    }
+
+    useEffect(() => {
+        if (whoIs && [isTeamHead, isTeamLead, isTeamManager].includes(true)) {
+            getLeaveDataFromTeam()
+        } else if (["admin", "hr"].includes(whoIs)) {
+            getLeaveData();
+        }
+    }, [dateRangeValue, _id, whoIs, isChangedRequests]);
 
 
     // Handle file upload
@@ -225,7 +290,7 @@ export default function LeaveRecords() {
                 <div className="w-100 d-flex justify-content-center">
                     <div className="leaveBoard">
                         {/* Leave taken */}
-                        <div className="timeLogBox d-flex justify-content-center" style={{width: "200px"}}>
+                        <div className="timeLogBox d-flex justify-content-center" style={{ width: "200px" }}>
                             <div className="d-flex flex-column">
                                 <div className="leaveDays">
                                     {leaveRequests?.approvedLeave || 0} Days
@@ -237,7 +302,7 @@ export default function LeaveRecords() {
                         </div>
 
                         {/* Upcoming leave */}
-                         <div className="timeLogBox d-flex justify-content-center" style={{width: "200px"}}>
+                        <div className="timeLogBox d-flex justify-content-center" style={{ width: "200px" }}>
                             <div className="d-flex flex-column">
                                 <div className="leaveDays">
                                     {leaveRequests?.upcomingLeave || 0} Days
@@ -248,7 +313,7 @@ export default function LeaveRecords() {
                             </div>
                         </div>
                         {/* People on leave */}
-                         <div className="timeLogBox d-flex justify-content-center" style={{width: "200px"}}>
+                        <div className="timeLogBox d-flex justify-content-center" style={{ width: "200px" }}>
                             <div className="d-flex flex-column">
                                 <div className="leaveDays">
                                     {leaveRequests?.peoplesOnLeave?.length || 0} <PersonRoundedIcon />
@@ -260,7 +325,7 @@ export default function LeaveRecords() {
                         </div>
 
                         {/* Pending request */}
-                         <div className="timeLogBox d-flex justify-content-center" style={{width: "200px"}}>
+                        <div className="timeLogBox d-flex justify-content-center" style={{ width: "200px" }}>
                             <div className="d-flex flex-column">
                                 <div className="leaveDays">
                                     {leaveRequests?.pendingLeave || 0} Days

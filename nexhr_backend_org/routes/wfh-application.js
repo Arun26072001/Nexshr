@@ -578,15 +578,23 @@ router.put("/reject-wfh", async (req, res) => {
 
         await Promise.all(wfhReqs.map(async (wfh) => {
             // check has more than two team members in wfh
-            const team = await Team.findOne({ employees: wfh.employee._id }, "employees").exec();
+            const empId = wfh.employee?._id;
+            if(!empId){
+                console.log("empId not found, please check employee is exists");
+                return;
+            }
+            const team = await Team.findOne({ employees: empId }, "employees").exec();
             let wfhEmps = [];
-            if (team && team.employees) {
+            if (team && team.employees.length > 0) {
                 wfhEmps = await WFHApplication.find({
                     employee: { $in: team.employees },
                     status: "approved",
                     fromDate: { $lte: wfh.toDate },
                     toDate: { $gte: wfh.fromDate }
                 })
+            } else {
+                console.log(`${wfh.employee?.FirstName} is currently not assigned to any team. Kindly confirm with your HR`);
+                return; 
             }
 
             let approvers = {};

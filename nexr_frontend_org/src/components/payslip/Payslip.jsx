@@ -1,11 +1,33 @@
-import React, { useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { DateRangePicker } from "rsuite";
 import LeaveTable from "../LeaveTable";
 import NoDataFound from "./NoDataFound";
 import { Skeleton } from "@mui/material";
+import { fetchPayslipFromEmp } from "../ReuseableAPI";
+import { EssentialValues } from "../../App";
+import { toast } from "react-toastify";
 
-const Payslip = ({ payslips, isLoading }) => {
+const Payslip = () => {
     const [daterangeValue, setDaterangeValue] = useState("");
+    const { data } = useContext(EssentialValues);
+    const [payslips, setPayslips] = useState({});
+    const [isLoading, setIsLoading] = useState(false);
+
+    useEffect(() => {
+        async function fetchPayslips() {
+            setIsLoading(true);
+            try {
+                const slips = await fetchPayslipFromEmp(data._id, daterangeValue);
+                setPayslips(slips);
+            } catch (err) {
+                toast.error(err?.response?.data?.error)
+            } finally {
+                setIsLoading(false);
+            }
+        }
+
+        fetchPayslips();
+    }, [data._id, daterangeValue])
 
     return (
         <div>

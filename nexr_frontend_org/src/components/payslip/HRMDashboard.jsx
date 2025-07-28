@@ -59,7 +59,7 @@ const Projects = React.lazy(() => import("../Projects"));
 const Tasks = React.lazy(() => import("../Tasks"));
 const Reports = React.lazy(() => import("../Reports"));
 
-export const LeaveStates = createContext(null);
+// export const LeaveStates = createContext(null);
 export const TimerStates = createContext(null);
 
 export default function HRMDashboard() {
@@ -69,17 +69,17 @@ export default function HRMDashboard() {
     const { isTeamLead, isTeamHead, isTeamManager } = jwtDecode(token);
     const [attendanceData, setAttendanceData] = useState([]);
     const [attendanceForSummary, setAttendanceForSummary] = useState({});
-    const [leaveRequests, setLeaveRequests] = useState({});
-    const [fullLeaveRequests, setFullLeaveRequests] = useState({});
-    const [empName, setEmpName] = useState("");
-    const [isLoading, setIsLoading] = useState(false);
+    // const [leaveRequests, setLeaveRequests] = useState({});
+    // const [fullLeaveRequests, setFullLeaveRequests] = useState({});
+    // const [empName, setEmpName] = useState("");
+    // const [isLoading, setIsLoading] = useState(false);
     const [waitForAttendance, setWaitForAttendance] = useState(false);
     const [dateRangeValue, setDateRangeValue] = useState("");
     const [timeOption, setTimeOption] = useState(localStorage.getItem("timeOption") || "meeting");
     const navigate = useNavigate();
     const [reloadRole, setReloadRole] = useState(false);
     const [syncTimer, setSyncTimer] = useState(false);
-    const [isUpdatedRequest, setIsUpdatedReqests] = useState(false);
+    // const [isUpdatedRequest, setIsUpdatedReqests] = useState(false);
     const [employees, setEmployees] = useState([]);
     const [companies, setCompanies] = useState([]);
     const [isLateLogin, setIsLateLogin] = useState(localStorage.getItem("isLateLogin") ? JSON.parse(localStorage.getItem("isLateLogin")) : false);
@@ -140,15 +140,6 @@ export default function HRMDashboard() {
                 navigate("/network-issue")
             }
             console.log("error in fetch companies", error);
-        }
-    }
-
-    function filterLeaveRequests() {
-        if (empName === "") {
-            setLeaveRequests(fullLeaveRequests);
-        } else {
-            const filterRequests = fullLeaveRequests?.leaveData.filter((leave) => leave?.employee?.FirstName?.toLowerCase()?.includes(empName) || leave?.employee?.LastName?.toLowerCase()?.includes(empName));
-            setLeaveRequests((pre) => ({ ...pre, leaveData: filterRequests }));
         }
     }
 
@@ -325,21 +316,8 @@ export default function HRMDashboard() {
         }
     }
 
-    // function changeEmpEditForm(id) {
-    //     if (isEditEmp) {
-    //         navigate(["manager", "admin", "hr"].includes(whoIs) ? `/${whoIs}/employee` : `/${whoIs}`);
-    //         handleEditEmp()
-    //     } else {
-    //         navigate(`/${whoIs}/employee/edit/${id}`);
-    //     }
-    // }
-
     function reloadRolePage() {
         setReloadRole(!reloadRole)
-    }
-
-    function changeRequests() {
-        setIsUpdatedReqests(!isUpdatedRequest);
     }
 
     // get attendance summary page table of data
@@ -427,56 +405,6 @@ export default function HRMDashboard() {
         setIsAddTask(!isAddTask);
     }
 
-    const getLeaveData = async () => {
-        setIsLoading(true);
-        try {
-            const leaveData = await axios.get(`${url}/api/leave-application/date-range/management/${whoIs}`, {
-                params: {
-                    dateRangeValue
-                },
-                headers: {
-                    authorization: token || ""
-                }
-            })
-            setLeaveRequests(leaveData.data);
-            setFullLeaveRequests(leaveData.data);
-        } catch (err) {
-            toast.error(err?.response?.data?.message);
-        } finally {
-            setIsLoading(false);
-        }
-    }
-
-    const getLeaveDataFromTeam = async () => {
-        setIsLoading(true);
-        try {
-            const leaveData = await axios.get(`${url}/api/leave-application/team/${_id}`, {
-                params: {
-                    who: isTeamLead ? "lead" : isTeamHead ? "head" : "manager",
-                    dateRangeValue
-                },
-                headers: {
-                    authorization: token || ""
-                }
-            })
-            setLeaveRequests(leaveData.data);
-            setFullLeaveRequests(leaveData.data);
-        } catch (err) {
-            toast.error(err?.response?.data?.message);
-        } finally {
-            setIsLoading(false);
-        }
-    }
-
-    useEffect(() => {
-        if (whoIs && [isTeamHead, isTeamLead, isTeamManager].includes(true)) {
-            getLeaveDataFromTeam()
-        } else if (["admin", "hr"].includes(whoIs)) {
-            getLeaveData();
-        }
-    }, [dateRangeValue, _id, whoIs, isUpdatedRequest]);
-
-    // to view attendance data for admin and hr
     useEffect(() => {
         if ([isTeamHead, isTeamLead, isTeamManager].includes(true)) {
             getTeamAttendance();
@@ -567,15 +495,11 @@ export default function HRMDashboard() {
                     <Route path="employee/add" element={<AddEmployee />} />
                     <Route path="employee/edit/:id" element={<AddEmployee />} />
                     <Route path="leave/*" element={
-                        <LeaveStates.Provider value={{ isLoading, leaveRequests, filterLeaveRequests, empName, setEmpName, changeRequests }} >
-                            <Routes>
-                                {/* <Route index path='status' element={<Status />} />
-                                <Route path='leave-summary' element={<LeaveSummary />} /> */}
-                                <Route path='leave-records' element={<LeaveRecords />} />
-                                <Route path='calendar' element={<LeaveCalender />} />
-                                <Route path="leave-details" element={<LeaveDetails />} />
-                            </Routes>
-                        </LeaveStates.Provider>
+                        <Routes>
+                            <Route path='leave-records' element={<LeaveRecords />} />
+                            <Route path='calendar' element={<LeaveCalender />} />
+                            <Route path="leave-details" element={<LeaveDetails />} />
+                        </Routes>
                     } />
                     <Route path='/leave-request' element={<LeaveRequestForm />} />
                     <Route path="/leave-request/edit/:id" element={<LeaveRequestForm />} />

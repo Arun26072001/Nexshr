@@ -386,6 +386,7 @@ router.get("/late-punch", verifyAdminHR, async (req, res) => {
 router.put("/late-punchin-response/:id", verifyAdminHR, async (req, res) => {
     try {
         const clockinData = req.body;
+        const today = getCurrentTimeInMinutes();
         // check clockinData is exists
         const isExists = await ClockIns.exists({ _id: req.body._id });
         if (!isExists) {
@@ -404,11 +405,8 @@ router.put("/late-punchin-response/:id", verifyAdminHR, async (req, res) => {
             // check emp's login time is greater than office time
             if (companyLoginMinutes < empLoginMinutes) {
                 const timeDiff = empLoginMinutes - companyLoginMinutes;
-                const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
-                const endOfMonth = new Date();
 
                 if (timeDiff > 120 && timeDiff >= 240) {
-
                     // Half-day leave due to late arrival
                     const halfDayLeaveApp = {
                         leaveType: "Unpaid Leave (LWP)",
@@ -434,6 +432,8 @@ router.put("/late-punchin-response/:id", verifyAdminHR, async (req, res) => {
                     emp.leaveApplication.push(addLeave._id);
                     await emp.save();
                 } else {
+                    const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+                    const endOfMonth = new Date();
                     // Check existing approved permission leaves in the current month
                     const empPermissions = await LeaveApplication.find({
                         employee: emp._id,
@@ -473,7 +473,7 @@ router.put("/late-punchin-response/:id", verifyAdminHR, async (req, res) => {
                                   <body>
                                     <h2>You have exceeded your permission limit.</h2>
                                     <p>
-                                        This is to inform you that your punch-in on ${today} was recorded beyond the acceptable grace period.
+                                        This is to inform you that your punch-in on ${today.toLocaleDateString()} was recorded beyond the acceptable grace period.
                                         As per company policy, this will be considered a half-day Loss of Pay (LOP).
                                     </p>
                                     <p>

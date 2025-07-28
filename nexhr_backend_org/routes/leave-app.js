@@ -613,95 +613,112 @@ leaveApp.get("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
 
 // get employee of leave data
 leaveApp.get("/date-range/management/:whoIs", verifyAdminHrNetworkAdmin, async (req, res) => {
-  const now = new Date();
-  let startOfMonth, endOfMonth;
-
-  if (req.query?.dateRangeValue) {
-    [startOfMonth, endOfMonth] = req.query.dateRangeValue.map(date => new Date(date));
-    startOfMonth.setHours(0, 0, 0, 0);
-    endOfMonth.setHours(23, 59, 59, 999); // Include full last day
-  } else {
-    startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-    endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
-  }
   try {
-    let filterObj = {};
-    if (req.params.whoIs === "hr") {
-      filterObj = {
-        Account: 3
-      }
-    }
-    const employeesLeaveData = await Employee.find(filterObj, "_id FirstName LastName profile leaveApplication workingTimePattern")
-      .populate({
-        path: "leaveApplication",
-        match: {
-          fromDate: { $lte: endOfMonth },
-          toDate: { $gte: startOfMonth },
-          leaveType: { $nin: ["Unpaid Leave (LWP)"] }
-        },
-        populate: [
-          { path: "employee", select: "FirstName LastName Email profile" },
-          { path: "coverBy", select: "FirstName LastName Email profile" }
-        ]
-      }).populate("workingTimePattern").lean().exec();
+    const now = new Date();
+    let startOfMonth, endOfMonth;
 
-    let leaveData = employeesLeaveData
-      .flatMap(emp => emp.leaveApplication) // Flatten leave data
+    if (req.query?.dateRangeValue) {
+      [startOfMonth, endOfMonth] = req.query.dateRangeValue.map(date => new Date(date));
+      startOfMonth.setHours(0, 0, 0, 0);
+      endOfMonth.setHours(23, 59, 59, 999);
+    } else {
+      startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+      endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
+    }
+
+    // Build employee filter based on role
+    const filterObj = req.params.whoIs === "hr" 
+      ? { Account: { $in: [3, 4, 5] } } 
+      : {};
+
+    // Fetch employee info with working patterns
+    const employees = await Employee.find(filterObj, "_id FirstName LastName profile leaveApplication workingTimePattern")
+      .populate("workingTimePattern")
+      .lean()
+      .exec();
+
+    if (!employees.length) return res.send({ message: "No employees found." });
+
+    const employeeIds = employees.map(emp => emp._id);
+
+    // Fetch leave applications in the given range
+    const leaveApplications = await LeaveApplication.find({
+      employee: employeeIds,
+      fromDate: { $lte: endOfMonth },
+      toDate: { $gte: startOfMonth }
+    })
+      .populate([
+        { path: "employee", select: "FirstName LastName Email profile" },
+        { path: "coverBy", select: "FirstName LastName Email profile" }
+      ])
+      .lean()
+      .exec();
+
+    // Get working hours from first employee with valid pattern
+    let workingHoursPerDay = 0;
+    for (const emp of employees) {
+      if (!emp.workingTimePattern) {
+        return res.status(404).send({ error: `Working time pattern not set for ${emp.FirstName}.` });
+      }
+
+      const start = new Date(emp.workingTimePattern.StartingTime);
+      const end = new Date(emp.workingTimePattern.FinishingTime);
+      workingHoursPerDay = (end - start) / (1000 * 60 * 60); // in hours
+      break; // Use the first one found
+    }
+
+    // Clean and format leave data
+    const cleanedLeaveData = leaveApplications
       .sort((a, b) => new Date(b.fromDate) - new Date(a.fromDate))
       .map(leave => ({
         ...leave,
-        reasonForLeave: leave.reasonForLeave.replace(/<\/?[^>]+(>|$)/g, ''),
-        prescription: leave.prescription
-          ? `${process.env.REACT_APP_API_URL}/uploads/${leave.prescription}`
+        reasonForLeave: leave.reasonForLeave?.replace(/<\/?[^>]+(>|$)/g, ''),
+        prescription: leave.prescription 
+          ? `${process.env.REACT_APP_API_URL}/uploads/${leave.prescription}` 
           : null
       }));
 
-    let workingHrPerDay = 0;
-    employeesLeaveData.forEach((employee) => {
-      if (employee?.workingTimePattern) {
-        const startingDate = new Date(employee.workingTimePattern.StartingTime);
-        const endingDate = new Date(employee.workingTimePattern.FinishingTime);
-        weeklyDays = employee.workingTimePattern.WeeklyDays ? employee.workingTimePattern.WeeklyDays : []
-        scheduledLoginTime = startingDate.toTimeString().split(" ")[0];
-        if (!workingHrPerDay) {
-          workingHrPerDay = (endingDate.getTime() - startingDate.getTime()) / (1000 * 60 * 60)
-        }
-      } else {
-        return res.status(404).send({ error: `Working time pattern has not been set yet for ${employee.FirstName}.` })
-      }
-    })
+    const nowTime = now.getTime();
 
-    const nowTime = new Date().getTime();
-    const approvedLeave = leaveData.filter(leave => leave.status === "approved");
-    const pendingLeave = leaveData.filter(leave => leave.status === "pending");
-    const upcomingLeave = leaveData.filter(leave => new Date(leave.fromDate) > now);
-    const peopleOnLeave = approvedLeave.filter(leave =>
-      new Date(leave.fromDate).toDateString() === now.toDateString()
+    // Categorize leaves
+    const approved = cleanedLeaveData.filter(l => l.status === "approved");
+    const pending = cleanedLeaveData.filter(l => l.status === "pending");
+    const upcoming = cleanedLeaveData.filter(l => new Date(l.fromDate) > now);
+    const onLeaveToday = approved.filter(l =>
+      new Date(l.fromDate).toDateString() === now.toDateString()
     );
-    const takenLeave = approvedLeave.filter(l => new Date(l.fromDate).getTime() < nowTime)
-    const [upComingLeaveDays, pendingLeaveDays, approvedLeaveDays, takenLeaveDays] = await Promise.all([
-      sumLeaveDays(upcomingLeave),
-      sumLeaveDays(pendingLeave),
-      sumLeaveDays(approvedLeave),
-      sumLeaveDays(takenLeave)
+    const taken = approved.filter(l => new Date(l.fromDate).getTime() < nowTime);
+
+    // Calculate leave days
+    const [upcomingDays, pendingDays, approvedDays, takenDays] = await Promise.all([
+      sumLeaveDays(upcoming),
+      sumLeaveDays(pending),
+      sumLeaveDays(approved),
+      sumLeaveDays(taken)
     ]);
-    const totalLeaveDaysInHrs = approvedLeaveDays * workingHrPerDay
 
     res.send({
-      leaveData,
-      approvedLeave: approvedLeaveDays,
-      leaveInHours: totalLeaveDaysInHrs,
-      peopleOnLeave,
-      pendingLeave: pendingLeaveDays,
-      upcomingLeave: upComingLeaveDays,
-      takenLeave: takenLeaveDays,
+      leaveData: cleanedLeaveData,
+      approvedLeave: approvedDays,
+      leaveInHours: approvedDays * workingHoursPerDay,
+      peopleOnLeave: onLeaveToday,
+      pendingLeave: pendingDays,
+      upcomingLeave: upcomingDays,
+      takenLeave: takenDays
     });
+
   } catch (error) {
-    await errorCollector({ url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT })
-    console.error("Error fetching leave data:", error);
-    res.status(500).send({ error: error.message });
+    await errorCollector({
+      url: req.originalUrl,
+      name: error.name,
+      message: error.message,
+      env: process.env.ENVIRONMENT
+    });
+    console.error("Error in leave management API:", error);
+    res.status(500).send({ error: "Something went wrong. Please try again later." });
   }
 });
+
 
 leaveApp.get("/date-range/:empId", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
   const now = new Date();
