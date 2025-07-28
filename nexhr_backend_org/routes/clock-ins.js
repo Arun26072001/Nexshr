@@ -4,8 +4,7 @@ const { verifyAdminHREmployeeManagerNetwork, verifyAdminHrNetworkAdmin, verifyTe
 const { ClockIns, clockInsValidation } = require("../models/ClockInsModel");
 const { Employee } = require("../models/EmpModel");
 const sendMail = require("./mailSender");
-const { format, toDate } = require("date-fns");
-const { toZonedTime } = require("date-fns-tz");
+const { format } = require("date-fns");
 const { LeaveApplication } = require("../models/LeaveAppModel");
 const { Team } = require("../models/TeamModel");
 const { timeToMinutes, processActivityDurations, checkLoginForOfficeTime, getCurrentTime, sumLeaveDays, getTotalWorkingHoursExcludingWeekends, changeClientTimezoneDate, getTotalWorkingHourPerDayByDate, errorCollector, isValidLeaveDate, setTimeHolderForAllActivities, isValidDate, getCurrentTimeInMinutes, checkDateIsHoliday, timeZoneHrMin } = require("../Reuseable_functions/reusableFunction");
@@ -579,35 +578,35 @@ router.get("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
         const activities = ["login", "meeting", "morningBreak", "lunch", "eveningBreak", "event"];
 
         // Check previous day's incomplete login
-        const prevDate = new Date(Date.UTC(queryDate.getUTCFullYear(), queryDate.getUTCMonth(), queryDate.getUTCDate() - 1));
-        const prevStart = new Date(prevDate.setUTCHours(0, 0, 0, 0));
-        const prevEnd = new Date(prevDate.setUTCHours(23, 59, 59, 999));
-        const prevClockIn = await ClockIns.findOne({
-            employee: employeeId,
-            date: { $gte: prevStart, $lt: prevEnd },
-        });
-
+        // const prevDate = new Date(Date.UTC(queryDate.getUTCFullYear(), queryDate.getUTCMonth(), queryDate.getUTCDate() - 1));
+        // const prevStart = new Date(prevDate.setUTCHours(0, 0, 0, 0));
+        // const prevEnd = new Date(prevDate.setUTCHours(23, 59, 59, 999));
+        const prevClockIn = await ClockIns.findOne({employee: employeeId}).sort({ _id: -1 }).exec();
         if (prevClockIn) {
-            const unstopPrevActivities = activities.filter(
-                (activity) => prevClockIn[activity]?.startingTime?.length !== prevClockIn[activity]?.endingTime?.length
-            );
+            const isSameToday = new Date(prevClockIn.date).toLocaleDateString() === dayStart.toLocaleDateString();
+            if (!isSameToday) {
+                
+                const unstopPrevActivities = activities.filter(
+                    (activity) => prevClockIn[activity]?.startingTime?.length !== prevClockIn[activity]?.endingTime?.length
+                );
 
-            if (unstopPrevActivities.length > 0) {
-                const activitiesData = processActivityDurations(prevClockIn);
-                const empTotalWorkingHours = (activitiesData.reduce((sum, a) => sum + a.timeCalMins, 0) / 60).toFixed(2);
-                if (workingTimeLimit > currentTime && empOvertimeWorkingLimit > currentTime) {
-                    return res.send({
-                        timeData: prevClockIn,
-                        activitiesData,
-                        empTotalWorkingHours
-                    });
-                } else {
-                    return res.send({
-                        timeData: prevClockIn,
-                        activitiesData,
-                        empTotalWorkingHours,
-                        types: unstopPrevActivities
-                    })
+                if (unstopPrevActivities.length > 0) {
+                    const activitiesData = processActivityDurations(prevClockIn);
+                    const empTotalWorkingHours = (activitiesData.reduce((sum, a) => sum + a.timeCalMins, 0) / 60).toFixed(2);
+                    if (workingTimeLimit > currentTime && empOvertimeWorkingLimit > currentTime) {
+                        return res.send({
+                            timeData: prevClockIn,
+                            activitiesData,
+                            empTotalWorkingHours
+                        });
+                    } else {
+                        return res.send({
+                            timeData: prevClockIn,
+                            activitiesData,
+                            empTotalWorkingHours,
+                            types: unstopPrevActivities
+                        })
+                    }
                 }
             }
         }

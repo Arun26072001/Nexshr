@@ -66,6 +66,7 @@ router.post("/", verifyAdmin, async (req, res) => {
         res.status(201).send({ message: "New country is Add successfully" });
 
     } catch (error) {
+        console.error("error in add country", error)
         await errorCollector({ url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT })
         res.status(500).json({ error: error.message });
     }

@@ -69,17 +69,12 @@ export default function HRMDashboard() {
     const { isTeamLead, isTeamHead, isTeamManager } = jwtDecode(token);
     const [attendanceData, setAttendanceData] = useState([]);
     const [attendanceForSummary, setAttendanceForSummary] = useState({});
-    // const [leaveRequests, setLeaveRequests] = useState({});
-    // const [fullLeaveRequests, setFullLeaveRequests] = useState({});
-    // const [empName, setEmpName] = useState("");
-    // const [isLoading, setIsLoading] = useState(false);
     const [waitForAttendance, setWaitForAttendance] = useState(false);
     const [dateRangeValue, setDateRangeValue] = useState("");
     const [timeOption, setTimeOption] = useState(localStorage.getItem("timeOption") || "meeting");
     const navigate = useNavigate();
     const [reloadRole, setReloadRole] = useState(false);
     const [syncTimer, setSyncTimer] = useState(false);
-    // const [isUpdatedRequest, setIsUpdatedReqests] = useState(false);
     const [employees, setEmployees] = useState([]);
     const [companies, setCompanies] = useState([]);
     const [isLateLogin, setIsLateLogin] = useState(localStorage.getItem("isLateLogin") ? JSON.parse(localStorage.getItem("isLateLogin")) : false);

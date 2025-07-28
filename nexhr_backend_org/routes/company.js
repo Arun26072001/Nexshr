@@ -10,6 +10,7 @@ const path = require("path");
 const fs = require("fs");
 const { errorCollector } = require('../Reuseable_functions/reusableFunction');
 
+// get all companies
 router.get("/", verifyAdminHREmployeeManagerNetwork, (req, res) => {
   Company.find({}, "CompanyName").lean()
     .exec(function (err, compnay) {
@@ -19,6 +20,23 @@ router.get("/", verifyAdminHREmployeeManagerNetwork, (req, res) => {
       res.send(compnay);
     });
 });
+
+// employee of companies
+router.get("/employee/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
+  try {
+    const emp = await Employee.findById(req.params.id, "company")
+    .populate("company", "CompanyName")
+    .lean().exec();
+    if (!emp && !emp.company) {
+      return res.status(404).send({ error: "you are not in any company" });
+    } else {
+      return res.send([emp.company]);
+    }
+  } catch (error) {
+    console.log("error in get emp's company", error);
+    return res.status(500).send({ error: error.message })
+  }
+})
 
 router.get("/:id", verifyAdminHR, async (req, res) => {
   try {

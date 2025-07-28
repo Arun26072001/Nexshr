@@ -86,6 +86,7 @@ export default function Country() {
             }))
         }
     }
+
     async function updateCountry() {
         setIschangingCountry(true);
         setErrorData("");
@@ -106,8 +107,9 @@ export default function Country() {
             const errorMsg = error?.response?.data?.error
             setErrorData(errorMsg)
             toast.error(errorMsg)
+        } finally {
+            setIschangingCountry(false);
         }
-        setIschangingCountry(false);
     }
 
     async function addCountry() {
@@ -131,8 +133,9 @@ export default function Country() {
             const errorMsg = error?.response?.data?.error
             setErrorData(errorMsg)
             toast.error(errorMsg)
+        } finally {
+            setIschangingCountry(false);
         }
-        setIschangingCountry(false);
     }
 
     useEffect(() => {
@@ -140,7 +143,7 @@ export default function Country() {
             if (countryName === "") {
                 setCountries(filteredCountries)
             } else {
-                setCountries(filteredCountries.filter((country) => country.name.toLowerCase().includes(countryName)))
+                setCountries(filteredCountries.filter((country) => country.name.toLowerCase().includes(countryName.toLowerCase())))
             }
         }
         filterCountry()
