@@ -379,8 +379,9 @@ const fetchEmployees = async () => {
 
 const fetchAllEmployees = async () => {
     try {
-        const token = getToken()
-        const res = await axios.get(`${url}/api/employee/all`, {
+        const token = getToken();
+        const empId = getId();
+        const res = await axios.get(`${url}/api/employee/company/${empId}`, {
             headers: {
                 authorization: token || ""
             }

@@ -1098,7 +1098,7 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
             }
             else if (item?.CompanyName && params["*"] === "company") {
                 return setColumns(column13)
-            } else if (item?.icon) {
+            } else if (params["*"] === "country") {
                 return setColumns(column14)
             } else if (item?.orgName) {
                 return setColumns(column15)

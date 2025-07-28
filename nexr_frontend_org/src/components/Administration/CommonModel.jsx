@@ -78,7 +78,7 @@ const CommonModel = ({
         const uniqueIds = [...new Set(result)];
         changeData(uniqueIds, "selectTeamMembers");
     };
-    
+
     return (
         <Modal open={isAddData} size="sm" backdrop="static" onClose={() => {
             if (["Company", "Country", "Edit Country", "Organization", "Email Template"].includes(type)) {
@@ -132,10 +132,10 @@ const CommonModel = ({
                                                         : type === "Organization" ? "orgName"
                                                             : type === "LeaveType" ? "LeaveName"
                                                                 : type === "TimePattern" ? "PatternName"
-                                                                    // : ["WorkPlace", "View WorkPlace"]?.includes(type) ? "CompanyName"
-                                                                    : "name")}
+                                                                    : ["WorkPlace", "View WorkPlace"]?.includes(type) ? "CompanyName"
+                                                                        : "name")}
                                     />
-                                    {["CompanyName", "DepartmentName", "PositionName", "teamName", "orgName", "LeaveName", "PatternName", "CompanyName", "name"].some(item => errorMsg.includes(item)) ? <div className="text-center text-danger">{errorMsg}</div> : null}
+                                    {["CompanyName", "DepartmentName", "PositionName", "TeamName", "orgName", "LeaveName", "PatternName", "CompanyName", "name"].some(item => errorMsg.includes(item)) ? <div className="text-center text-danger">{errorMsg}</div> : null}
                                 </div>
                             </div>
                         }
@@ -143,11 +143,13 @@ const CommonModel = ({
                             ["Country", "Edit Country"].includes(type) &&
                             <div className="col-half">
                                 <div className="modelInput">
-                                    <p className='modelLabel'>Icon:</p>
+                                    <p className='modelLabel important'>Icon:</p>
                                     <Input required
-                                        name={`icon`}
+                                        name={`icon`}   
+                                        className={errorMsg?.toLowerCase()?.includes("icon") ? "error" : ""}
                                         value={dataObj?.[`icon`] || ""}
                                         onChange={(e) => changeData(e.toUpperCase(), "icon")} />
+                                    {errorMsg?.toLowerCase()?.includes("icon") ? <div className="text-center text-danger">{errorMsg}</div> : null}
                                 </div>
                             </div>
                         }
@@ -654,7 +656,7 @@ const CommonModel = ({
                                         data={employees}
                                         required
                                         size="lg"
-                                        className={`${errorMsg?.toLowerCase()?.includes(["assignedTo", "employees"]) ? "error" : ""}`}
+                                        className={`${["assignedTo", "employees"].some((item) => errorMsg.includes(item)) ? "error" : ""}`}
                                         defaultValue={[data._id]}
                                         appearance="default"
                                         disabled={["Report View", "Project View", "View WorkPlace"].includes(type) ? true : false}
@@ -990,10 +992,11 @@ const CommonModel = ({
                     <div className="d-flex justify-content-between gap-2">
                         <div className="col-half">
                             <div className="modelInput">
-                                <p className='modelLabel'>Abbriviation:</p>
+                                <p className='modelLabel important'>Abbriviation:</p>
                                 <Input
                                     required
                                     size="lg"
+                                    className={errorMsg?.toLowerCase()?.includes("abbr") ? "error" : ""}
                                     style={{ width: "100%", height: 45 }}
                                     type={"text"}
                                     name={`abbr`}
@@ -1001,6 +1004,7 @@ const CommonModel = ({
                                     appearance='default'
                                     onChange={(e) => changeData(e, "abbr")}
                                 />
+                                {errorMsg?.toLowerCase()?.includes("abbr") ? <div className="text-center text-danger">{errorMsg}</div> : null}
                             </div>
                         </div>
                         <div className="col-half">
@@ -1010,8 +1014,8 @@ const CommonModel = ({
                                     min={0}
                                     required
                                     size="lg"
+                                    className={errorMsg?.toLowerCase()?.includes("code") ? "error" : ""}
                                     style={{ width: "100%", height: 45 }}
-                                    max={3}
                                     value={dataObj?.[`code`] || ""}
                                     appearance='default'
                                     onChange={(e) => {
@@ -1020,6 +1024,7 @@ const CommonModel = ({
                                         }
                                     }}
                                 />
+                                {errorMsg?.toLowerCase()?.includes("code") ? <div className="text-center text-danger">{errorMsg}</div> : null}
                             </div>
                         </div>
                     </div>}

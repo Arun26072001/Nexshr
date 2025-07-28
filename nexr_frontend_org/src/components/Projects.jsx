@@ -20,9 +20,7 @@ import defaultProfile from "../imgs/male_avatar.webp";
 
 export default function Projects() {
     const navigate = useNavigate();
-    const { whoIs, data,
-        // socket 
-    } = useContext(EssentialValues);
+    const { whoIs, data } = useContext(EssentialValues);
     const { isTeamLead, isTeamHead, isTeamManager } = jwtDecode(data.token);
     const { handleAddTask, employees } = useContext(TimerStates);
     const [teams, setTeams] = useState([]);
@@ -43,12 +41,14 @@ export default function Projects() {
     // Fetch companies data
     const fetchCompanies = async () => {
         try {
-            const response = await axios.get(url + "/api/company", {
+            const response = await axios.get(`${url}/api/company/employee/${data._id}`, {
                 headers: {
                     authorization: data.token || ""
                 }
             });
-            setCompanies(response.data.map((company) => ({ label: company.CompanyName, value: company._id })));
+            const companies = response.data || [];
+            console.log("companies", companies)
+            setCompanies(companies.map((company) => ({ label: company.CompanyName, value: company._id })));
         } catch (err) {
             console.error("Error fetching companies:", err.message || err);
         }
@@ -153,8 +153,9 @@ export default function Projects() {
             }
             setErrorData(error.response.data.error)
             toast.error(error?.response?.data?.error)
+        } finally {
+            setIsWorkingApi(false);
         }
-        setIsWorkingApi(false);
     }
 
     async function addProject() {
@@ -182,8 +183,9 @@ export default function Projects() {
             }
             setErrorData(error.response.data.error)
             toast.error(error?.response?.data?.error)
+        } finally {
+            setIsWorkingApi(false);
         }
-        setIsWorkingApi(false);
     }
 
 
@@ -260,7 +262,8 @@ export default function Projects() {
         } else {
             fetchEmpsProjects()
         }
-    }, [isAddProject, isDelete.type, isEdit])
+    }, [isAddProject, isDelete.type, isEdit]);
+
     const renderMenu = (project) => ({ onClose, right, top, className }, ref) => {
         const handleSelect = (eventKey) => {
             if (eventKey === 1) {
@@ -280,16 +283,21 @@ export default function Projects() {
         return (
             <Popover ref={ref} className={className} style={{ right, top }}>
                 <Dropdown.Menu onSelect={handleSelect} title="Personal Settings">
-                    <Dropdown.Item eventKey={1}>
-                        <b>
-                            <BorderColorRoundedIcon sx={{ color: "#FFD65A" }} /> Edit
-                        </b>
-                    </Dropdown.Item>
-                    <Dropdown.Item eventKey={2}>
-                        <b>
-                            <DeleteRoundedIcon sx={{ color: "#F93827" }} /> Put in the trash
-                        </b>
-                    </Dropdown.Item>
+                    {
+                        project.createdby === data._id &&
+                        <>
+                            <Dropdown.Item eventKey={1}>
+                                <b>
+                                    <BorderColorRoundedIcon sx={{ color: "#FFD65A" }} /> Edit
+                                </b>
+                            </Dropdown.Item>
+                            <Dropdown.Item eventKey={2}>
+                                <b>
+                                    <DeleteRoundedIcon sx={{ color: "#F93827" }} /> Put in the trash
+                                </b>
+                            </Dropdown.Item>
+                        </>
+                    }
                     <Dropdown.Item eventKey={3}>
                         <b>
                             <RemoveRedEyeRoundedIcon sx={{ color: "#80C4E9" }} /> View
@@ -303,8 +311,8 @@ export default function Projects() {
 
     return (
         isViewProject ? <CommonModel type="Project View" errorMsg={errorData} comps={companies} teams={teams} isAddData={isViewProject} employees={employees} dataObj={projectObj} modifyData={handleViewProject} /> :
-            isEdit ? <CommonModel type="Assign" isAddData={isEdit} isWorkingApi={isWorkingApi} employees={employees} changeData={changeProject} dataObj={projectObj} editData={updateProject} modifyData={handleEditProject} /> :
-                isDelete.type ? <CommonModel type="Project Confirmation" modifyData={handleDeleteProject} deleteData={deleteProject} isAddData={isDelete} /> :
+            isEdit ? <CommonModel type="Assign" isAddData={isEdit} isWorkingApi={isWorkingApi} employees={employees} errorMsg={errorData} changeData={changeProject} dataObj={projectObj} editData={updateProject} modifyData={handleEditProject} /> :
+                isDelete.type ? <CommonModel type="Project Confirmation" modifyData={handleDeleteProject} deleteData={deleteProject} errorMsg={errorData} isAddData={isDelete} /> :
                     isAddProject ? <CommonModel
                         comps={companies}
                         errorMsg={errorData}

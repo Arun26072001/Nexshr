@@ -157,6 +157,36 @@ router.get("/all", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
   }
 });
 
+router.get("/company/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
+  try {
+    const emp = await Employee.findById(req.params.id, "company").lean().exec();
+    if (!emp && !emp.company) {
+      return res.status(404).send({ error: "You are not in any team" })
+    }
+    const employees = await Employee.find({ company: emp.company }, "FirstName LastName profile employmentType dateOfJoining gender working code docType serialNo company position department workingTimePattern role")
+      .populate([
+        {
+          path: "company",
+          select: "_id CompanyName Town"
+        }, {
+          path: "position"
+        },
+        {
+          path: "department"
+        }, {
+          path: "workingTimePattern",
+        }, {
+          path: "role"
+        }
+      ]).lean().exec();
+    res.send(employees)
+  } catch (err) {
+    await errorCollector({ url: req.originalUrl, name: err.name, message: err.message, env: process.env.ENVIRONMENT })
+    console.log(err);
+    res.status(500).send({ error: err.message })
+  }
+})
+
 router.get("/team/:higher", verifyAdminHRTeamHigherAuth, async (req, res) => {
   try {
     const { higher } = req.params;
