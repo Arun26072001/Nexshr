@@ -452,14 +452,19 @@ const fetchPayslipInfo = async () => {
     }
 }
 
-const fetchPayslipFromEmp = async (_id) => {
+const fetchPayslipFromEmp = async (_id, dateRangeValue) => {
     try {
-        const payslip = await axios.get(`${url}/api/payslip/emp/${_id}`);
+        const token = getToken()
+        const payslip = await axios.get(`${url}/api/payslip/emp/${_id}`, {
+            params: {
+                dateRangeValue
+            },
+            headers: {
+                Authorization: token
+            }
+        });
         return payslip.data;
     } catch (error) {
-        //  if (error?.message === "Network Error") {
-        //         navigate("/network-issue")
-        //     }
         return error?.response?.data?.message
     }
 }

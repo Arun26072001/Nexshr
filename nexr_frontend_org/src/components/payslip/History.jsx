@@ -1,13 +1,33 @@
-import React, { useContext } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { EssentialValues } from "../../App";
 import RequestPageIcon from '@mui/icons-material/RequestPage';
 import { useNavigate } from "react-router-dom";
 import NoDataFound from "./NoDataFound";
 import { Skeleton } from "@mui/material";
+import { fetchPayslipFromEmp } from "../ReuseableAPI";
+import { toast } from "react-toastify";
 
-const History = ({ payslips, isLoading }) => {
+const History = () => {
     const { data, whoIs } = useContext(EssentialValues);
     const navigate = useNavigate();
+    const [payslips, setPayslips] = useState({});
+    const [isLoading, setIsLoading] = useState(false);
+
+    useEffect(() => {
+        async function fetchPayslips() {
+            setIsLoading(true);
+            try {
+                const slips = await fetchPayslipFromEmp(data._id);
+                setPayslips(slips);
+            } catch (err) {
+                toast.error(err?.response?.data?.error)
+            } finally {
+                setIsLoading(false);
+            }
+        }
+
+        fetchPayslips();
+    }, [data._id])
 
     if (isLoading) {
         return <div className="gap-1">

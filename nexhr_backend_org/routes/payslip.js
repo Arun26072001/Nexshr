@@ -3,6 +3,7 @@ const { Employee } = require("../models/EmpModel");
 const { Payslip } = require("../models/PaySlipModel");
 const { getWeekdaysOfCurrentMonth, sumLeaveDays, errorCollector } = require("../Reuseable_functions/reusableFunction");
 const { Holiday } = require("../models/HolidayModel");
+const { verifyAdminHREmployeeManagerNetwork } = require("../auth/authMiddleware");
 const router = express.Router();
 
 router.get("/:id", async (req, res) => {
@@ -69,6 +70,7 @@ router.post("/", async (req, res) => {
         const payslip = {
           payslip: {
             ...emp.payslipFields,
+            date: new Date(),
             basicSalary: emp.basicSalary,
             LossOfPay: Number((leaveDays * perDayOfSalary).toFixed(2)),
             status: "pending",
@@ -98,10 +100,24 @@ router.post("/", async (req, res) => {
   }
 });
 
-
-router.get("/emp/:empId", async (req, res) => {
+router.get("/emp/:empId", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
   try {
-    let payslips = await Payslip.find({ employee: req.params.empId }).populate("employee", "FirstName LastName payslip basicSalary profile").exec();
+    const dateRangeValue = req.query?.dataRangeValue;
+    let filterObj = {
+      employee: req.params.empId,
+    }
+    let fromDate, toDate;
+    if (dateRangeValue && dateRangeValue.length > 0) {
+      [fromDate, toDate] = dateRangeValue.map((date) => new Date(date));
+      fromDate.setHours(0, 0, 0, 0);
+      toDate.setHours(23, 59, 59, 0);
+      filterObj = {
+        employee: req.params.empId,
+        date: { $lte: fromDate, $gte: toDate }
+      }
+    }
+    let payslips = await Payslip.find(filterObj).populate("employee", "FirstName LastName payslip basicSalary profile").exec();
+
     const arrangedPayslips = payslips.sort((a, b) => new Date(String(a.payslip.period)) - new Date(String(b.payslip.period)))
     const pendingPayslips = arrangedPayslips.filter((slip) => slip.payslip.status === "pending");
     const conflitPayslips = arrangedPayslips.filter((slip) => slip.payslip.status === "conflict");

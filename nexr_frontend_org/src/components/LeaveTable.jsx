@@ -14,7 +14,6 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { Dropdown } from 'rsuite';
 import ViewAttendanceModel from './ViewAttendanceModel';
 import { toast } from 'react-toastify';
-import { TimerStates } from './payslip/HRMDashboard';
 import KeyRoundedIcon from '@mui/icons-material/KeyRounded';
 import BorderColorRoundedIcon from '@mui/icons-material/BorderColorRounded';
 import DeleteRoundedIcon from '@mui/icons-material/DeleteRounded';
@@ -1180,7 +1179,7 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
                                                     if (["leave-records", "wfh-request"].includes(params['*'])) {
                                                         return (
                                                             <Dropdown placement='leftStart' title={isLoading === row._id ? <Loading size={20} color={"black"} /> : <EditRoundedIcon style={{ cursor: isLoading === row._id ? "process" : "pointer" }} />} noCaret>
-                                                                <Dropdown.Item style={{ minWidth: 120 }} onClick={() => navigate(params['*'] === "leave-records" ? `/${whoIs}/leave-records/view/${row._id}` : `/${whoIs}/wfh-request/view/${row._id}`)}>View</Dropdown.Item>
+                                                                <Dropdown.Item style={{ minWidth: 120 }} onClick={() => navigate(params['*'] === "leave-records" ? `/${whoIs}/leave-request/view/${row._id}` : `/${whoIs}/wfh-request/view/${row._id}`)}>View</Dropdown.Item>
                                                                 {
                                                                     (isTeamLead && row?.approvers?.lead === "pending") ||
                                                                         (isTeamHead && row?.approvers?.head === "pending") ||
@@ -1295,7 +1294,7 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
                                                         )
                                                     } else if (params["*"] === "leave") {
                                                         return (<Dropdown title={isLoading === row._id ? <Loading size={20} color={"black"} /> : "Action"} noCaret placement="leftStart">
-                                                            <Dropdown.Item style={{ minWidth: 80 }} onClick={() => navigate(`/${whoIs}/leave-records/view/${row._id}`)}>
+                                                            <Dropdown.Item style={{ minWidth: 80 }} onClick={() => navigate(`/${whoIs}/leave-request/view/${row._id}`)}>
                                                                 <b>
                                                                     <RemoveRedEyeRoundedIcon sx={{ color: "#80C4E9" }} /> View
                                                                 </b>
@@ -1303,7 +1302,7 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
                                                             {
                                                                 row.status === "pending" && row.leaveType !== "Unpaid Leave (LWP)" ?
                                                                     <>
-                                                                        <Dropdown.Item style={{ minWidth: 80 }} onClick={() => navigate(`/${whoIs}/leave-records/edit/${row._id}`)}>
+                                                                        <Dropdown.Item style={{ minWidth: 80 }} onClick={() => navigate(`/${whoIs}/leave-request/edit/${row._id}`)}>
                                                                             <b>
                                                                                 <BorderColorRoundedIcon sx={{ color: "#FFD65A" }} /> Edit
                                                                             </b>
