@@ -329,7 +329,7 @@ router.put("/:empId/:id", verifyTeamHigherAuthority, async (req, res) => {
 });
 
 
-router.delete("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
+router.delete("/:id", verifyTeamHigherAuthority, async (req, res) => {
   try {
     const project = await Project.findById(req.params.id);
     if (!project) {
