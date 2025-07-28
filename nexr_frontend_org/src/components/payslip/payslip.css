@@ -29,8 +29,8 @@
 
 .emtChart {
   position: absolute;
-  top: -31px;
-  left: 58px;
+  bottom: 20px;
+  text-align: center;
 }
 
 .chartParent {

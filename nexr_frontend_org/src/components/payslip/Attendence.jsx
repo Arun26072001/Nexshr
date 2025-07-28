@@ -154,6 +154,7 @@ const Attendence = () => {
                 { key: "totalLateLogins", label: "Late", height: lateHeight },
                 { key: "totalLeaveDays", label: "Leave", height: clockInsData.totalLeaveDays * 10 },
               ].map(({ key, label, height }) => {
+                console.log(key, height, label);
                 return (<div
                   key={key}
                   className={`col-lg-3 col-3 ${label.toLowerCase()}`}
