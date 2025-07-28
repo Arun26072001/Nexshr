@@ -52,7 +52,7 @@ router.post("/", verifyAdmin, async (req, res) => {
         const isExists = countries.filter((item) => item.code === req.body.code);
 
         if (isExists.length > 0) {
-            return res.status(400).send({ error: "Country already Exists" })
+            return res.status(400).send({ error: "Country code is already exists" })
         }
 
         // check validation for country

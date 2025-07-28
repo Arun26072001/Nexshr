@@ -4,7 +4,7 @@ const { verifyAdminHREmployeeManagerNetwork, verifyAdminHrNetworkAdmin, verifyTe
 const { ClockIns, clockInsValidation } = require("../models/ClockInsModel");
 const { Employee } = require("../models/EmpModel");
 const sendMail = require("./mailSender");
-const { format } = require("date-fns");
+const { format, toDate } = require("date-fns");
 const { toZonedTime } = require("date-fns-tz");
 const { LeaveApplication } = require("../models/LeaveAppModel");
 const { Team } = require("../models/TeamModel");
@@ -73,8 +73,7 @@ router.post("/verify_completed_workinghour", verifyAdminHREmployeeManagerNetwork
 router.post("/not-login/apply-leave/:workPatternId", async (req, res) => {
     try {
         const timePatternId = req.params.workPatternId;
-        const timeZone = process.env.TIMEZONE || "Asia/Kolkata";
-        const now = toZonedTime(new Date(), timeZone);
+        const now = getCurrentTimeInMinutes();
 
         const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0);
         const endOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59);
@@ -95,6 +94,7 @@ router.post("/not-login/apply-leave/:workPatternId", async (req, res) => {
         const allEmployees = await Employee.find({ workingTimePattern: timePatternId },
             "_id workingTimePattern FirstName LastName Email team leaveApplication company")
             .populate("leaveApplication")
+            .populate("workingTimePattern")
             .populate({
                 path: "team",
                 populate: { path: "hr", select: "FirstName LastName Email fcmToken" },
@@ -131,22 +131,23 @@ router.post("/not-login/apply-leave/:workPatternId", async (req, res) => {
 
         const emailPromises = [];
         const leaveApplications = await Promise.all(notLoginEmps.map(async (emp) => {
-            if (!emp.workingTimePattern) return null;
+            if (!emp.workingTimePattern && !emp.workingTimePattern.StartingTime) return null;
+            const [startHour, startMin] = timeZoneHrMin(emp.workingTimePattern.StartingTime).split(":").map((value) => Number(value));
+            const [endHour, endMin] = timeZoneHrMin(emp.workingTimePattern.FinishingTime).split(":").map((value) => Number(value));
 
-            const start = new Date(emp.workingTimePattern.StartingTime);
-            const end = new Date(emp.workingTimePattern.FinishingTime);
-            const workingHours = getTotalWorkingHourPerDayByDate(start, end) || 9.5;
-
-            const fromDate = new Date(now.getTime() - workingHours * 60 * 60 * 1000);
+            const from = new Date();
+            from.setHours(startHour, startMin);
+            const to = new Date();
+            to.setHours(endHour, endMin);
 
             const leave = await LeaveApplication.create({
                 leaveType: "Unpaid Leave (LWP)",
-                fromDate,
-                toDate: now,
+                fromDate: from,
+                toDate: to,
                 periodOfLeave: "full day",
                 reasonForLeave: "Didn't punch in until EOD",
                 employee: emp._id,
-                status: "pending",
+                status: "approved",
                 approvers: {
                     lead: "approved",
                     head: "approved",

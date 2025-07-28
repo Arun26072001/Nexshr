@@ -31,7 +31,7 @@ router.post("/", verifyAdminHR, async (req, res) => {
   try {
     const { error } = PositionValidation.validate(req.body);
     if (error) {
-      return res.status(400).send({ message: error.details[0].message });
+      return res.status(400).send({ error: error.details[0].message });
     }
 
     const existing = await Position.findOne({ PositionName: req.body.PositionName });
@@ -42,12 +42,11 @@ router.post("/", verifyAdminHR, async (req, res) => {
     }
 
     const position = await Position.create(req.body);
-
     res.send({ message: `${position.PositionName} Position added!` });
   } catch (err) {
     await errorCollector({ url: req.originalUrl, name: err.name, message: err.message, env: process.env.ENVIRONMENT })
     console.error(err);
-    res.status(500).send({ message: "Internal server error." });
+    res.status(500).send({ error: err.message });
   }
 });
 
@@ -60,7 +59,7 @@ router.put("/:id", verifyAdminHR, async (req, res) => {
 
     const { error } = PositionValidation.validate(updatedPosition);
     if (error) {
-      return res.status(400).send({ message: error.details[0].message });
+      return res.status(400).send({ error: error.details[0].message });
     }
 
     const position = await Position.findByIdAndUpdate(
@@ -77,7 +76,7 @@ router.put("/:id", verifyAdminHR, async (req, res) => {
   } catch (err) {
     await errorCollector({ url: req.originalUrl, name: err.name, message: err.message, env: process.env.ENVIRONMENT })
     console.error(err);
-    res.status(500).send({ message: "Internal server error." });
+    res.status(500).send({ err: err.message });
   }
 });
 

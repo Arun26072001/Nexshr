@@ -438,7 +438,6 @@ function checkDateIsHoliday(dateList = [], target) {
 }
 
 function changeClientTimezoneDate(date) {
-  // const date  = new Date(value);
   const actualDate = toZonedTime(new Date(date), process.env.TIMEZONE);
   return actualDate
 }

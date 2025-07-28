@@ -278,6 +278,7 @@ const Tasks = () => {
             Authorization: data.token || ""
           }
         })
+        console.log("projectTasks", res.data.tasks);
         setProjectAllTasks(res.data.tasks);
       } catch (error) {
         if (error?.message === "Network Error") {
@@ -299,11 +300,10 @@ const Tasks = () => {
         }
       })
       const empTasks = res.data?.tasks;
+      console.log("empTasks", empTasks);
       setProjectAllTasks(empTasks)
       setAllTask(empTasks?.map((task) => ({ label: task.title + " " + task.status, value: task._id })));
       setNotCompletedTasks(empTasks.filter((task) => task.status !== "Completed")?.map((task) => ({ label: task.title, value: task._id })))
-      //   if (empTasks.length) {
-      // }
     } catch (error) {
       if (error?.message === "Network Error") {
         navigate("/network-issue")
@@ -390,23 +390,19 @@ const Tasks = () => {
   }, [status, projectAllTasks]);
 
   async function editTask(updatedTask, changeComments) {
-    if (!updatedTask?._id) {
-      toast.error("Invalid task. Please try again.");
-      return;
-    }
 
     let taskToUpdate = { ...updatedTask };
 
-    // Ensure `spend.timeHolder` is correctly formatted
-    if (
-      typeof updatedTask?.spend?.timeHolder === "string" &&
-      updatedTask.spend.timeHolder.split(/[:.]+/).length <= 2
-    ) {
-      taskToUpdate.spend = {
-        ...updatedTask.spend,
-        timeHolder: formatTimeFromHour(updatedTask.spend.timeHolder) || "00:00:00",
-      };
-    }
+    // // Ensure `spend.timeHolder` is correctly formatted
+    // if (
+    //   typeof updatedTask?.spend?.timeHolder === "string" &&
+    //   updatedTask.spend.timeHolder.split(/[:.]+/).length <= 2
+    // ) {
+    //   taskToUpdate.spend = {
+    //     ...updatedTask.spend,
+    //     timeHolder: formatTimeFromHour(updatedTask.spend.timeHolder) || "00:00:00",
+    //   };
+    // }
 
     setIsUpdateTime(updatedTask._id);
 
@@ -597,6 +593,41 @@ const Tasks = () => {
     setIsLoading(false)
   }
 
+  async function getValue(task) {
+    // const taskData = await fetchTaskById(task._id);
+    const updatedTask = {
+      ...task,
+      "status": task.status === "Completed" ? "Pending" : "Completed"
+    }
+    editTask(updatedTask)
+  }
+
+  async function updatedTimerInTask(id, timerType) {
+    const taskData = await fetchTaskById(id);
+    let updatedTask;
+    const currentTime = new Date();
+    if (timerType === "startTime") {
+      updatedTask = {
+        ...taskData,
+        spend: {
+          ...taskData?.spend,
+          startingTime: [...(taskData?.spend?.startingTime || []), currentTime]
+        },
+        status: "In Progress" 
+      }
+    } else {
+      updatedTask = {
+        ...taskData,
+        spend: {
+          ...taskData?.spend,
+          endingTime: [...(taskData?.spend?.endingTime || []), currentTime],
+        },
+        status: "Pending"
+      }
+    }
+    editTask(updatedTask)
+  }
+
   useEffect(() => {
     if (projectId) {
       fetchTaskByProjectId(projectId)
@@ -649,42 +680,6 @@ const Tasks = () => {
       fetchEmpsProjects()
     }
   }, [])
-
-  async function getValue(task) {
-    // const taskData = await fetchTaskById(task._id);
-    const updatedTask = {
-      ...task,
-      "status": task.status === "Completed" ? "Pending" : "Completed"
-    }
-    editTask(updatedTask)
-  }
-
-  async function updatedTimerInTask(id, timerType, timeHolderData) {
-    const taskData = await fetchTaskById(id);
-    let updatedTask;
-    const currentTime = new Date().toTimeString().split(' ')[0];
-    if (timerType === "startTime") {
-      updatedTask = {
-        ...taskData,
-        spend: {
-          ...taskData?.spend,
-          startingTime: [...(taskData?.spend?.startingTime || []), currentTime]
-        },
-        status: "In Progress"
-      }
-    } else {
-      updatedTask = {
-        ...taskData,
-        spend: {
-          ...taskData?.spend,
-          endingTime: [...(taskData?.spend?.endingTime || []), currentTime],
-          timeHolder: timeHolderData
-        },
-        status: "Pending"
-      }
-    }
-    editTask(updatedTask)
-  }
 
   return (
     isviewTask ? <CommonModel type="Task View" errorMsg={errorData} isAddData={isviewTask} modifyData={handleViewTask} dataObj={taskObj} projects={projects} removeAttachment={removeAttachment} employees={employees} /> :
