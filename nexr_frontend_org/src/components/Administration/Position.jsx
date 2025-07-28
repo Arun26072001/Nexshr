@@ -59,11 +59,14 @@ export default function Position() {
             if (error?.message === "Network Error") {
                 navigate("/network-issue")
             }
-            const errorMsg = error?.response?.data?.error
+            console.log("error", error);
+            const errorMsg = error?.response?.data?.error;
+            console.log("errorMsg", errorMsg)
             setErrorData(errorMsg)
             toast.error(errorMsg)
+        } finally {
+            setIschangingPosition(false);
         }
-        setIschangingPosition(false);
     }
 
     async function deletePosition(id) {
@@ -171,7 +174,6 @@ export default function Position() {
                 <div className="d-flex justify-content-between px-2">
                     <h5 className='text-daily'>Position</h5>
                     <button className='button m-0' onClick={modifyPositions}>+ Add Position</button>
-
                 </div>
                 {
                     isLoading ? <Skeleton

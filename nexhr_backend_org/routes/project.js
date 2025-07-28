@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { Project, projectValidation } = require('../models/ProjectModel');
-const { verifyAdminHREmployeeManagerNetwork, verifyAdminHRTeamHigherAuth } = require('../auth/authMiddleware');
+const { verifyAdminHREmployeeManagerNetwork, verifyAdminHRTeamHigherAuth, verifyTeamHigherAuthority } = require('../auth/authMiddleware');
 const { Task } = require('../models/TaskModel');
 const sendMail = require('./mailSender');
 const { Employee } = require('../models/EmpModel');
@@ -202,8 +202,7 @@ router.post("/:id", verifyAdminHRTeamHigherAuth, async (req, res) => {
   }
 });
 
-
-router.put("/:empId/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
+router.put("/:empId/:id", verifyTeamHigherAuthority, async (req, res) => {
   try {
     const projectData = await Project.findById(req.params.id);
     const employee = await Employee.findById(req.params.empId);

@@ -12,12 +12,15 @@ export default function Mytimer2({ task, updatedTimerInTask }) {
 
     useEffect(() => {
         if (task?.spend?.timeHolder && task?.spend?.timeHolder.split(/[:.]+/).length > 2) {
+            console.log("holder before", task?.spend?.timeHolder)
             const [newHour, newMin, newSec] = task.spend.timeHolder.split(/[:.]+/).map(Number);
+            console.log("holder after", newHour, newMin, newSec)
             setHour(newHour || 0);
             setMin(newMin || 0);
             setSec(newSec || 0);
         } else {
             const hourMinSec = formatTimeFromHour(Number(task?.spend?.timeHolder));
+            console.log("fromTime", hourMinSec)
             setHour(hourMinSec.split(/[:.]+/)[0])
             setMin(hourMinSec.split(/[:.]+/)[1])
             setSec(hourMinSec.split(/[:.]+/)[2])

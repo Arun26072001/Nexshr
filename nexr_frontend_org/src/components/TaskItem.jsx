@@ -17,7 +17,6 @@ export default function TaskItem({ task, status, getValue, handleEditTask, handl
 
     useEffect(() => {
         const spendTime = task?.spend?.timeHolder?.split(/[:.]+/)?.length > 2 ? getTimeFromHour(task.spend.timeHolder) : Number(task.spend.timeHolder)
-
         const calculatedValue = Number(task.estTime) - spendTime
         const hourMinSec = formatTimeFromHour(calculatedValue)
 

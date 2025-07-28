@@ -62,7 +62,7 @@ router.get("/project/:id", verifyAdminHREmployeeManagerNetwork, async (req, res)
                     ...task.spend.toObject(),
                     timeHolder
                 }
-            };
+        };
         }).filter(Boolean);
 
         return res.send({ tasks: timeUpdatedTasks });
@@ -559,7 +559,7 @@ router.put("/:empId/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) 
             tracker: [...taskData.tracker, ...taskChanges],
             createdby: createdById,
             comments: updatedComments
-        };
+        };  
 
         // Update Task in DB
         const task = await Task.findByIdAndUpdate(req.params.id, updatedTask, { new: true });

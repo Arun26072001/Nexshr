@@ -7,6 +7,8 @@ var positionSchema = new mongoose.Schema({
 });
 
 const PositionValidation = Joi.object().keys({
+  _id: Joi.any().optional(),
+  __v: Joi.any().optional(),
   PositionName: Joi.string()
     .max(200)
     .required(),

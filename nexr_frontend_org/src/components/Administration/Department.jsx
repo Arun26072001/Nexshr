@@ -63,8 +63,9 @@ export default function Department() {
             const errorMsg = error?.response?.data?.error
             setErrorData(errorMsg)
             toast.error(errorMsg)
+        } finally {
+            setIsChangingDepartment(false);
         }
-        setIsChangingDepartment(false);
     }
 
     async function deleteDepartment(id) {
@@ -113,8 +114,9 @@ export default function Department() {
             const errorMsg = error?.response?.data?.error
             setErrorData(errorMsg)
             toast.error(errorMsg)
+        } finally {
+            setIsChangingDepartment(false);
         }
-        setIsChangingDepartment(false);
     }
 
     async function getEditDepartmentId(id) {

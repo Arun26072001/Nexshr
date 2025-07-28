@@ -78,7 +78,7 @@ const CommonModel = ({
         const uniqueIds = [...new Set(result)];
         changeData(uniqueIds, "selectTeamMembers");
     };
-
+    
     return (
         <Modal open={isAddData} size="sm" backdrop="static" onClose={() => {
             if (["Company", "Country", "Edit Country", "Organization", "Email Template"].includes(type)) {
@@ -125,8 +125,15 @@ const CommonModel = ({
                                         className={`${["CompanyName", "DepartmentName", "PositionName", "teamName", "orgName", "LeaveName", "PatternName", "CompanyName", "name"].some((item) => errorMsg?.includes(item)) ? "error" : ""}`}
                                         value={dataObj?.[type === "Department" ? "DepartmentName" : type === "Position" ? "PositionName" : type === "Team" ? "teamName" : type === "Organization" ? "orgName" : type === "LeaveType" ? "LeaveName" : type === "TimePattern" ? "PatternName" : ["WorkPlace", "View WorkPlace"].includes(type) ? "CompanyName" : `name`] || ""}
                                         disabled={["Report View", "Project View", "View WorkPlace"].includes(type) ? true : false}
-                                        onChange={!["Report View", "Project View", "View WorkPlace"].includes(type) ? (e) =>
-                                            changeData(e?.trimStart()?.replace(/\s+/g, ' '), type === "Department" ? "DepartmentName" : type === "Position" ? "PositionName" : type === "Team" ? "teamName" : type === "Organization" ? "orgName" : type === "LeaveType" ? "LeaveName" : type === "TimePattern" ? "PatternName" : ["WorkPlace", "View WorkPlace"].includes(type) ? "CompanyName" : "name") : null}
+                                        onChange={["Report View", "Project View", "View WorkPlace"].includes(type) ? null
+                                            : (e) => changeData(e?.trimStart()?.replace(/\s+/g, ' '), type === "Department" ? "DepartmentName"
+                                                : type === "Position" ? "PositionName"
+                                                    : type === "Team" ? "teamName"
+                                                        : type === "Organization" ? "orgName"
+                                                            : type === "LeaveType" ? "LeaveName"
+                                                                : type === "TimePattern" ? "PatternName"
+                                                                    // : ["WorkPlace", "View WorkPlace"]?.includes(type) ? "CompanyName"
+                                                                    : "name")}
                                     />
                                     {["CompanyName", "DepartmentName", "PositionName", "teamName", "orgName", "LeaveName", "PatternName", "CompanyName", "name"].some(item => errorMsg.includes(item)) ? <div className="text-center text-danger">{errorMsg}</div> : null}
                                 </div>
@@ -1677,10 +1684,10 @@ const CommonModel = ({
                                         onClick={() => isWorkingApi ? null : ((type === "Add Comments" && dataObj?._id) ? editData(dataObj, true) : dataObj?._id || type === "Edit Country" ? editData(dataObj) : type === "Edit Comments" ? editData() : addData())}
                                         appearance="primary"
                                         style={{ cursor: isWorkingApi ? "wait" : "pointer" }}
-                                        disabled={
-                                            ["Project", "Assign", "Task", "Task Assign", "Report", "Company", "Country", "Edit Country", "Announcement", "Team", "Add Comments", "TimePattern", "Edit Comments", "Organization", "MailSettings postmark", "MailSettings nodemailer", "LeaveType", "WorkPlace", "Email Template"].includes(type)
-                                                ? false : (["Department", "Position"].includes(type) && dataObj?.company ? false : true)
-                                        }
+                                    // disabled={
+                                    //     ["Project", "Assign", "Task", "Task Assign", "Report", "Company", "Country", "Edit Country", "Announcement", "Team", "Add Comments", "TimePattern", "Edit Comments", "Organization", "MailSettings postmark", "MailSettings nodemailer", "LeaveType", "WorkPlace", "Email Template"].includes(type)
+                                    //         ? false : true
+                                    // }
                                     >
                                         {isWorkingApi ? <Loading size={20} color='white' /> : type === "Add Comments" ? "Add" : dataObj?._id || type === "Edit Country" || type === "Edit Comments" ? "Update" : "Save"}
                                     </Button>

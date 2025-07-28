@@ -64,7 +64,7 @@ router.put("/:id", verifyAdminHR, async (req, res) => {
 
     const { error } = DepartmentValidation.validate(updateDepartment);
     if (error) {
-      return res.status(400).send({ message: error.details[0].message });
+      return res.status(400).send({ error: error.details[0].message });
     }
 
     const updatedDepartment = await Department.findByIdAndUpdate(
@@ -74,7 +74,7 @@ router.put("/:id", verifyAdminHR, async (req, res) => {
     );
 
     if (!updatedDepartment) {
-      return res.status(404).send({ message: "Department not found." });
+      return res.status(404).send({ error: "Department not found." });
     }
 
     res.send({ message: "Department has been updated!" });

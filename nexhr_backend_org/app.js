@@ -197,7 +197,6 @@ async function fetchTimePatterns() {
           const response = await axios.post(`${process.env.REACT_APP_API_URL}/api/clock-ins/not-login/apply-leave/${pattern._id}`);
           console.log("Apply Leave for Not-login Triggered:", response.data.message);
         } catch (error) {
-          // await errorCollector({ url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT })
           console.error("Logout Error:", error);
         }
       })
