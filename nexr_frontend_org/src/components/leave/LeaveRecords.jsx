@@ -111,9 +111,9 @@ export default function LeaveRecords() {
     useEffect(() => {
         function filterLeave() {
             if (empName === "") {
-                setLeaveRequests();
+                setLeaveRequests(filterLeaveRequests);
             } else {
-                const filterRequests = filterLeaveRequests?.leaveData.filter((leave) => leave?.employee?.FirstName?.toLowerCase()?.includes(empName) || leave?.employee?.LastName?.toLowerCase()?.includes(empName));
+                const filterRequests = filterLeaveRequests?.leaveData.filter((leave) => leave?.employee?.FirstName?.toLowerCase()?.includes(empName.toLowerCase()));
                 setLeaveRequests((pre) => ({ ...pre, leaveData: filterRequests }));
             }
         }
@@ -156,8 +156,7 @@ export default function LeaveRecords() {
                 headers: {
                     authorization: token || ""
                 }
-            })
-            console.log("leaveData", leaveData.data);
+            });
             setLeaveRequests(leaveData.data);
             setFilterLeaveRequests(leaveData.data);
         } catch (err) {
