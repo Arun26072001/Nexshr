@@ -46,21 +46,21 @@ const Sidebar = ({ isMobileView, handleSideBar, setIsMobileView }) => {
     setActiveSubmenu('');
   };
 
-  useEffect(() => {
-    const selectedPath = [{ path: "projects", label: "projects" }, { path: "tasks", label: "tasks" }, { path: "reports", label: "reports" }, { path: "holiday", label: "holiday" }, { path: "raise-bugs", label: "raise-bugs" }, { path: "email-template", label: "email-template" }].find((item) => {
-      return item.path === param["*"]
-    });
-    setActiveNavLink(selectedPath.label);
-    // if (param["*"].includes("employee")) {
-    //   setActiveNavLink("employee")
-    // } if (param['*'] === "") {
-    //   setActiveNavLink("dashboard")
-    // } if (param['*'].includes("job-desk")) {
-    //   setActiveNavLink("jobdesk");
-    // } if (param["*"].includes("projects")) {
-    //   setActiveNavLink("projects")
-    // }
-  }, [param["*"]])
+  // useEffect(() => {
+  //   const selectedPath = [{ path: "projects", label: "projects" }, { path: "tasks", label: "tasks" }, { path: "reports", label: "reports" }, { path: "holiday", label: "holiday" }, { path: "raise-bugs", label: "raise-bugs" }, { path: "email-template", label: "email-template" }].find((item) => {
+  //     return item.path === param["*"]
+  //   });
+  //   setActiveNavLink(selectedPath.label);
+  //   // if (param["*"].includes("employee")) {
+  //   //   setActiveNavLink("employee")
+  //   // } if (param['*'] === "") {
+  //   //   setActiveNavLink("dashboard")
+  //   // } if (param['*'].includes("job-desk")) {
+  //   //   setActiveNavLink("jobdesk");
+  //   // } if (param["*"].includes("projects")) {
+  //   //   setActiveNavLink("projects")
+  //   // }
+  // }, [param["*"]])
 
   const renderNavLink = (condition, path, icon, text, key) => {
     // console.log(condition, path, icon, text, key);
