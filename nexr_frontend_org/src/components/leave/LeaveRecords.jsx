@@ -113,7 +113,11 @@ export default function LeaveRecords() {
             if (empName === "") {
                 setLeaveRequests(filterLeaveRequests);
             } else {
-                const filterRequests = filterLeaveRequests?.leaveData.filter((leave) => leave?.employee?.FirstName?.toLowerCase()?.includes(empName.toLowerCase()));
+                const filterRequests = filterLeaveRequests?.leaveData.filter((leave) => {
+                    const emp = leave?.employee;
+                    const fullName = `${emp.FirstName}${emp.LastName}`.toLowerCase();
+                    return fullName.includes(empName.toLowerCase())
+                });
                 setLeaveRequests((pre) => ({ ...pre, leaveData: filterRequests }));
             }
         }

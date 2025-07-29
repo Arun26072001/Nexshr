@@ -98,7 +98,12 @@ export default function LatePunch() {
         if (empName === "") {
             setLatePunches(filteredPunches);
         } else {
-            const filterRequests = filteredPunches?.filter((item) => item.employee.FirstName.toLowerCase().includes(empName.toLowerCase()));
+            const filterRequests = filteredPunches?.filter((item) => {
+                const emp = item.employee;
+                const fullName = `${emp.FirstName}${emp.LastName}`.toLowerCase();
+                return fullName.includes(empName.toLowerCase())
+            }
+        );
             setLatePunches(filterRequests);
         }
     }, [empName]);
