@@ -413,15 +413,16 @@ router.get("/check-wfh/:id", verifyAdminHREmployeeManagerNetwork, async (req, re
     }
 })
 
-// get all requests
-router.get("/", verifyAdminHR, async (req, res) => {
+// get company's all wfh request
+router.get("/company/:id", verifyAdminHR, async (req, res) => {
     try {
+        const emp = await Employee.findById(req.params.id, "company").exec();
         const now = new Date()
         let filterObj = {};
         let startDate = new Date(now.getFullYear(), now.getMonth(), 1);
         let endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
-        if (req.query?.dateRangeValue?.length) {
 
+        if (req.query?.dateRangeValue?.length) {
             startDate = new Date(req.query.dateRangeValue[0]);
             endDate = new Date(req.query.dateRangeValue[1]);
             filterObj = {
@@ -430,10 +431,11 @@ router.get("/", verifyAdminHR, async (req, res) => {
             }
         }
 
-        const applications = await WFHApplication.find(filterObj)
+        let applications = await WFHApplication.find(filterObj)
             .populate("employee", "FirstName LastName profile")
             .lean()
             .exec();
+
         const correctRequests = applications.map((item) => ({
             ...item,
             reason: item.reason.replace(/<\/?[^>]+(>|$)/g, '')
@@ -456,6 +458,63 @@ router.get("/", verifyAdminHR, async (req, res) => {
         return res.status(500).send({ error: error.message })
     }
 })
+
+// get all requests
+router.get("/", verifyAdminHR, async (req, res) => {
+    try {
+        const now = new Date();
+        let empName = req.query.empName || "".toLowerCase();
+        let filterObj = {};
+        let startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+        let endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
+
+        if (req.query?.dateRangeValue?.length) {
+            startDate = new Date(req.query.dateRangeValue[0]);
+            endDate = new Date(req.query.dateRangeValue[1]);
+            filterObj = {
+                fromDate: { $lte: endDate },
+                toDate: { $gte: startDate }
+            }
+        }
+
+        let applications = await WFHApplication.find(filterObj)
+            .populate("employee", "FirstName LastName profile")
+            .lean()
+            .exec();
+            
+        if (empName) {
+            applications = applications.filter((wfh) => {
+                if (wfh.employee) {
+                    const emp = wfh.employee;
+                    const fullName = `${emp.FirstName}${emp.LastName}`.toLowerCase();
+                    return fullName.includes(empName)
+                }
+            })
+        }
+
+        const correctRequests = applications.map((item) => ({
+            ...item,
+            reason: item.reason.replace(/<\/?[^>]+(>|$)/g, '')
+        })).sort((a, b) => new Date(b.fromDate) - new Date(a.fromDate))
+
+        // pending wfh request days
+        const pendingrequestDays = correctRequests.filter((item) => item.status === "pending").reduce((total, iter) => total += Number(iter.numOfDays), 0);
+        const approvedrequestDays = correctRequests.filter((item) => item.status === "approved").reduce((total, iter) => total += Number(iter.numOfDays), 0);
+        const upcomingrequestDays = correctRequests.filter(request => new Date(request.fromDate) > now).reduce((total, iter) => total += Number(iter.numOfDays), 0);
+
+        return res.send({
+            correctRequests,
+            "pendingRequests": pendingrequestDays.toFixed(2),
+            "approvedRequests": approvedrequestDays.toFixed(2),
+            "upcommingRequests": upcomingrequestDays.toFixed(2)
+        });
+    } catch (error) {
+        await errorCollector({ url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT })
+        console.log("error in get month wfh", error);
+        return res.status(500).send({ error: error.message })
+    }
+})
+
 
 router.get("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
     try {
@@ -514,51 +573,92 @@ router.get("/employee/:id", verifyAdminHREmployeeManagerNetwork, async (req, res
 // get team of all employee requests
 router.get("/team/:id", verifyTeamHigherAuthority, async (req, res) => {
     try {
-        const now = new Date()
-        const who = req.query.who;
+        const now = new Date();
+        const who = req.query?.who || "";
+        const empName = req.query?.empName?.trim().toLowerCase() || "";
+        const teamId = req.params.id;
+
         let startDate = new Date(now.getFullYear(), now.getMonth(), 1);
         let endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
-        const teams = await Team.find({ [who]: req.params.id })
+
+        // Fetch teams
+        const teams = await Team.find({ [who]: teamId })
+            .populate("employees", "FirstName LastName")
+            .lean()
+            .exec();
+
         if (!teams.length) {
-            return res.status(404).send({ error: "You are not a Team higher authority." })
+            return res.status(404).send({ error: "You are not a team higher authority." });
         }
-        const employeesData = teams.map((team) => team.employees).flat();
-        const uniqueEmps = [...new Set([...employeesData])]
-        let filterObj = { employee: { $in: uniqueEmps } };
-        if (req.query.dateRangeValue) {
+
+        // Extract all employees
+        let allEmployees = teams.flatMap(team => team.employees || []);
+
+        // If searching by employee name, filter those
+        if (empName) {
+            allEmployees = allEmployees.filter(emp => {
+                if (emp) {  
+                    const fullName = `${emp.FirstName}${emp.LastName}`.toLowerCase();
+                    return fullName.includes(empName);
+                }
+            });
+        }
+
+        const uniqueEmpIds = [...new Set(allEmployees.map(emp => String(emp._id)))];
+
+        // Build Mongo query filter
+        const filterObj = {
+            employee: { $in: uniqueEmpIds }
+        };
+
+        if (req.query.dateRangeValue?.length === 2) {
             startDate = new Date(req.query.dateRangeValue[0]);
             endDate = new Date(req.query.dateRangeValue[1]);
-            filterObj = {
-                ...filterObj,
-                fromDate: { $lte: endDate },
-                toDate: { $gte: startDate }
-            }
+            filterObj.fromDate = { $lte: endDate };
+            filterObj.toDate = { $gte: startDate };
         }
-        const data = await WFHApplication.find(filterObj).populate("employee", "FirstName LastName profile").lean().exec();
 
-        const withoutHisData = data.filter((item) => String(item.employee._id) !== req.params.id);
-        const correctRequests = withoutHisData.map((item) => ({
-            ...item,
-            reason: item.reason.replace(/<\/?[^>]+(>|$)/g, '')
-        })).sort((a, b) => new Date(b.fromDate) - new Date(a.fromDate))
-        const pendingRequests = correctRequests.filter((item) => item.status === "pending");
-        const approvedRequests = correctRequests.filter((item) => item.status === "approved");
-        const upcommingRequests = correctRequests.filter(request => new Date(request.fromDate) > now);
+        // Fetch WFH applications
+        const applications = await WFHApplication.find(filterObj)
+            .populate("employee", "FirstName LastName profile")
+            .lean()
+            .exec();
 
-        const pendingReqDays = pendingRequests.reduce((total, request) => total + request.numOfDays, 0);
-        const upCommingReqDays = upcommingRequests.reduce((total, request) => total + request.numOfDays, 0);
-        const approvedReqDays = approvedRequests.reduce((total, request) => total + request.numOfDays, 0);
+        // Exclude self (team higher authority)
+        const filteredApplications = applications.filter(app => String(app.employee._id) !== teamId);
+
+        // Clean and sort results
+        const cleanApplications = filteredApplications.map(app => ({
+            ...app,
+            reason: app.reason?.replace(/<\/?[^>]+(>|$)/g, '') || ''
+        })).sort((a, b) => new Date(b.fromDate) - new Date(a.fromDate));
+
+        // Categorize
+        const pendingRequests = cleanApplications.filter(app => app.status === "pending");
+        const approvedRequests = cleanApplications.filter(app => app.status === "approved");
+        const upcomingRequests = cleanApplications.filter(app => new Date(app.fromDate) > now);
+
+        // Count days
+        const totalDays = (list) => list.reduce((sum, app) => sum + (app.numOfDays || 0), 0);
+
         return res.send({
-            correctRequests,
-            "pendingRequests": pendingReqDays,
-            "approvedRequests": approvedReqDays,
-            "upcommingRequests": upCommingReqDays
+            correctRequests: cleanApplications,
+            pendingRequests: totalDays(pendingRequests),
+            approvedRequests: totalDays(approvedRequests),
+            upcommingRequests: totalDays(upcomingRequests)
         });
+
     } catch (error) {
-        await errorCollector({ url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT })
-        return res.status(500).send({ error: error.message })
+        console.error("Error in /team/:id:", error);
+        await errorCollector({
+            url: req.originalUrl,
+            name: error.name,
+            message: error.message,
+            env: process.env.ENVIRONMENT
+        });
+        return res.status(500).send({ error: error.message });
     }
-})
+});
 
 router.put("/reject-wfh", async (req, res) => {
     try {
@@ -579,7 +679,7 @@ router.put("/reject-wfh", async (req, res) => {
         await Promise.all(wfhReqs.map(async (wfh) => {
             // check has more than two team members in wfh
             const empId = wfh.employee?._id;
-            if(!empId){
+            if (!empId) {
                 console.log("empId not found, please check employee is exists");
                 return;
             }
@@ -594,7 +694,7 @@ router.put("/reject-wfh", async (req, res) => {
                 })
             } else {
                 console.log(`${wfh.employee?.FirstName} is currently not assigned to any team. Kindly confirm with your HR`);
-                return; 
+                return;
             }
 
             let approvers = {};

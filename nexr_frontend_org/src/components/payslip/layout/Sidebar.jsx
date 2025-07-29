@@ -1,5 +1,5 @@
 import React, { useContext, useState } from 'react';
-import { NavLink, useNavigate, useParams } from 'react-router-dom';
+import { NavLink, useLocation, useNavigate, useParams } from 'react-router-dom';
 import './sidebar.css';
 import KeyboardArrowDownSharpIcon from '@mui/icons-material/KeyboardArrowDownSharp';
 import { EssentialValues } from '../../../App';
@@ -27,43 +27,51 @@ const Sidebar = ({ isMobileView, handleSideBar, setIsMobileView }) => {
   const { data, whoIs } = useContext(EssentialValues);
   const { token, _id } = data;
   const decodedData = jwtDecode(token);
-  const { isTeamManager } = decodedData;
+  const { isTeamManager, isTeamLead, isTeamHead } = decodedData;
   const navigate = useNavigate();
 
   const { Dashboard, JobDesk, Employee, Leave,
     Attendance, Administration, Settings, WorkFromHome,
     Holiday, EmailTemplate, Task, Project, Report, Announcement } = decodedData?.roleData?.pageAuth;
   const param = useParams();
-  const [activeSubmenu, setActiveSubmenu] = useState(param['*']);
-  const [activeNavLink, setActiveNavLink] = useState(param['*'] === "" ? "dashboard" : param['*'].includes("my-details") ? "jobDesk" : param['*']);
+  const [activeSubmenu, setActiveSubmenu] = useState("");
+  const [activeNavLink, setActiveNavLink] = useState("");
+
   const toggleActiveLink = (name) => {
     setActiveNavLink(activeNavLink === name ? '' : name);
   };
 
-  console.log(activeNavLink);
   const handleActiveMenu = (nav) => {
     setActiveNavLink(nav);
     setActiveSubmenu('');
   };
 
-  // useEffect(() => {
-  //   const selectedPath = [{ path: "projects", label: "projects" }, { path: "tasks", label: "tasks" }, { path: "reports", label: "reports" }, { path: "holiday", label: "holiday" }, { path: "raise-bugs", label: "raise-bugs" }, { path: "email-template", label: "email-template" }].find((item) => {
-  //     return item.path === param["*"]
-  //   });
-  //   setActiveNavLink(selectedPath.label);
-  //   // if (param["*"].includes("employee")) {
-  //   //   setActiveNavLink("employee")
-  //   // } if (param['*'] === "") {
-  //   //   setActiveNavLink("dashboard")
-  //   // } if (param['*'].includes("job-desk")) {
-  //   //   setActiveNavLink("jobdesk");
-  //   // } if (param["*"].includes("projects")) {
-  //   //   setActiveNavLink("projects")
-  //   // }
-  // }, [param["*"]])
+  useEffect(() => {
+    const windowPath = window.location.pathname;
+    setActiveSubmenu(param["*"]);
+    const selectedNav = [{ path: "projects", label: "projects" },
+    { path: "", label: "dashboard" },
+    { path: "tasks", label: "tasks" },
+    { path: "reports", label: "reports" },
+    { path: "holiday", label: "holiday" },
+    { path: "raise-bugs", label: "raise-bugs" },
+    { path: "email-templates", label: "email-templates" },
+    { path: "announcement", label: "announcement" },
+    { path: "employee", label: "employee" }
+    ].find((item) => {
+      return item.path === param["*"]
+    });
+    const parentSubNav = ["leave", "attendance", "administration"].find((item) => windowPath.includes(item))
+    if (selectedNav) {
+      setActiveNavLink(selectedNav.label);
+    } else if (windowPath.includes("job-desk")) {
+      setActiveNavLink("jobDesk")
+    } else if (parentSubNav) {
+      setActiveNavLink(parentSubNav)
+    }
+  }, [param["*"]]);
 
   const renderNavLink = (condition, path, icon, text, key) => {
-    // console.log(condition, path, icon, text, key);
     return (
       condition && (
         <li
@@ -83,6 +91,7 @@ const Sidebar = ({ isMobileView, handleSideBar, setIsMobileView }) => {
       )
     )
   };
+
   const renderSubMenu = (menuKey, submenuItems, icon, label) => {
     return (
       <li className="nav-item">
@@ -201,7 +210,7 @@ const Sidebar = ({ isMobileView, handleSideBar, setIsMobileView }) => {
           `/${whoIs}/email-templates`,
           emailTempIcon,
           'Email-Template',
-          'email-template'
+          'email-templates'
         )}
 
         {/* Announcements */}
@@ -300,7 +309,7 @@ const Sidebar = ({ isMobileView, handleSideBar, setIsMobileView }) => {
           )}
 
         {
-          WorkFromHome === 'allow' ?
+          WorkFromHome === 'allow' || [isTeamLead, isTeamHead, isTeamManager].includes(true) ?
             renderSubMenu(
               'workfromhome',
               [

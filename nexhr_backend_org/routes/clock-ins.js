@@ -372,9 +372,8 @@ router.get("/late-punch", verifyAdminHR, async (req, res) => {
 
         const latePunch = await ClockIns.find({ date: { $gte: fromDate, $lt: toDate }, behaviour: "Late" })
             .populate("employee", "FirstName LastName profile")
-            .sort({ date: -1 })
-            .lean()
-            .exec()
+            .sort({ date: -1 }).lean().exec();
+            
 
         return res.send(latePunch);
     } catch (error) {

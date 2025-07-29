@@ -150,7 +150,11 @@ export default function Home() {
         if (empForLeave === "") {
             setPeopleOnLeave(filteredPeopleOnLeave);
         } else {
-            setPeopleOnLeave(filteredPeopleOnLeave.filter((leave) => leave.employee.FirstName.toLowerCase().includes(empForLeave)))
+            setPeopleOnLeave(filteredPeopleOnLeave.filter((leave) => {
+                const emp = leave.employee;
+                const fullName = `${emp.FirstName} ${emp.LastName}`.toLowerCase();
+                return fullName.includes(empForLeave.toLowerCase());
+            }))
         }
     }, [empForLeave])
 
@@ -158,7 +162,11 @@ export default function Home() {
         if (empForWfh === "") {
             setPeopleOnWorkFromHome(filteredPeopleOnWfh);
         } else {
-            setPeopleOnWorkFromHome(filteredPeopleOnWfh.filter((wfh) => wfh.employee.FirstName.toLowerCase().includes(empForWfh)))
+            setPeopleOnWorkFromHome(filteredPeopleOnWfh.filter((wfh) => {
+                const emp = wfh.employee;
+                const fullName = `${emp.FirstName} ${emp.LastName}`.toLowerCase();
+                return fullName.includes(empForWfh.toLowerCase());
+            }))
         }
     }, [empForWfh])
 
@@ -170,23 +178,6 @@ export default function Home() {
     useEffect(() => {
         getClockInsData();
     }, [checkClockins]);
-
-    // useEffect(() => {
-    //     const handleResize = () => {
-    //         if (window.innerWidth <= 450) {
-    //             setIsMobileView(true)
-    //         } else {
-    //             setIsMobileView(false)
-    //         }
-    //     };
-
-    //     window.addEventListener("resize", handleResize);
-
-    //     // Cleanup function to remove the event listener
-    //     return () => {
-    //         window.removeEventListener("resize", handleResize);
-    //     };
-    // }, []);
 
     return (
         <Box sx={{ width: '100%' }}>

@@ -1,6 +1,6 @@
 import axios from 'axios';
 import React, { useContext, useEffect, useState } from 'react'
-import { DateRangePicker } from 'rsuite'
+import { DateRangePicker, Input } from 'rsuite'
 import { EssentialValues } from '../../App';
 import { useNavigate } from 'react-router-dom';
 import { Skeleton } from '@mui/material';
@@ -16,6 +16,7 @@ export default function WFHRequests() {
     const [dateRangeValue, setDaterangeValue] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
     const [requests, setRequests] = useState({});
+    const [empName, setEmpName] = useState("");
     const [isResponsing, setIsResponsing] = useState("");
     const navigate = useNavigate();
 
@@ -25,7 +26,8 @@ export default function WFHRequests() {
             const res = await axios.get(`${url}/api/wfh-application/team/${data._id}`, {
                 params: {
                     dateRangeValue,
-                    who: isTeamLead ? "lead" : isTeamHead ? "head" : "manager"
+                    who: isTeamLead ? "lead" : isTeamHead ? "head" : "manager",
+                    empName
                 },
                 headers: {
                     Authorization: data.token || ""
@@ -48,7 +50,8 @@ export default function WFHRequests() {
         try {
             const res = await axios.get(`${url}/api/wfh-application`, {
                 params: {
-                    dateRangeValue
+                    dateRangeValue,
+                    empName
                 },
                 headers: {
                     Authorization: data.token || ""
@@ -141,8 +144,8 @@ export default function WFHRequests() {
             fetchAllWfhRequests()
         } else if ([isTeamLead, isTeamHead, isTeamManager].includes(true)) {
             fetchTeamWfhRequests();
-        }
-    }, [dateRangeValue])
+        }   
+    }, [dateRangeValue, empName])
     return (
         <div >
             {/* top date input and requests label */}
@@ -151,7 +154,6 @@ export default function WFHRequests() {
                     WFH Requests
                 </p>
                 <div className="col-6 d-flex justify-content-end">
-                    <DateRangePicker size="lg" className="ml-1" showOneCalendar placement="bottomEnd" value={dateRangeValue} placeholder="Filter Range of Date" onChange={setDaterangeValue} />
                     <button className="button mx-1" onClick={() => navigate(`/${whoIs}/wfh-request`)}>
                         Apply WFH
                     </button>
@@ -159,6 +161,18 @@ export default function WFHRequests() {
             </div>
 
             <div className="leaveContainer d-block">
+                <div className='px-3 my-3'>
+                    <div className="d-flex align-items-center justify-content-between my-2">
+                        <Input value={empName} size="lg" style={{ width: "300px" }} placeholder="Search Employee" onChange={(e) => setEmpName(e)} />
+                        <DateRangePicker size="lg"
+                            className="ml-1"
+                            showOneCalendar
+                            placement="bottomEnd"
+                            value={dateRangeValue}
+                            placeholder="Filter Range of Date"
+                            onChange={setDaterangeValue} />
+                    </div>
+                </div>
                 <div className="w-100 d-flex justify-content-center my-2">
                     <div className="leaveBoard">
                         <div className="leaveData col-12 col-lg-3">
@@ -190,7 +204,7 @@ export default function WFHRequests() {
                                     Pending request
                                 </div>
                             </div>
-                        </div>  
+                        </div>
                     </div>
                 </div>
                 {

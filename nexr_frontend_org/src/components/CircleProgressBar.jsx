@@ -79,7 +79,6 @@ const CircleProgressBar = ({ isTeamLead, isTeamHead, isTeamManager }) => {
           Authorization: token || ""
         }
       })
-      console.log("date", date, "checkIsValidLeave", checkIsValidLeave.data)
       return checkIsValidLeave.data;
     } catch (error) {
       if (error.message === "Network Error") {

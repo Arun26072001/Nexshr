@@ -417,24 +417,9 @@ export default function HRMDashboard() {
                     const timeData = clockinData && clockinData.timeData ? clockinData.timeData : {};
                     if (Object.keys(timeData).length > 0) {
                         // check emp is works over time
-                        // if (clockinData?.message) {
-                        //     const isWorkingOverTime = window.confirm(clockinData?.message);
-                        //     if (isWorkingOverTime) {
-                        //         const clockinsData = {
-                        //             ...timeData,
-                        //             isWorkingOverTime
-                        //         }
-                        //         await updateDataAPI(clockinsData);
-                        //         trackTimer();
-                        //     }
-                        // }
-                        // localStorage.setItem('isStartLogin', true);
-                        // setIsStartLogin(true);
                         if (clockinData?.types?.length > 0) {
                             setUnStoppedActivites(clockinData.types)
                         }
-                        // if (new Date(timeData.date).toLocaleDateString() !== new Date().toLocaleDateString()) {
-                        // }
                         setWorkTimeTracker(timeData)
                     } else {
                         setWorkTimeTracker({ ...workTimeTracker });
@@ -465,13 +450,9 @@ export default function HRMDashboard() {
                     <Route index element={<Dashboard data={data} />} />
                     <Route path="job-desk/*" element={<JobDesk />} />
                     <Route path="projects" element={<Projects />} />
-                    <Route path="tasks/*" element={
-                        <Routes>
-                            <Route index element={<Tasks />} />
-                            <Route path="time-log/:id" element={<TimeLog />} />
-                            <Route path="comments/:id" element={<Comments />} />
-                        </Routes>
-                    } />
+                    <Route path="tasks" element={<Tasks />} />
+                    <Route path="/tasks/time-log/:id" element={<TimeLog />} />
+                    <Route path="/tasks/comments/:id" element={<Comments />} />
                     <Route path="reports" element={<Reports />} />
                     <Route path="/holiday" element={<Holiday />} />
                     <Route path="/raise-bugs" element={<div className='text-center' style={{ justifyContent: "center", flexDirection: "row" }}>

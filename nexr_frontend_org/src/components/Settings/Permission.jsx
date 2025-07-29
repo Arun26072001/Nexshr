@@ -54,7 +54,10 @@ const Permission = () => {
             if (empName === "") {
                 setEmployees(fullEmployees);
             } else if (empName !== "") {
-                setEmployees(fullEmployees.filter((emp) => emp.FirstName.toLowerCase().includes(empName?.toLowerCase())));
+                setEmployees(fullEmployees.filter((emp) => {
+                    const fullName = `${emp.FirstName}${emp.LastName}`.toLowerCase();
+                    return fullName.toLowerCase().includes(empName?.toLowerCase())
+                }));
             }
         }
         filterEmps()

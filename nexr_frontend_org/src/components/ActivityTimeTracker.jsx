@@ -115,7 +115,6 @@ const ActivityTimeTracker = () => {
         }
     };
 
-    console.log("isStartActivity", isStartActivity)
     // Stop the timer with activity
     const stopTimer = async () => {
         if (timerRef.current) {

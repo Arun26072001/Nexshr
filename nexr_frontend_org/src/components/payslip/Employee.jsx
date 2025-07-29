@@ -134,7 +134,10 @@ export default function Employee() {
             if (empName === "") {
                 setEmployees(filteredEmps);
             } else {
-                setEmployees(filteredEmps?.filter((emp) => emp?.FirstName?.toLowerCase()?.includes(empName.toLowerCase())));
+                setEmployees(filteredEmps?.filter((emp) => {
+                    const fullName = `${emp.FirstName} ${emp.LastName}`.toLowerCase();
+                    return fullName.includes(empName.toLowerCase());
+                }));
             }
         }
         filterEmployees();
