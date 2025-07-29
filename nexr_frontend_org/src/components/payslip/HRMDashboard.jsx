@@ -260,7 +260,7 @@ export default function HRMDashboard() {
                     startingTime: [...(workTimeTracker[timeOption]?.startingTime || []), currentTime],
                 },
             };
-            setISWorkingActivityTimerApi(true)
+            setISWorkingActivityTimerApi(true);
             try {
                 await updateDataAPI(updatedState);
                 localStorage.setItem("isStartActivity", true);

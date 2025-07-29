@@ -91,7 +91,7 @@ const ActivityTimeTracker = () => {
                                 employee: data._id,
                                 timerId: workTimeTracker._id,
                                 timeOption,
-                                time: timeOption === "lunch" ? 1 - timeData : 1 - timeData,
+                                time: timeOption === "lunch" ? 30 - timeData : 15 - timeData,
                                 token: data.token
                             });
                             if (!res.data.isAddreasonForDelay) {
@@ -118,7 +118,7 @@ const ActivityTimeTracker = () => {
                                 employee: data._id,
                                 timerId: workTimeTracker._id,
                                 timeOption,
-                                time: 1 - timeData,
+                                time: 15 - timeData,
                                 token: data.token
                             });
                             toast.warning(res.data.message);

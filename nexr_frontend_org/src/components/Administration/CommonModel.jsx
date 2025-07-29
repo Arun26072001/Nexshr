@@ -78,6 +78,7 @@ const CommonModel = ({
         const uniqueIds = [...new Set(result)];
         changeData(uniqueIds, "selectTeamMembers");
     };
+    console.log("type", ["Company", "Task View"].includes(type))
 
     return (
         <Modal open={isAddData} size="sm" backdrop="static" onClose={() => {
@@ -145,7 +146,7 @@ const CommonModel = ({
                                 <div className="modelInput">
                                     <p className='modelLabel important'>Icon:</p>
                                     <Input required
-                                        name={`icon`}   
+                                        name={`icon`}
                                         className={errorMsg?.toLowerCase()?.includes("icon") ? "error" : ""}
                                         value={dataObj?.[`icon`] || ""}
                                         onChange={(e) => changeData(e.toUpperCase(), "icon")} />
@@ -336,7 +337,7 @@ const CommonModel = ({
                                     onChange={(e) => changeData(e, type === "Add Comments" ? `comments.attachments` : type === "Organization" ? "orgImg" : type === "Company" ? "logo" : "attachments")}
                                     multiple={!["Organization", "Company"].includes(type)}
                                 />
-                                {["logo", "attachments", "orgImg"].some((item) => errorMsg?.toLowerCase()?.includes(item?.toLowerCase())) ? <div className="text-center text-danger">{errorMsg}</div> : null}
+                                {["logo", "attachments", "orgimg"].some((item) => errorMsg?.toLowerCase()?.includes(item?.toLowerCase())) ? <div className="text-center text-danger">{errorMsg}</div> : null}
                             </div>
 
                             {/* Display preview images */}
@@ -350,10 +351,10 @@ const CommonModel = ({
                                                 alt="uploaded file"
                                                 style={{ borderRadius: "4px" }}
                                             /> {
-                                                type !== "Company" &&
-                                                <button onClick={() => removePreview()} className="remBtn">
-                                                    &times;
-                                                </button>
+                                                ["Company", "Task View"].includes(type) ? null :
+                                                    <button onClick={() => removePreview()} className="remBtn">
+                                                        &times;
+                                                    </button>
                                             }
                                         </div>
                                             :
@@ -371,9 +372,10 @@ const CommonModel = ({
                                                                 alt="uploaded file"
                                                                 style={{ borderRadius: "4px" }}
                                                             />}
-                                                        <button onClick={() => removeAttachment(imgFile, index)} className="remBtn">
-                                                            &times;
-                                                        </button>
+                                                        {["Company", "Task View"].includes(type) ? null :
+                                                            <button onClick={() => removeAttachment(imgFile, index)} className="remBtn">
+                                                                &times;
+                                                            </button>}
                                                     </div>
                                                 </div>
                                             ))}
@@ -402,9 +404,12 @@ const CommonModel = ({
                                                                 />
                                                         }
                                                         {/* Close button */}
-                                                        <button onClick={() => removeAttachment(imgFile, index)} className="remBtn">
-                                                            &times;
-                                                        </button>
+                                                        {
+                                                            ["Task View"].includes(type) ? null :
+                                                                <button onClick={() => removeAttachment(imgFile, index)} className="remBtn">
+                                                                    &times;
+                                                                </button>
+                                                        }
                                                     </div>
                                                 </div>
                                             ))

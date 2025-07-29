@@ -87,6 +87,7 @@ export default function TaskItem({ task, status, getValue, handleEditTask, handl
                 }
                 <ErrorOutlineRoundedIcon
                     sx={{ cursor: "pointer" }}
+                    titleAccess='View task'
                     onClick={() => {
                         fetchTaskById(task._id);
                         handleViewTask();
@@ -101,7 +102,7 @@ export default function TaskItem({ task, status, getValue, handleEditTask, handl
                     {task?.project?.name || "Individual"}
                 </span>
 
-                <CalendarMonthRoundedIcon sx={{ cursor: "pointer" }} onClick={() => handleAddComment(task._id)} />
+                <CalendarMonthRoundedIcon sx={{ cursor: "pointer" }} titleAccess="Add comment" onClick={() => handleAddComment(task._id)} />
 
                 <span style={{ cursor: "pointer" }}>
                     <Whisper placement="bottomEnd" trigger="click" speaker={renderMenu2(task)}>
