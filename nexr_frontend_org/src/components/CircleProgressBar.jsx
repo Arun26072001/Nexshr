@@ -43,13 +43,13 @@ const CircleProgressBar = ({ isTeamLead, isTeamHead, isTeamManager }) => {
       // 2. Get valid **today**
       const todayDate = new Date(referenceDate);
       while (true) {
-        todayDate.setDate(todayDate.getDate() + 1);
         const tCheck = new Date(todayDate);
         const tValid = await checkIsLeaveDate(tCheck);
         if (!tValid) {
           setToday(tCheck);
           break;
         }
+        todayDate.setDate(todayDate.getDate() + 1);
       }
 
       // 3. Get valid **tomorrow**
@@ -58,7 +58,6 @@ const CircleProgressBar = ({ isTeamLead, isTeamHead, isTeamManager }) => {
         tomorrowDate.setDate(tomorrowDate.getDate() + 1);
         const tmCheck = new Date(tomorrowDate);
         const tmValid = await checkIsLeaveDate(tmCheck);
-        console.log("tmValid", tmValid)
         if (!tmValid) {
           setTomorrow(tmCheck);
           break;

@@ -577,10 +577,6 @@ router.get("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
 
         const activities = ["login", "meeting", "morningBreak", "lunch", "eveningBreak", "event"];
 
-        // Check previous day's incomplete login
-        // const prevDate = new Date(Date.UTC(queryDate.getUTCFullYear(), queryDate.getUTCMonth(), queryDate.getUTCDate() - 1));
-        // const prevStart = new Date(prevDate.setUTCHours(0, 0, 0, 0));
-        // const prevEnd = new Date(prevDate.setUTCHours(23, 59, 59, 999));
         const prevClockIn = await ClockIns.findOne({employee: employeeId}).sort({ _id: -1 }).exec();
         if (prevClockIn) {
             const isSameToday = new Date(prevClockIn.date).toLocaleDateString() === dayStart.toLocaleDateString();

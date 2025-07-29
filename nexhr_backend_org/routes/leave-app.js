@@ -627,8 +627,8 @@ leaveApp.get("/date-range/management/:whoIs", verifyAdminHrNetworkAdmin, async (
     }
 
     // Build employee filter based on role
-    const filterObj = req.params.whoIs === "hr" 
-      ? { Account: { $in: [3, 4, 5] } } 
+    const filterObj = req.params.whoIs === "hr"
+      ? { Account: { $in: [3, 4, 5] } }
       : {};
 
     // Fetch employee info with working patterns
@@ -673,8 +673,8 @@ leaveApp.get("/date-range/management/:whoIs", verifyAdminHrNetworkAdmin, async (
       .map(leave => ({
         ...leave,
         reasonForLeave: leave.reasonForLeave?.replace(/<\/?[^>]+(>|$)/g, ''),
-        prescription: leave.prescription 
-          ? `${process.env.REACT_APP_API_URL}/uploads/${leave.prescription}` 
+        prescription: leave.prescription
+          ? `${process.env.REACT_APP_API_URL}/uploads/${leave.prescription}`
           : null
       }));
 
@@ -882,7 +882,8 @@ leaveApp.get("/check-is-valid-leave/:id", verifyAdminHREmployeeManagerNetwork, a
   try {
     const queryData = req.query;
     if (queryData.date) {
-      const actualDate = toZonedTime(queryData.date, process.env.TIMEZONE)
+      const actualDate = changeClientTimezoneDate(queryData.date);
+      actualDate.setHours(0, 0, 0, 0);
       const empData = await Employee.findById(req.params.id, "workingTimePattern company")
         .populate("workingTimePattern")
         .lean().exec();
@@ -902,7 +903,7 @@ leaveApp.get("/check-is-valid-leave/:id", verifyAdminHREmployeeManagerNetwork, a
         weeklyDays = empData.workingTimePattern.WeeklyDays
       }
       const isLeaveDate = isValidLeaveDate(holidays, weeklyDays, actualDate);
-      return res.send(isLeaveDate)
+      return res.send(isLeaveDate);
     } else {
       return res.status(400).send({ error: `date value is required to check valid` })
     }

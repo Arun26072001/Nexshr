@@ -17,6 +17,7 @@ import { convertTimeStringToDate, fileUploadInServer, isValidDate, processActivi
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import TextEditor from '../TextEditor';
+import LateLoginModal from './LateLoginModal';
 
 export default function Navbar() {
     const { handleLogout, data, handleUpdateAnnouncements, isChangeAnnouncements, whoIs,
@@ -37,10 +38,6 @@ export default function Navbar() {
     const [isLoading, setIsLoading] = useState(false);
     // use when add the late loginData
     const [isAddinglateLogin, setIsAddingLateLogin] = useState(false);
-    const lateType = [
-        { label: "Technical Downtime (IT/Office/System-related delay)", value: "Technical Downtime (IT/Office/System-related delay)" },
-        { label: "Late Punch (Employee-side delay)", value: "Late Punch (Employee-side delay)" }
-    ];
     const [lateLoginProof, setLateLoginProof] = useState([]);
     const navigate = useNavigate();
     const [workLocation, setWorklocation] = useState(localStorage.getItem("workLocation") || "");
@@ -548,12 +545,12 @@ export default function Navbar() {
                             <DatePicker value={activityEndTimes[activityStartTimes.length - 1] ? convertTimeStringToDate(activityEndTimes[activityStartTimes.length - 1]) : null}
                                 size='lg'
                                 style={{ width: "100%" }}
-                                className={unStoppedActivies.some((item) => errorData.includes(item)) ? "error" : ""}
+                                className={errorData.includes(activity) ? "error" : ""}
                                 format="MM/dd/yyyy hh:mm:ss aa"
                                 onChange={
                                     (e) => updateCheckoutTime(e, activity)
                                 } />
-                            {unStoppedActivies.some((item) => errorData.includes(item)) ? <div className="text-center text-danger">{errorData}</div> : null}
+                            {errorData.includes(activity) ? <div className="text-center text-danger">{errorData}</div> : null}
                         </div>
                     })
                 }
@@ -607,73 +604,16 @@ export default function Navbar() {
     }
 
     if (isLateLogin) {
-        return <Modal open={isLateLogin} size="sm" backdrop="static">
-            <Modal.Header >
-                <Modal.Title>
-                    Reason for Late Punch-in
-                </Modal.Title>
-            </Modal.Header >
-
-            <Modal.Body>
-                <div className="modelInput">
-                    <p className='modelLabel important'>Late Type</p>
-                    <SelectPicker
-                        required
-                        data={lateType}
-                        size="lg"
-                        appearance='default'
-                        style={{ width: "100%" }}
-                        placeholder="Select Late type"
-                        value={workTimeTracker?.lateLogin?.lateType}
-                        onChange={(e) => fillLateLoginObj(e, "lateType")}
-                    />
-                </div>
-                <div className="modelInput">
-                    <p className='modelLabel important'>Reason for the Late</p>
-                    <TextEditor
-                        handleChange={(e) => fillLateLoginObj(e?.trimStart()?.replace(/\s+/g, ' '), "lateReason")}
-                        content={workTimeTracker?.lateLogin?.lateReason}
-                    />
-                </div>
-                <div className="modelInput">
-                    <p>Proof</p>
-                    <input
-                        type="file"
-                        className="form-control"
-                        onChange={(e) => fillLateLoginObj(e, "proof")}
-                    />
-                </div>
-                {lateLoginProof?.map((imgFile, index) => (
-                    <div className="col-lg-4 p-2" key={index}>
-                        <div className="position-relative">
-                            {(workTimeTracker?.lateLogin?.proof?.length === lateLoginProof?.length && workTimeTracker?.lateLogin[index]?.type === "video/mp4" || imgFile.includes(".mp4")) ?
-                                <video className="w-100 h-auto" controls>
-                                    <source src={imgFile} type={workTimeTracker?.lateLogin[index].type} />
-                                </video> :
-                                <img
-                                    src={imgFile}
-                                    className="w-100 h-auto"
-                                    alt="uploaded file"
-                                    style={{ borderRadius: "4px" }}
-                                />}
-                            <button onClick={() => removeProof(imgFile, index)} className="remBtn">
-                                &times;
-                            </button>
-                        </div>
-                    </div>
-                ))}
-            </Modal.Body>
-
-            <Modal.Footer>
-                <Button
-                    disabled={!workTimeTracker?.lateLogin?.lateReason || !workTimeTracker?.lateLogin?.lateType ? true : false}
-                    onClick={addLateLogin}
-                    appearance="primary"
-                >
-                    {isAddinglateLogin ? <Loading color='white' size={20} /> : "Add"}
-                </Button>
-            </Modal.Footer>
-        </Modal >
+        return <LateLoginModal
+            type={"LateLogin"}
+            workTimeTracker={workTimeTracker}
+            isLateLogin={isLateLogin}
+            fillLateLoginObj={fillLateLoginObj}
+            isAddinglateLogin={isAddinglateLogin}
+            lateLoginProof={lateLoginProof}
+            addLateLogin={addLateLogin}
+            removeProof={removeProof}
+        />
     }
 
     return (

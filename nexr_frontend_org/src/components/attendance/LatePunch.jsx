@@ -8,6 +8,7 @@ import { Skeleton } from '@mui/material';
 import LeaveTable from '../LeaveTable';
 import NoDataFound from '../payslip/NoDataFound';
 import { toast } from 'react-toastify';
+import LateLoginModal from '../payslip/layout/LateLoginModal';
 
 export default function LatePunch() {
     const url = process.env.REACT_APP_API_URL;
@@ -15,10 +16,12 @@ export default function LatePunch() {
     const { data } = useContext(EssentialValues);
     const [empName, setEmpName] = useState("");
     const [latePunches, setLatePunches] = useState([]);
+    const [lateLoginObj, setLateLoginObj] = useState({});
     const [filteredPunches, setFilteredPunches] = useState([]);
     const [dateRangeValue, setDateRangeValue] = useState("");
     const [isLoading, setIsLoading] = useState(false);
     const [isResponsing, setIsResponsing] = useState(false);
+    const [isLateLogin, setIsLateLogin] = useState(false);
 
     async function responseToLatePunch(item, response) {
         try {
@@ -50,6 +53,20 @@ export default function LatePunch() {
         }
     }
 
+    function changeLateLogin() {
+        setIsLateLogin(!isLateLogin);
+    }
+    // add and remove lateLoginObj
+    function handleLateLogin(value) {
+        if (value) {
+            setLateLoginObj(value);
+            changeLateLogin();
+        } else {
+            changeLateLogin();
+            setLateLoginObj({});
+        }
+    }
+
     async function fetchLatePunch() {
         try {
             setIsLoading(true);
@@ -72,6 +89,7 @@ export default function LatePunch() {
             setIsLoading(false);
         }
     }
+
     useEffect(() => {
         fetchLatePunch();
     }, [dateRangeValue])
@@ -120,7 +138,16 @@ export default function LatePunch() {
                                 height={"50vh"}
                             /> :
                                 latePunches?.length > 0 ?
-                                    <LeaveTable data={latePunches} isLoading={isResponsing} replyToLeave={responseToLatePunch} /> : <NoDataFound message="No Late punches data" />
+                                    <LeaveTable handleLateLogin={handleLateLogin} data={latePunches} lateLoginObj={lateLoginObj} isLoading={isResponsing} replyToLeave={responseToLatePunch} /> : <NoDataFound message="No Late punches data" />
+                        }
+                        {
+                            isLateLogin ? <LateLoginModal
+                                type={"View LateLogin"}
+                                workTimeTracker={lateLoginObj}
+                                isLateLogin={isLateLogin}
+                                changeLateLogin={handleLateLogin}
+                                lateLoginProof={lateLoginObj?.lateLogin?.proof || []}
+                            /> : null
                         }
                     </div>
                 </div>

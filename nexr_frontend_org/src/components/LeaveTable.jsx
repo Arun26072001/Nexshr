@@ -21,7 +21,7 @@ import { EssentialValues } from '../App';
 import profile from "../imgs/male_avatar.webp";
 import Loading from './Loader';
 
-export default function LeaveTable({ data, Account, getCheckedValue, handleDelete, handleEdit, handleView, handleChangeData, fetchReportById, fetchOrgData, fetchData, roleObj, getCheckAll, deleteData, replyToLeave, handleChangeLeavetype, isTeamHead, isTeamLead, isTeamManager, isLoading }) {
+export default function LeaveTable({ data, Account, handleLateLogin, getCheckedValue, handleDelete, handleEdit, handleView, handleChangeData, fetchReportById, fetchOrgData, fetchData, roleObj, getCheckAll, deleteData, replyToLeave, handleChangeLeavetype, isTeamHead, isTeamLead, isTeamManager, isLoading }) {
     const navigate = useNavigate();
     const { whoIs } = useContext(EssentialValues);
     const empId = localStorage.getItem("_id")
@@ -1196,6 +1196,7 @@ export default function LeaveTable({ data, Account, getCheckedValue, handleDelet
                                                         );
                                                     } else if (["unpaid-request", "late-punch"].includes(params["*"])) {
                                                         return (<Dropdown placement='leftStart' title={isLoading === row._id ? <Loading size={20} color={"black"} /> : <EditRoundedIcon style={{ cursor: isLoading === row._id ? "process" : "pointer" }} />} noCaret>
+                                                            <Dropdown.Item style={{ minWidth: 120 }} onClick={() => handleLateLogin(row)}>View</Dropdown.Item>
                                                             {params["*"] === "unpaid-request" || (params["*"] === "late-punch" && row?.lateLogin?.status === "pending") ?
                                                                 <>
                                                                     <Dropdown.Item style={{ minWidth: 120 }} onClick={() => replyToLeave(row, "approved")}>Approve</Dropdown.Item>

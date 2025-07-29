@@ -96,12 +96,10 @@ const convertToString = (value) => {
 };
 
 function isValidLeaveDate(holidays = [], WeeklyDays = [], target) {
-  const date = new Date(target);
+  const date = new Date(target);  
   const dayName = format(date, "EEEE"); // e.g., 'Monday', 'Tuesday', etc.
-
   const isHoliday = checkDateIsHoliday(holidays, date);
   const isWeeklyOff = !WeeklyDays.includes(dayName);
-
   // A valid leave date is one that is NOT a holiday AND NOT a weekly off
   return isHoliday || isWeeklyOff;
 }
