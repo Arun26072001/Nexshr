@@ -234,22 +234,20 @@ export default function Home() {
                         }
                     </div>
                     <div className='col-lg-6 col-md-6 col-12'>
-                        { workTimeTracker &&
-                            workTimeTracker?.login?.startingTime?.length === workTimeTracker?.login?.endingTime?.length &&
-                                workTimeTracker?.[timeOption]?.startingTime?.length === workTimeTracker[timeOption]?.endingTime?.length &&
-                                isLoading ?
-                                <>
-                                    {
-                                        [...Array(3)].map((_, index) => {
-                                            return <Skeleton varient="text" key={index} />
-                                        })
-                                    }
-                                    <Skeleton varient="circular" width={150} height={150} />
-                                </> :
-                                <>
-                                    <p className='chartTitle'>Time Activity</p>
-                                    <ApexChart activitiesData={tableData} />
-                                </>
+                        {isLoading ?
+                            <>
+                                {
+                                    [...Array(3)].map((_, index) => {
+                                        return <Skeleton varient="text" key={index} />
+                                    })
+                                }
+                                <Skeleton varient="circular" width={150} height={150} />
+                            </> :
+                            tableData?.length > 0 &&
+                            <>
+                                <p className='chartTitle'>Time Activity</p>
+                                <ApexChart activitiesData={tableData} />
+                            </>
                         }
                     </div>
                     {/* <p className='payslipTitle my-2 px-3'>PeopleOnLeave</p> */}

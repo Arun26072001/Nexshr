@@ -80,12 +80,12 @@ const ActivityTimeTracker = () => {
     const startTimer = async () => {
         const timeData = getTimeFromHour(workTimeTracker[timeOption].timeHolder, true);
         if (["morningBreak", "eveningBreak", "lunch"].includes(timeOption)) {
-            if (timeOption === "lunch" && timeData < 1) {
+            // if (timeOption === "lunch") {
                 if (!timerRef.current) {
                     await startActivityTimer();
                     // trackTimer()
                     timerRef.current = setInterval(incrementTime, 1000);
-                    if (["morningBreak", "eveningBreak", "lunch"].includes(timeOption)) {
+                    // if (["morningBreak", "eveningBreak", "lunch"].includes(timeOption)) {
                         try {
                             const res = await axios.post(`${url}/ask-reason-for-delay`, {
                                 employee: data._id,
@@ -103,39 +103,37 @@ const ActivityTimeTracker = () => {
                             }
                             console.log("error in enable ask reason for late", error);
                         }
-                    }
+                    // }
                 }
-            }
-             else if (["morningBreak", "eveningBreak"].includes(timeOption)) {
-                if (!timerRef.current) {
-                    await startActivityTimer();
-                    // trackTimer()
-                    timerRef.current = setInterval(incrementTime, 1000);
-                    if (["morningBreak", "eveningBreak", "lunch"].includes(timeOption)) {
-                        //enable ask the reason for late
-                        try {
-                            const res = await axios.post(`${url}/ask-reason-for-delay`, {
-                                employee: data._id,
-                                timerId: workTimeTracker._id,
-                                timeOption,
-                                time: 15 - timeData,
-                                token: data.token
-                            });
-                            toast.warning(res.data.message);
-                            if (!res.data.isAddreasonForDelay) {
-                                changeViewReasonForTaketime()
-                            }
-                        } catch (error) {
-                            if (error?.message === "Network Error") {
-                                navigate("/network-issue")
-                            }
-                            console.log("error in enable ask reason for late", error);
-                        }
-                    }
-                }
-            } else {
-                toast.warning(`${timeOption[0].toUpperCase() + timeOption.slice(1)} time has been reached`)
-            }
+            // }
+            //  else if (["morningBreak", "eveningBreak"].includes(timeOption)) {
+            //     if (!timerRef.current) {
+            //         await startActivityTimer();
+            //         // trackTimer()
+            //         timerRef.current = setInterval(incrementTime, 1000);
+            //         if (["morningBreak", "eveningBreak", "lunch"].includes(timeOption)) {
+            //             //enable ask the reason for late
+            //             try {
+            //                 const res = await axios.post(`${url}/ask-reason-for-delay`, {
+            //                     employee: data._id,
+            //                     timerId: workTimeTracker._id,
+            //                     timeOption,
+            //                     time: 15 - timeData,
+            //                     token: data.token
+            //                 });
+            //                 toast.warning(res.data.message);
+            //                 if (!res.data.isAddreasonForDelay) {
+            //                     changeViewReasonForTaketime()
+            //                 }
+            //             } catch (error) {
+            //                 if (error?.message === "Network Error") {
+            //                     navigate("/network-issue")
+            //                 }
+            //                 console.log("error in enable ask reason for late", error);
+            //             }
+            //         }
+            //     }
+            // } 
         } else {
             if (!timerRef.current) {
                 await startActivityTimer();
