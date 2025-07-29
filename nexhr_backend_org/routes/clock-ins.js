@@ -318,7 +318,7 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
 
             const scheduledMinutes = timeToMinutes(scheduledTime);
             const actualMinutes = timeToMinutes(actualTime);
-
+            console.log("scheduledMinutes", scheduledMinutes, "actualMinutes", actualMinutes)
             if ((scheduledMinutes + permissionTime) > actualMinutes) {
                 early++;
                 return "Early";
@@ -577,11 +577,11 @@ router.get("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
 
         const activities = ["login", "meeting", "morningBreak", "lunch", "eveningBreak", "event"];
 
-        const prevClockIn = await ClockIns.findOne({employee: employeeId}).sort({ _id: -1 }).exec();
+        const prevClockIn = await ClockIns.findOne({ employee: employeeId }).sort({ _id: -1 }).exec();
         if (prevClockIn) {
             const isSameToday = new Date(prevClockIn.date).toLocaleDateString() === dayStart.toLocaleDateString();
             if (!isSameToday) {
-                
+
                 const unstopPrevActivities = activities.filter(
                     (activity) => prevClockIn[activity]?.startingTime?.length !== prevClockIn[activity]?.endingTime?.length
                 );
