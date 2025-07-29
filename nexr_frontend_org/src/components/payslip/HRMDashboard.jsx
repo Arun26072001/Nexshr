@@ -64,7 +64,7 @@ export const TimerStates = createContext(null);
 
 export default function HRMDashboard() {
     const url = process.env.REACT_APP_API_URL;
-    const { data, isStartLogin, isStartActivity, setIsStartLogin, setIsStartActivity, whoIs, isEditEmp, handleEditEmp } = useContext(EssentialValues);
+    const { data, isStartLogin, isStartActivity, setIsStartLogin, setIsStartActivity, whoIs, handleEditEmp } = useContext(EssentialValues);
     const { token, Account, _id } = data;
     const { isTeamLead, isTeamHead, isTeamManager } = jwtDecode(token);
     const [attendanceData, setAttendanceData] = useState([]);
@@ -249,36 +249,34 @@ export default function HRMDashboard() {
 
 
     const startActivityTimer = async () => {
-        const loginStartTimeLen = workTimeTracker?.login?.startingTime.length;
-        const loginEndTimeLen = workTimeTracker?.login?.endingTime.length;
-        if (loginStartTimeLen !== loginEndTimeLen) {
-            const currentTime = new Date();
-            const updatedState = {
-                ...workTimeTracker,
-                [timeOption]: {
-                    ...workTimeTracker[timeOption],
-                    startingTime: [...(workTimeTracker[timeOption]?.startingTime || []), currentTime],
-                },
-            };
-            setISWorkingActivityTimerApi(true);
-            try {
-                await updateDataAPI(updatedState);
-                localStorage.setItem("isStartActivity", true);
-                setIsStartActivity(true);
-                setWorkTimeTracker(updatedState);
-                localStorage.setItem("timeOption", timeOption);
-                toast.success(`${timeOption[0].toUpperCase() + timeOption.slice(1)} timer has been started!`);
-            } catch (error) {
-                if (error?.message === "Network Error") {
-                    navigate("/network-issue")
-                }
-                console.error('Error updating data:', error);
-                toast.error('Please PunchIn');
-            } finally {
-                setISWorkingActivityTimerApi(false)
+        const currentTime = new Date();
+        const updatedState = {
+            ...workTimeTracker,
+            [timeOption]: {
+                ...workTimeTracker[timeOption],
+                startingTime: [...(workTimeTracker[timeOption]?.startingTime || []), currentTime],
+            },
+        };
+        setISWorkingActivityTimerApi(true);
+        try {
+            const response = await axios.put(`${url}/api/clock-ins/${updatedState._id}`, updatedState, {
+                headers: { authorization: token || '' },
+            });
+            const clockInsData = response.data.updatedClockIn;
+            localStorage.setItem("isStartActivity", true);
+            setIsStartActivity(true);
+            setWorkTimeTracker(clockInsData);
+            localStorage.setItem("timeOption", timeOption);
+            toast.success(`${timeOption[0].toUpperCase() + timeOption.slice(1)} timer has been started!`);
+        } catch (error) {
+            if (error?.message === "Network Error") {
+                navigate("/network-issue")
             }
-        } else {
-            toast.error(`You can't start ${timeOption} timer, until start Login Timer`)
+            console.error('Error updating data:', error);
+            toast.warning(error.response.data.error)
+            console.error('Update error:', error);
+        }finally{
+            setISWorkingActivityTimerApi(false)
         }
     }
 
