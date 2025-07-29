@@ -21,6 +21,7 @@ import emailTempIcon from "../../../asserts/env.svg";
 import holidayIcon from "../../../asserts/beach.svg";
 import announcementIcon from "../../../asserts/announcement.svg";
 import bugIcon from "../../../asserts/bugIcon.svg";
+import { useEffect } from 'react';
 
 const Sidebar = ({ isMobileView, handleSideBar, setIsMobileView }) => {
   const { data, whoIs } = useContext(EssentialValues);
@@ -35,15 +36,31 @@ const Sidebar = ({ isMobileView, handleSideBar, setIsMobileView }) => {
   const param = useParams();
   const [activeSubmenu, setActiveSubmenu] = useState(param['*']);
   const [activeNavLink, setActiveNavLink] = useState(param['*'] === "" ? "dashboard" : param['*'].includes("my-details") ? "jobDesk" : param['*']);
-
   const toggleActiveLink = (name) => {
     setActiveNavLink(activeNavLink === name ? '' : name);
   };
 
+  console.log(activeNavLink);
   const handleActiveMenu = (nav) => {
     setActiveNavLink(nav);
     setActiveSubmenu('');
   };
+
+  useEffect(() => {
+    const selectedPath = [{ path: "projects", label: "projects" }, { path: "tasks", label: "tasks" }, { path: "reports", label: "reports" }, { path: "holiday", label: "holiday" }, { path: "raise-bugs", label: "raise-bugs" }, { path: "email-template", label: "email-template" }].find((item) => {
+      return item.path === param["*"]
+    });
+    setActiveNavLink(selectedPath.label);
+    // if (param["*"].includes("employee")) {
+    //   setActiveNavLink("employee")
+    // } if (param['*'] === "") {
+    //   setActiveNavLink("dashboard")
+    // } if (param['*'].includes("job-desk")) {
+    //   setActiveNavLink("jobdesk");
+    // } if (param["*"].includes("projects")) {
+    //   setActiveNavLink("projects")
+    // }
+  }, [param["*"]])
 
   const renderNavLink = (condition, path, icon, text, key) => {
     // console.log(condition, path, icon, text, key);
@@ -125,7 +142,7 @@ const Sidebar = ({ isMobileView, handleSideBar, setIsMobileView }) => {
         )}
 
         {renderNavLink(
-          JobDesk === 'allow' ,
+          JobDesk === 'allow',
           `/${whoIs}/job-desk/my-details`,
           jobDeskIcon,
           'Job Desk',
@@ -209,10 +226,6 @@ const Sidebar = ({ isMobileView, handleSideBar, setIsMobileView }) => {
           renderSubMenu(
             'leave',
             [
-              // { key: 'status', path: `/${whoIs}/leave/status`, label: 'Status' },
-              // { key: 'leave-request', path: `/${whoIs}/leave/leave-request`, label: 'Leave Request' },
-              // { key: 'leave-summary', path: `/${whoIs}/leave/leave-summary`, label: 'Leave Summary' },
-              // { key: 'leave-details', path: `/${whoIs}/leave/leave-details`, label: 'Leave Details' },
               { key: 'leave-records', path: `/${whoIs}/leave/leave-records`, label: 'Leave Records' },
               { key: 'calendar', path: `/${whoIs}/leave/calendar`, label: 'Calendar' },
             ],
@@ -246,7 +259,7 @@ const Sidebar = ({ isMobileView, handleSideBar, setIsMobileView }) => {
             'Attendance'
           )}
 
-        {Attendance === 'allow' && 
+        {Attendance === 'allow' &&
           renderSubMenu(
             'attendance',
             [
