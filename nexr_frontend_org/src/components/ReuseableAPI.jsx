@@ -650,9 +650,6 @@ async function fetchCompanies() {
         })
         return res.data;
     } catch (error) {
-        // if (error?.message === "Network Error") {
-        //     navigate("/network-issue")
-        // }
         console.log("error in fetch companies", error);
         toast.error(error?.response?.data?.error)
     }

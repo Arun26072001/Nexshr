@@ -27,7 +27,7 @@ var employeeSchema = new mongoose.Schema({
   serialNo: { type: String },
   working: { type: String, default: "Yes" },
   docType: [{ type: String }],
-  leaveApplication: [{ type: mongoose.Schema.Types.ObjectId, ref: "LeaveApplication" }],
+  leaveApplication: [{ type: mongoose.Schema.Types.ObjectId, ref: "LeaveApplication" , default: []}],
   address: {
     street: { type: String },
     city: { type: String },

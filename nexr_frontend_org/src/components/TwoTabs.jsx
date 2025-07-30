@@ -283,7 +283,7 @@ export default function Twotabs() {
           <HStack spacing={10} style={{ height: 320 }} alignItems="flex-start" wrap className='position-relative'>
             {
               isLoading ? <Skeleton variant='rounded' width={"100%"} height={300} />
-                : <Calendar compact style={{ width: 320, paddingTop: "0px" }} renderCell={highlightToLeave} bordered />
+                : <Calendar compact style={{ width: "100%", paddingTop: "0px" }} renderCell={highlightToLeave} bordered />
             }
           </HStack>
 

@@ -33,8 +33,8 @@ router.post("/", verifyAdminHR, async (req, res) => {
     if (error) {
       return res.status(400).send({ error: error.details[0].message });
     }
-
-    const existing = await Position.findOne({ PositionName: req.body.PositionName });
+    const companyId = req.body?.company || ""
+    const existing = await Position.findOne({ PositionName: { $regex: `${req.body.PositionName}`, $options: `i` }, company: companyId });
     if (existing) {
       return res.status(400).send({
         error: `${req.body.PositionName} Position already exists`,

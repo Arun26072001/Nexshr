@@ -6,6 +6,7 @@ const TeamSchema = mongoose.Schema({
         type: String,
         unique: true
     },
+    company: { type: mongoose.Schema.Types.ObjectId, ref: "Company", default: null },
     hr: [{
         type: mongoose.Types.ObjectId, ref: "Employee"
     }],
@@ -28,13 +29,14 @@ const Team = mongoose.model("Team", TeamSchema);
 const TeamValidation = Joi.object({
     _id: Joi.string().optional(),
     teamName: Joi.string().required().disallow(null, '', 'none', 'undefined').label("TeamName"),
+    company: Joi.string().regex(/^[0-9a-fA-F]{24}$/).required(),
     employees: Joi.array().items(Joi.string()).required().label("employees"),
-    lead: Joi.array().items(Joi.string()).optional().label("lead"),
+    lead: Joi.array().items(Joi.string()).required().label("lead"),
     head: Joi.array().items(Joi.string()).optional().label("head"),
     manager: Joi.array().items(Joi.string()).optional().label("manager"),
     admin: Joi.array().items(Joi.string()).optional().label("admin"),
-    hr: Joi.array().items(Joi.string()).optional().label("hr"),
-    __v: Joi.number().optional(),
+    hr: Joi.array().items(Joi.string()).required().label("hr"),
+    __v: Joi.any().optional(),
     createdBy: Joi.any().optional(),
     createdAt: Joi.string().allow('').label('createdAt'),
     updatedAt: Joi.string().allow('').label('updatedAt')
