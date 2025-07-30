@@ -32,14 +32,12 @@
 .fixedPositionBtns {
   display: flex;
   align-items: center;
-  /* justify-content: center; */
   width: 20%;
   gap: 15px;
 }
 
 .leaveFormParent {
   background-color: white;
-  /* width: 600px; */
   padding: 40px;
   margin: 50px 0;
   border-radius: 5px;
@@ -131,7 +129,6 @@ input[type="file"]::file-selector-button {
 }
 
 /* Twotabs styles */
-
 .leaveReq {
   width: 100%;
   padding: 5px;
@@ -139,4 +136,9 @@ input[type="file"]::file-selector-button {
   border-radius: 5px;
   cursor: pointer;
   color: white;
+}
+
+/* Employee page style */
+.rs-picker-tag-lg .rs-picker-textbox {
+  min-height: fit-content;
 }

@@ -468,6 +468,7 @@ export default function HRMDashboard() {
                     <Route path="employee" element={<Employee />} />
                     <Route path="employee/add" element={<AddEmployee />} />
                     <Route path="employee/edit/:id" element={<AddEmployee />} />
+                    <Route path="employee/view/:id" element={<AddEmployee />} />
                     <Route path="leave/*" element={
                         <Routes>
                             <Route path='leave-records' element={<LeaveRecords />} />

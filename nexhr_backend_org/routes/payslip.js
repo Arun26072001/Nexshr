@@ -101,25 +101,25 @@ router.post("/", async (req, res) => {
 });
 
 router.get("/emp/:empId", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
-  
-  // need to check
+
   try {
     const dateRangeValue = req.query?.dateRangeValue;
-    let filterObj = {
-      employee: req.params.empId,
-    }
     let fromDate, toDate;
     if (dateRangeValue && dateRangeValue.length > 0) {
       [fromDate, toDate] = dateRangeValue.map((date) => new Date(date));
       fromDate.setHours(0, 0, 0, 0);
       toDate.setHours(23, 59, 59, 0);
-      filterObj = {
-        employee: req.params.empId,
-        date: { $lte: fromDate, $gte: toDate }
-      }
     }
-    let payslips = await Payslip.find(filterObj).populate("employee", "FirstName LastName payslip basicSalary profile").exec();
-    console.log("payslips", payslips);
+    let payslips = await Payslip.find({ employee: req.params.empId }).populate("employee", "FirstName LastName payslip basicSalary profile").exec();
+    if (fromDate && toDate) {
+      payslips = payslips.filter((slip) => {
+        const date = new Date(slip?.payslip?.date).getTime();
+        if (date >= fromDate.getTime() && date <= toDate.getTime()) {
+          return slip;
+        }
+      })
+    }
+    
     const arrangedPayslips = payslips.sort((a, b) => new Date(String(a.payslip.period)) - new Date(String(b.payslip.period)))
     const pendingPayslips = arrangedPayslips.filter((slip) => slip.payslip.status === "pending");
     const conflitPayslips = arrangedPayslips.filter((slip) => slip.payslip.status === "conflict");
@@ -131,6 +131,7 @@ router.get("/emp/:empId", verifyAdminHREmployeeManagerNetwork, async (req, res) 
       successPayslips
     })
   } catch (err) {
+    console.log("error in fetch payslips", err)
     await errorCollector({ url: req.originalUrl, name: err.name, message: err.message, env: process.env.ENVIRONMENT })
     res.status(500).send({ error: err.message })
   }

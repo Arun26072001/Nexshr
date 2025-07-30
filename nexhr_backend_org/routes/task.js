@@ -62,7 +62,7 @@ router.get("/project/:id", verifyAdminHREmployeeManagerNetwork, async (req, res)
                     ...task.spend.toObject(),
                     timeHolder
                 }
-        };
+            };
         }).filter(Boolean);
 
         return res.send({ tasks: timeUpdatedTasks });
@@ -485,7 +485,13 @@ router.put("/:empId/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) 
         // Fetch Task Data
         const taskData = await Task.findById(req.params.id);
         if (!taskData) return res.status(404).send({ error: "Task not found" });
-
+        
+        // check task validation
+        const { error } = taskValidation.validate(req.body);
+        if (error) {
+            return res.status(400).send({ error: error.details[0].message })
+        }
+        
         // Identify Newly Assigned Employees
         const newAssignees = req.body?.assignedTo?.filter(emp => !taskData?.assignedTo?.includes(emp)) || [];
 
@@ -559,7 +565,7 @@ router.put("/:empId/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) 
             tracker: [...taskData.tracker, ...taskChanges],
             createdby: createdById,
             comments: updatedComments
-        };  
+        };
 
         // Update Task in DB
         const task = await Task.findByIdAndUpdate(req.params.id, updatedTask, { new: true });

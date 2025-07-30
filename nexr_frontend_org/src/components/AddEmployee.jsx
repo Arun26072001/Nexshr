@@ -10,7 +10,8 @@ import { EssentialValues } from "../App";
 import EmployeeForm from "./EmployeeForm";
 
 const AddEmployee = () => {
-  const { id } = useParams();
+  const params = useParams();
+  const id = params.id;
   const { whoIs, data } = useContext(EssentialValues);
   const [details, setDetails] = useState("personal");
   const [departments, setDepartments] = useState([]);
