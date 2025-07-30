@@ -15,7 +15,7 @@ export default function LateLoginModal({ type, workTimeTracker, isLateLogin, fil
                     Reason for Late Punch-in
                 </Modal.Title>
             </Modal.Header >
-            
+
             <Modal.Body>
                 <div className="modelInput">
                     <p className='modelLabel important'>Late Type</p>
@@ -61,9 +61,12 @@ export default function LateLoginModal({ type, workTimeTracker, isLateLogin, fil
                                     alt="uploaded file"
                                     style={{ borderRadius: "4px" }}
                                 />}
-                            <button onClick={() => removeProof(imgFile, index)} className="remBtn">
-                                &times;
-                            </button>
+                            {
+                                type === "View LateLogin" ? null :
+                                    <button onClick={() => removeProof(imgFile, index)} className="remBtn">
+                                        &times;
+                                    </button>
+                            }
                         </div>
                     </div>
                 ))}

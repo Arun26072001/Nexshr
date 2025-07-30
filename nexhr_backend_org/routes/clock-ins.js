@@ -373,7 +373,7 @@ router.get("/late-punch", verifyAdminHR, async (req, res) => {
         const latePunch = await ClockIns.find({ date: { $gte: fromDate, $lt: toDate }, behaviour: "Late" })
             .populate("employee", "FirstName LastName profile")
             .sort({ date: -1 }).lean().exec();
-            
+
 
         return res.send(latePunch);
     } catch (error) {
@@ -395,10 +395,19 @@ router.put("/late-punchin-response/:id", verifyAdminHR, async (req, res) => {
         // check lateLogin status
         if (updatedClockins.lateLogin.status === "rejected") {
             const emp = await Employee.findById(clockinData.employee._id, "FirstName LastName Email fcmToken team workingTimePattern");
+            if (!emp) {
+                return res.status(404).send({ error: "Employee data could not be found. Please refresh the page and try again." })
+            }
             // Office login time & employee login time 
-            const officeLoginTime = getCurrentTime(emp?.workingTimePattern?.StartingTime) || "9:00";
+            let workingTimeStart = 0;
+            let waitingTime = 0;
+            if (emp?.workingTimePattern && Object.keys(emp?.workingTimePattern).length > 0) {
+                workingTimeStart = getCurrentTime(emp?.workingTimePattern?.StartingTime);
+                waitingTime = Number(emp?.workingTimePattern?.WaitingTime);
+            }
+            const officeLoginTime = workingTimeStart || "9:00";
             const loginTimeRaw = req.body?.login?.startingTime?.[0];
-            const companyLoginMinutes = timeToMinutes(officeLoginTime) + Number(emp?.workingTimePattern?.WaitingTime);
+            const companyLoginMinutes = timeToMinutes(officeLoginTime) + waitingTime;
             const empLoginMinutes = timeToMinutes(loginTimeRaw);
 
             // check emp's login time is greater than office time
@@ -426,7 +435,7 @@ router.put("/late-punchin-response/:id", verifyAdminHR, async (req, res) => {
                         approvedOn: null,
                         approverId: []
                     };
-
+                    console.log("applied in leave")
                     const addLeave = await LeaveApplication.create(halfDayLeaveApp);
                     emp.leaveApplication.push(addLeave._id);
                     await emp.save();
@@ -514,6 +523,7 @@ router.put("/late-punchin-response/:id", verifyAdminHR, async (req, res) => {
                             </html> `;
                     }
 
+                    console.log("applied permission")
                     // Save Leave Application
                     const addLeave = await LeaveApplication.create(leaveAppData);
                     emp.leaveApplication.push(addLeave._id);
