@@ -1199,8 +1199,8 @@ export default function LeaveTable({ data, Account, handleLateLogin, getCheckedV
                                                             <Dropdown.Item style={{ minWidth: 120 }} onClick={() => handleLateLogin(row)}>View</Dropdown.Item>
                                                             {params["*"] === "unpaid-request" || (params["*"] === "late-punch" && row?.lateLogin?.status === "pending") ?
                                                                 <>
-                                                                    <Dropdown.Item style={{ minWidth: 120 }} onClick={() => replyToLeave(row, "approved")}>Approve</Dropdown.Item>
-                                                                    <Dropdown.Item style={{ minWidth: 120 }} onClick={() => replyToLeave(row, "rejected")}>Reject</Dropdown.Item>
+                                                                    <Dropdown.Item style={{ minWidth: 120 }} onClick={() => replyToLeave(row, "approved")} title='Once this request is approved, the employee will not be allowed to apply for any further leave or permission.' >Approve</Dropdown.Item>
+                                                                    <Dropdown.Item style={{ minWidth: 120 }} onClick={() => replyToLeave(row, "rejected")} title="If the request is rejected, the system will automatically apply the appropriate leave or permission." >Reject</Dropdown.Item>
                                                                 </> : null
                                                             }
 

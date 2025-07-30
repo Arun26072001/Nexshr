@@ -626,24 +626,30 @@ leaveApp.get("/date-range/management/:whoIs", verifyAdminHrNetworkAdmin, async (
       endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
     }
 
-    // Build employee filter based on role
-    const filterObj = req.params.whoIs === "hr"
-      ? { Account: { $in: [3, 4, 5] } }
-      : {};
+    const filterObj = req.params.whoIs === "hr" ? { Account: { $in: [3, 4, 5] } } : {};
 
-    // Fetch employee info with working patterns
-    const employees = await Employee.find(filterObj, "_id FirstName LastName profile leaveApplication workingTimePattern")
-      .populate("workingTimePattern")
-      .lean()
-      .exec();
+    const employees = await Employee.find(
+      filterObj,
+      "_id FirstName LastName profile leaveApplication workingTimePattern"
+    ).populate("workingTimePattern").exec();
 
-    if (!employees.length) return res.send({ message: "No employees found." });
+    if (!employees.length) {
+      return res.send({ message: "No employees found." });
+    }
+
+    const firstPatternEmployee = employees.find(e => e.workingTimePattern);
+    if (!firstPatternEmployee) {
+      return res.status(404).send({ error: "No working time pattern set for any employee." });
+    }
+
+    const { StartingTime, FinishingTime } = firstPatternEmployee.workingTimePattern;
+    const workingHoursPerDay =
+      (new Date(FinishingTime) - new Date(StartingTime)) / (1000 * 60 * 60);
 
     const employeeIds = employees.map(emp => emp._id);
 
-    // Fetch leave applications in the given range
     const leaveApplications = await LeaveApplication.find({
-      employee: employeeIds,
+      employee: { $in: employeeIds },
       fromDate: { $lte: endOfMonth },
       toDate: { $gte: startOfMonth }
     })
@@ -654,54 +660,54 @@ leaveApp.get("/date-range/management/:whoIs", verifyAdminHrNetworkAdmin, async (
       .lean()
       .exec();
 
-    // Get working hours from first employee with valid pattern
-    let workingHoursPerDay = 0;
-    for (const emp of employees) {
-      if (!emp.workingTimePattern) {
-        return res.status(404).send({ error: `Working time pattern not set for ${emp.FirstName}.` });
-      }
+    const nowTime = now.getTime();
+    const todayStr = now.toDateString();
 
-      const start = new Date(emp.workingTimePattern.StartingTime);
-      const end = new Date(emp.workingTimePattern.FinishingTime);
-      workingHoursPerDay = (end - start) / (1000 * 60 * 60); // in hours
-      break; // Use the first one found
-    }
-
-    // Clean and format leave data
-    const cleanedLeaveData = leaveApplications
-      .sort((a, b) => new Date(b.fromDate) - new Date(a.fromDate))
-      .map(leave => ({
+    const cleanedLeaveData = leaveApplications.map(leave => {
+      const cleaned = {
         ...leave,
         reasonForLeave: leave.reasonForLeave?.replace(/<\/?[^>]+(>|$)/g, ''),
         prescription: leave.prescription
           ? `${process.env.REACT_APP_API_URL}/uploads/${leave.prescription}`
           : null
-      }));
-
-    const nowTime = now.getTime();
+      };
+      cleaned._fromDate = new Date(leave.fromDate);
+      return cleaned;
+    });
 
     // Categorize leaves
-    const approved = cleanedLeaveData.filter(l => l.status === "approved");
-    const pending = cleanedLeaveData.filter(l => l.status === "pending");
-    const upcoming = cleanedLeaveData.filter(l => new Date(l.fromDate) > now);
-    const onLeaveToday = approved.filter(l =>
-      new Date(l.fromDate).toDateString() === now.toDateString()
-    );
-    const taken = approved.filter(l => new Date(l.fromDate).getTime() < nowTime);
+    const categorized = {
+      approved: [],
+      pending: [],
+      upcoming: [],
+      onLeaveToday: [],
+      taken: []
+    };
 
-    // Calculate leave days
+    for (const leave of cleanedLeaveData) {
+      const { status, _fromDate } = leave;
+
+      if (status === "approved") {
+        categorized.approved.push(leave);
+        if (_fromDate.toDateString() === todayStr) categorized.onLeaveToday.push(leave);
+        if (_fromDate.getTime() < nowTime) categorized.taken.push(leave);
+      }
+      if (status === "pending") categorized.pending.push(leave);
+      if (_fromDate > now) categorized.upcoming.push(leave);
+    }
+
     const [upcomingDays, pendingDays, approvedDays, takenDays] = await Promise.all([
-      sumLeaveDays(upcoming),
-      sumLeaveDays(pending),
-      sumLeaveDays(approved),
-      sumLeaveDays(taken)
+      sumLeaveDays(categorized.upcoming),
+      sumLeaveDays(categorized.pending),
+      sumLeaveDays(categorized.approved),
+      sumLeaveDays(categorized.taken)
     ]);
 
     res.send({
-      leaveData: cleanedLeaveData,
+      leaveData: cleanedLeaveData.sort((a, b) => b._fromDate - a._fromDate),
       approvedLeave: approvedDays,
       leaveInHours: approvedDays * workingHoursPerDay,
-      peopleOnLeave: onLeaveToday,
+      peopleOnLeave: categorized.onLeaveToday,
       pendingLeave: pendingDays,
       upcomingLeave: upcomingDays,
       takenLeave: takenDays
@@ -1165,13 +1171,14 @@ leaveApp.put('/:id', verifyAdminHREmployeeManagerNetwork, async (req, res) => {
 
     const actualfromDate = changeClientTimezoneDate(fromDate);
     const actualtoDate = changeClientTimezoneDate(toDate);
-    if (checkDateIsHoliday(actualfromDate, holiday.holidays)) return res.status(400).send("Holiday is not allowed for fromDate");
-    if (checkDateIsHoliday(actualtoDate, holiday.holidays)) return res.status(400).send("Holiday is not allowed for toDate");
+    if (checkDateIsHoliday(actualfromDate, holiday?.holidays)) return res.status(400).send("Holiday is not allowed for fromDate");
+    if (checkDateIsHoliday(actualtoDate, holiday?.holidays)) return res.status(400).send("Holiday is not allowed for toDate");
     if (checkDateIsWeekend(actualfromDate, emp.workingTimePattern.WeeklyDays)) return res.status(400).send({ error: "Weekend is not allowed in fromDate" });
     if (checkDateIsWeekend(actualtoDate, emp.workingTimePattern.WeeklyDays)) return res.status(400).send({ error: "Weekend is not allowed in toDate" });
 
-    let updatedApprovers = approvers;
-    if (["approved", "rejected"].includes(status)) {
+    let updatedApprovers = approvers || {};
+    // check approvers has for the leave and team leave count
+    if (["approved", "rejected"].includes(status) && Object.keys(updatedApprovers).length > 0) {
       updatedApprovers = Object.fromEntries(Object.keys(approvers).map(key => [key, status]));
       if (status === "approved") {
         const team = await Team.findOne({ employees: employee }, "employees");
