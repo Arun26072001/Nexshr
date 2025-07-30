@@ -14,6 +14,8 @@ const EmployeeForm = ({
     contactRef, employmentRef, jobRef, financialRef, payslipRef, setEmployeeObj, selectedLeaveTypes,
     countries, companies, departments, positions, roles, fillEmpObj, preview, changeImg, changeLeaveTypeManual
 }) => {
+    const isView = window.location.pathname.includes("view");
+
     const navigate = useNavigate();
     const { whoIs, data, handleEditEmp } = useContext(EssentialValues);
     const [timeDifference, setTimeDifference] = useState(0);
@@ -46,7 +48,7 @@ const EmployeeForm = ({
             try {
                 const payslipInfo = await fetchPayslipInfo();
                 if (payslipInfo?.payslipFields) {
-                    const fields = payslipInfo.payslipFields.filter((field) => !["basicsalary","lossofpay"].includes(field.fieldName.toLowerCase()));
+                    const fields = payslipInfo.payslipFields.filter((field) => !["basicsalary", "lossofpay"].includes(field.fieldName.toLowerCase()));
                     const additionalFields = fields.reduce((acc, field) => {
                         acc[field.fieldName] = employeeObj?.payslipFields?.[field.fieldName] || "";
                         return acc;
@@ -329,7 +331,6 @@ const EmployeeForm = ({
     };
 
     if (isLoading) return <Loading height="80vh" />;
-    // console.log("details", details)
     return (
         <form onSubmit={handleSubmit}>
             <div className="empForm">
@@ -356,6 +357,7 @@ const EmployeeForm = ({
                             <div className="col-lg-6">
                                 <div className="inputLabel important">First Name</div>
                                 <input
+                                    readOnly={isView}
                                     type="text"
                                     name="FirstName"
                                     className={`inputField ${errors?.FirstName ? "error" : ""}`}
@@ -368,6 +370,7 @@ const EmployeeForm = ({
                                 <div className="inputLabel important">Last Name</div>
                                 <input
                                     type="text"
+                                    readOnly={isView}
                                     className={`inputField ${errors?.LastName ? "error" : ""}`}
                                     name="LastName"
                                     onChange={e => fillEmpObj(e.target.value, "LastName")}
@@ -382,6 +385,7 @@ const EmployeeForm = ({
                                 <div className="inputLabel">Gender</div>
                                 <select
                                     name="gender"
+                                    disabled={isView}
                                     className={`selectInput ${errors?.gender ? "error" : ""}`}
                                     onChange={e => fillEmpObj(e.target.value, "gender")}
                                     value={employeeObj?.gender || ""}
@@ -396,6 +400,7 @@ const EmployeeForm = ({
                                 <div className="inputLabel">Date Of Birth</div>
                                 <input
                                     type="date"
+                                    readOnly={isView}
                                     className="inputField"
                                     name="dateOfBirth"
                                     onChange={e => fillEmpObj(e.target.value, "dateOfBirth")}
@@ -409,7 +414,7 @@ const EmployeeForm = ({
                                 <div className="inputLabel important">Role</div>
                                 <select
                                     name="role"
-                                    disabled={["admin", "hr"].includes(whoIs) ? false : true}
+                                    disabled={isView ? true : (["admin", "hr"].includes(whoIs) ? false : true)}
                                     className={`selectInput ${errors?.role ? "error" : ""}`}
                                     onChange={["admin", "hr"].includes(whoIs) ? e => fillEmpObj(e.target.value, "role") : () => { }}
                                     value={employeeObj?.role || ""}
@@ -427,7 +432,7 @@ const EmployeeForm = ({
                                 <div className="inputLabel important">Employment Type</div>
                                 <select
                                     name="employmentType"
-                                    disabled={["admin", "hr"].includes(whoIs) ? false : true}
+                                    disabled={isView ? true : (["admin", "hr"].includes(whoIs) ? false : true)}
                                     className={`selectInput ${errors?.employmentType ? "error" : ""}`}
                                     onChange={["admin", "hr"].includes(whoIs) ? e => fillEmpObj(e.target.value, "employmentType") : () => { }}
                                     value={employeeObj?.employmentType || ""}
@@ -449,6 +454,7 @@ const EmployeeForm = ({
                             </span>
                             <input type="file" name="profile" className="fileInput"
                                 accept=".jpeg,.png,.jpg,.webp"
+                                readOnly={isView}
                                 onChange={(e) => changeImg(e)}
                             />
                         </div>
@@ -470,6 +476,7 @@ const EmployeeForm = ({
                             <div className="col-lg-6">
                                 <div className="inputLabel important">Email</div>
                                 <input
+                                    readOnly={isView}
                                     type="email"
                                     className={`inputField ${errors?.Email ? "error" : ""}`}
                                     name="Email"
@@ -481,6 +488,7 @@ const EmployeeForm = ({
                             <div className="col-lg-6">
                                 <div className="inputLabel important">Password</div>
                                 <input
+                                    readOnly={isView}
                                     type="text"
                                     className={`inputField ${errors?.Password ? "error" : ""}`}
                                     name="Password"
@@ -495,6 +503,7 @@ const EmployeeForm = ({
                             <div className="col-lg-6 col-md-6 col-6">
                                 <div className="inputLabel">Country Code</div>
                                 <SelectPicker
+                                    readOnly={isView}
                                     className="p-0 mt-1 selectInput"
                                     style={{
                                         background: "none",
@@ -528,6 +537,7 @@ const EmployeeForm = ({
                             <div className="col-lg-6 col-md-6 col-6 my-2">
                                 <div className="inputLabel">Phone</div>
                                 <input
+                                    readOnly={isView}
                                     type="tel"
                                     className={`inputField ${errors?.phone ? "error" : ""}`}
                                     name="phone"
@@ -542,6 +552,7 @@ const EmployeeForm = ({
                             <div className="col-lg-6">
                                 <div className="inputLabel">Country</div>
                                 <SelectPicker
+                                    readOnly={isView}
                                     className="selectInput p-0"
                                     style={{
                                         background: "none",
@@ -564,6 +575,7 @@ const EmployeeForm = ({
                             <div className="col-lg-6">
                                 <div className="inputLabel">State</div>
                                 <SelectPicker
+                                    readOnly={isView}
                                     className="selectInput p-0"
                                     style={{
                                         background: "none",
@@ -576,7 +588,6 @@ const EmployeeForm = ({
                                     value={employeeObj?.address?.state}
                                     onChange={e => fillEmpObj(e, "state")}
                                     data={stateData?.map(item => ({ label: item, value: item }))}
-                                    readOnly={!stateData?.length}
                                 />
                             </div>
                         </div>
@@ -585,6 +596,7 @@ const EmployeeForm = ({
                             <div className="col-lg-6">
                                 <div className="inputLabel">City</div>
                                 <input
+                                    readOnly={isView}
                                     type="text"
                                     value={employeeObj?.address?.city || ""}
                                     onChange={e => fillEmpObj(e.target.value, "city")}
@@ -595,6 +607,7 @@ const EmployeeForm = ({
                             <div className="col-lg-6">
                                 <div className="inputLabel">Zip Code</div>
                                 <input
+                                    readOnly={isView}
                                     type="number"
                                     value={employeeObj?.address?.zipCode || ""}
                                     onChange={e => fillEmpObj(e.target.value, "zipCode")}
@@ -616,7 +629,7 @@ const EmployeeForm = ({
                                     name="workingTimePattern"
                                     onChange={["admin", "hr"].includes(whoIs) ? e => fillEmpObj(e.target.value, "workingTimePattern") : () => { }}
                                     value={employeeObj?.workingTimePattern || ""}
-                                    disabled={["admin", "hr"].includes(whoIs) ? false : true}
+                                    disabled={isView ? true : (["admin", "hr"].includes(whoIs) ? false : true)}
                                 >
                                     <option value="">Select Work Time Pattern</option>
                                     {timePatterns.map(pattern => (
@@ -639,7 +652,7 @@ const EmployeeForm = ({
                                     name="company"
                                     onChange={["admin", "hr"].includes(whoIs) ? e => fillEmpObj(e.target.value, "company") : () => { }}
                                     value={employeeObj?.company || ""}
-                                    disabled={["admin", "hr"].includes(whoIs) ? false : true}
+                                    disabled={isView ? true : (["admin", "hr"].includes(whoIs) ? false : true)}
                                 >
                                     <option value="">Select Company</option>
                                     {companies.map(company => (
@@ -653,6 +666,7 @@ const EmployeeForm = ({
                             <div className="col-lg-4 col-md-4 col-12 text-center">
                                 <div className="inputLabel">isPermanentWFH</div>
                                 <Toggle
+                                    readOnly={isView}
                                     size="lg"
                                     checked={employeeObj?.isPermanentWFH || false}
                                     onChange={["admin", "hr"].includes(whoIs) ? e => fillEmpObj(e, "isPermanentWFH") : () => { }}
@@ -661,7 +675,7 @@ const EmployeeForm = ({
                             </div>
                             <div className="col-lg-4 col-md-4 col-12">
                                 <div className="inputLabel important">Employee Code</div>
-                                <Input type="text" value={employeeObj?.code} onChange={(e) => fillEmpObj(e, "code")} style={{ width: "100%" }} className={`inputField ${errors?.code ? "error" : ""}`} />
+                                <Input type="text" readOnly={isView} value={employeeObj?.code} onChange={(e) => fillEmpObj(e, "code")} style={{ width: "100%" }} className={`inputField ${errors?.code ? "error" : ""}`} />
                             </div>
                             {errors?.code && <div className="text-center text-danger">{errors?.code}</div>}
                         </div>
@@ -670,6 +684,7 @@ const EmployeeForm = ({
                             <div className="col-lg-6 my-2">
                                 <div className="inputLabel important">Date Of Joining</div>
                                 <input
+                                    readOnly={isView}
                                     type="date"
                                     className={`inputField ${errors?.dateOfJoining ? "error" : ""}`}
                                     name="dateOfJoining"
@@ -684,6 +699,7 @@ const EmployeeForm = ({
                             <div className="col-lg-6 my-2">
                                 <div className="inputLabel important">Annual Leave Year Start</div>
                                 <input
+                                    readOnly={isView}
                                     type="date"
                                     className={`inputField ${errors?.annualLeaveYearStart ? "error" : ""}`}
                                     name="annualLeaveYearStart"
@@ -725,6 +741,7 @@ const EmployeeForm = ({
                             <div className="col-lg-4">
                                 <div className="inputLabel">Public Holidays by</div>
                                 <SelectPicker
+                                    readOnly={isView}
                                     className="selectInput p-0"
                                     style={{
                                         width: 300,
@@ -746,6 +763,7 @@ const EmployeeForm = ({
                             <div className="col-lg-4">
                                 <div className="inputLabel">Warning Limit</div>
                                 <input
+                                    readOnly={isView}
                                     type="number"
                                     min={0}
                                     max={100}
@@ -762,6 +780,7 @@ const EmployeeForm = ({
                             <div className="col-lg-4">
                                 <div className="inputLabel important">Monthly Permissions</div>
                                 <input
+                                    readOnly={isView}
                                     type="number"
                                     min={0}
                                     max={10}
@@ -781,6 +800,7 @@ const EmployeeForm = ({
                             <div className="col-lg-6 my-2">
                                 <div className="inputLabel important">Select Leave Types</div>
                                 <TagPicker
+                                    readOnly={isView}
                                     data={leaveTypes}
                                     size="lg"
                                     disabled={["admin", "hr"].includes(whoIs) ? false : true}
@@ -797,6 +817,7 @@ const EmployeeForm = ({
                             <div className="col-lg-6 my-2">
                                 <div className="inputLabel important">Annual Leave Entitlement</div>
                                 <input
+                                    readOnly={isView}
                                     type="number"
                                     value={employeeObj?.annualLeaveEntitlement || ""}
                                     onChange={["admin", "hr"].includes(whoIs) ? e => fillEmpObj(e.target.value, "annualLeaveEntitlement") : () => { }}
@@ -816,6 +837,7 @@ const EmployeeForm = ({
                                 return <div key={index} className="col-lg-6 my-2">
                                     <div className="inputLabel">Choose {actualName} count</div>
                                     <input
+                                        readOnly={isView}
                                         type="number"
                                         value={employeeObj.typesOfLeaveCount[actualName]}                                        // readOnly
                                         onChange={(e) => changeLeaveTypeManual(e.target.value, `${leaveName}`)}
@@ -841,7 +863,7 @@ const EmployeeForm = ({
                                     className={`selectInput ${errors?.position ? "error" : ""}`}
                                     onChange={["admin", "hr"].includes(whoIs) ? e => fillEmpObj(e.target.value, "position") : () => { }}
                                     value={employeeObj?.position || ""}
-                                    disabled={["admin", "hr"].includes(whoIs) ? false : true}
+                                    disabled={isView ? true : (["admin", "hr"].includes(whoIs) ? false : true)}
                                 >
                                     <option value="">Select Position</option>
                                     {positions.map(position => (
@@ -856,9 +878,9 @@ const EmployeeForm = ({
                                 <div className="inputLabel important">Department</div>
                                 <select
                                     name="department"
-                                    disabled={["admin", "hr"].includes(whoIs) ? false : true}
+                                    disabled={isView ? true : (["admin", "hr"].includes(whoIs) ? false : true)}
                                     className={`selectInput ${errors?.department ? "error" : ""}`}
-                                    onChange={["admin", "hr"].includes(whoIs) ? e => fillEmpObj(e.target.value, "department") : () => { }}
+                                    onChange={isView || ["admin", "hr"].includes(whoIs) ? e => fillEmpObj(e.target.value, "department") : () => { }}
                                     value={employeeObj?.department || ""}
                                 >
                                     <option value="">Select Department</option>
@@ -876,6 +898,7 @@ const EmployeeForm = ({
                             <div className="col-lg-12 my-2">
                                 <div className="inputLabel">Description</div>
                                 <textarea
+                                    readOnly={isView}
                                     disabled={["admin", "hr"].includes(whoIs) ? false : true}
                                     onChange={["admin", "hr"].includes(whoIs) ? e => fillEmpObj(e.target.value, "description") : () => { }}
                                     name="description"
@@ -896,6 +919,7 @@ const EmployeeForm = ({
                             <div className="col-lg-6">
                                 <div className="inputLabel important">Basic Salary</div>
                                 <input
+                                    readOnly={isView}
                                     type="number"
                                     className={`inputField ${errors?.basicSalary ? "error" : ""}`}
                                     name="basicSalary"
@@ -908,6 +932,7 @@ const EmployeeForm = ({
                             <div className="col-lg-6">
                                 <div className="inputLabel important">Bank Name</div>
                                 <input
+                                    readOnly={isView}
                                     type="text"
                                     className={`inputField ${errors?.bankName ? "error" : ""}`}
                                     name="bankName"
@@ -923,6 +948,7 @@ const EmployeeForm = ({
                             <div className="col-lg-12 my-2">
                                 <div className="inputLabel important">Account No</div>
                                 <input
+                                    readOnly={isView}
                                     type="number"
                                     className={`inputField ${errors?.accountNo ? "error" : ""}`}
                                     name="accountNo"
@@ -938,6 +964,7 @@ const EmployeeForm = ({
                             <div className="col-lg-6">
                                 <div className="inputLabel important">Account Holder Name</div>
                                 <input
+                                    readOnly={isView}
                                     type="text"
                                     className={`inputField ${errors?.accountHolderName ? "error" : ""}`}
                                     name="accountHolderName"
@@ -952,6 +979,7 @@ const EmployeeForm = ({
                             <div className="col-lg-6">
                                 <div className="inputLabel">Tax Deducation</div>
                                 <input
+                                    readOnly={isView}
                                     type="number"
                                     className="inputField"
                                     name="taxDeduction"
@@ -966,6 +994,7 @@ const EmployeeForm = ({
                             <div className="col-lg-12 my-2">
                                 <div className="inputLabel important">IFSC Code</div>
                                 <input
+                                    readOnly={isView}
                                     type="text"
                                     className={`inputField ${errors?.IFSCcode ? "error" : ""}`}
                                     name="IFSCcode"
@@ -989,6 +1018,7 @@ const EmployeeForm = ({
                                             {field.fieldName[0].toUpperCase() + field.fieldName.slice(1)}
                                         </div>
                                         <input
+                                            readOnly={isView}
                                             type={field.type}
                                             className={`inputField ${errors[field.fieldName] ? "error" : ""}`}
                                             name={field.fieldName}

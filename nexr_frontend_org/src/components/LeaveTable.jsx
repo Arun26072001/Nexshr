@@ -1237,16 +1237,25 @@ export default function LeaveTable({ data, Account, handleLateLogin, getCheckedV
                                                     } else if (params['*'] === "employee") {
                                                         return (
                                                             <Dropdown title={isLoading === row._id ? <Loading size={20} color={"black"} /> : <EditRoundedIcon style={{ cursor: isLoading === row._id ? "process" : "pointer" }} />} placement='leftStart' noCaret>
-                                                                <Dropdown.Item style={{ minWidth: 120 }} onClick={() => navigate(`/${whoIs}/employee/edit/${row._id}`)}>
+                                                                <Dropdown.Item style={{ minWidth: 120 }} onClick={() => navigate(`/${whoIs}/employee/view/${row._id}`)}>
                                                                     <b>
-                                                                        <BorderColorRoundedIcon sx={{ color: "#FFD65A" }} /> Edit
+                                                                        <RemoveRedEyeRoundedIcon sx={{ color: "#80C4E9" }} /> View
                                                                     </b>
                                                                 </Dropdown.Item>
-                                                                <Dropdown.Item style={{ minWidth: 120 }} onClick={() => deleteData(row._id)}>
-                                                                    <b>
-                                                                        <DeleteRoundedIcon sx={{ color: "#F93827" }} /> Delete
-                                                                    </b>
-                                                                </Dropdown.Item>
+                                                                {["admin","hr"].includes(whoIs) &&
+                                                                    <>
+                                                                        <Dropdown.Item style={{ minWidth: 120 }} onClick={() => navigate(`/${whoIs}/employee/edit/${row._id}`)}>
+                                                                            <b>
+                                                                                <BorderColorRoundedIcon sx={{ color: "#FFD65A" }} /> Edit
+                                                                            </b>
+                                                                        </Dropdown.Item>
+                                                                        <Dropdown.Item style={{ minWidth: 120 }} onClick={() => deleteData(row._id)}>
+                                                                            <b>
+                                                                                <DeleteRoundedIcon sx={{ color: "#F93827" }} /> Delete
+                                                                            </b>
+                                                                        </Dropdown.Item>
+                                                                    </>
+                                                                }
                                                             </Dropdown>
                                                         );
                                                     } else if (params["*"] === "reports") {
