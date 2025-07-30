@@ -7,8 +7,6 @@ const { errorCollector } = require('../Reuseable_functions/reusableFunction');
 
 router.get("/", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
   try {
-    // const {orgName} = jwt.decode(req.headers['authorization']);
-    // const Department = getDepartmentModel(orgName)
     const departments = await Department.find()
       .populate({
         path: 'company',
@@ -37,14 +35,13 @@ router.post("/", verifyAdminHR, async (req, res) => {
     if (error) {
       return res.status(400).send({ error: error.details[0].message });
     }
-
-    const existingDepartment = await Department.findOne({ DepartmentName: req.body.DepartmentName });
+    const companyId = req.body.company || "";
+    const existingDepartment = await Department.findOne({ DepartmentName: { $regex: `${req.body.DepartmentName}`, $options: "i" }, company: companyId });
     if (existingDepartment) {
       return res.status(400).send({
         error: `${req.body.DepartmentName} Department already exists`,
       });
     }
-
     const newDepartment = await Department.create(req.body);
 
     res.send({ message: `${newDepartment.DepartmentName} department has been added!` });

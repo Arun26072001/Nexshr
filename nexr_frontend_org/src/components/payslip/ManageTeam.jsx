@@ -10,6 +10,7 @@ import { EssentialValues } from "../../App";
 import CommonModel from "../Administration/CommonModel";
 import { jwtDecode } from "jwt-decode";
 import { useNavigate } from "react-router-dom";
+import { fetchCompanies } from "../ReuseableAPI";
 
 const ManageTeam = () => {
     const navigate = useNavigate();
@@ -27,6 +28,7 @@ const ManageTeam = () => {
     const [filteredTeams, setFilteredTeams] = useState([]);
     const [leads, setLeads] = useState([]);
     const [heads, setHeads] = useState([]);
+    const [companies, setCompanies] = useState([]);
     const [managers, setManagers] = useState([]);
     const [admins, setAdmins] = useState([]);
     const [hrs, setHrs] = useState([]);
@@ -292,7 +294,15 @@ const ManageTeam = () => {
 
     }, [dom]);
 
+    async function getCompanies() {
+        const companyData = await fetchCompanies();
+        if (companyData) {
+            setCompanies(companyData.map((item) => ({ label: item.CompanyName, value: item._id })))
+        }
+    }
+
     useEffect(() => {
+        getCompanies()
         fetchHeads();
         fetchLeads();
         fetchManagers();
@@ -325,6 +335,7 @@ const ManageTeam = () => {
                         changeData={changeTeamObj}
                         editData={handleSubmitEdit}
                         leads={leads}
+                        comps={companies}
                         heads={heads}
                         managers={managers}
                         admins={admins}

@@ -160,8 +160,8 @@ router.post("/:id", verifyAdminHR, async (req, res) => {
         const creator = await Employee.findById(req.params.id, "FirstName LastName company Email").populate("company", "logo CompanyName");
         if (!creator) return res.status(404).json({ error: "Creator not found!" });
 
-        const { teamName, lead = [], head = [], manager = [], employees = [], admin = [], hr = [] } = req.body;
-        const existingTeam = await Team.findOne({ teamName });
+        const { teamName, lead = [], head = [], manager = [], employees = [], admin = [], hr = [], company = "" } = req.body;
+        const existingTeam = await Team.findOne({ teamName: { $regex: `${teamName}`, $options: "i" }, company: company });
         if (existingTeam) return res.status(400).json({ error: `Team "${teamName}" already exists!` });
 
         const roles = { lead, head, manager, employees, hr, admin };

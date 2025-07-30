@@ -79,8 +79,10 @@ export default function Employee() {
         try {
             setIsLoading(true);
             const empData = await fetchEmployees();
-            setEmployees(empData);
-            setFilteredEmps(empData);
+            if (empData) {
+                setEmployees(empData);
+                setFilteredEmps(empData);
+            }
         } catch (error) {
             if (error?.message === "Network Error") {
                 navigate("/network-issue")
@@ -112,7 +114,8 @@ export default function Employee() {
     async function getTeamEmps() {
         const emps = await fetchTeamEmps("fullData");
         if (emps?.length > 0) {
-            setEmployees(emps)
+            setEmployees(emps);
+            setFilteredEmps(emps);
         }
     }
 
@@ -126,7 +129,7 @@ export default function Employee() {
             fetchEmployeeData();
         }
     }, [isModifyEmps]);
-
+    console.log("filteredEmps", filteredEmps)
 
     // Filter employees when `empName` changes
     useEffect(() => {

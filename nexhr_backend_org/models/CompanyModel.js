@@ -53,7 +53,7 @@ const CompanyValidation = Joi.object().keys({
     .optional(),
   FaxNo: Joi.string()
     .regex(/^\+?[0-9]{6,}$/)
-    .messages({ "string.pattern.base": "Fax number must have at least 6 digits and may start with '+'"})
+    .messages({ "string.pattern.base": "faxno must have at least 6 digits and may start with '+'"})
     .optional(),
   PanNo: Joi.string()
     .regex(/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/)

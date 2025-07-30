@@ -101,8 +101,10 @@ router.post("/", async (req, res) => {
 });
 
 router.get("/emp/:empId", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
+  
+  // need to check
   try {
-    const dateRangeValue = req.query?.dataRangeValue;
+    const dateRangeValue = req.query?.dateRangeValue;
     let filterObj = {
       employee: req.params.empId,
     }
@@ -117,7 +119,7 @@ router.get("/emp/:empId", verifyAdminHREmployeeManagerNetwork, async (req, res) 
       }
     }
     let payslips = await Payslip.find(filterObj).populate("employee", "FirstName LastName payslip basicSalary profile").exec();
-
+    console.log("payslips", payslips);
     const arrangedPayslips = payslips.sort((a, b) => new Date(String(a.payslip.period)) - new Date(String(b.payslip.period)))
     const pendingPayslips = arrangedPayslips.filter((slip) => slip.payslip.status === "pending");
     const conflitPayslips = arrangedPayslips.filter((slip) => slip.payslip.status === "conflict");

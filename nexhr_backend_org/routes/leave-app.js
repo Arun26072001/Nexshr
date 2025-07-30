@@ -656,9 +656,7 @@ leaveApp.get("/date-range/management/:whoIs", verifyAdminHrNetworkAdmin, async (
       .populate([
         { path: "employee", select: "FirstName LastName Email profile" },
         { path: "coverBy", select: "FirstName LastName Email profile" }
-      ])
-      .lean()
-      .exec();
+      ]).lean().exec();
 
     const nowTime = now.getTime();
     const todayStr = now.toDateString();
@@ -1173,13 +1171,14 @@ leaveApp.put('/:id', verifyAdminHREmployeeManagerNetwork, async (req, res) => {
     const actualtoDate = changeClientTimezoneDate(toDate);
     if (checkDateIsHoliday(actualfromDate, holiday?.holidays)) return res.status(400).send("Holiday is not allowed for fromDate");
     if (checkDateIsHoliday(actualtoDate, holiday?.holidays)) return res.status(400).send("Holiday is not allowed for toDate");
-    if (checkDateIsWeekend(actualfromDate, emp.workingTimePattern.WeeklyDays)) return res.status(400).send({ error: "Weekend is not allowed in fromDate" });
-    if (checkDateIsWeekend(actualtoDate, emp.workingTimePattern.WeeklyDays)) return res.status(400).send({ error: "Weekend is not allowed in toDate" });
+    if (checkDateIsWeekend(actualfromDate, emp?.workingTimePattern?.WeeklyDays)) return res.status(400).send({ error: "Weekend is not allowed in fromDate" });
+    if (checkDateIsWeekend(actualtoDate, emp?.workingTimePattern?.WeeklyDays)) return res.status(400).send({ error: "Weekend is not allowed in toDate" });
 
     let updatedApprovers = approvers || {};
     // check approvers has for the leave and team leave count
     if (["approved", "rejected"].includes(status) && Object.keys(updatedApprovers).length > 0) {
-      updatedApprovers = Object.fromEntries(Object.keys(approvers).map(key => [key, status]));
+      console.log("tetsing..");
+      updatedApprovers = Object.fromEntries(Object.keys(updatedApprovers).map(key => [key, status]));
       if (status === "approved") {
         const team = await Team.findOne({ employees: employee }, "employees");
         const overlappingLeaves = await LeaveApplication.find({
@@ -1192,17 +1191,22 @@ leaveApp.put('/:id', verifyAdminHREmployeeManagerNetwork, async (req, res) => {
       }
     }
 
-    const approverStatuses = Object.values(updatedApprovers);
-    const allApproved = approverStatuses.every(s => s === "approved");
-    const anyRejected = approverStatuses.includes("rejected");
-    const allPending = approverStatuses.every(s => s === "pending");
+    const approverStatuses = Object.values(approvers) || [];
+    let allApproved = false;
+    let anyRejected = false;
+    let allPending = false;
+    if(approverStatuses.length > 0){
+      allApproved = approverStatuses.every(s => s === "approved");
+      anyRejected = approverStatuses.includes("rejected");
+      allPending = approverStatuses.every(s => s === "pending");
+    }
 
     const actionBy = req.query.actionBy;
-    const emailType = allApproved ? "approved" : anyRejected ? "rejected" : "pending";
-    updatedStatus = allApproved ? "approved" : anyRejected ? "rejected" : "pending";
+    const emailType = allApproved ? "approved" : anyRejected ? "rejected" : status;
+    updatedStatus = allApproved ? "approved" : anyRejected ? "rejected" : status;
     const mailList = [];
 
-    if (allApproved && !["unpaid leave (lwp)", "permission"].includes(leaveType.toLowerCase())) {
+    if (updatedStatus === "approved" && !["unpaid leave (lwp)", "permission"].includes(leaveType.toLowerCase())) {
       const leaveDaysTaken = Math.max(await getDayDifference(req.body), 1);
 
       const currentValue = emp.typesOfLeaveRemainingDays?.[leaveType];

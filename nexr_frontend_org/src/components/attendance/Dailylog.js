@@ -53,9 +53,8 @@ const Dailylog = () => {
                     Authorization: data.token || ""
                 }
             });
-            if (empOfAttendances && empOfAttendances.data) {
-                setAttendanceData(empOfAttendances.data);
-            }
+            const attendances = empOfAttendances.data || []
+            setAttendanceData(attendances);
         } catch (error) {
             if (error?.message === "Network Error") {
                 navigate("/network-issue")

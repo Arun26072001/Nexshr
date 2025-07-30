@@ -78,7 +78,6 @@ const CommonModel = ({
         const uniqueIds = [...new Set(result)];
         changeData(uniqueIds, "selectTeamMembers");
     };
-    console.log("type", ["Company", "Task View"].includes(type))
 
     return (
         <Modal open={isAddData} size="sm" backdrop="static" onClose={() => {
@@ -118,27 +117,49 @@ const CommonModel = ({
                     <div className="d-flex justify-content-between">
                         {
                             ["Department", "Position", "Project", "Report", "Report View", "Country", "Edit Country", "Team", "TimePattern", "Organization", "LeaveType", "WorkPlace", "View WorkPlace"].includes(type) &&
-                            <div className={`${type === "Team" ? "col-full" : "col-half"}`}>
-                                <div className="modelInput">
-                                    <p className='modelLabel important'>{type} Name: </p>
-                                    <Input required
-                                        size='lg'
-                                        className={`${["CompanyName", "DepartmentName", "PositionName", "teamName", "orgName", "LeaveName", "PatternName", "CompanyName", "name"].some((item) => errorMsg?.includes(item)) ? "error" : ""}`}
-                                        value={dataObj?.[type === "Department" ? "DepartmentName" : type === "Position" ? "PositionName" : type === "Team" ? "teamName" : type === "Organization" ? "orgName" : type === "LeaveType" ? "LeaveName" : type === "TimePattern" ? "PatternName" : ["WorkPlace", "View WorkPlace"].includes(type) ? "CompanyName" : `name`] || ""}
-                                        disabled={["Report View", "Project View", "View WorkPlace"].includes(type) ? true : false}
-                                        onChange={["Report View", "Project View", "View WorkPlace"].includes(type) ? null
-                                            : (e) => changeData(e?.trimStart()?.replace(/\s+/g, ' '), type === "Department" ? "DepartmentName"
-                                                : type === "Position" ? "PositionName"
-                                                    : type === "Team" ? "teamName"
-                                                        : type === "Organization" ? "orgName"
-                                                            : type === "LeaveType" ? "LeaveName"
-                                                                : type === "TimePattern" ? "PatternName"
-                                                                    : ["WorkPlace", "View WorkPlace"]?.includes(type) ? "CompanyName"
-                                                                        : "name")}
-                                    />
-                                    {["CompanyName", "DepartmentName", "PositionName", "TeamName", "orgName", "LeaveName", "PatternName", "CompanyName", "name"].some(item => errorMsg.includes(item)) ? <div className="text-center text-danger">{errorMsg}</div> : null}
+                            <>
+                                <div className="col-half">
+                                    <div className="modelInput">
+                                        <p className='modelLabel important'>{type} Name: </p>
+                                        <Input required
+                                            size='lg'
+                                            className={`${["CompanyName", "DepartmentName", "PositionName", "teamName", "orgName", "LeaveName", "PatternName", "CompanyName", "name"].some((item) => errorMsg?.includes(item)) ? "error" : ""}`}
+                                            value={dataObj?.[type === "Department" ? "DepartmentName" : type === "Position" ? "PositionName" : type === "Team" ? "teamName" : type === "Organization" ? "orgName" : type === "LeaveType" ? "LeaveName" : type === "TimePattern" ? "PatternName" : ["WorkPlace", "View WorkPlace"].includes(type) ? "CompanyName" : `name`] || ""}
+                                            disabled={["Report View", "Project View", "View WorkPlace"].includes(type) ? true : false}
+                                            onChange={["Report View", "Project View", "View WorkPlace"].includes(type) ? null
+                                                : (e) => changeData(e?.trimStart()?.replace(/\s+/g, ' '), type === "Department" ? "DepartmentName"
+                                                    : type === "Position" ? "PositionName"
+                                                        : type === "Team" ? "teamName"
+                                                            : type === "Organization" ? "orgName"
+                                                                : type === "LeaveType" ? "LeaveName"
+                                                                    : type === "TimePattern" ? "PatternName"
+                                                                        : ["WorkPlace", "View WorkPlace"]?.includes(type) ? "CompanyName"
+                                                                            : "name")}
+                                        />
+                                        {["CompanyName", "DepartmentName", "PositionName", "TeamName", "orgName", "LeaveName", "PatternName", "CompanyName", "name"].some(item => errorMsg.includes(item)) ? <div className="text-center text-danger">{errorMsg}</div> : null}
+                                    </div>
                                 </div>
-                            </div>
+                                {
+                                    ["Team"].includes(type) &&
+                                    <div className="col-half">
+                                        <div className="modelInput">
+                                            <p className='modelLabel important'>Company:</p>
+                                            <SelectPicker
+                                                required
+                                                data={comps}
+                                                size="lg"
+                                                className={`${errorMsg?.toLowerCase()?.includes("company") ? "error" : ""}`}
+                                                appearance='default'
+                                                style={{ width: "100%" }}
+                                                placeholder="Select Company"
+                                                value={dataObj?.company}
+                                                onChange={(e) => changeData(e, "company")}
+                                            />
+                                            {errorMsg?.toLowerCase()?.includes("company") ? <div className="text-center text-danger">{errorMsg}</div> : null}
+                                        </div>
+                                    </div>
+                                }
+                            </>
                         }
                         {
                             ["Country", "Edit Country"].includes(type) &&
@@ -874,7 +895,7 @@ const CommonModel = ({
                                         name={`ContactPerson`}
                                         value={dataObj?.[`ContactPerson`] || ""}
                                         appearance='default'
-                                        onChange={(e) => changeData(e, "contactperson")}
+                                        onChange={(e) => changeData(e, "ContactPerson")}
                                     />
                                 </div>
                             </div>
@@ -1081,21 +1102,23 @@ const CommonModel = ({
                 }
                 {
                     type === "Team" &&
-                    ["Manager", "Lead", "Head", "Admin", "Hr"].map((emp) => {
-                        return <div className="modelInput" key={emp}>
-                            <p className="modelLabel">
-                                {emp}
+                    [{ key: "Manager", value: managers }, { key: "Lead", value: leads }, { key: "Head", value: heads }, { key: "Admin", value: admins }, { key: "Hr", value: hrs }].map((emp) => {
+                        return <div className="modelInput" key={emp.key}>
+                            <p className={`modelLabel ${["Hr", "Lead"].includes(emp.key) ? "important" : ""}`}>
+                                {emp.key}
                             </p>
                             <TagPicker
-                                data={emp === "Manager" ? managers : emp === "Lead" ? leads : emp === "Admin" ? admins : emp === "Hr" ? hrs : heads}
+                                data={emp.value}
                                 required
                                 size="lg"
+                                className={errorMsg?.toLowerCase()?.includes(emp.key.toLowerCase()) ? "error" : ""}
                                 appearance="default"
                                 style={{ width: "100%" }}
-                                placeholder={`Select ${emp}`}
-                                value={dataObj?.[emp?.toLowerCase()]}
-                                onChange={(e) => changeData(e, emp?.toLowerCase())}
+                                placeholder={`Select ${emp.key}`}
+                                value={dataObj?.[emp.key?.toLowerCase()]}
+                                onChange={(e) => changeData(e, emp?.key?.toLowerCase())}
                             />
+                            {errorMsg?.toLowerCase()?.includes(emp.key.toLowerCase()) ? <div className="text-center text-danger">{errorMsg}</div> : null}
                         </div>
                     })
                 }
