@@ -300,7 +300,6 @@ const Tasks = () => {
         }
       })
       const empTasks = res.data?.tasks;
-      console.log("empTasks", empTasks);
       setProjectAllTasks(empTasks)
       setAllTask(empTasks?.map((task) => ({ label: task.title + " " + task.status, value: task._id })));
       setNotCompletedTasks(empTasks.filter((task) => task.status !== "Completed")?.map((task) => ({ label: task.title, value: task._id })))

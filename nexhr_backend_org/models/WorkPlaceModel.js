@@ -10,6 +10,7 @@ const WorkPlaceSchema = mongoose.Schema({
   PostCode: { type: Number },
   employees: [{ type: mongoose.Schema.Types.ObjectId, ref: "Employee" }],
   Town: { type: String },
+  isDeleted: { type: Boolean, default: false },
 })
 
 const WorkPlace = mongoose.model("WorkPlace", WorkPlaceSchema);
@@ -20,6 +21,7 @@ const WorkPlaceValidation = Joi.object().keys({
     .disallow(null, '', 'none', 'undefined')
     .max(100)
     .required(),
+  isDeleted: Joi.any().optional(),
   Address_1: Joi.string()
     .disallow(null, '', 'none', 'undefined')
     .max(100)

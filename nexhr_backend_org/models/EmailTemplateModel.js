@@ -8,6 +8,7 @@ const EmailTempSchema = new mongoose.Schema({
     content: { type: String },
     shortTags: [{ type: String }],
     status: { type: Boolean },
+     isDeleted: {type: Boolean, default: false},
     createdBy: {type: mongoose.Schema.Types.ObjectId, ref: "Employee"}
 })
 
@@ -20,7 +21,8 @@ const EmailtempValidation = Joi.object().keys({
     content: Joi.string().required().disallow(null, '', 'none', 'undefined'),
     shortTags: Joi.array().items(Joi.string()).required(),
     status: Joi.boolean().required(),
-    createdBy: Joi.any().optional()
+    createdBy: Joi.any().optional(),
+    isDeleted: Joi.any().optional()
 })
 
 module.exports = { EmailTemplate, EmailtempValidation }

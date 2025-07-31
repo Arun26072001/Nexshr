@@ -4,9 +4,7 @@ const { Task, taskValidation } = require("../models/TaskModel");
 const { Project } = require("../models/ProjectModel");
 const { Employee } = require("../models/EmpModel");
 const sendMail = require("./mailSender");
-const fs = require("fs");
-const path = require("path");
-const { convertToString, getCurrentTimeInMinutes, timeToMinutes, formatTimeFromMinutes, projectMailContent, categorizeTasks, errorCollector } = require("../Reuseable_functions/reusableFunction");
+const { convertToString, getCurrentTimeInMinutes, timeToMinutes, formatTimeFromMinutes, projectMailContent, categorizeTasks, errorCollector, checkValidObjId } = require("../Reuseable_functions/reusableFunction");
 const { sendPushNotification } = require("../auth/PushNotification");
 const { PlannerCategory } = require("../models/PlannerCategoryModel");
 const { PlannerType } = require("../models/PlannerTypeModel");
@@ -184,19 +182,24 @@ router.get("/assigned/:id", verifyAdminHREmployeeManagerNetwork, async (req, res
 router.get("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
     const { withComments } = req.query;
     try {
+        const taskId = req.params.id;
+        if (!checkValidObjId(taskId)) {
+            return res.status(400).send({ error: `Invalid or missing Task ID` })
+        }
         const fields = "FirstName LastName Email profile";
-        let query = Task.findById(req.params.id)
+        let query = Task.findById(taskId)
             .populate([
                 { path: "tracker.who", select: fields },
-                { path: "comments.createdBy", select: fields },
-                { path: "createdby", select: fields }
-            ]);
+                { path: "createdby", select: fields },
+                { path: "comments", populate: { path: "createdBy", select: fields } }
+            ])
 
         if (withComments) {
             query = query.populate("assignedTo", fields);
         }
 
         let task = await query;
+        console.log("task", task)
         if (!task) return res.status(404).send({ error: "No Task found" });
 
         const { spend, comments } = task;
@@ -222,8 +225,8 @@ router.get("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
         });
 
     } catch (error) {
+        console.error("error in get task data with comments", error);
         await errorCollector({ url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT })
-        console.error(error);
         res.status(500).send({ error: error.message });
     }
 });
@@ -394,104 +397,18 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
     }
 });
 
-
-router.put("/updatedTaskComment/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
-    const { type } = req.query;
-
-    const taskObj = req.body;
-    try {
-        let oldTaskObj = await Task.findById(req.body._id, "comments").exec();
-        const assignessId = taskObj.assignedTo.map((member) => member._id);
-        // get employee data for company data
-        const emps = await Employee.find({ _id: { $in: assignessId } }, "FirstName LastName Email fcmToken profile company")
-            .populate("company", "CompanyName logo")
-            .exec();
-
-        if (type === "edit comment") {
-            // remove or unused images in updated comment
-            const updatedCommentIndex = req.query.index;
-            const updatedComment = taskObj.comments[req.query?.index];
-            if (oldTaskObj.comments[updatedCommentIndex] && oldTaskObj.comments[updatedCommentIndex].attachments) {
-                const deletedImgs = oldTaskObj.comments[updatedCommentIndex].attachments.map((img) => {
-                    if (!updatedComment.includes(img)) {
-                        return img;
-                    }
-                }).filter(Boolean)
-                if (deletedImgs.length > 0) {
-                    const removedFiles = [];
-                    deletedImgs.map((img) => {
-                        const oldFile = img.split("/").pop();
-                        const oldFilePath = path.join(__dirname, "..", "uploads", oldFile);
-                        if (fs.existsSync(oldFilePath)) {
-                            fs.unlinkSync(oldFilePath);
-                            removedFiles.push(oldFile)
-                        }
-                    })
-                }
-            }
-        }
-        // remove images from deleted comments
-        if (type === "delete comment") {
-            const deletedCommentIndex = req.query.index;
-            if (oldTaskObj.comments[deletedCommentIndex] && oldTaskObj.comments[deletedCommentIndex].attachments.length > 0) {
-                const removedFiles = [];
-                oldTaskObj.comments[deletedCommentIndex].attachments.map((img) => {
-                    const oldFile = img.split("/").pop();
-                    const oldFilePath = path.join(__dirname, "..", "uploads", oldFile);
-                    if (fs.existsSync(oldFilePath)) {
-                        fs.unlinkSync(oldFilePath);
-                        removedFiles.push(oldFile)
-                    }
-                })
-                console.log("removedFile in delete comment", removedFiles)
-            }
-        }
-        const currentCmt = taskObj.comments.at(-1)
-        const commentCreator = await Employee.findById(currentCmt.createdBy, "FirstName LastName")
-        // update task with updated comments
-        const updatedTask = await Task.findByIdAndUpdate(taskObj._id, taskObj, { new: true });
-        if (emps.length) {
-            emps.forEach((emp) => {
-
-                const title = `${commentCreator.FirstName + " " + commentCreator.LastName} has commented in ${taskObj.title}`;
-                const message = currentCmt.comment.replace(/<\/?[^>]+(>|$)/g, '')
-                // send mail 
-                sendMail({
-                    From: `<${process.env.FROM_MAIL}> (Nexshr)`,
-                    To: emp.Email,
-                    Subject: title,
-                    TextBody: message
-                })
-                // send notification
-                sendPushNotification({
-                    token: emp.fcmToken,
-                    title,
-                    body: message,
-                    type,
-                    name: emp.FirstName
-                })
-            });
-        }
-        return res.send({ message: "task comments updated successfully", updatedTask })
-    } catch (error) {
-        await errorCollector({ url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT })
-        console.log("error in update taskComments", error);
-        return res.status(500).send({ error: error.message })
-    }
-})
-
 router.put("/:empId/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
     try {
         // Fetch Task Data
         const taskData = await Task.findById(req.params.id);
         if (!taskData) return res.status(404).send({ error: "Task not found" });
-        
+
         // check task validation
         const { error } = taskValidation.validate(req.body);
         if (error) {
             return res.status(400).send({ error: error.details[0].message })
         }
-        
+
         // Identify Newly Assigned Employees
         const newAssignees = req.body?.assignedTo?.filter(emp => !taskData?.assignedTo?.includes(emp)) || [];
 
@@ -503,6 +420,7 @@ router.put("/:empId/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) 
                 .populate("company", "CompanyName logo")
         ]);
 
+        // check employee and assigned person is exists
         if (!assignedPerson) return res.status(404).send({ error: "Assigned person not found" });
         if (!empData) return res.status(404).send({ error: "Employee not found" });
 
@@ -524,7 +442,7 @@ router.put("/:empId/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) 
             return [];
         });
 
-        // check attachments are changes and changed imgs from server
+        // delete remove image from server
         const deletedImgs = taskData.attachments.map((img) => {
             if (!req.body.attachments.includes(img)) {
                 return img;
@@ -532,15 +450,7 @@ router.put("/:empId/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) 
         }).filter(Boolean);
 
         if (deletedImgs.length > 0) {
-            const removedFiles = [];
-            deletedImgs.map((img) => {
-                const oldFile = img.split("/").pop();
-                const oldFilePath = path.join(__dirname, "..", "uploads", oldFile);
-                if (fs.existsSync(oldFilePath)) {
-                    fs.unlinkSync(oldFilePath);
-                    removedFiles.push(oldFile);
-                }
-            })
+            const removedFiles = removeImgsFromServer(deletedImgs);
         }
 
         // Prepare optional comment update
@@ -569,7 +479,6 @@ router.put("/:empId/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) 
 
         // Update Task in DB
         const task = await Task.findByIdAndUpdate(req.params.id, updatedTask, { new: true });
-        if (!task) return res.status(404).send({ error: "Failed to update task" });
 
         const assignedPersonName = `${assignedPerson.FirstName} ${assignedPerson.LastName}`;
 

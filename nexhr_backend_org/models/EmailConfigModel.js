@@ -8,6 +8,7 @@ const emailConfigSchema = new mongoose.Schema({
     fromEmail: { type: String, }, // for both
     apiToken: { type: String }, // For Postmark
     isActive: { type: Boolean, default: false },
+     isDeleted: {type: Boolean, default: false},
 });
 
 const EmailConfig = mongoose.model("EmailConfig", emailConfigSchema);

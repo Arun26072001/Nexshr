@@ -3,7 +3,8 @@ const Joi = require('joi');
 
 var positionSchema = new mongoose.Schema({
   PositionName: { type: String, required: true },
-  company: { type: mongoose.Schema.Types.ObjectId, ref: "Company" }
+  company: { type: mongoose.Schema.Types.ObjectId, ref: "Company" },
+   isDeleted: {type: Boolean, default: false},
 });
 
 const PositionValidation = Joi.object().keys({
@@ -12,7 +13,8 @@ const PositionValidation = Joi.object().keys({
   PositionName: Joi.string()
     .max(200)
     .required(),
-  company: Joi.string().regex(/^[0-9a-fA-F]{24}$/).required()
+  company: Joi.string().regex(/^[0-9a-fA-F]{24}$/).required(),
+  isDeleted: Joi.any().optional()
 });
 
 var Position = mongoose.model("Position", positionSchema);

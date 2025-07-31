@@ -3,6 +3,8 @@ const { PlannerCategory } = require("../models/PlannerCategoryModel");
 const { Holiday } = require("../models/HolidayModel");
 const { ErrorLog } = require("../models/ErrorLogModel");
 const dayjs = require('dayjs');
+const fs = require("fs");
+const path = require("path");
 const isSameOrBefore = require('dayjs/plugin/isSameOrBefore');
 const isSameOrAfter = require('dayjs/plugin/isSameOrAfter');
 const isoWeek = require('dayjs/plugin/isoWeek');
@@ -10,6 +12,7 @@ const { toZonedTime, formatInTimeZone } = require('date-fns-tz');
 const { format } = require("date-fns");
 const isBetween = require('dayjs/plugin/isBetween');
 const { Employee } = require("../models/EmpModel");
+
 
 dayjs.extend(isSameOrBefore);
 dayjs.extend(isSameOrAfter);
@@ -96,7 +99,7 @@ const convertToString = (value) => {
 };
 
 function isValidLeaveDate(holidays = [], WeeklyDays = [], target) {
-  const date = new Date(target);  
+  const date = new Date(target);
   const dayName = format(date, "EEEE"); // e.g., 'Monday', 'Tuesday', etc.
   const isHoliday = checkDateIsHoliday(holidays, date);
   const isWeeklyOff = !WeeklyDays.includes(dayName);
@@ -426,7 +429,36 @@ async function fetchFirstTwoItems() {
   }
 }
 
+function checkValidObjId(id) {
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    return false;
+  } else {
+    return true;
+  }
+}
+
+// function sendMailAndNotification(emps, title, message) {
+//   emps.forEach((emp) => {
+//     // send mail 
+//     sendMail({
+//       From: `<${process.env.FROM_MAIL}> (Nexshr)`,
+//       To: emp.Email,
+//       Subject: title,
+//       TextBody: message
+//     })
+//     // send notification
+//     sendPushNotification({
+//       token: emp.fcmToken,
+//       title,
+//       body: message,
+//       type,
+//       name: emp.FirstName
+//     })
+//   });
+// }
+
 // check whf request is weekend or holiday
+
 function checkDateIsHoliday(dateList = [], target) {
   if (target) {
     return dateList.some((holiday) => new Date(holiday.date).toLocaleDateString() === new Date(target).toLocaleDateString());
@@ -598,6 +630,19 @@ const getOrgDB = async (organizationId) => {
   return newConnection;
 };
 
+function removeImgsFromServer(imgs = []) {
+  const removedFiles = [];
+  imgs.map((img) => {
+    const oldFile = img.split("/").pop();
+    const oldFilePath = path.join(__dirname, "..", "uploads", oldFile);
+    if (fs.existsSync(oldFilePath)) {
+      fs.unlinkSync(oldFilePath);
+      removedFiles.push(oldFile)
+    }
+  })
+  return removedFiles;
+}
+
 // Helper function to format leave data
 const formatLeaveData = (leave) => ({
   ...leave,
@@ -620,4 +665,4 @@ async function errorCollector(errorLog) {
   }
 }
 
-module.exports = { convertToString, checkDateIsHoliday, timeZoneHrMin, isValidDate, getTimeFromDateOrTimeData, changeActualTimeDataAsAttendace, setTimeHolderForAllActivities, setPeriodOfLeave, isValidLeaveDate, errorCollector, getTotalWorkingHourPerDay, getTotalWorkingHourPerDayByDate, accountFromRole, changeClientTimezoneDate, sumLeaveDays, getValidLeaveDays, fetchFirstTwoItems, getCurrentTime, checkLoginForOfficeTime, categorizeTasks, projectMailContent, processActivityDurations, formatLeaveData, getDayDifference, getOrgDB, formatDate, getWeekdaysOfCurrentMonth, mailContent, checkLogin, getTotalWorkingHoursExcludingWeekends, getCurrentTimeInMinutes, timeToMinutes, formatTimeFromMinutes };
+module.exports = { convertToString, removeImgsFromServer, checkValidObjId, checkDateIsHoliday, timeZoneHrMin, isValidDate, getTimeFromDateOrTimeData, changeActualTimeDataAsAttendace, setTimeHolderForAllActivities, setPeriodOfLeave, isValidLeaveDate, errorCollector, getTotalWorkingHourPerDay, getTotalWorkingHourPerDayByDate, accountFromRole, changeClientTimezoneDate, sumLeaveDays, getValidLeaveDays, fetchFirstTwoItems, getCurrentTime, checkLoginForOfficeTime, categorizeTasks, projectMailContent, processActivityDurations, formatLeaveData, getDayDifference, getOrgDB, formatDate, getWeekdaysOfCurrentMonth, mailContent, checkLogin, getTotalWorkingHoursExcludingWeekends, getCurrentTimeInMinutes, timeToMinutes, formatTimeFromMinutes };

@@ -771,7 +771,7 @@ const CommonModel = ({
                                         handleChange={(e) => changeData(e?.trimStart()?.replace(/\s+/g, ' '), type === "Announcement" ? "message" : type === "Edit Comments" ? "comment" : "comments.comment")}
                                         content={type === "Add Comments" ? dataObj?.comments[0]?.["comment"] : type === "Edit Comments" ? dataObj?.["comment"] : dataObj?.["message"]}
                                     />
-                                    {["comment", "message"].some(item => errorMsg.includes(item)) ? <div className="text-center text-danger">{errorMsg}</div> : null}
+                                    {["comment", "message"].some(item => errorMsg?.includes(item)) ? <div className="text-center text-danger">{errorMsg}</div> : null}
                                 </div>
                             </div>
                         </div>

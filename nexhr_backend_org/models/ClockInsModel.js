@@ -59,7 +59,8 @@ const clockInsSchema = new mongoose.Schema({
   lateLogin: { type: lateLoginSchema, default: {} },
   employee: { type: mongoose.Types.ObjectId, ref: "Employee" },
   machineRecords: [{ type: String, default: [] }],
-  worklocation: { type: String }
+  worklocation: { type: String },
+  isDeleted: {type: Boolean, default: false}
 });
 
 const ClockIns = mongoose.model('clockIns', clockInsSchema);

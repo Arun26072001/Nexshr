@@ -9,7 +9,8 @@ var timePatternSchema = new mongoose.Schema({
     FinishingTime: { type: Date },
     BreakTime: { type: String },
     WeeklyDays: [{ type: String }],
-    PublicHoliday: { type: String }
+    PublicHoliday: { type: String },
+     isDeleted: {type: Boolean, default: false},
 }, { timestamps: true })
 
 var TimePattern = mongoose.model("TimePattern", timePatternSchema);
@@ -29,6 +30,7 @@ const TimePatternValidation = Joi.object({
     FinishingTime: Joi.string()
         .disallow(null, '', 'none', 'undefined')
         .required(),
+        isDeleted: Joi.any().optional(),
     BreakTime: Joi.string()
         .disallow(null, '', 'none', 'undefined')
         .required(),

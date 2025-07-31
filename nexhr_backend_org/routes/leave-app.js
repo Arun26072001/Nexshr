@@ -677,6 +677,7 @@ leaveApp.get("/date-range/management/:whoIs", verifyAdminHrNetworkAdmin, async (
     const categorized = {
       approved: [],
       pending: [],
+      rejected: [],
       upcoming: [],
       onLeaveToday: [],
       taken: []
@@ -691,6 +692,7 @@ leaveApp.get("/date-range/management/:whoIs", verifyAdminHrNetworkAdmin, async (
         if (_fromDate.getTime() < nowTime) categorized.taken.push(leave);
       }
       if (status === "pending") categorized.pending.push(leave);
+      if (status === "rejected") categorized.rejected.push(leave);
       if (_fromDate > now) categorized.upcoming.push(leave);
     }
 
@@ -703,11 +705,14 @@ leaveApp.get("/date-range/management/:whoIs", verifyAdminHrNetworkAdmin, async (
 
     res.send({
       leaveData: cleanedLeaveData.sort((a, b) => b._fromDate - a._fromDate),
-      approvedLeave: approvedDays,
+      approvedRequests: categorized.approved,
+      pendingRequests: categorized.pending,
+      rejectedRequests: categorized.rejected,
+      approvedDays,
+      pendingDays: pendingDays,
+      upcomingDays: upcomingDays,
       leaveInHours: approvedDays * workingHoursPerDay,
       peopleOnLeave: categorized.onLeaveToday,
-      pendingLeave: pendingDays,
-      upcomingLeave: upcomingDays,
       takenLeave: takenDays
     });
 
@@ -1177,7 +1182,6 @@ leaveApp.put('/:id', verifyAdminHREmployeeManagerNetwork, async (req, res) => {
     let updatedApprovers = approvers || {};
     // check approvers has for the leave and team leave count
     if (["approved", "rejected"].includes(status) && Object.keys(updatedApprovers).length > 0) {
-      console.log("tetsing..");
       updatedApprovers = Object.fromEntries(Object.keys(updatedApprovers).map(key => [key, status]));
       if (status === "approved") {
         const team = await Team.findOne({ employees: employee }, "employees");
@@ -1195,7 +1199,7 @@ leaveApp.put('/:id', verifyAdminHREmployeeManagerNetwork, async (req, res) => {
     let allApproved = false;
     let anyRejected = false;
     let allPending = false;
-    if(approverStatuses.length > 0){
+    if (approverStatuses.length > 0) {
       allApproved = approverStatuses.every(s => s === "approved");
       anyRejected = approverStatuses.includes("rejected");
       allPending = approverStatuses.every(s => s === "pending");

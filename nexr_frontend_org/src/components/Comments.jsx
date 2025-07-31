@@ -70,7 +70,7 @@ export default function Comments() {
         if (!isEditTask) {
             setTaskObj((pre) => ({
                 ...pre,
-                assignedTo: pre.assignedTo.map((emp) => emp._id)
+                assignedTo: pre.assignedTo.map((emp) => emp?._id)
             }))
             setPreviewList(taskObj.attachments);
         } else if (isEditTask) {
@@ -166,33 +166,34 @@ export default function Comments() {
         }
     }, [taskObj?.project])
 
-    async function updateCommentsInObj(taskObjdata, type, index) {
-        try {
-            setErrorData("")
-            // ischangingComment(true);
-            const res = await axios.put(`${url}/api/task/updatedTaskComment/${data._id}`, taskObjdata, {
-                params: {
-                    type,
-                    updatedComment: index
-                },
-                headers: {
-                    Authorization: data.token
-                }
-            });
-            console.log(res.data.message);
-        } catch (error) {
-            if (error?.message === "Network Error") {
-                navigate("/network-issue")
-            }
-            setErrorData(error.response.data.error);
-            console.log("error in update task in comments");
-        } finally {
-            // setIsChangingComment(false)
-        }
-    }
+    // async function updateCommentsInObj(taskObjdata, type, index) {
+    //     try {
+    //         setErrorData("")
+    //         // ischangingComment(true);
+    //         const res = await axios.put(`${url}/api/task/updatedTaskComment/${data._id}`, taskObjdata, {
+    //             params: {
+    //                 type,
+    //                 updatedComment: index
+    //             },
+    //             headers: {
+    //                 Authorization: data.token
+    //             }
+    //         });
+    //         console.log(res.data.message);
+    //     } catch (error) {
+    //         if (error?.message === "Network Error") {
+    //             navigate("/network-issue")
+    //         }
+    //         setErrorData(error.response.data.error);
+    //         console.log("error in update task in comments");
+    //     } finally {
+    //         // setIsChangingComment(false)
+    //     }
+    // }
 
     async function addComment() {
         try {
+            setIsChangingComment(true);
             let updatedCommentObj = { ...commentObj, createdBy: data._id };
 
             // Filter out PNG files for upload
@@ -208,10 +209,12 @@ export default function Comments() {
                     attachments: [...responseData.files.map((file) => file.originalFile)],
                 };
             }
-
-            // Update the comment in the task object if taskData is not provided
-            taskObj.comments[taskObj.comments.length] = updatedCommentObj;
-            updateCommentsInObj(taskObj, "comment")
+            const res = await axios.post(`${url}/api/comment/${id}`, updatedCommentObj, {
+                headers: {
+                    Authorization: data.token || ""
+                }
+            })
+            console.log("added comment", res.data.message);
             setIsAddComment(false);
             setPreviewList([]);
             setCommentObj({});
@@ -219,6 +222,11 @@ export default function Comments() {
             if (error?.message === "Network Error") {
                 navigate("/network-issue")
             }
+            const errorMsg = error.response.data.error;
+            setErrorData(errorMsg);
+            toast.error(errorMsg);
+        } finally {
+            setIsChangingComment(false);
         }
     }
 
@@ -245,39 +253,43 @@ export default function Comments() {
             }
 
             // Update the comment in the task object if taskData is not provided
-            taskObj.comments[editCommentIndex] = updatedCommentObj;
-            await updateCommentsInObj(taskObj, "edit comment", editCommentIndex);
-            setIsEditCommit(false);
-            setPreviewList([]);
-            setCommentObj({});
+            try {
+                const res = await axios.put(`${url}/api/comment/${id}/${updatedCommentObj._id}`, updatedCommentObj, {
+                    headers: {
+                        Authorization: data.token || ""
+                    }
+                })
+                console.log(res.data.message);
+                setIsEditCommit(false);
+                setPreviewList([]);
+                setCommentObj({});
+            } catch (error) {
+                const errorMsg = error.response.data.error || "Error in update comment";
+                setErrorData(errorMsg);
+                toast.error(errorMsg);
+                console.log("error in update comment", error)
+            }
         } catch (error) {
             if (error?.message === "Network Error") {
                 navigate("/network-issue")
             }
             console.error("Error updating task:", error);
-            toast.error("Failed to update task.");
+            toast.error(error.response.data.error);
+        } finally {
+            setIsChangingComment(false);
         }
-        setIsChangingComment(false);
     }
 
-    async function deleteCommit(comment, index) {
-        if (!comment) {
-            toast.error("error in delete commit")
-        } else {
-            const updatedCommit = {
-                ...comment,
-                isDeleted: true
-            }
-            taskObj.comments[index] = updatedCommit;
-            try {
-                toast.success("Commit has been move trash");
-                updateCommentsInObj(taskObj, "delete comment", index)
-            } catch (error) {
-                if (error?.message === "Network Error") {
-                    navigate("/network-issue")
+    async function deleteCommit(comment) {
+        try {
+            const res = await axios.delete(`${url}/api/comment/${id}/${comment._id}`, {
+                headers: {
+                    Authorization: data.token || ""
                 }
-                console.log(error);
-            }
+            })
+            console.log(res.data.message);
+        } catch (error) {
+            console.log("error in dleete comment", error)
         }
     }
 
@@ -357,6 +369,7 @@ export default function Comments() {
                 },
                 headers: { Authorization: data.token || "" }
             })
+            console.log("taskObj", res.data);
             setIschecked(res.data.status === "Completed")
             setTaskObj({
                 ...res.data,
@@ -374,8 +387,6 @@ export default function Comments() {
         }
     }
 
-    console.log("ischecked", ischecked);
-
     async function fetchEmpAssignedTasks() {
         // setIsLoading(true);
         try {
@@ -390,8 +401,6 @@ export default function Comments() {
             if (error?.message === "Network Error") {
                 navigate("/network-issue")
             }
-            setAllTask([])
-            setNotCompletedTasks([]);
             console.log(error);
         } finally {
             //   setIsLoading(false)
@@ -469,16 +478,13 @@ export default function Comments() {
     }
 
     async function getValue(value) {
-        console.log("getingValue", value);
-
         const updatedTask = {
             ...taskObj,
             "status": value ? "Completed" : "Pending"
         }
-        console.log("updatedtask", updatedTask);
-
         editTask(updatedTask)
     }
+
     async function fetchProjects() {
         try {
             const res = await axios.get(`${url}/api/project`, {
@@ -512,8 +518,6 @@ export default function Comments() {
     }
 
     useEffect(() => {
-        console.log("calling for fetchComments..");
-
         fetchTaskOfComments()
     }, [isChangeComments, id])
 
@@ -531,6 +535,7 @@ export default function Comments() {
             modifyData={handleEditCommit}
             changeData={changeCommit}
             editData={editCommitTask}
+            errorMsg={errorData}
             dataObj={commentObj}
             previewList={previewList}
         /> : isEditTask ? <CommonModel
@@ -643,7 +648,7 @@ export default function Comments() {
 
                                                 </div>
                                                 {
-                                                    comment.createdBy._id === data._id &&
+                                                    comment?.createdBy?._id === data?._id &&
                                                     <div className="col-lg-1 col-md-1 col-2" >
                                                         <Whisper placement="bottomEnd" trigger="click" speaker={renderMenu2(comment, index)}>
                                                             <MoreHorizOutlinedIcon sx={{ cursor: "pointer" }} />

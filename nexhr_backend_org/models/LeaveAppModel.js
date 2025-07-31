@@ -16,7 +16,8 @@ var leaveApplicationSchema = new mongoose.Schema({
   approvedOn: { type: Date },
   approverId: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Employee' }],
   appliedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'Employee' },
-  whoViewed: { type: mongoose.Schema.Types.Mixed, default: {} }
+  whoViewed: { type: mongoose.Schema.Types.Mixed, default: {} },
+   isDeleted: {type: Boolean, default: false},
 }, { timestamps: true });
 
 var LeaveApplication = mongoose.model(
@@ -41,6 +42,7 @@ const LeaveApplicationValidation = Joi.object({
   status: Joi.string().label('status'),
   appliedOn: Joi.date().label('appliedOn'),
   approvers: Joi.any().optional(),
+  isDeleted: Joi.any().optional(),
   appliedBy: Joi.string().allow(null, ' ', 'none', 'undefined')
 });
 

@@ -6,6 +6,7 @@ const TeamSchema = mongoose.Schema({
         type: String,
         unique: true
     },
+     isDeleted: {type: Boolean, default: false},
     company: { type: mongoose.Schema.Types.ObjectId, ref: "Company", default: null },
     hr: [{
         type: mongoose.Types.ObjectId, ref: "Employee"
@@ -37,6 +38,7 @@ const TeamValidation = Joi.object({
     admin: Joi.array().items(Joi.string()).optional().label("admin"),
     hr: Joi.array().items(Joi.string()).required().label("hr"),
     __v: Joi.any().optional(),
+    isDeleted: Joi.any().optional(),
     createdBy: Joi.any().optional(),
     createdAt: Joi.string().allow('').label('createdAt'),
     updatedAt: Joi.string().allow('').label('updatedAt')

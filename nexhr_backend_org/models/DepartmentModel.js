@@ -3,6 +3,7 @@ const Joi = require('joi');
 
 var departmentSchema = new mongoose.Schema({
   DepartmentName: { type: String, required: true },
+   isDeleted: {type: Boolean, default: false},
   company: { type: mongoose.Schema.Types.ObjectId, ref: "Company" }
 });
 
@@ -16,7 +17,8 @@ const DepartmentValidation = Joi.object().keys({
   company: Joi.string()
     .regex(/^[0-9a-fA-F]{24}$/)
     .required()
-    .disallow(null, '', 'none', 'undefined')
+    .disallow(null, '', 'none', 'undefined'),
+    isDeleted: Joi.any().optional()
 });
 
 module.exports = { Department, DepartmentValidation, departmentSchema };

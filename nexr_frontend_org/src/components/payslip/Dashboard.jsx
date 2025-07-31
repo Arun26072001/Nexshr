@@ -38,6 +38,8 @@ const Dashboard = () => {
     const [dailyLogindata, setDailyLoginData] = useState({})
     const [monthlyLoginData, setMonthlyLoginData] = useState({});
     const [tasks, setTasks] = useState([]);
+    // for Dependant Tasks list
+    const [allTasks, setAllTasks] = useState([]);
     const [categorizeTasks, setCategorizeTasks] = useState({});
     const [plannerTasks, setPlannerTasks] = useState({});
     const [notCompletedTasks, setNotCompletedTasks] = useState([]);
@@ -479,16 +481,17 @@ const Dashboard = () => {
                     Authorization: data.token || ""
                 }
             })
-
-            setTasks(res.data.tasks);
-            setCategorizeTasks(res.data.categorizeTasks);
-            setPlannerTasks(res.data.planner);
-            setNotCompletedTasks(res.data.tasks.filter((task) => task.status !== "Completed"))
+            const taskData = res.data;
+            const empTasks = taskData.tasks || [];
+            setTasks(empTasks);
+            setAllTasks(empTasks?.map((task) => ({ label: task.title + " " + task.status, value: task._id })));
+            setCategorizeTasks(taskData.categorizeTasks);
+            setPlannerTasks(taskData.planner);
+            setNotCompletedTasks(taskData.tasks.filter((task) => task.status !== "Completed"))
         } catch (error) {
             if (error?.message === "Network Error") {
                 navigate("/network-issue")
             }
-            setTasks([])
             console.log(error);
         }
         finally {
@@ -581,7 +584,7 @@ const Dashboard = () => {
                 errorMsg={errorData}
                 isWorkingApi={isWorkingApi}
                 dataObj={taskObj}
-                tasks={tasks}
+                tasks={allTasks}
                 notCompletedTasks={notCompletedTasks}
                 previewList={previewList}
                 isAddData={isEditTask}
@@ -602,7 +605,7 @@ const Dashboard = () => {
                 errorMsg={errorData}
                 isWorkingApi={isWorkingApi}
                 dataObj={taskObj}
-                tasks={tasks}
+                tasks={allTasks}
                 notCompletedTasks={notCompletedTasks}
                 previewList={previewList}
                 isAddData={isAddTask}
