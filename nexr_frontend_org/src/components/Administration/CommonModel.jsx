@@ -21,7 +21,7 @@ const CommonModel = ({
     changeData,
     isAddData, addData, leads, heads, addReminder, removeReminder, managers,
     hrs, admins, previewList, modifyData, notCompletedTasks = [],
-    projects, departments, employees, deleteData, removeState,
+    projects, employees, deleteData, removeState,
     comps, changeState, removeAttachment, isWorkingApi, removePreview,
     preview, countries, states, errorMsg, tasks, type // New prop to determine if it's for "department" or "position"
 }) => {
@@ -193,20 +193,20 @@ const CommonModel = ({
                         {["Report", "Report View"].includes(type) &&
                             <div className="col-half">
                                 <div className="modelInput">
-                                    <p className='modelLabel important'>Department:</p>
+                                    <p className='modelLabel important'>Task:</p>
                                     <SelectPicker
                                         required
-                                        data={departments}
+                                        data={tasks}
                                         appearance='default'
                                         style={{ width: "100%" }}
-                                        className={`${errorMsg?.toLowerCase()?.includes("department") ? "error" : ""}`}
+                                        className={`${errorMsg?.toLowerCase()?.includes("task") ? "error" : ""}`}
                                         size="lg"
                                         disabled={type === "Report View" ? true : false}
-                                        placeholder="Select Department"
-                                        value={dataObj?.department}
-                                        onChange={type !== "Report View" ? (e) => changeData(e, "department") : null}
+                                        placeholder="Select task"
+                                        value={dataObj?.task}
+                                        onChange={type !== "Report View" ? (e) => changeData(e, "task") : null}
                                     />
-                                    {errorMsg?.toLowerCase()?.includes("department") ? <div className="text-center text-danger">{errorMsg}</div> : null}
+                                    {errorMsg?.toLowerCase()?.includes("task") ? <div className="text-center text-danger">{errorMsg}</div> : null}
                                 </div>
                             </div>
                         }
@@ -271,89 +271,88 @@ const CommonModel = ({
                     </div>
                 }
 
-                <>
-                    <div className="d-flex justify-content-between">
-                        {["Task", "Task View", "Announcement", "Add Comments", "Email Template"].includes(type) && <div className={["Announcement"].includes(type) ? "col-full" : "col-half"}>
+                <div className="d-flex justify-content-between">
+                    {["Task", "Task View", "Announcement", "Add Comments", "Email Template"].includes(type) && <div className={["Announcement"].includes(type) ? "col-full" : "col-half"}>
+                        <div className="modelInput">
+                            <p className='modelLabel important'>Title: </p>
+                            <Input required
+                                name={`title`}
+                                size="lg"
+                                className={errorMsg?.toLowerCase().includes("title") ? "error" : ""}
+                                disabled={["Task View", "Add Comments"].includes(type) ? true : false}
+                                value={dataObj?.[`title`] || ""}
+                                onChange={type !== "Task View" ? (e) => changeData(e?.trimStart()?.replace(/\s+/g, ' '), "title") : null}
+                            />
+                            {errorMsg?.toLowerCase()?.includes("title") && <p className='text-danger'>{errorMsg}</p>}
+                        </div>
+                    </div>}
+
+                    {
+                        ["Email Template"].includes(type) &&
+                        <div className="col-half">
                             <div className="modelInput">
-                                <p className='modelLabel important'>Title: </p>
-                                <Input required
-                                    name={`title`}
-                                    size="lg"
-                                    className={errorMsg?.toLowerCase().includes("title") ? "error" : ""}
-                                    disabled={["Task View", "Add Comments"].includes(type) ? true : false}
-                                    value={dataObj?.[`title`] || ""}
-                                    onChange={type !== "Task View" ? (e) => changeData(e?.trimStart()?.replace(/\s+/g, ' '), "title") : null}
-                                />
-                                {errorMsg?.toLowerCase()?.includes("title") && <p className='text-danger'>{errorMsg}</p>}
+                                <p className='modelLabel important'>Status:</p>
+                                <Toggle checked={dataObj?.status} onChange={(e) => changeData(e, "status")} />
                             </div>
-                        </div>}
+                        </div>
+                    }
 
-                        {
-                            ["Email Template"].includes(type) &&
-                            <div className="col-half">
-                                <div className="modelInput">
-                                    <p className='modelLabel important'>Status:</p>
-                                    <Toggle checked={dataObj?.status} onChange={(e) => changeData(e, "status")} />
-                                </div>
-                            </div>
-                        }
-
-                        {
-                            ["Add Comments"].includes(type) &&
-                            <div className="col-half">
-                                <div className="modelInput">
-                                    <p className='modelLabel'>Spend time:</p>
-                                    <InputNumber min={0} size='lg' defaultValue={0.00} style={{ width: "100%" }} step={0.01} value={dataObj?.comments[0]?.["spend"]}
-                                        onChange={(e) => {
-                                            if (e === null || e === '' || e >= 0) {
-                                                changeData(e, "comments.spend")
-                                            }
-                                        }} />
-                                </div>
-                            </div>
-                        }
-                        {
-                            type === "Edit Comments" &&
-                            <div className="col-half">
-                                <div className="modelInput">
-                                    <p className='modelLabel'>Spend time:</p>
-                                    <InputNumber min={0} size='lg' defaultValue={0.00} style={{ width: "100%" }} step={0.01} value={dataObj?.spend}
-                                        onChange={(e) => {
-                                            if (e === null || e === '' || e >= 0) {
-                                                changeData(e, "spend")
-                                            }
-                                        }} />
-                                </div>
-                            </div>
-                        }
-
-                        {["Task", "Task View"].includes(type) && <div className="col-half">
+                    {
+                        ["Add Comments"].includes(type) &&
+                        <div className="col-half">
                             <div className="modelInput">
-                                <p className='modelLabel important'>Project:</p>
-                                <SelectPicker
-                                    required
-                                    data={projects}
-                                    className={`${errorMsg?.toLowerCase()?.includes("project") ? "error" : ""}`}
-                                    size="lg"
-                                    disabled={type === "Task View" ? true : false}
-                                    appearance='default'
-                                    style={{ width: "100%" }}
-                                    placeholder="Select Project"
-                                    value={dataObj?.project}
-                                    onChange={type !== "Task View" ? (e) => changeData(e, "project") : null}
-                                />
-                                {errorMsg?.toLowerCase()?.includes("project") ? <div className="text-center text-danger">{errorMsg}</div> : null}
+                                <p className='modelLabel'>Spend time:</p>
+                                <InputNumber min={0} size='lg' defaultValue={0.00} style={{ width: "100%" }} step={0.01} value={dataObj?.comments[0]?.["spend"]}
+                                    onChange={(e) => {
+                                        if (e === null || e === '' || e >= 0) {
+                                            changeData(e, "comments.spend")
+                                        }
+                                    }} />
                             </div>
-                        </div>}
-                    </div>
+                        </div>
+                    }
+                    {
+                        type === "Edit Comments" &&
+                        <div className="col-half">
+                            <div className="modelInput">
+                                <p className='modelLabel'>Spend time:</p>
+                                <InputNumber min={0} size='lg' defaultValue={0.00} style={{ width: "100%" }} step={0.01} value={dataObj?.spend}
+                                    onChange={(e) => {
+                                        if (e === null || e === '' || e >= 0) {
+                                            changeData(e, "spend")
+                                        }
+                                    }} />
+                            </div>
+                        </div>
+                    }
 
-                    {["Task", "Task View", "Add Comments", "Edit Comments", "Organization", "Company"].includes(type) && (
+                    {["Task", "Task View"].includes(type) && <div className="col-half">
+                        <div className="modelInput">
+                            <p className='modelLabel important'>Project:</p>
+                            <SelectPicker
+                                required
+                                data={projects}
+                                className={`${errorMsg?.toLowerCase()?.includes("project") ? "error" : ""}`}
+                                size="lg"
+                                disabled={type === "Task View" ? true : false}
+                                appearance='default'
+                                style={{ width: "100%" }}
+                                placeholder="Select Project"
+                                value={dataObj?.project}
+                                onChange={type !== "Task View" ? (e) => changeData(e, "project") : null}
+                            />
+                            {errorMsg?.toLowerCase()?.includes("project") ? <div className="text-center text-danger">{errorMsg}</div> : null}
+                        </div>
+                    </div>}
+                </div>
+
+                {["Task", "Task View", "Add Comments", "Edit Comments", "Report", "Report View", "Organization", "Company"].includes(type) && (
                         <div className="col-full">
                             <div className="modelInput">
                                 <p className={`modelLabel ${!["Task", "Task View", "Add Comments", "Edit Comments"].includes(type) ? "important" : ""}`}>{type === "Organization" ? "OrgImage" : type === "Company" ? "Logo" : "Attachments"}: </p>
                                 <input
                                     type="file"
-                                    disabled={type === "Task View"}
+                                    disabled={["Task View", "Report View"].includes(type)}
                                     className="form-control"
                                     onChange={(e) => changeData(e, type === "Add Comments" ? `comments.attachments` : type === "Organization" ? "orgImg" : type === "Company" ? "logo" : "attachments")}
                                     multiple={!["Organization", "Company"].includes(type)}
@@ -439,9 +438,8 @@ const CommonModel = ({
                             )}
                         </div>
                     )}
-                </>
 
-                {["Task", "Task View", "Report", "Report View", "Announcement"].includes(type) && (
+                {["Task", "Task View", "Announcement"].includes(type) && (
                     <div className="d-flex justify-content-between">
                         {/* Dynamic fields for Start Date / From */}
                         <div className="col-half">
@@ -793,15 +791,15 @@ const CommonModel = ({
                 }
 
                 {
-                    ["Project", "Task", "Task View", "Project View", "Email Template"].includes(type) &&
+                    ["Project", "Task", "Task View", "Report", "Report View", "Project View", "Email Template"].includes(type) &&
                     <>
                         <div className="col-full">
-                            <div className="modelInput">
+                            <div className="modelInput important">
                                 <p className='modelLabel'>{type === "Email Template" ? "Content" : "Description"}:</p>
                                 <TextEditor
-                                    handleChange={!["Task View", "Project View"].includes(type) ? (e) => changeData(e?.trimStart()?.replace(/\s+/g, ' '), type === "Email Template" ? "content" : "description") : null}
+                                    handleChange={!["Task View", "Project View", "Report View"].includes(type) ? (e) => changeData(e?.trimStart()?.replace(/\s+/g, ' '), type === "Email Template" ? "content" : "description") : null}
                                     content={dataObj?.[type === "Email Template" ? "content" : "description"]}
-                                    isDisabled={["Task View", "Project View"].includes(type) ? true : false}
+                                    isDisabled={["Task View", "Project View", "Report View"].includes(type) ? true : false}
                                 />
                                 {["content", "description"].some((word) => errorMsg.includes(word)) ? <div className="text-center text-danger">{errorMsg}</div> : null}
                             </div>

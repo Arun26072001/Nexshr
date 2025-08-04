@@ -523,7 +523,7 @@ export default function Navbar() {
         return <Modal open={unStoppedActivies.length ? true : false} size="sm" backdrop="static">
             <Modal.Header >
                 <Modal.Title>
-                    Reason for forget to stop timer for {unStoppedActivies.length > 0 && unStoppedActivies.length >= 2 ? `${unStoppedActivies.join(" ,")}` : `${unStoppedActivies[0]}`}
+                    Reason for forget to stop timer for {unStoppedActivies.length > 0 && unStoppedActivies.length >= 2 ? `${unStoppedActivies.join(" ,")}` : `${unStoppedActivies[0]}`} ({new Date(workTimeTracker.date).toLocaleDateString()})
                 </Modal.Title>
             </Modal.Header>
 

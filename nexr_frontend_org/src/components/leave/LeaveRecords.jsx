@@ -161,7 +161,6 @@ export default function LeaveRecords() {
                     authorization: token || ""
                 }
             });
-            console.log("leaveData", leaveData.data)
             setLeaveRequests(leaveData.data);
             setFilterLeaveRequests(leaveData.data);
         } catch (err) {
@@ -320,7 +319,7 @@ export default function LeaveRecords() {
                         <div className="timeLogBox d-flex justify-content-center" >
                             <div className="d-flex flex-column">
                                 <div className="leaveDays">
-                                    {leaveRequests?.peoplesOnLeave?.length || 0} <PersonRoundedIcon />
+                                    {leaveRequests?.peopleOnLeave?.length || 0} <PersonRoundedIcon />
                                 </div>
                                 <div className="leaveDaysDesc">
                                     On Leave

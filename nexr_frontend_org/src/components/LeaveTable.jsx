@@ -512,7 +512,7 @@ export default function LeaveTable({ data, Account, handleLateLogin, getCheckedV
             }
         },
         { id: 'periodOfLeave', label: 'Period Of Leave', align: "left", minWidth: 150, getter: (row) => row.periodOfLeave },
-        { id: 'fromDate', label: 'Start Date', minWidth: 130, align: 'left', getter: (row) => row.fromDate ? new Date(row.fromDate).toLocaleDateString() : 'N/A' },
+        { id: 'fromDate', label: 'Start Date', minWidth: 130, align: 'left', getter: (row) => row.fromDate ? <p title="dfdsfds">{new Date(row.fromDate).toLocaleDateString()}</p> : 'N/A' },
         { id: 'toDate', label: 'End Date', minWidth: 130, align: 'left', getter: (row) => row.toDate ? new Date(row.toDate).toLocaleDateString() : 'N/A' },
         { id: 'leaveType', label: 'Type', minWidth: 100, align: 'left', getter: (row) => row.leaveType },
         { id: 'reasonForLeave', label: 'Reason', minWidth: 150, align: 'left', getter: (row) => row.reasonForLeave.slice(0, 20) + (row?.reasonForLeave?.length > 20 ? "..." : "") },
