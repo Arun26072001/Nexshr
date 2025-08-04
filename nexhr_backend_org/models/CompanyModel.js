@@ -16,6 +16,7 @@ var companySchema = new mongoose.Schema({
   CINNo: { type: String },
   State: { type: String },
   Country: { type: String },
+  isDeleted: {type: Boolean, default: false},
   location: { type: mongoose.Schema.Types.Mixed, default: {} }
 }, { timestamps: true });
 
@@ -68,7 +69,8 @@ const CompanyValidation = Joi.object().keys({
   placeId: Joi.any().optional(),
   State: Joi.string().required().disallow(null, ' ', 'none', 'undefined'),
   Country: Joi.string().required().disallow(null, ' ', 'none', 'undefined'),
-  location: Joi.any().optional()
+  location: Joi.any().optional(),
+  isDeleted: Joi.any().optional()
 });
 
 module.exports = {

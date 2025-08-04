@@ -9,9 +9,11 @@ const wfhSchema = new mongoose.Schema({
     reason: { type: String },
     rejectionReason: { type: String },
     status: { type: String },
+    company: { type: mongoose.Schema.Types.ObjectId, ref: "Company", default: null },
     approvers: {
         type: mongoose.Schema.Types.Mixed, default: {}
-    }
+    },
+     isDeleted: {type: Boolean, default: false},
 }, { timestamps: true })
 
 const WFHApplication = mongoose.model("wfhapplications", wfhSchema);
@@ -19,7 +21,9 @@ const WFHApplication = mongoose.model("wfhapplications", wfhSchema);
 const WFHAppValidation = Joi.object({
     _id: Joi.any().optional(),
     __v: Joi.any().optional(),
+    company: Joi.any().optional(),
     createdAt: Joi.any().optional(),
+    isDeleted: Joi.any().optional(),
     updatedAt: Joi.any().optional(),
     employee: Joi.string().regex(/^[0-9a-fA-F]{24}$/).required(),
     fromDate: Joi.date().required(),

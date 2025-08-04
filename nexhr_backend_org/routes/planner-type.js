@@ -1,4 +1,5 @@
 const express = require("express");
+const mongoose = require("mongoose");
 const { verifyAdminHREmployeeManagerNetwork } = require("../auth/authMiddleware");
 const { PlannerType } = require("../models/PlannerTypeModel");
 const { PlannerCategory } = require("../models/PlannerCategoryModel");
@@ -7,28 +8,74 @@ const { errorCollector } = require("../Reuseable_functions/reusableFunction");
 const router = express.Router();
 
 router.get("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
+    const employeeId = req.params.id;
+
+    if (!mongoose.Types.ObjectId.isValid(employeeId)) {
+        return res.status(400).send({ error: "Invalid employee ID format" });
+    }
+
     try {
-        const planner = await PlannerType.findOne({ employee: req.params.id }, "categories")
+        const planner = await PlannerType.findOne({ employee: employeeId }, "categories")
             .populate("categories")
-            .lean().exec();
+            .lean();
+
+        return res.send({ categories: planner?.categories || [] });
+    } catch (error) {
+        await errorCollector({
+            url: req.originalUrl,
+            name: error.name,
+            message: error.message,
+            env: process.env.ENVIRONMENT
+        });
+        console.log("error in get categories", error);
+        return res.status(500).send({ error: error.message });
+    }
+});
+
+router.put("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
+    const employeeId = req.params.id;
+    const { category } = req.body;
+
+    if (!checkValidObjId(employeeId)) {
+        return res.status(400).send({ error: "Invalid employee ID format" });
+    }
+
+    if (!category || !category.name || typeof category.name !== "string" || category.name.trim() === "") {
+        return res.status(400).send({ error: "Category name is required" });
+    }
+
+    try {
+        // Create the category
+        const newCategory = await PlannerCategory.create({ ...category, name: category.name.trim() });
+
+        // Find planner without .lean() to allow .save()
+        const planner = await PlannerType.findOne({ employee: employeeId });
         if (!planner) {
-            return res.status(200).send({ categories: [] })
+            return res.status(404).send({ error: "Planner data not found" });
         }
 
-        return res.send({ categories: planner.categories })
+        // Add category ID
+        planner.categories.push(newCategory._id);
+        await planner.save();
+
+        return res.send({ message: "Task planner has been updated successfully" });
     } catch (error) {
-        await errorCollector({ url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT })
-        console.log("error in get categories", error);
-        return res.status(500).send({ error: error.message })
+        await errorCollector({
+            url: req.originalUrl,
+            name: error.name,
+            message: error.message,
+            env: process.env.ENVIRONMENT
+        });
+        return res.status(500).send({ error: error.message });
     }
-})
+});
 
 router.post("/add-planner", async (req, res) => {
     try {
-        const emps = await Employee.find({}, "_id").exec();
+        const emps = await Employee.find({isDeleted:false}, "_id").exec();
         const addPlannerFor = [];
         // add planner types for all assignees
-        const defaultCategories = await PlannerCategory.find({}, "_id").exec();
+        const defaultCategories = await PlannerCategory.find({isDeleted:false}, "_id").exec();
 
         if (defaultCategories.length) {
             for (const emp of emps) {
@@ -48,22 +95,6 @@ router.post("/add-planner", async (req, res) => {
     } catch (error) {
         await errorCollector({ url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT })
         console.log("error in add for emps", error)
-        return res.status(500).send({ error: error.message })
-    }
-})
-
-router.put("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
-    try {
-        const addCategory = await PlannerCategory.create(req.body.category);
-        const plannerData = await PlannerType.findOne({ employee: req.params.id }).lean().exec();
-        if (!plannerData) {
-            return res.send({ error: "Planner data not found" })
-        }
-        plannerData.push(addCategory._id);
-        await plannerData.save();
-        return res.send({ message: "task planner has been updated successfully" })
-    } catch (error) {
-        await errorCollector({ url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT })
         return res.status(500).send({ error: error.message })
     }
 })

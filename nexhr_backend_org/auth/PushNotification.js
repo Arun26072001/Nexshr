@@ -1,7 +1,22 @@
 const admin = require("./firebase-admin");
 const axios = require("axios");
 const schedule = require("node-schedule");
-const { getCurrentTimeInMinutes, getTimeFromDateOrTimeData } = require("../Reuseable_functions/reusableFunction");
+
+function getTimeFromDateOrTimeData(timeStr) {
+    if (isValidDate(timeStr)) {
+        return changeClientTimezoneDate(timeStr).getTime();
+    }
+    if (timeStr.split(/[:.]+/).length > 0) {
+        const [hours, minutes, seconds] = timeStr.split(/[:.]+/).map(Number);
+        const date = new Date();
+        return date.setHours(hours, minutes, seconds);
+    }
+}
+
+const getCurrentTimeInMinutes = () => {
+  const now = changeClientTimezoneDate(new Date());
+  return now;
+};
 
 exports.sendPushNotification = async (msgObj) => {
     const { token, title, body } = msgObj;

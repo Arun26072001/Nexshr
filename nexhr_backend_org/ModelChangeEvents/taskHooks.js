@@ -9,7 +9,7 @@ module.exports = function taskSchemaUpdate(taskSchema) {
         const { remind = [], createdby, assignedTo } = task;
         let [creator, assignees] = await Promise.all([
             Employee.findById(createdby, "FirstName LastName Email fcmToken company").populate("company", "CompanyName logo"),
-            Employee.find({ _id: { $in: assignedTo } }, "FirstName LastName Email fcmToken company").populate("company", "CompanyName logo")
+            Employee.find({ _id: { $in: assignedTo }, isDeleted: false }, "FirstName LastName Email fcmToken company").populate("company", "CompanyName logo")
         ])
 
         if (!Array.isArray(remind) || remind.length === 0) return;

@@ -161,6 +161,7 @@ export default function LeaveRecords() {
                     authorization: token || ""
                 }
             });
+            console.log("leaveData", leaveData.data)
             setLeaveRequests(leaveData.data);
             setFilterLeaveRequests(leaveData.data);
         } catch (err) {
@@ -293,7 +294,7 @@ export default function LeaveRecords() {
                 <div className="w-100 d-flex justify-content-center">
                     <div className="leaveBoard">
                         {/* Leave taken */}
-                        <div className="timeLogBox d-flex justify-content-center" style={{ width: "200px" }}>
+                        <div className="timeLogBox d-flex justify-content-center" >
                             <div className="d-flex flex-column">
                                 <div className="leaveDays">
                                     {leaveRequests?.approvedLeave || 0} Days
@@ -305,7 +306,7 @@ export default function LeaveRecords() {
                         </div>
 
                         {/* Upcoming leave */}
-                        <div className="timeLogBox d-flex justify-content-center" style={{ width: "200px" }}>
+                        <div className="timeLogBox d-flex justify-content-center" >
                             <div className="d-flex flex-column">
                                 <div className="leaveDays">
                                     {leaveRequests?.upcomingLeave || 0} Days
@@ -316,7 +317,7 @@ export default function LeaveRecords() {
                             </div>
                         </div>
                         {/* People on leave */}
-                        <div className="timeLogBox d-flex justify-content-center" style={{ width: "200px" }}>
+                        <div className="timeLogBox d-flex justify-content-center" >
                             <div className="d-flex flex-column">
                                 <div className="leaveDays">
                                     {leaveRequests?.peoplesOnLeave?.length || 0} <PersonRoundedIcon />
@@ -328,13 +329,35 @@ export default function LeaveRecords() {
                         </div>
 
                         {/* Pending request */}
-                        <div className="timeLogBox d-flex justify-content-center" style={{ width: "200px" }}>
+                        <div className="timeLogBox d-flex justify-content-center" >
                             <div className="d-flex flex-column">
                                 <div className="leaveDays">
-                                    {leaveRequests?.pendingLeave || 0} Days
+                                    {leaveRequests?.pendingRequests?.length || 0}
                                 </div>
                                 <div className="leaveDaysDesc">
                                     Pending request
+                                </div>
+                            </div>
+                        </div>
+                         {/* Approved request */}
+                        <div className="timeLogBox d-flex justify-content-center" >
+                            <div className="d-flex flex-column">
+                                <div className="leaveDays">
+                                    {leaveRequests?.approvedRequests?.length || 0} 
+                                </div>
+                                <div className="leaveDaysDesc">
+                                    Approved request
+                                </div>
+                            </div>
+                        </div>
+                         {/* Rejected request */}
+                        <div className="timeLogBox d-flex justify-content-center" >
+                            <div className="d-flex flex-column">
+                                <div className="leaveDays">
+                                    {leaveRequests?.rejectedRequests?.length || 0} 
+                                </div>
+                                <div className="leaveDaysDesc">
+                                    Rejected request
                                 </div>
                             </div>
                         </div>

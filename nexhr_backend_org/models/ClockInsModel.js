@@ -54,13 +54,15 @@ const clockInsSchema = new mongoose.Schema({
   },
   isStopTimer: { type: Boolean, default: false },
   forgetToLogout: { type: String },
+  company: { type: mongoose.Schema.Types.ObjectId, ref: "Company", default: null },
   behaviour: { type: String },
   punchInMsg: { type: String },
   lateLogin: { type: lateLoginSchema, default: {} },
   employee: { type: mongoose.Types.ObjectId, ref: "Employee" },
   machineRecords: [{ type: String, default: [] }],
-  worklocation: { type: String }
-});
+  worklocation: { type: String },
+  isDeleted: { type: Boolean, default: false }
+}, { timestamps: true });
 
 const ClockIns = mongoose.model('clockIns', clockInsSchema);
 
@@ -84,9 +86,12 @@ const clockInsValidation = Joi.object({
   behaviour: Joi.string().optional(), // Behaviour is optional
   punchInMsg: Joi.string().optional(), // PunchInMsg is optional
   employee: Joi.string().optional(), // Employee ObjectId is required
-  machineRecords: Joi.array().items(Joi.string()).optional()
+  machineRecords: Joi.array().items(Joi.string()).optional(),
+  _id: Joi.string().allow("").optional(),
+  createdAt: Joi.string().allow('').label('createdAt'),
+  updatedAt: Joi.string().allow('').label('updatedAt'),
+  __v: Joi.string().allow(0).label('__v')
 });
-
 
 module.exports = {
   ClockIns,

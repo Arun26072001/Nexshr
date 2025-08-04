@@ -1,9 +1,5 @@
 const mongoose = require("mongoose");
 const Joi = require("joi");
-const schedule = require("node-schedule");
-const { Employee } = require("./EmpModel");
-const { sendPushNotification } = require("../auth/PushNotification");
-const sendMail = require("../routes/mailSender");
 
 const TrackerSchema = new mongoose.Schema({
     date: { type: Date },
@@ -17,15 +13,6 @@ const spendTimeSchema = new mongoose.Schema({
     timeHolder: { type: String },
     reasonForLate: { type: String }
 }, { _id: false, timestamps: true })
-
-const commentSchema = new mongoose.Schema({
-    comment: { type: String },
-    attachments: [{ type: String }],
-    spend: { type: String, default: 0 },
-    date: { type: Date, default: new Date() },
-    createdBy: { type: mongoose.Schema.Types.ObjectId, ref: "Employee" },
-    isDeleted: { type: Boolean, default: false }
-}, { timestamps: true })
 
 const taskSchema = new mongoose.Schema({
     title: { type: String },
@@ -42,11 +29,12 @@ const taskSchema = new mongoose.Schema({
     tags: [{ type: String }],
     from: { type: Date },
     to: { type: Date },
+    company: { type: mongoose.Schema.Types.ObjectId, ref: "Company", default: null },
     spend: { type: spendTimeSchema, default: () => ({}) },
     status: { type: String },
-    trash: { type: Boolean, default: false },
+    isDeleted: { type: Boolean, default: false },
     tracker: [{ type: TrackerSchema }],
-    comments: [{ type: commentSchema, default: null }],
+    comments: [{ type: mongoose.Schema.Types.ObjectId, ref: "Comment", default: [] }],
     estTime: { type: Number },
     createdby: { type: mongoose.Schema.Types.ObjectId, ref: "Employee" },
     project: { type: mongoose.Schema.Types.ObjectId, ref: "Project" },
@@ -60,8 +48,9 @@ const Task = mongoose.model("Task", taskSchema);
 const taskValidation = Joi.object({
     _id: Joi.string().allow("").label('_id'),
     __v: Joi.string().allow(0).label('__v'),
-    createdAt: Joi.string().allow('').label('createdAt'),
-    updatedAt: Joi.string().allow('').label('updatedAt'),
+    createdAt: Joi.any().optional(),
+    updatedAt: Joi.any().optional(),
+    company: Joi.any().optional(),
     title: Joi.string().required().disallow(null, ' ', 'none', 'undefined').label('Title'),
     priority: Joi.string()
         .valid('Low', 'Medium', 'High', 'Critical')
@@ -90,15 +79,14 @@ const taskValidation = Joi.object({
         .valid('Pending', 'In Progress', 'Completed', 'On Hold')
         .required()
         .label('Status'),
-    createdby: Joi.string()
-        .regex(/^[0-9a-fA-F]{24}$/)
-        .required()
-        .label('Created By'),
+    createdby: Joi.any()
+        .optional(),
+    tags: Joi.array().items(Joi.string()).optional(),
     tracker: Joi.any().label("Tracker"),
     estTime: Joi.any().required().label("EstTime"),
     spend: Joi.any().label("Spend"),
-    comments: Joi.any().label("Comments"),
-    trash: Joi.boolean().allow("", null).label("Trash"),
+    comments: Joi.array().items(Joi.string()).label("Comments"),
+    isDeleted: Joi.boolean().allow("", null).label("Trash"),
     category: Joi.any().optional(),
     project: Joi.string().regex(/^[0-9a-fA-F]{24}$/).optional().label('Project ID'),
 });

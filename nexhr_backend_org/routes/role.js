@@ -5,15 +5,20 @@ const { verifyAdminHR, verifyAdminHREmployeeManagerNetwork } = require('../auth/
 const { RoleAndPermission } = require('../models/RoleModel');
 const { userPermissionsValidation, UserPermission } = require('../models/UserPermissionModel');
 const { PageAuth, pageAuthValidation } = require('../models/PageAuth');
-const { errorCollector } = require('../Reuseable_functions/reusableFunction');
+const { errorCollector, checkValidObjId, getCompanyIdFromToken } = require('../Reuseable_functions/reusableFunction');
 
 // get role by roleName
 router.get("/name", verifyAdminHR, async (req, res) => {
   try {
-    const roleData = await RoleAndPermission.findOne({ RoleName: "Assosiate" })
+    const companyId = getCompanyIdFromToken(req.headers["authorization"]);
+    if (!companyId) {
+      return res.status(400).send({ error: "You are not part of any company. Please check with your higher authorities." })
+    }
+    const roleData = await RoleAndPermission.findOne({ RoleName: "Assosiate", company: companyId })
       .populate("userPermissions")
       .populate("pageAuth")
       .exec();
+
     if (!roleData) {
       return res.status(404).send({ error: "Data not found in given role" })
     } else {
@@ -50,27 +55,14 @@ router.get("/name", verifyAdminHR, async (req, res) => {
   }
 })
 
-// role get by id
-router.get("/:id", verifyAdminHR, async (req, res) => {
-  try {
-    const role = await RoleAndPermission.findById(req.params.id)
-      .populate("userPermissions")
-      .populate("pageAuth")
-      .exec();
-    if (!role) {
-      res.status(404).send({ error: "Data not found in given ID" })
-    } else {
-      res.send(role);
-    }
-  } catch (error) {
-    await errorCollector({ url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT })
-    res.status(500).send({ error: error.message })
-  }
-});
 
 // Get all roles
 router.get('/', verifyAdminHREmployeeManagerNetwork, (req, res) => {
-  RoleAndPermission.find()
+  const companyId = getCompanyIdFromToken(req.headers["authorization"]);
+  if (!companyId) {
+    return res.status(400).send({ error: "You are not part of any company. Please check with your higher authorities." })
+  }
+  RoleAndPermission.find({ isDeleted: false, company: companyId })
     .populate("userPermissions")
     .populate("pageAuth")
     // .populate('company')
@@ -86,14 +78,18 @@ router.get('/', verifyAdminHREmployeeManagerNetwork, (req, res) => {
 router.post('/', verifyAdminHR, async (req, res) => {
   const newRole = req.body;
   try {
+    const companyId = getCompanyIdFromToken(req.headers["authorization"]);
+    if (!companyId) {
+      return res.status(400).send({ error: "You are not part of any company. Please check with your higher authorities." })
+    }
     delete newRole._id;
     delete newRole.userPermissions._id;
     delete newRole.pageAuth._id;
 
     // check role is already exists
-    const isExists = await RoleAndPermission.exists({RoleName: new RegExp(`^${newRole.RoleName}$`, "i")});
-    if(isExists){
-      return res.status(400).send({error: `${newRole.RoleName} role is already exists`})
+    const isExists = await RoleAndPermission.exists({ RoleName: new RegExp(`^${newRole.RoleName}$`, "i") });
+    if (isExists) {
+      return res.status(400).send({ error: `${newRole.RoleName} role is already exists` })
     }
 
     // Validate userPermissions
@@ -116,7 +112,8 @@ router.post('/', verifyAdminHR, async (req, res) => {
     const finalRoleData = {
       RoleName: newRole.RoleName,
       userPermissions: userPermission._id,
-      pageAuth: pageAuth._id
+      pageAuth: pageAuth._id,
+      company: companyId
     };
 
     const role = await RoleAndPermission.create(finalRoleData);
@@ -128,26 +125,48 @@ router.post('/', verifyAdminHR, async (req, res) => {
   }
 });
 
-// Update role
-router.put('/:id', verifyAdminHR, async (req, res) => {
+// GET role by ID
+router.get("/:id", verifyAdminHR, async (req, res) => {
+  if (!checkValidObjId(req.params.id)) {
+    return res.status(400).send({ error: "Invalid role ID" });
+  }
+
+  try {
+    const role = await RoleAndPermission.findOne({ _id: req.params.id, isDeleted: { $ne: true } })
+      .populate("userPermissions")
+      .populate("pageAuth")
+      .exec();
+
+    if (!role) {
+      return res.status(404).send({ error: "Role not found" });
+    }
+
+    res.send(role);
+  } catch (error) {
+    await errorCollector({ url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT });
+    res.status(500).send({ error: error.message });
+  }
+});
+
+// UPDATE role
+router.put("/:id", verifyAdminHR, async (req, res) => {
+  if (!checkValidObjId(req.params.id)) {
+    return res.status(400).send({ error: "Invalid role ID" });
+  }
+
   try {
     const updatedRole = req.body;
-    
-    // Update user permissions and page authorization in the database
-    const updatedUserPermissions = {
-      ...updatedRole.userPermissions
-    }
+
+    // Update permissions
     const userPermission = await UserPermission.findByIdAndUpdate(
-      updatedUserPermissions._id,
-      updatedUserPermissions,
+      updatedRole.userPermissions._id,
+      updatedRole.userPermissions,
       { new: true }
     );
-    const updatedPageAuth  = {
-      ...req.body.pageAuth
-    }
+
     const pageAuth = await PageAuth.findByIdAndUpdate(
-      updatedPageAuth._id,
-      updatedPageAuth,
+      updatedRole.pageAuth._id,
+      updatedRole.pageAuth,
       { new: true }
     );
 
@@ -155,79 +174,60 @@ router.put('/:id', verifyAdminHR, async (req, res) => {
       return res.status(404).send({ error: "User permissions or page authorization not found" });
     }
 
-    // Update role with references to updated user permissions and page authorization
     const finalRoleData = {
       RoleName: updatedRole.RoleName,
-      userPermissions: updatedRole.userPermissions._id,
-      pageAuth: updatedRole.pageAuth._id
+      userPermissions: userPermission._id,
+      pageAuth: pageAuth._id
     };
 
-    const role = await RoleAndPermission.findByIdAndUpdate(req.params.id, finalRoleData, { new: true });
+    const role = await RoleAndPermission.findByIdAndUpdate(
+      req.params.id,
+      finalRoleData,
+      { new: true }
+    );
+
     if (!role) {
-      return res.status(404).send({ error: 'Role not found' });
+      return res.status(404).send({ error: "Role not found" });
     }
 
     return res.send({ message: `${updatedRole.RoleName} Authorization has been updated!` });
   } catch (error) {
-    await errorCollector({ url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT })
-    console.log(error);
-    return res.status(500).send({ error: error.message });
+    await errorCollector({ url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT });
+    res.status(500).send({ error: error.message });
   }
 });
 
+// SOFT DELETE role
 router.delete("/:id", verifyAdminHR, async (req, res) => {
-  try {
-    const isEmpRole = await Employee.find({ role: { $in: req.params.id } });
-    if (isEmpRole.length === 0) {
-      const roleData = await RoleAndPermission.findById(req.params.id);
-      // delete pageAuth and permission data from table
-      await PageAuth.findByIdAndDelete(roleData.pageAuth);
-      await UserPermission.findByIdAndDelete(roleData.userPermissions);
-
-      const deleteRole = await RoleAndPermission.findByIdAndDelete(req.params.id);
-      res.send({ message: `${deleteRole.RoleName} Role has been deleted` })
-    } else {
-      res.status(400).send({ message: "Please remove Employees from this role!" })
-    }
-  } catch (error) {
-    await errorCollector({ url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT })
-    res.status(500).send({ error: error.message })
+  if (!checkValidObjId(req.params.id)) {
+    return res.status(400).send({ error: "Invalid role ID" });
   }
-})
+  const companyId = getCompanyIdFromToken(req.headers["authorization"]);
+  if (!companyId) {
+    return res.status(400).send({ error: "You are not part of any company. Please check with your higher authorities." })
+  }
 
+  try {
+    const isEmpRole = await Employee.find({ role: { $in: req.params.id }, isDeleted: false, company: companyId }).lean();
+    if (isEmpRole.length > 0) {
+      return res.status(400).send({ message: "Please remove Employees from this role!" });
+    }
+
+    const roleData = await RoleAndPermission.findById(req.params.id);
+    if (!roleData) {
+      return res.status(404).send({ error: "Role not found" });
+    }
+
+    // Optional: Also soft delete permission and auth if needed
+    await PageAuth.findByIdAndUpdate(roleData.pageAuth, { isDeleted: true });
+    await UserPermission.findByIdAndUpdate(roleData.userPermissions, { isDeleted: true });
+
+    await RoleAndPermission.findByIdAndUpdate(req.params.id, { isDeleted: true });
+
+    return res.send({ message: `${roleData.RoleName} role has been soft-deleted successfully.` });
+  } catch (error) {
+    await errorCollector({ url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT });
+    res.status(500).send({ error: error.message });
+  }
+});
 module.exports = router;
-
-
-    
-        // const updatedUserPermissions = {
-        //   Attendance: updatedRole.userPermissions.Attendance,
-        //   Company: updatedRole.userPermissions.Company,
-        //   Department: updatedRole.userPermissions.Department,
-        //   Employee: updatedRole.userPermissions.Employee,
-        //   Holiday: updatedRole.userPermissions.Holiday,
-        //   Leave: updatedRole.userPermissions.Leave,
-        //   Role: updatedRole.userPermissions.Role,
-        //   TimePattern: updatedRole.userPermissions.TimePattern,
-        //   WorkPlace: updatedRole.userPermissions.WorkPlace,
-        //   Payroll: updatedRole.userPermissions.Payroll,
-        // }
-    
-        // Validate userPermissions
-        // const { error: userPermissionsError } = userPermissionsValidation.validate(updatedUserPermissions);
-        // if (userPermissionsError) {
-        //   return res.status(400).send({ error: userPermissionsError.details[0].message });
-        // }
-        // const updatedPageAuth = {
-        //   Administration: updatedRole.pageAuth.Administration,
-        //   Attendance: updatedRole.pageAuth.Attendance,
-        //   Dashboard: updatedRole.pageAuth.Dashboard,
-        //   Employee: updatedRole.pageAuth.Employee,
-        //   JobDesk: updatedRole.pageAuth.JobDesk,
-        //   Leave: updatedRole.pageAuth.Leave,
-        //   Settings: updatedRole.pageAuth.Settings,
-        // }
-        // // Validate pageAuth
-        // const { error: pageAuthError } = pageAuthValidation.validate(updatedPageAuth);
-        // if (pageAuthError) {
-        //   return res.status(400).send({ error: pageAuthError.details[0].message });
-        // }

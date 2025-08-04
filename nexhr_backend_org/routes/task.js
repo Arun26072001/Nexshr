@@ -4,17 +4,25 @@ const { Task, taskValidation } = require("../models/TaskModel");
 const { Project } = require("../models/ProjectModel");
 const { Employee } = require("../models/EmpModel");
 const sendMail = require("./mailSender");
-const fs = require("fs");
-const path = require("path");
-const { convertToString, getCurrentTimeInMinutes, timeToMinutes, formatTimeFromMinutes, projectMailContent, categorizeTasks, errorCollector } = require("../Reuseable_functions/reusableFunction");
+const { convertToString, getCurrentTimeInMinutes, timeToMinutes, formatTimeFromMinutes, projectMailContent, categorizeTasks, errorCollector, checkValidObjId, getCompanyIdFromToken } = require("../Reuseable_functions/reusableFunction");
 const { sendPushNotification } = require("../auth/PushNotification");
 const { PlannerCategory } = require("../models/PlannerCategoryModel");
 const { PlannerType } = require("../models/PlannerTypeModel");
+const { Report } = require("../models/ReportModel");
 const router = express.Router();
 
 router.get("/project/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
     try {
-        let tasks = await Task.find({ project: req.params.id, trash: false }, "-tracker")
+        const companyId = getCompanyIdFromToken(req.headers["authorization"]);
+        if (!companyId) {
+            return res.status(400).send({ error: "You are not part of any company. Please check with your higher authorities." })
+        }
+        // check id is valid
+        const { id } = req.params;
+        if (!checkValidObjId(id)) {
+            return res.status(400).send({ error: "Invalid Project ID" });
+        }
+        let tasks = await Task.find({ project: id, isDeleted: false, company: companyId }, "-tracker")
             .populate({ path: "project", select: "name color" })
             .populate({ path: "assignedTo", select: "FirstName LastName profile" })
             .populate({ path: "createdby", select: "company" })
@@ -75,10 +83,14 @@ router.get("/project/:id", verifyAdminHREmployeeManagerNetwork, async (req, res)
 
 router.post("/add-category/:id", async (req, res) => {
     try {
-        const plannerTypeData = await PlannerType.findOne({ employee: req.params.id }).exec();
+        const { id } = req.params;
+        if (!checkValidObjId(id)) {
+            return res.status(400).send({ error: "Invalid employee ID" });
+        }
+        const plannerTypeData = await PlannerType.findOne({ employee: id }).exec();
         if (plannerTypeData) {
             const categoryType = plannerTypeData.categories[0]
-            const tasks = await Task.find({ assignedTo: req.params.id }, "title category").exec();
+            const tasks = await Task.find({ assignedTo: req.params.id, isDeleted: false }, "title category").exec();
             tasks.forEach(async (task) => {
                 task.category = categoryType
                 await task.save();
@@ -95,9 +107,19 @@ router.post("/add-category/:id", async (req, res) => {
 
 router.get("/assigned/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
     try {
+        const companyId = getCompanyIdFromToken(req.headers["authorization"]);
+        if (!companyId) {
+            return res.status(400).send({ error: "You are not part of any company. Please check with your higher authorities." })
+        }
+        // check emp is valid
+        const { id } = req.params;
+        if (!checkValidObjId(id)) {
+            return res.status(400).send({ error: "Invalid employee ID" });
+        }
         let filterTask = {
             assignedTo: { $in: [req.params.id] },
-            trash: false
+            isDeleted: false,
+            company: companyId
         }
         if (req.query?.dateRange?.length) {
             const fromDate = new Date(req.query.dateRange[0]);
@@ -184,12 +206,16 @@ router.get("/assigned/:id", verifyAdminHREmployeeManagerNetwork, async (req, res
 router.get("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
     const { withComments } = req.query;
     try {
+        const taskId = req.params.id;
+        if (!checkValidObjId(taskId)) {
+            return res.status(400).send({ error: `Invalid or missing Task ID` })
+        }
         const fields = "FirstName LastName Email profile";
-        let query = Task.findById(req.params.id)
+        let query = Task.findById(taskId)
             .populate([
                 { path: "tracker.who", select: fields },
-                { path: "comments.createdBy", select: fields },
-                { path: "createdby", select: fields }
+                { path: "createdby", select: fields },
+                { path: "comments", populate: { path: "createdBy", select: fields } }
             ]);
 
         if (withComments) {
@@ -222,20 +248,24 @@ router.get("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
         });
 
     } catch (error) {
+        console.error("error in get task data with comments", error);
         await errorCollector({ url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT })
-        console.error(error);
         res.status(500).send({ error: error.message });
     }
 });
 
 router.post("/members", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
     try {
-
+        // get companyId from the token 
+        const companyId = getCompanyIdFromToken(req.headers["authorization"]);
+        if (!companyId) {
+            return res.status(400).send({ error: "You are not part of any company. Please check with your higher authorities." })
+        }
         const { dateRange, collegues } = req.body;
         const fromDate = new Date(dateRange[0]);
         const toDate = new Date(dateRange[1]);
 
-        const taskData = await Task.find({ assignedTo: { $in: collegues }, from: { $lte: toDate }, to: { $gte: fromDate } });
+        const taskData = await Task.find({ assignedTo: { $in: collegues }, from: { $lte: toDate }, to: { $gte: fromDate }, isDeleted: false, company: companyId });
         return res.send(taskData)
 
     } catch (error) {
@@ -247,6 +277,16 @@ router.post("/members", verifyAdminHREmployeeManagerNetwork, async (req, res) =>
 
 router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
     try {
+        const companyId = getCompanyIdFromToken(req.headers["authorization"]);
+        if (!companyId) {
+            return res.status(400).send({ error: "You are not part of any company. Please check with your higher authorities." })
+        }
+        // check params id is valid
+        const { id } = req.params;
+        if (!checkValidObjId(id)) {
+            return res.status(400).send({ error: "Invalid employee ID" });
+        }
+
         const { title, project: projectId, assignedTo = [], participants = [], observers = [], status, spend } = req.body;
 
         if (!req.body.assignedTo && !Array.isArray(req.body.assignedTo)) {
@@ -255,7 +295,7 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
         // verify task validation
         const { error } = taskValidation.validate({
             ...req.body,
-            createdby: req.params.id
+            createdby: id
         });
         if (error) {
             return res.status(400).send({ error: error.details[0].message })
@@ -267,7 +307,7 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
         }
 
         // Validate creator
-        const creator = await Employee.findById(req.params.id).populate("company", "logo CompanyName");
+        const creator = await Employee.findById(id).populate("company", "logo CompanyName");
         if (!creator) {
             return res.status(404).send({ error: "Employee (creator) not found." });
         }
@@ -282,16 +322,16 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
         }
 
         // Final assignedTo list (unique + include creator)
-        const finalAssignedTo = Array.from(new Set([...assignedTo, req.params.id]));
+        const finalAssignedTo = Array.from(new Set([...assignedTo, id]));
 
         // Fields to fetch
         const empFields = "FirstName LastName Email fcmToken notifications company";
         const companyFields = "CompanyName logo";
 
         const [assignedEmps, participantEmps, observerEmps] = await Promise.all([
-            Employee.find({ _id: { $in: finalAssignedTo } }).populate("company", companyFields).select(empFields),
-            Employee.find({ _id: { $in: participants } }).populate("company", companyFields).select(empFields),
-            Employee.find({ _id: { $in: observers } }).populate("company", companyFields).select(empFields)
+            Employee.find({ _id: { $in: finalAssignedTo }, isDeleted: false }).populate("company", companyFields).select(empFields),
+            Employee.find({ _id: { $in: participants }, isDeleted: false }).populate("company", companyFields).select(empFields),
+            Employee.find({ _id: { $in: observers }, isDeleted: false }).populate("company", companyFields).select(empFields)
         ]);
 
         const defaultCategory = await PlannerCategory.findOne().exec();
@@ -300,6 +340,7 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
             ...req.body,
             createdby: req.params.id,
             assignedTo: finalAssignedTo,
+            company: companyId,
             participants,
             observers,
             status: status || "On Hold",
@@ -394,104 +435,25 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
     }
 });
 
-
-router.put("/updatedTaskComment/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
-    const { type } = req.query;
-
-    const taskObj = req.body;
-    try {
-        let oldTaskObj = await Task.findById(req.body._id, "comments").exec();
-        const assignessId = taskObj.assignedTo.map((member) => member._id);
-        // get employee data for company data
-        const emps = await Employee.find({ _id: { $in: assignessId } }, "FirstName LastName Email fcmToken profile company")
-            .populate("company", "CompanyName logo")
-            .exec();
-
-        if (type === "edit comment") {
-            // remove or unused images in updated comment
-            const updatedCommentIndex = req.query.index;
-            const updatedComment = taskObj.comments[req.query?.index];
-            if (oldTaskObj.comments[updatedCommentIndex] && oldTaskObj.comments[updatedCommentIndex].attachments) {
-                const deletedImgs = oldTaskObj.comments[updatedCommentIndex].attachments.map((img) => {
-                    if (!updatedComment.includes(img)) {
-                        return img;
-                    }
-                }).filter(Boolean)
-                if (deletedImgs.length > 0) {
-                    const removedFiles = [];
-                    deletedImgs.map((img) => {
-                        const oldFile = img.split("/").pop();
-                        const oldFilePath = path.join(__dirname, "..", "uploads", oldFile);
-                        if (fs.existsSync(oldFilePath)) {
-                            fs.unlinkSync(oldFilePath);
-                            removedFiles.push(oldFile)
-                        }
-                    })
-                }
-            }
-        }
-        // remove images from deleted comments
-        if (type === "delete comment") {
-            const deletedCommentIndex = req.query.index;
-            if (oldTaskObj.comments[deletedCommentIndex] && oldTaskObj.comments[deletedCommentIndex].attachments.length > 0) {
-                const removedFiles = [];
-                oldTaskObj.comments[deletedCommentIndex].attachments.map((img) => {
-                    const oldFile = img.split("/").pop();
-                    const oldFilePath = path.join(__dirname, "..", "uploads", oldFile);
-                    if (fs.existsSync(oldFilePath)) {
-                        fs.unlinkSync(oldFilePath);
-                        removedFiles.push(oldFile)
-                    }
-                })
-                console.log("removedFile in delete comment", removedFiles)
-            }
-        }
-        const currentCmt = taskObj.comments.at(-1)
-        const commentCreator = await Employee.findById(currentCmt.createdBy, "FirstName LastName")
-        // update task with updated comments
-        const updatedTask = await Task.findByIdAndUpdate(taskObj._id, taskObj, { new: true });
-        if (emps.length) {
-            emps.forEach((emp) => {
-
-                const title = `${commentCreator.FirstName + " " + commentCreator.LastName} has commented in ${taskObj.title}`;
-                const message = currentCmt.comment.replace(/<\/?[^>]+(>|$)/g, '')
-                // send mail 
-                sendMail({
-                    From: `<${process.env.FROM_MAIL}> (Nexshr)`,
-                    To: emp.Email,
-                    Subject: title,
-                    TextBody: message
-                })
-                // send notification
-                sendPushNotification({
-                    token: emp.fcmToken,
-                    title,
-                    body: message,
-                    type,
-                    name: emp.FirstName
-                })
-            });
-        }
-        return res.send({ message: "task comments updated successfully", updatedTask })
-    } catch (error) {
-        await errorCollector({ url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT })
-        console.log("error in update taskComments", error);
-        return res.status(500).send({ error: error.message })
-    }
-})
-
 router.put("/:empId/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
     try {
+        const { empId, id } = req.params;
+        if (!checkValidObjId(id)) {
+            return res.status(400).send({ error: "Invalid task ID" });
+        }
+        if (!checkValidObjId(empId)) {
+            return res.status(400).send({ error: "Invalid employee ID" });
+        }
         // Fetch Task Data
         const taskData = await Task.findById(req.params.id);
         if (!taskData) return res.status(404).send({ error: "Task not found" });
-        
+
         // check task validation
         const { error } = taskValidation.validate(req.body);
         if (error) {
             return res.status(400).send({ error: error.details[0].message })
         }
-        
+
         // Identify Newly Assigned Employees
         const newAssignees = req.body?.assignedTo?.filter(emp => !taskData?.assignedTo?.includes(emp)) || [];
 
@@ -499,10 +461,11 @@ router.put("/:empId/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) 
         const [assignedPerson, empData, emps] = await Promise.all([
             Employee.findById(req.body.createdby).populate("company", "CompanyName logo"),
             Employee.findById(req.params.empId),
-            Employee.find({ _id: { $in: newAssignees } }, "FirstName LastName Email fcmToken company notifications")
+            Employee.find({ _id: { $in: newAssignees }, isDeleted: false }, "FirstName LastName Email fcmToken company notifications")
                 .populate("company", "CompanyName logo")
         ]);
 
+        // check employee and assigned person is exists
         if (!assignedPerson) return res.status(404).send({ error: "Assigned person not found" });
         if (!empData) return res.status(404).send({ error: "Employee not found" });
 
@@ -524,7 +487,7 @@ router.put("/:empId/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) 
             return [];
         });
 
-        // check attachments are changes and changed imgs from server
+        // delete remove image from server
         const deletedImgs = taskData.attachments.map((img) => {
             if (!req.body.attachments.includes(img)) {
                 return img;
@@ -532,15 +495,7 @@ router.put("/:empId/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) 
         }).filter(Boolean);
 
         if (deletedImgs.length > 0) {
-            const removedFiles = [];
-            deletedImgs.map((img) => {
-                const oldFile = img.split("/").pop();
-                const oldFilePath = path.join(__dirname, "..", "uploads", oldFile);
-                if (fs.existsSync(oldFilePath)) {
-                    fs.unlinkSync(oldFilePath);
-                    removedFiles.push(oldFile);
-                }
-            })
+            const removedFiles = removeImgsFromServer(deletedImgs);
         }
 
         // Prepare optional comment update
@@ -569,7 +524,6 @@ router.put("/:empId/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) 
 
         // Update Task in DB
         const task = await Task.findByIdAndUpdate(req.params.id, updatedTask, { new: true });
-        if (!task) return res.status(404).send({ error: "Failed to update task" });
 
         const assignedPersonName = `${assignedPerson.FirstName} ${assignedPerson.LastName}`;
 
@@ -647,22 +601,45 @@ router.put("/:empId/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) 
 
 router.delete("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
     try {
-        const task = await Task.findByIdAndDelete(req.params.id);
+        const { id } = req.params;
+
+        if (!checkValidObjId(id)) {
+            return res.status(400).send({ error: "Invalid task ID." });
+        }
+
+        const task = await Task.findById(id);
         if (!task) {
-            return res.status(404).send({ error: "Task not found" });
+            return res.status(404).send({ error: "Task not found. Please refresh the page and try again." });
         }
+
+        // Remove task from project if it belongs to one
         if (task.project) {
-            const project = await Project.findOne({ tasks: req.params.id }, "tasks");
-            const removedTaskList = project?.tasks?.filter((item) => item !== req.params.id)
-            project.tasks = removedTaskList;
-            await project.save();
+            const project = await Project.findOne({ tasks: id }, "tasks");
+            if (project) {
+                project.tasks = project.tasks.filter(taskId => taskId.toString() !== id);
+                await project.save();
+            }
         }
-        return res.send({ message: "Task was delete successfully" })
+
+        // Soft delete the task
+        task.isDeleted = true;
+        await task.save();
+
+        // Soft delete associated reports
+        await Report.updateMany({ task: id }, { $set: { isDeleted: true } });
+
+        return res.send({ message: "Task was marked as deleted successfully." });
     } catch (error) {
-        await errorCollector({ url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT })
-        console.log("error in delte task", error);
-        return res.status(500).send({ error: error.message })
+        await errorCollector({
+            url: req.originalUrl,
+            name: error.name,
+            message: error.message,
+            env: process.env.ENVIRONMENT
+        });
+        console.error("Error marking task as deleted:", error);
+        return res.status(500).send({ error: "An unexpected error occurred while deleting the task." });
     }
-})
+});
+
 
 module.exports = router;

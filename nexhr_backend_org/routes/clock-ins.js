@@ -7,7 +7,7 @@ const sendMail = require("./mailSender");
 const { format } = require("date-fns");
 const { LeaveApplication } = require("../models/LeaveAppModel");
 const { Team } = require("../models/TeamModel");
-const { timeToMinutes, processActivityDurations, checkLoginForOfficeTime, getCurrentTime, sumLeaveDays, getTotalWorkingHoursExcludingWeekends, changeClientTimezoneDate, getTotalWorkingHourPerDayByDate, errorCollector, isValidLeaveDate, setTimeHolderForAllActivities, isValidDate, getCurrentTimeInMinutes, checkDateIsHoliday, timeZoneHrMin } = require("../Reuseable_functions/reusableFunction");
+const { timeToMinutes, processActivityDurations, checkLoginForOfficeTime, getCurrentTime, sumLeaveDays, getTotalWorkingHoursExcludingWeekends, changeClientTimezoneDate, getTotalWorkingHourPerDayByDate, errorCollector, isValidLeaveDate, setTimeHolderForAllActivities, isValidDate, getCurrentTimeInMinutes, checkDateIsHoliday, timeZoneHrMin, convertToMinutes, checkValidObjId, getCompanyIdFromToken } = require("../Reuseable_functions/reusableFunction");
 const { WFHApplication } = require("../models/WFHApplicationModel");
 const { sendPushNotification } = require("../auth/PushNotification");
 const { Holiday } = require("../models/HolidayModel");
@@ -71,7 +71,11 @@ router.post("/verify_completed_workinghour", verifyAdminHREmployeeManagerNetwork
 
 router.post("/not-login/apply-leave/:workPatternId", async (req, res) => {
     try {
+        // check is valid id
         const timePatternId = req.params.workPatternId;
+        if (!checkValidObjId(timePatternId)) {
+            return res.status(400).send({ error: "Invalid or missing WorkingtimePattern Id" })
+        }
         const now = getCurrentTimeInMinutes();
 
         const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0);
@@ -110,7 +114,7 @@ router.post("/not-login/apply-leave/:workPatternId", async (req, res) => {
             });
             if (hasClockIn) continue;
 
-            const holiday = await Holiday.findOne({ currentYear: now.getFullYear(), company: emp.company });
+            const holiday = await Holiday.findOne({ currentYear: now.getFullYear(), company: emp.company, isDeleted: false });
             const isTodayHoliday = holiday ? checkDateIsHoliday(holiday.holidays, now) : false;
             if (isTodayHoliday) continue;
 
@@ -211,6 +215,16 @@ router.post("/not-login/apply-leave/:workPatternId", async (req, res) => {
 
 router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
     try {
+        // get companyId from the jwt token
+        const companyId = getCompanyIdFromToken(req.headers["authorization"]);
+        if (!companyId) {
+            return res.status(400).send({ error: "You are not part of any company. Please check with your higher authorities." })
+        }
+        // check is valid id
+        const { id } = req.params;
+        if (!checkValidObjId(id)) {
+            return res.status(400).send({ error: "Invalid or missing Employee Id" })
+        }
         const { location, worklocation } = req.query;
 
         let regular = 0, late = 0, early = 0;
@@ -224,7 +238,7 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
         }
         let isWfh;
         if (worklocation === "WFH") {
-            isWfh = await WFHApplication.findOne({ fromDate: { $gte: today }, status: "approved" })
+            isWfh = await WFHApplication.findOne({ fromDate: { $gte: today }, status: "approved", isDeleted: false })
         }
 
         // Fetch employee details with required fields
@@ -318,7 +332,6 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
 
             const scheduledMinutes = timeToMinutes(scheduledTime);
             const actualMinutes = timeToMinutes(actualTime);
-            console.log("scheduledMinutes", scheduledMinutes, "actualMinutes", actualMinutes)
             if ((scheduledMinutes + permissionTime) > actualMinutes) {
                 early++;
                 return "Early";
@@ -340,7 +353,8 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
             ...req.body,
             behaviour,
             punchInMsg,
-            employee: req.params.id
+            employee: req.params.id,
+            company: companyId
         });
 
         emp.clockIns.push(newClockIns._id);
@@ -359,6 +373,10 @@ router.get("/late-punch", verifyAdminHR, async (req, res) => {
     try {
         let fromDate;
         let toDate;
+        const companyId = getCompanyIdFromToken(req.headers["authorization"]);
+        if (!companyId) {
+            return res.status(400).send({ error: "You are not part of any company. Please check with your higher authorities." })
+        }
 
         if (req?.query?.dateRangeValue) {
             fromDate = new Date(req.query.dateRangeValue[0]);
@@ -370,7 +388,7 @@ router.get("/late-punch", verifyAdminHR, async (req, res) => {
         fromDate.setHours(0, 0, 0, 0);
         toDate.setHours(23, 59, 59, 0);
 
-        const latePunch = await ClockIns.find({ date: { $gte: fromDate, $lt: toDate }, behaviour: "Late" })
+        const latePunch = await ClockIns.find({ date: { $gte: fromDate, $lt: toDate }, behaviour: "Late", isDeleted: false, company: companyId })
             .populate("employee", "FirstName LastName profile")
             .sort({ date: -1 }).lean().exec();
 
@@ -384,6 +402,11 @@ router.get("/late-punch", verifyAdminHR, async (req, res) => {
 router.put("/late-punchin-response/:id", verifyAdminHR, async (req, res) => {
     try {
         const { body } = req;
+        // check is valid id
+        const { id } = req.params;
+        if (!checkValidObjId(id)) {
+            return res.status(400).send({ error: "Invalid or missing Clockins Id" })
+        }
         // apply leave or permission timer data(clockins)
         const today = new Date(body?.date);
 
@@ -394,7 +417,7 @@ router.put("/late-punchin-response/:id", verifyAdminHR, async (req, res) => {
         }
 
         // Update punch-in record
-        const updatedClockin = await ClockIns.findByIdAndUpdate(req.params.id, body, { new: true });
+        const updatedClockin = await ClockIns.findByIdAndUpdate(id, body, { new: true });
 
         // Process if lateLogin status is rejected
         if (updatedClockin?.lateLogin?.status === "rejected") {
@@ -548,6 +571,10 @@ router.put("/late-punchin-response/:id", verifyAdminHR, async (req, res) => {
 router.get("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
     try {
         const employeeId = req.params.id;
+        // check is valid id
+        if (!checkValidObjId(employeeId)) {
+            return res.status(400).send({ error: "Invalid or missing Employee Id" })
+        }
         const queryDate = changeClientTimezoneDate(req.query.date);
         // console.log("queryDate", new Date(req.query.date))
         if (isNaN(queryDate)) {
@@ -648,6 +675,11 @@ router.get("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
 
 router.get("/team/:id", verifyTeamHigherAuthority, async (req, res) => {
     try {
+        // check is valid id
+        const { id } = req.params;
+        if (!checkValidObjId(id)) {
+            return res.status(400).send({ error: "Invalid or missing Employee Id" })
+        }
         let startOfMonth;
         let endOfMonth;
         const now = new Date();
@@ -660,7 +692,7 @@ router.get("/team/:id", verifyTeamHigherAuthority, async (req, res) => {
             endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
         }
         const who = req?.query?.who;
-        const team = await Team.findOne({ [who]: req.params.id }).exec();
+        const team = await Team.findOne({ [who]: id }).exec();
 
         if (!team) {
             return res.status(404).send({ error: "You are not a Team higher authority." })
@@ -680,20 +712,12 @@ router.get("/team/:id", verifyTeamHigherAuthority, async (req, res) => {
 })
 
 router.get("/item/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
-    const convertToMinutes = (start, end) => {
-        const [endHour, endMin] = end.split(/[:.]+/).map(Number);
-        const [startHour, startMin] = start.split(/[:.]+/).map(Number);
-
-        const startTime = new Date(2000, 0, 1, startHour, startMin);
-        const endTime = new Date(2000, 0, 1, endHour, endMin);
-
-        const diffMs = endTime - startTime; // Difference in milliseconds
-        const diffMinutes = Math.floor(diffMs / (1000 * 60)); // Convert to minutes
-
-        return diffMinutes > 0 ? diffMinutes : 0; // Ensure non-negative value
-    };
-
     try {
+        // check is valid id
+        const { id } = req.params;
+        if (!checkValidObjId(id)) {
+            return res.status(400).send({ error: "Invalid or missing Clockins Id" })
+        }
         const timeData = await ClockIns.findById(req.params.id).populate({ path: "employee", select: "_id FirstName LastName" });
         if (!timeData) {
             return res.status(404).send({ message: "Not found", details: "Id is not found! Please verify it." });
@@ -737,7 +761,11 @@ router.get("/item/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) =>
 router.get("/employee/:empId", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
     try {
         const now = new Date();
+        // check is valid id
         const { empId } = req.params;
+        if (!checkValidObjId(empId)) {
+            return res.status(400).send({ error: "Invalid or missing Employee Id" })
+        }
         const { daterangeValue } = req.query;
         const [startOfMonth, endOfMonth] = daterangeValue && Array.isArray(daterangeValue) ?
             [new Date(daterangeValue[0]), new Date(new Date(daterangeValue[1]))] :
@@ -828,13 +856,22 @@ router.get("/employee/:empId", verifyAdminHREmployeeManagerNetwork, async (req, 
     }
 });
 
-
 router.get("/sendmail/:id/:clockinId", async (req, res) => {
     try {
+        // check is valid id
+        const { id } = req.params;
+        const { clockinId } = req.params;
+        if (!checkValidObjId(id)) {
+            return res.status(400).send({ error: "Invalid or missing Employee Id" })
+        }
+        if (!checkValidObjId(clockinId)) {
+            return res.status(400).send({ error: "Invalid or missing Clockin Id" })
+        }
+
         // Fetch employee leave data
-        const emp = await Employee.findById(req.params.id).populate([{
+        const emp = await Employee.findById(id).populate([{
             path: "clockIns",
-            match: { _id: req.params.clockinId }
+            match: { _id: clockinId }
         }, {
             path: "company", select: "ComanyName logo"
         }]).exec()
@@ -912,7 +949,12 @@ router.get("/sendmail/:id/:clockinId", async (req, res) => {
 
 router.get("/", verifyAdminHrNetworkAdmin, async (req, res) => {
     try {
-        let filterObj = {};
+        // get companyId from the jwt token
+        const companyId = getCompanyIdFromToken(req.headers["authorization"]);
+        if (!companyId) {
+            return res.status(400).send({ error: "You are not part of any company. Please check with your higher authorities." })
+        }
+        let filterObj = {company: companyId};
         const dateRangeValue = req.query?.dateRangeValue
         if (dateRangeValue && dateRangeValue.length > 1) {
             const startDate = new Date(dateRangeValue[0])
@@ -920,9 +962,9 @@ router.get("/", verifyAdminHrNetworkAdmin, async (req, res) => {
             const endDate = new Date(dateRangeValue[1])
             endDate.setHours(23, 59, 59, 0);
             filterObj = {
+                ... filterObj,
                 date: { $gte: startDate, $lte: endDate }
             }
-            console.log("start", startDate, "endDate", endDate)
         }
         let attendanceData = await ClockIns.find(filterObj)
             .populate({ path: "employee", select: "FirstName LastName profile" })
@@ -938,6 +980,11 @@ router.get("/", verifyAdminHrNetworkAdmin, async (req, res) => {
 
 router.put("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
     try {
+        // check is valid id
+        const { id } = req.params;
+        if (!checkValidObjId(id)) {
+            return res.status(400).send({ error: "Invalid or missing clockin Id" })
+        }
         const queryData = req.query;
         if (await ClockIns.exists({ _id: req.params.id })) {
             const updatedData = setTimeHolderForAllActivities(req.body);
@@ -988,7 +1035,13 @@ router.put("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
 
 router.put("/add-late-login/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
     try {
-        const emp = await Employee.findById(req.params.id, "Email team FirstName LastName")
+        // check is valid id
+        const { id } = req.params;
+        if (!checkValidObjId(id)) {
+            return res.status(400).send({ error: "Invalid or missing Employee Id" })
+        }
+
+        const emp = await Employee.findById(id, "Email team FirstName LastName")
             .populate({
                 path: "team", select: "hr",
                 populate: { path: "hr", select: "FirstName LastName Email fcmToken" }
@@ -1072,6 +1125,7 @@ router.post("/ontime/:type", async (req, res) => {
         const hour = date.getHours();
         const min = date.getMinutes();
         const { type } = req.params;
+
         let emps;
         if (type === "logout") {
             const today = new Date();
@@ -1142,6 +1196,10 @@ router.post("/ontime/:type", async (req, res) => {
 router.post("/remainder/:id/:timeOption", async (req, res) => {
     try {
         const { id, timeOption } = req.params;
+        // check is valid id
+        if (!checkValidObjId(id)) {
+            return res.status(400).send({ error: "Invalid or missing Employee Id" })
+        }
 
         const emp = await Employee.findById(id, "FirstName LastName Email fcmToken company").populate("company");
         // send email notification

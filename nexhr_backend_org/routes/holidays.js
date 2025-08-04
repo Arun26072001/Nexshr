@@ -10,13 +10,18 @@ const router = express.Router();
 
 router.post("/:id", verifyAdminHR, async (req, res) => {
   try {
+    // check is valid id
+    const { id } = req.params;
+    if (!checkValidObjId(id)) {
+      return res.status(400).send({ error: "Invalid or missing Employee Id" })
+    }
     const isExist = await Holiday.findOne({ currentYear: req.body.currentYear, company: req.body.company });
     if (isExist) {
       return res.status(400).send({ error: "Already added this year of holidays!" })
     }
     const newHolidayData = {
       ...req.body,
-      createdBy: req.params.id
+      createdBy: id
     }
 
     const { error } = HolidayValidation.validate(newHolidayData);
@@ -26,7 +31,7 @@ router.post("/:id", verifyAdminHR, async (req, res) => {
 
     const response = await Holiday.create(newHolidayData);
     const notifyemps = [];
-    const companyEmps = await Employee.find({ company: req.body.company }, "FirstName LastName Email fcmToken company notifications").populate("company", "CompanyName logo").exec();
+    const companyEmps = await Employee.find({ company: req.body.company, isDeleted:false }, "FirstName LastName Email fcmToken company notifications").populate("company", "CompanyName logo").exec();
     companyEmps.forEach(async (emp) => {
       const title = `${req.body.currentYear}'s of holidays created`;
       const message = `${emp.company.CompanyName} of ${req.body.currentYear} of holiday's has been created`;
@@ -116,7 +121,8 @@ router.get("/current-year", verifyAdminHREmployeeManagerNetwork, async (req, res
   try {
     const decodedData = jwt.decode(req.headers["authorization"]);
     let filterObj = {
-      currentYear: new Date().getFullYear()
+      currentYear: new Date().getFullYear(),
+      isDeleted: false
     }
     if (decodedData.company) {
       filterObj = {
@@ -138,7 +144,7 @@ router.get("/current-year", verifyAdminHREmployeeManagerNetwork, async (req, res
 
 router.get("/", verifyAdminHR, async (req, res) => {
   try {
-    const allYear = await Holiday.find()
+    const allYear = await Holiday.find({ isDeleted: false })
       .populate("company", "CompanyName")
       .lean().exec();
     return res.send(allYear)
@@ -150,8 +156,13 @@ router.get("/", verifyAdminHR, async (req, res) => {
 
 router.put("/:id", verifyAdminHR, async (req, res) => {
   try {
+    // check is valid id
+    const { id } = req.params;
+    if (!checkValidObjId(id)) {
+      return res.status(400).send({ error: "Invalid or missing Holiday Id" })
+    }
     // check it's exists
-    const holiday = await Holiday.findById(req.params.id);
+    const holiday = await Holiday.findById(id);
     if (!holiday) {
       return res.status(404).send({ error: `${req.body.currentYear} holidays not found` })
     }
@@ -176,7 +187,7 @@ router.put("/:id", verifyAdminHR, async (req, res) => {
     }
     const updatedHolidays = await Holiday.findByIdAndUpdate(req.params.id, req.body, { new: true });
     const notifyemps = [];
-    const companyEmps = await Employee.find({ company: req.body.company }, "FirstName LastName Email fcmToken company notifications").populate("company", "CompanyName logo").exec();
+    const companyEmps = await Employee.find({ company: req.body.company, isDeleted:false }, "FirstName LastName Email fcmToken company notifications").populate("company", "CompanyName logo").exec();
     companyEmps.forEach(async (emp) => {
       const title = `${req.body.currentYear}'s of holidays updated`;
       const message = `${emp.company.CompanyName} of ${req.body.currentYear} of holiday's has been updated`;
@@ -263,11 +274,16 @@ router.put("/:id", verifyAdminHR, async (req, res) => {
 
 router.delete("/:id", verifyAdminHR, async (req, res) => {
   try {
-    const holiday = await Holiday.findById(req.params.id);
+    // check is valid id
+    const { id } = req.params;
+    if (!checkValidObjId(id)) {
+      return res.status(400).send({ error: "Invalid or missing Holiday Id" })
+    }
+    const holiday = await Holiday.findById(id);
     if (!holiday) {
       return res.status(404).send({ error: "holiday not found" })
     }
-    const deletedHoliday = await Holiday.findByIdAndDelete(req.params.id).exec();
+    const deletedHoliday = await Holiday.findByIdAndUpdate(req.params.id, { isDeleted: true }).exec();
     return res.send({ message: `${deletedHoliday.currentYear} of holiday has been deleted successfully` })
   } catch (error) {
     await errorCollector({ url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT })

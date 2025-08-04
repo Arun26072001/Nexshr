@@ -4,7 +4,7 @@ const { verifyAdminHR, verifyAdminHREmployeeManagerNetwork, verifyAdminHREmploye
 const { TeamValidation, Team } = require("../models/TeamModel");
 const { Employee } = require("../models/EmpModel");
 const sendMail = require("./mailSender");
-const { errorCollector } = require("../Reuseable_functions/reusableFunction");
+const { errorCollector, checkValidObjId, getCompanyIdFromToken } = require("../Reuseable_functions/reusableFunction");
 
 const sendInvitationEmail = async (emp, roleLabel, team, creator) => {
     const frontendUrl = process.env.REACT_APP_API_URL;
@@ -40,7 +40,11 @@ const sendInvitationEmail = async (emp, roleLabel, team, creator) => {
 
 router.get("/", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
     try {
-        const teams = await Team.find()
+        const companyId = getCompanyIdFromToken(req.headers["authorization"]);
+        if (!companyId) {
+            return res.status(400).send({ error: "You are not part of any company. Please check with your higher authorities." })
+        }
+        const teams = await Team.find({ isDeleted: false, company: companyId })
         res.send(teams)
     } catch (error) {
         await errorCollector({ url: req.originalUrl, name: err.name, message: err.message, env: process.env.ENVIRONMENT })
@@ -49,54 +53,13 @@ router.get("/", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
     }
 });
 
-router.get("/members/:id", verifyTeamHigherAuthorityEmp, async (req, res) => {
-    try {
-        const who = req.query.who;
-        // const who = req.params.who ? "lead" : req.params.who ? "head" : req.params.who ? "manager" : "employees"
-        const response = await Team.find({ [who]: req.params.id })
-            .populate({
-                path: "employees",
-                select: "FirstName LastName profile employmentType dateOfJoining gender working code docType serialNo company position department workingTimePattern role",
-                populate: [
-                    { path: "company", select: "_id CompanyName Town" },
-                    { path: "position" },
-                    { path: "department" },
-                    { path: "workingTimePattern" },
-                    { path: "role" }
-                ]
-            })
-        if (!response.length) {
-            return res.status(404).send({ message: "You haven't in any team" })
-        } else {
-            let employees = [];
-            response.map((team) => {
-                const teamEmps = Array.isArray(team.employees) ? team.employees : [];
-                const notAddedInEmployees = teamEmps.filter((emp) => !employees.includes(emp))
-                employees.push(...notAddedInEmployees)
-            })
-            return res.send({ employees });
-        }
-    } catch (error) {
-        await errorCollector({ url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT })
-        console.log("error in fetch team emps", error);
-        return res.status(500).send({ error: error.message })
-    }
-})
-
-router.get("/:who/:id", verifyTeamHigherAuthority, async (req, res) => {
-    try {
-        const teams = await Team.find({ [req.params.who]: req.params.id })
-        res.send(teams);
-    } catch (error) {
-        await errorCollector({ url: req.originalUrl, name: err.name, message: err.message, env: process.env.ENVIRONMENT })
-        console.error(err)
-        res.status(500).send({ error: err.message });
-    }
-})
-
 router.get("/user", verifyAdminHR, async (req, res) => {
     try {
-        const teams = await Team.find()
+        const companyId = getCompanyIdFromToken(req.headers["authorization"]);
+        if (!companyId) {
+            return res.status(400).send({ error: "You are not part of any company. Please check with your higher authorities." })
+        }
+        const teams = await Team.find({ isDeleted: false, company: companyId })
             .populate({
                 path: "employees", // Populate employees field
                 select: "_id FirstName LastName", // Select only required fields
@@ -136,24 +99,98 @@ router.get("/user", verifyAdminHR, async (req, res) => {
     }
 });
 
-router.get("/:id", verifyAdminHRTeamHigherAuth, async (req, res) => {
+router.get("/members/:id", verifyTeamHigherAuthorityEmp, async (req, res) => {
     try {
-        const response = await Team.findById(req.params.id)
+        const companyId = getCompanyIdFromToken(req.headers["authorization"]);
+        if (!companyId) {
+            return res.status(400).send({ error: "You are not part of any company. Please check with your higher authorities." })
+        }
+        // check params id is valid
+        if (!checkValidObjId(req.params.id)) {
+            return res.status(400).json({ error: "Invalid ID" });
+        }
 
-        if (!response) {
-            res.status(404).send({ message: "team not found" })
+        const who = req.query.who;
+        const response = await Team.find({ [who]: req.params.id, isDeleted: false, company: companyId })
+            .populate({
+                path: "employees",
+                select: "FirstName LastName profile employmentType dateOfJoining gender working code docType serialNo company position department workingTimePattern role",
+                populate: [
+                    { path: "company", select: "_id CompanyName Town" },
+                    { path: "position" },
+                    { path: "department" },
+                    { path: "workingTimePattern" },
+                    { path: "role" }
+                ]
+            });
+
+        if (!response.length) {
+            return res.status(404).send({ message: "You haven't in any team" });
         } else {
-            res.send(response);
+            let employees = [];
+            response.forEach((team) => {
+                const teamEmps = Array.isArray(team.employees) ? team.employees : [];
+                const newEmps = teamEmps.filter((emp) => !employees.includes(emp));
+                employees.push(...newEmps);
+            });
+            return res.send({ employees });
         }
     } catch (error) {
-        await errorCollector({ url: req.originalUrl, name: err.name, message: err.message, env: process.env.ENVIRONMENT })
-        console.log(err);
-        res.status(500).send({ error: "Error in get a team of Employee", details: err })
+        await errorCollector({ url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT });
+        console.log("error in fetch team emps", error);
+        return res.status(500).send({ error: error.message });
     }
-})
+});
+
+router.get("/:who/:id", verifyTeamHigherAuthority, async (req, res) => {
+    try {
+        if (!checkValidObjId(req.params.id)) {
+            return res.status(400).json({ error: "Invalid Employee ID" });
+        }
+
+        const companyId = getCompanyIdFromToken(req.headers["authorization"]);
+        if (!companyId) {
+            return res.status(400).send({ error: "You are not part of any company. Please check with your higher authorities." })
+        }
+
+        const teams = await Team.find({ [req.params.who]: req.params.id, isDeleted: false, company: companyId });
+        res.send(teams);
+    } catch (error) {
+        await errorCollector({ url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT });
+        console.error(error);
+        res.status(500).send({ error: error.message });
+    }
+});
+
+router.get("/:id", verifyAdminHRTeamHigherAuth, async (req, res) => {
+    try {
+        if (!checkValidObjId(req.params.id)) {
+            return res.status(400).json({ error: "Invalid ID" });
+        }
+
+        const response = await Team.findById(req.params.id);
+        if (!response) {
+            return res.status(404).send({ message: "Team not found" });
+        }
+        res.send(response);
+    } catch (error) {
+        await errorCollector({ url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT });
+        console.log(error);
+        res.status(500).send({ error: "Error in getting the team", details: error });
+    }
+});
 
 router.post("/:id", verifyAdminHR, async (req, res) => {
     try {
+        if (!checkValidObjId(req.params.id)) {
+            return res.status(400).json({ error: "Invalid ID" });
+        }
+        // get company Id from the token
+        const companyId = getCompanyIdFromToken(req.headers["authorization"]);
+        if (!companyId) {
+            return res.status(400).send({ error: "You are not part of any company. Please check with your higher authorities." })
+        }
+
         const { error } = TeamValidation.validate(req.body);
         if (error) return res.status(400).json({ error: error.details[0].message });
 
@@ -171,47 +208,48 @@ router.post("/:id", verifyAdminHR, async (req, res) => {
             ...req.body,
             employees: allMemberIds,
             createdBy: req.params.id,
+            company: companyId
         });
 
         await Promise.all(
             Object.entries(roles).flatMap(([role, ids]) => {
                 if (!Array.isArray(ids) || ids.length === 0) return [];
-
                 return ids.map(async (memberId) => {
-
                     const emp = await Employee.findById(memberId, "FirstName LastName Email fcmToken").populate("company", "CompanyName logo");
                     if (!emp) return;
-
                     emp.team = newTeam._id;
                     await emp.save();
-
                     const roleLabel = role === "employees" ? "Employee" : role.charAt(0).toUpperCase() + role.slice(1);
                     await sendInvitationEmail(emp, roleLabel, req.body, creator);
                 });
             })
         );
+
         res.json({ message: `New team "${newTeam.teamName}" has been added!`, newTeam });
 
     } catch (error) {
-        await errorCollector({ url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT })
+        await errorCollector({ url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT });
         console.error("POST /:id error:", error);
-        return res.status(500).json({ error: error.message });
+        res.status(500).json({ error: error.message });
     }
 });
 
 router.put("/:id", verifyAdminHR, async (req, res) => {
     try {
+        if (!checkValidObjId(req.params.id)) {
+            return res.status(400).json({ error: "Invalid ID" });
+        }
+
         const { error } = TeamValidation.validate(req.body);
         if (error) return res.status(400).json({ error: error.details[0].message });
 
-        const teamId = req.params.id;
         const { lead, head, manager, employees, admin, hr, createdBy } = req.body;
         const roles = { lead, head, manager, employees, hr, admin };
 
         const creator = await Employee.findById(createdBy, "FirstName LastName company").populate("company", "CompanyName logo");
         if (!creator) return res.status(404).json({ error: "Creator not found!" });
 
-        const oldTeam = await Team.findById(teamId).populate("lead head manager employees hr admin", "_id");
+        const oldTeam = await Team.findById(req.params.id).populate("lead head manager employees hr admin", "_id");
         if (!oldTeam) return res.status(404).json({ error: "Team not found!" });
 
         for (const [roleKey, newIdsRaw] of Object.entries(roles)) {
@@ -221,19 +259,17 @@ router.put("/:id", verifyAdminHR, async (req, res) => {
             const addedIds = newIds.filter(id => !oldIds.includes(id));
             const removedIds = oldIds.filter(id => !newIds.includes(id));
 
-            // Add members
             await Promise.all(addedIds.map(async (empId) => {
                 const emp = await Employee.findById(empId).populate("company", "CompanyName logo");
                 if (!emp) return;
 
-                emp.team = teamId;
+                emp.team = req.params.id;
                 await emp.save();
 
                 const roleLabel = roleKey === "employees" ? "Employee" : roleKey.charAt(0).toUpperCase() + roleKey.slice(1);
                 await sendInvitationEmail(emp, roleLabel, oldTeam.teamName, creator);
             }));
 
-            // Remove members
             await Promise.all(removedIds.map(async (empId) => {
                 const emp = await Employee.findById(empId);
                 if (!emp) return;
@@ -243,33 +279,39 @@ router.put("/:id", verifyAdminHR, async (req, res) => {
             }));
         }
 
-        const updatedTeam = await Team.findByIdAndUpdate(teamId, req.body, { new: true });
+        const updatedTeam = await Team.findByIdAndUpdate(req.params.id, req.body, { new: true });
         res.json({ message: `Team "${updatedTeam.teamName}" has been updated!`, updatedTeam });
 
     } catch (error) {
-        await errorCollector({ url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT })
-        console.error("PUT /:id error:", err);
+        await errorCollector({ url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT });
+        console.error("PUT /:id error:", error);
         res.status(500).json({ error: error.message });
     }
 });
 
 router.delete("/:id", verifyAdminHR, async (req, res) => {
     try {
+        if (!checkValidObjId(req.params.id)) {
+            return res.status(400).json({ error: "Invalid ID" });
+        }
+
         const teamData = await Team.findById(req.params.id);
         if (teamData?.employees?.length) {
-            return res.status(400).send({ error: `${teamData.employees.length} employees has in ${teamData.teamName}, Please change the team for them` })
+            return res.status(400).send({ error: `${teamData.employees.length} employees are in ${teamData.teamName}. Please reassign them before deleting.` });
         }
-        const response = await Team.findByIdAndDelete(req.params.id);
+
+        const response = await Team.findByIdAndUpdate(req.params.id, { isDeleted: true }, { new: true });
         if (!response) {
-            res.status(404).send({ message: "Team not found!" })
-        } else {
-            res.send({ message: `${response?.teamName} Team has been deleted!` })
+            return res.status(404).send({ message: "Team not found!" });
         }
+
+        res.send({ message: `${response?.teamName} Team has been soft deleted.` });
     } catch (error) {
-        await errorCollector({ url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT })
-        console.log("erorr in delete team", error);
-        res.status(500).send({ error: error.message })
+        await errorCollector({ url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT });
+        console.log("error in delete team", error);
+        res.status(500).send({ error: error.message });
     }
-})
+});
+
 
 module.exports = router;

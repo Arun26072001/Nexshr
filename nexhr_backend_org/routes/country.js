@@ -1,11 +1,20 @@
 const express = require('express');
 const router = express.Router();
+const Joi = require("joi");
 const { verifyAdminHREmployeeManagerNetwork, verifyAdmin } = require('../auth/authMiddleware');
-const { CountryValidation } = require('../models/CountryModel');
 const fs = require('fs');
 const path = require('path');
 const { errorCollector } = require('../Reuseable_functions/reusableFunction');
 const configPath = path.join(__dirname, '../countriesData/countryCode.json');
+
+// country validation 
+const CountryValidation = Joi.object().keys({
+  name: Joi.string().disallow(null, ' ', 'none', 'undefined').required(),
+  icon: Joi.string().disallow(null, ' ', 'none', 'undefined').required(),
+  abbr: Joi.string().disallow(null, ' ', 'none', 'undefined').required(),
+  code: Joi.string().disallow(null, ' ', 'none', 'undefined').required(),
+  states: Joi.array().items(Joi.string()).optional()
+});
 
 // Read JSON file
 const readData = () => {

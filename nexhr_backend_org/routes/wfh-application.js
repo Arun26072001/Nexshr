@@ -5,7 +5,7 @@ const { WFHAppValidation, WFHApplication } = require("../models/WFHApplicationMo
 const { Employee } = require("../models/EmpModel");
 const sendMail = require("./mailSender");
 const { Team } = require("../models/TeamModel");
-const { formatDate, mailContent, sumLeaveDays, changeClientTimezoneDate, errorCollector, checkDateIsHoliday } = require("../Reuseable_functions/reusableFunction");
+const { formatDate, mailContent, sumLeaveDays, changeClientTimezoneDate, errorCollector, checkDateIsHoliday, checkValidObjId, getCompanyIdFromToken } = require("../Reuseable_functions/reusableFunction");
 const { sendPushNotification } = require("../auth/PushNotification");
 const { Holiday } = require("../models/HolidayModel");
 const { TimePattern } = require("../models/TimePatternModel");
@@ -82,7 +82,7 @@ function generateWfhEmail(empData, fromDateValue, toDateValue, reason, type) {
 
 router.get("/make-know", async (req, res) => {
     try {
-        const wfhReqs = await LeaveApplication.find({ status: "pending" })
+        const wfhReqs = await LeaveApplication.find({ status: "pending", isDeleted: false })
             .populate({
                 path: "employee",
                 select: "FirstName LastName Email company",
@@ -212,8 +212,17 @@ router.get("/make-know", async (req, res) => {
 router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
     try {
         const { id } = req.params;
+        // check id valid and get company is from token
+        if (!checkValidObjId(id)) {
+            return res.status(400).send({ error: "Invalid Employee Id" })
+        }
+        const companyId = getCompanyIdFromToken(req.headers["authorization"]);
+        if (!companyId) {
+            return res.status(400).send({
+                error: "You are not part of any company. Please check with your higher authorities."
+            });
+        }
         const { fromDate, toDate, reason } = req.body;
-        const today = new Date();
         const fromDateObj = changeClientTimezoneDate(fromDate);
         const toDateObj = changeClientTimezoneDate(toDate);
 
@@ -243,6 +252,8 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
         const team = await Team.findOne({ employees: id }, "employees").exec();
         if (team && team.employees.length > 0) {
             const wfhEmps = await WFHApplication.find({
+                isDeleted: false,
+                company: companyId,
                 employee: { $in: team.employees },
                 status: "approved",
                 fromDate: { $lte: toDateObj },
@@ -286,10 +297,11 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
             ...req.body,
             employee: id,
             approvers,
-            status: "pending"
+            status: "pending",
+            company: companyId
         };
 
-        const holiday = await Holiday.findOne({ currentYear: new Date().getFullYear(), company: emp.company._id });
+        const holiday = await Holiday.findOne({ currentYear: new Date().getFullYear(), company: companyId });
         const isFromDateHoliday = checkDateIsHoliday(holiday.holidays, fromDateObj);
         const isToDateHoliday = checkDateIsHoliday(holiday.holidays, toDateObj);
         if (isFromDateHoliday) {
@@ -365,10 +377,16 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
 
 router.get("/on-wfh", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
     try {
+        const companyId = getCompanyIdFromToken(req.headers["authorization"]);
+        if (!companyId) {
+            return res.status(400).send({ error: "You are not part of any company. Please check with your higher authorities." });
+        }
         const today = new Date();
         const startOfDay = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate(), 0, 0, 0));
         const endOfDay = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate(), 23, 59, 59));
         const data = await WFHApplication.find({
+            company: companyId,
+            isDeleted: false,
             fromDate: { $lte: endOfDay },
             toDate: { $gte: startOfDay },
             status: "approved"
@@ -416,9 +434,12 @@ router.get("/check-wfh/:id", verifyAdminHREmployeeManagerNetwork, async (req, re
 // get company's all wfh request
 router.get("/company/:id", verifyAdminHR, async (req, res) => {
     try {
+        if (!checkValidObjId(req.params.id)) {
+            return res.status(400).send({ error: "Invalid Employee ID" });
+        }
         const emp = await Employee.findById(req.params.id, "company").exec();
         const now = new Date()
-        let filterObj = {};
+        let filterObj = { isDeleted: false };
         let startDate = new Date(now.getFullYear(), now.getMonth(), 1);
         let endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
 
@@ -426,6 +447,7 @@ router.get("/company/:id", verifyAdminHR, async (req, res) => {
             startDate = new Date(req.query.dateRangeValue[0]);
             endDate = new Date(req.query.dateRangeValue[1]);
             filterObj = {
+                isDeleted: false,
                 fromDate: { $lte: endDate },
                 toDate: { $gte: startDate }
             }
@@ -462,9 +484,15 @@ router.get("/company/:id", verifyAdminHR, async (req, res) => {
 // get all requests
 router.get("/", verifyAdminHR, async (req, res) => {
     try {
+        // get companyId from token
+        const companyId = getCompanyIdFromToken(req.headers["authorization"]);
+        if (!companyId) {
+            return res.status(400).send({ error: "You are not part of any company. Please check with your higher authorities." });
+        }
+
         const now = new Date();
         let empName = req.query.empName || "".toLowerCase();
-        let filterObj = {};
+        let filterObj = { isDeleted: false, company: companyId };
         let startDate = new Date(now.getFullYear(), now.getMonth(), 1);
         let endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
 
@@ -472,6 +500,7 @@ router.get("/", verifyAdminHR, async (req, res) => {
             startDate = new Date(req.query.dateRangeValue[0]);
             endDate = new Date(req.query.dateRangeValue[1]);
             filterObj = {
+                ...filterObj,
                 fromDate: { $lte: endDate },
                 toDate: { $gte: startDate }
             }
@@ -481,7 +510,7 @@ router.get("/", verifyAdminHR, async (req, res) => {
             .populate("employee", "FirstName LastName profile")
             .lean()
             .exec();
-            
+
         if (empName) {
             applications = applications.filter((wfh) => {
                 if (wfh.employee) {
@@ -515,9 +544,11 @@ router.get("/", verifyAdminHR, async (req, res) => {
     }
 })
 
-
 router.get("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
     try {
+        if (!checkValidObjId(req.params.id)) {
+            return res.status(400).send({ error: "Invalid WFH application ID" });
+        }
         const data = await WFHApplication.findById(req.params.id);
         return res.send(data);
     } catch (error) {
@@ -529,8 +560,20 @@ router.get("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
 // get employee of all requests
 router.get("/employee/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
     try {
+        // check Id in valid
+        if (!checkValidObjId(req.params.id)) {
+            return res.status(400).send({ error: "Invalid Employee ID" });
+        }
+        // get company ID from token
+        const companyId = getCompanyIdFromToken(req.headers["authorization"]);
+        if (!companyId) {
+            return res.status(400).send({
+                error: "You are not part of any company. Please check with your higher authorities."
+            });
+        }
+
         const now = new Date();
-        let filterObj = { employee: req.params.id };
+        let filterObj = { employee: req.params.id, isDeleted: false, company: companyId };
         if (req.query?.dateRangeValue) {
             const startDate = new Date(req.query.dateRangeValue[0]);
             const endDate = new Date(req.query.dateRangeValue[1]);
@@ -573,6 +616,15 @@ router.get("/employee/:id", verifyAdminHREmployeeManagerNetwork, async (req, res
 // get team of all employee requests
 router.get("/team/:id", verifyTeamHigherAuthority, async (req, res) => {
     try {
+        if (!checkValidObjId(req.params.id)) {
+            return res.status(400).send({ error: "Invalid Employee ID" });
+        }
+
+        // get company ID from token
+        const companyId = getCompanyIdFromToken(req.headers["authorization"]);
+        if (!companyId) {
+            return res.status(400).send({error: "You are not part of any company. Please check with your higher authorities."});
+        }
         const now = new Date();
         const who = req.query?.who || "";
         const empName = req.query?.empName?.trim().toLowerCase() || "";
@@ -582,7 +634,7 @@ router.get("/team/:id", verifyTeamHigherAuthority, async (req, res) => {
         let endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
 
         // Fetch teams
-        const teams = await Team.find({ [who]: teamId })
+        const teams = await Team.find({ [who]: teamId, isDeleted: false, company: companyId })
             .populate("employees", "FirstName LastName")
             .lean()
             .exec();
@@ -597,7 +649,7 @@ router.get("/team/:id", verifyTeamHigherAuthority, async (req, res) => {
         // If searching by employee name, filter those
         if (empName) {
             allEmployees = allEmployees.filter(emp => {
-                if (emp) {  
+                if (emp) {
                     const fullName = `${emp.FirstName}${emp.LastName}`.toLowerCase();
                     return fullName.includes(empName);
                 }
@@ -608,7 +660,8 @@ router.get("/team/:id", verifyTeamHigherAuthority, async (req, res) => {
 
         // Build Mongo query filter
         const filterObj = {
-            employee: { $in: uniqueEmpIds }
+            employee: { $in: uniqueEmpIds },
+            isDeleted: false
         };
 
         if (req.query.dateRangeValue?.length === 2) {
@@ -667,7 +720,8 @@ router.put("/reject-wfh", async (req, res) => {
 
         const wfhReqs = await WFHApplication.find({
             fromDate: { $lte: endOfDay },
-            status: "pending"
+            status: "pending",
+            isDeleted: false
         })
             .populate({ path: "employee", select: "FirstName LastName Email company fcmToken", populate: { path: "company" } })
             .exec();
@@ -687,6 +741,7 @@ router.put("/reject-wfh", async (req, res) => {
             let wfhEmps = [];
             if (team && team.employees.length > 0) {
                 wfhEmps = await WFHApplication.find({
+                    isDeleted: false,
                     employee: { $in: team.employees },
                     status: "approved",
                     fromDate: { $lte: wfh.toDate },
@@ -799,6 +854,9 @@ router.put("/reject-wfh", async (req, res) => {
 
 router.put("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
     try {
+        if (!checkValidObjId(req.params.id)) {
+            return res.status(400).send({ error: "Invalid WFH application ID" });
+        }
         const { approvers, fromDate, toDate, status, employee } = req.body;
         let updatedApprovers = approvers;
         if (status === "approved") {
@@ -806,6 +864,7 @@ router.put("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
             const team = await Team.findOne({ employees: employee }, "employees");
             if (team?.employees?.length) {
                 const overlappingWFHs = await WFHApplication.find({
+                    isDeleted: false,
                     employee: { $in: team.employees },
                     status: "approved",
                     fromDate: { $lte: toDate },
@@ -849,6 +908,7 @@ router.put("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
             const team = await Team.findOne({ employees: employeeId }, "employees");
             if (team?.employees?.length) {
                 const overlappingWFHs = await WFHApplication.find({
+                    isDeleted: false,
                     employee: { $in: team.employees },
                     status: "approved",
                     fromDate: { $lte: toDate },
@@ -1003,6 +1063,9 @@ router.put("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
 
 router.delete("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
     try {
+        if (!checkValidObjId(req.params.id)) {
+            return res.status(400).send({ error: "Invalid WFH Application ID" });
+        }
         const wfhRequest = await WFHApplication.findById(req.params.id);
         if (!wfhRequest) {
             return res.status(404).send({ error: "Request not found" })
@@ -1011,7 +1074,7 @@ router.delete("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
         if (wfhRequest.status !== "pending") {
             return res.status(400).send({ error: "You can't delete reponsed request." })
         }
-        const deletedRequest = await WFHApplication.findByIdAndDelete(req.params.id);
+        const deletedRequest = await WFHApplication.findByIdAndUpdate(req.params.id, { isDeleted: true });
         return res.send({ message: `WFH request has been deleted successfully` })
 
     } catch (error) {

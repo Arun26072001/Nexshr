@@ -9,18 +9,24 @@ const LeaveTypeSchema = new mongoose.Schema({
         unique: true
     },
     Description: { type: String },
-    limitDays: { type: Number }
-})
+    limitDays: { type: Number },
+    company: { type: mongoose.Schema.Types.ObjectId, ref: "Company", default: null },
+    isDeleted: { type: Boolean, default: false }
+}, { timestamps: true })
 
 const LeaveType = mongoose.model("LeaveType", LeaveTypeSchema);
 
 
 const LeaveTypeValidation = Joi.object().keys({
-    _id: Joi.any().optional(),
-    __v: Joi.any().optional(),
+    _id: Joi.string().allow("").optional(),
+    createdAt: Joi.string().allow('').label('createdAt'),
+    updatedAt: Joi.string().allow('').label('updatedAt'),
+    __v: Joi.string().allow(0).label('__v'),
     LeaveName: Joi.string().required().disallow(null, '', 'none', 'undefined'),
     Description: Joi.string().optional(),
-    limitDays: Joi.number().positive().required().label("limitDays")
+    company: Joi.any().optional(),
+    limitDays: Joi.number().positive().required().label("limitDays"),
+    isDeleted: Joi.any().optional()
 })
 
 module.exports = {
