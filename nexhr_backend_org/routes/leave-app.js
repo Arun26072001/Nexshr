@@ -1,8 +1,6 @@
 const express = require('express');
 const leaveApp = express.Router();
-const { LeaveApplication,
-  LeaveApplicationValidation
-} = require('../models/LeaveAppModel');
+const { LeaveApplication, LeaveApplicationValidation } = require('../models/LeaveAppModel');
 const jwt = require("jsonwebtoken");
 const { toZonedTime } = require('date-fns-tz');
 const { format } = require("date-fns");
@@ -11,7 +9,7 @@ const { verifyHR, verifyEmployee, verifyAdminHREmployeeManagerNetwork, verifyAdm
 const { Team } = require('../models/TeamModel');
 const { upload } = require('./imgUpload');
 const sendMail = require("./mailSender");
-const { getDayDifference, mailContent, formatLeaveData, formatDate, getValidLeaveDays, sumLeaveDays, changeClientTimezoneDate, errorCollector, isValidLeaveDate, setPeriodOfLeave, checkDateIsHoliday } = require('../Reuseable_functions/reusableFunction');
+const { getDayDifference, mailContent, formatLeaveData, formatDate, getValidLeaveDays, sumLeaveDays, changeClientTimezoneDate, errorCollector, isValidLeaveDate, setPeriodOfLeave, checkDateIsHoliday, checkValidObjId, getCompanyIdFromToken } = require('../Reuseable_functions/reusableFunction');
 const { Task } = require('../models/TaskModel');
 const { sendPushNotification } = require('../auth/PushNotification');
 const { Holiday } = require('../models/HolidayModel');
@@ -86,16 +84,22 @@ function generateLeaveEmail(empData, fromDateValue, toDateValue, reasonForLeave,
 
 leaveApp.get("/check-permissions/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
   try {
+    // check is valid id
+    const { id } = req.params;
+    if (!checkValidObjId(id)) {
+      return res.status(400).send({ error: "Invalid or missing Department Id" })
+    }
     const now = new Date();
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
     const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1);
 
     const leaveData = await LeaveApplication.find({
-      employee: req.params.id,
+      employee: id,
       leaveType: "Permission Leave",
       fromDate: { $lte: endOfMonth },
       toDate: { $gte: startOfMonth },
-      status: "approved"
+      status: "approved",
+      isDeleted: false
     })
 
     // check employee of permissions
@@ -113,7 +117,7 @@ leaveApp.get("/check-permissions/:id", verifyAdminHREmployeeManagerNetwork, asyn
 
 leaveApp.get("/make-know", async (req, res) => {
   try {
-    const leaveApps = await LeaveApplication.find({ status: "pending", leaveType: { $nin: ["Unpaid Leave (LWP)"] } })
+    const leaveApps = await LeaveApplication.find({ isDeleted: false, status: "pending", leaveType: { $nin: ["Unpaid Leave (LWP)"] } })
       .populate({
         path: "employee",
         select: "FirstName LastName Email company",
@@ -224,6 +228,10 @@ leaveApp.get("/make-know", async (req, res) => {
 leaveApp.get("/emp/:empId", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
   try {
     const { empId } = req.params;
+    // check is valid id
+    if (!checkValidObjId(empId)) {
+      return res.status(400).send({ error: "Invalid or missing Employee Id" })
+    }
     const { daterangeValue } = req.query;
 
     // Fetch employee data with necessary fields
@@ -249,11 +257,12 @@ leaveApp.get("/emp/:empId", verifyAdminHREmployeeManagerNetwork, async (req, res
     }
 
     const today = new Date();
-    const filterLeaves = { fromDate: { $lte: today }, toDate: { $gte: today }, status: "approved" };
+    const filterLeaves = { fromDate: { $lte: today }, toDate: { $gte: today }, status: "approved", isDeleted: false };
 
     // **Parallel Data Fetching**
     let [leaveApplications, peopleOnLeave, team] = await Promise.all([
       LeaveApplication.find({
+        isDeleted: false,
         employee: empId,
         fromDate: {
           $gte: new Date(startDate),
@@ -274,6 +283,7 @@ leaveApp.get("/emp/:empId", verifyAdminHREmployeeManagerNetwork, async (req, res
     // Fetch team members' leaves only if team exists
     const peopleLeaveOnMonth = team
       ? await LeaveApplication.find({
+        isDeleted: false,
         employee: { $in: team.employees },
         fromDate: { $lte: endDate },
         toDate: { $gte: startDate },
@@ -330,8 +340,12 @@ leaveApp.get("/emp/:empId", verifyAdminHREmployeeManagerNetwork, async (req, res
 
 leaveApp.get("/hr", verifyHR, async (req, res) => {
   try {
+    const companyId = getCompanyIdFromToken(req.headers["authorization"]);
+    if (!companyId) {
+      return res.status(400).send({ error: "You are not part of any company. Please check with your higher authorities." })
+    }
     // Fetch employee IDs with Account: 3
-    const empIds = await Employee.find({ Account: 3 }, "_id");
+    const empIds = await Employee.find({ Account: 3, isDeleted: false }, "_id");
 
     // Check if any employees are found
     if (empIds.length === 0) {
@@ -341,7 +355,7 @@ leaveApp.get("/hr", verifyHR, async (req, res) => {
     }
 
     // Fetch leave requests for these employees
-    const leaveReqs = await Employee.find({ _id: { $in: empIds } }, "_id FirstName LastName leaveApplication")
+    const leaveReqs = await Employee.find({ _id: { $in: empIds }, isDeleted: false, company: companyId }, "_id FirstName LastName leaveApplication")
       .populate({
         path: "leaveApplication",
         populate: { path: "employee", select: "_id FirstName LastName profile" },
@@ -371,6 +385,10 @@ leaveApp.get("/hr", verifyHR, async (req, res) => {
 
 leaveApp.get("/unpaid", verifyAdminHR, async (req, res) => {
   try {
+    const companyId = getCompanyIdFromToken(req.headers["authorization"]);
+    if (!companyId) {
+      return res.status(400).send({ error: "You are not part of any company. Please check with your higher authorities." })
+    }
     // if hr, fetch unpaid leave should to return employee's leave
     const decodedData = jwt.verify(req.headers["authorization"], process.env.ACCCESS_SECRET_KEY)
     const daterangeValue = req.query?.daterangeValue;
@@ -381,6 +399,8 @@ leaveApp.get("/unpaid", verifyAdminHR, async (req, res) => {
       : [new Date(now.getFullYear(), now.getMonth(), 1), new Date(now.getFullYear(), now.getMonth() + 1, 0)];
     // fetching unpaid leave applications
     const pendingRequests = await LeaveApplication.find({
+      isDeleted: false,
+      company: companyId,
       fromDate: { $lte: endOfMonth },
       toDate: { $gte: startOfMonth },
       status: "pending"
@@ -407,6 +427,15 @@ leaveApp.get("/unpaid", verifyAdminHR, async (req, res) => {
 
 leaveApp.get("/team/:id", verifyTeamHigherAuthority, async (req, res) => {
   try {
+    const companyId = getCompanyIdFromToken(req.headers["authorization"]);
+    if (!companyId) {
+      return res.status(400).send({ error: "You are not part of any company. Please check with your higher authorities." })
+    }
+    // check is valid id
+    const { id } = req.params;
+    if (!checkValidObjId(id)) {
+      return res.status(400).send({ error: "Invalid or missing Employee Id" })
+    }
     const now = new Date(); // added missing `now`
     const { dateRangeValue, who } = req.query;
 
@@ -418,7 +447,7 @@ leaveApp.get("/team/:id", verifyTeamHigherAuthority, async (req, res) => {
     endOfMonth.setHours(23, 59, 59, 0);
 
     // Find team where the current user is a lead/head/etc.
-    const teams = await Team.find({ [who]: req.params.id }).exec();
+    const teams = await Team.find({ [who]: id, isDeleted: false, company: companyId }).exec();
 
     if (!teams.length) {
       return res.status(404).json({ error: "You are not lead in any team" });
@@ -436,13 +465,14 @@ leaveApp.get("/team/:id", verifyTeamHigherAuthority, async (req, res) => {
 
     // Fetch team members' basic info
     const colleagues = await Employee.find(
-      { _id: { $in: uniqueEmps } },
+      { _id: { $in: uniqueEmps }, isDeleted: false },
       "FirstName LastName Email phone profile"
     ).lean();
 
     // Fetch leave applications within the date range
     let teamLeaves = await LeaveApplication.find({
       employee: { $in: uniqueEmps },
+      isDeleted: false,
       leaveType: { $nin: ["Unpaid Leave (LWP)"] },
       $or: [
         {
@@ -503,11 +533,14 @@ leaveApp.get("/team/:id", verifyTeamHigherAuthority, async (req, res) => {
 
 leaveApp.get("/all/emp", verifyAdminHR, async (req, res) => {
   try {
-
+    const companyId = getCompanyIdFromToken(req.headers["authorization"]);
+    if (!companyId) {
+      return res.status(400).send({ error: "You are not part of any company. Please check with your higher authorities." })
+    }
     const filterByAccount = req.query.isHr ? true : false;
 
     // Fetch leave data for employees with Account 3
-    const employeesLeaveData = await Employee.find(filterByAccount ? { Account: 3 } : {}, "_id FirstName LastName profile")
+    const employeesLeaveData = await Employee.find(filterByAccount ? { Account: 3, isDeleted: false, company: companyId } : { isDeleted: false, company: companyId }, "_id FirstName LastName profile")
       .populate({
         path: "leaveApplication",
         populate: { path: "employee", select: "FirstName LastName" }
@@ -532,12 +565,18 @@ leaveApp.get("/people-on-leave", verifyAdminHREmployeeManagerNetwork, async (req
   const startOfDay = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate(), 0, 0, 0));
   const endOfDay = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate(), 23, 59, 59));
 
+  const companyId = getCompanyIdFromToken(req.headers["authorization"]);
+  if (!companyId) {
+    return res.status(400).send({ error: "You are not part of any company. Please check with your higher authorities." })
+  }
   try {
     const leaveData = await LeaveApplication.find({
+      company: companyId,
       fromDate: { $lte: endOfDay },
       toDate: { $gte: startOfDay },
       leaveType: { $nin: ["Permission", "Permission Leave", "permission"] },
-      status: "approved"
+      status: "approved",
+      isDeleted: false
     }, "fromDate toDate status leaveType periodOfLeave")
       .populate({
         path: "employee",
@@ -557,13 +596,24 @@ leaveApp.get("/people-on-leave", verifyAdminHREmployeeManagerNetwork, async (req
 
 leaveApp.get("/all/team/:id", verifyEmployee, async (req, res) => {
   try {
+    const companyId = getCompanyIdFromToken(req.headers["authorization"]);
+    if (!companyId) {
+      return res.status(400).send({ error: "You are not part of any company. Please check with your higher authorities." })
+    }
+    // check is valid id
+    const { id } = req.params;
+    if (!checkValidObjId(id)) {
+      return res.status(400).send({ error: "Invalid or missing Employee Id" })
+    }
+
     const who = req.query.isLead ? "lead" : "head"
-    const team = await Team.findOne({ [who]: req.params.id }).exec();
+    const team = await Team.findOne({ [who]: req.params.id, company: companyId }).exec();
     if (!team) {
       return res.status(404).send({ error: "You are not lead in any team" })
     } else {
       const { employees } = team;
       let teamLeaves = await LeaveApplication.find({
+        isDeleted: false,
         employee: { $in: employees },
       })
         .populate({
@@ -582,7 +632,13 @@ leaveApp.get("/all/team/:id", verifyEmployee, async (req, res) => {
 // get leave application by id
 leaveApp.get("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
   try {
-    const leaveReq = await LeaveApplication.findById(req.params.id);
+    // check is valid id
+    const { id } = req.params;
+    if (!checkValidObjId(id)) {
+      return res.status(400).send({ error: "Invalid or missing LeaveApplication Id" })
+    }
+
+    const leaveReq = await LeaveApplication.findById(id);
 
     if (!leaveReq) {
       return res.status(404).send({ message: "Leave application not found" }); // Changed To 404 for "not found"
@@ -616,6 +672,10 @@ leaveApp.get("/date-range/management/:whoIs", verifyAdminHrNetworkAdmin, async (
   try {
     const now = new Date();
     let startOfMonth, endOfMonth;
+    const companyId = getCompanyIdFromToken(req.headers["authorization"]);
+    if (!companyId) {
+      return res.status(400).send({ error: "You are not part of any company. Please check with your higher authorities." })
+    }
 
     if (req.query?.dateRangeValue) {
       [startOfMonth, endOfMonth] = req.query.dateRangeValue.map(date => new Date(date));
@@ -625,8 +685,7 @@ leaveApp.get("/date-range/management/:whoIs", verifyAdminHrNetworkAdmin, async (
       startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
       endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
     }
-
-    const filterObj = req.params.whoIs === "hr" ? { Account: { $in: [3, 4, 5] } } : {};
+    const filterObj = req.params.whoIs === "hr" ? { Account: { $in: [3, 4, 5] }, isDeleted: false, company: companyId } : { isDeleted: false, company: companyId };
 
     const employees = await Employee.find(
       filterObj,
@@ -650,6 +709,7 @@ leaveApp.get("/date-range/management/:whoIs", verifyAdminHrNetworkAdmin, async (
 
     const leaveApplications = await LeaveApplication.find({
       employee: { $in: employeeIds },
+      isDeleted: false,
       fromDate: { $lte: endOfMonth },
       toDate: { $gte: startOfMonth }
     })
@@ -728,8 +788,13 @@ leaveApp.get("/date-range/management/:whoIs", verifyAdminHrNetworkAdmin, async (
   }
 });
 
-
 leaveApp.get("/date-range/:empId", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
+  // check is valid id
+  const { empId } = req.params;
+  if (!checkValidObjId(empId)) {
+    return res.status(400).send({ error: "Invalid or missing Department Id" })
+  }
+
   const now = new Date();
   let startOfMonth, endOfMonth;
 
@@ -747,7 +812,7 @@ leaveApp.get("/date-range/:empId", verifyAdminHREmployeeManagerNetwork, async (r
   }
 
   try {
-    const employeeLeaveData = await LeaveApplication.find({ employee: req.params.empId, fromDate: { $lte: endOfMonth }, toDate: { $gte: startOfMonth } })
+    const employeeLeaveData = await LeaveApplication.find({ employee: empId, isDeleted: false, fromDate: { $lte: endOfMonth }, toDate: { $gte: startOfMonth } })
       .populate([
         { path: "employee", select: "FirstName LastName Email profile" },
         { path: "coverBy", select: "FirstName LastName Email profile" }
@@ -796,7 +861,11 @@ leaveApp.get("/date-range/:empId", verifyAdminHREmployeeManagerNetwork, async (r
 
 leaveApp.get("/", verifyAdminHR, async (req, res) => {
   try {
-    let requests = await LeaveApplication.find().populate({
+    const companyId = getCompanyIdFromToken(req.headers["authorization"]);
+    if (!companyId) {
+      return res.status(400).send({ error: "You are not part of any company. Please check with your higher authorities." })
+    }
+    let requests = await LeaveApplication.find({ isDeleted: false, company: companyId }).populate({
       path: "employee",
       select: "FirstName LastName profile"
     });
@@ -828,7 +897,13 @@ leaveApp.put("/reject-leave", async (req, res) => {
     const today = new Date();
     const endOfDay = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate(), 23, 59, 59));
 
+    const companyId = getCompanyIdFromToken(req.headers["authorization"]);
+    if (!companyId) {
+      return res.status(400).send({ error: "You are not part of any company. Please check with your higher authorities." })
+    }
     let leaves = await LeaveApplication.find({
+      company: companyId,
+      isDeleted: false,
       fromDate: { $lte: endOfDay },
       leaveType: { $nin: ["Unpaid Leave (LWP)"] },
       status: "pending"
@@ -846,14 +921,7 @@ leaveApp.put("/reject-leave", async (req, res) => {
         approvers[key] = "rejected"
       })
       const updatedLeave = {
-        leaveType: leave.leaveType,
-        fromDate: leave.fromDate,
-        toDate: leave.toDate,
-        periodOfLeave: setPeriodOfLeave(leave),
-        reasonForLeave: leave.reasonForLeave || "Not specified",
-        prescription: leave.prescription,
-        employee: leave.employee._id,
-        coverBy: leave.coverBy,
+        ...leave,
         status: "rejected",
         approvers
       };
@@ -889,11 +957,16 @@ leaveApp.put("/reject-leave", async (req, res) => {
 
 leaveApp.get("/check-is-valid-leave/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
   try {
+    // check is valid id
+    const { id } = req.params;
+    if (!checkValidObjId(id)) {
+      return res.status(400).send({ error: "Invalid or missing Employee Id" })
+    }
     const queryData = req.query;
     if (queryData.date) {
       const actualDate = changeClientTimezoneDate(queryData.date);
       actualDate.setHours(0, 0, 0, 0);
-      const empData = await Employee.findById(req.params.id, "workingTimePattern company")
+      const empData = await Employee.findById(id, "workingTimePattern company")
         .populate("workingTimePattern")
         .lean().exec();
       if (!empData) {
@@ -925,6 +998,10 @@ leaveApp.get("/check-is-valid-leave/:id", verifyAdminHREmployeeManagerNetwork, a
 leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("prescription"), async (req, res) => {
   try {
     const { empId } = req.params;
+    // check is valid id
+    if (!checkValidObjId(empId)) {
+      return res.status(400).send({ error: "Invalid or missing Employee Id" })
+    }
     // get user authorization account
     const decodedData = jwt.verify(req.headers["authorization"], process.env.ACCCESS_SECRET_KEY);
     let accountLevel;
@@ -953,9 +1030,10 @@ leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("pre
     const personId = [undefined, "undefined"].includes(applyFor) ? empId : applyFor;
 
     // ✅ Check team leave count
-    const team = await Team.findOne({ employees: empId }, "employees");
+    const team = await Team.findOne({ employees: empId, isDeleted: false }, "employees");
     if (team?.employees?.length) {
       const overlappingleaveApps = await LeaveApplication.find({
+        isDeleted: false,
         employee: { $in: team.employees },
         status: "approved",
         fromDate: { $lte: toDate },
@@ -1057,6 +1135,7 @@ leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("pre
       leaveType: new RegExp(`^${leaveType}`, "i"),
       status: "approved",
       employee: personId,
+      isDeleted: false
     });
     const takenLeaveCount = await sumLeaveDays(approvedLeaves);
     if (!leaveType.toLowerCase().includes("permission") && (emp.typesOfLeaveRemainingDays?.[leaveType] || 0) < takenLeaveCount) {
@@ -1064,7 +1143,7 @@ leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("pre
     }
 
     // 8. Task conflict
-    const deadlineTasks = await Task.find({ assignedTo: personId, to: { $gte: fromDateObj, $lte: toDate } });
+    const deadlineTasks = await Task.find({ assignedTo: personId, isDeleted: false, to: { $gte: fromDateObj, $lte: toDate } });
 
     // 9. Setup approvers
     const approvers = {};
@@ -1138,6 +1217,11 @@ leaveApp.post("/:empId", verifyAdminHREmployeeManagerNetwork, upload.single("pre
 
 leaveApp.put('/:id', verifyAdminHREmployeeManagerNetwork, async (req, res) => {
   try {
+    // check is valid id
+    const { id } = req.params;
+    if (!checkValidObjId(id)) {
+      return res.status(400).send({ error: "Invalid or missing LeaveApplication Id" })
+    }
     const { approvers, employee, leaveType, fromDate, toDate, status, ...restBody } = req.body;
     let updatedStatus = status;
     const fromDateValue = new Date(fromDate);
@@ -1190,6 +1274,7 @@ leaveApp.put('/:id', verifyAdminHREmployeeManagerNetwork, async (req, res) => {
           status: "approved",
           fromDate: { $lte: toDate },
           toDate: { $gte: fromDate },
+          isDeleted: false
         });
         if (overlappingLeaves.length >= 2) return res.status(400).json({ error: "Already two members are approved for leave in this time period." });
       }
@@ -1301,7 +1386,7 @@ leaveApp.put('/:id', verifyAdminHREmployeeManagerNetwork, async (req, res) => {
 
     const updatedLeaveApp = { ...req.body, approvers: updatedApprovers, status: updatedStatus };
     const updatedRequest = await LeaveApplication.findOneAndUpdate(
-      { _id: req.params.id, fromDate: { $gt: startOfDay } },
+      { _id: id, fromDate: { $gt: startOfDay } },
       updatedLeaveApp,
       { new: true }
     );
@@ -1320,18 +1405,29 @@ leaveApp.put('/:id', verifyAdminHREmployeeManagerNetwork, async (req, res) => {
 
 leaveApp.delete("/:id/:leaveId", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
   try {
-    const emp = await Employee.findById(req.params.id);
+    // check is valid empId
+    const { id } = req.params;
+    if (!checkValidObjId(id)) {
+      return res.status(400).send({ error: "Invalid or missing employee Id" })
+    }
+    // check is valid leaveId
+    const { leaveId } = req.params;
+    if (!checkValidObjId(leaveId)) {
+      return res.status(400).send({ error: "Invalid or missing LeaveApplication Id" })
+    }
+
+    const emp = await Employee.findById(id);
     if (!emp) {
       res.status(404).send({ message: "Employee not found in this ID" })
     }
     else {
-      const leave = await LeaveApplication.findById(req.params.leaveId);
+      const leave = await LeaveApplication.findById(leaveId);
       // check leave is unpaid leave
       if (leave.leaveType.toLowerCase().includes("unpaid")) {
         return res.status(400).send({ error: "You can't delete unpaid leave request" })
       }
       if (leave.status === "pending") {
-        const dltLeave = await LeaveApplication.findByIdAndRemove(req.params.leaveId)
+        const dltLeave = await LeaveApplication.findByIdAndUpdate(leaveId, { isDeleted: true })
         if (!dltLeave) {
           return res.status(409).send({ message: "Error in deleting leave or leave not found" })
         } else {

@@ -8,8 +8,6 @@ import { EssentialValues } from "../../App";
 import { toast } from "react-toastify";
 import { Skeleton } from "@mui/material";
 import EditRoundedIcon from "@mui/icons-material/EditRounded";
-import VisibilityIcon from '@mui/icons-material/Visibility';
-import DeleteRoundedIcon from "@mui/icons-material/DeleteRounded";
 import { TimerStates } from "../payslip/HRMDashboard";
 import NoDataFound from "../payslip/NoDataFound";
 
@@ -165,7 +163,7 @@ export default function TimezoneTab() {
                     <div className="col-half">
                         <div className="modelInput"></div>
                         <div className="modelInput">
-                            <p className='modelLabel'>Name:</p>
+                            <p className='modelLabel important'>Name:</p>
                             <SelectPicker
                                 required
                                 data={timezoneNames}

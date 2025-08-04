@@ -10,7 +10,7 @@ const { ClockIns } = require("../models/ClockInsModel");
 const { LeaveApplication, LeaveApplicationValidation } = require("../models/LeaveAppModel");
 const { RoleAndPermission } = require("../models/RoleModel");
 const { TimePattern } = require("../models/TimePatternModel");
-const { errorCollector, timeToMinutes } = require("../Reuseable_functions/reusableFunction");
+const { errorCollector, timeToMinutes, getCompanyIdFromToken } = require("../Reuseable_functions/reusableFunction");
 
 
 // Upload and process attendance file
@@ -18,6 +18,10 @@ router.post("/attendance", upload.single("documents"), verifyAdminHrNetworkAdmin
     async (req, res) => {
         if (!req.file) {
             return res.status(400).json({ status: false, message: "No file uploaded." });
+        }
+        const companyId = getCompanyIdFromToken(req.headers["authorization"]);
+        if (!companyId) {
+            return res.status(400).send({ error: "You are not part of any company. Please check with your higher authorities." })
         }
 
         const filePath = req.file.path;
@@ -87,6 +91,7 @@ router.post("/attendance", upload.single("documents"), verifyAdminHrNetworkAdmin
                                 employee: emp._id,
                                 coverBy: null,
                                 status: "approved",
+                                company: companyId,
                                 approvers: {
                                     manager: "approved",
                                     lead: "approved",
@@ -140,6 +145,7 @@ router.post("/attendance", upload.single("documents"), verifyAdminHrNetworkAdmin
                                 fromDate: today,
                                 toDate: today,
                                 periodOfLeave: "half day",
+                                company: companyId,
                                 reasonForLeave: "Came To late",
                                 prescription: "",
                                 employee: emp._id.toString(),
@@ -386,7 +392,10 @@ router.post("/leave", upload.single("documents"), verifyAdminHR, async (req, res
     if (!req.file) {
         return res.status(400).json({ status: false, message: "No file uploaded." });
     }
-
+    const companyId = getCompanyIdFromToken(req.headers["authorization"]);
+    if (!companyId) {
+        return res.status(400).send({ error: "You are not part of any company. Please check with your higher authorities." })
+    }
     const months = [
         "january", "february", "march", "april", "may", "june",
         "july", "august", "september", "october", "november", "december"
@@ -448,7 +457,8 @@ router.post("/leave", upload.single("documents"), verifyAdminHR, async (req, res
         const employeeMap = {};
         const employeeNames = leaveApps.map(leave => leave.name.split(" ")[0]);
         const employees = await Employee.find({
-            FirstName: { $regex: new RegExp(`^(${employeeNames.join("|")})`, "i") }
+            FirstName: { $regex: new RegExp(`^(${employeeNames.join("|")})`, "i") },
+            isDeleted: false
         });
 
         employees.forEach(emp => {
@@ -473,6 +483,7 @@ router.post("/leave", upload.single("documents"), verifyAdminHR, async (req, res
                     periodOfLeave: leave.status === "HD" ? "half day" : "full day",
                     reasonForLeave: "Employee's person reason",
                     prescription: "",
+                    company: companyId,
                     employee: emp._id.toString(),
                     coverBy: null,
                     status: "approved",

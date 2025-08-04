@@ -27,7 +27,7 @@ var employeeSchema = new mongoose.Schema({
   serialNo: { type: String },
   working: { type: String, default: "Yes" },
   docType: [{ type: String }],
-  leaveApplication: [{ type: mongoose.Schema.Types.ObjectId, ref: "LeaveApplication" , default: []}],
+  leaveApplication: [{ type: mongoose.Schema.Types.ObjectId, ref: "LeaveApplication", default: [] }],
   address: {
     street: { type: String },
     city: { type: String },
@@ -46,7 +46,7 @@ var employeeSchema = new mongoose.Schema({
   benefits: [{ type: String }],
   isPermanentWFH: { type: Boolean },
   warnings: { type: Number, default: 3 },
-   isDeleted: {type: Boolean, default: false},
+  isDeleted: { type: Boolean, default: false },
   emergencyContacts: [
     {
       name: { type: String },

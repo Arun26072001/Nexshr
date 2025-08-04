@@ -2,31 +2,39 @@ const express = require('express');
 const router = express.Router();
 const { WorkPlace, WorkPlaceValidation } = require('../models/WorkPlaceModel');
 const { verifyAdminHR } = require('../auth/authMiddleware');
-const { errorCollector } = require('../Reuseable_functions/reusableFunction');
+const { errorCollector, getCompanyIdFromToken } = require('../Reuseable_functions/reusableFunction');
 
 router.get("/", verifyAdminHR, async (req, res) => {
   try {
-    const workPlaces = await WorkPlace.find().populate("employees", "FirstName LastName").exec();
+    // get company ID from token
+    const companyId = getCompanyIdFromToken(req.headers["authorization"]);
+    if (!companyId) {
+      return res.status(400).send({ error: "You are not part of any company. Please check with your higher authorities." });
+    }
+    const workPlaces = await WorkPlace.find({ isDeleted: false, company: companyId }).populate("employees", "FirstName LastName").exec();
     if (workPlaces.length > 0) {
       return res.send(workPlaces);
     } else {
       return res.status(200).send([])
     }
   } catch (error) {
-await errorCollector({url: req.originalUrl, name: err.name, message: err.message, env: process.env.ENVIRONMENT})
-    res.status(500).send({ error: err.message })
+    await errorCollector({ url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT })
+    res.status(500).send({ error: error.message })
   }
 })
 
 router.get("/:id", verifyAdminHR, async (req, res) => {
   try {
+    if (!checkValidObjId(req.params.id)) {
+      return res.status(400).send({ error: "Invalid WorkPlace ID" });
+    }
     const workPlace = await WorkPlace.findById(req.params.id);
     if (!workPlace) {
       return res.status(404).send({ message: "No work place found!" });
     }
     res.send(workPlace);
-  } catch (error) {
-await errorCollector({url: req.originalUrl, name: err.name, message: err.message, env: process.env.ENVIRONMENT})
+  } catch (err) {
+    await errorCollector({ url: req.originalUrl, name: err.name, message: err.message, env: process.env.ENVIRONMENT })
     res.status(500).send({ error: err.message });
   }
 });
@@ -34,26 +42,29 @@ await errorCollector({url: req.originalUrl, name: err.name, message: err.message
 
 router.post("/", verifyAdminHR, async (req, res) => {
   try {
-    // check is already exists
-    if (await WorkPlace.exists({ CompanyName: req.body.CompanyName })) {
-      return res.status(400).send({ error: `${req.body.CompanyName} workplace is already exists` })
-    }
     //validation workplace data
     const { error } = WorkPlaceValidation.validate(req.body);
     if (error) {
       return res.status(400).send({ error: error.details[0].message })
-    } else {
-      const workPlace = await WorkPlace.create(req.body);
-      return res.send({ message: `${req.body.CompanyName} workplace has been created successfully`, workPlace })
     }
+    // check is already exists
+    if (await WorkPlace.exists({ company: companyId, name: new RegExp(`${req.body.name}`, "i") })) {
+      return res.status(400).send({ error: `${req.body.name} workplace is already exists` })
+    }
+    const workPlace = await WorkPlace.create({ ...req.body, company: comanyId });
+    return res.send({ message: `${req.body.name} workplace has been created successfully`, workPlace })
+
   } catch (error) {
-await errorCollector({url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT})
+    await errorCollector({ url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT })
     return res.status(500).send({ error: error.message })
   }
 });
 
 router.put("/:id", verifyAdminHR, async (req, res) => {
   try {
+    if (!checkValidObjId(req.params.id)) {
+      return res.status(400).send({ error: "Invalid WorkPlace ID" });
+    }
     const { error } = WorkPlaceValidation.validate(req.body);
     if (error) {
       return res.status(400).send({ error: error.details[0].message })
@@ -62,21 +73,29 @@ router.put("/:id", verifyAdminHR, async (req, res) => {
       return res.send({ message: `${updatedData.CompanyName} workplace has been updated successfully` })
     }
   } catch (error) {
-await errorCollector({url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT})
+    await errorCollector({ url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT })
     return res.status(500).send({ error: error.message })
   }
 })
 
 router.delete("/:id", verifyAdminHR, async (req, res) => {
   try {
-    const { employees } = await WorkPlace.findById(req.params.id);
-    if (employees.length > 0) {
-      return res.status(400).send({ error: `${employees.length} employees using this workplace, Please remove them to delete` })
+    if (!checkValidObjId(req.params.id)) {
+      return res.status(400).send({ error: "Invalid workPlace ID" });
     }
-    const deleteData = await WorkPlace.findByIdAndDelete(req.params.id);
-    return res.send({ message: `${deleteData.CompanyName} workplace has been delete successfully` })
+    const workplace = await WorkPlace.findById(req.params.id);
+    if (!workplace) {
+      return res.status(400).send({ error: "Workplace not found. Please refresh the page and try again." })
+    }
+    const employees = workplace.employees || []
+    if (employees.length > 0) {
+      return res.status(400).send({ error: `${employees.length} employees using this workplace, Please change them to delete` })
+    }
+    workplace.isDeleted = true;
+    await workplace.save();
+    return res.send({ message: `${deleteData.name} workplace has been delete successfully` })
   } catch (error) {
-await errorCollector({url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT})
+    await errorCollector({ url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT })
     return res.status(500).send({ error: error.message })
   }
 })

@@ -7,7 +7,7 @@ const router = express.Router();
 // get mail settings data
 router.get("/", verifySuperAdmin, async (req, res) => {
     try {
-        const settings = await EmailConfig.find().exec();
+        const settings = await EmailConfig.find({isDeleted:false}).exec();
         return res.status(200).send(settings)
     } catch (error) {
         await errorCollector({ url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT })
@@ -17,8 +17,13 @@ router.get("/", verifySuperAdmin, async (req, res) => {
 
 router.put("/:id", verifySuperAdmin, async (req, res) => {
     try {
-        const settings = await EmailConfig.updateMany({ _id: { $nin: req.params.id } }, { $set: { isActive: false } });
-        const updatedSetting = await EmailConfig.findByIdAndUpdate(req.params.id, req.body, { new: true });
+        // check is valid id
+        const { id } = req.params;
+        if (!checkValidObjId(id)) {
+            return res.status(400).send({ error: "Invalid or missing EmailSettings Id" })
+        }
+        const settings = await EmailConfig.updateMany({ _id: { $nin: id } }, { $set: { isActive: false } });
+        const updatedSetting = await EmailConfig.findByIdAndUpdate(id, req.body, { new: true });
         return res.send({ message: "Email settings updated successfully", updatedSetting })
     } catch (error) {
         await errorCollector({ url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT })

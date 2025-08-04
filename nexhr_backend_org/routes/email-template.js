@@ -1,15 +1,27 @@
 const express = require("express");
 const { verifyAdminHR } = require("../auth/authMiddleware");
 const { EmailtempValidation, EmailTemplate } = require("../models/EmailTemplateModel");
-const { errorCollector } = require("../Reuseable_functions/reusableFunction");
+const { errorCollector, checkValidObjId } = require("../Reuseable_functions/reusableFunction");
 const router = express.Router();
 
 // add email template
 router.post("/:id", verifyAdminHR, async (req, res) => {
     try {
+        // check EmpId is exists
+        const { id } = req.params;
+        if (!checkValidObjId(id)) {
+            return res.status(400).send({ error: "Invalid Employee ID" })
+        }
+        // get companId from the token
+        const companyId = getCompanyIdFromToken(req.headers["authorization"]);
+        if (!companyId) {
+            return res.status(400).send({ error: "You are not part of any company. Please check with your higher authorities." })
+        }
+
         const newTemp = {
             ...req.body,
-            createdBy: req.params.id
+            createdBy: req.params.id,
+            company: companyId
         }
         // check validation for new template
         const { error } = EmailtempValidation.validate(newTemp)
@@ -29,7 +41,11 @@ router.post("/:id", verifyAdminHR, async (req, res) => {
 // get all email templates
 router.get("/", verifyAdminHR, async (req, res) => {
     try {
-        const templates = await EmailTemplate.find().lean().exec();
+        const companyId = getCompanyIdFromToken(req.headers["authorization"]);
+        if (!companyId) {
+            return res.status(400).send({ error: "You are not part of any company. Please check with your higher authorities." })
+        }
+        const templates = await EmailTemplate.find({ isDeleted: false, company: companyId }).lean().exec();
         return res.send(templates);
     } catch (error) {
         await errorCollector({ url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT })

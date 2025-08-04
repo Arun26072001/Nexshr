@@ -24,7 +24,8 @@ router.post("/", async (req, res) => {
         } else {
             const emp = await Employee.findOne({
                 Email: req.body.Email,
-                Password: req.body.Password
+                Password: req.body.Password,
+                isDeleted: false
             })
                 .populate("company", "CompanyName logo")
                 .populate({

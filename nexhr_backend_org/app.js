@@ -35,8 +35,6 @@ const payslipInfo = require("./routes/payslipInfo");
 const payslip = require("./routes/payslip");
 const userPermission = require("./routes/user-permission");
 const pageAuth = require("./routes/page-auth");
-// const organization = require("./routes/organization");
-// const userAccount = require("./routes/user-account");
 const plannerType = require("./routes/planner-type");
 const { imgUpload } = require('./routes/imgUpload');
 const holidays = require("./routes/holidays");
@@ -50,6 +48,8 @@ const comment = require("./routes/comments");
 const category = require("./routes/planner-category");
 const { sendPushNotification, askReasonForDelay } = require("./auth/PushNotification");
 const { changeClientTimezoneDate } = require("./Reuseable_functions/reusableFunction");
+// for delete soft deleted docs
+const deleteOldSoftDeletedDocs = require("./ModelChangeEvents/cleanupScheduler");
 
 // MongoDB Connection
 const mongoURI = process.env.DATABASEURL;
@@ -150,9 +150,11 @@ schedule.scheduleJob("0 0 10 4 * *", async function () {
     const response = await axios.post(`${process.env.REACT_APP_API_URL}/api/payslip/`, {});
     console.log("Payslip generation response:", response.data);
   } catch (error) {
-    console.error("Error while generating payslips:", err);
+    console.error("Error while generating payslips:", error);
   }
 });
+
+deleteOldSoftDeletedDocs()
 
 async function fetchTimePatterns() {
   try {

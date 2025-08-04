@@ -3,11 +3,20 @@ const { Announcement, announcementValidation } = require('../models/Announcement
 const { verifyAdminHREmployeeManagerNetwork } = require('../auth/authMiddleware');
 const { Employee } = require('../models/EmpModel');
 const { sendPushNotification } = require('../auth/PushNotification');
-const { errorCollector } = require('../Reuseable_functions/reusableFunction');
+const { errorCollector, checkValidObjId, getCompanyIdFromToken } = require('../Reuseable_functions/reusableFunction');
 const router = express.Router();
 
 router.post('/:id', async (req, res) => {
   try {
+    const companyId = getCompanyIdFromToken(req.headers["authorization"]);
+    if(!companyId){
+      return res.status(400).send({error: "You are not part of any company. Please check with your higher authorities."})
+    }
+    // check is valid id
+    const { id } = req.params;
+    if (!checkValidObjId(id)) {
+      return res.status(400).send({ error: "Invalid or missing Employee Id" })
+    }
     // Validate Request Body
     const { error } = announcementValidation.validate(req.body);
     if (error) {
@@ -16,14 +25,15 @@ router.post('/:id', async (req, res) => {
 
     // Fetch Tagged Employees (await added)
     const employees = await Employee.find(
-      { _id: { $in: req.body.selectTeamMembers } },
+      { _id: { $in: req.body.selectTeamMembers }, isDeleted: false },
       "FirstName LastName Email fcmToken company notifications"
     ).populate("company", "logo CompanyName");
 
     // Create New Announcement
     const newAnnouncement = {
       ...req.body,
-      createdBy: req.params.id
+      createdBy: req.params.id,
+      company: companyId
     };
 
     const announcement = await Announcement.create(newAnnouncement);
@@ -65,11 +75,13 @@ router.post('/:id', async (req, res) => {
   }
 });
 
-
 router.get('/', verifyAdminHREmployeeManagerNetwork, async (req, res) => {
   try {
-    const announcements = await Announcement.find();
-
+    const companyId = getCompanyIdFromToken(req.headers["authorization"]);
+    if(!companyId){
+      return res.status(400).send({error: "You are not part of any company. Please check with your higher authorities."})
+    }
+    const announcements = await Announcement.find({ isDeleted: false, company: companyId });
     res.status(200).json({
       status: true,
       status_code: 200,
@@ -88,25 +100,33 @@ router.get('/', verifyAdminHREmployeeManagerNetwork, async (req, res) => {
 // fetch employee of notifications
 router.get("/emp/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
   try {
-    const notifications = await Announcement.find({ selectTeamMembers: req.params.id }).exec();
-    const notViewAnnouncements = notifications.filter((item) => item?.whoViewed[req.params.id] === "not viewed")
-    if (notViewAnnouncements.length === 0) {
-      return res.status(200).send([])
-    } else {
-      return res.send(notViewAnnouncements);
+    // check is valid id
+    const { id } = req.params;
+    if (!checkValidObjId(id)) {
+      return res.status(400).send({ error: "Invalid or missing Employee Id" })
     }
-  } catch (error) {
-    await errorCollector({ url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT })
-    console.log(error);
 
+    // get annoucements from specify employee
+    const notifications = await Announcement.find({ selectTeamMembers: req.params.id, isDeleted: false }).exec();
+    const notViewAnnouncements = notifications.filter((item) => item?.whoViewed[req.params.id] === "not viewed")
+    return res.send(notViewAnnouncements);
+  } catch (error) {
+    console.log("error in get employee annoucements", error);
+    await errorCollector({ url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT })
     return res.status(500).send({ error: error.message })
   }
 })
 
 router.put("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
   try {
+    // check is valid id
+    const { id } = req.params;
+    if (!checkValidObjId(id)) {
+      return res.status(400).send({ error: "Invalid or missing Announcement Id" })
+    }
+
     const announcement = await Announcement.findByIdAndUpdate(req.params.id, req.body, { new: true });
-    return res.send({ message: "message updated" })
+    return res.send({ message: "message updated", announcement })
   } catch (error) {
     await errorCollector({ url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT })
     return res.status(500).send({ error: error.message })
@@ -115,13 +135,20 @@ router.put("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
 
 router.delete('/:announcementId', async (req, res) => {
   const { announcementId } = req.params;
+  if (!checkValidObjId(announcementId)) {
+    return res.status(400).send({ error: "Invalid or missing Announcement ID" })
+  }
   try {
-    if (await Announcement.exists({ _id: announcementId })) {
-      const result = await Announcement.findByIdAndDelete(announcementId);
-      res.status(200).json({ message: `${result.title} Announcement has been deleted.` });
-    } else {
-      return res.status(404).send({ error: "Announcement data not found" })
+    const announcement = await Announcement.findById({ announcementId });
+    if (!announcement) {
+      return res.send({ message: "Announcement has been deleted successfully" });
     }
+    const deletedAnnoucement = {
+      ...announcement,
+      isDelete: true
+    }
+    const updateData = await Announcement.findByIdAndUpdate(announcementId, deletedAnnoucement);
+    return res.send({ message: "Announcement has been deleted successfully" })
   } catch (error) {
     await errorCollector({ url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT })
     console.error('Error deleting announcement:', error);

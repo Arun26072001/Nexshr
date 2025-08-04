@@ -47,7 +47,6 @@ export default function Projects() {
                 }
             });
             const companies = response.data || [];
-            console.log("companies", companies)
             setCompanies(companies.map((company) => ({ label: company.CompanyName, value: company._id })));
         } catch (err) {
             console.error("Error fetching companies:", err.message || err);
@@ -307,7 +306,6 @@ export default function Projects() {
             </Popover>
         );
     };
-
 
     return (
         isViewProject ? <CommonModel type="Project View" errorMsg={errorData} comps={companies} teams={teams} isAddData={isViewProject} employees={employees} dataObj={projectObj} modifyData={handleViewProject} /> :

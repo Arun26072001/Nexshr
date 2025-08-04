@@ -3,27 +3,20 @@ const router = express.Router();
 const { Position, PositionValidation } = require('../models/PositionModel');
 const { Employee } = require('../models/EmpModel');
 const { verifyAdminHR, verifyAdminHREmployeeManagerNetwork } = require('../auth/authMiddleware');
-const { errorCollector } = require('../Reuseable_functions/reusableFunction');
+const { errorCollector, checkValidObjId, getCompanyIdFromToken } = require('../Reuseable_functions/reusableFunction');
 
 router.get("/", verifyAdminHREmployeeManagerNetwork, (req, res) => {
-  Position.find()
+  const companyId = getCompanyIdFromToken(req.headers["authorization"]);
+  if (!companyId) {
+    return res.status(400).send({ error: "You are not part of any company. Please check with your higher authorities." })
+  }
+  Position.find({ isDeleted: false, company: companyId })
     .populate("company")
     .exec(function (err, positions) {
       if (err) {
         res.status(500).send({ Error: err })
       }
       res.send(positions);
-    });
-});
-
-router.get("/:id", verifyAdminHR, (req, res) => {
-  Position.findById({ _id: req.params.id })
-    // .populate("company")
-    .exec(function (err, position) {
-      if (err) {
-        res.status(500).send({ Error: err })
-      }
-      res.send(position);
     });
 });
 
@@ -50,10 +43,41 @@ router.post("/", verifyAdminHR, async (req, res) => {
   }
 });
 
+router.get("/:id", verifyAdminHR, async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    if (!checkValidObjId(id)) {
+      return res.status(400).send({ error: "Invalid position ID" });
+    }
+
+    const position = await Position.findById(id);
+    if (!position) {
+      return res.status(404).send({ error: "Position not found" });
+    }
+
+    res.send(position);
+  } catch (err) {
+    await errorCollector({
+      url: req.originalUrl,
+      name: err.name,
+      message: err.message,
+      env: process.env.ENVIRONMENT,
+    });
+    res.status(500).send({ error: err.message });
+  }
+});
+
 router.put("/:id", verifyAdminHR, async (req, res) => {
   try {
+    const { id } = req.params;
+
+    if (!checkValidObjId(id)) {
+      return res.status(400).send({ error: "Invalid position ID" });
+    }
+
     const updatedPosition = {
-      PositionName: req.body.PositionName,
+      PositionName: req.body.PositionName?.trim(),
       company: req.body.company,
     };
 
@@ -62,37 +86,73 @@ router.put("/:id", verifyAdminHR, async (req, res) => {
       return res.status(400).send({ error: error.details[0].message });
     }
 
-    const position = await Position.findByIdAndUpdate(
-      req.params.id,
-      updatedPosition,
-      { new: true }
-    );
+    const position = await Position.findByIdAndUpdate(id, updatedPosition, {
+      new: true,
+      runValidators: true,
+    });
 
     if (!position) {
       return res.status(404).send({ message: "Position not found." });
     }
 
-    res.send({ message: `Position has been updated! ${position.PositionName}` });
+    res.send({ message: `Position has been updated: ${position.PositionName}` });
   } catch (err) {
-    await errorCollector({ url: req.originalUrl, name: err.name, message: err.message, env: process.env.ENVIRONMENT })
-    console.error(err);
-    res.status(500).send({ err: err.message });
+    await errorCollector({
+      url: req.originalUrl,
+      name: err.name,
+      message: err.message,
+      env: process.env.ENVIRONMENT,
+    });
+    console.error("Update error:", err);
+    res.status(500).send({ error: err.message });
   }
 });
 
+
 router.delete("/:id", verifyAdminHR, async (req, res) => {
   try {
-    const isEmpInPosition = await Employee.find({ position: req.params.id }).exec();
-    if (isEmpInPosition.length > 0) {
-      return res.status(400).send({ error: "In this position has some Employee, Please change them to position" })
-    } else {
-      const deletePos = await Position.findByIdAndRemove({ _id: req.params.id });
-      return res.send({ message: `${deletePos.PositionName} Position has been deleted successfully` })
+    const { id } = req.params;
+    const companyId = getCompanyIdFromToken(req.headers["authorization"]);
+    if (!companyId) {
+      return res.status(400).send({ error: "You are not part of any company. Please check with your higher authorities." })
     }
+
+    // Check for valid ObjectId
+    if (!checkValidObjId(id)) {
+      return res.status(400).send({ error: "Invalid position ID" });
+    }
+
+    // Check if any employee is assigned to this position
+    const employeesInPosition = await Employee.find({ position: id, isDeleted: false, company: companyId }).lean();
+
+    if (employeesInPosition.length > 0) {
+      return res.status(400).send({
+        error: "Employees are currently assigned to this position. Please reassign them before deletion."
+      });
+    }
+
+    // Soft delete by setting isDeleted: true
+    const position = await Position.findByIdAndUpdate(
+      id,
+      { isDeleted: true },
+      { new: true }
+    );
+
+    if (!position) {
+      return res.status(404).send({ error: "Position not found" });
+    }
+
+    return res.send({ message: `${position.PositionName} position has been marked as deleted.` });
   } catch (error) {
-    await errorCollector({ url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT })
-    res.status(500).send({ error: error.message })
+    await errorCollector({
+      url: req.originalUrl,
+      name: error.name,
+      message: error.message,
+      env: process.env.ENVIRONMENT
+    });
+    res.status(500).send({ error: error.message });
   }
-})
+});
+
 
 module.exports = router

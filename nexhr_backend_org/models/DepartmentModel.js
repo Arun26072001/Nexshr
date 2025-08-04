@@ -3,13 +3,17 @@ const Joi = require('joi');
 
 var departmentSchema = new mongoose.Schema({
   DepartmentName: { type: String, required: true },
-   isDeleted: {type: Boolean, default: false},
+  isDeleted: { type: Boolean, default: false },
   company: { type: mongoose.Schema.Types.ObjectId, ref: "Company" }
-});
+}, {timestamps: true});
 
 var Department = mongoose.model("Department", departmentSchema);
 
 const DepartmentValidation = Joi.object().keys({
+  _id: Joi.any().optional(),
+  __v: Joi.any().optional(),
+  createdAt: Joi.any().optional(),
+  deletedAt: Joi.any().optional(),
   DepartmentName: Joi.string()
     .max(200)
     .disallow(null, '', 'none', 'undefined')
@@ -18,28 +22,7 @@ const DepartmentValidation = Joi.object().keys({
     .regex(/^[0-9a-fA-F]{24}$/)
     .required()
     .disallow(null, '', 'none', 'undefined'),
-    isDeleted: Joi.any().optional()
+  isDeleted: Joi.any().optional()
 });
 
 module.exports = { Department, DepartmentValidation, departmentSchema };
-
-// const staticDepartments = [
-//   {
-//     "company": {},
-//     "DepartmentName": "Admin"
-//   },
-//   {
-//     "company": {},
-//     "DepartmentName": "Hr"
-//   }
-// ]
-
-// Department.countDocuments().then(count => {
-//   if (count === 0) {
-//     Department.insertMany(staticDepartments)
-//       .then(() => console.log("Static Departments inserted!"))
-//       .catch(err => console.error("Error inserting Departments:", err));
-//   } else {
-//     console.log("Departments already exist. Skipping static data insertion.");
-//   }
-// });

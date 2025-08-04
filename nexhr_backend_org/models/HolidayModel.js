@@ -8,8 +8,8 @@ const HolidaySchema = new mongoose.Schema({
     }],
     company: { type: mongoose.Schema.Types.ObjectId, ref: "Company" },
     createdBy: { type: mongoose.Schema.Types.ObjectId, ref: "Employee" },
-     isDeleted: {type: Boolean, default: false}
-})
+    isDeleted: { type: Boolean, default: false }
+}, { timestamps: true })
 
 const Holiday = mongoose.model("holidays", HolidaySchema);
 

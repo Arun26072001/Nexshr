@@ -16,7 +16,6 @@ const pageAuthSchema = new mongoose.Schema({
     Announcement: { type: String, default: "not allow" },
     Project: { type: String, default: "not allow" },
     Report: { type: String, default: "not allow" },
-    
 });
 
 const PageAuth = mongoose.model("PageAuth", pageAuthSchema);

@@ -8,13 +8,18 @@ const { Team } = require('../models/TeamModel');
 const fs = require("fs");
 const path = require("path");
 const { LeaveApplication } = require('../models/LeaveAppModel');
-const { fetchFirstTwoItems, sumLeaveDays, errorCollector, isValidDate } = require('../Reuseable_functions/reusableFunction');
+const { fetchFirstTwoItems, sumLeaveDays, errorCollector, isValidDate, getAccountFromRoleName, checkValidObjId, getCompanyIdFromToken } = require('../Reuseable_functions/reusableFunction');
 const { PlannerType } = require('../models/PlannerTypeModel');
 
 router.get("/", verifyAdminHRTeamHigherAuth, async (req, res) => {
   try {
+    // get companyId from the token
+    const companyId = getCompanyIdFromToken(req.headers["authorization"]);
+    if (!companyId) {
+      return res.status(400).send({ error: "You are not part of any company. Please check with your higher authorities." })
+    }
     const { onlyEmps } = req.query;
-    let employees = await Employee.find({}, "FirstName LastName profile Account employmentType dateOfJoining gender working code docType serialNo position department workingTimePattern role")
+    let employees = await Employee.find({ isDeleted: false, company: companyId }, "FirstName LastName profile Account employmentType dateOfJoining gender working code docType serialNo position department workingTimePattern role")
       .populate({
         path: "position"
       })
@@ -28,6 +33,7 @@ router.get("/", verifyAdminHRTeamHigherAuth, async (req, res) => {
         path: "role"
       })
       .lean();
+
     if (onlyEmps) {
       employees = employees.filter((emp) => !["Team Lead", "Team Head", "Manager"].includes(emp?.position?.PositionName) && emp.Account !== 1)
     }
@@ -41,7 +47,13 @@ router.get("/", verifyAdminHRTeamHigherAuth, async (req, res) => {
 
 router.get("/notifications/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
   try {
-    const emp = await Employee.findById(req.params.id, "notifications profile")
+    // check is valid id
+    const { id } = req.params;
+    if (!checkValidObjId(id)) {
+      return res.status(400).send({ error: "Invalid or missing Employee Id" })
+    }
+
+    const emp = await Employee.findById(id, "notifications profile")
       .populate("notifications.company", "logo CompanyName")
       .exec();
     if (emp && emp.notifications?.length > 0) {
@@ -59,7 +71,13 @@ router.get("/notifications/:id", verifyAdminHREmployeeManagerNetwork, async (req
 
 router.put("/notifications/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
   try {
-    const emp = await Employee.findById(req.params.id, "notifications").exec();
+    // check is valid id
+    const { id } = req.params;
+    if (!checkValidObjId(id)) {
+      return res.status(400).send({ error: "Invalid or missing Employee Id" })
+    }
+
+    const emp = await Employee.findById(id, "notifications").exec();
     if (!emp) return res.status(404).send({ error: "Employee not found" });
     // console.log("removed", req.body);
     const idsToRemove = req.body.map(n => n._id);
@@ -82,7 +100,11 @@ router.put("/notifications/:id", verifyAdminHREmployeeManagerNetwork, async (req
 
 router.get("/user", verifyAdminHR, async (req, res) => {
   try {
-    const employees = await Employee.find({ Account: 3 }, "_id FirstName LastName profile")
+    const companyId = getCompanyIdFromToken(req.headers["authorization"]);
+    if (!companyId) {
+      return res.status(400).send({ error: "You are not part of any company. Please check with your higher authorities." })
+    }
+    const employees = await Employee.find({ Account: 3, isDeleted: false, company: companyId }, "_id FirstName LastName profile")
       .populate({
         path: "department",
         select: "DepartmentName",
@@ -133,7 +155,11 @@ router.get("/user", verifyAdminHR, async (req, res) => {
 
 router.get("/all", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
   try {
-    const employees = await Employee.find({}, "FirstName LastName profile employmentType dateOfJoining gender working code docType serialNo company position department workingTimePattern role")
+    const companyId = getCompanyIdFromToken(req.headers["authorization"]);
+    if (!companyId) {
+      return res.status(400).send({ error: "You are not part of any company. Please check with your higher authorities." })
+    }
+    const employees = await Employee.find({ isDeleted: false, company: companyId }, "FirstName LastName profile employmentType dateOfJoining gender working code docType serialNo company position department workingTimePattern role")
       .populate([
         {
           path: "company",
@@ -159,11 +185,16 @@ router.get("/all", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
 
 router.get("/company/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
   try {
-    const emp = await Employee.findById(req.params.id, "company").lean().exec();
-    if (!emp && !emp.company) {
-      return res.status(404).send({ error: "You are not in any team" })
+    // check is valid id
+    const { id } = req.params;
+    if (!checkValidObjId(id)) {
+      return res.status(400).send({ error: "Invalid or missing Employee Id" })
     }
-    const employees = await Employee.find({ company: emp.company }, "FirstName LastName profile employmentType dateOfJoining gender working code docType serialNo company position department workingTimePattern role")
+    const emp = await Employee.findById(id, "company").lean().exec();
+    if (!emp && !emp.company) {
+      return res.status(404).send({ error: "You are not part of any company; please consult your higher authority." })
+    }
+    const employees = await Employee.find({ company: emp.company, isDeleted: false }, "FirstName LastName profile employmentType dateOfJoining gender working code docType serialNo company position department workingTimePattern role")
       .populate([
         {
           path: "company",
@@ -190,6 +221,10 @@ router.get("/company/:id", verifyAdminHREmployeeManagerNetwork, async (req, res)
 router.get("/team/:higher", verifyAdminHRTeamHigherAuth, async (req, res) => {
   try {
     const { higher } = req.params;
+    const companyId = getCompanyIdFromToken(req.headers["authorization"]);
+    if (!companyId) {
+      return res.status(400).send({ error: "You are not part of any company. Please check with your higher authorities." })
+    }
 
     // Determine the keyword to filter by
     let keyword;
@@ -197,7 +232,7 @@ router.get("/team/:higher", verifyAdminHRTeamHigherAuth, async (req, res) => {
     else if (higher === "head") keyword = "Head";
     else keyword = "Manager";
 
-    const employees = await Employee.find({}, "FirstName LastName position profile role")
+    const employees = await Employee.find({ isDeleted: false, company: companyId }, "FirstName LastName position profile role")
       .populate("position", "PositionName") // Populate only PositionName
       .populate("role", "RoleName")
       .exec();
@@ -221,8 +256,17 @@ router.get("/team/:higher", verifyAdminHRTeamHigherAuth, async (req, res) => {
 
 router.get("/team/members/:id", verifyTeamHigherAuthority, async (req, res) => {
   try {
+    const companyId = getCompanyIdFromToken(req.headers["authorization"]);
+    if (!companyId) {
+      return res.status(400).send({ error: "You are not part of any company. Please check with your higher authorities." })
+    }
+    // check is valid id
+    const { id } = req.params;
+    if (!checkValidObjId(id)) {
+      return res.status(400).send({ error: "Invalid or missing Employee Id" })
+    }
     const who = req?.query?.who;
-    const teams = await Team.find({ [who]: req.params.id })
+    const teams = await Team.find({ [who]: id, isDeleted: false, company: companyId })
       .populate({
         path: "employees",
         select: "FirstName LastName dateOfJoining code profile company employmentType position department workingTimePattern role",
@@ -249,30 +293,45 @@ router.get("/team/members/:id", verifyTeamHigherAuthority, async (req, res) => {
   }
 })
 
-router.post("/add-company/:id", async (req, res) => {
-  try {
-    const emps = await Employee.find({}, "company").exec();
-    emps.forEach(async (emp) => {
-      emp.company = req.params.id;
-      await emp.save();
-    })
-    return res.send({ message: "add company for all employees" })
-  } catch (error) {
-    await errorCollector({ url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT })
-    return res.status(500).send({ error: error.message })
-  }
-})
-
+// router.post("/add-company/:id", async (req, res) => {
+//   try {
+//     // check is valid id
+//     const { id } = req.params;
+//     if (!checkValidObjId(id)) {
+//       return res.status(400).send({ error: "Invalid or missing Employee Id" })
+//     }
+//     const emps = await Employee.find({}, "company").exec();
+//     if (!emps && !emps.length) {
+//       return res.status(404).send({ error: "Employees not be found. Please refresh and try again." })
+//     }
+//     emps.forEach(async (emp) => {
+//       emp.company = id;
+//       await emp.save();
+//     })
+//     return res.send({ message: "add company for all employees" })
+//   } catch (error) {
+//     await errorCollector({ url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT })
+//     return res.status(500).send({ error: error.message })
+//   }
+// })
 
 router.get('/:id', verifyAdminHREmployeeManagerNetwork, async (req, res) => {
-  const empData = await Employee.findById(req.params.id, "annualLeaveYearStart")
+  // check is valid id
+  const { id } = req.params;
+  if (!checkValidObjId(id)) {
+    return res.status(400).send({ error: "Invalid or missing Employee Id" })
+  }
+  const empData = await Employee.findById(id, "annualLeaveYearStart").exec();
+  if (!empData) {
+    return res.status(400).send({ error: "The specified Employee could not be found. Please refresh and try again." })
+  }
   const now = new Date();
   const annualStart = empData?.annualLeaveYearStart && isValidDate(empData?.annualLeaveYearStart) ? new Date(empData?.annualLeaveYearStart) : new Date(now.setDate(1));
   const startDate = new Date(now.getFullYear(), annualStart.getMonth(), annualStart.getDate());
   const endDate = new Date(startDate.getFullYear() + 1, startDate.getMonth(), startDate.getDate() - 1, 23, 59, 59, 999);
 
   try {
-    const emp = await Employee.findById(req.params.id, "-clockIns -payslip")
+    const emp = await Employee.findById(id, "-clockIns -payslip")
       .populate([
         { path: "role" },
         {
@@ -298,8 +357,10 @@ router.get('/:id', verifyAdminHREmployeeManagerNetwork, async (req, res) => {
       fromDate: {
         $gte: startDate,
         $lte: endDate
-      }
+      },
+      isDeleted: false
     })
+
     // Filter leave requests
     const pendingLeaveRequests = leaveApplications.filter((leave) => leave.status === "pending");
     const takenLeaveRequests = leaveApplications.filter((leave) => leave.status === "approved" && !leave.leaveType.toLowerCase().includes("unpaid"));
@@ -346,9 +407,16 @@ router.post("/add-fcm-token", verifyAdminHREmployeeManagerNetwork, async (req, r
 
 router.post("/:id", verifyAdminHR, async (req, res) => {
   try {
+    // check is valid id
+    const { id } = req.params;
+    if (!checkValidObjId(id)) {
+      return res.status(400).send({ error: "Invalid or missing Employee Id" })
+    }
     const inviter = await Employee.findById(req.params.id, "FirstName LastName")
       .populate("company", "logo CompanyName");
-
+    if (!inviter) {
+      return res.status(400).send({ error: "Your data could not be found. Please refresh and try again." })
+    }
     const { Email, phone, FirstName, LastName, Password, company, annualLeaveEntitlement, typesOfLeaveCount, employementType } = req.body;
 
     // Check if email already exists
@@ -474,8 +542,13 @@ router.post("/:id", verifyAdminHR, async (req, res) => {
 
 router.get("/isPermanentWFH/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
   try {
+    // check is valid id
+    const { id } = req.params;
+    if (!checkValidObjId(id)) {
+      return res.status(400).send({ error: "Invalid or missing Employee Id" })
+    }
     // check emp is exists
-    const isExists = await Employee.exists({ _id: req.params.id });
+    const isExists = await Employee.exists({ _id: id });
     if (!isExists) {
       return res.status(404).send({ error: `Employee not found` })
     }
@@ -489,7 +562,11 @@ router.get("/isPermanentWFH/:id", verifyAdminHREmployeeManagerNetwork, async (re
 
 router.put("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
   try {
+    // check is valid id
     const { id } = req.params;
+    if (!checkValidObjId(id)) {
+      return res.status(400).send({ error: "Invalid or missing Department Id" })
+    }
     const { role, Email, Password, hour, mins, profile: newProfile, FirstName, LastName } = req.body;
 
     // Determine role name and account level
@@ -497,16 +574,7 @@ router.put("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
     if (role) {
       const roleData = await RoleAndPermission.findById(role, "RoleName");
       const roleName = roleData?.RoleName?.toLowerCase();
-      accountLevel =
-        roleName === "admin"
-          ? 1
-          : roleName === "hr"
-            ? 2
-            : roleName === "manager"
-              ? 4
-              : roleName === "network admin"
-                ? 5
-                : 3;
+      accountLevel = getAccountFromRoleName(roleName);
     }
 
     // check annual leave start date is greater than or equal doj
@@ -609,7 +677,12 @@ router.put("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
 
 router.delete("/:id", verifyAdminHR, async (req, res) => {
   try {
-    const deletEmp = await Employee.findByIdAndRemove(req.params.id);
+    // check is valid id
+    const { id } = req.params;
+    if (!checkValidObjId(id)) {
+      return res.status(400).send({ error: "Invalid or missing Employee Id" })
+    }
+    const deletEmp = await Employee.findByIdAndUpdate(id, { isDeleted: true });
     return res.status(200).send({ message: `${deletEmp.FirstName + " " + deletEmp.LastName} deleted successfully` })
   } catch (error) {
     await errorCollector({ url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT })

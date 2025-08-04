@@ -29,9 +29,10 @@ const taskSchema = new mongoose.Schema({
     tags: [{ type: String }],
     from: { type: Date },
     to: { type: Date },
+    company: { type: mongoose.Schema.Types.ObjectId, ref: "Company", default: null },
     spend: { type: spendTimeSchema, default: () => ({}) },
     status: { type: String },
-    trash: { type: Boolean, default: false },
+    isDeleted: { type: Boolean, default: false },
     tracker: [{ type: TrackerSchema }],
     comments: [{ type: mongoose.Schema.Types.ObjectId, ref: "Comment", default: [] }],
     estTime: { type: Number },
@@ -49,6 +50,7 @@ const taskValidation = Joi.object({
     __v: Joi.string().allow(0).label('__v'),
     createdAt: Joi.any().optional(),
     updatedAt: Joi.any().optional(),
+    company: Joi.any().optional(),
     title: Joi.string().required().disallow(null, ' ', 'none', 'undefined').label('Title'),
     priority: Joi.string()
         .valid('Low', 'Medium', 'High', 'Critical')
@@ -84,7 +86,7 @@ const taskValidation = Joi.object({
     estTime: Joi.any().required().label("EstTime"),
     spend: Joi.any().label("Spend"),
     comments: Joi.array().items(Joi.string()).label("Comments"),
-    trash: Joi.boolean().allow("", null).label("Trash"),
+    isDeleted: Joi.boolean().allow("", null).label("Trash"),
     category: Joi.any().optional(),
     project: Joi.string().regex(/^[0-9a-fA-F]{24}$/).optional().label('Project ID'),
 });

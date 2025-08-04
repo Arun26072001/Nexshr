@@ -4,6 +4,7 @@ const { Holiday } = require("../models/HolidayModel");
 const { ErrorLog } = require("../models/ErrorLogModel");
 const dayjs = require('dayjs');
 const fs = require("fs");
+const jwt = require("jsonwebtoken");
 const path = require("path");
 const isSameOrBefore = require('dayjs/plugin/isSameOrBefore');
 const isSameOrAfter = require('dayjs/plugin/isSameOrAfter');
@@ -12,6 +13,8 @@ const { toZonedTime, formatInTimeZone } = require('date-fns-tz');
 const { format } = require("date-fns");
 const isBetween = require('dayjs/plugin/isBetween');
 const { Employee } = require("../models/EmpModel");
+const { Task } = require("../models/TaskModel");
+const { Report } = require("../models/ReportModel");
 
 
 dayjs.extend(isSameOrBefore);
@@ -123,11 +126,11 @@ async function rangeofDate(fromDate, toDate, empData) {
   const from = new Date(fromDate);
   const to = new Date(toDate);
   const empId = typeof empData === "object" ? empData?._id : empData;
-  const emp = await Employee.findOne({ _id: empId }, "workingTimePattern company")
+  const emp = await Employee.findOne({ _id: empId, company: "6651a5eb6115df44c0cc7151"  }, "workingTimePattern company")
     .populate("workingTimePattern", "WeeklyDays")
     .lean().exec();
-  const holidayData = await Holiday.findOne({ currentYear: new Date().getFullYear(), company: emp.company }).lean().exec();
-  const holidays = Array.isArray(holidayData.holiday) && holidayData.holiday.length > 0 ? holidayData.holiday : []
+  const holidayData = await Holiday.findOne({ currentYear: new Date().getFullYear(), company: emp.company, isDeleted:false }).lean().exec();
+  const holidays = holidayData && holidayData.holidays.length > 0 ? holidayData.holidays : []
   const empTimePatternWorkingDays = emp?.workingTimePattern && Array.isArray(emp.workingTimePattern.WeeklyDays) ? emp.workingTimePattern.WeeklyDays : [];
   let dayCount = 0;
   while (from <= to) {
@@ -418,6 +421,28 @@ function setTimeHolderForAllActivities(record) {
   return record;
 }
 
+const applyDefaultsToExistingDocuments = async (modelsWithDefaults = []) => {
+  for (const { model, fields } of modelsWithDefaults) {
+    const updateQuery = {};
+    for (const [fieldName, defaultValue] of Object.entries(fields)) {
+      updateQuery[fieldName] = defaultValue;
+    }
+
+    const filter = {
+      $or: Object.keys(fields).map(field => ({
+        [field]: { $exists: false }
+      }))
+    };
+
+    const result = await model.updateMany(filter, { $set: updateQuery });
+    console.log(`Updated ${result.modifiedCount} documents in ${model.modelName}`);
+  }
+};
+// applyDefaultsToExistingDocuments( [
+//   { model: Report, fields: { company: "6651a5eb6115df44c0cc7151"  } },
+//   { model: Task, fields: { company: "6651a5eb6115df44c0cc7151"  } }
+// ])
+
 async function fetchFirstTwoItems() {
   try {
     const items = await PlannerCategory.find().limit(2);
@@ -437,26 +462,6 @@ function checkValidObjId(id) {
   }
 }
 
-// function sendMailAndNotification(emps, title, message) {
-//   emps.forEach((emp) => {
-//     // send mail 
-//     sendMail({
-//       From: `<${process.env.FROM_MAIL}> (Nexshr)`,
-//       To: emp.Email,
-//       Subject: title,
-//       TextBody: message
-//     })
-//     // send notification
-//     sendPushNotification({
-//       token: emp.fcmToken,
-//       title,
-//       body: message,
-//       type,
-//       name: emp.FirstName
-//     })
-//   });
-// }
-
 // check whf request is weekend or holiday
 
 function checkDateIsHoliday(dateList = [], target) {
@@ -471,6 +476,19 @@ function changeClientTimezoneDate(date) {
   const actualDate = toZonedTime(new Date(date), process.env.TIMEZONE);
   return actualDate
 }
+
+const convertToMinutes = (start, end) => {
+  const [endHour, endMin] = end.split(/[:.]+/).map(Number);
+  const [startHour, startMin] = start.split(/[:.]+/).map(Number);
+
+  const startTime = new Date(2000, 0, 1, startHour, startMin);
+  const endTime = new Date(2000, 0, 1, endHour, endMin);
+
+  const diffMs = endTime - startTime; // Difference in milliseconds
+  const diffMinutes = Math.floor(diffMs / (1000 * 60)); // Convert to minutes
+
+  return diffMinutes > 0 ? diffMinutes : 0; // Ensure non-negative value
+};
 
 function timeZoneHrMin(value) {
   const date = new Date(value)
@@ -586,6 +604,25 @@ function getTotalWorkingHourPerDay(startingTime, endingTime) {
   }
 }
 
+function getAccountFromRoleName(roleName) {
+  if (roleName) {
+    switch (roleName) {
+      case "admin":
+        return 1;
+      case "hr":
+        return 2;
+      case "manager":
+        return 4;
+      case "network admin":
+        return 5;
+      default:
+        return 3;
+    }
+  } else {
+    return 0
+  }
+}
+
 const getTotalWorkingHoursExcludingWeekends = (start, end, dailyHours = 0, holidays = [], WeeklyDays = []) => {
   let totalHours = 0;
   const from = new Date(start);
@@ -630,6 +667,14 @@ const getOrgDB = async (organizationId) => {
   return newConnection;
 };
 
+function getCompanyIdFromToken(token) {
+  if (token) {
+    const decodedData = jwt.decode(token);
+    const { _id } = decodedData.company;
+    return _id;
+  }
+}
+
 function removeImgsFromServer(imgs = []) {
   const removedFiles = [];
   imgs.map((img) => {
@@ -665,4 +710,4 @@ async function errorCollector(errorLog) {
   }
 }
 
-module.exports = { convertToString, removeImgsFromServer, checkValidObjId, checkDateIsHoliday, timeZoneHrMin, isValidDate, getTimeFromDateOrTimeData, changeActualTimeDataAsAttendace, setTimeHolderForAllActivities, setPeriodOfLeave, isValidLeaveDate, errorCollector, getTotalWorkingHourPerDay, getTotalWorkingHourPerDayByDate, accountFromRole, changeClientTimezoneDate, sumLeaveDays, getValidLeaveDays, fetchFirstTwoItems, getCurrentTime, checkLoginForOfficeTime, categorizeTasks, projectMailContent, processActivityDurations, formatLeaveData, getDayDifference, getOrgDB, formatDate, getWeekdaysOfCurrentMonth, mailContent, checkLogin, getTotalWorkingHoursExcludingWeekends, getCurrentTimeInMinutes, timeToMinutes, formatTimeFromMinutes };
+module.exports = { convertToString, getCompanyIdFromToken, getAccountFromRoleName, convertToMinutes, removeImgsFromServer, checkValidObjId, checkDateIsHoliday, timeZoneHrMin, isValidDate, getTimeFromDateOrTimeData, changeActualTimeDataAsAttendace, setTimeHolderForAllActivities, setPeriodOfLeave, isValidLeaveDate, errorCollector, getTotalWorkingHourPerDay, getTotalWorkingHourPerDayByDate, accountFromRole, changeClientTimezoneDate, sumLeaveDays, getValidLeaveDays, fetchFirstTwoItems, getCurrentTime, checkLoginForOfficeTime, categorizeTasks, projectMailContent, processActivityDurations, formatLeaveData, getDayDifference, getOrgDB, formatDate, getWeekdaysOfCurrentMonth, mailContent, checkLogin, getTotalWorkingHoursExcludingWeekends, getCurrentTimeInMinutes, timeToMinutes, formatTimeFromMinutes };

@@ -10,7 +10,7 @@ const reportSchema = new mongoose.Schema({
     project: { type: mongoose.Schema.Types.ObjectId, ref: "Project" },
     employees: [{ type: mongoose.Schema.Types.ObjectId, ref: "Employee" }],
     task: { type: mongoose.Schema.Types.ObjectId, ref: "Task" },
-    trash: { type: Boolean, default: false },
+    isDeleted: { type: Boolean, default: false },
     createdby: { type: mongoose.Schema.Types.ObjectId, ref: "Employee" }
 }, { timestamps: true })
 
@@ -28,7 +28,7 @@ const ReportValidation = Joi.object({
     employees: Joi.array()
         .items(Joi.string().regex(/^[0-9a-fA-F]{24}$/))
         .required(), // Array of ObjectIds
-    trash: Joi.any().label("Trash"),
+    isDeleted: Joi.any().label("Trash"),
     createdby: Joi.string().regex(/^[0-9a-fA-F]{24}$/).required(),
     createdAt: Joi.string().allow('').label('createdAt'),
     updatedAt: Joi.string().allow('').label('updatedAt')

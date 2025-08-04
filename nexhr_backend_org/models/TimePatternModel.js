@@ -9,19 +9,20 @@ var timePatternSchema = new mongoose.Schema({
     FinishingTime: { type: Date },
     BreakTime: { type: String },
     WeeklyDays: [{ type: String }],
+    company: { type: mongoose.Schema.Types.ObjectId, ref: "Company", default: null },
     PublicHoliday: { type: String },
-     isDeleted: {type: Boolean, default: false},
+    isDeleted: { type: Boolean, default: false },
 }, { timestamps: true })
 
 var TimePattern = mongoose.model("TimePattern", timePatternSchema);
 
 const TimePatternValidation = Joi.object({
-    _id: Joi.string().allow("").optional(),
     TimePatternID: Joi.optional(),
     PatternName: Joi.string()
         .disallow(null, '', 'none', 'undefined')
         .max(200)
         .required(),
+    company: Joi.any().optional(),
     DefaultPattern: Joi.boolean()
         .optional(),
     StartingTime: Joi.string()
@@ -30,7 +31,7 @@ const TimePatternValidation = Joi.object({
     FinishingTime: Joi.string()
         .disallow(null, '', 'none', 'undefined')
         .required(),
-        isDeleted: Joi.any().optional(),
+    isDeleted: Joi.any().optional(),
     BreakTime: Joi.string()
         .disallow(null, '', 'none', 'undefined')
         .required(),
@@ -43,6 +44,7 @@ const TimePatternValidation = Joi.object({
     PublicHoliday: Joi.string()
         .disallow(null, '', 'none', 'undefined')
         .required(),
+    _id: Joi.string().allow("").optional(),
     createdAt: Joi.string().allow('').label('createdAt'),
     updatedAt: Joi.string().allow('').label('updatedAt'),
     __v: Joi.string().allow(0).label('__v')
@@ -57,7 +59,6 @@ const TimePatternValidation = Joi.object({
     if (start >= end) {
         return helpers.message('StartingTime must be earlier than FinishingTime');
     }
-
     return value;
 });
 
@@ -65,33 +66,3 @@ const TimePatternValidation = Joi.object({
 module.exports = {
     TimePattern, TimePatternValidation, timePatternSchema
 };
-// const staticPatterns = [
-//     {
-//         "PatternName": "MON - FRI",
-//         "WeeklyDays": 5,
-//         "StartingTime": "9:00",
-//         "FinishingTime": "18:30",
-//         "BreakTime": "60",
-//         "DefaultPattern": true,
-//         "PublicHoliday": "Deducated",
-//     },
-//     {
-//         "PatternName": "MON - FRI",
-//         "WeeklyDays": 5,
-//         "StartingTime": "14:00",
-//         "FinishingTime": "00:00",
-//         "BreakTime": "60",
-//         "DefaultPattern": true,
-//         "PublicHoliday": "Deducated",
-//     }
-// ]
-
-// TimePattern.countDocuments().then(count => {
-//     if (count === 0) {
-//         TimePattern.insertMany(staticPatterns)
-//             .then(() => console.log("Static users inserted!"))
-//             .catch(err => console.error("Error inserting users:", err));
-//     } else {
-//         console.log("Users already exist. Skipping static data insertion.");
-//     }
-// });

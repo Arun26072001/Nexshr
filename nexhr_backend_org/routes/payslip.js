@@ -1,14 +1,18 @@
 const express = require("express");
 const { Employee } = require("../models/EmpModel");
 const { Payslip } = require("../models/PaySlipModel");
-const { getWeekdaysOfCurrentMonth, sumLeaveDays, errorCollector } = require("../Reuseable_functions/reusableFunction");
+const { getWeekdaysOfCurrentMonth, sumLeaveDays, errorCollector, checkValidObjId } = require("../Reuseable_functions/reusableFunction");
 const { Holiday } = require("../models/HolidayModel");
 const { verifyAdminHREmployeeManagerNetwork } = require("../auth/authMiddleware");
 const router = express.Router();
 
 router.get("/:id", async (req, res) => {
+  if (!checkValidObjId(req.params.id)) {
+    return res.status(400).send({ message: "Invalid payslip ID format" });
+  }
+
   try {
-    const payslip = await Payslip.findById({ _id: req.params.id }).populate({
+    const payslip = await Payslip.findById(req.params.id).populate({
       path: "employee",
       populate: [
         { path: "company", select: "CompanyName logo" },
@@ -17,16 +21,17 @@ router.get("/:id", async (req, res) => {
         { path: "department" }
       ]
     }).exec();
+
     if (!payslip) {
-      res.status(404).send({ message: "invalid payslip Id!" })
-    } else {
-      res.send(payslip);
+      return res.status(404).send({ message: "Payslip not found" });
     }
+
+    res.send(payslip);
   } catch (error) {
-    await errorCollector({ url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT })
-    res.status(500).send({ error: error.message })
+    await errorCollector({ url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT });
+    res.status(500).send({ error: error.message });
   }
-})
+});
 
 router.post("/", async (req, res) => {
   const now = new Date();
@@ -35,7 +40,7 @@ router.post("/", async (req, res) => {
 
   try {
     // Fetch employees with unpaid leave in the current month
-    const employees = await Employee.find({}, "basicSalary payslipFields payslip leaveApplication company").populate({
+    const employees = await Employee.find({isDeleted:false}, "basicSalary payslipFields payslip leaveApplication company").populate({
       path: "leaveApplication",
       match: {
         $or: [
@@ -78,6 +83,7 @@ router.post("/", async (req, res) => {
             lopDays: leaveDays,
             paidDays: `${getWeekdaysOfCurrentMonth(startOfMonth.getFullYear(), startOfMonth.getMonth(), currentMonthOfLeaveDays)}`
           },
+          company: emp?.company,
           employee: emp._id
         };
 
@@ -101,40 +107,47 @@ router.post("/", async (req, res) => {
 });
 
 router.get("/emp/:empId", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
+  if (!checkValidObjId(req.params.empId)) {
+    return res.status(400).send({ message: "Invalid employee ID format" });
+  }
 
   try {
     const dateRangeValue = req.query?.dateRangeValue;
     let fromDate, toDate;
+
     if (dateRangeValue && dateRangeValue.length > 0) {
       [fromDate, toDate] = dateRangeValue.map((date) => new Date(date));
       fromDate.setHours(0, 0, 0, 0);
       toDate.setHours(23, 59, 59, 0);
     }
-    let payslips = await Payslip.find({ employee: req.params.empId }).populate("employee", "FirstName LastName payslip basicSalary profile").exec();
+
+    let payslips = await Payslip.find({ employee: req.params.empId , isDeleted:false})
+      .populate("employee", "FirstName LastName payslip basicSalary profile")
+      .exec();
+
     if (fromDate && toDate) {
       payslips = payslips.filter((slip) => {
         const date = new Date(slip?.payslip?.date).getTime();
-        if (date >= fromDate.getTime() && date <= toDate.getTime()) {
-          return slip;
-        }
-      })
+        return date >= fromDate.getTime() && date <= toDate.getTime();
+      });
     }
-    
-    const arrangedPayslips = payslips.sort((a, b) => new Date(String(a.payslip.period)) - new Date(String(b.payslip.period)))
+
+    const arrangedPayslips = payslips.sort((a, b) => new Date(String(a.payslip.period)) - new Date(String(b.payslip.period)));
     const pendingPayslips = arrangedPayslips.filter((slip) => slip.payslip.status === "pending");
     const conflitPayslips = arrangedPayslips.filter((slip) => slip.payslip.status === "conflict");
     const successPayslips = arrangedPayslips.filter((slip) => slip.payslip.status === "success");
+
     return res.send({
       arrangedPayslips,
       pendingPayslips,
       conflitPayslips,
       successPayslips
-    })
+    });
   } catch (err) {
-    console.log("error in fetch payslips", err)
-    await errorCollector({ url: req.originalUrl, name: err.name, message: err.message, env: process.env.ENVIRONMENT })
-    res.status(500).send({ error: err.message })
+    console.log("Error fetching payslips", err);
+    await errorCollector({ url: req.originalUrl, name: err.name, message: err.message, env: process.env.ENVIRONMENT });
+    res.status(500).send({ error: err.message });
   }
-})
+});
 
 module.exports = router;

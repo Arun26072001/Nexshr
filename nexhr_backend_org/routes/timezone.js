@@ -5,7 +5,7 @@ const { Employee } = require("../models/EmpModel");
 const router = express.Router();
 const fs = require('fs');
 const path = require('path');
-const { errorCollector } = require("../Reuseable_functions/reusableFunction");
+const { errorCollector, checkValidObjId, getCompanyIdFromToken } = require("../Reuseable_functions/reusableFunction");
 const configPath = path.join(__dirname, '../timezoneData/timezoneData.json');
 
 // Read JSON file
@@ -54,69 +54,122 @@ router.get("/name", verifyAdmin, async (req, res) => {
     }
 })
 
+// Add timezone
 router.post("/:id", verifyAdmin, async (req, res) => {
     try {
-        // check validation
         const { error } = timeZoneValidation.validate(req.body);
-        if (error) {
-            return res.status(400).send({ error: error.details[0].message })
-        }
+        if (error) return res.status(400).send({ error: error.details[0].message });
+
         const { company, timeZone } = req.body;
 
-        // check already exists
         if (await Timezone.exists({ company, timeZone })) {
-            return res.status(400).send({ error: `${timeZone} is already exists` })
+            return res.status(400).send({ error: `${timeZone} already exists` });
         }
-        const newTimezone = {
-            ...req.body,
-            createdBy: req.params.id
-        }
-        // add timezone 
-        const timeZoneData = await Timezone.create(newTimezone);
-        return res.send({ message: `${timeZoneData.timeZone} is added successfully`, timeZoneData })
-    } catch (error) {
-        await errorCollector({ url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT })
-        console.error("error in add timezone", error)
-        return res.status(500).send({ error: error.message })
-    }
-})
 
+        const timeZoneData = await Timezone.create({
+            ...req.body,
+            createdBy: req.params.id,
+        });
+
+        return res.send({ message: `${timeZoneData.timeZone} is added successfully`, timeZoneData });
+    } catch (error) {
+        await errorCollector({
+            url: req.originalUrl,
+            name: error.name,
+            message: error.message,
+            env: process.env.ENVIRONMENT,
+        });
+        res.status(500).send({ error: error.message });
+    }
+});
+
+// Get timezone by employee
 router.get("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
-    const emp = await Employee.findById(req.params.id, "company")
-        .lean().exec();
-    if (emp.company) {
-        const timeZoneData = await Timezone.findOne({ company: emp.company })
+    try {
+        if (!checkValidObjId(req.params.id)) {
+            return res.status(400).send({ error: "Invalid Employee ID" });
+        }
+        const companyId = getCompanyIdFromToken(req.headers["authorization"]);
+        if (!companyId) {
+            return res.status(400).send({
+                error: "You are not part of any company. Please check with your higher authorities."
+            });
+        }
+
+        const timeZoneData = await Timezone.findOne({ company: companyId })
             .populate("company", "logo CompanyName")
             .exec();
 
         if (!timeZoneData) {
-            return res.status(200).send({ error: `You are not yet add time zone` })
-        } else {
-            return res.send(timeZoneData)
+            return res.status(200).send({ error: "You have not yet added a time zone" });
         }
-    } else {
-        return res.status(404).send({ error: "your are not in any company" })
-    }
-})
 
-router.put("/:id", verifyAdmin, async (req, res) => {
-    try {
-        // check is exists
-        if (!await Timezone.exists({ _id: req.params.id })) {
-            return res.status(404).send({ error: "Timezone is not in given ID" })
-        }
-        // check validation
-        const { error } = timeZoneValidation.validate(req.body);
-        if (error) {
-            return res.status(400).send({ error: error.details[0].message })
-        } else {
-            const updatedTimeZone = await Timezone.findByIdAndUpdate(req.params.id, req.body, { new: true }).exec();
-            return res.send({ message: `${updatedTimeZone.timeZone} timezone is updated successfully` })
-        }
+        return res.send(timeZoneData);
     } catch (error) {
-        await errorCollector({ url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT })
-        console.error("error in update timezone", error);
-        return res.status(500).send({ error: error.message })
+        await errorCollector({
+            url: req.originalUrl,
+            name: error.name,
+            message: error.message,
+            env: process.env.ENVIRONMENT,
+        });
+        res.status(500).send({ error: error.message });
     }
-})
+});
+
+// Update timezone
+router.put("/:id", verifyAdmin, async (req, res) => {
+    if (!checkValidObjId(req.params.id)) {
+        return res.status(400).send({ error: "Invalid timezone ID" });
+    }
+    try {
+        const { error } = timeZoneValidation.validate(req.body);
+        if (error) return res.status(400).send({ error: error.details[0].message });
+
+        const updatedTimeZone = await Timezone.findByIdAndUpdate(req.params.id, req.body, { new: true }).exec();
+        if (!updatedTimeZone) {
+            return res.status(404).send({ error: "Timezone not found" });
+        }
+
+        return res.send({ message: `${updatedTimeZone.timeZone} timezone updated successfully` });
+    } catch (error) {
+        await errorCollector({
+            url: req.originalUrl,
+            name: error.name,
+            message: error.message,
+            env: process.env.ENVIRONMENT,
+        });
+        res.status(500).send({ error: error.message });
+    }
+});
+
+// remove the timezone
+router.delete("/:id", verifyAdmin, async (req, res) => {
+    if (!checkValidObjId(req.params.id)) {
+        return res.status(400).send({ error: "Invalid timezone ID" });
+    }
+
+    try {
+        const deletedTimeZone = await Timezone.findByIdAndUpdate(
+            req.params.id,
+            { isDeleted: true },
+            { new: true }
+        ).exec();
+
+        if (!deletedTimeZone) {
+            return res.status(404).send({ error: "Timezone not found" });
+        }
+
+        return res.send({ message: `${deletedTimeZone.timeZone} timezone deleted successfully.` });
+    } catch (error) {
+        await errorCollector({
+            url: req.originalUrl,
+            name: error.name,
+            message: error.message,
+            env: process.env.ENVIRONMENT,
+        });
+        res.status(500).send({ error: "An error occurred while deleting the timezone." });
+    }
+});
+
+
 module.exports = router;

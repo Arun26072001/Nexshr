@@ -6,19 +6,23 @@ const RoleAndPermissionSchema = new mongoose.Schema({
   RoleName: { type: String, unique: true },
   userPermissions: { type: mongoose.Schema.Types.ObjectId, ref: "UserPermission" },
   pageAuth: { type: mongoose.Schema.Types.ObjectId, ref: "PageAuth" },
+  company: { type: mongoose.Schema.Types.ObjectId, ref: "Company", default: null },
    isDeleted: {type: Boolean, default: false},
-});
+}, {timestamps: true});
 
 // Create the model
 const RoleAndPermission = mongoose.model('RoleAndPermission', RoleAndPermissionSchema);
 
 const RoleAndPermissionValidation = Joi.object({
-  _id: Joi.any().optional(),
-  __v: Joi.any().optional(),
   RoleName: Joi.string().required().disallow(null, '', 'none', 'undefined').label("Role Name"),
   isDeleted: Joi.any().optional(),
+  company: Joi.any().optional(),
   userPermissions: Joi.string().regex(/^[0-9a-fA-F]{24}$/).label("User Permissions"), // Ensure objectId extension if needed
-  pageAuth: Joi.string().regex(/^[0-9a-fA-F]{24}$/).label("Page Authorization") // Ensure objectId extension if needed
+  pageAuth: Joi.string().regex(/^[0-9a-fA-F]{24}$/).label("Page Authorization"), // Ensure objectId extension if needed
+  _id: Joi.string().allow("").optional(),
+  createdAt: Joi.string().allow('').label('createdAt'),
+ updatedAt: Joi.string().allow('').label('updatedAt'),
+ __v: Joi.string().allow(0).label('__v')
 });
 
 // Export the model and validation schema

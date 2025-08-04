@@ -1,32 +1,44 @@
 const express = require('express');
 const router = express();
+const jwt = require("jsonwebtoken");
 const { Company, CompanyValidation } = require('../models/CompanyModel');
-const Joi = require('joi');
 const { verifyAdminHR, verifyAdminHREmployeeManagerNetwork } = require('../auth/authMiddleware');
 const { Employee } = require('../models/EmpModel');
 const { Department } = require('../models/DepartmentModel');
 const { Position } = require('../models/PositionModel');
 const path = require("path");
 const fs = require("fs");
-const { errorCollector } = require('../Reuseable_functions/reusableFunction');
+const { errorCollector, checkValidObjId } = require('../Reuseable_functions/reusableFunction');
 
 // get all companies
-router.get("/", verifyAdminHREmployeeManagerNetwork, (req, res) => {
-  Company.find({}, "CompanyName").lean()
-    .exec(function (err, compnay) {
-      if (err) {
-        return res.status(500).send({ error: err.message })
-      }
-      res.send(compnay);
-    });
+router.get("/", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
+  try {
+    // check is valid objectID
+    const decodedData = jwt.decode(req.headers["authorization"]);
+    const empId = decodedData?._id;
+    const emp = await Employee.findById(empId, "company")
+      .populate("company").lean().exec();
+
+    if (!emp && !emp.company) {
+      return res.status(404).send({ error: "You are not part of any company. Please check with your higher authorities." })
+    }
+    if (!Array.isArray(emp.company)) {
+      return res.send([emp.company]);
+    } else {
+      return res.send(emp.company)
+    }
+  } catch (err) {
+    console.error("Error fetching companies:", err);
+    res.status(500).send({ error: err.message });
+  }
 });
 
 // employee of companies
 router.get("/employee/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
   try {
     const emp = await Employee.findById(req.params.id, "company")
-    .populate("company", "CompanyName")
-    .lean().exec();
+      .populate("company", "CompanyName")
+      .lean().exec();
     if (!emp && !emp.company) {
       return res.status(404).send({ error: "you are not in any company" });
     } else {
@@ -114,6 +126,12 @@ router.put("/:id", verifyAdminHR, async (req, res) => {
 
 router.delete("/:id", verifyAdminHR, async (req, res) => {
   try {
+    // check is valid id
+    const { id } = req.params;
+    if (!checkValidObjId(id)) {
+      return res.status(400).send({ error: "Invalid or missing Company Id" })
+    }
+
     if (await Employee.exists({ company: req.params.id })) {
       return res.status(400).send({ error: "Some Employees are in this Company, Please remove them." })
     } else if (await Department.exists({ company: req.params.id })) {
@@ -121,8 +139,8 @@ router.delete("/:id", verifyAdminHR, async (req, res) => {
     } else if (await Position.exists({ company: req.params.id })) {
       return res.status(400).send({ error: "Some Postions data are using this Comapany, Please remove them" })
     }
-    const delte = await Company.findByIdAndDelete(req.params.id);
-    return res.send({ message: `${delte?.CompanyName} Company has been deleted` })
+    const delte = await Company.findByIdAndUpdate(req.params.id, { isDeleted: true });
+    return res.send({ message: `${delte?.CompanyName} Company has been moved to isDeleted` })
   } catch (error) {
     await errorCollector({ url: req.originalUrl, name: error.name, message: error.message, env: process.env.ENVIRONMENT })
     return res.status(500).send({ error: error.message })

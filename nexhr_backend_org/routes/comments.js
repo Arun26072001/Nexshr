@@ -43,7 +43,6 @@ router.post("/:id", verifyAdminHREmployeeManagerNetwork, async (req, res) => {
             .populate("company", "CompanyName logo")
             .exec();
 
-
         if (!emps || !emps.length) {
             return res.status(400).send({ error: "Assinees not found. Please verify or refresh the page and try again." })
         }
